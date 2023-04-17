@@ -1,0 +1,2 @@
+# spec
+xRegistry related specifications
