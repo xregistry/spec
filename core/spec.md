@@ -146,7 +146,7 @@ TODO: Add `format`
 - Type: String   # SHOULD this be a URI-Reference?
 - Description: An immutable unique identifier of the entity.
 - Constraints:
-  - MUST be a non-empty string
+  - MUST be a non-empty string consisting of visible US-ASCII octets (33-126).
   - MUST be immutable
   - MUST be case-insensitive unique within the scope of the entity's parent.
     In the case of the `id` for the Registry itself, the uniqueness scope will
