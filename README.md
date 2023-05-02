@@ -6,7 +6,7 @@
 <img src="./docs/artwork/xReg.jpg" width=100 height=100>
 
 [![CLOMonitor](https://img.shields.io/endpoint?url=https://clomonitor.io/api/projects/cncf/cloudevents/badge)](https://clomonitor.io/projects/cncf/cloudevents)
-[![OpenSSF Best Practices](https://bestpractices.coreinfrastructure.org/projects/6770/badge)](https://bestpractices.coreinfrastructure.org/projects/6770)
+[![OpenSSF Best Practices](https://bestpractices.coreinfrastructure.org/projects/7295/badge)](https://bestpractices.coreinfrastructure.org/projects/7295)
 
 
 xRegistry...
