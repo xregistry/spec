@@ -17,10 +17,12 @@ automation and tooling.
   - [Registry APIs](#registry-apis)
     - [Registry Model](#registry-model)
     - [Registry Collections](#registry-collections)
-    - [Retrieving the Registry](#retrieving-the-registry)
-    - [Managing Groups](#managing-groups)
+    - [Registry Entity](#registry-entity)
+    - [Groups](#groups)
     - [Managing Resources](#managing-resources)
     - [Managing versions of a Resource](#managing-versions-of-a-resource)
+  - [Inlining Collections](#inlining-collections)
+  - [Filtering](#filtering)
 
 ## Overview
 
@@ -58,6 +60,10 @@ Intermediary SHOULD forward OPTIONAL attributes.
 In the pseudo JSON format snippets `?` means the preceding attribute is
 OPTIONAL, `*` means the preceding attribute MAY appear zero or more times,
 and `+` means the preceding attribute MUST appear at least once.
+
+Use of the words `GROUP` and `RESOURCE` are meant to represent the singular
+form of a Group and Resource type being used.  While `GROUPs` and `RESOURCEs`
+are the plural form of those respective types.
 
 ### Terminology
 
@@ -123,23 +129,17 @@ adhere to the following rules:
 
 - it is STRONGLY RECOMMENDED that they be named in such a way as to avoid
   potential conflicts with future Registry Service attributes. For example,
-  use of a model specific prefix.
+  use of a model (or domain) specific prefix can help.
 - they MUST differ from sibling attributes irrespective of case. This avoids
   potential conflicts if the attributes are serialized in a case-insensitive
   situation, such as HTTP headers.
+- for case sensitive serializations, it is RECOMMENDED that attribute names
+  be defined in camelCase and acronyms have only their first letter
+  capitalized. For example, `Id` not `ID`.
 
 In situations where an attribute is serialized in a case-sensitive situation,
 then the case specified by this specification, or the defining extension
 specification, MUST be adhere to.
-
-TODO: Add `format`
-  - MUST be of the form document-type[/version]
-  - children MUST NOT be looser than parent (can't do parent xx/3, child xx)
-  - format group level is OPTIONAL, if present all resources/versions MUST
-    match its previs
-  - REQUIRED on resources and versions
-    - format prefix MUST be consistent
-    - but format version number can differe
 
 #### `id`
 
@@ -295,6 +295,35 @@ TODO: Add `format`
 - Examples:
   - `https://example.com/docs/myQueue`
 
+#### `format`
+
+- Type: String
+- Description: The name of the specification that defines the resource
+  stored in the registry. Often it is difficult to unambiguously determine
+  what a resource is via simple inspect of its serialization. This attribute
+  provides a mechanism by which it can be determined without examination of
+  the resource at all.
+- Constraints:
+  - if present, MUST be a non-empty string of the form `SPEC[/VERSION]`,
+    where `SPEC` is the name of the specification that defines the resource.
+    An OPTIONAL `VERSION` value SHOULD be included if there are multiple
+    versions of the specification available.
+  - for comparison purposes, this attribute MUST be considered case sensitive
+  - If a `VERSION` is specified at the Group level, all Resources within that
+    Group MUST have a `VERSION` value that is at least as precise as its
+    Group, and MUST NOT be more open. For example, if a Group had a
+    `format` value of `myspec`, then Resources within that Group can have
+    `format` values of `myspec` or `myspec/1.0`. However, if a Group has a
+    value of `myspec/1.0` it would be invalid for a Resource to have a value of
+    `myspec/2.0` or just `myspec`. Additionally, if a Group does not have
+    a `format` attribute then there are no constraints on its Resources
+    `format` attributes
+  - This specification places no restriction on the case of the `SPEC` value
+    or on the syntax of the `VERSION` value
+- Examples:
+  - `CloudEvents/1.0`
+  - `MQTT`
+
 ### Registry APIs
 
 This specification defines the following API patterns:
@@ -313,9 +342,9 @@ This specification defines the following API patterns:
 ```
 
 Where:
-- `GROUPs` is a grouping name (plural). E.g. `endpoints`
+- `GROUPs` is a Group name (plural). E.g. `endpoints`
 - `gID` is the unique identifier of a single Group
-- `RESOURCEs` is the type of resources (plural). E.g. `definitions`
+- `RESOURCEs` is the type of Resource (plural). E.g. `definitions`
 - `rID` is the unique identifier of a single Resource
 - `vID` is the unique identifier of a version of a Resource
 
@@ -389,10 +418,11 @@ The following describes the attributes of Registry model:
 - `groups.resources.versions`
   - OPTIONAL
   - Number of versions per Resource that will be stored in the Registry
-  - The default value is zero (`0`), meaning no old versions will be stored
-  - A value of negative one (`-1`) indicates there is no stated limit, and
-    implementation MAY prune old versions at any time. Implementation MUST
-    NOT delete a version without also deleting all older versions.
+  - The default value is zero (`1`), meaning only the current version will
+    be stored
+  - A value of negative one (`0`) indicates there is no stated limit, and
+    implementation MAY prune non-latest versions at any time. Implementation
+    MUST NOT delete a version without also deleting all older versions.
 
 
 Below describes how to retrieve the model as an independent resource.
@@ -428,7 +458,7 @@ Content-Length: nnnn
 }
 ```
 
-**Example:**
+**Examples:**
 
 Request:
 
@@ -469,49 +499,102 @@ pattern with respect to how they are represented in the serialization of the
 Registry.
 
 Each collection MUST be serialized as 2 REQUIRED properties and 1 OPTIONAL
-one - as shown in the following example for a GROUP:
+one - as shown in the following example:
 ```
   "GROUPsUrl": "URL,
   "GROUPsCount": UINT,
-  "GROUPs": { ... map of entities in the group, key is the "id" of each ... } ?
+  "GROUPs": { ... map of Resources in the Group, key is the "id" of each ... } ?
 ```
 
 Each property MUST start with the plural name of the entity type. For example,
 `endpointsUrl`, not `endpointUrl`. The `xxxsUrl` property MUST always be
 present and MUST contain an absolute URL that can be used to retrieve the
 latest set of entities in the collection via an HTTP `GET`. The `xxxsCount`
-property MUST always be present and MUST containe the number of entities in
-the collection after any filtering might have been applied. The `xxxs`
+property MUST always be present and MUST contain the number of entities in
+the collection after any filtering that might have been applied. The `xxxs`
 property is OPTIONAL and MUST only be included if the Registry request included
-the `inline` flag and it included this collection's plural name. This property
-MUST be a map with the key equal to the `id` of each entity in the collection.
-When filtering is applied then this property MUST only include entities that
-satisfy the filter criteria.
+the [`inline`](#inlining-collections) flag indicating that this collection's
+value are to be returned as part of the result. This property MUST be a map
+with the key equal to the `id` of each entity in the collection. When filtering
+is applied then this property MUST only include entities that satisfy the
+filter criteria.
 
-The set of entitie returned in the `xxxs` property is a point-in-time view
+The set of entities returned in the `xxxs` property is a point-in-time view
 of the Registry. There is no guarantee that a `GET` to the `xxxsUrl` will
 return the exact same collection since the contents of the Registry might
 have changed.
 
-When the number of entities in the collection is zero, the `xxxs` property
-MAY be excluded from the serialization, even if `inline` is specified.
+When the number of entities in the collection (after filtering) is zero, the
+`xxxs` property MAY be excluded from the serialization, even if
+[`inline`](#inlining-collections) is specified.
 
-For clarity, these rules MUST apply to the `GROUPs`, `RESOURCEs` and
-`versions` collections.
+For clarity, these rules MUST apply to the Groups(`GROUPs`),
+Resources(`RESOURCEs`) and Versions(`versions`) collections.
 
-#### Retrieving the Registry
+#### Registry Entity
 
-This returns the Groups in the Registry along with metadata about the
-Registry itself.
+The Registry entity represents the root of a Registry and is the main
+entry-point for traversal.
+
+The Registry entity includes the following common attributes:
+- [`id`](#id) - REQUIRED
+- [`name`](#name) - OPTIONAL
+- [`description`](#description) - OPTIONAL
+- [`tags`](#tags) - OPTIONAL
+- [`self`](#self) - REQUIRED
+- [`docs`](#docs) - OPTIONAL
+
+and the following Registry specific attributes:
+
+##### `specVersion`
+- Type: String
+- Description: The version of this specification that the serialization
+  adheres to
+- Constraints:
+  - MUST be included in any serialization that includes the top-level
+    Registry resource
+- Examples:
+  - `1.0`
+
+##### `model`
+- Type: Registry Model
+- Description: A description of the Groups and Resources supported by this
+  Registry.
+- Constraints:
+  - OPTIONAL based on the incoming request
+  - MUST NOT be included unless requested
+  - MUST be included if requested
+
+##### `GROUPs` collections
+- Type: [Registry Collection](#registry-collections)
+- Description: A list of Registry collections that contain the set of
+  Groups(`GROUPs) supported by the Registry
+- Constraints:
+  - MUST include all Group Collections unless one was excluded due to a filter
+
+##### Retrieving the Registry
+
+To retrieve the Registry, its metadata attributes and Groups, an HTTP GET
+MAY be used.
 
 The request MUST be of the form:
 
 ``` meta
-GET /[?model]
+GET /[?model&inline=...&filter=...]
 ```
 
-The presence of the `model` query parameter indicates that the response
-MUST include the Registry model as an additional top-level property.
+The following query parameters MUST be supported:
+- `model`<br>
+  The presence of this query parameter indicates that the request is asking
+  for the Registry model to be included in the response. See
+  [`model`](#model) for more information.
+- `inline`<br>
+  The presence of this query parameter indicates that the response MUST
+  include the contents of the specified collections as part of the response.
+  See [inlining](#inlining-collections) for more information.
+- `filter`<br>
+  The presence of this query parameter indicates that response MUST only
+  include data matching the specified [filter](#filtering) expression.
 
 A successful response MUST be of the form:
 
@@ -523,21 +606,22 @@ Content-Length: nnnn
 {
   "id": "STRING",
   "name": "STRING", ?
-  "description": "STRING", ?  # Description of Registry
-  "specVersion": "STRING",    # Registry spec version
+  "description": "STRING", ?
+  "specVersion": "STRING",
   "self": "URL",
   "tags": { "STRING": "STRING" * }, ?
   "docs": "URL", ?
 
-  "model": { ... } ?          # if ?model is present
+  "model": { ... } ?                  # if "model" query parameter is present
 
-  # Repeat for each Group
-  "GROUPsUrl": "URL",         # eg. "endpointsUrl" - repeated for each GROUP
-  "GROUPsCount": INT          # eg. "endpointsCount"
+  # Repeat for each Group type
+  "GROUPsUrl": "URL",                 # eg. "endpointsUrl"
+  "GROUPsCount": INT                  # eg. "endpointsCount"
+  "GROUPs": { GROUPs collection }, ?  # if inlined
 }
 ```
 
-**Example:**
+**Examples:**
 
 Request:
 
@@ -560,17 +644,18 @@ Content-Length: nnnn
   "endpointsURL": "https://example.com/endpoints",
   "endpointsCount": 42,
 
-  "definitionGroupsURL": "https://example.com/groups",
-  "definitionGroupsCount": 3
+  "definitionGroupsURL": "https://example.com/definitionGroups",
+  "definitionGroupsCount": 1
 }
 ```
 
-Another example asking for the model to be included:
+Another example asking for the model to be included and for one of the
+collections to be inlined:
 
 Request:
 
 ``` meta
-GET /?model
+GET /?model&inline=definitionGroups
 ```
 
 Response:
@@ -603,127 +688,59 @@ Content-Length: nnnn
   "endpointsUrl": "https://example.com/endpoints",
   "endpointsCount": 42,
 
-  "definitionGroupsUrl": "https://example.com/groups",
-  "definitionGroupsCount": 3
+  "definitionGroupsUrl": "https://example.com/definitionGroups",
+  "definitionGroupsCount": 1,
+  "definitionGroups": {
+    "blobStoreEvents": {
+      "id": "blobStoreEvents",
+      ... excluded for brevity ...
+    }
+  }
 }
 ```
 
-##### Retrieving all Registry Contents
+#### Groups
 
-This returns the Groups and all nested data in the Registry along with
-metadata about the Registry itself. This is designed for cases where the
-entire Registry's contents are to be represented as a single document.
+Groups represent top-level resources in a Registry that act as a collection
+mechanism for related Resources. Each Group definition MAY have any number of
+Resource types within it. This specification does not define how the Resources
+within a Group definition are related.
+
+Groups include the following common attributes:
+- [`id`](#id) - REQUIRED
+- [`name`](#name) - REQUIRED
+- [`epoch`](#epoch) - REQUIRED
+
+and the following Group specific attributes:
+
+##### `RESOURCEs` collections
+- Type: [Registry Collection](#registry-collections)
+- Description: A list of Registry collections that contain the set of
+  Resources supported by the Group
+- Constraints:
+  - MUST include all nested Resource Collections of the owning Group unless
+    one was excluded due to a filter
+
+##### Retrieving A Group Collection
+
+To retrieve all Groups of a certain type, an HTTP GET MAY be used.
 
 The request MUST be of the form:
 
 ``` meta
-GET /[?inline[=PATH,...]][&model]
+GET /GROUPs[?inline=...&filter=...]
 ```
 
-Where `PATH` is a string indicating which collections of GROUPs, RESOURCEs
-and `versions` to include in the response. The PATH MUST be of the form
-`GROUPs[.RESOURCEs[.versions]]` where `GROUPs` is replaced with the plural
-name of a Group, and `RESOURCEs` is replaced with the plural name of a nested
-Resource. There MAY be mulitple PATHs specified, either as comma separated
-values or via mulitple `inline` query parameters. Absence of a value, or a
-value of an empty string, indicates that all nested collections MUST be inlined.
+Where GROUPs is the plural name of a Group type.
 
-Presence of the `model` query parameter indicates that the response MUST
-include the Registry model definition as a top-level property.
-
-A successful response MUST be of the form:
-
-``` meta
-HTTP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
-Content-Length: nnnn
-
-{
-  "name": "STRING", ?
-  "description": "STRING", ?  # Description of Registry
-  "specVersion": "STRING",    # Registry spec version
-  "tags": { "STRING": "STRING" * }, ?
-  "docs": "URL", ?
-
-  "model": { ... } ?          # Only if ?model is present
-
-  # Repeat for each Group
-  "GROUPsUrl": "URL",         # eg. "endpointsUrl"
-  "GROUPsCount": INT,         # eg. "endpointsCount"
-  "GROUPs": {                 # eg. "endpoints" - only if ?inline is present
-    "ID": {                   # The Group ID
-      "id": "STRING",
-      "name": "STRING",
-      "epoch": UINT,          # What other common fields?
-                              # type? createdBy/On? modifiedBy/On? docs? tags?
-                              # description? self?
-
-      # Repeat for each RESOURCE in the Group
-      "RESOURCEsUrl": "URL",  # URL to retrieve all nested Resources
-      "RESOURCEsCount": INT,  # Total number of resources
-      "RESOURCEs": {          # eg. "definitions" - only if ?inline is present
-        "ID": {               # MUST match the "id" on the next line
-          "id": "STRING",
-          ... remaining RESOURCE ?meta and RESOURCE itself ...
-
-          "versionsUrl": "URL",
-          "versionsCount": INT,
-          "versions": {       # Only when ?inline is present
-            "ID": {
-              "id": "STRING",
-              ... remaining VERSION ?meta and VERSION itself ...
-            }
-          } ?
-        } *
-      } ?                     # OPTIONAL if RESOURCEsCount is zero
-    } *
-  } ?                         # OPTIONAL if GROUPsCount is zero
-}
-```
-
-Note: If the Registry can not return all expected data in one response then it
-MUST generate an error. In those cases, the client will need to query the
-individual Groups via the `/GROUPsUrl` API so the Registry can leverage
-pagination of the response.
-
-TODO: define the error / add filtering / pagination
-
-**Example:**
-
-Request:
-
-``` meta
-GET /?inline
-```
-
-Response:
-
-``` meta
-HTTP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
-Content-Length: nnnn
-
-{ TODO }
-```
-
-#### Managing Groups
-
-##### Retrieving all Groups
-
-This returns all entities that are in a Group.
-
-The request MUST be of the form:
-
-``` meta
-GET /GROUPs[?inline[=PATH,...]]
-```
-
-Where `PATH` is a string indicating which collections of RESOURCEs and
-`versions` to include in the response. The PATH MUST be of the form
-`RESOURCEs[.versions]` where `RESOURCEs` is replaced with the plural name of
-a Resource. There MAY be mulitple PATHs specified, either as comma separated
-values or via mulitple `inline` query parameters. Absence of a value
-indicates that all nested collections MUST be inlined.
+The following query parameters MUST be supported:
+- `inline`<br>
+  The presence of this query parameter indicates that the response MUST
+  include the contents of the specified collections as part of the response.
+  See [inlining](#inlining-collections) for more information.
+- `filter`<br>
+  The presence of this query parameter indicates that the response MUST only
+  include data matching the specified [filter](#filtering) expression.
 
 A successful response MUST be of the form:
 
@@ -739,24 +756,10 @@ Link: <URL>;rel=next;count=INT  # If pagination is needed
     "name": "STRING",
     "epoch": UINT,          # Server controlled
 
-    # Repeat for each RESOURCE in the Group
-    "RESOURCEsUrl": "URL",  # URL to retrieve all nested Resources
-    "RESOURCEsCount": INT,  # Total number resources
-    "RESOURCEs": {          # Only when ?inline is present
-      "ID": {               # MUST match the "id" on the next line
-        "id": "STRING",
-        ... remaining RESOURCE ?meta and RESOURCE itself ...
-
-        "versionsUrl": "URL",
-        "versionsCount": INT,
-        "versions": {       # Only when ?inline is present
-          "ID": {
-            "id": "STRING",
-            ... remaining VERSION ?meta and VERSION itself ...
-          } ?
-        } ?
-      } *
-    } ?                     # OPTIONAL if RESOURCEsCount is zero
+    # Repeat for each Resource type in the Group
+    "RESOURCEsUrl": "URL",                    # eg. "schemasUrl"
+    "RESOURCEsCount": INT,                    # eg. "schemasCount"
+    "RESOURCEs": { RESOURCEs collection } ?   # if inlined
   } *
 }
 ```
@@ -767,7 +770,9 @@ one response then an error MUST be generated. In those cases the client will
 need to query the individual Resources via the `RESOURCEsUrl` so the Registry
 can leverage pagination of the response data.
 
-**Example:**
+TODO: define the error
+
+**Examples:**
 
 Request:
 
@@ -803,8 +808,6 @@ Link: <http://example.com/endpoints&page=2>;rel=next;count=100
 }
 ```
 
-TODO: add filtering and define error
-
 ##### Creating a Group
 
 This will add a new Group to the Registry.
@@ -833,13 +836,13 @@ Location: URL             # .../GROUPs/ID
   "name": "STRING",
   "epoch": UINT,
 
-  # Repeat for each RESOURCE type in the Group
+  # Repeat for each Resource type in the Group
   "RESOURCEsUrl": "URL",  # URL to retrieve all nested Resources
   "RESOURCEsCount": INT   # Total number resources
 }
 ```
 
-**Example:**
+**Examples:**
 
 Request:
 
@@ -889,13 +892,13 @@ Content-Length: nnnn
   "name": "STRING",
   "epoch": UINT,           # Server controlled
 
-  # Repeat for each RESOURCE type in the Group
+  # Repeat for each Resource type in the Group
   "RESOURCEsUrl": "URL",  # URL to retrieve all nested Resources
   "RESOURCEsCount": INT,  # Total number resources
   "RESOURCEs": {          # Only when ?inline is present
     "ID": {
       "id": "STRING",
-      ... remaining RESOURCE ?meta and RESOURCE itself ...
+      ... remaining Resource ?meta and Resource itself ...
 
       "versionsUrl": "URL",
       "versionsCount": INT,
@@ -910,7 +913,7 @@ Content-Length: nnnn
 }
 ```
 
-**Example:**
+**Examples:**
 
 Request:
 
@@ -966,13 +969,13 @@ Content-Length: nnnn
   "name": "STRING",
   "epoch": UINT,          # MUST be greater than previous value
 
-  # Repeat for each RESOURCE type in the Group
+  # Repeat for each Resource type in the Group
   "RESOURCEsUrl": "URL",
   "RESOURCEsCount": INT
 }
 ```
 
-**Example:**
+**Examples:**
 
 Request:
 
@@ -1074,7 +1077,7 @@ GET /GROUPs/ID/RESOURCEs[?inline[=versions]]
 
 Where `inline` indicates whether to include the `versions` collection
 in the response. In this case the "versions" value is OPTIONAL since it is the
-only collection within the RESOURCE that might be shown. Absence of a value, or
+only collection within the Resource that might be shown. Absence of a value, or
 a value of an empty string, indicates that the `versions` collection MUST
 be inlined.
 
@@ -1116,7 +1119,7 @@ one response then an error MUST be generated. In those cases the client will
 need to query the individual Versions via the `versionUrl` so the Registry
 can leverage pagination of the response data.
 
-**Example:**
+**Examples:**
 
 Request:
 
@@ -1178,7 +1181,7 @@ Content-Location: URL            # Same as Registry-self value
 { ...Resource entity... } ?
 ```
 
-**Example:**
+**Examples:**
 
 Request:
 
@@ -1200,7 +1203,7 @@ GET /GROUPs/ID/RESOURCEs/ID[?inline[=versions]]
 
 Where `inline` indicates whether to include the `versions` collection
 in the response. In this case the "versions" value is OPTIONAL since it is the
-only collection within the RESOURCE that might be shown. Absence of a value, or
+only collection within the Resource that might be shown. Absence of a value, or
 a value of an empty string, indicates that the `versions` collection MUST
 be inlined.
 
@@ -1224,7 +1227,7 @@ Location: URL                    # If 307. Same a Registry-RESOURCEURI
 { ...Resource entity... } ?
 ```
 
-**Example:**
+**Examples:**
 
 Request:
 
@@ -1262,7 +1265,7 @@ Content-Length: nnnn
 }
 ```
 
-**Example:**
+**Examples:**
 
 Request:
 
@@ -1318,7 +1321,7 @@ Registry HTTP header is missing then the Registry attribute MUST be updated to
 match the Resource's attribute. If both are present on the request and do not
 have the same value then an error MUST be generated.
 
-**Example:**
+**Examples:**
 
 Request:
 
@@ -1372,7 +1375,7 @@ Content-Length: nnnn
 }
 ```
 
-**Example:**
+**Examples:**
 
 Request:
 
@@ -1416,7 +1419,7 @@ Content-Location: URL              # Does this make sense if it's been deleted?
 { ...Resource entity... } ?
 ```
 
-**Example:**
+**Examples:**
 
 Request:
 
@@ -1489,7 +1492,7 @@ Link: <URL>;rel=next;count=INT  # If pagination is needed
 }
 ```
 
-**Example:**
+**Examples:**
 
 Request:
 
@@ -1537,7 +1540,7 @@ Location: .../GROUPs/ID/RESOURCEs/ID   # or self?
 { ...Resource entity... } ?
 ```
 
-**Example:**
+**Examples:**
 
 Request:
 
@@ -1580,7 +1583,7 @@ Location: URL                    # If 307. Same a Registry-RESOURCEURI
 { ...Resource entity... } ?
 ```
 
-**Example:**
+**Examples:**
 
 Request:
 
@@ -1614,7 +1617,7 @@ Content-Length: nnnn
 }
 ```
 
-**Example:**
+**Examples:**
 
 Request:
 
@@ -1670,7 +1673,7 @@ Registry HTTP header is missing then the Registry attribute MUST be updated to
 match the Resource's attribute. If both are present on the request and do not
 have the same value then an error MUST be generated.
 
-**Example:**
+**Examples:**
 
 Request:
 
@@ -1713,7 +1716,7 @@ Content-Length: nnnn
 }
 ```
 
-**Example:**
+**Examples:**
 
 Request:
 
@@ -1757,7 +1760,7 @@ Content-Location: URL              # Does this make sense if it's been deleted?
 { ...Resource entity... } ?
 ```
 
-**Example:**
+**Examples:**
 
 Request:
 
@@ -1806,3 +1809,66 @@ An attempt to delete all versions MUST generate an error.
 
 A `DELETE /GROUPs/ID/RESOURCEs/ID/versions` without a body MUST delete all
 versions (except the latest) of the Resource.
+
+### Inlining Collections
+
+The `inline` query parameter on a request indicates that the response
+MUST include the contents of all specified collections, in addition to the
+`URL` and `Count` values of the collections. See
+[Registry Collections](#registry-collections) for more information. This
+is useful for cases where the contents of the Registry are to be represented
+as a single (self-contained) document.
+
+The format of the `inline` query parameter is:
+
+``` meta
+inline[=PATH[,...]]
+```
+
+Where `PATH` is a string indicating which collections of Groups, Resources
+or `versions` to include in the response. References to nested collections are
+represented using a dot(`.`) notation - for example `GROUPs.RESOURCEs`.
+
+There MAY be multiple `PATH`s specified, either as comma separated values on
+a single `inline` parameter or via multiple `inline` query parameters. Absence
+of a value, or a value of an empty string, indicates that all nested
+collections MUST be inlined.
+
+The specific value of `PATH` will vary based on where the request is directed.
+For example, a request to the root of the Registry would start with a `GROUPs`
+name, while a request directed at a Group would start with a `RESOURCEs` name.
+
+For example:
+
+Given a Registry with a model that has "endpoints" as a Group and "definitions"
+as a Resource within "endpoints":
+
+| HTTP GET Path | Example ?inline=PATH values |
+| --- | --- |
+| / | ?inline=endpoints |
+| / | ?inline=endpoints.definitions.versions |
+| /endpoints | ?inline=definitions |
+| /endpoints/myendpoint | ?inline=definitions.versions |
+| /endpoints/myendpoint | ?inline=endpoints # Invalid, already in 'endpoints' |
+
+Note that asking for a collection to be inlined will implicitly causes all of
+its parent collections to be inlined as well.
+
+Each collection MUST be specified using the plural name for the collection
+in its defined case.
+
+A request to inline an unknown collection MUST NOT return an error and
+MUST continue as if that inline PATH was not specified.
+
+Note: If the Registry can not return all expected data in one response then it
+MUST generate an error. In those cases, the client will need to query the
+individual collection via the appropriate `xxxsUrl` API so the Registry can
+leverage pagination of the response.
+
+TODO: define the error
+TODO: add pagination
+
+### Filtering
+
+TODO
+
