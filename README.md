@@ -8,12 +8,28 @@
 [![CLOMonitor](https://img.shields.io/endpoint?url=https://clomonitor.io/api/projects/cncf/cloudevents/badge)](https://clomonitor.io/projects/cncf/cloudevents)
 [![OpenSSF Best Practices](https://bestpractices.coreinfrastructure.org/projects/7295/badge)](https://bestpractices.coreinfrastructure.org/projects/7295)
 
+The xRegistry project defines an abstact model for how to manage metadata
+about resources and provide a REST-based interface for creating, modifying,
+deleting and discovering of those resources. The project includes a "core"
+specification that defines the basic model and APIs of a Registry and a
+set of domain specific specifications that extend that core for particular
+use cases. By leveraging the same "core" model/APIs, generic tooling and
+comon patterns of Registry access can be developed which help create an
+interopable (and standard) interface.
 
-xRegistry...
+It is expected that that futher specifications will be developed, both as
+part of the xRegistry project as well as outside of the project, that will
+leverage this framework for additional purposes.
 
-Para2...
+xRegistry was first developed under the [CloudEvents](https://cloudevents.io)
+project, and in April 2023 it was split into its own project but continues
+so share many organizational resources with the CloudEvents and CNCF Serverless
+Working Group (such as the weekly meetings).
 
-## xRegsitry Documents
+The name `xRegistry` is meant to be written with a lowercase `x`, even when
+the first word in a sentence.
+
+## xRegistry Documents
 
 |                               |                                 Latest Release                                  |                                      Working Draft                                       |
 | :---------------------------- | :-----------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------: |
@@ -79,7 +95,7 @@ Please see the
 [meeting minutes doc](https://docs.google.com/document/d/1OVF68rpuPK5shIHILK9JOqlZBbfe91RNzQ7u_P7YCDE/edit#)
 for the latest information on how to join the calls.
 
-Recording from our calls are available 
+Recording from our calls are available
 [here](https://www.youtube.com/playlist?list=PLO-qzjSpLN1BEyKjOVX_nMg7ziHXUYwec), and
 older ones are
 [here](https://www.youtube.com/playlist?list=PLj6h78yzYM2Ph7YoBIgsZNW_RGJvNlFOt).
