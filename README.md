@@ -76,9 +76,9 @@ repository please [open an issue](https://github.com/xregistry/spec/issues).
 
 The main mailing list for e-mail communications:
 
-- Send emails to: [cncf-cloudevents](mailto:cncf-cloudevents@lists.cncf.io)
-- To subscribe see: https://lists.cncf.io/g/cncf-cloudevents
-- Archives are at: https://lists.cncf.io/g/cncf-cloudevents/topics
+- Send emails to: [cncf-xregistry](mailto:cncf-xregistry@lists.cncf.io)
+- To subscribe see: https://lists.cncf.io/g/cncf-xregistry
+- Archives are at: https://lists.cncf.io/g/cncf-xregistry/topics
 
 And a #xregistry Slack channel under
 [CNCF's Slack workspace](http://slack.cncf.io/).
