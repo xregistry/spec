@@ -38,7 +38,7 @@ the first word in a sentence.
 |                               |
 | **Domain Specific Specifications:**  |
 | Endpoint Registry             | n/a | [WIP](endpoint/spec.md)                         |
-| Message Registry              | n/a | [WIP](message/spec.md)                         |
+| Message Definitions Registry  | n/a | [WIP](message/spec.md)                         |
 | Schema Registry               | n/a | [WIP](schema/spec.md)                         |
 |                               |
 | **Additional Documentation:** |
