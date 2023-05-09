@@ -10,10 +10,9 @@ TODO
 - [Notations and Terminology](#notations-and-terminology)
   - [Notational Conventions](#notational-conventions)
   - [Terminology](#terminology)
-- [CloudEvents Registry](#cloudevents-registry)
-  - [Message Definitions Registry](#message-definitions-registry)
-    - [Message Definition Groups](#message-definition-groups)
-    - [Message Definitions](#message-definitions)
+- [Message Definitions Registry](#message-definitions-registry)
+  - [Message Definition Groups](#message-definition-groups)
+  - [Message Definitions](#message-definitions)
 
 ## Overview
 
@@ -50,330 +49,7 @@ This specification defines the following terms:
 
 TODO
 
-## CloudEvents Registry
-
-The CloudEvents Registry is a universal catalog and discovery metadata format
-as well as a metadata service API for messaging and eventing schemas,
-metaschemas, and messaging and eventing endpoints.
-
-The CloudEvents registry model contains three separate registries that can be
-implemented separately or in combination.
-
-- The [Schema Registry](../schema/spec.md) specification describes the metadata
-  description of payload schemas for events and messages. The schema registry is
-  universally applicable to any scenario where collaborating parties share
-  structured data that is defined by formal schemas. For instance, when storing
-  Protobuf encoded structured data in a cloud file store, you might place a
-  schema registry in file form in the parent directory, which formally organizes
-  and documents all versions of all Protobuf schemas that are used in the
-  directory.
-- The [Message Definitions Registry](#message-definitions-registry) section
-  describes the metadata description of events and messages. The payload schemas
-  for events and messages can be embedded in the definition, reference an
-  external schema document, or can be referenced into the schema registry. The
-  message definitions registry is universally applicable to any asynchronous
-  messaging and eventing scenario. You might define a group of definitions that
-  describe precisely which messages, with which metadata, are permitted to flow
-  into a channel and can thus be expected by consumers of that channel and then
-  associate that definition group with a topic or queue in your eventing or
-  messaging infrastructure. That association might be a metadata attribute on
-  the topic or queue in the messaging infrastructure that embeds the metadata or
-  points to it.
-- The [Endpoint Registry](../endpoint/spec.md) section defines the metadata
-  description of network endpoints that accept or emit events and messages. The
-  endpoint registry is a formal description of associations of message
-  definitions and network endpoints, which can be used to discover endpoints
-  that consume or emit particular messages or events via a central registry. The
-  message definitions can be embedded into the endpoint metadata or as
-  a reference into the message definitions registry.
-
-The metadata model is structured such that network endpoint information and
-message metadata and payload schemas can be described compactly in a single
-metadata object (and therefore as a single document) in the simplest case or can
-be spread out and managed across separate registry products in a sophisticated
-large-enterprise scenario.
-
-The following is an exemplary, compact definition of an MQTT 5.0 consumer
-endpoint with a single, embedded message definition using an embedded Protobuf 3
-schema for its payload.
-
-``` JSON
-{
-  "$schema": "https://cloudevents.io/schemas/registry",
-  "specversion": "0.5-wip",
-  "id": "urn:uuid:3978344f-8596-4c3a-a978-8fc9a6a469f7",
-  "endpoints":
-  {
-    "com.example.telemetry": {
-      "id": "com.example.telemetry",
-      "usage": "consumer",
-      "config": {
-        "protocol": "MQTT/5.0",
-        "strict": false,
-        "endpoints": [
-            "mqtt://mqtt.example.com:1883"
-        ],
-        "options": {
-            "topic": "{deviceid}/telemetry"
-        }
-      },
-      "format": "CloudEvents/1.0",
-      "definitions": {
-        "com.example.telemetry": {
-          "id": "com.example.telemetry",
-          "description": "device telemetry event",
-          "format": "CloudEvents/1.0",
-          "metadata": {
-            "attributes": {
-              "id": {
-                "type": "string",
-                "required": true
-              },
-              "type": {
-                "type": "string",
-                "value": "com.example.telemetry",
-                "required": true
-              },
-              "time": {
-                "type": "datetime",
-                "required": true
-              },
-              "source": {
-                "type": "uritemplate",
-                "value": "{deploymentid}/{deviceid}",
-                "required": true
-              }
-            }
-          },
-          "schemaformat": "Protobuf/3.0",
-          "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; } }"
-        }
-      }
-    }
-  }
-}
-```
-
-The same metadata can be expressed by spreading the metadata across the message
-definition and schema registries, which makes the definitions reusable for other
-scenarios:
-
-``` JSON
-{
-  "$schema": "https://cloudevents.io/schemas/registry",
-  "specversion": "0.4-wip",
-  "id": "urn:uuid:3978344f-8596-4c3a-a978-8fc9a6a469f7",
-
-  "endpointsCount": 1,
-  "endpoints":
-  {
-    "com.example.telemetry": {
-      "id": "com.example.telemetry",
-      "usage": "consumer",
-      "config": {
-        "protocol": "MQTT/5.0",
-        "strict": false,
-        "endpoints": [
-          "mqtt://mqtt.example.com:1883"
-        ],
-        "options": {
-          "topic": "{deviceid}/telemetry"
-        }
-      },
-      "format": "CloudEvents/1.0",
-      "definitionGroups": [
-        "#/definitionGroups/com.example.telemetryEvents"
-      ]
-    }
-  },
-
-  "definitionGroupsCount": 1,
-  "definitionGroups": {
-    "com.example.telemetryEvents": {
-      "id": "com.example.telemetryEvents",
-
-      "definitionsCount": 1,
-      "definitions": {
-        "com.example.telemetry": {
-          "id": "com.example.telemetry",
-          "description": "device telemetry event",
-          "format": "CloudEvents/1.0",
-          "metadata": {
-            "attributes": {
-              "id": {
-                "type": "string",
-                "required": true
-              },
-              "type": {
-                "type": "string",
-                "value": "com.example.telemetry",
-                "required": true
-              },
-              "time": {
-                "type": "datetime",
-                "required": true
-              },
-              "source": {
-                "type": "uritemplate",
-                "value": "{deploymentid}/{deviceid}",
-                "required": true
-              }
-            }
-          },
-          "schemaformat": "Protobuf/3.0",
-          "schemaurl": "#/schemaGroups/com.example.telemetry/schema/com.example.telemetrydata/versions/1.0"
-        }
-      }
-    }
-  },
-
-  "schemaGroupsCount": 1,
-  "schemaGroups": {
-    "com.example.telemetry": {
-      "id": "com.example.telemetry",
-
-      "schemasCount": 1,
-      "schemas": {
-        "com.example.telemetrydata": {
-          "id": "com.example.telemetrydata",
-          "description": "device telemetry event data",
-          "format": "Protobuf/3.0",
-
-          "versionsCount": 1,
-          "versions": {
-            "1.0": {
-              "id": "1.0",
-              "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; }"
-            }
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-If we assume the message definitions and schemas to reside at an API endpoint,
-an endpoint definition might just reference the associated message definition
-group with a deep link to the respective object in the service:
-
-``` JSONC
-{
-  "$schema": "https://cloudevents.io/schemas/registry",
-  "specversion": "0.4-wip",
-  "id": "urn:uuid:3978344f-8596-4c3a-a978-8fc9a6a469f7",
-
-  "endpointsCount": 1,
-  "endpoints":
-  {
-    "com.example.telemetry": {
-      "id": "com.example.telemetry",
-      "usage": "consumer",
-      "config": {
-        // ... details ...
-      },
-      "format": "CloudEvents/1.0",
-      "definitionGroups": [
-          "https://site.example.com/registry/definitiongroups/com.example.telemetryEvents"
-      ]
-    }
-  }
-}
-```
-
-If the message definitions and schemas are stored in a file-based registry,
-including files shared via public version control repositories, the reference
-link will first reference the file and then the object within the file, using
-[JSON Pointer][JSON Pointer] syntax:
-
-``` JSONC
-{
-  "$schema": "https://cloudevents.io/schemas/registry",
-  "specversion": "0.4-wip",
-  "id": "urn:uuid:3978344f-8596-4c3a-a978-8fc9a6a469f7",
-
-  "endpointsCount": 1,
-  "endpoints":
-  {
-    "com.example.telemetry": {
-      "id": "com.example.telemetry",
-      "usage": "consumer",
-      "config": {
-        // ... details ......
-      },
-      "format": "CloudEvents/1.0",
-      "definitionGroups": [
-        "https://rawdata.repos.example.com/myorg/myproject/main/example.telemetryEvents.cereg#/definitionGroups/com.example.telemetryEvents"
-      ]
-    }
-  }
-}
-```
-
-All other references to other objects in the registry can be expressed in the
-same way.
-
-While the CloudEvents Registry is primarily motivated by enabling development of
-CloudEvents-based event flows, the registry is not limited to CloudEvents. It
-can be used to describe any asynchronous messaging or eventing endpoint and its
-messages, including endpoints that do not use CloudEvents at all. The [Message
-Formats](#message-formats) section therefore not only describes the attribute
-meta-schema for CloudEvents, but also meta-schemas for the native message
-envelopes of MQTT, AMQP, and other messaging protocols.
-
-The registry is designed to be extensible to support any structured data
-encoding and related schemas for message or event payloads. The [Schema
-Formats](../schema/spec.md#schema-formats) section describes the meta-schema
-for JSON Schema, XML Schema, Apache Avro schema, and Protobuf schema.
-
-### File format
-
-A CloudEvents Registry can be implemented using the Registry API or with plain
-text files.
-
-When using the file-based model, files with the extension `.cereg` use JSON
-encoding. Files with the extension `.cereg.yaml` or `.cereg.yml` use YAML
-encoding. The formal JSON schema for the file format is defined in the
-[CloudEvents Registry Document
-Schema](../endpoint/spec.md#cloudevents-registry-document-schema),
-which implements the Registry format and the CloudEvents Registry format.
-
-The media-type for the file format is `application/cloudevents-registry+json`
-for the JSON encoding and `application/cloudevents-registry+yaml` for the YAML
-encoding.
-
-The JSON schema identifier is `https://cloudevents.io/schemas/registry` and the
-`specversion` property indicates the version of this specification that the
-elements of the file conform to.
-
-A CloudEvents Registry file MUST contain a single JSON object or YAML document.
-The object declares the roots of the three sub-registries, which are either
-embedded or referenced. Any of the three sub-registries MAY be omitted.
-
-``` meta
-{
-   "$schema": "https://cloudevents.io/schemas/registry",
-   "specversion": "0.4-wip",
-
-   "endpointsUrl": "URL",
-   "endpointsCount": INT,
-   "endpoints": { ... },
-
-   "definitionGroupsUrl": "URL",
-   "definitionGroupsCount": INT,
-   "definitionGroups": { ... },
-
-   "schemaGroupsUrl": "URL",
-   "schemaGroupsCount": INT,
-   "schemaGroups": { ... }
-}
-```
-
-While the file structure leads with endpoints followed by definition groups and
-then schema groups by convention, the order of the sub-registries is not
-significant.
-
-### Message Definitions Registry
+## Message Definitions Registry
 
 The Message Definitions Registry (or "Message Catalog") is a registry of
 metadata definitions for messages and events. The entries in the registry
@@ -411,7 +87,7 @@ The Registry API extension model of the Message Definitions Registry is
 }
 ```
 
-#### Message Definition Groups
+### Message Definition Groups
 
 The Group (GROUP) name is `definitionGroups`. The type of a group is
 `definitionGroup`.
@@ -419,7 +95,7 @@ The Group (GROUP) name is `definitionGroups`. The type of a group is
 The following attributes are defined for the `definitionGroup` object in
 addition to the basic [attributes](../core/spec.md#attributes-and-extensions):
 
-##### `format` (Message format)
+#### `format` (Message format)
 
 - Type: String
 - Description: Identifies the message metadata format. Message metadata formats
@@ -440,7 +116,7 @@ addition to the basic [attributes](../core/spec.md#attributes-and-extensions):
   - `AMQP/1.0`
   - `Kafka/0.11`
 
-#### Message Definitions
+### Message Definitions
 
 The resource (RESOURCE) collection name inside `definitionGroup` is
 `definitions`. The resource name is `definition`.
@@ -452,7 +128,7 @@ different definitions.
 The following extension is defined for the `definition` object in addition to
 the basic [attributes](../core/spec.md#attributes-and-extensions):
 
-##### `format` (Message format, definition)
+#### `format` (Message format, definition)
 
 Same as the [`format`](#format-message-format) attribute of the
 `definitionGroup` object.
@@ -504,7 +180,7 @@ Illustrating example:
 }
 ```
 
-##### `metadata` (Message metadata)
+#### `metadata` (Message metadata)
 
 - Type: Object
 - Description: Describes the metadata constraints for messages of this type. The
@@ -516,7 +192,7 @@ Illustrating example:
 - Examples:
   - See [Message Formats](#message-formats)
 
-##### `schemaformat`
+#### `schemaformat`
 
 - Type: String
 - Description: Identifies the schema format applicable to the message payload,
@@ -533,7 +209,7 @@ Illustrating example:
   - 'Avro/1.9.0'
   - 'Protobuf/3'
 
-##### `schema` (Message schema)
+#### `schema` (Message schema)
 
 - Type: String | Object as defined by the schema format
 - Description: Contains the inline schema for the message payload. The schema
@@ -547,7 +223,7 @@ Illustrating example:
 - Examples:
   - See [Schema Formats](../schema/spec.md#schema-formats)
 
-##### `schemaurl` (Message schema URL)
+#### `schemaurl` (Message schema URL)
 
 - Type: URI-reference
 - Description: Contains a relative or absolute URI that points to the schema
@@ -562,7 +238,7 @@ Illustrating example:
   - Mutually exclusive with the `schema` attribute.
   - If present, `schemaformat` MUST be present.
 
-#### Message Formats
+### Message Formats
 
 This section defines the message formats that are directly supported by this
 specification. Message formats lean on a protocol-neutral metadata definition
@@ -576,12 +252,12 @@ model.
 > allow for specifying very narrow constraints like the exact value of an Apache
 > Kafka record `key`.
 
-##### Common properties
+#### Common properties
 
 The following properties are common to all definitions of message
 headers/properties/attributes constraints:
 
-###### `required` (REQUIRED)
+##### `required` (REQUIRED)
 
 - Type: Boolean
 - Description: Indicates whether the property is REQUIRED to be present in a
@@ -590,7 +266,7 @@ headers/properties/attributes constraints:
   - OPTIONAL. Defaults to `false`.
   - If present, MUST be a boolean value.
 
-###### `description` (Description)
+##### `description` (Description)
 
 - Type: String
 - Description: A human-readable description of the property.
@@ -598,7 +274,7 @@ headers/properties/attributes constraints:
   - OPTIONAL.
   - If present, MUST be a non-empty string.
 
-###### `value` (Value)
+##### `value` (Value)
 
 - Type: Any
 - Description: The value of the property. With a few exceptions, see below, this
@@ -627,7 +303,7 @@ If the `type` property has the value `timestamp` and the `value` property is
 set to a value of `01-01-0000T00:00:00Z`, the value MUST be replaced with the
 current timestamp when creating a message.
 
-###### `type` (Type)
+##### `type` (Type)
 
 - Type: String
 - Description: The type of the property. This is used to constrain the value of
@@ -650,7 +326,7 @@ current timestamp when creating a message.
     - `number`: IEEE754 Double
     - `integer`: CloudEvents "Integer" type (RFC 7159, Section 6)
 
-###### `specurl` (Specification URL)
+##### `specurl` (Specification URL)
 
 - Type: URI-reference
 - Description: Contains a relative or absolute URI that points to the
@@ -658,7 +334,7 @@ current timestamp when creating a message.
 - Constraints:
   - OPTIONAL
 
-###### CloudEvents/1.0
+##### CloudEvents/1.0
 
 For the "CloudEvents/1.0" format, the [`metadata`](#metadata-message-metadata)
 object contains a property `attributes`, which is an object whose properties
@@ -747,7 +423,7 @@ CloudEvents base specification. The implied `datacontenttype` is
 For clarity of the definition, you MAY always declare all implied attribute
 properties explicitly, but they MUST conform with the rules above.
 
-#### "HTTP/1.1", "HTTP/2", "HTTP/3"
+### "HTTP/1.1", "HTTP/2", "HTTP/3"
 
 The "HTTP" format is used to define messages that are sent over an HTTP
 connection. The format is based on the [HTTP Message Format][HTTP Message
@@ -806,7 +482,7 @@ The following example defines a message that is sent over HTTP/1.1:
 }
 ```
 
-#### "AMQP/1.0"
+### "AMQP/1.0"
 
 The "AMQP/1.0" format is used to define messages that are sent over an
 [AMQP][AMQP 1.0] connection. The format is based on the default
@@ -867,7 +543,7 @@ definition:
 }
 ```
 
-##### `properties` (AMQP 1.0 Message Properties)
+#### `properties` (AMQP 1.0 Message Properties)
 
 The `properties` property is an object that contains the properties of the
 AMQP 1.0 [Message Properties][AMQP 1.0 Message Properties] section. The
@@ -888,7 +564,7 @@ following properties are defined, with type constraints:
 | `group-sequence` | `integer` | position of this message within its group |
 | `reply-to-group-id` | `uritemplate` | group-id to which the receiver of this message ought to send replies to |
 
-##### `application-properties` (AMQP 1.0 Application Properties)
+#### `application-properties` (AMQP 1.0 Application Properties)
 
 The `application-properties` property is an object that contains the custom
 properties of the AMQP 1.0 [Application Properties][AMQP 1.0 Application
@@ -897,7 +573,7 @@ Properties] section.
 The names of the properties MUST be of type `symbol` and MUST be unique.
 The values of the properties MAY be of any permitted type.
 
-##### `message-annotations` (AMQP 1.0 Message Annotations)
+#### `message-annotations` (AMQP 1.0 Message Annotations)
 
 The `message-annotations` property is an object that contains the custom
 properties of the AMQP 1.0 [Message Annotations][AMQP 1.0 Message Annotations]
@@ -906,7 +582,7 @@ section.
 The names of the properties MUST be of type `symbol` and MUST be unique.
 The values of the properties MAY be of any permitted type.
 
-##### `delivery-annotations` (AMQP 1.0 Delivery Annotations)
+#### `delivery-annotations` (AMQP 1.0 Delivery Annotations)
 
 The `delivery-annotations` property is an object that contains the custom
 properties of the AMQP 1.0
@@ -915,7 +591,7 @@ properties of the AMQP 1.0
 The names of the properties MUST be of type `symbol` and MUST be unique.
 The values of the properties MAY be of any permitted type.
 
-###### `header` (AMQP 1.0 Message Header)
+##### `header` (AMQP 1.0 Message Header)
 
 The `header` property is an object that contains the properties of the
 AMQP 1.0 [Message Header][AMQP 1.0 Message Header] section. The
@@ -929,7 +605,7 @@ following properties are defined, with type constraints:
 | `first-acquirer` | `boolean` | indicates whether the message has not been acquired previously |
 | `delivery-count` | `integer` | number of prior unsuccessful delivery attempts |
 
-##### `footer` (AMQP 1.0 Message Footer)
+#### `footer` (AMQP 1.0 Message Footer)
 
 The `footer` property is an object that contains the custom properties of the
 AMQP 1.0 [Message Footer][AMQP 1.0 Message Footer] section.
@@ -937,7 +613,7 @@ AMQP 1.0 [Message Footer][AMQP 1.0 Message Footer] section.
 The names of the properties MUST be of type `symbol` and MUST be unique.
 The values of the properties MAY be of any permitted type.
 
-#### "MQTT/3.1.1" and "MQTT/5.0"
+### "MQTT/3.1.1" and "MQTT/5.0"
 
 The "MQTT/3.1.1" and "MQTT/5.0" formats are used to define messages that are
 sent over [MQTT 3.1.1][MQTT 3.1.1] or [MQTT 5.0][MQTT 5.0] connections. The
@@ -998,7 +674,7 @@ QoS 1 delivery, with a topic name of "mytopic", and a user property of
 }
 ```
 
-#### "Kafka/0.11" format
+### "Kafka/0.11" format
 
 The "Kafka" format is used to define messages that are sent over [Apache
 Kafka][Apache Kafka] connections. The version number reflects the last version
