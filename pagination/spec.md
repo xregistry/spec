@@ -32,7 +32,7 @@ modify those values.
 
 #### limit
 
-- Type: unsigned 64-bit integer
+- Type: `Unsigned 64-bit Integer`
 - Description: Indicates the maximum number of records per message
   that the cient is willing to accept. If the server is unable to
   meet this criteria then it MUST generate an error.
@@ -58,8 +58,8 @@ a client's request for a set of records.
 Note: in the examples listed below, the use of certain query parameters
 in the response messages from the server, such as `offset` and `limit`,
 are an implementation detail of the server. How the server encodes the
-information it needs to retrieve a certain set of records is not
-mandated by this specification.
+information it needs to retrieve a certain set of records is not mandated by
+this specification.
 
 #### link
 
@@ -117,6 +117,18 @@ mandated by this specification.
 - Constraints:
   - OPTIONAL
 
+#### count
+
+- Type: `Unsigned 64-bit Integer`
+- Description: Indicates the total number of records in the set referenced by
+  the `link`. Note, this is not the number of records in any one message, but
+  instead it is the aggregate count of records across all messages in the set.
+- Constraints:
+  - STRONG RECOMMENDED
+  - MUST be an unsigned integer
+  - MUST be consistent across all `link` attributes and messages for a
+    particular set of records
+
 ## HTTP Binding
 
 THe following describes how the attributes defined above would appear in a
@@ -158,6 +170,7 @@ Each successful response from the server will adhere to the following:
 - the response MAY include the `expires` attribute in any response as an
   HTTP "Expires" header. If present, it MUST adhere to the format specified in
   [RFC 3339](https://tools.ietf.org/html/rfc7234#section-5.3)
+- it is STRONG RECOMMENDED that all responses include the `count` attribute
 
 Additionally, Links MUST appear in the HTTP response as HTTP headers using
 the format described in RFC5988.
@@ -176,8 +189,8 @@ Expires: Thu, 01 Dec 2021 16:00:00 GMT
 
 Example 3:
 ```
-Link: <http://example.com?id=1001>;rel=next
-Link: <http://example.com?id=0>;rel=prev
+Link: <http://example.com?id=1001>;rel=next;count=3000
+Link: <http://example.com?id=0>;rel=prev;count=3000
 ```
 
 ### Iterating over the record set
