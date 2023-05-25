@@ -10,9 +10,8 @@ TODO
 - [Notations and Terminology](#notations-and-terminology)
   - [Notational Conventions](#notational-conventions)
   - [Terminology](#terminology)
-- [CloudEvents Registry](#cloudevents-registry)
-  - [Endpoint Registry](#endpoint-registry)
-    - [Endpoints](#endpoints-endpoints)
+- [Endpoint Registry](#endpoint-registry)
+  - [Endpoints](#endpoints-endpoints)
 
 ## Overview
 
@@ -49,336 +48,14 @@ This specification defines the following terms:
 
 TODO
 
-## CloudEvents Registry
-
-The CloudEvents Registry is a universal catalog and discovery metadata format
-as well as a metadata service API for messaging and eventing schemas,
-metaschemas, and messaging and eventing endpoints.
-
-The CloudEvents registry model contains three separate registries that can be
-implemented separately or in combination.
-
-- The [Schema Registry](../schema/spec.md) specification describes the metadata
-  description of payload schemas for events and messages. The schema registry is
-  universally applicable to any scenario where collaborating parties share
-  structured data that is defined by formal schemas. For instance, when storing
-  Protobuf encoded structured data in a cloud file store, you might place a
-  schema registry in file form in the parent directory, which formally organizes
-  and documents all versions of all Protobuf schemas that are used in the
-  directory.
-- The [Message Definitions Registry](../message/spec.md) specification
-  describes the metadata description of events and messages. The payload schemas
-  for events and messages can be embedded in the definition, reference an
-  external schema document, or can be referenced into the schema registry. The
-  message definitions registry is universally applicable to any asynchronous
-  messaging and eventing scenario. You might define a group of definitions that
-  describe precisely which messages, with which metadata, are permitted to flow
-  into a channel and can thus be expected by consumers of that channel and then
-  associate that definition group with a topic or queue in your eventing or
-  messaging infrastructure. That association might be a metadata attribute on
-  the topic or queue in the messaging infrastructure that embeds the metadata or
-  points to it.
-- The [Endpoint Registry](#endpoint-registry) specification defines the metadata
-  description of network endpoints that accept or emit events and messages. The
-  endpoint registry is a formal description of associations of message
-  definitions and network endpoints, which can be used to discover endpoints
-  that consume or emit particular messages or events via a central registry. The
-  message definitions can be embedded into the endpoint metadata or as
-  a reference into the message definitions registry.
-
-The metadata model is structured such that network endpoint information and
-message metadata and payload schemas can be described compactly in a single
-metadata object (and therefore as a single document) in the simplest case or can
-be spread out and managed across separate registry products in a sophisticated
-large-enterprise scenario.
-
-The following is an exemplary, compact definition of an MQTT 5.0 consumer
-endpoint with a single, embedded message definition using an embedded Protobuf 3
-schema for its payload.
-
-``` JSON
-{
-  "$schema": "https://cloudevents.io/schemas/registry",
-  "specversion": "0.5-wip",
-  "id": "urn:uuid:3978344f-8596-4c3a-a978-8fc9a6a469f7",
-  "endpoints":
-  {
-    "com.example.telemetry": {
-      "id": "com.example.telemetry",
-      "usage": "consumer",
-      "config": {
-        "protocol": "MQTT/5.0",
-        "strict": false,
-        "endpoints": [
-            "mqtt://mqtt.example.com:1883"
-        ],
-        "options": {
-            "topic": "{deviceid}/telemetry"
-        }
-      },
-      "format": "CloudEvents/1.0",
-      "definitions": {
-        "com.example.telemetry": {
-          "id": "com.example.telemetry",
-          "description": "device telemetry event",
-          "format": "CloudEvents/1.0",
-          "metadata": {
-            "attributes": {
-              "id": {
-                "type": "string",
-                "required": true
-              },
-              "type": {
-                "type": "string",
-                "value": "com.example.telemetry",
-                "required": true
-              },
-              "time": {
-                "type": "datetime",
-                "required": true
-              },
-              "source": {
-                "type": "uritemplate",
-                "value": "{deploymentid}/{deviceid}",
-                "required": true
-              }
-            }
-          },
-          "schemaformat": "Protobuf/3.0",
-          "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; } }"
-        }
-      }
-    }
-  }
-}
-```
-
-The same metadata can be expressed by spreading the metadata across the message
-definition and schema registries, which makes the definitions reusable for other
-scenarios:
-
-``` JSON
-{
-  "$schema": "https://cloudevents.io/schemas/registry",
-  "specversion": "0.4-wip",
-  "id": "urn:uuid:3978344f-8596-4c3a-a978-8fc9a6a469f7",
-
-  "endpointsCount": 1,
-  "endpoints":
-  {
-    "com.example.telemetry": {
-      "id": "com.example.telemetry",
-      "usage": "consumer",
-      "config": {
-        "protocol": "MQTT/5.0",
-        "strict": false,
-        "endpoints": [
-          "mqtt://mqtt.example.com:1883"
-        ],
-        "options": {
-          "topic": "{deviceid}/telemetry"
-        }
-      },
-      "format": "CloudEvents/1.0",
-      "definitionGroups": [
-        "#/definitionGroups/com.example.telemetryEvents"
-      ]
-    }
-  },
-
-  "definitionGroupsCount": 1,
-  "definitionGroups": {
-    "com.example.telemetryEvents": {
-      "id": "com.example.telemetryEvents",
-
-      "definitionsCount": 1,
-      "definitions": {
-        "com.example.telemetry": {
-          "id": "com.example.telemetry",
-          "description": "device telemetry event",
-          "format": "CloudEvents/1.0",
-          "metadata": {
-            "attributes": {
-              "id": {
-                "type": "string",
-                "required": true
-              },
-              "type": {
-                "type": "string",
-                "value": "com.example.telemetry",
-                "required": true
-              },
-              "time": {
-                "type": "datetime",
-                "required": true
-              },
-              "source": {
-                "type": "uritemplate",
-                "value": "{deploymentid}/{deviceid}",
-                "required": true
-              }
-            }
-          },
-          "schemaformat": "Protobuf/3.0",
-          "schemaurl": "#/schemaGroups/com.example.telemetry/schema/com.example.telemetrydata/versions/1.0"
-        }
-      }
-    }
-  },
-
-  "schemaGroupsCount": 1,
-  "schemaGroups": {
-    "com.example.telemetry": {
-      "id": "com.example.telemetry",
-
-      "schemasCount": 1,
-      "schemas": {
-        "com.example.telemetrydata": {
-          "id": "com.example.telemetrydata",
-          "description": "device telemetry event data",
-          "format": "Protobuf/3.0",
-
-          "versionsCount": 1,
-          "versions": {
-            "1.0": {
-              "id": "1.0",
-              "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; }"
-            }
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-If we assume the message definitions and schemas to reside at an API endpoint,
-an endpoint definition might just reference the associated message definition
-group with a deep link to the respective object in the service:
-
-``` JSONC
-{
-  "$schema": "https://cloudevents.io/schemas/registry",
-  "specversion": "0.4-wip",
-  "id": "urn:uuid:3978344f-8596-4c3a-a978-8fc9a6a469f7",
-
-  "endpointsCount": 1,
-  "endpoints":
-  {
-    "com.example.telemetry": {
-      "id": "com.example.telemetry",
-      "usage": "consumer",
-      "config": {
-        // ... details ...
-      },
-      "format": "CloudEvents/1.0",
-      "definitionGroups": [
-          "https://site.example.com/registry/definitiongroups/com.example.telemetryEvents"
-      ]
-    }
-  }
-}
-```
-
-If the message definitions and schemas are stored in a file-based registry,
-including files shared via public version control repositories, the reference
-link will first reference the file and then the object within the file, using
-[JSON Pointer][JSON Pointer] syntax:
-
-``` JSONC
-{
-  "$schema": "https://cloudevents.io/schemas/registry",
-  "specversion": "0.4-wip",
-  "id": "urn:uuid:3978344f-8596-4c3a-a978-8fc9a6a469f7",
-
-  "endpointsCount": 1,
-  "endpoints":
-  {
-    "com.example.telemetry": {
-      "id": "com.example.telemetry",
-      "usage": "consumer",
-      "config": {
-        // ... details ......
-      },
-      "format": "CloudEvents/1.0",
-      "definitionGroups": [
-        "https://rawdata.repos.example.com/myorg/myproject/main/example.telemetryEvents.cereg#/definitionGroups/com.example.telemetryEvents"
-      ]
-    }
-  }
-}
-```
-
-All other references to other objects in the registry can be expressed in the
-same way.
-
-While the CloudEvents Registry is primarily motivated by enabling development of
-CloudEvents-based event flows, the registry is not limited to CloudEvents. It
-can be used to describe any asynchronous messaging or eventing endpoint and its
-messages, including endpoints that do not use CloudEvents at all. The [Message
-Formats](../message/spec.md#message-formats) section therefore not only
-describes the attribute meta-schema for CloudEvents, but also meta-schemas for
-the native message envelopes of MQTT, AMQP, and other messaging protocols.
-
-The registry is designed to be extensible to support any structured data
-encoding and related schemas for message or event payloads. The [Schema
-Formats](../schema/spec.md#schema-formats) section describes the meta-schema
-for JSON Schema, XML Schema, Apache Avro schema, and Protobuf schema.
-
-### File format
-
-A CloudEvents Registry can be implemented using the Registry API or with plain
-text files.
-
-When using the file-based model, files with the extension `.cereg` use JSON
-encoding. Files with the extension `.cereg.yaml` or `.cereg.yml` use YAML
-encoding. The formal JSON schema for the file format is defined in the
-[CloudEvents Registry Document Schema](#cloudevents-registry-document-schema),
-which implements the Registry format and the CloudEvents Registry format.
-
-The media-type for the file format is `application/cloudevents-registry+json`
-for the JSON encoding and `application/cloudevents-registry+yaml` for the YAML
-encoding.
-
-The JSON schema identifier is `https://cloudevents.io/schemas/registry` and the
-`specversion` property indicates the version of this specification that the
-elements of the file conform to.
-
-A CloudEvents Registry file MUST contain a single JSON object or YAML document.
-The object declares the roots of the three sub-registries, which are either
-embedded or referenced. Any of the three sub-registries MAY be omitted.
-
-``` meta
-{
-   "$schema": "https://cloudevents.io/schemas/registry",
-   "specversion": "0.4-wip",
-
-   "endpointsUrl": "URL",
-   "endpointsCount": INT,
-   "endpoints": { ... },
-
-   "definitionGroupsUrl": "URL",
-   "definitionGroupsCount": INT,
-   "definitionGroups": { ... },
-
-   "schemaGroupsUrl": "URL",
-   "schemaGroupsCount": INT,
-   "schemaGroups": { ... }
-}
-```
-
-While the file structure leads with endpoints followed by definition groups and
-then schema groups by convention, the order of the sub-registries is not
-significant.
-
-### Endpoint Registry
+## Endpoint Registry
 
 The Endpoint Registry is a registry of metadata definitions for abstract and
 concrete network endpoint to which messages can be produced, from which messages
 can be consumed, or which makes messages available for subscription and
 delivery to a consumer-designated endpoint.
 
-As discussed in [CloudEvents Registry overview](#cloudevents-registry),
+As discussed in [CloudEvents Registry overview](../cloudevents/spec.md),
 endpoints are supersets of
 [message definition groups](../message/spec.md#message-definition-groups) and
 MAY contain inlined definitions. Therefore, the RESORCE level in the meta-model
@@ -404,13 +81,13 @@ for the Endpoint Registry are likewise `definitions`:
 }
 ```
 
-#### Endpoints: endpoints
+### Endpoints: endpoints
 
 A Group (GROUP) name is `endpoints`. The type of a group is `endpoint`.
 
 The following attributes are defined for the `endpoint` type:
 
-##### `usage`
+#### `usage`
 
 - Type: String (Enum: `subscriber`, `consumer`, `producer`)
 - Description: The `usage` attribute is a string that indicates the intended
@@ -473,7 +150,7 @@ The following attributes are defined for the `endpoint` type:
   - REQUIRED.
   - MUST be one of "subscriber", "consumer", or "producer".
 
-#### `origin`
+### `origin`
 
 - Type: URI
 - Description: A URI reference to the original source of this Endpoint. This
@@ -488,7 +165,7 @@ The following attributes are defined for the `endpoint` type:
 - Examples:
   - `https://example2.com/myregistry/endpoints/9876`
 
-#### `deprecated`
+### `deprecated`
 
 - Type: Object containing the following properties:
   - effective<br>
@@ -537,7 +214,7 @@ The following attributes are defined for the `endpoint` type:
     }
     ```
 
-#### `channel`
+### `channel`
 
 - Type: String
 - Description: A string that can be used to correlate Endpoints. Any Endpoints
@@ -565,7 +242,7 @@ The following attributes are defined for the `endpoint` type:
 - Examples:
   - `queue1`
 
-##### `definitions` (Endpoint)
+#### `definitions` (Endpoint)
 
 Endpoints are supersets of
 [message definition groups](../message/spec.md#message-definition-groups) and
@@ -593,7 +270,7 @@ Example:
 }}}}}
 ```
 
-##### `definitionGroups` (Endpoint)
+#### `definitionGroups` (Endpoint)
 
 The `definitionGroups` attribute is an array of URI-references to message
 definition groups. The `definitionGroups` attribute is used to reference
@@ -613,7 +290,7 @@ Example:
 }
 ```
 
-##### `config`
+#### `config`
 
 - Type: Map
 - Description: Configuration details of the endpoint. An endpoint
@@ -627,7 +304,7 @@ Example:
 - Constraints:
   - OPTIONAL
 
-##### `config.protocol`
+#### `config.protocol`
 
 - Type: String
 - Description: The transport or application protocol used by the endpoint. This
@@ -660,7 +337,7 @@ Example:
   - REQUIRED
   - MUST be a non-empty string.
 
-##### `config.endpoints`
+#### `config.endpoints`
 
 - Type: Array of URI
 - Description: The network addresses that are for communication with the
@@ -676,7 +353,7 @@ Example:
   - `["tcp://example.com", "wss://example.com"]`
   - `["https://example.com"]`
 
-##### `config.options`
+#### `config.options`
 
 - Type: Map
 - Description: Additional configuration options for the endpoint. The
@@ -688,7 +365,7 @@ Example:
   - If `config.protocol` is a well-known protocol, the options MUST be
     compliant with the [protocol's options](#protocol-options).
 
-##### `config.strict`
+#### `config.strict`
 
 - Type: Boolean
 - Description: If `true`, the endpoint metadata represents a public, live
@@ -698,12 +375,12 @@ Example:
   - OPTIONAL.
   - Default value is `false`.
 
-##### Protocol Options
+#### Protocol Options
 
 The following protocol options (`config.options`) are defined for the respective
 protocols. All of these are OPTIONAL.
 
-###### HTTP options
+##### HTTP options
 
 The [endpoint URIs](#configendpoints) for "HTTP" endpoints MUST be valid HTTP
 URIs using the "http" or "https" scheme.
@@ -744,7 +421,7 @@ Example:
 }
 ```
 
-##### AMQP options
+#### AMQP options
 
 The [endpoint URIs](#configendpoints) for "AMQP" endpoints MUST be valid AMQP
 URIs using the "amqp" or "amqps" scheme. If the path portion of the URI is
@@ -792,7 +469,7 @@ Example:
 }
 ```
 
-##### MQTT options
+#### MQTT options
 
 The [endpoint URIs](#configendpoints) for "MQTT" endpoints MUST be valid MQTT
 URIs using the (informal) "mqtt" or "mqtts" scheme. If the path portion of the
@@ -843,7 +520,7 @@ Example:
 }
 ```
 
-##### KAFKA options
+#### KAFKA options
 
 The [endpoint URIs](#configendpoints) for "Kafka" endpoints MUST be valid Kafka
 bootstrap server addresses. The scheme follows Kafka configuration usage, e.g.
@@ -883,7 +560,7 @@ Example:
 }
 ```
 
-##### NATS options
+#### NATS options
 
 The [endpoint URIs](#configendpoints) for "NATS" endpoints MUST be valid NATS
 URIs. The scheme MUST be "nats" or "tls" or "ws" and the URI MUST include a port
