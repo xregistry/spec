@@ -47,7 +47,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "xregistry_schema_registry.json"
+                  "$ref": "../../schema/schemas/xregistry_schema_registry.json"
                 }
               }
             }
@@ -62,7 +62,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "xregistry_schema_registry.json"
+                "$ref": "../../schema/schemas/xregistry_schema_registry.json"
               }
             }
           }
@@ -73,7 +73,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "xregistry_schema_registry.json"
+                  "$ref": "../../schema/schemas/xregistry_schema_registry.json"
                 }
               }
             }
@@ -121,7 +121,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": {
-                    "$ref": "xregistry_schema_registry.json#/definitions/schemaGroup"
+                    "$ref": "../../schema/schemas/xregistry_schema_registry.json#/definitions/schemaGroup"
                   }
                 }
               }
@@ -147,7 +147,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "xregistry_schema_registry.json#/definitions/schemaGroup"
+                  "$ref": "../../schema/schemas/xregistry_schema_registry.json#/definitions/schemaGroup"
                 }
               }
             }
@@ -181,7 +181,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "xregistry_schema_registry.json#/definitions/schemaGroup"
+                "$ref": "../../schema/schemas/xregistry_schema_registry.json#/definitions/schemaGroup"
               }
             }
           }
@@ -192,7 +192,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "xregistry_schema_registry.json#/definitions/schemaGroup"
+                  "$ref": "../../schema/schemas/xregistry_schema_registry.json#/definitions/schemaGroup"
                 }
               }
             }
@@ -296,7 +296,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": {
-                     "$ref": "xregistry_schema_registry.json#/definitions/schema"
+                     "$ref": "../../schema/schemas/xregistry_schema_registry.json#/definitions/schema"
                   }
                 }
               }
@@ -388,7 +388,7 @@
               },
               "application/json": {
                 "schema": {
-                  "$ref": "xregistry_resources.json#/definitions/resource"
+                  "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
                 }
               }
             }
@@ -441,7 +441,7 @@
             },
             "application/json": {
               "schema": {
-                "$ref": "xregistry_resources.json#/definitions/resource"
+                "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
               }
             }
           },
@@ -453,7 +453,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "xregistry_resources.json#/definitions/resource"
+                  "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
                 }
               }
             }
@@ -503,7 +503,7 @@
             },
             "application/json": {
               "schema": {
-                "$ref": "xregistry_resources.json#/definitions/resource"
+                "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
               }
             }
           }
@@ -558,7 +558,7 @@
               },
               "application/json": {
                 "schema": {
-                  "$ref": "xregistry_resources.json#/definitions/resource"
+                  "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
                 }
               }
             }
@@ -679,7 +679,7 @@
               },
               "application/json": {
                 "schema": {
-                  "$ref": "xregistry_resources.json#/definitions/resource"
+                  "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
                 }
               }
             }
@@ -713,7 +713,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "xregistry_resources.json#/definitions/resource"
+                "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
               }
             }
           }
@@ -724,7 +724,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "xregistry_resources.json#/definitions/resource"
+                  "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
                 }
               }
             }

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://json-schema.org/draft-07/schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "properties": {
     "endpoints": {
       "type": "object",
@@ -15,10 +15,10 @@
     "endpoint": {
       "allOf": [
         {
-          "$ref": "xregistry_resources.json#/definitions/resource"
+          "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
         },
         {
-          "$ref": "xregistry_messagedefinition_definition.json"
+          "$ref": "../../message/schemas/xregistry_messagedefinition_definition.json"
         },
         {
           "type": "object",

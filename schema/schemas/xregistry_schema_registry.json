@@ -1,5 +1,5 @@
 {
-  "$schema": "https://json-schema.org/draft-07/schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "properties": {
     "schemaGroups": {
       "type": "object",
@@ -43,7 +43,7 @@
       },
       "allOf": [
         {
-          "$ref": "xregistry_resources.json#/definitions/resource"
+          "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
         }
       ]
     },
@@ -70,7 +70,7 @@
       ],
       "allOf": [
         {
-          "$ref": "xregistry_resources.json#/definitions/resource"
+          "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
         }
       ]
     },
@@ -111,7 +111,7 @@
       ],
       "allOf": [
         {
-          "$ref": "xregistry_resources.json#/definitions/resource"
+          "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
         }
       ]
     }
