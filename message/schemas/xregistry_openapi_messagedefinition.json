@@ -1,5 +1,5 @@
 {
-  "openapi": "3.0.6",
+  "openapi": "3.1.0",
   "info": {
     "title": "xRegistry API",
     "description": "xRegistry API",
