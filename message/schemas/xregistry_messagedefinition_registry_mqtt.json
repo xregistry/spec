@@ -1,5 +1,5 @@
 {
-  "$schema": "https://json-schema.org/draft-07/schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "properties": {
     "ref": {
@@ -10,6 +10,7 @@
     "mqttDefinition": {
       "type": "object",
       "title": "mqttDefinition",
+      "description": "MQTT definition",
       "properties": {
         "metadata": {
           "$ref": "#/definitions/mqttMetadata"
@@ -33,30 +34,39 @@
     },
     "mqttMetadata": {
       "type": "object",
+      "description": "MQTT metadata",
       "title": "mqttMetadata",
       "properties": {
         "qos": {
+          "description": "The QoS level of the message.",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertyInteger"
         },
         "retain": {
+          "description": "The RETAIN flag of the message.",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertyBoolean"
         },
         "topic-name": {
+          "description": "The topic name of the message.",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertyUriTemplate"
         },
         "payload-format": {
+          "description": "The payload format of the message.",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertyInteger"
         },
         "message-expiry-interval": {
+          "description": "The message expiry interval of the message.",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertyInteger"
         },
         "response-topic": {
+          "description": "The response topic of the message.",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertyUriTemplate"
         },
         "correlation-data": {
+          "description": "The correlation data of the message.",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertyBinary"
         },
         "content-type": {
+          "description": "The content type of the message.",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertySymbol"
         },
         "user-properties": {
@@ -71,6 +81,7 @@
     "mqttUserProperty": {
       "type": "object",
       "title": "mqttUserProperty",
+      "description": "MQTT User Property",
       "allOf": [
         {
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataProperty"

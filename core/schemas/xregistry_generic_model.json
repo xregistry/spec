@@ -1,0 +1,21 @@
+{
+    "schema": "xregistry_resources.json",
+    "groups" : [
+        {
+            "singular": "group",
+            "plural": "groups",
+            "schema": "xregistry_resources.json#/definitions/group",
+            "resources": [
+                {
+                    "singular": "resource",
+                    "plural": "resources",
+                    "schema": "xregistry_resources.json#/definitions/resource",
+                    "versionsSchema": "xregistry_resources.json#/definitions/resource",
+                    "versions": 0,
+                    "versionId": true,
+                    "latest": true
+                }
+            ]
+        }
+    ]
+}

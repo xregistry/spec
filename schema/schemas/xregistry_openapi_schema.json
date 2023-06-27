@@ -47,7 +47,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "../../schema/schemas/xregistry_schema_registry.json"
+                  "$ref": "xregistry_schema_registry.json"
                 }
               }
             }
@@ -62,7 +62,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "../../schema/schemas/xregistry_schema_registry.json"
+                "$ref": "xregistry_schema_registry.json"
               }
             }
           }
@@ -73,7 +73,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "../../schema/schemas/xregistry_schema_registry.json"
+                  "$ref": "xregistry_schema_registry.json"
                 }
               }
             }
@@ -81,7 +81,7 @@
         }
       }
     },
-    "/schemagroups": {
+    "/schemaGroups": {
       "parameters": [
         
       ],
@@ -121,7 +121,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": {
-                    "$ref": "../../schema/schemas/xregistry_schema_registry.json#/definitions/schemaGroup"
+                    "$ref": "xregistry_schema_registry.json#/definitions/schemaGroup"
                   }
                 }
               }
@@ -133,7 +133,7 @@
         }
       }
     },
-    "/schemagroups/{groupId}": {
+    "/schemaGroups/{groupId}": {
       "parameters": [
         {
           "$ref": "#/components/parameters/groupId"
@@ -147,7 +147,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "../../schema/schemas/xregistry_schema_registry.json#/definitions/schemaGroup"
+                  "$ref": "xregistry_schema_registry.json#/definitions/schemaGroup"
                 }
               }
             }
@@ -181,7 +181,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "../../schema/schemas/xregistry_schema_registry.json#/definitions/schemaGroup"
+                "$ref": "xregistry_schema_registry.json#/definitions/schemaGroup"
               }
             }
           }
@@ -192,7 +192,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "../../schema/schemas/xregistry_schema_registry.json#/definitions/schemaGroup"
+                  "$ref": "xregistry_schema_registry.json#/definitions/schemaGroup"
                 }
               }
             }
@@ -236,7 +236,7 @@
         }
       }
     },
-    "/schemagroups/{groupId}/schemas": {
+    "/schemaGroups/{groupId}/schemas": {
       "parameters": [
         {
           "$ref": "#/components/parameters/groupId"
@@ -296,7 +296,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": {
-                     "$ref": "../../schema/schemas/xregistry_schema_registry.json#/definitions/schema"
+                     "$ref": "xregistry_schema_registry.json#/definitions/schema"
                   }
                 }
               }
@@ -311,7 +311,7 @@
         }
       }      
     },
-    "/schemagroups/{groupId}/schemas/{resourceId}": {
+    "/schemaGroups/{groupId}/schemas/{resourceId}": {
       "parameters": [
         {
           "$ref": "#/components/parameters/groupId"
@@ -604,7 +604,7 @@
         }
       }
     },
-    "/schemagroups/{groupId}/schemas/{resourceId}/versions/{versionId}": {
+    "/schemaGroups/{groupId}/schemas/{resourceId}/versions/{versionId}": {
       "parameters": [
         {
           "$ref": "#/components/parameters/groupId"

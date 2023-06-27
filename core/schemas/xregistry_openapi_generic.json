@@ -1,5 +1,5 @@
 {
-  "openapi": "3.0.6",
+  "openapi": "3.1.0",
   "info": {
     "title": "xRegistry API",
     "description": "xRegistry API",
@@ -47,7 +47,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "../../core/schemas/xregistry_resources.json#/definitions/document"
+                  "$ref": "xregistry_resources.json"
                 }
               }
             }
@@ -62,7 +62,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "../../core/schemas/xregistry_resources.json#/definitions/document"
+                "$ref": "xregistry_resources.json"
               }
             }
           }
@@ -73,7 +73,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "../../core/schemas/xregistry_resources.json#/definitions/document"
+                  "$ref": "xregistry_resources.json"
                 }
               }
             }
@@ -81,11 +81,9 @@
         }
       }
     },
-    "/{groupType}": {
+    "/groups": {
       "parameters": [
-        {
-          "$ref": "#/components/parameters/groupType"
-        }
+        
       ],
       "get": {
         "operationId": "getResourceGroupAll",
@@ -123,7 +121,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": {
-                    "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
+                    "$ref": "xregistry_resources.json#/definitions/group"
                   }
                 }
               }
@@ -135,11 +133,8 @@
         }
       }
     },
-    "/{groupType}/{groupId}": {
+    "/groups/{groupId}": {
       "parameters": [
-        {
-          "$ref": "#/components/parameters/groupType"
-        },
         {
           "$ref": "#/components/parameters/groupId"
         }
@@ -152,7 +147,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
+                  "$ref": "xregistry_resources.json#/definitions/group"
                 }
               }
             }
@@ -186,7 +181,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
+                "$ref": "xregistry_resources.json#/definitions/group"
               }
             }
           }
@@ -197,7 +192,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
+                  "$ref": "xregistry_resources.json#/definitions/group"
                 }
               }
             }
@@ -241,16 +236,10 @@
         }
       }
     },
-    "/{groupType}/{groupId}/{resourceType}": {
+    "/groups/{groupId}/resources": {
       "parameters": [
         {
-          "$ref": "#/components/parameters/groupType"
-        },
-        {
           "$ref": "#/components/parameters/groupId"
-        },
-        {
-          "$ref": "#/components/parameters/resourceType"
         }
       ],
       "get": {
@@ -281,23 +270,23 @@
             "name": "top",
             "description": "The number of resources to show",
             "required": false,
-            "schema": {
+                "schema": {
               "type": "integer"
-            }
-          },
+        }
+      },
           {
             "in": "query",
             "name": "filter",
             "description": "Filter criterion(s)",
             "explode": true,
             "required": false,
-            "schema": {
+              "schema": {
               "type": "array",
               "items": {
                 "type": "string"
+                }
               }
             }
-          }
         ],
         "responses": {
           "200": {
@@ -307,25 +296,25 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": {
-                    "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
+                     "$ref": "xregistry_resources.json#/definitions/resource"
                   }
                 }
               }
             }
+          },
+          "400": {
+            "description": "Bad Request - constraint failure"
+          },
+          "409": {
+            "description": "Conflict - epoch not greater"
           }
         }
-      }
+      }      
     },
-    "/{groupType}/{groupId}/{resourceType}/{resourceId}": {
+    "/groups/{groupId}/resources/{resourceId}": {
       "parameters": [
         {
-          "$ref": "#/components/parameters/groupType"
-        },
-        {
           "$ref": "#/components/parameters/groupId"
-        },
-        {
-          "$ref": "#/components/parameters/resourceType"
         },
         {
           "$ref": "#/components/parameters/resourceId"
@@ -615,104 +604,10 @@
         }
       }
     },
-    "/{groupType}/{groupId}/{resourceType}/{resourceId}/versions": {
+    "/groups/{groupId}/resources/{resourceId}/versions/{versionId}": {
       "parameters": [
         {
-          "$ref": "#/components/parameters/groupType"
-        },
-        {
           "$ref": "#/components/parameters/groupId"
-        },
-        {
-          "$ref": "#/components/parameters/resourceType"
-        },
-        {
-          "$ref": "#/components/parameters/resourceId"
-        },
-        {
-          "in": "query",
-          "name": "meta",
-          "description": "Interact with the metadata",
-          "required": false,
-          "allowEmptyValue": true,
-          "schema": {
-            "type": "boolean"
-          }
-        }
-      ],
-      "get": {
-        "operationId": "getResourceVersionsAll",
-        "description": "Get an optionally filtered collection of resources",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "inline",
-            "description": "Set if references shall be inlined",
-            "required": false,
-            "allowEmptyValue": true,
-            "schema": {
-              "type": "boolean"
-            }
-          },
-          {
-            "in": "query",
-            "name": "skip",
-            "description": "The number of resources to skip",
-            "required": false,
-            "schema": {
-              "type": "integer"
-            }
-          },
-          {
-            "in": "query",
-            "name": "top",
-            "description": "The number of resources to show",
-            "required": false,
-            "schema": {
-              "type": "integer"
-            }
-          },
-          {
-            "in": "query",
-            "name": "filter",
-            "description": "Filter criterion(s)",
-            "explode": true,
-            "required": false,
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A list of resource versions",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/{groupType}/{groupId}/{resourceType}/{resourceId}/versions/{versionId}": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/groupType"
-        },
-        {
-          "$ref": "#/components/parameters/groupId"
-        },
-        {
-          "$ref": "#/components/parameters/resourceType"
         },
         {
           "$ref": "#/components/parameters/resourceId"

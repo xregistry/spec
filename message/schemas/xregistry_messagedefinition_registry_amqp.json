@@ -1,5 +1,5 @@
 {
-  "$schema": "https://json-schema.org/draft-07/schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "properties": {
     "ref": {
@@ -9,9 +9,11 @@
   "definitions": {
     "amqpDefinition": {
       "type": "object",
+      "description": "AMQP message definition",
       "title": "amqpDefinition",
       "properties": {
         "metadata": {
+          "description": "AMQP message metadata",
           "$ref": "#/definitions/amqpMetadata"
         },
         "format": {
@@ -34,23 +36,30 @@
     "amqpMetadata": {
       "type": "object",
       "title": "amqpMetadata",
+      "description": "AMQP message metadata",
       "properties": {
         "application-properties": {
+          "description": "Application properties of the message",
           "$ref": "#/definitions/amqpAnnotations"
         },
         "properties": {
+          "description": "AMQP message properties",
           "$ref": "#/definitions/amqpProperties"
         },
         "delivery-annotations": {
+          "description": "Delivery annotations of the message",
           "$ref": "#/definitions/amqpAnnotations"
         },
         "message-annotations": {
+          "description": "Message annotations of the message",
           "$ref": "#/definitions/amqpAnnotations"
         },
         "header": {
+          "description": "Message header",
           "$ref": "#/definitions/amqpHeader"
         },
         "footer": {
+          "description": "Message footer",
           "$ref": "#/definitions/amqpAnnotations"
         }
       }
@@ -59,42 +68,55 @@
       "type": "object",
       "properties": {
         "message-id": {
+          "description": "Message identifier",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertyString"
         },
         "user-id": {
+          "description": "User identifier",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertyBinary"
         },
         "to": {
+          "description": "Address to send to",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertyUriTemplate"
         },
         "subject": {
+          "description": "Subject",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertyString"
         },
         "reply-to": {
+          "description": "Address to reply to",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertyUriTemplate"
         },
         "correlation-id": {
+          "description": "Correlation identifier",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertyString"
         },
         "content-type": {
+          "description": "Content type",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertySymbol"
         },
         "content-encoding": {
+          "description": "Content encoding",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertySymbol"
         },
         "absolute-expiry-time": {
+          "description": "Absolute expiry time",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertyTimeStamp"
         },
         "creation-time": {
+          "description": "Creation time",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertyTimeStamp"
         },
         "group-id": {
+          "description": "Group identifier",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertyString"
         },
         "group-sequence": {
+          "description": "Group sequence",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertyInteger"
         },
         "reply-to-group-id": {
+          "description": "Reply to group identifier",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertyUriTemplate"
         }
       }
@@ -103,18 +125,23 @@
       "type": "object",
       "properties": {
         "durable": {
+          "description": "Durability flag",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertyBoolean"
         },
         "priority": {
+          "description": "Priority",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertyInteger"
         },
         "ttl": {
+          "description": "Time to live",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertyInteger"
         },
         "first-acquirer": {
+          "description": "First acquirer flag",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertyBoolean"
         },
         "delivery-count": {
+          "description": "Delivery count",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertyInteger"
         }
       }

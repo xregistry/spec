@@ -1,0 +1,68 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+        "model": {
+            "type": "object",
+            "title": "model",
+            "properties": {
+                "schema": {
+                    "type": "string",
+                    "format": "uri-reference"
+                },
+                "groups": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "singular": {
+                                "type": "string"
+                            },
+                            "plural": {
+                                "type": "string"
+                            },
+                            "schema": {
+                                "type": "string",
+                                "format": "uri-reference"
+                            },
+                            "resources": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "singular": {
+                                            "type": "string"
+                                        },
+                                        "plural": {
+                                            "type": "string"
+                                        },
+                                        "versions": {
+                                            "type": "integer",
+                                            "minimum": 0
+                                        },
+                                        "versionId": {
+                                            "type": "boolean"
+                                        },
+                                        "latest": {
+                                            "type": "boolean"
+                                        }
+                                    },
+                                    "required": [
+                                        "singular",
+                                        "plural"
+                                    ]
+                                }
+                            }
+                        },
+                        "required": [
+                            "singular",
+                            "plural"
+                        ]
+                    }
+                }
+            },
+            "required": [
+                "groups"
+            ]
+        }
+    }
+}
