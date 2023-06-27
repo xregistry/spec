@@ -6,8 +6,6 @@ output_file="$(dirname "$0")/xregistry_openapi_generic.json"
 model_file="$(dirname "$0")/xregistry_generic_model.json"
 
 
-
-
 # Variables for replacement values
 # BEGIN: 8f7a2d7d3c4a
 group_plural=$(jq -r '.groups[0].plural' "$model_file")
