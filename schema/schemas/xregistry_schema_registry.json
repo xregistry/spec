@@ -1,6 +1,16 @@
 {
-  "$schema": "https://json-schema.org/draft-07/schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "schemaRegistry",
   "properties": {
+    "schemaGroupsUrl": {
+      "type": "string",
+      "description": "A URL to the schemaGroups document.",
+      "format": "uri"
+    },
+    "schemaGroupsCount": {
+      "type": "integer",
+      "description": "The number of schemaGroups in this document."
+    },
     "schemaGroups": {
       "type": "object",
       "additionalProperties": {
@@ -8,8 +18,17 @@
       }
     }
   },
-  "required": [
-    "schemaGroups"
+  "anyOf": [
+    {
+      "required": [
+        "schemaGroupsUrl"
+      ]
+    },
+    {
+      "required": [
+        "schemaGroups"
+      ]
+    }
   ],
   "definitions": {
     "schemaGroup": {
@@ -26,24 +45,26 @@
             "protobuf"
           ]
         },
+        "schemasUrl": {
+          "type": "string",
+          "description": "A URL to the schemas document.",
+          "format": "uri"
+        },
+        "schemasCount": {
+          "type": "integer",
+          "description": "The number of schemas in this document."
+        },
         "schemas": {
           "type": "object",
           "description": "A collection of schemas",
           "additionalProperties": {
             "$ref": "#/definitions/schema"
           }
-        },
-        "schemaGroups": {
-          "type": "object",
-          "description": "A collection of schemaGroups",
-          "additionalProperties": {
-            "$ref": "#/definitions/schemaGroup"
-          }
         }
       },
       "allOf": [
         {
-          "$ref": "xregistry_resources.json#/definitions/resource"
+          "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
         }
       ]
     },
@@ -52,6 +73,15 @@
       "title": "schema",
       "description": "a schema is a collection of schema version documents that describe semantically the same data item",
       "properties": {
+        "versionsUrl": {
+          "type": "string",
+          "description": "A URL to the versions document.",
+          "format": "uri"
+        },
+        "versionsCount": {
+          "type": "integer",
+          "description": "The number of versions in this document."
+        },
         "versions": {
           "type": "object",
           "description": "A collection of schema versions",
@@ -65,12 +95,11 @@
         }
       },
       "required": [
-        "versions",
         "format"
       ],
       "allOf": [
         {
-          "$ref": "xregistry_resources.json#/definitions/resource"
+          "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
         }
       ]
     },
@@ -111,7 +140,7 @@
       ],
       "allOf": [
         {
-          "$ref": "xregistry_resources.json#/definitions/resource"
+          "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
         }
       ]
     }

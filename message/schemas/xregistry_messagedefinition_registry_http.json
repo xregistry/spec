@@ -1,5 +1,5 @@
 {
-  "$schema": "https://json-schema.org/draft-07/schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "properties": {
     "ref": {
@@ -10,8 +10,10 @@
     "httpDefinition": {
       "type": "object",
       "title": "httpDefinition",
+      "description": "HTTP Definition",
       "properties": {
         "metadata": {
+          "description": "HTTP Metadata",
           "$ref": "#/definitions/httpMetadata"
         },
         "format": {
@@ -34,14 +36,18 @@
     "httpMetadata": {
       "type": "object",
       "title": "httpMetadata",
+      "description": "HTTP Metadata",
       "properties": {
         "method": {
+          "description": "HTTP Method",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertyString"
         },
         "status": {
+          "description": "HTTP Status Code",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertyString"
         },
         "path": {
+          "description": "HTTP Path",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertyUriTemplate"
         },
         "requestHeaders": {

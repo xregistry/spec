@@ -1,5 +1,5 @@
 {
-  "$schema": "https://json-schema.org/draft-07/schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "properties": {
     "ref": {
@@ -10,8 +10,10 @@
     "kafkaDefinition": {
       "type": "object",
       "title": "kafkaDefinition",
+      "description": "Kafka message definition",
       "properties": {
         "metadata": {
+          "description": "Kafka message metadata",
           "$ref": "#/definitions/kafkaMetadata"
         },
         "format": {
@@ -34,17 +36,22 @@
     "kafkaMetadata": {
       "type": "object",
       "title": "kafkaMetadata",
+      "description": "Kafka message metadata",
       "properties": {
         "topic": {
+          "description": "The topic name to which the record is being sent",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertyString"
         },
         "partition": {
+          "description": "The partition to which the record is being sent",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertyInteger"
         },
         "key": {
+          "description": "The key (or null if no key is specified)",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertyBinary"
         },
         "timestamp": {
+          "description": "The timestamp of the record",
           "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertyInteger"
         },
         "recordHeaders": {

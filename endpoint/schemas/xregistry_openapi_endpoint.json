@@ -1,5 +1,5 @@
 {
-  "openapi": "3.0.6",
+  "openapi": "3.1.0",
   "info": {
     "title": "xRegistry API",
     "description": "xRegistry API",
@@ -296,7 +296,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": {
-                     "$ref": "xregistry_messagedefinition_definition.json#/definitions/definition"
+                     "$ref": "../../message/schemas/xregistry_messagedefinition_definition.json#/definitions/definition"
                   }
                 }
               }
@@ -388,7 +388,7 @@
               },
               "application/json": {
                 "schema": {
-                  "$ref": "xregistry_resources.json#/definitions/resource"
+                  "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
                 }
               }
             }
@@ -441,7 +441,7 @@
             },
             "application/json": {
               "schema": {
-                "$ref": "xregistry_resources.json#/definitions/resource"
+                "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
               }
             }
           },
@@ -453,7 +453,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "xregistry_resources.json#/definitions/resource"
+                  "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
                 }
               }
             }
@@ -503,7 +503,7 @@
             },
             "application/json": {
               "schema": {
-                "$ref": "xregistry_resources.json#/definitions/resource"
+                "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
               }
             }
           }
@@ -558,7 +558,7 @@
               },
               "application/json": {
                 "schema": {
-                  "$ref": "xregistry_resources.json#/definitions/resource"
+                  "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
                 }
               }
             }
@@ -594,51 +594,6 @@
         "responses": {
           "204": {
             "description": "No Content"
-          },
-          "400": {
-            "description": "Bad Request - constraint failure"
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
-      }
-    },
-    "/endpoints/{groupId}/definitions/{resourceId}/versions/{versionId1}": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/groupId"
-        },
-        {
-          "$ref": "#/components/parameters/resourceId"
-        },
-        {
-          "$ref": "#/components/parameters/versionId"
-        },
-        {
-          "in": "query",
-          "name": "meta",
-          "description": "Interact with the metadata",
-          "required": false,
-          "allowEmptyValue": true,
-          "schema": {
-            "type": "boolean"
-          }
-        }
-      ],
-      "get": {
-        "operationId": "getResourceVersion1",
-        "description": "Gets the document stored for the schema version",
-        "responses": {
-          "200": {
-            "description": "The schema version document",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "xregistry_resources.json#/definitions/resource"
-                }
-              }
-            }
           },
           "400": {
             "description": "Bad Request - constraint failure"
@@ -724,7 +679,7 @@
               },
               "application/json": {
                 "schema": {
-                  "$ref": "xregistry_resources.json#/definitions/resource"
+                  "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
                 }
               }
             }
@@ -758,7 +713,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "xregistry_resources.json#/definitions/resource"
+                "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
               }
             }
           }
@@ -769,7 +724,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "xregistry_resources.json#/definitions/resource"
+                  "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
                 }
               }
             }

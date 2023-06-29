@@ -1,26 +1,9 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "description": "This schema declares the 'definitions' property for message definition groups along with all well-known extensions to the 'definition' type.",
   "$comment": "New message definition formats MUST be added to the 'oneOf' array in the 'definitions' property and the format identifiers MUST be registered in the 'format' property.",
-  "allOf": [
-    {
-      "title": "definitionBase",
-      "properties": {
-        "definitions": {
-          "type": "object",
-          "description": "A collection of Message Definitions.",
-          "additionalProperties": {
-            "$ref": "#/definitions/definition"
-          }
-        }
-      }
-    },
-    {
-      "$ref": "#/definitions/definitionGroupBase"
-    }
-  ],
   "definitions": {
-    "definitionGroupBase": {
+    "definitionGroup": {
       "properties": {
         "format": {
           "type": "string",
@@ -41,35 +24,52 @@
             "CloudEvents/1.0"
           ]
         },
+        "definitionsUrl": {
+          "type": "string",
+          "format": "uri-reference"
+        },
+        "definitionsCount": {
+          "type": "integer"
+        },
         "definitions": {
-          "type": "object",
-          "description": "A collection of Message Definitions.",
-          "additionalProperties": {
-            "anyOf": [
-              {
-                "$ref": "xregistry_messagedefinition_registry_amqp.json#/definitions/amqpDefinition"
-              },
-              {
-                "$ref": "xregistry_messagedefinition_registry_mqtt.json#/definitions/mqttDefinition"
-              },
-              {
-                "$ref": "xregistry_messagedefinition_registry_http.json#/definitions/httpDefinition"
-              },
-              {
-                "$ref": "xregistry_messagedefinition_registry_kafka.json#/definitions/kafkaDefinition"
-              },
-              {
-                "$ref": "xregistry_messagedefinition_registry_cloudevents.json#/definitions/cloudEventDefinition"
-              }
-            ]
-          }
+          "$ref" : "#/definitions/definitions"
         }
       },
+      "required": [
+        "format"
+      ],
       "allOf": [
         {
-          "$ref": "xregistry_resources.json#/definitions/resource"
+          "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
         }
       ]
+    },
+    "definitions": {
+      "type": "object",
+      "title": "definitions",
+      "description": "A collection of Message Definitions.",
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "$ref": "#/definitions/definition"
+          },
+          {
+            "$ref": "xregistry_messagedefinition_registry_amqp.json#/definitions/amqpDefinition"
+          },
+          {
+            "$ref": "xregistry_messagedefinition_registry_mqtt.json#/definitions/mqttDefinition"
+          },
+          {
+            "$ref": "xregistry_messagedefinition_registry_http.json#/definitions/httpDefinition"
+          },
+          {
+            "$ref": "xregistry_messagedefinition_registry_kafka.json#/definitions/kafkaDefinition"
+          },
+          {
+            "$ref": "xregistry_messagedefinition_registry_cloudevents.json#/definitions/cloudEventDefinition"
+          }
+        ]
+      }
     },
     "definition": {
       "type": "object",
@@ -137,7 +137,7 @@
       ],
       "allOf": [
         {
-          "$ref": "xregistry_resources.json#/definitions/resource"
+          "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
         }
       ]
     }

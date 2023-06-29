@@ -1,10 +1,10 @@
 {
-  "$schema": "https://json-schema.org/draft-07/schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "title": "document",
   "properties": {
     "_ref": {
-	  "$ref": "#/definitions/document"
+      "$ref": "#/definitions/document"
     }
   },
   "definitions": {
@@ -14,31 +14,75 @@
       "properties": {
         "specversion": {
           "type": "string"
+        },
+        "id": {
+          "type": "string",
+          "description": "A unique identifier for this document. This value MUST be globally unique",
+          "format": "uri-reference"
+        },
+        "self": {
+          "type": "string",
+          "description": "A unique URI for the document.",
+          "format": "uri-reference"
+        },
+        "description": {
+          "type": "string",
+          "description": "A summary of the purpose of the resource."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the resource."
+        },
+        "docs": {
+          "type": "string",
+          "description": "Absolute URL that provides a link to additional documentation about the resource.",
+          "format": "uri"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/tag"
+          }
+        },
+        "model": {
+          "$ref": "xregistry_model.json#/definitions/model"
         }
-      },      
-      "additionalProperties": true
+      },
+      "additionalProperties": {
+        "$ref": "#/definitions/groups"
+      }
     },
     "reference": {
       "type": "string",
+      "title": "reference",
       "format": "uri-reference"
     },
-    "resource": {
+    "groups": {
       "type": "object",
-      "required": [
-        "id"
-      ],
+      "title": "groups",
+      "additionalProperties": {
+        "$ref": "#/definitions/group"
+      }
+    },
+    "group": {
+      "type": "object",
+      "title": "group",
+      "allOf": [
+        {
+          "$ref": "#/definitions/commonProperties"
+        }
+      ]
+    },
+    "commonProperties" : {
+      "type": "object",
+      "title": "commonProperties",
       "properties": {
-        "id": {
+        "id" : {
           "type": "string",
-          "description": "A unique identifier for this Endpoint. This value MUST be globally unique",
+          "description": "A unique identifier for this resource. This value MUST be globally unique",
           "format": "uri-reference"
         },
-        "groupId": {
-          "type": "string",
-          "description": "Optional reference to a definitionGroup that this resource is subordinate to",
-          "format": "uri-reference"
-        },
-        "version": {
+        "epoch": {
           "type": "integer",
           "description": "A number representing the version number of the resource.",
           "format": "int64"
@@ -60,11 +104,6 @@
           "type": "string",
           "description": "Absolute URL that provides a link to additional documentation about the resource.",
           "format": "uri"
-        },
-        "origin": {
-          "type": "string",
-          "description": "A URI reference to the original source of this resource.",
-          "format": "uri-reference"
         },
         "tags": {
           "type": "array",
@@ -91,9 +130,23 @@
           "format": "date-time"
         }
       }
+
+    },
+    "resource": {
+      "type": "object",
+      "title": "resource",
+      "required": [
+        "id"
+      ],
+      "allOf": [
+        {
+          "$ref": "#/definitions/commonProperties"
+        }
+      ]
     },
     "tag": {
       "type": "object",
+      "title": "tag",
       "properties": {
         "name": {
           "type": "string"

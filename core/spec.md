@@ -61,6 +61,8 @@ For easy reference, the serialization of a Registry adheres to this form:
           { "singular": "STRING",       # eg. "definition"
             "plural": "STRING",         # eg. "definitions"
             "versions": UINT ?          # num Versions(>=0). Def=1, 0=unlimited
+            "versionId": BOOL, ?         # Supports client specific Version IDs
+            "latest": BOOL ?             # Supports client "latest" selection
           } *
         ] ?
       } *
