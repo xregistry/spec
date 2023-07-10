@@ -47,7 +47,7 @@ For easy reference, the serialization of a Registry adheres to this form:
   "name": "STRING", ?
   "self": "URL",
   "description": "STRING", ?
-  "docs": "URL", ?
+  "documentation": "URL", ?
   "tags": { "STRING": "STRING" * }, ?
 
   "model": {                            # only if inlined
@@ -79,7 +79,7 @@ For easy reference, the serialization of a Registry adheres to this form:
       "epoch": UINT,
       "self": "URL",
       "description": "STRING", ?
-      "docs": "URL", ?
+      "documentation": "URL", ?
       "tags": { "STRING": "STRING" * }, ?
       "format": "STRING", ?
       "createdBy": "STRING", ?
@@ -99,7 +99,7 @@ For easy reference, the serialization of a Registry adheres to this form:
           "latestId": "STRING",
           "latestUrl": "URL",
           "description": "STRING", ?
-          "docs": "URL", ?
+          "documentation": "URL", ?
           "tags": { "STRING": "STRING" * }, ?
           "format": "STRING", ?
           "createdBy": "STRING", ?
@@ -120,7 +120,7 @@ For easy reference, the serialization of a Registry adheres to this form:
               "epoch": UINT,
               "self": "URL",
               "description": "STRING", ?
-              "docs": "URL", ?
+              "documentation": "URL", ?
               "tags": { "STRING": "STRING" * }, ?
               "format": "STRING", ?
               "createdBy": "STRING", ?
@@ -247,8 +247,8 @@ adhere to the following rules:
   [RFC6265/Limits](https://datatracker.ietf.org/doc/html/rfc6265#section-6.1)).
   In cases where larger amounts of data is needed, it is RECOMMENDED that
   an attribute (defined as a URL) be defined that references a separate
-  document. For example, `docs` can be considered such an attribute for
-  `description`
+  document. For example, `documentation` can be considered such an attribute
+  for `description`
 
 In situations where an attribute is serialized in a case-sensitive situation,
 then the case specified by this specification, or the defining extension
@@ -264,7 +264,7 @@ For easy reference, the serialization these attributes adheres to this form:
 - `"epoch": UINT`
 - `"self": "URL"`
 - `"description": "STRING"`
-- `"docs": "URL"`
+- `"documentation": "URL"`
 - `"tags": { "STRING": "STRING" * }`
 - `"format": "STRING"`
 - `"createdBy": "STRING"`
@@ -352,7 +352,7 @@ existing entity can be deleted.
 - Examples:
   - `A queue of the sensor generated messages`
 
-#### `docs`
+#### `documentation`
 
 - Type: URL
 - Description: A URL to additional documentation about this entity.
@@ -881,7 +881,7 @@ The serialization of the Registry entity adheres to this form:
   "name": "STRING", ?
   "self": "URL",
   "description": "STRING", ?
-  "docs": "URL", ?
+  "documentation": "URL", ?
   "tags": { "STRING": "STRING" * }, ?
 
   "model": { Registry model } ?       # only if  "?model" is present
@@ -899,7 +899,7 @@ The Registry entity includes the following common attributes:
 - [`self`](#self) - REQUIRED in responses, OPTIONAL in requests and in
   document view
 - [`description`](#description) - OPTIONAL
-- [`docs`](#docs) - OPTIONAL
+- [`documentation`](#documentation) - OPTIONAL
 - [`tags`](#tags) - OPTIONAL
 
 and the following Registry entity specific attributes:
@@ -971,7 +971,7 @@ Content-Length: ...
   "name": "STRING", ?
   "self": "URL",
   "description": "STRING", ?
-  "docs": "URL", ?
+  "documentation": "URL", ?
   "tags": { "STRING": "STRING" * }, ?
 
   "model": { Registry model } ?       # only if  "?model" is present
@@ -1086,7 +1086,7 @@ Content-Length: ...
   "id": "STRING", ?
   "name": "STRING", ?
   "description": "STRING", ?
-  "docs": "URL" ?
+  "documentation": "URL" ?
   "tags": { "STRING": "STRING" * }, ?
 }
 ```
@@ -1117,7 +1117,7 @@ Content-Length: ...
   "name": "STRING", ?
   "self": "URL",
   "description": "STRING", ?
-  "docs": "URL", ?
+  "documentation": "URL", ?
   "tags": { "STRING": "STRING" * }, ?
 
   # Repeat for each Group type
@@ -1180,7 +1180,7 @@ The serialization of a Group entity adheres to this form:
   "epoch": UINT,
   "self": "URL",
   "description": "STRING", ?
-  "docs": "URL", ?
+  "documentation": "URL", ?
   "tags": { "STRING": "STRING" * }, ?
   "format": "STRING", ?
   "createdBy": "STRING", ?
@@ -1202,7 +1202,7 @@ Groups include the following common attributes:
 - [`self`](#self) - REQUIRED in responses, OPTIONAL in requests and in
   document view
 - [`description`](#description) - OPTIONAL
-- [`docs`](#docs) - OPTIONAL
+- [`documentation`](#documentation) - OPTIONAL
 - [`tags`](#tags) - OPTIONAL
 - [`format`](#format) - OPTIONAL
 - [`createdBy`](#createdby) - OPTIONAL
@@ -1251,7 +1251,7 @@ Link: <URL>;rel=next;count=INT ?
     "epoch": UINT,
     "self": "URL",
     "description": "STRING", ?
-    "docs": "URL", ?
+    "documentation": "URL", ?
     "tags": { "STRING": "STRING" * }, ?
     "format": "STRING", ?
     "createdBy": "STRING", ?
@@ -1327,7 +1327,7 @@ Content-Length: ...
   "name": "STRING", ?
   "epoch": UINT, ?
   "description": "STRING", ?
-  "docs": "URL", ?
+  "documentation": "URL", ?
   "tags": { "STRING": "STRING" * }, ?
   "format": "STRING" ?
 }
@@ -1353,7 +1353,7 @@ Location: URL
   "epoch": UINT,
   "self": "URL",
   "description": "STRING", ?
-  "docs": "URL", ?
+  "documentation": "URL", ?
   "tags": { "STRING": "STRING" * }, ?
   "format": "STRING", ?
   "createdBy": "STRING", ?
@@ -1432,7 +1432,7 @@ Content-Length: ...
   "epoch": UINT,
   "self": "URL",
   "description": "STRING", ?
-  "docs": "URL", ?
+  "documentation": "URL", ?
   "tags": { "STRING": "STRING" * }, ?
   "format": "STRING", ?
   "createdBy": "STRING", ?
@@ -1486,7 +1486,7 @@ PUT /GROUPs/gID
   "name": "STRING", ?
   "epoch": UINT, ?
   "description": "STRING", ?
-  "docs": "URL", ?
+  "documentation": "URL", ?
   "tags": { "STRING": "STRING" * }, ?
   "format": "STRING" ?
 }
@@ -1523,7 +1523,7 @@ Content-Length: ...
   "epoch": UINT,
   "self": "URL",
   "description": "STRING", ?
-  "docs": "URL", ?
+  "documentation": "URL", ?
   "tags": { "STRING": "STRING" * }, ?
   "format": "STRING", ?
   "createdBy": "STRING", ?
@@ -1606,7 +1606,7 @@ Content-Length: ...
   "epoch": UINT,
   "self": "URL",
   "description": "STRING", ?
-  "docs": "URL", ?
+  "documentation": "URL", ?
   "tags": { "STRING": "STRING" * }, ?
   "format": "STRING", ?
   "createdBy": "STRING", ?
@@ -1668,7 +1668,7 @@ Link: <URL>;rel=next;count=INT ?
     "epoch": UINT,
     "self": "URL",
     "description": "STRING", ?
-    "docs": "URL", ?
+    "documentation": "URL", ?
     "tags": { "STRING": "STRING" * }, ?
     "format": "STRING", ?
     "createdBy": "STRING", ?
@@ -1743,7 +1743,7 @@ When serialized as a JSON object, a Resource adheres to this form:
   "latestId": "STRING",
   "latestUrl": "URL",
   "description": "STRING", ?
-  "docs": "URL", ?
+  "documentation": "URL", ?
   "tags": { "STRING": "STRING" * }, ?
   "format": "STRING", ?
   "createdBy": "STRING", ?
@@ -1769,7 +1769,7 @@ Resources include the following common attributes:
 - [`self`](#self) - REQUIRED in responses, OPTIONAL in requests and in
   document view
 - [`description`](#description) - OPTIONAL (inherited from the latest version)
-- [`docs`](#docs) - OPTIONAL (inherited from the latest version)
+- [`documentation`](#documentation) - OPTIONAL (inherited from the latest version)
 - [`tags`](#tags) - OPTIONAL (inherited from the latest version)
 - [`format`](#format) - OPTIONAL (inherited from the latest version)
 - [`createdBy`](#createdby) - OPTIONAL (inherited from the latest version)
@@ -1894,7 +1894,7 @@ Link: <URL>;rel=next;count=INT ?
     "latestId": "STRING",
     "latestUrl": "URL",
     "description": "STRING", ?
-    "docs": "URL", ?
+    "documentation": "URL", ?
     "tags": { "STRING": "STRING" * }, ?
     "format": "STRING", ?
     "createdBy": "STRING", ?
@@ -1964,7 +1964,7 @@ xRegistry-name: STRING ?
 xRegistry-epoch: STRING ?
 xRegistry-latestId: STRING ?
 xRegistry-description: STRING ?
-xRegistry-docs: STRING ?
+xRegistry-documentation: STRING ?
 xRegistry-tags: STRING (JSON map) ?
 xRegistry-format: STRING ?
 xRegistry-RESOURCEUrl: URL ?
@@ -2003,7 +2003,7 @@ xRegistry-self: URL
 xRegistry-latestId: STRING
 xRegistry-latestUrl: URL
 xRegistry-description: STRING ?
-xRegistry-docs: STRING ?
+xRegistry-documentation: STRING ?
 xRegistry-tags: STRING (JSON map) ?
 xRegistry-format: STRING ?
 xRegistry-createdBy: STRING ?
@@ -2084,7 +2084,7 @@ Content-Length: ...
   "epoch": UINT, ?
   "latestId": "STRING", ?
   "description": "STRING", ?
-  "docs": "URL", ?
+  "documentation": "URL", ?
   "tags": { "STRING": "STRING" * }, ?
   "format": "STRING", ?
 
@@ -2126,7 +2126,7 @@ Content-Location: URL ?
   "latestId": "STRING",
   "latestUrl": "URL",
   "description": "STRING", ?
-  "docs": "URL", ?
+  "documentation": "URL", ?
   "tags": { "STRING": "STRING" * }, ?
   "format": "STRING", ?
   "createdBy": "STRING", ?
@@ -2224,7 +2224,7 @@ xRegistry-self: URL
 xRegistry-latestId: STRING
 xRegistry-latestUrl: URL
 xRegistry-description: STRING ?
-xRegistry-docs: STRING ?
+xRegistry-documentation: STRING ?
 xRegistry-tags: STRING (JSON map) ?
 xRegistry-format: STRING ?
 xRegistry-createdBy: STRING ?
@@ -2257,7 +2257,7 @@ xRegistry-self: URL
 xRegistry-latestId: STRING
 xRegistry-latestUrl: URL
 xRegistry-description: STRING ?
-xRegistry-docs: STRING ?
+xRegistry-documentation: STRING ?
 xRegistry-tags: STRING (JSON map) ?
 xRegistry-format: STRING ?
 xRegistry-createdBy: STRING ?
@@ -2336,7 +2336,7 @@ Content-Location: URL ?
   "latestId": "STRING",
   "latestUrl": "URL",
   "description": "STRING", ?
-  "docs": "URL", ?
+  "documentation": "URL", ?
   "tags": { "STRING": "STRING" * }, ?
   "format": "STRING", ?
   "createdBy": "STRING", ?
@@ -2410,7 +2410,7 @@ xRegistry-id: STRING ?
 xRegistry-name: STRING ?
 xRegistry-epoch: UINT ?
 xRegistry-description: STRING ?
-xRegistry-docs: STRING ?
+xRegistry-documentation: STRING ?
 xRegistry-tags: STRING (JSON map) ?
 xRegistry-format: STRING ?
 xRegistry-RESOURCEUrl: URL ?
@@ -2459,7 +2459,7 @@ xRegistry-self: URL
 xRegistry-latestId: STRING
 xRegistry-latestUrl: URL
 xRegistry-description: STRING ?
-xRegistry-docs: STRING ?
+xRegistry-documentation: STRING ?
 xRegistry-tags: STRING (JSON map) ?
 xRegistry-format: STRING ?
 xRegistry-createdBy: STRING ?
@@ -2542,7 +2542,7 @@ PUT /GROUPs/gID/RESOURCEs/rID?meta
   "name": "STRING", ?
   "epoch": UINT, ?
   "description": "STRING", ?
-  "docs": "URL", ?
+  "documentation": "URL", ?
   "tags": { "STRING": "STRING" * }, ?
   "format": "STRING", ?
 
@@ -2601,7 +2601,7 @@ Content-Length: ...
   "latestId": "STRING",
   "latestUrl": "URL",
   "description": "STRING", ?
-  "docs": "URL", ?
+  "documentation": "URL", ?
   "tags": { "STRING": "STRING" * }, ?
   "format": "STRING", ?
   "createdBy": "STRING", ?
@@ -2695,7 +2695,7 @@ xRegistry-epoch: UINT
 xRegistry-self: URL
 xRegistry-latestId: STRING ?
 xRegistry-description: STRING ?
-xRegistry-docs: STRING ?
+xRegistry-documentation: STRING ?
 xRegistry-tags: STRING (JSON map) ?
 xRegistry-format: STRING ?
 xRegistry-createdBy: STRING ?
@@ -2775,7 +2775,7 @@ Link: <URL>;rel=next;count=INT ?
     "self": "URL",
     "latestId": "STRING", ?
     "description": "STRING", ?
-    "docs": "URL", ?
+    "documentation"": "URL", ?
     "tags": { "STRING": "STRING" * }, ?
     "format": "STRING", ?
     "createdBy": "STRING", ?
@@ -2826,7 +2826,7 @@ The serialization of a Version entity adheres to this form:
   "self": "URL",
   "latest": BOOL,
   "description": "STRING", ?
-  "docs": "URL", ?
+  "documentation"": "URL", ?
   "tags": { "STRING": "STRING" * }, ?
   "format": "STRING", ?
   "createdBy": "STRING", ?
@@ -2847,7 +2847,7 @@ Versions include the following attributes as defined by the
 - [`epoch`](#epoch)
 - [`self`](#self)
 - [`description`](#description)
-- [`docs`](#docs)
+- [`documentation`](#documentation)
 - [`tags`](#tags)
 - [`format`](#format)
 - [`createdBy`](#createdby)
@@ -2950,7 +2950,7 @@ xRegistry-self: URL
 xRegistry-latestId: STRING
 xRegistry-latestUrl: URL
 xRegistry-description: STRING ?
-xRegistry-docs: STRING ?
+xRegistry-documentation: STRING ?
 xRegistry-tags: STRING (JSON map) ?
 xRegistry-format: STRING ?
 xRegistry-createdBy: STRING ?
@@ -3012,7 +3012,7 @@ xRegistry-name: STRING ?
 xRegistry-epoch: UINT
 xRegistry-self: URL
 xRegistry-description: STRING ?
-xRegistry-docs: STRING ?
+xRegistry-documentation: STRING ?
 xRegistry-tags: STRING (JSON map) ?
 xRegistry-format: STRING ?
 xRegistry-createdBy: STRING ?
@@ -3062,7 +3062,7 @@ Link: <URL>;rel=next;count=INT ?
     "self": "URL",
     "latest": BOOL,
     "description": "STRING", ?
-    "docs": "URL", ?
+    "documentation"": "URL", ?
     "tags": { "STRING": "STRING" * }, ?
     "format": "STRING", ?
     "createdBy": "STRING", ?
@@ -3127,7 +3127,7 @@ xRegistry-id: STRING ?
 xRegistry-name: STRING ?
 xRegistry-epoch: STRING ?
 xRegistry-description: STRING ?
-xRegistry-docs: STRING ?
+xRegistry-documentation: STRING ?
 xRegistry-tags: STRING (JSON map) ?
 xRegistry-format: STRING ?
 xRegistry-RESOURCEUrl: URL ?      # If present body MUST be empty
@@ -3177,7 +3177,7 @@ xRegistry-epoch: UINT
 xRegistry-self: STRING
 xRegistry-latest: BOOL
 xRegistry-description: STRING ?
-xRegistry-docs: STRING ?
+xRegistry-documentation: STRING ?
 xRegistry-tags: STRING ?
 xRegistry-format: STRING ?
 xRegistry-createdBy: STRING ?
@@ -3254,7 +3254,7 @@ Content-Length: ...
   "name": "STRING", ?
   "epoch": UINT, ?
   "description": "STRING", ?
-  "docs": "URL", ?
+  "documentation"": "URL", ?
   "tags": { "STRING": "STRING" * }, ?
   "format": "STRING", ?
 
@@ -3291,7 +3291,7 @@ Location: URL
   "self": "URL",
   "latest": BOOL,
   "description": "STRING", ?
-  "docs": "URL", ?
+  "documentation"": "URL", ?
   "tags": { "STRING": "STRING" * }, ?
   "format": "STRING", ?
   "createdBy": "STRING", ?
@@ -3374,7 +3374,7 @@ xRegistry-epoch: UINT
 xRegistry-self: URL
 xRegistry-latest: BOOL
 xRegistry-description: STRING ?
-xRegistry-docs: STRING ?
+xRegistry-documentation: STRING ?
 xRegistry-tags: STRING (JSON map) ?
 xRegistry-format: STRING ?
 xRegistry-createdBy: STRING ?
@@ -3399,7 +3399,7 @@ xRegistry-epoch: UINT
 xRegistry-self: URL
 xRegistry-latest: BOOL
 xRegistry-description: STRING ?
-xRegistry-docs: STRING ?
+xRegistry-documentation: STRING ?
 xRegistry-tags: STRING (JSON map) ?
 xRegistry-format: STRING ?
 xRegistry-createdBy: STRING ?
@@ -3466,7 +3466,7 @@ Content-Length: ...
   "self": "URL",
   "latest": BOOL,
   "description": "STRING", ?
-  "docs": "URL", ?
+  "documentation"": "URL", ?
   "tags": { "STRING": "STRING" * }, ?
   "format": "STRING", ?
   "createdBy": "STRING", ?
@@ -3524,7 +3524,7 @@ xRegistry-name: STRING ?
 xRegistry-epoch: UINT ?
 xRegistry-latest: BOOL ?
 xRegistry-description: STRING ?
-xRegistry-docs: STRING ?
+xRegistry-documentation: STRING ?
 xRegistry-tags: STRING (JSON map) ?
 xRegistry-format: STRING ?
 xRegistry-RESOURCEUrl: URL ?
@@ -3566,7 +3566,7 @@ xRegistry-epoch: UINT
 xRegistry-self: URL
 xRegistry-latest: BOOL
 xRegistry-description: STRING ?
-xRegistry-docs: STRING ?
+xRegistry-documentation: STRING ?
 xRegistry-tags: STRING (JSON map) ?
 xRegistry-format: STRING ?
 xRegistry-createdBy: STRING ?
@@ -3640,7 +3640,7 @@ PUT /GROUPs/gID/RESOURCEs/rID/versions/vID?meta
   "epoch": UINT, ?
   "latest": BOOL, ?
   "description": "STRING", ?
-  "docs": "URL", ?
+  "documentation"": "URL", ?
   "tags": { "STRING": "STRING" * }, ?
   "format": "STRING", ?
 
@@ -3699,7 +3699,7 @@ Content-Length: ...
   "self": "URL",
   "latest": BOOL,
   "description": "STRING", ?
-  "docs": "URL", ?
+  "documentation"": "URL", ?
   "tags": { "STRING": "STRING" * }, ?
   "format": "STRING", ?
   "createdBy": "STRING", ?
@@ -3805,7 +3805,7 @@ xRegistry-epoch: UINT
 xRegistry-self: URL
 xRegistry-latest: BOOL
 xRegistry-description: STRING ?
-xRegistry-docs: STRING ?
+xRegistry-documentation: STRING ?
 xRegistry-tags: STRING (JSON map) ?
 xRegistry-format: STRING ?
 xRegistry-createdBy: STRING ?
@@ -3904,7 +3904,7 @@ Link: <URL>;rel=next;count=INT ?
     "self": "URL",
     "latest": BOOL,
     "description": "STRING", ?
-    "docs": "URL", ?
+    "documentation"": "URL", ?
     "tags": { "STRING": "STRING" * }, ?
     "format": "STRING", ?
     "createdBy": "STRING", ?
