@@ -3966,6 +3966,11 @@ MUST apply for an entity to be considered a match of the filter expression:
 - for boolean attributes, its value MUST be an exact case-sensitive match
   (`true` or `false`).
 
+If the request references an entity (not a collection), and the `EXPRESSION`
+references an attribute in that entity (i.e. there is no `PATH`), then if the
+`EXPRESSION` does not match the entity, that entity MUST NOT be returned. In
+other words, a `404 Not Found` would be generated in the HTTP protocol case.
+
 **Examples:**
 
 | Request PATH | Filter query | Commentary |
@@ -3974,6 +3979,6 @@ MUST apply for an entity to be considered a match of the filter expression:
 | /endpoints | `filter=description=CooL` | Same results as previous, with a different request URL |
 | / | `filter=endpoints/definitions/versions/id=1.0` | Only versions (and their owning endpoints/definitions) that have an ID of `1.0` |
 | / | `filter=endpoints/format=CloudEvents/1.0,endpoints/description=cool&filter=schemaGroups/modifiedBy=John` | Only endpoints whose format is `CloudEvents/1.0` and whose description contains the word `cool`, as well as any schemaGroups that were modified by 'John' |
-
+| / | `filter=description=no-match` | Returns a 404 if the Registry's `description` doesn't contain `no-match` |
 
 Specifying a filter does not imply inlining.
