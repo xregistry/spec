@@ -580,6 +580,7 @@ The following describes the attributes of Registry model:
   - The plural name of the Resource. eg. `definitions`
   - Type: String
   - REQUIRED
+  - MUST be unique within the scope of its owning Group
 - `groups.resources.versions`
   - Number of Versions per Resource that will be stored in the Registry
   - Type: Unsigned Integer
