@@ -229,6 +229,8 @@ Implementations of this specification MAY define additional (extension)
 attributes, and they MAY appear at any level of the model. However they MUST
 adhere to the following rules:
 
+- they MUST only contain alphanumeric characters (`[a-zA-Z0-9]`) or an
+  underscore (`_`) and MUST NOT start with a digit (`[0-9]`).
 - it is STRONGLY RECOMMENDED that they be named in such a way as to avoid
   potential conflicts with future Registry Service attributes. For example,
   use of a model (or domain) specific prefix can help
