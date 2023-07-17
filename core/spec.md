@@ -2902,6 +2902,11 @@ by which the "latest" one is known. This can be determined by the client
 explicitly indicating which one is the latest, or it can be determined by the
 server.
 
+Servers MAY have their own algorithm for determing which Version is the latest
+but the default algorithm is to choose the newest Version based on the time
+each Version was created. Note, this applies even if the `createdBy` attribute
+is not supported or exposed to clients.
+
 For a client to indicate which Version is the "latest", certain APIs support
 a `latestId` query parameter whose value is the Version `id` that is to
 become the latest. This query parameter MAY appear on the creation of a
