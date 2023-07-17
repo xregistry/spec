@@ -949,14 +949,20 @@ MAY be used.
 The request MUST be of the form:
 
 ``` text
-GET /[?model&inline=...&filter=...]
+GET /[?model&specVersion=...&inline=...&filter=...]
 ```
 
 The following query parameters MUST be supported by servers:
 - `model`<br>
-  The presence of this query parameter indicates that the request is asking
-  for the Registry model to be included in the response. See
+  The presence of this OPTIONAL query parameter indicates that the request is
+  asking for the Registry model to be included in the response. See
   [Registry Model](#registry-model) for more information
+- `specVersion`<br>
+  The presence of this OPTIONAL query parameter indicates that the response
+  MUST adhere to the xRegistry specification version specified. If the
+  version is not supported then an error MUST be generated. Note that this
+  query parameter MAY be included on any API request to the server not just the
+  root of the Registry.
 - `inline` - See [inlining](#inlining) for more information
 - `filter` - See [filtering](#filtering) for more information
 
