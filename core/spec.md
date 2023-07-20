@@ -243,6 +243,8 @@ adhere to the following rules:
 - they MUST only be of type: BOOLEAN (case sensitive `true` or `false`),
   DECIMAL, or STRING. Subtypes of these MAY be used to restrict the
   allowable syntax of their values. For example, using TIME in place of STRING
+- for STRING attributes, and empty string is a valid value and MUST NOT be
+  treated the same as an attribute with no value.
 - the string serialization of the attribute name and its value MUST NOT exceed
   4096 bytes. This is to ensure that it can appear in an HTTP header without
   exceeding implemantion limits (see
@@ -310,7 +312,7 @@ existing entity can be deleted.
   How any such requirement is shared with all parties is out of scope of this
   specification
 - Constraints:
-  - MUST be non-empty
+  - if present, MUST be non-empty
 - Examples:
   - `My Endpoints`
 
@@ -349,8 +351,7 @@ existing entity can be deleted.
 - Type: String
 - Description: A human readable summary of the purpose of the entity
 - Constraints:
-  - When this attribute has no value, or is an empty string, it MAY be
-    excluded from the serialization of the owning entity
+  - None
 - Examples:
   - `A queue of the sensor generated messages`
 
@@ -393,9 +394,9 @@ existing entity can be deleted.
   the Resource at all
 - Constraints:
   - if present, MUST be a non-empty string of the form `SPEC[/VERSION]`,
-    where `SPEC` is the name of the specification that defines the Resource.
-    An OPTIONAL `VERSION` value SHOULD be included if there are multiple
-    versions of the specification available
+    where `SPEC` is the non-empty string name of the specification that
+    defines the Resource. An OPTIONAL `VERSION` value SHOULD be included if
+    there are multiple versions of the specification available
   - for comparison purposes, this attribute MUST be considered case sensitive
   - If a `VERSION` is specified at the Group level, all Resources within that
     Group MUST have a `VERSION` value that is at least as precise as its
@@ -419,8 +420,7 @@ existing entity can be deleted.
   the creation of this entity. This specification makes no requirement on
   the semantics or syntax of this value
 - Constraints:
-  - When this attribute has no value, or is an empty string, it MAY be
-    excluded from the serialization of the owning entity
+  - if present, MUST be non-empty
   - MUST be a read-only attribute in API view
 - Examples:
   - `John Smith`
@@ -443,8 +443,7 @@ existing entity can be deleted.
   the latest update of this entity. This specification makes no requirement
   on the semantics or syntax of this value
 - Constraints:
-  - When this attribute has no value, or is an empty string, it MAY be
-    excluded from the serialization of the owning entity
+  - if present, MUST be non-empty
   - MUST be a read-only attribute in API view
 - Examples:
   - `John Smith`
@@ -561,11 +560,13 @@ The following describes the attributes of Registry model:
   - Type: String
   - REQUIRED
   - MUST be unique across all Groups in the Registry
+  - MUST be non-empty and MUST be a valid attribute name
 - `groups.plural`
   - The plural name of a Group. eg. `endpoints`
   - Type: String
   - REQUIRED
   - MUST be unique across all Groups in the Registry
+  - MUST be non-empty and MUST be a valid attribute name
 - `groups.schema`
   - A URI-Reference to a schema document for the Group
   - Type: URI-Reference
@@ -578,10 +579,12 @@ The following describes the attributes of Registry model:
   - The singular name of the Resource. eg. `definition`
   - Type: String
   - REQUIRED
+  - MUST be non-empty and MUST be a valid attribute name
 - `groups.resources.plural`
   - The plural name of the Resource. eg. `definitions`
   - Type: String
   - REQUIRED
+  - MUST be non-empty and MUST be a valid attribute name
 - `groups.resources.versions`
   - Number of Versions per Resource that will be stored in the Registry
   - Type: Unsigned Integer
@@ -3971,8 +3974,8 @@ represented using a dot(`.`) notation - for example `GROUPs.RESOURCEs`.
 
 There MAY be multiple `PATH`s specified, either as comma separated values on
 a single `inline` query parameter or via multiple `inline` query parameters.
-Absence of a value, or a value of an empty string, indicates that all nested
-inlinable attributes MUST be inlined.
+Absence of a `PATH` indicates that all nested inlinable attributes MUST be
+inlined.
 
 The specific value of `PATH` will vary based on where the request is directed.
 For example, a request to the root of the Registry MUST start with a `GROUPs`
@@ -4044,7 +4047,7 @@ The abstract processing logic would be:
 The format of `EXPRESSION` is:
 
 ``` text
-[PATH.]ATTRIBUTE[=VALUE]
+[PATH.]ATTRIBUTE[=[VALUE]]
 ```
 
 Where:
@@ -4054,26 +4057,26 @@ Where:
   Registry. See the examples below
 - `PATH` MUST only consist of valid `GROUPs`, `RESOURCEs` or `versions`,
   otherwise an error MUST be generated
-- `ATTRIBUTE` MUST be the attribute of the entity to be examined
+- `ATTRIBUTE` MUST be the attribute name of the entity to be examined
 - a reference to a nonexistent attribute SHOULD NOT generate an error and
   SHOULD be treated the same as a non-matching situation
-- `VALUE` MUST be the desired value of the attribute being examined. Only
-  entities whose specified `ATTRIBUTE` with this `VALUE` MUST be included in
-  the response. In general, when `VALUE` is absent, a successful match occurs
-  when the `ATTRIBUTE` has a non-empty/zero value. See below for more
-  information
+- when the equals sign (`=`) is present with a `VALUE` then `VALUE` MUST be
+  the desired value of the attrbibute being examined. Only entities whose
+  specified `ATTRIBUTE` with this `VALUE` MUST be included in the response
+- when the equals sign (`=`) is present without a `VALUE` then the implied
+  value is an empty string, and the matching MUST be as specified in the
+  previous bullet.
+- when the equals sign (`=`) is not present then the response MUST include all
+  entities that have the `ATTRIBUTE` present with any value. In database terms
+  this is equivalent to checking for entities with a non-NULL value.
 
 When comparing an `ATTRIBUTE` to the specified `VALUE` the following rules
 MUST apply for an entity to be considered a match of the filter expression:
-- for numeric attributes, it MUST be an exact match. When `VALUE` is not
-  present then the attribute matches if its value is non-zero
+- for numeric attributes, it MUST be an exact match.
 - for string attributes, its value MUST contain the `VALUE` within it but
-  does not need to be an exact case match. When `VALUE` is not present then
-  the attribute matches if its value is a non-empty string. Note that a string
-  attribute with no value MUST be considered the same one with an empty string
+  does not need to be an exact case match.
 - for boolean attributes, its value MUST be an exact case-sensitive match
-  (`true` or `false`). When `VALUE` is not present then the attribute is a
-  match is its value is `true`
+  (`true` or `false`).
 
 **Examples:**
 
