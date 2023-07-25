@@ -17,18 +17,6 @@
       }
     }
   },
-  "anyOf": [
-    {
-      "required": [
-        "endpointsURL"
-      ]
-    },
-    {
-      "required": [
-        "endpoints"
-      ]
-    }
-  ],
   "definitions": {
     "endpoint": {
       "allOf": [
