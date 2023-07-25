@@ -51,9 +51,6 @@
       "additionalProperties": {
         "oneOf": [
           {
-            "$ref": "#/definitions/definition"
-          },
-          {
             "$ref": "xregistry_messagedefinition_registry_amqp.json#/definitions/amqpDefinition"
           },
           {
