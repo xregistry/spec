@@ -98,7 +98,8 @@
         },
         "format": {
           "type": "string",
-          "description": "Specifies the `format` of this definition."
+          "description": "Specifies the `format` of this definition.",
+          "enum": ["Unspecified"]
         },
         "metadata": {
           "type": "object"
