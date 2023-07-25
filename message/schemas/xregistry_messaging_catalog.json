@@ -11,10 +11,10 @@
       "$ref": "xregistry_messagedefinition_registry.json"
     },
     {
-      "$ref": "xregistry_endpoint_registry.json"
+      "$ref": "../../endpoint/schemas/xregistry_endpoint_registry.json"
     },
     {
-      "$ref": "xregistry_schema_registry.json"
+      "$ref": "../../schema/schemas/xregistry_schema_registry.json"
     }
   ]
 }
