@@ -126,15 +126,29 @@
       "anyOf": [
         {
           "required": [
+            "format",
             "schema",
             "schemaFormat"
           ]
         },
         {
           "required": [
+            "format",
             "schemaUrl",
             "schemaFormat"
           ]
+        },
+        {
+          "required": [
+            "format"
+          ],
+          "not": {
+            "required": [
+              "schema",
+              "schemaUrl",
+              "schemaFormat"
+            ]
+          }
         }
       ],
       "allOf": [

@@ -19,6 +19,7 @@
       "properties": {
         "protocol": {
           "type": "string",
+          "title": "protocol",
           "description": "Specifies the `protocol` of this endpoint.",
           "enum": [
             "AMQP",
@@ -36,12 +37,32 @@
           ]
         },
         "options": {
-          "anyOf": [
-            { "$ref": "xregistry_endpoint_registry_amqp.json#/definitions/endpointOptionsAmqp" },
-            { "$ref": "xregistry_endpoint_registry_http.json#/definitions/endpointOptionsHttp" },
-            { "$ref": "xregistry_endpoint_registry_mqtt.json#/definitions/endpointOptionsMqtt" },
-            { "$ref": "xregistry_endpoint_registry_nats.json#/definitions/endpointOptionsNats" },
-            { "$ref": "xregistry_endpoint_registry_kafka.json#/definitions/endpointOptionsKafka" }
+          "oneOf": [
+            {
+              "$ref": "#/definitions/endpointOptions"
+            },
+            {
+              "oneOf": [
+                {
+                  "$ref": "#/definitions/endpointOptions"
+                },
+                {
+                  "$ref": "xregistry_endpoint_registry_amqp.json#/definitions/endpointOptionsAmqp"
+                },
+                {
+                  "$ref": "xregistry_endpoint_registry_http.json#/definitions/endpointOptionsHttp"
+                },
+                {
+                  "$ref": "xregistry_endpoint_registry_mqtt.json#/definitions/endpointOptionsMqtt"
+                },
+                {
+                  "$ref": "xregistry_endpoint_registry_nats.json#/definitions/endpointOptionsNats"
+                },
+                {
+                  "$ref": "xregistry_endpoint_registry_kafka.json#/definitions/endpointOptionsKafka"
+                }
+              ]
+            }
           ]
         }
       }
