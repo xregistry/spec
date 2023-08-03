@@ -32,7 +32,12 @@
           "type": "integer"
         },
         "definitions": {
-          "$ref" : "#/definitions/definitions"
+          "type": "object",
+          "oneOf": [
+            {
+              "$ref": "#/definitions/definitions"
+            }
+          ]
         }
       },
       "required": [
@@ -44,6 +49,25 @@
         }
       ]
     },
+    "concreteDefinitions": {
+      "oneOf": [
+        {
+          "$ref": "xregistry_messagedefinition_registry_amqp.json#/definitions/amqpDefinition"
+        },
+        {
+          "$ref": "xregistry_messagedefinition_registry_mqtt.json#/definitions/mqttDefinition"
+        },
+        {
+          "$ref": "xregistry_messagedefinition_registry_http.json#/definitions/httpDefinition"
+        },
+        {
+          "$ref": "xregistry_messagedefinition_registry_kafka.json#/definitions/kafkaDefinition"
+        },
+        {
+          "$ref": "xregistry_messagedefinition_registry_cloudevents.json#/definitions/cloudEventDefinition"
+        }
+      ]
+    },
     "definitions": {
       "type": "object",
       "title": "definitions",
@@ -51,22 +75,17 @@
       "additionalProperties": {
         "oneOf": [
           {
-            "$ref": "#/definitions/definition"
+            "oneOf": [
+              {
+                "$ref": "#/definitions/definition"
+              },
+              {
+                "$ref": "#/definitions/concreteDefinitions"
+              }
+            ]
           },
           {
-            "$ref": "xregistry_messagedefinition_registry_amqp.json#/definitions/amqpDefinition"
-          },
-          {
-            "$ref": "xregistry_messagedefinition_registry_mqtt.json#/definitions/mqttDefinition"
-          },
-          {
-            "$ref": "xregistry_messagedefinition_registry_http.json#/definitions/httpDefinition"
-          },
-          {
-            "$ref": "xregistry_messagedefinition_registry_kafka.json#/definitions/kafkaDefinition"
-          },
-          {
-            "$ref": "xregistry_messagedefinition_registry_cloudevents.json#/definitions/cloudEventDefinition"
+            "$ref": "#/definitions/concreteDefinitions"
           }
         ]
       }
@@ -104,9 +123,6 @@
           "type": "object"
         }
       },
-      "required": [
-        "format"
-      ],
       "anyOf": [
         {
           "required": [

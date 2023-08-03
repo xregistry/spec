@@ -12,6 +12,11 @@
       "type": "object",
       "title": "document",
       "properties": {
+        "$schema": {
+          "type": "string",
+          "description": "A JSON Schema for the document. This value MUST be a valid JSON Schema.",
+          "format": "uri-reference"
+        },
         "specversion": {
           "type": "string"
         },

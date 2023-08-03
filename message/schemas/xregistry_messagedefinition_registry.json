@@ -22,18 +22,6 @@
       ]
     }
   },
-  "anyOf": [
-    {
-      "required": [
-        "definitionGroupsUrl"
-      ]
-    },
-    {
-      "required": [
-        "definitionGroups"
-      ]
-    }
-  ],
   "definitions": {
     "metadataProperty": {
       "type": "object",

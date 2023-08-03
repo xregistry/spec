@@ -18,18 +18,6 @@
       }
     }
   },
-  "anyOf": [
-    {
-      "required": [
-        "schemaGroupsUrl"
-      ]
-    },
-    {
-      "required": [
-        "schemaGroups"
-      ]
-    }
-  ],
   "definitions": {
     "schemaGroup": {
       "type": "object",

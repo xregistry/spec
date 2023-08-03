@@ -80,7 +80,7 @@
         },
         "datacontenttype": {
           "description": "Content type of the data.",
-          "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertySymbol"
+          "$ref": "xregistry_messagedefinition_registry.json#/definitions/metadataPropertyString"
         }
       },
       "additionalProperties": {
