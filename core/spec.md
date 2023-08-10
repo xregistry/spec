@@ -19,22 +19,22 @@ automation and tooling.
   - [Registry Model](#registry-model)
   - [Groups](#groups)
     - [Groups Collection](#retrieving-a-group-collection)
-	- [Create Group](#creating-a-group)
-	- [Retrieve Group](#retrieving-a-group)
-	- [Update Group](#updating-a-group)
-	- [Delete Group](#deleting-groups)
+    - [Create Group](#creating-a-group)
+    - [Retrieve Group](#retrieving-a-group)
+    - [Update Group](#updating-a-group)
+    - [Delete Group](#deleting-groups)
   - [Resources](#resources)
     - [Resources Collection](#retrieving-a-resource-collection)
-	- [Create Resource](#creating-a-resource)
-	- [Retrieve Resource](#retrieving-a-resource)
-	- [Update Resource](#updating-a-resource)
-	- [Delete Resource](#deleting-resources)
+    - [Create Resource](#creating-a-resource)
+    - [Retrieve Resource](#retrieving-a-resource)
+    - [Update Resource](#updating-a-resource)
+    - [Delete Resource](#deleting-resources)
   - [Versions](#versions)
     - [Versions Collection](#retrieving-all-versions)
-	- [Create Version](#creating-a-version)
-	- [Retrieve Version](#retrieving-a-version)
-	- [Update Version](#updating-a-version)
-	- [Delete Version](#deleting-versions)
+    - [Create Version](#creating-a-version)
+    - [Retrieve Version](#retrieving-a-version)
+    - [Update Version](#updating-a-version)
+    - [Delete Version](#deleting-versions)
   - [Inlining](#inlining)
   - [Filtering](#filtering)
 
@@ -137,8 +137,8 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
           "name": "STRING", ?
           "epoch": UINT,
           "self": "URL",
-          "latestId": "STRING",
-          "latestUrl": "URL",
+          "latestVersionId": "STRING",
+          "latestVersionUrl": "URL",
           "description": "STRING", ?
           "documentation": "URL", ?
           "labels": { "STRING": "STRING" * }, ?
@@ -271,8 +271,11 @@ Implementations of this specification MAY define additional (extension)
 attributes, and they MAY appear at any level of the model. However they MUST
 adhere to the following rules:
 
+- they MUST NOT use the name of an attribute defined by this specification,
+  regardless of which entity the attribute is defined for
+- their names MUST be between 1 and 63 characters in length
 - their names MUST only contain alphanumeric characters (`[a-zA-Z0-9]`) or an
-  underscore (`_`) and MUST NOT start with a digit (`[0-9]`).
+  underscore (`_`) and MUST NOT start with a digit (`[0-9]`)
 - it is STRONGLY RECOMMENDED that they be named in such a way as to avoid
   potential conflicts with future Registry specification attributes. For
   example, use of a model (or domain) specific prefix SHOULD be used
@@ -282,14 +285,14 @@ adhere to the following rules:
 - for case sensitive serializations, it is RECOMMENDED that attribute names
   be defined in camelCase and acronyms have only their first letter
   capitalized. For example, `Id` not `ID`
-- In situations where an attribute is serialized in a case-sensitive situation,
+- in situations where an attribute is serialized in a case-sensitive situation,
   then the case specified by this specification, or the defining extension
-  specification, MUST be adhere to.
+  specification, MUST be adhere to
 - they MUST only be of type: BOOLEAN (case sensitive `true` or `false`),
   DECIMAL, or STRING. Subtypes of these MAY be used to restrict the
   allowable syntax of their values. For example, using TIME in place of STRING
 - for STRING attributes, and empty string is a valid value and MUST NOT be
-  treated the same as an attribute with no value.
+  treated the same as an attribute with no value
 - the string serialization of the attribute name and its value MUST NOT exceed
   4096 bytes. This is to ensure that it can appear in an HTTP header without
   exceeding implementation limits (see
@@ -865,10 +868,11 @@ Content-Type: application/json; charset=utf-8
 
 {
   "id": "STRING", ?
+  "epoch": UINT, ?
   "name": "STRING", ?
   "description": "STRING", ?
   "documentation": "URL" ?
-  "labels": { "STRING": "STRING" * }, ?
+  "labels": { "STRING": "STRING" * } ?
 }
 ```
 
@@ -1400,12 +1404,15 @@ Link: <https://example.com/endpoints&page=2>;rel=next;count=100
 
 #### Creating a Group
 
-To create a new Group, an HTTP `POST` MAY be used.
+To create a new Group, there are 2 HTTP actions that MAY be used:
+- `POST /GROUPs`
+- `PUT  /GROUPs/gID`
 
 The request MUST be of the form:
 
 ``` text
-POST /GROUPs
+POST /GROUPs  or
+PUT  /GROUPs/gID
 Content-Type: application/json; charset=utf-8
 
 {
@@ -1420,7 +1427,15 @@ Content-Type: application/json; charset=utf-8
 ```
 
 Where:
-- `id` is OPTIONAL and if absent the server MUST assign it a new unique value
+- if `id` is present in the HTTP body and the request is the `PUT` variant
+  then the `id` MUST match the `ID` at the end of the URL and MUST be used
+  as the `id` of the new Group created
+- if `id` is present in the HTTP body and the request is the `POST` varaint
+  then the `id` MUST be used as the `id` of the new Group created
+- if `id` is missing and the request is the `PUT` variant the the `ID` at
+  the end of the URL MUST be used as the `id` of the new Group created
+- if `id` is missing and the request is the `POST variant then the server
+  MUST assign it a new unique value
 - whether `id` is provided or generated by the server, it MUST be unique
   across all Groups of this type
 - `epoch` is OPTIONAL and if present MUST be silently ignored
@@ -1564,6 +1579,7 @@ The request MUST be of the form:
 PUT /GROUPs/gID
 
 {
+  "id": "STRING", ?
   "name": "STRING", ?
   "epoch": UINT, ?
   "description": "STRING", ?
@@ -1574,6 +1590,7 @@ PUT /GROUPs/gID
 ```
 
 Where:
+- if `id` is present then it MUST match the `gID` in the PATH
 - the HTTP body MUST contain the full representation of the Group's mutable
   attributes
 - attributes not present in the request, or present with a value of `null`,
@@ -1785,21 +1802,21 @@ However, there are a few exceptions:
 - `id` MUST be for the Resource itself and not the `id` from the "latest"
   Version. The `id` of each Version MUST be unique within the scope of the
   Resource, but to ensure the Resource itself has a consistent `id` value
-  it is distinct from any Version's `id`. There MUST be a `latestId` attribute
-  in the serialization of a Resource that can be used to determine which
-  Version is the latest Version (meaning, which Version this Resource is an
-  alias for).
+  it is distinct from any Version's `id`. There MUST be a `latestVersionId`
+  attribute in the serialization of a Resource that can be used to determine
+  which Version is the latest Version (meaning, which Version this Resource is
+  an alias for).
 
   Additionally, Resource `id` values are often human readable (eg. `mySchema`),
   while Version `id` values are meant to be versions string values
   (e.g. `1.0`).
 - `self` MUST be an absolute URL to the Resource, and not to the "latest"
-  Version in the `versions` collection. The Resource's `latestUrl` attribute
-  can be used to access the "latest" Version
+  Version in the `versions` collection. The Resource's `latestVersionUrl`
+  attribute can be used to access the "latest" Version
 
 Additionally, when serialized in an HTTP response the Resource MAY include an
 `Content-Location` HTTP header, and if present it MUST contain the same value
-as the `latestUrl` attribute.
+as the `latestVersionUrl` attribute.
 
 Unlike Groups, Resources are typically defined by domain-specific data
 and as such the Registry defined attributes are not present in the Resources
@@ -1823,8 +1840,8 @@ When serialized as a JSON object, a Resource MUST adhere to this form:
   "name": "STRING", ?
   "epoch": UINT,
   "self": "URL",
-  "latestId": "STRING",
-  "latestUrl": "URL",
+  "latestVersionId": "STRING",
+  "latestVersionUrl": "URL",
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
@@ -1853,8 +1870,8 @@ xRegistry-id: STRING
 xRegistry-name: STRING ?
 xRegistry-epoch: UINT
 xRegistry-self: URL
-xRegistry-latestId: STRING
-xRegistry-latestUrl: URL
+xRegistry-latestVersionId: STRING
+xRegistry-latestVersionUrl: URL
 xRegistry-description: STRING ?
 xRegistry-documentation: STRING ?
 xRegistry-labels-KEY: STRING ?
@@ -1880,24 +1897,27 @@ Notes:
   headers (one per label name)
 
 Resources include the following common attributes:
+
+(these are Resource defined)
 - [`id`](#id) - REQUIRED, except on create request where it is OPTIONAL
-- [`name`](#name) - OPTIONAL (inherited from the latest version)
-- [`epoch`](#epoch) - REQUIRED in responses, otherwise OPTIONAL (inherited
-  from the latest version)
 - [`self`](#self) - REQUIRED in responses, OPTIONAL in requests and in
   document view
-- [`description`](#description) - OPTIONAL (inherited from the latest version)
-- [`documentation`](#documentation) - OPTIONAL (inherited from the latest version)
-- [`labels`](#labels) - OPTIONAL (inherited from the latest version)
-- [`format`](#format) - OPTIONAL (inherited from the latest version)
-- [`createdBy`](#createdby) - OPTIONAL (inherited from the latest version)
-- [`createdOn`](#createdon) - OPTIONAL (inherited from the latest version)
-- [`modifiedBy`](#modifiedby) - OPTIONAL (inherited from the latest version)
-- [`modifiedOn`](#modifiedon) - OPTIONAL (inherited from the latest version)
+
+(these values are picked-up from the latest version)
+- [`name`](#name) - OPTIONAL
+- [`epoch`](#epoch) - REQUIRED in responses, otherwise OPTIONAL
+- [`description`](#description) - OPTIONAL
+- [`documentation`](#documentation) - OPTIONAL
+- [`labels`](#labels) - OPTIONAL
+- [`format`](#format) - OPTIONAL
+- [`createdBy`](#createdby) - OPTIONAL
+- [`createdOn`](#createdon) - OPTIONAL
+- [`modifiedBy`](#modifiedby) - OPTIONAL
+- [`modifiedOn`](#modifiedon) - OPTIONAL
 
 and the following Resource specific attributes:
 
-**`latestId`**
+**`latestVersionId`**
 - Type: String
 - Description: the `id` of the latest Version of the Resource.
   This specification makes no statement as to the format of this string or
@@ -1915,7 +1935,7 @@ and the following Resource specific attributes:
 - Examples:
   - `1`, `2.0`, `v3-rc1`
 
-**`latestUrl`**
+**`latestVersionUrl`**
 - Type: URL
 - Description: an absolute URL to the latest Version of the Resource
 - Constraints:
@@ -1924,7 +1944,7 @@ and the following Resource specific attributes:
   - MUST be a read-only attribute in API view
   - MUST be an absolute URL to the latest Version of the Resource, and MUST
     be the absolute URL to the Resource's `versions` collection  appended with
-    `latestId`
+    `latestVersionId`
 - Examples:
   - `https://example.com/endpoints/123/definitions/456/versions/1.0`
 
@@ -2077,8 +2097,8 @@ Link: <URL>;rel=next;count=INT ?
     "name": "STRING", ?
     "epoch": UINT,
     "self": "URL",
-    "latestId": "STRING",
-    "latestUrl": "URL",
+    "latestVersionId": "STRING",
+    "latestVersionUrl": "URL",
     "description": "STRING", ?
     "documentation": "URL", ?
     "labels": { "STRING": "STRING" * }, ?
@@ -2124,8 +2144,8 @@ Link: <https://example.com/endpoints/123/definitions&page=2>;rel=next;count=100
     "name": "Blob Created",
     "epoch": 1,
     "self": "https://example.com/endpoints/123/definitions/456",
-    "latestId": "1.0",
-    "latestUrl": "https://example.com/endpoints/123/definitions/456/versions/1.0",
+    "latestVersionId": "1.0",
+    "latestVersionUrl": "https://example.com/endpoints/123/definitions/456/versions/1.0",
     "format": "CloudEvents/1.0",
 
     "versionsUrl": "https://example.com/endpoints/123/definitions/456/versions",
@@ -2155,7 +2175,8 @@ Note: an HTTP `POST` is usually directed to a collection or "factory". In the
 case of `POST /GROUPs/gID/RESOURCEs/rID`, while the PATH references a single
 Resource, the use of `POST` (rather than `PUT`) MUST be interpreted as a
 reference to the Resource's `version` collection. This also means that any
-`id` value as an HTTP header is for the Version and not the Resource.
+`id` value in an HTTP header or in the HTTP body is for the Version and not
+the Resource.
 
 The request MUST be of the form:
 
@@ -2194,8 +2215,8 @@ Where:
   that the Resource is empty
 - a request that is missing a mandatory attribute MUST generate an error
 - the presence of any other specification defined attribute not shown above
-  MUST be silently ignored (e.g. `epoch`, `latestId`, `createdBy`) as they
-  are managed by the server
+  MUST be silently ignored (e.g. `epoch`, `latestVersionId`, `createdBy`) as
+  they are managed by the server
 
 A successful response MUST include the same content that an HTTP `GET` on the
 Resource would return, and be of the form:
@@ -2207,8 +2228,8 @@ xRegistry-id: STRING
 xRegistry-name: STRING ?
 xRegistry-epoch: UINT
 xRegistry-self: URL
-xRegistry-latestId: STRING
-xRegistry-latestUrl: URL
+xRegistry-latestVersionId: STRING
+xRegistry-latestVersionUrl: URL
 xRegistry-description: STRING ?
 xRegistry-documentation: STRING ?
 xRegistry-labels-KEY: STRING ?
@@ -2230,7 +2251,7 @@ Content-Location: URL ?
 Where:
 - `Location` MUST be a URL to the Resource - same as `self`
 - if `Content-Location` is present then it MUST be a URL to the Version of the
-  Resource in the `versions` collection - same as `latestUrl`
+  Resource in the `versions` collection - same as `latestVersionUrl`
 - if `RESOURCEUrl` is present then the HTTP body MUST be empty
 - if the HTTP body is not empty then `RESOURCEUrl` MUST NOT be present
 
@@ -2239,11 +2260,10 @@ Where:
 Request:
 
 ``` text
-POST /endpoints/123/definitions
+PUT /endpoints/123/definitions/versions/v1.0
 Content-Type: application/json; charset=utf-8
 xRegistry-name: Blob Created
 xRegistry-format: CloudEvents/1.0
-xRegistry-latestId: 1.0
 
 {
   # definition of a "Blob Created" event excluded for brevity
@@ -2259,8 +2279,8 @@ xRegistry-id: 456
 xRegistry-name: Blob Created
 xRegistry-epoch: 1
 xRegistry-self: https://example.com/endpoints/123/definitions/456
-xRegistry-latestId: 1.0
-xRegistry-latestUrl: https://example.com/endpoints/123/definitions/456/versions/1.0
+xRegistry-latestVersionId: 1.0
+xRegistry-latestVersionUrl: https://example.com/endpoints/123/definitions/456/versions/1.0
 xRegistry-format: CloudEvents/1.0
 xRegistry-versionsUrl: https://example.com/endpoints/123/definitions/456/versions
 xRegistry-versionsCount: 1
@@ -2337,8 +2357,8 @@ Where:
   be present. If all 3 are absent then the Resource contents MUST be empty
 - a request that is missing a mandatory attribute MUST generate an error
 - the presence of any other specification defined attribute not shown above
-  MUST be silently ignored (e.g. `epoch`, `latestId`, `createdBy`) as they
-  are managed by the server
+  MUST be silently ignored (e.g. `epoch`, `latestVersionId`, `createdBy`) as
+  they are managed by the server
 
 A successful response MUST include the same content that an HTTP `GET` on the
 Resource would return, and be of the form:
@@ -2354,8 +2374,8 @@ Content-Location: URL ?
   "name": "STRING", ?
   "epoch": UINT,
   "self": "URL",
-  "latestId": "STRING",
-  "latestUrl": "URL",
+  "latestVersionId": "STRING",
+  "latestVersionUrl": "URL",
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
@@ -2377,7 +2397,7 @@ Where:
   Version of the Resource
 - `Location` MUST be a URL to the Resource - same as `self`
 - if `Content-Location` is present then it MUST be a URL to the Version of the
-  Resource in the `versions` collection - same as `latestUrl`
+  Resource in the `versions` collection - same as `latestVersionUrl`
 
 Note that the response MUST NOT include the `RESOURCE`, `RESOURCEBase64`
 or `versions` attributes.
@@ -2387,12 +2407,11 @@ or `versions` attributes.
 Request:
 
 ``` text
-POST /endpoints/123/definitions?meta
+PUT /endpoints/123/definitions/versions/v1.0?meta
 Content-Type: application/json; charset=utf-8
 
 {
   "name": "Blob Created",
-  "latestId": "1.0",
   "format": "CloudEvents/1.0",
   "definition": {
     # definition of a "Blob Created" event excluded for brevity
@@ -2413,8 +2432,8 @@ Content-Location: https://example.com/endpoints/123/definitions/456/versions/1.0
   "name": "Blob Created",
   "epoch": 1,
   "self": "https://example.com/endpoints/123/definitions/456"
-  "latestId": "1.0",
-  "latestUrl": "https://example.com/endpoints/123/definitions/456/versions/1.0",
+  "latestVersionId": "1.0",
+  "latestVersionUrl": "https://example.com/endpoints/123/definitions/456/versions/1.0",
   "format": "CloudEvents/1.0",
 
   "versionsUrl": "https://example.com/endpoints/123/definitions/456/versions",
@@ -2453,8 +2472,8 @@ xRegistry-id: STRING
 xRegistry-name: STRING ?
 xRegistry-epoch: UINT
 xRegistry-self: URL
-xRegistry-latestId: STRING
-xRegistry-latestUrl: URL
+xRegistry-latestVersionId: STRING
+xRegistry-latestVersionUrl: URL
 xRegistry-description: STRING ?
 xRegistry-documentation: STRING ?
 xRegistry-labels-KEY: STRING ?
@@ -2479,7 +2498,7 @@ Where:
   Resource
 - if `RESOURCEUrl` is present then it MUST have the same value as `Location`
 - if `Content-Location` is present then it MUST be a URL to the Version of the
-  Resource in the `versions` collection - same as `latestUrl`
+  Resource in the `versions` collection - same as `latestVersionUrl`
 
 #### Retrieving a Resource as Metadata
 
@@ -2504,8 +2523,8 @@ Content-Location: URL ?
   "name": "STRING", ?
   "epoch": UINT,
   "self": "URL",
-  "latestId": "STRING",
-  "latestUrl": "URL",
+  "latestVersionId": "STRING",
+  "latestVersionUrl": "URL",
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
@@ -2533,7 +2552,7 @@ Where:
   content, MUST only be included if requested via the `inline` query parameter
   and `RESOURCEUrl` is not set
 - if `Content-Location` is present then it MUST be a URL to the Version of the
-  Resource in the `versions` collection - same as `latestUrl`
+  Resource in the `versions` collection - same as `latestVersionUrl`
 
 The following query parameters MUST be supported by servers:
 - `inline` - See [inlining](#inlining) for more information
@@ -2559,8 +2578,8 @@ Content-Location: https://example.com/endpoints/123/definitions/456/versions/1.0
   "name": "Blob Created",
   "epoch": 1,
   "self": "https://example.com/endpoints/123/definitions/456i?meta,
-  "latestId": "1.0",
-  "latestUrl": "https://example.com/endpoints/123/definitions/456/versions/1.0",
+  "latestVersionId": "1.0",
+  "latestVersionUrl": "https://example.com/endpoints/123/definitions/456/versions/1.0",
   "format": "CloudEvents/1.0",
 
   "versionsUrl": "https://example.com/endpoints/123/definitions/456/versions",
@@ -2625,8 +2644,8 @@ xRegistry-id: STRING
 xRegistry-name: STRING ?
 xRegistry-epoch: UINT
 xRegistry-self: URL
-xRegistry-latestId: STRING
-xRegistry-latestUrl: URL
+xRegistry-latestVersionId: STRING
+xRegistry-latestVersionUrl: URL
 xRegistry-description: STRING ?
 xRegistry-documentation: STRING ?
 xRegistry-labels-KEY: STRING ?
@@ -2649,7 +2668,7 @@ Where:
 - `self` MUST be a URL to the Resource, not to the latest Version of the
   Resource
 - if `Content-Location` is present then it MUST be a URL to the Version of the
-  Resource in the `versions` collection - same as `latestUrl`
+  Resource in the `versions` collection - same as `latestVersionUrl`
 
 **Examples:**
 
@@ -2674,8 +2693,8 @@ xRegistry-id: 456
 xRegistry-name: Blob Created
 xRegistry-epoch: 2
 xRegistry-self: https://example.com/endpoints/123/definitions/456
-xRegistry-latestId: 1.0
-xRegistry-latestUrl: https://example.com/endpoints/123/definitions/456/versions/1.0
+xRegistry-latestVersionId: 1.0
+xRegistry-latestVersionUrl: https://example.com/endpoints/123/definitions/456/versions/1.0
 xRegistry-format: CloudEvents/1.0
 xRegistry-versionsUrl: https://example.com/endpoints/123/definitions/456/versions
 xRegistry-versionsCount: 1
@@ -2759,8 +2778,8 @@ Content-Type: application/json; charset=utf-8
   "name": "STRING", ?
   "epoch": UINT,
   "self": "URL",
-  "latestId": "STRING",
-  "latestUrl": "URL",
+  "latestVersionId": "STRING",
+  "latestVersionUrl": "URL",
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
@@ -2789,7 +2808,7 @@ PUT /endpoints/123/definitions/456?meta
   "name": "Blob Created",
   "epoch": 2,
   "self": "https://example.com/endpoints/123/definitions/456",
-  "latestId": "1.0",
+  "latestVersionId": "1.0",
   "description": "An updated description",
   "format": "CloudEvents/1.0"
 }
@@ -2807,8 +2826,8 @@ Content-Location: https://example.com/endpoints/123/definitions/456/versions/1.0
   "name": "Blob Created",
   "epoch": 3,
   "self": "https://example.com/endpoints/123/definitions/456?meta",
-  "latestId": "1.0",
-  "latestUrl": "https://example.com/endpoints/123/definitions/456/versions/1.0",
+  "latestVersionId": "1.0",
+  "latestVersionUrl": "https://example.com/endpoints/123/definitions/456/versions/1.0",
   "description": "An updated description",
   "format": "CloudEvents/1.0",
 
@@ -2852,7 +2871,7 @@ xRegistry-id: STRING
 xRegistry-name: STRING ?
 xRegistry-epoch: UINT
 xRegistry-self: URL
-xRegistry-latestId: STRING ?
+xRegistry-latestVersionId: STRING ?
 xRegistry-description: STRING ?
 xRegistry-documentation: STRING ?
 xRegistry-labels-KEY: STRING ?
@@ -2870,8 +2889,8 @@ xRegistry-RESOURCEUrl: URI ?
 Where:
 - the HTTP body SHOULD contain the latest representation of the Resource being
   deleted prior to being deleted
-- the response MAY exclude the nested Versions collection (and `latestUrl`)
-  if returning them is challenging
+- the response MAY exclude the nested Versions collection (and
+  `latestVersionUrl`) if returning them is challenging
 
 **Examples:**
 
@@ -2932,7 +2951,7 @@ Link: <URL>;rel=next;count=INT ?
     "name": "STRING", ?
     "epoch": UINT,
     "self": "URL",
-    "latestId": "STRING", ?
+    "latestVersionId": "STRING", ?
     "description": "STRING", ?
     "documentation"": "URL", ?
     "labels": { "STRING": "STRING" * }, ?
@@ -2950,8 +2969,8 @@ Link: <URL>;rel=next;count=INT ?
 Where:
 - the HTTP body SHOULD contain the latest representation of the Resources being
   deleted prior to being deleted
-- the response MAY exclude the nested Versions collection (and `latestUrl`)
-  if returning them is challenging
+- the response MAY exclude the nested Versions collection (and
+  `latestVersionUrl`) if returning them is challenging
 
 A `DELETE /GROUPs/gID/RESOURCEs` without a body MUST delete all Resources in
 the Group.
@@ -3068,18 +3087,18 @@ is not supported or exposed to clients.
 There are several ways in which the "latest" Version of a Resource can be
 modified:
 - during the deletion of a Version(s), a new "latest" MAY be specified
-  as a query paraemeter (`?latestId=vID`). See [Deleting Versions of a
+  as a query paraemeter (`?latestVersionId=vID`). See [Deleting Versions of a
   Resource](#deleting-versions)
 - during the creation of a new Version, the `?latest=true|false` query
   parameter MAY be specified to indicate if the new Version is to become
   the "latest" Version or not. See [Creating a new Version of a
   Resource](#creating-a-version)
-- a dedicated API for updating the `latestId` of a Resource can be used,
+- a dedicated API for updating the `latestVersionId` of a Resource can be used,
   and is defined below
 
-To update the `latestId` of a Resource, the following API MAY be used:
+To update the `latestVersionId` of a Resource, the following API MAY be used:
 ```
-PUT /GROUPs/gID/RESOURCEs/rID?latestId=vID
+PUT /GROUPs/gID/RESOURCEs/rID?latestVersionId=vID
 ```
 
 Where:
@@ -3089,10 +3108,11 @@ Where:
   HTTP `400 Bad Request` error MUST be generated
 
 While this API looks similar to the traditional "update" operation of a
-Resource, the presence of the `?latestId` query parameter MUST be interpreted
-by the server as a request to update just the `latestId` value and nothing
-else. Any other Registry data provided (as HTTP headers or in the HTTP body)
-SHOULD NOT be present and MUST be silently ignored by the server.
+Resource, the presence of the `?latestVersionId` query parameter MUST be
+interpreted by the server as a request to update just the `latestVersionId`
+value and nothing else. Any other Registry data provided (as HTTP headers or
+in the HTTP body) SHOULD NOT be present and MUST be silently ignored by the
+server.
 
 Upon successful completion of the request, the response MUST return the same
 response as a `GET` to the targeted Resource.
@@ -3586,7 +3606,7 @@ To delete a single Version of a Resource, an HTTP `DELETE` MAY be used.
 The request MUST be of the form:
 
 ``` text
-DELETE /GROUPs/gID/RESOURCEs/rID/versions/vID[?epoch=EPOCH][&latestId=vID]
+DELETE /GROUPs/gID/RESOURCEs/rID/versions/vID[?epoch=EPOCH][&latestVersionId=vID]
 ```
 
 Where:
@@ -3601,14 +3621,15 @@ The following query parameters MUST be supported by servers:
 If the server supports client-side selection of the latest Version of a
 Resource (see the [Registry Model](#registry-model)), then the following
 applies:
-- `latestId` query parameter MUST be suported and its value (`vID`) is the
-  `id` of Version which is the become the latest Version of the owning Resource
-- `latestId` MAY be specified even if the Version being delete is not currently
-  the latest Version
-- if `latestId` is present but its value does not match any Version (after the
-  delete operation is completed) then an error MUST be generated and the
-  entire delete MUST be rejected
-- if the latest Verison of a Resource is being deleted but `latestId` was
+- `latestVersionId` query parameter MUST be suported and its value (`vID`) is
+  the `id` of Version which is the become the latest Version of the owning
+  Resource
+- `latestVersionId` MAY be specified even if the Version being delete is not
+  currently the latest Version
+- if `latestVersionId` is present but its value does not match any Version
+  (after the delete operation is completed) then an error MUST be generated
+  and the entire delete MUST be rejected
+- if the latest Verison of a Resource is being deleted but `latestVersionId` was
   not specified, then the following rules apply:
   - the server SHOULD choose the most recently create Version as the latest
     Version
@@ -3676,7 +3697,7 @@ To delete multiple Versions, an HTTP `DELETE` MAY be used.
 The request MUST be of the form:
 
 ``` text
-DELETE /GROUPs/gID/RESOURCEs/rID/versions[?latestId=vID]
+DELETE /GROUPs/gID/RESOURCEs/rID/versions[?latestVersionId=vID]
 
 [
   {
@@ -3697,14 +3718,15 @@ Where:
 If the server supports client-side selection of the latest Version of a
 Resource (see the [Registry Model](#registry-model)), then the following
 applies:
-- `latestId` query parameter MUST be suported and its value (`vID`) is the
-  `id` of Version which is the become the latest Version of the owning Resource
-- `latestId` MAY be specified even if the Version being delete is not currently
-  the latest Version
-- if `latestId` is present but its value does not match any Version (after the
-  delete operation is completed) then an error MUST be generated and the
-  entire delete MUST be rejected
-- if the latest Verison of a Resource is being deleted but `latestId` was
+- `latestVersionId` query parameter MUST be suported and its value (`vID`) is
+  the `id` of Version which is the become the latest Version of the owning
+  Resource
+- `latestVersionId` MAY be specified even if the Version being delete is not
+  currently the latest Version
+- if `latestVersionId` is present but its value does not match any Version
+  (after the delete operation is completed) then an error MUST be generated
+  and the entire delete MUST be rejected
+- if the latest Verison of a Resource is being deleted but `latestVersionId` was
   not specified, then the following rules apply:
   - the server SHOULD choose the most recently create Version as the latest
     Version
@@ -3880,7 +3902,9 @@ Where:
   Registry. See the examples below
 - `PATH` MUST only consist of valid `GROUPs`, `RESOURCEs` or `versions`,
   otherwise an error MUST be generated
-- `ATTRIBUTE` MUST be the attribute name of the entity to be examined
+- `ATTRIBUTE` MUST be the attribute in the entity to be examined
+- complex attributes (e.g. `labels`) MUST use slash(`/`) to reference nested
+  attributes. For example: `labels/stage=dev` for a filter
 - a reference to a nonexistent attribute SHOULD NOT generate an error and
   SHOULD be treated the same as a non-matching situation
 - when the equals sign (`=`) is present with a `VALUE` then `VALUE` MUST be
