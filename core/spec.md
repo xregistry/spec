@@ -37,6 +37,7 @@ automation and tooling.
     - [Delete Version](#deleting-versions)
   - [Inlining](#inlining)
   - [Filtering](#filtering)
+  - [HTTP Header Values](#http-header-values)
 
 ## Overview
 
@@ -92,18 +93,38 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   "labels": { "STRING": "STRING" * }, ?
 
   "model": {                            # only if inlined
-    "schema": "URI-Reference", ?        # schema doc for the entire Registry
+    "schemas": [ "STRING" * ], ?        # available schema formats
+    "attributes": {                     # Registry level extensions
+      "STRING": {                       # attribute name (case sensitive)
+        "type": "TYPE",                 # string, decimal, array, object, ...
+        "description": "STRING", ?
+        "enum": [ VALUE * ], ?          # array of values of type "TYPE"
+        "strict": BOOL, ?               # Just "enum" values or not. Def=true
+        "required": BOOL, ?             # default: false, from a CLI POV?
+        "attributes": { ... }, ?        # only if "type" == "object"
+        "itemType": "TYPE", ?           # only if "type" == "array"
+
+        "ifValue": {                    # only if "type" != "object"
+          VALUE: {                      # possible attribute value
+            "parentAttributes": { ... } # see "attributes" above (siblings)
+          } *
+        } ?
+      } *
+    },
+
     "groups": [
       { "singular": "STRING",           # eg. "endpoint"
         "plural": "STRING",             # eg. "endpoints"
-        "schema": "URI-Reference", ?    # schema doc for the group
+        "attributes": { ... }, ?        # see "attributes" above
 
         "resources": [
           { "singular": "STRING",       # eg. "definition"
             "plural": "STRING",         # eg. "definitions"
             "versions": UINT ?          # num Versions(>=0). Def=1, 0=unlimited
             "versionId": BOOL, ?        # Supports client specific Version IDs
-            "latest": BOOL ?            # Supports client "latest" selection
+            "latest": BOOL, ?           # Supports client "latest" selection
+            "hasDocument": BOOL, ?      # Has a separate document. Def=true
+            "attributes": { ... } ?     # see "attributes" above
           } *
         ] ?
       } *
@@ -210,15 +231,27 @@ form of a Group and Resource type being used. While `GROUPs` and `RESOURCEs`
 are the plural form of those respective types.
 
 The following are used to denote data types:
-- `BOOLEAN` - case sensitive `true` or `false`
+- `ARRAY` - an ordered set of values whose values are all of the same data
+   type - one of the types listed here
+- `BOOL` - case sensitive `true` or `false`
 - `DECIMAL` - Number (integer or floating point)
 - `INT` - Signed integer
+- `OBJECT` - a nested entity made up of a set of attributes of these data types
 - `STRING` - Sequence of Unicode characters
 - `TIME` - an [RFC3339](https://tools.ietf.org/html/rfc3339) timestamp
 - `UINT` - Unsigned integer
-- `URI` - Absolute URI as defined in [RFC 3986 Section 4.3](https://tools.ietf.org/html/rfc3986#section-4.3)
-- `URI-Reference` - URI-reference as defined in [RFC 3986 Section 4.1](https://tools.ietf.org/html/rfc3986#section-4.1)
-- `URL` - URL as defined in [RFC 1738](https://datatracker.ietf.org/doc/html/rfc1738)
+- `URI` - Absolute URI as defined in [RFC 3986 Section
+  4.3](https://tools.ietf.org/html/rfc3986#section-4.3)
+- `URI-Reference` - URI-reference as defined in [RFC 3986
+  Section 4.1](https://tools.ietf.org/html/rfc3986#section-4.1)
+- `URI-Template` - ...
+- `URL` - URL as defined in
+  [RFC 1738](https://datatracker.ietf.org/doc/html/rfc1738)
+- `TYPE` - one of the above data type values in lower case (`array`, `bool`,
+  `decimal`, `int`, `object`, `string`, `time`, `uint`, `uri`, `uri-reference`,
+  `uri-template`, `url` )
+
+TODO: which uri-template language?
 
 ### Terminology
 
@@ -268,9 +301,10 @@ exchange.
 Unless otherwise noted, all attributes MUST be mutable.
 
 Implementations of this specification MAY define additional (extension)
-attributes, and they MAY appear at any level of the model. However they MUST
-adhere to the following rules:
+attributes. However they MUST adhere to the following rules:
 
+- they MUST be defined as part of the [Registry Model](#registry-model)
+- the presence of an undefined attribute in a request MUST generate an error
 - they MUST NOT use the name of an attribute defined by this specification,
   regardless of which entity the attribute is defined for
 - their names MUST be between 1 and 63 characters in length
@@ -288,9 +322,8 @@ adhere to the following rules:
 - in situations where an attribute is serialized in a case-sensitive situation,
   then the case specified by this specification, or the defining extension
   specification, MUST be adhere to
-- they MUST only be of type: BOOLEAN (case sensitive `true` or `false`),
-  DECIMAL, or STRING. Subtypes of these MAY be used to restrict the
-  allowable syntax of their values. For example, using TIME in place of STRING
+- they MUST only one of the defined types in the [Notational
+  Conventions](#notational-conventions) section.
 - for STRING attributes, and empty string is a valid value and MUST NOT be
   treated the same as an attribute with no value
 - the string serialization of the attribute name and its value MUST NOT exceed
@@ -422,14 +455,14 @@ existing entity can be deleted.
   be stored without changing the schema of the entity
 - Constraints:
   - MUST be a map of zero or more name/value string pairs
-  - each name MUST be a non-empty string consisting of only alphanumeric
-    characters, `-`, `_` or a `.`; be no longer than 63 characters;
-    start with an alphanumeric character and be unique within the scope of
-    this map
+  - each name MUST be a non-empty string consisting of only lowercase
+    alphanumeric characters, `-`, `_` or a `.`; be no longer than 63
+    characters; start with an alphanumeric character and be unique within the
+    scope of this map
   - Values MAY be empty strings
-  - When serialized as an HTTP header, each "name" MUST appear as a separate
+  - when serialized as an HTTP header, each "name" MUST appear as a separate
     HTTP header prefixed with `xRegistry-labels-` and the header value
-    MUST be the label's "value".
+    MUST be the label's "value". See [HTTP Header Values](#http-header-values)
 - Examples:
   - `"labels": { "owner": "John", "verified": "" }` when in the HTTP body
   - `xRegistry-labels-owner: John` <br>
@@ -699,14 +732,14 @@ and the following Registry entity specific attributes:
 
 **`model`**
 - Type: Registry Model
-- Description: A description of the Groups and Resources supported by this
-  Registry. See [Registry Model](#registry-model)
+- Description: A description of the extension attributes, Groups and Resources
+  supported by this Registry. See [Registry Model](#registry-model)
 - Constraints:
   - OPTIONAL
   - MUST NOT be included in responses unless requested
   - MUST be included in responses if requested
   - SHOULD be included in document view when the model is not known in advance
-  - MUST be a read-only attribute in API view, use the `/model` API to update
+  - MUST be a read-only attribute, use the `/model` API to update
 
 **`GROUPs` collections**
 - Type: Set of [Registry Collections](#registry-collections)
@@ -796,8 +829,9 @@ Content-Type: application/json; charset=utf-8
 }
 ```
 
-Another example asking for the model to be included and for one of the
-top-level Group collections to be inlined:
+Another example asking for the model to be included, with one extension
+attribute defined for the "endpoints" Group, and for one of the top-level
+Group collections to be inlined:
 
 Request:
 
@@ -818,9 +852,16 @@ Content-Type: application/json; charset=utf-8
   "self": "https://example.com/",
 
   "model": {
+    "schemas": [ "jsonSchema/2020-12" ],
     "groups": [
       { "singular": "endpoint",
         "plural": "endpoints",
+        "attributes": {
+          "shared": {
+            "type": "bool",
+            "required": false
+          }
+        },
 
         "resources": [
           { "singular": "definition",
@@ -958,9 +999,15 @@ Content-Type: application/json; charset=utf-8
 
 ### Registry Model
 
-The Registry model defines the Groups and Resources supported by the Registry
-Service. This information will usually be used by tooling that does not have
-advance knowledge of the type of data stored within the Registry.
+The Registry model defines the extension attributes, constraints on the
+specification defined attributes, Groups and Resources supported by the
+Registry Service. This information will usually be used by tooling that does
+not have advance knowledge of the type of data stored within the Registry.
+
+Typically, the attributes defined within the model are extensions to the
+specification, however, specification defined attributes MAY be included as
+well in order to constrain their definitions. See `attributes."STRING"` below
+for more information.
 
 The Registry model can be retrieved two ways:
 
@@ -977,11 +1024,28 @@ Regardless of how the model is retrieved, the overall format is as follows:
 
 ``` text
 {
-  "schema": "URI-Reference", ?         # Schema doc for the entire Registry
+  "schemas": [ "STRING" * ], ?         # available schema formats
+  "attributes": {                      # Registry level extensions
+    "STRING": {                        # Attribute name
+      "type": "TYPE",                  # bool, string, array, object, ...
+      "description": "STRING",
+      "enum": [ VALUE * ], ?           # Array of values of type "TYPE"
+      "strict": BOOL, ?                # Just "enum" values or not. Def=true
+      "required": BOOL, ?              # Default: false
+      "attributes": { ... }, ?         # Only if "type" == "object". Children
+      "itemType": "TYPE", ?            # Only if "type" == "array"
+
+      "ifValue": {
+        VALUE: {
+          "parentAttributes": { ... }  # Siblings to this "attribute"
+        } *
+      }
+    } *
+  },
   "groups": [
     { "singular": "STRING",            # eg. "endpoint"
       "plural": "STRING",              # eg. "endpoints"
-      "schema": "URI-Reference", ?     # Schema doc for the group
+      "attributes": { ... }, ?         # see "attributes" above
 
       "resources": [
         { "singular": "STRING",        # eg. "definition"
@@ -989,6 +1053,8 @@ Regardless of how the model is retrieved, the overall format is as follows:
           "versions": UINT, ?          # Num Versions(>=0). Def=1, 0=unlimited
           "versionId": BOOL, ?         # Supports client specific Version IDs
           "latest": BOOL ?             # Supports client "latest" selection
+          "hasDocument": BOOL, ?       # Has no separate document. Def=true
+          "attributes": { ... } ?      # See "attributes" above
         } *
       ] ?
     } *
@@ -997,12 +1063,84 @@ Regardless of how the model is retrieved, the overall format is as follows:
 ```
 
 The following describes the attributes of Registry model:
-
-- `schema`
-  - A URI-reference to a schema that describes the entire Registry, include
-    the model
-  - Type: URI-Reference
+- `schemas`
+  - A list of schema formats that that Registry model can be returned. Each
+    value MUST be a schema document format name (e.g. `jsonSchema/2020-12`),
+    and SHOULD be of the form `NAME[/VERSION]`
+  - Type: String
   - OPTIONAL
+  - MUST be a read-only attribute in API view
+- `attributes`
+  - The set of extension, or constrained specification-defined, attributes
+    defined for the indicated level of the Registry
+  - Type: Map where each attribute defined is the key
+  - OPTIONAL
+- `attributes."STRING"`
+  - The name of the attribute being defined. If this entry is constraining
+    a specification defined attribute then it MUST match the existing
+    attribute's name exactly (include its case) and MUST only constrain the
+    definition of the attribute, not expand it. For example:
+    - defining a fixed list of STRING values via an `enume` - valid
+    - changing a OPTIONAL attribute to be REQUIRED - valid
+    - changing a STRING attribute to a TIMESTAMP - valid
+    - changing a REQUIRED attribute to be OPTIONAL - invalid
+    - changing a STRING attribute to a DECIMAL - invalid
+  - Type: String
+  - REQUIRED
+- `attributes."STRING".type
+  - The "TYPE" of the attribue being defined. MUST be one of the data types
+    (in lower case) defined in [Attributes and
+    Extensions](#attributes-and-extensions)
+  - Type: TYPE
+  - REQUIRED
+- `attributes."STRING".description
+  - A human readable description of the attribute
+  - Type: STRING
+  - OPTIONAL
+- `attributes."STRING".enum
+  - A list of possible values for this attribute. Each item in the array MUST
+    be of type defined by `type`. When not specified, or an empty array, there
+    are no restrictions on the value set of this attribute. See the `strict`
+    attribute below
+  - Type: Array
+  - OPTIONAL
+- `attributes."STRING".strict
+  - Indicated whether the attribute restricts its values to just the array of
+    values specified in `enum` or not. A value of `true` means that any
+    values used that is not part of the `enum` set MUST generate an error.
+    When not specified the default value is `true`. This attribute has no
+    meaning when `enum` is absence or an empty array
+  - Type: Boolean
+  - OPTIONAL
+- `attributes."STRING".required
+  - Indicated whether this attribute is a REQUIRED attribute or not. When not
+    specified the default value is `false`
+  - Type: Boolean
+  - OPTIONAL
+- `attributes."STRING".attributes
+  - This attribute MUST only be used when the `type` value is `object`. This
+    contains the list of attributes defined as part of a nested object.
+  - Type: Object
+  - OPTIONAL
+- `attributes."STRING".itemType
+  - This attribute MUST only be used when the `type` value is `array`. This
+    specifies the `type` each item in the array MUST be. It MUST be one of the
+    data types (in lower case) defined in the [Attributes and
+    Extensions](#attributes-and-extensions
+  - Type: TYPE
+  - OPTIONAL
+- `attributes."STRING".ifValue
+  - This attribute can be used to conditionally include additional attribute
+    defintions to the list based on the value of the current attribute.
+    If the value of this attribute matches the `ifValue` (case sensistive)
+    then the `parentAttributes` MUST be included in the model as siblings
+    to this attribute.
+    If `enum` is not empty and `strict` is `true` then this map MUST NOT
+    contain any value that is not specified in the `enum` array
+  - Type: Map where each value of the attribute is the key
+  - OPTIONAL
+TODO: rename it "siblingAttributes" ?
+
 - `groups`
   - The set of Groups supported by the Registry
   - Type: Array
@@ -1023,6 +1161,9 @@ The following describes the attributes of Registry model:
   - A URI-Reference to a schema document for the Group
   - Type: URI-Reference
   - OPTIONAL
+- `groups.attributes`
+  - see `attributes` above
+
 - `groups.resources`
   - The set of Resource entities defined for the Group
   - Type: Array
@@ -1064,6 +1205,26 @@ The following describes the attributes of Registry model:
   - The default value is `true`
   - A value of `true` indicates the client MAY select the latest Version of
     a Resource via one of the methods described in this specification
+- `groups.resources.hasDocument`
+  - Indicated whether or not this Resource can have a document associated with
+    it. If `false` then the xRegistry metadata becomes the "document". Meaning,
+    an HTTP `GET` to the Resource's URL or its `?meta` URL will both return
+    the same information in the HTTP body. Note that in the non-`?meta`
+    variant the xRegistry HTTP header MUST still be included for consistency.
+    Additionally, a value of `true` does not mean that these Resources are
+    guaranteed to have a non-empty document, rather just that they might have
+    a non-empty document. And an HTTP `GET` to the Resource MAY return an
+    empty HTTP body.
+  - Type: Boolean (`true` or `false`, case sensitive)
+  - OPTIONAL
+  - The default value if `true`
+  - A value of `true` indicates that the Resource supports a separate docuemnt
+    to be associated with the Resource.
+- `groups.resources.attributes`
+  - see `attributes` above
+  - Note that Resources themselves don't actually have extensions, rather
+    the extesions would technically be on the Versions, but would appear
+    on the Resource when asking for the latest version
 
 #### Retrieving the Registry Model
 
@@ -1083,16 +1244,37 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "schema": "URI-Reference", ?
+  "attributes": {
+    "STRING": {
+      "type": "TYPE",
+      "description": "STRING", ?
+      "enum": [ VALUE * ], ?
+      "strict": BOOL, ?
+      "required": BOOL, ?
+      "attributes": { ... }, ?
+      "itemType": "TYPE", ?
+
+      "ifValue": {
+        VALUE: {
+          "parentAttributes": { ... }
+        } *
+      } ?
+    } *
+  },
+
   "groups": [
     { "singular": "STRING",
       "plural": "STRING",
-      "schema": "URI-Reference", ?
+      "attributes": { ... }, ?
 
       "resources": [
         { "singular": "STRING",
           "plural": "STRING",
           "versions": UINT ?
+          "versionId": BOOL, ?
+          "latest": BOOL, ?
+          "hasDocument": BOOL, ?
+          "attributes": { ... } ?
         } *
       ] ?
     } *
@@ -1115,20 +1297,25 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "model": {
-    "groups": [
-      { "singular": "endpoint",
-        "plural": "endpoints",
+  "schemas": [ "jsonSchema/2020-12" ],
+  "groups": [
+    { "singular": "endpoint",
+      "plural": "endpoints",
+      "attributes": {
+        "shared": {
+          "type": "bool",
+          "required": false
+        }
+      },
 
-        "resources": [
-          { "singular": "definition",
-            "plural": "definitions",
-            "versions": 1
-          }
-        ]
-      }
-    ]
-  }
+      "resources": [
+        { "singular": "definition",
+          "plural": "definitions",
+          "versions": 1
+        }
+      ]
+    }
+  ]
 }
 ```
 
@@ -1143,16 +1330,38 @@ PUT /model
 Content-Type: application/json; charset=utf-8
 
 {
-  "schema": "URI-Reference", ?
+  "schemas": [ "STRING" * ], ?
+  "attributes": {
+    "STRING": {
+      "type": "TYPE",
+      "description": "STRING", ?
+      "enum": [ VALUE * ], ?
+      "strict": BOOL, ?
+      "required": BOOL, ?
+      "attributes": { ... }, ?
+      "itemType": "TYPE", ?
+
+      "ifValue": {
+        VALUE: {
+          "parentAttributes": { ... }
+        } *
+      } ?
+    } *
+  },
+
   "groups": [
     { "singular": "STRING",
       "plural": "STRING",
-      "schema": "URI-Reference", ?
+      "attributes": { ... }, ?
 
       "resources": [
         { "singular": "STRING",
           "plural": "STRING",
           "versions": UINT ?
+          "versionId": NOOL, ?
+          "latest": BOOL, ?
+          "hasDocument": BOOL, ?
+          "attributes": { ... } ?
         } *
       ] ?
     } *
@@ -1168,6 +1377,9 @@ Where:
 The deletion of a Group or Resource from the model SHOULD change the underlying
 datastore of the implementation to match.
 
+If the server does not suppport any of the specified schema formats then an
+HTTP `400 Bad Request` error MUST be generated.
+
 A successful response MUST include a full representation of the Registry model
 and be of the form:
 
@@ -1176,16 +1388,38 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "schema": "URI-Reference", ?
+  "schemas": [ "STRING" * ], ?
+  "attributes": {
+    "STRING": {
+      "type": "TYPE",
+      "description": "STRING", ?
+      "enum": [ VALUE * ], ?
+      "strict": BOOL, ?
+      "required": BOOL, ?
+      "attributes": { ... }, ?
+      "itemType": "TYPE", ?
+
+      "ifValue": {
+        VALUE: {
+          "parentAttributes": { ... }
+        } *
+      } ?
+    } *
+  },
+
   "groups": [
     { "singular": "STRING",
       "plural": "STRING",
-      "schema": "URI-Reference", ?
+      "attributes": { ... }, ?
 
       "resources": [
         { "singular": "STRING",
           "plural": "STRING",
           "versions": UINT ?
+          "versionId": BOOL, ?
+          "latest": BOOL, ?
+          "hasDocument": BOOL, ?
+          "attributes": { ... } ?
         } *
       ] ?
     } *
@@ -1202,29 +1436,34 @@ PUT /model
 Content-Type: application/json; charset=utf-8
 
 {
-  "model": {
-    "groups": [
-      { "singular": "endpoint",
-        "plural": "endpoints",
-
-        "resources": [
-          { "singular": "definition",
-            "plural": "definitions",
-            "versions": 1
-          }
-        ]
+  "schemas": [ "jsonSchema/2020-12" ],
+  "groups": [
+    { "singular": "endpoint",
+      "plural": "endpoints",
+      "attributes": {
+        "shared": {
+          "type": "bool",
+          "required": false
+        }
       },
-      { "singular": "schemaGroup",
-        "plural": "schemaGroups",
 
-        "resources": [
-          { "singular": "schema",
-            "plural": "schemas"
-          }
-        ]
-      }
-    ]
-  }
+      "resources": [
+        { "singular": "definition",
+          "plural": "definitions",
+          "versions": 1
+        }
+      ]
+    },
+    { "singular": "schemaGroup",
+      "plural": "schemaGroups",
+
+      "resources": [
+        { "singular": "schema",
+          "plural": "schemas"
+        }
+      ]
+    }
+  ]
 }
 ```
 
@@ -1235,31 +1474,71 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "model": {
-    "groups": [
-      { "singular": "endpoint",
-        "plural": "endpoints",
-
-        "resources": [
-          { "singular": "definition",
-            "plural": "definitions",
-            "versions": 1
-          }
-        ]
+  "schemas": [ "jsonSchema/2020-12" ],
+  "groups": [
+    { "singular": "endpoint",
+      "plural": "endpoints",
+      "attributes": {
+        "shared": {
+          "type": "bool",
+          "required": false
+        }
       },
-      { "singular": "schemaGroup",
-        "plural": "schemaGroups",
 
-        "resources": [
-          { "singular": "schema",
-            "plural": "schemas"
-          }
-        ]
-      }
-    ]
-  }
+      "resources": [
+        { "singular": "definition",
+          "plural": "definitions",
+          "versions": 1
+        }
+      ]
+    },
+    { "singular": "schemaGroup",
+      "plural": "schemaGroups",
+
+      "resources": [
+        { "singular": "schema",
+          "plural": "schemas"
+        }
+      ]
+    }
+  ]
 }
 ```
+
+#### Retrieving the Registry Schema
+
+Registries MAY support exposing their model using a well-defined schema
+document format. The `model/schemas` attribute (discussed above) SHOULD expose
+the set of schema formats available. To retrieve the mode in one of those
+formats the following API can be used:
+
+The request MUST be of the form:
+
+``` text
+GET /model?schema=STRING
+```
+
+Where:
+- `STRING` is one of the valid `model.schema` values
+
+A successful response MUST be of the form:
+
+``` text
+HTTP/1.1 200 OK
+Content-Type: ...
+
+...                          # schema specific format
+```
+
+Where:
+- the HTTP body MUST be a schema representation of the Registry model
+  in the format requested by the `schema` query parameter
+- if a `VERISON` is not specified as part of the schema `STRING` then the
+  server MAY choose any schema version of the specified schema format. However,
+  it is RECOMMENDED that the newest supported version be used
+
+If the specified schema format is not supported then an HTTP `400 Bad Request`
+error MUST be generated.
 
 ---
 
@@ -1814,6 +2093,8 @@ However, there are a few exceptions:
   Version in the `versions` collection. The Resource's `latestVersionUrl`
   attribute can be used to access the "latest" Version
 
+All other attributes, including extensions, are associated with the Versions.
+
 Additionally, when serialized in an HTTP response the Resource MAY include an
 `Content-Location` HTTP header, and if present it MUST contain the same value
 as the `latestVersionUrl` attribute.
@@ -1825,8 +2106,8 @@ from the contents of the Resource. There are two ways to serialize Resources
 in HTTP:
 - the contents of the Resource appears in the HTTP body, and each Registry
   attribute (along with its value) appears as an HTTP header with its name
-  prefixed with `xRegistry-`. See [`labels`](#labels) for additional
-  information
+  prefixed with `xRegistry-`. See [HTTP Header Values](#http-header-values)
+  and [`labels`](#labels) for additional information
 - similar to Groups, the Registry attributes are serialized as a single JSON
   object that appears in the HTTP body. The Resource contents will either
   appear as an attribute (`RESOURCE` or `RESOURCEBase64`), or there will be
@@ -1873,7 +2154,7 @@ xRegistry-self: URL
 xRegistry-latestVersionId: STRING
 xRegistry-latestVersionUrl: URL
 xRegistry-description: STRING ?
-xRegistry-documentation: STRING ?
+xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING ?
 xRegistry-labels-...: STRING ?
 xRegistry-format: STRING ?
@@ -1895,6 +2176,10 @@ Notes:
   the `versions` collection itself
 - the serialization of the `labels` attribute is split into separate HTTP
   headers (one per label name)
+- any non-scalar attribute (aside from `labels`), for example arrays or
+  objects, MUST NOT be serialized as HTTP headers due to their complexity.
+  Instead, clients wishing to retrieve or update those values MUST use
+  the `?meta` APIs and use the HTTP body to serialize their values
 
 Resources include the following common attributes:
 
@@ -2171,6 +2456,16 @@ for the implicit creation of all entities specified in the PATH with one
 request. And each entity not already present with the specified `ID` MUST be
 created with that `ID`.
 
+If the Resource's model `hasDocument` attribute has a value of `false` then
+the request MUST NOT contain both xRegistry HTTP headers and the Resource's
+xRegsitry metadata in the HTTP body. In other words, the presence of any
+xRegistry HTTP header and a non-empty HTTP body MUST generate an error.
+A request with no xRegistry HTTP headers and an empty HTTP body MUST
+be interpreted as a request to delete all attributes - in essence, resetting
+the Resource back to its default state. Likewise, when the xRegistry metadata
+appears in the HTTP body, any missing attribute MUST be interpreted as a
+request to delete those attribute - similar to the `?meta` update API.
+
 Note: an HTTP `POST` is usually directed to a collection or "factory". In the
 case of `POST /GROUPs/gID/RESOURCEs/rID`, while the PATH references a single
 Resource, the use of `POST` (rather than `PUT`) MUST be interpreted as a
@@ -2190,7 +2485,7 @@ Content-Type: ... ?
 xRegistry-id: STRING ?
 xRegistry-name: STRING ?
 xRegistry-description: STRING ?
-xRegistry-documentation: STRING ?
+xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING ?
 xRegistry-labels-...: STRING ?
 xRegistry-format: STRING ?
@@ -2231,7 +2526,7 @@ xRegistry-self: URL
 xRegistry-latestVersionId: STRING
 xRegistry-latestVersionUrl: URL
 xRegistry-description: STRING ?
-xRegistry-documentation: STRING ?
+xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING ?
 xRegistry-labels-...: STRING ?
 xRegistry-format: STRING ?
@@ -2475,7 +2770,7 @@ xRegistry-self: URL
 xRegistry-latestVersionId: STRING
 xRegistry-latestVersionUrl: URL
 xRegistry-description: STRING ?
-xRegistry-documentation: STRING ?
+xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING ?
 xRegistry-labels-...: STRING ?
 xRegistry-format: STRING ?
@@ -2591,6 +2886,17 @@ Content-Location: https://example.com/endpoints/123/definitions/456/versions/1.0
 
 To update the latest Version a Resource, an HTTP `PUT` MAY be used.
 
+If the Resource's model `hasDocument` attribute has a value of `false` then
+the request MUST NOT contain both xRegistry HTTP headers and the Resource's
+xRegsitry metadata in the HTTP body. In other words, the presence of any
+xRegistry HTTP header and a non-empty HTTP body MUST generate an error.
+A request with no xRegistry HTTP headers and an empty HTTP body MUST
+be interpreted as a request to delete all attributes - in essence, resetting
+the Resource back to its default state. Likewise, when the xRegistry metadata
+appears in the HTTP body, any missing attribute MUST be interpreted as a
+request to delete those attribute - similar to the `?meta` update API.
+the Resource back to its default state.
+
 The request MUST be of the form:
 
 ``` text
@@ -2599,7 +2905,7 @@ xRegistry-id: STRING ?
 xRegistry-name: STRING ?
 xRegistry-epoch: UINT ?
 xRegistry-description: STRING ?
-xRegistry-documentation: STRING ?
+xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING ?
 xRegistry-labels-...: STRING ?
 xRegistry-format: STRING ?
@@ -2624,7 +2930,9 @@ Where:
 - a request to update a mutable attribute with an invalid value MUST
   generate an error (this includes deleting a mandatory mutable attribute)
 - complex attributes that have nested values (eg. `labels`) MUST be specified
-  in their entirety
+  in their entirety. In other words, the presense of any label `KEY` as an
+  HTTP header MUST erase all existing labels for the entity and only persist
+  the ones present in the incoming request (or none if its value is `null`)
 
 Missing Registry HTTP headers MUST be interpreted as a request to leave the
 corresponding attribute unchanged in the new Verison. An attribute with a
@@ -2647,7 +2955,7 @@ xRegistry-self: URL
 xRegistry-latestVersionId: STRING
 xRegistry-latestVersionUrl: URL
 xRegistry-description: STRING ?
-xRegistry-documentation: STRING ?
+xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING ?
 xRegistry-labels-...: STRING ?
 xRegistry-format: STRING ?
@@ -2873,7 +3181,7 @@ xRegistry-epoch: UINT
 xRegistry-self: URL
 xRegistry-latestVersionId: STRING ?
 xRegistry-description: STRING ?
-xRegistry-documentation: STRING ?
+xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING ?
 xRegistry-labels-...: STRING ?
 xRegistry-format: STRING ?
@@ -3085,10 +3393,10 @@ each Version was created. Note, this applies even if the `createdBy` attribute
 is not supported or exposed to clients.
 
 There are several ways in which the "latest" Version of a Resource can be
-modified:
+modified by a client:
 - during the deletion of a Version(s), a new "latest" MAY be specified
-  as a query paraemeter (`?latestVersionId=vID`). See [Deleting Versions of a
-  Resource](#deleting-versions)
+  as a query paraemeter (`?setLatestVersionId=vID`). See [Deleting Versions of
+  a Resource](#deleting-versions)
 - during the creation of a new Version, the `?latest=true|false` query
   parameter MAY be specified to indicate if the new Version is to become
   the "latest" Version or not. See [Creating a new Version of a
@@ -3098,7 +3406,7 @@ modified:
 
 To update the `latestVersionId` of a Resource, the following API MAY be used:
 ```
-PUT /GROUPs/gID/RESOURCEs/rID?latestVersionId=vID
+POST /GROUPs/gID/RESOURCEs/rID?setLatestVersionId=vID
 ```
 
 Where:
@@ -3107,8 +3415,8 @@ Where:
 - if the `vID` does not reference an existing Version of the Resource then an
   HTTP `400 Bad Request` error MUST be generated
 
-While this API looks similar to the traditional "update" operation of a
-Resource, the presence of the `?latestVersionId` query parameter MUST be
+While this API looks similar to other operations of a Resource,
+the presence of the `?setLatestVersionId` query parameter MUST be
 interpreted by the server as a request to update just the `latestVersionId`
 value and nothing else. Any other Registry data provided (as HTTP headers or
 in the HTTP body) SHOULD NOT be present and MUST be silently ignored by the
@@ -3281,7 +3589,7 @@ xRegistry-epoch: UINT
 xRegistry-self: URL
 xRegistry-latest: BOOL
 xRegistry-description: STRING ?
-xRegistry-documentation: STRING ?
+xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING ?
 xRegistry-labels-...: STRING ?
 xRegistry-format: STRING ?
@@ -3307,7 +3615,7 @@ xRegistry-epoch: UINT
 xRegistry-self: URL
 xRegistry-latest: BOOL
 xRegistry-description: STRING ?
-xRegistry-documentation: STRING ?
+xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING ?
 xRegistry-labels-...: STRING ?
 xRegistry-format: STRING ?
@@ -3430,7 +3738,7 @@ xRegistry-name: STRING ?
 xRegistry-epoch: UINT ?
 xRegistry-latest: BOOL ?
 xRegistry-description: STRING ?
-xRegistry-documentation: STRING ?
+xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING ?
 xRegistry-labels-...: STRING ?
 xRegistry-format: STRING ?
@@ -3661,7 +3969,7 @@ xRegistry-epoch: UINT
 xRegistry-self: URL
 xRegistry-latest: BOOL
 xRegistry-description: STRING ?
-xRegistry-documentation: STRING ?
+xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING ?
 xRegistry-labels-...: STRING ?
 xRegistry-format: STRING ?
@@ -3697,7 +4005,7 @@ To delete multiple Versions, an HTTP `DELETE` MAY be used.
 The request MUST be of the form:
 
 ``` text
-DELETE /GROUPs/gID/RESOURCEs/rID/versions[?latestVersionId=vID]
+DELETE /GROUPs/gID/RESOURCEs/rID/versions[?setLatestVersionId=vID]
 
 [
   {
@@ -3941,3 +4249,77 @@ other words, a `404 Not Found` would be generated in the HTTP protocol case.
 | / | `filter=description=no-match` | Returns a 404 if the Registry's `description` doesn't contain `no-match` |
 
 Specifying a filter does not imply inlining.
+
+### HTTP Header Values
+
+Some attributes can contain arbitrary UTF-8 string content,
+and per [RFC7230, section 3][rfc7230-section-3], HTTP headers MUST only use
+printable characters from the US-ASCII character set, and are terminated by a
+CRLF sequence with OPTIONAL whitespace around the header value.
+
+When encoding an attribute's value as an HTTP headerm it MUST be
+precent-encoded as described below. This is compatible with [RFC3986, section
+2.1][rfc3986-section-2-1] but is more specific about what needs
+encoding. The resulting string SHOULD NOT be further encoded.
+(Rationale: quoted string escaping is unnecessary when every space
+and double-quote character is already percent-encoded.)
+
+When decoding an HTTP header into an attribute's value, any HTTP header
+value MUST first be unescaped with respect to double-quoted strings,
+as described in [RFC7230, section 3.2.6][rfc7230-section-3-2-6]. A single
+round of percent-decoding MUST then be performed as described
+below. HTTP headers for attribute values do not support
+parenthetical comments, so the initial unescaping only needs to handle
+double-quoted values, including processing backslash escapes within
+double-quoted values. Header values produced via the
+percent-encoding described here will never include double-quoted
+values, but they MUST be supported when receiving events, for
+compatibility with older versions of this specification which did
+not require double-quote and space characters to be percent-encoded.
+
+Percent encoding is performed by considering each Unicode character
+within the attribute's canonical string representation. Any
+character represented in memory as a [Unicode surrogate
+pair][surrogate-pair] MUST be treated as a single Unicode character.
+The following characters MUST be percent-encoded:
+
+- Space (U+0020)
+- Double-quote (U+0022)
+- Percent (U+0025)
+- Any characters outside the printable ASCII range of U+0021-U+007E
+  inclusive
+
+Space and double-quote are encoded to avoid requiring any further
+quoting. Percent is encoded to avoid ambiguity with percent-encoding
+itself.
+
+Steps to encode a Unicode character:
+
+- Encode the character using UTF-8, to obtain a byte sequence.
+- Encode each byte within the sequence as `%xy` where `x` is a
+  hexadecimal representation of the most significant 4 bits of the byte,
+  and `y` is a hexadecimal representation of the least significant 4
+  bits of the byte.
+
+Percent-encoding SHOULD be performed using upper-case for values A-F,
+but decoding MUST accept lower-case values.
+
+When performing percent-decoding, values that have been unncessarily
+percent-encoded MUST be accepted, but encoded byte sequences which are
+invalid in UTF-8 MUST be rejected. (For example, "%C0%A0" is an overlong
+encoding of U+0020, and MUST be rejected.)
+
+Example: a header value of "Euro &#x20AC; &#x1F600;" SHOULD be encoded as
+follows:
+
+- The characters, 'E', 'u', 'r', 'o' do not require encoding
+- Space, the Euro symbol, and the grinning face emoji require encoding.
+  They are characters U+0020, U+20AC and U+1F600 respectively.
+- The encoded HTTP header value is therefore "Euro%20%E2%82%AC%20%F0%9F%98%80"
+  where "%20" is the encoded form of space, "%E2%82%AC" is the encoded form
+  of the Euro symbol, and "%F0%9F%98%80" is the encoded form of the
+  grinning face emoji.
+
+[rfc7230-section-3]: https://tools.ietf.org/html/rfc7230#section-3
+[rfc3986-section-2-1]: https://tools.ietf.org/html/rfc3986#section-2.1
+[rfc7230-section-3-2-6]: https://tools.ietf.org/html/rfc7230#section-3.2.6
