@@ -166,7 +166,7 @@ repeated in `schemaversion` for clarity, but MUST be identical.
 - Type: URI
 - Description: Reference to a schema document external to the registry.
 - Constraints:
-  - Mutually exclusive with `schemaurl`. One of the two MUST be present.
+  - Mutually exclusive with `schema`. One of the two MUST be present.
   - Cross-references to a schema document within the same registry MUST NOT be
     used.
 

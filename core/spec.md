@@ -18,23 +18,20 @@ automation and tooling.
   - [Registry Entity](#registry-entity)
   - [Registry Model](#registry-model)
   - [Groups](#groups)
-    - [Groups Collection](#retrieving-a-group-collection)
-    - [Create Group](#creating-a-group)
-    - [Retrieve Group](#retrieving-a-group)
-    - [Update Group](#updating-a-group)
-    - [Delete Group](#deleting-groups)
+    - [Retrieving a Group Collection](#retrieving-a-group-collection)
+    - [Creating or Updating Groups](#creating-or-updating-groups)
+    - [Retrieving a Group](#retrieving-a-group)
+    - [Deleting Group](#deleting-groups)
   - [Resources](#resources)
-    - [Resources Collection](#retrieving-a-resource-collection)
-    - [Create Resource](#creating-a-resource)
-    - [Retrieve Resource](#retrieving-a-resource)
-    - [Update Resource](#updating-a-resource)
-    - [Delete Resource](#deleting-resources)
+    - [Retrieving a Resource Collection](#retrieving-a-resource-collection)
+    - [Creating or Updating Resources and Versions](#creating-or-updating-resources-and-versions)
+    - [Retrieving a Resource](#retrieving-a-resource)
+    - [Deleting a Resource](#deleting-resources)
   - [Versions](#versions)
-    - [Versions Collection](#retrieving-all-versions)
-    - [Create Version](#creating-a-version)
-    - [Retrieve Version](#retrieving-a-version)
-    - [Update Version](#updating-a-version)
-    - [Delete Version](#deleting-versions)
+    - [Retrieving all Versions](#retrieving-all-versions)
+    - [Creating or Updating Versions](#creating-or-updating-versions)
+    - [Retrieving a Version](#retrieving-a-version)
+    - [Deleting Version](#deleting-versions)
   - [Inlining](#inlining)
   - [Filtering](#filtering)
   - [HTTP Header Values](#http-header-values)
@@ -67,12 +64,14 @@ single Group and will have content (a document) associated with it. This
 specification places no restriction on the type of content in the Resource.
 
 This specification defines a set of common metadata that can appear on both
-Groups and Resources, and allows for Registry (domain-specific) extenions to
+Groups and Resources, and allows for Registry (domain-specific) extensions to
 be added.
 
 The following 3 diagrams show (from left to right): 1) the core concepts of
 the Registry in its most basic form, 2) a Registry concept model with multiple
-types of Groups/Resources, and 3) a concrete sample usage of Registry:
+types of Groups/Resources, and 3) a concrete sample usage of Registry that
+includes an extension attribute on "Message Definitions" that is a reference
+to a "Schema" document - all within the same Registry instance:
 
 <img src="./xregbasicmodel.png"
  height="300">&nbsp;&nbsp;&nbsp;<img
@@ -252,6 +251,7 @@ The following are used to denote data types:
   `uri-template`, `url` )
 
 TODO: which uri-template language?
+TODO: SHOULD we add "map" so that labels are not special?
 
 ### Terminology
 
@@ -268,8 +268,8 @@ include model specific Groups, Resources and extension attributes.
 
 #### Resource
 
-A Resource is the main entity that is stored within a Registry Service. It
-MAY be versioned and grouped as needed.
+A Resource is typically the main entity that is stored within a Registry
+Service. It MAY be versioned and grouped as needed.
 
 ## Registry Formats and APIs
 
@@ -322,10 +322,10 @@ attributes. However they MUST adhere to the following rules:
 - in situations where an attribute is serialized in a case-sensitive situation,
   then the case specified by this specification, or the defining extension
   specification, MUST be adhere to
-- they MUST only one of the defined types in the [Notational
+- they MUST only use one of the defined types in the [Notational
   Conventions](#notational-conventions) section.
 - for STRING attributes, and empty string is a valid value and MUST NOT be
-  treated the same as an attribute with no value
+  treated the same as an attribute with no value (or absence of the attribute)
 - the string serialization of the attribute name and its value MUST NOT exceed
   4096 bytes. This is to ensure that it can appear in an HTTP header without
   exceeding implementation limits (see
@@ -404,7 +404,7 @@ existing entity can be deleted.
   modified. Each time the associated entity is updated, this value MUST be
   set to a new value that is greater than the current one.
   Note, this attribute is most often managed by the Registry itself.
-  Additionally, if a new Version of a Resource is created that is based on
+  Note, if a new Version of a Resource is created that is based on
   existing Version of that Resource, then the new Version's `epoch` value MAY
   be reset (eg. to zero) since the scope of its values is the Version and not
   the entire Resource
@@ -456,9 +456,9 @@ existing entity can be deleted.
 - Constraints:
   - MUST be a map of zero or more name/value string pairs
   - each name MUST be a non-empty string consisting of only lowercase
-    alphanumeric characters, `-`, `_` or a `.`; be no longer than 63
-    characters; start with an alphanumeric character and be unique within the
-    scope of this map
+    alphanumeric characters (`[a-zA-Z0-9]`), `-`, `_` or a `.`; be no longer
+    than 63 characters; start with an alphanumeric character and be unique
+    within the scope of this map
   - Values MAY be empty strings
   - when serialized as an HTTP header, each "name" MUST appear as a separate
     HTTP header prefixed with `xRegistry-labels-` and the header value
@@ -490,7 +490,7 @@ to consider when choosing to use labels that can be empty strings.
   - for comparison purposes, this attribute MUST be considered case sensitive
   - If a `VERSION` is specified at the Group level, all Resources within that
     Group MUST have a `VERSION` value that is at least as precise as its
-    Group, and MUST NOT be more open. For example, if a Group had a
+    Group, and MUST NOT expand it. For example, if a Group had a
     `format` value of `myspec`, then Resources within that Group can have
     `format` values of `myspec` or `myspec/1.0`. However, if a Group has a
     value of `myspec/1.0` it would be invalid for a Resource to have a value of
@@ -535,6 +535,8 @@ to consider when choosing to use labels that can be empty strings.
 - Constraints:
   - if present, MUST be non-empty
   - MUST be a read-only attribute in API view
+  - upon creation of a new entity, this attribute MUST match the `createdBy`
+    attribute's value
 - Examples:
   - `John Smith`
   - `john.smith@example.com`
@@ -546,6 +548,8 @@ to consider when choosing to use labels that can be empty strings.
 - Constraints:
   - MUST be a [RFC3339](https://tools.ietf.org/html/rfc3339) timestamp
   - MUST be a read-only attribute in API view
+  - upon creation of a new entity, this attribute MUST match the `createdOn`
+    attribute's value
 - Examples:
   - `2030-12-19T06:00:00Z`
 
@@ -626,35 +630,35 @@ Where:
 - the `COLLECTIONs` attribute is a map and MUST contain the entities of the
   collection (including any necessary [filter](#filtering)), and MUST use
   each entity's `id` as the key for that map entry
-- the `id` for each entity in the collection MUST be unqiue within the scope
+- the `id` for each entity in the collection MUST be unique within the scope
   of the collection
 - the specifics of whether each attribute is REQUIRED or OPTIONAL will be
-  based whether dcoument or API view is being used - see below
+  based whether document or API view is being used - see below
 
 When the `COLLECTIONs` attribute is expected to be present in the
 serialization, but the number of entities is zero, it MUST still be included
 as an empty map.
 
 The set of entities that are part of the `COLLECTIONs` attribute is a
-point-in-time view of the Registry. There is no guarantee that a `GET` to the
-`COLLECTIONsUrl` will return the exact same collection since the contents of
-the Registry might have changed.
+point-in-time view of the Registry. There is no guarantee that a future `GET`
+to the `COLLECTIONsUrl` will return the exact same collection since the
+contents of the Registry might have changed.
 
 Since collections could be too large to retrieve in one request, when
 retrieving a collection the client MAY request a subset by using the
 [pagination specification](../pagination/spec.md). Likewise, the server
-MAY choose to return a subset of the collection using the same mechansim
-defined in that specification. The pagination specification MUST only be
-used when the request is directed at a collection, not at a stand-alone
-entity (such as the root of the Registry, or at an individual Group or
-Resource).
+MAY choose to return a subset of the collection using the same mechanism
+defined in that specification even if the request didn't use pagination.
+The pagination specification MUST only be used when the request is directed at
+a collection, not at a stand-alone entity (such as the root of the Registry,
+or at an individual Group, Resource or Version).
 
 In the remainder of the specification, the presence of the `Link` HTTP header
 indicates the use of the [pagination specification](../pagination/spec.md)
 MAY be used for that API.
 
 The requirements on the presence of the 3 `COLLECTIONs` attributes varies
-between Document and API views, and is defined in the next sections.
+between Document and API views, and is defined below:
 
 #### Document view
 
@@ -666,9 +670,9 @@ In document view:
 
 In API view:
 - `COLLECTIONsUrl` and `COLLECTIONsCount` are REQUIRED
-- `COLLECTIONs` is OPTIONAL and MUST only be included if the Registry request
-  included the [`inline`](#inlining) flag indicating that this collection's
-  values are to be returned as part of the result
+- `COLLECTIONs` is OPTIONAL and MUST only be included in a response if the
+  request included the [`inline`](#inlining) flag indicating that thisi
+  collection's values are to be returned
 - all 3 attributes MUST be read-only and MUST NOT be updated directly via
   an API call. Rather, to modify them the collection specific APIs MUST be used
   (eg. an HTTP `POST` to the collection's URL to add a new entity). The
@@ -680,7 +684,7 @@ In API view:
 ### Registry Entity
 
 The Registry entity represents the root of a Registry and is the main
-entry-point for traversal.
+entry-point for traversal and discovery.
 
 The serialization of the Registry entity adheres to this form:
 
@@ -732,8 +736,8 @@ and the following Registry entity specific attributes:
 
 **`model`**
 - Type: Registry Model
-- Description: A description of the extension attributes, Groups and Resources
-  supported by this Registry. See [Registry Model](#registry-model)
+- Description: A description of the features, extension attributes, Groups and
+  Resources supported by this Registry. See [Registry Model](#registry-model)
 - Constraints:
   - OPTIONAL
   - MUST NOT be included in responses unless requested
@@ -792,7 +796,7 @@ Content-Type: application/json; charset=utf-8
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
 
-  "model": { Registry model } ?       # only if  "?model" is present
+  "model": { Registry model }, ?      # only if  "?model" is present
 
   # Repeat for each Group type
   "GROUPsUrl": "URL",                 # eg. "endpointsUrl"
@@ -803,15 +807,13 @@ Content-Type: application/json; charset=utf-8
 
 **Examples:**
 
-Request:
+Retrieve a Registry that has 2 types of Groups (endpoints and schemaGroups):
 
 ``` text
 GET /
-```
 
-Response:
+---
 
-``` text
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
@@ -829,19 +831,16 @@ Content-Type: application/json; charset=utf-8
 }
 ```
 
-Another example asking for the model to be included, with one extension
-attribute defined for the "endpoints" Group, and for one of the top-level
-Group collections to be inlined:
-
-Request:
+Another example where:
+- the request asks for the model to included in the response
+- the "endpoints" Group has one extension attribute defined
+- the request asks for the "schemaGroups" Group to be inlined in the response:
 
 ``` text
 GET /?model&inline=schemaGroups
-```
 
-Response:
+---
 
-``` text
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
@@ -879,7 +878,7 @@ Content-Type: application/json; charset=utf-8
             "versions": 1
           }
         ]
-      },
+      }
     ]
   },
 
@@ -891,7 +890,7 @@ Content-Type: application/json; charset=utf-8
   "schemaGroups": {
     "mySchemas": {
       "id": "mySchemas",
-      # remainder of Group is excluded for brevity
+      # remainder of schemaGroup is excluded for brevity
     }
   }
 }
@@ -931,7 +930,7 @@ Where:
 - if `epoch` is present then the server MUST reject the request if the
   Registry's current `epoch` value is different from the one in the request
 - the request SHOULD NOT include the `model` and if it does, then the
-  server MUST ingore it. Upadating the model MUST only be done via the
+  server MUST silently ignore it. Updating the model MUST only be done via the
   `/model` API. See [Updating the Registry Model](#updating-the-registry-model)
   for more information
 
@@ -960,7 +959,7 @@ Content-Type: application/json; charset=utf-8
 
 **Examples:**
 
-Request:
+Updating a Registry's metadata
 
 ``` text
 PUT /
@@ -971,11 +970,9 @@ Content-Type: application/json; charset=utf-8
   "name": "My Registry",
   "description": "An even cooler registry!"
 }
-```
 
-Response:
+---
 
-``` text
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
@@ -1015,7 +1012,7 @@ The Registry model can be retrieved two ways:
    model is needed independent of the entities within the Registry.
    See [Retrieving the Registry Model](#retrieving-the-registry-model) for
    more information
-2. as part of the Registry entities. This is useful when it is desirable to
+2. as part of the Registry itself. This is useful when it is desirable to
    view the entire Registry as a single document - such as an "export" type
    of scenario. See the [Retrieving the Registry](#retrieving-the-registry)
    section (the `model` query parameter) for more information on this option
@@ -1035,7 +1032,7 @@ Regardless of how the model is retrieved, the overall format is as follows:
       "attributes": { ... }, ?         # Only if "type" == "object". Children
       "itemType": "TYPE", ?            # Only if "type" == "array"
 
-      "ifValue": {
+      "ifValue": {                     # Conditional extensions
         VALUE: {
           "parentAttributes": { ... }  # Siblings to this "attribute"
         } *
@@ -1073,29 +1070,32 @@ The following describes the attributes of Registry model:
 - `attributes`
   - The set of extension, or constrained specification-defined, attributes
     defined for the indicated level of the Registry
-  - Type: Map where each attribute defined is the key
+  - Type: Map where each attribute's name is the key of the map
   - OPTIONAL
 - `attributes."STRING"`
   - The name of the attribute being defined. If this entry is constraining
     a specification defined attribute then it MUST match the existing
     attribute's name exactly (include its case) and MUST only constrain the
     definition of the attribute, not expand it. For example:
-    - defining a fixed list of STRING values via an `enume` - valid
-    - changing a OPTIONAL attribute to be REQUIRED - valid
+    - defining a fixed list of STRING values via an `enum` - valid
     - changing a STRING attribute to a TIMESTAMP - valid
-    - changing a REQUIRED attribute to be OPTIONAL - invalid
+    - changing a REQUIRED attribute to be OPTIONAL - valid
+    - changing a OPTIONAL attribute to be REQUIRED - invalid
     - changing a STRING attribute to a DECIMAL - invalid
   - Type: String
   - REQUIRED
+
+TODO: check the above example list
+
 - `attributes."STRING".type
-  - The "TYPE" of the attribue being defined. MUST be one of the data types
+  - The "TYPE" of the attribute being defined. MUST be one of the data types
     (in lower case) defined in [Attributes and
     Extensions](#attributes-and-extensions)
   - Type: TYPE
   - REQUIRED
 - `attributes."STRING".description
   - A human readable description of the attribute
-  - Type: STRING
+  - Type: String
   - OPTIONAL
 - `attributes."STRING".enum
   - A list of possible values for this attribute. Each item in the array MUST
@@ -1105,15 +1105,15 @@ The following describes the attributes of Registry model:
   - Type: Array
   - OPTIONAL
 - `attributes."STRING".strict
-  - Indicated whether the attribute restricts its values to just the array of
+  - Indicates whether the attribute restricts its values to just the array of
     values specified in `enum` or not. A value of `true` means that any
     values used that is not part of the `enum` set MUST generate an error.
     When not specified the default value is `true`. This attribute has no
-    meaning when `enum` is absence or an empty array
+    impact when `enum` is absent or an empty array
   - Type: Boolean
   - OPTIONAL
 - `attributes."STRING".required
-  - Indicated whether this attribute is a REQUIRED attribute or not. When not
+  - Indicates whether this attribute is a REQUIRED attribute or not. When not
     specified the default value is `false`
   - Type: Boolean
   - OPTIONAL
@@ -1126,18 +1126,18 @@ The following describes the attributes of Registry model:
   - This attribute MUST only be used when the `type` value is `array`. This
     specifies the `type` each item in the array MUST be. It MUST be one of the
     data types (in lower case) defined in the [Attributes and
-    Extensions](#attributes-and-extensions
+    Extensions](#attributes-and-extensions)
   - Type: TYPE
   - OPTIONAL
 - `attributes."STRING".ifValue
   - This attribute can be used to conditionally include additional attribute
-    defintions to the list based on the value of the current attribute.
-    If the value of this attribute matches the `ifValue` (case sensistive)
+    definitions to the list based on the value of the current attribute.
+    If the value of this attribute matches the `ifValue` (case sensitive)
     then the `parentAttributes` MUST be included in the model as siblings
     to this attribute.
     If `enum` is not empty and `strict` is `true` then this map MUST NOT
     contain any value that is not specified in the `enum` array
-  - Type: Map where each value of the attribute is the key
+  - Type: Map where each value of the attribute is the key of the map
   - OPTIONAL
 TODO: rename it "siblingAttributes" ?
 
@@ -1157,10 +1157,6 @@ TODO: rename it "siblingAttributes" ?
   - REQUIRED
   - MUST be unique across all Groups in the Registry
   - MUST be non-empty and MUST be a valid attribute name
-- `groups.schema`
-  - A URI-Reference to a schema document for the Group
-  - Type: URI-Reference
-  - OPTIONAL
 - `groups.attributes`
   - see `attributes` above
 
@@ -1188,9 +1184,10 @@ TODO: rename it "siblingAttributes" ?
     be stored
   - A value of zero (`0`) indicates there is no stated limit, and
     implementations MAY prune non-latest Versions at any time. Implementations
-    MUST prune Versions by deleting the oldest Versions first
+    MUST prune Versions by deleting the oldest Version (based on creation
+    times) first
 - `groups.resources.versionId`
-  - Indicated whether support for client-side select of a Version's `id` is
+  - Indicates whether support for client-side select of a Version's `id` is
     supported
   - Type: Boolean (`true` or `false`, case sensitive)
   - OPTIONAL
@@ -1198,7 +1195,7 @@ TODO: rename it "siblingAttributes" ?
   - A value of `true` indicates the client MAY specify the `id` of a Version
     during its creation process
 - `groups.resources.latest`
-  - Indicated whether support for client-side selection of the "latest"
+  - Indicates whether support for client-side selection of the "latest"
     Version of a Resource is supported
   - Type: Boolean (`true` or `false`, case sensitive)
   - OPTIONAL
@@ -1206,24 +1203,24 @@ TODO: rename it "siblingAttributes" ?
   - A value of `true` indicates the client MAY select the latest Version of
     a Resource via one of the methods described in this specification
 - `groups.resources.hasDocument`
-  - Indicated whether or not this Resource can have a document associated with
+  - Indicates whether or not this Resource can have a document associated with
     it. If `false` then the xRegistry metadata becomes the "document". Meaning,
     an HTTP `GET` to the Resource's URL or its `?meta` URL will both return
-    the same information in the HTTP body. Note that in the non-`?meta`
-    variant the xRegistry HTTP header MUST still be included for consistency.
-    Additionally, a value of `true` does not mean that these Resources are
-    guaranteed to have a non-empty document, rather just that they might have
-    a non-empty document. And an HTTP `GET` to the Resource MAY return an
-    empty HTTP body.
+    the same information in the HTTP body. An HTTP `GET` to the Resource
+    without a `?meta` query parameter in the request MUST still include the
+    `xRegistry-` HTTP headers for consistency.
+    A value of `true` does not mean that these Resources are
+    guaranteed to have a non-empty document, and an HTTP `GET` to the Resource
+    MAY return an empty HTTP body.
   - Type: Boolean (`true` or `false`, case sensitive)
   - OPTIONAL
   - The default value if `true`
-  - A value of `true` indicates that the Resource supports a separate docuemnt
+  - A value of `true` indicates that the Resource supports a separate document
     to be associated with the Resource.
 - `groups.resources.attributes`
   - see `attributes` above
   - Note that Resources themselves don't actually have extensions, rather
-    the extesions would technically be on the Versions, but would appear
+    the extensions would technically be on the Versions, but would appear
     on the Resource when asking for the latest version
 
 #### Retrieving the Registry Model
@@ -1251,7 +1248,7 @@ Content-Type: application/json; charset=utf-8
       "enum": [ VALUE * ], ?
       "strict": BOOL, ?
       "required": BOOL, ?
-      "attributes": { ... }, ?
+      "attributes": { ... }, ?               # Nested attributes
       "itemType": "TYPE", ?
 
       "ifValue": {
@@ -1265,7 +1262,7 @@ Content-Type: application/json; charset=utf-8
   "groups": [
     { "singular": "STRING",
       "plural": "STRING",
-      "attributes": { ... }, ?
+      "attributes": { ... }, ?               # See "attributes" above
 
       "resources": [
         { "singular": "STRING",
@@ -1274,7 +1271,7 @@ Content-Type: application/json; charset=utf-8
           "versionId": BOOL, ?
           "latest": BOOL, ?
           "hasDocument": BOOL, ?
-          "attributes": { ... } ?
+          "attributes": { ... } ?            # See "attributes" above
         } *
       ] ?
     } *
@@ -1284,15 +1281,15 @@ Content-Type: application/json; charset=utf-8
 
 **Examples:**
 
-Request:
+Retrieve a Registry model that has one extension attribute on the
+"endpoints" Group, and supports returning the schema of the Registry
+as JSON Schema:
 
 ``` text
 GET /model
-```
 
-Response:
+---
 
-``` text
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
@@ -1330,7 +1327,6 @@ PUT /model
 Content-Type: application/json; charset=utf-8
 
 {
-  "schemas": [ "STRING" * ], ?
   "attributes": {
     "STRING": {
       "type": "TYPE",
@@ -1338,7 +1334,7 @@ Content-Type: application/json; charset=utf-8
       "enum": [ VALUE * ], ?
       "strict": BOOL, ?
       "required": BOOL, ?
-      "attributes": { ... }, ?
+      "attributes": { ... }, ?                    # Nested attributes
       "itemType": "TYPE", ?
 
       "ifValue": {
@@ -1352,7 +1348,7 @@ Content-Type: application/json; charset=utf-8
   "groups": [
     { "singular": "STRING",
       "plural": "STRING",
-      "attributes": { ... }, ?
+      "attributes": { ... }, ?                    # See "attributes" above
 
       "resources": [
         { "singular": "STRING",
@@ -1361,7 +1357,7 @@ Content-Type: application/json; charset=utf-8
           "versionId": NOOL, ?
           "latest": BOOL, ?
           "hasDocument": BOOL, ?
-          "attributes": { ... } ?
+          "attributes": { ... } ?                 # See "attributes" above
         } *
       ] ?
     } *
@@ -1370,15 +1366,13 @@ Content-Type: application/json; charset=utf-8
 ```
 
 Where:
-- the HTTP body MUST contain the full representation of the Registry model
+- the HTTP body MUST contain the full representation of the Registry model's
+  mutable attributes
 - attributes not present in the request, or present with a value of `null`,
   MUST be interpreted as a request to delete the attribute
 
-The deletion of a Group or Resource from the model SHOULD change the underlying
-datastore of the implementation to match.
-
-If the server does not suppport any of the specified schema formats then an
-HTTP `400 Bad Request` error MUST be generated.
+The deletion of a Group or Resource from the model MUST change the underlying
+datastore of the implementation to match the request.
 
 A successful response MUST include a full representation of the Registry model
 and be of the form:
@@ -1429,14 +1423,13 @@ Content-Type: application/json; charset=utf-8
 
 **Examples:**
 
-Request:
+Update a Registry's model to add a new Group type:
 
 ``` text
 PUT /model
 Content-Type: application/json; charset=utf-8
 
 {
-  "schemas": [ "jsonSchema/2020-12" ],
   "groups": [
     { "singular": "endpoint",
       "plural": "endpoints",
@@ -1465,11 +1458,9 @@ Content-Type: application/json; charset=utf-8
     }
   ]
 }
-```
 
-Response:
+---
 
-``` text
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
@@ -1533,9 +1524,9 @@ Content-Type: ...
 Where:
 - the HTTP body MUST be a schema representation of the Registry model
   in the format requested by the `schema` query parameter
-- if a `VERISON` is not specified as part of the schema `STRING` then the
-  server MAY choose any schema version of the specified schema format. However,
-  it is RECOMMENDED that the newest supported version be used
+- if a `VERSION` is not specified as part of the `schema` query parameterthen
+  the server MAY choose any schema version of the specified schema format.
+  However, it is RECOMMENDED that the newest supported version be used
 
 If the specified schema format is not supported then an HTTP `400 Bad Request`
 error MUST be generated.
@@ -1544,10 +1535,12 @@ error MUST be generated.
 
 ### Groups
 
-Groups represent top-level entities in a Registry that act as a collection
-mechanism for related Resources. Each Group type MAY have any number of
-Resource types within it. This specification does not define how the Resources
-within a Group type are related other.
+Groups represent top-level entities in a Registry that typically act as a
+collection mechanism for related Resources. However, it is worth noting that
+Groups do not have to have Resources associated with them. It is possible to
+have Groups be the main (or only) entity of a Registry. Each Group type MAY
+have any number of Resource types within it. This specification does not
+define how the Resources within a Group type are related to each other.
 
 The serialization of a Group entity adheres to this form:
 
@@ -1623,7 +1616,7 @@ Link: <URL>;rel=next;count=INT ?
 
 {
   "ID": {
-    "id": "STRING",                           # A Group
+    "id": "STRING",
     "name": "STRING", ?
     "epoch": UINT,
     "self": "URL",
@@ -1646,15 +1639,13 @@ Link: <URL>;rel=next;count=INT ?
 
 **Examples:**
 
-Request:
+Retrieve all entities in the `endpoints` group:
 
 ``` text
 GET /endpoints
-```
 
-Response:
+---
 
-``` text
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 Link: <https://example.com/endpoints&page=2>;rel=next;count=100
@@ -1681,19 +1672,25 @@ Link: <https://example.com/endpoints&page=2>;rel=next;count=100
 }
 ```
 
-#### Creating a Group
+Notice that the `Link` HTTP header is present, indicating that there
+is a second page of results that can be retrieved via the specified URL,
+and that there are total of 100 items in this collection.
 
-To create a new Group, there are 2 HTTP actions that MAY be used:
+#### Creating or Updating Groups
+
+Creating or updating Groups via HTTP MAY be done by using the HTTP `POST`
+or `PUT` methods:
 - `POST /GROUPs`
 - `PUT  /GROUPs/gID`
 
-The request MUST be of the form:
+The HTTP body in the `POST` variant MUST contain either a single Group
+definition (as a JSON object), or a list of Group definitions (as a JSON
+array). While the HTTP body in the `PUT` variant MUST contain a single Group
+definition as a JSON object.
+
+Each individual Group definition MUST adhere to the following:
 
 ``` text
-POST /GROUPs  or
-PUT  /GROUPs/gID
-Content-Type: application/json; charset=utf-8
-
 {
   "id": "STRING", ?
   "name": "STRING", ?
@@ -1705,27 +1702,53 @@ Content-Type: application/json; charset=utf-8
 }
 ```
 
-Where:
-- if `id` is present in the HTTP body and the request is the `PUT` variant
-  then the `id` MUST match the `ID` at the end of the URL and MUST be used
-  as the `id` of the new Group created
-- if `id` is present in the HTTP body and the request is the `POST` varaint
-  then the `id` MUST be used as the `id` of the new Group created
-- if `id` is missing and the request is the `PUT` variant the the `ID` at
-  the end of the URL MUST be used as the `id` of the new Group created
-- if `id` is missing and the request is the `POST variant then the server
-  MUST assign it a new unique value
-- whether `id` is provided or generated by the server, it MUST be unique
-  across all Groups of this type
-- `epoch` is OPTIONAL and if present MUST be silently ignored
+The following rules apply:
+- for any one Group specified in the HTTP body, if the Group does not include
+  an `id` attribute then the server MUST assign it a value that is unique
+  across all entities in the Group, unless the `PUT` variant is used, in
+  which case the `gID` value from the URL MUST be used
+- for the `PUT` variant, if both a Group `id` and `gID` are present then they
+  MUST be the same value
+- an incoming request MUST NOT include duplicate Groups as specified by their
+  `id` values
+- if a Group already exists with a specified `id` then the processing of that
+  Group MUST be interpreted as a request to update the existing Group.
+  Otherwise, it MUST be interpreted as a request to create a new Group
+- the `epoch` attribute is OPTIONAL and if present on a create request, MUST
+  be silently ignored. For an update request, if it does not match the
+  existing Group's `epoch` value then an error MUST be generated
+- a request to update an existing Group MUST increment its `epoch` value
+- the `createdBy`, `createdOn`, `modifiedBy` and `modifiedOn` attributes MUST
+  be updated appropriated if they are supported by the server.
+- a Group's definition MUST be a full representation of the Group's mutable
+  attributes (including complex attributes). This means that any missing
+  mutable attribute MUST be interpreted as a request to delete the attribute
+- a request to update, or delete, a nested Resource collection or a read-only
+  attribute MUST be silently ignored
+- a request to update a mutable attribute with an invalid value MUST generate
+  an error (this includes deleting a mandatory mutable attribute)
+- any error during the processing of a Group definition MUST result in the
+  entire HTTP request being rejected and no updates performed
 
-A successful response MUST be of the form:
+A successful response MUST include the current representation of the Groups
+created or updated in the same order and cardinality (single object vs array)
+as the request.
+
+Note that the response MUST NOT include any inlinable attributes (such as
+any Registry nested collections).
+
+If the request used the `PUT` variant, or it used the `POST` variant with
+a JSON object (not array) in the HTTP body, and the request resulted in a new
+Group being created, then a successful response MUST:
+- include an HTTP `201 Created` response code
+- include an HTTP `Location` header with a URL to the newly create Group, and
+  MUST be the same as the Group's `self` attribute
+
+otherwise an HTTP `200 OK` without an HTTP `Location` header MUST be returned.
+
+Each individual Group in a successful response MUST adhere to the following:
 
 ``` text
-HTTP/1.1 201 Created
-Content-Type: application/json; charset=utf-8
-Location: URL
-
 {
   "id": "STRING",
   "name": "STRING", ?
@@ -1746,40 +1769,57 @@ Location: URL
 }
 ```
 
-Where:
-- The `Location` HTTP header MUST be included and be the same value as `self`
-- The HTTP body MUST include the full representation of the new Group, the
-  same as an HTTP `GET` on the Group w/o any inlining or filtering
-
 **Examples:**
 
-Request:
+New Group specified in the HTTP body:
 
 ``` text
 POST /endpoints
 Content-Type: application/json; charset=utf-8
 
-{
-  "name": "myEndpoint"
-}
+{ GROUP definition }
+
+---
+
+HTTP/1.1 201 Created
+Content-Type: application/json; charset=utf-8
+Location: https://example.com/endpoints/456
+
+{ GROUP456 definition }
 ```
 
-Response:
+Multiple Groups specified in the HTTP body:
 
 ``` text
+POST /endpoints
+Content-Type: application/json; charset=utf-8
+
+[ { GROUP1 definition }, { GROUP2 definition } ]
+
+---
+
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Location: https://example.com/endpoints/123
+
+[ { GROUP1 definition }, { GROUP2 definition } ]
+```
+
+Targeted request to a create a specific Group `id`:
+
+``` text
+PUT /endpoints/123
+Content-Type: application/json; charset=utf-8
+
+{ GROUP123 definition }
+
+---
+
 HTTP/1.1 201 Created
 Content-Type: application/json; charset=utf-8
 Location: https://example.com/endpoints/123
 
-{
-  "id": "123",
-  "name": "myEndpoint",
-  "epoch": 1,
-  "self": "https://example.com/endpoints/123",
-
-  "definitionsUrl": "https://example.com/endpoints/123/definitions",
-  "definitionsCount": 0
-}
+{ GROUP123 definition }
 ```
 
 #### Retrieving a Group
@@ -1825,15 +1865,13 @@ Content-Type: application/json; charset=utf-8
 
 **Examples:**
 
-Request:
+Retrieve a single `endpoints` Group:
 
 ``` text
 GET /endpoints/123
-```
 
-Response:
+---
 
-``` text
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
@@ -1848,101 +1886,6 @@ Content-Type: application/json; charset=utf-8
 }
 ```
 
-#### Updating a Group
-
-To update a Group an HTTP `PUT` MAY be used.
-
-The request MUST be of the form:
-
-``` text
-PUT /GROUPs/gID
-
-{
-  "id": "STRING", ?
-  "name": "STRING", ?
-  "epoch": UINT, ?
-  "description": "STRING", ?
-  "documentation": "URL", ?
-  "labels": { "STRING": "STRING" * }, ?
-  "format": "STRING" ?
-}
-```
-
-Where:
-- if `id` is present then it MUST match the `gID` in the PATH
-- the HTTP body MUST contain the full representation of the Group's mutable
-  attributes
-- attributes not present in the request, or present with a value of `null`,
-  MUST be interpreted as a request to delete the attribute
-- a request to update, or delete, a nested Resource collection or a read-only
-  attribute MUST be silently ignored
-- a request to update a mutable attribute with an invalid value MUST
-  generate an error (this includes deleting a mandatory mutable attribute)
-- complex attributes that have nested values (eg. `labels`) MUST be specified
-  in their entirety
-- if `epoch` is present then the server MUST reject the request if the Group's
-  current `epoch` value is different from the one in the request
-
-Upon successful processing, the Group's `epoch` value MUST be incremented - see
-[epoch](#epoch).
-
-A successful response MUST include the same content that an HTTP `GET`
-on the Group would return, and be of the form:
-
-``` text
-HTTP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
-
-{
-  "id": "STRING",
-  "name": "STRING", ?
-  "epoch": UINT,
-  "self": "URL",
-  "description": "STRING", ?
-  "documentation": "URL", ?
-  "labels": { "STRING": "STRING" * }, ?
-  "format": "STRING", ?
-  "createdBy": "STRING", ?
-  "createdOn": "TIME", ?
-  "modifiedBy": "STRING", ?
-  "modifiedOn": "TIME", ?
-
-  # Repeat for each Resource type in the Group
-  "RESOURCEsUrl": "URL",                     # eg. "definitionsUrl"
-  "RESOURCEsCount": INT                      # eg. "definitionsCount"
-}
-```
-
-**Examples:**
-
-Request:
-
-``` text
-PUT /endpoints/123
-
-{
-  "name": "myOtherEndpoint",
-  "epoch": 1
-}
-```
-
-Response:
-
-``` text
-HTTP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
-
-{
-  "id": "123",
-  "name": "myOtherEndpoint",
-  "epoch": 2,
-  "self": "https://example.com/endpoints/123",
-
-  "definitionsUrl": "https://example.com/endpoints/123/definitions",
-  "definitionsCount": 5
-}
-```
-
 #### Deleting Groups
 
 To delete a single Group, an HTTP `DELETE` MAY be used.
@@ -1950,7 +1893,7 @@ To delete a single Group, an HTTP `DELETE` MAY be used.
 The request MUST be of the form:
 
 ``` text
-DELETE /GROUPs/gID[?epoch=EPOCH]
+DELETE /GROUPs/gID[?epoch=UINT]
 ```
 
 Where:
@@ -1959,7 +1902,7 @@ Where:
 The following query parameters MUST be supported by servers:
 - `epoch`<br>
   The presence of this query parameter indicates that the server MUST check
-  to ensure that the `EPOCH` value matches the Group's current `epoch` value
+  to ensure that the `epoch` value matches the Group's current `epoch` value
   and if it differs then an error MUST be generated
 
 A successful response MUST return either:
@@ -1993,8 +1936,8 @@ Content-Type: application/json; charset=utf-8
 Where:
 - the HTTP body SHOULD contain the latest representation of the Group being
   deleted prior to being deleted
-- the response MAY exclude the nested Resource collections if returning them
-  is challenging
+- the response MUST NOT include any inlinable attributes (such as Registry
+  nested collection)
 
 To delete multiple Groups an HTTP `DELETE` MAY be used.
 
@@ -2035,7 +1978,7 @@ Content-Type: application/json; charset=utf-8
 Link: <URL>;rel=next;count=INT ?
 
 {
-  "ID": {
+  {
     "id": "STRING",
     "name": "STRING", ?
     "epoch": UINT,
@@ -2053,27 +1996,26 @@ Link: <URL>;rel=next;count=INT ?
 ```
 
 Where:
-- the key (`ID`) of each item in the map MUST be the `id` of the
-  respective Group
-- the HTTP body SHOULD contain the latest representation of the Groups being
-  deleted prior to being deleted
-- the response MAY exclude the nested Resource collections if returning them
-  is challenging
+- the HTTP body SHOULD contain the latest representation of each Group prior
+  prior to being deleted. If present, the order and size of the array MUST
+  match the order of the request's array
+- the response MUST NOT include any inlinable attributes (such as Registry
+  nested collection)
 
 ---
 
 ### Resources
 
-Resources represent the main entity that the Registry is managing. Each
-Resource is associated with a Group to aid in their discovery and to show
+Resources typically represent the main entity that the Registry is managing.
+Each Resource is associated with a Group to aid in their discovery and to show
 a relationship with related Resources in that same Group. Those Resources
 appear within the Group's `RESOURCEs` collection.
 
-Resources, like all entities in the Registry can be modified, but Resources
+Resources, like all entities in the Registry, can be modified but Resources
 can also have a version history associated with them, allowing for users to
 retrieve previous Versions of the Resource. In this respect, Resources have
-a 2-layered definition. The first layer is the Registry Resource entity itself,
-while the second layer is the `versions` collection - the version history of
+a 2-layered definition. The first layer is the Resource entity itself,
+while the second layer is its `versions` collection - the version history of
 the Resource. The Resource entity can be thought of as an alias for the
 "latest" Version of the Resource, and as such, most of the attributes shown
 when processing the Resource will be associated with the "latest" Version.
@@ -2082,9 +2024,9 @@ However, there are a few exceptions:
   Version. The `id` of each Version MUST be unique within the scope of the
   Resource, but to ensure the Resource itself has a consistent `id` value
   it is distinct from any Version's `id`. There MUST be a `latestVersionId`
-  attribute in the serialization of a Resource that can be used to determine
-  which Version is the latest Version (meaning, which Version this Resource is
-  an alias for).
+  and `latestVersionUrl` attribute
+  in the serialization of a Resource that references the "latest" Version
+  of the Resource (meaning, which Version this Resource is an alias for).
 
   Additionally, Resource `id` values are often human readable (eg. `mySchema`),
   while Version `id` values are meant to be versions string values
@@ -2094,10 +2036,6 @@ However, there are a few exceptions:
   attribute can be used to access the "latest" Version
 
 All other attributes, including extensions, are associated with the Versions.
-
-Additionally, when serialized in an HTTP response the Resource MAY include an
-`Content-Location` HTTP header, and if present it MUST contain the same value
-as the `latestVersionUrl` attribute.
 
 Unlike Groups, Resources are typically defined by domain-specific data
 and as such the Registry defined attributes are not present in the Resources
@@ -2212,10 +2150,8 @@ and the following Resource specific attributes:
 - Constraints:
   - REQUIRED in responses, OPTIONAL on requests
   - REQUIRED in document view
-  - MUST be a read-only attribute in API view except in the API to create a
-    Resource, where it is REQUIRED
+  - MUST be a read-only attribute in API view
   - MUST be non-empty
-  - MUST be unique across all Versions of the Resource
   - MUST be the `id` of the latest Version of the Resource
 - Examples:
   - `1`, `2.0`, `v3-rc1`
@@ -2228,10 +2164,19 @@ and the following Resource specific attributes:
   - OPTIONAL in document view
   - MUST be a read-only attribute in API view
   - MUST be an absolute URL to the latest Version of the Resource, and MUST
-    be the absolute URL to the Resource's `versions` collection  appended with
-    `latestVersionId`
+    be the same as the Version's `self` attribute
 - Examples:
   - `https://example.com/endpoints/123/definitions/456/versions/1.0`
+
+**`versions` collection**
+- Type: [Registry Collection](#registry-collections)
+- Description: A list of Versions of the Resource
+- Constraints:
+  - REQUIRED in responses, SHOULD NOT be present in requests
+  - REQUIRED in document view
+  - MUST always have at least one Version (the "latest" Version)
+
+and, finally, the following Version specific attributes:
 
 **`RESOURCEUrl`**
 - Type: URL
@@ -2252,8 +2197,8 @@ and the following Resource specific attributes:
 - Constraints
   - MUST NOT be present when the Resource's Registry metadata are being
     serialized as HTTP headers
-  - if the Resource's contents are not empty, then either `RESOURCE` or
-    `RESOURCEBase64` MUST be present
+  - if the Resource's contents are to be serialized and they are not empty,
+    then either `RESOURCE` or `RESOURCEBase64` MUST be present
   - MUST only be used if the Resource contents can be serialized in the same
     format as the Registry Resource entity
   - MUST NOT be present if `RESOURCEBase64` is also present
@@ -2273,18 +2218,10 @@ and the following Resource specific attributes:
 - Constraints:
   - MUST NOT be present when the Resource's Registry metadata are being
     serialized as HTTP headers
-  - if the Resource's contents are not empty, then either `RESOURCE` or
-    `RESOURCEBase64` MUST be present
+  - if the Resource's contents are to be serialized and they are not empty,
+    then either `RESOURCE` or `RESOURCEBase64` MUST be present
   - MUST be a base64 encoded string of the Resource's contents
   - MUST NOT be present if `RESOURCE` is also present
-
-**`versions` collection**
-- Type: [Registry Collection](#registry-collections)
-- Description: A list of Versions of the Resource
-- Constraints:
-  - REQUIRED in responses, SHOULD NOT be present in requests
-  - REQUIRED in document view
-  - MUST always have at least one Version (the "latest" Version)
 
 ---
 
@@ -2295,63 +2232,65 @@ as:
 
 **`POST /GROUPs/gID/RESOURCEs`**
 
-- MUST create a new Resource and the first (latest) Version
-- Both the `rID` (Resource ID) and `vID` (Version ID) MUST be system generated
+- creates or updates one or more Resources
+- if the Resource does not already exist then the first (latest) Version will
+  be created
+- if a new Version is created then its `vID` (Version ID) will be system
+  generated
+- if the `rID` of the Resource is not part of its serialziation then it will
+  be system generated
 
 **`PUT /GROUPs/gID/RESOURCEs/rID`**
 
-- If Resource does not exist then it MUST be created with the
-  specified `rID` and the first (latest) Verison MUST be created with a system
+- If Resource does not exist then it will be created with the
+  specified `rID` and the first (latest) Version will be created with a system
   generated `vID`
-- If Resource exists then the "latest" Version of the Resource MUST be
+- If Resource exists then the "latest" Version of the Resource will be
   updated
 
 **`POST /GROUPs/gID/RESOURCEs/rID`**
 
-- If Resource does not exist then it MUST be created with the specified
-  `rID` and the first (latest) Verison MUST be created with a system
-  generated `vID`
-- If Resource exists then a new Version MUST be created with a system generated
-  `vID`. Whether this new Version becomes the "latest" will be dependent
-  on the `?latest=true|false` query parameter (defaults to `true`)
+- Same as `POST /GROUPs/gID/RESOURCEs/rID/versions`
 
 **`POST /GROUPs/gID/RESOURCEs/rID/versions`**
 
-- Same as `POST /GROUPs/gID/RESOURCEs/rID`
+- If Resource does not exist then it will be created with the specified
+  `rID` and the first (latest) Version will be created with a system
+  generated `vID`
+- If Resource exists then a new Version will be created with a system generated
+  `vID`, and it will become the latest Version.
 
 **`PUT /GROUPs/gID/RESOURCEs/rID/versions/vID`**
 
-- If Resource does not exist then it MUST be created with the specified
-  `rID` and the first (latest) Version MUST be created with the specified `vID`
-- If Resource does exist and the Version does not exist then a new Version
-  MUST be created with the specified `vID`. Whether this new Version becomes
-  the "latest" will be dependent on the `?latest=true|false` query
-  parameter (defaults to `true`)
-- If the Resource and Version exist then the Version MUST be updated
+- If Resource does not exist then it will be created with the specified
+  `rID` and the first (latest) Version will be created with the specified `vID`
+- If Resource exists and the Version does not then a new Version will be
+  created with the specified `vID` and it will become the latest Version
+- If the Resource and Version exist then the Version will be updated
 
 And the delete APIs are summarized as:
 
 **`DELETE /GROUPs/gID/RESOURCEs`**
 
 - If a list of `rID`s are specified in the HTTP body then those Resources
-  MUST be deleted
-- If a list of `rID`s are not specified, then it MUST delete all Resources in
+  will be deleted
+- If a list of `rID`s are not specified, then it will delete all Resources in
   the specified Group
 
 **`DELETE /GROUPs/gID/RESOURCEs/rID`**
 
-- MUST delete the specified Resource
+- will delete the specified Resource
 
 **`DELETE /GROUPs/gID/RESOURCEs/rID/versions`**
 
-- If a list of `vID`s are specified in the HTTP body then those Versions MUST
-  be deleted. If there are no other Versions remaining, the Resource MUST be
+- If a list of `vID`s are specified in the HTTP body then those Versions will
+  be deleted. If there are no other Versions remaining, the Resource will be
   deleted
-- If a list of `vID`s are not specified, then it MUST delete the Resource
+- If a list of `vID`s are not specified, then it will delete the Resource
 
 **`DELETE /GROUPs/gID/RESOURCEs/rID/versions/vID`**
 
-- MUST delete the specified Verison, and the Resource if it's the last Version
+- will delete the specified Version, and the Resource if it's the last Version
 
 ---
 
@@ -2410,15 +2349,13 @@ Where:
 
 **Examples:**
 
-Request:
+Retrieve all `definitions` of an `endpoint` whose `id` is `123`:
 
 ``` text
 GET /endpoints/123/definitions
-```
 
-Response:
+---
 
-``` text
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 Link: <https://example.com/endpoints/123/definitions&page=2>;rel=next;count=100
@@ -2439,48 +2376,80 @@ Link: <https://example.com/endpoints/123/definitions&page=2>;rel=next;count=100
 }
 ```
 
-#### Creating a Resource
+#### Creating or Updating Resources and Versions
 
-To create a new Resource, and a corresponding "latest" Version of that
-Resource, there are 5 different HTTP actions that MAY be used:
+Creating or updating Resources via HTTP MAY be done using the HTTP `POST`
+or `PUT` methods. Since there is a tight relationship between Resources
+and their Versions, these actions can be done either on the Resource itself
+(implying the action is being done on the 'latest' Version), or on a specific
+Version of a Resource. The full list of HTTP APIs are:
+
 - `POST /GROUPs/gID/RESOURCEs`
 - `PUT  /GROUPs/gID/RESOURCEs/rID`
-- `POST /GROUPs/gID/RESOURCEs/rID`  (Note: an alias for the next one)
+- `POST /GROUPs/gID/RESOURCEs/rID`  (Note: this is an alias for the next one)
 - `POST /GROUPs/gID/RESOURCEs/rID/versions`
 - `PUT  /GROUPs/gID/RESOURCEs/rID/versions/vID`
-
-All five follow similar semantic rules so they are described together.
 
 To reduce the number of interactions needed, these APIs are designed to allow
 for the implicit creation of all entities specified in the PATH with one
 request. And each entity not already present with the specified `ID` MUST be
 created with that `ID`.
 
-If the Resource's model `hasDocument` attribute has a value of `false` then
-the request MUST NOT contain both xRegistry HTTP headers and the Resource's
-xRegsitry metadata in the HTTP body. In other words, the presence of any
-xRegistry HTTP header and a non-empty HTTP body MUST generate an error.
-A request with no xRegistry HTTP headers and an empty HTTP body MUST
-be interpreted as a request to delete all attributes - in essence, resetting
-the Resource back to its default state. Likewise, when the xRegistry metadata
-appears in the HTTP body, any missing attribute MUST be interpreted as a
-request to delete those attribute - similar to the `?meta` update API.
+In the remainder of this section, the term `entity` applies to either a
+Resource or Version of a Resource based on the API being used.
 
-Note: an HTTP `POST` is usually directed to a collection or "factory". In the
-case of `POST /GROUPs/gID/RESOURCEs/rID`, while the PATH references a single
-Resource, the use of `POST` (rather than `PUT`) MUST be interpreted as a
-reference to the Resource's `version` collection. This also means that any
-`id` value in an HTTP header or in the HTTP body is for the Version and not
-the Resource.
+The HTTP body in the `POST` variants MUST contain either a single entity or
+a list of entities (as a JSON array) with each entity expressed as xRegistry
+metadata. While the HTTP body in the `PUT` variants MUST contain a single
+entity.
 
-The request MUST be of the form:
+When the request format only supports a single entity (in other words, the
+`PUT` variants or `POST` with a JSON object (not array) in the HTTP body),
+the `?meta` query parameter MAY be specified to indicate that the HTTP body of
+the request contains the xRegistry metadata view of the entity. When the
+`?meta` query parameter is not present, then any xRegistry metadata MUST be
+placed into HTTP headers (prefixed with `xRegistry-`).
+
+When the request results in the creation of a new Version, by default that
+Version will become the "latest" Version of the owning Resource. This MAY
+be changed by including the `latest` attribute as part of the entity's
+representation with a value of `false` - in which case the current latest
+Version does not change. If `latest` is present but the server does not support
+this feature then an error MUST be generated - see `latest` in the
+[Registry Model](#registry-model) section. If there are multiple new Versions
+of the same Resource being created within one request, and none of them
+inlcude `latest` with a value of `true`, then the last new Version specified
+in the request array MUST become the latest Version.
+
+When the request format supports multiple entities (in other words, `POST`
+and a JSON array in the HTTP body, even if there is just one item in the
+array), the entity MUST be specified as xRegistry metadata in the HTTP body
+regardless of whether the `?meta` query parameter is present or not.
+
+When specified as an xRegistry JSON object, each individual entity MUST
+adhere to the following:
 
 ``` text
-POST /GROUPs/gID/RESOURCEs  or
-PUT  /GROUPs/gID/RESOURCEs/rID  or
-POST /GROUPs/gID/RESOURCEs/rID  or
-POST /GROUPs/gID/RESOURCEs/rID/versions  or
-PUT  /GROUPs/gID/RESOURCEs/rID/versions/vID
+{
+  "id": "STRING", ?
+  "name": "STRING", ?
+  "description": "STRING", ?
+  "documentation": "URL", ?
+  "labels": { "STRING": "STRING" * }, ?
+  "format": "STRING", ?
+
+  "RESOURCEUrl": "URL", ?                  # if not local
+  "RESOURCE": { Resource contents }, ?     # if inlined & JSON
+  "RESOURCEBase64": "STRING" ?             # if inlined & ~JSON
+}
+```
+
+When the HTTP body contains the Resource Verion's contents, then any xRegistry
+metadata MUST appear as HTTP headers and the request MUST adhere to the
+following:
+
+``` text
+[METHOD] [PATH]
 Content-Type: ... ?
 xRegistry-id: STRING ?
 xRegistry-name: STRING ?
@@ -2491,71 +2460,102 @@ xRegistry-labels-...: STRING ?
 xRegistry-format: STRING ?
 xRegistry-RESOURCEUrl: URL ?
 
-...Resource contents... ?
+...entity contents... ?
 ```
 
-Where:
-- if `id` is present as an HTTP header, and the request is one of the `PUT`
-  variants, then the `id` MUST match the `ID` at the end of the URL
-- if `id` is present as an HTTP header, and the request is one of the `POST`
-  variants, then the `id` MUST be used as the `id` of the new entity created
-  within the collection referenced by the URL
-- any `ID` needed to create the requested entities that is not provided in
-  the request MUST be generated by the server
-- when creating a new entity, its `id` (provided or generated) MUST be unique
-  within the scope of its parent entity
-- if `RESOURCEUrl` is present the HTTP body MUST be empty
-- the HTTP body MUST contain the contents of the new Resource if the
-  `RESOURCEUrl` HTTP header is absent. Note, the body MAY be empty indicating
-  that the Resource is empty
-- a request that is missing a mandatory attribute MUST generate an error
-- the presence of any other specification defined attribute not shown above
-  MUST be silently ignored (e.g. `epoch`, `latestVersionId`, `createdBy`) as
-  they are managed by the server
+Regardless of how the entity is represented, the following rules apply:
+- for any one entity specified, if the entity does not include an `id`
+  attribute then the server MUST assign it a value that is unique across all
+  entities in that collection, unless the `PUT` variants are used, in which
+  case the `id` specified at the end of the URL MUST be used
+- for the `PUT` variants, if both an entity `id` and URL `id` are present
+  then they MUST be the same value
+- an incoming request MUST NOT include duplicate entities as defined by their
+  `id` values
+- if an entity already exists with a specified `id` then the processing of that
+  entity MUST be interpreted as a request to update the existing entity.
+  Otherwise, it MUST be interpreted as a request to create a new entity
+- the `epoch` attribute is OPTIONAL and if present on a create request, MUST
+  be silently ignored. For an update request, if it does not match the existing
+  entity's `epoch` value then an error MUST be generated
+- a request to update an existing entity MUST increment its `epoch` value
+- the `createdBy`, `createdOn`, `modifiedBy` and `modifiedOn` attributes MUST
+  be set appropriately if they are supported by the server.
+- when the entity's xRegistry metadata is specified in the HTTP body, then
+  it MUST be a full representation of the mutable attributes (including
+  complex attributes). This means that any missing mutable attributes MUST
+  be interpreted as a request to delete the attribute
+- when the entity's xRegistry metadata is specified as HTTP headers, then
+  it MUST be interpreted as a request to update only the specified attributes
+  and any attribute not specified will remain unchanged. To delete an attribute
+  it MUST be specified with a value of `null`
+- a request to update, or delete, a nested Versions collection or a read-only
+  attribute MUST be silently ignored
+- a request to update a mutable attribute with an invalid value MUST generate
+  an error (this includes deleting a mandatory mutable attribute)
+- any error during the processing of an entity MUST result in the entire HTTP
+  request being rejected and no updates performed
+- in the cases where xRegistry metadata appears as HTTP headers, if the
+  `RESOURCEUrl` attribute is present with a non-null value, the HTTP body
+  MUST be empty. If the `RESOURCEUrl` attribute is absent, then the contents
+  of the HTTP body (even if empty) are to be used as the entity's contents
+- a request that would result in the entity missing a mandatory attribute
+  MUST generate an error
+- if the Resource's model `hasDocument` attribute has a value of `false` then
+  the following rules apply:
+  - the request MUST NOT contain both xRegistry HTTP headers and the entity's
+    xRegistry metadata in the HTTP body. In other words, the presence of any
+    xRegistry HTTP header and a non-empty HTTP body MUST generate an error
+  - An update request with no xRegistry HTTP headers and an empty HTTP body
+    MUST be interpreted as a request to delete all xRegistry mutable
+    attributes - in essence, resetting the entity back to its default state
+  - when the xRegistry metadata appears in the HTTP body, any missing mutable
+    attribute MUST be interpreted as a request to delete that attribute -
+    similar to when the `?meta` variant of the APIs are used.
+- when the xRegistry metadata is serialized as a JSON object, the processing
+  of the 3 `RESOURCE` attributes MUST follow these rules:
+  - at most only one of the 3 attributes MAY be present in the request
+  - if the entity has content (not a `RESOURCEUrl`), then absence of all 3
+    attributes MUST leave it unchanged
+  - the presence of `RESOURCE` or `RESOURCEBase64` attributes MUST set the
+    contents of the entity
+  - the presence of a non-null value for any 3 of the attributes MUST delete
+    the other 2 attributes (and any associated data)
+  - an explicit value of `null` for any of the 3 attributes MUST delete all
+    3 attributes (and any associated data)
+- if `format` is present and changing it would result in the entity becoming
+  invalid with respect to the `format` of the owning Group, then an error MUST
+  be generated
 
-A successful response MUST include the same content that an HTTP `GET` on the
-Resource would return, and be of the form:
+Note: an HTTP `POST` is usually directed to a collection or "factory", in the
+case of `POST /GROUPs/gID/RESOURCEs/rID`, while the PATH references a single
+Resource, the use of `POST` (rather than `PUT`) MUST be interpreted as a
+reference to the Resource's `versions` collection. This also means that any
+`id` value in an HTTP xRegistry header or in the HTTP body is for the
+Version and not the Resource.
 
-``` text
-HTTP/1.1 201 Created
-Content-Type: ... ?
-xRegistry-id: STRING
-xRegistry-name: STRING ?
-xRegistry-epoch: UINT
-xRegistry-self: URL
-xRegistry-latestVersionId: STRING
-xRegistry-latestVersionUrl: URL
-xRegistry-description: STRING ?
-xRegistry-documentation: URL ?
-xRegistry-labels-KEY: STRING ?
-xRegistry-labels-...: STRING ?
-xRegistry-format: STRING ?
-xRegistry-createdBy: STRING ?
-xRegistry-createdOn: TIME ?
-xRegistry-modifiedBy: STRING ?
-xRegistry-modifiedOn: TIME ?
-xRegistry-versionsUrl: URL
-xRegistry-versionsCount: INT
-xRegistry-RESOURCEUrl: URL ?
-Location: URL
-Content-Location: URL ?
+A successful response MUST include the current representation of the entities
+created or updated in the same order, cardinality (single object vs array)
+and format (`?meta` variant or not) as the request.
 
-...Resource contents... ?
-```
+Note that the response MUST NOT include any inlinable attributes (such as
+`RESOURCE`, `RESOURCEBase64` or any Registry nested collections).
 
-Where:
-- `Location` MUST be a URL to the Resource - same as `self`
-- if `Content-Location` is present then it MUST be a URL to the Version of the
-  Resource in the `versions` collection - same as `latestVersionUrl`
-- if `RESOURCEUrl` is present then the HTTP body MUST be empty
-- if the HTTP body is not empty then `RESOURCEUrl` MUST NOT be present
+If the request used the `PUT` variant, or it used the `POST` variant with
+a single entity in the HTTP body (not an array of entities), and the request
+resulted in a new entity being created, then a successful response:
+- MUST include an HTTP `201 Created` response code
+- MUST include an HTTP `Location` header with a URL to the newly create
+  entity, and MUST be the same as the entity's `self` attribute
+- MAY include a `Content-Location` HTTP header to the newly create Version
+  entity, and it MUST be the same as the Version's `self` attribute
 
 **Examples:**
 
-Request:
+Create a new Resource:
 
 ``` text
-PUT /endpoints/123/definitions/versions/v1.0
+PUT /endpoints/123/definitions/456
 Content-Type: application/json; charset=utf-8
 xRegistry-name: Blob Created
 xRegistry-format: CloudEvents/1.0
@@ -2563,11 +2563,9 @@ xRegistry-format: CloudEvents/1.0
 {
   # definition of a "Blob Created" event excluded for brevity
 }
-```
 
-Response:
+---
 
-``` text
 HTTP/1.1 201 Created
 Content-Type: application/json; charset=utf-8
 xRegistry-id: 456
@@ -2587,153 +2585,95 @@ Content-Location: https://example.com/endpoints/123/definitions/456/versions/1.0
 }
 ```
 
-#### Creating a Resource as Metadata
-
-To create a new Resource as metadata (Resource attributes), there are 5
-different HTTP actions that MAY be used:
-- `POST /GROUPs/gID/RESOURCEs?meta`
-- `PUT  /GROUPs/gID/RESOURCEs/rID?meta`
-- `POST /GROUPs/gID/RESOURCEs/rID?meta`
-- `POST /GROUPs/gID/RESOURCEs/rID/versions?meta`
-- `PUT  /GROUPs/gID/RESOURCEs/rID/versions/vID?meta`
-
-All five follow similar semantic rules so they are described together.
-
-To reduce the number of interactions needed, these APIs are designed to allow
-for the implicit creation of all entities specified in the PATH with one
-request. And each entity not already present with the specified `ID` MUST be
-created with that `ID`.
-
-Note: an HTTP `POST` is usually directed to a collection or "factory". In the
-case of `POST /GROUPs/gID/RESOURCEs/rID?meta`, while the PATH references a
-single Resource, the use of `POST` (rather than `PUT`) MUST be interpreted as a
-reference to the Resource's `version` collection. This also means that any
-`id` value in the HTTP body is for the Version and not the Resource.
-
-Note: These are the same a the previous section with the exception that the
-Resource metadata appears within a JSON object in the HTTP body rather than a
-HTTP headers.
-
-The request MUST be of the form:
+Update latest version of a Resource as xRegistry metadata:
 
 ``` text
-POST /GROUPs/gID/RESOURCEs?meta  or
-PUT  /GROUPs/gID/RESOURCEs/rID?meta  or
-POST /GROUPs/gID/RESOURCEs/rID?meta  or
-POST /GROUPs/gID/RESOURCEs/rID/versions?meta  or
-PUT  /GROUPs/gID/RESOURCEs/rID/versions/vID?meta
+PUT /endpoints/123/definitions/456?meta
 Content-Type: application/json; charset=utf-8
-
-{
-  "id": "STRING", ?
-  "name": "STRING", ?
-  "description": "STRING", ?
-  "documentation": "URL", ?
-  "labels": { "STRING": "STRING" * }, ?
-  "format": "STRING", ?
-
-  "RESOURCEUrl": "URL", ?                  # if not local
-  "RESOURCE": { Resource contents }, ?     # if inlined & JSON
-  "RESOURCEBase64": "STRING" ?             # if inlined & ~JSON
-}
-```
-
-Where:
-- if `id` is present, and the request is one of the `PUT`
-  variants, then the `id` MUST match the `ID` at the end of the URL
-- if `id` is present, and the request is one of the `POST`
-  variants, then the `id` MUST be used as the `id` of the new entity created
-  within the collection referenced by the URL
-- any `ID` needed to create the requested entities that is not provided in
-  the request MUST be generated by the server
-- when creating a new entity, its `id` (provided or generated) MUST be unique
-  within the scope of its parent entity
-- at most, only one of `RESOURCEUrl`, `RESOURCE` or `RESOURCEBase64` MAY
-  be present. If all 3 are absent then the Resource contents MUST be empty
-- a request that is missing a mandatory attribute MUST generate an error
-- the presence of any other specification defined attribute not shown above
-  MUST be silently ignored (e.g. `epoch`, `latestVersionId`, `createdBy`) as
-  they are managed by the server
-
-A successful response MUST include the same content that an HTTP `GET` on the
-Resource would return, and be of the form:
-
-``` text
-HTTP/1.1 201 Created
-Content-Type: application/json; charset=utf-8
-Location: URL
-Content-Location: URL ?
-
-{
-  "id": "STRING",
-  "name": "STRING", ?
-  "epoch": UINT,
-  "self": "URL",
-  "latestVersionId": "STRING",
-  "latestVersionUrl": "URL",
-  "description": "STRING", ?
-  "documentation": "URL", ?
-  "labels": { "STRING": "STRING" * }, ?
-  "format": "STRING", ?
-  "createdBy": "STRING", ?
-  "createdOn": "TIME", ?
-  "modifiedBy": "STRING", ?
-  "modifiedOn": "TIME", ?
-
-  "RESOURCEUrl": "URL", ?                  # if not local
-
-  "versionsUrl": "URL",
-  "versionsCount": INT,
-}
-```
-
-Where:
-- `self` is a URL to the Resource (with the `?meta`), not to the latest
-  Version of the Resource
-- `Location` MUST be a URL to the Resource - same as `self`
-- if `Content-Location` is present then it MUST be a URL to the Version of the
-  Resource in the `versions` collection - same as `latestVersionUrl`
-
-Note that the response MUST NOT include the `RESOURCE`, `RESOURCEBase64`
-or `versions` attributes.
-
-**Examples:**
-
-Request:
-
-``` text
-PUT /endpoints/123/definitions/versions/v1.0?meta
-Content-Type: application/json; charset=utf-8
-
-{
-  "name": "Blob Created",
-  "format": "CloudEvents/1.0",
-  "definition": {
-    # definition of a "Blob Created" event excluded for brevity
-  }
-}
-```
-
-Response:
-
-``` text
-HTTP/1.1 201 Created
-Content-Type: application/json; charset=utf-8
-Location: https://example.com/endpoints/123/definitions/456
-Content-Location: https://example.com/endpoints/123/definitions/456/versions/1.0
 
 {
   "id": "456",
   "name": "Blob Created",
   "epoch": 1,
-  "self": "https://example.com/endpoints/123/definitions/456"
+  "description": "a cool event",
+  "format": "CloudEvents/1.0",
+
+  "definition": {
+    # updated definition of a "Blob Created" event excluded for brevity
+  }
+}
+
+---
+
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Content-Location: https://example.com/endpoints/123/definitions/456/versions/1.0
+
+{
+  "id": "456",
+  "name": "Blob Created",
+  "epoch": 2,
+  "self": "https://example.com/endpoints/123/definitions/456",
   "latestVersionId": "1.0",
   "latestVersionUrl": "https://example.com/endpoints/123/definitions/456/versions/1.0",
+  "description": "a cool event",
   "format": "CloudEvents/1.0",
+
+  "definition": {
+    # updated definition of a "Blob Created" event excluded for brevity
+  },
 
   "versionsUrl": "https://example.com/endpoints/123/definitions/456/versions",
   "versionsCount": 1
 }
+```
+
+Update several Versions (adding a label):
+
+``` text
+POST /endpoints/123/definitions/456/versions
+Content-Type: application/json; charset=utf-8
+
+[
+  {
+    "id": "1.0",
+    "labels": { "customer": "abc" },
+    # remainder of xRegistry metadata excluded for brevity
+  },
+  {
+    "id": "2.0",
+    "labels": { "customer": "abc" },
+    # remainder of xRegistry metadata excluded for brevity
+  },
+  {
+    "id": "3.0",
+    "labels": { "customer": "abc" },
+    # remainder of xRegistry metadata excluded for brevity
+  }
+]
+
+---
+
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+[
+  {
+    "id": "1.0",
+    "labels": { "customer": "abc" },
+    # remainder of xRegistry metadata excluded for brevity
+  },
+  {
+    "id": "2.0",
+    "labels": { "customer": "abc" },
+    # remainder of xRegistry metadata excluded for brevity
+  },
+  {
+    "id": "3.0",
+    "labels": { "customer": "abc" },
+    # remainder of xRegistry metadata excluded for brevity
+  }
+]
 ```
 
 #### Retrieving a Resource
@@ -2748,15 +2688,19 @@ GET /GROUPs/gID/RESOURCEs/rID
 
 This MUST retrieve the latest Version of a Resource. Note that `rID` will be
 for the Resource and not the `id` of the underlying Version (see
-[Resources](#resources).
+[Resources](#resources)).
 
 A successful response MUST either be:
 - `200 OK` with the Resource contents in the HTTP body
-- `303 See Other` with the location of the the Resource's contents being
+- `303 See Other` with the location of the Resource's contents being
   returned in the HTTP `Location` header
 
 And in both cases the Resource's metadata attributes MUST be serialized as HTTP
-headers.
+`xRegistry-` headers.
+
+Note that if the Resource's model `hasDocument` attribute has a value of
+`false` then the "Resource contents" will be the xRegistry metadata for the
+latest Version, duplicating the HTTP `xRegistry-` headers.
 
 The response MUST be of the form:
 
@@ -2855,15 +2799,13 @@ The following query parameters MUST be supported by servers:
 
 **Examples:**
 
-Request:
+Retrieve a `definition` Resource as xRegistry metadata:
 
 ``` text
 GET /endpoints/123/definitions/456?meta
-```
 
-Response:
+---
 
-``` text
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 Content-Location: https://example.com/endpoints/123/definitions/456/versions/1.0
@@ -2882,268 +2824,6 @@ Content-Location: https://example.com/endpoints/123/definitions/456/versions/1.0
 }
 ```
 
-#### Updating a Resource
-
-To update the latest Version a Resource, an HTTP `PUT` MAY be used.
-
-If the Resource's model `hasDocument` attribute has a value of `false` then
-the request MUST NOT contain both xRegistry HTTP headers and the Resource's
-xRegsitry metadata in the HTTP body. In other words, the presence of any
-xRegistry HTTP header and a non-empty HTTP body MUST generate an error.
-A request with no xRegistry HTTP headers and an empty HTTP body MUST
-be interpreted as a request to delete all attributes - in essence, resetting
-the Resource back to its default state. Likewise, when the xRegistry metadata
-appears in the HTTP body, any missing attribute MUST be interpreted as a
-request to delete those attribute - similar to the `?meta` update API.
-the Resource back to its default state.
-
-The request MUST be of the form:
-
-``` text
-PUT /GROUPs/gID/RESOURCEs/rID
-xRegistry-id: STRING ?
-xRegistry-name: STRING ?
-xRegistry-epoch: UINT ?
-xRegistry-description: STRING ?
-xRegistry-documentation: URL ?
-xRegistry-labels-KEY: STRING ?
-xRegistry-labels-...: STRING ?
-xRegistry-format: STRING ?
-xRegistry-RESOURCEUrl: URL ?
-
-...Resource contents... ?
-```
-
-Where:
-- if `id` is present then it MUST match the `rID` in the PATH
-- if an `epoch` value is specified then the server MUST check to ensure that
-  the value matches the current `epoch` value and if it differs then an error
-  MUST be generated
-- if `RESOURCEUrl` is present then the body MUST be empty and any
-  local Resource contents MUST be erased
-- if `format` is present and changing it would result in Versions of this
-  Resource becoming invalid with respect to their own `format` values, then
-  an error MUST be generated
-- if the body is empty and `RESOURCEUrl` is absent then the Resource's
-  contents MUST be erased
-- a request to update a read-only attribute MUST be silently ignored
-- a request to update a mutable attribute with an invalid value MUST
-  generate an error (this includes deleting a mandatory mutable attribute)
-- complex attributes that have nested values (eg. `labels`) MUST be specified
-  in their entirety. In other words, the presense of any label `KEY` as an
-  HTTP header MUST erase all existing labels for the entity and only persist
-  the ones present in the incoming request (or none if its value is `null`)
-
-Missing Registry HTTP headers MUST be interpreted as a request to leave the
-corresponding attribute unchanged in the new Verison. An attribute with a
-value of `null` MUST be interpreted as a request to delete the attribute from
-the Version.
-
-Upon successful processing, the Version's `epoch` value MUST be incremented -
-see [epoch](#epoch).
-
-A successful response MUST include the same content that an HTTP `GET` on the
-Resource would return, and be of the form:
-
-``` text
-HTTP/1.1 200 OK
-Content-Type: ... ?
-xRegistry-id: STRING
-xRegistry-name: STRING ?
-xRegistry-epoch: UINT
-xRegistry-self: URL
-xRegistry-latestVersionId: STRING
-xRegistry-latestVersionUrl: URL
-xRegistry-description: STRING ?
-xRegistry-documentation: URL ?
-xRegistry-labels-KEY: STRING ?
-xRegistry-labels-...: STRING ?
-xRegistry-format: STRING ?
-xRegistry-createdBy: STRING ?
-xRegistry-createdOn: TIME ?
-xRegistry-modifiedBy: STRING ?
-xRegistry-modifiedOn: TIME ?
-xRegistry-versionsUrl: URL
-xRegistry-versionsCount: INT
-xRegistry-RESOURCEUrl: URL ?
-Content-Location: URL ?
-
-...Resource contents... ?
-```
-
-Where:
-- `id` MUST be the Resource's `id` and not the `id` of the latest Version
-- `self` MUST be a URL to the Resource, not to the latest Version of the
-  Resource
-- if `Content-Location` is present then it MUST be a URL to the Version of the
-  Resource in the `versions` collection - same as `latestVersionUrl`
-
-**Examples:**
-
-Request:
-
-``` text
-PUT /endpoints/123/definitions/456
-Content-Type: application/json; charset=utf-8
-xRegistry-epoch: 1
-
-{
-  # updated definition of a "Blob Created" event excluded for brevity
-}
-```
-
-Response:
-
-``` text
-HTTP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
-xRegistry-id: 456
-xRegistry-name: Blob Created
-xRegistry-epoch: 2
-xRegistry-self: https://example.com/endpoints/123/definitions/456
-xRegistry-latestVersionId: 1.0
-xRegistry-latestVersionUrl: https://example.com/endpoints/123/definitions/456/versions/1.0
-xRegistry-format: CloudEvents/1.0
-xRegistry-versionsUrl: https://example.com/endpoints/123/definitions/456/versions
-xRegistry-versionsCount: 1
-Content-Location: https://example.com/endpoints/123/definitions/456/versions/1.0
-
-{
-  # updated definition of a "Blob Created" event excluded for brevity
-}
-```
-
-#### Updating a Resource as Metadata
-
-To update a Resource's latest Version's metadata, an HTTP `PUT` with the
-`?meta` query parameter MAY be used. Note, this will update the metadata of
-the latest Version of a Resource without creating a new Version.
-
-Note, unlike the other variant of the `PUT`, this operation is a complete
-replacement of the latest Version and therefore any missing attributes from
-the HTTP body will be removed.
-
-The request MUST be of the form:
-
-``` text
-PUT /GROUPs/gID/RESOURCEs/rID?meta
-
-{
-  "id": "STRING", ?
-  "name": "STRING", ?
-  "epoch": UINT, ?
-  "description": "STRING", ?
-  "documentation": "URL", ?
-  "labels": { "STRING": "STRING" * }, ?
-  "format": "STRING", ?
-
-  "RESOURCEUrl": "URL", ?
-  "RESOURCE": { Resource contents }, ?
-  "RESOURCEBase64": "STRING" ?
-}
-```
-
-Where:
-- if `id` is present then it MUST match the `rID` in the PATH
-- if an `epoch` value is specified then the server MUST check to ensure that
-  the value matches the current `epoch` value and if it differs then an error
-  MUST be generated
-- the processing of the 3 `RESOURCE` attributes MUST follow these rules:
-  - at most only one of the 3 attribute MAY be present in the request
-  - if the Resource has content (not a `RESOURCEUrl`), then absence of all 3
-    attributes MUST leave it unchanged
-  - the presence of `RESOURCE` or `RESOURCEBase64` attributes MUST set the
-    contents of the Resource
-  - the presence of a non-null `RESOURCEUrl` MUST delete any current content
-    and save the URL
-  - if the Resource doesn't have content but does have a `RESOURCEUrl` and the
-    request does not includes a `RESOURCEUrl` attribute then the URL MUST be
-    deleted
-  - an explicit value of `null` for any of the 3 attributes MUST erase any
-    content and any `RESOURCEUrl`
-- non-`RESOURCE` attributes not present in the request MUST be interpreted as
-  a request to delete those attributes
-- if `format` is present and changing it would result in the latest Version
-  becoming invalid with respect to the `format` of the owning Group, then
-  an error MUST be generated
-- a request to update a mutable attribute with an invalid value MUST
-  generate an error (this includes deleting a mandatory mutable attribute)
-- complex attributes that have nested values (eg. `labels`) MUST be specified
-  in their entirety
-
-Upon successful processing, the Resource's `epoch` value MUST be incremented -
-see [epoch](#epoch).
-
-A successful response MUST include the same content that an HTTP `GET`
-on the Resource's metadata would return, and be of the form:
-
-``` text
-HTTP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
-
-{
-  "id": "STRING",
-  "name": "STRING", ?
-  "epoch": UINT,
-  "self": "URL",
-  "latestVersionId": "STRING",
-  "latestVersionUrl": "URL",
-  "description": "STRING", ?
-  "documentation": "URL", ?
-  "labels": { "STRING": "STRING" * }, ?
-  "format": "STRING", ?
-  "createdBy": "STRING", ?
-  "createdOn": "TIME", ?
-  "modifiedBy": "STRING", ?
-  "modifiedOn": "TIME", ?
-
-  "RESOURCEUrl": "URL", ?                  # if not local
-
-  "versionsUrl": "URL",
-  "versionsCount": INT,
-  "versions": { Versions collection } ?
-}
-```
-
-**Examples:**
-Request:
-
-``` text
-PUT /endpoints/123/definitions/456?meta
-
-{
-  "id": "456",
-  "name": "Blob Created",
-  "epoch": 2,
-  "self": "https://example.com/endpoints/123/definitions/456",
-  "latestVersionId": "1.0",
-  "description": "An updated description",
-  "format": "CloudEvents/1.0"
-}
-```
-
-Response:
-
-``` text
-HTTP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
-Content-Location: https://example.com/endpoints/123/definitions/456/versions/1.0
-
-{
-  "id": "456",
-  "name": "Blob Created",
-  "epoch": 3,
-  "self": "https://example.com/endpoints/123/definitions/456?meta",
-  "latestVersionId": "1.0",
-  "latestVersionUrl": "https://example.com/endpoints/123/definitions/456/versions/1.0",
-  "description": "An updated description",
-  "format": "CloudEvents/1.0",
-
-  "versionsUrl": "https://example.com/endpoints/123/definitions/456/versions",
-  "versionsCount": 1
-}
-```
-
 #### Deleting Resources
 
 To delete a single Resource, and all of its Versions, an HTTP `DELETE` MAY be
@@ -3152,7 +2832,7 @@ used.
 The request MUST be of the form:
 
 ``` text
-DELETE /GROUPs/gID/RESOURCEs/rID[?epoch=EPOCH]
+DELETE /GROUPs/gID/RESOURCEs/rID[?epoch=UINT]
 ```
 
 Where:
@@ -3161,7 +2841,7 @@ Where:
 The following query parameters MUST be supported by servers:
 - `epoch`<br>
   The presence of this query parameter indicates that the server MUST check
-  to ensure that the `EPOCH` value matches the Resource's latest Version's
+  to ensure that the `epoch` value matches the Resource's latest Version's
   `epoch` value and if it differs then an error MUST be generated
 
 A successful response MUST return either:
@@ -3195,22 +2875,20 @@ xRegistry-RESOURCEUrl: URI ?
 ```
 
 Where:
-- the HTTP body SHOULD contain the latest representation of the Resource being
-  deleted prior to being deleted
-- the response MAY exclude the nested Versions collection (and
-  `latestVersionUrl`) if returning them is challenging
+- the HTTP body SHOULD contain the latest representation of the Resource prior
+  to being deleted
+- the response MUST NOT include any inlinable attributes (such as Registry
+  nested collection), as well as the `latestVersionUrl`
 
 **Examples:**
 
-Request:
+Delete a `definition` Resource, and all its Versions:
 
 ``` text
 DELETE /endpoints/123/definitions/456
-```
 
-Response:
+---
 
-``` text
 HTTP/1.1 204 No Content
 ```
 
@@ -3254,7 +2932,7 @@ Content-Type: application/json; charset=utf-8
 Link: <URL>;rel=next;count=INT ?
 
 {
-  "ID": {
+  {
     "id": "STRING",
     "name": "STRING", ?
     "epoch": UINT,
@@ -3275,10 +2953,11 @@ Link: <URL>;rel=next;count=INT ?
 ```
 
 Where:
-- the HTTP body SHOULD contain the latest representation of the Resources being
-  deleted prior to being deleted
-- the response MAY exclude the nested Versions collection (and
-  `latestVersionUrl`) if returning them is challenging
+- the HTTP body SHOULD contain the latest representation of each Group prior
+  prior to being deleted. If present, the order and size of the array MUST
+  match the order of the request's array
+- the response MUST NOT include any inlinable attributes (such as Registry
+  nested collection), as well as the `latestVersionUrl`
 
 A `DELETE /GROUPs/gID/RESOURCEs` without a body MUST delete all Resources in
 the Group.
@@ -3387,7 +3066,7 @@ by which the "latest" one is known. This can be determined by the client
 explicitly indicating which one is the latest, or it can be determined by the
 server.
 
-Servers MAY have their own algorithm for determing which Version is the latest
+Servers MAY have their own algorithm for determining which Version is the latest
 but the default algorithm is to choose the newest Version based on the time
 each Version was created. Note, this applies even if the `createdBy` attribute
 is not supported or exposed to clients.
@@ -3395,12 +3074,12 @@ is not supported or exposed to clients.
 There are several ways in which the "latest" Version of a Resource can be
 modified by a client:
 - during the deletion of a Version(s), a new "latest" MAY be specified
-  as a query paraemeter (`?setLatestVersionId=vID`). See [Deleting Versions of
+  as a query parameter (`?setLatestVersionId=vID`). See [Deleting Versions of
   a Resource](#deleting-versions)
-- during the creation of a new Version, the `?latest=true|false` query
-  parameter MAY be specified to indicate if the new Version is to become
-  the "latest" Version or not. See [Creating a new Version of a
-  Resource](#creating-a-version)
+- during the creation of a new Version, the `latest` attribute MAY be
+  specified to indicate if the new Version is to become
+  the "latest" Version or not. See [Creating or Updating
+  Resources and Versions](#creating-or-updating-resources-and-versions)
 - a dedicated API for updating the `latestVersionId` of a Resource can be used,
   and is defined below
 
@@ -3475,15 +3154,13 @@ Where:
 
 **Examples:**
 
-Request:
+Retrieve all Version of a `definition` Resource:
 
 ``` text
 GET /endpoints/123/definitions/456/versions
-```
 
-Response:
+---
 
-``` text
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 Link: <https://example.com/endpoints/123/definitions/456/versions&page=2>;rel=next;count=100
@@ -3500,67 +3177,10 @@ Link: <https://example.com/endpoints/123/definitions/456/versions&page=2>;rel=ne
 }
 ```
 
-#### Creating a Version
+#### Creating or Updating Versions
 
-To create a new Version of a Resource, there are 3 different HTTP actions that
-MAY be used:
-- `POST /GROUPs/gID/RESOURCEs/rID[?latest[=true|false]]`
-- `POST /GROUPs/gID/RESOURCEs/rID/versions[?latest[=true|false]]`
-- `PUT  /GROUPs/gID/RESOURCEs/rID/versions/vID[?latest[=true|false]]`
-
-These 3 actions are a subset of the mechanisms defined in the
-[Creating a Resource](#creating-a-resource) section - with the additon of the
-`latest` query parameter. As such, for brevity this section will only address
-the differences for these APIs.
-
-Processing of the `latest` query parameter MUST adhere to the following rules:
-- if `latest` is not present, present with no value, or present with a value
-  of `true` then the new Version MUST become the latest Version for the
-  Resource.
-- if `latest` is present with a value of `false` then the current latest
-  Version does not change
-- any other value for `latest` MUST generate an error
-- if `latest` is present but the server does not support this flag then
-  an error MUST be generated - see `latest` in the
-  [Registry Model](#registry-model) section
-
-A successful response MUST include the same content that an HTTP `GET` on the
-Version would return except with the following changes:
-- it MUST have an HTTP status code of `201 Created`
-- it MUST include an HTTP `Location` header with the same value as `self`
-
-See [Retrieving a Version of a Resource](#retrieving-a-version).
-
-#### Creating a Version as Metadata
-
-To create a new Version as metadata (Version attributes), there are 3
-different HTTP actions that MAY be used:
-- `POST /GROUPs/gID/RESOURCEs/rID?meta[&latest[=true|false]]`
-- `POST /GROUPs/gID/RESOURCEs/rID/versions?meta[&latest[=true|false]]`
-- `PUT  /GROUPs/gID/RESOURCEs/rID/versions/vID?meta[&latest[=true|false]]`
-
-These 3 actions are a subset of the mechanisms defined in the
-[Creating a Resource as Metadata](#creating-a-resource-as-metadata) section -
-with the additon of the `latest` query parameter. As such, for brevity this
-section will only address the differences for these APIs.
-
-Processing of the `latest` query parameter MUST adhere to the following rules:
-- if `latest` is not present, present with no value, or present with a value
-  of `true` then the new Version MUST become the latest Version for the
-  Resource.
-- if `latest` is present with a value of `false` then the current latest
-  Version does not change
-- any other value for `latest` MUST generate an error
-- if `latest` is present but the server does not support this flag then
-  an error MUST be generated - see `latest` in the
-  [Registry Model](#registry-model) section
-
-A successful response MUST include the same content that an HTTP `GET` on the
-Version (as metadata) would return except with the following changes:
-- it MUST have an HTTP status code of `201 Created`
-- it MUST include an HTTP `Location` header with the same value as `self`
-
-See [Retrieving a Version's Metadata](#retrieving-a-version-as-metadata).
+See [Creating or Updating Resources and
+Versions](#creating-or-updating-resources-and-versions).
 
 #### Retrieving a Version
 
@@ -3634,15 +3254,13 @@ Where:
 
 **Examples:**
 
-Request:
+Retrieve a specific Version (`1.0`) of a `definition` Resource:
 
 ``` text
 GET /endpoints/123/definitions/456/versions/1.0
-```
 
-Response:
+---
 
-``` text
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 xRegistry-id: 1.0
@@ -3701,15 +3319,13 @@ Where:
 
 **Examples:**
 
-Request:
+Retrieve a specific Version of a `definition` Resource as xRegistry metadata:
 
 ``` text
 GET /endpoints/123/definitions/456/versions/1.0?meta
-```
 
-Response:
+---
 
-``` text
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
@@ -3719,191 +3335,6 @@ Content-Type: application/json; charset=utf-8
   "epoch": 2,
   "self": "https://example.com/endpoints/123/definitions/456/versions/1.0",
   "latest": true,
-  "format": "CloudEvents/1.0"
-}
-```
-
-#### Updating a Version
-
-To update a Version of a Resource, an HTTP 'PUT' MAY be used.
-
-Note, this will update an existing Version and not create a new one.
-
-The request MUST be of the form:
-
-``` text
-PUT /GROUPs/gID/RESOURCEs/rID/versions/vID
-xRegistry-id: STRING ?
-xRegistry-name: STRING ?
-xRegistry-epoch: UINT ?
-xRegistry-latest: BOOL ?
-xRegistry-description: STRING ?
-xRegistry-documentation: URL ?
-xRegistry-labels-KEY: STRING ?
-xRegistry-labels-...: STRING ?
-xRegistry-format: STRING ?
-xRegistry-RESOURCEUrl: URL ?
-
-...Resource contents... ?
-```
-
-Where:
-- if `id` is present then it MUST match the `vID` in the PATH
-- if an `epoch` value is specified then the server MUST check to ensure that
-  the value matches the current `epoch` value and if it differs then an error
-  MUST be generated
-- if `latest` is present with a value of `true` then this Version MUST become
-  the latest Version of the owning Resource
-- if `RESOURCEUrl` is present then the body MUST be empty and any
-  local Version contents MUST be erased
-- if `format` is present and changing it would result in the Version
-  becoming invalid with respect to the `format` of the owning Resource, then
-  an error MUST be generated
-- if the body is empty and `RESOURCEUrl` is absent then the Version's
-  contents MUST be erased
-- a request to update a read-only attribute MUST be silently ignored
-- a request to update a mutable attribute with an invalid value MUST
-  generate an error (this includes deleting a mandatory mutable attribute)
-- complex attributes that have nested values (eg. `labels`) MUST be specified
-  in their entirety
-
-Missing Registry HTTP headers MUST be interpreted as a request to leave the
-corresponding attribute unchanged in the new Verison. An attribute with a
-value of `null` MUST be interpreted as a request to delete the attribute from
-the Version.
-
-A successful response MUST include the same content that an HTTP `GET` on the
-Version would return.
-
-See [Retrieving a Version](#retrieving-a-version).
-
-**Examples:**
-
-Request:
-
-``` text
-PUT /endpoints/123/definitions/456/versions/1.0
-Content-Type: application/json; charset=utf-8
-
-{
-  # updated definition of a "Blob Created" event excluded for brevity
-}
-```
-
-Response:
-
-``` text
-HTTP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
-xRegistry-id: 1.0
-xRegistry-name: Blob Created
-xRegistry-epoch: 3
-xRegistry-self: https://example.com/endpoints/123/definitions/456/versions/1.0
-xRegistry-latest: true
-xRegistry-format: CloudEvents/1.0
-
-{
-  # updated definition of a "Blob Created" event excluded for brevity
-}
-```
-
-#### Updating a Version as Metadata
-
-To update a Version's metadata, an HTTP `PUT` with the `?meta` query parameter
-MAY be used. Note, this will update the metadata of a particular Version of a
-Resource without creating a new one.
-
-Note, unlike the other variant of the `PUT`, this operation is a complete
-replacement of the Version and therefore any missing attributes from the HTTP
-body will be removed.
-
-The request MUST be of the form:
-
-``` text
-PUT /GROUPs/gID/RESOURCEs/rID/versions/vID?meta
-
-{
-  "id": "STRING", ?
-  "name": "STRING", ?
-  "epoch": UINT, ?
-  "latest": BOOL, ?
-  "description": "STRING", ?
-  "documentation"": "URL", ?
-  "labels": { "STRING": "STRING" * }, ?
-  "format": "STRING", ?
-
-  "RESOURCEUrl": "URL", ?
-  "RESOURCE": { Resource contents }, ?
-  "RESOURCEBase64": "STRING" ?
-}
-```
-
-Where:
-- if `id` is present then it MUST match the `vID` in the PATH
-- if an `epoch` value is specified then the server MUST check to ensure that
-  the value matches the current `epoch` value and if it differs then an error
-  MUST be generated
-- if `latest` is present with a value of `true` then this Version MUST become
-  the latest Version of the owning Resource
-- the processing of the 3 `RESOURCE` attributes MUST follow these rules:
-  - at most only one of the 3 attribute MAY be present in the request
-  - if the Version has content (not a `RESOURCEUrl`), then absence of all 3
-    attributes MUST leave it unchanged
-  - the presence of `RESOURCE` or `RESOURCEBase64` attributes MUST set the
-    contents of the Version
-  - the presence of a non-null `RESOURCEUrl` MUST delete any current content
-    and save the URL
-  - if the Version doesn't have content but does have a `RESOURCEUrl` and the
-    request does not includes a `RESOURCEUrl` attribute then the URL MUST be
-    deleted
-  - an explicit value of `null` for any of the 3 attributes MUST erase any
-    content and any `RESOURCEUrl`
-- non-`RESOURCE` attributes not present in the request MUST be interpreted as
-  a request to delete those attributes
-- if `format` is present and changing it would result in the Version
-  becoming invalid with respect to the `format` of the owning Group, then
-  an error MUST be generated
-- a request to update a mutable attribute with an invalid value MUST
-  generate an error (this includes deleting a mandatory mutable attribute)
-- complex attributes that have nested values (eg. `labels`) MUST be specified
-  in their entirety
-
-Upon successful processing, the Version's `epoch` value MUST be incremented -
-see [epoch](#epoch).
-
-A successful response MUST include the same content that an HTTP `GET` on the
-Version's metadata would return.
-
-See [Retrieving a Version as Metadata ](#retrieving-a-version-as-metadata).
-
-**Examples:**
-
-Request:
-
-``` text
-PUT /endpoints/123/definitions/456/versions/1.0?meta
-
-{
-  "id": "1.0",
-  "name": "Blob Created",
-  "epoch": 2,
-  "description": "An updated description"
-}
-```
-
-Response:
-
-``` text
-HTTP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
-
-{
-  "id": "1.06",
-  "name": "Blob Created",
-  "epoch": 3,
-  "self": "https://example.com/endpoints/123/definitions/456/versions/1.0",
-  "latest": true,
-  "description": "An updated description",
   "format": "CloudEvents/1.0"
 }
 ```
@@ -3914,7 +3345,7 @@ To delete a single Version of a Resource, an HTTP `DELETE` MAY be used.
 The request MUST be of the form:
 
 ``` text
-DELETE /GROUPs/gID/RESOURCEs/rID/versions/vID[?epoch=EPOCH][&latestVersionId=vID]
+DELETE /GROUPs/gID/RESOURCEs/rID/versions/vID[?epoch=UINT][&latestVersionId=vID]
 ```
 
 Where:
@@ -3923,13 +3354,13 @@ Where:
 The following query parameters MUST be supported by servers:
 - `epoch`<br>
   The presence of this query parameter indicates that the server MUST check
-  to ensure that the `EPOCH` value matches the Resource's current `epoch` value
+  to ensure that the `epoch` value matches the Resource's current `epoch` value
   and if it differs then an error MUST be generated
 
 If the server supports client-side selection of the latest Version of a
 Resource (see the [Registry Model](#registry-model)), then the following
 applies:
-- `latestVersionId` query parameter MUST be suported and its value (`vID`) is
+- `latestVersionId` query parameter MUST be supported and its value (`vID`) is
   the `id` of Version which is the become the latest Version of the owning
   Resource
 - `latestVersionId` MAY be specified even if the Version being delete is not
@@ -3937,7 +3368,7 @@ applies:
 - if `latestVersionId` is present but its value does not match any Version
   (after the delete operation is completed) then an error MUST be generated
   and the entire delete MUST be rejected
-- if the latest Verison of a Resource is being deleted but `latestVersionId` was
+- if the latest Version of a Resource is being deleted but `latestVersionId` was
   not specified, then the following rules apply:
   - the server SHOULD choose the most recently create Version as the latest
     Version
@@ -3983,20 +3414,18 @@ xRegistry-RESOURCEUrl: URL ?
 ```
 
 Where:
-- the HTTP body SHOULD contain the latest representation of the Version being
-  deleted prior to being deleted
+- the HTTP body SHOULD contain the latest representation of the Version prior
+  to being deleted
 
 **Examples:**
 
-Request:
+Delete a single Version of a `definition` Resource:
 
 ``` text
 DELETE /endpoints/123/definitions/456/versions/1.0
-```
 
-Response:
+---
 
-``` text
 HTTP/1.1 204 No Content
 ```
 
@@ -4026,7 +3455,7 @@ Where:
 If the server supports client-side selection of the latest Version of a
 Resource (see the [Registry Model](#registry-model)), then the following
 applies:
-- `latestVersionId` query parameter MUST be suported and its value (`vID`) is
+- `latestVersionId` query parameter MUST be supported and its value (`vID`) is
   the `id` of Version which is the become the latest Version of the owning
   Resource
 - `latestVersionId` MAY be specified even if the Version being delete is not
@@ -4034,7 +3463,7 @@ applies:
 - if `latestVersionId` is present but its value does not match any Version
   (after the delete operation is completed) then an error MUST be generated
   and the entire delete MUST be rejected
-- if the latest Verison of a Resource is being deleted but `latestVersionId` was
+- if the latest Version of a Resource is being deleted but `latestVersionId` was
   not specified, then the following rules apply:
   - the server SHOULD choose the most recently create Version as the latest
     Version
@@ -4062,7 +3491,7 @@ Content-Type: application/json; charset=utf-8
 Link: <URL>;rel=next;count=INT ?
 
 {
-  "ID": {
+  {
     "id": "STRING",
     "name": "STRING", ?
     "epoch": UINT,
@@ -4083,8 +3512,11 @@ Link: <URL>;rel=next;count=INT ?
 ```
 
 Where:
-- the HTTP body SHOULD contain the latest representation of the Versions being
-  deleted prior to being deleted
+- the HTTP body SHOULD contain the latest representation of each Group prior
+  prior to being deleted. If present, the order and size of the array MUST
+  match the order of the request's array
+- the response MUST NOT include any inlinable attributes (such as Registry
+  nested collection)
 
 ---
 
@@ -4102,7 +3534,7 @@ separate attributes, they are technically two separate "views" of the same
 underlying data. As such, the usage of each will be based on the content type
 of the Resource, specifying `RESOURCE` in the `inline` query parameter MUST
 be interpreted as a request for the appropriate attribute. In other words,
-`RESOURCEBase64` is not be a valid inlinable attribute name.
+`RESOURCEBase64` is not a valid inlinable attribute name.
 
 Use of this feature is useful for cases where the contents of the Registry are
 to be represented as a single (self-contained) document.
@@ -4139,8 +3571,8 @@ For example, given a Registry with a model that has "endpoints" as a Group and
 | HTTP `GET` Path | Example ?inline=PATH values | Comment |
 | --- | --- | --- |
 | / | ?inline=endpoints | Inlines the `endpoints` collection, but just one level of it, not any nested inlinable attributes |
-| / | ?inline=endpoints/definitions/versions | Inlines the `versions` collection of all definitions. Note that this implicitly means the parent attribtues (`definitions` and `endpoints` would also be inlined - however any other `GROUPs` or `RESOURCE`s types would not be |
-| /endpoints | ?inline=definitions | Inlines just `definitions` and not any neseted attributes. Note we don't need to specify the parent `GROUP` since the URL already included it |
+| / | ?inline=endpoints/definitions/versions | Inlines the `versions` collection of all definitions. Note that this implicitly means the parent attributes (`definitions` and `endpoints` would also be inlined - however any other `GROUPs` or `RESOURCE`s types would not be |
+| /endpoints | ?inline=definitions | Inlines just `definitions` and not any nested attributes. Note we don't need to specify the parent `GROUP` since the URL already included it |
 | /endpoints/123 | ?inline=definitions/versions | Similar to the previous `endpoints/definitions/version` example |
 | /endpoints/123 | ?inline=definitions/definition | Inline the Resource itself |
 | /endpoints/123 | ?inline=endpoints | Invalid, already in `endpoints` and there is no `RESOURCE` called `endpoints` |
@@ -4216,7 +3648,7 @@ Where:
 - a reference to a nonexistent attribute SHOULD NOT generate an error and
   SHOULD be treated the same as a non-matching situation
 - when the equals sign (`=`) is present with a `VALUE` then `VALUE` MUST be
-  the desired value of the attrbibute being examined. Only entities whose
+  the desired value of the attribute being examined. Only entities whose
   specified `ATTRIBUTE` with this `VALUE` MUST be included in the response
 - when the equals sign (`=`) is present without a `VALUE` then the implied
   value is an empty string, and the matching MUST be as specified in the
@@ -4257,7 +3689,7 @@ and per [RFC7230, section 3][rfc7230-section-3], HTTP headers MUST only use
 printable characters from the US-ASCII character set, and are terminated by a
 CRLF sequence with OPTIONAL whitespace around the header value.
 
-When encoding an attribute's value as an HTTP headerm it MUST be
+When encoding an attribute's value as an HTTP header it MUST be
 precent-encoded as described below. This is compatible with [RFC3986, section
 2.1][rfc3986-section-2-1] but is more specific about what needs
 encoding. The resulting string SHOULD NOT be further encoded.
@@ -4304,7 +3736,7 @@ Steps to encode a Unicode character:
 Percent-encoding SHOULD be performed using upper-case for values A-F,
 but decoding MUST accept lower-case values.
 
-When performing percent-decoding, values that have been unncessarily
+When performing percent-decoding, values that have been unnecessarily
 percent-encoded MUST be accepted, but encoded byte sequences which are
 invalid in UTF-8 MUST be rejected. (For example, "%C0%A0" is an overlong
 encoding of U+0020, and MUST be rejected.)
