@@ -10,5 +10,5 @@ test_tools:
 	@pytest tools/
 
 docker:
-	@docker run -ti -v $(PWD):/tmp/spec -w /tmp/spec python:latest \
+	@docker run -ti -v $(PWD):/tmp/spec -w /tmp/spec python:3.11 \
 	    make -f tools/Makefile deps test_tools verify

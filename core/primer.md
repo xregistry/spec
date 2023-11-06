@@ -17,5 +17,7 @@ Possible future topics to cover:
 - "latest" Resource is just a pointer, NOT a set of default values
 - we allow for implicit creation of a resource's tree rather than requiring
   multiple create operations - just for convinience
-- 
+- if/when we support serializing in non-json formats, we'll need to define
+  the serialization rules. E.g. when attributes appear as xml attributes vs
+  nested elements
 
