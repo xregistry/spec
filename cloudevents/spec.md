@@ -331,7 +331,7 @@ text files.
 When using the file-based model, files with the extension `.cereg` use JSON
 encoding. Files with the extension `.cereg.yaml` or `.cereg.yml` use YAML
 encoding. The formal JSON schema for the file format is defined in the
-[CloudEvents Registry Document Schema](#cloudevents-registry-document-schema),
+[CloudEvents Registry Document Schema](../cloudevents/schemas/document-schema.json),
 which implements the Registry format and the CloudEvents Registry format.
 
 The media-type for the file format is `application/cloudevents-registry+json`
@@ -371,9 +371,6 @@ significant.
 
 ## References
 
-### CloudEvents Registry Document Schema
-
-See [CloudEvents Registry Document Schema](../message/schemas/xregistry_messaging_catalog.json).
 
 [JSON Pointer]: https://www.rfc-editor.org/rfc/rfc6901
 [CloudEvents]: https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md

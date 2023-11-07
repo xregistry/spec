@@ -47,7 +47,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "xregistry_endpoint_registry.json"
+                  "$ref": "#/components/schemas/document"
                 }
               }
             }
@@ -62,7 +62,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "xregistry_endpoint_registry.json"
+                "$ref": "#/components/schemas/document"
               }
             }
           }
@@ -73,7 +73,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "xregistry_endpoint_registry.json"
+                  "$ref": "#/components/schemas/document"
                 }
               }
             }
@@ -81,73 +81,21 @@
         }
       }
     },
-    "/endpoints": {
-      "parameters": [
-        
-      ],
-      "get": {
-        "operationId": "getResourceGroupAll",
-        "description": "Gets all entries of the resource group",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "inline",
-            "description": "Set if references shall be inlined",
-            "required": false,
-            "allowEmptyValue": true,
-            "schema": {
-              "type": "boolean"
-            }
-          },
-          {
-            "in": "query",
-            "name": "filter",
-            "description": "Filter criterion(s)",
-            "explode": true,
-            "required": false,
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Resource groups that match the query or all available resource groups if no query was specified",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "$ref": "xregistry_endpoint_registry.json#/definitions/endpoint"
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "No groups found"
-          }
-        }
-      }
-    },
-    "/endpoints/{groupId}": {
+    "/schemaGroups/{groupId}": {
       "parameters": [
         {
           "$ref": "#/components/parameters/groupId"
         }
       ],
       "get": {
-        "operationId": "getResourceGroup",
+        "operationId": "getSchemaGroup",
         "responses": {
           "200": {
             "description": "The resource group",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "xregistry_endpoint_registry.json#/definitions/endpoint"
+                  "$ref": "#/components/schemas/schemaGroup"
                 }
               }
             }
@@ -174,14 +122,14 @@
             }
           }
         ],
-        "operationId": "putResourceGroup",
+        "operationId": "putSchemaGroup",
         "description": "creates or updates the resource group",
         "requestBody": {
           "description": "A request to create or update the discovery group's collection of groups with the given group",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "xregistry_endpoint_registry.json#/definitions/endpoint"
+                "$ref": "#/components/schemas/schemaGroup"
               }
             }
           }
@@ -192,7 +140,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "xregistry_endpoint_registry.json#/definitions/endpoint"
+                  "$ref": "#/components/schemas/schemaGroup"
                 }
               }
             }
@@ -209,7 +157,7 @@
         }
       },
       "delete": {
-        "operationId": "deleteResourceGroup",
+        "operationId": "deleteSchemaGroup",
         "parameters": [
           {
             "in": "query",
@@ -236,14 +184,14 @@
         }
       }
     },
-    "/endpoints/{groupId}/definitions": {
+    "/schemaGroups/{groupId}/schemas": {
       "parameters": [
         {
           "$ref": "#/components/parameters/groupId"
         }
       ],
       "get": {
-        "operationId": "getResourcesAll",
+        "operationId": "getSchemaGroupSchemasAll",
         "description": "Get an optionally filtered collection of resources",
         "parameters": [
           {
@@ -270,23 +218,23 @@
             "name": "top",
             "description": "The number of resources to show",
             "required": false,
-                "schema": {
+            "schema": {
               "type": "integer"
-        }
-      },
+            }
+          },
           {
             "in": "query",
             "name": "filter",
             "description": "Filter criterion(s)",
             "explode": true,
             "required": false,
-              "schema": {
+            "schema": {
               "type": "array",
               "items": {
                 "type": "string"
-                }
               }
             }
+          }
         ],
         "responses": {
           "200": {
@@ -296,7 +244,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": {
-                     "$ref": "../../message/schemas/xregistry_messagedefinition_definition.json#/definitions/definition"
+                    "$ref": "#/components/schemas/schema"
                   }
                 }
               }
@@ -309,9 +257,9 @@
             "description": "Conflict - epoch not greater"
           }
         }
-      }      
+      }
     },
-    "/endpoints/{groupId}/definitions/{resourceId}": {
+    "/schemaGroups/{groupId}/schemas/{resourceId}": {
       "parameters": [
         {
           "$ref": "#/components/parameters/groupId"
@@ -330,7 +278,7 @@
         }
       ],
       "get": {
-        "operationId": "getResource",
+        "operationId": "getSchemaGroupSchema",
         "responses": {
           "200": {
             "description": "The corresponding resource",
@@ -388,7 +336,7 @@
               },
               "application/json": {
                 "schema": {
-                  "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
+                  "$ref": "#/components/schemas/schema"
                 }
               }
             }
@@ -429,7 +377,7 @@
         ],
         "summary": "Create or update a resource",
         "description": "Create a resource. ",
-        "operationId": "putResource",
+        "operationId": "putSchemaGroupSchema",
         "requestBody": {
           "description": "The resource to be created/updated",
           "content": {
@@ -441,7 +389,7 @@
             },
             "application/json": {
               "schema": {
-                "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
+                "$ref": "#/components/schemas/schema"
               }
             }
           },
@@ -453,7 +401,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
+                  "$ref": "#/components/schemas/schema"
                 }
               }
             }
@@ -469,7 +417,7 @@
       "post": {
         "summary": "Post new resource version",
         "description": "Register resource version If resource of specified name does not exist in specified group, resource and resource version is created at version 1. If resource of specified name exists already in specified group, resource is created at latest version + 1. If resource with identical content already exists, existing resource's ID is returned. \n",
-        "operationId": "postResource",
+        "operationId": "postSchemaGroupSchema",
         "parameters": [
           {
             "$ref": "#/components/parameters/resource-description"
@@ -503,7 +451,7 @@
             },
             "application/json": {
               "schema": {
-                "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
+                "$ref": "#/components/schemas/schema"
               }
             }
           }
@@ -558,7 +506,7 @@
               },
               "application/json": {
                 "schema": {
-                  "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
+                  "$ref": "#/components/schemas/schema"
                 }
               }
             }
@@ -577,7 +525,7 @@
       "delete": {
         "summary": "Delete resource",
         "description": "Delete resource",
-        "operationId": "deleteResource",
+        "operationId": "deleteSchemaGroupSchema",
         "parameters": [
           {
             "in": "query",
@@ -604,7 +552,75 @@
         }
       }
     },
-    "/endpoints/{groupId}/definitions/{resourceId}/versions/{versionId}": {
+    "/schemaGroups/{groupId}/schemas/{resourceId}/versions": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/groupId"
+        },
+        {
+          "$ref": "#/components/parameters/resourceId"
+        }
+      ],
+      "get": {
+        "operationId": "getSchemaGroupSchemaVersionsAll",
+        "description": "Get an optionally filtered collection of versions",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "skip",
+            "description": "The number of resources to skip",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "top",
+            "description": "The number of resources to show",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter",
+            "description": "Filter criterion(s)",
+            "explode": true,
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated list of versions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/schema"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - constraint failure"
+          },
+          "409": {
+            "description": "Conflict - epoch not greater"
+          }
+        }
+      }
+    },
+    "/schemaGroups/{groupId}/schemas/{resourceId}/versions/{versionId}": {
       "parameters": [
         {
           "$ref": "#/components/parameters/groupId"
@@ -627,7 +643,7 @@
         }
       ],
       "get": {
-        "operationId": "getResourceVersion",
+        "operationId": "getSchemaGroupSchemaVersion",
         "description": "Gets the document stored for the schema version",
         "responses": {
           "200": {
@@ -679,7 +695,7 @@
               },
               "application/json": {
                 "schema": {
-                  "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
+                  "$ref": "#/components/schemas/schema"
                 }
               }
             }
@@ -706,14 +722,14 @@
             }
           }
         ],
-        "operationId": "updateResourceVersion",
+        "operationId": "updateSchemaGroupSchemaVersion",
         "description": "Updates the metadata for the schema version",
         "requestBody": {
           "description": "The schema version document",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
+                "$ref": "#/components/schemas/schema"
               }
             }
           }
@@ -724,7 +740,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
+                  "$ref": "#/components/schemas/schema"
                 }
               }
             }
@@ -754,7 +770,7 @@
             }
           }
         ],
-        "operationId": "deleteResourceVersion",
+        "operationId": "deleteSchemaGroupSchemaVersion",
         "responses": {
           "204": {
             "description": "Ok"
@@ -1076,6 +1092,207 @@
             "type": "string"
           }
         }
+      },
+      "document": {
+        "type": "object",
+        "properties": {
+          "schemaGroups": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/schemaGroup"
+            }
+          }
+        }
+      },
+      "schemaVersion": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "epoch": {
+            "type": "integer"
+          },
+          "self": {
+            "type": "string",
+            "format": "uri"
+          },
+          "description": {
+            "type": "string"
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri"
+          },
+          "labels": {
+            "type": "object"
+          },
+          "format": {
+            "type": "string",
+            "description": "Schema format identifier for this schema version."
+          },
+          "createdBy": {
+            "type": "string"
+          },
+          "createdOn": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "modifiedBy": {
+            "type": "string"
+          },
+          "modifiedOn": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "schemaobject": {
+            "type": "object",
+            "description": "Inlined schema document object"
+          },
+          "schema": {
+            "type": "string",
+            "description": "Inlined schema document string"
+          },
+          "schemaurl": {
+            "type": "string",
+            "format": "uri",
+            "description": "Inlined schema document string"
+          }
+        },
+        "required": [
+          "id",
+          "format"
+        ]
+      },
+      "schema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "epoch": {
+            "type": "integer"
+          },
+          "self": {
+            "type": "string",
+            "format": "uri"
+          },
+          "description": {
+            "type": "string"
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri"
+          },
+          "labels": {
+            "type": "object"
+          },
+          "format": {
+            "type": "string"
+          },
+          "createdBy": {
+            "type": "string"
+          },
+          "createdOn": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "modifiedBy": {
+            "type": "string"
+          },
+          "modifiedOn": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "versionsUrl": {
+            "type": "string"
+          },
+          "versionsCount": {
+            "type": "integer"
+          },
+          "versions": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/schemaVersion"
+            }
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "oneOf": [
+          {
+            "required": [
+              "versions"
+            ]
+          },
+          {
+            "required": [
+              "versionsUrl",
+              "versionsCount"
+            ]
+          }
+        ]
+      },
+      "schemaGroup": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "epoch": {
+            "type": "integer"
+          },
+          "self": {
+            "type": "string",
+            "format": "uri"
+          },
+          "description": {
+            "type": "string"
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri"
+          },
+          "labels": {
+            "type": "object"
+          },
+          "format": {
+            "type": "string"
+          },
+          "createdBy": {
+            "type": "string"
+          },
+          "createdOn": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "modifiedBy": {
+            "type": "string"
+          },
+          "modifiedOn": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "schemas": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/schema"
+            }
+          }
+        },
+        "required": [
+          "id"
+        ]
       }
     }
   }

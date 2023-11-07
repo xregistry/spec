@@ -1,0 +1,204 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://xregistry.io/schema/schemagroups",
+  "properties": {
+    "schemaGroups": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/schemaGroup"
+      }
+    }
+  },
+  "definitions": {
+    "schemaVersion": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "epoch": {
+          "type": "integer"
+        },
+        "self": {
+          "type": "string",
+          "format": "uri"
+        },
+        "description": {
+          "type": "string"
+        },
+        "documentation": {
+          "type": "string",
+          "format": "uri"
+        },
+        "labels": {
+          "type": "object"
+        },
+        "format": {
+          "type": "string",
+          "description": "Schema format identifier for this schema version."
+        },
+        "createdBy": {
+          "type": "string"
+        },
+        "createdOn": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "modifiedBy": {
+          "type": "string"
+        },
+        "modifiedOn": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "schemaobject": {
+          "type": "object",
+          "description": "Inlined schema document object"
+        },
+        "schema": {
+          "type": "string",
+          "description": "Inlined schema document string"
+        },
+        "schemaurl": {
+          "type": "string",
+          "format": "uri",
+          "description": "Inlined schema document string"
+        }
+      },
+      "required": [
+        "id",
+        "format"
+      ]
+    },
+    "schema": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "epoch": {
+          "type": "integer"
+        },
+        "self": {
+          "type": "string",
+          "format": "uri"
+        },
+        "description": {
+          "type": "string"
+        },
+        "documentation": {
+          "type": "string",
+          "format": "uri"
+        },
+        "labels": {
+          "type": "object"
+        },
+        "format": {
+          "type": "string"
+        },
+        "createdBy": {
+          "type": "string"
+        },
+        "createdOn": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "modifiedBy": {
+          "type": "string"
+        },
+        "modifiedOn": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "versionsUrl": {
+          "type": "string"
+        },
+        "versionsCount": {
+          "type": "integer"
+        },
+        "versions": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/schemaVersion"
+          }
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "versions"
+          ]
+        },
+        {
+          "required": [
+            "versionsUrl",
+            "versionsCount"
+          ]
+        }
+      ]
+    },
+    "schemaGroup": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "epoch": {
+          "type": "integer"
+        },
+        "self": {
+          "type": "string",
+          "format": "uri"
+        },
+        "description": {
+          "type": "string"
+        },
+        "documentation": {
+          "type": "string",
+          "format": "uri"
+        },
+        "labels": {
+          "type": "object"
+        },
+        "format": {
+          "type": "string"
+        },
+        "createdBy": {
+          "type": "string"
+        },
+        "createdOn": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "modifiedBy": {
+          "type": "string"
+        },
+        "modifiedOn": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "schemas": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/schema"
+          }
+        }
+      },
+      "required": [
+        "id"
+      ]
+    }
+  }
+}

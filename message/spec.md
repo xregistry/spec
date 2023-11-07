@@ -2,7 +2,8 @@
 
 ## Abstract
 
-TODO
+This specification defines a message and event catalog extension to the
+xRegistry document format and API [specification](../core/spec.md).
 
 ## Table of Contents
 
@@ -16,7 +17,14 @@ TODO
 
 ## Overview
 
-TODO
+This specification defines a message and event catalog extension to the
+xRegistry document format and API [specification](../core/spec.md). The purpose
+of the catalog is to provide a machine-readable description of message and event
+envelopes and logical grouping of related messages and events.
+
+Managing the description of the payloads of those messages and events is not in
+scope, but delegated to the [schema registry extension](../schema/spec.md) for
+xRegistry.
 
 ## Notations and Terminology
 
@@ -45,9 +53,17 @@ and `+` means the preceding attribute MUST appear at least once.
 
 This specification defines the following terms:
 
-#### ???
+#### Message and Event
 
-TODO
+A **message** is a transport wrapper around a **message body** (interchangeably
+referred to as payload) that is decorated with **metadata**. The metadata
+describes the message body without an intermediary having to inspect it and
+carries further information useful for identification, routing, and dispatch.
+
+In this specification, **message** is an umbrella term that refers to all kinds
+of messages as well as to **events** as a special form of messages.
+
+The definition of [message][message] from the CloudEvents specification applies.
 
 ## Message Definitions Registry
 
@@ -57,35 +73,17 @@ describe constraints for the metadata of messages and events, for instance the
 concrete values and patterns for the `type`, `source`, and `subject` attributes
 of a CloudEvent.
 
-All message definitions (events are a from of messages and are therefore always
-implied to be included from here on forward) are defined inside definition
-groups.
-
 A definition group is a collection of message definitions that are related to
 each other in some application-specific way. For instance, a definition group
 can be used to group all events raised by a particular application module or by
 a particular role of an application protocol exchange pattern.
 
-The Registry API extension model of the Message Definitions Registry is
+All message definitions MUST defined inside definition groups.
 
-``` JSON
-{
-  "groups": [
-    {
-      "singular": "definitionGroup",
-      "plural": "definitionGroups",
-      "schema": "TBD",
-      "resources": [
-        {
-          "singular": "definition",
-          "plural": "definitions",
-          "versions": 1,
-        }
-      ]
-    }
-  ]
-}
-```
+## Message Definition Registry Model
+
+The formal xRegistry extension model of the Message Definitions Registry 
+resides in the [model.json](model.json) file.
 
 ### Message Definition Groups
 
@@ -140,7 +138,7 @@ or referenced.
 
 Illustrating example:
 
-``` JSONC
+```JSONC
 
 "definitionGroupsUrl": "...",
 "definitionGroupsCount": 2,
@@ -346,15 +344,15 @@ to lower-case alphanumerical characters without separators.
 
 The base attributes are defined as follows:
 
-| Attribute | Type |
-| ---- | ---- |
-| `type` | `string` |
-| `source` | `uritemplate` |
-| `subject` | `string` |
-| `id` | `string` |
-| `time` | `timestamp` |
-| `dataschema` | `uritemplate` |
-| `datacontenttype` | `string` |
+| Attribute         | Type          |
+| ----------------- | ------------- |
+| `type`            | `string`      |
+| `source`          | `uritemplate` |
+| `subject`         | `string`      |
+| `id`              | `string`      |
+| `time`            | `timestamp`   |
+| `dataschema`      | `uritemplate` |
+| `datacontenttype` | `string`      |
 
 The following rules apply to the attribute declarations:
 
@@ -395,7 +393,7 @@ CloudEvents base specification. The implied `datacontenttype` is
 `application/json` and the implied `dataschema` is
 `https://example.com/schemas/com.example.myevent.json`:
 
-``` JSON
+```JSON
 {
   "format": "CloudEvents/1.0",
   "metadata": {
@@ -426,19 +424,18 @@ properties explicitly, but they MUST conform with the rules above.
 ### "HTTP/1.1", "HTTP/2", "HTTP/3"
 
 The "HTTP" format is used to define messages that are sent over an HTTP
-connection. The format is based on the [HTTP Message Format][HTTP Message
- Format] and is common across all version of HTTP.
+connection. The format is based on the [HTTP Message Format][HTTP Message Format] and is common across all version of HTTP.
 
 The [`metadata`](#metadata-message-metadata) object MAY contain several
 properties:
 
-| Property | Type | Description |
-| --- | --- | --- |
-| `headers` | Array | The HTTP headers. See below. |
-| `query` | Map | The HTTP query parameters. |
-| `path` | `uritemplate` | The HTTP path. |
-| `method` | `string` | The http method |
-| `status` | `string` | The http status code |
+| Property  | Type          | Description                  |
+| --------- | ------------- | ---------------------------- |
+| `headers` | Array         | The HTTP headers. See below. |
+| `query`   | Map           | The HTTP query parameters.   |
+| `path`    | `uritemplate` | The HTTP path.               |
+| `method`  | `string`      | The http method              |
+| `status`  | `string`      | The http status code         |
 
 HTTP allows for multiple headers with the same name. The `headers` property is
 therefore an array of objects with `name` and `value` properties. The `name`
@@ -461,7 +458,7 @@ value of the placeholder is assumed to be identical.
 
 The following example defines a message that is sent over HTTP/1.1:
 
-``` JSON
+```JSON
 {
   "format": "HTTP/1.1",
   "metadata": {
@@ -491,14 +488,14 @@ The "AMQP/1.0" format is used to define messages that are sent over an
 The [`metadata`](#metadata-message-metadata) object MAY contain several
 properties, each of which corresponds to a section of the AMQP 1.0 Message:
 
-| Property | Type | Description |
-| ---- | --- | ---- |
-| `properties` | Map | The AMQP 1.0 [Message Properties][AMQP 1.0 Message Properties] section. |
-| `application-properties` | Map | The AMQP 1.0 [Application Properties][AMQP 1.0 Application Properties] section. |
-| `message-annotations` | Map | The AMQP 1.0 [Message Annotations][AMQP 1.0 Message Annotations] section. |
-| `delivery-annotations` | Map | The AMQP 1.0 [Delivery Annotations][AMQP 1.0 Delivery Annotations] section. |
-| `header` | Map | The AMQP 1.0 [Message Header][AMQP 1.0 Message Header] section. |
-| `footer` | Map | The AMQP 1.0 [Message Footer][AMQP 1.0 Message Footer] section. |
+| Property                 | Type | Description                                                                     |
+| ------------------------ | ---- | ------------------------------------------------------------------------------- |
+| `properties`             | Map  | The AMQP 1.0 [Message Properties][AMQP 1.0 Message Properties] section.         |
+| `application-properties` | Map  | The AMQP 1.0 [Application Properties][AMQP 1.0 Application Properties] section. |
+| `message-annotations`    | Map  | The AMQP 1.0 [Message Annotations][AMQP 1.0 Message Annotations] section.       |
+| `delivery-annotations`   | Map  | The AMQP 1.0 [Delivery Annotations][AMQP 1.0 Delivery Annotations] section.     |
+| `header`                 | Map  | The AMQP 1.0 [Message Header][AMQP 1.0 Message Header] section.                 |
+| `footer`                 | Map  | The AMQP 1.0 [Message Footer][AMQP 1.0 Message Footer] section.                 |
 
 As in AMQP, all sections and properties are OPTIONAL.
 
@@ -512,7 +509,7 @@ to CloudEvents' `type`), a custom property, and a `content-type` of
 `application/json` without declaring a schema reference in the message
 definition:
 
-``` JSON
+```JSON
 {
   "format": "AMQP/1.0",
   "metadata": {
@@ -549,26 +546,25 @@ The `properties` property is an object that contains the properties of the
 AMQP 1.0 [Message Properties][AMQP 1.0 Message Properties] section. The
 following properties are defined, with type constraints:
 
-| Property | Type | Description |
-| --- | --- | --- |
-| `message-id` | `string` | uniquely identifies a message within the message system |
-| `user-id` | `binary` | identity of the user responsible for producing the message |
-| `to` | `uritemplate` | address of the node to send the message to |
-| `subject` | `string` | message subject |
-| `reply-to` | `uritemplate` | address of the node to which the receiver of this message ought to send replies |
-| `correlation-id` | `string` | client-specific id that can be used to mark or identify messages between clients |
-| `content-type` | `symbol` | MIME content type for the message |
-| `content-encoding` | `symbol` | MIME content encoding for the message |
-| `absolute-expiry-time` | `timestamp` | time when this message is considered expired |
-| `group-id` | `string` | group this message belongs to |
-| `group-sequence` | `integer` | position of this message within its group |
-| `reply-to-group-id` | `uritemplate` | group-id to which the receiver of this message ought to send replies to |
+| Property               | Type          | Description                                                                      |
+| ---------------------- | ------------- | -------------------------------------------------------------------------------- |
+| `message-id`           | `string`      | uniquely identifies a message within the message system                          |
+| `user-id`              | `binary`      | identity of the user responsible for producing the message                       |
+| `to`                   | `uritemplate` | address of the node to send the message to                                       |
+| `subject`              | `string`      | message subject                                                                  |
+| `reply-to`             | `uritemplate` | address of the node to which the receiver of this message ought to send replies  |
+| `correlation-id`       | `string`      | client-specific id that can be used to mark or identify messages between clients |
+| `content-type`         | `symbol`      | MIME content type for the message                                                |
+| `content-encoding`     | `symbol`      | MIME content encoding for the message                                            |
+| `absolute-expiry-time` | `timestamp`   | time when this message is considered expired                                     |
+| `group-id`             | `string`      | group this message belongs to                                                    |
+| `group-sequence`       | `integer`     | position of this message within its group                                        |
+| `reply-to-group-id`    | `uritemplate` | group-id to which the receiver of this message ought to send replies to          |
 
 #### `application-properties` (AMQP 1.0 Application Properties)
 
 The `application-properties` property is an object that contains the custom
-properties of the AMQP 1.0 [Application Properties][AMQP 1.0 Application
-Properties] section.
+properties of the AMQP 1.0 [Application Properties][AMQP 1.0 Application Properties] section.
 
 The names of the properties MUST be of type `symbol` and MUST be unique.
 The values of the properties MAY be of any permitted type.
@@ -597,13 +593,13 @@ The `header` property is an object that contains the properties of the
 AMQP 1.0 [Message Header][AMQP 1.0 Message Header] section. The
 following properties are defined, with type constraints:
 
-| Property | Type | Description |
-| --- | --- | --- |
-| `durable` | `boolean` | specify durability requirements |
-| `priority` | `integer` | relative message priority |
-| `ttl` | `integer` | message time-to-live in milliseconds |
+| Property         | Type      | Description                                                    |
+| ---------------- | --------- | -------------------------------------------------------------- |
+| `durable`        | `boolean` | specify durability requirements                                |
+| `priority`       | `integer` | relative message priority                                      |
+| `ttl`            | `integer` | message time-to-live in milliseconds                           |
 | `first-acquirer` | `boolean` | indicates whether the message has not been acquired previously |
-| `delivery-count` | `integer` | number of prior unsuccessful delivery attempts |
+| `delivery-count` | `integer` | number of prior unsuccessful delivery attempts                 |
 
 #### `footer` (AMQP 1.0 Message Footer)
 
@@ -626,17 +622,17 @@ to the application properties collection of other protocols.
 The following properties are defined. The MQTT 3.1.1 and MQTT 5.0 columns
 indicate whether the property is supported for the respective MQTT version.
 
-| Property | Type | MQTT 3.1.1 | MQTT 5.0 | Description |
-| --- | --- | --- | --- | --- |
-| `qos` | `integer` | yes | yes | Quality of Service level |
-| `retain` | `boolean` | yes | yes | Retain flag |
-| `topic-name` | `string` | yes | yes | Topic name |
-| `payload-format` | `integer` | no | yes | Payload format indicator |
-| `message-expiry-interval` | `integer` | no | yes | Message expiry interval |
-| `response-topic` | `uritemplate` | no | yes | Response topic |
-| `correlation-data` | `binary` | no | yes | Correlation data |
-| `content-type` | `symbol` | no | yes | MIME content type of the payload |
-| `user-properties` | Array | no | yes | User properties |
+| Property                  | Type          | MQTT 3.1.1 | MQTT 5.0 | Description                      |
+| ------------------------- | ------------- | ---------- | -------- | -------------------------------- |
+| `qos`                     | `integer`     | yes        | yes      | Quality of Service level         |
+| `retain`                  | `boolean`     | yes        | yes      | Retain flag                      |
+| `topic-name`              | `string`      | yes        | yes      | Topic name                       |
+| `payload-format`          | `integer`     | no         | yes      | Payload format indicator         |
+| `message-expiry-interval` | `integer`     | no         | yes      | Message expiry interval          |
+| `response-topic`          | `uritemplate` | no         | yes      | Response topic                   |
+| `correlation-data`        | `binary`      | no         | yes      | Correlation data                 |
+| `content-type`            | `symbol`      | no         | yes      | MIME content type of the payload |
+| `user-properties`         | Array         | no         | yes      | User properties                  |
 
 Like HTTP, the MQTT allows for multiple user properties with the same name,
 so the `user-properties` property is an array of objects, each of which
@@ -651,7 +647,7 @@ The following example shows a message with the "MQTT/5.0" format, asking for
 QoS 1 delivery, with a topic name of "mytopic", and a user property of
 "my-application-property" with a value of "my-application-property-value":
 
-``` JSON
+```JSON
 {
   "format": "MQTT/5.0",
   "metadata": {
@@ -683,18 +679,17 @@ current version. If the version number is omitted, the latest version is
 assumed.
 
 The [`metadata`](#metadata-message-metadata) object contains the common elements
-of the Kafka [producer][Apache Kafka producer] and [consumer][Apache Kafka
-consumer] records, with the `headers` element corresponding to the application
+of the Kafka [producer][Apache Kafka producer] and [consumer][Apache Kafka consumer] records, with the `headers` element corresponding to the application
 properties collection of other protocols.
 
 The following properties are defined:
 
-| Property | Type | Description |
-| --- | --- | --- |
-| `topic` | `string` | The topic the record will be appended to |
-| `partition` | `integer` | The partition to which the record ought be sent |
-| `key` | `binary` | The key that will be included in the record |
-| `headers` | Map | A map of headers to set on the record |
+| Property    | Type      | Description                                                                         |
+| ----------- | --------- | ----------------------------------------------------------------------------------- |
+| `topic`     | `string`  | The topic the record will be appended to                                            |
+| `partition` | `integer` | The partition to which the record ought be sent                                     |
+| `key`       | `binary`  | The key that will be included in the record                                         |
+| `headers`   | Map       | A map of headers to set on the record                                               |
 | `timestamp` | `integer` | The timestamp of the record; if 0 (default), the producer will assign the timestamp |
 
 The values of all `string`, `symbol`, `uritemplate`-typed properties
@@ -704,7 +699,7 @@ value of the placeholder is assumed to be identical.
 
 Example:
 
-``` JSON
+```JSON
 {
   "format": "Kafka/0.11",
   "metadata": {
@@ -740,3 +735,4 @@ Example:
 [HTTP Message Format]: https://www.rfc-editor.org/rfc/rfc9110#section-6
 [RFC6570]: https://www.rfc-editor.org/rfc/rfc6570
 [rfc3339]: https://tools.ietf.org/html/rfc3339
+[message]: https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#message

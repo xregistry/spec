@@ -2,7 +2,9 @@
 
 ## Abstract
 
-TODO
+This specification defines an endpoint registry existension to the xRegistry
+document format and API [specification](../core/spec.md).
+
 
 ## Table of Contents
 
@@ -15,7 +17,9 @@ TODO
 
 ## Overview
 
-TODO
+This specification defines a registry of metadata definitions for abstract and
+concrete network endpoints to which messages can be produced, from which messages
+can be consumed, or which make messages available for subscription.
 
 ## Notations and Terminology
 
@@ -44,9 +48,11 @@ and `+` means the preceding attribute MUST appear at least once.
 
 This specification defines the following terms:
 
-#### ???
+### Endpoint
 
-TODO
+An "endpoint" is a logical or physical network location to which messages can
+be produced, from which messages can be consumed, or which makes messages
+available for subscription for delivery to a consumer-designated endpoint.
 
 ## Endpoint Registry
 
@@ -58,28 +64,11 @@ delivery to a consumer-designated endpoint.
 As discussed in [CloudEvents Registry overview](../cloudevents/spec.md),
 endpoints are supersets of
 [message definition groups](../message/spec.md#message-definition-groups) and
-MAY contain inlined definitions. Therefore, the RESORCE level in the meta-model
-for the Endpoint Registry are likewise `definitions`:
+MAY contain inlined definitions. Therefore, the RESOURCE level in the meta-model
+for the Endpoint Registry are likewise `definitions` as defined in the 
+[message catalog specification](../message/spec.md).
 
-``` JSON
-{
-  "groups": [
-    {
-      "singular": "endpoint",
-      "plural": "endpoints",
-      "schema": "TBD",
-      "resources": [
-        {
-          "singular": "definition",
-          "plural": "definitions",
-          "versions": 1,
-          "mutable": true
-        }
-      ]
-    }
-  ]
-}
-```
+The resource model for endpoints can be found in [model.json](model.json).
 
 ### Endpoints: endpoints
 
@@ -296,13 +285,69 @@ Example:
 - Description: Configuration details of the endpoint. An endpoint
   MAY be defined without detail configuration. In this case, the endpoint is
   considered to be "abstract".
-  > Note: Authentication and authorization details are intentionally **not**
-  > included in the endpoint metadata. The supported authentication and
-  > authorization mechanisms are either part of the protocol, negotiated at
-  > runtime (e.g. SASL), made available through the specific endpoint's
-  > documentation, or separate metadata specific to security policies.
+  
 - Constraints:
   - OPTIONAL
+
+#### `config.authorization`
+
+- Type: Map
+- Description: OPTIONAL authorization configuration details of the endpoint.
+  When present, the authorization configuration MUST be a map of non-empty
+  strings to non-empty strings. The configuration keys below MUST be used as
+  defined. Additional, endpoint-specific configuration keys MAY be added.
+
+- Constraints:
+  - OPTIONAL
+  - MUST only be used for authorization configuration
+  - MUST NOT be used for credential configuration
+
+#### `config.authorization.type`
+
+- Type: String
+- Description: The type of the authorization configuration. The value SHOULD be 
+  one of the following:
+  - OAuth2: OAuth 2.0 authorization is used.
+  - Plain: The client uses username with a plaintext password for authentication
+    and authorization.
+  - X509Cert: The client uses client certificate authentication and authorization.
+  - APIKey: The client uses an API key for authentication and authorization.
+
+- Constraints:
+  - OPTIONAL
+  - MUST be a non-empty string if used
+
+#### `config.authorization.resourceuri`
+
+- Type: URI
+- Description: The URI of the resource for which the authorization is
+  requested. The format of the URI depends on the authorization type.
+
+- Constraints:
+  - OPTIONAL
+  - MUST be a non-empty URI if used
+
+#### `config.authorization.authorityuri`
+
+- Type: URI
+- Description: The URI of the authorization authority from which the
+  authorization is requested. The format of the URI depends on the authorization
+  type.
+
+- Constraints:
+  - OPTIONAL
+  - MUST be a non-empty URI if used
+
+#### `config.authorization.grant_types`
+
+- Type: Array of Strings
+- Description: The supported authorization grant types. The value SHOULD be a
+  list of strings. 
+
+- Constraints:
+  - OPTIONAL
+  - MUST be a non-empty array if used
+
 
 #### `config.protocol`
 
@@ -585,9 +630,6 @@ Example:
 
 ## References
 
-### CloudEvents Registry Document Schema
-
-See [CloudEvents Registry Document Schema](../message/schemas/xregistry_messaging_catalog.json).
 
 [JSON Pointer]: https://www.rfc-editor.org/rfc/rfc6901
 [CloudEvents Types]: https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/spec.md#type-system

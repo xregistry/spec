@@ -2,7 +2,8 @@
 
 ## Abstract
 
-TODO
+This specification defines a schema registry extension to the xRegistry document
+format and API [specification](../core/spec.md).
 
 ## Table of Contents
 
@@ -16,7 +17,8 @@ TODO
 
 ## Overview
 
-TODO
+This specification defines a schema registry extension to the xRegistry document
+format and API [specification](../core/spec.md).
 
 ## Notations and Terminology
 
@@ -45,34 +47,86 @@ and `+` means the preceding attribute MUST appear at least once.
 
 This specification defines the following terms:
 
-#### ???
+#### Schema
 
-TODO
+A schema in the sense of this specification defines the structure of the
+body/payload of a serialized message, but also of a structured data element
+stored on disk or elsewhere. In self-describing serialization formats like JSON,
+XML, BSON, or MessagePack, schemas primarily help with validating whether a
+message body conforms with a set of rules defined in the schema and with
+generating code that can produce or consume the defined structure. For
+schema-dependent serialization formats like Protobuf or Apache Avro, a schema 
+is needed to decode the structured data from its serialized, binary form.
+
+We use the term **schema** in this specification as a logical grouping of
+**schema versions**. A **schema version** is a concrete document. The **schema**
+is a semantic umbrella formed around one or more concrete schema version
+documents. The semantic condition for **schema versions** to coexist in the same 
+**schema** is that any new schema version is backwards compatible with all previous
+versions of the same **schema**. Any breaking change forms a new **schema**.
+
+In "semantic versioning" terms, you can think of a **schema** as a "major
+version" and the **schema versions** as "minor versions". 
+
+#### Schema Group
+
+A schema group is a container for schemas that are related to each other in some
+application-defined way. This specification does not impose any restrictions on
+what schemas can be contained in a schema group.
+
 
 ## Schema Registry
 
-The schema registry is a metadata store for organizing data schemas of any kind.
+The schema registry is a metadata store for organizing schemas and schema
+versions of any kind; it is a document store.
 
-The Registry API extension model of the Schema Registry is:
+The Registry API extension model of the Schema Registry, which is defined in
+detail below, is as follows:
 
 ``` JSON
 {
+  "schemas": ["json-schema/draft-07"],
   "groups": [
     {
       "singular": "schemaGroup",
       "plural": "schemaGroups",
-      "schema": "TBD",
       "resources": [
         {
           "singular": "schema",
           "plural": "schemas",
-          "versions": 0
+          "versions": 0,
+          "attributes" : {
+            "format": {
+              "description": "Schema format identifier for this schema version.",
+              "type": "STRING",
+              "required": true
+            },
+            "schemaobject": {
+              "description": "Inlined schema document object",
+              "type": "OBJECT",
+              "required": false
+            },
+            "schema": {
+              "description": "Inlined schema document string",
+              "type": "STRING",
+              "required": false
+            },
+            "schemaurl":{
+              "description": "Inlined schema document string",
+              "type": "URL",
+              "required": false
+            }
+          }
         }
       ]
     }
   ]
 }
 ```
+
+Since the schema registry is an application of the xRegistry specification, all
+attributes for groups, resources, and resource version objects are inherited
+from there.
 
 ### Group: schemaGroups
 
@@ -116,6 +170,12 @@ using the new schema MUST be able to understand data encoded using a prior
 version of the schema. If a new version introduces a breaking change, it MUST be
 registered as a new schema with a new name.
 
+When semantic versioning is used in a solution, it is RECOMMENDED to include a
+major version identifier in the schema `id`, like `"com.example.event.v1"` or
+`"com.example.event.2024-02"`, so that incompatible, but historically related
+schemas can be more easily identified by users and developers. The schema
+version identifier then functions as the semantic minor version identifier.
+
 When you retrieve a schema without qualifying the version, you will get the
 latest version of the schema, see [retrieving a
 resource](../core/spec.md#retrieving-a-resource). The latest version is the
@@ -153,22 +213,51 @@ The `VERSION` object of the `schema` resource is of type `schemaversion`. The
 repeated in `schemaversion` for clarity, but MUST be identical.
 `schemaversion` has the following extension attributes.
 
+#### `schemaobject`
+
+- Type: Object
+- Description: Embedded schema object. The format of the schema is defined by
+  the `format` attribute.
+- Constraints:
+  - Mutually exclusive with `schemaurl` and `schema`. One of the three
+    attributes MUST be present.
+  - Schemas MAY be embedded as schema objects if and only if the schema
+    definition language is a self-describing object graph consisting of arrays
+    and key-value maps. Examples for this are JSON Schema and Apache Avro. Not
+    conformant is XML Schema that leans on a combination of elements and
+    attributes that do not translate well into such object graphs. Also not
+    conformant is Protobuf schema, which leans on a custom interface definition
+    language.
+
 #### `schema`
 
-- Type: String | Object
-- Description: Embedded schema string or object. The format and encoding of the
-  schema is defined by the `format` attribute.
+- Type: String
+- Description: Embedded schema string. The format and encoding of the schema is
+  defined by the `format` attribute.
 - Constraints:
-  - Mutually exclusive with `schemaurl`. One of the two MUST be present.
+  - Mutually exclusive with `schemaurl` and `schemaobject`. One of the three
+    MUST be present.
+  - Schema strings MAY be embedded if and only if the schema is expressible as a
+    Unicode string. XML Schema and Protobuf schema MUST be embedded in this way
+    if not expressed as schema document reference.
 
 #### `schemaurl`
 
 - Type: URI
 - Description: Reference to a schema document external to the registry.
 - Constraints:
-  - Mutually exclusive with `schema`. One of the two MUST be present.
+  - Mutually exclusive with `schema` and `schemaobject`. One of the two MUST be present.
   - Cross-references to a schema document within the same registry MUST NOT be
     used.
+- Remarks: 
+  - The `schemaurl` MAY be a well-known identifier that is readily understood by
+    all registry users and resolves to a common type definition or an item in
+    some private store or cache, rather than a networked document location. In
+    such cases, it is RECOMMENDED for the identifier to be a uniform resource
+    name (URN). With XML, it is common practice to reference schema documents
+    abstractly using URIs that use the `http` scheme, but do not actually point
+    to a networked resource. This practice is NOT RECOMMENDED here.
+
 
 The following example shows three embedded `Protobuf/3` schema versions for a
 schema named `com.example.telemetrydata`:
@@ -188,7 +277,6 @@ schema named `com.example.telemetrydata`:
           "id": "com.example.telemetrydata",
           "description": "device telemetry event data",
           "format": "Protobuf/3",
-
           "versionsUrl": "...",
           "versionsCount": 3,
           "versions": {

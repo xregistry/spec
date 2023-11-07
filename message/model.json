@@ -1,0 +1,784 @@
+{
+    "schemas": [
+        "json-schema/draft-07"
+    ],
+    "groups": {
+        "definitionGroups": {
+            "singular": "definitionGroup",
+            "plural": "definitionGroups",
+            "attributes": {
+                "format": {
+                    "description": "Message format identifier. All definitions in this group share this format. Mixed-format groups are not permitted.",
+                    "type": "string",
+                    "required": true
+                }
+            },
+            "resources": {
+                "definitions": {
+                    "singular": "definition",
+                    "plural": "definitions",
+                    "versions": 1,
+                    "attributes": {
+                        "format": {
+                            "description": "Message format identifier. This attribute MUST be the same as the 'format' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups.",
+                            "type": "string",
+                            "required": true,
+                            "ifValue": {
+                                "AMQP/1.0": {
+                                    "siblingAttributes": {
+                                        "metadata": {
+                                            "description": "AMQP message metadata constraints.",
+                                            "type": "object",
+                                            "required": false,
+                                            "attributes": {
+                                                "properties": {
+                                                    "type": "object",
+                                                    "required": false,
+                                                    "attributes": {
+                                                        "message-id": {
+                                                            "description": "AMQP message-id.",
+                                                            "type": "object",
+                                                            "required": false,
+                                                            "attributes": {
+                                                                "value": {
+                                                                    "description": "AMQP message-id value template.",
+                                                                    "type": "string",
+                                                                    "required": false
+                                                                },
+                                                                "required": {
+                                                                    "description": "AMQP message-id required.",
+                                                                    "type": "boolean",
+                                                                    "required": false
+                                                                }
+                                                            }
+                                                        },
+                                                        "user-id": {
+                                                            "description": "AMQP user-id.",
+                                                            "type": "object",
+                                                            "required": false,
+                                                            "attributes": {
+                                                                "value": {
+                                                                    "description": "AMQP user-id value template.",
+                                                                    "type": "string",
+                                                                    "required": false
+                                                                },
+                                                                "required": {
+                                                                    "description": "AMQP user-id required.",
+                                                                    "type": "boolean",
+                                                                    "required": false
+                                                                }
+                                                            }
+                                                        },
+                                                        "to": {
+                                                            "description": "AMQP to.",
+                                                            "type": "object",
+                                                            "required": false,
+                                                            "attributes": {
+                                                                "value": {
+                                                                    "description": "AMQP to value template.",
+                                                                    "type": "string",
+                                                                    "required": false
+                                                                },
+                                                                "required": {
+                                                                    "description": "AMQP to required.",
+                                                                    "type": "boolean",
+                                                                    "required": false
+                                                                }
+                                                            }
+                                                        },
+                                                        "subject": {
+                                                            "description": "AMQP subject.",
+                                                            "type": "object",
+                                                            "required": false,
+                                                            "attributes": {
+                                                                "value": {
+                                                                    "description": "AMQP subject value template.",
+                                                                    "type": "string",
+                                                                    "required": false
+                                                                },
+                                                                "required": {
+                                                                    "description": "AMQP subject required.",
+                                                                    "type": "boolean",
+                                                                    "required": false
+                                                                }
+                                                            }
+                                                        },
+                                                        "reply-to": {
+                                                            "description": "AMQP reply-to.",
+                                                            "type": "object",
+                                                            "required": false,
+                                                            "attributes": {
+                                                                "value": {
+                                                                    "description": "AMQP reply-to value template.",
+                                                                    "type": "string",
+                                                                    "required": false
+                                                                },
+                                                                "required": {
+                                                                    "description": "AMQP reply-to required.",
+                                                                    "type": "boolean",
+                                                                    "required": false
+                                                                }
+                                                            }
+                                                        },
+                                                        "correlation-id": {
+                                                            "description": "AMQP correlation-id.",
+                                                            "type": "object",
+                                                            "required": false,
+                                                            "attributes": {
+                                                                "value": {
+                                                                    "description": "AMQP correlation-id value template.",
+                                                                    "type": "string",
+                                                                    "required": false
+                                                                },
+                                                                "required": {
+                                                                    "description": "AMQP correlation-id required.",
+                                                                    "type": "boolean",
+                                                                    "required": false
+                                                                }
+                                                            }
+                                                        },
+                                                        "content-type": {
+                                                            "description": "AMQP content-type.",
+                                                            "type": "object",
+                                                            "required": false,
+                                                            "attributes": {
+                                                                "value": {
+                                                                    "description": "AMQP content-type value template.",
+                                                                    "type": "string",
+                                                                    "required": false
+                                                                },
+                                                                "required": {
+                                                                    "description": "AMQP content-type required.",
+                                                                    "type": "boolean",
+                                                                    "required": false
+                                                                }
+                                                            }
+                                                        },
+                                                        "content-encoding": {
+                                                            "description": "AMQP content-encoding.",
+                                                            "type": "object",
+                                                            "required": false,
+                                                            "attributes": {
+                                                                "value": {
+                                                                    "description": "AMQP content-encoding value template.",
+                                                                    "type": "string",
+                                                                    "required": false
+                                                                },
+                                                                "required": {
+                                                                    "description": "AMQP content-encoding required.",
+                                                                    "type": "boolean",
+                                                                    "required": false
+                                                                }
+                                                            }
+                                                        },
+                                                        "absolute-expiry-time": {
+                                                            "description": "AMQP absolute-expiry-time.",
+                                                            "type": "object",
+                                                            "required": false,
+                                                            "attributes": {
+                                                                "value": {
+                                                                    "description": "AMQP absolute-expiry-time value template.",
+                                                                    "type": "string",
+                                                                    "required": false
+                                                                },
+                                                                "required": {
+                                                                    "description": "AMQP absolute-expiry-time required.",
+                                                                    "type": "boolean",
+                                                                    "required": false
+                                                                }
+                                                            }
+                                                        },
+                                                        "group-id": {
+                                                            "description": "AMQP group-id.",
+                                                            "type": "object",
+                                                            "required": false,
+                                                            "attributes": {
+                                                                "value": {
+                                                                    "description": "AMQP group-id value template.",
+                                                                    "type": "string",
+                                                                    "required": false
+                                                                },
+                                                                "required": {
+                                                                    "description": "AMQP group-id required.",
+                                                                    "type": "boolean",
+                                                                    "required": false
+                                                                }
+                                                            }
+                                                        },
+                                                        "group-sequence": {
+                                                            "description": "AMQP group-sequence.",
+                                                            "type": "object",
+                                                            "required": false,
+                                                            "attributes": {
+                                                                "value": {
+                                                                    "description": "AMQP group-sequence value template.",
+                                                                    "type": "string",
+                                                                    "required": false
+                                                                },
+                                                                "required": {
+                                                                    "description": "AMQP group-sequence required.",
+                                                                    "type": "boolean",
+                                                                    "required": false
+                                                                }
+                                                            }
+                                                        },
+                                                        "reply-to-group-id": {
+                                                            "description": "AMQP reply-to-group-id.",
+                                                            "type": "object",
+                                                            "required": false,
+                                                            "attributes": {
+                                                                "value": {
+                                                                    "description": "AMQP reply-to-group-id value template.",
+                                                                    "type": "string",
+                                                                    "required": false
+                                                                },
+                                                                "required": {
+                                                                    "description": "AMQP reply-to-group-id required.",
+                                                                    "type": "boolean",
+                                                                    "required": false
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "application-properties": {
+                                                    "type": "map",
+                                                    "required": false,
+                                                    "itemType": "object",
+                                                    "keyType": "string",
+                                                    "attributes": {
+                                                        "name": {
+                                                            "description": "The application property name.",
+                                                            "type": "string",
+                                                            "required": false
+                                                        },
+                                                        "value": {
+                                                            "description": "The application property value template.",
+                                                            "type": "string",
+                                                            "required": false
+                                                        },
+                                                        "required": {
+                                                            "description": "The application property required.",
+                                                            "type": "boolean",
+                                                            "required": false
+                                                        },
+                                                        "type": {
+                                                            "description": "The application property type.",
+                                                            "type": "string",
+                                                            "required": false
+                                                        }
+                                                    }
+                                                },
+                                                "message-annotations": {
+                                                    "type": "map",
+                                                    "required": false,
+                                                    "itemType": "object",
+                                                    "keyType": "string",
+                                                    "attributes": {
+                                                        "name": {
+                                                            "description": "The message annotation name.",
+                                                            "type": "string",
+                                                            "required": true
+                                                        },
+                                                        "value": {
+                                                            "description": "The message annotation value",
+                                                            "type": "string",
+                                                            "required": false
+                                                        },
+                                                        "required": {
+                                                            "description": "Whether the message annotation is required",
+                                                            "type": "boolean",
+                                                            "required": false
+                                                        },
+                                                        "type": {
+                                                            "description": "The message annotation type.",
+                                                            "type": "string",
+                                                            "required": false
+                                                        }
+                                                    }
+                                                },
+                                                "delivery-annotations": {
+                                                    "type": "map",
+                                                    "required": false,
+                                                    "itemType": "object",
+                                                    "keyType": "string",
+                                                    "attributes": {
+                                                        "name": {
+                                                            "description": "The delivery annotation name.",
+                                                            "type": "string",
+                                                            "required": true
+                                                        },
+                                                        "value": {
+                                                            "description": "The delivery annotation value",
+                                                            "type": "string",
+                                                            "required": false
+                                                        },
+                                                        "required": {
+                                                            "description": "Whether the annotation is required",
+                                                            "type": "boolean",
+                                                            "required": false
+                                                        },
+                                                        "type": {
+                                                            "description": "The annotation type.",
+                                                            "type": "string",
+                                                            "required": false
+                                                        }
+                                                    }
+                                                },
+                                                "header": {
+                                                    "type": "map",
+                                                    "required": false,
+                                                    "itemType": "object",
+                                                    "keyType": "string",
+                                                    "attributes": {
+                                                        "name": {
+                                                            "description": "AMQP header name.",
+                                                            "type": "string",
+                                                            "required": true
+                                                        },
+                                                        "value": {
+                                                            "description": "AMQP header value.",
+                                                            "type": "string",
+                                                            "required": false
+                                                        },
+                                                        "required": {
+                                                            "description": "AMQP header required.",
+                                                            "type": "boolean",
+                                                            "required": false
+                                                        },
+                                                        "type": {
+                                                            "description": "AMQP header type.",
+                                                            "type": "string",
+                                                            "required": false
+                                                        }
+                                                    }
+                                                },
+                                                "footer": {
+                                                    "type": "map",
+                                                    "required": false,
+                                                    "itemType": "object",
+                                                    "keyType": "string",
+                                                    "attributes": {
+                                                        "name": {
+                                                            "description": "AMQP footer name.",
+                                                            "type": "string",
+                                                            "required": true
+                                                        },
+                                                        "value": {
+                                                            "description": "AMQP footer value.",
+                                                            "type": "string",
+                                                            "required": false
+                                                        },
+                                                        "required": {
+                                                            "description": "AMQP footer required.",
+                                                            "type": "boolean",
+                                                            "required": false
+                                                        },
+                                                        "type": {
+                                                            "description": "AMQP footer type.",
+                                                            "type": "string",
+                                                            "required": false
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "MQTT/3.1.1": {
+                                    "siblingAttributes": {
+                                        "metadata": {
+                                            "description": "MQTT message metadata constraints.",
+                                            "type": "object",
+                                            "required": false,
+                                            "attributes": {
+                                                "qos": {
+                                                    "description": "MQTT qos.",
+                                                    "type": "object",
+                                                    "required": false,
+                                                    "attributes": {
+                                                        "value": {
+                                                            "description": "MQTT qos value template.",
+                                                            "type": "string",
+                                                            "required": false
+                                                        }
+                                                    }
+                                                },
+                                                "retain": {
+                                                    "description": "MQTT retain.",
+                                                    "type": "object",
+                                                    "required": false,
+                                                    "attributes": {
+                                                        "value": {
+                                                            "description": "MQTT retain value template.",
+                                                            "type": "boolean",
+                                                            "required": false
+                                                        }
+                                                    }
+                                                },
+                                                "topic-name": {
+                                                    "description": "MQTT topic-name.",
+                                                    "type": "object",
+                                                    "required": false,
+                                                    "attributes": {
+                                                        "value": {
+                                                            "description": "MQTT topic-name value template.",
+                                                            "type": "string",
+                                                            "required": false
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "MQTT/5.0": {
+                                    "siblingAttributes": {
+                                        "metadata": {
+                                            "description": "MQTT message metadata constraints.",
+                                            "type": "object",
+                                            "required": false,
+                                            "attributes": {
+                                                "qos": {
+                                                    "description": "MQTT qos.",
+                                                    "type": "object",
+                                                    "required": false,
+                                                    "attributes": {
+                                                        "value": {
+                                                            "description": "MQTT qos value template.",
+                                                            "type": "integer",
+                                                            "required": false
+                                                        }
+                                                    }
+                                                },
+                                                "retain": {
+                                                    "description": "MQTT retain.",
+                                                    "type": "object",
+                                                    "required": false,
+                                                    "attributes": {
+                                                        "value": {
+                                                            "description": "MQTT retain value template.",
+                                                            "type": "boolean",
+                                                            "required": false
+                                                        }
+                                                    }
+                                                },
+                                                "topic-name": {
+                                                    "description": "MQTT topic-name.",
+                                                    "type": "object",
+                                                    "required": false,
+                                                    "attributes": {
+                                                        "value": {
+                                                            "description": "MQTT topic-name value template.",
+                                                            "type": "string",
+                                                            "required": false
+                                                        }
+                                                    }
+                                                },
+                                                "message-expiry-interval": {
+                                                    "description": "MQTT message-expiry-interval.",
+                                                    "type": "object",
+                                                    "required": false,
+                                                    "attributes": {
+                                                        "value": {
+                                                            "description": "MQTT message-expiry-interval value template.",
+                                                            "type": "integer",
+                                                            "required": false
+                                                        }
+                                                    }
+                                                },
+                                                "response-topic": {
+                                                    "description": "MQTT response-topic.",
+                                                    "type": "object",
+                                                    "required": false,
+                                                    "attributes": {
+                                                        "value": {
+                                                            "description": "MQTT response-topic value template.",
+                                                            "type": "string",
+                                                            "required": false
+                                                        }
+                                                    }
+                                                },
+                                                "correlation-data": {
+                                                    "description": "MQTT correlation-data.",
+                                                    "type": "object",
+                                                    "required": false,
+                                                    "attributes": {
+                                                        "value": {
+                                                            "description": "MQTT correlation-data value template.",
+                                                            "type": "binary",
+                                                            "required": false
+                                                        }
+                                                    }
+                                                },
+                                                "content-type": {
+                                                    "description": "MQTT content-type.",
+                                                    "type": "object",
+                                                    "required": false,
+                                                    "attributes": {
+                                                        "value": {
+                                                            "description": "MQTT content-type value template.",
+                                                            "type": "string",
+                                                            "required": false
+                                                        }
+                                                    }
+                                                },
+                                                "user-properties": {
+                                                    "description": "MQTT user-properties.",
+                                                    "type": "array",
+                                                    "required": false,
+                                                    "itemType": "object",
+                                                    "attributes": {
+                                                        "name": {
+                                                            "description": "MQTT user-property name.",
+                                                            "type": "string",
+                                                            "required": false
+                                                        },
+                                                        "value": {
+                                                            "description": "MQTT user-property value.",
+                                                            "type": "string",
+                                                            "required": false
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "KAFKA/0.11": {
+                                    "siblingAttributes": {
+                                        "metadata": {
+                                            "description": "The Apache Kafka message metadata constraints.",
+                                            "type": "object",
+                                            "required": false,
+                                            "attributes": {
+                                                "topic": {
+                                                    "description": "The Apache Kafka topic.",
+                                                    "type": "string",
+                                                    "required": false
+                                                },
+                                                "partition": {
+                                                    "description": "The Apache Kafka partition.",
+                                                    "type": "integer",
+                                                    "required": false
+                                                },
+                                                "key": {
+                                                    "description": "The Apache Kafka key.",
+                                                    "type": "binary",
+                                                    "required": false
+                                                },
+                                                "headers": {
+                                                    "description": "The Apache Kafka headers.",
+                                                    "type": "map",
+                                                    "required": false,
+                                                    "itemType": "object",
+                                                    "keyType": "string",
+                                                    "attributes": {
+                                                        "name": {
+                                                            "description": "The Apache Kafka header name.",
+                                                            "type": "string",
+                                                            "required": false
+                                                        },
+                                                        "value": {
+                                                            "description": "The Apache Kafka header value.",
+                                                            "type": "string",
+                                                            "required": false
+                                                        }
+                                                    }
+                                                },
+                                                "timestamp": {
+                                                    "description": "The Apache Kafka timestamp.",
+                                                    "type": "integer",
+                                                    "required": false
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "CloudEvents/1.0": {
+                                    "siblingAttributes": {
+                                        "metadata": {
+                                            "description": "CloudEvents metadata constraints.",
+                                            "type": "object",
+                                            "required": false,
+                                            "attributes": {
+                                                "type": {
+                                                    "description": "CloudEvents type.",
+                                                    "type": "object",
+                                                    "required": false,
+                                                    "attributes": {
+                                                        "value": {
+                                                            "description": "CloudEvents type value template.",
+                                                            "type": "string",
+                                                            "required": false
+                                                        }
+                                                    }
+                                                },
+                                                "source": {
+                                                    "description": "CloudEvents source",
+                                                    "type": "object",
+                                                    "required": false,
+                                                    "attributes": {
+                                                        "value": {
+                                                            "description": "CloudEvents source value template.",
+                                                            "type": "string",
+                                                            "required": false
+                                                        }
+                                                    }
+                                                },
+                                                "subject": {
+                                                    "description": "CloudEvents subject",
+                                                    "type": "object",
+                                                    "required": false,
+                                                    "attributes": {
+                                                        "value": {
+                                                            "description": "CloudEvents subject value template.",
+                                                            "type": "string",
+                                                            "required": false
+                                                        },
+                                                        "required": {
+                                                            "description": "CloudEvents subject required.",
+                                                            "type": "boolean",
+                                                            "required": false
+                                                        }
+                                                    }
+                                                },
+                                                "id": {
+                                                    "description": "CloudEvents id",
+                                                    "type": "object",
+                                                    "required": false,
+                                                    "attributes": {
+                                                        "value": {
+                                                            "description": "CloudEvents id value template.",
+                                                            "type": "string",
+                                                            "required": false
+                                                        }
+                                                    }
+                                                },
+                                                "time": {
+                                                    "description": "The timestamp of when the event happened.",
+                                                    "type": "object",
+                                                    "required": false,
+                                                    "attributes": {
+                                                        "value": {
+                                                            "description": "The timestamp value template.",
+                                                            "type": "string",
+                                                            "required": false
+                                                        },
+                                                        "required": {
+                                                            "description": "The timestamp required.",
+                                                            "type": "boolean",
+                                                            "required": false
+                                                        }
+                                                    }
+                                                },
+                                                "dataschema": {
+                                                    "description": "The uri of the schema that the event payload adheres to. If the dataschema attribute is not present, it MUST be interpreted as no schema. An application MAY assign a meaning to the dataschema attribute if it is not present by default.",
+                                                    "type": "uritemplate",
+                                                    "required": false,
+                                                    "attributes": {
+                                                        "value": {
+                                                            "description": "The uri value template.",
+                                                            "type": "string",
+                                                            "required": false
+                                                        },
+                                                        "required": {
+                                                            "description": "The uri required.",
+                                                            "type": "boolean",
+                                                            "required": false
+                                                        }
+                                                    }
+                                                },
+                                                "*": {
+                                                    "description": "CloudEvent extension property",
+                                                    "type": "object",
+                                                    "required": false,
+                                                    "attributes": {
+                                                        "value": {
+                                                            "description": "The value template.",
+                                                            "type": "string",
+                                                            "required": false
+                                                        },
+                                                        "required": {
+                                                            "description": "Whether the extension is required",
+                                                            "type": "boolean",
+                                                            "required": false
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "HTTP/1.1": {
+                                    "siblingAttributes": {
+                                        "metadata": {
+                                            "description": "The HTTP message metadata constraints.",
+                                            "type": "object",
+                                            "required": false,
+                                            "attributes": {
+                                                "headers": {
+                                                    "description": "The HTTP headers.",
+                                                    "type": "array",
+                                                    "required": false,
+                                                    "itemType": "object",
+                                                    "attributes": {
+                                                        "name": {
+                                                            "description": "The HTTP header name.",
+                                                            "type": "string",
+                                                            "required": false
+                                                        },
+                                                        "value": {
+                                                            "description": "The HTTP header value.",
+                                                            "type": "string",
+                                                            "required": false
+                                                        }
+                                                    }
+                                                },
+                                                "query": {
+                                                    "description": "The HTTP query parameters.",
+                                                    "type": "object",
+                                                    "required": false
+                                                },
+                                                "path": {
+                                                    "description": "The HTTP path as a uri template.",
+                                                    "type": "string",
+                                                    "required": false
+                                                },
+                                                "method": {
+                                                    "description": "The HTTP method.",
+                                                    "type": "string",
+                                                    "required": false
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "schemaformat": {
+                                "description": "The schema format applicable to the message payload, equivalent to the 'format' attribute attribute of the schema registry.",
+                                "type": "string",
+                                "required": false
+                            },
+                            "schema": {
+                                "description": "The inline schema for the message payload, equivalent to the 'schema' attribute of the schema registry.",
+                                "type": "string",
+                                "required": false
+                            },
+                            "schemaobject": {
+                                "description": "The inline schema object for the message payload, equivalent to the 'schemaobject' attribute of the schema registry.",
+                                "type": "string",
+                                "required": false
+                            },
+                            "schemaurl": {
+                                "description": "The URL of the schema for the message payload, equivalent to the 'schemaurl' attribute of the schema registry.",
+                                "type": "string",
+                                "required": false
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

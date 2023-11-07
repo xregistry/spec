@@ -1,0 +1,355 @@
+{
+  "type": "record",
+  "name": "DocumentType",
+  "namespace": "io.xregistry",
+  "fields": [
+    {
+      "name": "schemaGroups",
+      "type": {
+        "type": "map",
+        "values": {
+          "type": "record",
+          "name": "SchemaGroupType",
+          "fields": [
+            {
+              "name": "Id",
+              "type": "string"
+            },
+            {
+              "name": "Name",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            {
+              "name": "Epoch",
+              "type": [
+                "int",
+                "null"
+              ]
+            },
+            {
+              "name": "Self",
+              "type": "string"
+            },
+            {
+              "name": "Description",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            {
+              "name": "Documentation",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            {
+              "name": "Labels",
+              "type": {
+                "type": "map",
+                "values": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            {
+              "name": "CreatedBy",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            {
+              "name": "CreatedOn",
+              "type": [
+                {
+                  "type": "int",
+                  "logicalType": "time-millis"
+                },
+                "null"
+              ]
+            },
+            {
+              "name": "ModifiedBy",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            {
+              "name": "ModifiedOn",
+              "type": [
+                {
+                  "type": "int",
+                  "logicalType": "time-millis"
+                },
+                "null"
+              ]
+            },
+            {
+              "name": "schemas",
+              "type": {
+                "type": "map",
+                "values": {
+                  "type": "record",
+                  "name": "SchemaType",
+                  "fields": [
+                    {
+                      "name": "Id",
+                      "type": "string"
+                    },
+                    {
+                      "name": "Name",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    {
+                      "name": "Epoch",
+                      "type": [
+                        "int",
+                        "null"
+                      ]
+                    },
+                    {
+                      "name": "Self",
+                      "type": "string"
+                    },
+                    {
+                      "name": "Description",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    {
+                      "name": "Documentation",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    {
+                      "name": "Labels",
+                      "type": {
+                        "type": "map",
+                        "values": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    {
+                      "name": "CreatedBy",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    {
+                      "name": "CreatedOn",
+                      "type": [
+                        {
+                          "type": "int",
+                          "logicalType": "time-millis"
+                        },
+                        "null"
+                      ]
+                    },
+                    {
+                      "name": "ModifiedBy",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    {
+                      "name": "ModifiedOn",
+                      "type": [
+                        {
+                          "type": "int",
+                          "logicalType": "time-millis"
+                        },
+                        "null"
+                      ]
+                    },
+                    {
+                      "name": "versions",
+                      "type": [
+                        {
+                          "type": "map",
+                          "values": {
+                            "type": "record",
+                            "name": "SchemaVersionType",
+                            "fields": [
+                              {
+                                "name": "Id",
+                                "type": "string"
+                              },
+                              {
+                                "name": "Name",
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              {
+                                "name": "Epoch",
+                                "type": [
+                                  "int",
+                                  "null"
+                                ]
+                              },
+                              {
+                                "name": "Self",
+                                "type": "string"
+                              },
+                              {
+                                "name": "Description",
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              {
+                                "name": "Documentation",
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              {
+                                "name": "Labels",
+                                "type": {
+                                  "type": "map",
+                                  "values": [
+                                    "string",
+                                    "null"
+                                  ]
+                                }
+                              },
+                              {
+                                "name": "CreatedBy",
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              {
+                                "name": "CreatedOn",
+                                "type": [
+                                  {
+                                    "type": "int",
+                                    "logicalType": "time-millis"
+                                  },
+                                  "null"
+                                ]
+                              },
+                              {
+                                "name": "ModifiedBy",
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              {
+                                "name": "ModifiedOn",
+                                "type": [
+                                  {
+                                    "type": "int",
+                                    "logicalType": "time-millis"
+                                  },
+                                  "null"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "name": "Format",
+                                "doc": "Schema format identifier for this schema version."
+                              },
+                              {
+                                "type": {
+                                  "type": "record",
+                                  "name": "GenericRecord",
+                                  "fields": [
+                                    {
+                                      "name": "object",
+                                      "type": {
+                                        "type": "map",
+                                        "values": [
+                                          "null",
+                                          "boolean",
+                                          "int",
+                                          "long",
+                                          "float",
+                                          "double",
+                                          "bytes",
+                                          "string",
+                                          {
+                                            "type": "array",
+                                            "items": [
+                                              "null",
+                                              "boolean",
+                                              "int",
+                                              "long",
+                                              "float",
+                                              "double",
+                                              "bytes",
+                                              "string",
+                                              "GenericRecord"
+                                            ]
+                                          },
+                                          "GenericRecord"
+                                        ]
+                                      }
+                                    }
+                                  ]
+                                },
+                                "name": "Schemaobject",
+                                "doc": "Inlined schema document object"
+                              },
+                              {
+                                "type": "string",
+                                "name": "Schema",
+                                "doc": "Inlined schema document string"
+                              },
+                              {
+                                "type": "string",
+                                "name": "Schemaurl",
+                                "doc": "Inlined schema document string"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "type": "record",
+                          "name": "SchemaVersionInfo",
+                          "fields": [
+                            {
+                              "name": "VersionsUrl",
+                              "type": "string"
+                            },
+                            {
+                              "name": "VersionCount",
+                              "type": "int"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
