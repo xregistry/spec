@@ -41,7 +41,7 @@ automation and tooling.
 A Registry Service is one that manages metadata about Resources. At its core,
 the management of an individual Resource is simply a REST-based interface for
 creating, modifying and deleting the Resource. However, many Resource models
-share a common pattern of grouping Resources (eg. by their "format") and can
+share a common pattern of grouping Resources (e.g. by their "format") and can
 optionally support versioning of the Resources. This specification aims to
 provide a common interaction pattern for these types of services with the goal
 of providing an interoperable framework that will enable common tooling and
@@ -91,51 +91,55 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
 
-  "model": {                            # only if inlined
-    "schemas": [ "STRING" * ], ?        # available schema formats
+  "model": {                            # Only if inlined
+    "schemas": [ "STRING" * ], ?        # Available schema formats
     "attributes": {                     # Registry level extensions
-      "STRING": {                       # attribute name (case sensitive)
+      "STRING": {                       # Attribute name (case sensitive)
+        "name": "STRING",               # Same as attribute's key
         "type": "TYPE",                 # string, decimal, array, object, ...
         "description": "STRING", ?
-        "enum": [ VALUE * ], ?          # array of values of type "TYPE"
-        "strict": BOOL, ?               # Just "enum" values or not. Def=true
-        "required": BOOL, ?             # default: false, from a CLI POV?
-        "attributes": { ... }, ?        # only if "type" == "object"
-        "itemType": "TYPE", ?           # only if "type" == "array"
+        "enum": [ VALUE * ], ?          # Array of scalar values of type "TYPE"
+        "strict": BOOL, ?               # Just "enum" values or not.Default=true
+        "required": BOOL, ?             # Default: false, from a CLI POV?
+        "attributes": { ... }, ?        # Only if "type" == "object"
+        "keyType": "TYPE", ?            # Only if "type" == "map"
+        "itemType": "TYPE", ?           # Only if "type" == "array" or "map"
 
-        "ifValue": {                    # only if "type" != "object"
-          VALUE: {                      # possible attribute value
-            "parentAttributes": { ... } # see "attributes" above (siblings)
+        "ifValue": {                    # Only if "type" != "object"
+          VALUE: {                      # Possible attribute value
+            "siblingAttributes": { ... } # See "attributes" above
           } *
         } ?
       } *
     },
 
-    "groups": [
-      { "singular": "STRING",           # eg. "endpoint"
-        "plural": "STRING",             # eg. "endpoints"
-        "attributes": { ... }, ?        # see "attributes" above
+    "groups": {
+      "STRING": {                       # Key=plural name, e.g. "endpoints"
+        "plural": "STRING",             # e.g. "endpoints"
+        "singular": "STRING",           # e.g. "endpoint"
+        "attributes": { ... }, ?        # See "attributes" above
 
-        "resources": [
-          { "singular": "STRING",       # eg. "definition"
-            "plural": "STRING",         # eg. "definitions"
-            "versions": UINT ?          # num Versions(>=0). Def=1, 0=unlimited
-            "versionId": BOOL, ?        # Supports client specific Version IDs
+        "resources": {
+          "STRING": {                   # Key=plural name, e.g. "definitions"
+            "plural": "STRING",         # e.g. "definitions"
+            "singular": "STRING",       # e.g. "definition"
+            "versions": UINT ?          # Num Vers(>=0). Default=1, 0=unlimited
+            "versionId": BOOL, ?        # Supports client specified Version IDs
             "latest": BOOL, ?           # Supports client "latest" selection
-            "hasDocument": BOOL, ?      # Has a separate document. Def=true
-            "attributes": { ... } ?     # see "attributes" above
+            "hasDocument": BOOL, ?      # Has a separate document. Default=true
+            "attributes": { ... } ?     # See "attributes" above
           } *
-        ] ?
+        } ?
       } *
-    ] ?
+    } ?
   } ?
 
   # Repeat for each Group type
-  "GROUPsUrl": "URL",                              # eg. "endpointsUrl"
-  "GROUPsCount": INT                               # eg. "endpointsCount"
-  "GROUPs": {                                      # only if inlined
-    "ID": {                                        # the Group id
-      "id": "STRING",                              # a Group
+  "GROUPsUrl": "URL",                              # e.g. "endpointsUrl"
+  "GROUPsCount": INT                               # e.g. "endpointsCount"
+  "GROUPs": {                                      # Only if inlined
+    "ID": {                                        # Key=the Group id
+      "id": "STRING",                              # The Group ID
       "name": "STRING", ?
       "epoch": UINT,
       "self": "URL",
@@ -149,10 +153,10 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       "modifiedOn": "TIME", ?
 
       # Repeat for each Resource type in the Group
-      "RESOURCEsUrl": "URL",                       # eg. "definitionsUrl"
-      "RESOURCEsCount": INT,                       # eg. "definitionsCount"
-      "RESOURCEs": {                               # only if inlined
-        "ID": {                                    # the Resource id
+      "RESOURCEsUrl": "URL",                       # e.g. "definitionsUrl"
+      "RESOURCEsCount": INT,                       # e.g. "definitionsCount"
+      "RESOURCEs": {                               # Only if inlined
+        "ID": {                                    # The Resource id
           "id": "STRING",
           "name": "STRING", ?
           "epoch": UINT,
@@ -168,14 +172,14 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
           "modifiedBy": "STRING", ?
           "modifiedOn": "TIME", ?
 
-          "RESOURCEUrl": "URL", ?                  # if not local
-          "RESOURCE": { Resource contents }, ?     # if inlined & JSON
-          "RESOURCEBase64": "STRING", ?            # if inlined & ~JSON
+          "RESOURCEUrl": "URL", ?                  # If not local
+          "RESOURCE": { Resource contents }, ?     # If inlined & JSON
+          "RESOURCEBase64": "STRING", ?            # If inlined & ~JSON
 
           "versionsUrl": "URL",
           "versionsCount": INT,
-          "versions": {                            # only if inlined
-            "ID": {                                # the Version id
+          "versions": {                            # Only if inlined
+            "ID": {                                # The Version id
               "id": "STRING",
               "name": "STRING", ?
               "epoch": UINT,
@@ -189,9 +193,9 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
               "modifiedBy": "STRING", ?
               "modifiedOn": "TIME", ?
 
-              "RESOURCEUrl": "URL", ?              # if not local
-              "RESOURCE": { Resource contents }, ? # if inlined & JSON
-              "RESOURCEBase64": "STRING" ?         # if inlined & ~JSON
+              "RESOURCEUrl": "URL", ?              # If not local
+              "RESOURCE": { Resource contents }, ? # If inlined & JSON
+              "RESOURCEBase64": "STRING" ?         # If inlined & ~JSON
             } *
           } ?
         } *
@@ -233,13 +237,14 @@ The following are used to denote data types:
 - `ARRAY` - an ordered set of values whose values are all of the same data
    type - one of the types listed here
 - `BOOL` - case sensitive `true` or `false`
-- `DECIMAL` - Number (integer or floating point)
-- `INT` - Signed integer
+- `DECIMAL` - number (integer or floating point)
+- `INT` - signed integer
+- `MAP` - set of key/value pairs
 - `OBJECT` - a nested entity made up of a set of attributes of these data types
-- `STRING` - Sequence of Unicode characters
+- `STRING` - sequence of Unicode characters
 - `TIME` - an [RFC3339](https://tools.ietf.org/html/rfc3339) timestamp
-- `UINT` - Unsigned integer
-- `URI` - Absolute URI as defined in [RFC 3986 Section
+- `UINT` - unsigned integer
+- `URI` - absolute URI as defined in [RFC 3986 Section
   4.3](https://tools.ietf.org/html/rfc3986#section-4.3)
 - `URI-Reference` - URI-reference as defined in [RFC 3986
   Section 4.1](https://tools.ietf.org/html/rfc3986#section-4.1)
@@ -247,11 +252,10 @@ The following are used to denote data types:
 - `URL` - URL as defined in
   [RFC 1738](https://datatracker.ietf.org/doc/html/rfc1738)
 - `TYPE` - one of the above data type values in lower case (`array`, `bool`,
-  `decimal`, `int`, `object`, `string`, `time`, `uint`, `uri`, `uri-reference`,
-  `uri-template`, `url` )
+  `decimal`, `int`, `map`, `object`, `string`, `time`, `uint`, `uri`,
+  `uri-reference`, `uri-template`, `url` )
 
 TODO: which uri-template language?
-TODO: SHOULD we add "map" so that labels are not special?
 
 ### Terminology
 
@@ -298,7 +302,11 @@ exchange.
 
 ### Attributes and Extensions
 
-Unless otherwise noted, all attributes MUST be mutable.
+Unless otherwise noted, all attributes and extensions MUST be mutable and MUST
+be one of the data types defined in the
+[Notational Conventions](#notational-conventions) section. In other words, one
+of: array, bool, decimal, map, object, string, time, uint, uri, uri-reference,
+uri-tempalte, url.
 
 Implementations of this specification MAY define additional (extension)
 attributes. However they MUST adhere to the following rules:
@@ -306,7 +314,11 @@ attributes. However they MUST adhere to the following rules:
 - they MUST be defined as part of the [Registry Model](#registry-model)
 - the presence of an undefined attribute in a request MUST generate an error
 - they MUST NOT use the name of an attribute defined by this specification,
-  regardless of which entity the attribute is defined for
+  regardless of which entity the attribute is defined for. In other words,
+  a spec defined attribute for GROUPs can not be reused as an extension for
+  a RESOURCE
+- it is RECOMMENDED that extension attributes on different objects not use the
+  same name unless they have the exact same semantic meaning
 - their names MUST be between 1 and 63 characters in length
 - their names MUST only contain alphanumeric characters (`[a-zA-Z0-9]`) or an
   underscore (`_`) and MUST NOT start with a digit (`[0-9]`)
@@ -322,8 +334,6 @@ attributes. However they MUST adhere to the following rules:
 - in situations where an attribute is serialized in a case-sensitive situation,
   then the case specified by this specification, or the defining extension
   specification, MUST be adhere to
-- they MUST only use one of the defined types in the [Notational
-  Conventions](#notational-conventions) section.
 - for STRING attributes, and empty string is a valid value and MUST NOT be
   treated the same as an attribute with no value (or absence of the attribute)
 - the string serialization of the attribute name and its value MUST NOT exceed
@@ -406,7 +416,7 @@ existing entity can be deleted.
   Note, this attribute is most often managed by the Registry itself.
   Note, if a new Version of a Resource is created that is based on
   existing Version of that Resource, then the new Version's `epoch` value MAY
-  be reset (eg. to zero) since the scope of its values is the Version and not
+  be reset (e.g. to zero) since the scope of its values is the Version and not
   the entire Resource
 - Constraints:
   - MUST be an unsigned integer equal to or greater than zero
@@ -573,9 +583,9 @@ This specification defines the following API patterns:
 ```
 
 Where:
-- `GROUPs` is a Group name (plural). eg. `endpoints`
+- `GROUPs` is a Group name (plural). e.g. `endpoints`
 - `gID` is the `id` of a single Group
-- `RESOURCEs` is the type of Resource (plural). eg. `definitions`
+- `RESOURCEs` is the type of Resource (plural). e.g. `definitions`
 - `rID` is the `id` of a single Resource
 - `vID` is the `id` of a Version of a Resource
 
@@ -615,7 +625,7 @@ form:
 "COLLECTIONsUrl": "URL, ?
 "COLLECTIONsCount": UINT, ?
 "COLLECTIONs": {
-  # map of entities in the collection, key is the "id" of each entity
+  # Map of entities in the collection, key is the "id" of each entity
 } ?
 ```
 
@@ -675,7 +685,7 @@ In API view:
   collection's values are to be returned
 - all 3 attributes MUST be read-only and MUST NOT be updated directly via
   an API call. Rather, to modify them the collection specific APIs MUST be used
-  (eg. an HTTP `POST` to the collection's URL to add a new entity). The
+  (e.g. an HTTP `POST` to the collection's URL to add a new entity). The
   presence of the collection attributes in a write operation MUST be silently
   ignored by the server
 
@@ -699,12 +709,12 @@ The serialization of the Registry entity adheres to this form:
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
 
-  "model": { Registry model } ?       # only if  "?model" is present
+  "model": { Registry model } ?       # Only if  "?model" is present
 
   # Repeat for each Group type
-  "GROUPsUrl": "URL",                 # eg. "endpointsUrl"
-  "GROUPsCount": INT                  # eg. "endpointsCount"
-  "GROUPs": { GROUPs collection } ?   # only if inlined
+  "GROUPsUrl": "URL",                 # e.g. "endpointsUrl"
+  "GROUPsCount": INT                  # e.g. "endpointsCount"
+  "GROUPs": { GROUPs collection } ?   # Only if inlined
 }
 ```
 
@@ -796,12 +806,12 @@ Content-Type: application/json; charset=utf-8
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
 
-  "model": { Registry model }, ?      # only if  "?model" is present
+  "model": { Registry model }, ?      # Only if  "?model" is present
 
   # Repeat for each Group type
-  "GROUPsUrl": "URL",                 # eg. "endpointsUrl"
-  "GROUPsCount": INT                  # eg. "endpointsCount"
-  "GROUPs": { GROUPs collection } ?   # only if inlined
+  "GROUPsUrl": "URL",                 # e.g. "endpointsUrl"
+  "GROUPsCount": INT                  # e.g. "endpointsCount"
+  "GROUPs": { GROUPs collection } ?   # Only if inlined
 }
 ```
 
@@ -852,34 +862,39 @@ Content-Type: application/json; charset=utf-8
 
   "model": {
     "schemas": [ "jsonSchema/2020-12" ],
-    "groups": [
-      { "singular": "endpoint",
+    "groups": {
+      "endpoints": {
         "plural": "endpoints",
+        "singular": "endpoint",
         "attributes": {
           "shared": {
+            "name": "shared",
             "type": "bool",
             "required": false
           }
         },
 
-        "resources": [
-          { "singular": "definition",
+        "resources": {
+          "definitions": {
             "plural": "definitions",
+            "singular": "definition",
             "versions": 1
           }
-        ]
+        }
       },
-      { "singular": "schemaGroup",
+      "schemaGroups": {
         "plural": "schemaGroups",
+        "singular": "schemaGroup",
 
-        "resources": [
-          { "singular": "schema",
+        "resources": {
+          "schemas": {
             "plural": "schemas",
+            "singular": "schema",
             "versions": 1
           }
-        ]
+        }
       }
-    ]
+    }
   },
 
   "endpointsUrl": "https://example.com/endpoints",
@@ -890,7 +905,7 @@ Content-Type: application/json; charset=utf-8
   "schemaGroups": {
     "mySchemas": {
       "id": "mySchemas",
-      # remainder of schemaGroup is excluded for brevity
+      # Remainder of schemaGroup is excluded for brevity
     }
   }
 }
@@ -925,7 +940,7 @@ Where:
   attribute MUST be silently ignored
 - a request to update a mutable attribute with an invalid value MUST
   generate an error (this includes deleting a mandatory mutable attribute)
-- complex attributes that have nested values (eg. `labels`) MUST be specified
+- complex attributes that have nested values (e.g. `labels`) MUST be specified
   in their entirety
 - if `epoch` is present then the server MUST reject the request if the
   Registry's current `epoch` value is different from the one in the request
@@ -1021,41 +1036,45 @@ Regardless of how the model is retrieved, the overall format is as follows:
 
 ``` text
 {
-  "schemas": [ "STRING" * ], ?         # available schema formats
+  "schemas": [ "STRING" * ], ?         # Available schema formats
   "attributes": {                      # Registry level extensions
     "STRING": {                        # Attribute name
+      "name": "STRING",                # Same as attribute's key
       "type": "TYPE",                  # bool, string, array, object, ...
       "description": "STRING",
       "enum": [ VALUE * ], ?           # Array of values of type "TYPE"
-      "strict": BOOL, ?                # Just "enum" values or not. Def=true
+      "strict": BOOL, ?                # Just "enum" values or not. Default=true
       "required": BOOL, ?              # Default: false
       "attributes": { ... }, ?         # Only if "type" == "object". Children
+      "keyType": "TYPE", ?             # Only if "type" == "map"
       "itemType": "TYPE", ?            # Only if "type" == "array"
 
       "ifValue": {                     # Conditional extensions
         VALUE: {
-          "parentAttributes": { ... }  # Siblings to this "attribute"
+          "siblingAttributes": { ... } # Siblings to this "attribute"
         } *
       }
     } *
   },
-  "groups": [
-    { "singular": "STRING",            # eg. "endpoint"
-      "plural": "STRING",              # eg. "endpoints"
-      "attributes": { ... }, ?         # see "attributes" above
+  "groups": {
+    "STRING": {                        # Key=plural name, e.g. "endpoints"
+      "plural": "STRING",              # e.g. "endpoints"
+      "singular": "STRING",            # e.g. "endpoint"
+      "attributes": { ... }, ?         # See "attributes" above
 
-      "resources": [
-        { "singular": "STRING",        # eg. "definition"
-          "plural": "STRING",          # eg. "definitions"
-          "versions": UINT, ?          # Num Versions(>=0). Def=1, 0=unlimited
-          "versionId": BOOL, ?         # Supports client specific Version IDs
+      "resources": {
+        "STRING": {                    # Key=plural name, e.g. "definitions"
+          "plural": "STRING",          # e.g. "definitions"
+          "singular": "STRING",        # e.g. "definition"
+          "versions": UINT, ?          # Num Vers(>=0). Default=1, 0=unlimited
+          "versionId": BOOL, ?         # Supports client specified Version IDs
           "latest": BOOL ?             # Supports client "latest" selection
-          "hasDocument": BOOL, ?       # Has no separate document. Def=true
+          "hasDocument": BOOL, ?       # Has no separate document. Default=true
           "attributes": { ... } ?      # See "attributes" above
         } *
-      ] ?
+      } ?
     } *
-  ] ?
+  } ?
 }
 ```
 
@@ -1087,6 +1106,11 @@ The following describes the attributes of Registry model:
 
 TODO: check the above example list
 
+- `attributes."STRING".name
+  - The name of the attribute. MUST be the same as the key used in the owning
+    `attributes` attribute.
+  - Type: String
+  - REQUIRED
 - `attributes."STRING".type
   - The "TYPE" of the attribute being defined. MUST be one of the data types
     (in lower case) defined in [Attributes and
@@ -1122,37 +1146,43 @@ TODO: check the above example list
     contains the list of attributes defined as part of a nested object.
   - Type: Object
   - OPTIONAL
+- `attributes."STRING".keyType
+  - This attribute MUST only be used when the `type` value is `map`. This
+    specifies the `type` each key in the map MUST be. It MUST be one of the
+    data types (in lower case) defined in the [Attributes and
+    Extensions](#attributes-and-extensions)
+  - Type: TYPE
+  - REQUIRED if the attribute is of type `map`, otherwise MUST NOT be present
 - `attributes."STRING".itemType
   - This attribute MUST only be used when the `type` value is `array`. This
     specifies the `type` each item in the array MUST be. It MUST be one of the
     data types (in lower case) defined in the [Attributes and
     Extensions](#attributes-and-extensions)
   - Type: TYPE
-  - OPTIONAL
+  - REQUIRED if the attribute is of type `array`, otherwise MUST NOT be present
 - `attributes."STRING".ifValue
   - This attribute can be used to conditionally include additional attribute
     definitions to the list based on the value of the current attribute.
     If the value of this attribute matches the `ifValue` (case sensitive)
-    then the `parentAttributes` MUST be included in the model as siblings
+    then the `siblingAttributes` MUST be included in the model as siblings
     to this attribute.
     If `enum` is not empty and `strict` is `true` then this map MUST NOT
     contain any value that is not specified in the `enum` array
   - Type: Map where each value of the attribute is the key of the map
   - OPTIONAL
-TODO: rename it "siblingAttributes" ?
 
 - `groups`
   - The set of Groups supported by the Registry
-  - Type: Array
+  - Type: Map where the key MUST be the plural name of the Group
   - REQUIRED if there are any Groups defined for the Registry
 - `groups.singular`
-  - The singular name of a Group. eg. `endpoint`
+  - The singular name of a Group. e.g. `endpoint`
   - Type: String
   - REQUIRED
   - MUST be unique across all Groups in the Registry
   - MUST be non-empty and MUST be a valid attribute name
 - `groups.plural`
-  - The plural name of a Group. eg. `endpoints`
+  - The plural name of a Group. e.g. `endpoints`
   - Type: String
   - REQUIRED
   - MUST be unique across all Groups in the Registry
@@ -1162,16 +1192,16 @@ TODO: rename it "siblingAttributes" ?
 
 - `groups.resources`
   - The set of Resource entities defined for the Group
-  - Type: Array
+  - Type: Map where the key MUST be the plural name of the Resource
   - REQUIRED if there are any Resources defined for the Group
 - `groups.resources.singular`
-  - The singular name of the Resource. eg. `definition`
+  - The singular name of the Resource. e.g. `definition`
   - Type: String
   - REQUIRED
   - MUST be non-empty and MUST be a valid attribute name
   - MUST be unique within the scope of its owning Group
 - `groups.resources.plural`
-  - The plural name of the Resource. eg. `definitions`
+  - The plural name of the Resource. e.g. `definitions`
   - Type: String
   - REQUIRED
   - MUST be non-empty and MUST be a valid attribute name
@@ -1187,7 +1217,7 @@ TODO: rename it "siblingAttributes" ?
     MUST prune Versions by deleting the oldest Version (based on creation
     times) first
 - `groups.resources.versionId`
-  - Indicates whether support for client-side select of a Version's `id` is
+  - Indicates whether support for client-side selection of a Version's `id` is
     supported
   - Type: Boolean (`true` or `false`, case sensitive)
   - OPTIONAL
@@ -1243,39 +1273,43 @@ Content-Type: application/json; charset=utf-8
 {
   "attributes": {
     "STRING": {
+      "name": "STRING",
       "type": "TYPE",
       "description": "STRING", ?
       "enum": [ VALUE * ], ?
       "strict": BOOL, ?
       "required": BOOL, ?
       "attributes": { ... }, ?               # Nested attributes
+      "keyType": "TYPE", ?
       "itemType": "TYPE", ?
 
       "ifValue": {
         VALUE: {
-          "parentAttributes": { ... }
+          "siblingAttributes": { ... }
         } *
       } ?
     } *
   },
 
-  "groups": [
-    { "singular": "STRING",
+  "groups": {
+    "STRING": {
       "plural": "STRING",
+      "singular": "STRING",
       "attributes": { ... }, ?               # See "attributes" above
 
-      "resources": [
-        { "singular": "STRING",
+      "resources": {
+        "STRING": {
           "plural": "STRING",
+          "singular": "STRING",
           "versions": UINT ?
           "versionId": BOOL, ?
           "latest": BOOL, ?
           "hasDocument": BOOL, ?
           "attributes": { ... } ?            # See "attributes" above
         } *
-      ] ?
+      } ?
     } *
-  ] ?
+  } ?
 }
 ```
 
@@ -1295,24 +1329,27 @@ Content-Type: application/json; charset=utf-8
 
 {
   "schemas": [ "jsonSchema/2020-12" ],
-  "groups": [
-    { "singular": "endpoint",
+  "groups": {
+    "endpoints": {
       "plural": "endpoints",
+      "singular": "endpoint",
       "attributes": {
         "shared": {
+          "name": "shared",
           "type": "bool",
           "required": false
         }
       },
 
-      "resources": [
-        { "singular": "definition",
+      "resources": {
+        "definitinons": {
           "plural": "definitions",
+          "singular": "definition",
           "versions": 1
         }
-      ]
+      }
     }
-  ]
+  }
 }
 ```
 
@@ -1329,39 +1366,43 @@ Content-Type: application/json; charset=utf-8
 {
   "attributes": {
     "STRING": {
+      "name": "STRING",
       "type": "TYPE",
       "description": "STRING", ?
       "enum": [ VALUE * ], ?
       "strict": BOOL, ?
       "required": BOOL, ?
       "attributes": { ... }, ?                    # Nested attributes
+      "keyType": "TYPE", ?
       "itemType": "TYPE", ?
 
       "ifValue": {
         VALUE: {
-          "parentAttributes": { ... }
+          "siblingAttributes": { ... }
         } *
       } ?
     } *
   },
 
-  "groups": [
-    { "singular": "STRING",
+  "groups": {
+    "STRING": {
       "plural": "STRING",
+      "singular": "STRING",
       "attributes": { ... }, ?                    # See "attributes" above
 
-      "resources": [
-        { "singular": "STRING",
+      "resources": {
+        "STRING": {
           "plural": "STRING",
+          "singular": "STRING",
           "versions": UINT ?
-          "versionId": NOOL, ?
+          "versionId": BOOL, ?
           "latest": BOOL, ?
           "hasDocument": BOOL, ?
           "attributes": { ... } ?                 # See "attributes" above
         } *
-      ] ?
+      } ?
     } *
-  ] ?
+  } ?
 }
 ```
 
@@ -1385,39 +1426,43 @@ Content-Type: application/json; charset=utf-8
   "schemas": [ "STRING" * ], ?
   "attributes": {
     "STRING": {
+      "name": "STRING",
       "type": "TYPE",
       "description": "STRING", ?
       "enum": [ VALUE * ], ?
       "strict": BOOL, ?
       "required": BOOL, ?
       "attributes": { ... }, ?
+      "keyType": "TYPE", ?
       "itemType": "TYPE", ?
 
       "ifValue": {
         VALUE: {
-          "parentAttributes": { ... }
+          "siblingAttributes": { ... }
         } *
       } ?
     } *
   },
 
-  "groups": [
-    { "singular": "STRING",
+  "groups": {
+    "STRING": {
       "plural": "STRING",
+      "singular": "STRING",
       "attributes": { ... }, ?
 
-      "resources": [
-        { "singular": "STRING",
+      "resources": {
+        "STRING": {
           "plural": "STRING",
+          "singular": "STRING",
           "versions": UINT ?
           "versionId": BOOL, ?
           "latest": BOOL, ?
           "hasDocument": BOOL, ?
           "attributes": { ... } ?
         } *
-      ] ?
+      } ?
     } *
-  ] ?
+  } ?
 }
 ```
 
@@ -1430,33 +1475,38 @@ PUT /model
 Content-Type: application/json; charset=utf-8
 
 {
-  "groups": [
-    { "singular": "endpoint",
+  "groups": {
+    "endpoints": {
       "plural": "endpoints",
+      "singular": "endpoint",
       "attributes": {
         "shared": {
+          "name": "shared",
           "type": "bool",
           "required": false
         }
       },
 
-      "resources": [
-        { "singular": "definition",
+      "resources": {
+        "definitions": {
           "plural": "definitions",
+          "singular": "definition",
           "versions": 1
         }
-      ]
+      }
     },
-    { "singular": "schemaGroup",
+    "schemaGroups": {
       "plural": "schemaGroups",
+      "singular": "schemaGroup",
 
-      "resources": [
-        { "singular": "schema",
-          "plural": "schemas"
+      "resources": {
+        "schemas": {
+          "plural": "schemas",
+          "singular": "schema",
         }
-      ]
+      }
     }
-  ]
+  }
 }
 
 ---
@@ -1466,33 +1516,38 @@ Content-Type: application/json; charset=utf-8
 
 {
   "schemas": [ "jsonSchema/2020-12" ],
-  "groups": [
-    { "singular": "endpoint",
+  "groups": {
+    "endpoints" {
       "plural": "endpoints",
+      "singular": "endpoint",
       "attributes": {
         "shared": {
+          "name": "shared",
           "type": "bool",
           "required": false
         }
       },
 
-      "resources": [
-        { "singular": "definition",
+      "resources": {
+        "definitinons": {
           "plural": "definitions",
+          "singular": "definition",
           "versions": 1
         }
-      ]
+      }
     },
-    { "singular": "schemaGroup",
+    "schemaGroups": {
       "plural": "schemaGroups",
+      "singular": "schemaGroup",
 
-      "resources": [
-        { "singular": "schema",
-          "plural": "schemas"
+      "resources": {
+        "schemas": {
+          "plural": "schemas",
+          "singular": "schema",
         }
-      ]
+      }
     }
-  ]
+  }
 }
 ```
 
@@ -1518,7 +1573,7 @@ A successful response MUST be of the form:
 HTTP/1.1 200 OK
 Content-Type: ...
 
-...                          # schema specific format
+...                          # Schema specific format
 ```
 
 Where:
@@ -1560,9 +1615,9 @@ The serialization of a Group entity adheres to this form:
   "modifiedOn": "TIME", ?
 
   # Repeat for each Resource type in the Group
-  "RESOURCEsUrl": "URL",                    # eg. "definitionsUrl"
-  "RESOURCEsCount": INT,                    # eg. "definitionsCount"
-  "RESOURCEs": { RESOURCEs collection } ?   # if inlined
+  "RESOURCEsUrl": "URL",                    # e.g. "definitionsUrl"
+  "RESOURCEsCount": INT,                    # e.g. "definitionsCount"
+  "RESOURCEs": { RESOURCEs collection } ?   # If inlined
 }
 ```
 
@@ -1630,9 +1685,9 @@ Link: <URL>;rel=next;count=INT ?
     "modifiedOn": "TIME", ?
 
     # Repeat for each Resource type in the Group
-    "RESOURCEsUrl": "URL",                    # eg. "definitionsUrl"
-    "RESOURCEsCount": INT,                    # eg. "definitionsCount"
-    "RESOURCEs": { RESOURCEs collection } ?   # if inlined
+    "RESOURCEsUrl": "URL",                    # e.g. "definitionsUrl"
+    "RESOURCEsCount": INT,                    # e.g. "definitionsCount"
+    "RESOURCEs": { RESOURCEs collection } ?   # If inlined
   } *
 }
 ```
@@ -1764,8 +1819,8 @@ Each individual Group in a successful response MUST adhere to the following:
   "modifiedOn": "TIME", ?
 
   # Repeat for each Resource type in the Group
-  "RESOURCEsUrl": "URL",                    # eg. "definitionsUrl"
-  "RESOURCEsCount": INT                     # eg. "definitionsCount"
+  "RESOURCEsUrl": "URL",                    # e.g. "definitionsUrl"
+  "RESOURCEsCount": INT                     # e.g. "definitionsCount"
 }
 ```
 
@@ -1857,9 +1912,9 @@ Content-Type: application/json; charset=utf-8
   "modifiedOn": "TIME", ?
 
   # Repeat for each Resource type in the Group
-  "RESOURCEsUrl": "URL",                     # eg. "definitionsUrl"
-  "RESOURCEsCount": INT,                     # eg. "definitionsCount"
-  "RESOURCEs": { RESOURCEs collection } ?    # if inlined
+  "RESOURCEsUrl": "URL",                     # e.g. "definitionsUrl"
+  "RESOURCEsCount": INT,                     # e.g. "definitionsCount"
+  "RESOURCEs": { RESOURCEs collection } ?    # If inlined
 }
 ```
 
@@ -2028,7 +2083,7 @@ However, there are a few exceptions:
   in the serialization of a Resource that references the "latest" Version
   of the Resource (meaning, which Version this Resource is an alias for).
 
-  Additionally, Resource `id` values are often human readable (eg. `mySchema`),
+  Additionally, Resource `id` values are often human readable (e.g. `mySchema`),
   while Version `id` values are meant to be versions string values
   (e.g. `1.0`).
 - `self` MUST be an absolute URL to the Resource, and not to the "latest"
@@ -2070,13 +2125,13 @@ When serialized as a JSON object, a Resource MUST adhere to this form:
   "modifiedBy": "STRING", ?
   "modifiedOn": "TIME", ?
 
-  "RESOURCEUrl": "URL", ?                  # if not local
-  "RESOURCE": { Resource contents }, ?     # if inlined & JSON
-  "RESOURCEBase64": "STRING", ?            # if inlined & ~JSON
+  "RESOURCEUrl": "URL", ?                  # If not local
+  "RESOURCE": { Resource contents }, ?     # If inlined & JSON
+  "RESOURCEBase64": "STRING", ?            # If inlined & ~JSON
 
   "versionsUrl": "URL",
   "versionsCount": INT,
-  "versions": { Versions collection } ?    # if inlined
+  "versions": { Versions collection } ?    # If inlined
 }
 ```
 
@@ -2214,7 +2269,7 @@ and, finally, the following Version specific attributes:
   implementations MAY choose to use `RESOURCEBase64` if they wish even if the
   Resource could be serialized in the same format.
   Note, this attribute will only be used when requesting the Resource be
-  serialized as a Registry Resource (eg. via `?meta`).
+  serialized as a Registry Resource (e.g. via `?meta`).
 - Constraints:
   - MUST NOT be present when the Resource's Registry metadata are being
     serialized as HTTP headers
@@ -2332,13 +2387,13 @@ Link: <URL>;rel=next;count=INT ?
     "modifiedBy": "STRING", ?
     "modifiedOn": "TIME", ?
 
-    "RESOURCEUrl": "URL", ?                  # if not local
-    "RESOURCE": { Resource contents }, ?     # if inlined & JSON
-    "RESOURCEBase64": "STRING", ?            # if inlined & ~JSON
+    "RESOURCEUrl": "URL", ?                  # If not local
+    "RESOURCE": { Resource contents }, ?     # If inlined & JSON
+    "RESOURCEBase64": "STRING", ?            # If inlined & ~JSON
 
     "versionsUrl": "URL",
     "versionsCount": INT,
-    "versions": { Versions collection } ?    # if inlined
+    "versions": { Versions collection } ?    # If inlined
   } *
 }
 ```
@@ -2438,9 +2493,9 @@ adhere to the following:
   "labels": { "STRING": "STRING" * }, ?
   "format": "STRING", ?
 
-  "RESOURCEUrl": "URL", ?                  # if not local
-  "RESOURCE": { Resource contents }, ?     # if inlined & JSON
-  "RESOURCEBase64": "STRING" ?             # if inlined & ~JSON
+  "RESOURCEUrl": "URL", ?                  # If not local
+  "RESOURCE": { Resource contents }, ?     # If inlined & JSON
+  "RESOURCEBase64": "STRING" ?             # If inlined & ~JSON
 }
 ```
 
@@ -2561,7 +2616,7 @@ xRegistry-name: Blob Created
 xRegistry-format: CloudEvents/1.0
 
 {
-  # definition of a "Blob Created" event excluded for brevity
+  # Definition of a "Blob Created" event excluded for brevity
 }
 
 ---
@@ -2581,7 +2636,7 @@ Location: https://example.com/endpoints/123/definitions/456
 Content-Location: https://example.com/endpoints/123/definitions/456/versions/1.0
 
 {
-  # definition of a "Blob Created" event excluded for brevity
+  # Definition of a "Blob Created" event excluded for brevity
 }
 ```
 
@@ -2599,7 +2654,7 @@ Content-Type: application/json; charset=utf-8
   "format": "CloudEvents/1.0",
 
   "definition": {
-    # updated definition of a "Blob Created" event excluded for brevity
+    # Updated definition of a "Blob Created" event excluded for brevity
   }
 }
 
@@ -2620,7 +2675,7 @@ Content-Location: https://example.com/endpoints/123/definitions/456/versions/1.0
   "format": "CloudEvents/1.0",
 
   "definition": {
-    # updated definition of a "Blob Created" event excluded for brevity
+    # Updated definition of a "Blob Created" event excluded for brevity
   },
 
   "versionsUrl": "https://example.com/endpoints/123/definitions/456/versions",
@@ -2638,17 +2693,17 @@ Content-Type: application/json; charset=utf-8
   {
     "id": "1.0",
     "labels": { "customer": "abc" },
-    # remainder of xRegistry metadata excluded for brevity
+    # Remainder of xRegistry metadata excluded for brevity
   },
   {
     "id": "2.0",
     "labels": { "customer": "abc" },
-    # remainder of xRegistry metadata excluded for brevity
+    # Remainder of xRegistry metadata excluded for brevity
   },
   {
     "id": "3.0",
     "labels": { "customer": "abc" },
-    # remainder of xRegistry metadata excluded for brevity
+    # Remainder of xRegistry metadata excluded for brevity
   }
 ]
 
@@ -2661,17 +2716,17 @@ Content-Type: application/json; charset=utf-8
   {
     "id": "1.0",
     "labels": { "customer": "abc" },
-    # remainder of xRegistry metadata excluded for brevity
+    # Remainder of xRegistry metadata excluded for brevity
   },
   {
     "id": "2.0",
     "labels": { "customer": "abc" },
-    # remainder of xRegistry metadata excluded for brevity
+    # Remainder of xRegistry metadata excluded for brevity
   },
   {
     "id": "3.0",
     "labels": { "customer": "abc" },
-    # remainder of xRegistry metadata excluded for brevity
+    # Remainder of xRegistry metadata excluded for brevity
   }
 ]
 ```
@@ -2773,13 +2828,13 @@ Content-Location: URL ?
   "modifiedBy": "STRING", ?
   "modifiedOn": "TIME", ?
 
-  "RESOURCEUrl": "URL", ?                  # if not local
-  "RESOURCE": { Resource contents }, ?     # if inlined & JSON
-  "RESOURCEBase64": "STRING", ?            # if inlined & ~JSON
+  "RESOURCEUrl": "URL", ?                  # If not local
+  "RESOURCE": { Resource contents }, ?     # If inlined & JSON
+  "RESOURCEBase64": "STRING", ?            # If inlined & ~JSON
 
   "versionsUrl": "URL",
   "versionsCount": INT,
-  "versions": { Versions collection } ?    # if inlined
+  "versions": { Versions collection } ?    # If inlined
 }
 ```
 
@@ -2979,7 +3034,7 @@ the owning Resource.
 For example, updating the state of Resource without creating a new Version
 would make sense if there is a typo in the `description` field. But, adding
 additional data to the content of a Resource might require a new Version and
-a new ID (eg. changing it from "1.0" to "1.1").
+a new ID (e.g. changing it from "1.0" to "1.1").
 
 This specification does not mandate a particular versioning scheme.
 
@@ -3001,9 +3056,9 @@ The serialization of a Version entity adheres to this form:
   "modifiedBy": "STRING", ?
   "modifiedOn": "TIME", ?
 
-  "RESOURCEUrl": "URL", ?                  # if not local
-  "RESOURCE": { Resource contents }, ?     # if inlined & JSON
-  "RESOURCEBase64": "STRING" ?             # if inlined & ~JSON
+  "RESOURCEUrl": "URL", ?                  # If not local
+  "RESOURCE": { Resource contents }, ?     # If inlined & JSON
+  "RESOURCEBase64": "STRING" ?             # If inlined & ~JSON
 }
 ```
 
@@ -3141,9 +3196,9 @@ Link: <URL>;rel=next;count=INT ?
     "modifiedBy": "STRING", ?
     "modifiedOn": "TIME", ?
 
-    "RESOURCEUrl": "URL", ?                  # if not local
-    "RESOURCE": { Resource contents }, ?     # if inlined & JSON
-    "RESOURCEBase64": "STRING" ?             # if inlined & ~JSON
+    "RESOURCEUrl": "URL", ?                  # If not local
+    "RESOURCE": { Resource contents }, ?     # If inlined & JSON
+    "RESOURCEBase64": "STRING" ?             # If inlined & ~JSON
   } *
 }
 ```
@@ -3271,7 +3326,7 @@ xRegistry-latest: true
 xRegistry-format: CloudEvents/1.0
 
 {
-  # definition of a "Blob Created" event excluded for brevity
+  # Definition of a "Blob Created" event excluded for brevity
 }
 ```
 
@@ -3307,9 +3362,9 @@ Content-Type: application/json; charset=utf-8
   "modifiedBy": "STRING", ?
   "modifiedOn": "TIME", ?
 
-  "RESOURCEUrl": "URL", ?                  # if not local
-  "RESOURCE": { Resource contents }, ?     # if inlined & JSON
-  "RESOURCEBase64": "STRING" ?             # if inlined & ~JSON
+  "RESOURCEUrl": "URL", ?                  # If not local
+  "RESOURCE": { Resource contents }, ?     # If inlined & JSON
+  "RESOURCEBase64": "STRING" ?             # If inlined & ~JSON
 }
 ```
 
@@ -3525,7 +3580,7 @@ Where:
 The `inline` query parameter on a request indicates that the response
 MUST include the contents of all specified inlinable attributes. Inlinable
 attributes include:
-- all [Registry Collection](#registry-collections) types - eg. `GROUPs`,
+- all [Registry Collection](#registry-collections) types - e.g. `GROUPs`,
   `RESOURCEs` and `versions`
 - the `RESOURCE` attribute in a Resource
 
@@ -3669,6 +3724,17 @@ If the request references an entity (not a collection), and the `EXPRESSION`
 references an attribute in that entity (i.e. there is no `PATH`), then if the
 `EXPRESSION` does not match the entity, that entity MUST NOT be returned. In
 other words, a `404 Not Found` would be generated in the HTTP protocol case.
+
+At this time, this specification only supports filtering over scalar attributes
+defined at the root of the xRegistry entities (the Registry itself, Groups,
+Resources and Versions). The one exception to this is support for filtering on
+on maps (such as `labels`)
+where the value type of the map is a scalar. Implementations, and extension
+specifications, MAY define additional filtering capabilities. "Scalar" is
+defined as one of the variants of: bool, numeric, string. If an implementation
+would like to enable filtering over a non-root attribute then it could
+consider duplicating that attribute's value into a new root attribute or as
+a `label`.
 
 **Examples:**
 
