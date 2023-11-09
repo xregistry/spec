@@ -47,7 +47,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "xregistry_schema_registry.json"
+                  "$ref": "{%-documentTypeReference-%}"
                 }
               }
             }
@@ -62,7 +62,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "xregistry_schema_registry.json"
+                "$ref": "{%-documentTypeReference-%}"
               }
             }
           }
@@ -73,7 +73,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "xregistry_schema_registry.json"
+                  "$ref": "{%-documentTypeReference-%}"
                 }
               }
             }
@@ -81,12 +81,12 @@
         }
       }
     },
-    "/schemaGroups": {
+    "/{%-groupNamePlural-%}": {
       "parameters": [
         
       ],
       "get": {
-        "operationId": "getResourceGroupAll",
+        "operationId": "get{%-groupNamePlural-%}All",
         "description": "Gets all entries of the resource group",
         "parameters": [
           {
@@ -121,7 +121,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": {
-                    "$ref": "xregistry_schema_registry.json#/definitions/schemaGroup"
+                    "$ref": "{%-groupTypeReference-%}"
                   }
                 }
               }
@@ -133,21 +133,21 @@
         }
       }
     },
-    "/schemaGroups/{groupId}": {
+    "/{%-groupNamePlural-%}/{groupId}": {
       "parameters": [
         {
           "$ref": "#/components/parameters/groupId"
         }
       ],
       "get": {
-        "operationId": "getResourceGroup",
+        "operationId": "get{%-groupNameSingular-%}",
         "responses": {
           "200": {
             "description": "The resource group",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "xregistry_schema_registry.json#/definitions/schemaGroup"
+                  "$ref": "{%-groupTypeReference-%}"
                 }
               }
             }
@@ -174,14 +174,14 @@
             }
           }
         ],
-        "operationId": "putResourceGroup",
+        "operationId": "put{%-groupNameSingular-%}",
         "description": "creates or updates the resource group",
         "requestBody": {
           "description": "A request to create or update the discovery group's collection of groups with the given group",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "xregistry_schema_registry.json#/definitions/schemaGroup"
+                "$ref": "{%-groupTypeReference-%}"
               }
             }
           }
@@ -192,7 +192,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "xregistry_schema_registry.json#/definitions/schemaGroup"
+                  "$ref": "{%-groupTypeReference-%}"
                 }
               }
             }
@@ -209,7 +209,7 @@
         }
       },
       "delete": {
-        "operationId": "deleteResourceGroup",
+        "operationId": "delete{%-groupNameSingular-%}",
         "parameters": [
           {
             "in": "query",
@@ -236,14 +236,14 @@
         }
       }
     },
-    "/schemaGroups/{groupId}/schemas": {
+    "/{%-groupNamePlural-%}/{groupId}/{%-resourceNamePlural-%}": {
       "parameters": [
         {
           "$ref": "#/components/parameters/groupId"
         }
       ],
       "get": {
-        "operationId": "getResourcesAll",
+        "operationId": "get{%-resourceNamePlural-%}All",
         "description": "Get an optionally filtered collection of resources",
         "parameters": [
           {
@@ -296,7 +296,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": {
-                     "$ref": "xregistry_schema_registry.json#/definitions/schema"
+                     "$ref": "{%-resourceTypeReference-%}"
                   }
                 }
               }
@@ -311,7 +311,7 @@
         }
       }      
     },
-    "/schemaGroups/{groupId}/schemas/{resourceId}": {
+    "/{%-groupNamePlural-%}/{groupId}/{%-resourceNamePlural-%}/{resourceId}": {
       "parameters": [
         {
           "$ref": "#/components/parameters/groupId"
@@ -330,7 +330,7 @@
         }
       ],
       "get": {
-        "operationId": "getResource",
+        "operationId": "get{%-resourceNameSingular-%}",
         "responses": {
           "200": {
             "description": "The corresponding resource",
@@ -388,7 +388,7 @@
               },
               "application/json": {
                 "schema": {
-                  "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
+                  "$ref": "{%-resourceTypeReference-%}"
                 }
               }
             }
@@ -429,7 +429,7 @@
         ],
         "summary": "Create or update a resource",
         "description": "Create a resource. ",
-        "operationId": "putResource",
+        "operationId": "put{%-resourceNameSingular-%}",
         "requestBody": {
           "description": "The resource to be created/updated",
           "content": {
@@ -441,7 +441,7 @@
             },
             "application/json": {
               "schema": {
-                "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
+                "$ref": "{%-resourceTypeReference-%}"
               }
             }
           },
@@ -453,7 +453,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
+                  "$ref": "{%-resourceTypeReference-%}"
                 }
               }
             }
@@ -469,7 +469,7 @@
       "post": {
         "summary": "Post new resource version",
         "description": "Register resource version If resource of specified name does not exist in specified group, resource and resource version is created at version 1. If resource of specified name exists already in specified group, resource is created at latest version + 1. If resource with identical content already exists, existing resource's ID is returned. \n",
-        "operationId": "postResource",
+        "operationId": "post{%-resourceNameSingular-%}",
         "parameters": [
           {
             "$ref": "#/components/parameters/resource-description"
@@ -503,7 +503,7 @@
             },
             "application/json": {
               "schema": {
-                "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
+                "$ref": "{%-resourceTypeReference-%}"
               }
             }
           }
@@ -558,7 +558,7 @@
               },
               "application/json": {
                 "schema": {
-                  "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
+                  "$ref": "{%-resourceTypeReference-%}"
                 }
               }
             }
@@ -577,7 +577,7 @@
       "delete": {
         "summary": "Delete resource",
         "description": "Delete resource",
-        "operationId": "deleteResource",
+        "operationId": "delete{%-resourceNameSingular-%}",
         "parameters": [
           {
             "in": "query",
@@ -604,7 +604,75 @@
         }
       }
     },
-    "/schemaGroups/{groupId}/schemas/{resourceId}/versions/{versionId}": {
+    "/{%-groupNamePlural-%}/{groupId}/{%-resourceNamePlural-%}/{resourceId}/versions": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/groupId"
+        },
+        {
+          "$ref": "#/components/parameters/resourceId"
+        }
+      ],
+      "get": {
+        "operationId": "get{%-resourceNameSingular-%}VersionsAll",
+        "description": "Get an optionally filtered collection of versions",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "skip",
+            "description": "The number of resources to skip",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "top",
+            "description": "The number of resources to show",
+            "required": false,
+                "schema": {
+              "type": "integer"
+        }
+      },
+          {
+            "in": "query",
+            "name": "filter",
+            "description": "Filter criterion(s)",
+            "explode": true,
+            "required": false,
+              "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+                }
+              }
+            }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated list of versions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                     "$ref": "{%-resourceTypeReference-%}"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - constraint failure"
+          },
+          "409": {
+            "description": "Conflict - epoch not greater"
+          }
+        }
+      }
+    },
+    "/{%-groupNamePlural-%}/{groupId}/{%-resourceNamePlural-%}/{resourceId}/versions/{versionId}": {
       "parameters": [
         {
           "$ref": "#/components/parameters/groupId"
@@ -627,7 +695,7 @@
         }
       ],
       "get": {
-        "operationId": "getResourceVersion",
+        "operationId": "get{%-resourceNameSingular-%}Version",
         "description": "Gets the document stored for the schema version",
         "responses": {
           "200": {
@@ -679,7 +747,7 @@
               },
               "application/json": {
                 "schema": {
-                  "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
+                  "$ref": "{%-resourceTypeReference-%}"
                 }
               }
             }
@@ -706,14 +774,14 @@
             }
           }
         ],
-        "operationId": "updateResourceVersion",
+        "operationId": "update{%-resourceNameSingular-%}Version",
         "description": "Updates the metadata for the schema version",
         "requestBody": {
           "description": "The schema version document",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
+                "$ref": "{%-resourceTypeReference-%}"
               }
             }
           }
@@ -724,7 +792,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "../../core/schemas/xregistry_resources.json#/definitions/resource"
+                  "$ref": "{%-resourceTypeReference-%}"
                 }
               }
             }
@@ -754,7 +822,7 @@
             }
           }
         ],
-        "operationId": "deleteResourceVersion",
+        "operationId": "delete{%-resourceNameSingular-%}Version",
         "responses": {
           "204": {
             "description": "Ok"

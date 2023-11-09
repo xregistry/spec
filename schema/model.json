@@ -1,0 +1,40 @@
+{
+  "schemas": [
+    "json-schema/draft-07"
+  ],
+  "groups": {
+    "schemaGroups": {
+      "singular": "schemaGroup",
+      "plural": "schemaGroups",
+      "resources": {
+        "schemas": {
+          "singular": "schema",
+          "plural": "schemas",
+          "versions": 0,
+          "attributes": {
+            "format": {
+              "description": "Schema format identifier for this schema version.",
+              "type": "string",
+              "required": true
+            },
+            "schemaobject": {
+              "description": "Inlined schema document object",
+              "type": "object",
+              "required": false
+            },
+            "schema": {
+              "description": "Inlined schema document string",
+              "type": "string",
+              "required": false
+            },
+            "schemaurl": {
+              "description": "Inlined schema document string",
+              "type": "uri",
+              "required": false
+            }
+          }
+        }
+      }
+    }
+  }
+}
