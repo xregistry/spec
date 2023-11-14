@@ -101,11 +101,15 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
         "enum": [ VALUE * ], ?          # Array of scalar values of type "TYPE"
         "strict": BOOL, ?               # Just "enum" values or not.Default=true
         "required": BOOL, ?             # Default: false, from a CLI POV?
-        "attributes": { ... }, ?        # Only if "type" == "object"
-        "keyType": "TYPE", ?            # Only if "type" == "map"
-        "itemType": "TYPE", ?           # Only if "type" == "array" or "map"
 
-        "ifValue": {                    # Only if "type" != "object"
+        "item": {                       # If "type" is non-scalar
+          "attributes": { ... }         # If "type" = object
+          "keyType": "TYPE",            # If "type" = map
+          "itemType": "TYPE",           # If "type" = map, array
+          "item": { ... }               # If itemType is non-scalar
+        }
+
+        "ifValue": {                    # If "type" is scalar
           VALUE: {                      # Possible attribute value
             "siblingAttributes": { ... } # See "attributes" above
           } *
@@ -1045,11 +1049,15 @@ Regardless of how the model is retrieved, the overall format is as follows:
       "enum": [ VALUE * ], ?           # Array of values of type "TYPE"
       "strict": BOOL, ?                # Just "enum" values or not. Default=true
       "required": BOOL, ?              # Default: false
-      "attributes": { ... }, ?         # Only if "type" == "object". Children
-      "keyType": "TYPE", ?             # Only if "type" == "map"
-      "itemType": "TYPE", ?            # Only if "type" == "array"
 
-      "ifValue": {                     # Conditional extensions
+      "item": {                        # If "type" is non-scalar
+        "attributes": { ... }          # If "type" = object
+        "keyType": "TYPE",             # If "type" = map
+        "itemType": "TYPE",            # If "type" = map, array
+        "item": { ... }                # If itemType is non-scalar
+      }
+
+      "ifValue": {                     # If "type" is scalar
         VALUE: {
           "siblingAttributes": { ... } # Siblings to this "attribute"
         } *
@@ -1106,12 +1114,12 @@ The following describes the attributes of Registry model:
 
 TODO: check the above example list
 
-- `attributes."STRING".name
+- `attributes."STRING".name`
   - The name of the attribute. MUST be the same as the key used in the owning
     `attributes` attribute.
   - Type: String
   - REQUIRED
-- `attributes."STRING".type
+- `attributes."STRING".type`
   - The "TYPE" of the attribute being defined. MUST be one of the data types
     (in lower case) defined in [Attributes and
     Extensions](#attributes-and-extensions)
@@ -1121,14 +1129,14 @@ TODO: check the above example list
   - A human readable description of the attribute
   - Type: String
   - OPTIONAL
-- `attributes."STRING".enum
+- `attributes."STRING".enum`
   - A list of possible values for this attribute. Each item in the array MUST
     be of type defined by `type`. When not specified, or an empty array, there
     are no restrictions on the value set of this attribute. See the `strict`
     attribute below
   - Type: Array
   - OPTIONAL
-- `attributes."STRING".strict
+- `attributes."STRING".strict`
   - Indicates whether the attribute restricts its values to just the array of
     values specified in `enum` or not. A value of `true` means that any
     values used that is not part of the `enum` set MUST generate an error.
@@ -1136,31 +1144,41 @@ TODO: check the above example list
     impact when `enum` is absent or an empty array
   - Type: Boolean
   - OPTIONAL
-- `attributes."STRING".required
+- `attributes."STRING".required`
   - Indicates whether this attribute is a REQUIRED attribute or not. When not
     specified the default value is `false`
   - Type: Boolean
   - OPTIONAL
-- `attributes."STRING".attributes
-  - This attribute MUST only be used when the `type` value is `object`. This
-    contains the list of attributes defined as part of a nested object.
+
+- `attributes."STRING".item`
+  - Defines the nested resources that this attribute references.
+    This attribute MUST only be used when the `type` value is non-scalar
   - Type: Object
-  - OPTIONAL
-- `attributes."STRING".keyType
+  - REQUIRED when `type` is non-scalar
+- `attributes."STRING".item.attributes`
+  - This attribute MUST only be used when the `type` value is `object`. This
+    contains the list of attributes defined as part of a nested resource
+  - Type: Object, see `attributes` above
+  - REQUIRED when `type` is `object`, otherwise it MUST NOT be present
+- `attributes."STRING".item.keyType`
   - This attribute MUST only be used when the `type` value is `map`. This
-    specifies the `type` each key in the map MUST be. It MUST be one of the
-    data types (in lower case) defined in the [Attributes and
-    Extensions](#attributes-and-extensions)
+    specifies the `type` each key in the map. It MUST be one of the
+    scalar data types in lower case (e.g. `string`, `int` not `map`), defined
+    in the [Attributes and Extensions](#attributes-and-extensions)
   - Type: TYPE
   - REQUIRED if the attribute is of type `map`, otherwise MUST NOT be present
-- `attributes."STRING".itemType
-  - This attribute MUST only be used when the `type` value is `array`. This
-    specifies the `type` each item in the array MUST be. It MUST be one of the
-    data types (in lower case) defined in the [Attributes and
-    Extensions](#attributes-and-extensions)
+- `attributes."STRING".item.itemType`
+  - The "TYPE" of this nested resource if `type` is not `object`. Note, this
+    attribute MUST NOT be present if `type` is `object` as specifying it again
+    here would be redundant
   - Type: TYPE
-  - REQUIRED if the attribute is of type `array`, otherwise MUST NOT be present
-- `attributes."STRING".ifValue
+  - REQUIRED if the nested resource is not `object`, otherwise it MUST NOT be
+    present
+- `attributes."STRING".item.item`
+  - See `attributes."STRING".item` above.
+  - REQUIRED when `itemType` is non-scalar
+
+- `attributes."STRING".ifValue`
   - This attribute can be used to conditionally include additional attribute
     definitions to the list based on the value of the current attribute.
     If the value of this attribute matches the `ifValue` (case sensitive)
@@ -1280,8 +1298,7 @@ Content-Type: application/json; charset=utf-8
       "strict": BOOL, ?
       "required": BOOL, ?
       "attributes": { ... }, ?               # Nested attributes
-      "keyType": "TYPE", ?
-      "itemType": "TYPE", ?
+      "item": { ... }, ?                     # Nested resource
 
       "ifValue": {
         VALUE: {
@@ -1373,8 +1390,7 @@ Content-Type: application/json; charset=utf-8
       "strict": BOOL, ?
       "required": BOOL, ?
       "attributes": { ... }, ?                    # Nested attributes
-      "keyType": "TYPE", ?
-      "itemType": "TYPE", ?
+      "item": { ... }, ?                          # Nested resource
 
       "ifValue": {
         VALUE: {
@@ -1433,8 +1449,7 @@ Content-Type: application/json; charset=utf-8
       "strict": BOOL, ?
       "required": BOOL, ?
       "attributes": { ... }, ?
-      "keyType": "TYPE", ?
-      "itemType": "TYPE", ?
+      "item": { ... }, ?
 
       "ifValue": {
         VALUE: {
