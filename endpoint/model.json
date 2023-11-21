@@ -60,7 +60,7 @@
                                                 "node": {
                                                     "description": "The AMQP node name. Commonly the name of a queue or a topic.",
                                                     "type": "string",
-                                                    "required": true
+                                                    "required": false
                                                 },
                                                 "durable": {
                                                     "description": "The AMQP durable flag. Whether the node is durable or transient.",
@@ -210,7 +210,7 @@
                                                 "method": {
                                                     "description": "The HTTP method name",
                                                     "type": "string",
-                                                    "required": true
+                                                    "required": false
                                                 },
                                                 "headers": {
                                                     "description": "HTTP headers to use with the endpoint. The same header may be specified multiple times with different values. The HTTP header names are case insensitive.",

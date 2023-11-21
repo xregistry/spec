@@ -302,7 +302,8 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
 
                 if attr_name in resource_schema["properties"]:
                     resource_schema["properties"].pop(attr_name)
-                    resource_schema["required"].remove(attr_name)
+                    if "required" in resource_schema and attr_name in resource_schema["required"]:
+                        resource_schema["required"].remove(attr_name)
 
                 one_of = []
                 for condition_value, condition_props in attr_props["ifValue"].items():

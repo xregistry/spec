@@ -57,14 +57,14 @@
       "oneOf": [
         {
           "properties": {
-            "format": {
+            "binding": {
               "type": "string",
-              "description": "Message format identifier. This attribute MUST be the same as the 'format' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups.",
+              "description": "Binding identifier. This attribute MUST be the same as the 'binding' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups.",
               "enum": [
                 "AMQP/1.0"
               ]
             },
-            "metadata": {
+            "message": {
               "type": "object",
               "description": "AMQP message metadata constraints.",
               "properties": {
@@ -245,10 +245,6 @@
                   "type": "object",
                   "additionalProperties": {
                     "properties": {
-                      "name": {
-                        "type": "string",
-                        "description": "The application property name."
-                      },
                       "value": {
                         "type": "string",
                         "description": "The application property value template."
@@ -268,10 +264,6 @@
                   "type": "object",
                   "additionalProperties": {
                     "properties": {
-                      "name": {
-                        "type": "string",
-                        "description": "The message annotation name."
-                      },
                       "value": {
                         "type": "string",
                         "description": "The message annotation value"
@@ -284,20 +276,13 @@
                         "type": "string",
                         "description": "The message annotation type."
                       }
-                    },
-                    "required": [
-                      "name"
-                    ]
+                    }
                   }
                 },
                 "delivery-annotations": {
                   "type": "object",
                   "additionalProperties": {
                     "properties": {
-                      "name": {
-                        "type": "string",
-                        "description": "The delivery annotation name."
-                      },
                       "value": {
                         "type": "string",
                         "description": "The delivery annotation value"
@@ -310,20 +295,13 @@
                         "type": "string",
                         "description": "The annotation type."
                       }
-                    },
-                    "required": [
-                      "name"
-                    ]
+                    }
                   }
                 },
                 "header": {
                   "type": "object",
                   "additionalProperties": {
                     "properties": {
-                      "name": {
-                        "type": "string",
-                        "description": "AMQP header name."
-                      },
                       "value": {
                         "type": "string",
                         "description": "AMQP header value."
@@ -336,20 +314,13 @@
                         "type": "string",
                         "description": "AMQP header type."
                       }
-                    },
-                    "required": [
-                      "name"
-                    ]
+                    }
                   }
                 },
                 "footer": {
                   "type": "object",
                   "additionalProperties": {
                     "properties": {
-                      "name": {
-                        "type": "string",
-                        "description": "AMQP footer name."
-                      },
                       "value": {
                         "type": "string",
                         "description": "AMQP footer value."
@@ -362,29 +333,26 @@
                         "type": "string",
                         "description": "AMQP footer type."
                       }
-                    },
-                    "required": [
-                      "name"
-                    ]
+                    }
                   }
                 }
               }
             }
           },
           "required": [
-            "format"
+            "binding"
           ]
         },
         {
           "properties": {
-            "format": {
+            "binding": {
               "type": "string",
-              "description": "Message format identifier. This attribute MUST be the same as the 'format' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups.",
+              "description": "Binding identifier. This attribute MUST be the same as the 'binding' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups.",
               "enum": [
                 "MQTT/3.1.1"
               ]
             },
-            "metadata": {
+            "message": {
               "type": "object",
               "description": "MQTT message metadata constraints.",
               "properties": {
@@ -422,19 +390,19 @@
             }
           },
           "required": [
-            "format"
+            "binding"
           ]
         },
         {
           "properties": {
-            "format": {
+            "binding": {
               "type": "string",
-              "description": "Message format identifier. This attribute MUST be the same as the 'format' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups.",
+              "description": "Binding identifier. This attribute MUST be the same as the 'binding' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups.",
               "enum": [
                 "MQTT/5.0"
               ]
             },
-            "metadata": {
+            "message": {
               "type": "object",
               "description": "MQTT message metadata constraints.",
               "properties": {
@@ -529,19 +497,19 @@
             }
           },
           "required": [
-            "format"
+            "binding"
           ]
         },
         {
           "properties": {
-            "format": {
+            "binding": {
               "type": "string",
-              "description": "Message format identifier. This attribute MUST be the same as the 'format' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups.",
+              "description": "Binding identifier. This attribute MUST be the same as the 'binding' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups.",
               "enum": [
-                "KAFKA/0.11"
+                "KAFKA"
               ]
             },
-            "metadata": {
+            "message": {
               "type": "object",
               "description": "The Apache Kafka message metadata constraints.",
               "properties": {
@@ -582,116 +550,19 @@
             }
           },
           "required": [
-            "format"
+            "binding"
           ]
         },
         {
           "properties": {
-            "format": {
+            "binding": {
               "type": "string",
-              "description": "Message format identifier. This attribute MUST be the same as the 'format' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups.",
+              "description": "Binding identifier. This attribute MUST be the same as the 'binding' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups.",
               "enum": [
-                "CloudEvents/1.0"
+                "HTTP"
               ]
             },
-            "metadata": {
-              "type": "object",
-              "description": "CloudEvents metadata constraints.",
-              "properties": {
-                "type": {
-                  "type": "object",
-                  "description": "CloudEvents type.",
-                  "properties": {
-                    "value": {
-                      "type": "string",
-                      "description": "CloudEvents type value template."
-                    }
-                  }
-                },
-                "source": {
-                  "type": "object",
-                  "description": "CloudEvents source",
-                  "properties": {
-                    "value": {
-                      "type": "string",
-                      "description": "CloudEvents source value template."
-                    }
-                  }
-                },
-                "subject": {
-                  "type": "object",
-                  "description": "CloudEvents subject",
-                  "properties": {
-                    "value": {
-                      "type": "string",
-                      "description": "CloudEvents subject value template."
-                    },
-                    "required": {
-                      "type": "boolean",
-                      "description": "CloudEvents subject required."
-                    }
-                  }
-                },
-                "id": {
-                  "type": "object",
-                  "description": "CloudEvents id",
-                  "properties": {
-                    "value": {
-                      "type": "string",
-                      "description": "CloudEvents id value template."
-                    }
-                  }
-                },
-                "time": {
-                  "type": "object",
-                  "description": "The timestamp of when the event happened.",
-                  "properties": {
-                    "value": {
-                      "type": "string",
-                      "description": "The timestamp value template."
-                    },
-                    "required": {
-                      "type": "boolean",
-                      "description": "The timestamp required."
-                    }
-                  }
-                },
-                "dataschema": {
-                  "type": "string",
-                  "format": "uri-template",
-                  "description": "The uri of the schema that the event payload adheres to. If the dataschema attribute is not present, it MUST be interpreted as no schema. An application MAY assign a meaning to the dataschema attribute if it is not present by default."
-                }
-              },
-              "additionalProperties": {
-                "type": "object",
-                "description": "CloudEvent extension property",
-                "properties": {
-                  "value": {
-                    "type": "string",
-                    "description": "The value template."
-                  },
-                  "required": {
-                    "type": "boolean",
-                    "description": "Whether the extension is required"
-                  }
-                }
-              }
-            }
-          },
-          "required": [
-            "format"
-          ]
-        },
-        {
-          "properties": {
-            "format": {
-              "type": "string",
-              "description": "Message format identifier. This attribute MUST be the same as the 'format' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups.",
-              "enum": [
-                "HTTP/1.1"
-              ]
-            },
-            "metadata": {
+            "message": {
               "type": "object",
               "description": "The HTTP message metadata constraints.",
               "properties": {
@@ -727,7 +598,7 @@
             }
           },
           "required": [
-            "format"
+            "binding"
           ]
         }
       ]
@@ -760,7 +631,7 @@
         },
         "format": {
           "type": "string",
-          "description": "Message format identifier. All definitions in this group share this format. Mixed-format groups are not permitted."
+          "description": "Format identifier that defines the common metadata information for the message. All definitions in this group share this format. Mixed-format groups are not permitted."
         },
         "createdBy": {
           "type": "string"
@@ -776,6 +647,10 @@
           "type": "string",
           "format": "date-time"
         },
+        "binding": {
+          "type": "string",
+          "description": "Binding identifier that defines the transport message binding. All definitions in this group share this binding type. Mixed-binding groups are not permitted."
+        },
         "definitions": {
           "type": "object",
           "additionalProperties": {
@@ -784,8 +659,7 @@
         }
       },
       "required": [
-        "id",
-        "format"
+        "id"
       ]
     }
   }
