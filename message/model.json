@@ -24,6 +24,11 @@
                     "plural": "definitions",
                     "versions": 1,
                     "attributes": {
+                        "baseDefinitionUrl" : {
+                            "description": "Reference to a base definition for this definition, either via a (relative) URL or a fragment identifier. The base definition is overridden by this definition. If not present, this definition does not override any base definition.",
+                            "type": "uri",
+                            "required": false
+                        },
                         "format": {
                             "description": "Message format identifier. This attribute MUST be the same as the 'format' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups.",
                             "type": "string",

@@ -61,6 +61,11 @@
         "modifiedOn": {
           "type": "string",
           "format": "date-time"
+        },
+        "baseDefinitionUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "Reference to a base definition for this definition, either via a (relative) URL or a fragment identifier. The base definition is overridden by this definition. If not present, this definition does not override any base definition."
         }
       },
       "required": [

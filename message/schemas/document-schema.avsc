@@ -12,43 +12,43 @@
           "name": "DefinitionGroupType",
           "fields": [
             {
-              "name": "Id",
+              "name": "id",
               "type": "string"
             },
             {
-              "name": "Name",
+              "name": "name",
               "type": [
                 "string",
                 "null"
               ]
             },
             {
-              "name": "Epoch",
+              "name": "epoch",
               "type": [
                 "int",
                 "null"
               ]
             },
             {
-              "name": "Self",
+              "name": "self",
               "type": "string"
             },
             {
-              "name": "Description",
+              "name": "description",
               "type": [
                 "string",
                 "null"
               ]
             },
             {
-              "name": "Documentation",
+              "name": "documentation",
               "type": [
                 "string",
                 "null"
               ]
             },
             {
-              "name": "Labels",
+              "name": "labels",
               "type": {
                 "type": "map",
                 "values": [
@@ -58,14 +58,14 @@
               }
             },
             {
-              "name": "CreatedBy",
+              "name": "createdBy",
               "type": [
                 "string",
                 "null"
               ]
             },
             {
-              "name": "CreatedOn",
+              "name": "createdOn",
               "type": [
                 {
                   "type": "int",
@@ -75,14 +75,14 @@
               ]
             },
             {
-              "name": "ModifiedBy",
+              "name": "modifiedBy",
               "type": [
                 "string",
                 "null"
               ]
             },
             {
-              "name": "ModifiedOn",
+              "name": "modifiedOn",
               "type": [
                 {
                   "type": "int",
@@ -93,12 +93,12 @@
             },
             {
               "type": "string",
-              "name": "Format",
+              "name": "format",
               "doc": "Format identifier that defines the common metadata information for the message. All definitions in this group share this format. Mixed-format groups are not permitted."
             },
             {
               "type": "string",
-              "name": "Binding",
+              "name": "binding",
               "doc": "Binding identifier that defines the transport message binding. All definitions in this group share this binding type. Mixed-binding groups are not permitted."
             },
             {
@@ -110,43 +110,43 @@
                   "name": "DefinitionType",
                   "fields": [
                     {
-                      "name": "Id",
+                      "name": "id",
                       "type": "string"
                     },
                     {
-                      "name": "Name",
+                      "name": "name",
                       "type": [
                         "string",
                         "null"
                       ]
                     },
                     {
-                      "name": "Epoch",
+                      "name": "epoch",
                       "type": [
                         "int",
                         "null"
                       ]
                     },
                     {
-                      "name": "Self",
+                      "name": "self",
                       "type": "string"
                     },
                     {
-                      "name": "Description",
+                      "name": "description",
                       "type": [
                         "string",
                         "null"
                       ]
                     },
                     {
-                      "name": "Documentation",
+                      "name": "documentation",
                       "type": [
                         "string",
                         "null"
                       ]
                     },
                     {
-                      "name": "Labels",
+                      "name": "labels",
                       "type": {
                         "type": "map",
                         "values": [
@@ -156,14 +156,14 @@
                       }
                     },
                     {
-                      "name": "CreatedBy",
+                      "name": "createdBy",
                       "type": [
                         "string",
                         "null"
                       ]
                     },
                     {
-                      "name": "CreatedOn",
+                      "name": "createdOn",
                       "type": [
                         {
                           "type": "int",
@@ -173,14 +173,14 @@
                       ]
                     },
                     {
-                      "name": "ModifiedBy",
+                      "name": "modifiedBy",
                       "type": [
                         "string",
                         "null"
                       ]
                     },
                     {
-                      "name": "ModifiedOn",
+                      "name": "modifiedOn",
                       "type": [
                         {
                           "type": "int",
@@ -190,7 +190,12 @@
                       ]
                     },
                     {
-                      "name": "Format",
+                      "type": "string",
+                      "name": "baseDefinitionUrl",
+                      "doc": "Reference to a base definition for this definition, either via a (relative) URL or a fragment identifier. The base definition is overridden by this definition. If not present, this definition does not override any base definition."
+                    },
+                    {
+                      "name": "format",
                       "type": [
                         {
                           "type": "record",
@@ -208,12 +213,12 @@
                                       "fields": [
                                         {
                                           "type": "string",
-                                          "name": "Value",
+                                          "name": "value",
                                           "doc": "CloudEvents type value template."
                                         }
                                       ]
                                     },
-                                    "name": "Type",
+                                    "name": "type",
                                     "doc": "CloudEvents type."
                                   },
                                   {
@@ -223,12 +228,12 @@
                                       "fields": [
                                         {
                                           "type": "string",
-                                          "name": "Value",
+                                          "name": "value",
                                           "doc": "CloudEvents source value template."
                                         }
                                       ]
                                     },
-                                    "name": "Source",
+                                    "name": "source",
                                     "doc": "CloudEvents source"
                                   },
                                   {
@@ -238,17 +243,17 @@
                                       "fields": [
                                         {
                                           "type": "string",
-                                          "name": "Value",
+                                          "name": "value",
                                           "doc": "CloudEvents subject value template."
                                         },
                                         {
                                           "type": "boolean",
-                                          "name": "Required",
+                                          "name": "required",
                                           "doc": "CloudEvents subject required."
                                         }
                                       ]
                                     },
-                                    "name": "Subject",
+                                    "name": "subject",
                                     "doc": "CloudEvents subject"
                                   },
                                   {
@@ -258,12 +263,12 @@
                                       "fields": [
                                         {
                                           "type": "string",
-                                          "name": "Value",
+                                          "name": "value",
                                           "doc": "CloudEvents id value template."
                                         }
                                       ]
                                     },
-                                    "name": "Id",
+                                    "name": "id",
                                     "doc": "CloudEvents id"
                                   },
                                   {
@@ -273,22 +278,22 @@
                                       "fields": [
                                         {
                                           "type": "string",
-                                          "name": "Value",
+                                          "name": "value",
                                           "doc": "The timestamp value template."
                                         },
                                         {
                                           "type": "boolean",
-                                          "name": "Required",
+                                          "name": "required",
                                           "doc": "The timestamp required."
                                         }
                                       ]
                                     },
-                                    "name": "Time",
+                                    "name": "time",
                                     "doc": "The timestamp of when the event happened."
                                   },
                                   {
                                     "type": "string",
-                                    "name": "Dataschema",
+                                    "name": "dataschema",
                                     "doc": "The uri of the schema that the event payload adheres to. If the dataschema attribute is not present, it MUST be interpreted as no schema. An application MAY assign a meaning to the dataschema attribute if it is not present by default."
                                   },
                                   {
@@ -303,12 +308,12 @@
                                         "fields": [
                                           {
                                             "type": "string",
-                                            "name": "Value",
+                                            "name": "value",
                                             "doc": "The value template."
                                           },
                                           {
                                             "type": "boolean",
-                                            "name": "Required",
+                                            "name": "required",
                                             "doc": "Whether the extension is required"
                                           }
                                         ]
@@ -318,7 +323,7 @@
                                   }
                                 ]
                               },
-                              "name": "Metadata",
+                              "name": "metadata",
                               "doc": "CloudEvents metadata constraints."
                             }
                           ]
@@ -327,7 +332,7 @@
                       "doc": "Message format identifier. This attribute MUST be the same as the 'format' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups."
                     },
                     {
-                      "name": "Binding",
+                      "name": "binding",
                       "type": [
                         {
                           "type": "record",
@@ -350,17 +355,17 @@
                                             "fields": [
                                               {
                                                 "type": "string",
-                                                "name": "Value",
+                                                "name": "value",
                                                 "doc": "AMQP message-id value template."
                                               },
                                               {
                                                 "type": "boolean",
-                                                "name": "Required",
+                                                "name": "required",
                                                 "doc": "AMQP message-id required."
                                               }
                                             ]
                                           },
-                                          "name": "MessageId",
+                                          "name": "messageId",
                                           "doc": "AMQP message-id."
                                         },
                                         {
@@ -370,17 +375,17 @@
                                             "fields": [
                                               {
                                                 "type": "string",
-                                                "name": "Value",
+                                                "name": "value",
                                                 "doc": "AMQP user-id value template."
                                               },
                                               {
                                                 "type": "boolean",
-                                                "name": "Required",
+                                                "name": "required",
                                                 "doc": "AMQP user-id required."
                                               }
                                             ]
                                           },
-                                          "name": "UserId",
+                                          "name": "userId",
                                           "doc": "AMQP user-id."
                                         },
                                         {
@@ -390,17 +395,17 @@
                                             "fields": [
                                               {
                                                 "type": "string",
-                                                "name": "Value",
+                                                "name": "value",
                                                 "doc": "AMQP to value template."
                                               },
                                               {
                                                 "type": "boolean",
-                                                "name": "Required",
+                                                "name": "required",
                                                 "doc": "AMQP to required."
                                               }
                                             ]
                                           },
-                                          "name": "To",
+                                          "name": "to",
                                           "doc": "AMQP to."
                                         },
                                         {
@@ -410,17 +415,17 @@
                                             "fields": [
                                               {
                                                 "type": "string",
-                                                "name": "Value",
+                                                "name": "value",
                                                 "doc": "AMQP subject value template."
                                               },
                                               {
                                                 "type": "boolean",
-                                                "name": "Required",
+                                                "name": "required",
                                                 "doc": "AMQP subject required."
                                               }
                                             ]
                                           },
-                                          "name": "Subject",
+                                          "name": "subject",
                                           "doc": "AMQP subject."
                                         },
                                         {
@@ -430,17 +435,17 @@
                                             "fields": [
                                               {
                                                 "type": "string",
-                                                "name": "Value",
+                                                "name": "value",
                                                 "doc": "AMQP reply-to value template."
                                               },
                                               {
                                                 "type": "boolean",
-                                                "name": "Required",
+                                                "name": "required",
                                                 "doc": "AMQP reply-to required."
                                               }
                                             ]
                                           },
-                                          "name": "ReplyTo",
+                                          "name": "replyTo",
                                           "doc": "AMQP reply-to."
                                         },
                                         {
@@ -450,17 +455,17 @@
                                             "fields": [
                                               {
                                                 "type": "string",
-                                                "name": "Value",
+                                                "name": "value",
                                                 "doc": "AMQP correlation-id value template."
                                               },
                                               {
                                                 "type": "boolean",
-                                                "name": "Required",
+                                                "name": "required",
                                                 "doc": "AMQP correlation-id required."
                                               }
                                             ]
                                           },
-                                          "name": "CorrelationId",
+                                          "name": "correlationId",
                                           "doc": "AMQP correlation-id."
                                         },
                                         {
@@ -470,17 +475,17 @@
                                             "fields": [
                                               {
                                                 "type": "string",
-                                                "name": "Value",
+                                                "name": "value",
                                                 "doc": "AMQP content-type value template."
                                               },
                                               {
                                                 "type": "boolean",
-                                                "name": "Required",
+                                                "name": "required",
                                                 "doc": "AMQP content-type required."
                                               }
                                             ]
                                           },
-                                          "name": "ContentType",
+                                          "name": "contentType",
                                           "doc": "AMQP content-type."
                                         },
                                         {
@@ -490,17 +495,17 @@
                                             "fields": [
                                               {
                                                 "type": "string",
-                                                "name": "Value",
+                                                "name": "value",
                                                 "doc": "AMQP content-encoding value template."
                                               },
                                               {
                                                 "type": "boolean",
-                                                "name": "Required",
+                                                "name": "required",
                                                 "doc": "AMQP content-encoding required."
                                               }
                                             ]
                                           },
-                                          "name": "ContentEncoding",
+                                          "name": "contentEncoding",
                                           "doc": "AMQP content-encoding."
                                         },
                                         {
@@ -510,17 +515,17 @@
                                             "fields": [
                                               {
                                                 "type": "string",
-                                                "name": "Value",
+                                                "name": "value",
                                                 "doc": "AMQP absolute-expiry-time value template."
                                               },
                                               {
                                                 "type": "boolean",
-                                                "name": "Required",
+                                                "name": "required",
                                                 "doc": "AMQP absolute-expiry-time required."
                                               }
                                             ]
                                           },
-                                          "name": "AbsoluteExpiryTime",
+                                          "name": "absoluteExpiryTime",
                                           "doc": "AMQP absolute-expiry-time."
                                         },
                                         {
@@ -530,17 +535,17 @@
                                             "fields": [
                                               {
                                                 "type": "string",
-                                                "name": "Value",
+                                                "name": "value",
                                                 "doc": "AMQP group-id value template."
                                               },
                                               {
                                                 "type": "boolean",
-                                                "name": "Required",
+                                                "name": "required",
                                                 "doc": "AMQP group-id required."
                                               }
                                             ]
                                           },
-                                          "name": "GroupId",
+                                          "name": "groupId",
                                           "doc": "AMQP group-id."
                                         },
                                         {
@@ -550,17 +555,17 @@
                                             "fields": [
                                               {
                                                 "type": "string",
-                                                "name": "Value",
+                                                "name": "value",
                                                 "doc": "AMQP group-sequence value template."
                                               },
                                               {
                                                 "type": "boolean",
-                                                "name": "Required",
+                                                "name": "required",
                                                 "doc": "AMQP group-sequence required."
                                               }
                                             ]
                                           },
-                                          "name": "GroupSequence",
+                                          "name": "groupSequence",
                                           "doc": "AMQP group-sequence."
                                         },
                                         {
@@ -570,22 +575,22 @@
                                             "fields": [
                                               {
                                                 "type": "string",
-                                                "name": "Value",
+                                                "name": "value",
                                                 "doc": "AMQP reply-to-group-id value template."
                                               },
                                               {
                                                 "type": "boolean",
-                                                "name": "Required",
+                                                "name": "required",
                                                 "doc": "AMQP reply-to-group-id required."
                                               }
                                             ]
                                           },
-                                          "name": "ReplyToGroupId",
+                                          "name": "replyToGroupId",
                                           "doc": "AMQP reply-to-group-id."
                                         }
                                       ]
                                     },
-                                    "name": "Properties"
+                                    "name": "properties"
                                   },
                                   {
                                     "type": {
@@ -597,23 +602,23 @@
                                         "fields": [
                                           {
                                             "type": "string",
-                                            "name": "Value",
+                                            "name": "value",
                                             "doc": "The application property value template."
                                           },
                                           {
                                             "type": "boolean",
-                                            "name": "Required",
+                                            "name": "required",
                                             "doc": "The application property required."
                                           },
                                           {
                                             "type": "string",
-                                            "name": "Type",
+                                            "name": "type",
                                             "doc": "The application property type."
                                           }
                                         ]
                                       }
                                     },
-                                    "name": "ApplicationProperties"
+                                    "name": "applicationProperties"
                                   },
                                   {
                                     "type": {
@@ -625,23 +630,23 @@
                                         "fields": [
                                           {
                                             "type": "string",
-                                            "name": "Value",
+                                            "name": "value",
                                             "doc": "The message annotation value"
                                           },
                                           {
                                             "type": "boolean",
-                                            "name": "Required",
+                                            "name": "required",
                                             "doc": "Whether the message annotation is required"
                                           },
                                           {
                                             "type": "string",
-                                            "name": "Type",
+                                            "name": "type",
                                             "doc": "The message annotation type."
                                           }
                                         ]
                                       }
                                     },
-                                    "name": "MessageAnnotations"
+                                    "name": "messageAnnotations"
                                   },
                                   {
                                     "type": {
@@ -653,23 +658,23 @@
                                         "fields": [
                                           {
                                             "type": "string",
-                                            "name": "Value",
+                                            "name": "value",
                                             "doc": "The delivery annotation value"
                                           },
                                           {
                                             "type": "boolean",
-                                            "name": "Required",
+                                            "name": "required",
                                             "doc": "Whether the annotation is required"
                                           },
                                           {
                                             "type": "string",
-                                            "name": "Type",
+                                            "name": "type",
                                             "doc": "The annotation type."
                                           }
                                         ]
                                       }
                                     },
-                                    "name": "DeliveryAnnotations"
+                                    "name": "deliveryAnnotations"
                                   },
                                   {
                                     "type": {
@@ -681,23 +686,23 @@
                                         "fields": [
                                           {
                                             "type": "string",
-                                            "name": "Value",
+                                            "name": "value",
                                             "doc": "AMQP header value."
                                           },
                                           {
                                             "type": "boolean",
-                                            "name": "Required",
+                                            "name": "required",
                                             "doc": "AMQP header required."
                                           },
                                           {
                                             "type": "string",
-                                            "name": "Type",
+                                            "name": "type",
                                             "doc": "AMQP header type."
                                           }
                                         ]
                                       }
                                     },
-                                    "name": "Header"
+                                    "name": "header"
                                   },
                                   {
                                     "type": {
@@ -709,27 +714,27 @@
                                         "fields": [
                                           {
                                             "type": "string",
-                                            "name": "Value",
+                                            "name": "value",
                                             "doc": "AMQP footer value."
                                           },
                                           {
                                             "type": "boolean",
-                                            "name": "Required",
+                                            "name": "required",
                                             "doc": "AMQP footer required."
                                           },
                                           {
                                             "type": "string",
-                                            "name": "Type",
+                                            "name": "type",
                                             "doc": "AMQP footer type."
                                           }
                                         ]
                                       }
                                     },
-                                    "name": "Footer"
+                                    "name": "footer"
                                   }
                                 ]
                               },
-                              "name": "Message",
+                              "name": "message",
                               "doc": "AMQP message metadata constraints."
                             }
                           ]
@@ -750,12 +755,12 @@
                                       "fields": [
                                         {
                                           "type": "string",
-                                          "name": "Value",
+                                          "name": "value",
                                           "doc": "MQTT qos value template."
                                         }
                                       ]
                                     },
-                                    "name": "Qos",
+                                    "name": "qos",
                                     "doc": "MQTT qos."
                                   },
                                   {
@@ -765,12 +770,12 @@
                                       "fields": [
                                         {
                                           "type": "boolean",
-                                          "name": "Value",
+                                          "name": "value",
                                           "doc": "MQTT retain value template."
                                         }
                                       ]
                                     },
-                                    "name": "Retain",
+                                    "name": "retain",
                                     "doc": "MQTT retain."
                                   },
                                   {
@@ -780,17 +785,17 @@
                                       "fields": [
                                         {
                                           "type": "string",
-                                          "name": "Value",
+                                          "name": "value",
                                           "doc": "MQTT topic-name value template."
                                         }
                                       ]
                                     },
-                                    "name": "TopicName",
+                                    "name": "topicName",
                                     "doc": "MQTT topic-name."
                                   }
                                 ]
                               },
-                              "name": "Message",
+                              "name": "message",
                               "doc": "MQTT message metadata constraints."
                             }
                           ]
@@ -811,12 +816,12 @@
                                       "fields": [
                                         {
                                           "type": "int",
-                                          "name": "Value",
+                                          "name": "value",
                                           "doc": "MQTT qos value template."
                                         }
                                       ]
                                     },
-                                    "name": "Qos",
+                                    "name": "qos",
                                     "doc": "MQTT qos."
                                   },
                                   {
@@ -826,12 +831,12 @@
                                       "fields": [
                                         {
                                           "type": "boolean",
-                                          "name": "Value",
+                                          "name": "value",
                                           "doc": "MQTT retain value template."
                                         }
                                       ]
                                     },
-                                    "name": "Retain",
+                                    "name": "retain",
                                     "doc": "MQTT retain."
                                   },
                                   {
@@ -841,12 +846,12 @@
                                       "fields": [
                                         {
                                           "type": "string",
-                                          "name": "Value",
+                                          "name": "value",
                                           "doc": "MQTT topic-name value template."
                                         }
                                       ]
                                     },
-                                    "name": "TopicName",
+                                    "name": "topicName",
                                     "doc": "MQTT topic-name."
                                   },
                                   {
@@ -856,12 +861,12 @@
                                       "fields": [
                                         {
                                           "type": "int",
-                                          "name": "Value",
+                                          "name": "value",
                                           "doc": "MQTT message-expiry-interval value template."
                                         }
                                       ]
                                     },
-                                    "name": "MessageExpiryInterval",
+                                    "name": "messageExpiryInterval",
                                     "doc": "MQTT message-expiry-interval."
                                   },
                                   {
@@ -871,12 +876,12 @@
                                       "fields": [
                                         {
                                           "type": "string",
-                                          "name": "Value",
+                                          "name": "value",
                                           "doc": "MQTT response-topic value template."
                                         }
                                       ]
                                     },
-                                    "name": "ResponseTopic",
+                                    "name": "responseTopic",
                                     "doc": "MQTT response-topic."
                                   },
                                   {
@@ -886,12 +891,12 @@
                                       "fields": [
                                         {
                                           "type": "bytes",
-                                          "name": "Value",
+                                          "name": "value",
                                           "doc": "MQTT correlation-data value template."
                                         }
                                       ]
                                     },
-                                    "name": "CorrelationData",
+                                    "name": "correlationData",
                                     "doc": "MQTT correlation-data."
                                   },
                                   {
@@ -901,12 +906,12 @@
                                       "fields": [
                                         {
                                           "type": "string",
-                                          "name": "Value",
+                                          "name": "value",
                                           "doc": "MQTT content-type value template."
                                         }
                                       ]
                                     },
-                                    "name": "ContentType",
+                                    "name": "contentType",
                                     "doc": "MQTT content-type."
                                   },
                                   {
@@ -918,23 +923,23 @@
                                         "fields": [
                                           {
                                             "type": "string",
-                                            "name": "Name",
+                                            "name": "name",
                                             "doc": "MQTT user-property name."
                                           },
                                           {
                                             "type": "string",
-                                            "name": "Value",
+                                            "name": "value",
                                             "doc": "MQTT user-property value."
                                           }
                                         ]
                                       }
                                     },
-                                    "name": "UserProperties",
+                                    "name": "userProperties",
                                     "doc": "MQTT user-properties."
                                   }
                                 ]
                               },
-                              "name": "Message",
+                              "name": "message",
                               "doc": "MQTT message metadata constraints."
                             }
                           ]
@@ -950,17 +955,17 @@
                                 "fields": [
                                   {
                                     "type": "string",
-                                    "name": "Topic",
+                                    "name": "topic",
                                     "doc": "The Apache Kafka topic."
                                   },
                                   {
                                     "type": "int",
-                                    "name": "Partition",
+                                    "name": "partition",
                                     "doc": "The Apache Kafka partition."
                                   },
                                   {
                                     "type": "bytes",
-                                    "name": "Key",
+                                    "name": "key",
                                     "doc": "The Apache Kafka key."
                                   },
                                   {
@@ -973,28 +978,28 @@
                                         "fields": [
                                           {
                                             "type": "string",
-                                            "name": "Name",
+                                            "name": "name",
                                             "doc": "The Apache Kafka header name."
                                           },
                                           {
                                             "type": "string",
-                                            "name": "Value",
+                                            "name": "value",
                                             "doc": "The Apache Kafka header value."
                                           }
                                         ]
                                       }
                                     },
-                                    "name": "Headers",
+                                    "name": "headers",
                                     "doc": "The Apache Kafka headers."
                                   },
                                   {
                                     "type": "int",
-                                    "name": "Timestamp",
+                                    "name": "timestamp",
                                     "doc": "The Apache Kafka timestamp."
                                   }
                                 ]
                               },
-                              "name": "Message",
+                              "name": "message",
                               "doc": "The Apache Kafka message metadata constraints."
                             }
                           ]
@@ -1017,18 +1022,18 @@
                                         "fields": [
                                           {
                                             "type": "string",
-                                            "name": "Name",
+                                            "name": "name",
                                             "doc": "The HTTP header name."
                                           },
                                           {
                                             "type": "string",
-                                            "name": "Value",
+                                            "name": "value",
                                             "doc": "The HTTP header value."
                                           }
                                         ]
                                       }
                                     },
-                                    "name": "Headers",
+                                    "name": "headers",
                                     "doc": "The HTTP headers."
                                   },
                                   {
@@ -1069,22 +1074,22 @@
                                         }
                                       ]
                                     },
-                                    "name": "Query",
+                                    "name": "query",
                                     "doc": "The HTTP query parameters."
                                   },
                                   {
                                     "type": "string",
-                                    "name": "Path",
+                                    "name": "path",
                                     "doc": "The HTTP path as a uri template."
                                   },
                                   {
                                     "type": "string",
-                                    "name": "Method",
+                                    "name": "method",
                                     "doc": "The HTTP method."
                                   }
                                 ]
                               },
-                              "name": "Message",
+                              "name": "message",
                               "doc": "The HTTP message metadata constraints."
                             }
                           ]

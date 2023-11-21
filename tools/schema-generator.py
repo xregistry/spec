@@ -46,17 +46,17 @@ json_common_attributes = {
 }
 
 avro_common_attributes = [
-    {"name": "Id", "type": "string"},
-    {"name": "Name", "type": ["string", "null"]},
-    {"name": "Epoch", "type": ["int", "null"]},
-    {"name": "Self", "type": "string"},
-    {"name": "Description", "type": ["string", "null"]},
-    {"name": "Documentation", "type": ["string", "null"]},
-    {"name": "Labels", "type": { "type": "map", "values": ["string", "null"]}},
-    {"name": "CreatedBy", "type": ["string", "null"]},
-    {"name": "CreatedOn", "type": [{"type":"int", "logicalType": "time-millis"}, "null"]},
-    {"name": "ModifiedBy", "type": ["string", "null"]},
-    {"name": "ModifiedOn", "type": [{"type":"int", "logicalType": "time-millis"},"null"]}
+    {"name": "id", "type": "string"},
+    {"name": "name", "type": ["string", "null"]},
+    {"name": "epoch", "type": ["int", "null"]},
+    {"name": "self", "type": "string"},
+    {"name": "description", "type": ["string", "null"]},
+    {"name": "documentation", "type": ["string", "null"]},
+    {"name": "labels", "type": { "type": "map", "values": ["string", "null"]}},
+    {"name": "createdBy", "type": ["string", "null"]},
+    {"name": "createdOn", "type": [{"type":"int", "logicalType": "time-millis"}, "null"]},
+    {"name": "modifiedBy", "type": ["string", "null"]},
+    {"name": "modifiedOn", "type": [{"type":"int", "logicalType": "time-millis"},"null"]}
 ]
 
 avro_generic_record_name = "GenericRecord"
@@ -118,6 +118,10 @@ def pascal(string):
         words = re.findall(r'[a-z]+\.?|[A-Z][a-z0-9_]*\.?', string)
     result = ''.join(word.capitalize() for word in words)
     return result
+
+def camel(string):
+    pascalString = pascal(string)
+    return pascalString[0:1].lower() + pascalString[1:]
 
 
 def generate_openapi(model_definition):
@@ -524,7 +528,7 @@ def generate_avro_schema(model_definition) -> dict:
                     union.append(conditional_schema)
                 if len(union) > 0: 
                     field_schema = {
-                            "name": pascal_attr_name,
+                            "name": camel(pascal_attr_name),
                              "type":  union
                     }
                     if "description" in attr_props:
@@ -546,7 +550,7 @@ def generate_avro_schema(model_definition) -> dict:
                         field_schema["doc"] = attr_props["description"]
                     resource_schema["fields"].append(field_schema)
                 else:
-                    attr_schema["name"] = pascal_attr_name
+                    attr_schema["name"] = camel(pascal_attr_name)
                     # if the attribute is not required, union the type with null    
                     #if not "required" in attr_props or attr_props["required"] == False:
                     #    attr_schema = ["null", attr_schema]
@@ -573,7 +577,7 @@ def generate_avro_schema(model_definition) -> dict:
             resource_name = resource["singular"]
             if resource_name in record_types:
                 resource_collection_fields.append({
-                    "name": resource["plural"],
+                    "name": camel(resource["plural"]),
                     "type" :{
                         "type": "map",
                         "values": pascal(resource_name)+"Type"
@@ -604,11 +608,11 @@ def generate_avro_schema(model_definition) -> dict:
                                     "name": pascal(resource_name)+"VersionInfo",
                                     "fields": [
                                         {
-                                            "name": "VersionsUrl",
+                                            "name": "versionsUrl",
                                             "type": "string"
                                         },
                                         {
-                                            "name": "VersionCount",
+                                            "name": "versionCount",
                                             "type": "int"
                                         }
                                     ]
@@ -619,7 +623,7 @@ def generate_avro_schema(model_definition) -> dict:
                     handle_attributes(resource_schema, attributes)
 
                 resource_collection_fields.append({
-                    "name": resource["plural"],
+                    "name": camel(resource["plural"]),
                     "type" :{
                         "type": "map",
                         "values": resource_schema
@@ -637,7 +641,7 @@ def generate_avro_schema(model_definition) -> dict:
         for resource_collection in resource_collection_fields:
             group_schema["fields"].append(resource_collection)
         groups_schema = {
-            "name": groups_name,
+            "name": camel(groups_name),
             "type": {
                 "type": "map",
                 "values": group_schema

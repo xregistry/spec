@@ -12,43 +12,43 @@
           "name": "SchemaGroupType",
           "fields": [
             {
-              "name": "Id",
+              "name": "id",
               "type": "string"
             },
             {
-              "name": "Name",
+              "name": "name",
               "type": [
                 "string",
                 "null"
               ]
             },
             {
-              "name": "Epoch",
+              "name": "epoch",
               "type": [
                 "int",
                 "null"
               ]
             },
             {
-              "name": "Self",
+              "name": "self",
               "type": "string"
             },
             {
-              "name": "Description",
+              "name": "description",
               "type": [
                 "string",
                 "null"
               ]
             },
             {
-              "name": "Documentation",
+              "name": "documentation",
               "type": [
                 "string",
                 "null"
               ]
             },
             {
-              "name": "Labels",
+              "name": "labels",
               "type": {
                 "type": "map",
                 "values": [
@@ -58,14 +58,14 @@
               }
             },
             {
-              "name": "CreatedBy",
+              "name": "createdBy",
               "type": [
                 "string",
                 "null"
               ]
             },
             {
-              "name": "CreatedOn",
+              "name": "createdOn",
               "type": [
                 {
                   "type": "int",
@@ -75,14 +75,14 @@
               ]
             },
             {
-              "name": "ModifiedBy",
+              "name": "modifiedBy",
               "type": [
                 "string",
                 "null"
               ]
             },
             {
-              "name": "ModifiedOn",
+              "name": "modifiedOn",
               "type": [
                 {
                   "type": "int",
@@ -100,43 +100,43 @@
                   "name": "SchemaType",
                   "fields": [
                     {
-                      "name": "Id",
+                      "name": "id",
                       "type": "string"
                     },
                     {
-                      "name": "Name",
+                      "name": "name",
                       "type": [
                         "string",
                         "null"
                       ]
                     },
                     {
-                      "name": "Epoch",
+                      "name": "epoch",
                       "type": [
                         "int",
                         "null"
                       ]
                     },
                     {
-                      "name": "Self",
+                      "name": "self",
                       "type": "string"
                     },
                     {
-                      "name": "Description",
+                      "name": "description",
                       "type": [
                         "string",
                         "null"
                       ]
                     },
                     {
-                      "name": "Documentation",
+                      "name": "documentation",
                       "type": [
                         "string",
                         "null"
                       ]
                     },
                     {
-                      "name": "Labels",
+                      "name": "labels",
                       "type": {
                         "type": "map",
                         "values": [
@@ -146,14 +146,14 @@
                       }
                     },
                     {
-                      "name": "CreatedBy",
+                      "name": "createdBy",
                       "type": [
                         "string",
                         "null"
                       ]
                     },
                     {
-                      "name": "CreatedOn",
+                      "name": "createdOn",
                       "type": [
                         {
                           "type": "int",
@@ -163,14 +163,14 @@
                       ]
                     },
                     {
-                      "name": "ModifiedBy",
+                      "name": "modifiedBy",
                       "type": [
                         "string",
                         "null"
                       ]
                     },
                     {
-                      "name": "ModifiedOn",
+                      "name": "modifiedOn",
                       "type": [
                         {
                           "type": "int",
@@ -189,43 +189,43 @@
                             "name": "SchemaVersionType",
                             "fields": [
                               {
-                                "name": "Id",
+                                "name": "id",
                                 "type": "string"
                               },
                               {
-                                "name": "Name",
+                                "name": "name",
                                 "type": [
                                   "string",
                                   "null"
                                 ]
                               },
                               {
-                                "name": "Epoch",
+                                "name": "epoch",
                                 "type": [
                                   "int",
                                   "null"
                                 ]
                               },
                               {
-                                "name": "Self",
+                                "name": "self",
                                 "type": "string"
                               },
                               {
-                                "name": "Description",
+                                "name": "description",
                                 "type": [
                                   "string",
                                   "null"
                                 ]
                               },
                               {
-                                "name": "Documentation",
+                                "name": "documentation",
                                 "type": [
                                   "string",
                                   "null"
                                 ]
                               },
                               {
-                                "name": "Labels",
+                                "name": "labels",
                                 "type": {
                                   "type": "map",
                                   "values": [
@@ -235,14 +235,14 @@
                                 }
                               },
                               {
-                                "name": "CreatedBy",
+                                "name": "createdBy",
                                 "type": [
                                   "string",
                                   "null"
                                 ]
                               },
                               {
-                                "name": "CreatedOn",
+                                "name": "createdOn",
                                 "type": [
                                   {
                                     "type": "int",
@@ -252,14 +252,14 @@
                                 ]
                               },
                               {
-                                "name": "ModifiedBy",
+                                "name": "modifiedBy",
                                 "type": [
                                   "string",
                                   "null"
                                 ]
                               },
                               {
-                                "name": "ModifiedOn",
+                                "name": "modifiedOn",
                                 "type": [
                                   {
                                     "type": "int",
@@ -270,7 +270,7 @@
                               },
                               {
                                 "type": "string",
-                                "name": "Format",
+                                "name": "format",
                                 "doc": "Schema format identifier for this schema version."
                               },
                               {
@@ -311,17 +311,17 @@
                                     }
                                   ]
                                 },
-                                "name": "Schemaobject",
+                                "name": "schemaobject",
                                 "doc": "Inlined schema document object"
                               },
                               {
                                 "type": "string",
-                                "name": "Schema",
+                                "name": "schema",
                                 "doc": "Inlined schema document string"
                               },
                               {
                                 "type": "string",
-                                "name": "Schemaurl",
+                                "name": "schemaurl",
                                 "doc": "Inlined schema document string"
                               }
                             ]
@@ -332,11 +332,11 @@
                           "name": "SchemaVersionInfo",
                           "fields": [
                             {
-                              "name": "VersionsUrl",
+                              "name": "versionsUrl",
                               "type": "string"
                             },
                             {
-                              "name": "VersionCount",
+                              "name": "versionCount",
                               "type": "int"
                             }
                           ]

@@ -142,6 +142,21 @@ different definitions.
 The following extension is defined for the `definition` object in addition to
 the basic [attributes](../core/spec.md#attributes-and-extensions):
 
+#### `baseDefinitionUrl` (Base definition URL, definition)
+
+- Type: URI-reference
+- Description: if present, the URL points to a message definition that is the
+  base for this message definition. By following the URL, the base definition
+  can be retrieved and extended with the properties of this definition. This is
+  useful for defining variants of messages that only differ in minor aspects to
+  avoid repetition, or definitions that only have a `format` with associated
+  `metadata` to be bound to various protocols.
+- Constraints:
+  - OPTIONAL
+  - If present, MUST be a valid URI-reference
+  - If present, MUST point to a resource of type `definition` using JSON Pointer
+    [RFC6901][JSON Pointer] notation. 
+
 #### `format` (Metadata format, definition)
 
 Same as the [`format`](#format-message-format) attribute of the
