@@ -99,7 +99,7 @@ addition to the basic [attributes](../core/spec.md#attributes-and-extensions):
 - Description: Identifies the common, transport protocol independent message
   metadata format. Message metadata formats are referenced by name and version
   as `{NAME}/{VERSION}`. This specification defines a set of common
-  [metadata format names](#message-formats) that MUST be used for the given
+  [metadata format names](#metadata-formats) that MUST be used for the given
   formats, but applications MAY define extensions for other formats on their
   own. All definitions inside a group MUST use this same format.
 - Constraints:
@@ -159,7 +159,7 @@ the basic [attributes](../core/spec.md#attributes-and-extensions):
 
 #### `format` (Metadata format, definition)
 
-Same as the [`format`](#format-message-format) attribute of the
+Same as the [`format`](#format-metadata-format) attribute of the
 `definitionGroup` object.
 
 Since definitions MAY be cross-referenced ("borrowed") across definition group
