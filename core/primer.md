@@ -3,17 +3,12 @@
 Possible future topics to cover:
 - Resource.ID and Resource.Version.ID might have the same values but they are
   very different properties with no relation to each other.
-- we require all extensions (and therefore all attributes) to be defined by
-  the "model" so that we know their true serialization (case) even if we see
-  them in a case insensitive serialization (e.g. HTTP headers)
-- we use xxx/yyy/zzz for filters instead of xxx.yyy.zzz so that people have
-  a consistent pattern when traversing the registry try. Meaning, it would
-  be a bit odd for people to write:
-  - `GET .../xxx/yyy/zzz` to reference a nested resource
-  - but then `GET ...?filter=xxx.yyy.zzz.prop=5` to access a property on that
-    same nested resources. So, despite some people might thinking that it's
-	odd to see `/` in a query parameter, the consistency was more important
-	to us. People can now copy-n-paste the same ref string in both uses.
+- it's RECOMMENDED that all extensions be defined in advance as part of the
+  model. However, the spec does support an extension of "*" to allow for
+  unknown/runtime-provided extensions. Since extensions can appear in case-
+  insensitive situations (e.g. http header) we can't know the case of them
+  when storing in the backend. As a result, all attributes and keyNames MUST
+  be lowercase.
 - "latest" Resource is just a pointer, NOT a set of default values
 - we allow for implicit creation of a resource's tree rather than requiring
   multiple create operations - just for convinience
