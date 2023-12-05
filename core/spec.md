@@ -1574,7 +1574,7 @@ Where:
 
 A successful response MUST be of the form:
 
-``` text
+```http
 HTTP/1.1 200 OK
 Content-Type: ...
 
@@ -1659,7 +1659,7 @@ To retrieve a Group collection, an HTTP `GET` MAY be used.
 
 The request MUST be of the form:
 
-``` text
+```http
 GET /GROUPs[?inline=...&filter=...]
 ```
 
@@ -1669,7 +1669,7 @@ The following query parameters MUST be supported by servers:
 
 A successful response MUST be of the form:
 
-``` text
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 Link: <URL>;rel=next;count=INT ?
@@ -1701,11 +1701,11 @@ Link: <URL>;rel=next;count=INT ?
 
 Retrieve all entities in the `endpoints` group:
 
-``` text
+```http
 GET /endpoints
+```
 
----
-
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 Link: <https://example.com/endpoints&page=2>;rel=next;count=100
@@ -1833,14 +1833,14 @@ Each individual Group in a successful response MUST adhere to the following:
 
 New Group specified in the HTTP body:
 
-``` text
+```http
 POST /endpoints
 Content-Type: application/json; charset=utf-8
 
 { GROUP definition }
+```
 
----
-
+```http
 HTTP/1.1 201 Created
 Content-Type: application/json; charset=utf-8
 Location: https://example.com/endpoints/456
@@ -1850,14 +1850,14 @@ Location: https://example.com/endpoints/456
 
 Multiple Groups specified in the HTTP body:
 
-``` text
+```http
 POST /endpoints
 Content-Type: application/json; charset=utf-8
 
 [ { GROUP1 definition }, { GROUP2 definition } ]
+```
 
----
-
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 Location: https://example.com/endpoints/123
