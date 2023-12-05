@@ -85,7 +85,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   "specVersion": "STRING",
   "id": "STRING",
   "name": "STRING", ?
-  "epoch": "UINTEGER",
+  "epoch": UINTEGER,
   "self": "URL",
   "description": "STRING", ?
   "documentation": "URL", ?
@@ -126,7 +126,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
           "STRING": {                   # Key=plural name, e.g. "definitions"
             "plural": "STRING",         # e.g. "definitions"
             "singular": "STRING",       # e.g. "definition"
-            "versions": "UINTEGER" ?    # Num Vers(>=0). Default=1, 0=unlimited
+            "versions": UINTEGER ?    # Num Vers(>=0). Default=1, 0=unlimited
             "versionId": BOOLEAN, ?     # Supports client specified Version IDs
             "latest": BOOLEAN, ?        # Supports client "latest" selection
             "hasDocument": BOOLEAN, ?   # Has a separate document. Default=true
@@ -144,7 +144,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
     "ID": {                                        # Key=the Group id
       "id": "STRING",                              # The Group ID
       "name": "STRING", ?
-      "epoch": "UINTEGER",
+      "epoch": UINTEGER,
       "self": "URL",
       "description": "STRING", ?
       "documentation": "URL", ?
@@ -162,7 +162,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
         "ID": {                                    # The Resource id
           "id": "STRING",
           "name": "STRING", ?
-          "epoch": "UINTEGER",
+          "epoch": UINTEGER,
           "self": "URL",
           "latestVersionId": "STRING",
           "latestVersionUrl": "URL",
@@ -185,7 +185,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "ID": {                                # The Version id
               "id": "STRING",
               "name": "STRING", ?
-              "epoch": "UINTEGER",
+              "epoch": UINTEGER,
               "self": "URL",
               "description": "STRING", ?
               "documentation": "URL", ?
@@ -357,7 +357,7 @@ throughout the specification.
 For easy reference, the serialization these attributes adheres to this form:
 - `"id": "STRING"`
 - `"name": "STRING"`
-- `"epoch": "UINTEGER"`
+- `"epoch": UINTEGER`
 - `"self": "URL"`
 - `"description": "STRING"`
 - `"documentation": "URL"`
@@ -626,7 +626,7 @@ form:
 
 ```yaml
 "COLLECTIONsUrl": "URL", ?
-"COLLECTIONsCount": "UINTEGER", ?
+"COLLECTIONsCount": UINTEGER, ?
 "COLLECTIONs": {
   # Map of entities in the collection, key is the "id" of each entity
 } ?
@@ -706,7 +706,7 @@ The serialization of the Registry entity adheres to this form:
   "specVersion": "STRING",
   "id": "STRING",
   "name": "STRING", ?
-  "epoch": "UINTEGER",
+  "epoch": UINTEGER,
   "self": "URL",
   "description": "STRING", ?
   "documentation": "URL", ?
@@ -803,7 +803,7 @@ Content-Type: application/json; charset=utf-8
   "specVersion": "STRING",
   "id": "STRING",
   "name": "STRING", ?
-  "epoch": "UINTEGER",
+  "epoch": UINTEGER,
   "self": "URL",
   "description": "STRING", ?
   "documentation": "URL", ?
@@ -926,7 +926,7 @@ Content-Type: application/json; charset=utf-8
 
 {
   "id": "STRING", ?
-  "epoch": "UINTEGER", ?
+  "epoch": UINTEGER, ?
   "name": "STRING", ?
   "description": "STRING", ?
   "documentation": "URL" ?
@@ -963,7 +963,7 @@ Content-Type: application/json; charset=utf-8
   "specVersion": "STRING",
   "id": "STRING",
   "name": "STRING", ?
-  "epoch": "UINTEGER",
+  "epoch": UINTEGER,
   "self": "URL",
   "description": "STRING", ?
   "documentation": "URL", ?
@@ -1072,7 +1072,7 @@ Regardless of how the model is retrieved, the overall format is as follows:
         "STRING": {                    # Key=plural name, e.g. "definitions"
           "plural": "STRING",          # e.g. "definitions"
           "singular": "STRING",        # e.g. "definition"
-          "versions": "UINTEGER", ?      # Num Vers(>=0). Default=1, 0=unlimited
+          "versions": UINTEGER, ?      # Num Vers(>=0). Default=1, 0=unlimited
           "versionId": BOOLEAN, ?      # Supports client specified Version IDs
           "latest": BOOLEAN ?          # Supports client "latest" selection
           "hasDocument": BOOLEAN, ?    # Has no separate document. Default=true
@@ -1308,7 +1308,7 @@ Content-Type: application/json; charset=utf-8
         "STRING": {
           "plural": "STRING",
           "singular": "STRING",
-          "versions": "UINTEGER" ?
+          "versions": UINTEGER ?
           "versionId": BOOLEAN, ?
           "latest": BOOLEAN, ?
           "hasDocument": BOOLEAN, ?
@@ -1400,7 +1400,7 @@ Content-Type: application/json; charset=utf-8
         "STRING": {
           "plural": "STRING",
           "singular": "STRING",
-          "versions": "UINTEGER" ?
+          "versions": UINTEGER ?
           "versionId": BOOLEAN, ?
           "latest": BOOLEAN, ?
           "hasDocument": BOOLEAN, ?
@@ -1459,7 +1459,7 @@ Content-Type: application/json; charset=utf-8
         "STRING": {
           "plural": "STRING",
           "singular": "STRING",
-          "versions": "UINTEGER" ?
+          "versions": UINTEGER ?
           "versionId": BOOLEAN, ?
           "latest": BOOLEAN, ?
           "hasDocument": BOOLEAN, ?
@@ -1608,7 +1608,7 @@ The serialization of a Group entity adheres to this form:
 {
   "id": "STRING",
   "name": "STRING", ?
-  "epoch": "UINTEGER",
+  "epoch": UINTEGER,
   "self": "URL",
   "description": "STRING", ?
   "documentation": "URL", ?
@@ -1678,7 +1678,7 @@ Link: <URL>;rel=next;count=INT ?
   "ID": {
     "id": "STRING",
     "name": "STRING", ?
-    "epoch": "UINTEGER",
+    "epoch": UINTEGER,
     "self": "URL",
     "description": "STRING", ?
     "documentation": "URL", ?
@@ -1754,7 +1754,7 @@ Each individual Group definition MUST adhere to the following:
 {
   "id": "STRING", ?
   "name": "STRING", ?
-  "epoch": "UINTEGER", ?
+  "epoch": UINTEGER, ?
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
@@ -1812,7 +1812,7 @@ Each individual Group in a successful response MUST adhere to the following:
 {
   "id": "STRING",
   "name": "STRING", ?
-  "epoch": "UINTEGER",
+  "epoch": UINTEGER,
   "self": "URL",
   "description": "STRING", ?
   "documentation": "URL", ?
@@ -1905,7 +1905,7 @@ Content-Type: application/json; charset=utf-8
 {
   "id": "STRING",
   "name": "STRING", ?
-  "epoch": "UINTEGER",
+  "epoch": UINTEGER,
   "self": "URL",
   "description": "STRING", ?
   "documentation": "URL", ?
@@ -1980,7 +1980,7 @@ Content-Type: application/json; charset=utf-8
 {
   "id": "STRING",
   "name": "STRING", ?
-  "epoch": "UINTEGER",
+  "epoch": UINTEGER,
   "self": "URL",
   "description": "STRING", ?
   "documentation": "URL", ?
@@ -2009,7 +2009,7 @@ DELETE /GROUPs
 [
   {
     "id": "STRING",
-    "epoch": "UINTEGER" ?
+    "epoch": UINTEGER ?
   } *
 ]
 ```
@@ -2041,7 +2041,7 @@ Link: <URL>;rel=next;count=INT ?
   {
     "id": "STRING",
     "name": "STRING", ?
-    "epoch": "UINTEGER",
+    "epoch": UINTEGER,
     "self": "URL",
     "description": "STRING", ?
     "documentation": "URL", ?
@@ -2117,7 +2117,7 @@ When serialized as a JSON object, a Resource MUST adhere to this form:
 {
   "id": "STRING",
   "name": "STRING", ?
-  "epoch": "UINTEGER",
+  "epoch": UINTEGER,
   "self": "URL",
   "latestVersionId": "STRING",
   "latestVersionUrl": "URL",
@@ -2379,7 +2379,7 @@ Link: <URL>;rel=next;count=INT ?
   "ID": {                                     # The Resource id
     "id": "STRING",
     "name": "STRING", ?
-    "epoch": "UINTEGER",
+    "epoch": UINTEGER,
     "self": "URL",
     "latestVersionId": "STRING",
     "latestVersionUrl": "URL",
@@ -2821,7 +2821,7 @@ Content-Location: URL ?
 {
   "id": "STRING",
   "name": "STRING", ?
-  "epoch": "UINTEGER",
+  "epoch": UINTEGER,
   "self": "URL",
   "latestVersionId": "STRING",
   "latestVersionUrl": "URL",
@@ -2964,7 +2964,7 @@ DELETE /GROUPs/gID/RESOURCEs
 [
   {
     "id": "STRING",
-    "epoch": "UINTEGER" ?
+    "epoch": UINTEGER ?
   } *
 ]
 ```
@@ -2996,7 +2996,7 @@ Link: <URL>;rel=next;count=INT ?
   {
     "id": "STRING",
     "name": "STRING", ?
-    "epoch": "UINTEGER",
+    "epoch": UINTEGER,
     "self": "URL",
     "latestVersionId": "STRING", ?
     "description": "STRING", ?
@@ -3050,7 +3050,7 @@ The serialization of a Version entity adheres to this form:
 {
   "id": "STRING",
   "name": "STRING", ?
-  "epoch": "UINTEGER",
+  "epoch": UINTEGER,
   "self": "URL",
   "latest": BOOLEAN, ?
   "description": "STRING", ?
@@ -3191,7 +3191,7 @@ Link: <URL>;rel=next;count=INT ?
   "ID": {                                     # The Version id
     "id": "STRING",
     "name": "STRING", ?
-    "epoch": "UINTEGER",
+    "epoch": UINTEGER,
     "self": "URL",
     "latest": BOOLEAN,
     "description": "STRING", ?
@@ -3357,7 +3357,7 @@ Content-Type: application/json; charset=utf-8
 {
   "id": "STRING",
   "name": "STRING", ?
-  "epoch": "UINTEGER",
+  "epoch": UINTEGER,
   "self": "URL",
   "latest": BOOLEAN,
   "description": "STRING", ?
@@ -3501,7 +3501,7 @@ DELETE /GROUPs/gID/RESOURCEs/rID/versions[?setLatestVersionId=vID]
 [
   {
     "id": "STRING",
-    "epoch": "UINTEGER" ?
+    "epoch": UINTEGER ?
   } +
 ]
 ```
@@ -3556,7 +3556,7 @@ Link: <URL>;rel=next;count=INT ?
   {
     "id": "STRING",
     "name": "STRING", ?
-    "epoch": "UINTEGER",
+    "epoch": UINTEGER,
     "self": "URL",
     "latest": BOOLEAN,
     "description": "STRING", ?
