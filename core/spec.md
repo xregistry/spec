@@ -126,7 +126,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
           "STRING": {                   # Key=plural name, e.g. "definitions"
             "plural": "STRING",         # e.g. "definitions"
             "singular": "STRING",       # e.g. "definition"
-            "versions": UINTEGER ?    # Num Vers(>=0). Default=1, 0=unlimited
+            "versions": UINTEGER ?      # Num Vers(>=0). Default=1, 0=unlimited
             "versionId": BOOLEAN, ?     # Supports client specified Version IDs
             "latest": BOOLEAN, ?        # Supports client "latest" selection
             "hasDocument": BOOLEAN, ?   # Has a separate document. Default=true
@@ -3609,7 +3609,7 @@ Some examples:
 
 The format of the `inline` query parameter is:
 
-```
+```text
 inline[=PATH[,...]]
 ```
 
@@ -3672,7 +3672,7 @@ to match the resulting subset. In particular:
 
 The format of the `filter` query parameter is:
 
-```
+```text
 filter=EXPRESSION[,EXPRESSION]
 ```
 
@@ -3693,7 +3693,7 @@ The abstract processing logic would be:
 
 The format of `EXPRESSION` is:
 
-```
+```text
 [PATH.]ATTRIBUTE[=[VALUE]]
 ```
 
@@ -3762,10 +3762,8 @@ and per [RFC7230, section 3][rfc7230-section-3], HTTP headers MUST only use
 printable characters from the US-ASCII character set, and are terminated by a
 CRLF sequence with OPTIONAL whitespace around the header value.
 
-> TODO: `precent-encoded` - typo?
-
 When encoding an attribute's value as an HTTP header it MUST be
-precent-encoded as described below. This is compatible with [RFC3986, section
+percent-encoded as described below. This is compatible with [RFC3986, section
 2.1][rfc3986-section-2-1] but is more specific about what needs
 encoding. The resulting string SHOULD NOT be further encoded.
 (Rationale: quoted string escaping is unnecessary when every space
