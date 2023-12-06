@@ -133,10 +133,10 @@
         }
       }
     },
-    "/{%-groupNamePlural-%}/{groupId}": {
+    "/{%-groupNamePlural-%}/{groupid}": {
       "parameters": [
         {
-          "$ref": "#/components/parameters/groupId"
+          "$ref": "#/components/parameters/groupid"
         }
       ],
       "get": {
@@ -236,10 +236,10 @@
         }
       }
     },
-    "/{%-groupNamePlural-%}/{groupId}/{%-resourceNamePlural-%}": {
+    "/{%-groupNamePlural-%}/{groupid}/{%-resourceNamePlural-%}": {
       "parameters": [
         {
-          "$ref": "#/components/parameters/groupId"
+          "$ref": "#/components/parameters/groupid"
         }
       ],
       "get": {
@@ -311,13 +311,13 @@
         }
       }      
     },
-    "/{%-groupNamePlural-%}/{groupId}/{%-resourceNamePlural-%}/{resourceId}": {
+    "/{%-groupNamePlural-%}/{groupid}/{%-resourceNamePlural-%}/{resourceid}": {
       "parameters": [
         {
-          "$ref": "#/components/parameters/groupId"
+          "$ref": "#/components/parameters/groupid"
         },
         {
-          "$ref": "#/components/parameters/resourceId"
+          "$ref": "#/components/parameters/resourceid"
         },
         {
           "in": "query",
@@ -604,13 +604,13 @@
         }
       }
     },
-    "/{%-groupNamePlural-%}/{groupId}/{%-resourceNamePlural-%}/{resourceId}/versions": {
+    "/{%-groupNamePlural-%}/{groupid}/{%-resourceNamePlural-%}/{resourceid}/versions": {
       "parameters": [
         {
-          "$ref": "#/components/parameters/groupId"
+          "$ref": "#/components/parameters/groupid"
         },
         {
-          "$ref": "#/components/parameters/resourceId"
+          "$ref": "#/components/parameters/resourceid"
         }
       ],
       "get": {
@@ -672,16 +672,16 @@
         }
       }
     },
-    "/{%-groupNamePlural-%}/{groupId}/{%-resourceNamePlural-%}/{resourceId}/versions/{versionId}": {
+    "/{%-groupNamePlural-%}/{groupid}/{%-resourceNamePlural-%}/{resourceid}/versions/{versionid}": {
       "parameters": [
         {
-          "$ref": "#/components/parameters/groupId"
+          "$ref": "#/components/parameters/groupid"
         },
         {
-          "$ref": "#/components/parameters/resourceId"
+          "$ref": "#/components/parameters/resourceid"
         },
         {
-          "$ref": "#/components/parameters/versionId"
+          "$ref": "#/components/parameters/versionid"
         },
         {
           "in": "query",
@@ -875,9 +875,9 @@
           "format": "uri-reference"
         }
       },
-      "groupId": {
+      "groupid": {
         "in": "path",
-        "name": "groupId",
+        "name": "groupid",
         "description": "The id of the group",
         "required": true,
         "schema": {
@@ -886,9 +886,9 @@
           "format": "uri-reference"
         }
       },
-      "resourceId": {
+      "resourceid": {
         "in": "path",
-        "name": "resourceId",
+        "name": "resourceid",
         "description": "The id of the schema",
         "required": true,
         "schema": {
@@ -897,9 +897,9 @@
           "format": "uri-reference"
         }
       },
-      "versionId": {
+      "versionid": {
         "in": "path",
-        "name": "versionId",
+        "name": "versionid",
         "description": "The id of the schema",
         "required": true,
         "schema": {

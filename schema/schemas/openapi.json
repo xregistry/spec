@@ -81,21 +81,21 @@
         }
       }
     },
-    "/schemaGroups/{groupId}": {
+    "/schemagroups/{groupid}": {
       "parameters": [
         {
-          "$ref": "#/components/parameters/groupId"
+          "$ref": "#/components/parameters/groupid"
         }
       ],
       "get": {
-        "operationId": "getSchemaGroup",
+        "operationId": "getSchemagroup",
         "responses": {
           "200": {
             "description": "The resource group",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/schemaGroup"
+                  "$ref": "#/components/schemas/schemagroup"
                 }
               }
             }
@@ -122,14 +122,14 @@
             }
           }
         ],
-        "operationId": "putSchemaGroup",
+        "operationId": "putSchemagroup",
         "description": "creates or updates the resource group",
         "requestBody": {
           "description": "A request to create or update the discovery group's collection of groups with the given group",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/schemaGroup"
+                "$ref": "#/components/schemas/schemagroup"
               }
             }
           }
@@ -140,7 +140,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/schemaGroup"
+                  "$ref": "#/components/schemas/schemagroup"
                 }
               }
             }
@@ -157,7 +157,7 @@
         }
       },
       "delete": {
-        "operationId": "deleteSchemaGroup",
+        "operationId": "deleteSchemagroup",
         "parameters": [
           {
             "in": "query",
@@ -184,14 +184,14 @@
         }
       }
     },
-    "/schemaGroups/{groupId}/schemas": {
+    "/schemagroups/{groupid}/schemas": {
       "parameters": [
         {
-          "$ref": "#/components/parameters/groupId"
+          "$ref": "#/components/parameters/groupid"
         }
       ],
       "get": {
-        "operationId": "getSchemaGroupSchemasAll",
+        "operationId": "getSchemagroupSchemasAll",
         "description": "Get an optionally filtered collection of resources",
         "parameters": [
           {
@@ -259,13 +259,13 @@
         }
       }
     },
-    "/schemaGroups/{groupId}/schemas/{resourceId}": {
+    "/schemagroups/{groupid}/schemas/{resourceid}": {
       "parameters": [
         {
-          "$ref": "#/components/parameters/groupId"
+          "$ref": "#/components/parameters/groupid"
         },
         {
-          "$ref": "#/components/parameters/resourceId"
+          "$ref": "#/components/parameters/resourceid"
         },
         {
           "in": "query",
@@ -278,7 +278,7 @@
         }
       ],
       "get": {
-        "operationId": "getSchemaGroupSchema",
+        "operationId": "getSchemagroupSchema",
         "responses": {
           "200": {
             "description": "The corresponding resource",
@@ -377,7 +377,7 @@
         ],
         "summary": "Create or update a resource",
         "description": "Create a resource. ",
-        "operationId": "putSchemaGroupSchema",
+        "operationId": "putSchemagroupSchema",
         "requestBody": {
           "description": "The resource to be created/updated",
           "content": {
@@ -417,7 +417,7 @@
       "post": {
         "summary": "Post new resource version",
         "description": "Register resource version If resource of specified name does not exist in specified group, resource and resource version is created at version 1. If resource of specified name exists already in specified group, resource is created at latest version + 1. If resource with identical content already exists, existing resource's ID is returned. \n",
-        "operationId": "postSchemaGroupSchema",
+        "operationId": "postSchemagroupSchema",
         "parameters": [
           {
             "$ref": "#/components/parameters/resource-description"
@@ -525,7 +525,7 @@
       "delete": {
         "summary": "Delete resource",
         "description": "Delete resource",
-        "operationId": "deleteSchemaGroupSchema",
+        "operationId": "deleteSchemagroupSchema",
         "parameters": [
           {
             "in": "query",
@@ -552,17 +552,17 @@
         }
       }
     },
-    "/schemaGroups/{groupId}/schemas/{resourceId}/versions": {
+    "/schemagroups/{groupid}/schemas/{resourceid}/versions": {
       "parameters": [
         {
-          "$ref": "#/components/parameters/groupId"
+          "$ref": "#/components/parameters/groupid"
         },
         {
-          "$ref": "#/components/parameters/resourceId"
+          "$ref": "#/components/parameters/resourceid"
         }
       ],
       "get": {
-        "operationId": "getSchemaGroupSchemaVersionsAll",
+        "operationId": "getSchemagroupSchemaVersionsAll",
         "description": "Get an optionally filtered collection of versions",
         "parameters": [
           {
@@ -620,16 +620,16 @@
         }
       }
     },
-    "/schemaGroups/{groupId}/schemas/{resourceId}/versions/{versionId}": {
+    "/schemagroups/{groupid}/schemas/{resourceid}/versions/{versionid}": {
       "parameters": [
         {
-          "$ref": "#/components/parameters/groupId"
+          "$ref": "#/components/parameters/groupid"
         },
         {
-          "$ref": "#/components/parameters/resourceId"
+          "$ref": "#/components/parameters/resourceid"
         },
         {
-          "$ref": "#/components/parameters/versionId"
+          "$ref": "#/components/parameters/versionid"
         },
         {
           "in": "query",
@@ -643,7 +643,7 @@
         }
       ],
       "get": {
-        "operationId": "getSchemaGroupSchemaVersion",
+        "operationId": "getSchemagroupSchemaVersion",
         "description": "Gets the document stored for the schema version",
         "responses": {
           "200": {
@@ -722,7 +722,7 @@
             }
           }
         ],
-        "operationId": "updateSchemaGroupSchemaVersion",
+        "operationId": "updateSchemagroupSchemaVersion",
         "description": "Updates the metadata for the schema version",
         "requestBody": {
           "description": "The schema version document",
@@ -770,7 +770,7 @@
             }
           }
         ],
-        "operationId": "deleteSchemaGroupSchemaVersion",
+        "operationId": "deleteSchemagroupSchemaVersion",
         "responses": {
           "204": {
             "description": "Ok"
@@ -823,9 +823,9 @@
           "format": "uri-reference"
         }
       },
-      "groupId": {
+      "groupid": {
         "in": "path",
-        "name": "groupId",
+        "name": "groupid",
         "description": "The id of the group",
         "required": true,
         "schema": {
@@ -834,9 +834,9 @@
           "format": "uri-reference"
         }
       },
-      "resourceId": {
+      "resourceid": {
         "in": "path",
-        "name": "resourceId",
+        "name": "resourceid",
         "description": "The id of the schema",
         "required": true,
         "schema": {
@@ -845,9 +845,9 @@
           "format": "uri-reference"
         }
       },
-      "versionId": {
+      "versionid": {
         "in": "path",
-        "name": "versionId",
+        "name": "versionid",
         "description": "The id of the schema",
         "required": true,
         "schema": {
@@ -1096,10 +1096,10 @@
       "document": {
         "type": "object",
         "properties": {
-          "schemaGroups": {
+          "schemagroups": {
             "type": "object",
             "additionalProperties": {
-              "$ref": "#/components/schemas/schemaGroup"
+              "$ref": "#/components/schemas/schemagroup"
             }
           }
         }
@@ -1134,17 +1134,17 @@
             "type": "string",
             "description": "Schema format identifier for this schema version."
           },
-          "createdby": {
+          "createdBy": {
             "type": "string"
           },
-          "createdon": {
+          "createdOn": {
             "type": "string",
             "format": "date-time"
           },
-          "modifiedby": {
+          "modifiedBy": {
             "type": "string"
           },
-          "modifiedon": {
+          "modifiedOn": {
             "type": "string",
             "format": "date-time"
           },
@@ -1196,17 +1196,17 @@
           "format": {
             "type": "string"
           },
-          "createdby": {
+          "createdBy": {
             "type": "string"
           },
-          "createdon": {
+          "createdOn": {
             "type": "string",
             "format": "date-time"
           },
-          "modifiedby": {
+          "modifiedBy": {
             "type": "string"
           },
-          "modifiedon": {
+          "modifiedOn": {
             "type": "string",
             "format": "date-time"
           },
@@ -1240,7 +1240,7 @@
           }
         ]
       },
-      "schemaGroup": {
+      "schemagroup": {
         "type": "object",
         "properties": {
           "id": {
@@ -1269,17 +1269,17 @@
           "format": {
             "type": "string"
           },
-          "createdby": {
+          "createdBy": {
             "type": "string"
           },
-          "createdon": {
+          "createdOn": {
             "type": "string",
             "format": "date-time"
           },
-          "modifiedby": {
+          "modifiedBy": {
             "type": "string"
           },
-          "modifiedon": {
+          "modifiedOn": {
             "type": "string",
             "format": "date-time"
           },

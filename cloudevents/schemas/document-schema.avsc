@@ -416,7 +416,7 @@
                                 },
                                 {
                                   "type": "string",
-                                  "name": "consumerGroup",
+                                  "name": "consumergroup",
                                   "doc": "The Apache Kafka consumer group name to use for consumers"
                                 },
                                 {
@@ -1522,12 +1522,12 @@
       }
     },
     {
-      "name": "definitionGroups",
+      "name": "definitiongroups",
       "type": {
         "type": "map",
         "values": {
           "type": "record",
-          "name": "DefinitionGroupType",
+          "name": "DefinitiongroupType",
           "fields": [
             {
               "name": "id",
@@ -1631,12 +1631,12 @@
       }
     },
     {
-      "name": "schemaGroups",
+      "name": "schemagroups",
       "type": {
         "type": "map",
         "values": {
           "type": "record",
-          "name": "SchemaGroupType",
+          "name": "SchemagroupType",
           "fields": [
             {
               "name": "id",

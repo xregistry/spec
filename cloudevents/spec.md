@@ -352,17 +352,17 @@ embedded or referenced. Any of the three sub-registries MAY be omitted.
    "$schema": "https://cloudevents.io/schemas/registry",
    "specversion": "0.4-wip",
 
-   "endpointsUrl": "URL",
-   "endpointsCount": INT,
+   "endpointsurl": "URL",
+   "endpointscount": INT,
    "endpoints": { ... },
 
-   "definitionGroupsUrl": "URL",
-   "definitionGroupsCount": INT,
-   "definitionGroups": { ... },
+   "definitiongroupsurl": "URL",
+   "definitiongroupscount": INT,
+   "definitiongroups": { ... },
 
-   "schemaGroupsUrl": "URL",
-   "schemaGroupsCount": INT,
-   "schemaGroups": { ... }
+   "schemagroupsurl": "URL",
+   "schemagroupscount": INT,
+   "schemagroups": { ... }
 }
 ```
 

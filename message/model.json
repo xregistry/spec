@@ -3,9 +3,9 @@
         "json-schema/draft-07"
     ],
     "groups": {
-        "definitionGroups": {
-            "singular": "definitionGroup",
-            "plural": "definitionGroups",
+        "definitiongroups": {
+            "singular": "definitiongroup",
+            "plural": "definitiongroups",
             "attributes": {
                 "format": {
                     "description": "Format identifier that defines the common metadata information for the message. All definitions in this group share this format. Mixed-format groups are not permitted.",
@@ -33,9 +33,9 @@
                             "description": "Message format identifier. This attribute MUST be the same as the 'format' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups.",
                             "type": "string",
                             "required": false,
-                            "ifValue": {
+                            "ifvalue": {
                                 "CloudEvents/1.0": {
-                                    "siblingAttributes": {
+                                    "siblingattributes": {
                                         "metadata": {
                                             "description": "CloudEvents metadata constraints.",
                                             "type": "object",
@@ -171,9 +171,9 @@
                             "description": "Binding identifier. This attribute MUST be the same as the 'binding' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups.",
                             "type": "string",
                             "required": false,
-                            "ifValue": {
+                            "ifvalue": {
                                 "AMQP/1.0": {
-                                    "siblingAttributes": {
+                                    "siblingattributes": {
                                         "message": {
                                             "description": "AMQP message metadata constraints.",
                                             "type": "object",
@@ -185,7 +185,7 @@
                                                         "required": false,
                                                         "item": {
                                                             "attributes": {
-                                                                "message-id": {
+                                                                "message_id": {
                                                                     "description": "AMQP message-id.",
                                                                     "type": "object",
                                                                     "required": false,
@@ -204,7 +204,7 @@
                                                                         }
                                                                     }
                                                                 },
-                                                                "user-id": {
+                                                                "user_id": {
                                                                     "description": "AMQP user-id.",
                                                                     "type": "object",
                                                                     "required": false,
@@ -261,7 +261,7 @@
                                                                         }
                                                                     }
                                                                 },
-                                                                "reply-to": {
+                                                                "reply_to": {
                                                                     "description": "AMQP reply-to.",
                                                                     "type": "object",
                                                                     "required": false,
@@ -280,7 +280,7 @@
                                                                         }
                                                                     }
                                                                 },
-                                                                "correlation-id": {
+                                                                "correlation_id": {
                                                                     "description": "AMQP correlation-id.",
                                                                     "type": "object",
                                                                     "required": false,
@@ -299,7 +299,7 @@
                                                                         }
                                                                     }
                                                                 },
-                                                                "content-type": {
+                                                                "content_type": {
                                                                     "description": "AMQP content-type.",
                                                                     "type": "object",
                                                                     "required": false,
@@ -318,7 +318,7 @@
                                                                         }
                                                                     }
                                                                 },
-                                                                "content-encoding": {
+                                                                "content_encoding": {
                                                                     "description": "AMQP content-encoding.",
                                                                     "type": "object",
                                                                     "required": false,
@@ -337,7 +337,7 @@
                                                                         }
                                                                     }
                                                                 },
-                                                                "absolute-expiry-time": {
+                                                                "absolute_expiry_time": {
                                                                     "description": "AMQP absolute-expiry-time.",
                                                                     "type": "object",
                                                                     "required": false,
@@ -356,7 +356,7 @@
                                                                         }
                                                                     }
                                                                 },
-                                                                "group-id": {
+                                                                "group_id": {
                                                                     "description": "AMQP group-id.",
                                                                     "type": "object",
                                                                     "required": false,
@@ -375,7 +375,7 @@
                                                                         }
                                                                     }
                                                                 },
-                                                                "group-sequence": {
+                                                                "group_sequence": {
                                                                     "description": "AMQP group-sequence.",
                                                                     "type": "object",
                                                                     "required": false,
@@ -394,7 +394,7 @@
                                                                         }
                                                                     }
                                                                 },
-                                                                "reply-to-group-id": {
+                                                                "reply_to_group_id": {
                                                                     "description": "AMQP reply-to-group-id.",
                                                                     "type": "object",
                                                                     "required": false,
@@ -416,7 +416,7 @@
                                                             }
                                                         }
                                                     },
-                                                    "application-properties": {
+                                                    "application_properties": {
                                                         "type": "map",
                                                         "required": false,
                                                         "item": {
@@ -442,7 +442,7 @@
                                                             }
                                                         }
                                                     },
-                                                    "message-annotations": {
+                                                    "message_annotations": {
                                                         "type": "map",
                                                         "required": false,
                                                         "item": {
@@ -468,7 +468,7 @@
                                                             }
                                                         }
                                                     },
-                                                    "delivery-annotations": {
+                                                    "delivery_annotations": {
                                                         "type": "map",
                                                         "required": false,
                                                         "item": {
@@ -552,7 +552,7 @@
                                     }
                                 },
                                 "MQTT/3.1.1": {
-                                    "siblingAttributes": {
+                                    "siblingattributes": {
                                         "message": {
                                             "description": "MQTT message metadata constraints.",
                                             "type": "object",
@@ -587,7 +587,7 @@
                                                             }
                                                         }
                                                     },
-                                                    "topic-name": {
+                                                    "topic_name": {
                                                         "description": "MQTT topic-name.",
                                                         "type": "object",
                                                         "required": false,
@@ -607,7 +607,7 @@
                                     }
                                 },
                                 "MQTT/5.0": {
-                                    "siblingAttributes": {
+                                    "siblingattributes": {
                                         "message": {
                                             "description": "MQTT message metadata constraints.",
                                             "type": "object",
@@ -642,7 +642,7 @@
                                                             }
                                                         }
                                                     },
-                                                    "topic-name": {
+                                                    "topic_name": {
                                                         "description": "MQTT topic-name.",
                                                         "type": "object",
                                                         "required": false,
@@ -656,7 +656,7 @@
                                                             }
                                                         }
                                                     },
-                                                    "message-expiry-interval": {
+                                                    "message_expiry_interval": {
                                                         "description": "MQTT message-expiry-interval.",
                                                         "type": "object",
                                                         "required": false,
@@ -670,7 +670,7 @@
                                                             }
                                                         }
                                                     },
-                                                    "response-topic": {
+                                                    "response_topic": {
                                                         "description": "MQTT response-topic.",
                                                         "type": "object",
                                                         "required": false,
@@ -684,7 +684,7 @@
                                                             }
                                                         }
                                                     },
-                                                    "correlation-data": {
+                                                    "correlation_data": {
                                                         "description": "MQTT correlation-data.",
                                                         "type": "object",
                                                         "required": false,
@@ -698,7 +698,7 @@
                                                             }
                                                         }
                                                     },
-                                                    "content-type": {
+                                                    "content_type": {
                                                         "description": "MQTT content-type.",
                                                         "type": "object",
                                                         "required": false,
@@ -712,7 +712,7 @@
                                                             }
                                                         }
                                                     },
-                                                    "user-properties": {
+                                                    "user_properties": {
                                                         "description": "MQTT user-properties.",
                                                         "type": "array",
                                                         "required": false,
@@ -740,7 +740,7 @@
                                     }
                                 },
                                 "KAFKA": {
-                                    "siblingAttributes": {
+                                    "siblingattributes": {
                                         "message": {
                                             "description": "The Apache Kafka message metadata constraints.",
                                             "type": "object",
@@ -795,7 +795,7 @@
                                     }
                                 },
                                 "HTTP": {
-                                    "siblingAttributes": {
+                                    "siblingattributes": {
                                         "message": {
                                             "description": "The HTTP message metadata constraints.",
                                             "type": "object",

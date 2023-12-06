@@ -56,9 +56,9 @@
                                 "description": "endpoint protocol identifier",
                                 "type": "string",
                                 "required": true,
-                                "ifValue": {
+                                "ifvalue": {
                                     "AMQP/1.0": {
-                                        "siblingAttributes": {
+                                        "siblingattributes": {
                                             "options": {
                                                 "description": "AMQP 1.0 connection options",
                                                 "type": "object",
@@ -74,7 +74,7 @@
                                                             "type": "boolean",
                                                             "required": false
                                                         },
-                                                        "link-properties": {
+                                                        "link_properties": {
                                                             "description": "An optional map of AMQP link properties to use with the endpoint",
                                                             "type": "map",
                                                             "required": false,
@@ -96,7 +96,7 @@
                                                                 }
                                                             }
                                                         },
-                                                        "connection-properties": {
+                                                        "connection_properties": {
                                                             "description": "An optional map of AMQP connection properties to use with the endpoint",
                                                             "type": "object",
                                                             "required": false,
@@ -115,7 +115,7 @@
                                                                 }
                                                             }
                                                         },
-                                                        "distribution-mode": {
+                                                        "distribution_mode": {
                                                             "description": "The AMQP distribution mode for receivers. Can be 'move' or 'copy'.  A value of 'move' indicates an exclusive lock on the message. A value of 'copy' indicates a non-exclusive lock on the message.",
                                                             "type": "string",
                                                             "required": false,
@@ -135,7 +135,7 @@
                                         }
                                     },
                                     "MQTT/5.0": {
-                                        "siblingAttributes": {
+                                        "siblingattributes": {
                                             "options": {
                                                 "description": "MQTT 5.0 connection options",
                                                 "type": "object",
@@ -156,17 +156,17 @@
                                                             "type": "boolean",
                                                             "required": false
                                                         },
-                                                        "clean-session": {
+                                                        "clean_session": {
                                                             "description": "The MQTT clean session flag to use for publishers on this endpoint",
                                                             "type": "boolean",
                                                             "required": false
                                                         },
-                                                        "will-topic": {
+                                                        "will_topic": {
                                                             "description": "The MQTT will topic to configure for publishers on this endpoint",
                                                             "type": "string",
                                                             "required": false
                                                         },
-                                                        "will-message": {
+                                                        "will_message": {
                                                             "description": "The MQTT will message definition to configure for publishers on this endpoint",
                                                             "type": "uri",
                                                             "required": false
@@ -177,7 +177,7 @@
                                         }
                                     },
                                     "MQTT/3.1.1": {
-                                        "siblingAttributes": {
+                                        "siblingattributes": {
                                             "options": {
                                                 "description": "MQTT 3.1.1 connection options",
                                                 "type": "object",
@@ -198,17 +198,17 @@
                                                             "type": "boolean",
                                                             "required": false
                                                         },
-                                                        "clean-session": {
+                                                        "clean_session": {
                                                             "description": "The MQTT clean session flag to use for publishers on this endpoint",
                                                             "type": "boolean",
                                                             "required": false
                                                         },
-                                                        "will-topic": {
+                                                        "will_topic": {
                                                             "description": "The MQTT will topic to configure for publishers on this endpoint",
                                                             "type": "string",
                                                             "required": false
                                                         },
-                                                        "will-message": {
+                                                        "will_message": {
                                                             "description": "The MQTT will message definition to configure for publishers on this endpoint",
                                                             "type": "uri",
                                                             "required": false
@@ -219,7 +219,7 @@
                                         }
                                     },
                                     "HTTP": {
-                                        "siblingAttributes": {
+                                        "siblingattributes": {
                                             "options": {
                                                 "description": "HTTP options. These apply to all HTTP versions since the application model is the same across versions.",
                                                 "type": "object",
@@ -280,7 +280,7 @@
                                         }
                                     },
                                     "KAFKA": {
-                                        "siblingAttributes": {
+                                        "siblingattributes": {
                                             "options": {
                                                 "description": "Apache Kafka options",
                                                 "type": "object",
@@ -301,7 +301,7 @@
                                                             "type": "binary",
                                                             "required": false
                                                         },
-                                                        "consumer-group": {
+                                                        "consumergroup": {
                                                             "description": "The Apache Kafka consumer group name to use for consumers",
                                                             "type": "string",
                                                             "required": false
@@ -339,7 +339,7 @@
                                         }
                                     },
                                     "NATS": {
-                                        "siblingAttributes": {
+                                        "siblingattributes": {
                                             "options": {
                                                 "description": "NATS options",
                                                 "type": "object",
@@ -376,7 +376,7 @@
             },
             "resources": {
                 "definitions": {
-                    "uri": "../message/model.json#/groups/definitionGroups/resources/definitions"
+                    "uri": "../message/model.json#/groups/definitiongroups/resources/definitions"
                 }
             }
         }

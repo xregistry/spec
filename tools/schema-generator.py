@@ -175,16 +175,16 @@ def generate_openapi(model_definition):
             openapi["paths"][f"/{group['plural']}"]: path_template_copy
         openapi["paths"].pop(path)
 
-        path = "/{%-groupNamePlural-%}/{groupId}"
+        path = "/{%-groupNamePlural-%}/{groupid}"
         group_template = openapi["paths"][path]
         for _, group in model_definition.get("groups", {}).items():
             group_template_copy = copy.deepcopy(group_template)
             replace_refs(group_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{group['singular']}")
             replace_ops(group_template_copy, "{%-groupNameSingular-%}", f"{pascal(group['singular'])}")
-            openapi["paths"][f"/{group['plural']}/{{groupId}}"] = group_template_copy
+            openapi["paths"][f"/{group['plural']}/{{groupid}}"] = group_template_copy
         
         openapi["paths"].pop(path)
-        path = "/{%-groupNamePlural-%}/{groupId}/{%-resourceNamePlural-%}"
+        path = "/{%-groupNamePlural-%}/{groupid}/{%-resourceNamePlural-%}"
         resource_template = openapi["paths"][path]
         for _, group in model_definition.get("groups", {}).items():
             for _, resource in group.get("resources", {}).items():
@@ -193,10 +193,10 @@ def generate_openapi(model_definition):
                 replace_refs(resource_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{resource['singular']}")
                 replace_refs(resource_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{group['singular']}")        
                 replace_ops(resource_template_copy, "{%-resourceNamePlural-%}", f"{pascal(group['singular'])}{pascal(resource['plural'])}")    
-                openapi["paths"][f"/{group['plural']}/{{groupId}}/{resource['plural']}"]= resource_template_copy
+                openapi["paths"][f"/{group['plural']}/{{groupid}}/{resource['plural']}"]= resource_template_copy
 
         openapi["paths"].pop(path)
-        path = "/{%-groupNamePlural-%}/{groupId}/{%-resourceNamePlural-%}/{resourceId}"
+        path = "/{%-groupNamePlural-%}/{groupid}/{%-resourceNamePlural-%}/{resourceid}"
         resourceid_template = openapi["paths"][path]
         for _, group in model_definition.get("groups", {}).items():
             for _, resource in group.get("resources", {}).items():
@@ -205,10 +205,10 @@ def generate_openapi(model_definition):
                 replace_refs(resourceid_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{resource['singular']}")
                 replace_refs(resourceid_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{group['singular']}")
                 replace_ops(resourceid_template_copy, "{%-resourceNameSingular-%}", f"{pascal(group['singular'])}{pascal(resource['singular'])}")
-                openapi["paths"][f"/{group['plural']}/{{groupId}}/{resource['plural']}/{{resourceId}}"]= resourceid_template_copy
+                openapi["paths"][f"/{group['plural']}/{{groupid}}/{resource['plural']}/{{resourceid}}"]= resourceid_template_copy
 
         openapi["paths"].pop(path)
-        path = "/{%-groupNamePlural-%}/{groupId}/{%-resourceNamePlural-%}/{resourceId}/versions"
+        path = "/{%-groupNamePlural-%}/{groupid}/{%-resourceNamePlural-%}/{resourceid}/versions"
         versions_template = openapi["paths"][path]
         for _, group in model_definition.get("groups", {}).items():
             for _, resource in group.get("resources", {}).items():
@@ -217,10 +217,10 @@ def generate_openapi(model_definition):
                 replace_refs(versions_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{resource['singular']}")
                 replace_refs(versions_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{group['singular']}")
                 replace_ops(versions_template_copy, "{%-resourceNameSingular-%}", f"{pascal(group['singular'])}{pascal(resource['singular'])}")
-                openapi["paths"][f"/{group['plural']}/{{groupId}}/{resource['plural']}/{{resourceId}}/versions"]= versions_template_copy
+                openapi["paths"][f"/{group['plural']}/{{groupid}}/{resource['plural']}/{{resourceid}}/versions"]= versions_template_copy
 
         openapi["paths"].pop(path)
-        path = "/{%-groupNamePlural-%}/{groupId}/{%-resourceNamePlural-%}/{resourceId}/versions/{versionId}"
+        path = "/{%-groupNamePlural-%}/{groupid}/{%-resourceNamePlural-%}/{resourceid}/versions/{versionid}"
         versionid_template = openapi["paths"][path]
         for _, group in model_definition.get("groups", {}).items():
             for _, resource in group.get("resources", {}).items():
@@ -229,7 +229,7 @@ def generate_openapi(model_definition):
                 replace_refs(versionid_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{resource['singular']}")
                 replace_refs(versionid_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{group['singular']}")
                 replace_ops(versionid_template_copy, "{%-resourceNameSingular-%}", f"{pascal(group['singular'])}{pascal(resource['singular'])}")
-                openapi["paths"][f"/{group['plural']}/{{groupId}}/{resource['plural']}/{{resourceId}}/versions/{{versionId}}"]= versionid_template_copy
+                openapi["paths"][f"/{group['plural']}/{{groupid}}/{resource['plural']}/{{resourceid}}/versions/{{versionid}}"]= versionid_template_copy
 
         openapi["paths"].pop(path)
         return openapi
@@ -275,7 +275,7 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
         """
         This function takes in a resource schema and a dictionary of attributes and their properties.
         It iterates through each attribute and creates a JSON schema for it based on its properties.
-        The function also handles nested attributes and conditional attributes using the "ifValue" property.
+        The function also handles nested attributes and conditional attributes using the "ifvalue" property.
         The resulting schema is added to the resource schema.
         """
         for attr_name, attr_props in attributes.items():
@@ -293,9 +293,9 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
                     resource_schema["required"] = []
                 resource_schema["required"].append(attr_name)
                             
-            if "ifValue" in attr_props:
+            if "ifvalue" in attr_props:
                 if attr_name == "*":
-                    raise Exception("Can't use wild card attribute name with ifValue")
+                    raise Exception("Can't use wild card attribute name with ifvalue")
                 
                 if for_openapi:
                     resource_schema["discriminator"] = {
@@ -309,7 +309,7 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
                         resource_schema["required"].remove(attr_name)
 
                 one_of = []
-                for condition_value, condition_props in attr_props["ifValue"].items():
+                for condition_value, condition_props in attr_props["ifvalue"].items():
                     # create an identifier from condition_value, turning all spaces and special characters in to underscore
                     condition_schema_identifier = attr_name + "_" + "".join([c if c.isalnum() else "_" for c in condition_value])   
                     # for openapi, add a reference to this schema in the discriminator mapping         
@@ -326,7 +326,7 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
                                 },
                                 "required": [attr_name]
                             }
-                    handle_attributes(conditional_schema,  condition_props.get("siblingAttributes", {}))
+                    handle_attributes(conditional_schema,  condition_props.get("siblingattributes", {}))
                     if for_openapi:
                         resource_schema["discriminator"]["mapping"][condition_value] = f"#/components/schemas/{condition_schema_identifier}"
                         schema_definitions[condition_schema_identifier] = copy.deepcopy(conditional_schema)
@@ -524,15 +524,15 @@ def generate_avro_schema(model_definition) -> dict:
                     else:
                         raise Exception("array or map attribute must have an item specified")
 
-            if "ifValue" in attr_props:
+            if "ifvalue" in attr_props:
                 if attr_name == "*":
-                    raise Exception("Can't use wild card attribute name with ifValue")
+                    raise Exception("Can't use wild card attribute name with ifvalue")
           
                 if pascal_attr_name in resource_schema["fields"]:
                     resource_schema["fields"].pop(pascal_attr_name)
 
                 union = []
-                for condition_value, condition_props in attr_props["ifValue"].items():
+                for condition_value, condition_props in attr_props["ifvalue"].items():
                     # create an identifier from condition_value, turning all spaces and special characters in to underscore
                     condition_schema_identifier = pascal_attr_name + pascal("".join([c if c.isalnum() else "_" for c in condition_value]))   
                     conditional_schema = {
@@ -540,7 +540,7 @@ def generate_avro_schema(model_definition) -> dict:
                                 "name": type_prefix+condition_schema_identifier+"Type",
                                 "fields": []
                             }
-                    handle_attributes(conditional_schema,  condition_props.get("siblingAttributes", {}), condition_schema_identifier)
+                    handle_attributes(conditional_schema,  condition_props.get("siblingattributes", {}), condition_schema_identifier)
                     union.append(conditional_schema)
                 if len(union) > 0: 
                     field_schema = {

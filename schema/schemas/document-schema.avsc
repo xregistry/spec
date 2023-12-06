@@ -4,12 +4,12 @@
   "namespace": "io.xregistry",
   "fields": [
     {
-      "name": "schemaGroups",
+      "name": "schemagroups",
       "type": {
         "type": "map",
         "values": {
           "type": "record",
-          "name": "SchemaGroupType",
+          "name": "SchemagroupType",
           "fields": [
             {
               "name": "id",
@@ -58,14 +58,14 @@
               }
             },
             {
-              "name": "createdby",
+              "name": "createdBy",
               "type": [
                 "string",
                 "null"
               ]
             },
             {
-              "name": "createdon",
+              "name": "createdOn",
               "type": [
                 {
                   "type": "int",
@@ -75,14 +75,14 @@
               ]
             },
             {
-              "name": "modifiedby",
+              "name": "modifiedBy",
               "type": [
                 "string",
                 "null"
               ]
             },
             {
-              "name": "modifiedon",
+              "name": "modifiedOn",
               "type": [
                 {
                   "type": "int",
@@ -146,14 +146,14 @@
                       }
                     },
                     {
-                      "name": "createdby",
+                      "name": "createdBy",
                       "type": [
                         "string",
                         "null"
                       ]
                     },
                     {
-                      "name": "createdon",
+                      "name": "createdOn",
                       "type": [
                         {
                           "type": "int",
@@ -163,14 +163,14 @@
                       ]
                     },
                     {
-                      "name": "modifiedby",
+                      "name": "modifiedBy",
                       "type": [
                         "string",
                         "null"
                       ]
                     },
                     {
-                      "name": "modifiedon",
+                      "name": "modifiedOn",
                       "type": [
                         {
                           "type": "int",
@@ -235,14 +235,14 @@
                                 }
                               },
                               {
-                                "name": "createdby",
+                                "name": "createdBy",
                                 "type": [
                                   "string",
                                   "null"
                                 ]
                               },
                               {
-                                "name": "createdon",
+                                "name": "createdOn",
                                 "type": [
                                   {
                                     "type": "int",
@@ -252,14 +252,14 @@
                                 ]
                               },
                               {
-                                "name": "modifiedby",
+                                "name": "modifiedBy",
                                 "type": [
                                   "string",
                                   "null"
                                 ]
                               },
                               {
-                                "name": "modifiedon",
+                                "name": "modifiedOn",
                                 "type": [
                                   {
                                     "type": "int",

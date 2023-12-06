@@ -81,21 +81,21 @@
         }
       }
     },
-    "/definitionGroups/{groupId}": {
+    "/definitiongroups/{groupid}": {
       "parameters": [
         {
-          "$ref": "#/components/parameters/groupId"
+          "$ref": "#/components/parameters/groupid"
         }
       ],
       "get": {
-        "operationId": "getDefinitionGroup",
+        "operationId": "getDefinitiongroup",
         "responses": {
           "200": {
             "description": "The resource group",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/definitionGroup"
+                  "$ref": "#/components/schemas/definitiongroup"
                 }
               }
             }
@@ -122,14 +122,14 @@
             }
           }
         ],
-        "operationId": "putDefinitionGroup",
+        "operationId": "putDefinitiongroup",
         "description": "creates or updates the resource group",
         "requestBody": {
           "description": "A request to create or update the discovery group's collection of groups with the given group",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/definitionGroup"
+                "$ref": "#/components/schemas/definitiongroup"
               }
             }
           }
@@ -140,7 +140,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/definitionGroup"
+                  "$ref": "#/components/schemas/definitiongroup"
                 }
               }
             }
@@ -157,7 +157,7 @@
         }
       },
       "delete": {
-        "operationId": "deleteDefinitionGroup",
+        "operationId": "deleteDefinitiongroup",
         "parameters": [
           {
             "in": "query",
@@ -184,14 +184,14 @@
         }
       }
     },
-    "/definitionGroups/{groupId}/definitions": {
+    "/definitiongroups/{groupid}/definitions": {
       "parameters": [
         {
-          "$ref": "#/components/parameters/groupId"
+          "$ref": "#/components/parameters/groupid"
         }
       ],
       "get": {
-        "operationId": "getDefinitionGroupDefinitionsAll",
+        "operationId": "getDefinitiongroupDefinitionsAll",
         "description": "Get an optionally filtered collection of resources",
         "parameters": [
           {
@@ -259,13 +259,13 @@
         }
       }
     },
-    "/definitionGroups/{groupId}/definitions/{resourceId}": {
+    "/definitiongroups/{groupid}/definitions/{resourceid}": {
       "parameters": [
         {
-          "$ref": "#/components/parameters/groupId"
+          "$ref": "#/components/parameters/groupid"
         },
         {
-          "$ref": "#/components/parameters/resourceId"
+          "$ref": "#/components/parameters/resourceid"
         },
         {
           "in": "query",
@@ -278,7 +278,7 @@
         }
       ],
       "get": {
-        "operationId": "getDefinitionGroupDefinition",
+        "operationId": "getDefinitiongroupDefinition",
         "responses": {
           "200": {
             "description": "The corresponding resource",
@@ -377,7 +377,7 @@
         ],
         "summary": "Create or update a resource",
         "description": "Create a resource. ",
-        "operationId": "putDefinitionGroupDefinition",
+        "operationId": "putDefinitiongroupDefinition",
         "requestBody": {
           "description": "The resource to be created/updated",
           "content": {
@@ -417,7 +417,7 @@
       "post": {
         "summary": "Post new resource version",
         "description": "Register resource version If resource of specified name does not exist in specified group, resource and resource version is created at version 1. If resource of specified name exists already in specified group, resource is created at latest version + 1. If resource with identical content already exists, existing resource's ID is returned. \n",
-        "operationId": "postDefinitionGroupDefinition",
+        "operationId": "postDefinitiongroupDefinition",
         "parameters": [
           {
             "$ref": "#/components/parameters/resource-description"
@@ -525,7 +525,7 @@
       "delete": {
         "summary": "Delete resource",
         "description": "Delete resource",
-        "operationId": "deleteDefinitionGroupDefinition",
+        "operationId": "deleteDefinitiongroupDefinition",
         "parameters": [
           {
             "in": "query",
@@ -552,17 +552,17 @@
         }
       }
     },
-    "/definitionGroups/{groupId}/definitions/{resourceId}/versions": {
+    "/definitiongroups/{groupid}/definitions/{resourceid}/versions": {
       "parameters": [
         {
-          "$ref": "#/components/parameters/groupId"
+          "$ref": "#/components/parameters/groupid"
         },
         {
-          "$ref": "#/components/parameters/resourceId"
+          "$ref": "#/components/parameters/resourceid"
         }
       ],
       "get": {
-        "operationId": "getDefinitionGroupDefinitionVersionsAll",
+        "operationId": "getDefinitiongroupDefinitionVersionsAll",
         "description": "Get an optionally filtered collection of versions",
         "parameters": [
           {
@@ -620,16 +620,16 @@
         }
       }
     },
-    "/definitionGroups/{groupId}/definitions/{resourceId}/versions/{versionId}": {
+    "/definitiongroups/{groupid}/definitions/{resourceid}/versions/{versionid}": {
       "parameters": [
         {
-          "$ref": "#/components/parameters/groupId"
+          "$ref": "#/components/parameters/groupid"
         },
         {
-          "$ref": "#/components/parameters/resourceId"
+          "$ref": "#/components/parameters/resourceid"
         },
         {
-          "$ref": "#/components/parameters/versionId"
+          "$ref": "#/components/parameters/versionid"
         },
         {
           "in": "query",
@@ -643,7 +643,7 @@
         }
       ],
       "get": {
-        "operationId": "getDefinitionGroupDefinitionVersion",
+        "operationId": "getDefinitiongroupDefinitionVersion",
         "description": "Gets the document stored for the schema version",
         "responses": {
           "200": {
@@ -722,7 +722,7 @@
             }
           }
         ],
-        "operationId": "updateDefinitionGroupDefinitionVersion",
+        "operationId": "updateDefinitiongroupDefinitionVersion",
         "description": "Updates the metadata for the schema version",
         "requestBody": {
           "description": "The schema version document",
@@ -770,7 +770,7 @@
             }
           }
         ],
-        "operationId": "deleteDefinitionGroupDefinitionVersion",
+        "operationId": "deleteDefinitiongroupDefinitionVersion",
         "responses": {
           "204": {
             "description": "Ok"
@@ -823,9 +823,9 @@
           "format": "uri-reference"
         }
       },
-      "groupId": {
+      "groupid": {
         "in": "path",
-        "name": "groupId",
+        "name": "groupid",
         "description": "The id of the group",
         "required": true,
         "schema": {
@@ -834,9 +834,9 @@
           "format": "uri-reference"
         }
       },
-      "resourceId": {
+      "resourceid": {
         "in": "path",
-        "name": "resourceId",
+        "name": "resourceid",
         "description": "The id of the schema",
         "required": true,
         "schema": {
@@ -845,9 +845,9 @@
           "format": "uri-reference"
         }
       },
-      "versionId": {
+      "versionid": {
         "in": "path",
-        "name": "versionId",
+        "name": "versionid",
         "description": "The id of the schema",
         "required": true,
         "schema": {
@@ -1096,10 +1096,10 @@
       "document": {
         "type": "object",
         "properties": {
-          "definitionGroups": {
+          "definitiongroups": {
             "type": "object",
             "additionalProperties": {
-              "$ref": "#/components/schemas/definitionGroup"
+              "$ref": "#/components/schemas/definitiongroup"
             }
           }
         }
@@ -1227,7 +1227,7 @@
               "properties": {
                 "type": "object",
                 "properties": {
-                  "message-id": {
+                  "message_id": {
                     "type": "object",
                     "description": "AMQP message-id.",
                     "properties": {
@@ -1241,7 +1241,7 @@
                       }
                     }
                   },
-                  "user-id": {
+                  "user_id": {
                     "type": "object",
                     "description": "AMQP user-id.",
                     "properties": {
@@ -1283,7 +1283,7 @@
                       }
                     }
                   },
-                  "reply-to": {
+                  "reply_to": {
                     "type": "object",
                     "description": "AMQP reply-to.",
                     "properties": {
@@ -1297,7 +1297,7 @@
                       }
                     }
                   },
-                  "correlation-id": {
+                  "correlation_id": {
                     "type": "object",
                     "description": "AMQP correlation-id.",
                     "properties": {
@@ -1311,7 +1311,7 @@
                       }
                     }
                   },
-                  "content-type": {
+                  "content_type": {
                     "type": "object",
                     "description": "AMQP content-type.",
                     "properties": {
@@ -1325,7 +1325,7 @@
                       }
                     }
                   },
-                  "content-encoding": {
+                  "content_encoding": {
                     "type": "object",
                     "description": "AMQP content-encoding.",
                     "properties": {
@@ -1339,7 +1339,7 @@
                       }
                     }
                   },
-                  "absolute-expiry-time": {
+                  "absolute_expiry_time": {
                     "type": "object",
                     "description": "AMQP absolute-expiry-time.",
                     "properties": {
@@ -1353,7 +1353,7 @@
                       }
                     }
                   },
-                  "group-id": {
+                  "group_id": {
                     "type": "object",
                     "description": "AMQP group-id.",
                     "properties": {
@@ -1367,7 +1367,7 @@
                       }
                     }
                   },
-                  "group-sequence": {
+                  "group_sequence": {
                     "type": "object",
                     "description": "AMQP group-sequence.",
                     "properties": {
@@ -1381,7 +1381,7 @@
                       }
                     }
                   },
-                  "reply-to-group-id": {
+                  "reply_to_group_id": {
                     "type": "object",
                     "description": "AMQP reply-to-group-id.",
                     "properties": {
@@ -1393,6 +1393,106 @@
                         "type": "boolean",
                         "description": "AMQP reply-to-group-id required."
                       }
+                    }
+                  }
+                }
+              },
+              "application_properties": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "string",
+                      "description": "The application property value template."
+                    },
+                    "required": {
+                      "type": "boolean",
+                      "description": "The application property required."
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "The application property type."
+                    }
+                  }
+                }
+              },
+              "message_annotations": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "string",
+                      "description": "The message annotation value"
+                    },
+                    "required": {
+                      "type": "boolean",
+                      "description": "Whether the message annotation is required"
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "The message annotation type."
+                    }
+                  }
+                }
+              },
+              "delivery_annotations": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "string",
+                      "description": "The delivery annotation value"
+                    },
+                    "required": {
+                      "type": "boolean",
+                      "description": "Whether the annotation is required"
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "The annotation type."
+                    }
+                  }
+                }
+              },
+              "header": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "string",
+                      "description": "AMQP header value."
+                    },
+                    "required": {
+                      "type": "boolean",
+                      "description": "AMQP header required."
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "AMQP header type."
+                    }
+                  }
+                }
+              },
+              "footer": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "string",
+                      "description": "AMQP footer value."
+                    },
+                    "required": {
+                      "type": "boolean",
+                      "description": "AMQP footer required."
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "AMQP footer type."
                     }
                   }
                 }
@@ -1415,7 +1515,39 @@
           },
           "message": {
             "type": "object",
-            "description": "MQTT message metadata constraints."
+            "description": "MQTT message metadata constraints.",
+            "properties": {
+              "qos": {
+                "type": "object",
+                "description": "MQTT qos.",
+                "properties": {
+                  "value": {
+                    "type": "string",
+                    "description": "MQTT qos value template."
+                  }
+                }
+              },
+              "retain": {
+                "type": "object",
+                "description": "MQTT retain.",
+                "properties": {
+                  "value": {
+                    "type": "boolean",
+                    "description": "MQTT retain value template."
+                  }
+                }
+              },
+              "topic_name": {
+                "type": "object",
+                "description": "MQTT topic-name.",
+                "properties": {
+                  "value": {
+                    "type": "string",
+                    "description": "MQTT topic-name value template."
+                  }
+                }
+              }
+            }
           }
         },
         "required": [
@@ -1433,7 +1565,97 @@
           },
           "message": {
             "type": "object",
-            "description": "MQTT message metadata constraints."
+            "description": "MQTT message metadata constraints.",
+            "properties": {
+              "qos": {
+                "type": "object",
+                "description": "MQTT qos.",
+                "properties": {
+                  "value": {
+                    "type": "integer",
+                    "description": "MQTT qos value template."
+                  }
+                }
+              },
+              "retain": {
+                "type": "object",
+                "description": "MQTT retain.",
+                "properties": {
+                  "value": {
+                    "type": "boolean",
+                    "description": "MQTT retain value template."
+                  }
+                }
+              },
+              "topic_name": {
+                "type": "object",
+                "description": "MQTT topic-name.",
+                "properties": {
+                  "value": {
+                    "type": "string",
+                    "description": "MQTT topic-name value template."
+                  }
+                }
+              },
+              "message_expiry_interval": {
+                "type": "object",
+                "description": "MQTT message-expiry-interval.",
+                "properties": {
+                  "value": {
+                    "type": "integer",
+                    "description": "MQTT message-expiry-interval value template."
+                  }
+                }
+              },
+              "response_topic": {
+                "type": "object",
+                "description": "MQTT response-topic.",
+                "properties": {
+                  "value": {
+                    "type": "string",
+                    "description": "MQTT response-topic value template."
+                  }
+                }
+              },
+              "correlation_data": {
+                "type": "object",
+                "description": "MQTT correlation-data.",
+                "properties": {
+                  "value": {
+                    "type": "string",
+                    "format": "base64",
+                    "description": "MQTT correlation-data value template."
+                  }
+                }
+              },
+              "content_type": {
+                "type": "object",
+                "description": "MQTT content-type.",
+                "properties": {
+                  "value": {
+                    "type": "string",
+                    "description": "MQTT content-type value template."
+                  }
+                }
+              },
+              "user_properties": {
+                "type": "array",
+                "description": "MQTT user-properties.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "MQTT user-property name."
+                    },
+                    "value": {
+                      "type": "string",
+                      "description": "MQTT user-property value."
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "required": [
@@ -1451,7 +1673,43 @@
           },
           "message": {
             "type": "object",
-            "description": "The Apache Kafka message metadata constraints."
+            "description": "The Apache Kafka message metadata constraints.",
+            "properties": {
+              "topic": {
+                "type": "string",
+                "description": "The Apache Kafka topic."
+              },
+              "partition": {
+                "type": "integer",
+                "description": "The Apache Kafka partition."
+              },
+              "key": {
+                "type": "string",
+                "format": "base64",
+                "description": "The Apache Kafka key."
+              },
+              "headers": {
+                "type": "object",
+                "description": "The Apache Kafka headers.",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "The Apache Kafka header name."
+                    },
+                    "value": {
+                      "type": "string",
+                      "description": "The Apache Kafka header value."
+                    }
+                  }
+                }
+              },
+              "timestamp": {
+                "type": "integer",
+                "description": "The Apache Kafka timestamp."
+              }
+            }
           }
         },
         "required": [
@@ -1469,7 +1727,38 @@
           },
           "message": {
             "type": "object",
-            "description": "The HTTP message metadata constraints."
+            "description": "The HTTP message metadata constraints.",
+            "properties": {
+              "headers": {
+                "type": "array",
+                "description": "The HTTP headers.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "The HTTP header name."
+                    },
+                    "value": {
+                      "type": "string",
+                      "description": "The HTTP header value."
+                    }
+                  }
+                }
+              },
+              "query": {
+                "type": "object",
+                "description": "The HTTP query parameters."
+              },
+              "path": {
+                "type": "string",
+                "description": "The HTTP path as a uri template."
+              },
+              "method": {
+                "type": "string",
+                "description": "The HTTP method."
+              }
+            }
           }
         },
         "required": [
@@ -1502,17 +1791,17 @@
           "labels": {
             "type": "object"
           },
-          "createdby": {
+          "createdBy": {
             "type": "string"
           },
-          "createdon": {
+          "createdOn": {
             "type": "string",
             "format": "date-time"
           },
-          "modifiedby": {
+          "modifiedBy": {
             "type": "string"
           },
-          "modifiedon": {
+          "modifiedOn": {
             "type": "string",
             "format": "date-time"
           },
@@ -1536,7 +1825,7 @@
           }
         }
       },
-      "definitionGroup": {
+      "definitiongroup": {
         "type": "object",
         "properties": {
           "id": {
@@ -1566,17 +1855,17 @@
             "type": "string",
             "description": "Format identifier that defines the common metadata information for the message. All definitions in this group share this format. Mixed-format groups are not permitted."
           },
-          "createdby": {
+          "createdBy": {
             "type": "string"
           },
-          "createdon": {
+          "createdOn": {
             "type": "string",
             "format": "date-time"
           },
-          "modifiedby": {
+          "modifiedBy": {
             "type": "string"
           },
-          "modifiedon": {
+          "modifiedOn": {
             "type": "string",
             "format": "date-time"
           },
