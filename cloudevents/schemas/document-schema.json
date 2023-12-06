@@ -261,6 +261,7 @@
                 "application-properties": {
                   "type": "object",
                   "additionalProperties": {
+                    "type": "object",
                     "properties": {
                       "value": {
                         "type": "string",
@@ -280,6 +281,7 @@
                 "message-annotations": {
                   "type": "object",
                   "additionalProperties": {
+                    "type": "object",
                     "properties": {
                       "value": {
                         "type": "string",
@@ -299,6 +301,7 @@
                 "delivery-annotations": {
                   "type": "object",
                   "additionalProperties": {
+                    "type": "object",
                     "properties": {
                       "value": {
                         "type": "string",
@@ -318,6 +321,7 @@
                 "header": {
                   "type": "object",
                   "additionalProperties": {
+                    "type": "object",
                     "properties": {
                       "value": {
                         "type": "string",
@@ -337,6 +341,7 @@
                 "footer": {
                   "type": "object",
                   "additionalProperties": {
+                    "type": "object",
                     "properties": {
                       "value": {
                         "type": "string",
@@ -498,6 +503,7 @@
                   "type": "array",
                   "description": "MQTT user-properties.",
                   "items": {
+                    "type": "object",
                     "properties": {
                       "name": {
                         "type": "string",
@@ -547,6 +553,7 @@
                   "type": "object",
                   "description": "The Apache Kafka headers.",
                   "additionalProperties": {
+                    "type": "object",
                     "properties": {
                       "name": {
                         "type": "string",
@@ -587,6 +594,7 @@
                   "type": "array",
                   "description": "The HTTP headers.",
                   "items": {
+                    "type": "object",
                     "properties": {
                       "name": {
                         "type": "string",
@@ -672,6 +680,10 @@
               "type": "array",
               "description": "Authorization options. These are hints for the adapter for interacting with the authorization endpoint. This is not a credentials configuration.",
               "items": {
+                "type": "object",
+                "required": [
+                  "type"
+                ],
                 "properties": {
                   "type": {
                     "type": "string",
@@ -692,10 +704,7 @@
                       "type": "string"
                     }
                   }
-                },
-                "required": [
-                  "type"
-                ]
+                }
               }
             },
             "endpoints": {
@@ -740,6 +749,11 @@
                       "type": "object",
                       "description": "An optional map of AMQP link properties to use with the endpoint",
                       "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "name",
+                          "value"
+                        ],
                         "properties": {
                           "name": {
                             "type": "string",
@@ -749,16 +763,16 @@
                             "type": "string",
                             "description": "Link property value"
                           }
-                        },
-                        "required": [
-                          "name",
-                          "value"
-                        ]
+                        }
                       }
                     },
                     "connection-properties": {
                       "type": "object",
                       "description": "An optional map of AMQP connection properties to use with the endpoint",
+                      "required": [
+                        "name",
+                        "value"
+                      ],
                       "properties": {
                         "name": {
                           "type": "string",
@@ -768,11 +782,7 @@
                           "type": "string",
                           "description": "Connection property value"
                         }
-                      },
-                      "required": [
-                        "name",
-                        "value"
-                      ]
+                      }
                     },
                     "distribution-mode": {
                       "type": "string",
@@ -900,6 +910,11 @@
                       "type": "array",
                       "description": "HTTP headers to use with the endpoint. The same header may be specified multiple times with different values. The HTTP header names are case insensitive.",
                       "items": {
+                        "type": "object",
+                        "required": [
+                          "name",
+                          "value"
+                        ],
                         "properties": {
                           "name": {
                             "type": "string",
@@ -909,17 +924,18 @@
                             "type": "string",
                             "description": "HTTP header value"
                           }
-                        },
-                        "required": [
-                          "name",
-                          "value"
-                        ]
+                        }
                       }
                     },
                     "query": {
-                      "type": "object",
+                      "type": "array",
                       "description": "HTTP query parameters",
-                      "additionalProperties": {
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "name",
+                          "value"
+                        ],
                         "properties": {
                           "name": {
                             "type": "string",
@@ -929,11 +945,7 @@
                             "type": "string",
                             "description": "The HTTP query parameter value"
                           }
-                        },
-                        "required": [
-                          "name",
-                          "value"
-                        ]
+                        }
                       }
                     }
                   }
@@ -955,6 +967,9 @@
                 "options": {
                   "type": "object",
                   "description": "Apache Kafka options",
+                  "required": [
+                    "topic"
+                  ],
                   "properties": {
                     "topic": {
                       "type": "string",
@@ -981,6 +996,11 @@
                       "type": "object",
                       "description": "The Apache Kafka headers for publishers on this endpoint",
                       "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "name",
+                          "value"
+                        ],
                         "properties": {
                           "name": {
                             "type": "string",
@@ -990,17 +1010,10 @@
                             "type": "string",
                             "description": "The Apache Kafka header value"
                           }
-                        },
-                        "required": [
-                          "name",
-                          "value"
-                        ]
+                        }
                       }
                     }
-                  },
-                  "required": [
-                    "topic"
-                  ]
+                  }
                 }
               },
               "required": [
@@ -1019,15 +1032,15 @@
                 "options": {
                   "type": "object",
                   "description": "NATS options",
+                  "required": [
+                    "subject"
+                  ],
                   "properties": {
                     "subject": {
                       "type": "string",
                       "description": "The NATS subject"
                     }
-                  },
-                  "required": [
-                    "subject"
-                  ]
+                  }
                 }
               },
               "required": [

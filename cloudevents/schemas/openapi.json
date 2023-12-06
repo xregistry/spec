@@ -2594,9 +2594,19 @@
                 }
               },
               "dataschema": {
-                "type": "string",
-                "format": "uri-template",
-                "description": "The uri of the schema that the event payload adheres to. If the dataschema attribute is not present, it MUST be interpreted as no schema. An application MAY assign a meaning to the dataschema attribute if it is not present by default."
+                "type": "object",
+                "description": "The uri of the schema that the event payload adheres to. If the dataschema attribute is not present, it MUST be interpreted as no schema. An application MAY assign a meaning to the dataschema attribute if it is not present by default.",
+                "properties": {
+                  "value": {
+                    "type": "string",
+                    "format": "uri-template",
+                    "description": "The uri value template."
+                  },
+                  "required": {
+                    "type": "boolean",
+                    "description": "The uri required."
+                  }
+                }
               }
             },
             "additionalProperties": {
@@ -2804,101 +2814,6 @@
                     }
                   }
                 }
-              },
-              "application-properties": {
-                "type": "object",
-                "additionalProperties": {
-                  "properties": {
-                    "value": {
-                      "type": "string",
-                      "description": "The application property value template."
-                    },
-                    "required": {
-                      "type": "boolean",
-                      "description": "The application property required."
-                    },
-                    "type": {
-                      "type": "string",
-                      "description": "The application property type."
-                    }
-                  }
-                }
-              },
-              "message-annotations": {
-                "type": "object",
-                "additionalProperties": {
-                  "properties": {
-                    "value": {
-                      "type": "string",
-                      "description": "The message annotation value"
-                    },
-                    "required": {
-                      "type": "boolean",
-                      "description": "Whether the message annotation is required"
-                    },
-                    "type": {
-                      "type": "string",
-                      "description": "The message annotation type."
-                    }
-                  }
-                }
-              },
-              "delivery-annotations": {
-                "type": "object",
-                "additionalProperties": {
-                  "properties": {
-                    "value": {
-                      "type": "string",
-                      "description": "The delivery annotation value"
-                    },
-                    "required": {
-                      "type": "boolean",
-                      "description": "Whether the annotation is required"
-                    },
-                    "type": {
-                      "type": "string",
-                      "description": "The annotation type."
-                    }
-                  }
-                }
-              },
-              "header": {
-                "type": "object",
-                "additionalProperties": {
-                  "properties": {
-                    "value": {
-                      "type": "string",
-                      "description": "AMQP header value."
-                    },
-                    "required": {
-                      "type": "boolean",
-                      "description": "AMQP header required."
-                    },
-                    "type": {
-                      "type": "string",
-                      "description": "AMQP header type."
-                    }
-                  }
-                }
-              },
-              "footer": {
-                "type": "object",
-                "additionalProperties": {
-                  "properties": {
-                    "value": {
-                      "type": "string",
-                      "description": "AMQP footer value."
-                    },
-                    "required": {
-                      "type": "boolean",
-                      "description": "AMQP footer required."
-                    },
-                    "type": {
-                      "type": "string",
-                      "description": "AMQP footer type."
-                    }
-                  }
-                }
               }
             }
           }
@@ -2918,39 +2833,7 @@
           },
           "message": {
             "type": "object",
-            "description": "MQTT message metadata constraints.",
-            "properties": {
-              "qos": {
-                "type": "object",
-                "description": "MQTT qos.",
-                "properties": {
-                  "value": {
-                    "type": "string",
-                    "description": "MQTT qos value template."
-                  }
-                }
-              },
-              "retain": {
-                "type": "object",
-                "description": "MQTT retain.",
-                "properties": {
-                  "value": {
-                    "type": "boolean",
-                    "description": "MQTT retain value template."
-                  }
-                }
-              },
-              "topic-name": {
-                "type": "object",
-                "description": "MQTT topic-name.",
-                "properties": {
-                  "value": {
-                    "type": "string",
-                    "description": "MQTT topic-name value template."
-                  }
-                }
-              }
-            }
+            "description": "MQTT message metadata constraints."
           }
         },
         "required": [
@@ -2968,96 +2851,7 @@
           },
           "message": {
             "type": "object",
-            "description": "MQTT message metadata constraints.",
-            "properties": {
-              "qos": {
-                "type": "object",
-                "description": "MQTT qos.",
-                "properties": {
-                  "value": {
-                    "type": "integer",
-                    "description": "MQTT qos value template."
-                  }
-                }
-              },
-              "retain": {
-                "type": "object",
-                "description": "MQTT retain.",
-                "properties": {
-                  "value": {
-                    "type": "boolean",
-                    "description": "MQTT retain value template."
-                  }
-                }
-              },
-              "topic-name": {
-                "type": "object",
-                "description": "MQTT topic-name.",
-                "properties": {
-                  "value": {
-                    "type": "string",
-                    "description": "MQTT topic-name value template."
-                  }
-                }
-              },
-              "message-expiry-interval": {
-                "type": "object",
-                "description": "MQTT message-expiry-interval.",
-                "properties": {
-                  "value": {
-                    "type": "integer",
-                    "description": "MQTT message-expiry-interval value template."
-                  }
-                }
-              },
-              "response-topic": {
-                "type": "object",
-                "description": "MQTT response-topic.",
-                "properties": {
-                  "value": {
-                    "type": "string",
-                    "description": "MQTT response-topic value template."
-                  }
-                }
-              },
-              "correlation-data": {
-                "type": "object",
-                "description": "MQTT correlation-data.",
-                "properties": {
-                  "value": {
-                    "type": "string",
-                    "format": "base64",
-                    "description": "MQTT correlation-data value template."
-                  }
-                }
-              },
-              "content-type": {
-                "type": "object",
-                "description": "MQTT content-type.",
-                "properties": {
-                  "value": {
-                    "type": "string",
-                    "description": "MQTT content-type value template."
-                  }
-                }
-              },
-              "user-properties": {
-                "type": "array",
-                "description": "MQTT user-properties.",
-                "items": {
-                  "properties": {
-                    "name": {
-                      "type": "string",
-                      "description": "MQTT user-property name."
-                    },
-                    "value": {
-                      "type": "string",
-                      "description": "MQTT user-property value."
-                    }
-                  }
-                }
-              }
-            }
+            "description": "MQTT message metadata constraints."
           }
         },
         "required": [
@@ -3075,42 +2869,7 @@
           },
           "message": {
             "type": "object",
-            "description": "The Apache Kafka message metadata constraints.",
-            "properties": {
-              "topic": {
-                "type": "string",
-                "description": "The Apache Kafka topic."
-              },
-              "partition": {
-                "type": "integer",
-                "description": "The Apache Kafka partition."
-              },
-              "key": {
-                "type": "string",
-                "format": "base64",
-                "description": "The Apache Kafka key."
-              },
-              "headers": {
-                "type": "object",
-                "description": "The Apache Kafka headers.",
-                "additionalProperties": {
-                  "properties": {
-                    "name": {
-                      "type": "string",
-                      "description": "The Apache Kafka header name."
-                    },
-                    "value": {
-                      "type": "string",
-                      "description": "The Apache Kafka header value."
-                    }
-                  }
-                }
-              },
-              "timestamp": {
-                "type": "integer",
-                "description": "The Apache Kafka timestamp."
-              }
-            }
+            "description": "The Apache Kafka message metadata constraints."
           }
         },
         "required": [
@@ -3128,37 +2887,7 @@
           },
           "message": {
             "type": "object",
-            "description": "The HTTP message metadata constraints.",
-            "properties": {
-              "headers": {
-                "type": "array",
-                "description": "The HTTP headers.",
-                "items": {
-                  "properties": {
-                    "name": {
-                      "type": "string",
-                      "description": "The HTTP header name."
-                    },
-                    "value": {
-                      "type": "string",
-                      "description": "The HTTP header value."
-                    }
-                  }
-                }
-              },
-              "query": {
-                "type": "object",
-                "description": "The HTTP query parameters."
-              },
-              "path": {
-                "type": "string",
-                "description": "The HTTP path as a uri template."
-              },
-              "method": {
-                "type": "string",
-                "description": "The HTTP method."
-              }
-            }
+            "description": "The HTTP message metadata constraints."
           }
         },
         "required": [
@@ -3191,17 +2920,17 @@
           "labels": {
             "type": "object"
           },
-          "createdBy": {
+          "createdby": {
             "type": "string"
           },
-          "createdOn": {
+          "createdon": {
             "type": "string",
             "format": "date-time"
           },
-          "modifiedBy": {
+          "modifiedby": {
             "type": "string"
           },
-          "modifiedOn": {
+          "modifiedon": {
             "type": "string",
             "format": "date-time"
           },
@@ -3249,21 +2978,8 @@
               "link-properties": {
                 "type": "object",
                 "description": "An optional map of AMQP link properties to use with the endpoint",
-                "additionalProperties": {
-                  "properties": {
-                    "name": {
-                      "type": "string",
-                      "description": "Link property name"
-                    },
-                    "value": {
-                      "type": "string",
-                      "description": "Link property value"
-                    }
-                  },
-                  "required": [
-                    "name",
-                    "value"
-                  ]
+                "items": {
+                  "type": "object"
                 }
               },
               "connection-properties": {
@@ -3410,40 +3126,14 @@
                 "type": "array",
                 "description": "HTTP headers to use with the endpoint. The same header may be specified multiple times with different values. The HTTP header names are case insensitive.",
                 "items": {
-                  "properties": {
-                    "name": {
-                      "type": "string",
-                      "description": "HTTP header name"
-                    },
-                    "value": {
-                      "type": "string",
-                      "description": "HTTP header value"
-                    }
-                  },
-                  "required": [
-                    "name",
-                    "value"
-                  ]
+                  "type": "object"
                 }
               },
               "query": {
                 "type": "object",
                 "description": "HTTP query parameters",
-                "additionalProperties": {
-                  "properties": {
-                    "name": {
-                      "type": "string",
-                      "description": "The HTTP query parameter name"
-                    },
-                    "value": {
-                      "type": "string",
-                      "description": "The HTTP query parameter value"
-                    }
-                  },
-                  "required": [
-                    "name",
-                    "value"
-                  ]
+                "items": {
+                  "type": "object"
                 }
               }
             }
@@ -3490,21 +3180,8 @@
               "headers": {
                 "type": "object",
                 "description": "The Apache Kafka headers for publishers on this endpoint",
-                "additionalProperties": {
-                  "properties": {
-                    "name": {
-                      "type": "string",
-                      "description": "The Apache Kafka header name"
-                    },
-                    "value": {
-                      "type": "string",
-                      "description": "The Apache Kafka header value"
-                    }
-                  },
-                  "required": [
-                    "name",
-                    "value"
-                  ]
+                "items": {
+                  "type": "object"
                 }
               }
             },
@@ -3574,17 +3251,17 @@
             "type": "string",
             "description": "Endpoint message format identifier. If set, all definitions MUST use this format value."
           },
-          "createdBy": {
+          "createdby": {
             "type": "string"
           },
-          "createdOn": {
+          "createdon": {
             "type": "string",
             "format": "date-time"
           },
-          "modifiedBy": {
+          "modifiedby": {
             "type": "string"
           },
-          "modifiedOn": {
+          "modifiedon": {
             "type": "string",
             "format": "date-time"
           },
@@ -3596,30 +3273,7 @@
                 "type": "array",
                 "description": "Authorization options. These are hints for the adapter for interacting with the authorization endpoint. This is not a credentials configuration.",
                 "items": {
-                  "properties": {
-                    "type": {
-                      "type": "string",
-                      "description": "The authentication/authorization type. OAuth2, Plain, APIKey, and X509Cert are well-defined."
-                    },
-                    "resourceuri": {
-                      "type": "string",
-                      "description": "The resource uri for which authorization shall be granted (if applicable)"
-                    },
-                    "authorityuri": {
-                      "type": "string",
-                      "description": "The authority uri where authorization shall be requested (if applicable)"
-                    },
-                    "grant_types": {
-                      "type": "array",
-                      "description": "The grant types that can be requested (if applicable)",
-                      "items": {
-                        "type": "string"
-                      }
-                    }
-                  },
-                  "required": [
-                    "type"
-                  ]
+                  "type": "object"
                 }
               },
               "endpoints": {
@@ -3681,17 +3335,17 @@
             "type": "string",
             "description": "Format identifier that defines the common metadata information for the message. All definitions in this group share this format. Mixed-format groups are not permitted."
           },
-          "createdBy": {
+          "createdby": {
             "type": "string"
           },
-          "createdOn": {
+          "createdon": {
             "type": "string",
             "format": "date-time"
           },
-          "modifiedBy": {
+          "modifiedby": {
             "type": "string"
           },
-          "modifiedOn": {
+          "modifiedon": {
             "type": "string",
             "format": "date-time"
           },
@@ -3740,17 +3394,17 @@
             "type": "string",
             "description": "Schema format identifier for this schema version."
           },
-          "createdBy": {
+          "createdby": {
             "type": "string"
           },
-          "createdOn": {
+          "createdon": {
             "type": "string",
             "format": "date-time"
           },
-          "modifiedBy": {
+          "modifiedby": {
             "type": "string"
           },
-          "modifiedOn": {
+          "modifiedon": {
             "type": "string",
             "format": "date-time"
           },
@@ -3802,17 +3456,17 @@
           "format": {
             "type": "string"
           },
-          "createdBy": {
+          "createdby": {
             "type": "string"
           },
-          "createdOn": {
+          "createdon": {
             "type": "string",
             "format": "date-time"
           },
-          "modifiedBy": {
+          "modifiedby": {
             "type": "string"
           },
-          "modifiedOn": {
+          "modifiedon": {
             "type": "string",
             "format": "date-time"
           },
@@ -3875,17 +3529,17 @@
           "format": {
             "type": "string"
           },
-          "createdBy": {
+          "createdby": {
             "type": "string"
           },
-          "createdOn": {
+          "createdon": {
             "type": "string",
             "format": "date-time"
           },
-          "modifiedBy": {
+          "modifiedby": {
             "type": "string"
           },
-          "modifiedOn": {
+          "modifiedon": {
             "type": "string",
             "format": "date-time"
           },

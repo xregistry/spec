@@ -104,6 +104,7 @@
                   {
                     "type": {
                       "type": "array",
+                      "name": "AuthorizationArrayType",
                       "items": {
                         "type": "record",
                         "name": "AuthorizationType",
@@ -126,6 +127,7 @@
                           {
                             "type": {
                               "type": "array",
+                              "name": "GrantTypesArrayType",
                               "items": {
                                 "type": "string"
                               }
@@ -336,6 +338,7 @@
                                 {
                                   "type": {
                                     "type": "array",
+                                    "name": "ProtocolHTTPHeadersArrayType",
                                     "items": {
                                       "type": "record",
                                       "name": "ProtocolHTTPHeadersType",
@@ -358,11 +361,11 @@
                                 },
                                 {
                                   "type": {
-                                    "type": "map",
-                                    "name": "ProtocolHTTPQueryType",
-                                    "values": {
+                                    "type": "array",
+                                    "name": "ProtocolHTTPQueryArrayType",
+                                    "items": {
                                       "type": "record",
-                                      "name": "ProtocolHTTPQueryItemType",
+                                      "name": "ProtocolHTTPQueryType",
                                       "fields": [
                                         {
                                           "type": "string",
@@ -479,6 +482,7 @@
                   {
                     "type": {
                       "type": "array",
+                      "name": "EndpointsArrayType",
                       "items": {
                         "type": "string"
                       }
@@ -687,7 +691,22 @@
                                     "doc": "The timestamp of when the event happened."
                                   },
                                   {
-                                    "type": "string",
+                                    "type": {
+                                      "type": "record",
+                                      "name": "FormatCloudevents10DataschemaType",
+                                      "fields": [
+                                        {
+                                          "type": "string",
+                                          "name": "value",
+                                          "doc": "The uri value template."
+                                        },
+                                        {
+                                          "type": "boolean",
+                                          "name": "required",
+                                          "doc": "The uri required."
+                                        }
+                                      ]
+                                    },
                                     "name": "dataschema",
                                     "doc": "The uri of the schema that the event payload adheres to. If the dataschema attribute is not present, it MUST be interpreted as no schema. An application MAY assign a meaning to the dataschema attribute if it is not present by default."
                                   },
@@ -1312,6 +1331,7 @@
                                   {
                                     "type": {
                                       "type": "array",
+                                      "name": "BindingMqtt50UserPropertiesArrayType",
                                       "items": {
                                         "type": "record",
                                         "name": "BindingMqtt50UserPropertiesType",
@@ -1411,6 +1431,7 @@
                                   {
                                     "type": {
                                       "type": "array",
+                                      "name": "BindingHTTPHeadersArrayType",
                                       "items": {
                                         "type": "record",
                                         "name": "BindingHTTPHeadersType",

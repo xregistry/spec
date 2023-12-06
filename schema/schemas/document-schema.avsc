@@ -58,14 +58,14 @@
               }
             },
             {
-              "name": "createdBy",
+              "name": "createdby",
               "type": [
                 "string",
                 "null"
               ]
             },
             {
-              "name": "createdOn",
+              "name": "createdon",
               "type": [
                 {
                   "type": "int",
@@ -75,14 +75,14 @@
               ]
             },
             {
-              "name": "modifiedBy",
+              "name": "modifiedby",
               "type": [
                 "string",
                 "null"
               ]
             },
             {
-              "name": "modifiedOn",
+              "name": "modifiedon",
               "type": [
                 {
                   "type": "int",
@@ -146,14 +146,14 @@
                       }
                     },
                     {
-                      "name": "createdBy",
+                      "name": "createdby",
                       "type": [
                         "string",
                         "null"
                       ]
                     },
                     {
-                      "name": "createdOn",
+                      "name": "createdon",
                       "type": [
                         {
                           "type": "int",
@@ -163,14 +163,14 @@
                       ]
                     },
                     {
-                      "name": "modifiedBy",
+                      "name": "modifiedby",
                       "type": [
                         "string",
                         "null"
                       ]
                     },
                     {
-                      "name": "modifiedOn",
+                      "name": "modifiedon",
                       "type": [
                         {
                           "type": "int",
@@ -235,14 +235,14 @@
                                 }
                               },
                               {
-                                "name": "createdBy",
+                                "name": "createdby",
                                 "type": [
                                   "string",
                                   "null"
                                 ]
                               },
                               {
-                                "name": "createdOn",
+                                "name": "createdon",
                                 "type": [
                                   {
                                     "type": "int",
@@ -252,14 +252,14 @@
                                 ]
                               },
                               {
-                                "name": "modifiedBy",
+                                "name": "modifiedby",
                                 "type": [
                                   "string",
                                   "null"
                                 ]
                               },
                               {
-                                "name": "modifiedOn",
+                                "name": "modifiedon",
                                 "type": [
                                   {
                                     "type": "int",

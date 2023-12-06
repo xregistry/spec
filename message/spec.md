@@ -491,7 +491,7 @@ properties explicitly, but they MUST conform with the rules above.
 
 The "HTTP" binding is used to define messages that are sent over an HTTP
 connection. The binding is based on the
-[HTTP Message Format][HTTP Message Format] and is common across all version of
+[HTTP Message Format][HTTP Message Format] and is common across all versions of
 HTTP.
 
 The [`message`](#message-protocol-binding) object MAY contain several
@@ -550,7 +550,7 @@ The following example defines a message that is sent over HTTP/1.1:
 ##### "AMQP/1.0" binding
 
 The "AMQP/1.0" binding is used to define messages that are sent over an
-[AMQP][AMQP 1.0] connection. The bindings is based on the default
+[AMQP][AMQP 1.0] connection. It is based on the default
 [AMQP 1.0 Message Format][AMQP 1.0 Message Format].
 
 The [`message`](#message-protocol-binding) object MAY contain several
