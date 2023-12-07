@@ -320,21 +320,33 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
                     conditional_attr_schema.update({
                                 "enum": [condition_value],
                             })
-                    conditional_schema = {
-                                "properties": {
-                                    attr_name: conditional_attr_schema
-                                },
-                                "required": [attr_name]
-                            }
-                    handle_attributes(conditional_schema,  condition_props.get("siblingattributes", {}))
+                    if "siblingattributes" in condition_props:
+                        conditional_schema = {
+                                    "properties": {
+                                        attr_name: conditional_attr_schema
+                                    },
+                                    "required": [attr_name]
+                                }
+                        handle_attributes(conditional_schema,  condition_props.get("siblingattributes", {}))
+                    else:
+                        conditional_attr_schema.update({
+                            "default": condition_value
+                        })
+                        conditional_schema = {
+                            "properties": {
+                                        attr_name: conditional_attr_schema
+                                    },
+                        }
+
                     if for_openapi:
                         resource_schema["discriminator"]["mapping"][condition_value] = f"#/components/schemas/{condition_schema_identifier}"
                         schema_definitions[condition_schema_identifier] = copy.deepcopy(conditional_schema)
                     else:
                         one_of.append(copy.deepcopy(conditional_schema))
                 if len(one_of) > 0: 
-                    if "oneOf" in attr_schema:
-                        resource_schema["oneOf"].extend(one_of)
+                    if "oneOf" in resource_schema:
+                        resource_schema["allOf"] = [{"oneOf" : resource_schema.pop("oneOf")}]
+                        resource_schema["allOf"].append({"oneOf": one_of})
                     else:
                         resource_schema["oneOf"] = one_of
             else:

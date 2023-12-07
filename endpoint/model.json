@@ -8,9 +8,14 @@
             "plural": "endpoints",
             "attributes": {
                 "format": {
-                    "description": "Endpoint message format identifier. If set, all definitions MUST use this format value.",
+                    "description": "Endpoint metadata format identifier. If set, all definitions MUST use this format value.",
                     "type": "string",
-                    "required": true
+                    "required": false
+                },
+                "binding": {
+                    "description": "Endpoint message binding identifier. If set, all definitions MUST use this binding value.",
+                    "type": "string",
+                    "required": false
                 },
                 "config": {
                     "description": "Configuration information for this endpoint",
@@ -79,40 +84,17 @@
                                                             "type": "map",
                                                             "required": false,
                                                             "item": {
-                                                                "type": "object",
-                                                                "item": {
-                                                                    "attributes": {
-                                                                        "name": {
-                                                                            "description": "Link property name",
-                                                                            "type": "string",
-                                                                            "required": true
-                                                                        },
-                                                                        "value": {
-                                                                            "description": "Link property value",
-                                                                            "type": "string",
-                                                                            "required": true
-                                                                        }
-                                                                    }
-                                                                }
+                                                                "type": "string",
+                                                                "description": "Link property value"
                                                             }
                                                         },
                                                         "connection_properties": {
                                                             "description": "An optional map of AMQP connection properties to use with the endpoint",
-                                                            "type": "object",
+                                                            "type": "map",
                                                             "required": false,
                                                             "item": {
-                                                                "attributes": {
-                                                                    "name": {
-                                                                        "description": "Connection property name",
-                                                                        "type": "string",
-                                                                        "required": true
-                                                                    },
-                                                                    "value": {
-                                                                        "description": "Connection property value",
-                                                                        "type": "string",
-                                                                        "required": true
-                                                                    }
-                                                                }
+                                                                "description": "Connection property value",
+                                                                "type": "string"
                                                             }
                                                         },
                                                         "distribution_mode": {

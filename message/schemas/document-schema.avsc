@@ -199,6 +199,11 @@
                       "type": [
                         {
                           "type": "record",
+                          "name": "FormatNoneType",
+                          "fields": []
+                        },
+                        {
+                          "type": "record",
                           "name": "FormatCloudevents10Type",
                           "fields": [
                             {
@@ -349,6 +354,11 @@
                     {
                       "name": "binding",
                       "type": [
+                        {
+                          "type": "record",
+                          "name": "BindingNoneType",
+                          "fields": []
+                        },
                         {
                           "type": "record",
                           "name": "BindingAmqp10Type",

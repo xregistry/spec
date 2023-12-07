@@ -94,7 +94,12 @@
             {
               "type": "string",
               "name": "format",
-              "doc": "Endpoint message format identifier. If set, all definitions MUST use this format value."
+              "doc": "Endpoint metadata format identifier. If set, all definitions MUST use this format value."
+            },
+            {
+              "type": "string",
+              "name": "binding",
+              "doc": "Endpoint message binding identifier. If set, all definitions MUST use this binding value."
             },
             {
               "type": {
@@ -167,42 +172,16 @@
                                   "type": {
                                     "type": "map",
                                     "name": "ProtocolAmqp10LinkPropertiesType",
-                                    "values": {
-                                      "type": "record",
-                                      "name": "ProtocolAmqp10LinkPropertiesItemType",
-                                      "fields": [
-                                        {
-                                          "type": "string",
-                                          "name": "name",
-                                          "doc": "Link property name"
-                                        },
-                                        {
-                                          "type": "string",
-                                          "name": "value",
-                                          "doc": "Link property value"
-                                        }
-                                      ]
-                                    }
+                                    "values": "string"
                                   },
                                   "name": "linkProperties",
                                   "doc": "An optional map of AMQP link properties to use with the endpoint"
                                 },
                                 {
                                   "type": {
-                                    "type": "record",
+                                    "type": "map",
                                     "name": "ProtocolAmqp10ConnectionPropertiesType",
-                                    "fields": [
-                                      {
-                                        "type": "string",
-                                        "name": "name",
-                                        "doc": "Connection property name"
-                                      },
-                                      {
-                                        "type": "string",
-                                        "name": "value",
-                                        "doc": "Connection property value"
-                                      }
-                                    ]
+                                    "values": "string"
                                   },
                                   "name": "connectionProperties",
                                   "doc": "An optional map of AMQP connection properties to use with the endpoint"
@@ -598,6 +577,11 @@
                       "type": [
                         {
                           "type": "record",
+                          "name": "FormatNoneType",
+                          "fields": []
+                        },
+                        {
+                          "type": "record",
                           "name": "FormatCloudevents10Type",
                           "fields": [
                             {
@@ -748,6 +732,11 @@
                     {
                       "name": "binding",
                       "type": [
+                        {
+                          "type": "record",
+                          "name": "BindingNoneType",
+                          "fields": []
+                        },
                         {
                           "type": "record",
                           "name": "BindingAmqp10Type",

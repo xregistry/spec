@@ -1104,6 +1104,18 @@
           }
         }
       },
+      "format_None": {
+        "properties": {
+          "format": {
+            "type": "string",
+            "description": "Message format identifier. This attribute MUST be the same as the 'format' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups.",
+            "enum": [
+              "None"
+            ],
+            "default": "None"
+          }
+        }
+      },
       "format_CloudEvents_1_0": {
         "properties": {
           "format": {
@@ -1210,6 +1222,18 @@
         "required": [
           "format"
         ]
+      },
+      "binding_None": {
+        "properties": {
+          "binding": {
+            "type": "string",
+            "description": "Binding identifier. This attribute MUST be the same as the 'binding' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups.",
+            "enum": [
+              "None"
+            ],
+            "default": "None"
+          }
+        }
       },
       "binding_AMQP_1_0": {
         "properties": {
@@ -1817,6 +1841,7 @@
         "discriminator": {
           "propertyName": "binding",
           "mapping": {
+            "None": "#/components/schemas/binding_None",
             "AMQP/1.0": "#/components/schemas/binding_AMQP_1_0",
             "MQTT/3.1.1": "#/components/schemas/binding_MQTT_3_1_1",
             "MQTT/5.0": "#/components/schemas/binding_MQTT_5_0",
