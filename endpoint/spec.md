@@ -530,10 +530,10 @@ The following options are defined for MQTT endpoints.
 - `qos`: The MQTT Quality of Service (QoS) level to use for the endpoint. The
   value MUST be an integer between 0 and 2. The default value is 0. The value is
   overidden by the `qos` property of the
-  [MQTT message format](../message/spec.md#mqtt311-and-mqtt50).
+  [MQTT message format](../message/spec.md#mqtt311-and-mqtt50-bindings).
 - `retain`: If `true`, the MQTT `retain` flag is set on transfers. The default
   value is `false`. The value is overidden by the `retain` property of the [MQTT
-  message format](../message/spec.md#mqtt311-and-mqtt50). This option only
+  message format](../message/spec.md#mqtt311-and-mqtt50-bindings). This option only
   applies to `usage:producer` endpoints.
 - `clean-session`: If `true`, the MQTT `clean-session` flag is set on
   connections. The default value is `true`.
@@ -545,8 +545,8 @@ The following options are defined for MQTT endpoints.
   It MUST point to a valid
   [´definition´](../message/spec.md#message-definitions) that MUST either
   use the ["CloudEvents/1.0"](../message/spec.md#cloudevents10) or
-  ["MQTT/3.1.1." or "MQTT/5.0"](../message/spec.md#mqtt311-and-mqtt50)
-  [`format`](../message/spec.md#format-message-format).
+  ["MQTT/3.1.1." or "MQTT/5.0"](../message/spec.md#mqtt311-and-mqtt50-bindings)
+  [`format`](../message/spec.md#format-metadata-format).
 
 Example:
 

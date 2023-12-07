@@ -314,9 +314,10 @@ While the CloudEvents Registry is primarily motivated by enabling development of
 CloudEvents-based event flows, the registry is not limited to CloudEvents. It
 can be used to describe any asynchronous messaging or eventing endpoint and its
 messages, including endpoints that do not use CloudEvents at all. The [Message
-Formats](../message/spec.md#message-formats) section therefore not only
-describes the attribute meta-schema for CloudEvents, but also meta-schemas for
-the native message envelopes of MQTT, AMQP, and other messaging protocols.
+Formats](../message/spec.md#metadata-formats-and-message-bindings) section
+therefore not only describes the attribute meta-schema for CloudEvents, but also
+meta-schemas for the native message envelopes of MQTT, AMQP, and other messaging
+protocols.
 
 The registry is designed to be extensible to support any structured data
 encoding and related schemas for message or event payloads. The [Schema
@@ -351,17 +352,17 @@ embedded or referenced. Any of the three sub-registries MAY be omitted.
    "$schema": "https://cloudevents.io/schemas/registry",
    "specversion": "0.4-wip",
 
-   "endpointsUrl": "URL",
-   "endpointsCount": INT,
+   "endpointsurl": "URL",
+   "endpointscount": INT,
    "endpoints": { ... },
 
-   "definitionGroupsUrl": "URL",
-   "definitionGroupsCount": INT,
-   "definitionGroups": { ... },
+   "definitiongroupsurl": "URL",
+   "definitiongroupscount": INT,
+   "definitiongroups": { ... },
 
-   "schemaGroupsUrl": "URL",
-   "schemaGroupsCount": INT,
-   "schemaGroups": { ... }
+   "schemagroupsurl": "URL",
+   "schemagroupscount": INT,
+   "schemagroups": { ... }
 }
 ```
 

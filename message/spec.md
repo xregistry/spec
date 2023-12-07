@@ -93,23 +93,39 @@ The Group (GROUP) name is `definitionGroups`. The type of a group is
 The following attributes are defined for the `definitionGroup` object in
 addition to the basic [attributes](../core/spec.md#attributes-and-extensions):
 
-#### `format` (Message format)
+#### `format` (Metadata format)
 
 - Type: String
-- Description: Identifies the message metadata format. Message metadata formats
-  are referenced by name and version as `{NAME}/{VERSION}`. This specification
-  defines a set of common [message format names](#message-formats) that MUST be
-  used for the given formats, but applications MAY define extensions for other
-  formats on their own. All definitions inside a group MUST use this same
-  format.
+- Description: Identifies the common, transport protocol independent message
+  metadata format. Message metadata formats are referenced by name and version
+  as `{NAME}/{VERSION}`. This specification defines a set of common
+  [metadata format names](#metadata-formats) that MUST be used for the given
+  formats, but applications MAY define extensions for other formats on their
+  own. All definitions inside a group MUST use this same format.
 - Constraints:
-  - REQUIRED
-  - MUST be a non-empty string
-  - MUST follow the naming convention `{NAME}/{VERSION}`, whereby `{NAME}` is
-    the name of the message format and `{VERSION}` is the version of the schema
-    format in the format defined by the schema format itself.
+  - At least one of `metadata` and `binding` MUST be specified.
+  - if present, MUST be a non-empty string
+  - if present, MUST follow the naming convention `{NAME}/{VERSION}`, whereby `{NAME}` is
+    the name of the metadata format and `{VERSION}` is the version of the
+    metadata format.
 - Examples:
   - `CloudEvents/1.0`
+
+#### `binding` (Message binding)
+
+- Type: String
+- Description: Identifies a transport protocol message binding. Bindings are
+  referenced by name and version as `{NAME}/{VERSION}`. This specification
+  defines a set of common [message binding names](#message-bindings) that MUST
+  be used for the given protocols, but applications MAY define extensions for
+  other protocol bindings on their own. All definitions inside a group MUST use
+  this same binding.
+- Constraints:
+  - At least one of `metadata` and `binding` MUST be specified.
+  - if present, MUST be a non-empty string
+  - if present, MUST follow the naming convention `{NAME}/{VERSION}`, whereby `{NAME}` is
+    the name of the protocol and `{VERSION}` is the version of protocol.
+- Examples:
   - `MQTT/3.1.1`
   - `AMQP/1.0`
   - `Kafka/0.11`
@@ -126,9 +142,24 @@ different definitions.
 The following extension is defined for the `definition` object in addition to
 the basic [attributes](../core/spec.md#attributes-and-extensions):
 
-#### `format` (Message format, definition)
+#### `baseDefinitionUrl` (Base definition URL, definition)
 
-Same as the [`format`](#format-message-format) attribute of the
+- Type: URI-reference
+- Description: if present, the URL points to a message definition that is the
+  base for this message definition. By following the URL, the base definition
+  can be retrieved and extended with the properties of this definition. This is
+  useful for defining variants of messages that only differ in minor aspects to
+  avoid repetition, or definitions that only have a `format` with associated
+  `metadata` to be bound to various protocols.
+- Constraints:
+  - OPTIONAL
+  - If present, MUST be a valid URI-reference
+  - If present, MUST point to a resource of type `definition` using JSON Pointer
+    [RFC6901][JSON Pointer] notation. 
+
+#### `format` (Metadata format, definition)
+
+Same as the [`format`](#format-metadata-format) attribute of the
 `definitionGroup` object.
 
 Since definitions MAY be cross-referenced ("borrowed") across definition group
@@ -186,9 +217,26 @@ Illustrating example:
   formats use a common schema for the constraints defined for their metadata
   headers, properties or attributes.
 - Constraints:
+  - REQUIRED if `format` is specified.
+- Examples:
+  - See [Metadata Formats](#metadata-formats)
+
+#### `binding` (Protocol binding, definition)
+
+- Same as the [`binding`](#binding-message-binding) attribute of the
+  `definitionGroup` object.
+
+#### `message` (Protocol binding)
+
+- Type: Object
+- Description: Describes the message constraints for the protocol message
+  binding. The content of the metadata property is defined by the protocol
+  message binding, but all bindings use a common schema model for the
+  constraints defined for their metadata headers, properties or attributes.
+- Constraints:
   - REQUIRED
 - Examples:
-  - See [Message Formats](#message-formats)
+  - See [Message Bindings](#message-bindings)
 
 #### `schemaformat`
 
@@ -236,19 +284,31 @@ Illustrating example:
   - Mutually exclusive with the `schema` attribute.
   - If present, `schemaformat` MUST be present.
 
-### Message Formats
+### Metadata Formats and Message Bindings
 
-This section defines the message formats that are directly supported by this
-specification. Message formats lean on a protocol-neutral metadata definition
-like CloudEvents or on the message model definition of a specific protocol like
-AMQP or MQTT or Kafka. A message format defines constraints for the fixed and
-variable headers/properties/attributes of the event format or protocol message
-model.
+This section defines the metadata formats and message bindings that are directly
+supported by this specification. 
 
-> Message format definitions might be specific to a particular client instance
-> and used to configure that client. Therefore, the message format definitions
-> allow for specifying very narrow constraints like the exact value of an Apache
-> Kafka record `key`.
+Metadata formats lean on a protocol-neutral metadata definition like
+CloudEvents. Message bindings lean on a message model definition of a specific
+protocol like AMQP or MQTT or Kafka.
+
+A definition can use either a metadata `format`, a message `binding`, or both.
+
+If a definition only uses a metadata format, any implicit protocol bindings
+defined by the format apply. For instance, a message definition that uses the
+"CloudEvents/1.0" format but no explicit `binding` implicitly applies to all
+protocols for which CloudEvents bindings exist, and using the respective
+protocol binding rules.
+
+If a definition uses both a metadata `format` and a message `binding`, the
+message binding rules apply over the metadata format rules. For instance, if a
+message definition uses the "CloudEvents/1.0" format and an "AMQP/1.0" binding,
+then the implicit protocol bindings of the "CloudEvents/1.0" format are
+overridden by the "AMQP/1.0" binding rules.
+
+If a definition uses only a message `binding`, only the metadata constraints
+defined by the message binding rules apply. 
 
 #### Common properties
 
@@ -331,6 +391,10 @@ current timestamp when creating a message.
   human-readable specification of the property.
 - Constraints:
   - OPTIONAL
+
+#### Metadata Formats
+
+This specification only defines one metadata format: "CloudEvents/1.0".
 
 ##### CloudEvents/1.0
 
@@ -421,12 +485,16 @@ CloudEvents base specification. The implied `datacontenttype` is
 For clarity of the definition, you MAY always declare all implied attribute
 properties explicitly, but they MUST conform with the rules above.
 
-### "HTTP/1.1", "HTTP/2", "HTTP/3"
+#### Message Bindings
 
-The "HTTP" format is used to define messages that are sent over an HTTP
-connection. The format is based on the [HTTP Message Format][HTTP Message Format] and is common across all version of HTTP.
+##### "HTTP/1.1", "HTTP/2", "HTTP/3" binding
 
-The [`metadata`](#metadata-message-metadata) object MAY contain several
+The "HTTP" binding is used to define messages that are sent over an HTTP
+connection. The binding is based on the
+[HTTP Message Format][HTTP Message Format] and is common across all versions of
+HTTP.
+
+The [`message`](#message-protocol-binding) object MAY contain several
 properties:
 
 | Property  | Type          | Description                  |
@@ -460,8 +528,8 @@ The following example defines a message that is sent over HTTP/1.1:
 
 ```JSON
 {
-  "format": "HTTP/1.1",
-  "metadata": {
+  "binding": "HTTP/1.1",
+  "message": {
     "headers": [
       {
         "name": "Content-Type",
@@ -479,13 +547,13 @@ The following example defines a message that is sent over HTTP/1.1:
 }
 ```
 
-### "AMQP/1.0"
+##### "AMQP/1.0" binding
 
-The "AMQP/1.0" format is used to define messages that are sent over an
-[AMQP][AMQP 1.0] connection. The format is based on the default
+The "AMQP/1.0" binding is used to define messages that are sent over an
+[AMQP][AMQP 1.0] connection. It is based on the default
 [AMQP 1.0 Message Format][AMQP 1.0 Message Format].
 
-The [`metadata`](#metadata-message-metadata) object MAY contain several
+The [`message`](#message-protocol-binding) object MAY contain several
 properties, each of which corresponds to a section of the AMQP 1.0 Message:
 
 | Property                 | Type | Description                                                                     |
@@ -511,8 +579,8 @@ definition:
 
 ```JSON
 {
-  "format": "AMQP/1.0",
-  "metadata": {
+  "binding": "AMQP/1.0",
+  "message": {
     "properties": {
       "message-id": {
         "required": true
@@ -540,7 +608,7 @@ definition:
 }
 ```
 
-#### `properties` (AMQP 1.0 Message Properties)
+##### `properties` (AMQP 1.0 Message Properties)
 
 The `properties` property is an object that contains the properties of the
 AMQP 1.0 [Message Properties][AMQP 1.0 Message Properties] section. The
@@ -561,7 +629,7 @@ following properties are defined, with type constraints:
 | `group-sequence`       | `integer`     | position of this message within its group                                        |
 | `reply-to-group-id`    | `uritemplate` | group-id to which the receiver of this message ought to send replies to          |
 
-#### `application-properties` (AMQP 1.0 Application Properties)
+##### `application-properties` (AMQP 1.0 Application Properties)
 
 The `application-properties` property is an object that contains the custom
 properties of the AMQP 1.0 [Application Properties][AMQP 1.0 Application Properties] section.
@@ -569,7 +637,7 @@ properties of the AMQP 1.0 [Application Properties][AMQP 1.0 Application Propert
 The names of the properties MUST be of type `symbol` and MUST be unique.
 The values of the properties MAY be of any permitted type.
 
-#### `message-annotations` (AMQP 1.0 Message Annotations)
+##### `message-annotations` (AMQP 1.0 Message Annotations)
 
 The `message-annotations` property is an object that contains the custom
 properties of the AMQP 1.0 [Message Annotations][AMQP 1.0 Message Annotations]
@@ -578,7 +646,7 @@ section.
 The names of the properties MUST be of type `symbol` and MUST be unique.
 The values of the properties MAY be of any permitted type.
 
-#### `delivery-annotations` (AMQP 1.0 Delivery Annotations)
+##### `delivery-annotations` (AMQP 1.0 Delivery Annotations)
 
 The `delivery-annotations` property is an object that contains the custom
 properties of the AMQP 1.0
@@ -587,7 +655,7 @@ properties of the AMQP 1.0
 The names of the properties MUST be of type `symbol` and MUST be unique.
 The values of the properties MAY be of any permitted type.
 
-##### `header` (AMQP 1.0 Message Header)
+###### `header` (AMQP 1.0 Message Header)
 
 The `header` property is an object that contains the properties of the
 AMQP 1.0 [Message Header][AMQP 1.0 Message Header] section. The
@@ -601,7 +669,7 @@ following properties are defined, with type constraints:
 | `first-acquirer` | `boolean` | indicates whether the message has not been acquired previously |
 | `delivery-count` | `integer` | number of prior unsuccessful delivery attempts                 |
 
-#### `footer` (AMQP 1.0 Message Footer)
+###### `footer` (AMQP 1.0 Message Footer)
 
 The `footer` property is an object that contains the custom properties of the
 AMQP 1.0 [Message Footer][AMQP 1.0 Message Footer] section.
@@ -609,13 +677,13 @@ AMQP 1.0 [Message Footer][AMQP 1.0 Message Footer] section.
 The names of the properties MUST be of type `symbol` and MUST be unique.
 The values of the properties MAY be of any permitted type.
 
-### "MQTT/3.1.1" and "MQTT/5.0"
+##### "MQTT/3.1.1" and "MQTT/5.0" bindings
 
-The "MQTT/3.1.1" and "MQTT/5.0" formats are used to define messages that are
+The "MQTT/3.1.1" and "MQTT/5.0" bindings are used to define messages that are
 sent over [MQTT 3.1.1][MQTT 3.1.1] or [MQTT 5.0][MQTT 5.0] connections. The
 format describes the [MQTT PUBLISH packet][MQTT 5.0] content.
 
-The [`metadata`](#metadata-message-metadata) object contains the elements of the
+The [`message`](#message-protocol-binding) object contains the elements of the
 MQTT PUBLISH packet directly, with the `user-properties` element corresponding
 to the application properties collection of other protocols.
 
@@ -643,14 +711,14 @@ user-properties MAY contain placeholders using the [RFC6570][RFC6570] Level 1
 URI Template syntax. When the same placeholder is used in multiple properties,
 the value of the placeholder is assumed to be identical.
 
-The following example shows a message with the "MQTT/5.0" format, asking for
+The following example shows a message with the "MQTT/5.0" binding, asking for
 QoS 1 delivery, with a topic name of "mytopic", and a user property of
 "my-application-property" with a value of "my-application-property-value":
 
 ```JSON
 {
-  "format": "MQTT/5.0",
-  "metadata": {
+  "binding": "MQTT/5.0",
+  "message": {
     "qos": {
       "value": 1
     },
@@ -670,17 +738,18 @@ QoS 1 delivery, with a topic name of "mytopic", and a user property of
 }
 ```
 
-### "Kafka/0.11" format
+### "Kafka" binding
 
-The "Kafka" format is used to define messages that are sent over [Apache
+The "Kafka" binding is used to define messages that are sent over [Apache
 Kafka][Apache Kafka] connections. The version number reflects the last version
 in which the record structure was changed in the Apache Kafka project, not the
 current version. If the version number is omitted, the latest version is
 assumed.
 
-The [`metadata`](#metadata-message-metadata) object contains the common elements
-of the Kafka [producer][Apache Kafka producer] and [consumer][Apache Kafka consumer] records, with the `headers` element corresponding to the application
-properties collection of other protocols.
+The [`message`](#message-protocol-binding) object contains the common elements
+of the Kafka [producer][Apache Kafka producer] and
+[consumer][Apache Kafka consumer] records, with the `headers` element
+corresponding to the application properties collection of other protocols.
 
 The following properties are defined:
 
@@ -701,8 +770,8 @@ Example:
 
 ```JSON
 {
-  "format": "Kafka/0.11",
-  "metadata": {
+  "binding": "Kafka",
+  "message": {
     "topic": {
       "value": "mytopic"
     },

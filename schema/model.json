@@ -3,9 +3,9 @@
     "json-schema/draft-07"
   ],
   "groups": {
-    "schemaGroups": {
-      "singular": "schemaGroup",
-      "plural": "schemaGroups",
+    "schemagroups": {
+      "singular": "schemagroup",
+      "plural": "schemagroups",
       "resources": {
         "schemas": {
           "singular": "schema",
