@@ -40,17 +40,17 @@
           "type": "string",
           "description": "Schema format identifier for this schema version."
         },
-        "createdBy": {
+        "createdby": {
           "type": "string"
         },
-        "createdOn": {
+        "createdon": {
           "type": "string",
           "format": "date-time"
         },
-        "modifiedBy": {
+        "modifiedby": {
           "type": "string"
         },
-        "modifiedOn": {
+        "modifiedon": {
           "type": "string",
           "format": "date-time"
         },
@@ -102,17 +102,17 @@
         "format": {
           "type": "string"
         },
-        "createdBy": {
+        "createdby": {
           "type": "string"
         },
-        "createdOn": {
+        "createdon": {
           "type": "string",
           "format": "date-time"
         },
-        "modifiedBy": {
+        "modifiedby": {
           "type": "string"
         },
-        "modifiedOn": {
+        "modifiedon": {
           "type": "string",
           "format": "date-time"
         },
@@ -175,17 +175,17 @@
         "format": {
           "type": "string"
         },
-        "createdBy": {
+        "createdby": {
           "type": "string"
         },
-        "createdOn": {
+        "createdon": {
           "type": "string",
           "format": "date-time"
         },
-        "modifiedBy": {
+        "modifiedby": {
           "type": "string"
         },
-        "modifiedOn": {
+        "modifiedon": {
           "type": "string",
           "format": "date-time"
         },

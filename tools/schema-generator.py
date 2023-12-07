@@ -40,10 +40,10 @@ json_common_attributes = {
     "documentation": {"type": "string", "format": "uri"},
     "labels": {"type": "object"},
     "format": {"type": "string"},
-    "createdBy": {"type": "string"},
-    "createdOn": {"type": "string", "format": "date-time"},
-    "modifiedBy": {"type": "string"},
-    "modifiedOn": {"type": "string", "format": "date-time"}
+    "createdby": {"type": "string"},
+    "createdon": {"type": "string", "format": "date-time"},
+    "modifiedby": {"type": "string"},
+    "modifiedon": {"type": "string", "format": "date-time"}
 }
 
 avro_common_attributes = [
@@ -54,10 +54,10 @@ avro_common_attributes = [
     {"name": "description", "type": ["string", "null"]},
     {"name": "documentation", "type": ["string", "null"]},
     {"name": "labels", "type": { "type": "map", "values": ["string", "null"]}},
-    {"name": "createdBy", "type": ["string", "null"]},
-    {"name": "createdOn", "type": [{"type":"int", "logicalType": "time-millis"}, "null"]},
-    {"name": "modifiedBy", "type": ["string", "null"]},
-    {"name": "modifiedOn", "type": [{"type":"int", "logicalType": "time-millis"},"null"]}
+    {"name": "createdby", "type": ["string", "null"]},
+    {"name": "createdon", "type": [{"type":"int", "logicalType": "time-millis"}, "null"]},
+    {"name": "modifiedby", "type": ["string", "null"]},
+    {"name": "modifiedon", "type": [{"type":"int", "logicalType": "time-millis"},"null"]}
 ]
 
 avro_generic_record_name = "GenericRecord"

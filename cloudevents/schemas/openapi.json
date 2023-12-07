@@ -3233,17 +3233,17 @@
           "labels": {
             "type": "object"
           },
-          "createdBy": {
+          "createdby": {
             "type": "string"
           },
-          "createdOn": {
+          "createdon": {
             "type": "string",
             "format": "date-time"
           },
-          "modifiedBy": {
+          "modifiedby": {
             "type": "string"
           },
-          "modifiedOn": {
+          "modifiedon": {
             "type": "string",
             "format": "date-time"
           },
@@ -3596,17 +3596,17 @@
             "type": "string",
             "description": "Endpoint metadata format identifier. If set, all definitions MUST use this format value."
           },
-          "createdBy": {
+          "createdby": {
             "type": "string"
           },
-          "createdOn": {
+          "createdon": {
             "type": "string",
             "format": "date-time"
           },
-          "modifiedBy": {
+          "modifiedby": {
             "type": "string"
           },
-          "modifiedOn": {
+          "modifiedon": {
             "type": "string",
             "format": "date-time"
           },
@@ -3718,17 +3718,17 @@
             "type": "string",
             "description": "Format identifier that defines the common metadata information for the message. All definitions in this group share this format. Mixed-format groups are not permitted."
           },
-          "createdBy": {
+          "createdby": {
             "type": "string"
           },
-          "createdOn": {
+          "createdon": {
             "type": "string",
             "format": "date-time"
           },
-          "modifiedBy": {
+          "modifiedby": {
             "type": "string"
           },
-          "modifiedOn": {
+          "modifiedon": {
             "type": "string",
             "format": "date-time"
           },
@@ -3777,17 +3777,17 @@
             "type": "string",
             "description": "Schema format identifier for this schema version."
           },
-          "createdBy": {
+          "createdby": {
             "type": "string"
           },
-          "createdOn": {
+          "createdon": {
             "type": "string",
             "format": "date-time"
           },
-          "modifiedBy": {
+          "modifiedby": {
             "type": "string"
           },
-          "modifiedOn": {
+          "modifiedon": {
             "type": "string",
             "format": "date-time"
           },
@@ -3839,17 +3839,17 @@
           "format": {
             "type": "string"
           },
-          "createdBy": {
+          "createdby": {
             "type": "string"
           },
-          "createdOn": {
+          "createdon": {
             "type": "string",
             "format": "date-time"
           },
-          "modifiedBy": {
+          "modifiedby": {
             "type": "string"
           },
-          "modifiedOn": {
+          "modifiedon": {
             "type": "string",
             "format": "date-time"
           },
@@ -3912,17 +3912,17 @@
           "format": {
             "type": "string"
           },
-          "createdBy": {
+          "createdby": {
             "type": "string"
           },
-          "createdOn": {
+          "createdon": {
             "type": "string",
             "format": "date-time"
           },
-          "modifiedBy": {
+          "modifiedby": {
             "type": "string"
           },
-          "modifiedOn": {
+          "modifiedon": {
             "type": "string",
             "format": "date-time"
           },

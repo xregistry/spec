@@ -36,17 +36,17 @@
         "labels": {
           "type": "object"
         },
-        "createdBy": {
+        "createdby": {
           "type": "string"
         },
-        "createdOn": {
+        "createdon": {
           "type": "string",
           "format": "date-time"
         },
-        "modifiedBy": {
+        "modifiedby": {
           "type": "string"
         },
-        "modifiedOn": {
+        "modifiedon": {
           "type": "string",
           "format": "date-time"
         },
@@ -785,17 +785,17 @@
           "type": "string",
           "description": "Endpoint metadata format identifier. If set, all definitions MUST use this format value."
         },
-        "createdBy": {
+        "createdby": {
           "type": "string"
         },
-        "createdOn": {
+        "createdon": {
           "type": "string",
           "format": "date-time"
         },
-        "modifiedBy": {
+        "modifiedby": {
           "type": "string"
         },
-        "modifiedOn": {
+        "modifiedon": {
           "type": "string",
           "format": "date-time"
         },
