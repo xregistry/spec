@@ -80,7 +80,7 @@ to a "Schema" document - all within the same Registry instance:
 
 For easy reference, the JSON serialization of a Registry adheres to this form:
 
-``` text
+```yaml
 {
   "specVersion": "STRING",
   "id": "STRING",
@@ -572,7 +572,7 @@ to consider when choosing to use labels that can be empty strings.
 
 This specification defines the following API patterns:
 
-``` text
+```yaml
 /                                              # Access the Registry
 /model                                         # Access the Registry model definition
 /GROUPs                                        # Access a Group Type
@@ -624,8 +624,8 @@ rules defined below.
 The serialization of a collection is done as 3 attributes and adheres to this
 form:
 
-``` text
-"COLLECTIONsUrl": "URL, ?
+```yaml
+"COLLECTIONsUrl": "URL", ?
 "COLLECTIONsCount": UINTEGER, ?
 "COLLECTIONs": {
   # Map of entities in the collection, key is the "id" of each entity
@@ -701,7 +701,7 @@ entry-point for traversal and discovery.
 
 The serialization of the Registry entity adheres to this form:
 
-``` text
+```yaml
 {
   "specVersion": "STRING",
   "id": "STRING",
@@ -775,7 +775,7 @@ MAY be used.
 
 The request MUST be of the form:
 
-``` text
+```http
 GET /[?model&specVersion=...&inline=...&filter=...]
 ```
 
@@ -795,7 +795,7 @@ The following query parameters MUST be supported by servers:
 
 A successful response MUST be of the form:
 
-``` text
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
@@ -822,11 +822,11 @@ Content-Type: application/json; charset=utf-8
 
 Retrieve a Registry that has 2 types of Groups (endpoints and schemaGroups):
 
-``` text
+```http
 GET /
+```
 
----
-
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
@@ -849,11 +849,11 @@ Another example where:
 - the "endpoints" Group has one extension attribute defined
 - the request asks for the "schemaGroups" Group to be inlined in the response:
 
-``` text
+```http
 GET /?model&inline=schemaGroups
+```
 
----
-
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
@@ -920,7 +920,7 @@ To update a Registry's metadata attributes, an HTTP `PUT` MAY be used.
 
 The request MUST be of the form:
 
-``` text
+```http
 PUT /
 Content-Type: application/json; charset=utf-8
 
@@ -955,7 +955,7 @@ Where:
 A successful response MUST include the same content that an HTTP `GET`
 on the Registry would return, and be of the form:
 
-``` text
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
@@ -979,7 +979,7 @@ Content-Type: application/json; charset=utf-8
 
 Updating a Registry's metadata
 
-``` text
+```http
 PUT /
 Content-Type: application/json; charset=utf-8
 
@@ -988,9 +988,9 @@ Content-Type: application/json; charset=utf-8
   "name": "My Registry",
   "description": "An even cooler registry!"
 }
+```
 
----
-
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
@@ -1037,7 +1037,7 @@ The Registry model can be retrieved two ways:
 
 Regardless of how the model is retrieved, the overall format is as follows:
 
-``` text
+```yaml
 {
   "schemas": [ "STRING" * ], ?         # Available schema formats
   "attributes": {                      # Registry level extensions
@@ -1123,7 +1123,7 @@ TODO: check the above example list
     Extensions](#attributes-and-extensions)
   - Type: TYPE
   - REQUIRED
-- `attributes."STRING".description
+- `attributes."STRING".description`
   - A human readable description of the attribute
   - Type: String
   - OPTIONAL
@@ -1268,13 +1268,13 @@ used.
 
 The request MUST be of the form:
 
-``` text
+```http
 GET /model
 ```
 
 A successful response MUST be of the form:
 
-```  text
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
@@ -1326,11 +1326,11 @@ Retrieve a Registry model that has one extension attribute on the
 "endpoints" Group, and supports returning the schema of the Registry
 as JSON Schema:
 
-``` text
+```http
 GET /model
+```
 
----
-
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
@@ -1349,7 +1349,7 @@ Content-Type: application/json; charset=utf-8
       },
 
       "resources": {
-        "definitinons": {
+        "definitions": {
           "plural": "definitions",
           "singular": "definition",
           "versions": 1
@@ -1366,7 +1366,7 @@ To update the Registry Model, an HTTP `PUT` MAY be used.
 
 The request MUST be of the form:
 
-``` text
+```http
 PUT /model
 Content-Type: application/json; charset=utf-8
 
@@ -1424,7 +1424,7 @@ datastore of the implementation to match the request.
 A successful response MUST include a full representation of the Registry model
 and be of the form:
 
-``` text
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
@@ -1475,7 +1475,7 @@ Content-Type: application/json; charset=utf-8
 
 Update a Registry's model to add a new Group type:
 
-``` text
+```http
 PUT /model
 Content-Type: application/json; charset=utf-8
 
@@ -1513,9 +1513,9 @@ Content-Type: application/json; charset=utf-8
     }
   }
 }
+```
 
----
-
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
@@ -1534,7 +1534,7 @@ Content-Type: application/json; charset=utf-8
       },
 
       "resources": {
-        "definitinons": {
+        "definitions": {
           "plural": "definitions",
           "singular": "definition",
           "versions": 1
@@ -1565,7 +1565,7 @@ formats the following API can be used:
 
 The request MUST be of the form:
 
-``` text
+```http
 GET /model?schema=STRING
 ```
 
@@ -1574,7 +1574,7 @@ Where:
 
 A successful response MUST be of the form:
 
-``` text
+```http
 HTTP/1.1 200 OK
 Content-Type: ...
 
@@ -1604,7 +1604,7 @@ define how the Resources within a Group type are related to each other.
 
 The serialization of a Group entity adheres to this form:
 
-``` text
+```yaml
 {
   "id": "STRING",
   "name": "STRING", ?
@@ -1659,7 +1659,7 @@ To retrieve a Group collection, an HTTP `GET` MAY be used.
 
 The request MUST be of the form:
 
-``` text
+```http
 GET /GROUPs[?inline=...&filter=...]
 ```
 
@@ -1669,7 +1669,7 @@ The following query parameters MUST be supported by servers:
 
 A successful response MUST be of the form:
 
-``` text
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 Link: <URL>;rel=next;count=INT ?
@@ -1701,11 +1701,11 @@ Link: <URL>;rel=next;count=INT ?
 
 Retrieve all entities in the `endpoints` group:
 
-``` text
+```http
 GET /endpoints
+```
 
----
-
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 Link: <https://example.com/endpoints&page=2>;rel=next;count=100
@@ -1750,7 +1750,7 @@ definition as a JSON object.
 
 Each individual Group definition MUST adhere to the following:
 
-``` text
+```yaml
 {
   "id": "STRING", ?
   "name": "STRING", ?
@@ -1808,7 +1808,7 @@ otherwise an HTTP `200 OK` without an HTTP `Location` header MUST be returned.
 
 Each individual Group in a successful response MUST adhere to the following:
 
-``` text
+```yaml
 {
   "id": "STRING",
   "name": "STRING", ?
@@ -1833,14 +1833,14 @@ Each individual Group in a successful response MUST adhere to the following:
 
 New Group specified in the HTTP body:
 
-``` text
+```http
 POST /endpoints
 Content-Type: application/json; charset=utf-8
 
 { GROUP definition }
+```
 
----
-
+```http
 HTTP/1.1 201 Created
 Content-Type: application/json; charset=utf-8
 Location: https://example.com/endpoints/456
@@ -1850,14 +1850,14 @@ Location: https://example.com/endpoints/456
 
 Multiple Groups specified in the HTTP body:
 
-``` text
+```http
 POST /endpoints
 Content-Type: application/json; charset=utf-8
 
 [ { GROUP1 definition }, { GROUP2 definition } ]
+```
 
----
-
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 Location: https://example.com/endpoints/123
@@ -1867,14 +1867,14 @@ Location: https://example.com/endpoints/123
 
 Targeted request to a create a specific Group `id`:
 
-``` text
+```http
 PUT /endpoints/123
 Content-Type: application/json; charset=utf-8
 
 { GROUP123 definition }
+```
 
----
-
+```http
 HTTP/1.1 201 Created
 Content-Type: application/json; charset=utf-8
 Location: https://example.com/endpoints/123
@@ -1888,7 +1888,7 @@ To retrieve a Group, an HTTP `GET` MAY be used.
 
 The request MUST be of the form:
 
-``` text
+```http
 GET /GROUPs/gID[?inline=...&filter=...]
 ```
 
@@ -1898,7 +1898,7 @@ The following query parameters MUST be supported by servers:
 
 A successful response MUST be of the form:
 
-``` text
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
@@ -1927,11 +1927,11 @@ Content-Type: application/json; charset=utf-8
 
 Retrieve a single `endpoints` Group:
 
-``` text
+```http
 GET /endpoints/123
+```
 
----
-
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
@@ -1952,7 +1952,7 @@ To delete a single Group, an HTTP `DELETE` MAY be used.
 
 The request MUST be of the form:
 
-``` text
+```http
 DELETE /GROUPs/gID[?epoch=UINTEGER]
 ```
 
@@ -1967,13 +1967,13 @@ The following query parameters MUST be supported by servers:
 
 A successful response MUST return either:
 
-``` text
+```http
 HTTP/1.1 204 No Content
 ```
 
 with an empty HTTP body, or:
 
-``` text
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
@@ -2003,7 +2003,7 @@ To delete multiple Groups an HTTP `DELETE` MAY be used.
 
 The request MUST be of the form:
 
-``` text
+```http
 DELETE /GROUPs
 
 [
@@ -2026,13 +2026,13 @@ Any error MUST result in the entire request being rejected.
 
 A successful response MUST return either:
 
-``` text
+```http
 HTTP/1.1 204 No Content
 ```
 
 with an empty HTTP body, or:
 
-``` text
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 Link: <URL>;rel=next;count=INT ?
@@ -2113,7 +2113,7 @@ in HTTP:
 
 When serialized as a JSON object, a Resource MUST adhere to this form:
 
-``` text
+```yaml
 {
   "id": "STRING",
   "name": "STRING", ?
@@ -2143,7 +2143,7 @@ When serialized as a JSON object, a Resource MUST adhere to this form:
 When serialized with the Resource contents in the HTTP body, it MUST adhere
 to this form:
 
-``` text
+```http
 Content-Type: ... ?
 xRegistry-id: STRING
 xRegistry-name: STRING ?
@@ -2360,7 +2360,7 @@ To retrieve all Resources in a Group, an HTTP `GET` MAY be used.
 
 The request MUST be of the form:
 
-``` text
+```http
 GET /GROUPs/gID/RESOURCEs[?inline=...&filter=...]
 ```
 
@@ -2370,7 +2370,7 @@ The following query parameters MUST be supported by servers:
 
 A successful response MUST be of the form:
 
-``` text
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 Link: <URL>;rel=next;count=INT ?
@@ -2411,11 +2411,11 @@ Where:
 
 Retrieve all `definitions` of an `endpoint` whose `id` is `123`:
 
-``` text
+```http
 GET /endpoints/123/definitions
+```
 
----
-
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 Link: <https://example.com/endpoints/123/definitions&page=2>;rel=next;count=100
@@ -2478,7 +2478,7 @@ Version does not change. If `latest` is present but the server does not support
 this feature then an error MUST be generated - see `latest` in the
 [Registry Model](#registry-model) section. If there are multiple new Versions
 of the same Resource being created within one request, and none of them
-inlcude `latest` with a value of `true`, then the last new Version specified
+include `latest` with a value of `true`, then the last new Version specified
 in the request array MUST become the latest Version.
 
 When the request format supports multiple entities (in other words, `POST`
@@ -2489,7 +2489,7 @@ regardless of whether the `?meta` query parameter is present or not.
 When specified as an xRegistry JSON object, each individual entity MUST
 adhere to the following:
 
-``` text
+```yaml
 {
   "id": "STRING", ?
   "name": "STRING", ?
@@ -2504,11 +2504,11 @@ adhere to the following:
 }
 ```
 
-When the HTTP body contains the Resource Verion's contents, then any xRegistry
+When the HTTP body contains the Resource Version's contents, then any xRegistry
 metadata MUST appear as HTTP headers and the request MUST adhere to the
 following:
 
-``` text
+```http
 [METHOD] [PATH]
 Content-Type: ... ?
 xRegistry-id: STRING ?
@@ -2614,7 +2614,7 @@ resulted in a new entity being created, then a successful response:
 
 Create a new Resource:
 
-``` text
+```http
 PUT /endpoints/123/definitions/456
 Content-Type: application/json; charset=utf-8
 xRegistry-name: Blob Created
@@ -2623,9 +2623,9 @@ xRegistry-format: CloudEvents/1.0
 {
   # Definition of a "Blob Created" event excluded for brevity
 }
+```
 
----
-
+```http
 HTTP/1.1 201 Created
 Content-Type: application/json; charset=utf-8
 xRegistry-id: 456
@@ -2647,7 +2647,7 @@ Content-Location: https://example.com/endpoints/123/definitions/456/versions/1.0
 
 Update latest version of a Resource as xRegistry metadata:
 
-``` text
+```http
 PUT /endpoints/123/definitions/456?meta
 Content-Type: application/json; charset=utf-8
 
@@ -2662,9 +2662,9 @@ Content-Type: application/json; charset=utf-8
     # Updated definition of a "Blob Created" event excluded for brevity
   }
 }
+```
 
----
-
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 Content-Location: https://example.com/endpoints/123/definitions/456/versions/1.0
@@ -2690,7 +2690,7 @@ Content-Location: https://example.com/endpoints/123/definitions/456/versions/1.0
 
 Update several Versions (adding a label):
 
-``` text
+```http
 POST /endpoints/123/definitions/456/versions
 Content-Type: application/json; charset=utf-8
 
@@ -2711,9 +2711,9 @@ Content-Type: application/json; charset=utf-8
     # Remainder of xRegistry metadata excluded for brevity
   }
 ]
+```
 
----
-
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
@@ -2742,7 +2742,7 @@ To retrieve a Resource, an HTTP `GET` MAY be used.
 
 The request MUST be of the form:
 
-``` text
+```http
 GET /GROUPs/gID/RESOURCEs/rID
 ```
 
@@ -2764,7 +2764,7 @@ latest Version, duplicating the HTTP `xRegistry-` headers.
 
 The response MUST be of the form:
 
-``` text
+```http
 HTTP/1.1 200 OK|303 See Other
 Content-Type: ... ?            # If Resource is in body
 xRegistry-id: STRING
@@ -2790,6 +2790,7 @@ Content-Location: URL ?
 
 ...Resource contents...
 ```
+
 Where:
 - `id` MUST be the ID of the Resource, not of the latest Version of the
   Resource
@@ -2806,13 +2807,13 @@ HTTP `GET` with the `?meta` query parameter MAY be used.
 
 The request MUST be of the form:
 
-``` text
+```http
 GET /GROUPs/gID/RESOURCEs/rID?meta[&inline=...&filter=...]
 ```
 
 A successful response MUST be of the form:
 
-``` text
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 Content-Location: URL ?
@@ -2861,11 +2862,11 @@ The following query parameters MUST be supported by servers:
 
 Retrieve a `definition` Resource as xRegistry metadata:
 
-``` text
+```http
 GET /endpoints/123/definitions/456?meta
+```
 
----
-
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 Content-Location: https://example.com/endpoints/123/definitions/456/versions/1.0
@@ -2891,7 +2892,7 @@ used.
 
 The request MUST be of the form:
 
-``` text
+```http
 DELETE /GROUPs/gID/RESOURCEs/rID[?epoch=UINTEGER]
 ```
 
@@ -2906,13 +2907,13 @@ The following query parameters MUST be supported by servers:
 
 A successful response MUST return either:
 
-``` text
+```http
 HTTP/1.1 204 No Content
 ```
 
 with an empty HTTP body, or:
 
-``` text
+```http
 HTTP/1.1 200 OK
 Content-Type: ... ?
 xRegistry-id: STRING
@@ -2944,11 +2945,11 @@ Where:
 
 Delete a `definition` Resource, and all its Versions:
 
-``` text
+```http
 DELETE /endpoints/123/definitions/456
+```
 
----
-
+```http
 HTTP/1.1 204 No Content
 ```
 
@@ -2957,7 +2958,7 @@ be used.
 
 The request MUST be of the form:
 
-``` text
+```http
 DELETE /GROUPs/gID/RESOURCEs
 
 [
@@ -2980,13 +2981,13 @@ Any error MUST result in the entire request being rejected.
 
 A successful response MUST return either:
 
-``` text
+```http
 HTTP/1.1 204 No Content
 ```
 
 with an empty HTTP body, or:
 
-``` text
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 Link: <URL>;rel=next;count=INT ?
@@ -2999,7 +3000,7 @@ Link: <URL>;rel=next;count=INT ?
     "self": "URL",
     "latestVersionId": "STRING", ?
     "description": "STRING", ?
-    "documentation"": "URL", ?
+    "documentation": "URL", ?
     "labels": { "STRING": "STRING" * }, ?
     "format": "STRING", ?
     "createdBy": "STRING", ?
@@ -3045,7 +3046,7 @@ This specification does not mandate a particular versioning scheme.
 
 The serialization of a Version entity adheres to this form:
 
-``` text
+```yaml
 {
   "id": "STRING",
   "name": "STRING", ?
@@ -3053,7 +3054,7 @@ The serialization of a Version entity adheres to this form:
   "self": "URL",
   "latest": BOOLEAN, ?
   "description": "STRING", ?
-  "documentation"": "URL", ?
+  "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
   "format": "STRING", ?
   "createdBy": "STRING", ?
@@ -3144,7 +3145,8 @@ modified by a client:
   and is defined below
 
 To update the `latestVersionId` of a Resource, the following API MAY be used:
-```
+
+```http
 POST /GROUPs/gID/RESOURCEs/rID?setLatestVersionId=vID
 ```
 
@@ -3170,7 +3172,7 @@ To retrieve all Versions of a Resource, an HTTP `GET` MAY be used.
 
 The request MUST be of the form:
 
-``` text
+```http
 GET /GROUPs/gID/RESOURCEs/rID/versions[?inline=...&filter=...]
 ```
 
@@ -3180,7 +3182,7 @@ The following query parameters MUST be supported by servers:
 
 A successful response MUST be of the form:
 
-``` text
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 Link: <URL>;rel=next;count=INT ?
@@ -3193,7 +3195,7 @@ Link: <URL>;rel=next;count=INT ?
     "self": "URL",
     "latest": BOOLEAN,
     "description": "STRING", ?
-    "documentation"": "URL", ?
+    "documentation": "URL", ?
     "labels": { "STRING": "STRING" * }, ?
     "format": "STRING", ?
     "createdBy": "STRING", ?
@@ -3216,11 +3218,11 @@ Where:
 
 Retrieve all Version of a `definition` Resource:
 
-``` text
+```http
 GET /endpoints/123/definitions/456/versions
+```
 
----
-
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 Link: <https://example.com/endpoints/123/definitions/456/versions&page=2>;rel=next;count=100
@@ -3248,7 +3250,7 @@ To retrieve a particular Version of a Resource, an HTTP `GET` MAY be used.
 
 The request MUST be of the form:
 
-``` text
+```http
 GET /GROUPs/gID/RESOURCEs/rID/versions/vID[?inline=...]
 ```
 
@@ -3260,7 +3262,7 @@ the `RESOURCEUrl` value when defined.
 
 In the case of returning the Resource, the response MUST be of the form:
 
-``` text
+```http
 HTTP/1.1 200 OK
 Content-Type: ... ?
 xRegistry-id: STRING
@@ -3287,7 +3289,7 @@ Where:
 
 In the case of a redirect, the response MUST be of the form:
 
-``` text
+```http
 HTTP/1.1 303 See Other
 xRegistry-id: STRING
 xRegistry-name: STRING ?
@@ -3316,11 +3318,11 @@ Where:
 
 Retrieve a specific Version (`1.0`) of a `definition` Resource:
 
-``` text
+```http
 GET /endpoints/123/definitions/456/versions/1.0
+```
 
----
-
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 xRegistry-id: 1.0
@@ -3342,13 +3344,13 @@ To retrieve a particular Version's metadata (Version attributes), an HTTP
 
 The request MUST be of the form:
 
-``` text
+```http
 GET /GROUPs/gID/RESOURCEs/rID/versions/vID?meta[&inline=...]
 ```
 
 A successful response MUST be of the form:
 
-``` text
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
@@ -3359,7 +3361,7 @@ Content-Type: application/json; charset=utf-8
   "self": "URL",
   "latest": BOOLEAN,
   "description": "STRING", ?
-  "documentation"": "URL", ?
+  "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
   "format": "STRING", ?
   "createdBy": "STRING", ?
@@ -3381,11 +3383,11 @@ Where:
 
 Retrieve a specific Version of a `definition` Resource as xRegistry metadata:
 
-``` text
+```http
 GET /endpoints/123/definitions/456/versions/1.0?meta
+```
 
----
-
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
@@ -3404,7 +3406,7 @@ To delete a single Version of a Resource, an HTTP `DELETE` MAY be used.
 
 The request MUST be of the form:
 
-``` text
+```http
 DELETE /GROUPs/gID/RESOURCEs/rID/versions/vID[?epoch=UINTEGER][&latestVersionId=vID]
 ```
 
@@ -3445,13 +3447,13 @@ error.
 
 A successful response MUST return either:
 
-``` text
+```http
 HTTP/1.1 204 No Content
 ```
 
 with an empty HTTP body, or:
 
-``` text
+```http
 HTTP/1.1 200 OK
 Content-Type: ... ?
 xRegistry-id: STRING
@@ -3481,11 +3483,11 @@ Where:
 
 Delete a single Version of a `definition` Resource:
 
-``` text
+```http
 DELETE /endpoints/123/definitions/456/versions/1.0
+```
 
----
-
+http
 HTTP/1.1 204 No Content
 ```
 
@@ -3493,7 +3495,7 @@ To delete multiple Versions, an HTTP `DELETE` MAY be used.
 
 The request MUST be of the form:
 
-``` text
+```http
 DELETE /GROUPs/gID/RESOURCEs/rID/versions[?setLatestVersionId=vID]
 
 [
@@ -3539,13 +3541,13 @@ Any error MUST result in the entire request being rejected.
 
 A successful response MUST return either:
 
-``` text
+```http
 HTTP/1.1 204 No Content
 ```
 
 with an empty HTTP body, or:
 
-``` text
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 Link: <URL>;rel=next;count=INT ?
@@ -3558,7 +3560,7 @@ Link: <URL>;rel=next;count=INT ?
     "self": "URL",
     "latest": BOOLEAN,
     "description": "STRING", ?
-    "documentation"": "URL", ?
+    "documentation": "URL", ?
     "labels": { "STRING": "STRING" * }, ?
     "format": "STRING", ?
     "createdBy": "STRING", ?
@@ -3607,7 +3609,7 @@ Some examples:
 
 The format of the `inline` query parameter is:
 
-``` text
+```text
 inline[=PATH[,...]]
 ```
 
@@ -3670,7 +3672,7 @@ to match the resulting subset. In particular:
 
 The format of the `filter` query parameter is:
 
-``` text
+```text
 filter=EXPRESSION[,EXPRESSION]
 ```
 
@@ -3691,7 +3693,7 @@ The abstract processing logic would be:
 
 The format of `EXPRESSION` is:
 
-``` text
+```text
 [PATH.]ATTRIBUTE[=[VALUE]]
 ```
 
@@ -3761,7 +3763,7 @@ printable characters from the US-ASCII character set, and are terminated by a
 CRLF sequence with OPTIONAL whitespace around the header value.
 
 When encoding an attribute's value as an HTTP header it MUST be
-precent-encoded as described below. This is compatible with [RFC3986, section
+percent-encoded as described below. This is compatible with [RFC3986, section
 2.1][rfc3986-section-2-1] but is more specific about what needs
 encoding. The resulting string SHOULD NOT be further encoded.
 (Rationale: quoted string escaping is unnecessary when every space
