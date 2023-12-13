@@ -330,33 +330,13 @@ be one of the following data types:
 - `url` - URL as defined in
   [RFC 1738](https://datatracker.ietf.org/doc/html/rfc1738)
 
-Implementations of this specification MAY define additional (extension)
-attributes. However they MUST adhere to the following rules:
-
-- they MAY be defined as part of the [Registry Model](#registry-model)
-- they MUST NOT change, or extend, the semantics of the Registry - they MUST
-  only be additional metadata to be persisted in the Registry since servers
-  are mandated to try to persist all valid extensions
-- the presence of an attribute, not defined as part of the Registry's model,
-  in a request MUST generate an error if the owning entity does not support
-  undefined extension attribute names - meaning it does not have the `*`
-  attribute defined at that level in the model
-- they MUST NOT use the name of an attribute defined by this specification,
-  regardless of which entity the attribute is defined for. In other words,
-  a spec defined attribute for GROUPs can not be reused as an extension for
-  RESOURCEs
-- it is RECOMMENDED that extension attributes on different objects not use the
-  same name unless they have the exact same semantic meaning
+All attributes (specification defined and extensions) MUST adhere to the
+following rules:
 - their names MUST be between 1 and 63 characters in length
 - their names MUST only contain lowercase alphanumeric characters or an
   underscore (`[a-z_]`) and MUST NOT start with a digit (`[0-9]`)
-- it is STRONGLY RECOMMENDED that they be named in such a way as to avoid
-  potential conflicts with future Registry specification attributes. For
-  example, use of a model (or domain) specific prefix SHOULD be used
 - for STRING attributes, and empty string is a valid value and MUST NOT be
   treated the same as an attribute with no value (or absence of the attribute)
-- if an extension is present in a request and the model defines its type as
-  `ANY` then the server SHOULD default to a type of `string`
 - the string serialization of the attribute name and its value MUST NOT exceed
   4096 bytes. This is to ensure that it can appear in an HTTP header without
   exceeding implementation limits (see
@@ -365,6 +345,45 @@ attributes. However they MUST adhere to the following rules:
   an attribute (defined as a URL) be defined that references a separate
   document. For example, `documentation` can be considered such an attribute
   for `description`
+- if an attribute's type is not fully defined (i.e. it appears under an `ANY`)
+  but a concrete type is neeeded to successfully process it, then the server
+  SHOULD default it to type `string`. For example, if an extension is defined
+  as a map whose values are of type `ANY`, but it appears in an HTTP
+  header with a value of `5` (and it is not clear if this would be an integer
+  or a string), if the server needs to convert this to a concrete data type,
+  then `string` is the default choice
+- there might be cases when it is not possible to know whether a field name is
+  part of an object (in which case it is an "attribute name"), or is part of
+  a map (in which case it is a "key name"). This decision would impact
+  verification of the field since key names allow for a superset of the
+  characters allowed for attribute names. This will only happen when the
+  ANY type has been used higher-up in the model. As a result, any portion of
+  the entity that appears under the scope of an ANY typed attribute or
+  map-value is NOT REQUIRED to be validated except to ensure that the syntax
+  is valid per the rules of the serialization format used
+
+Implementations of this specification MAY define additional (extension)
+attributes. However they MUST adhere to the following rules:
+
+- all attributes MUST conform to the model definition of the Registry. This
+  means that they MUST satisfy at least one of the following:
+  - be explicitly defined (by name) as part of the model
+  - be permitted due to the presence of the `*` (undefined extension attribute
+    name) at that level in the model
+  - be permitted due to the presence of an `ANY` type for one of its parent
+    attribute definitions
+- they MUST NOT change, or extend, the semantics of the Registry - they MUST
+  only be additional metadata to be persisted in the Registry since servers
+  are mandated to try to persist all valid extensions
+- they MUST NOT use the name of an attribute defined by this specification,
+  regardless of which entity the attribute is defined for. In other words,
+  a specification defined attribute for GROUPs can not be reused as an
+  extension for RESOURCEs
+- it is RECOMMENDED that extension attributes on different objects not use the
+  same name unless they have the exact same semantic meaning
+- it is STRONGLY RECOMMENDED that they be named in such a way as to avoid
+  potential conflicts with future Registry specification attributes. For
+  example, use of a model (or domain) specific prefix SHOULD be used
 
 #### Common Attributes
 
@@ -1121,10 +1140,10 @@ The following describes the attributes of Registry model:
     extension names. Absence of a `*` attribute indicates lack of support for
     undefined extensions and an error MUST be generated if one is present in
     a request. Often `*` is used with a `type` of `any` to allow for not just
-	undefined extension names but also unknown extenion types. By default,
-	the model does not support undefined extensions. Note that undefined
-	extensions, if supported, MUST still adhere to the same rules as
-	[defined extensions](#attributes-and-extensions).
+    undefined extension names but also unknown extenion types. By default,
+    the model does not support undefined extensions. Note that undefined
+    extensions, if supported, MUST adhere to the same rules as [defined
+    extensions](#attributes-and-extensions).
   - Type: String
   - REQUIRED
 - `attributes."STRING".type`
@@ -1189,6 +1208,8 @@ The following describes the attributes of Registry model:
     to this attribute.
     If `enum` is not empty and `strict` is `true` then this map MUST NOT
     contain any value that is not specified in the `enum` array
+  - Each `ifvalue` value MUST be unique across all `ifvalue` entries at
+    that level in the model
   - Type: Map where each value of the attribute is the key of the map
   - OPTIONAL
 
@@ -1201,13 +1222,15 @@ The following describes the attributes of Registry model:
   - Type: String
   - REQUIRED
   - MUST be unique across all Groups in the Registry
-  - MUST be non-empty and MUST be a valid attribute name
+  - MUST be non-empty and MUST be a valid attribute name with the exception
+    that it MUST NOT exceed 58 characters (not 63)
 - `groups.plural`
   - The plural name of a Group. e.g. `endpoints`
   - Type: String
   - REQUIRED
   - MUST be unique across all Groups in the Registry
-  - MUST be non-empty and MUST be a valid attribute name
+  - MUST be non-empty and MUST be a valid attribute name with the exception
+    that it MUST NOT exceed 58 characters (not 63)
 - `groups.attributes`
   - see `attributes` above
 
@@ -1219,13 +1242,15 @@ The following describes the attributes of Registry model:
   - The singular name of the Resource. e.g. `definition`
   - Type: String
   - REQUIRED
-  - MUST be non-empty and MUST be a valid attribute name
+  - MUST be non-empty and MUST be a valid attribute name with the exception
+    that it MUST NOT exceed 58 characters (not 63)
   - MUST be unique within the scope of its owning Group
 - `groups.resources.plural`
   - The plural name of the Resource. e.g. `definitions`
   - Type: String
   - REQUIRED
-  - MUST be non-empty and MUST be a valid attribute name
+  - MUST be non-empty and MUST be a valid attribute name with the exception
+    that it MUST NOT exceed 58 characters (not 63)
   - MUST be unique within the scope of its owning Group
 - `groups.resources.versions`
   - Number of Versions per Resource that will be stored in the Registry
@@ -1375,7 +1400,40 @@ Content-Type: application/json; charset=utf-8
 
 #### Updating the Registry Model
 
-To update the Registry Model, an HTTP `PUT` MAY be used.
+Changing the schema of the entities defined by the Registry model are limited
+to backwards compatible changes to ensure existing data within the Registry
+remains valid. The exception to this is that it is permissible to delete
+entire Group or Resource definitions - which results in the deletion of all
+instances of those types.
+
+Below describes the constraints on changing of the model:
+- Groups and Resource definitions MAY be deleted, and MUST result in the
+  deletion of all instances of those types
+- New Group and Resource definitions MAY be created
+- New non-`ifvalue` attributes MAY be added to existing types but MUST NOT be
+  marked as REQUIRED
+- The `name` and `type` fields of an attribute MUST NOT be modified
+- The `description` fields MAY be modified
+- The `enum` field MAY have new values added only if the `strict` field is
+  `false`. Individual `enum` values MUST NOT be removed, however, an `enum`
+  field MAY have all of its values removed but then `strict` MUST also be
+  modified to `false`
+- The `strict` and `required` fields MAY be modified from `true` to `false`,
+  but MUST NOT be modified from `false` to `true`
+- New `ifvalue` definitions MAY be added and they MAY include REQUIRED
+  attributes. However, if there are any existing entities that would be
+  non-compliant as a result of a new REQUIRED attribute then the request to
+  update the model MUST fail
+  - All fields within the `ifvalue` MUST adhere to the rules above concerning
+    non-`ifvalue` fields
+  - `ifvalues` MUST NOT be deleted
+- all of the model changes that are not allowed above are due to the potential
+  of invalidating existing entities. Therefore, if there are no instances of
+  of the Group or Resource that is being modified, then any change to the model
+  MAY be done. Note that this does not apply to the case of modifying the
+  top-level Registry attributes.
+
+To update the Registry model, an HTTP `PUT` MAY be used.
 
 The request MUST be of the form:
 
@@ -3754,17 +3812,6 @@ If the request references an entity (not a collection), and the `EXPRESSION`
 references an attribute in that entity (i.e. there is no `PATH`), then if the
 `EXPRESSION` does not match the entity, that entity MUST NOT be returned. In
 other words, a `404 Not Found` would be generated in the HTTP protocol case.
-
-At this time, this specification only supports filtering over scalar attributes
-defined at the root of the xRegistry entities (the Registry itself, Groups,
-Resources and Versions). The one exception to this is support for filtering on
-on maps (such as `labels`)
-where the value type of the map is a scalar. Implementations, and extension
-specifications, MAY define additional filtering capabilities. "Scalar" is
-defined as one of the variants of: boolean, numeric, string. If an
-implementation would like to enable filtering over a non-root attribute then it
-could consider duplicating that attribute's value into a new root attribute or
-as a `label`.
 
 **Examples:**
 
