@@ -2,8 +2,9 @@
 
 ## Abstract
 
-This specification defines a schema registry extension to the xRegistry document
-format and API [specification](../core/spec.md).
+This specification defines a Schema Registry extension to the xRegistry document
+format and API [specification](../core/spec.md). A Schema Registry allows for
+the storage, management and discovery of schema documents.
 
 ## Table of Contents
 
@@ -17,8 +18,74 @@ format and API [specification](../core/spec.md).
 
 ## Overview
 
-This specification defines a schema registry extension to the xRegistry document
+This specification defines a Schema Registry extension to the xRegistry document
 format and API [specification](../core/spec.md).
+
+For easy reference, the JSON serialization of a Schema Registry adheres to
+this form:
+
+```yaml
+{
+  "specversion": "STRING",                         # xRegistry core attributes
+  "id": "STRING",
+  "name": "STRING", ?
+  "epoch": UINTEGER,
+  "self": "URL",
+  "description": "STRING", ?
+  "documentation": "URL", ?
+  "labels": { "STRING": "STRING" * }, ?
+
+  "model": { ... }, ?
+
+  "schemagroupsurl": "URL",                        # SchemaGroups collection
+  "schemagroupscount": UINTEGER,
+  "schemagroups": {
+    "ID": {
+      "id": "STRING",                              # xRegistry core attributes
+      "name": "STRING", ?
+      "epoch": UINTEGER,
+      "self": "URL",
+      "description": "STRING", ?
+      "documentation": "URL", ?
+      "labels": { "STRING": "STRING" * }, ?
+      "format": "STRING", ?
+      "createdby": "STRING", ?
+      "createdon": "TIME", ?
+      "modifiedby": "STRING", ?
+      "modifiedon": "TIME", ?
+
+      "schemasurl": "URL",                         # Schemas collection
+      "schemascount": UINTEGER,
+      "schemas": {
+        "ID": {
+          "id": "STRING",                          # xRegistry core attributes
+          "name": "STRING", ?
+          "epoch": UINTEGER,
+          "self": "URL",
+          "latestversionid": "STRING",
+          "latestversionurl": "URL",
+          "description": "STRING", ?
+          "documentation": "URL", ?
+          "labels": { "STRING": "STRING" * }, ?
+          "format": "STRING",                      # Notice it is mandatory
+          "createdby": "STRING", ?
+          "createdon": "TIME", ?
+          "modifiedby": "STRING", ?
+          "modifiedon": "TIME", ?
+
+          "schemaobject": { ... }, ?               # TODO - check this
+          "schema": "STRING", ?
+          "schemaurl": "URL" ?
+
+          "versionsurl": "URL",
+          "versionscount": UINTEGER,
+          "versions": { ... } ?
+        } *
+      } ?
+    } *
+  } ?
+}
+```
 
 ## Notations and Terminology
 
@@ -28,20 +95,20 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
 "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be
 interpreted as described in [RFC 2119](https://tools.ietf.org/html/rfc2119).
 
-For clarity, when a feature is marked as "OPTIONAL" this means that it is
-OPTIONAL for both the sender and receiver of a message to support that
-feature. In other words, a sender can choose to include that feature in a
-message if it wants, and a receiver can choose to support that feature if it
-wants. A receiver that does not support that feature is free to take any
-action it wishes, including no action or generating an error, as long as
-doing so does not violate other requirements defined by this specification.
-However, the RECOMMENDED action is to ignore it. The sender SHOULD be prepared
-for the situation where a receiver ignores that feature. An
-Intermediary SHOULD forward OPTIONAL attributes.
+For clarity, OPTIONAL attributes (specification defined and extensions) are
+OPTIONAL for clients to use, but servers MUST be prepared for them to appear
+in incoming requests and MUST support them since "support" simply means
+persisting them in the backing datastore. However, as with all attributes, if
+accepting the attribute would result in a bad state (such as exceeding a size
+limit, or results in a security issue), then the server MAY choose to reject
+the request.
 
 In the pseudo JSON format snippets `?` means the preceding attribute is
 OPTIONAL, `*` means the preceding attribute MAY appear zero or more times,
-and `+` means the preceding attribute MUST appear at least once.
+and `+` means the preceding attribute MUST appear at least once. The presence
+of the `#` character means the remaining portion of the line is a comment.
+Whitespace characters in the JSON snippets are used for readability and are
+not normative.
 
 ### Terminology
 
@@ -49,24 +116,25 @@ This specification defines the following terms:
 
 #### Schema
 
-A schema in the sense of this specification defines the structure of the
+A schema, in the sense of this specification, defines the structure of the
 body/payload of a serialized message, but also of a structured data element
 stored on disk or elsewhere. In self-describing serialization formats like JSON,
 XML, BSON, or MessagePack, schemas primarily help with validating whether a
 message body conforms with a set of rules defined in the schema and with
 generating code that can produce or consume the defined structure. For
-schema-dependent serialization formats like Protobuf or Apache Avro, a schema 
+schema-dependent serialization formats like Protobuf or Apache Avro, a schema
 is needed to decode the structured data from its serialized, binary form.
 
-We use the term **schema** in this specification as a logical grouping of
-**schema versions**. A **schema version** is a concrete document. The **schema**
-is a semantic umbrella formed around one or more concrete schema version
-documents. The semantic condition for **schema versions** to coexist in the same 
-**schema** is that any new schema version is backwards compatible with all previous
-versions of the same **schema**. Any breaking change forms a new **schema**.
+We use the term **schema** (or schema Resource) in this specification as a
+logical grouping of **schema Versions**. A **schema Version** is a concrete
+document. The **schema** Resoruce is a semantic umbrella formed around one or
+more concrete schema Version documents. The semantic condition for **schema
+Versions** to coexist in the same **schema** is that any new schema Version
+MUST be backwards compatible with all previous versions of the same **schema**.
+Any breaking change MUST result in a new **schema** Resource.
 
-In "semantic versioning" terms, you can think of a **schema** as a "major
-version" and the **schema versions** as "minor versions". 
+In "semantic Versioning" terms, you can think of a **schema** as a "major
+version" and the **schema Versions** as "minor versions".
 
 #### Schema Group
 
@@ -77,44 +145,31 @@ what schemas can be contained in a schema group.
 
 ## Schema Registry
 
-The schema registry is a metadata store for organizing schemas and schema
-versions of any kind; it is a document store.
+The Schema Registry is a metadata store for organizing schemas and schema
+Versions of any kind; it is a document store.
 
-The Registry API extension model of the Schema Registry, which is defined in
+The xRegistry API extension model of the Schema Registry, which is defined in
 detail below, is as follows:
 
-``` JSON
+```yaml
 {
-  "schemas": ["json-schema/draft-07"],
+  "schemas": [
+    "json-schema/draft-07"
+  ],
   "groups": [
     {
-      "singular": "schemaGroup",
-      "plural": "schemaGroups",
+      "singular": "schemagroup",
+      "plural": "schemagroups",
       "resources": [
         {
           "singular": "schema",
           "plural": "schemas",
           "versions": 0,
-          "attributes" : {
+          "attributes": {
             "format": {
-              "description": "Schema format identifier for this schema version.",
+              "description": "Schema format identifier",
               "type": "STRING",
               "required": true
-            },
-            "schemaobject": {
-              "description": "Inlined schema document object",
-              "type": "OBJECT",
-              "required": false
-            },
-            "schema": {
-              "description": "Inlined schema document string",
-              "type": "STRING",
-              "required": false
-            },
-            "schemaurl":{
-              "description": "Inlined schema document string",
-              "type": "URL",
-              "required": false
             }
           }
         }
@@ -124,34 +179,42 @@ detail below, is as follows:
 }
 ```
 
-Since the schema registry is an application of the xRegistry specification, all
-attributes for groups, resources, and resource version objects are inherited
+Implementations of this specification MAY include additional extension
+attributes, including the `*` attribute of type `any`.
+
+Since the Schema Registry is an application of the xRegistry specification, all
+attributes for Groups, Resources, and Resource Version objects are inherited
 from there.
 
-### Group: schemaGroups
+### Group: schemagroups
 
-The group (GROUP) name for the Schema Registry is `schemaGroups`. The group does
+The group (GROUP) name for the Schema Registry is `schemagroups`. The group does
 not have any specific extension attributes.
 
 A schema group is a collection of schemas that are related to each other in some
 application-defined way. A schema group does not impose any restrictions on the
-contained schemas, meaning that a schema group can contain schemas of different
+contained schemas, meaning that a schema group MAY contain schemas of different
 formats. Every schema MUST reside inside a schema group.
 
 Example:
 
-``` meta
+The follow abbreviated Schema Registry's contents shows a single schema group
+containing 5 schemas.
+
+```yaml
 {
-  "schemaGroupsUrl": "http://example.com/schemagroups",
-  "schemaGroupsCount": 1,
-  "schemaGroups": {
+  "specversion": 0.5,
+  # other xRegsitry top-level attributes excluded for brevity
+
+  "schemagroupsurl": "http://example.com/schemagroups",
+  "schemagroupscount": 1,
+  "schemagroups": {
     "com.example.schemas": {
       "id": "com.example.schemas",
-      "schemasUrl": "https://example.com/schemagroups/com.example.schemas/schemas",
-      "schemasCount": 5,
-      "schemas": {
-        ...
-      }
+      # Other xRegistry group-level attributes excluded for brevity
+
+      "schemasurl": "https://example.com/schemagroups/com.example.schemas/schemas",
+      "schemascount": 5
     }
   }
 }
@@ -161,34 +224,45 @@ Example:
 
 The resources (RESOURCE) collection inside of schema groups is named `schemas`.
 The type of the resource is `schema`. Any single `schema` is a container for
-one or more `versions`, which hold the concrete schema documents or schema
+one or more `Versions`, which hold the concrete schema documents or schema
 document references.
 
-Any new schema version that is added to a schema definition MUST be backwards
-compatible with all previous versions of the schema, meaning that a consumer
+Any new schema Version that is added to a schema definition MUST be backwards
+compatible with all previous Versions of the schema, meaning that a consumer
 using the new schema MUST be able to understand data encoded using a prior
-version of the schema. If a new version introduces a breaking change, it MUST be
+Version of the schema. If a new Version introduces a breaking change, it MUST be
 registered as a new schema with a new name.
 
 When semantic versioning is used in a solution, it is RECOMMENDED to include a
 major version identifier in the schema `id`, like `"com.example.event.v1"` or
 `"com.example.event.2024-02"`, so that incompatible, but historically related
 schemas can be more easily identified by users and developers. The schema
-version identifier then functions as the semantic minor version identifier.
+Version identifier then functions as the semantic minor version identifier.
 
-When you retrieve a schema without qualifying the version, you will get the
-latest version of the schema, see [retrieving a
+Implementations of this specification MUST use the xRegistry default algorithm
+for generating new `id` values and for determining which is the latest Version.
+See [Version IDs](../core/spec.md#version-ids) for more information, but in
+summary it means:
+- `id`s are unsigned integers starting with `1`
+- they monotomically increase by `1` with each new Version
+- the latest is the Version with the lexically largest `id` value after all
+  Version's `id`s have been left-padded with spaces to the same length
+
+When retrieving a schema document without qualifying the version, the latest
+version of the schema is returned, see [retrieving a
 resource](../core/spec.md#retrieving-a-resource). The latest version is the
-lexically greatest version number, whereby all version ids MUST be left-padded
+lexically greatest version number, whereby all Version ids MUST be left-padded
 with spaces to the same length before being compared.
 
-The following extension is defined for the `schema` object in addition to the
-basic [attributes](../core/spec.md#attributes-and-extensions):
+The following extensions are defined for the `schema` object in addition to the
+core xRegistry Resource
+[attributes](../core/spec.md#attributes-and-extensions):
 
-#### `format` (Schema format)
+#### `format`
 
 - Type: String
-- Description: Identifies the schema format. In absence of formal media-type
+- Description: This is a modified version of the xRegistry `format` attribute.
+  Identifies the schema format. In absence of formal media-type
   definitions for several important schema formats, we define a convention here
   to reference schema formats by name and version as `{NAME}/{VERSION}`. This
   specification defines a set of common [schema format names](#schema-formats)
@@ -198,7 +272,7 @@ basic [attributes](../core/spec.md#attributes-and-extensions):
   - REQUIRED
   - MUST be a non-empty string
   - MUST follow the naming convention `{NAME}/{VERSION}`, whereby `{NAME}` is
-    the name of the schema format and `{VERSION}` is the version of the schema
+    the name of the schema format and `{VERSION}` is the Version of the schema
     format in the format defined by the schema format itself.
 - Examples:
   - `JsonSchema/draft-07`
@@ -206,90 +280,59 @@ basic [attributes](../core/spec.md#attributes-and-extensions):
   - `XSD/1.1`
   - `Avro/1.9`
 
-### Resource Version: schemaversion
+The following abbreviated example shows three embedded `Protobuf/3` schema
+Versions for a schema named `com.example.telemetrydata`:
 
-The `VERSION` object of the `schema` resource is of type `schemaversion`. The
-[`format`](#format-schema-format) extension attribute of `schema` MAY be
-repeated in `schemaversion` for clarity, but MUST be identical.
-`schemaversion` has the following extension attributes.
-
-#### `schemaobject`
-
-- Type: Object
-- Description: Embedded schema object. The format of the schema is defined by
-  the `format` attribute.
-- Constraints:
-  - Mutually exclusive with `schemaurl` and `schema`. One of the three
-    attributes MUST be present.
-  - Schemas MAY be embedded as schema objects if and only if the schema
-    definition language is a self-describing object graph consisting of arrays
-    and key-value maps. Examples for this are JSON Schema and Apache Avro. Not
-    conformant is XML Schema that leans on a combination of elements and
-    attributes that do not translate well into such object graphs. Also not
-    conformant is Protobuf schema, which leans on a custom interface definition
-    language.
-
-#### `schema`
-
-- Type: String
-- Description: Embedded schema string. The format and encoding of the schema is
-  defined by the `format` attribute.
-- Constraints:
-  - Mutually exclusive with `schemaurl` and `schemaobject`. One of the three
-    MUST be present.
-  - Schema strings MAY be embedded if and only if the schema is expressible as a
-    Unicode string. XML Schema and Protobuf schema MUST be embedded in this way
-    if not expressed as schema document reference.
-
-#### `schemaurl`
-
-- Type: URI
-- Description: Reference to a schema document external to the registry.
-- Constraints:
-  - Mutually exclusive with `schema` and `schemaobject`. One of the two MUST be present.
-  - Cross-references to a schema document within the same registry MUST NOT be
-    used.
-- Remarks: 
-  - The `schemaurl` MAY be a well-known identifier that is readily understood by
-    all registry users and resolves to a common type definition or an item in
-    some private store or cache, rather than a networked document location. In
-    such cases, it is RECOMMENDED for the identifier to be a uniform resource
-    name (URN). With XML, it is common practice to reference schema documents
-    abstractly using URIs that use the `http` scheme, but do not actually point
-    to a networked resource. This practice is NOT RECOMMENDED here.
-
-
-The following example shows three embedded `Protobuf/3` schema versions for a
-schema named `com.example.telemetrydata`:
-
-``` JSON
+```yaml
 {
-  "schemaGroupsUrl": "...",
-  "schemaGroupsCount": 1,
-  "schemaGroups": {
+  "specversion": 0.5,
+  # other xRegsitry top-level attributes excluded for brevity
+
+  "schemagroupsurl": "http://example.com/schemagroups",
+  "schemagroupscount": 1,
+  "schemagroups": {
     "com.example.telemetry": {
       "id": "com.example.telemetry",
+      # other xRegistry group-level attributes excluded for brevity
 
-      "schemasUrl": "...",
-      "schemasCount": 1,
+      "schemasurl": "http://example.com/schemagroups/com.example.telemetry/schemas",
+      "schemascount": 1,
       "schemas": {
         "com.example.telemetrydata": {
           "id": "com.example.telemetrydata",
+          "latesversionurl": "http://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions/3",
+          "latestversionid": "3",
           "description": "device telemetry event data",
           "format": "Protobuf/3",
-          "versionsUrl": "...",
-          "versionsCount": 3,
+          # other xRegistry resource-level attributes excluded for brevity
+
+          "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; string description = 3; } }"
+
+          "versionsurl": "http://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions",
+          "versionscount": 3,
           "versions": {
-            "1.0": {
-              "id": "1.0",
+            "1": {
+              "id": "1",
+              "description": "device telemetry event data",
+              "format": "Protobuf/3",
+              # other xRegistry resource-level attributes excluded for brevity
+
               "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; } }"
             },
-            "2.0": {
-              "id": "2.0",
+            "2": {
+              "id": "2",
+              "description": "device telemetry event data",
+              "format": "Protobuf/3",
+              # other xRegistry resource-level attributes excluded for brevity
+
               "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; } }"
             },
-            "3.0": {
-              "id": "3.0",
+            "3": {
+              "id": "3",
+              "description": "device telemetry event data",
+              "format": "Protobuf/3",
+              # other xRegistry resource-level attributes excluded for brevity
+
               "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; string description = 3; } }"
             }
           }
@@ -302,17 +345,16 @@ schema named `com.example.telemetrydata`:
 
 ### Schema Formats
 
-This section defines a set of common schema formats that MUST be used for the
-given formats, but applications MAY define extensions for other formats on their
-own.
+This section defines a set of common schema `format` values that MUST be used
+for the given formats, but applications MAY define extensions for other
+formats on their own.
 
 #### JSON Schema
 
-The [`format`](#format-schema-format) identifier for JSON Schema is
-`JsonSchema`.
+The [`format`](#format) identifier for JSON Schema is `JsonSchema`.
 
 When the `format` attribute is set to `JsonSchema`, the `schema` attribute of
-the `schemaversion` is a JSON object representing a JSON Schema document
+the schema Resource is a JSON object representing a JSON Schema document
 conformant with the declared version.
 
 A URI-reference, like
@@ -344,12 +386,12 @@ version number.
 
 #### XML Schema
 
-The [`format`](#format-schema-format) identifier for XML Schema is `XSD`. The
+The [`format`](#format) identifier for XML Schema is `XSD`. The
 version of the XML Schema format is the version of the W3C XML Schema
 specification that is used to define the schema.
 
 When the `format` attribute is set to `XSD`, the `schema` attribute of
-`schemaversion` is a string containing an XML Schema document conformant with
+schema Resource is a string containing an XML Schema document conformant with
 the declared version.
 
 A URI-reference, like
@@ -358,7 +400,7 @@ to a XSD Schema document MAY use an XPath expression to deep link into the
 schema document to reference a particular type definition. Otherwise the root
 element definition of the schema is used.
 
-The identifiers for the following XML Schema versions
+The identifiers for the following XML Schema versions:
 
 - 1.0: `https://www.w3.org/TR/xmlschema-1/`
 - 1.1: `https://www.w3.org/TR/xmlschema11-1/`
@@ -370,12 +412,12 @@ are defined as follows:
 
 #### Apache Avro Schema
 
-The [`format`](#format-schema-format) identifier for Apache Avro Schema is
+The [`format`](#format) identifier for Apache Avro Schema is
 `Avro`. The version of the Apache Avro Schema format is the version of the
 Apache Avro Schema release that is used to define the schema.
 
 When the `format` attribute is set to `Avro`, the `schema` attribute of the
-`schemaversion` is a JSON object representing an Avro schema document conformant
+schema Resource is a JSON object representing an Avro schema document conformant
 with the declared version.
 
 Examples:
@@ -394,20 +436,20 @@ Examples:
 - If the Avro schema document is referenced using the URI
 `https://example.com/avro/telemetry.avsc`, the URI fragment `#TelemetryEvent`
 references the record declaration of the `TelemetryEvent` record.
-- If the Avro schema document is a local schema registry reference like
-`#/schemaGroups/com.example.telemetry/schemas/com.example.telemetrydata`, in the
+- If the Avro schema document is a local Schema Registry reference like
+`#/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata`, in the
 which the reference is already in the form of a URI fragment, the suffix is
 appended separated with a colon, for instance
 `.../com.example.telemetrydata:TelemetryEvent`.
 
 #### Protobuf Schema
 
-The [`format`](#format-schema-format) identifier for Protobuf Schema is
+The [`format`](#format) identifier for Protobuf Schema is
 `Protobuf`. The version of the Protobuf Schema format is the version of the
 Protobuf syntax that is used to define the schema.
 
 When the `format` attribute is set to `Protobuf`, the `schema` attribute of the
-`schemaversion` is a string containing a Protobuf schema document conformant
+schema Resource is a string containing a Protobuf schema document conformant
 with the declared version.
 
 - `Protobuf/3` is the identifier for the Protobuf syntax version 3.
@@ -426,8 +468,8 @@ Examples:
   `https://example.com/protobuf/telemetry.proto`, the URI fragment
   `#TelemetryEvent` references the message declaration of the `TelemetryEvent`
   message.
-- If the Protobuf schema document is a local schema registry reference like
-  `#/schemaGroups/com.example.telemetry/schemas/com.example.telemetrydata`, in
+- If the Protobuf schema document is a local Schema Registry reference like
+  `#/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata`, in
   the which the reference is already in the form of a URI fragment, the suffix
   is appended separated with a colon, for instance
   `.../com.example.telemetrydata:TelemetryEvent`.

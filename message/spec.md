@@ -26,6 +26,96 @@ Managing the description of the payloads of those messages and events is not in
 scope, but delegated to the [schema registry extension](../schema/spec.md) for
 xRegistry.
 
+For easy reference, the JSON serialization of a Message Registry adheres to
+this form:
+
+```yaml
+{
+  "specversion": "STRING",
+  "id": "STRING",
+  "name": "STRING", ?
+  "epoch": UINTEGER,
+  "self": "URL",
+  "description": "STRING", ?
+  "documentation": "URL", ?
+  "labels": { "STRING": "STRING" * }, ?
+
+  "model": { ... }, ?
+
+  "messagegroupsurl": "URL",
+  "messagegroupscount": UINTEGER,
+  "messagegroups": {
+    "ID": {
+      "id": "STRING",                           # xRegistry core attributes
+      "name": "STRING", ?
+      "epoch": UINTEGER,
+      "self": "URL",
+      "description": "STRING", ?
+      "documentation": "URL", ?
+      "labels": { "STRING": "STRING" * }, ?
+      "format": "STRING", ?
+      "createdby": "STRING", ?
+      "createdon": "TIME", ?
+      "modifiedby": "STRING", ?
+      "modifiedon": "TIME", ?
+
+      "format": "STRING", ?                    # Message attributes
+      "binding": "STRING", ?
+
+      "messagesurl": "URL",
+      "messagescount": UINTEGER,
+      "messages" : {
+        "ID": {
+          "id": "STRING",                      # xRegistry core attributes
+          "name": "STRING", ?
+          "epoch": UINTEGER,
+          "self": "URL",
+          "latestversionid": "STRING",
+          "latestversionurl": "URL",
+          "description": "STRING", ?
+          "documentation": "URL", ?
+          "labels": { "STRING": "STRING" * }, ?
+          "format": "STRING", ?
+          "createdby": "STRING", ?
+          "createdon": "TIME", ?
+          "modifiedby": "STRING", ?
+          "modifiedon": "TIME", ?
+
+          "basemessageurl": "URL", ?        # Message attributes
+
+          "format": "STRING",                  # or "binding"
+          "metadata": {
+            "required": BOOLEAN, ?
+            "description": "STRING", ?
+            "value": ANY, ?
+            "type": "STRING", ?
+            "specurl": "URL" ?
+            "attributes": {
+              "STRING": {
+                "type": "STRING", ?
+                "value": ANY, ?
+                "required": BOOLEAN ?          # Default is 'false'
+              } *
+            } ?
+          }, ?
+
+
+          "binding": "STRING", ?               # or "format"
+          "message": { ... }, ?                # See Message Bindings section
+
+          "schemaformat": "STRING", ?
+          "schema": "STRING" | {},             # ??
+          "schemaurl": "URL", ?
+
+          "versionsurl": "URL",
+          "versionscount": UINTEGER,
+          "versions": { ... } ?
+      } ?
+    } *
+  } ?
+}
+```
+
 ## Notations and Terminology
 
 ### Notational Conventions
@@ -34,20 +124,20 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
 "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be
 interpreted as described in [RFC 2119](https://tools.ietf.org/html/rfc2119).
 
-For clarity, when a feature is marked as "OPTIONAL" this means that it is
-OPTIONAL for both the sender and receiver of a message to support that
-feature. In other words, a sender can choose to include that feature in a
-message if it wants, and a receiver can choose to support that feature if it
-wants. A receiver that does not support that feature is free to take any
-action it wishes, including no action or generating an error, as long as
-doing so does not violate other requirements defined by this specification.
-However, the RECOMMENDED action is to ignore it. The sender SHOULD be prepared
-for the situation where a receiver ignores that feature. An
-Intermediary SHOULD forward OPTIONAL attributes.
+For clarity, OPTIONAL attributes (specification defined and extensions) are
+OPTIONAL for clients to use, but servers MUST be prepared for them to appear
+in incoming requests and MUST support them since "support" simply means
+persisting them in the backing datastore. However, as with all attributes, if
+accepting the attribute would result in a bad state (such as exceeding a size
+limit, or results in a security issue), then the server MAY choose to reject
+the request.
 
 In the pseudo JSON format snippets `?` means the preceding attribute is
 OPTIONAL, `*` means the preceding attribute MAY appear zero or more times,
-and `+` means the preceding attribute MUST appear at least once.
+and `+` means the preceding attribute MUST appear at least once. The presence
+of the `#` character means the remaining portion of the line is a comment.
+Whitespace characters in the JSON snippets are used for readability and are
+not normative.
 
 ### Terminology
 
@@ -73,24 +163,24 @@ describe constraints for the metadata of messages and events, for instance the
 concrete values and patterns for the `type`, `source`, and `subject` attributes
 of a CloudEvent.
 
-A definition group is a collection of message definitions that are related to
-each other in some application-specific way. For instance, a definition group
+A message group is a collection of message definitions that are related to
+each other in some application-specific way. For instance, a message group
 can be used to group all events raised by a particular application module or by
 a particular role of an application protocol exchange pattern.
 
-All message definitions MUST defined inside definition groups.
+All message definitions MUST defined inside message groups.
 
 ## Message Definition Registry Model
 
-The formal xRegistry extension model of the Message Definitions Registry 
+The formal xRegistry extension model of the Message Definitions Registry
 resides in the [model.json](model.json) file.
 
 ### Message Definition Groups
 
-The Group (GROUP) name is `definitionGroups`. The type of a group is
-`definitionGroup`.
+The Group (GROUP) name is `messagegroups`. The type of a group is
+`messagegroup`.
 
-The following attributes are defined for the `definitionGroup` object in
+The following attributes are defined for the `messagegroup` object in
 addition to the basic [attributes](../core/spec.md#attributes-and-extensions):
 
 #### `format` (Metadata format)
@@ -118,7 +208,7 @@ addition to the basic [attributes](../core/spec.md#attributes-and-extensions):
   referenced by name and version as `{NAME}/{VERSION}`. This specification
   defines a set of common [message binding names](#message-bindings) that MUST
   be used for the given protocols, but applications MAY define extensions for
-  other protocol bindings on their own. All definitions inside a group MUST use
+  other protocol bindings on their own. All messages inside a group MUST use
   this same binding.
 - Constraints:
   - At least one of `metadata` and `binding` MUST be specified.
@@ -132,77 +222,77 @@ addition to the basic [attributes](../core/spec.md#attributes-and-extensions):
 
 ### Message Definitions
 
-The resource (RESOURCE) collection name inside `definitionGroup` is
-`definitions`. The resource name is `definition`.
+The resource (RESOURCE) collection name inside `messagegroup` is
+`messages`. The resource name is `message`.
 
 Different from schemas, message definitions do not contain a
 version history. If the metadata of two messages differs, they are considered
-different definitions.
+different messages.
 
-The following extension is defined for the `definition` object in addition to
+The following extension is defined for the `message` object in addition to
 the basic [attributes](../core/spec.md#attributes-and-extensions):
 
-#### `baseDefinitionUrl` (Base definition URL, definition)
+#### `basemessageurl` (Base message URL, message)
 
 - Type: URI-reference
 - Description: if present, the URL points to a message definition that is the
-  base for this message definition. By following the URL, the base definition
-  can be retrieved and extended with the properties of this definition. This is
+  base for this message definition. By following the URL, the base message
+  can be retrieved and extended with the properties of this message. This is
   useful for defining variants of messages that only differ in minor aspects to
-  avoid repetition, or definitions that only have a `format` with associated
+  avoid repetition, or messages that only have a `format` with associated
   `metadata` to be bound to various protocols.
 - Constraints:
   - OPTIONAL
   - If present, MUST be a valid URI-reference
-  - If present, MUST point to a resource of type `definition` using JSON Pointer
-    [RFC6901][JSON Pointer] notation. 
+  - If present, MUST point to a resource of type `message` using JSON Pointer
+    [RFC6901][JSON Pointer] notation.
 
-#### `format` (Metadata format, definition)
+#### `format` (Metadata format, message)
 
 Same as the [`format`](#format-metadata-format) attribute of the
-`definitionGroup` object.
+`messagegroup` object.
 
-Since definitions MAY be cross-referenced ("borrowed") across definition group
+Since messages MAY be cross-referenced ("borrowed") across message group
 boundaries, this attribute is also REQUIRED and MUST be the same as the `format`
-attribute of the `definitionGroup` object into which the definition is embedded
+attribute of the `messagegroup` object into which the message is embedded
 or referenced.
 
 Illustrating example:
 
-```JSONC
+```yaml
 
-"definitionGroupsUrl": "...",
-"definitionGroupsCount": 2,
-"definitionGroups": {
+"messagegroupsurl": "...",
+"messagegroupscount": 2,
+"messagegroups": {
   "com.example.abc": {
     "id": "com.example.abc",
     "format": "CloudEvents/1.0",
 
-    "definitionsUrl": "...",
-    "definitionsCount": 2,
-    "definitions": {
+    "messagesurl": "...",
+    "messagescount": 2,
+    "messages": {
       "com.example.abc.event1": {
         "id": "com.example.abc.event1",
         "format": "CloudEvents/1.0",
-         // ... details ...
+         # ... details ...
         }
       },
       "com.example.abc.event2": {
         "id": "com.example.abc.event1",
         "format": "CloudEvents/1.0",
-        // ... details ...
+        # ... details ...
       }
   },
   "com.example.def": {
     "id": "com.example.def",
     "format": "CloudEvents/1.0",
 
-    "definitionsUrl": "...",
-    "definitionsCount": 1,
-    "definitions": {
+    "messagesurl": "...",
+    "messagescount": 1,
+    "messages": {
       "com.example.abc.event1": {
-        "uri": "#/definitionGroups/com.example.abc/definitions/com.example.abc.event1",
-        // ... details ...
+        "uri": "#/messagegroups/com.example.abc/messages/com.example.abc.event1",
+        # ... details ...
       }
     }
   }
@@ -221,10 +311,10 @@ Illustrating example:
 - Examples:
   - See [Metadata Formats](#metadata-formats)
 
-#### `binding` (Protocol binding, definition)
+#### `binding` (Protocol binding, message)
 
 - Same as the [`binding`](#binding-message-binding) attribute of the
-  `definitionGroup` object.
+  `messagegroup` object.
 
 #### `message` (Protocol binding)
 
@@ -242,7 +332,7 @@ Illustrating example:
 
 - Type: String
 - Description: Identifies the schema format applicable to the message payload,
-  equivalent to the schema ['format'](../schema/spec.md#format-schema-format)
+  equivalent to the schema ['format'](../schema/spec.md#format)
   attribute.
 - Constraints:
   - OPTIONAL
@@ -287,32 +377,32 @@ Illustrating example:
 ### Metadata Formats and Message Bindings
 
 This section defines the metadata formats and message bindings that are directly
-supported by this specification. 
+supported by this specification.
 
 Metadata formats lean on a protocol-neutral metadata definition like
 CloudEvents. Message bindings lean on a message model definition of a specific
 protocol like AMQP or MQTT or Kafka.
 
-A definition can use either a metadata `format`, a message `binding`, or both.
+A message can use either a metadata `format`, a message `binding`, or both.
 
-If a definition only uses a metadata format, any implicit protocol bindings
+If a message only uses a metadata format, any implicit protocol bindings
 defined by the format apply. For instance, a message definition that uses the
 "CloudEvents/1.0" format but no explicit `binding` implicitly applies to all
 protocols for which CloudEvents bindings exist, and using the respective
 protocol binding rules.
 
-If a definition uses both a metadata `format` and a message `binding`, the
+If a message uses both a metadata `format` and a message `binding`, the
 message binding rules apply over the metadata format rules. For instance, if a
 message definition uses the "CloudEvents/1.0" format and an "AMQP/1.0" binding,
 then the implicit protocol bindings of the "CloudEvents/1.0" format are
 overridden by the "AMQP/1.0" binding rules.
 
-If a definition uses only a message `binding`, only the metadata constraints
-defined by the message binding rules apply. 
+If a message uses only a message `binding`, only the metadata constraints
+defined by the message binding rules apply.
 
 #### Common properties
 
-The following properties are common to all definitions of message
+The following properties are common to all messages with
 headers/properties/attributes constraints:
 
 ##### `required` (REQUIRED)
@@ -457,7 +547,7 @@ CloudEvents base specification. The implied `datacontenttype` is
 `application/json` and the implied `dataschema` is
 `https://example.com/schemas/com.example.myevent.json`:
 
-```JSON
+```yaml
 {
   "format": "CloudEvents/1.0",
   "metadata": {
@@ -526,7 +616,7 @@ value of the placeholder is assumed to be identical.
 
 The following example defines a message that is sent over HTTP/1.1:
 
-```JSON
+```yaml
 {
   "binding": "HTTP/1.1",
   "message": {
@@ -556,6 +646,8 @@ The "AMQP/1.0" binding is used to define messages that are sent over an
 The [`message`](#message-protocol-binding) object MAY contain several
 properties, each of which corresponds to a section of the AMQP 1.0 Message:
 
+TODO: - vs _ for prop names in the table below
+
 | Property                 | Type | Description                                                                     |
 | ------------------------ | ---- | ------------------------------------------------------------------------------- |
 | `properties`             | Map  | The AMQP 1.0 [Message Properties][AMQP 1.0 Message Properties] section.         |
@@ -577,7 +669,7 @@ to CloudEvents' `type`), a custom property, and a `content-type` of
 `application/json` without declaring a schema reference in the message
 definition:
 
-```JSON
+```yaml
 {
   "binding": "AMQP/1.0",
   "message": {
@@ -715,7 +807,7 @@ The following example shows a message with the "MQTT/5.0" binding, asking for
 QoS 1 delivery, with a topic name of "mytopic", and a user property of
 "my-application-property" with a value of "my-application-property-value":
 
-```JSON
+```yaml
 {
   "binding": "MQTT/5.0",
   "message": {
@@ -768,7 +860,7 @@ value of the placeholder is assumed to be identical.
 
 Example:
 
-```JSON
+```yaml
 {
   "binding": "Kafka",
   "message": {

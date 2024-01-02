@@ -18,8 +18,115 @@ document format and API [specification](../core/spec.md).
 ## Overview
 
 This specification defines a registry of metadata definitions for abstract and
-concrete network endpoints to which messages can be produced, from which messages
-can be consumed, or which make messages available for subscription.
+concrete network endpoints to which messages can be produced, from which
+messages can be consumed, or which make messages available for subscription.
+
+For easy reference, the JSON serialization of an Endpoint Registry adheres to
+this form:
+
+```yaml
+{
+  "specversion": "STRING",
+  "id": "STRING",
+  "name": "STRING", ?
+  "epoch": UINTEGER,
+  "self": "URL",
+  "description": "STRING", ?
+  "documentation": "URL", ?
+  "labels": { "STRING": "STRING" * }, ?
+
+  "model": { ... }, ?
+
+  "endpointsurl": "URL",
+  "endpointscount": UINTEGER,
+  "endpoints": {
+    "ID": {
+      "id": "STRING",                           # xRegistry core attributes
+      "name": "STRING", ?
+      "epoch": UINTEGER,
+      "self": "URL",
+      "description": "STRING", ?
+      "documentation": "URL", ?
+      "labels": { "STRING": "STRING" * }, ?
+      "format": "STRING", ?
+      "createdby": "STRING", ?
+      "createdon": "TIME", ?
+      "modifiedby": "STRING", ?
+      "modifiedon": "TIME", ?
+
+      "usage": "STRING",                        # subscriber, consumer, producer
+      "origin": "URI", ?                        # default: 'self' URL
+      "channel": "STRING", ?
+      "deprecated": {
+        "effective": "TIMESTAMP", ?
+        "removal": "TIMESTAMP", ?
+        "alternative": "URL", ?
+        "docs": "URL"?
+      }, ?
+
+      "config": {
+        "protocol": "STRING",
+        "endpoints": [
+          {
+            "uri": "URI"                        # plus endpoint extensions
+          } *
+        ], ?
+        "authorization": {
+          "type": "STRING", ?
+          "resourceurl": "URL", ?
+          "authorityuri": "URI", ?
+          "grant_types": [ "STRING" * ] ?
+        }, ?
+        "strict": BOOLEAN, ?
+
+        "options": {
+          "STRING": JSON-VALUE *
+
+          # "http" protocol options
+          "method": "STRING", ?                          # default: POST
+          "headers": { { "name": "STRING", "value": "STRING" } * }, ?
+          "query": { "STRING": "STRING" * } ?
+
+          # "amqp" protocol options
+          "node": "STRING", ?
+          "durable": BOOLEAN, ?                          # default: false
+          "link-properties": { "STRING": "STRING" * }, ?
+          "connection-properties": { "STRING": "STRING" * }, ?
+          "distribution-mode": "move" | "copy" ?         # default: "move"
+
+          # "mqtt" protocol options
+          "topic": "STRING", ?
+          "qos": UINTEGER, ?                             # default: 0
+          "retrain": BOOLEAN, ?                          # default: false
+          "clean-session": BOOLEAN, ?                    # default: true
+          "will-topic": "STRING", ?
+          "will-message": "STRING" ?
+
+          # "kafka" protocol options
+          "topic": "STRING", ?
+          "acks": INTEGER,                               # default: 1
+          "key": "STRING", ?
+          "partition": INTEGER, ?
+          "consumer-group": "STRING" ?
+
+          # "nats" protocol options
+          "subject": "STRING" ?
+        } ?
+      }, ?
+
+      "messagegroups": [ URI * ], ?
+
+      "messagesurl": "URL", ?
+      "messagescount": UINTEGER, ?
+      "messages": {
+        "ID": {
+          # See Message Definition spec for details
+        }, *
+      } ?
+    } *
+  } ?
+}
+```
 
 ## Notations and Terminology
 
@@ -29,20 +136,20 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
 "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be
 interpreted as described in [RFC 2119](https://tools.ietf.org/html/rfc2119).
 
-For clarity, when a feature is marked as "OPTIONAL" this means that it is
-OPTIONAL for both the sender and receiver of a message to support that
-feature. In other words, a sender can choose to include that feature in a
-message if it wants, and a receiver can choose to support that feature if it
-wants. A receiver that does not support that feature is free to take any
-action it wishes, including no action or generating an error, as long as
-doing so does not violate other requirements defined by this specification.
-However, the RECOMMENDED action is to ignore it. The sender SHOULD be prepared
-for the situation where a receiver ignores that feature. An
-Intermediary SHOULD forward OPTIONAL attributes.
+For clarity, OPTIONAL attributes (specification defined and extensions) are
+OPTIONAL for clients to use, but servers MUST be prepared for them to appear
+in incoming requests and MUST support them since "support" simply means
+persisting them in the backing datastore. However, as with all attributes, if
+accepting the attribute would result in a bad state (such as exceeding a size
+limit, or results in a security issue), then the server MAY choose to reject
+the request.
 
 In the pseudo JSON format snippets `?` means the preceding attribute is
 OPTIONAL, `*` means the preceding attribute MAY appear zero or more times,
-and `+` means the preceding attribute MUST appear at least once.
+and `+` means the preceding attribute MUST appear at least once. The presence
+of the `#` character means the remaining portion of the line is a comment.
+Whitespace characters in the JSON snippets are used for readability and are
+not normative.
 
 ### Terminology
 
@@ -64,8 +171,8 @@ delivery to a consumer-designated endpoint.
 As discussed in [CloudEvents Registry overview](../cloudevents/spec.md),
 endpoints are supersets of
 [message definition groups](../message/spec.md#message-definition-groups) and
-MAY contain inlined definitions. Therefore, the RESOURCE level in the meta-model
-for the Endpoint Registry are likewise `definitions` as defined in the 
+MAY contain inlined messages. Therefore, the RESOURCE level in the meta-model
+for the Endpoint Registry are likewise `messages` as defined in the
 [message catalog specification](../message/spec.md).
 
 The resource model for endpoints can be found in [model.json](model.json).
@@ -111,7 +218,7 @@ The following attributes are defined for the `endpoint` type:
     - Application which manages subscriptions for delivery of messages to the
       target application. This might be a message broker subscription manager.
 
-  - `consumer`:  The endpoint offers messages being consumed from it.
+  - `consumer`: The endpoint offers messages being consumed from it.
 
     Some perspectives that might exist on a consumer endpoint:
     - Message store or source which makes messages available for consumption;
@@ -153,6 +260,34 @@ The following attributes are defined for the `endpoint` type:
   - if present, MUST be a non-empty URI
 - Examples:
   - `https://example2.com/myregistry/endpoints/9876`
+
+### `channel`
+
+- Type: String
+- Description: A string that can be used to correlate Endpoints. Any Endpoints
+  within an instance of an Endpoint Registry that share the same non-empty
+  `channel` value MUST have some relationship. This specification does not
+  define that relationship or the specific values used in this property.
+  However, it is expected that the `usage` value in combination with this
+  `channel` property will provide some information to help determine the
+  relationship.
+
+  For instance, a message broker queue "queue1" might be represented with a
+  `producer` endpoint and a `consumer` endpoint, both with the same `channel`
+  attribute value of "queue1".
+
+  An event processing pipeline might have a sequence of stages, each with a
+  `producer` endpoint and a `consumer` endpoint, all with the same `channel`
+  attribute value of "pipeline1", or some further qualification like
+  "pipeline1-stage1", etc.
+
+  When this property has no value it MUST either be serialized as an empty
+  string or excluded from the serialization entirely.
+- Constraints:
+  - OPTIONAL
+  - if present, MUST be a string
+- Examples:
+  - `queue1`
 
 ### `deprecated`
 
@@ -203,151 +338,15 @@ The following attributes are defined for the `endpoint` type:
     }
     ```
 
-### `channel`
-
-- Type: String
-- Description: A string that can be used to correlate Endpoints. Any Endpoints
-  within an instance of an Endpoint Registry that share the same non-empty
-  `channel` value MUST have some relationship. This specification does not
-  define that relationship or the specific values used in this property.
-  However, it is expected that the `usage` value in combination with this
-  `channel` property will provide some information to help determine the
-  relationship.
-
-  For instance, a message broker queue "queue1" might be represented with a
-  `producer` endpoint and a `consumer` endpoint, both with the same `channel`
-  attribute value of "queue1".
-
-  An event processing pipeline might have a sequence of stages, each with a
-  `producer` endpoint and a `consumer` endpoint, all with the same `channel`
-  attribute value of "pipeline1", or some further qualification like
-  "pipeline1-stage1", etc.
-
-  When this property has no value it MUST either be serialized as an empty
-  string or excluded from the serialization entirely.
-- Constraints:
-  - OPTIONAL
-  - if present, MUST be a string
-- Examples:
-  - `queue1`
-
-#### `definitions` (Endpoint)
-
-Endpoints are supersets of
-[message definition groups](../message/spec.md#message-definition-groups) and
-MAY contain inlined definitions. See
-[Message Definitions](../message/spec.md#message-definitions).
-
-Example:
-
-``` JSON
-{
-  "protocol": "HTTP/1.1",
-  "options": {
-    "method": "POST"
-    },
-  "definitionsUrl": "..."
-  "definitionsCount": 1,
-  "definitions": {
-    "myevent": {
-      "format": "CloudEvents/1.0",
-      "metadata": {
-        "attributes": {
-          "type": {
-            "value": "myevent"
-          }
-}}}}}
-```
-
-#### `definitionGroups` (Endpoint)
-
-The `definitionGroups` attribute is an array of URI-references to message
-definition groups. The `definitionGroups` attribute is used to reference
-message definition groups that are not inlined in the endpoint definition.
-
-Example:
-
-``` JSON
-{
-  "protocol": "HTTP/1.1",
-  "options": {
-    "method": "POST"
-    },
-  "definitionGroups": [
-    "https://example.com/registry/definitiongroups/mygroup"
-  ]
-}
-```
-
 #### `config`
 
 - Type: Map
 - Description: Configuration details of the endpoint. An endpoint
   MAY be defined without detail configuration. In this case, the endpoint is
   considered to be "abstract".
-  
-- Constraints:
-  - OPTIONAL
-
-#### `config.authorization`
-
-- Type: Map
-- Description: OPTIONAL authorization configuration details of the endpoint.
-  When present, the authorization configuration MUST be a map of non-empty
-  strings to non-empty strings. The configuration keys below MUST be used as
-  defined. Additional, endpoint-specific configuration keys MAY be added.
 
 - Constraints:
   - OPTIONAL
-  - MUST only be used for authorization configuration
-  - MUST NOT be used for credential configuration
-
-#### `config.authorization.type`
-
-- Type: String
-- Description: The type of the authorization configuration. The value SHOULD be 
-  one of the following:
-  - OAuth2: OAuth 2.0 authorization is used.
-  - Plain: The client uses username with a plaintext password for authentication
-    and authorization.
-  - X509Cert: The client uses client certificate authentication and authorization.
-  - APIKey: The client uses an API key for authentication and authorization.
-
-- Constraints:
-  - OPTIONAL
-  - MUST be a non-empty string if used
-
-#### `config.authorization.resourceuri`
-
-- Type: URI
-- Description: The URI of the resource for which the authorization is
-  requested. The format of the URI depends on the authorization type.
-
-- Constraints:
-  - OPTIONAL
-  - MUST be a non-empty URI if used
-
-#### `config.authorization.authorityuri`
-
-- Type: URI
-- Description: The URI of the authorization authority from which the
-  authorization is requested. The format of the URI depends on the authorization
-  type.
-
-- Constraints:
-  - OPTIONAL
-  - MUST be a non-empty URI if used
-
-#### `config.authorization.grant_types`
-
-- Type: Array of Strings
-- Description: The supported authorization grant types. The value SHOULD be a
-  list of strings. 
-
-- Constraints:
-  - OPTIONAL
-  - MUST be a non-empty array if used
-
 
 #### `config.protocol`
 
@@ -384,31 +383,98 @@ Example:
 
 #### `config.endpoints`
 
-- Type: Array of URI
-- Description: The network addresses that are for communication with the
-  endpoint. The endpoints are ordered by preference, with the first endpoint
-  being the preferred endpoint. Some protocol implementations might not support
-  multiple endpoints, in which case all but the first endpoint might be ignored.
-  Whether the URI just identifies a network host or links directly to a resource
-  managed by the network host is protocol specific.
+- Type: Array of Objects
+- Description: An array of objects map where each object contains a `uri`
+  attribute with the the network address to which clients can communicate with
+  the endpoint. The object MAY contain extension attributes that can be used
+  by clients to determine which URI to use, or to configure access to the
+  specific URI. Whether the URI identifies a network host or links directly to
+  a resource managed by the network host is protocol specific.
 - Constraints:
   - OPTIONAL
-  - Each entry MUST be a valid, absolute URI (URL)
+  - Each object key MUST contain a `uri` attirbute with a valid, absolute
+    URI (URL)
 - Examples:
-  - `["tcp://example.com", "wss://example.com"]`
-  - `["https://example.com"]`
+  - `[ {"uri": "https://example.com" } ]`
+  - ```
+    [
+      { "uri": "tcp://example.com" },
+      { "uri": "wss://example.com" }
+    ]
+    ```
+  - ```
+    [
+      {
+        "uri": "tcp://example.com",
+        "priority": 1,
+        "status": "down"
+      },
+      {
+        "uri": "wss://example.com",
+        "priority": 2,
+        "status": "up"
+      }
+    ]
+    ```
 
-#### `config.options`
+#### `config.authorization`
 
 - Type: Map
-- Description: Additional configuration options for the endpoint. The
-  configuration options are protocol specific and described in the
-  [protocol options](#protocol-options) section below.
+- Description: OPTIONAL authorization configuration details of the endpoint.
+  When present, the authorization configuration MUST be a map of non-empty
+  strings to non-empty strings. The configuration keys below MUST be used as
+  defined. Additional, endpoint-specific configuration keys MAY be added.
+
 - Constraints:
   - OPTIONAL
-  - When present, MUST be a map of non-empty strings to non-empty strings.
-  - If `config.protocol` is a well-known protocol, the options MUST be
-    compliant with the [protocol's options](#protocol-options).
+  - MUST only be used for authorization configuration
+  - MUST NOT be used for credential configuration
+
+#### `config.authorization.type`
+
+- Type: String
+- Description: The type of the authorization configuration. The value SHOULD be
+  one of the following:
+  - OAuth2: OAuth 2.0 authorization is used.
+  - Plain: The client uses username with a plaintext password for authentication
+    and authorization.
+  - X509Cert: The client uses client certificate authentication and authorization.
+  - APIKey: The client uses an API key for authentication and authorization.
+
+- Constraints:
+  - OPTIONAL
+  - MUST be a non-empty string if used
+
+#### `config.authorization.resourceuri`
+
+- Type: URI
+- Description: The URI of the resource for which the authorization is
+  requested. The format of the URI depends on the authorization type.
+
+- Constraints:
+  - OPTIONAL
+  - MUST be a non-empty URI if used
+
+#### `config.authorization.authorityuri`
+
+- Type: URI
+- Description: The URI of the authorization authority from which the
+  authorization is requested. The format of the URI depends on the authorization
+  type.
+
+- Constraints:
+  - OPTIONAL
+  - MUST be a non-empty URI if used
+
+#### `config.authorization.grant_types`
+
+- Type: Array of Strings
+- Description: The supported authorization grant types. The value SHOULD be a
+  list of strings.
+
+- Constraints:
+  - OPTIONAL
+  - MUST be a non-empty array if used
 
 #### `config.strict`
 
@@ -419,6 +485,71 @@ Example:
 - Constraints:
   - OPTIONAL.
   - Default value is `false`.
+
+#### `config.options`
+
+- Type: Map
+- Description: Additional configuration options for the endpoint. The
+  configuration options are protocol specific and described in the
+  [protocol options](#protocol-options) section below.
+- Constraints:
+  - OPTIONAL
+  - When present, MUST be a map of non-empty strings to `ANY` type values.
+  - If `config.protocol` is a well-known protocol, the options MUST be
+    compliant with the [protocol's options](#protocol-options).
+
+#### `messages` (Endpoint)
+
+Endpoints are supersets of
+[message definition groups](../message/spec.md#message-definition-groups) and
+MAY contain inlined messages. See
+[Message Definitions](../message/spec.md#message-definitions).
+
+Example:
+
+```yaml
+{
+  "protocol": "HTTP/1.1",
+  "options": {
+    "method": "POST"
+  },
+
+  "messagesurl": "...",
+  "messagescount": 1,
+  "messages": {
+    "myevent": {
+      "format": "CloudEvents/1.0",
+      "metadata": {
+        "attributes": {
+          "type": {
+            "value": "myevent"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+#### `messagegroups` (Endpoint)
+
+The `messagegroups` attribute is an array of URI-references to message
+definition groups. The `messagegroups` attribute is used to reference
+message definition groups that are not inlined in the endpoint definition.
+
+Example:
+
+```yaml
+{
+  "protocol": "HTTP/1.1",
+  "options": {
+    "method": "POST"
+  },
+  "messagegroups": [
+    "https://example.com/registry/messagegroups/mygroup"
+  ]
+}
+```
 
 #### Protocol Options
 
@@ -448,7 +579,7 @@ identical.
 
 Example:
 
-```JSON
+```yaml
 {
   "protocol": "HTTP/1.1",
   "options": {
@@ -496,7 +627,7 @@ assumed to be identical.
 
 Example:
 
-```JSON
+```yaml
 {
   "usage": "producer",
   "protocol": "AMQP/1.0",
@@ -543,14 +674,14 @@ The following options are defined for MQTT endpoints.
 - `will-message`: This is URI and/or JSON Pointer that refers to the MQTT
   `will-message` to use for the endpoint. The value MUST be a non-empty string.
   It MUST point to a valid
-  [´definition´](../message/spec.md#message-definitions) that MUST either
+  [´message´](../message/spec.md#message-definitions) that MUST either
   use the ["CloudEvents/1.0"](../message/spec.md#cloudevents10) or
   ["MQTT/3.1.1." or "MQTT/5.0"](../message/spec.md#mqtt311-and-mqtt50-bindings)
   [`format`](../message/spec.md#format-metadata-format).
 
 Example:
 
-```JSON
+```yaml
 {
   "usage": "producer",
   "protocol": "MQTT/5.0",
@@ -560,7 +691,7 @@ Example:
     "retain": false,
     "clean-session": false,
     "will-topic": "mytopic",
-    "will-message": "#/definitionGroup/mygroup/definitions/my-will-message"
+    "will-message": "#/messagegroups/mygroup/messages/my-will-message"
   }
 }
 ```
@@ -593,7 +724,7 @@ The following options are defined for Kafka endpoints.
 
 Example:
 
-```JSON
+```yaml
 {
   "usage": "producer",
   "protocol": "Kafka/2.0",
@@ -618,7 +749,7 @@ The following options are defined for NATS endpoints.
 
 Example:
 
-```JSON
+```yaml
 {
   "usage": "producer",
   "protocol": "NATS/1.0.0",
