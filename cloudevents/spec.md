@@ -24,20 +24,20 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
 "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be
 interpreted as described in [RFC 2119](https://tools.ietf.org/html/rfc2119).
 
-For clarity, when a feature is marked as "OPTIONAL" this means that it is
-OPTIONAL for both the sender and receiver of a message to support that
-feature. In other words, a sender can choose to include that feature in a
-message if it wants, and a receiver can choose to support that feature if it
-wants. A receiver that does not support that feature is free to take any
-action it wishes, including no action or generating an error, as long as
-doing so does not violate other requirements defined by this specification.
-However, the RECOMMENDED action is to ignore it. The sender SHOULD be prepared
-for the situation where a receiver ignores that feature. An
-Intermediary SHOULD forward OPTIONAL attributes.
+For clarity, OPTIONAL attributes (specification defined and extensions) are
+OPTIONAL for clients to use, but servers MUST be prepared for them to appear
+in incoming requests and MUST support them since "support" simply means
+persisting them in the backing datastore. However, as with all attributes, if
+accepting the attribute would result in a bad state (such as exceeding a size
+limit, or results in a security issue), then the server MAY choose to reject
+the request.
 
 In the pseudo JSON format snippets `?` means the preceding attribute is
 OPTIONAL, `*` means the preceding attribute MAY appear zero or more times,
-and `+` means the preceding attribute MUST appear at least once.
+and `+` means the preceding attribute MUST appear at least once. The presence
+of the `#` character means the remaining portion of the line is a comment.
+Whitespace characters in the JSON snippets are used for readability and are
+not normative.
 
 ### Terminology
 
@@ -94,7 +94,7 @@ The following is an exemplary, compact definition of an MQTT 5.0 consumer
 endpoint with a single, embedded message definition using an embedded Protobuf 3
 schema for its payload.
 
-``` JSON
+```yaml
 {
   "$schema": "https://cloudevents.io/schemas/registry",
   "specversion": "0.5-wip",
@@ -155,13 +155,14 @@ The same metadata can be expressed by spreading the metadata across the message
 definition and schema registries, which makes the definitions reusable for other
 scenarios:
 
-``` JSON
+```yaml
 {
   "$schema": "https://cloudevents.io/schemas/registry",
   "specversion": "0.4-wip",
   "id": "urn:uuid:3978344f-8596-4c3a-a978-8fc9a6a469f7",
 
-  "endpointsCount": 1,
+  "endpointsurl": "...",
+  "endpointscount": 1,
   "endpoints":
   {
     "com.example.telemetry": {
@@ -178,18 +179,19 @@ scenarios:
         }
       },
       "format": "CloudEvents/1.0",
-      "definitionGroups": [
-        "#/definitionGroups/com.example.telemetryEvents"
+      "definitiongroups": [
+        "#/definitiongroups/com.example.telemetryEvents"
       ]
     }
   },
 
-  "definitionGroupsCount": 1,
-  "definitionGroups": {
+  "definitiongroupsurl": 1,
+  "definitiongroupscount": 1,
+  "definitiongroups": {
     "com.example.telemetryEvents": {
       "id": "com.example.telemetryEvents",
 
-      "definitionsCount": 1,
+      "definitionscount": 1,
       "definitions": {
         "com.example.telemetry": {
           "id": "com.example.telemetry",
@@ -218,25 +220,25 @@ scenarios:
             }
           },
           "schemaformat": "Protobuf/3.0",
-          "schemaurl": "#/schemaGroups/com.example.telemetry/schema/com.example.telemetrydata/versions/1.0"
+          "schemaurl": "#/schemagroups/com.example.telemetry/schema/com.example.telemetrydata/versions/1.0"
         }
       }
     }
   },
 
-  "schemaGroupsCount": 1,
-  "schemaGroups": {
+  "schemagroupscount": 1,
+  "schemagroups": {
     "com.example.telemetry": {
       "id": "com.example.telemetry",
 
-      "schemasCount": 1,
+      "schemascount": 1,
       "schemas": {
         "com.example.telemetrydata": {
           "id": "com.example.telemetrydata",
           "description": "device telemetry event data",
           "format": "Protobuf/3.0",
 
-          "versionsCount": 1,
+          "versionscount": 1,
           "versions": {
             "1.0": {
               "id": "1.0",
@@ -254,23 +256,23 @@ If we assume the message definitions and schemas to reside at an API endpoint,
 an endpoint definition might just reference the associated message definition
 group with a deep link to the respective object in the service:
 
-``` JSONC
+```yaml
 {
   "$schema": "https://cloudevents.io/schemas/registry",
   "specversion": "0.4-wip",
   "id": "urn:uuid:3978344f-8596-4c3a-a978-8fc9a6a469f7",
 
-  "endpointsCount": 1,
+  "endpointscount": 1,
   "endpoints":
   {
     "com.example.telemetry": {
       "id": "com.example.telemetry",
       "usage": "consumer",
       "config": {
-        // ... details ...
+        # ... details ...
       },
       "format": "CloudEvents/1.0",
-      "definitionGroups": [
+      "definitiongroups": [
           "https://site.example.com/registry/definitiongroups/com.example.telemetryEvents"
       ]
     }
@@ -283,24 +285,25 @@ including files shared via public version control repositories, the reference
 link will first reference the file and then the object within the file, using
 [JSON Pointer][JSON Pointer] syntax:
 
-``` JSONC
+```yaml
 {
   "$schema": "https://cloudevents.io/schemas/registry",
   "specversion": "0.4-wip",
   "id": "urn:uuid:3978344f-8596-4c3a-a978-8fc9a6a469f7",
 
-  "endpointsCount": 1,
+  "endpointsurl": "...",
+  "endpointscount": 1,
   "endpoints":
   {
     "com.example.telemetry": {
       "id": "com.example.telemetry",
       "usage": "consumer",
       "config": {
-        // ... details ......
+        # ... details ......
       },
       "format": "CloudEvents/1.0",
-      "definitionGroups": [
-        "https://rawdata.repos.example.com/myorg/myproject/main/example.telemetryEvents.cereg#/definitionGroups/com.example.telemetryEvents"
+      "definitiongroups": [
+        "https://rawdata.repos.example.com/myorg/myproject/main/example.telemetryEvents.cereg#/definitiongroups/com.example.telemetryEvents"
       ]
     }
   }
@@ -347,7 +350,7 @@ A CloudEvents Registry file MUST contain a single JSON object or YAML document.
 The object declares the roots of the three sub-registries, which are either
 embedded or referenced. Any of the three sub-registries MAY be omitted.
 
-``` meta
+```yaml
 {
    "$schema": "https://cloudevents.io/schemas/registry",
    "specversion": "0.4-wip",
