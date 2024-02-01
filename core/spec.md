@@ -103,6 +103,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
         "enum": [ VALUE * ], ?          # Array of scalar values of type "TYPE"
         "strict": BOOLEAN, ?            # Just "enum" values or not.Default=true
         "required": BOOLEAN, ?          # Default: false, from a CLI POV?
+        "readonly": BOOLEAN, ?          # Default: false
 
         "item": {                       # If "type" above is non-scalar
           "attributes": { ... } ?       # If "type" above is object
@@ -237,7 +238,7 @@ Use of the words `GROUP` and `RESOURCE` are meant to represent the singular
 form of a Group and Resource type being used. While `GROUPs` and `RESOURCEs`
 are the plural form of those respective types.
 
-Use of acronyms and words in all capital letters (e.g. `ID`) typically
+Use of acronyms and words in all capital letters (e.g. `ID`, `KEY`) typically
 represent a field that will be replaced by its real value at runtime.
 
 The following are used to denote an instance of one of the associated data
@@ -1167,7 +1168,10 @@ The following describes the attributes of Registry model:
     undefined extension names but also unknown extenion types. By default,
     the model does not support undefined extensions. Note that undefined
     extensions, if supported, MUST adhere to the same rules as [defined
-    extensions](#attributes-and-extensions).
+    extensions](#attributes-and-extensions). Note: an attribute of `*` MUST NOT
+    use the `ifvalue` feature, but a well-named attribute MAY define an
+    `ifvalue` attribute named `*` as long as there isn't already one defined
+    for this level in the entity
   - Type: String
   - REQUIRED
 - `attributes."STRING".type`
@@ -1201,7 +1205,16 @@ The following describes the attributes of Registry model:
     creation, or update, of an entity, if this attribute is not specified
     then an error MUST be generated. When not specified the default value is
     `false`. When the attribute name is `*` then `required` MUST NOT be
-    set to `true`
+    set to `true`.
+  - Type: Boolean
+  - OPTIONAL
+- `attributes."STRING".readonly`
+  - Indicates whether this attribute is a modifiable by a client. During
+    creation, or update, of an entity, if this attribute is specified then
+    its value MUST be ignored by the server even if the value is invalid.
+    When not specified the default value is `false. When the attribute name is
+    `*` then `readonly` MUST NOT be set to `true`. Note, both `required` and
+    `readonly` MUST NOT be set to `true` at the same time
   - Type: Boolean
   - OPTIONAL
 
@@ -1235,6 +1248,11 @@ The following describes the attributes of Registry model:
     contain any value that is not specified in the `enum` array
   - Each `ifvalue` value MUST be unique across all `ifvalue` entries at
     that level in the model
+  - All attributes defined for this `ifvalue` MUST be unique within the scope
+    of this `ifvalue` and MUST NOT match a named attributed defined at this
+    level of the entity. If mulitple `ifvalue` sections, at the same entity
+    level, are active at the same time then there MUST NOT be duplicate
+    `ifvalue` attributes names between those `ifvalue` sections
   - Type: Map where each value of the attribute is the key of the map
   - OPTIONAL
 
@@ -2215,7 +2233,7 @@ However, there are a few exceptions:
 
 All other attributes, including extensions, are associated with the Version.
 
-Unlike Groups, Resources are typically defined by domain-specific data
+Unlike Groups, Resources typically have well-defined domain-specific formats
 and as such the Registry defined attributes are not present in the Resources
 themselves. This means the Registry metadata needs to be managed separately
 from the contents of the Resource. As such, there are two ways to serialize
@@ -2225,8 +2243,8 @@ Resources in HTTP:
   name prefixed with `xRegistry-`. Registry attributes that are maps MUST
   also appear if their values are defined to be of scalar type (e.g. not `any`
   or `object`)
-  See [HTTP Header Values](#http-header-values) and [`labels`](#labels) for
-  additional information
+  See [HTTP Header Values](#http-header-values) for additional information
+  and [`labels`](#labels) for an example of one such attribute
 - similar to Groups, the Registry attributes are serialized as a single JSON
   object that appears in the HTTP body. The Resource contents will either
   appear as an attribute (`RESOURCE` or `RESOURCEbase64`), or there will be
@@ -2274,8 +2292,7 @@ xRegistry-latestversionid: STRING
 xRegistry-latestversionurl: URL
 xRegistry-description: STRING ?
 xRegistry-documentation: URL ?
-xRegistry-labels-KEY: STRING ?
-xRegistry-labels-...: STRING ?
+xRegistry-labels-KEY: STRING *
 xRegistry-format: STRING ?
 xRegistry-createdby: STRING ?
 xRegistry-createdon: TIME ?
@@ -2645,8 +2662,7 @@ xRegistry-id: STRING ?
 xRegistry-name: STRING ?
 xRegistry-description: STRING ?
 xRegistry-documentation: URL ?
-xRegistry-labels-KEY: STRING ?
-xRegistry-labels-...: STRING ?
+xRegistry-labels-KEY: STRING *
 xRegistry-format: STRING ?
 xRegistry-RESOURCEurl: URL ?
 
@@ -2907,8 +2923,7 @@ xRegistry-latestversionid: STRING
 xRegistry-latestversionurl: URL
 xRegistry-description: STRING ?
 xRegistry-documentation: URL ?
-xRegistry-labels-KEY: STRING ?
-xRegistry-labels-...: STRING ?
+xRegistry-labels-KEY: STRING *
 xRegistry-format: STRING ?
 xRegistry-createdby: STRING ?
 xRegistry-createdon: TIME ?
@@ -3055,8 +3070,7 @@ xRegistry-self: URL
 xRegistry-latestversionid: STRING ?
 xRegistry-description: STRING ?
 xRegistry-documentation: URL ?
-xRegistry-labels-KEY: STRING ?
-xRegistry-labels-...: STRING ?
+xRegistry-labels-KEY: STRING *
 xRegistry-format: STRING ?
 xRegistry-createdby: STRING ?
 xRegistry-createdon: TIME ?
@@ -3252,6 +3266,13 @@ but the default algorithm is as follows:
   `id` then the server MUST generate the next `id` in the sequence and try
   again
 
+With this default versioning algorithm, when semantic versioning is needed,
+it is RECOMMENDED to include a major version identifier in the resource `id`,
+like `"com.example.event.v1"` or `"com.example.event.2024-02"`, so that
+incompatible, but historically related resources can be more easily identified
+by users and developers. The resource Version `id` then functions as the
+semantic minor version identifier.
+
 #### Latest Version of a Resource
 
 As Versions of a Resource are added or removed there needs to be a mechanism
@@ -3407,8 +3428,7 @@ xRegistry-self: URL
 xRegistry-latest: BOOL
 xRegistry-description: STRING ?
 xRegistry-documentation: URL ?
-xRegistry-labels-KEY: STRING ?
-xRegistry-labels-...: STRING ?
+xRegistry-labels-KEY: STRING *
 xRegistry-format: STRING ?
 xRegistry-createdby: STRING ?
 xRegistry-createdon: TIME ?
@@ -3433,8 +3453,7 @@ xRegistry-self: URL
 xRegistry-latest: BOOL
 xRegistry-description: STRING ?
 xRegistry-documentation: URL ?
-xRegistry-labels-KEY: STRING ?
-xRegistry-labels-...: STRING ?
+xRegistry-labels-KEY: STRING *
 xRegistry-format: STRING ?
 xRegistry-createdby: STRING ?
 xRegistry-createdon: TIME ?
@@ -3591,8 +3610,7 @@ xRegistry-self: URL
 xRegistry-latest: BOOL
 xRegistry-description: STRING ?
 xRegistry-documentation: URL ?
-xRegistry-labels-KEY: STRING ?
-xRegistry-labels-...: STRING ?
+xRegistry-labels-KEY: STRING *
 xRegistry-format: STRING ?
 xRegistry-createdby: STRING ?
 xRegistry-createdon: TIME ?

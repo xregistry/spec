@@ -230,29 +230,23 @@ document references.
 Any new schema Version that is added to a schema definition MUST be backwards
 compatible with all previous Versions of the schema, meaning that a consumer
 using the new schema MUST be able to understand data encoded using a prior
-Version of the schema. If a new Version introduces a breaking change, it MUST be
-registered as a new schema with a new name.
+Version of the schema. If a new Version introduces a breaking change, it MUST
+be registered as a new schema with a new name.
 
-When semantic versioning is used in a solution, it is RECOMMENDED to include a
-major version identifier in the schema `id`, like `"com.example.event.v1"` or
-`"com.example.event.2024-02"`, so that incompatible, but historically related
-schemas can be more easily identified by users and developers. The schema
-Version identifier then functions as the semantic minor version identifier.
-
-Implementations of this specification MUST use the xRegistry default algorithm
-for generating new `id` values and for determining which is the latest Version.
-See [Version IDs](../core/spec.md#version-ids) for more information, but in
-summary it means:
+Implementations of this specification SHOULD use the xRegistry default
+algorithm for generating new `id` values and for determining which is the
+latest Version. See [Version IDs](../core/spec.md#version-ids) for more
+information, but in summary it means:
 - `id`s are unsigned integers starting with `1`
 - they monotomically increase by `1` with each new Version
 - the latest is the Version with the lexically largest `id` value after all
   Version's `id`s have been left-padded with spaces to the same length
 
-When retrieving a schema document without qualifying the version, the latest
-version of the schema is returned, see [retrieving a
-resource](../core/spec.md#retrieving-a-resource). The latest version is the
-lexically greatest version number, whereby all Version ids MUST be left-padded
-with spaces to the same length before being compared.
+When semantic versioning is used in a solution, it is RECOMMENDED to include a
+major version identifier in the schema `id`, like `"com.example.event.v1"` or
+`"com.example.event.2024-02"`, so that incompatible, but historically related
+schemas can be more easily identified by users and developers. The schema
+Version `id` then functions as the semantic minor version identifier.
 
 The following extensions are defined for the `schema` object in addition to the
 core xRegistry Resource

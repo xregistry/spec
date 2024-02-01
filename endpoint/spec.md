@@ -104,7 +104,7 @@ this form:
 
           # "kafka" protocol options
           "topic": "STRING", ?
-          "acks": INTEGER,                               # default: 1
+          "acks": INTEGER, ?                             # default: 1
           "key": "STRING", ?
           "partition": INTEGER, ?
           "consumer-group": "STRING" ?
@@ -187,7 +187,8 @@ The following attributes are defined for the `endpoint` type:
 
 - Type: String (Enum: `subscriber`, `consumer`, `producer`)
 - Description: The `usage` attribute is a string that indicates the intended
-  usage of the endpoint by communicating parties.
+  usage of the endpoint by communicating parties. In other words, the role
+  of a client talking with the endpoint.
 
   Each of these parties will have a different perspective on an endpoint. For
   instance, a `producer` endpoint is seen as a "target" by the originator of
@@ -218,7 +219,7 @@ The following attributes are defined for the `endpoint` type:
     - Application which manages subscriptions for delivery of messages to the
       target application. This might be a message broker subscription manager.
 
-  - `consumer`: The endpoint offers messages being consumed from it.
+  - `consumer`: The endpoint offers messages being consumed (pulled) from it.
 
     Some perspectives that might exist on a consumer endpoint:
     - Message store or source which makes messages available for consumption;
@@ -227,7 +228,7 @@ The following attributes are defined for the `endpoint` type:
       forwards them to the target endpoint.
     - Application which consumes messages
 
-  - `producer`: The endpoint offers messages being produces (sent) to it.
+  - `producer`: The endpoint offers messages being produced (pushed) to it.
 
     Some perspectives might exist on a producer endpoint:
     - Application from which messages originate
