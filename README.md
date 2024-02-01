@@ -63,6 +63,8 @@ native ecosystem by making our systems interoperable with xRegistry.
 - [Roadmap](docs/ROADMAP.md)
 - [Contributors](docs/contributors.md): people and organizations who helped
   us get started or are actively working on the xRegistry specifications.
+- [Presentations, notes and other misc shared
+  docs](https://drive.google.com/drive/folders/1DjeazDhtUsWP0mQIzu4XOzNxF2EiGNvN?usp=sharing)
 - [Demos & open source](docs/README.md) -- if you have something to share
   about your use of xRegistry, please submit a PR!
 - [Code of Conduct](https://github.com/cncf/foundation/blob/master/code-of-conduct.md)
