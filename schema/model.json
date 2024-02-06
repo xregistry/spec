@@ -6,31 +6,31 @@
     "schemagroups": {
       "singular": "schemagroup",
       "plural": "schemagroups",
+
+      "attributes": {
+        "*": {
+          "name": "*",
+          "type": "any"
+        }
+      },
+
       "resources": {
         "schemas": {
           "singular": "schema",
           "plural": "schemas",
           "versions": 0,
+
           "attributes": {
             "format": {
-              "description": "Schema format identifier for this schema version.",
+              "name": "format",
               "type": "string",
-              "required": true
+              "description": "Schema format identifier for this schema version",
+              "clientrequired": true,
+              "serverrequired": true
             },
-            "schemaobject": {
-              "description": "Inlined schema document object",
-              "type": "object",
-              "required": false
-            },
-            "schema": {
-              "description": "Inlined schema document string",
-              "type": "string",
-              "required": false
-            },
-            "schemaurl": {
-              "description": "Inlined schema document string",
-              "type": "uri",
-              "required": false
+            "*": {
+              "name": "*",
+              "type": "any"
             }
           }
         }

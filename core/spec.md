@@ -41,11 +41,11 @@ automation and tooling.
 A Registry Service is one that manages metadata about Resources. At its core,
 the management of an individual Resource is simply a REST-based interface for
 creating, modifying and deleting the Resource. However, many Resource models
-share a common pattern of grouping Resources (e.g. by their "format") and can
-optionally support versioning of those Resources. This specification aims to
-provide a common interaction pattern for these types of services with the goal
-of providing an interoperable framework that will enable common tooling and
-automation to be created.
+share a common pattern of grouping Resources and can optionally support
+versioning of those Resources. This specification aims to provide a common
+interaction pattern for these types of services with the goal of providing an
+interoperable framework that will enable common tooling and automation to be
+created.
 
 This document is meant to be a framework from which additional specifications
 can be defined that expose model specific Resources and metadata.
@@ -102,12 +102,13 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
         "description": "STRING", ?
         "enum": [ VALUE * ], ?          # Array of scalar values of type "TYPE"
         "strict": BOOLEAN, ?            # Just "enum" values or not.Default=true
-        "required": BOOLEAN, ?          # Default: false, from a CLI POV?
-        "readonly": BOOLEAN, ?          # Default: false
+        "readonly": BOOLEAN, ?          # Client writable? Default: false
+        "clientrequired": BOOLEAN, ?    # Default: false
+        "serverrequired": BOOLEAN, ?    # Default: false
 
         "item": {                       # If "type" above is non-scalar
-          "attributes": { ... } ?       # If "type" above is object
           "type": "TYPE", ?             # Type of this item,default is "object"
+          "attributes": { ... } ?       # If "type" above is object
           "item": { ... } ?             # If this item "type" is map or array
         } ?
 
@@ -133,7 +134,8 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "versionid": BOOLEAN, ?     # Supports client specified Version IDs
             "latest": BOOLEAN, ?        # Supports client "latest" selection
             "hasdocument": BOOLEAN, ?   # Has a separate document. Default=true
-            "attributes": { ... } ?     # See "attributes" above
+            "readonly": BOOLEAN ?       # Client writable? Default=false
+            "attributes": { ... }, ?    # See "attributes" above
           } *
         } ?
       } *
@@ -152,7 +154,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       "description": "STRING", ?
       "documentation": "URL", ?
       "labels": { "STRING": "STRING" * }, ?
-      "format": "STRING", ?
+      "origin": "URI", ?
       "createdby": "STRING", ?
       "createdon": "TIME", ?
       "modifiedby": "STRING", ?
@@ -172,7 +174,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
           "description": "STRING", ?
           "documentation": "URL", ?
           "labels": { "STRING": "STRING" * }, ?
-          "format": "STRING", ?
+          "origin": "URI", ?
           "createdby": "STRING", ?
           "createdon": "TIME", ?
           "modifiedby": "STRING", ?
@@ -193,7 +195,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
               "description": "STRING", ?
               "documentation": "URL", ?
               "labels": { "STRING": "STRING" * }, ?
-              "format": "STRING", ?
+              "origin": "URI", ?
               "createdby": "STRING", ?
               "createdon": "TIME", ?
               "modifiedby": "STRING", ?
@@ -401,7 +403,7 @@ form:
 - `"description": "STRING"`
 - `"documentation": "URL"`
 - `"labels": { "STRING": "STRING" * }`
-- `"format": "STRING"`
+- `"origin": "URI"`
 - `"createdby": "STRING"`
 - `"createdon": "TIME"`
 - `"modifiedby": "STRING"`
@@ -473,6 +475,12 @@ Then the existing entity can be deleted.
   to an entity in a [Registry Collection](#registry-collections), the URL MUST
   be a combination of the base URL for the collection appended with the `id`
   of the entity
+
+  When this URL references a Resource or Version, it MUST include the `?meta`
+  query parameter if the request asked for the serialization of the xRegistry
+  metadata. This would happen when `?meta` was used in the request, or when
+  the Resource (or Version) is included in the serialization of a Group, such
+  as when the `inline` feature is used.
 - Constraints:
   - MUST be a non-empty absolute URL
   - MUST be a read-only attribute in API view
@@ -526,34 +534,20 @@ the header to be specified as `-HxRegistry-labels-verified;` - notice the
 semi-colon(`;`) is used instead of colon(`:`). So, this might be something
 to consider when choosing to use labels that can be empty strings.
 
-#### `format`
+#### `origin`
 
-- Type: String
-- Description: The name of the specification that defines the Resource
-  stored in the registry. Often it is difficult to unambiguously determine
-  what a Resource is via simple inspect of its serialization. This attribute
-  provides a mechanism by which it can be determined without examination of
-  the Resource at all
+- Type: URI
+- Description: A URI reference to the original source of the entity. This
+  can be used to locate the true authority owner of the entity in cases of
+  distributed Registries. If this property is absent its default value
+  is the value of the `self` property and in those cases its presence in the
+  serialization of the entity is OPTIONAL.
 - Constraints:
-  - if present, MUST be a non-empty string of the form `SPEC[/VERSION]`,
-    where `SPEC` is the non-empty string name of the specification that
-    defines the Resource. An OPTIONAL `VERSION` value SHOULD be included if
-    there are multiple versions of the specification available
-  - for comparison purposes, this attribute MUST be considered case sensitive
-  - If a `VERSION` is specified at the Group level, all Resources within that
-    Group MUST have a `VERSION` value that is at least as precise as its
-    Group, and MUST NOT expand it. For example, if a Group had a
-    `format` value of `myspec`, then Resources within that Group can have
-    `format` values of `myspec` or `myspec/1.0`. However, if a Group has a
-    value of `myspec/1.0` it would be invalid for a Resource to have a value of
-    `myspec/2.0` or just `myspec`. Additionally, if a Group does not have
-    a `format` attribute then there are no constraints on its Resources
-    `format` attributes
-  - This specification places no restriction on the case of the `SPEC` value
-    or on the syntax of the `VERSION` value
+  - OPTIONAL if this Registry is the authority owner
+  - REQUIRED if this Registry is not the authority owner
+  - if present, MUST be a non-empty URI
 - Examples:
-  - `CloudEvents/1.0`
-  - `MQTT`
+  - `https://example2.com/myregistry/endpoints/9876`
 
 #### `createdby`
 
@@ -780,7 +774,7 @@ and the following Registry entity specific attributes:
   - REQUIRED in responses, OPTIONAL in requests
   - REQUIRED in document view
   - MUST be a read-only attribute in API view
-  - MUST be non-empty
+  - if present, MUST be non-empty
 - Examples:
   - `1.0`
 
@@ -909,8 +903,7 @@ Content-Type: application/json; charset=utf-8
         "attributes": {
           "shared": {
             "name": "shared",
-            "type": "boolean",
-            "required": false
+            "type": "boolean"
           }
         },
 
@@ -1103,11 +1096,13 @@ Regardless of how the model is retrieved, the overall format is as follows:
       "description": "STRING",
       "enum": [ VALUE * ], ?           # Array of values of type "TYPE"
       "strict": BOOLEAN, ?             # Just "enum" values or not. Default=true
-      "required": BOOLEAN, ?           # Default: false
+      "readonly": BOOLEAN, ?           # Client writable? Default: false
+      "clientrequired": BOOLEAN, ?     # Default: false
+      "serverrequired": BOOLEAN, ?     # Default: false
 
       "item": {                        # If "type" above is non-scalar
-        "attributes": { ... } ?        # If "type" above object
         "type": "TYPE", ?              # Type of this item,default is "object"
+        "attributes": { ... } ?        # If "type" above object
         "item": { ... } ?              # If this item "type" is map or array
       } ?
 
@@ -1133,7 +1128,8 @@ Regardless of how the model is retrieved, the overall format is as follows:
           "versionid": BOOLEAN, ?      # Supports client specified Version IDs
           "latest": BOOLEAN ?          # Supports client "latest" selection
           "hasdocument": BOOLEAN, ?    # Has no separate document. Default=true
-          "attributes": { ... } ?      # See "attributes" above
+          "readonly": BOOLEAN ?        # Client writable? Default=false
+          "attributes": { ... }, ?     # See "attributes" above
         } *
       } ?
     } *
@@ -1200,21 +1196,30 @@ The following describes the attributes of Registry model:
     impact when `enum` is absent or an empty array.
   - Type: Boolean
   - OPTIONAL
-- `attributes."STRING".required`
-  - Indicates whether this attribute is a REQUIRED attribute or not. During
-    creation, or update, of an entity, if this attribute is not specified
-    then an error MUST be generated. When not specified the default value is
-    `false`. When the attribute name is `*` then `required` MUST NOT be
-    set to `true`.
-  - Type: Boolean
-  - OPTIONAL
 - `attributes."STRING".readonly`
   - Indicates whether this attribute is a modifiable by a client. During
     creation, or update, of an entity, if this attribute is specified then
     its value MUST be ignored by the server even if the value is invalid.
     When not specified the default value is `false. When the attribute name is
-    `*` then `readonly` MUST NOT be set to `true`. Note, both `required` and
-    `readonly` MUST NOT be set to `true` at the same time
+    `*` then `readonly` MUST NOT be set to `true`. Note, both `clientrequired`
+    and `readonly` MUST NOT be set to `true` at the same time
+  - Type: Boolean
+  - OPTIONAL
+- `attributes."STRING".clientrequired`
+  - Indicates whether this attribute is a REQUIRED field for a client when
+    creating or update an entity. During
+    creation, or update, of an entity, if this attribute is not specified
+    then an error MUST be generated. When not specified the default value is
+    `false`. When the attribute name is `*` then `clientrequired` MUST NOT be
+    set to `true`.
+  - Type: Boolean
+  - OPTIONAL
+- `attributes."STRING".serverrequired`
+  - Indicates whether this attribute is a REQUIRED field for a server when
+    serializing an entity. When not specified the default value is
+    `false`. When the attribute name is `*` then `serverrequired` MUST NOT be
+    set to `true`. When `clientrequired` is `true` then `serverrequired` MUST
+    also be `true`.
   - Type: Boolean
   - OPTIONAL
 
@@ -1223,17 +1228,17 @@ The following describes the attributes of Registry model:
     This attribute MUST only be used when the `type` value is non-scalar
   - Type: Object
   - REQUIRED when `type` is non-scalar
-- `attributes."STRING".item.attributes`
-  - This contains the list of attributes defined as part of a nested resource
-  - Type: Object, see `attributes` above
-  - REQUIRED when the owning attribute's `type` is `object`, otherwise it
-    MUST NOT be present
 - `attributes."STRING".item.type`
   - The "TYPE" of this nested resource. Note, this attribute MAY be absent if
     owning attribute's `type` is `object` and the `items.attributes` value
     is non-empty
   - Type: TYPE
   - REQUIRED if the nested resource is not `object`, otherwise it is OPTIONAL
+- `attributes."STRING".item.attributes`
+  - This contains the list of attributes defined as part of a nested resource
+  - Type: Object, see `attributes` above
+  - REQUIRED when the owning attribute's `type` is `object`, otherwise it
+    MUST NOT be present
 - `attributes."STRING".item.item`
   - See `attributes."STRING".item` above.
   - REQUIRED when `item.type` is non-scalar
@@ -1337,6 +1342,14 @@ The following describes the attributes of Registry model:
   - The default value if `true`
   - A value of `true` indicates that the Resource supports a separate document
     to be associated with the Resource.
+- `groups.resources.readonly`
+  - Indicates if this Resource is updateable by a client. A value of `true`
+    means that the server support write operation on this Resource. A value
+    of `false` means that all `PUT`, `POST` and `DELETE` operations MUST
+    generate an error.
+  - Type: Boolean (`true` or `false`, case sensitive)
+  - OPTIONAL
+  - The default value is `false`
 - `groups.resources.attributes`
   - see `attributes` above
   - Note that Resources themselves don't actually have extensions, rather
@@ -1368,8 +1381,10 @@ Content-Type: application/json; charset=utf-8
       "description": "STRING", ?
       "enum": [ VALUE * ], ?
       "strict": BOOLEAN, ?
-      "required": BOOLEAN, ?
-      "attributes": { ... }, ?               # Nested attributes
+      "readonly": BOOLEAN, ?
+      "clientrequired": BOOLEAN, ?
+      "serverrequired": BOOLEAN, ?
+
       "item": { ... }, ?                     # Nested resource
 
       "ifvalue": {
@@ -1394,7 +1409,8 @@ Content-Type: application/json; charset=utf-8
           "versionid": BOOLEAN, ?
           "latest": BOOLEAN, ?
           "hasdocument": BOOLEAN, ?
-          "attributes": { ... } ?            # See "attributes" above
+          "readonly": BOOLEAN ?
+          "attributes": { ... }, ?           # See "attributes" above
         } *
       } ?
     } *
@@ -1425,8 +1441,7 @@ Content-Type: application/json; charset=utf-8
       "attributes": {
         "shared": {
           "name": "shared",
-          "type": "boolean",
-          "required": false
+          "type": "boolean"
         }
       },
 
@@ -1466,8 +1481,8 @@ Below describes the constraints on changing of the model:
   `false`. Individual `enum` values MUST NOT be removed, however, an `enum`
   field MAY have all of its values removed but then `strict` MUST also be
   modified to `false`
-- The `strict` and `required` fields MAY be modified from `true` to `false`,
-  but MUST NOT be modified from `false` to `true`
+- The `strict`, `clientrequired` and `serverrequired` fields MAY be modified
+  from `true` to `false`, but MUST NOT be modified from `false` to `true`
 - New `ifvalue` definitions MAY be added and they MAY include REQUIRED
   attributes. However, if there are any existing entities that would be
   non-compliant as a result of a new REQUIRED attribute then the request to
@@ -1497,8 +1512,10 @@ Content-Type: application/json; charset=utf-8
       "description": "STRING", ?
       "enum": [ VALUE * ], ?
       "strict": BOOLEAN, ?
-      "required": BOOLEAN, ?
-      "attributes": { ... }, ?                    # Nested attributes
+      "readonly": BOOLEAN, ?
+      "clientrequired": BOOLEAN, ?
+      "serverrequired": BOOLEAN, ?
+
       "item": { ... }, ?                          # Nested resource
 
       "ifvalue": {
@@ -1523,7 +1540,8 @@ Content-Type: application/json; charset=utf-8
           "versionid": BOOLEAN, ?
           "latest": BOOLEAN, ?
           "hasdocument": BOOLEAN, ?
-          "attributes": { ... } ?                 # See "attributes" above
+          "readonly": BOOLEAN ?
+          "attributes": { ... }, ?                # See "attributes" above
         } *
       } ?
     } *
@@ -1560,8 +1578,10 @@ Content-Type: application/json; charset=utf-8
       "description": "STRING", ?
       "enum": [ VALUE * ], ?
       "strict": BOOLEAN, ?
-      "required": BOOLEAN, ?
-      "attributes": { ... }, ?
+      "readonly": BOOLEAN, ?
+      "clientrequired": BOOLEAN, ?
+      "serverrequired": BOOLEAN, ?
+
       "item": { ... }, ?
 
       "ifvalue": {
@@ -1586,7 +1606,8 @@ Content-Type: application/json; charset=utf-8
           "versionid": BOOLEAN, ?
           "latest": BOOLEAN, ?
           "hasdocument": BOOLEAN, ?
-          "attributes": { ... } ?
+          "readonly": BOOLEAN ?
+          "attributes": { ... }, ?
         } *
       } ?
     } *
@@ -1748,7 +1769,7 @@ The serialization of a Group entity adheres to this form:
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
-  "format": "STRING", ?
+  "origin": "URI", ?
   "createdby": "STRING", ?
   "createdon": "TIME", ?
   "modifiedby": "STRING", ?
@@ -1770,7 +1791,7 @@ Groups include the following common attributes:
 - [`description`](#description) - OPTIONAL
 - [`documentation`](#documentation) - OPTIONAL
 - [`labels`](#labels) - OPTIONAL
-- [`format`](#format) - OPTIONAL
+- [`origin`](#origin) - OPTIONAL
 - [`createdby`](#createdby) - OPTIONAL
 - [`createdon`](#createdon) - OPTIONAL
 - [`modifiedby`](#modifiedby) - OPTIONAL
@@ -1818,7 +1839,7 @@ Link: <URL>;rel=next;count=UINTEGER ?
     "description": "STRING", ?
     "documentation": "URL", ?
     "labels": { "STRING": "STRING" * }, ?
-    "format": "STRING", ?
+    "origin": "URI", ?
     "createdby": "STRING", ?
     "createdon": "TIME", ?
     "modifiedby": "STRING", ?
@@ -1893,7 +1914,7 @@ Each individual Group definition MUST adhere to the following:
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
-  "format": "STRING" ?
+  "origin": "URI" ?
 }
 ```
 
@@ -1952,7 +1973,7 @@ Each individual Group in a successful response MUST adhere to the following:
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
-  "format": "STRING", ?
+  "origin": "URI", ?
   "createdby": "STRING", ?
   "createdon": "TIME", ?
   "modifiedby": "STRING", ?
@@ -2044,7 +2065,7 @@ Content-Type: application/json; charset=utf-8
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
-  "format": "STRING", ?
+  "origin": "URI", ?
   "createdby": "STRING", ?
   "createdon": "TIME", ?
   "modifiedby": "STRING", ?
@@ -2119,7 +2140,7 @@ Content-Type: application/json; charset=utf-8
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
-  "format": "STRING", ?
+  "origin": "URI", ?
   "createdby": "STRING", ?
   "createdon": "TIME", ?
   "modifiedby": "STRING", ?
@@ -2182,7 +2203,7 @@ Link: <URL>;rel=next;count=UINTEGER ?
     "description": "STRING", ?
     "documentation": "URL", ?
     "labels": { "STRING": "STRING" * }, ?
-    "format": "STRING", ?
+    "origin": "URI", ?
     "createdby": "STRING", ?
     "createdon": "TIME", ?
     "modifiedby": "STRING", ?
@@ -2263,7 +2284,7 @@ When serialized as a JSON object, a Resource MUST adhere to this form:
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
-  "format": "STRING", ?
+  "origin": "URI", ?
   "createdby": "STRING", ?
   "createdon": "TIME", ?
   "modifiedby": "STRING", ?
@@ -2293,7 +2314,7 @@ xRegistry-latestversionurl: URL
 xRegistry-description: STRING ?
 xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING *
-xRegistry-format: STRING ?
+xRegistry-origin: STRING ?
 xRegistry-createdby: STRING ?
 xRegistry-createdon: TIME ?
 xRegistry-modifiedby: STRING ?
@@ -2330,7 +2351,7 @@ Resources include the following common attributes:
 - [`description`](#description) - OPTIONAL
 - [`documentation`](#documentation) - OPTIONAL
 - [`labels`](#labels) - OPTIONAL
-- [`format`](#format) - OPTIONAL
+- [`origin`](#origin) - OPTIONAL
 - [`createdby`](#createdby) - OPTIONAL
 - [`createdon`](#createdon) - OPTIONAL
 - [`modifiedby`](#modifiedby) - OPTIONAL
@@ -2349,7 +2370,7 @@ and the following Resource specific attributes:
   - REQUIRED in responses, OPTIONAL on requests
   - REQUIRED in document view
   - MUST be a read-only attribute in API view
-  - MUST be non-empty
+  - if present, MUST be non-empty
   - MUST be the `id` of the latest Version of the Resource
 - Examples:
   - `1`, `2.0`, `v3-rc1`
@@ -2357,6 +2378,12 @@ and the following Resource specific attributes:
 **`latestversionurl`**
 - Type: URL
 - Description: an absolute URL to the latest Version of the Resource
+
+  This URL MUST include the `?meta`
+  query parameter if the request asked for the serialization of the xRegistry
+  metadata. This would happen when `?meta` was used in the request, or when
+  the Resource is included in the serialization of a Group, such
+  as when the `inline` feature is used.
 - Constraints:
   - REQUIRED in responses, OPTIONAL in requests
   - OPTIONAL in document view
@@ -2364,7 +2391,7 @@ and the following Resource specific attributes:
   - MUST be an absolute URL to the latest Version of the Resource, and MUST
     be the same as the Version's `self` attribute
 - Examples:
-  - `https://example.com/endpoints/123/definitions/456/versions/1.0?meta`
+  - `https://example.com/endpoints/123/definitions/456/versions/1.0`
 
 **`versions` collection**
 - Type: [Registry Collection](#registry-collections)
@@ -2532,7 +2559,7 @@ Link: <URL>;rel=next;count=UINTEGER ?
     "description": "STRING", ?
     "documentation": "URL", ?
     "labels": { "STRING": "STRING" * }, ?
-    "format": "STRING", ?
+    "origin": "URI", ?
     "createdby": "STRING", ?
     "createdon": "TIME", ?
     "modifiedby": "STRING", ?
@@ -2574,7 +2601,7 @@ Link: <https://example.com/endpoints/123/definitions&page=2>;rel=next;count=100
     "self": "https://example.com/endpoints/123/definitions/456?meta",
     "latestversionid": "1.0",
     "latestversionurl": "https://example.com/endpoints/123/definitions/456/versions/1.0?meta",
-    "format": "CloudEvents/1.0",
+    "origin": "http://example.com",
 
     "versionsurl": "https://example.com/endpoints/123/definitions/456/versions",
     "versionscount": 1
@@ -2643,7 +2670,7 @@ adhere to the following:
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
-  "format": "STRING", ?
+  "origin": "URI", ?
 
   "RESOURCEurl": "URL", ?                  # If not local
   "RESOURCE": { Resource contents }, ?     # If inlined & JSON
@@ -2663,7 +2690,7 @@ xRegistry-name: STRING ?
 xRegistry-description: STRING ?
 xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING *
-xRegistry-format: STRING ?
+xRegistry-origin: STRING ?
 xRegistry-RESOURCEurl: URL ?
 
 ...entity contents... ?
@@ -2695,6 +2722,9 @@ Regardless of how the entity is represented, the following rules apply:
   it MUST be interpreted as a request to update only the specified attributes
   and any attribute not specified will remain unchanged. To delete an attribute
   it MUST be specified with a value of `null`
+  - any map attribute that appears as an HTTP header MUST be included in its
+    entirety, and any missing map keys MUST be interpreted as a request to
+	delete those fields from the map
 - a request to update, or delete, a nested Versions collection or a read-only
   attribute MUST be silently ignored
 - a request to update a mutable attribute with an invalid value MUST generate
@@ -2729,9 +2759,6 @@ Regardless of how the entity is represented, the following rules apply:
     the other 2 attributes (and any associated data)
   - an explicit value of `null` for any of the 3 attributes MUST delete all
     3 attributes (and any associated data)
-- if `format` is present and changing it would result in the entity becoming
-  invalid with respect to the `format` of the owning Group, then an error MUST
-  be generated
 
 Note: an HTTP `POST` is usually directed to a collection or "factory", in the
 case of `POST /GROUPs/gID/RESOURCEs/rID`, while the PATH references a single
@@ -2764,7 +2791,6 @@ Create a new Resource:
 PUT /endpoints/123/definitions/456
 Content-Type: application/json; charset=utf-8
 xRegistry-name: Blob Created
-xRegistry-format: CloudEvents/1.0
 
 {
   # Definition of a "Blob Created" event excluded for brevity
@@ -2780,7 +2806,6 @@ xRegistry-epoch: 1
 xRegistry-self: https://example.com/endpoints/123/definitions/456
 xRegistry-latestversionid: 1.0
 xRegistry-latestversionurl: https://example.com/endpoints/123/definitions/456/versions/1.0
-xRegistry-format: CloudEvents/1.0
 xRegistry-versionsurl: https://example.com/endpoints/123/definitions/456/versions
 xRegistry-versionscount: 1
 Location: https://example.com/endpoints/123/definitions/456
@@ -2802,7 +2827,6 @@ Content-Type: application/json; charset=utf-8
   "name": "Blob Created",
   "epoch": 1,
   "description": "a cool event",
-  "format": "CloudEvents/1.0",
 
   "definition": {
     # Updated definition of a "Blob Created" event excluded for brevity
@@ -2823,7 +2847,6 @@ Content-Location: https://example.com/endpoints/123/definitions/456/versions/1.0
   "latestversionid": "1.0",
   "latestversionurl": "https://example.com/endpoints/123/definitions/456/versions/1.0?meta",
   "description": "a cool event",
-  "format": "CloudEvents/1.0",
 
   "definition": {
     # Updated definition of a "Blob Created" event excluded for brevity
@@ -2924,7 +2947,7 @@ xRegistry-latestversionurl: URL
 xRegistry-description: STRING ?
 xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING *
-xRegistry-format: STRING ?
+xRegistry-origin: STRING ?
 xRegistry-createdby: STRING ?
 xRegistry-createdon: TIME ?
 xRegistry-modifiedby: STRING ?
@@ -2975,7 +2998,7 @@ Content-Location: URL ?
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
-  "format": "STRING", ?
+  "origin": "URI", ?
   "createdby": "STRING", ?
   "createdon": "TIME", ?
   "modifiedby": "STRING", ?
@@ -3025,7 +3048,6 @@ Content-Location: https://example.com/endpoints/123/definitions/456/versions/1.0
   "self": "https://example.com/endpoints/123/definitions/456?meta,
   "latestversionid": "1.0",
   "latestversionurl": "https://example.com/endpoints/123/definitions/456/versions/1.0?meta",
-  "format": "CloudEvents/1.0",
 
   "versionsurl": "https://example.com/endpoints/123/definitions/456/versions",
   "versionscount": 1
@@ -3071,7 +3093,7 @@ xRegistry-latestversionid: STRING ?
 xRegistry-description: STRING ?
 xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING *
-xRegistry-format: STRING ?
+xRegistry-origin: STRING ?
 xRegistry-createdby: STRING ?
 xRegistry-createdon: TIME ?
 xRegistry-modifiedby: STRING ?
@@ -3150,7 +3172,7 @@ Link: <URL>;rel=next;count=UINTEGER ?
     "description": "STRING", ?
     "documentation": "URL", ?
     "labels": { "STRING": "STRING" * }, ?
-    "format": "STRING", ?
+    "origin": "URI", ?
     "createdby": "STRING", ?
     "createdon": "TIME", ?
     "modifiedby": "STRING", ?
@@ -3201,7 +3223,7 @@ The serialization of a Version entity adheres to this form:
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
-  "format": "STRING", ?
+  "origin": "URI", ?
   "createdby": "STRING", ?
   "createdon": "TIME", ?
   "modifiedby": "STRING", ?
@@ -3222,7 +3244,7 @@ Versions include the following attributes as defined by the
 - [`description`](#description)
 - [`documentation`](#documentation)
 - [`labels`](#labels)
-- [`format`](#format)
+- [`origin`](#origin)
 - [`createdby`](#createdby)
 - [`createdon`](#createdon)
 - [`modifiedby`](#modifiedby)
@@ -3352,7 +3374,7 @@ Link: <URL>;rel=next;count=UINTEGER ?
     "description": "STRING", ?
     "documentation": "URL", ?
     "labels": { "STRING": "STRING" * }, ?
-    "format": "STRING", ?
+    "origin": "URI", ?
     "createdby": "STRING", ?
     "createdon": "TIME", ?
     "modifiedby": "STRING", ?
@@ -3388,8 +3410,7 @@ Link: <https://example.com/endpoints/123/definitions/456/versions&page=2>;rel=ne
     "name": "Blob Created",
     "epoch": 1,
     "self": "https://example.com/endpoints/123/definitions/456?meta",
-    "latest": true,
-    "format": "CloudEvents/1.0"
+    "latest": true
   }
 }
 ```
@@ -3429,7 +3450,7 @@ xRegistry-latest: BOOL
 xRegistry-description: STRING ?
 xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING *
-xRegistry-format: STRING ?
+xRegistry-origin: STRING ?
 xRegistry-createdby: STRING ?
 xRegistry-createdon: TIME ?
 xRegistry-modifiedby: STRING ?
@@ -3454,7 +3475,7 @@ xRegistry-latest: BOOL
 xRegistry-description: STRING ?
 xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING *
-xRegistry-format: STRING ?
+xRegistry-origin: STRING ?
 xRegistry-createdby: STRING ?
 xRegistry-createdon: TIME ?
 xRegistry-modifiedby: STRING ?
@@ -3484,7 +3505,6 @@ xRegistry-name: Blob Created
 xRegistry-epoch: 2
 xRegistry-self: https://example.com/endpoints/123/definitions/456/versions/1.0
 xRegistry-latest: true
-xRegistry-format: CloudEvents/1.0
 
 {
   # Definition of a "Blob Created" event excluded for brevity
@@ -3517,7 +3537,7 @@ Content-Type: application/json; charset=utf-8
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
-  "format": "STRING", ?
+  "origin": "URI", ?
   "createdby": "STRING", ?
   "createdon": "TIME", ?
   "modifiedby": "STRING", ?
@@ -3550,8 +3570,7 @@ Content-Type: application/json; charset=utf-8
   "name": "Blob Created",
   "epoch": 2,
   "self": "https://example.com/endpoints/123/definitions/456/versions/1.0?meta",
-  "latest": true,
-  "format": "CloudEvents/1.0"
+  "latest": true
 }
 ```
 
@@ -3611,7 +3630,7 @@ xRegistry-latest: BOOL
 xRegistry-description: STRING ?
 xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING *
-xRegistry-format: STRING ?
+xRegistry-origin: STRING ?
 xRegistry-createdby: STRING ?
 xRegistry-createdon: TIME ?
 xRegistry-modifiedby: STRING ?
@@ -3706,7 +3725,7 @@ Link: <URL>;rel=next;count=UINTEGER ?
     "description": "STRING", ?
     "documentation": "URL", ?
     "labels": { "STRING": "STRING" * }, ?
-    "format": "STRING", ?
+    "origin": "URI", ?
     "createdby": "STRING", ?
     "createdon": "TIME", ?
     "modifiedby": "STRING", ?
@@ -3890,7 +3909,7 @@ other words, a `404 Not Found` would be generated in the HTTP protocol case.
 | / | `filter=endpoints.description=cool` | Only endpoints with the word `cool` in the description |
 | /endpoints | `filter=description=CooL` | Same results as previous, with a different request URL |
 | / | `filter=endpoints.definitions.versions.id=1.0` | Only versions (and their owning endpoints.definitions) that have an ID of `1.0` |
-| / | `filter=endpoints.format=CloudEvents/1.0,endpoints.description=cool&filter=schemagroups.modifiedby=John` | Only endpoints whose format is `CloudEvents/1.0` and whose description contains the word `cool`, as well as any schemagroups that were modified by 'John' |
+| / | `filter=endpoints.name=myendpoint,endpoints.description=cool&filter=schemagroups.modifiedby=John` | Only endpoints whose name is `myendpoint` and whose description contains the word `cool`, as well as any schemagroups that were modified by 'John' |
 | / | `filter=description=no-match` | Returns a 404 if the Registry's `description` doesn't contain `no-match` |
 
 Specifying a filter does not imply inlining.

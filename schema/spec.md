@@ -48,7 +48,7 @@ this form:
       "description": "STRING", ?
       "documentation": "URL", ?
       "labels": { "STRING": "STRING" * }, ?
-      "format": "STRING", ?
+      "origin": "STRING", ?
       "createdby": "STRING", ?
       "createdon": "TIME", ?
       "modifiedby": "STRING", ?
@@ -67,11 +67,13 @@ this form:
           "description": "STRING", ?
           "documentation": "URL", ?
           "labels": { "STRING": "STRING" * }, ?
-          "format": "STRING",                      # Notice it is mandatory
+          "origin": "STRING", ?
           "createdby": "STRING", ?
           "createdon": "TIME", ?
           "modifiedby": "STRING", ?
           "modifiedon": "TIME", ?
+
+          "format": "STRING",                      # Notice it is mandatory
 
           "schemaobject": { ... }, ?               # TODO - check this
           "schema": "STRING", ?
@@ -160,16 +162,20 @@ detail below, is as follows:
     {
       "singular": "schemagroup",
       "plural": "schemagroups",
+
       "resources": [
         {
           "singular": "schema",
           "plural": "schemas",
           "versions": 0,
+
           "attributes": {
             "format": {
-              "description": "Schema format identifier",
-              "type": "STRING",
-              "required": true
+              "name": "format",
+              "type": "string",
+              "description": "Schema format identifier for this schema version",
+              "clientrequired": true,
+              "serverrequired": true
             }
           }
         }
@@ -227,10 +233,10 @@ The type of the resource is `schema`. Any single `schema` is a container for
 one or more `Versions`, which hold the concrete schema documents or schema
 document references.
 
-Any new schema Version that is added to a schema definition MUST be backwards
+Any new schema Version that is added to a schema definition SHOULD be backwards
 compatible with all previous Versions of the schema, meaning that a consumer
-using the new schema MUST be able to understand data encoded using a prior
-Version of the schema. If a new Version introduces a breaking change, it MUST
+using the new schema would be able to understand data encoded using a prior
+Version of the schema. If a new Version introduces a breaking change, it SHOULD
 be registered as a new schema with a new name.
 
 Implementations of this specification SHOULD use the xRegistry default
@@ -255,8 +261,7 @@ core xRegistry Resource
 #### `format`
 
 - Type: String
-- Description: This is a modified version of the xRegistry `format` attribute.
-  Identifies the schema format. In absence of formal media-type
+- Description: Identifies the schema format. In absence of formal media-type
   definitions for several important schema formats, we define a convention here
   to reference schema formats by name and version as `{NAME}/{VERSION}`. This
   specification defines a set of common [schema format names](#schema-formats)
