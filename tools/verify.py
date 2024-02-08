@@ -48,8 +48,9 @@ _MARKDOWN_BOOKMARK_PATTERN = re.compile(r"(?<![\\])\[[^\?=].+?\]\[.+?\]", re.IGN
 _PHRASES_THAT_MUST_BE_CAPITALIZED_PATTERN = re.compile(
     r"(?<!`)(MUST(\s+NOT)?|"
     # ignore the "required" in the jsonschema of the json-format.md
+	# and ignore `required` cases (attribute name is `required`)
 	# and ignore .required cases (attribute name is "required")
-    r'(?<![.`"])REQUIRED(?!")|'
+    r'(?<![.`"])REQUIRED(?![`"])|'
     r"(?<!mar)SHALL(\s+NOT)?|"  # ignore the word "marshall"
     r"(?<!`)SHOULD(\s+NOT)?|"
     r"(?<!`)RECOMMENDED|"

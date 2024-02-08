@@ -48,14 +48,14 @@ this form:
       "description": "STRING", ?
       "documentation": "URL", ?
       "labels": { "STRING": "STRING" * }, ?
-      "format": "STRING", ?
+      "origin": "STRING", ?
       "createdby": "STRING", ?
       "createdon": "TIME", ?
       "modifiedby": "STRING", ?
       "modifiedon": "TIME", ?
 
       "usage": "STRING",                        # subscriber, consumer, producer
-      "origin": "URI", ?                        # default: 'self' URL
+      "format": "STRING", ?
       "channel": "STRING", ?
       "deprecated": {
         "effective": "TIMESTAMP", ?
@@ -77,7 +77,7 @@ this form:
           "authorityuri": "URI", ?
           "grant_types": [ "STRING" * ] ?
         }, ?
-        "strict": BOOLEAN, ?
+        "deployed": BOOLEAN, ?
 
         "options": {
           "STRING": JSON-VALUE *
@@ -90,7 +90,7 @@ this form:
           # "amqp" protocol options
           "node": "STRING", ?
           "durable": BOOLEAN, ?                          # default: false
-          "link-properties": { "STRING": "STRING" * }, ?
+          "linkproperties": { "STRING": "STRING" * }, ?
           "connection-properties": { "STRING": "STRING" * }, ?
           "distribution-mode": "move" | "copy" ?         # default: "move"
 
@@ -98,16 +98,16 @@ this form:
           "topic": "STRING", ?
           "qos": UINTEGER, ?                             # default: 0
           "retrain": BOOLEAN, ?                          # default: false
-          "clean-session": BOOLEAN, ?                    # default: true
-          "will-topic": "STRING", ?
-          "will-message": "STRING" ?
+          "cleansession": BOOLEAN, ?                    # default: true
+          "willtopic": "STRING", ?
+          "willmessage": "STRING" ?
 
           # "kafka" protocol options
           "topic": "STRING", ?
           "acks": INTEGER, ?                             # default: 1
           "key": "STRING", ?
           "partition": INTEGER, ?
-          "consumer-group": "STRING" ?
+          "consumergroup": "STRING" ?
 
           # "nats" protocol options
           "subject": "STRING" ?
@@ -244,23 +244,38 @@ The following attributes are defined for the `endpoint` type:
   pre-/post-processing, etc.
 
 - Constraints:
-  - REQUIRED.
+  - REQUIRED
   - MUST be one of "subscriber", "consumer", or "producer".
 
-### `origin`
+### `format`
 
-- Type: URI
-- Description: A URI reference to the original source of this Endpoint. This
-  can be used to locate the true authority owner of the Endpoint in cases of
-  distributed Endpoint Registries. If this property is absent its default value
-  is the value of the `self` property and in those cases its presence in the
-  serialization of the Endpoint is OPTIONAL.
+- Type: String
+- Description: The name of the specification that defines the Resource
+  stored in the registry. Often it is difficult to unambiguously determine
+  what a Resource is via simple inspect of its serialization. This attribute
+  provides a mechanism by which it can be determined without examination of
+  the Resource at all
 - Constraints:
-  - OPTIONAL if this Endpoint Registry is the authority owner
-  - REQUIRED if this Endpoint Registry is not the authority owner
-  - if present, MUST be a non-empty URI
+  - REQUIRED
+  - if present, MUST be a non-empty string of the form `SPEC[/VERSION]`,
+    where `SPEC` is the non-empty string name of the specification that
+    defines the Resource. An OPTIONAL `VERSION` value SHOULD be included if
+    there are multiple versions of the specification available
+  - for comparison purposes, this attribute MUST be considered case sensitive
+  - If a `VERSION` is specified at the Group level, all Resources within that
+    Group MUST have a `VERSION` value that is at least as precise as its
+    Group, and MUST NOT expand it. For example, if a Group had a
+    `format` value of `myspec`, then Resources within that Group can have
+    `format` values of `myspec` or `myspec/1.0`. However, if a Group has a
+    value of `myspec/1.0` it would be invalid for a Resource to have a value of
+    `myspec/2.0` or just `myspec`. Additionally, if a Group does not have
+    a `format` attribute then there are no constraints on its Resources
+    `format` attributes
+  - This specification places no restriction on the case of the `SPEC` value
+    or on the syntax of the `VERSION` value
 - Examples:
-  - `https://example2.com/myregistry/endpoints/9876`
+  - `CloudEvents/1.0`
+  - `MQTT`
 
 ### `channel`
 
@@ -477,7 +492,7 @@ The following attributes are defined for the `endpoint` type:
   - OPTIONAL
   - MUST be a non-empty array if used
 
-#### `config.strict`
+#### `config.deployed`
 
 - Type: Boolean
 - Description: If `true`, the endpoint metadata represents a public, live
@@ -611,7 +626,7 @@ The following options are defined for AMQP endpoints.
   portion of the Endpoint URI.
 - `durable`: If `true`, the AMQP `durable` flag is set on transfers. The default
   value is `false`. This option only applies to `usage:producer` endpoints.
-- `link-properties`: A map of AMQP link properties to use for the endpoint. The
+- `linkproperties`: A map of AMQP link properties to use for the endpoint. The
   value MUST be a map of non-empty strings to non-empty strings.
 - `connection-properties`: A map of AMQP connection properties to use for the
   endpoint. The value MUST be a map of non-empty strings to non-empty strings.
@@ -621,7 +636,7 @@ The following options are defined for AMQP endpoints.
   the queue (it's a queue consumer). This option only applies to
   `usage:consumer` endpoints.
 
-The values of all `link-properties` and `connection-properties` MAY contain
+The values of all `linkproperties` and `connection-properties` MAY contain
 placeholders using the [RFC6570][RFC6570] Level 1 URI Template syntax. When the
 same placeholder is used in multiple properties, the value of the placeholder is
 assumed to be identical.
@@ -635,8 +650,8 @@ Example:
   "options": {
     "node": "myqueue",
     "durable": true,
-    "link-properties": {
-      "my-link-property": "my-link-property-value"
+    "linkproperties": {
+      "mylinkproperty": "mylinkpropertyvalue"
     },
     "connection-properties": {
       "my-connection-property": "my-connection-property-value"
@@ -667,13 +682,13 @@ The following options are defined for MQTT endpoints.
   value is `false`. The value is overidden by the `retain` property of the [MQTT
   message format](../message/spec.md#mqtt311-and-mqtt50-bindings). This option only
   applies to `usage:producer` endpoints.
-- `clean-session`: If `true`, the MQTT `clean-session` flag is set on
+- `cleansession`: If `true`, the MQTT `cleansession` flag is set on
   connections. The default value is `true`.
-- `will-topic`: The MQTT `will-topic` to use for the endpoint. The value MUST be
+- `willtopic`: The MQTT `willtopic` to use for the endpoint. The value MUST be
   a non-empty string. The value MAY contain placeholders using the
   [RFC6570][RFC6570] Level 1 URI Template syntax
-- `will-message`: This is URI and/or JSON Pointer that refers to the MQTT
-  `will-message` to use for the endpoint. The value MUST be a non-empty string.
+- `willmessage`: This is URI and/or JSON Pointer that refers to the MQTT
+  `willmessage` to use for the endpoint. The value MUST be a non-empty string.
   It MUST point to a valid
   [´message´](../message/spec.md#message-definitions) that MUST either
   use the ["CloudEvents/1.0"](../message/spec.md#cloudevents10) or
@@ -690,9 +705,9 @@ Example:
     "topic": "mytopic",
     "qos": 1,
     "retain": false,
-    "clean-session": false,
-    "will-topic": "mytopic",
-    "will-message": "#/messagegroups/mygroup/messages/my-will-message"
+    "cleansession": false,
+    "willtopic": "mytopic",
+    "willmessage": "#/messagegroups/mygroup/messages/mywillmessage"
   }
 }
 ```
@@ -718,7 +733,7 @@ The following options are defined for Kafka endpoints.
 - `partition`: The fixed Kafka partition to use for this endpoint. The value
   MUST be an integer if present. This option only applies to `usage:producer`
   endpoints.
-- `consumer-group`: The Kafka consumer group to use for this endpoint. The value
+- `consumergroup`: The Kafka consumer group to use for this endpoint. The value
   MUST be a non-empty string if present. This option only applies to
   `usage:consumer` endpoints. The value MAY contain placeholders using the
   [RFC6570][RFC6570] Level 1 URI Template syntax

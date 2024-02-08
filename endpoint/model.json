@@ -347,7 +347,7 @@
                                     "type": "uri"
                                 }
                             },
-                            "strict": {
+                            "deployed": {
                                 "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint.",
                                 "type": "boolean",
                                 "required": false

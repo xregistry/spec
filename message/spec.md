@@ -53,7 +53,7 @@ this form:
       "description": "STRING", ?
       "documentation": "URL", ?
       "labels": { "STRING": "STRING" * }, ?
-      "format": "STRING", ?
+      "origin": "STRING", ?
       "createdby": "STRING", ?
       "createdon": "TIME", ?
       "modifiedby": "STRING", ?
@@ -75,15 +75,15 @@ this form:
           "description": "STRING", ?
           "documentation": "URL", ?
           "labels": { "STRING": "STRING" * }, ?
-          "format": "STRING", ?
+          "origin": "STRING", ?
           "createdby": "STRING", ?
           "createdon": "TIME", ?
           "modifiedby": "STRING", ?
           "modifiedon": "TIME", ?
 
-          "basemessageurl": "URL", ?        # Message attributes
+          "basemessageurl": "URL", ?           # Message attributes
 
-          "format": "STRING",                  # or "binding"
+          "format": "STRING", ?                # or "binding"
           "metadata": {
             "required": BOOLEAN, ?
             "description": "STRING", ?
@@ -528,10 +528,11 @@ The following rules apply to the attribute declarations:
   absent.
 - The `type` of the property definition defaults to the CloudEvents type
   definition for the attribute, if any. The `type` of an attribute MAY be
-  modified. For instance, the `source` type `urireference` MAY be changed to
+  modified be to further constrainted. For instance, the `source` type
+  `urireference` MAY be changed to
   `uritemplate` or the `subject` type `string` MAY be constrained to a
-  `urireference` or `integer`. If no CloudEvents type definition exists, the
-  type defaults to `string`.
+  `urireference` or `stringified integer`. If no CloudEvents type definition
+  exists, the type defaults to `string`.
 
 The values of all `string` and `uritemplate`-typed attributes MAY contain
 placeholders using the [RFC6570][RFC6570] Level 1 URI Template syntax. When the
