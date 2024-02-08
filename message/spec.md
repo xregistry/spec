@@ -97,6 +97,11 @@ this form:
                 "required": BOOLEAN ?          # Default is 'false'
               } *
             } ?
+
+            # "CloudEvents/1.0" format metadata
+            "type": {
+              "value": "STRING" ?
+            }
           }, ?
 
 

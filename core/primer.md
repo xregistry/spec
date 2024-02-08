@@ -15,4 +15,7 @@ Possible future topics to cover:
 - if/when we support serializing in non-json formats, we'll need to define
   the serialization rules. E.g. when attributes appear as xml attributes vs
   nested elements
-
+- when hasdocument=false, we might need to talk about when ?meta appears on the
+  various URLs (self, latestversionurl, location,...). Right now its presence
+  will match what was used in the request (either explicitly or implicity).
+  So GET resource?meta or GET group?inline both ask for metadata

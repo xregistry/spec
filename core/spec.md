@@ -105,15 +105,16 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
         "readonly": BOOLEAN, ?          # Client writable? Default: false
         "clientrequired": BOOLEAN, ?    # Default: false
         "serverrequired": BOOLEAN, ?    # Default: false
+        "default": VALUE, ?             # Attribute's default value
 
-        "item": {                       # If "type" above is non-scalar
-          "type": "TYPE", ?             # Type of this item,default is "object"
+        "item": {                       # If "type" above is map,array,object
           "attributes": { ... } ?       # If "type" above is object
+          "type": "TYPE", ?             # If "type" above is map or array
           "item": { ... } ?             # If this item "type" is map or array
         } ?
 
         "ifvalue": {                    # If "type" is scalar
-          VALUE: {                      # Possible attribute value
+          "VALUE": {                    # Possible attribute value
             "siblingattributes": { ... } # See "attributes" above
           } *
         } ?
@@ -130,7 +131,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
           "STRING": {                   # Key=plural name, e.g. "definitions"
             "plural": "STRING",         # e.g. "definitions"
             "singular": "STRING",       # e.g. "definition"
-            "versions": UINTEGER ?      # Num Vers(>=0). Default=1, 0=unlimited
+            "versions": UINTEGER ?      # Num Vers(>=0). Default=0, 0=unlimited
             "versionid": BOOLEAN, ?     # Supports client specified Version IDs
             "latest": BOOLEAN, ?        # Supports client "latest" selection
             "hasdocument": BOOLEAN, ?   # Has a separate document. Default=true
@@ -1099,15 +1100,16 @@ Regardless of how the model is retrieved, the overall format is as follows:
       "readonly": BOOLEAN, ?           # Client writable? Default: false
       "clientrequired": BOOLEAN, ?     # Default: false
       "serverrequired": BOOLEAN, ?     # Default: false
+      "default": VALUE, ?              # Attribute's default value
 
-      "item": {                        # If "type" above is non-scalar
-        "type": "TYPE", ?              # Type of this item,default is "object"
-        "attributes": { ... } ?        # If "type" above object
+      "item": {                        # If "type" above is map,array,object
+        "attributes": { ... } ?        # If "type" above is object
+        "type": "TYPE", ?              # If "type" above is map or array
         "item": { ... } ?              # If this item "type" is map or array
       } ?
 
       "ifvalue": {                     # If "type" is scalar
-        VALUE: {
+        "VALUE": {
           "siblingattributes": { ... } # Siblings to this "attribute"
         } *
       }
@@ -1124,7 +1126,7 @@ Regardless of how the model is retrieved, the overall format is as follows:
         "STRING": {                    # Key=plural name, e.g. "definitions"
           "plural": "STRING",          # e.g. "definitions"
           "singular": "STRING",        # e.g. "definition"
-          "versions": UINTEGER, ?      # Num Vers(>=0). Default=1, 0=unlimited
+          "versions": UINTEGER, ?      # Num Vers(>=0). Default=0, 0=unlimited
           "versionid": BOOLEAN, ?      # Supports client specified Version IDs
           "latest": BOOLEAN ?          # Supports client "latest" selection
           "hasdocument": BOOLEAN, ?    # Has no separate document. Default=true
@@ -1194,6 +1196,7 @@ The following describes the attributes of Registry model:
     values used that is not part of the `enum` set MUST generate an error.
     When not specified the default value is `true`. This attribute has no
     impact when `enum` is absent or an empty array.
+  - When not specified, the default value is `true`
   - Type: Boolean
   - OPTIONAL
 - `attributes."STRING".readonly`
@@ -1222,42 +1225,50 @@ The following describes the attributes of Registry model:
     also be `true`.
   - Type: Boolean
   - OPTIONAL
+- `attributes."STRING".default`
+  - This value MUST be used to populate this attribute's value if one was
+    not provided by a client during creation. If a default value is defined
+    then the `serverrequired` MUST be set to `true`
+  - By default, attributes have no default values
+  - Type: MUST be the same type as the `type` of this attribute
+  - OPTIONAL
 
 - `attributes."STRING".item`
   - Defines the nested resources that this attribute references.
     This attribute MUST only be used when the `type` value is non-scalar
   - Type: Object
   - REQUIRED when `type` is non-scalar
-- `attributes."STRING".item.type`
-  - The "TYPE" of this nested resource. Note, this attribute MAY be absent if
-    owning attribute's `type` is `object` and the `items.attributes` value
-    is non-empty
-  - Type: TYPE
-  - REQUIRED if the nested resource is not `object`, otherwise it is OPTIONAL
 - `attributes."STRING".item.attributes`
   - This contains the list of attributes defined as part of a nested resource
   - Type: Object, see `attributes` above
   - REQUIRED when the owning attribute's `type` is `object`, otherwise it
     MUST NOT be present
+- `attributes."STRING".item.type`
+  - The "TYPE" of this nested resource. Note, this attribute MUST be absent if
+    owning attribute's `type` is `object`
+  - Type: TYPE
+  - REQUIRED when the owning attribute's `type` is `map` or `array`, otherwise
+    it MUST NOT be present
 - `attributes."STRING".item.item`
   - See `attributes."STRING".item` above.
   - REQUIRED when `item.type` is non-scalar
 
 - `attributes."STRING".ifvalue`
-  - This attribute can be used to conditionally include additional attribute
-    definitions to the list based on the value of the current attribute.
-    If the value of this attribute matches the `ifvalue` (case sensitive)
-    then the `siblingattributes` MUST be included in the model as siblings
-    to this attribute.
-    If `enum` is not empty and `strict` is `true` then this map MUST NOT
+  - This attribute/map can be used to conditionally include additional
+    attribute definitions based on the runtime value of the current attribute.
+    If the string serialization of the runtime value of this attribute matches
+    the `ifvalue` `"VALUE"` (case sensitive) then the `siblingattributes` MUST
+    be included in the model as siblings to this attribute.
+  - If `enum` is not empty and `strict` is `true` then this map MUST NOT
     contain any value that is not specified in the `enum` array
-  - Each `ifvalue` value MUST be unique across all `ifvalue` entries at
-    that level in the model
   - All attributes defined for this `ifvalue` MUST be unique within the scope
     of this `ifvalue` and MUST NOT match a named attributed defined at this
     level of the entity. If mulitple `ifvalue` sections, at the same entity
     level, are active at the same time then there MUST NOT be duplicate
     `ifvalue` attributes names between those `ifvalue` sections
+  - `ifvalue` `"VALUE"` MUST NOT be an empty string
+  - `ifvalue` siblingattributes MUST NOT include additional `ifvalue`
+    definitions.
   - Type: Map where each value of the attribute is the key of the map
   - OPTIONAL
 
@@ -1304,8 +1315,7 @@ The following describes the attributes of Registry model:
   - Number of Versions per Resource that will be stored in the Registry
   - Type: Unsigned Integer
   - OPTIONAL
-  - The default value is one (`1`), meaning only the latest Version will
-    be stored
+  - The default value is zero (`0`)
   - A value of zero (`0`) indicates there is no stated limit, and
     implementations MAY prune non-latest Versions at any time. Implementations
     MUST prune Versions by deleting the oldest Version (based on creation
@@ -1384,11 +1394,12 @@ Content-Type: application/json; charset=utf-8
       "readonly": BOOLEAN, ?
       "clientrequired": BOOLEAN, ?
       "serverrequired": BOOLEAN, ?
+      "default": VALUE, ?
 
       "item": { ... }, ?                     # Nested resource
 
       "ifvalue": {
-        VALUE: {
+        "VALUE": {
           "siblingattributes": { ... }
         } *
       } ?
@@ -1515,11 +1526,12 @@ Content-Type: application/json; charset=utf-8
       "readonly": BOOLEAN, ?
       "clientrequired": BOOLEAN, ?
       "serverrequired": BOOLEAN, ?
+      "default": VALUE, ?
 
       "item": { ... }, ?                          # Nested resource
 
       "ifvalue": {
-        VALUE: {
+        "VALUE": {
           "siblingattributes": { ... }
         } *
       } ?
@@ -1581,11 +1593,12 @@ Content-Type: application/json; charset=utf-8
       "readonly": BOOLEAN, ?
       "clientrequired": BOOLEAN, ?
       "serverrequired": BOOLEAN, ?
+      "default": VALUE, ?
 
       "item": { ... }, ?
 
       "ifvalue": {
-        VALUE: {
+        "VALUE": {
           "siblingattributes": { ... }
         } *
       } ?
@@ -2626,7 +2639,8 @@ Version of a Resource. The full list of HTTP APIs are:
 To reduce the number of interactions needed, these APIs are designed to allow
 for the implicit creation of all entities specified in the PATH with one
 request. And each entity not already present with the specified `ID` MUST be
-created with that `ID`.
+created with that `ID`. Note: if any of those entities have REQUIRED attributes
+then they can not be implicitly created.
 
 In the remainder of this section, the term `entity` applies to either a
 Resource or Version of a Resource based on the API being used.
@@ -2724,7 +2738,7 @@ Regardless of how the entity is represented, the following rules apply:
   it MUST be specified with a value of `null`
   - any map attribute that appears as an HTTP header MUST be included in its
     entirety, and any missing map keys MUST be interpreted as a request to
-	delete those fields from the map
+    delete those fields from the map
 - a request to update, or delete, a nested Versions collection or a read-only
   attribute MUST be silently ignored
 - a request to update a mutable attribute with an invalid value MUST generate
