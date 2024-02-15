@@ -56,6 +56,7 @@ this form:
 
       "usage": "STRING",                        # subscriber, consumer, producer
       "format": "STRING", ?
+      "binding": "STRING", ?
       "channel": "STRING", ?
       "deprecated": {
         "effective": "TIMESTAMP", ?
@@ -82,34 +83,43 @@ this form:
         "options": {
           "STRING": JSON-VALUE *
 
-          # "http" protocol options
+          # "HTTP" protocol options
           "method": "STRING", ?                          # default: POST
-          "headers": { { "name": "STRING", "value": "STRING" } * }, ?
+          "headers": [ { "name": "STRING", "value": "STRING" } * ], ?
           "query": { "STRING": "STRING" * } ?
 
-          # "amqp" protocol options
+          # "AMQP/1.0" protocol options
           "node": "STRING", ?
           "durable": BOOLEAN, ?                          # default: false
           "linkproperties": { "STRING": "STRING" * }, ?
-          "connection-properties": { "STRING": "STRING" * }, ?
-          "distribution-mode": "move" | "copy" ?         # default: "move"
+          "connectionproperties": { "STRING": "STRING" * }, ?
+          "distributionmode": "move" | "copy" ?          # default: "move"
 
-          # "mqtt" protocol options
+          # "MQTT/3.1.1" protocol options
           "topic": "STRING", ?
           "qos": UINTEGER, ?                             # default: 0
           "retrain": BOOLEAN, ?                          # default: false
-          "cleansession": BOOLEAN, ?                    # default: true
+          "cleansession": BOOLEAN, ?                     # default: true
           "willtopic": "STRING", ?
           "willmessage": "STRING" ?
 
-          # "kafka" protocol options
+          # "MQTT/5.0" protocol options
+          "topic": "STRING", ?
+          "qos": UINTEGER, ?                             # default: 0
+          "retrain": BOOLEAN, ?                          # default: false
+          "cleansession": BOOLEAN, ?                     # default: true
+          "willtopic": "STRING", ?
+          "willmessage": "STRING" ?
+
+          # "KAFKA" protocol options
           "topic": "STRING", ?
           "acks": INTEGER, ?                             # default: 1
           "key": "STRING", ?
           "partition": INTEGER, ?
-          "consumergroup": "STRING" ?
+          "consumergroup": "STRING", ?
+          "headers": { "STRING": "STRING" * } ?
 
-          # "nats" protocol options
+          # "NATS" protocol options
           "subject": "STRING" ?
         } ?
       }, ?
@@ -256,8 +266,8 @@ The following attributes are defined for the `endpoint` type:
   provides a mechanism by which it can be determined without examination of
   the Resource at all
 - Constraints:
-  - REQUIRED
-  - if present, MUST be a non-empty string of the form `SPEC[/VERSION]`,
+  - At least one of `format` and `binding` MUST be specified
+  - MUST be a non-empty string of the form `SPEC[/VERSION]`,
     where `SPEC` is the non-empty string name of the specification that
     defines the Resource. An OPTIONAL `VERSION` value SHOULD be included if
     there are multiple versions of the specification available
@@ -276,6 +286,27 @@ The following attributes are defined for the `endpoint` type:
 - Examples:
   - `CloudEvents/1.0`
   - `MQTT`
+
+### `binding`
+
+- Type: String
+- Description: Identifies a transport protocol message binding. Bindings are
+  referenced by name and version as `{NAME}/{VERSION}`. The Messaging
+  specification defines a set of common
+  [message binding names](../message/spec.md#message-bindings) that MUST
+  be used for the given protocols, but applications MAY define extensions for
+  other protocol bindings on their own. All messages inside an Endpoint MUST
+  use this same binding
+- Constraints:
+  - At least one of `format` and `binding` MUST be specified
+  - if present, MUST be a non-empty string
+  - if present, MUST follow the naming convention `{NAME}/{VERSION}`,
+    whereby `{NAME}` is the name of the protocol and `{VERSION}` is the
+    version of protocol.
+- Examples:
+  - `MQTT/3.1.1`
+  - `AMQP/1.0`
+  - `Kafka/0.11`
 
 ### `channel`
 
