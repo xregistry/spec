@@ -3,9 +3,9 @@
     "json-schema/draft-07"
   ],
   "groups": {
-    "definitiongroups": {
-      "singular": "definitiongroup",
-      "plural": "definitiongroups",
+    "messagegroups": {
+      "singular": "messagegroup",
+      "plural": "messagegroups",
 
       "attributes": {
         "format": {
@@ -15,19 +15,19 @@
         },
         "binding": {
           "name": "binding",
-          "type": "string"
+          "type": "string",
           "description": "Binding identifier that defines the transport message binding. All definitions in this group share this binding type. Mixed-binding groups are not permitted",
         },
         "*": {
           "name": "*",
-          "type": any
+          "type": "any"
         }
       },
 
       "resources": {
-        "definitions": {
-          "singular": "definition",
-          "plural": "definitions",
+        "messages": {
+          "singular": "message",
+          "plural": "messages",
           "versions": 1,
 
           "attributes": {
@@ -57,7 +57,7 @@
                             "item": {
                               "attributes": {
                                 "value": {
-                                  "name": "value,
+                                  "name": "value",
                                   "type": "string",
                                   "description": "CloudEvents type value template"
                                 }
