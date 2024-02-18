@@ -105,15 +105,16 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
         "readonly": BOOLEAN, ?          # Client writable? Default: false
         "clientrequired": BOOLEAN, ?    # Default: false
         "serverrequired": BOOLEAN, ?    # Default: false
-        "default": VALUE, ?             # Attribute's default value
+        "default": VALUE, ?             # Attribute's default value, scalars
 
-        "item": {                       # If "type" above is map,array,object
-          "attributes": { ... } ?       # If "type" above is object
-          "type": "TYPE", ?             # If "type" above is map or array
-          "item": { ... } ?             # If this item "type" is map or array
+        "attributes": { ... }, ?        # If "type" above is object
+        "item": {                       # If "type" above is map,array
+          "type": "TYPE", ?             # map value type, or array type
+          "attributes": { ... }, ?      # If this item "type" is object
+          "item": { ... } ?             # If this item "type" is map,array
         } ?
 
-        "ifvalue": {                    # If "type" is scalar
+        "ifvalues": {                   # If "type" is scalar
           "VALUE": {                    # Possible attribute value
             "siblingattributes": { ... } # See "attributes" above
           } *
@@ -180,6 +181,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
           "createdon": "TIME", ?
           "modifiedby": "STRING", ?
           "modifiedon": "TIME", ?
+          "contenttype": "STRING, ?
 
           "RESOURCEurl": "URL", ?                  # If not local
           "RESOURCE": { Resource contents }, ?     # If inlined & JSON
@@ -201,6 +203,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
               "createdon": "TIME", ?
               "modifiedby": "STRING", ?
               "modifiedon": "TIME", ?
+              "contenttype": "STRING", ?
 
               "RESOURCEurl": "URL", ?              # If not local
               "RESOURCE": { Resource contents }, ? # If inlined & JSON
@@ -317,11 +320,26 @@ be one of the following data types:
    and MUST be one of the concrete types listed here
 - `array` - an ordered set of values whose values are all of the same data
    type - one of the types listed here
+   - Some serializations, such as JSON, allow for a `null` type of value to
+     appear in array (e.g. `[ null, 2, 3 ]` in an array of integers). In these
+     cases, while it is valid for the serialization being used, it is not
+     valid for the xRegistry since `null` is not a valid `integer`. Meaning,
+     the serialization of an array that is syntactically valid for the
+     format being used, but not semantically valid per the xRegistry model
+     definition MUST NOT be accepted and generate an error
 - `boolean` - case sensitive `true` or `false`
 - `decimal` - number (integer or floating point)
 - `integer` - signed integer
 - `map` - set of key/value pairs, where the key MUST be of type string. The
    value MUST be of one of the types defined here
+  - each key MUST be a non-empty string consisting of only lowercase
+    alphanumeric characters (`[a-z0-9]`), `-`, `_` or a `.`; be no longer
+    than 63 characters; start with an alphanumeric character and be unique
+    within the scope of this map
+  - when serialized as an HTTP header, each key MUST appear as a separate
+    HTTP header prefixed with `xRegistry-` and the map's owning attribute
+    name. The header value MUST be the key's "value". See
+    [HTTP Header Values](#http-header-values) for more information
 - `object` - a nested entity made up of a set of attributes of these data types
 - `string` - sequence of Unicode characters
 - `time` - an [RFC3339](https://tools.ietf.org/html/rfc3339) timestamp
@@ -333,6 +351,11 @@ be one of the following data types:
 - `uritemplate` - ...
 - `url` - URL as defined in
   [RFC 1738](https://datatracker.ietf.org/doc/html/rfc1738)
+
+The "scalar" data types are: `boolean`, `decimal`, `integer`, `string`,
+`time`, `uinteger`, `uri`, `urireference`, `uritemplate`, `url`.
+Note that `any` is not a "scalar" type as its runtime value could be a complex
+type such as `object`.
 
 All attributes (specification defined and extensions) MUST adhere to the
 following rules:
@@ -516,14 +539,7 @@ Then the existing entity can be deleted.
   be stored without changing the schema of the entity
 - Constraints:
   - MUST be a map of zero or more name/value string pairs
-  - each name MUST be a non-empty string consisting of only lowercase
-    alphanumeric characters (`[a-z0-9]`), `-`, `_` or a `.`; be no longer
-    than 63 characters; start with an alphanumeric character and be unique
-    within the scope of this map
   - Values MAY be empty strings
-  - when serialized as an HTTP header, each "name" MUST appear as a separate
-    HTTP header prefixed with `xRegistry-labels-` and the header value
-    MUST be the label's "value". See [HTTP Header Values](#http-header-values)
 - Examples:
   - `"labels": { "owner": "John", "verified": "" }` when in the HTTP body
   - `xRegistry-labels-owner: John` <br>
@@ -540,8 +556,8 @@ to consider when choosing to use labels that can be empty strings.
 - Type: URI
 - Description: A URI reference to the original source of the entity. This
   can be used to locate the true authority owner of the entity in cases of
-  distributed Registries. If this property is absent its default value
-  is the value of the `self` property and in those cases its presence in the
+  distributed Registries. If this attribute is absent its default value
+  is the value of the `self` attribute and in those cases its presence in the
   serialization of the entity is OPTIONAL.
 - Constraints:
   - OPTIONAL if this Registry is the authority owner
@@ -599,6 +615,23 @@ to consider when choosing to use labels that can be empty strings.
     attribute's value
 - Examples:
   - `2030-12-19T06:00:00Z`
+
+#### `contenttype`
+
+- Type: String
+- Description: The media type of the entity as defined by
+  [RFC9110](https://datatracker.ietf.org/doc/html/rfc9110#media.type)
+- Constraints:
+  - SHOULD be compliant with
+    [RFC9110](https://datatracker.ietf.org/doc/html/rfc9110#media.type)
+  - When serialized as an HTTP header, it MUST be named `Content-Type` not
+    `xRegistry-contenttype` like other xRegistry headers
+  - On an update request when the xRegistry metadata appears in HTTP headers,
+    unlike other attributes that will remain unchanged when not specified,
+    this attribute MUST be erased if the incoming request does not include
+    the `Content-Type` HTTP header
+- Examples:
+  - `application/json`
 
 ---
 
@@ -1061,7 +1094,7 @@ attributes to fit its needs. The changes allowed are restricted to the
 following:
 - OPTIONAL attributes MAY be defined as REQUIRED
 - the `description` of an attribute MAY be defined
-- `ifvalue` specifications MAY be defined
+- `ifvalues` specifications MAY be defined
 
 To indicate a change to a core attribute, the attribute MUST be defined
 as part of the Registry model. Once a Registry instance is created, further
@@ -1100,15 +1133,16 @@ Regardless of how the model is retrieved, the overall format is as follows:
       "readonly": BOOLEAN, ?           # Client writable? Default: false
       "clientrequired": BOOLEAN, ?     # Default: false
       "serverrequired": BOOLEAN, ?     # Default: false
-      "default": VALUE, ?              # Attribute's default value
+      "default": VALUE, ?              # Attribute's default value, scalars
 
-      "item": {                        # If "type" above is map,array,object
-        "attributes": { ... } ?        # If "type" above is object
-        "type": "TYPE", ?              # If "type" above is map or array
-        "item": { ... } ?              # If this item "type" is map or array
+      "attributes": { ... }, ?         # If "type" above is object
+      "item": {                        # If "type" above is map,array
+        "type": "TYPE", ?              # map value type, or array type
+        "attributes": { ... }, ?       # If this item "type" is object
+        "item": { ... } ?              # If this item "type" is map,array
       } ?
 
-      "ifvalue": {                     # If "type" is scalar
+      "ifvalues": {                    # If "type" is scalar
         "VALUE": {
           "siblingattributes": { ... } # Siblings to this "attribute"
         } *
@@ -1167,8 +1201,8 @@ The following describes the attributes of Registry model:
     the model does not support undefined extensions. Note that undefined
     extensions, if supported, MUST adhere to the same rules as [defined
     extensions](#attributes-and-extensions). Note: an attribute of `*` MUST NOT
-    use the `ifvalue` feature, but a well-named attribute MAY define an
-    `ifvalue` attribute named `*` as long as there isn't already one defined
+    use the `ifvalues` feature, but a well-named attribute MAY define an
+    `ifvalues` attribute named `*` as long as there isn't already one defined
     for this level in the entity
   - Type: String
   - REQUIRED
@@ -1227,47 +1261,51 @@ The following describes the attributes of Registry model:
   - OPTIONAL
 - `attributes."STRING".default`
   - This value MUST be used to populate this attribute's value if one was
-    not provided by a client during creation. If a default value is defined
-    then the `serverrequired` MUST be set to `true`
+    not provided by a client. If a default value is defined then the
+	`serverrequired` MUST be set to `true`
   - By default, attributes have no default values
-  - Type: MUST be the same type as the `type` of this attribute
+  - Type: MUST be the same type as the `type` of this attribute and MUST
+    only be used for scalar types
   - OPTIONAL
 
-- `attributes."STRING".item`
-  - Defines the nested resources that this attribute references.
-    This attribute MUST only be used when the `type` value is non-scalar
-  - Type: Object
-  - REQUIRED when `type` is non-scalar
-- `attributes."STRING".item.attributes`
+- `attributes."STRING".attributes`
   - This contains the list of attributes defined as part of a nested resource
   - Type: Object, see `attributes` above
-  - REQUIRED when the owning attribute's `type` is `object`, otherwise it
-    MUST NOT be present
+  - MAY be present when the owning attribute's `type` is `object`, otherwise it
+    MUST NOT be present. It MAY be absent or an empty list if there are not
+    defined attributes for the nested `object`
+- `attributes."STRING".item`
+  - Defines the nested resources that this attribute references.
+    This attribute MUST only be used when the owning attribute's `type` value
+    is `map` or `array`
+  - Type: Object
+  - REQUIRED when owning attribute's `type` is `map` or `array`
 - `attributes."STRING".item.type`
-  - The "TYPE" of this nested resource. Note, this attribute MUST be absent if
-    owning attribute's `type` is `object`
+  - The "TYPE" of this nested resource.
   - Type: TYPE
-  - REQUIRED when the owning attribute's `type` is `map` or `array`, otherwise
-    it MUST NOT be present
+  - REQUIRED
+- `attributes."STRING".item.attributes`
+  - See `attributes` above
+  - REQUIRED when `item.type` is `object`
 - `attributes."STRING".item.item`
   - See `attributes."STRING".item` above.
-  - REQUIRED when `item.type` is non-scalar
+  - REQUIRED when `item.type` is `map` or `array`
 
-- `attributes."STRING".ifvalue`
+- `attributes."STRING".ifvalues`
   - This attribute/map can be used to conditionally include additional
     attribute definitions based on the runtime value of the current attribute.
     If the string serialization of the runtime value of this attribute matches
-    the `ifvalue` `"VALUE"` (case sensitive) then the `siblingattributes` MUST
+    the `ifvalues` `"VALUE"` (case sensitive) then the `siblingattributes` MUST
     be included in the model as siblings to this attribute.
   - If `enum` is not empty and `strict` is `true` then this map MUST NOT
     contain any value that is not specified in the `enum` array
-  - All attributes defined for this `ifvalue` MUST be unique within the scope
-    of this `ifvalue` and MUST NOT match a named attributed defined at this
-    level of the entity. If mulitple `ifvalue` sections, at the same entity
+  - All attributes defined for this `ifvalues` MUST be unique within the scope
+    of this `ifvalues` and MUST NOT match a named attributed defined at this
+    level of the entity. If mulitple `ifvalues` sections, at the same entity
     level, are active at the same time then there MUST NOT be duplicate
-    `ifvalue` attributes names between those `ifvalue` sections
-  - `ifvalue` `"VALUE"` MUST NOT be an empty string
-  - `ifvalue` siblingattributes MUST NOT include additional `ifvalue`
+    `ifvalues` attributes names between those `ifvalues` sections
+  - `ifvalues` `"VALUE"` MUST NOT be an empty string
+  - `ifvalues` siblingattributes MUST NOT include additional `ifvalues`
     definitions.
   - Type: Map where each value of the attribute is the key of the map
   - OPTIONAL
@@ -1396,9 +1434,10 @@ Content-Type: application/json; charset=utf-8
       "serverrequired": BOOLEAN, ?
       "default": VALUE, ?
 
-      "item": { ... }, ?                     # Nested resource
+      "attributes": { ... }, ?               # For nested object
+      "item": { ... }, ?                     # For nested map, array
 
-      "ifvalue": {
+      "ifvalues": {
         "VALUE": {
           "siblingattributes": { ... }
         } *
@@ -1484,7 +1523,7 @@ Below describes the constraints on changing of the model:
 - Groups and Resource definitions MAY be deleted, and MUST result in the
   deletion of all instances of those types
 - New Group and Resource definitions MAY be created
-- New non-`ifvalue` attributes MAY be added to existing types but MUST NOT be
+- New non-`ifvalues` attributes MAY be added to existing types but MUST NOT be
   marked as REQUIRED
 - The `name` and `type` fields of an attribute MUST NOT be modified
 - The `description` fields MAY be modified
@@ -1494,12 +1533,12 @@ Below describes the constraints on changing of the model:
   modified to `false`
 - The `strict`, `clientrequired` and `serverrequired` fields MAY be modified
   from `true` to `false`, but MUST NOT be modified from `false` to `true`
-- New `ifvalue` definitions MAY be added and they MAY include REQUIRED
+- New `ifvalues` definitions MAY be added and they MAY include REQUIRED
   attributes. However, if there are any existing entities that would be
   non-compliant as a result of a new REQUIRED attribute then the request to
   update the model MUST fail
-  - All fields within the `ifvalue` MUST adhere to the rules above concerning
-    non-`ifvalue` fields
+  - All fields within the `ifvalues` MUST adhere to the rules above concerning
+    non-`ifvalues` fields
   - `ifvalues` MUST NOT be deleted
 - all of the model changes that are not allowed above are due to the potential
   of invalidating existing entities. Therefore, if there are no instances of
@@ -1528,9 +1567,10 @@ Content-Type: application/json; charset=utf-8
       "serverrequired": BOOLEAN, ?
       "default": VALUE, ?
 
-      "item": { ... }, ?                          # Nested resource
+      "attributes": { ... }, ?               # For nested object
+      "item": { ... }, ?                     # For nested map, array
 
-      "ifvalue": {
+      "ifvalues": {
         "VALUE": {
           "siblingattributes": { ... }
         } *
@@ -1595,9 +1635,10 @@ Content-Type: application/json; charset=utf-8
       "serverrequired": BOOLEAN, ?
       "default": VALUE, ?
 
+      "attributes": { ... }, ?
       "item": { ... }, ?
 
-      "ifvalue": {
+      "ifvalues": {
         "VALUE": {
           "siblingattributes": { ... }
         } *
@@ -2264,6 +2305,8 @@ However, there are a few exceptions:
 - `self` MUST be an absolute URL to the Resource, and not to the "latest"
   Version in the `versions` collection. The Resource's `latestversionurl`
   attribute can be used to access the "latest" Version
+- Version specific attributes (e.g. `latest`) MUST NOT appear on the Resource
+  serialization
 
 All other attributes, including extensions, are associated with the Version.
 
@@ -2273,12 +2316,15 @@ themselves. This means the Registry metadata needs to be managed separately
 from the contents of the Resource. As such, there are two ways to serialize
 Resources in HTTP:
 - the contents of the Resource appears in the HTTP body, and each scalar
-  Registry attribute (along with its value) appears as an HTTP header with its
-  name prefixed with `xRegistry-`. Registry attributes that are maps MUST
-  also appear if their values are defined to be of scalar type (e.g. not `any`
-  or `object`)
-  See [HTTP Header Values](#http-header-values) for additional information
-  and [`labels`](#labels) for an example of one such attribute
+  xRegistry attribute (unless otherwise specified) MUST be serialized as an
+  HTTP header with its name prefixed with `xRegistry-`. xRegistry attributes
+  that are maps MUST also appear if the model defines their values be of
+  scalar type (e.g. not `any` or `object`). Each key/value of the map MUST be
+  serialized as an HTTP headers with a name of `xRegistry-ATTRIBUTENAME-KEY`.
+  Note that map keys MAY contain the `-` character, so any `-` after the 2nd
+  `-` in the header name is part of a key name.  See
+  [HTTP Header Values](#http-header-values) for additional information and
+  [`labels`](#labels) for an example of one such attribute
 - similar to Groups, the Registry attributes are serialized as a single JSON
   object that appears in the HTTP body. The Resource contents will either
   appear as an attribute (`RESOURCE` or `RESOURCEbase64`), or there will be
@@ -2302,6 +2348,7 @@ When serialized as a JSON object, a Resource MUST adhere to this form:
   "createdon": "TIME", ?
   "modifiedby": "STRING", ?
   "modifiedon": "TIME", ?
+  "contenttype": "STRING", ?
 
   "RESOURCEurl": "URL", ?                  # If not local
   "RESOURCE": { Resource contents }, ?     # If inlined & JSON
@@ -2317,7 +2364,7 @@ When serialized with the Resource contents in the HTTP body, it MUST adhere
 to this form:
 
 ```yaml
-Content-Type: ... ?
+Content-Type: STRING ?
 xRegistry-id: STRING
 xRegistry-name: STRING ?
 xRegistry-epoch: UINT
@@ -2369,6 +2416,7 @@ Resources include the following common attributes:
 - [`createdon`](#createdon) - OPTIONAL
 - [`modifiedby`](#modifiedby) - OPTIONAL
 - [`modifiedon`](#modifiedon) - OPTIONAL
+- [`contenttype`](#contenttype) - STRONGLY RECOMMENDED
 
 and the following Resource specific attributes:
 
@@ -2577,6 +2625,7 @@ Link: <URL>;rel=next;count=UINTEGER ?
     "createdon": "TIME", ?
     "modifiedby": "STRING", ?
     "modifiedon": "TIME", ?
+    "contenttype": "STRING", ?
 
     "RESOURCEurl": "URL", ?                  # If not local
     "RESOURCE": { Resource contents }, ?     # If inlined & JSON
@@ -2661,13 +2710,20 @@ When the request results in the creation of a new Version, by default that
 Version will become the "latest" Version of the owning Resource. This MAY
 be changed by including the `latest` attribute as part of the entity's
 representation with a value of `false` - in which case the current latest
-Version does not change. If `latest` is present with a value of `true` but
-the server does not support the `latest` model feature, then an error MUST
-be generated - see `latest` in the [Registry Model](#registry-model) section.
+Version does not change.
+
 If there are multiple new Versions of the same Resource being created within
 one request, and none of them include `latest` with a value of `true`, but
 one of them needs to be chosen as the latest, then the last new Version
 specified in the request array MUST become the latest Version.
+
+If the server does not support the ability for clients to select which
+Version is to be the latest one (i.e. the
+[`latest` model feature](#registry-model)), then if `latest` attribute is
+present in an incoming request to create or update a Version with a value that
+doesn't align with the server's intended semantics, an error MUST be
+generated. In other words, an error is generated if the client's request with
+respect to which Version is to be the new latest will not be satisfied.
 
 When the request format supports multiple entities (in other words, `POST`
 and a JSON array in the HTTP body, even if there is just one item in the
@@ -2698,7 +2754,7 @@ following:
 
 ```yaml
 [METHOD] [PATH]
-Content-Type: ... ?
+Content-Type: STRING ?
 xRegistry-id: STRING ?
 xRegistry-name: STRING ?
 xRegistry-description: STRING ?
@@ -2732,10 +2788,13 @@ Regardless of how the entity is represented, the following rules apply:
   it MUST be a full representation of the mutable attributes (including
   complex attributes). This means that any missing mutable attributes MUST
   be interpreted as a request to delete the attribute
-- when the entity's xRegistry metadata is specified as HTTP headers, then
-  it MUST be interpreted as a request to update only the specified attributes
-  and any attribute not specified will remain unchanged. To delete an attribute
-  it MUST be specified with a value of `null`
+- when the entity's xRegistry metadata is specified as HTTP headers with
+  a `xRegistry-` prefix, then it MUST be interpreted as a request to update
+  only the specified attributes and any attribute not specified will remain
+  unchanged. To delete an attribute it MUST be specified with a value of `null`
+  - note that attributes that are not serialized with an `xRegistry-` prefix
+    MAY choose to have their own update semantics - see
+    [contenttype](#contenttype) as an example
   - any map attribute that appears as an HTTP header MUST be included in its
     entirety, and any missing map keys MUST be interpreted as a request to
     delete those fields from the map
@@ -2951,7 +3010,7 @@ The response MUST be of the form:
 
 ```yaml
 HTTP/1.1 200 OK|303 See Other
-Content-Type: ... ?            # If Resource is in body
+Content-Type: STRING ?
 xRegistry-id: STRING
 xRegistry-name: STRING ?
 xRegistry-epoch: UINT
@@ -3017,6 +3076,7 @@ Content-Location: URL ?
   "createdon": "TIME", ?
   "modifiedby": "STRING", ?
   "modifiedon": "TIME", ?
+  "contenttype": "STRING", ?
 
   "RESOURCEurl": "URL", ?                  # If not local
   "RESOURCE": { Resource contents }, ?     # If inlined & JSON
@@ -3098,7 +3158,7 @@ with an empty HTTP body, or:
 
 ```yaml
 HTTP/1.1 200 OK
-Content-Type: ... ?
+Content-Type: STRING ?
 xRegistry-id: STRING
 xRegistry-name: STRING ?
 xRegistry-epoch: UINT
@@ -3191,6 +3251,7 @@ Link: <URL>;rel=next;count=UINTEGER ?
     "createdon": "TIME", ?
     "modifiedby": "STRING", ?
     "modifiedon": "TIME", ?
+    "contenttype": "STRING", ?
 
     "RESOURCEurl": "URL" ?
   } *
@@ -3242,6 +3303,7 @@ The serialization of a Version entity adheres to this form:
   "createdon": "TIME", ?
   "modifiedby": "STRING", ?
   "modifiedon": "TIME", ?
+  "contenttype": "STRING", ?
 
   "RESOURCEurl": "URL", ?                  # If not local
   "RESOURCE": { Resource contents }, ?     # If inlined & JSON
@@ -3263,6 +3325,7 @@ Versions include the following attributes as defined by the
 - [`createdon`](#createdon)
 - [`modifiedby`](#modifiedby)
 - [`modifiedon`](#modifiedon)
+- [`contenttype`](#contenttype)
 - `RESOURCEurl`
 - `RESOURCE`
 - `RESOURCEbase64`
@@ -3277,6 +3340,10 @@ and the following Version specific attributes:
   Thus, when its value changes due to the latest Version of a Resource
   changing, the Version itself does not change - meaning the `epoch` value
   remains unchanged.
+
+  See [Creating or Updating Resources and Versions](#creating-or-updating-resources-and-versions)
+  for additional information about this attriubte.
+
 - Constraints:
   - REQUIRED in responses when the value is `true`, OPTIONAL on requests
   - REQUIRED in document view when the value is `true`
@@ -3393,6 +3460,7 @@ Link: <URL>;rel=next;count=UINTEGER ?
     "createdon": "TIME", ?
     "modifiedby": "STRING", ?
     "modifiedon": "TIME", ?
+    "contenttype": "STRING", ?
 
     "RESOURCEurl": "URL", ?                  # If not local
     "RESOURCE": { Resource contents }, ?     # If inlined & JSON
@@ -3455,7 +3523,7 @@ form:
 
 ```yaml
 HTTP/1.1 200 OK
-Content-Type: ... ?
+Content-Type: STRING ?
 xRegistry-id: STRING
 xRegistry-name: STRING ?
 xRegistry-epoch: UINT
@@ -3481,6 +3549,7 @@ In the case of a redirect, the response MUST be of the form:
 
 ```yaml
 HTTP/1.1 303 See Other
+Content-Type: STRING ?
 xRegistry-id: STRING
 xRegistry-name: STRING ?
 xRegistry-epoch: UINT
@@ -3556,6 +3625,7 @@ Content-Type: application/json; charset=utf-8
   "createdon": "TIME", ?
   "modifiedby": "STRING", ?
   "modifiedon": "TIME", ?
+  "contenttype": "STRING", ?
 
   "RESOURCEurl": "URL", ?                  # If not local
   "RESOURCE": { Resource contents }, ?     # If inlined & JSON
@@ -3635,7 +3705,7 @@ with an empty HTTP body, or:
 
 ```yaml
 HTTP/1.1 200 OK
-Content-Type: ... ?
+Content-Type: STRING ?
 xRegistry-id: STRING
 xRegistry-name: STRING ?
 xRegistry-epoch: UINT
@@ -3744,6 +3814,7 @@ Link: <URL>;rel=next;count=UINTEGER ?
     "createdon": "TIME", ?
     "modifiedby": "STRING", ?
     "modifiedon": "TIME", ?
+    "contenttype": "STRING", ?
 
     "RESOURCEurl": "URL" ?
   } +
@@ -3794,7 +3865,7 @@ Where `PATH` is a string indicating which inlinable attributes to show in
 in the response. References to nested attributes are represented using a
 dot(`.`) notation - for example `GROUPs.RESOURCEs`. To reference an attribute
 with a dot as part of its name, the JSON PATH escaping mechanism MUST be
-used: `['my.name']`. For example, `prop1.my.name.propt2` would be specified
+used: `['my.name']`. For example, `prop1.my.name.prop2` would be specified
 as `prop1['my.name'].prop2` if `my.name` is the name of one attribute.
 
 There MAY be multiple `PATH`s specified, either as comma separated values on
@@ -3884,7 +3955,7 @@ Where:
   the `PATH` value is based on the requesting URL and not the root of the
   Registry. See the examples below. To reference an attribute with a dot as
   part of its name, the JSON PATH escaping mechanism MUST be used:
-  `['my.name']`. For example, `prop1.my.name.propt2` would be specified as
+  `['my.name']`. For example, `prop1.my.name.prop2` would be specified as
   `prop1['my.name'].prop2` if `my.name` is the name of one attribute.
 - `PATH` MUST only consist of valid `GROUPs`, `RESOURCEs` or `versions`,
   otherwise an error MUST be generated
