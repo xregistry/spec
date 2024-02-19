@@ -16,7 +16,7 @@
         "binding": {
           "name": "binding",
           "type": "string",
-          "description": "Binding identifier that defines the transport message binding. All definitions in this group share this binding type. Mixed-binding groups are not permitted",
+          "description": "Binding identifier that defines the transport message binding. All definitions in this group share this binding type. Mixed-binding groups are not permitted"
         },
         "*": {
           "name": "*",
@@ -67,13 +67,15 @@
                           "source": {
                             "description": "CloudEvents source",
                             "type": "object",
-                            "required": false,
+                            "clientrequired": false,
+                            "serverrequired": false,
                             "item": {
                               "attributes": {
                                 "value": {
                                   "description": "CloudEvents source value template",
                                   "type": "string",
-                                  "required": false
+                                  "clientrequired": false,
+                                  "serverrequired":false
                                 }
                               }
                             }
@@ -81,18 +83,21 @@
                           "subject": {
                             "description": "CloudEvents subject",
                             "type": "object",
-                            "required": false,
+                            "clientrequired": false,
+                            "serverrequired":false,
                             "item": {
                               "attributes": {
                                 "value": {
                                   "description": "CloudEvents subject value template",
                                   "type": "string",
-                                  "required": false
+                                  "clientrequired": false,
+                                  "serverrequired":false
                                 },
                                 "required": {
                                   "description": "CloudEvents subject required",
                                   "type": "boolean",
-                                  "required": false
+                                  "clientrequired": false,
+                                  "serverrequired":false
                                 }
                               }
                             }
@@ -100,13 +105,15 @@
                           "id": {
                             "description": "CloudEvents id",
                             "type": "object",
-                            "required": false,
+                            "clientrequired": false,
+                            "serverrequired":false,
                             "item": {
                               "attributes": {
                                 "value": {
                                   "description": "CloudEvents id value template",
                                   "type": "string",
-                                  "required": false
+                                  "clientrequired": false,
+                                  "serverrequired":false
                                 }
                               }
                             }
@@ -114,18 +121,21 @@
                           "time": {
                             "description": "The timestamp of when the event happened",
                             "type": "object",
-                            "required": false,
+                            "clientrequired": false,
+                            "serverrequired":false,
                             "item": {
                               "attributes": {
                                 "value": {
                                   "description": "The timestamp value template",
                                   "type": "string",
-                                  "required": false
+                                  "clientrequired": false,
+                                  "serverrequired":false
                                 },
                                 "required": {
                                   "description": "The timestamp required",
                                   "type": "boolean",
-                                  "required": false
+                                  "clientrequired": false,
+                                  "serverrequired":false
                                 }
                               }
                             }
@@ -133,18 +143,21 @@
                           "dataschema": {
                             "description": "The uri of the schema that the event payload adheres to. If the dataschema attribute is not present, it MUST be interpreted as no schema. An application MAY assign a meaning to the dataschema attribute if it is not present by default",
                             "type": "object",
-                            "required": false,
+                            "clientrequired": false,
+                            "serverrequired":false,
                             "item": {
                               "attributes": {
                                 "value": {
                                   "description": "The uri value template",
                                   "type": "uritemplate",
-                                  "required": false
+                                  "clientrequired": false,
+                                  "serverrequired":false
                                 },
                                 "required": {
                                   "description": "The uri required",
                                   "type": "boolean",
-                                  "required": false
+                                  "clientrequired": false,
+                                  "serverrequired":false
                                 }
                               }
                             }
@@ -152,18 +165,21 @@
                           "*": {
                             "description": "CloudEvent extension property",
                             "type": "object",
-                            "required": false,
+                            "clientrequired": false,
+                            "serverrequired":false,
                             "item": {
                               "attributes": {
                                 "value": {
                                   "description": "The value template",
                                   "type": "string",
-                                  "required": false
+                                  "clientrequired": false,
+                                  "serverrequired":false
                                 },
                                 "required": {
                                   "description": "Whether the extension is required",
                                   "type": "boolean",
-                                  "required": false
+                                  "clientrequired": false,
+                                  "serverrequired":false
                                 }
                               }
                             }
@@ -178,7 +194,8 @@
             "binding": {
               "description": "Binding identifier. This attribute MUST be the same as the 'binding' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
               "type": "string",
-              "required": false,
+              "clientrequired": false,
+              "serverrequired":false,
               "ifvalue": {
                 "None" : {
                 },
@@ -187,29 +204,34 @@
                     "message": {
                       "description": "AMQP message metadata constraints",
                       "type": "object",
-                      "required": false,
+                      "clientrequired": false,
+                      "serverrequired":false,
                       "item": {
                         "attributes": {
                           "properties": {
                             "type": "object",
-                            "required": false,
+                            "clientrequired": false,
+                            "serverrequired":false,
                             "item": {
                               "attributes": {
                                 "message_id": {
                                   "description": "AMQP message-id",
                                   "type": "object",
-                                  "required": false,
+                                  "clientrequired": false,
+                                  "serverrequired":false,
                                   "item": {
                                     "attributes": {
                                       "value": {
                                         "description": "AMQP message-id value template",
                                         "type": "string",
-                                        "required": false
+                                        "clientrequired": false,
+                                        "serverrequired":false
                                       },
                                       "required": {
                                         "description": "AMQP message-id required",
                                         "type": "boolean",
-                                        "required": false
+                                        "clientrequired": false,
+                                        "serverrequired":false
                                       }
                                     }
                                   }
@@ -217,18 +239,21 @@
                                 "user_id": {
                                   "description": "AMQP user-id",
                                   "type": "object",
-                                  "required": false,
+                                  "clientrequired": false,
+                                  "serverrequired":false,
                                   "item": {
                                     "attributes": {
                                       "value": {
                                         "description": "AMQP user-id value template",
                                         "type": "string",
-                                        "required": false
+                                        "clientrequired": false,
+                                        "serverrequired":false
                                       },
                                       "required": {
                                         "description": "AMQP user-id required",
                                         "type": "boolean",
-                                        "required": false
+                                        "clientrequired": false,
+                                        "serverrequired":false
                                       }
                                     }
                                   }
@@ -236,18 +261,21 @@
                                 "to": {
                                   "description": "AMQP to",
                                   "type": "object",
-                                  "required": false,
+                                  "clientrequired": false,
+                                  "serverrequired":false,
                                   "item": {
                                     "attributes": {
                                       "value": {
                                         "description": "AMQP to value template",
                                         "type": "string",
-                                        "required": false
+                                        "clientrequired": false,
+                                        "serverrequired":false
                                       },
                                       "required": {
                                         "description": "AMQP to required",
                                         "type": "boolean",
-                                        "required": false
+                                        "clientrequired": false,
+                                        "serverrequired":false
                                       }
                                     }
                                   }
@@ -255,18 +283,21 @@
                                 "subject": {
                                   "description": "AMQP subject",
                                   "type": "object",
-                                  "required": false,
+                                  "clientrequired": false,
+                                  "serverrequired":false,
                                   "item": {
                                     "attributes": {
                                       "value": {
                                         "description": "AMQP subject value template",
                                         "type": "string",
-                                        "required": false
+                                        "clientrequired": false,
+                                        "serverrequired":false
                                       },
                                       "required": {
                                         "description": "AMQP subject required",
                                         "type": "boolean",
-                                        "required": false
+                                        "clientrequired": false,
+                                        "serverrequired":false
                                       }
                                     }
                                   }
@@ -274,18 +305,21 @@
                                 "reply_to": {
                                   "description": "AMQP reply-to",
                                   "type": "object",
-                                  "required": false,
+                                  "clientrequired": false,
+                                  "serverrequired":false,
                                   "item": {
                                     "attributes": {
                                       "value": {
                                         "description": "AMQP reply-to value template",
                                         "type": "string",
-                                        "required": false
+                                        "clientrequired": false,
+                                        "serverrequired":false
                                       },
                                       "required": {
                                         "description": "AMQP reply-to required",
                                         "type": "boolean",
-                                        "required": false
+                                        "clientrequired": false,
+                                        "serverrequired":false
                                       }
                                     }
                                   }
@@ -293,18 +327,21 @@
                                 "correlation_id": {
                                   "description": "AMQP correlation-id",
                                   "type": "object",
-                                  "required": false,
+                                  "clientrequired": false,
+                                  "serverrequired":false,
                                   "item": {
                                     "attributes": {
                                       "value": {
                                         "description": "AMQP correlation-id value template",
                                         "type": "string",
-                                        "required": false
+                                        "clientrequired": false,
+                                        "serverrequired":false
                                       },
                                       "required": {
                                         "description": "AMQP correlation-id required",
                                         "type": "boolean",
-                                        "required": false
+                                        "clientrequired": false,
+                                        "serverrequired":false
                                       }
                                     }
                                   }
@@ -312,18 +349,21 @@
                                 "content_type": {
                                   "description": "AMQP content-type",
                                   "type": "object",
-                                  "required": false,
+                                  "clientrequired": false,
+                                  "serverrequired":false,
                                   "item": {
                                     "attributes": {
                                       "value": {
                                         "description": "AMQP content-type value template",
                                         "type": "string",
-                                        "required": false
+                                        "clientrequired": false,
+                                        "serverrequired":false
                                       },
                                       "required": {
                                         "description": "AMQP content-type required",
                                         "type": "boolean",
-                                        "required": false
+                                        "clientrequired": false,
+                                        "serverrequired":false
                                       }
                                     }
                                   }
@@ -331,18 +371,21 @@
                                 "content_encoding": {
                                   "description": "AMQP content-encoding",
                                   "type": "object",
-                                  "required": false,
+                                  "clientrequired": false,
+                                  "serverrequired":false,
                                   "item": {
                                     "attributes": {
                                       "value": {
                                         "description": "AMQP content-encoding value template",
                                         "type": "string",
-                                        "required": false
+                                        "clientrequired": false,
+                                        "serverrequired":false
                                       },
                                       "required": {
                                         "description": "AMQP content-encoding required",
                                         "type": "boolean",
-                                        "required": false
+                                        "clientrequired": false,
+                                        "serverrequired":false
                                       }
                                     }
                                   }
@@ -350,18 +393,21 @@
                                 "absolute_expiry_time": {
                                   "description": "AMQP absolute-expiry-time",
                                   "type": "object",
-                                  "required": false,
+                                  "clientrequired": false,
+                                  "serverrequired":false,
                                   "item": {
                                     "attributes": {
                                       "value": {
                                         "description": "AMQP absolute-expiry-time value template",
                                         "type": "string",
-                                        "required": false
+                                        "clientrequired": false,
+                                        "serverrequired":false
                                       },
                                       "required": {
                                         "description": "AMQP absolute-expiry-time required",
                                         "type": "boolean",
-                                        "required": false
+                                        "clientrequired": false,
+                                        "serverrequired":false
                                       }
                                     }
                                   }
@@ -369,18 +415,21 @@
                                 "group_id": {
                                   "description": "AMQP group-id",
                                   "type": "object",
-                                  "required": false,
+                                  "clientrequired": false,
+                                  "serverrequired":false,
                                   "item": {
                                     "attributes": {
                                       "value": {
                                         "description": "AMQP group-id value template",
                                         "type": "string",
-                                        "required": false
+                                        "clientrequired": false,
+                                        "serverrequired":false
                                       },
                                       "required": {
                                         "description": "AMQP group-id required",
                                         "type": "boolean",
-                                        "required": false
+                                        "clientrequired": false,
+                                        "serverrequired":false
                                       }
                                     }
                                   }
@@ -388,18 +437,21 @@
                                 "group_sequence": {
                                   "description": "AMQP group-sequence",
                                   "type": "object",
-                                  "required": false,
+                                  "clientrequired": false,
+                                  "serverrequired":false,
                                   "item": {
                                     "attributes": {
                                       "value": {
                                         "description": "AMQP group-sequence value template",
                                         "type": "string",
-                                        "required": false
+                                        "clientrequired": false,
+                                        "serverrequired":false
                                       },
                                       "required": {
                                         "description": "AMQP group-sequence required",
                                         "type": "boolean",
-                                        "required": false
+                                        "clientrequired": false,
+                                        "serverrequired":false
                                       }
                                     }
                                   }
@@ -407,18 +459,21 @@
                                 "reply_to_group_id": {
                                   "description": "AMQP reply-to-group-id",
                                   "type": "object",
-                                  "required": false,
+                                  "clientrequired": false,
+                                  "serverrequired":false,
                                   "item": {
                                     "attributes": {
                                       "value": {
                                         "description": "AMQP reply-to-group-id value template",
                                         "type": "string",
-                                        "required": false
+                                        "clientrequired": false,
+                                        "serverrequired":false
                                       },
                                       "required": {
                                         "description": "AMQP reply-to-group-id required",
                                         "type": "boolean",
-                                        "required": false
+                                        "clientrequired": false,
+                                        "serverrequired":false
                                       }
                                     }
                                   }
@@ -428,7 +483,8 @@
                           },
                           "application_properties": {
                             "type": "map",
-                            "required": false,
+                            "clientrequired": false,
+                            "serverrequired":false,
                             "item": {
                               "type": "object",
                               "item": {
@@ -436,17 +492,20 @@
                                   "value": {
                                     "description": "The application property value template",
                                     "type": "string",
-                                    "required": false
+                                    "clientrequired": false,
+                                    "serverrequired":false
                                   },
                                   "required": {
                                     "description": "The application property required",
                                     "type": "boolean",
-                                    "required": false
+                                    "clientrequired": false,
+                                    "serverrequired":false
                                   },
                                   "type": {
                                     "description": "The application property type",
                                     "type": "string",
-                                    "required": false
+                                    "clientrequired": false,
+                                    "serverrequired":false
                                   }
                                 }
                               }
@@ -454,7 +513,8 @@
                           },
                           "message_annotations": {
                             "type": "map",
-                            "required": false,
+                            "clientrequired": false,
+                            "serverrequired":false,
                             "item": {
                               "type": "object",
                               "item": {
@@ -462,17 +522,20 @@
                                   "value": {
                                     "description": "The message annotation value",
                                     "type": "string",
-                                    "required": false
+                                    "clientrequired": false,
+                                    "serverrequired":false
                                   },
                                   "required": {
                                     "description": "Whether the message annotation is required",
                                     "type": "boolean",
-                                    "required": false
+                                    "clientrequired": false,
+                                    "serverrequired":false
                                   },
                                   "type": {
                                     "description": "The message annotation type",
                                     "type": "string",
-                                    "required": false
+                                    "clientrequired": false,
+                                    "serverrequired":false
                                   }
                                 }
                               }
@@ -480,7 +543,8 @@
                           },
                           "delivery_annotations": {
                             "type": "map",
-                            "required": false,
+                            "clientrequired": false,
+                            "serverrequired":false,
                             "item": {
                               "type": "object",
                               "item": {
@@ -488,17 +552,20 @@
                                   "value": {
                                     "description": "The delivery annotation value",
                                     "type": "string",
-                                    "required": false
+                                    "clientrequired": false,
+                                    "serverrequired":false
                                   },
                                   "required": {
                                     "description": "Whether the annotation is required",
                                     "type": "boolean",
-                                    "required": false
+                                    "clientrequired": false,
+                                    "serverrequired":false
                                   },
                                   "type": {
                                     "description": "The annotation type",
                                     "type": "string",
-                                    "required": false
+                                    "clientrequired": false,
+                                    "serverrequired":false
                                   }
                                 }
                               }
@@ -506,7 +573,8 @@
                           },
                           "header": {
                             "type": "map",
-                            "required": false,
+                            "clientrequired": false,
+                            "serverrequired":false,
                             "item": {
                               "type": "object",
                               "item": {
@@ -514,17 +582,20 @@
                                   "value": {
                                     "description": "AMQP header value",
                                     "type": "string",
-                                    "required": false
+                                    "clientrequired": false,
+                                    "serverrequired":false
                                   },
                                   "required": {
                                     "description": "AMQP header required",
                                     "type": "boolean",
-                                    "required": false
+                                    "clientrequired": false,
+                                    "serverrequired":false
                                   },
                                   "type": {
                                     "description": "AMQP header type",
                                     "type": "string",
-                                    "required": false
+                                    "clientrequired": false,
+                                    "serverrequired":false
                                   }
                                 }
                               }
@@ -532,7 +603,8 @@
                           },
                           "footer": {
                             "type": "map",
-                            "required": false,
+                            "clientrequired": false,
+                            "serverrequired":false,
                             "item": {
                               "type": "object",
                               "item": {
@@ -540,17 +612,20 @@
                                   "value": {
                                     "description": "AMQP footer value",
                                     "type": "string",
-                                    "required": false
+                                    "clientrequired": false,
+                                    "serverrequired":false
                                   },
                                   "required": {
                                     "description": "AMQP footer required",
                                     "type": "boolean",
-                                    "required": false
+                                    "clientrequired": false,
+                                    "serverrequired":false
                                   },
                                   "type": {
                                     "description": "AMQP footer type",
                                     "type": "string",
-                                    "required": false
+                                    "clientrequired": false,
+                                    "serverrequired":false
                                   }
                                 }
                               }
@@ -566,19 +641,22 @@
                     "message": {
                       "description": "MQTT message metadata constraints",
                       "type": "object",
-                      "required": false,
+                      "clientrequired": false,
+                      "serverrequired":false,
                       "item": {
                         "attributes": {
                           "qos": {
                             "description": "MQTT qos",
                             "type": "object",
-                            "required": false,
+                            "clientrequired": false,
+                            "serverrequired":false,
                             "item": {
                               "attributes": {
                                 "value": {
                                   "description": "MQTT qos value template",
                                   "type": "string",
-                                  "required": false
+                                  "clientrequired": false,
+                                  "serverrequired":false
                                 }
                               }
                             }
@@ -586,13 +664,15 @@
                           "retain": {
                             "description": "MQTT retain",
                             "type": "object",
-                            "required": false,
+                            "clientrequired": false,
+                            "serverrequired":false,
                             "item": {
                               "attributes": {
                                 "value": {
                                   "description": "MQTT retain value template",
                                   "type": "boolean",
-                                  "required": false
+                                  "clientrequired": false,
+                                  "serverrequired":false
                                 }
                               }
                             }
@@ -600,13 +680,15 @@
                           "topic_name": {
                             "description": "MQTT topic-name",
                             "type": "object",
-                            "required": false,
+                            "clientrequired": false,
+                            "serverrequired":false,
                             "item": {
                               "attributes": {
                                 "value": {
                                   "description": "MQTT topic-name value template",
                                   "type": "string",
-                                  "required": false
+                                  "clientrequired": false,
+                                  "serverrequired":false
                                 }
                               }
                             }
@@ -621,19 +703,22 @@
                     "message": {
                       "description": "MQTT message metadata constraints",
                       "type": "object",
-                      "required": false,
+                      "clientrequired": false,
+                      "serverrequired":false,
                       "item": {
                         "attributes": {
                           "qos": {
                             "description": "MQTT qos",
                             "type": "object",
-                            "required": false,
+                            "clientrequired": false,
+                            "serverrequired":false,
                             "item": {
                               "attributes": {
                                 "value": {
                                   "description": "MQTT qos value template",
                                   "type": "integer",
-                                  "required": false
+                                  "clientrequired": false,
+                                  "serverrequired":false
                                 }
                               }
                             }
@@ -641,13 +726,15 @@
                           "retain": {
                             "description": "MQTT retain",
                             "type": "object",
-                            "required": false,
+                            "clientrequired": false,
+                            "serverrequired":false,
                             "item": {
                               "attributes": {
                                 "value": {
                                   "description": "MQTT retain value template",
                                   "type": "boolean",
-                                  "required": false
+                                  "clientrequired": false,
+                                  "serverrequired":false
                                 }
                               }
                             }
@@ -655,13 +742,15 @@
                           "topic_name": {
                             "description": "MQTT topic-name",
                             "type": "object",
-                            "required": false,
+                            "clientrequired": false,
+                            "serverrequired":false,
                             "item": {
                               "attributes": {
                                 "value": {
                                   "description": "MQTT topic-name value template",
                                   "type": "string",
-                                  "required": false
+                                  "clientrequired": false,
+                                  "serverrequired":false
                                 }
                               }
                             }
@@ -669,13 +758,15 @@
                           "message_expiry_interval": {
                             "description": "MQTT message-expiry-interval",
                             "type": "object",
-                            "required": false,
+                            "clientrequired": false,
+                            "serverrequired":false,
                             "item": {
                               "attributes": {
                                 "value": {
                                   "description": "MQTT message-expiry-interval value template",
                                   "type": "integer",
-                                  "required": false
+                                  "clientrequired": false,
+                                  "serverrequired":false
                                 }
                               }
                             }
@@ -683,13 +774,15 @@
                           "response_topic": {
                             "description": "MQTT response-topic",
                             "type": "object",
-                            "required": false,
+                            "clientrequired": false,
+                            "serverrequired":false,
                             "item": {
                               "attributes": {
                                 "value": {
                                   "description": "MQTT response-topic value template",
                                   "type": "string",
-                                  "required": false
+                                  "clientrequired": false,
+                                  "serverrequired":false
                                 }
                               }
                             }
@@ -697,13 +790,15 @@
                           "correlation_data": {
                             "description": "MQTT correlation-data",
                             "type": "object",
-                            "required": false,
+                            "clientrequired": false,
+                            "serverrequired":false,
                             "item": {
                               "attributes": {
                                 "value": {
                                   "description": "MQTT correlation-data value template",
                                   "type": "binary",
-                                  "required": false
+                                  "clientrequired": false,
+                                  "serverrequired":false
                                 }
                               }
                             }
@@ -711,13 +806,15 @@
                           "content_type": {
                             "description": "MQTT content-type",
                             "type": "object",
-                            "required": false,
+                            "clientrequired": false,
+                            "serverrequired":false,
                             "item": {
                               "attributes": {
                                 "value": {
                                   "description": "MQTT content-type value template",
                                   "type": "string",
-                                  "required": false
+                                  "clientrequired": false,
+                                  "serverrequired":false
                                 }
                               }
                             }
@@ -725,7 +822,8 @@
                           "user_properties": {
                             "description": "MQTT user-properties",
                             "type": "array",
-                            "required": false,
+                            "clientrequired": false,
+                            "serverrequired":false,
                             "item": {
                               "type": "object",
                               "item": {
@@ -733,12 +831,14 @@
                                   "name": {
                                     "description": "MQTT user-property name",
                                     "type": "string",
-                                    "required": false
+                                    "clientrequired": false,
+                                    "serverrequired":false
                                   },
                                   "value": {
                                     "description": "MQTT user-property value",
                                     "type": "string",
-                                    "required": false
+                                    "clientrequired": false,
+                                    "serverrequired":false
                                   }
                                 }
                               }
@@ -754,28 +854,33 @@
                     "message": {
                       "description": "The Apache Kafka message metadata constraints",
                       "type": "object",
-                      "required": false,
+                      "clientrequired": false,
+                      "serverrequired":false,
                       "item": {
                         "attributes": {
                           "topic": {
                             "description": "The Apache Kafka topic",
                             "type": "string",
-                            "required": false
+                            "clientrequired": false,
+                            "serverrequired":false
                           },
                           "partition": {
                             "description": "The Apache Kafka partition",
                             "type": "integer",
-                            "required": false
+                            "clientrequired": false,
+                            "serverrequired":false
                           },
                           "key": {
                             "description": "The Apache Kafka key",
                             "type": "binary",
-                            "required": false
+                            "clientrequired": false,
+                            "serverrequired":false
                           },
                           "headers": {
                             "description": "The Apache Kafka headers",
                             "type": "map",
-                            "required": false,
+                            "clientrequired": false,
+                            "serverrequired":false,
                             "item": {
                               "type": "object",
                               "item": {
@@ -783,12 +888,14 @@
                                   "name": {
                                     "description": "The Apache Kafka header name",
                                     "type": "string",
-                                    "required": false
+                                    "clientrequired": false,
+                                    "serverrequired":false
                                   },
                                   "value": {
                                     "description": "The Apache Kafka header value",
                                     "type": "string",
-                                    "required": false
+                                    "clientrequired": false,
+                                    "serverrequired":false
                                   }
                                 }
                               }
@@ -797,7 +904,8 @@
                           "timestamp": {
                             "description": "The Apache Kafka timestamp",
                             "type": "integer",
-                            "required": false
+                            "clientrequired": false,
+                            "serverrequired":false
                           }
                         }
                       }
@@ -809,13 +917,15 @@
                     "message": {
                       "description": "The HTTP message metadata constraints",
                       "type": "object",
-                      "required": false,
+                      "clientrequired": false,
+                      "serverrequired":false,
                       "item": {
                         "attributes": {
                           "headers": {
                             "description": "The HTTP headers",
                             "type": "array",
-                            "required": false,
+                            "clientrequired": false,
+                            "serverrequired":false,
                             "item": {
                               "type": "object",
                               "item": {
@@ -823,12 +933,14 @@
                                   "name": {
                                     "description": "The HTTP header name",
                                     "type": "string",
-                                    "required": false
+                                    "clientrequired": false,
+                                    "serverrequired":false
                                   },
                                   "value": {
                                     "description": "The HTTP header value",
                                     "type": "string",
-                                    "required": false
+                                    "clientrequired": false,
+                                    "serverrequired":false
                                   }
                                 }
                               }
@@ -837,17 +949,20 @@
                           "query": {
                             "description": "The HTTP query parameters",
                             "type": "object",
-                            "required": false
+                            "clientrequired": false,
+                            "serverrequired":false
                           },
                           "path": {
                             "description": "The HTTP path as a uri template",
                             "type": "string",
-                            "required": false
+                            "clientrequired": false,
+                            "serverrequired":false
                           },
                           "method": {
                             "description": "The HTTP method",
                             "type": "string",
-                            "required": false
+                            "clientrequired": false,
+                            "serverrequired":false
                           }
                         }
                       }
@@ -858,22 +973,26 @@
               "schemaformat": {
                 "description": "The schema format applicable to the message payload, equivalent to the 'format' attribute attribute of the schema registry",
                 "type": "string",
-                "required": false
+                "clientrequired": false,
+                "serverrequired":false
               },
               "schema": {
                 "description": "The inline schema for the message payload, equivalent to the 'schema' attribute of the schema registry",
                 "type": "string",
-                "required": false
+                "clientrequired": false,
+                "serverrequired":false
               },
               "schemaobject": {
                 "description": "The inline schema object for the message payload, equivalent to the 'schemaobject' attribute of the schema registry",
                 "type": "string",
-                "required": false
+                "clientrequired": false,
+                "serverrequired":false
               },
               "schemaurl": {
                 "description": "The URL of the schema for the message payload, equivalent to the 'schemaurl' attribute of the schema registry",
                 "type": "string",
-                "required": false
+                "clientrequired": false,
+                "serverrequired":false
               }
             }
           }
