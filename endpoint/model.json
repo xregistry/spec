@@ -425,8 +425,8 @@
         }
       },
       "resources": {
-        "definitions": {
-          "$uri": "See ../message/model.json#/groups/definitiongroups/resources/definitions"
+        "messages": {
+          "$import": "../message/model.json#/groups/messagegroups/resources/messages"
         }
       }
     }

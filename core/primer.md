@@ -89,3 +89,5 @@ variable or structure property names - they're usually just stored as
 - discuss any potential semantic gotchas when one attribute is required
   but a nested attribute is optional, or also required (and visa-versa)
   - reminder: clientrequired=true means serverrequired=true as well, else error
+- how MIGHT someone implement mutli-tenancy with xRegistry
+  - and layers of xRegistries to get multi-level grouping ??

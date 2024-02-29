@@ -132,11 +132,11 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
           "STRING": {                   # Key=plural name, e.g. "definitions"
             "plural": "STRING",         # e.g. "definitions"
             "singular": "STRING",       # e.g. "definition"
-            "versions": UINTEGER ?      # Num Vers(>=0). Default=0, 0=unlimited
+            "versions": UINTEGER, ?     # Num Vers(>=0). Default=0, 0=unlimited
             "versionid": BOOLEAN, ?     # Supports client specified Version IDs
             "latest": BOOLEAN, ?        # Supports client "latest" selection
             "hasdocument": BOOLEAN, ?   # Has a separate document. Default=true
-            "readonly": BOOLEAN ?       # Client writable? Default=false
+            "readonly": BOOLEAN, ?      # Client writable? Default=false
             "attributes": { ... }, ?    # See "attributes" above
           } *
         } ?
@@ -998,7 +998,7 @@ Content-Type: application/json; charset=utf-8
   "epoch": UINTEGER, ?
   "name": "STRING", ?
   "description": "STRING", ?
-  "documentation": "URL" ?
+  "documentation": "URL", ?
   "labels": { "STRING": "STRING" * } ?
 }
 ```
@@ -1162,10 +1162,10 @@ Regardless of how the model is retrieved, the overall format is as follows:
           "singular": "STRING",        # e.g. "definition"
           "versions": UINTEGER, ?      # Num Vers(>=0). Default=0, 0=unlimited
           "versionid": BOOLEAN, ?      # Supports client specified Version IDs
-          "latest": BOOLEAN ?          # Supports client "latest" selection
+          "latest": BOOLEAN, ?         # Supports client "latest" selection
           "hasdocument": BOOLEAN, ?    # Has no separate document. Default=true
-          "readonly": BOOLEAN ?        # Client writable? Default=false
-          "attributes": { ... }, ?     # See "attributes" above
+          "readonly": BOOLEAN, ?       # Client writable? Default=false
+          "attributes": { ... } ?      # See "attributes" above
         } *
       } ?
     } *
@@ -1262,7 +1262,7 @@ The following describes the attributes of Registry model:
 - `attributes."STRING".default`
   - This value MUST be used to populate this attribute's value if one was
     not provided by a client. If a default value is defined then the
-	`serverrequired` MUST be set to `true`
+    `serverrequired` MUST be set to `true`
   - By default, attributes have no default values
   - Type: MUST be the same type as the `type` of this attribute and MUST
     only be used for scalar types
@@ -1455,12 +1455,12 @@ Content-Type: application/json; charset=utf-8
         "STRING": {
           "plural": "STRING",
           "singular": "STRING",
-          "versions": UINTEGER ?
+          "versions": UINTEGER, ?
           "versionid": BOOLEAN, ?
           "latest": BOOLEAN, ?
           "hasdocument": BOOLEAN, ?
-          "readonly": BOOLEAN ?
-          "attributes": { ... }, ?           # See "attributes" above
+          "readonly": BOOLEAN, ?
+          "attributes": { ... } ?            # See "attributes" above
         } *
       } ?
     } *
@@ -1588,12 +1588,12 @@ Content-Type: application/json; charset=utf-8
         "STRING": {
           "plural": "STRING",
           "singular": "STRING",
-          "versions": UINTEGER ?
+          "versions": UINTEGER, ?
           "versionid": BOOLEAN, ?
           "latest": BOOLEAN, ?
           "hasdocument": BOOLEAN, ?
-          "readonly": BOOLEAN ?
-          "attributes": { ... }, ?                # See "attributes" above
+          "readonly": BOOLEAN, ?
+          "attributes": { ... } ?                 # See "attributes" above
         } *
       } ?
     } *
@@ -1656,12 +1656,12 @@ Content-Type: application/json; charset=utf-8
         "STRING": {
           "plural": "STRING",
           "singular": "STRING",
-          "versions": UINTEGER ?
+          "versions": UINTEGER, ?
           "versionid": BOOLEAN, ?
           "latest": BOOLEAN, ?
           "hasdocument": BOOLEAN, ?
-          "readonly": BOOLEAN ?
-          "attributes": { ... }, ?
+          "readonly": BOOLEAN, ?
+          "attributes": { ... } ?
         } *
       } ?
     } *
@@ -1758,6 +1758,109 @@ Content-Type: application/json; charset=utf-8
       }
     }
   }
+}
+```
+
+##### Imports in the xRegistry Model Data
+
+There might be times when it is necessary for an xRegistry model to reuse
+portions of another xRegistry model defined elsewhere. Rather than forcing
+the duplication of the model defintions, an "import" type of JSON directive
+MAY be used.
+
+The general formats of the import are:
+```yaml
+"$import": "PATH-TO-DOCUMENT#JSON-POINTER-IN-DOC"
+```
+or
+```yaml
+"$imports": [ "PATH-TO-DOCUMENT#JSON-POINTER-IN-DOC" * ]
+```
+where the first form specifies a single reference to be imported, and the
+second form specifies multiple. The fragment (`#...`) portion is OPTIONAL.
+
+For example:
+```yaml
+"$import": "http://example.com/xreg-model.json#/groups/mygroup/attributes"
+```
+is asking for the attributes of a GROUP called `mygroup` to be included at
+this location of the current model.
+
+These directives MAY be used in any JSON Object or Map entity in an
+xRegistry model definition. The following rules apply for how to process the
+import directive:
+- the import reference value MUST be compatible with the environment in which
+  the import is being evaluated. For example, in an xRegistry server it would
+  most likely always be a URL. However, in an external tool the reference
+  might be to a local file on disk or a URL
+- the import MUST reference a JSON Object or Map that is consistent with
+  the model definition of where the import appears
+- any attributes already present (as siblings to the import) MUST take
+  precidence over an imported attribute
+- when `$imports` is used, the references MUST be processed in order and
+  earlier attributes imported take precidence over subsequently imported
+  attributes
+- both `$import` and `$imports` MUST NOT be present at the same time
+- imported attributes MAY include import directives, but MUST NOT be recursive
+- resolution of the import path MUST follow standard path resolution.
+  Meaning, relative paths are relative to the document with the import
+  directive
+- if present, the fragment (`#...`) part of the reference MUST adhere to the
+  [JSON Pointer](https://datatracker.ietf.org/doc/html/rfc6901) specification
+
+When the directives are used in a request to update the model, the server MUST
+resolve all imports prior to processing the request and MUST return the
+expanded model in responses to the request for the model. The imports MUST NOT
+be processed again at a later time. A request to re-evaluate the imports can
+be done via an subsequent model upate operation.
+
+**Examples:**
+
+A model definition that imports xRegistry attributes from a file on a remote
+server, and adds the definition of one attribute to a GROUP named `mygroups`
+from an extenal GROUP named `group1` in another xRegistry.
+
+```yaml
+{
+  "attributes": {
+    "$import": "http://example.com/someattributes",
+    "someattribute": {
+      "name": "someattribute",
+      "type": "string"
+    }
+  }
+  "groups": {
+    "mygroups": {
+      "plural": "mygroups",
+      "singular": "mygroup",
+      "attributes": {
+        "attr1": {
+          "$import": "http://example.com/model#/groups/group1/attributes/attr1"
+        }
+        ... remainder of model excluded for brevity ...
+      }
+    }
+  }
+}
+```
+
+where `http://example.com/someattributes` might look like:
+
+```yaml
+{
+  "myattr": {
+    "name": "myattr",
+    "type": "string"
+  }
+}
+```
+
+and the second import might look like:
+
+```yaml
+{
+  "name": "attr1",
+  "type": "string"
 }
 ```
 
