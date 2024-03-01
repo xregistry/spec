@@ -199,8 +199,8 @@ addition to the basic [attributes](../core/spec.md#attributes-and-extensions):
   own. All definitions inside a group MUST use this same format.
 - Constraints:
   - At least one of `metadata` and `binding` MUST be specified.
-  - if present, MUST be a non-empty string
-  - if present, MUST follow the naming convention `{NAME}/{VERSION}`, whereby `{NAME}` is
+  - If present, MUST be a non-empty string
+  - If present, MUST follow the naming convention `{NAME}/{VERSION}`, whereby `{NAME}` is
     the name of the metadata format and `{VERSION}` is the version of the
     metadata format.
 - Examples:
@@ -217,8 +217,8 @@ addition to the basic [attributes](../core/spec.md#attributes-and-extensions):
   this same binding.
 - Constraints:
   - At least one of `metadata` and `binding` MUST be specified.
-  - if present, MUST be a non-empty string
-  - if present, MUST follow the naming convention `{NAME}/{VERSION}`, whereby `{NAME}` is
+  - If present, MUST be a non-empty string
+  - If present, MUST follow the naming convention `{NAME}/{VERSION}`, whereby `{NAME}` is
     the name of the protocol and `{VERSION}` is the version of protocol.
 - Examples:
   - `MQTT/3.1.1`
