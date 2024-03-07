@@ -2315,9 +2315,9 @@ DELETE /GROUPs
 ```
 
 Where:
-- If the request body contains an array of Group IDs, then only those Groups
-  listed MUST be deleted. Note that an empty array results in nothing being
-  deleted
+- If the request body contains an array of zero or more Group IDs, then those
+  (and only those) listed MUST be deleted. Note that an empty array results in
+  nothing being deleted
 - If the request body is empty (no array), then all groups of this Group type
   MUST be deleted
 - If an `epoch` value is specified for a Group then the server MUST check
@@ -3274,9 +3274,9 @@ DELETE /GROUPs/gID/RESOURCEs
 ```
 
 Where:
-- If the request body contains an array of Resource IDs, then only those
-  Resource listed MUST be deleted. Note that an empty array results in nothing
-  being deleted
+- If the request body contains an array of zero or more Resource IDs, then
+  those (and only those) listed MUST be deleted. Note that an empty array
+  results in nothing being deleted
 - If the request body is empty (no array), then all Resources in the specified
   Group MUST be deleted
 - If an `epoch` value is specified for a Resource then the server MUST check
@@ -3707,7 +3707,7 @@ To delete a single Version of a Resource, an HTTP `DELETE` MAY be used.
 The request MUST be of the form:
 
 ```yaml
-DELETE /GROUPs/gID/RESOURCEs/rID/versions/vID[?epoch=UINTEGER][&latestversionid=vID]
+DELETE /GROUPs/gID/RESOURCEs/rID/versions/vID[?epoch=UINTEGER][&setlatestversionid=vID]
 ```
 
 Where:
@@ -3718,20 +3718,27 @@ The following query parameters MUST be supported by servers:
   The presence of this query parameter indicates that the server MUST check
   to ensure that the `epoch` value matches the Resource's current `epoch` value
   and if it differs then an error MUST be generated
+- `setlatestversionid`<br>
+  Upon successful completion of the request, when this query parameter is
+  specified then the Resource's "latest" Version MUST be changed to the Version
+  specified. If a Version with that ID does not exist then an error MUST be
+  generated. Note that this query parameter MAY be used even if the Version
+  being deleted is not the current "latest" Version
 
 If the server supports client-side selection of the latest Version of a
 Resource (see the [Registry Model](#registry-model)), then the following
 applies:
-- `latestversionid` query parameter MUST be supported and its value (`vID`) is
-  the `id` of Version which is the become the latest Version of the owning
+- `setlatestversionid` query parameter MUST be supported and its value (`vID`)
+  is the `id` of Version which is the become the latest Version of the owning
   Resource
-- `latestversionid` MAY be specified even if the Version being delete is not
+- `setlatestversionid` MAY be specified even if the Version being delete is not
   currently the latest Version
-- If `latestversionid` is present but its value does not match any Version
+- If `setlatestversionid` is present but its value does not match any Version
   (after the delete operation is completed) then an error MUST be generated
   and the entire delete MUST be rejected
-- If the latest Version of a Resource is being deleted but `latestversionid` was
-  not specified, then the server MUST choose the next latest version. See
+- If the latest Version of a Resource is being deleted but
+  `setlatestversionid` was not specified, then the server MUST choose the next
+  latest version. See
   [Latest Version of a Resource](#latest-version-of-a-resource) for more
   information
 
@@ -3750,7 +3757,7 @@ with an empty HTTP body, or:
 HTTP/1.1 200 OK
 ```
 
-if, as an extension, the server chooses to return additional data in the
+If, as an extension, the server chooses to return additional data in the
 HTTP body.
 
 **Examples:**
@@ -3781,9 +3788,9 @@ DELETE /GROUPs/gID/RESOURCEs/rID/versions[?setlatestversionid=vID]
 ```
 
 Where:
-- If the request body contains an array of Version IDs, then only those
-  Versions listed MUST be deleted. Note that an empty array results in nothing
-  being deleted
+- If the request body contains an array of zero or more Version IDs, then those
+  (and only those) listed MUST be deleted. Note that an empty array results in
+  nothing being deleted
 - If the request body is empty (no array), then all Versions of the specified
   Resource MUST be deleted
 - If an `epoch` value is specified for a Version then the server MUST check
@@ -3793,16 +3800,17 @@ Where:
 If the server supports client-side selection of the latest Version of a
 Resource (see the [Registry Model](#registry-model)), then the following
 applies:
-- `latestversionid` query parameter MUST be supported and its value (`vID`) is
-  the `id` of Version which is the become the latest Version of the owning
-  Resource
-- `latestversionid` MAY be specified even if the Version being delete is not
+- `setlatestversionid` query parameter MUST be supported and its value
+  (`vID`) is the `id` of Version which is the become the latest Version of the
+  owning Resource
+- `setlatestversionid` MAY be specified even if the Version being delete is not
   currently the latest Version
-- If `latestversionid` is present but its value does not match any Version
+- If `setlatestversionid` is present but its value does not match any Version
   (after the delete operation is completed) then an error MUST be generated
   and the entire delete MUST be rejected
-- If the latest Version of a Resource is being deleted but `latestversionid` was
-  not specified, then the server MUST choose the next latest version. See
+- If the latest Version of a Resource is being deleted but
+  `setlatestversionid` was not specified, then the server MUST choose the next
+  latest version. See
   [Latest Version of a Resource](#latest-version-of-a-resource) for more
   information
 
