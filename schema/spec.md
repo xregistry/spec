@@ -244,8 +244,8 @@ algorithm for generating new `id` values and for determining which is the
 latest Version. See [Version IDs](../core/spec.md#version-ids) for more
 information, but in summary it means:
 - `id`s are unsigned integers starting with `1`
-- they monotomically increase by `1` with each new Version
-- the latest is the Version with the lexically largest `id` value after all
+- They monotomically increase by `1` with each new Version
+- The latest is the Version with the lexically largest `id` value after all
   Version's `id`s have been left-padded with spaces to the same length
 
 When semantic versioning is used in a solution, it is RECOMMENDED to include a

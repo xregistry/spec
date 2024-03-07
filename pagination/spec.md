@@ -155,22 +155,22 @@ http://example.com/people?limit=100
 Each successful response from the server will adhere to the following:
 - MUST respond with an HTTP 200
 - MUST include zero or more records
-- if the response refers to the start of the set of records, then the `prev`
+- If the response refers to the start of the set of records, then the `prev`
   Link MUST NOT be included in the response
-- if the response does not include the start of the set of records, then the
+- If the response does not include the start of the set of records, then the
   `prev` Link MAY be included in the response
-- the response MAY include the `first` Link in any response
-- if  `limit` attribute was specified as part of the flow, the response MUST
+- The response MAY include the `first` Link in any response
+- If  `limit` attribute was specified as part of the flow, the response MUST
   NOT include more records than what the `limit` attribute has indicated
-- if the response refers to the end of the set of records, then the `next`
+- If the response refers to the end of the set of records, then the `next`
   Link MUST NOT be included in the response
-- if the response does not refer to the end of the set of records, then the
+- If the response does not refer to the end of the set of records, then the
   `next` Link MUST be included in the response
-- the response MAY include the `last` Link in any response
-- the response MAY include the `expires` attribute in any response as an
+- The response MAY include the `last` Link in any response
+- The response MAY include the `expires` attribute in any response as an
   HTTP "Expires" header. If present, it MUST adhere to the format specified in
   [RFC 3339](https://tools.ietf.org/html/rfc7234#section-5.3)
-- it is STRONG RECOMMENDED that all responses include the `count` attribute
+- It is STRONG RECOMMENDED that all responses include the `count` attribute
 
 Additionally, Links MUST appear in the HTTP response as HTTP headers using
 the format described in RFC5988.

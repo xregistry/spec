@@ -61,6 +61,7 @@ _PHRASES_THAT_MUST_BE_CAPITALIZED_PATTERN = re.compile(
 )
 _BANNED_PHRASES_PATTERN = re.compile(r"Cloud\s+Events?", flags=re.IGNORECASE)
 _LANGUAGES_DIR_PATTERN = re.compile(f"[/^]{_LANGUAGES_DIR_NAME}[/$]")
+_CAPITAL_DASH_PATTERN = re.compile(r"(^\s*)(-\s*[a-z])", flags=re.MULTILINE)
 
 
 def _is_text_all_uppercase(text: str) -> bool:
@@ -70,6 +71,10 @@ def _is_text_all_uppercase(text: str) -> bool:
 def _banned_phrase_issues(text: str) -> Iterable[Issue]:
     for match in _BANNED_PHRASES_PATTERN.finditer(text):
         yield _pattern_issue(match, text, f"{repr(match.group(0))} is banned")
+
+def _capital_dash_issues(text: str) -> Iterable[Issue]:
+    for match in _CAPITAL_DASH_PATTERN.finditer(text):
+        yield _pattern_issue(match, text, f"{repr(match.group(2))} should start with a capital letter after the dash")
 
 
 def _miscased_phrase_issues(text: str) -> Iterable[Issue]:
@@ -90,6 +95,7 @@ def _should_skip_plain_text_issues(text: str) -> bool:
 def _plain_text_issues(text: str) -> Iterable[Issue]:
     if not _should_skip_plain_text_issues(text):
         yield from _banned_phrase_issues(text)
+        yield from _capital_dash_issues(text)
         yield from _miscased_phrase_issues(text)
 
 

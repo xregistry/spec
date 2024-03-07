@@ -5,6 +5,7 @@ from typing import Optional
 import pytest
 from verify import (
     _BANNED_PHRASES_PATTERN,
+    _CAPITAL_DASH_PATTERN,
     _FAKE_DOCS_DIR,
     _MARKDOWN_BOOKMARK_PATTERN,
     _PHRASES_THAT_MUST_BE_CAPITALIZED_PATTERN,
@@ -36,6 +37,7 @@ def test_text_issues():
                 ShOULD        nOt
                 mAy
                 Optionally
+                - each
                 "required"
                 """
         )
@@ -47,6 +49,7 @@ def test_text_issues():
         "line 11: 'must' MUST be capitalized ('MUST')",
         "line 14: 'ShOULD        nOt' MUST be capitalized ('SHOULD        NOT')",
         "line 15: 'mAy' MUST be capitalized ('MAY')",
+        "line 17: '- e' should start with a capital letter after the dash",
     }
 
 

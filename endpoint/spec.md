@@ -271,7 +271,7 @@ The following attributes are defined for the `endpoint` type:
     where `SPEC` is the non-empty string name of the specification that
     defines the Resource. An OPTIONAL `VERSION` value SHOULD be included if
     there are multiple versions of the specification available
-  - for comparison purposes, this attribute MUST be considered case sensitive
+  - For comparison purposes, this attribute MUST be considered case sensitive
   - If a `VERSION` is specified at the Group level, all Resources within that
     Group MUST have a `VERSION` value that is at least as precise as its
     Group, and MUST NOT expand it. For example, if a Group had a
@@ -299,8 +299,8 @@ The following attributes are defined for the `endpoint` type:
   use this same binding
 - Constraints:
   - At least one of `format` and `binding` MUST be specified
-  - if present, MUST be a non-empty string
-  - if present, MUST follow the naming convention `{NAME}/{VERSION}`,
+  - If present, MUST be a non-empty string
+  - If present, MUST follow the naming convention `{NAME}/{VERSION}`,
     whereby `{NAME}` is the name of the protocol and `{VERSION}` is the
     version of protocol.
 - Examples:
@@ -332,20 +332,20 @@ The following attributes are defined for the `endpoint` type:
   string or excluded from the serialization entirely.
 - Constraints:
   - OPTIONAL
-  - if present, MUST be a string
+  - If present, MUST be a string
 - Examples:
   - `queue1`
 
 ### `deprecated`
 
 - Type: Object containing the following properties:
-  - effective<br>
+  - `effective`<br>
     An OPTIONAL property indicating the time when the Endpoint entered, or will
     enter, a deprecated state. The date MAY be in the past or future. If this
     property is not present the Endpoint is already in a deprecated state.
     If present, this MUST be an [RFC3339][rfc3339] timestamp.
 
-  - removal<br>
+  - `removal`<br>
     An OPTIONAL property indicating the time when the Endpoint MAY be removed.
     The Endpoint MUST NOT be removed before this time. If this property is not
     present then client can not make any assumption as to when the Endpoint
@@ -353,14 +353,14 @@ The following attributes are defined for the `endpoint` type:
     If present, this MUST be an [RFC3339][rfc3339] timestamp and MUST NOT be
     sooner than the `effective` time if present.
 
-  - alternative<br>
+  - `alternative`<br>
     An OPTIONAL property specifying the URL to an alternative Endpoint the
     client can consider as a replacement for this Endpoint. There is no
     guarantee that the referenced Endpoint is an exact replacement, rather the
     client is expected to investigate the Endpoint to determine if it is
     appropriate.
 
-  - docs<br>
+  - `docs`<br>
     An OPTIONAL property specifying the URL to additional information about
     the deprecation of the Endpoint. This specification does not mandate any
     particular format or information, however some possibilities include:
@@ -417,7 +417,7 @@ The following attributes are defined for the `endpoint` type:
   - "MQTT/3.1.1", "MQTT/5.0" - Use the MQTT [3.1.1][MQTT 3.1.1] or [5.0][MQTT
     5.0] protocol. The shorthand "MQTT" maps to "MQTT/5.0".
   - "NATS/1.0.0" - Use the [NATS][NATS] protocol. MAY be shortened to "NATS",
-  - which assumes usage of the latest NATS clients.
+  - Which assumes usage of the latest NATS clients.
   - "KAFKA/3.5" - Use the [Apache Kafka][Apache Kafka] protocol. MAY be
     shortened to "KAFKA", which assumes usage of the latest Apache Kafka
     clients.
