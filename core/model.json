@@ -1,0 +1,70 @@
+{
+  "schemas": [
+    "xregistry/0.5"
+  ],
+  "attributes": {
+    "specversion": {
+      "name": "specversion",
+      "type": "string",
+      "readonly": true,
+      "immutable": true,
+      "serverrequired": true
+    },
+    "id": {
+      "name": "id",
+      "type": "string",
+      "immutable": true,
+      "serverrequired": true
+    },
+    "name": {
+      "name": "name",
+      "type": "string"
+    },
+    "epoch": {
+      "name": "epoch",
+      "type": "uinteger",
+      "serverrequired": true
+    },
+    "self": {
+      "name": "self",
+      "type": "url",
+      "readonly": true,
+      "serverrequired": true
+    },
+    "description": {
+      "name": "description",
+      "type": "string"
+    },
+    "documentation": {
+      "name": "documentation",
+      "type": "url"
+    },
+    "labels": {
+      "name": "labels",
+      "type": "map",
+      "item": {
+        "type": "string"
+      }
+    },
+    "createdby": {
+      "name": "createdby",
+      "type": "string",
+      "readonly": true
+    },
+    "createdon": {
+      "name": "createdon",
+      "type": "timestamp",
+      "readonly": true
+    },
+    "modifiedby": {
+      "name": "modifiedby",
+      "type": "timestamp",
+      "readonly": true
+    },
+    "modifiedon": {
+      "name": "modifiedon",
+      "type": "timestamp",
+      "readonly": true
+    }
+  }
+}

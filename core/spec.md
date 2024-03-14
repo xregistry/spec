@@ -102,7 +102,8 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
         "description": "STRING", ?
         "enum": [ VALUE * ], ?          # Array of scalar values of type "TYPE"
         "strict": BOOLEAN, ?            # Just "enum" values or not.Default=true
-        "readonly": BOOLEAN, ?          # Client writable? Default: false
+        "readonly": BOOLEAN, ?          # From client's POV. Default: false
+        "immutable": BOOLEAN, ?         # Once set, can't change. Default=false
         "clientrequired": BOOLEAN, ?    # Default: false
         "serverrequired": BOOLEAN, ?    # Default: false
         "default": VALUE, ?             # Attribute's default value, scalars
@@ -132,11 +133,12 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
           "STRING": {                   # Key=plural name, e.g. "definitions"
             "plural": "STRING",         # e.g. "definitions"
             "singular": "STRING",       # e.g. "definition"
-            "versions": UINTEGER, ?     # Num Vers(>=0). Default=0, 0=unlimited
-            "versionid": BOOLEAN, ?     # Supports client specified Version IDs
-            "latest": BOOLEAN, ?        # Supports client "latest" selection
+            "maxversion": UINTEGER, ?   # Num Vers(>=0). Default=0, 0=unlimited
+            "setversionid": BOOLEAN, ?  # Supports client specified Version IDs
+            "setlatest": BOOLEAN, ?     # Supports client "latest" selection
             "hasdocument": BOOLEAN, ?   # Has a separate document. Default=true
-            "readonly": BOOLEAN, ?      # Client writable? Default=false
+            "readonly": BOOLEAN, ?      # From client's POV. Default=false
+            "immutable": BOOLEAN, ?     # Once set, can't change. Default=false
             "attributes": { ... }, ?    # See "attributes" above
           } *
         } ?
@@ -401,10 +403,11 @@ attributes. However they MUST adhere to the following rules:
 - They MUST NOT change, or extend, the semantics of the Registry - they MUST
   only be additional metadata to be persisted in the Registry since servers
   are mandated to persist all valid extensions
-- They MUST NOT use the name of an attribute defined by this specification,
-  regardless of which entity the attribute is defined for. In other words,
-  a specification defined attribute for GROUPs can not be reused as an
-  extension for RESOURCEs
+- They MUST NOT conflict the name of an attribute defined by this
+  specification, including the RESOURCE* and COLLECTION* attributes that are
+  implicitly defined. Note that if a Resource type has the `hasdocument`
+  attribute set the `false` then this rules does not apply for the RESOURCE*
+  attributes as those attributes are not used for that Resource type.
 - It is RECOMMENDED that extension attributes on different objects not use the
   same name unless they have the exact same semantic meaning
 - It is STRONGLY RECOMMENDED that they be named in such a way as to avoid
@@ -544,11 +547,11 @@ Then the existing entity can be deleted.
   - `xRegistry-labels-owner: John` <br>
     `xRegistry-labels-verified:`  when in HTTP headers
 
-Note: HTTP header values can be empty strings but some client-side tooling
-might make it challenging to produce them. For example, `curl` requires
-the header to be specified as `-HxRegistry-labels-verified;` - notice the
-semi-colon(`;`) is used instead of colon(`:`). So, this might be something
-to consider when choosing to use labels that can be empty strings.
+  Note: HTTP header values can be empty strings but some client-side tooling
+  might make it challenging to produce them. For example, `curl` requires
+  the header to be specified as `-HxRegistry-labels-verified;` - notice the
+  semi-colon(`;`) is used instead of colon(`:`). So, this might be something
+  to consider when choosing to use labels that can be empty strings.
 
 #### `origin`
 
@@ -801,7 +804,7 @@ The Registry entity includes the following common attributes:
 - [`documentation`](#documentation) - OPTIONAL
 - [`labels`](#labels) - OPTIONAL
 
-and the following Registry entity specific attributes:
+and the following Registry specific attributes:
 
 **`specversion`**
 - Type: String
@@ -921,7 +924,6 @@ Another example where:
 ```yaml
 GET /?model&inline=schemagroups
 
-```yaml
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
@@ -932,7 +934,7 @@ Content-Type: application/json; charset=utf-8
   "self": "https://example.com/",
 
   "model": {
-    "schemas": [ "jsonSchema/2020-12" ],
+    "schemas": [ "xRegistry-json", "jsonSchema/2020-12" ],
     "groups": {
       "endpoints": {
         "plural": "endpoints",
@@ -953,7 +955,7 @@ Content-Type: application/json; charset=utf-8
                 type: "any"
               }
             },
-            "versions": 1
+            "maxversions": 1
           }
         }
       },
@@ -965,7 +967,7 @@ Content-Type: application/json; charset=utf-8
           "schemas": {
             "plural": "schemas",
             "singular": "schema",
-            "versions": 1
+            "maxversions": 1
           }
         }
       }
@@ -1086,29 +1088,52 @@ Content-Type: application/json; charset=utf-8
 
 ### Registry Model
 
-The Registry model defines extension attributes, Groups and Resources supported
-by the implementation of the Registry Service. This information will usually
-be used by tooling that does not have advance knowledge of the type of data
-stored within the Registry.
+The Registry model defines the Groups, Resources, extension attributes and
+changes to specification defined core attributes. This information is
+intended to be used by tooling that does not have advance knowledge of the
+structure of the Registry and therefore will need to dynamically discovery it.
 
-When a new implementation is first created, or a new specification is based
-on the xRegistry specification, then it MAY choose to modify the core
-attributes to fit its needs. The changes allowed are restricted to the
-following:
-- OPTIONAL attributes MAY be defined as REQUIRED
-- The `description` of an attribute MAY be defined
-- `ifvalues` specifications MAY be defined
+To enable support for a wide range of use cases, but to also ensure
+interoperability across implementations, the following rules have been defined
+with respect to how models are defined:
+- Core attributes that are `serverrequired` MUST NOT have this aspect changed
+  to `false`
+- Core attributes that are `readonly` and `serverrequired` MUST NOT have the
+  `readonly` apsect changed to `false`
+- The `name` and `type` aspects of core attributes MUST NOT be changed
 
-To indicate a change to a core attribute, the attribute MUST be defined
-as part of the Registry model. Once a Registry instance is created, further
-changes to these core attribute MUST adhere to the rules defined in the
-[Updating the Registry Model](#updating-the-registry-model) section.
+To indicate a change to a core attribute, the attribute MUST be defined as part
+of the Registry model. Any core attributes that are not explicitly defined in
+the model of a Registry MUST be implicitly present and be as defined by this
+specification.  In other words, the Registry's model consists of the core
+attributes (as defined by this specification) overlaid with the core and
+extension attributes that are explicitly defined as part of its model.
 
-Any core attributes that are not defined in the model of an instance of a
-Registry MUST be implicitly defined. In other words, the Registry's model
-consists of the core attributes (as defined by this specification) overlaid
-with the core and extension attributes that are explicitly defined as part of
-its model.
+Note: there is no mechanism defined to delete core attributes from the model.
+
+TODO can an impl reject the use of core OPTIONAL attributes? e.g. description
+
+Once a Registry has been created, implementations MAY choose to limit the
+types of changes made to the model - for example, to ensure backwards
+compatibility of clients or to ensure existing entities remain consistent with
+the defined model.
+
+Implementations are REQUIRED to ensure that after any model changes are made
+all of the entities in the Registry are valid with respect to the new model
+definition (including all Versions of Resources). How this is achieved will
+be implementation specific. For example, implementations can choose to
+automatically modify existing entities, or to even delete non-conforming
+entities (such as when Groups or Resource types are removed). However, it is
+STRONGLY RECOMMENDED that implementations not delete entities due to attribute
+modifications.
+
+If a backwards incompatible change is needed, and the existing entities need
+to be preserved, then it is RECOMMENDED that a new Group or Resource be
+defined for future instances of those entities.
+
+The xRegistry schema for an empty Registry can be found [here](./model.json),
+while a schema for a sample xRegistry (with Groups and Resources) can be
+found [here](./sample-model.json).
 
 The Registry model can be retrieved two ways:
 
@@ -1116,7 +1141,7 @@ The Registry model can be retrieved two ways:
    model is needed independent of the entities within the Registry.
    See [Retrieving the Registry Model](#retrieving-the-registry-model) for
    more information
-2. as part of the Registry itself. This is useful when it is desirable to
+2. as part of the Registry contents. This is useful when it is desirable to
    view the entire Registry as a single document - such as an "export" type
    of scenario. See the [Retrieving the Registry](#retrieving-the-registry)
    section (the `model` query parameter) for more information on this option
@@ -1133,7 +1158,8 @@ Regardless of how the model is retrieved, the overall format is as follows:
       "description": "STRING",
       "enum": [ VALUE * ], ?           # Array of values of type "TYPE"
       "strict": BOOLEAN, ?             # Just "enum" values or not. Default=true
-      "readonly": BOOLEAN, ?           # Client writable? Default: false
+      "readonly": BOOLEAN, ?           # From client's POV. Default: false
+      "immutable": BOOLEAN, ?          # Once set, can't change. Default: false
       "clientrequired": BOOLEAN, ?     # Default: false
       "serverrequired": BOOLEAN, ?     # Default: false
       "default": VALUE, ?              # Attribute's default value, scalars
@@ -1149,7 +1175,7 @@ Regardless of how the model is retrieved, the overall format is as follows:
         "VALUE": {
           "siblingattributes": { ... } # Siblings to this "attribute"
         } *
-      }
+      } ?
     } *
   },
 
@@ -1163,11 +1189,12 @@ Regardless of how the model is retrieved, the overall format is as follows:
         "STRING": {                    # Key=plural name, e.g. "definitions"
           "plural": "STRING",          # e.g. "definitions"
           "singular": "STRING",        # e.g. "definition"
-          "versions": UINTEGER, ?      # Num Vers(>=0). Default=0, 0=unlimited
-          "versionid": BOOLEAN, ?      # Supports client specified Version IDs
-          "latest": BOOLEAN, ?         # Supports client "latest" selection
+          "maxversions": UINTEGER, ?   # Num Vers(>=0). Default=0, 0=unlimited
+          "setversionid": BOOLEAN, ?   # Supports client specified Version IDs
+          "setlatest": BOOLEAN, ?      # Supports client "latest" selection
           "hasdocument": BOOLEAN, ?    # Has a separate document. Default=true
-          "readonly": BOOLEAN, ?       # Client writable? Default=false
+          "readonly": BOOLEAN, ?       # From client's POV. Default=false
+          "immutable": BOOLEAN, ?      # Once set, can't change. Default=false
           "attributes": { ... } ?      # See "attributes" above
         } *
       } ?
@@ -1178,98 +1205,129 @@ Regardless of how the model is retrieved, the overall format is as follows:
 
 The following describes the attributes of Registry model:
 - `schemas`
-  - A list of schema formats that that Registry model can be returned. Each
+  - A list of schema formats in which the Registry model can be returned. Each
     value MUST be a schema document format name (e.g. `jsonSchema/2020-12`),
-    and SHOULD be of the form `NAME[/VERSION]`
+    and SHOULD be of the form `NAME[/VERSION]` case insensitive. All
+    implementations of this specification MUST support `xRegistry-json` (the
+    JSON serialization as defined by this specification), and SHOULD include
+    it in the list
   - Type: String
   - OPTIONAL
   - MUST be a read-only attribute in API view
+
 - `attributes`
   - The set of extension, or constrained specification-defined, attributes
     defined for the indicated level of the Registry
-  - Type: Map where each attribute's name is the key of the map
+  - Type: Map where each attribute's name MUST match the key of the map
   - OPTIONAL
+
 - `attributes."STRING"`
   - The name of the attribute being defined. See `attributes."STRING".name`
     for more information
   - Type: String
   - REQUIRED
+
 - `attributes."STRING".name`
   - The name of the attribute. MUST be the same as the key used in the owning
     `attributes` attribute. A value of `*` indicates support for undefined
     extension names. Absence of a `*` attribute indicates lack of support for
     undefined extensions and an error MUST be generated if one is present in
-    a request. Often `*` is used with a `type` of `any` to allow for not just
-    undefined extension names but also unknown extenion types. By default,
-    the model does not support undefined extensions. Note that undefined
-    extensions, if supported, MUST adhere to the same rules as [defined
-    extensions](#attributes-and-extensions). Note: an attribute of `*` MUST NOT
-    use the `ifvalues` feature, but a well-named attribute MAY define an
-    `ifvalues` attribute named `*` as long as there isn't already one defined
-    for this level in the entity
+    a request.
+
+    Often `*` is used with a `type` of `any` to allow for not just undefined
+    extension names but also unknown extenion types. By default, the model
+    does not support undefined extensions. Note that undefined extensions, if
+    supported, MUST adhere to the same rules as
+    [defined extensions](#attributes-and-extensions).
+
+    An attribute of `*` MUST NOT use the `ifvalues` feature, but a non-`*`
+    attribute MAY define an `ifvalues` attribute named `*` as long as there
+    isn't already one defined for this level in the entity
   - Type: String
   - REQUIRED
+
 - `attributes."STRING".type`
   - The "TYPE" of the attribute being defined. MUST be one of the data types
     (in lower case) defined in [Attributes and
     Extensions](#attributes-and-extensions)
   - Type: TYPE
   - REQUIRED
+
 - `attributes."STRING".description`
   - A human readable description of the attribute
   - Type: String
   - OPTIONAL
+
 - `attributes."STRING".enum`
   - A list of possible values for this attribute. Each item in the array MUST
     be of type defined by `type`. When not specified, or an empty array, there
     are no restrictions on the value set of this attribute. This MUST only be
-    used when the `type` is a scalar. See the `strict`
-    attribute below
+    used when the `type` is a scalar. See the `strict` attribute below
   - Type: Array
   - OPTIONAL
+
 - `attributes."STRING".strict`
   - Indicates whether the attribute restricts its values to just the array of
     values specified in `enum` or not. A value of `true` means that any
     values used that is not part of the `enum` set MUST generate an error.
-    When not specified the default value is `true`. This attribute has no
-    impact when `enum` is absent or an empty array.
+    This attribute has no impact when `enum` is absent or an empty array
   - When not specified, the default value is `true`
   - Type: Boolean
   - OPTIONAL
+
 - `attributes."STRING".readonly`
-  - Indicates whether this attribute is a modifiable by a client. During
-    creation, or update, of an entity, if this attribute is specified then
-    its value MUST be ignored by the server even if the value is invalid.
-    When not specified the default value is `false. When the attribute name is
+  - Indicates whether this attribute is modifiable by a client.  During
+    creation, or update, of an entity if this attribute is specified then
+    its value SHOULD be ignored by the server even if the value is invalid.
+
+    Typically, attributes that are completely under the server's control
+    will be `readonly` - e.g. `self`.
+
+    When not specified the default value is `false`. When the attribute name is
     `*` then `readonly` MUST NOT be set to `true`. Note, both `clientrequired`
     and `readonly` MUST NOT be set to `true` at the same time
   - Type: Boolean
   - OPTIONAL
+
+- `attributes."STRING".immutable`
+  - Indicates whether this attribute's value can be changed once it is set.
+    Whether or not a client is allowed to set its initial value will be
+    controlled by the `readonly` attribute. The `id` attribute is an example
+    of an attribute that, once set, can not be changed.
+
+    Once set, any attempt to update the value MUST be silently ignored by
+    the server.
+
+    When not specified, the default value is `false. When the attribute name is
+    `*` then `immutable` MUST NOT be set to `true`. Note, both `clientrequired`
+    and `immutable` MUST NOT be set to `true` at the same time
+  - Type: Boolean
+  - OPTIONAL
+
 - `attributes."STRING".clientrequired`
   - Indicates whether this attribute is a REQUIRED field for a client when
-    creating or update an entity. During
-    creation, or update, of an entity, if this attribute is not specified
-    then an error MUST be generated. When not specified the default value is
-    `false`. When the attribute name is `*` then `clientrequired` MUST NOT be
-    set to `true`.
+    creating or update an entity. During creation, or update, of an entity if
+    this attribute is not specified then an error MUST be generated. When not
+    specified the default value is `false`. When the attribute name is `*`
+    then `clientrequired` MUST NOT be set to `true`.
   - Type: Boolean
   - OPTIONAL
+
 - `attributes."STRING".serverrequired`
   - Indicates whether this attribute is a REQUIRED field for a server when
-    serializing an entity. When not specified the default value is
-    `false`. When the attribute name is `*` then `serverrequired` MUST NOT be
-    set to `true`. When `clientrequired` is `true` then `serverrequired` MUST
-    also be `true`.
+    serializing an entity. When not specified the default value is `false`.
+    When the attribute name is `*` then `serverrequired` MUST NOT be set to
+    `true`. When `clientrequired` is `true` then `serverrequired` MUST also be
+    `true`.
   - Type: Boolean
   - OPTIONAL
+
 - `attributes."STRING".default`
   - This value MUST be used to populate this attribute's value if one was
-    not provided by a client. If a default value is defined then the
-    `serverrequired` MUST be set to `true`
-  - A attribute with a default value does not mean that its owning Object
-    is mandated to be present, rather the attribute would only appear when
-    the owning Object is present
-  - By default, attributes have no default values
+    not provided by a client. An attribute with a default value does not mean
+    that its owning Object is mandated to be present, rather the attribute
+    would only appear when the owning Object is present. By default,
+    attributes have no default values
   - Type: MUST be the same type as the `type` of this attribute and MUST
     only be used for scalar types
   - OPTIONAL
@@ -1278,21 +1336,25 @@ The following describes the attributes of Registry model:
   - This contains the list of attributes defined as part of a nested resource
   - Type: Object, see `attributes` above
   - MAY be present when the owning attribute's `type` is `object`, otherwise it
-    MUST NOT be present. It MAY be absent or an empty list if there are not
+    MUST NOT be present. It MAY be absent or an empty list if there are no
     defined attributes for the nested `object`
+
 - `attributes."STRING".item`
-  - Defines the nested resources that this attribute references.
-    This attribute MUST only be used when the owning attribute's `type` value
-    is `map` or `array`
+  - Defines the nested resources that this attribute references.  This
+    attribute MUST only be used when the owning attribute's `type` value is
+    `map` or `array`
   - Type: Object
   - REQUIRED when owning attribute's `type` is `map` or `array`
+
 - `attributes."STRING".item.type`
   - The "TYPE" of this nested resource.
   - Type: TYPE
   - REQUIRED
+
 - `attributes."STRING".item.attributes`
   - See `attributes` above
   - REQUIRED when `item.type` is `object`
+
 - `attributes."STRING".item.item`
   - See `attributes."STRING".item` above.
   - REQUIRED when `item.type` is `map` or `array`
@@ -1303,108 +1365,126 @@ The following describes the attributes of Registry model:
     If the string serialization of the runtime value of this attribute matches
     the `ifvalues` `"VALUE"` (case sensitive) then the `siblingattributes` MUST
     be included in the model as siblings to this attribute.
-  - If `enum` is not empty and `strict` is `true` then this map MUST NOT
+
+    If `enum` is not empty and `strict` is `true` then this map MUST NOT
     contain any value that is not specified in the `enum` array
-  - All attributes defined for this `ifvalues` MUST be unique within the scope
+
+    All attributes defined for this `ifvalues` MUST be unique within the scope
     of this `ifvalues` and MUST NOT match a named attributed defined at this
     level of the entity. If mulitple `ifvalues` sections, at the same entity
     level, are active at the same time then there MUST NOT be duplicate
     `ifvalues` attributes names between those `ifvalues` sections
   - `ifvalues` `"VALUE"` MUST NOT be an empty string
   - `ifvalues` siblingattributes MUST NOT include additional `ifvalues`
-    definitions.
+    definitions
   - Type: Map where each value of the attribute is the key of the map
   - OPTIONAL
 
 - `groups`
-  - The set of Groups supported by the Registry
-  - Type: Map where the key MUST be the plural name of the Group
-  - REQUIRED if there are any Groups defined for the Registry
+  - The set of Groups types supported by the Registry
+  - Type: Map where the key MUST be the plural name (`groups.plural`) of the
+    Group type (`GROUPs`)
+  - REQUIRED if there are any Group types defined for the Registry
+
 - `groups.singular`
-  - The singular name of a Group. e.g. `endpoint`
+  - The singular name of a Group type e.g. `endpoint` (`GROUP`)
   - Type: String
   - REQUIRED
-  - MUST be unique across all Groups in the Registry
+  - MUST be unique across all Group types in the Registry
   - MUST be non-empty and MUST be a valid attribute name with the exception
     that it MUST NOT exceed 58 characters (not 63)
+
 - `groups.plural`
-  - The plural name of a Group. e.g. `endpoints`
+  - The plural name of the Group type e.g. `endpoints` (`GROUP`)
   - Type: String
   - REQUIRED
-  - MUST be unique across all Groups in the Registry
+  - MUST be unique across all Group types in the Registry
   - MUST be non-empty and MUST be a valid attribute name with the exception
     that it MUST NOT exceed 58 characters (not 63)
+
 - `groups.attributes`
   - See `attributes` above
 
 - `groups.resources`
-  - The set of Resource entities defined for the Group
-  - Type: Map where the key MUST be the plural name of the Resource
-  - REQUIRED if there are any Resources defined for the Group
+  - The set of Resource types defined for the Group type
+  - Type: Map where the key MUST be the plural name (`groups.resources.plural`)
+    of the Resource type (`RESOURCEs`)
+  - REQUIRED if there are any Resource types defined for the Group type
+
 - `groups.resources.singular`
-  - The singular name of the Resource. e.g. `definition`
+  - The singular name of the Resource type e.g. `definition` (`RESOURCE`)
   - Type: String
   - REQUIRED
   - MUST be non-empty and MUST be a valid attribute name with the exception
     that it MUST NOT exceed 58 characters (not 63)
-  - MUST be unique within the scope of its owning Group
+  - MUST be unique within the scope of its owning Group type
+
 - `groups.resources.plural`
-  - The plural name of the Resource. e.g. `definitions`
+  - The plural name of the Resource type e.g. `definitions` (`RESOURCEs`)
   - Type: String
   - REQUIRED
   - MUST be non-empty and MUST be a valid attribute name with the exception
     that it MUST NOT exceed 58 characters (not 63)
-  - MUST be unique within the scope of its owning Group
-- `groups.resources.versions`
-  - Number of Versions per Resource that will be stored in the Registry
+  - MUST be unique within the scope of its owning Group type
+
+- `groups.resources.maxversions`
+  - Number of Versions that will be stored in the Registry for this Resource
+    type
   - Type: Unsigned Integer
   - OPTIONAL
   - The default value is zero (`0`)
   - A value of zero (`0`) indicates there is no stated limit, and
-    implementations MAY prune non-latest Versions at any time. Implementations
-    MUST prune Versions by deleting the oldest Version (based on creation
-    times) first
-- `groups.resources.versionid`
-  - Indicates whether support for client-side selection of a Version's `id` is
+    implementations MAY prune non-latest Versions at any time. When the limit
+    is exceeded, implementations MUST prune Versions by deleting the oldest
+    Version (based on creation times) first, skipping the Version marked as
+    "latest". An exception to this pruning rule is that if `versions` value is
+    one (`1`) then the newest Version of the Resource MUST always be the
+    "latest"
+
+- `groups.resources.setversionid`
+  - Indicates whether support for client-side setting of a Version's `id` is
     supported
   - Type: Boolean (`true` or `false`, case sensitive)
   - OPTIONAL
   - The default value is `true`
   - A value of `true` indicates the client MAY specify the `id` of a Version
     during its creation process
-- `groups.resources.latest`
+
+- `groups.resources.setlatest`
   - Indicates whether support for client-side selection of the "latest"
-    Version of a Resource is supported
+    Version is supported for Resources of this type
   - Type: Boolean (`true` or `false`, case sensitive)
   - OPTIONAL
   - The default value is `true`
   - A value of `true` indicates a client MAY select the latest Version of
     a Resource via one of the methods described in this specification rather
-    than the choice only being server selected
+    than the server always choosing the latest Version
+
 - `groups.resources.hasdocument`
-  - Indicates whether or not this Resource can have a document associated with
-    it. If `false` then the xRegistry metadata becomes the "document". Meaning,
-    an HTTP `GET` to the Resource's URL or its `?meta` URL will both return
-    the same information (the xRegistry metadata) in the HTTP body. An HTTP
-    `GET` to the Resource without a `?meta` query parameter in the request
-    MUST NOT include the `xRegistry-` HTTP headers.
+  - Indicates whether or not Resource of this type can have a document
+    associated with it. If `false` then the xRegistry metadata becomes "the
+    document". Meaning, an HTTP `GET` to the Resource's URL will return the
+    xRegistry metadata in the HTTP body. The `xRegistry-` HTTP headers MUST
+    NOT be used for requests or response messages for these Resources
 
     A value of `true` does not mean that these Resources are
     guaranteed to have a non-empty document, and an HTTP `GET` to the Resource
     MAY return an empty HTTP body.
   - Type: Boolean (`true` or `false`, case sensitive)
   - OPTIONAL
-  - The default value if `true`
-  - A value of `true` indicates that the Resource supports a separate document
-    to be associated with the Resource.
+  - The default value is `true`
+  - A value of `true` indicates that Resource of this type supports a separate
+    document to be associated with it
+
 - `groups.resources.readonly`
-  - Indicates if this Resource is updateable by a client. A value of `true`
-    means that the server support write operation on this Resource. A value
-    of `false` means that all `PUT`, `POST` and `DELETE` operations MUST
-    generate an error.
+  - Indicates if Resources of this type are updateable by a client. A value of
+    `false` means that the server MUST support write operations on to Resources
+    of this type.  A value of `true` means that all `PUT`, `POST` and
+    `DELETE` operations on Resources of this type MUST generate an error.
   - Type: Boolean (`true` or `false`, case sensitive)
   - OPTIONAL
   - The default value is `false`
+
 - `groups.resources.attributes`
   - See `attributes` above
   - Note that Resources themselves don't actually have extensions, rather
@@ -1416,220 +1496,60 @@ The following describes the attributes of Registry model:
 To retrieve the Registry Model as a stand-alone entity, an HTTP `GET` MAY be
 used.
 
+Registries MAY support exposing the model in a variety of well-defined schema
+formats. The `model.schemas` attribute (discussed above) SHOULD expose the set
+of schema formats available.
+
+The resulting schema document MUST include the full Registry model - meaning
+all specification defined attributes, extension attributes, Group types and
+Resource types.
+
+For brevity sake, this document doesn't include the full definition of the
+specification defined attributes as part of the snippets of output. However,
+the full model definition of the Registry-level attributes can be found
+in [model.json](model.json), and the Group and Resource-level attributes
+can be found in [sample-model.json](sample-model.json).
+
 The request MUST be of the form:
 
 ```yaml
-GET /model
+GET /model[?schema=STRING]
 ```
+
+Where:
+- If specified, the `schema` query parameter SHOULD be one of the valid
+  `model.schema` values (case insensitive). Note that an implementation MAY
+  choose to support a value that is not specified within the `model.schema`
+  attribute. If not specified, the default value MUST be `xRegistry-json`
+
+Implementations of this specification MUST support `xRegistry-json`.
 
 A successful response MUST be of the form:
 
 ```yaml
 HTTP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
+Content-Type: ...
 
-{
-  "attributes": {
-    "STRING": {
-      "name": "STRING",
-      "type": "TYPE",
-      "description": "STRING", ?
-      "enum": [ VALUE * ], ?
-      "strict": BOOLEAN, ?
-      "readonly": BOOLEAN, ?
-      "clientrequired": BOOLEAN, ?
-      "serverrequired": BOOLEAN, ?
-      "default": VALUE, ?
-
-      "attributes": { ... }, ?               # For nested object
-      "item": { ... }, ?                     # For nested map, array
-
-      "ifvalues": {
-        "VALUE": {
-          "siblingattributes": { ... }
-        } *
-      } ?
-    } *
-  },
-
-  "groups": {
-    "STRING": {
-      "plural": "STRING",
-      "singular": "STRING",
-      "attributes": { ... }, ?               # See "attributes" above
-
-      "resources": {
-        "STRING": {
-          "plural": "STRING",
-          "singular": "STRING",
-          "versions": UINTEGER, ?
-          "versionid": BOOLEAN, ?
-          "latest": BOOLEAN, ?
-          "hasdocument": BOOLEAN, ?
-          "readonly": BOOLEAN, ?
-          "attributes": { ... } ?            # See "attributes" above
-        } *
-      } ?
-    } *
-  } ?
-}
-```
-
-**Examples:**
-
-Retrieve a Registry model that has one extension attribute on the
-`endpoints` Group, and supports returning the schema of the Registry
-as JSON Schema:
-
-```yaml
-GET /model
-```
-
-```yaml
-HTTP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
-
-{
-  "schemas": [ "jsonSchema/2020-12" ],
-  "groups": {
-    "endpoints": {
-      "plural": "endpoints",
-      "singular": "endpoint",
-      "attributes": {
-        "shared": {
-          "name": "shared",
-          "type": "boolean"
-        }
-      },
-
-      "resources": {
-        "definitions": {
-          "plural": "definitions",
-          "singular": "definition",
-          "attributes": {
-            "*": {
-              type: "any"
-            }
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-#### Updating the Registry Model
-
-Changing the schema of the entities defined by the Registry model are limited
-to backwards compatible changes to ensure existing data within the Registry
-remains valid. The exception to this is that it is permissible to delete
-entire Group or Resource definitions - which results in the deletion of all
-instances of those types.
-
-Below describes the constraints on changing of the model:
-- Groups and Resource definitions MAY be deleted, and MUST result in the
-  deletion of all instances of those types
-- New Group and Resource definitions MAY be created
-- New non-`ifvalues` attributes MAY be added to existing types but MUST NOT be
-  marked as REQUIRED
-- The `name` and `type` fields of an attribute MUST NOT be modified
-- The `description` fields MAY be modified
-- The `enum` field MAY have new values added only if the `strict` field is
-  `false`. Individual `enum` values MUST NOT be removed, however, an `enum`
-  field MAY have all of its values removed but then `strict` MUST also be
-  modified to `false`
-- The `strict`, `clientrequired` and `serverrequired` fields MAY be modified
-  from `true` to `false`, but MUST NOT be modified from `false` to `true`
-- New `ifvalues` definitions MAY be added and they MAY include REQUIRED
-  attributes. However, if there are any existing entities that would be
-  non-compliant as a result of a new REQUIRED attribute then the request to
-  update the model MUST fail
-  - All fields within the `ifvalues` MUST adhere to the rules above concerning
-    non-`ifvalues` fields
-  - `ifvalues` MUST NOT be deleted
-- All of the model changes that are not allowed above are due to the potential
-  of invalidating existing entities. Therefore, if there are no instances of
-  of the Group or Resource that is being modified, then any change to the model
-  MAY be done. Note that this does not apply to the case of modifying the
-  top-level Registry attributes.
-
-To update the Registry model, an HTTP `PUT` MAY be used.
-
-The request MUST be of the form:
-
-```yaml
-PUT /model
-Content-Type: application/json; charset=utf-8
-
-{
-  "attributes": {
-    "STRING": {
-      "name": "STRING",
-      "type": "TYPE",
-      "description": "STRING", ?
-      "enum": [ VALUE * ], ?
-      "strict": BOOLEAN, ?
-      "readonly": BOOLEAN, ?
-      "clientrequired": BOOLEAN, ?
-      "serverrequired": BOOLEAN, ?
-      "default": VALUE, ?
-
-      "attributes": { ... }, ?               # For nested object
-      "item": { ... }, ?                     # For nested map, array
-
-      "ifvalues": {
-        "VALUE": {
-          "siblingattributes": { ... }
-        } *
-      } ?
-    } *
-  },
-
-  "groups": {
-    "STRING": {
-      "plural": "STRING",
-      "singular": "STRING",
-      "attributes": { ... }, ?                    # See "attributes" above
-
-      "resources": {
-        "STRING": {
-          "plural": "STRING",
-          "singular": "STRING",
-          "versions": UINTEGER, ?
-          "versionid": BOOLEAN, ?
-          "latest": BOOLEAN, ?
-          "hasdocument": BOOLEAN, ?
-          "readonly": BOOLEAN, ?
-          "attributes": { ... } ?                 # See "attributes" above
-        } *
-      } ?
-    } *
-  } ?
-}
+... # xRegistry model in a schema specific format
 ```
 
 Where:
-- The HTTP body MUST contain the full representation of the Registry model's
-  mutable attributes
-- Attributes not present in the request, or present with a value of `null`,
-  MUST be interpreted as a request to delete the attribute
+- The HTTP body MUST be a schema representation of the Registry model
+  in the format requested by the `schema` query parameter
+- If a `VERSION` is not specified as part of the `schema` query parameter then
+  the server MAY choose any schema version of the specified schema format.
+  However, it is RECOMMENDED that the newest supported version be used
 
-Any changes to the model (including deletion of Groups, Resources or
-attributes) MUST change the underlying datastore of the implementation to
-match the request. This includes all Verisons of all Resources. If a backwards
-incompatible change is needed, and the existing entities need to be preserved,
-then it is RECOMMENDED that a new Group or Resource be defined for future
-instances of those entities.
+If the specified schema format is not supported then an HTTP `400 Bad Request`
+error MUST be generated.
 
-A successful response MUST include a full representation of the Registry model
-and be of the form:
+When the `schema` is `xRegistry-json` then the response MUST be of the form:
 
 ```yaml
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "schemas": [ "STRING" * ], ?
   "attributes": {
     "STRING": {
       "name": "STRING",
@@ -1638,6 +1558,7 @@ Content-Type: application/json; charset=utf-8
       "enum": [ VALUE * ], ?
       "strict": BOOLEAN, ?
       "readonly": BOOLEAN, ?
+      "immutable": BOOLEAN, ?
       "clientrequired": BOOLEAN, ?
       "serverrequired": BOOLEAN, ?
       "default": VALUE, ?
@@ -1663,11 +1584,220 @@ Content-Type: application/json; charset=utf-8
         "STRING": {
           "plural": "STRING",
           "singular": "STRING",
-          "versions": UINTEGER, ?
-          "versionid": BOOLEAN, ?
-          "latest": BOOLEAN, ?
+          "maxversions": UINTEGER, ?
+          "setversionid": BOOLEAN, ?
+          "setlatest": BOOLEAN, ?
           "hasdocument": BOOLEAN, ?
           "readonly": BOOLEAN, ?
+          "immutable": BOOLEAN, ?
+          "attributes": { ... } ?
+        } *
+      } ?
+    } *
+  } ?
+}
+```
+
+**Examples:**
+
+Retrieve a Registry model that has one extension attribute on the
+`endpoints` Group, and supports returning the schema of the Registry
+as JSON Schema:
+
+```yaml
+GET /model
+```
+
+```yaml
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{
+  "schemas": [ "xRegistry-json", "jsonSchema/2020-12" ],
+  "attributes": {
+    ... xRegistry core attributes excluded for brevity ...
+  },
+  "groups": {
+    "endpoints": {
+      "plural": "endpoints",
+      "singular": "endpoint",
+      "attributes": {
+        ... xRegistry core attributes excluded for brevity ...
+        "shared": {
+          "name": "shared",
+          "type": "boolean"
+        }
+      },
+
+      "resources": {
+        "definitions": {
+          "plural": "definitions",
+          "singular": "definition",
+          "attributes": {
+            ... xRegistry core attributes excluded for brevity ...
+            "*": {
+              type: "any"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+#### Updating the Registry Model
+
+<-- TODO delete -->
+Changing the schema of the entities defined by the Registry model are limited
+to backwards compatible changes to ensure existing data within the Registry
+remains valid. The exception to this is that it is permissible to delete
+entire Group or Resource definitions - which results in the deletion of all
+instances of those types.
+
+Below describes the constraints on changing of the model:
+- Groups and Resource definitions MAY be deleted, and MUST result in the
+  deletion of all instances of those types
+- New Group and Resource definitions MAY be created
+- New non-`ifvalues` attributes MAY be added to existing types but MUST NOT be
+  marked as `clientrequired`
+- The `name` and `type` fields of an attribute MUST NOT be modified
+- The `description` fields MAY be modified
+- The `enum` field MAY have new values added only if the `strict` field is
+  `false`. Individual `enum` values MUST NOT be removed, however, an `enum`
+  field MAY have all of its values removed but then `strict` MUST also be
+  modified to `false`
+- The `strict`, `clientrequired` and `serverrequired` fields MAY be modified
+  from `true` to `false`, but MUST NOT be modified from `false` to `true`
+- New `ifvalues` definitions MAY be added and they MAY include REQUIRED
+  attributes. However, if there are any existing entities that would be
+  non-compliant as a result of a new REQUIRED attribute then the request to
+  update the model MUST fail
+  - All fields within the `ifvalues` MUST adhere to the rules above concerning
+    non-`ifvalues` fields
+  - `ifvalues` MUST NOT be deleted
+- All of the model changes that are not allowed above are due to the potential
+  of invalidating existing entities. Therefore, if there are no instances of
+  of the Group or Resource that is being modified, then any change to the model
+  MAY be done. Note that this does not apply to the case of modifying the
+  top-level Registry attributes.
+
+<-- end of TODO -->
+
+To update the Registry model, an HTTP `PUT` MAY be used.
+
+The request MUST be of the form:
+
+```yaml
+PUT /model
+Content-Type: application/json; charset=utf-8
+
+{
+  "attributes": {
+    "STRING": {
+      "name": "STRING",
+      "type": "TYPE",
+      "description": "STRING", ?
+      "enum": [ VALUE * ], ?
+      "strict": BOOLEAN, ?
+      "readonly": BOOLEAN, ?
+      "immutable": BOOLEAN, ?
+      "clientrequired": BOOLEAN, ?
+      "serverrequired": BOOLEAN, ?
+      "default": VALUE, ?
+
+      "attributes": { ... }, ?               # For nested object
+      "item": { ... }, ?                     # For nested map, array
+
+      "ifvalues": {
+        "VALUE": {
+          "siblingattributes": { ... }
+        } *
+      } ?
+    } *
+  },
+
+  "groups": {
+    "STRING": {
+      "plural": "STRING",
+      "singular": "STRING",
+      "attributes": { ... }, ?                    # See "attributes" above
+
+      "resources": {
+        "STRING": {
+          "plural": "STRING",
+          "singular": "STRING",
+          "maxversions": UINTEGER, ?
+          "maxversionid": BOOLEAN, ?
+          "maxlatest": BOOLEAN, ?
+          "hasdocument": BOOLEAN, ?
+          "readonly": BOOLEAN, ?
+          "immutable": BOOLEAN, ?
+          "attributes": { ... } ?                 # See "attributes" above
+        } *
+      } ?
+    } *
+  } ?
+}
+```
+
+Where:
+- The HTTP body MUST contain all of the attributes, Groups and Resources that
+  the client wishes to define
+- Attributes not present in the request, or present with a value of `null`,
+  MUST be interpreted as a request to delete the attribute, and if the
+  attribute is a specification defined attribute then it MUST be added back
+  with its default definition
+
+A successful response MUST include a full representation of the Registry model
+and be of the form:
+
+```yaml
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{
+  "schemas": [ "STRING" * ], ?
+  "attributes": {
+    "STRING": {
+      "name": "STRING",
+      "type": "TYPE",
+      "description": "STRING", ?
+      "enum": [ VALUE * ], ?
+      "strict": BOOLEAN, ?
+      "readonly": BOOLEAN, ?
+      "immutable": BOOLEAN, ?
+      "clientrequired": BOOLEAN, ?
+      "serverrequired": BOOLEAN, ?
+      "default": VALUE, ?
+
+      "attributes": { ... }, ?
+      "item": { ... }, ?
+
+      "ifvalues": {
+        "VALUE": {
+          "siblingattributes": { ... }
+        } *
+      } ?
+    } *
+  },
+
+  "groups": {
+    "STRING": {
+      "plural": "STRING",
+      "singular": "STRING",
+      "attributes": { ... }, ?
+
+      "resources": {
+        "STRING": {
+          "plural": "STRING",
+          "singular": "STRING",
+          "maxversions": UINTEGER, ?
+          "setversionid": BOOLEAN, ?
+          "setlatest": BOOLEAN, ?
+          "hasdocument": BOOLEAN, ?
+          "readonly": BOOLEAN, ?
+          "immutable": BOOLEAN, ?
           "attributes": { ... } ?
         } *
       } ?
@@ -1728,12 +1858,16 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "schemas": [ "jsonSchema/2020-12" ],
+  "schemas": [ "xRegistry-json", "jsonSchema/2020-12" ],
+  "attributes": {
+    ... xRegistry core attributes excluded for brevity ...
+  },
   "groups": {
     "endpoints" {
       "plural": "endpoints",
       "singular": "endpoint",
       "attributes": {
+        ... xRegistry core attributes excluded for brevity ...
         "shared": {
           "name": "shared",
           "type": "boolean"
@@ -1744,12 +1878,13 @@ Content-Type: application/json; charset=utf-8
         "definitions": {
           "plural": "definitions",
           "singular": "definition",
+          ... xRegistry core attributes excluded for brevity ...
           "attributes": {
             "*": {
               type: "any"
             }
           }
-          "versions": 1
+          "maxversions": 1
         }
       }
     },
@@ -1870,46 +2005,6 @@ and the second import might look like:
   "type": "string"
 }
 ```
-
-#### Retrieving the Registry Schema
-
-Registries MAY support exposing their model using a well-defined schema
-document format. The `model.schemas` attribute (discussed above) SHOULD expose
-the set of schema formats available. To retrieve the model in one of those
-formats the following API MAY be used:
-
-The resulting schema document MUST include the full Registry model - meaning
-both specification defined attributes as well as extension attributes.
-
-The request MUST be of the form:
-
-```yaml
-GET /model?schema=STRING
-```
-
-Where:
-- `STRING` is one of the valid `model.schema` values. Note that an
-  implementation MAY choose to support a value that is not specified
-  within the `model.schema` attribute
-
-A successful response MUST be of the form:
-
-```yaml
-HTTP/1.1 200 OK
-Content-Type: ...
-
-...                          # Schema specific format
-```
-
-Where:
-- The HTTP body MUST be a schema representation of the Registry model
-  in the format requested by the `schema` query parameter
-- If a `VERSION` is not specified as part of the `schema` query parameter then
-  the server MAY choose any schema version of the specified schema format.
-  However, it is RECOMMENDED that the newest supported version be used
-
-If the specified schema format is not supported then an HTTP `400 Bad Request`
-error MUST be generated.
 
 ---
 
@@ -2325,6 +2420,8 @@ Where:
   differs then an error MUST be generated
 
 Any error MUST result in the entire request being rejected.
+
+Deleting a Group MUST delete all Resources and Versions within the Group.
 
 If one of the referenced Groups can not be found then the server MUST
 silently ignore this condition and not treat it as an error.
@@ -3230,6 +3327,8 @@ The following query parameters MUST be supported by servers:
   to ensure that the `epoch` value matches the Resource's latest Version's
   `epoch` value and if it differs then an error MUST be generated
 
+Deleting a Resource MUST delete all Versions within the Resource.
+
 A successful response MUST return either:
 
 ```yaml
@@ -3768,7 +3867,7 @@ Delete a single Version of a `definition` Resource:
 DELETE /endpoints/123/definitions/456/versions/1.0
 ```
 
-http
+```yaml
 HTTP/1.1 204 No Content
 ```
 

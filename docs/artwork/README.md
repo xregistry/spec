@@ -1,3 +1,0 @@
-# xRegistry logos
-
-TBD

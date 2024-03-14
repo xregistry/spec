@@ -118,3 +118,37 @@ points wother noting:
   been deleted scucessfully. It can be used even if the current "latest"
   Version isn't being deleted.  Note that a `404` in the `DELETE .../ID` case
   is an error and no changes to the "latest" Version will occur.
+
+# Latest Version and Maximum Versions
+
+Each Resource type can specific the maximum number of Versions that the
+server must save. Once that limit is reached then it must delete Verisons
+to stay within the limit - by deleting oldest Versions first. However, since
+tagging a Version as "latest" marks that Version as special, this pruning
+logic must skip the "latest" Version. There is one exception to this rule.
+If the maximum Versions is set to 1 then when a new Version is created, that
+Verison will become the "latest" Version regardless of whether or not the
+user asked for it to be.
+
+In general, during an operation that creates, updates or deletes the Versions
+of a Resource, the following logic is applied:
+- Modify the Versions collection as requested
+- Apply the "latest" processing logic by setting (or not) which Version is the
+  "latest"
+- If the number of Versions exceeds the maximum allowed Verisons then, starting
+  with the oldest, keep deleting until the collection is within the limit.
+  Except if the limit is 1, in which case if a new Version is created then it
+  it tagged as "latest"
+
+Let's walk through a complex example:
+- Max allowed Versions is 2
+- Initially the following Versions exist: v4, v2 (latest)
+- Max lloaed Versions is now set to 0
+- New Versions are created in this order: v5 (latest=true), v6, v7
+- The resulting Versions are (newest to oldest): v7, v6, v5 (latest), v4, v2
+- The maximum allowed Version is now set to 1, this will cause pruning
+- The result is: v5. Note that it is not v7 because v5 was tagged as "latest"
+- A new Version (v8) is created
+- The result is: v8 regardless of whether v8 was created with latest=true or
+  not
+
