@@ -2,7 +2,7 @@
 
 <!-- no verify-specs -->
 
-## Design decisions
+## Design decisions or topics of interest
 
 ### Resource.ID vs Resource.Version.ID
 
@@ -91,3 +91,30 @@ variable or structure property names - they're usually just stored as
   - reminder: clientrequired=true means serverrequired=true as well, else error
 - how MIGHT someone implement mutli-tenancy with xRegistry
   - and layers of xRegistries to get multi-level grouping ??
+
+### Deleting entities
+
+The "delete" operation typically has two variants:
+- DELETE .../ID[?setlatestversionid=vID]
+- DELETE .../COLLECTION[?setlatestversionid=vID]
+
+where the first will delete a single entity, and the second can be used to
+delete multiple entities. In the second case there are a couple of design
+points wother noting:
+- if the HTTP body is empty, then the entire collection will be deleted.
+  If the collection is `versions`, then the owning Resource must also be
+  deleted since a Resource must always have at least one Verison
+- if the HTTP contain an array, then an empty (zero item) array is valid,
+  but it will have no change on the server since there are not items listed
+  to be deleted
+- if the array is not empty and one of the items in there is already deleted,
+  or never existed at all, then rather than generating an error (e.g. a `404`),
+  the server will ignore this condition and continue processing the list.
+  This is because the net result will be what the user is asking for.
+  Note, that this is different from `DELETE ../ID` case where if the
+  referenced entity can not be found then a `404` must be generated.
+- when the `?setlatestversionid` query parameter is specified (when
+  deleting Version) then it will be applied after all requested items have
+  been deleted scucessfully. It can be used even if the current "latest"
+  Version isn't being deleted.  Note that a `404` in the `DELETE .../ID` case
+  is an error and no changes to the "latest" Version will occur.
