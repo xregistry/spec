@@ -403,10 +403,10 @@ attributes. However they MUST adhere to the following rules:
 - They MUST NOT change, or extend, the semantics of the Registry - they MUST
   only be additional metadata to be persisted in the Registry since servers
   are mandated to persist all valid extensions
-- They MUST NOT conflict the name of an attribute defined by this
+- They MUST NOT conflict with the name of an attribute defined by this
   specification, including the RESOURCE* and COLLECTION* attributes that are
   implicitly defined. Note that if a Resource type has the `hasdocument`
-  attribute set the `false` then this rules does not apply for the RESOURCE*
+  attribute set the `false` then this rule does not apply for the RESOURCE*
   attributes as those attributes are not used for that Resource type.
 - It is RECOMMENDED that extension attributes on different objects not use the
   same name unless they have the exact same semantic meaning
@@ -1090,8 +1090,8 @@ Content-Type: application/json; charset=utf-8
 
 The Registry model defines the Groups, Resources, extension attributes and
 changes to specification defined core attributes. This information is
-intended to be used by tooling that does not have advance knowledge of the
-structure of the Registry and therefore will need to dynamically discovery it.
+intended to be used by tooling that does not have knowledge of the structure of
+the Registry in advance and therefore will need to dynamically discovery it.
 
 To enable support for a wide range of use cases, but to also ensure
 interoperability across implementations, the following rules have been defined
@@ -1099,13 +1099,13 @@ with respect to how models are defined:
 - Core attributes that are `serverrequired` MUST NOT have this aspect changed
   to `false`
 - Core attributes that are `readonly` and `serverrequired` MUST NOT have the
-  `readonly` apsect changed to `false`
+  `readonly` aspect changed to `false`
 - The `name` and `type` aspects of core attributes MUST NOT be changed
 
 To indicate a change to a core attribute, the attribute MUST be defined as part
 of the Registry model. Any core attributes that are not explicitly defined in
 the model of a Registry MUST be implicitly present and be as defined by this
-specification.  In other words, the Registry's model consists of the core
+specification. In other words, the Registry's model consists of the core
 attributes (as defined by this specification) overlaid with the core and
 extension attributes that are explicitly defined as part of its model.
 
@@ -1118,11 +1118,11 @@ types of changes made to the model - for example, to ensure backwards
 compatibility of clients or to ensure existing entities remain consistent with
 the defined model.
 
-Implementations are REQUIRED to ensure that after any model changes are made
+Implementations are REQUIRED to ensure that after any model changes are made,
 all of the entities in the Registry are valid with respect to the new model
 definition (including all Versions of Resources). How this is achieved will
 be implementation specific. For example, implementations can choose to
-automatically modify existing entities, or to even delete non-conforming
+automatically modify existing entities, or even to delete non-conforming
 entities (such as when Groups or Resource types are removed). However, it is
 STRONGLY RECOMMENDED that implementations not delete entities due to attribute
 modifications.
@@ -1234,8 +1234,8 @@ The following describes the attributes of Registry model:
     undefined extensions and an error MUST be generated if one is present in
     a request.
 
-    Often `*` is used with a `type` of `any` to allow for not just undefined
-    extension names but also unknown extenion types. By default, the model
+    Often `*` is used with a `type` of `any` to allow for any undefined
+	extension name of any supported data type.  By default, the model
     does not support undefined extensions. Note that undefined extensions, if
     supported, MUST adhere to the same rules as
     [defined extensions](#attributes-and-extensions).
@@ -1276,7 +1276,7 @@ The following describes the attributes of Registry model:
   - OPTIONAL
 
 - `attributes."STRING".readonly`
-  - Indicates whether this attribute is modifiable by a client.  During
+  - Indicates whether this attribute is modifiable by a client. During
     creation, or update, of an entity if this attribute is specified then
     its value SHOULD be ignored by the server even if the value is invalid.
 
@@ -1298,9 +1298,9 @@ The following describes the attributes of Registry model:
     Once set, any attempt to update the value MUST be silently ignored by
     the server.
 
-    When not specified, the default value is `false. When the attribute name is
-    `*` then `immutable` MUST NOT be set to `true`. Note, both `clientrequired`
-    and `immutable` MUST NOT be set to `true` at the same time
+    When not specified, the default value is `false`. When the attribute name
+	is `*` then `immutable` MUST NOT be set to `true`. Note, `clientrequired`
+	and `immutable` MUST NOT both be set to `true` at the same time
   - Type: Boolean
   - OPTIONAL
 
@@ -1340,7 +1340,7 @@ The following describes the attributes of Registry model:
     defined attributes for the nested `object`
 
 - `attributes."STRING".item`
-  - Defines the nested resources that this attribute references.  This
+  - Defines the nested resources that this attribute references. This
     attribute MUST only be used when the owning attribute's `type` value is
     `map` or `array`
   - Type: Object
@@ -1479,7 +1479,7 @@ The following describes the attributes of Registry model:
 - `groups.resources.readonly`
   - Indicates if Resources of this type are updateable by a client. A value of
     `false` means that the server MUST support write operations on to Resources
-    of this type.  A value of `true` means that all `PUT`, `POST` and
+    of this type. A value of `true` means that all `PUT`, `POST` and
     `DELETE` operations on Resources of this type MUST generate an error.
   - Type: Boolean (`true` or `false`, case sensitive)
   - OPTIONAL
@@ -1504,10 +1504,10 @@ The resulting schema document MUST include the full Registry model - meaning
 all specification defined attributes, extension attributes, Group types and
 Resource types.
 
-For brevity sake, this document doesn't include the full definition of the
-specification defined attributes as part of the snippets of output. However,
-the full model definition of the Registry-level attributes can be found
-in [model.json](model.json), and the Group and Resource-level attributes
+For the sake of brevity, this document doesn't include the full definition of
+the specification defined attributes as part of the snippets of output.
+However, the full model definition of the Registry-level attributes can be
+found in [model.json](model.json), and the Group and Resource-level attributes
 can be found in [sample-model.json](sample-model.json).
 
 The request MUST be of the form:
@@ -2490,7 +2490,7 @@ Resources in HTTP:
   scalar type (e.g. not `any` or `object`). Each key/value of the map MUST be
   serialized as an HTTP headers with a name of `xRegistry-ATTRIBUTENAME-KEY`.
   Note that map keys MAY contain the `-` character, so any `-` after the 2nd
-  `-` in the header name is part of a key name.  See
+  `-` in the header name is part of a key name. See
   [HTTP Header Values](#http-header-values) for additional information and
   [`labels`](#labels) for an example of one such attribute
 - Similar to Groups, the Registry attributes are serialized as a single JSON

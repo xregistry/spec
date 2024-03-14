@@ -103,7 +103,7 @@ delete multiple entities. In the second case there are a couple of design
 points wother noting:
 - if the HTTP body is empty, then the entire collection will be deleted.
   If the collection is `versions`, then the owning Resource must also be
-  deleted since a Resource must always have at least one Verison
+  deleted since a Resource must always have at least one Version
 - if the HTTP contain an array, then an empty (zero item) array is valid,
   but it will have no change on the server since there are not items listed
   to be deleted
@@ -121,13 +121,13 @@ points wother noting:
 
 # Latest Version and Maximum Versions
 
-Each Resource type can specific the maximum number of Versions that the
-server must save. Once that limit is reached then it must delete Verisons
+Each Resource type can specify the maximum number of Versions that the
+server must save. Once that limit is reached then it must delete Versions
 to stay within the limit - by deleting oldest Versions first. However, since
 tagging a Version as "latest" marks that Version as special, this pruning
 logic must skip the "latest" Version. There is one exception to this rule.
 If the maximum Versions is set to 1 then when a new Version is created, that
-Verison will become the "latest" Version regardless of whether or not the
+Version will become the "latest" Version regardless of whether or not the
 user asked for it to be.
 
 In general, during an operation that creates, updates or deletes the Versions
@@ -135,7 +135,7 @@ of a Resource, the following logic is applied:
 - Modify the Versions collection as requested
 - Apply the "latest" processing logic by setting (or not) which Version is the
   "latest"
-- If the number of Versions exceeds the maximum allowed Verisons then, starting
+- If the number of Versions exceeds the maximum allowed Versions then, starting
   with the oldest, keep deleting until the collection is within the limit.
   Except if the limit is 1, in which case if a new Version is created then it
   it tagged as "latest"
@@ -143,7 +143,7 @@ of a Resource, the following logic is applied:
 Let's walk through a complex example:
 - Max allowed Versions is 2
 - Initially the following Versions exist: v4, v2 (latest)
-- Max lloaed Versions is now set to 0
+- Max allowed Versions is now set to 0 (meaning unlimited)
 - New Versions are created in this order: v5 (latest=true), v6, v7
 - The resulting Versions are (newest to oldest): v7, v6, v5 (latest), v4, v2
 - The maximum allowed Version is now set to 1, this will cause pruning
