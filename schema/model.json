@@ -18,7 +18,6 @@
         "schemas": {
           "singular": "schema",
           "plural": "schemas",
-          "versions": 0,
 
           "attributes": {
             "format": {
