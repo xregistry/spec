@@ -765,6 +765,26 @@
                   }
                 }
               }
+            },
+            "schemaformat": {
+              "name": "schemaformat",
+              "description": "The schema format applicable to the message payload, equivalent to the 'format' attribute attribute of the schema registry",
+              "type": "string"
+            },
+            "schema": {
+              "name": "schema",
+              "description": "The inline schema for the message payload, equivalent to the 'schema' attribute of the schema registry",
+              "type": "string"
+            },
+            "schemaobject": {
+              "name": "schemaobject",
+              "description": "The inline schema object for the message payload, equivalent to the 'schemaobject' attribute of the schema registry",
+              "type": "object"
+            },
+            "schemauri": {
+              "name": "schemauri",
+              "description": "The URL of the schema for the message payload, equivalent to the 'schemaurl' attribute of the schema registry",
+              "type": "uri"
             }
           }
         }

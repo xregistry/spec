@@ -1,9 +1,7 @@
-# xRegistry
+<img src="https://github.com/cncf/artwork/raw/main/projects/xregistry/horizontal/color/xregistry-horizontal-color.svg" alt="xRegistry"></img><br>
+<span style="font-size:3px">(<a href="https://github.com/cncf/artwork/tree/main/projects/xregistry">more logos</a>)</span>
 
 <!-- no verify-specs -->
-
-<!-- ![xRegistry logo](docs/artwork/xReg.jpg) -->
-<img src="./docs/artwork/xReg.jpg" width=100 height=100>
 
 [![CLOMonitor](https://img.shields.io/endpoint?url=https://clomonitor.io/api/projects/cncf/cloudevents/badge)](https://clomonitor.io/projects/cncf/cloudevents)
 [![OpenSSF Best Practices](https://bestpractices.coreinfrastructure.org/projects/7295/badge)](https://bestpractices.coreinfrastructure.org/projects/7295)

@@ -1,0 +1,225 @@
+{
+  "schemas": [
+    "xRegistry-json/0.5"
+  ],
+  "attributes": {
+    "specversion": {
+      "name": "specversion",
+      "type": "string",
+      "readonly": true,
+      "immutable": true,
+      "serverrequired": true
+    },
+    "id": {
+      "name": "id",
+      "type": "string",
+      "immutable": true,
+      "serverrequired": true
+    },
+    "name": {
+      "name": "name",
+      "type": "string"
+    },
+    "epoch": {
+      "name": "epoch",
+      "type": "uinteger",
+      "serverrequired": true
+    },
+    "self": {
+      "name": "self",
+      "type": "url",
+      "readonly": true,
+      "serverrequired": true
+    },
+    "description": {
+      "name": "description",
+      "type": "string"
+    },
+    "documentation": {
+      "name": "documentation",
+      "type": "url"
+    },
+    "labels": {
+      "name": "labels",
+      "type": "map",
+      "item": {
+        "type": "string"
+      }
+    },
+    "createdby": {
+      "name": "createdby",
+      "type": "string",
+      "readonly": true
+    },
+    "createdon": {
+      "name": "createdon",
+      "type": "timestamp",
+      "readonly": true
+    },
+    "modifiedby": {
+      "name": "modifiedby",
+      "type": "string",
+      "readonly": true
+    },
+    "modifiedon": {
+      "name": "modifiedon",
+      "type": "timestamp",
+      "readonly": true
+    }
+  },
+
+  "groups": {
+    "sample_groups": {
+      "plural": "sample_groups",
+      "singular": "sample_group",
+      "attributes": {
+        "id": {
+          "name": "id",
+          "type": "string",
+          "immutable": true,
+          "serverrequired": true
+        },
+        "name": {
+          "name": "name",
+          "type": "string"
+        },
+        "epoch": {
+          "name": "epoch",
+          "type": "uinteger",
+          "serverrequired": true
+        },
+        "self": {
+          "name": "self",
+          "type": "url",
+          "readonly": true,
+          "serverrequired": true
+        },
+        "description": {
+          "name": "description",
+          "type": "string"
+        },
+        "documentation": {
+          "name": "documentation",
+          "type": "url"
+        },
+        "labels": {
+          "name": "labels",
+          "type": "map",
+          "item": {
+            "type": "string"
+          }
+        },
+        "origin": {
+          "name": "origin",
+          "type": "uri"
+        },
+        "createdby": {
+          "name": "createdby",
+          "type": "string",
+          "readonly": true
+        },
+        "createdon": {
+          "name": "createdon",
+          "type": "timestamp",
+          "readonly": true
+        },
+        "modifiedby": {
+          "name": "modifiedby",
+          "type": "string",
+          "readonly": true
+        },
+        "modifiedon": {
+          "name": "modifiedon",
+          "type": "timestamp",
+          "readonly": true
+        }
+      },
+      "resources": {
+        "sample_resources": {
+          "plural": "sample_resources",
+          "singular": "sample_resource",
+          "attributes": {
+            "id": {
+              "name": "id",
+              "type": "string",
+              "immutable": true,
+              "serverrequired": true
+            },
+            "name": {
+              "name": "name",
+              "type": "string"
+            },
+            "epoch": {
+              "name": "epoch",
+              "type": "uinteger",
+              "serverrequired": true
+            },
+            "self": {
+              "name": "self",
+              "type": "url",
+              "readonly": true,
+              "serverrequired": true
+            },
+            "latest": {
+              "name": "latest",
+              "type": "boolean"
+            },
+            "latestversionid": {
+              "name": "latestversionid",
+              "type": "string",
+              "readonly": true
+            },
+            "latestversionurl": {
+              "name": "latestversionurl",
+              "type": "url",
+              "readonly": true
+            },
+            "description": {
+              "name": "description",
+              "type": "string"
+            },
+            "documentation": {
+              "name": "documentation",
+              "type": "url"
+            },
+            "labels": {
+              "name": "labels",
+              "type": "map",
+              "item": {
+                "type": "string"
+              }
+            },
+            "origin": {
+              "name": "origin",
+              "type": "uri"
+            },
+            "createdby": {
+              "name": "createdby",
+              "type": "string",
+              "readonly": true
+            },
+            "createdon": {
+              "name": "createdon",
+              "type": "timestamp",
+              "readonly": true
+            },
+            "modifiedby": {
+              "name": "modifiedby",
+              "type": "string",
+              "readonly": true
+            },
+            "modifiedon": {
+              "name": "modifiedon",
+              "type": "timestamp",
+              "readonly": true
+            },
+            "contenttype": {
+              "name": "contenttype",
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}
