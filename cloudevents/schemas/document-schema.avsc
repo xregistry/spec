@@ -93,399 +93,50 @@
             },
             {
               "type": "string",
+              "name": "usage",
+              "doc": "Client's expected usage of this endpoint"
+            },
+            {
+              "type": "string",
               "name": "format",
-              "doc": "Endpoint metadata format identifier. If set, all definitions MUST use this format value."
+              "doc": "Endpoint metadata format identifier. If set, all definitions MUST use this format value"
             },
             {
               "type": "string",
               "name": "binding",
-              "doc": "Endpoint message binding identifier. If set, all definitions MUST use this binding value."
+              "doc": "Endpoint message binding identifier. If set, all definitions MUST use this binding value"
             },
             {
-              "type": {
-                "type": "record",
-                "name": "ConfigType",
-                "fields": [
-                  {
-                    "type": {
-                      "type": "array",
-                      "name": "AuthorizationArrayType",
-                      "items": {
-                        "type": "record",
-                        "name": "AuthorizationType",
-                        "fields": [
-                          {
-                            "type": "string",
-                            "name": "type",
-                            "doc": "The authentication/authorization type. OAuth2, Plain, APIKey, and X509Cert are well-defined."
-                          },
-                          {
-                            "type": "string",
-                            "name": "resourceuri",
-                            "doc": "The resource uri for which authorization shall be granted (if applicable)"
-                          },
-                          {
-                            "type": "string",
-                            "name": "authorityuri",
-                            "doc": "The authority uri where authorization shall be requested (if applicable)"
-                          },
-                          {
-                            "type": {
-                              "type": "array",
-                              "name": "GrantTypesArrayType",
-                              "items": {
-                                "type": "string"
-                              }
-                            },
-                            "name": "grantTypes",
-                            "doc": "The grant types that can be requested (if applicable)"
-                          }
-                        ]
-                      }
-                    },
-                    "name": "authorization",
-                    "doc": "Authorization options. These are hints for the adapter for interacting with the authorization endpoint. This is not a credentials configuration."
-                  },
-                  {
-                    "name": "protocol",
-                    "type": [
-                      {
-                        "type": "record",
-                        "name": "ProtocolAmqp10Type",
-                        "fields": [
-                          {
-                            "type": {
-                              "type": "record",
-                              "name": "ProtocolAmqp10OptionsType",
-                              "fields": [
-                                {
-                                  "type": "string",
-                                  "name": "node",
-                                  "doc": "The AMQP node name. Commonly the name of a queue or a topic."
-                                },
-                                {
-                                  "type": "boolean",
-                                  "name": "durable",
-                                  "doc": "The AMQP durable flag. Whether the node is durable or transient."
-                                },
-                                {
-                                  "type": {
-                                    "type": "map",
-                                    "name": "ProtocolAmqp10LinkPropertiesType",
-                                    "values": "string"
-                                  },
-                                  "name": "linkProperties",
-                                  "doc": "An optional map of AMQP link properties to use with the endpoint"
-                                },
-                                {
-                                  "type": {
-                                    "type": "map",
-                                    "name": "ProtocolAmqp10ConnectionPropertiesType",
-                                    "values": "string"
-                                  },
-                                  "name": "connectionProperties",
-                                  "doc": "An optional map of AMQP connection properties to use with the endpoint"
-                                },
-                                {
-                                  "type": "string",
-                                  "name": "distributionMode",
-                                  "doc": "The AMQP distribution mode for receivers. Can be 'move' or 'copy'.  A value of 'move' indicates an exclusive lock on the message. A value of 'copy' indicates a non-exclusive lock on the message."
-                                },
-                                {
-                                  "name": "Extensions",
-                                  "type": {
-                                    "type": "map",
-                                    "name": "ProtocolAmqp10ExtensionsType",
-                                    "default": {},
-                                    "values": "string"
-                                  },
-                                  "doc": "Further options to configure the AMQP 1.0 client"
-                                }
-                              ]
-                            },
-                            "name": "options",
-                            "doc": "AMQP 1.0 connection options"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "record",
-                        "name": "ProtocolMqtt50Type",
-                        "fields": [
-                          {
-                            "type": {
-                              "type": "record",
-                              "name": "ProtocolMqtt50OptionsType",
-                              "fields": [
-                                {
-                                  "type": "string",
-                                  "name": "topic",
-                                  "doc": "The MQTT topic path"
-                                },
-                                {
-                                  "type": "int",
-                                  "name": "qos",
-                                  "doc": "The MQTT QoS level. May be 0, 1, or 2."
-                                },
-                                {
-                                  "type": "boolean",
-                                  "name": "retain",
-                                  "doc": "The MQTT retain flag to use for publishers on ths endpoint"
-                                },
-                                {
-                                  "type": "boolean",
-                                  "name": "cleanSession",
-                                  "doc": "The MQTT clean session flag to use for publishers on this endpoint"
-                                },
-                                {
-                                  "type": "string",
-                                  "name": "willTopic",
-                                  "doc": "The MQTT will topic to configure for publishers on this endpoint"
-                                },
-                                {
-                                  "type": "string",
-                                  "name": "willMessage",
-                                  "doc": "The MQTT will message definition to configure for publishers on this endpoint"
-                                }
-                              ]
-                            },
-                            "name": "options",
-                            "doc": "MQTT 5.0 connection options"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "record",
-                        "name": "ProtocolMqtt311Type",
-                        "fields": [
-                          {
-                            "type": {
-                              "type": "record",
-                              "name": "ProtocolMqtt311OptionsType",
-                              "fields": [
-                                {
-                                  "type": "string",
-                                  "name": "topic",
-                                  "doc": "MQTT topic path"
-                                },
-                                {
-                                  "type": "int",
-                                  "name": "qos",
-                                  "doc": "The MQTT QoS level\u00c3\u00b6. May be 0, 1, or 2."
-                                },
-                                {
-                                  "type": "boolean",
-                                  "name": "retain",
-                                  "doc": "The MQTT retain flag to use for publishers on ths endpoint"
-                                },
-                                {
-                                  "type": "boolean",
-                                  "name": "cleanSession",
-                                  "doc": "The MQTT clean session flag to use for publishers on this endpoint"
-                                },
-                                {
-                                  "type": "string",
-                                  "name": "willTopic",
-                                  "doc": "The MQTT will topic to configure for publishers on this endpoint"
-                                },
-                                {
-                                  "type": "string",
-                                  "name": "willMessage",
-                                  "doc": "The MQTT will message definition to configure for publishers on this endpoint"
-                                }
-                              ]
-                            },
-                            "name": "options",
-                            "doc": "MQTT 3.1.1 connection options"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "record",
-                        "name": "ProtocolHTTPType",
-                        "fields": [
-                          {
-                            "type": {
-                              "type": "record",
-                              "name": "ProtocolHTTPOptionsType",
-                              "fields": [
-                                {
-                                  "type": "string",
-                                  "name": "method",
-                                  "doc": "The HTTP method name"
-                                },
-                                {
-                                  "type": {
-                                    "type": "array",
-                                    "name": "ProtocolHTTPHeadersArrayType",
-                                    "items": {
-                                      "type": "record",
-                                      "name": "ProtocolHTTPHeadersType",
-                                      "fields": [
-                                        {
-                                          "type": "string",
-                                          "name": "name",
-                                          "doc": "HTTP header name"
-                                        },
-                                        {
-                                          "type": "string",
-                                          "name": "value",
-                                          "doc": "HTTP header value"
-                                        }
-                                      ]
-                                    }
-                                  },
-                                  "name": "headers",
-                                  "doc": "HTTP headers to use with the endpoint. The same header may be specified multiple times with different values. The HTTP header names are case insensitive."
-                                },
-                                {
-                                  "type": {
-                                    "type": "array",
-                                    "name": "ProtocolHTTPQueryArrayType",
-                                    "items": {
-                                      "type": "record",
-                                      "name": "ProtocolHTTPQueryType",
-                                      "fields": [
-                                        {
-                                          "type": "string",
-                                          "name": "name",
-                                          "doc": "The HTTP query parameter name"
-                                        },
-                                        {
-                                          "type": "string",
-                                          "name": "value",
-                                          "doc": "The HTTP query parameter value"
-                                        }
-                                      ]
-                                    }
-                                  },
-                                  "name": "query",
-                                  "doc": "HTTP query parameters"
-                                }
-                              ]
-                            },
-                            "name": "options",
-                            "doc": "HTTP options. These apply to all HTTP versions since the application model is the same across versions."
-                          }
-                        ]
-                      },
-                      {
-                        "type": "record",
-                        "name": "ProtocolKAFKAType",
-                        "fields": [
-                          {
-                            "type": {
-                              "type": "record",
-                              "name": "ProtocolKAFKAOptionsType",
-                              "fields": [
-                                {
-                                  "type": "string",
-                                  "name": "topic",
-                                  "doc": "Apache Kafka topic name"
-                                },
-                                {
-                                  "type": "int",
-                                  "name": "acks",
-                                  "doc": "The Apache Kafka acks setting to use. If no acks setting is specified, the default is -1."
-                                },
-                                {
-                                  "type": "bytes",
-                                  "name": "key",
-                                  "doc": "The Apache Kafka record key"
-                                },
-                                {
-                                  "type": "string",
-                                  "name": "consumergroup",
-                                  "doc": "The Apache Kafka consumer group name to use for consumers"
-                                },
-                                {
-                                  "type": "int",
-                                  "name": "partition",
-                                  "doc": "Optional. The Apache Kafka partition number to use when writing to or receiving from Apache Kafka"
-                                },
-                                {
-                                  "type": {
-                                    "type": "map",
-                                    "name": "ProtocolKAFKAHeadersType",
-                                    "values": {
-                                      "type": "record",
-                                      "name": "ProtocolKAFKAHeadersItemType",
-                                      "fields": [
-                                        {
-                                          "type": "string",
-                                          "name": "name",
-                                          "doc": "The Apache Kafka header name"
-                                        },
-                                        {
-                                          "type": "string",
-                                          "name": "value",
-                                          "doc": "The Apache Kafka header value"
-                                        }
-                                      ]
-                                    }
-                                  },
-                                  "name": "headers",
-                                  "doc": "The Apache Kafka headers for publishers on this endpoint"
-                                }
-                              ]
-                            },
-                            "name": "options",
-                            "doc": "Apache Kafka options"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "record",
-                        "name": "ProtocolNATSType",
-                        "fields": [
-                          {
-                            "type": {
-                              "type": "record",
-                              "name": "ProtocolNATSOptionsType",
-                              "fields": [
-                                {
-                                  "type": "string",
-                                  "name": "subject",
-                                  "doc": "The NATS subject"
-                                }
-                              ]
-                            },
-                            "name": "options",
-                            "doc": "NATS options"
-                          }
-                        ]
-                      }
-                    ],
-                    "doc": "endpoint protocol identifier"
-                  },
-                  {
-                    "type": {
-                      "type": "array",
-                      "name": "EndpointsArrayType",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
-                    "name": "endpoints",
-                    "doc": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URI just identifies a network host or links directly to a resource managed by the network host is protocol specific."
-                  },
-                  {
-                    "type": "boolean",
-                    "name": "strict",
-                    "doc": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint."
-                  }
-                ]
-              },
+              "type": "string",
+              "name": "channel",
+              "doc": "tbd"
+            },
+            {
+              "type": "GenericRecord",
+              "name": "deprecated",
+              "doc": "tbd"
+            },
+            {
+              "type": "GenericRecord",
               "name": "config",
               "doc": "Configuration information for this endpoint"
             },
             {
-              "name": "definitions",
+              "name": "Extensions",
+              "type": {
+                "type": "map",
+                "name": "ExtensionsType",
+                "default": {},
+                "values": "record"
+              }
+            },
+            {
+              "name": "messages",
               "type": {
                 "type": "map",
                 "values": {
                   "type": "record",
-                  "name": "DefinitionType",
+                  "name": "MessageType",
                   "fields": [
                     {
                       "name": "id",
@@ -569,8 +220,8 @@
                     },
                     {
                       "type": "string",
-                      "name": "baseDefinitionUrl",
-                      "doc": "Reference to a base definition for this definition, either via a (relative) URL or a fragment identifier. The base definition is overridden by this definition. If not present, this definition does not override any base definition."
+                      "name": "basemessageurl",
+                      "doc": "Reference to a base definition for this definition, either via a (relative) URL or a fragment identifier. The base definition is overridden by this definition. If not present, this definition does not override any base definition"
                     },
                     {
                       "name": "format",
@@ -587,147 +238,48 @@
                             {
                               "type": {
                                 "type": "record",
-                                "name": "FormatCloudevents10MetadataType",
+                                "name": "GenericRecord",
                                 "fields": [
                                   {
-                                    "type": {
-                                      "type": "record",
-                                      "name": "FormatCloudevents10TypeType",
-                                      "fields": [
-                                        {
-                                          "type": "string",
-                                          "name": "value",
-                                          "doc": "CloudEvents type value template."
-                                        }
-                                      ]
-                                    },
-                                    "name": "type",
-                                    "doc": "CloudEvents type."
-                                  },
-                                  {
-                                    "type": {
-                                      "type": "record",
-                                      "name": "FormatCloudevents10SourceType",
-                                      "fields": [
-                                        {
-                                          "type": "string",
-                                          "name": "value",
-                                          "doc": "CloudEvents source value template."
-                                        }
-                                      ]
-                                    },
-                                    "name": "source",
-                                    "doc": "CloudEvents source"
-                                  },
-                                  {
-                                    "type": {
-                                      "type": "record",
-                                      "name": "FormatCloudevents10SubjectType",
-                                      "fields": [
-                                        {
-                                          "type": "string",
-                                          "name": "value",
-                                          "doc": "CloudEvents subject value template."
-                                        },
-                                        {
-                                          "type": "boolean",
-                                          "name": "required",
-                                          "doc": "CloudEvents subject required."
-                                        }
-                                      ]
-                                    },
-                                    "name": "subject",
-                                    "doc": "CloudEvents subject"
-                                  },
-                                  {
-                                    "type": {
-                                      "type": "record",
-                                      "name": "FormatCloudevents10IdType",
-                                      "fields": [
-                                        {
-                                          "type": "string",
-                                          "name": "value",
-                                          "doc": "CloudEvents id value template."
-                                        }
-                                      ]
-                                    },
-                                    "name": "id",
-                                    "doc": "CloudEvents id"
-                                  },
-                                  {
-                                    "type": {
-                                      "type": "record",
-                                      "name": "FormatCloudevents10TimeType",
-                                      "fields": [
-                                        {
-                                          "type": "string",
-                                          "name": "value",
-                                          "doc": "The timestamp value template."
-                                        },
-                                        {
-                                          "type": "boolean",
-                                          "name": "required",
-                                          "doc": "The timestamp required."
-                                        }
-                                      ]
-                                    },
-                                    "name": "time",
-                                    "doc": "The timestamp of when the event happened."
-                                  },
-                                  {
-                                    "type": {
-                                      "type": "record",
-                                      "name": "FormatCloudevents10DataschemaType",
-                                      "fields": [
-                                        {
-                                          "type": "string",
-                                          "name": "value",
-                                          "doc": "The uri value template."
-                                        },
-                                        {
-                                          "type": "boolean",
-                                          "name": "required",
-                                          "doc": "The uri required."
-                                        }
-                                      ]
-                                    },
-                                    "name": "dataschema",
-                                    "doc": "The uri of the schema that the event payload adheres to. If the dataschema attribute is not present, it MUST be interpreted as no schema. An application MAY assign a meaning to the dataschema attribute if it is not present by default."
-                                  },
-                                  {
-                                    "name": "Extensions",
+                                    "name": "object",
                                     "type": {
                                       "type": "map",
-                                      "name": "FormatCloudevents10ExtensionsType",
-                                      "default": {},
-                                      "values": {
-                                        "type": "record",
-                                        "name": "FormatCloudevents10ExtensionItemType",
-                                        "fields": [
-                                          {
-                                            "type": "string",
-                                            "name": "value",
-                                            "doc": "The value template."
-                                          },
-                                          {
-                                            "type": "boolean",
-                                            "name": "required",
-                                            "doc": "Whether the extension is required"
-                                          }
-                                        ]
-                                      }
-                                    },
-                                    "doc": "CloudEvent extension property"
+                                      "values": [
+                                        "null",
+                                        "boolean",
+                                        "int",
+                                        "long",
+                                        "float",
+                                        "double",
+                                        "bytes",
+                                        "string",
+                                        {
+                                          "type": "array",
+                                          "items": [
+                                            "null",
+                                            "boolean",
+                                            "int",
+                                            "long",
+                                            "float",
+                                            "double",
+                                            "bytes",
+                                            "string",
+                                            "GenericRecord"
+                                          ]
+                                        },
+                                        "GenericRecord"
+                                      ]
+                                    }
                                   }
                                 ]
                               },
                               "name": "metadata",
-                              "doc": "CloudEvents metadata constraints."
+                              "doc": "CloudEvents metadata constraints"
                             }
                           ]
                         }
                       ],
-                      "doc": "Message format identifier. This attribute MUST be the same as the 'format' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups."
+                      "doc": "Message format identifier. This attribute MUST be the same as the 'format' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups"
                     },
                     {
                       "name": "binding",
@@ -742,403 +294,9 @@
                           "name": "BindingAmqp10Type",
                           "fields": [
                             {
-                              "type": {
-                                "type": "record",
-                                "name": "BindingAmqp10MessageType",
-                                "fields": [
-                                  {
-                                    "type": {
-                                      "type": "record",
-                                      "name": "BindingAmqp10PropertiesType",
-                                      "fields": [
-                                        {
-                                          "type": {
-                                            "type": "record",
-                                            "name": "BindingAmqp10MessageIdType",
-                                            "fields": [
-                                              {
-                                                "type": "string",
-                                                "name": "value",
-                                                "doc": "AMQP message-id value template."
-                                              },
-                                              {
-                                                "type": "boolean",
-                                                "name": "required",
-                                                "doc": "AMQP message-id required."
-                                              }
-                                            ]
-                                          },
-                                          "name": "messageId",
-                                          "doc": "AMQP message-id."
-                                        },
-                                        {
-                                          "type": {
-                                            "type": "record",
-                                            "name": "BindingAmqp10UserIdType",
-                                            "fields": [
-                                              {
-                                                "type": "string",
-                                                "name": "value",
-                                                "doc": "AMQP user-id value template."
-                                              },
-                                              {
-                                                "type": "boolean",
-                                                "name": "required",
-                                                "doc": "AMQP user-id required."
-                                              }
-                                            ]
-                                          },
-                                          "name": "userId",
-                                          "doc": "AMQP user-id."
-                                        },
-                                        {
-                                          "type": {
-                                            "type": "record",
-                                            "name": "BindingAmqp10ToType",
-                                            "fields": [
-                                              {
-                                                "type": "string",
-                                                "name": "value",
-                                                "doc": "AMQP to value template."
-                                              },
-                                              {
-                                                "type": "boolean",
-                                                "name": "required",
-                                                "doc": "AMQP to required."
-                                              }
-                                            ]
-                                          },
-                                          "name": "to",
-                                          "doc": "AMQP to."
-                                        },
-                                        {
-                                          "type": {
-                                            "type": "record",
-                                            "name": "BindingAmqp10SubjectType",
-                                            "fields": [
-                                              {
-                                                "type": "string",
-                                                "name": "value",
-                                                "doc": "AMQP subject value template."
-                                              },
-                                              {
-                                                "type": "boolean",
-                                                "name": "required",
-                                                "doc": "AMQP subject required."
-                                              }
-                                            ]
-                                          },
-                                          "name": "subject",
-                                          "doc": "AMQP subject."
-                                        },
-                                        {
-                                          "type": {
-                                            "type": "record",
-                                            "name": "BindingAmqp10ReplyToType",
-                                            "fields": [
-                                              {
-                                                "type": "string",
-                                                "name": "value",
-                                                "doc": "AMQP reply-to value template."
-                                              },
-                                              {
-                                                "type": "boolean",
-                                                "name": "required",
-                                                "doc": "AMQP reply-to required."
-                                              }
-                                            ]
-                                          },
-                                          "name": "replyTo",
-                                          "doc": "AMQP reply-to."
-                                        },
-                                        {
-                                          "type": {
-                                            "type": "record",
-                                            "name": "BindingAmqp10CorrelationIdType",
-                                            "fields": [
-                                              {
-                                                "type": "string",
-                                                "name": "value",
-                                                "doc": "AMQP correlation-id value template."
-                                              },
-                                              {
-                                                "type": "boolean",
-                                                "name": "required",
-                                                "doc": "AMQP correlation-id required."
-                                              }
-                                            ]
-                                          },
-                                          "name": "correlationId",
-                                          "doc": "AMQP correlation-id."
-                                        },
-                                        {
-                                          "type": {
-                                            "type": "record",
-                                            "name": "BindingAmqp10ContentTypeType",
-                                            "fields": [
-                                              {
-                                                "type": "string",
-                                                "name": "value",
-                                                "doc": "AMQP content-type value template."
-                                              },
-                                              {
-                                                "type": "boolean",
-                                                "name": "required",
-                                                "doc": "AMQP content-type required."
-                                              }
-                                            ]
-                                          },
-                                          "name": "contentType",
-                                          "doc": "AMQP content-type."
-                                        },
-                                        {
-                                          "type": {
-                                            "type": "record",
-                                            "name": "BindingAmqp10ContentEncodingType",
-                                            "fields": [
-                                              {
-                                                "type": "string",
-                                                "name": "value",
-                                                "doc": "AMQP content-encoding value template."
-                                              },
-                                              {
-                                                "type": "boolean",
-                                                "name": "required",
-                                                "doc": "AMQP content-encoding required."
-                                              }
-                                            ]
-                                          },
-                                          "name": "contentEncoding",
-                                          "doc": "AMQP content-encoding."
-                                        },
-                                        {
-                                          "type": {
-                                            "type": "record",
-                                            "name": "BindingAmqp10AbsoluteExpiryTimeType",
-                                            "fields": [
-                                              {
-                                                "type": "string",
-                                                "name": "value",
-                                                "doc": "AMQP absolute-expiry-time value template."
-                                              },
-                                              {
-                                                "type": "boolean",
-                                                "name": "required",
-                                                "doc": "AMQP absolute-expiry-time required."
-                                              }
-                                            ]
-                                          },
-                                          "name": "absoluteExpiryTime",
-                                          "doc": "AMQP absolute-expiry-time."
-                                        },
-                                        {
-                                          "type": {
-                                            "type": "record",
-                                            "name": "BindingAmqp10GroupIdType",
-                                            "fields": [
-                                              {
-                                                "type": "string",
-                                                "name": "value",
-                                                "doc": "AMQP group-id value template."
-                                              },
-                                              {
-                                                "type": "boolean",
-                                                "name": "required",
-                                                "doc": "AMQP group-id required."
-                                              }
-                                            ]
-                                          },
-                                          "name": "groupId",
-                                          "doc": "AMQP group-id."
-                                        },
-                                        {
-                                          "type": {
-                                            "type": "record",
-                                            "name": "BindingAmqp10GroupSequenceType",
-                                            "fields": [
-                                              {
-                                                "type": "string",
-                                                "name": "value",
-                                                "doc": "AMQP group-sequence value template."
-                                              },
-                                              {
-                                                "type": "boolean",
-                                                "name": "required",
-                                                "doc": "AMQP group-sequence required."
-                                              }
-                                            ]
-                                          },
-                                          "name": "groupSequence",
-                                          "doc": "AMQP group-sequence."
-                                        },
-                                        {
-                                          "type": {
-                                            "type": "record",
-                                            "name": "BindingAmqp10ReplyToGroupIdType",
-                                            "fields": [
-                                              {
-                                                "type": "string",
-                                                "name": "value",
-                                                "doc": "AMQP reply-to-group-id value template."
-                                              },
-                                              {
-                                                "type": "boolean",
-                                                "name": "required",
-                                                "doc": "AMQP reply-to-group-id required."
-                                              }
-                                            ]
-                                          },
-                                          "name": "replyToGroupId",
-                                          "doc": "AMQP reply-to-group-id."
-                                        }
-                                      ]
-                                    },
-                                    "name": "properties"
-                                  },
-                                  {
-                                    "type": {
-                                      "type": "map",
-                                      "name": "BindingAmqp10ApplicationPropertiesType",
-                                      "values": {
-                                        "type": "record",
-                                        "name": "BindingAmqp10ApplicationPropertiesItemType",
-                                        "fields": [
-                                          {
-                                            "type": "string",
-                                            "name": "value",
-                                            "doc": "The application property value template."
-                                          },
-                                          {
-                                            "type": "boolean",
-                                            "name": "required",
-                                            "doc": "The application property required."
-                                          },
-                                          {
-                                            "type": "string",
-                                            "name": "type",
-                                            "doc": "The application property type."
-                                          }
-                                        ]
-                                      }
-                                    },
-                                    "name": "applicationProperties"
-                                  },
-                                  {
-                                    "type": {
-                                      "type": "map",
-                                      "name": "BindingAmqp10MessageAnnotationsType",
-                                      "values": {
-                                        "type": "record",
-                                        "name": "BindingAmqp10MessageAnnotationsItemType",
-                                        "fields": [
-                                          {
-                                            "type": "string",
-                                            "name": "value",
-                                            "doc": "The message annotation value"
-                                          },
-                                          {
-                                            "type": "boolean",
-                                            "name": "required",
-                                            "doc": "Whether the message annotation is required"
-                                          },
-                                          {
-                                            "type": "string",
-                                            "name": "type",
-                                            "doc": "The message annotation type."
-                                          }
-                                        ]
-                                      }
-                                    },
-                                    "name": "messageAnnotations"
-                                  },
-                                  {
-                                    "type": {
-                                      "type": "map",
-                                      "name": "BindingAmqp10DeliveryAnnotationsType",
-                                      "values": {
-                                        "type": "record",
-                                        "name": "BindingAmqp10DeliveryAnnotationsItemType",
-                                        "fields": [
-                                          {
-                                            "type": "string",
-                                            "name": "value",
-                                            "doc": "The delivery annotation value"
-                                          },
-                                          {
-                                            "type": "boolean",
-                                            "name": "required",
-                                            "doc": "Whether the annotation is required"
-                                          },
-                                          {
-                                            "type": "string",
-                                            "name": "type",
-                                            "doc": "The annotation type."
-                                          }
-                                        ]
-                                      }
-                                    },
-                                    "name": "deliveryAnnotations"
-                                  },
-                                  {
-                                    "type": {
-                                      "type": "map",
-                                      "name": "BindingAmqp10HeaderType",
-                                      "values": {
-                                        "type": "record",
-                                        "name": "BindingAmqp10HeaderItemType",
-                                        "fields": [
-                                          {
-                                            "type": "string",
-                                            "name": "value",
-                                            "doc": "AMQP header value."
-                                          },
-                                          {
-                                            "type": "boolean",
-                                            "name": "required",
-                                            "doc": "AMQP header required."
-                                          },
-                                          {
-                                            "type": "string",
-                                            "name": "type",
-                                            "doc": "AMQP header type."
-                                          }
-                                        ]
-                                      }
-                                    },
-                                    "name": "header"
-                                  },
-                                  {
-                                    "type": {
-                                      "type": "map",
-                                      "name": "BindingAmqp10FooterType",
-                                      "values": {
-                                        "type": "record",
-                                        "name": "BindingAmqp10FooterItemType",
-                                        "fields": [
-                                          {
-                                            "type": "string",
-                                            "name": "value",
-                                            "doc": "AMQP footer value."
-                                          },
-                                          {
-                                            "type": "boolean",
-                                            "name": "required",
-                                            "doc": "AMQP footer required."
-                                          },
-                                          {
-                                            "type": "string",
-                                            "name": "type",
-                                            "doc": "AMQP footer type."
-                                          }
-                                        ]
-                                      }
-                                    },
-                                    "name": "footer"
-                                  }
-                                ]
-                              },
+                              "type": "GenericRecord",
                               "name": "message",
-                              "doc": "AMQP message metadata constraints."
+                              "doc": "AMQP message metadata constraints"
                             }
                           ]
                         },
@@ -1147,59 +305,9 @@
                           "name": "BindingMqtt311Type",
                           "fields": [
                             {
-                              "type": {
-                                "type": "record",
-                                "name": "BindingMqtt311MessageType",
-                                "fields": [
-                                  {
-                                    "type": {
-                                      "type": "record",
-                                      "name": "BindingMqtt311QosType",
-                                      "fields": [
-                                        {
-                                          "type": "string",
-                                          "name": "value",
-                                          "doc": "MQTT qos value template."
-                                        }
-                                      ]
-                                    },
-                                    "name": "qos",
-                                    "doc": "MQTT qos."
-                                  },
-                                  {
-                                    "type": {
-                                      "type": "record",
-                                      "name": "BindingMqtt311RetainType",
-                                      "fields": [
-                                        {
-                                          "type": "boolean",
-                                          "name": "value",
-                                          "doc": "MQTT retain value template."
-                                        }
-                                      ]
-                                    },
-                                    "name": "retain",
-                                    "doc": "MQTT retain."
-                                  },
-                                  {
-                                    "type": {
-                                      "type": "record",
-                                      "name": "BindingMqtt311TopicNameType",
-                                      "fields": [
-                                        {
-                                          "type": "string",
-                                          "name": "value",
-                                          "doc": "MQTT topic-name value template."
-                                        }
-                                      ]
-                                    },
-                                    "name": "topicName",
-                                    "doc": "MQTT topic-name."
-                                  }
-                                ]
-                              },
+                              "type": "GenericRecord",
                               "name": "message",
-                              "doc": "MQTT message metadata constraints."
+                              "doc": "MQTT message metadata constraints"
                             }
                           ]
                         },
@@ -1208,143 +316,9 @@
                           "name": "BindingMqtt50Type",
                           "fields": [
                             {
-                              "type": {
-                                "type": "record",
-                                "name": "BindingMqtt50MessageType",
-                                "fields": [
-                                  {
-                                    "type": {
-                                      "type": "record",
-                                      "name": "BindingMqtt50QosType",
-                                      "fields": [
-                                        {
-                                          "type": "int",
-                                          "name": "value",
-                                          "doc": "MQTT qos value template."
-                                        }
-                                      ]
-                                    },
-                                    "name": "qos",
-                                    "doc": "MQTT qos."
-                                  },
-                                  {
-                                    "type": {
-                                      "type": "record",
-                                      "name": "BindingMqtt50RetainType",
-                                      "fields": [
-                                        {
-                                          "type": "boolean",
-                                          "name": "value",
-                                          "doc": "MQTT retain value template."
-                                        }
-                                      ]
-                                    },
-                                    "name": "retain",
-                                    "doc": "MQTT retain."
-                                  },
-                                  {
-                                    "type": {
-                                      "type": "record",
-                                      "name": "BindingMqtt50TopicNameType",
-                                      "fields": [
-                                        {
-                                          "type": "string",
-                                          "name": "value",
-                                          "doc": "MQTT topic-name value template."
-                                        }
-                                      ]
-                                    },
-                                    "name": "topicName",
-                                    "doc": "MQTT topic-name."
-                                  },
-                                  {
-                                    "type": {
-                                      "type": "record",
-                                      "name": "BindingMqtt50MessageExpiryIntervalType",
-                                      "fields": [
-                                        {
-                                          "type": "int",
-                                          "name": "value",
-                                          "doc": "MQTT message-expiry-interval value template."
-                                        }
-                                      ]
-                                    },
-                                    "name": "messageExpiryInterval",
-                                    "doc": "MQTT message-expiry-interval."
-                                  },
-                                  {
-                                    "type": {
-                                      "type": "record",
-                                      "name": "BindingMqtt50ResponseTopicType",
-                                      "fields": [
-                                        {
-                                          "type": "string",
-                                          "name": "value",
-                                          "doc": "MQTT response-topic value template."
-                                        }
-                                      ]
-                                    },
-                                    "name": "responseTopic",
-                                    "doc": "MQTT response-topic."
-                                  },
-                                  {
-                                    "type": {
-                                      "type": "record",
-                                      "name": "BindingMqtt50CorrelationDataType",
-                                      "fields": [
-                                        {
-                                          "type": "bytes",
-                                          "name": "value",
-                                          "doc": "MQTT correlation-data value template."
-                                        }
-                                      ]
-                                    },
-                                    "name": "correlationData",
-                                    "doc": "MQTT correlation-data."
-                                  },
-                                  {
-                                    "type": {
-                                      "type": "record",
-                                      "name": "BindingMqtt50ContentTypeType",
-                                      "fields": [
-                                        {
-                                          "type": "string",
-                                          "name": "value",
-                                          "doc": "MQTT content-type value template."
-                                        }
-                                      ]
-                                    },
-                                    "name": "contentType",
-                                    "doc": "MQTT content-type."
-                                  },
-                                  {
-                                    "type": {
-                                      "type": "array",
-                                      "name": "BindingMqtt50UserPropertiesArrayType",
-                                      "items": {
-                                        "type": "record",
-                                        "name": "BindingMqtt50UserPropertiesType",
-                                        "fields": [
-                                          {
-                                            "type": "string",
-                                            "name": "name",
-                                            "doc": "MQTT user-property name."
-                                          },
-                                          {
-                                            "type": "string",
-                                            "name": "value",
-                                            "doc": "MQTT user-property value."
-                                          }
-                                        ]
-                                      }
-                                    },
-                                    "name": "userProperties",
-                                    "doc": "MQTT user-properties."
-                                  }
-                                ]
-                              },
+                              "type": "GenericRecord",
                               "name": "message",
-                              "doc": "MQTT message metadata constraints."
+                              "doc": "MQTT message metadata constraints"
                             }
                           ]
                         },
@@ -1353,58 +327,9 @@
                           "name": "BindingKAFKAType",
                           "fields": [
                             {
-                              "type": {
-                                "type": "record",
-                                "name": "BindingKAFKAMessageType",
-                                "fields": [
-                                  {
-                                    "type": "string",
-                                    "name": "topic",
-                                    "doc": "The Apache Kafka topic."
-                                  },
-                                  {
-                                    "type": "int",
-                                    "name": "partition",
-                                    "doc": "The Apache Kafka partition."
-                                  },
-                                  {
-                                    "type": "bytes",
-                                    "name": "key",
-                                    "doc": "The Apache Kafka key."
-                                  },
-                                  {
-                                    "type": {
-                                      "type": "map",
-                                      "name": "BindingKAFKAHeadersType",
-                                      "values": {
-                                        "type": "record",
-                                        "name": "BindingKAFKAHeadersItemType",
-                                        "fields": [
-                                          {
-                                            "type": "string",
-                                            "name": "name",
-                                            "doc": "The Apache Kafka header name."
-                                          },
-                                          {
-                                            "type": "string",
-                                            "name": "value",
-                                            "doc": "The Apache Kafka header value."
-                                          }
-                                        ]
-                                      }
-                                    },
-                                    "name": "headers",
-                                    "doc": "The Apache Kafka headers."
-                                  },
-                                  {
-                                    "type": "int",
-                                    "name": "timestamp",
-                                    "doc": "The Apache Kafka timestamp."
-                                  }
-                                ]
-                              },
+                              "type": "GenericRecord",
                               "name": "message",
-                              "doc": "The Apache Kafka message metadata constraints."
+                              "doc": "The Apache Kafka message metadata constraints"
                             }
                           ]
                         },
@@ -1413,94 +338,14 @@
                           "name": "BindingHTTPType",
                           "fields": [
                             {
-                              "type": {
-                                "type": "record",
-                                "name": "BindingHTTPMessageType",
-                                "fields": [
-                                  {
-                                    "type": {
-                                      "type": "array",
-                                      "name": "BindingHTTPHeadersArrayType",
-                                      "items": {
-                                        "type": "record",
-                                        "name": "BindingHTTPHeadersType",
-                                        "fields": [
-                                          {
-                                            "type": "string",
-                                            "name": "name",
-                                            "doc": "The HTTP header name."
-                                          },
-                                          {
-                                            "type": "string",
-                                            "name": "value",
-                                            "doc": "The HTTP header value."
-                                          }
-                                        ]
-                                      }
-                                    },
-                                    "name": "headers",
-                                    "doc": "The HTTP headers."
-                                  },
-                                  {
-                                    "type": {
-                                      "type": "record",
-                                      "name": "GenericRecord",
-                                      "fields": [
-                                        {
-                                          "name": "object",
-                                          "type": {
-                                            "type": "map",
-                                            "values": [
-                                              "null",
-                                              "boolean",
-                                              "int",
-                                              "long",
-                                              "float",
-                                              "double",
-                                              "bytes",
-                                              "string",
-                                              {
-                                                "type": "array",
-                                                "items": [
-                                                  "null",
-                                                  "boolean",
-                                                  "int",
-                                                  "long",
-                                                  "float",
-                                                  "double",
-                                                  "bytes",
-                                                  "string",
-                                                  "GenericRecord"
-                                                ]
-                                              },
-                                              "GenericRecord"
-                                            ]
-                                          }
-                                        }
-                                      ]
-                                    },
-                                    "name": "query",
-                                    "doc": "The HTTP query parameters."
-                                  },
-                                  {
-                                    "type": "string",
-                                    "name": "path",
-                                    "doc": "The HTTP path as a uri template."
-                                  },
-                                  {
-                                    "type": "string",
-                                    "name": "method",
-                                    "doc": "The HTTP method."
-                                  }
-                                ]
-                              },
+                              "type": "GenericRecord",
                               "name": "message",
-                              "doc": "The HTTP message metadata constraints."
+                              "doc": "The HTTP message metadata constraints"
                             }
                           ]
                         }
                       ],
-                      "doc": "Binding identifier. This attribute MUST be the same as the 'binding' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups."
+                      "doc": "Binding identifier. This attribute MUST be the same as the 'binding' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups"
                     }
                   ]
                 }
@@ -1511,12 +356,12 @@
       }
     },
     {
-      "name": "definitiongroups",
+      "name": "messagegroups",
       "type": {
         "type": "map",
         "values": {
           "type": "record",
-          "name": "DefinitiongroupType",
+          "name": "MessagegroupType",
           "fields": [
             {
               "name": "id",
@@ -1601,18 +446,27 @@
             {
               "type": "string",
               "name": "format",
-              "doc": "Format identifier that defines the common metadata information for the message. All definitions in this group share this format. Mixed-format groups are not permitted."
+              "doc": "Format identifier that defines the common metadata information for the message. All definitions in this group share this format. Mixed-format groups are not permitted"
             },
             {
               "type": "string",
               "name": "binding",
-              "doc": "Binding identifier that defines the transport message binding. All definitions in this group share this binding type. Mixed-binding groups are not permitted."
+              "doc": "Binding identifier that defines the transport message binding. All definitions in this group share this binding type. Mixed-binding groups are not permitted"
             },
             {
-              "name": "definitions",
+              "name": "Extensions",
               "type": {
                 "type": "map",
-                "values": "DefinitionType"
+                "name": "ExtensionsType",
+                "default": {},
+                "values": "record"
+              }
+            },
+            {
+              "name": "messages",
+              "type": {
+                "type": "map",
+                "values": "MessageType"
               }
             }
           ]
@@ -1708,6 +562,15 @@
               ]
             },
             {
+              "name": "Extensions",
+              "type": {
+                "type": "map",
+                "name": "ExtensionsType",
+                "default": {},
+                "values": "record"
+              }
+            },
+            {
               "name": "schemas",
               "type": {
                 "type": "map",
@@ -1796,132 +659,18 @@
                       ]
                     },
                     {
-                      "name": "versions",
-                      "type": [
-                        {
-                          "type": "map",
-                          "values": {
-                            "type": "record",
-                            "name": "SchemaVersionType",
-                            "fields": [
-                              {
-                                "name": "id",
-                                "type": "string"
-                              },
-                              {
-                                "name": "name",
-                                "type": [
-                                  "string",
-                                  "null"
-                                ]
-                              },
-                              {
-                                "name": "epoch",
-                                "type": [
-                                  "int",
-                                  "null"
-                                ]
-                              },
-                              {
-                                "name": "self",
-                                "type": "string"
-                              },
-                              {
-                                "name": "description",
-                                "type": [
-                                  "string",
-                                  "null"
-                                ]
-                              },
-                              {
-                                "name": "documentation",
-                                "type": [
-                                  "string",
-                                  "null"
-                                ]
-                              },
-                              {
-                                "name": "labels",
-                                "type": {
-                                  "type": "map",
-                                  "values": [
-                                    "string",
-                                    "null"
-                                  ]
-                                }
-                              },
-                              {
-                                "name": "createdby",
-                                "type": [
-                                  "string",
-                                  "null"
-                                ]
-                              },
-                              {
-                                "name": "createdon",
-                                "type": [
-                                  {
-                                    "type": "int",
-                                    "logicalType": "time-millis"
-                                  },
-                                  "null"
-                                ]
-                              },
-                              {
-                                "name": "modifiedby",
-                                "type": [
-                                  "string",
-                                  "null"
-                                ]
-                              },
-                              {
-                                "name": "modifiedon",
-                                "type": [
-                                  {
-                                    "type": "int",
-                                    "logicalType": "time-millis"
-                                  },
-                                  "null"
-                                ]
-                              },
-                              {
-                                "type": "string",
-                                "name": "format",
-                                "doc": "Schema format identifier for this schema version."
-                              },
-                              {
-                                "type": "GenericRecord",
-                                "name": "schemaobject",
-                                "doc": "Inlined schema document object"
-                              },
-                              {
-                                "type": "string",
-                                "name": "schema",
-                                "doc": "Inlined schema document string"
-                              },
-                              {
-                                "type": "string",
-                                "name": "schemaurl",
-                                "doc": "Inlined schema document string"
-                              }
-                            ]
-                          }
-                        },
-                        {
-                          "type": "record",
-                          "name": "SchemaVersionInfo",
-                          "fields": [
-                            {
-                              "name": "versionsUrl",
-                              "type": "string"
-                            },
-                            {
-                              "name": "versionCount",
-                              "type": "int"
-                            }
-                          ]
-                        }
-                      ]
+                      "type": "string",
+                      "name": "format",
+                      "doc": "Schema format identifier for this schema version"
+                    },
+                    {
+                      "name": "Extensions",
+                      "type": {
+                        "type": "map",
+                        "name": "ExtensionsType",
+                        "default": {},
+                        "values": "record"
+                      }
                     }
                   ]
                 }

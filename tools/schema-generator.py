@@ -5,61 +5,6 @@ import os
 import re
 from jsonpointer import resolve_pointer
 
-avro_type_mapping = {
-    "string": {"type": "string"},
-    "object": {"type": "record"},
-    "map": {"type": { "type": "map"}},
-    "uri": {"type": "string"},
-    "datetime": {"type": {"type":"int", "logicalType": "time-millis"}},
-    "integer": {"type": "int"},
-    "boolean": {"type": "boolean"},
-    "array": {"type":{"type": "array", "items": ""}},
-    "uritemplate": {"type": "string"},
-    "binary": {"type": "bytes"},
-}
-
-json_type_mapping = {
-    "string": {"type": "string"},
-    "object": {"type": "object"},
-    "map": {"type": "object"},
-    "uri": {"type": "string", "format": "uri"},
-    "datetime": {"type": "string", "format": "date-time"},
-    "integer": {"type": "integer"},
-    "boolean": {"type": "boolean"},
-    "array": {"type": "array"},
-    "uritemplate": {"type": "string", "format": "uri-template"},
-    "binary": {"type": "string", "format": "base64"},
-}
-
-json_common_attributes = {
-    "id": {"type": "string"},
-    "name": {"type": "string"},
-    "epoch": {"type": "integer"},
-    "self": {"type": "string", "format": "uri"},
-    "description": {"type": "string"},
-    "documentation": {"type": "string", "format": "uri"},
-    "labels": {"type": "object"},
-    "format": {"type": "string"},
-    "createdby": {"type": "string"},
-    "createdon": {"type": "string", "format": "date-time"},
-    "modifiedby": {"type": "string"},
-    "modifiedon": {"type": "string", "format": "date-time"}
-}
-
-avro_common_attributes = [
-    {"name": "id", "type": "string"},
-    {"name": "name", "type": ["string", "null"]},
-    {"name": "epoch", "type": ["int", "null"]},
-    {"name": "self", "type": "string"},
-    {"name": "description", "type": ["string", "null"]},
-    {"name": "documentation", "type": ["string", "null"]},
-    {"name": "labels", "type": { "type": "map", "values": ["string", "null"]}},
-    {"name": "createdby", "type": ["string", "null"]},
-    {"name": "createdon", "type": [{"type":"int", "logicalType": "time-millis"}, "null"]},
-    {"name": "modifiedby", "type": ["string", "null"]},
-    {"name": "modifiedon", "type": [{"type":"int", "logicalType": "time-millis"},"null"]}
-]
-
 avro_generic_record_name = "GenericRecord"
 avro_generic_record = {
   "type": "record",
@@ -99,6 +44,69 @@ avro_generic_record = {
   ]
 }
 
+
+avro_type_mapping = {
+    "string": {"type": "string"},
+    "object": {"type": "record"},
+    "map": {"type": { "type": "map"}},
+    "uri": {"type": "string"},
+    "url": {"type": "string"},
+    "datetime": {"type": {"type":"int", "logicalType": "time-millis"}},
+    "integer": {"type": "int"},
+    "uinteger": {"type": "int"},
+    "boolean": {"type": "boolean"},
+    "array": {"type":{"type": "array", "items": ""}},
+    "uritemplate": {"type": "string"},
+    "binary": {"type": "bytes"},
+    "timestamp": {"type": {"type":"int", "logicalType": "timestamp-millis"}},
+    "any": avro_generic_record
+}
+
+json_type_mapping = {
+    "string": {"type": "string"},
+    "object": {"type": "object"},
+    "map": {"type": "object"},
+    "uri": {"type": "string", "format": "uri"},
+    "url": {"type": "string", "format": "uri"},
+    "datetime": {"type": "string", "format": "date-time"},
+    "integer": {"type": "integer"},
+    "uinteger": {"type": "integer", "minimum": 0},
+    "boolean": {"type": "boolean"},
+    "array": {"type": "array"},
+    "uritemplate": {"type": "string", "format": "uri-template"},
+    "binary": {"type": "string", "format": "base64"},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "any": {"type": "object"}
+}
+
+json_common_attributes = {
+    "id": {"type": "string"},
+    "name": {"type": "string"},
+    "epoch": {"type": "integer"},
+    "self": {"type": "string", "format": "uri"},
+    "description": {"type": "string"},
+    "documentation": {"type": "string", "format": "uri"},
+    "labels": {"type": "object"},
+    "format": {"type": "string"},
+    "createdby": {"type": "string"},
+    "createdon": {"type": "string", "format": "date-time"},
+    "modifiedby": {"type": "string"},
+    "modifiedon": {"type": "string", "format": "date-time"}
+}
+
+avro_common_attributes = [
+    {"name": "id", "type": "string"},
+    {"name": "name", "type": ["string", "null"]},
+    {"name": "epoch", "type": ["int", "null"]},
+    {"name": "self", "type": "string"},
+    {"name": "description", "type": ["string", "null"]},
+    {"name": "documentation", "type": ["string", "null"]},
+    {"name": "labels", "type": { "type": "map", "values": ["string", "null"]}},
+    {"name": "createdby", "type": ["string", "null"]},
+    {"name": "createdon", "type": [{"type":"int", "logicalType": "time-millis"}, "null"]},
+    {"name": "modifiedby", "type": ["string", "null"]},
+    {"name": "modifiedon", "type": [{"type":"int", "logicalType": "time-millis"},"null"]}
+]
 
 
 def pascal(string):
@@ -258,32 +266,59 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
         elif type == "map":
             resource_schema["type"] = "object"
             if "type" in item:
-                resource_schema["additionalProperties"] = copy.deepcopy(json_type_mapping[item["type"]])
+                if item["type"] == "object":
+                    attr_schema = {"type": "object", "description": "", "properties": {}}
+                    if "attributes" in item:
+                        handle_attributes(attr_schema, item["attributes"])
+                else:
+                    attr_schema = copy.deepcopy(json_type_mapping[item["type"]])
+                if "description" in item:
+                    attr_schema["description"] = item["description"]
+                if "description" in attr_schema and attr_schema["description"] == "":
+                    del attr_schema["description"]
+                resource_schema["additionalProperties"] = attr_schema
                 if item["type"] == "object" or item["type"] == "map" or item["type"] == "array":
                     if "item" in item: 
                         handle_item(resource_schema["additionalProperties"], item["type"], item["item"])
         elif type == "array":
             resource_schema["type"] = "array"
             if "type" in item:
-                resource_schema["items"] = copy.deepcopy(json_type_mapping[item["type"]])
+                attr_schema = {"type": "object", "description": "", "properties": {}}
+                if "attributes" in item:
+                        handle_attributes(attr_schema, item["attributes"])
+                else:
+                    attr_schema = copy.deepcopy(attr_schema)
+                if "description" in item:
+                    attr_schema["description"] = item["description"]
+                if "description" in attr_schema and attr_schema["description"] == "":
+                    del attr_schema["description"]
+                resource_schema["items"] = attr_schema
                 if item["type"] == "object" or item["type"] == "map" or item["type"] == "array":
                     if "item" in item: 
                         handle_item(resource_schema["items"], item["type"], item["item"])
+        
         
 
     def handle_attributes(resource_schema, attributes):
         """
         This function takes in a resource schema and a dictionary of attributes and their properties.
         It iterates through each attribute and creates a JSON schema for it based on its properties.
-        The function also handles nested attributes and conditional attributes using the "ifvalue" property.
+        The function also handles nested attributes and conditional attributes using the "ifvalues" property.
         The resulting schema is added to the resource schema.
         """
         for attr_name, attr_props in attributes.items():
-            attr_schema = copy.deepcopy(json_type_mapping[attr_props["type"]])
-            
+            if attr_props["type"] == "object":
+                attr_schema = {"type": "object", "description": "", "properties": {}}
+                if "attributes" in attr_props:
+                    handle_attributes(attr_schema, attr_props["attributes"])
+            else:
+                attr_schema = copy.deepcopy(json_type_mapping[attr_props["type"]])
+                        
             if "description" in attr_props:
                 attr_schema["description"] = attr_props["description"]
-            
+            if "description" in attr_schema and attr_schema["description"] == "":
+                del attr_schema["description"]                
+                            
             if attr_props["type"] == "object" or attr_props["type"] == "map" or attr_props["type"] == "array":
                 if "item" in attr_props:
                     handle_item(attr_schema, attr_props["type"], attr_props["item"])
@@ -293,9 +328,9 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
                     resource_schema["required"] = []
                 resource_schema["required"].append(attr_name)
                             
-            if "ifvalue" in attr_props:
+            if "ifvalues" in attr_props:
                 if attr_name == "*":
-                    raise Exception("Can't use wild card attribute name with ifvalue")
+                    raise Exception("Can't use wild card attribute name with ifvalues")
                 
                 if for_openapi:
                     resource_schema["discriminator"] = {
@@ -309,7 +344,7 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
                         resource_schema["required"].remove(attr_name)
 
                 one_of = []
-                for condition_value, condition_props in attr_props["ifvalue"].items():
+                for condition_value, condition_props in attr_props["ifvalues"].items():
                     # create an identifier from condition_value, turning all spaces and special characters in to underscore
                     condition_schema_identifier = attr_name + "_" + "".join([c if c.isalnum() else "_" for c in condition_value])   
                     # for openapi, add a reference to this schema in the discriminator mapping         
@@ -410,30 +445,65 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
             resource_schema = {
                 "type": "object",
                 "properties": copy.deepcopy(json_common_attributes),
-                "required": ["id"],
-            }
+                "oneOf": [
+                    {
+                        "properties": {
+                            resource_name : { 
+                                "description": f"Embedded {resource_name} object",                                                          
+                                "oneOf": [{"type": "object"},{"type": "string"}] 
+                            }
+                        },
+                        "required": ["id", resource_name]
+                    },
+                    {   
+                        "properties": {
+                            resource_name+"base64" : {
+                                "description": f"Embedded {resource_name} object as binary data",
+                                "type": "string",
+                                "format": "base64"
+                            }
+                        },
+                        "required": ["id", resource_name+"base64"]
+                    },
+                    {
+                        "properties": {
+                            resource_name+"url" : {
+                                "description": f"Linked {resource_name} object",
+                                "type": "string",
+                                "format": "uri"
+                            }
+                        },
+                        "required": ["id", resource_name+"url"]
+                    }
+                ]
+            }                        
 
             attributes = resource.get("attributes", {})
-            if resource.get("versions", 1) != 1:
+            if resource.get("maxversions", -1) != 1:
                 resource_version_schema = copy.deepcopy(resource_schema)
                 handle_attributes(resource_version_schema, attributes)
                 
                 resource_schema["oneOf"] = [
-                        {"required": ["versions"]},
-                        {"required": ["versionsUrl", "versionsCount"]}
+                        {
+                            "properties": {
+                                "versionsurl": {"type": "string"},
+                                "versionscount": {"type": "integer"},
+                            },
+                            "required": ["id", "versionsurl"]
+                        },
+                        {
+                            "properties": {
+                                "versions": {
+                                "type": "object",
+                                "additionalProperties": {
+                                    "$ref": f"{reference_prefix}{resource_name}Version"
+                                    }
+                                }
+                            },
+                            "required": ["id", "versions"]
+                        }
                     ]
                 
-                resource_schema["properties"].update(
-                    {
-                        "versionsUrl": {"type": "string"},
-                        "versionsCount": {"type": "integer"},
-                        "versions": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "$ref": f"{reference_prefix}{resource_name}Version"
-                            }
-                        }
-                    })
                 schema_definitions[f"{resource_name}Version"] = resource_version_schema
             else:
                 handle_attributes(resource_schema, attributes)
@@ -536,15 +606,15 @@ def generate_avro_schema(model_definition) -> dict:
                     else:
                         raise Exception("array or map attribute must have an item specified")
 
-            if "ifvalue" in attr_props:
+            if "ifvalues" in attr_props:
                 if attr_name == "*":
-                    raise Exception("Can't use wild card attribute name with ifvalue")
+                    raise Exception("Can't use wild card attribute name with ifvalues")
           
                 if pascal_attr_name in resource_schema["fields"]:
                     resource_schema["fields"].pop(pascal_attr_name)
 
                 union = []
-                for condition_value, condition_props in attr_props["ifvalue"].items():
+                for condition_value, condition_props in attr_props["ifvalues"].items():
                     # create an identifier from condition_value, turning all spaces and special characters in to underscore
                     condition_schema_identifier = pascal_attr_name + pascal("".join([c if c.isalnum() else "_" for c in condition_value]))   
                     conditional_schema = {
@@ -720,6 +790,36 @@ model_definition = {
     #... rest of your model definition
 }
 
+
+def resolve_imports(basedir, node):
+    """ recursively resolve all $imports in the model definition """
+    
+    if isinstance(node, dict):
+        if "$import" in node:
+            obj_ref = ''
+            file_ref = node["$import"]
+            # strip # anchor portion from the file reference
+            if "#" in file_ref:
+                fr = file_ref.split("#")
+                file_ref = fr[0]
+                obj_ref = fr[1]
+            file_ref = file_ref.replace('/', os.sep)            
+            import_file = os.path.join(basedir, file_ref)
+            with open(import_file) as file:
+                import_definition = json.load(file)
+            del node["$import"]
+            if obj_ref:
+                node.update(resolve_pointer(import_definition, obj_ref))
+            else:
+                node.update(import_definition)
+        for k,v in node.items():
+            node[k] = resolve_imports(basedir, v)
+    elif isinstance(node, list):
+        for i, item in enumerate(node):
+            node[i] = resolve_imports(basedir, item)
+    return node    
+    
+
 # read model definition from file ../schema/model.json
 # make the path relative to this script file, irrespective of working directory
 
@@ -736,6 +836,7 @@ def main():
     for input_file in args.input_files:
         with open(input_file) as file:
             input_definition = json.load(file)
+            input_definition = resolve_imports(os.path.dirname(input_file), input_definition)
             if "groups" in input_definition:
                 for group_name, group_definition in input_definition["groups"].items():
                     # convert file.name to using OS separators
@@ -743,7 +844,6 @@ def main():
                     group_definition["$source"] = os.path.join(os.getcwd(),file_name)
                     if group_name not in model_definition["groups"]:
                         model_definition["groups"][group_name] = group_definition
-                        
 
     if (args.type == 'json-schema'):
         json_schema = generate_json_schema(model_definition)

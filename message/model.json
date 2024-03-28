@@ -383,22 +383,25 @@
                         },
                         "application_properties": {
                           "name": "application_properties",
-                          "type": "object",
-                          "attributes": {
-                            "value": {
-                              "name": "value",
-                              "description": "The application property value template",
-                              "type": "string"
-                            },
-                            "required": {
-                              "name": "required",
-                              "description": "The application property required",
-                              "type": "boolean"
-                            },
-                            "type": {
-                              "name": "type",
-                              "description": "The application property type",
-                              "type": "string"
+                          "type": "map",
+                          "item": {
+                            "type": "object",
+                            "attributes": {
+                              "value": {
+                                "name": "value",
+                                "description": "The application property value template",
+                                "type": "string"
+                              },
+                              "required": {
+                                "name": "required",
+                                "description": "The application property required",
+                                "type": "boolean"
+                              },
+                              "type": {
+                                "name": "type",
+                                "description": "The application property type",
+                                "type": "string"
+                              }
                             }
                           }
                         },
