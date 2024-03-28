@@ -442,41 +442,48 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
             resource = resolve_resource(group, resource)            
             resource_name = resource["singular"]
 
-            resource_schema = {
-                "type": "object",
-                "properties": copy.deepcopy(json_common_attributes),
-                "oneOf": [
-                    {
-                        "properties": {
-                            resource_name : { 
-                                "description": f"Embedded {resource_name} object",                                                          
-                                "oneOf": [{"type": "object"},{"type": "string"}] 
-                            }
+            if resource.get("hasdocument", True):
+                resource_schema = {
+                    "type": "object",
+                    "properties": copy.deepcopy(json_common_attributes),
+                    "oneOf": [
+                        {
+                            "properties": {
+                                resource_name : { 
+                                    "description": f"Embedded {resource_name} object",                                                          
+                                    "oneOf": [{"type": "object"},{"type": "string"}] 
+                                }
+                            },
+                            "required": ["id", resource_name]
                         },
-                        "required": ["id", resource_name]
-                    },
-                    {   
-                        "properties": {
-                            resource_name+"base64" : {
-                                "description": f"Embedded {resource_name} object as binary data",
-                                "type": "string",
-                                "format": "base64"
-                            }
+                        {   
+                            "properties": {
+                                resource_name+"base64" : {
+                                    "description": f"Embedded {resource_name} object as binary data",
+                                    "type": "string",
+                                    "format": "base64"
+                                }
+                            },
+                            "required": ["id", resource_name+"base64"]
                         },
-                        "required": ["id", resource_name+"base64"]
-                    },
-                    {
-                        "properties": {
-                            resource_name+"url" : {
-                                "description": f"Linked {resource_name} object",
-                                "type": "string",
-                                "format": "uri"
-                            }
-                        },
-                        "required": ["id", resource_name+"url"]
-                    }
-                ]
-            }                        
+                        {
+                            "properties": {
+                                resource_name+"url" : {
+                                    "description": f"Linked {resource_name} object",
+                                    "type": "string",
+                                    "format": "uri"
+                                }
+                            },
+                            "required": ["id", resource_name+"url"]
+                        }
+                    ]
+                }                        
+            else:
+                resource_schema = {
+                    "type": "object",
+                    "properties": copy.deepcopy(json_common_attributes),
+                    "required": ["id"],
+                }
 
             attributes = resource.get("attributes", {})
             if resource.get("maxversions", -1) != 1:

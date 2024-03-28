@@ -3252,52 +3252,8 @@
             "description": "Reference to a base definition for this definition, either via a (relative) URL or a fragment identifier. The base definition is overridden by this definition. If not present, this definition does not override any base definition"
           }
         },
-        "oneOf": [
-          {
-            "properties": {
-              "message": {
-                "description": "Embedded message object",
-                "oneOf": [
-                  {
-                    "type": "object"
-                  },
-                  {
-                    "type": "string"
-                  }
-                ]
-              }
-            },
-            "required": [
-              "id",
-              "message"
-            ]
-          },
-          {
-            "properties": {
-              "messagebase64": {
-                "description": "Embedded message object as binary data",
-                "type": "string",
-                "format": "base64"
-              }
-            },
-            "required": [
-              "id",
-              "messagebase64"
-            ]
-          },
-          {
-            "properties": {
-              "messageurl": {
-                "description": "Linked message object",
-                "type": "string",
-                "format": "uri"
-              }
-            },
-            "required": [
-              "id",
-              "messageurl"
-            ]
-          }
+        "required": [
+          "id"
         ],
         "discriminator": {
           "propertyName": "binding",
