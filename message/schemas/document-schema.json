@@ -811,10 +811,7 @@
       },
       "required": [
         "id"
-      ],
-      "additionalProperties": {
-        "type": "object"
-      }
+      ]
     }
   }
 }

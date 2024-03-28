@@ -122,6 +122,17 @@
               "doc": "Configuration information for this endpoint"
             },
             {
+              "type": {
+                "type": "array",
+                "name": "MessagegroupsArrayType",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "name": "messagegroups",
+              "doc": "The message groups that are supported by this endpoint"
+            },
+            {
               "name": "Extensions",
               "type": {
                 "type": "map",

@@ -283,11 +283,14 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
         elif type == "array":
             resource_schema["type"] = "array"
             if "type" in item:
-                attr_schema = {"type": "object", "description": "", "properties": {}}
-                if "attributes" in item:
+                if item["type"] == "object":
+                    attr_schema = {"type": "object", "description": "", "properties": {}}
+                    if "attributes" in item:
                         handle_attributes(attr_schema, item["attributes"])
+                    else:
+                        attr_schema = copy.deepcopy(attr_schema)
                 else:
-                    attr_schema = copy.deepcopy(attr_schema)
+                    attr_schema = copy.deepcopy(json_type_mapping[item["type"]])
                 if "description" in item:
                     attr_schema["description"] = item["description"]
                 if "description" in attr_schema and attr_schema["description"] == "":
@@ -386,6 +389,8 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
                         resource_schema["oneOf"] = one_of
             else:
                 if attr_name == "*":
+                    if attr_props["type"] == "any":
+                        continue
                     if "additionalProperties" in resource_schema:
                         resource_schema["additionalProperties"].update(attr_schema)
                     else:
@@ -396,7 +401,6 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
                     resource_schema["properties"][attr_name] = copy.deepcopy(attr_schema)
 
     ## body of the core function starts here
-
     schema_group_names = []
     for k in model_definition.get("groups", {}).keys():
         schema_group_names.append(k.lower())

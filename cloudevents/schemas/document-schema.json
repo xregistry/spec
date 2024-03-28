@@ -846,9 +846,6 @@
               "format": "uri",
               "description": "tbd"
             }
-          },
-          "additionalProperties": {
-            "type": "object"
           }
         },
         "config": {
@@ -866,9 +863,6 @@
                     "format": "uri",
                     "description": "Network accessible location"
                   }
-                },
-                "additionalProperties": {
-                  "type": "object"
                 }
               }
             },
@@ -896,13 +890,9 @@
                     "type": "array",
                     "description": "The grant types that can be requested (if applicable)",
                     "items": {
-                      "type": "object",
-                      "properties": {}
+                      "type": "string"
                     }
                   }
-                },
-                "additionalProperties": {
-                  "type": "object"
                 }
               }
             },
@@ -951,9 +941,6 @@
                       "type": "string",
                       "description": "The AMQP distribution mode for receivers. Can be 'move' or 'copy'.  A value of 'move' indicates an exclusive lock on the message. A value of 'copy' indicates a non-exclusive lock on the message"
                     }
-                  },
-                  "additionalProperties": {
-                    "type": "object"
                   }
                 }
               },
@@ -999,9 +986,6 @@
                       "type": "string",
                       "description": "The MQTT will message definition to configure for publishers on this endpoint"
                     }
-                  },
-                  "additionalProperties": {
-                    "type": "object"
                   }
                 }
               },
@@ -1047,9 +1031,6 @@
                       "type": "string",
                       "description": "The MQTT will message definition to configure for publishers on this endpoint"
                     }
-                  },
-                  "additionalProperties": {
-                    "type": "object"
                   }
                 }
               },
@@ -1098,9 +1079,6 @@
                         "type": "string"
                       }
                     }
-                  },
-                  "additionalProperties": {
-                    "type": "object"
                   }
                 }
               },
@@ -1148,9 +1126,6 @@
                         "type": "string"
                       }
                     }
-                  },
-                  "additionalProperties": {
-                    "type": "object"
                   }
                 }
               },
@@ -1175,9 +1150,6 @@
                       "type": "string",
                       "description": "The NATS subject"
                     }
-                  },
-                  "additionalProperties": {
-                    "type": "object"
                   }
                 }
               },
@@ -1185,9 +1157,14 @@
                 "protocol"
               ]
             }
-          ],
-          "additionalProperties": {
-            "type": "object"
+          ]
+        },
+        "messagegroups": {
+          "type": "array",
+          "description": "The message groups that are supported by this endpoint",
+          "items": {
+            "type": "string",
+            "format": "uri"
           }
         },
         "messages": {
@@ -1199,10 +1176,7 @@
       },
       "required": [
         "id"
-      ],
-      "additionalProperties": {
-        "type": "object"
-      }
+      ]
     },
     "messagegroup": {
       "type": "object",
@@ -1261,10 +1235,7 @@
       },
       "required": [
         "id"
-      ],
-      "additionalProperties": {
-        "type": "object"
-      }
+      ]
     },
     "schemaVersion": {
       "type": "object",
@@ -1357,10 +1328,7 @@
             "schemaurl"
           ]
         }
-      ],
-      "additionalProperties": {
-        "type": "object"
-      }
+      ]
     },
     "schema": {
       "type": "object",
@@ -1489,10 +1457,7 @@
       },
       "required": [
         "id"
-      ],
-      "additionalProperties": {
-        "type": "object"
-      }
+      ]
     }
   }
 }

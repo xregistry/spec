@@ -1195,10 +1195,7 @@
               "schemaurl"
             ]
           }
-        ],
-        "additionalProperties": {
-          "type": "object"
-        }
+        ]
       },
       "schema": {
         "type": "object",
@@ -1327,10 +1324,7 @@
         },
         "required": [
           "id"
-        ],
-        "additionalProperties": {
-          "type": "object"
-        }
+        ]
       }
     }
   }
