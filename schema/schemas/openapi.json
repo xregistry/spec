@@ -1132,7 +1132,7 @@
           },
           "format": {
             "type": "string",
-            "description": "Schema format identifier for this schema version."
+            "description": "Schema format identifier for this schema version"
           },
           "createdby": {
             "type": "string"
@@ -1147,24 +1147,54 @@
           "modifiedon": {
             "type": "string",
             "format": "date-time"
-          },
-          "schemaobject": {
-            "type": "object",
-            "description": "Inlined schema document object"
-          },
-          "schema": {
-            "type": "string",
-            "description": "Inlined schema document string"
-          },
-          "schemaurl": {
-            "type": "string",
-            "format": "uri",
-            "description": "Inlined schema document string"
           }
         },
-        "required": [
-          "id",
-          "format"
+        "oneOf": [
+          {
+            "properties": {
+              "schema": {
+                "description": "Embedded schema object",
+                "oneOf": [
+                  {
+                    "type": "object"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "schema"
+            ]
+          },
+          {
+            "properties": {
+              "schemabase64": {
+                "description": "Embedded schema object as binary data",
+                "type": "string",
+                "format": "base64"
+              }
+            },
+            "required": [
+              "id",
+              "schemabase64"
+            ]
+          },
+          {
+            "properties": {
+              "schemaurl": {
+                "description": "Linked schema object",
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            "required": [
+              "id",
+              "schemaurl"
+            ]
+          }
         ]
       },
       "schema": {
@@ -1209,33 +1239,35 @@
           "modifiedon": {
             "type": "string",
             "format": "date-time"
-          },
-          "versionsUrl": {
-            "type": "string"
-          },
-          "versionsCount": {
-            "type": "integer"
-          },
-          "versions": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/components/schemas/schemaVersion"
-            }
           }
         },
-        "required": [
-          "id"
-        ],
         "oneOf": [
           {
+            "properties": {
+              "versionsurl": {
+                "type": "string"
+              },
+              "versionscount": {
+                "type": "integer"
+              }
+            },
             "required": [
-              "versions"
+              "id",
+              "versionsurl"
             ]
           },
           {
+            "properties": {
+              "versions": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/schemaVersion"
+                }
+              }
+            },
             "required": [
-              "versionsUrl",
-              "versionsCount"
+              "id",
+              "versions"
             ]
           }
         ]

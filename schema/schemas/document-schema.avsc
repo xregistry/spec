@@ -92,6 +92,15 @@
               ]
             },
             {
+              "name": "Extensions",
+              "type": {
+                "type": "map",
+                "name": "ExtensionsType",
+                "default": {},
+                "values": "record"
+              }
+            },
+            {
               "name": "schemas",
               "type": {
                 "type": "map",
@@ -180,168 +189,18 @@
                       ]
                     },
                     {
-                      "name": "versions",
-                      "type": [
-                        {
-                          "type": "map",
-                          "values": {
-                            "type": "record",
-                            "name": "SchemaVersionType",
-                            "fields": [
-                              {
-                                "name": "id",
-                                "type": "string"
-                              },
-                              {
-                                "name": "name",
-                                "type": [
-                                  "string",
-                                  "null"
-                                ]
-                              },
-                              {
-                                "name": "epoch",
-                                "type": [
-                                  "int",
-                                  "null"
-                                ]
-                              },
-                              {
-                                "name": "self",
-                                "type": "string"
-                              },
-                              {
-                                "name": "description",
-                                "type": [
-                                  "string",
-                                  "null"
-                                ]
-                              },
-                              {
-                                "name": "documentation",
-                                "type": [
-                                  "string",
-                                  "null"
-                                ]
-                              },
-                              {
-                                "name": "labels",
-                                "type": {
-                                  "type": "map",
-                                  "values": [
-                                    "string",
-                                    "null"
-                                  ]
-                                }
-                              },
-                              {
-                                "name": "createdby",
-                                "type": [
-                                  "string",
-                                  "null"
-                                ]
-                              },
-                              {
-                                "name": "createdon",
-                                "type": [
-                                  {
-                                    "type": "int",
-                                    "logicalType": "time-millis"
-                                  },
-                                  "null"
-                                ]
-                              },
-                              {
-                                "name": "modifiedby",
-                                "type": [
-                                  "string",
-                                  "null"
-                                ]
-                              },
-                              {
-                                "name": "modifiedon",
-                                "type": [
-                                  {
-                                    "type": "int",
-                                    "logicalType": "time-millis"
-                                  },
-                                  "null"
-                                ]
-                              },
-                              {
-                                "type": "string",
-                                "name": "format",
-                                "doc": "Schema format identifier for this schema version."
-                              },
-                              {
-                                "type": {
-                                  "type": "record",
-                                  "name": "GenericRecord",
-                                  "fields": [
-                                    {
-                                      "name": "object",
-                                      "type": {
-                                        "type": "map",
-                                        "values": [
-                                          "null",
-                                          "boolean",
-                                          "int",
-                                          "long",
-                                          "float",
-                                          "double",
-                                          "bytes",
-                                          "string",
-                                          {
-                                            "type": "array",
-                                            "items": [
-                                              "null",
-                                              "boolean",
-                                              "int",
-                                              "long",
-                                              "float",
-                                              "double",
-                                              "bytes",
-                                              "string",
-                                              "GenericRecord"
-                                            ]
-                                          },
-                                          "GenericRecord"
-                                        ]
-                                      }
-                                    }
-                                  ]
-                                },
-                                "name": "schemaobject",
-                                "doc": "Inlined schema document object"
-                              },
-                              {
-                                "type": "string",
-                                "name": "schema",
-                                "doc": "Inlined schema document string"
-                              },
-                              {
-                                "type": "string",
-                                "name": "schemaurl",
-                                "doc": "Inlined schema document string"
-                              }
-                            ]
-                          }
-                        },
-                        {
-                          "type": "record",
-                          "name": "SchemaVersionInfo",
-                          "fields": [
-                            {
-                              "name": "versionsUrl",
-                              "type": "string"
-                            },
-                            {
-                              "name": "versionCount",
-                              "type": "int"
-                            }
-                          ]
-                        }
-                      ]
+                      "type": "string",
+                      "name": "format",
+                      "doc": "Schema format identifier for this schema version"
+                    },
+                    {
+                      "name": "Extensions",
+                      "type": {
+                        "type": "map",
+                        "name": "ExtensionsType",
+                        "default": {},
+                        "values": "record"
+                      }
                     }
                   ]
                 }

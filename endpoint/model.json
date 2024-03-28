@@ -419,6 +419,14 @@
             }
           }
         },
+        "messagegroups": {
+          "name": "messagegroups",
+          "type": "array",
+          "description": "The message groups that are supported by this endpoint",
+          "item" : {
+            "type": "uri"
+          }
+        },          
         "*": {
           "name": "*",
           "type": "any"
@@ -427,7 +435,7 @@
       "resources": {
         "messages": {
           "$import": "../message/model.json#/groups/messagegroups/resources/messages"
-        }
+        }        
       }
     }
   }
