@@ -160,17 +160,23 @@
               "readonly": true,
               "serverrequired": true
             },
-            "latest": {
-              "name": "latest",
-              "type": "boolean"
+            "isdefault": {
+              "name": "isdefault",
+              "type": "boolean",
+              "readonly": true
             },
-            "latestversionid": {
-              "name": "latestversionid",
+            "setdefault": {
+              "name": "setdefault",
+              "type": "boolean",
+              "readonly": true
+            },
+            "defaultversionid": {
+              "name": "defaultversionid",
               "type": "string",
               "readonly": true
             },
-            "latestversionurl": {
-              "name": "latestversionurl",
+            "defaultversionurl": {
+              "name": "defaultversionurl",
               "type": "url",
               "readonly": true
             },
