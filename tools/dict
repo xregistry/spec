@@ -2,7 +2,7 @@ charset
 clientrequired
 contenttype
 createdby
-createdon
+createdat
 datastore
 datatracker
 definitionscount
@@ -34,7 +34,7 @@ defaultversionurl
 maxversions
 metadata
 modifiedby
-modifiedon
+modifiedat
 myattr
 myendpoint
 myEndpoint
@@ -55,7 +55,7 @@ schemagroups
 schemagroupscount
 schemagroupsurl
 serverrequired
-setdefault
+setstickydefaultversion
 setdefaultversionid
 setversionid
 siblingattributes
@@ -63,6 +63,7 @@ someattribute
 someattributes
 specversion
 src
+stickydefaultversion
 uinteger
 unescaping
 updateable

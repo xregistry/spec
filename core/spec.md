@@ -135,7 +135,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "singular": "STRING",       # e.g. "definition"
             "maxversions": UINTEGER, ?  # Num Vers(>=0). Default=0, 0=unlimited
             "setversionid": BOOLEAN, ?  # Supports client specified Version IDs
-            "setdefault": BOOLEAN, ?    # Supports client "default" selection
+            "setstickydefaultversion": BOOLEAN, ?    # Supports client "default" selection
             "hasdocument": BOOLEAN, ?   # Has a separate document. Default=true
             "readonly": BOOLEAN, ?      # From client's POV. Default=false
             "immutable": BOOLEAN, ?     # Once set, can't change. Default=false
@@ -160,9 +160,9 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       "labels": { "STRING": "STRING" * }, ?
       "origin": "URI", ?
       "createdby": "STRING", ?
-      "createdon": "TIME", ?
+      "createdat": "TIME", ?
       "modifiedby": "STRING", ?
-      "modifiedon": "TIME", ?
+      "modifiedat": "TIME", ?
 
       # Repeat for each Resource type in the Group
       "RESOURCEsurl": "URL",                       # e.g. "definitionsurl"
@@ -173,7 +173,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
           "name": "STRING", ?
           "epoch": UINTEGER,
           "self": "URL",
-          "setdefault": BOOLEAN,
+          "setstickydefaultversion": BOOLEAN,
           "defaultversionid": "STRING",
           "defaultversionurl": "URL",
           "description": "STRING", ?
@@ -181,9 +181,9 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
           "labels": { "STRING": "STRING" * }, ?
           "origin": "URI", ?
           "createdby": "STRING", ?
-          "createdon": "TIME", ?
+          "createdat": "TIME", ?
           "modifiedby": "STRING", ?
-          "modifiedon": "TIME", ?
+          "modifiedat": "TIME", ?
           "contenttype": "STRING, ?
 
           "RESOURCEurl": "URL", ?                  # If not local
@@ -203,9 +203,9 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
               "labels": { "STRING": "STRING" * }, ?
               "origin": "URI", ?
               "createdby": "STRING", ?
-              "createdon": "TIME", ?
+              "createdat": "TIME", ?
               "modifiedby": "STRING", ?
-              "modifiedon": "TIME", ?
+              "modifiedat": "TIME", ?
               "contenttype": "STRING", ?
 
               "RESOURCEurl": "URL", ?                  # If not local
@@ -431,9 +431,9 @@ form:
 - `"labels": { "STRING": "STRING" * }`
 - `"origin": "URI"`
 - `"createdby": "STRING"`
-- `"createdon": "TIME"`
+- `"createdat": "TIME"`
 - `"modifiedby": "STRING"`
-- `"modifiedon": "TIME"`
+- `"modifiedat": "TIME"`
 
 The definition of each attribute is defined below.
 
@@ -445,6 +445,8 @@ The definition of each attribute is defined below.
   - MUST be a non-empty string consisting of [RFC3986 `unreserved`
     characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3)
     (ALPHA / DIGIT / "-" / "." / "_" / "~").
+  - Versions MUST NOT use an `id` value of `null` or `this` due to these
+    being reserved for use by the `setdefaultversionid` operation
   - MUST be case-insensitive unique within the scope of the entity's parent.
     In the case of the `id` for the Registry itself, the uniqueness scope will
     be based on where the Registry is used. For example, a publicly accessible
@@ -590,7 +592,7 @@ Then the existing entity can be deleted.
   - `John Smith`
   - `john.smith@example.com`
 
-#### `createdon`
+#### `createdat`
 
 - Type: Timestamp
 - Description: The date/time of when the entity was created
@@ -598,7 +600,7 @@ Then the existing entity can be deleted.
   - MUST be a [RFC3339](https://tools.ietf.org/html/rfc3339) timestamp
   - MUST be a read-only attribute in API view
   - If this feature is enabled after an entity has already been created,
-    that entity's `createdon` value MUST remain empty
+    that entity's `createdat` value MUST remain empty
 - Examples:
   - `2030-12-19T06:00:00Z`
 
@@ -622,19 +624,19 @@ Then the existing entity can be deleted.
   - `John Smith`
   - `john.smith@example.com`
 
-#### `modifiedon`
+#### `modifiedat`
 
 - Type: Timestamp
 - Description: The date/time of when the entity was last updated
 - Constraints:
   - MUST be a [RFC3339](https://tools.ietf.org/html/rfc3339) timestamp
   - MUST be a read-only attribute in API view
-  - Upon creation of a new entity, this attribute MUST match the `createdon`
+  - Upon creation of a new entity, this attribute MUST match the `createdat`
     attribute's value
-  - Setting an entity's `modifiedon` value MUST NOT implicitly update any
-    parent entity's `modifiedon` value
+  - Setting an entity's `modifiedat` value MUST NOT implicitly update any
+    parent entity's `modifiedat` value
   - If this feature is enabled after an entity has already been created,
-    that entity's `modifiedon` value MUST remain empty until a subsequent
+    that entity's `modifiedat` value MUST remain empty until a subsequent
     update is performed on that entity
 - Examples:
   - `2030-12-19T06:00:00Z`
@@ -915,7 +917,7 @@ entity follows the same set of rules:
   does not match the existing entity's `epoch` value then an error MUST be
   generated. Additionally, for an update request, the `epoch` value MUST be
   incremented (see [epoch](#epoch) for more information).
-- The `createdby`, `createdon`, `modifiedby` and `modifiedon` attributes MUST
+- The `createdby`, `createdat`, `modifiedby` and `modifiedat` attributes MUST
   be updated appropriately if they are supported by the server.
 - Excluding any Registry collection attributes, when serialized in the HTTP
   body, the entity's representation MUST be a full representation of its
@@ -1559,7 +1561,7 @@ Regardless of how the model is retrieved, the overall format is as follows:
           "singular": "STRING",        # e.g. "definition"
           "maxversions": UINTEGER, ?   # Num Vers(>=0). Default=0, 0=unlimited
           "setversionid": BOOLEAN, ?   # Supports client specified Version IDs
-          "setdefault": BOOLEAN, ?     # Supports client "default" selection
+          "setstickydefaultversion": BOOLEAN, ?     # Supports client "default" selection
           "hasdocument": BOOLEAN, ?    # Has a separate document. Default=true
           "readonly": BOOLEAN, ?       # From client's POV. Default=false
           "immutable": BOOLEAN, ?      # Once set, can't change. Default=false
@@ -1812,7 +1814,8 @@ The following describes the attributes of Registry model:
     deleting the oldest Version (based on creation times) first, skipping the
     Version marked as "default". An exception to this pruning rule is if
     `maxversions` value is one (`1`) then the newest Version of the Resource
-    MUST always be the "default" and the `setdefault` aspect MUST be `false`
+    MUST always be the "default" and the `setstickydefaultversion` aspect
+    MUST be `false`
 
 - `groups.resources.setversionid`
   - Indicates whether support for client-side setting of a Version's `id` is
@@ -1825,9 +1828,11 @@ The following describes the attributes of Registry model:
   - A value of `false` indicates that the server MUST choose an appropriate
     `id` value during creation of the Version
 
-- `groups.resources.setdefault`
+- `groups.resources.setstickydefaultversion`
   - Indicates whether support for client-side selection of the "default"
-    Version is supported for Resources of this type
+    Version is supported for Resources of this type. Once set, the default
+    Version MUST NOT change unless there is some explicit action by a client
+    to change it - thus making it "sticky".
   - Type: Boolean (`true` or `false`, case sensitive)
   - OPTIONAL
   - The default value is `true`
@@ -1836,7 +1841,7 @@ The following describes the attributes of Registry model:
     than the server always choosing the default Version
   - A value of `false` indicates the server MUST choose which Version is the
     default Version
-  - This attribute MUST NOT be `true` is `maxversions` is one (`1`)
+  - This attribute MUST NOT be `true` if `maxversions` is one (`1`)
 
 - `groups.resources.hasdocument`
   - Indicates whether or not Resource of this type can have a document
@@ -1964,7 +1969,7 @@ Content-Type: application/json; charset=utf-8
           "singular": "STRING",
           "maxversions": UINTEGER, ?
           "setversionid": BOOLEAN, ?
-          "setdefault": BOOLEAN, ?
+          "setstickydefaultversion": BOOLEAN, ?
           "hasdocument": BOOLEAN, ?
           "readonly": BOOLEAN, ?
           "immutable": BOOLEAN, ?
@@ -2071,7 +2076,7 @@ Content-Type: application/json; charset=utf-8
           "singular": "STRING",
           "maxversions": UINTEGER, ?
           "setversionid": BOOLEAN, ?
-          "setdefault": BOOLEAN, ?
+          "setstickydefaultversion": BOOLEAN, ?
           "hasdocument": BOOLEAN, ?
           "readonly": BOOLEAN, ?
           "immutable": BOOLEAN, ?
@@ -2138,7 +2143,7 @@ Content-Type: application/json; charset=utf-8
           "singular": "STRING",
           "maxversions": UINTEGER, ?
           "setversionid": BOOLEAN, ?
-          "setdefault": BOOLEAN, ?
+          "setstickydefaultversion": BOOLEAN, ?
           "hasdocument": BOOLEAN, ?
           "readonly": BOOLEAN, ?
           "immutable": BOOLEAN, ?
@@ -2377,9 +2382,9 @@ The serialization of a Group entity adheres to this form:
   "labels": { "STRING": "STRING" * }, ?
   "origin": "URI", ?
   "createdby": "STRING", ?
-  "createdon": "TIME", ?
+  "createdat": "TIME", ?
   "modifiedby": "STRING", ?
-  "modifiedon": "TIME", ?
+  "modifiedat": "TIME", ?
 
   # Repeat for each Resource type in the Group
   "RESOURCEsurl": "URL",                    # e.g. "definitionsurl"
@@ -2399,9 +2404,9 @@ Groups include the following common attributes:
 - [`labels`](#labels) - OPTIONAL
 - [`origin`](#origin) - OPTIONAL
 - [`createdby`](#createdby) - OPTIONAL
-- [`createdon`](#createdon) - OPTIONAL
+- [`createdat`](#createdat) - OPTIONAL
 - [`modifiedby`](#modifiedby) - OPTIONAL
-- [`modifiedon`](#modifiedon) - OPTIONAL
+- [`modifiedat`](#modifiedat) - OPTIONAL
 
 and the following Group specific attributes:
 
@@ -2447,9 +2452,9 @@ Link: <URL>;rel=next;count=UINTEGER ?
     "labels": { "STRING": "STRING" * }, ?
     "origin": "URI", ?
     "createdby": "STRING", ?
-    "createdon": "TIME", ?
+    "createdat": "TIME", ?
     "modifiedby": "STRING", ?
-    "modifiedon": "TIME", ?
+    "modifiedat": "TIME", ?
 
     # Repeat for each Resource type in the Group
     "RESOURCEsurl": "URL",                    # e.g. "definitionsurl"
@@ -2541,9 +2546,9 @@ Each individual Group in a successful response MUST adhere to the following:
   "labels": { "STRING": "STRING" * }, ?
   "origin": "URI", ?
   "createdby": "STRING", ?
-  "createdon": "TIME", ?
+  "createdat": "TIME", ?
   "modifiedby": "STRING", ?
-  "modifiedon": "TIME", ?
+  "modifiedat": "TIME", ?
 
   # Repeat for each Resource type in the Group
   "RESOURCEsurl": "URL",                    # e.g. "definitionsurl"
@@ -2640,9 +2645,9 @@ Content-Type: application/json; charset=utf-8
   "labels": { "STRING": "STRING" * }, ?
   "origin": "URI", ?
   "createdby": "STRING", ?
-  "createdon": "TIME", ?
+  "createdat": "TIME", ?
   "modifiedby": "STRING", ?
-  "modifiedon": "TIME", ?
+  "modifiedat": "TIME", ?
 
   # Repeat for each Resource type in the Group
   "RESOURCEsurl": "URL",                     # e.g. "definitionsurl"
@@ -2806,14 +2811,14 @@ Resources (not Versions) include the following common attributes:
 - [`labels`](#labels) - OPTIONAL
 - [`origin`](#origin) - OPTIONAL
 - [`createdby`](#createdby) - OPTIONAL
-- [`createdon`](#createdon) - OPTIONAL
+- [`createdat`](#createdat) - OPTIONAL
 - [`modifiedby`](#modifiedby) - OPTIONAL
-- [`modifiedon`](#modifiedon) - OPTIONAL
+- [`modifiedat`](#modifiedat) - OPTIONAL
 - [`contenttype`](#contenttype) - STRONGLY RECOMMENDED
 
 and the following Resource specific attributes:
 
-**`setdefault`**
+**`stickydefaultversion`**
 - Type: Boolean
 - Description: indicates whether or not the "default" Version has been
   explicitly set or whether the "default" Version is always the newest one. A
@@ -2996,9 +3001,9 @@ xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING *
 xRegistry-origin: STRING ?
 xRegistry-createdby: STRING ?
-xRegistry-createdon: TIME ?
+xRegistry-createdat: TIME ?
 xRegistry-modifiedby: STRING ?
-xRegistry-modifiedon: TIME ?
+xRegistry-modifiedat: TIME ?
 xRegistry-versionsurl: URL
 xRegistry-versionscount: UINTEGER
 xRegistry-RESOURCEurl: URL ?
@@ -3046,9 +3051,9 @@ this form:
   "labels": { "STRING": "STRING" * }, ?
   "origin": "URI", ?
   "createdby": "STRING", ?
-  "createdon": "TIME", ?
+  "createdat": "TIME", ?
   "modifiedby": "STRING", ?
-  "modifiedon": "TIME", ?
+  "modifiedat": "TIME", ?
   "contenttype": "STRING", ?
 
   "RESOURCEurl": "URL", ?                  # If not local
@@ -3148,9 +3153,9 @@ Link: <URL>;rel=next;count=UINTEGER ?
     "labels": { "STRING": "STRING" * }, ?
     "origin": "URI", ?
     "createdby": "STRING", ?
-    "createdon": "TIME", ?
+    "createdat": "TIME", ?
     "modifiedby": "STRING", ?
-    "modifiedon": "TIME", ?
+    "modifiedat": "TIME", ?
     "contenttype": "STRING", ?
 
     "RESOURCEurl": "URL", ?                  # If not local
@@ -3521,9 +3526,9 @@ xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING *
 xRegistry-origin: STRING ?
 xRegistry-createdby: STRING ?
-xRegistry-createdon: TIME ?
+xRegistry-createdat: TIME ?
 xRegistry-modifiedby: STRING ?
-xRegistry-modifiedon: TIME ?
+xRegistry-modifiedat: TIME ?
 xRegistry-versionsurl: URL
 xRegistry-versionscount: UINTEGER
 xRegistry-RESOURCEurl: URL      # If Resource is not in body
@@ -3572,9 +3577,9 @@ Content-Location: URL ?
   "labels": { "STRING": "STRING" * }, ?
   "origin": "URI", ?
   "createdby": "STRING", ?
-  "createdon": "TIME", ?
+  "createdat": "TIME", ?
   "modifiedby": "STRING", ?
-  "modifiedon": "TIME", ?
+  "modifiedat": "TIME", ?
   "contenttype": "STRING", ?
 
   "RESOURCEurl": "URL", ?                  # If not local
@@ -3676,9 +3681,9 @@ When serialized as a JSON object, the Version entity adheres to this form:
   "labels": { "STRING": "STRING" * }, ?
   "origin": "URI", ?
   "createdby": "STRING", ?
-  "createdon": "TIME", ?
+  "createdat": "TIME", ?
   "modifiedby": "STRING", ?
-  "modifiedon": "TIME", ?
+  "modifiedat": "TIME", ?
   "contenttype": "STRING", ?
 
   "RESOURCEurl": "URL", ?                  # If not local
@@ -3698,9 +3703,9 @@ Versions include the following attributes as defined by the
 - [`labels`](#labels) - OPTIONAL
 - [`origin`](#origin) - OPTIONAL
 - [`createdby`](#createdby) - OPTIONAL
-- [`createdon`](#createdon) - OPTIONAL
+- [`createdat`](#createdat) - OPTIONAL
 - [`modifiedby`](#modifiedby) - OPTIONAL
-- [`modifiedon`](#modifiedon) - OPTIONAL
+- [`modifiedat`](#modifiedat) - OPTIONAL
 - [`contenttype`](#contenttype) - OPTIONAL
 - `RESOURCEurl` - OPTIONAL
 - `RESOURCE` - OPTIONAL
@@ -3715,7 +3720,7 @@ and the following Version specific attributes:
   might often be a calculated value rather than persisted in a datastore.
   Thus, when its value changes due to the default Version of a Resource
   changing, the Version itself does not change - meaning the `epoch`, and
-  `modifiedon` values remains unchanged.
+  `modifiedat` values remains unchanged.
 
   See [Creating or Updating Resources and
   Versions](#creating-or-updating-resources-and-versions) for additional
@@ -3761,23 +3766,25 @@ As Versions of a Resource are added or removed there needs to be a mechanism
 by which the "default" one is determined. There are three options for how this
 might be determined:
 
-1. Server's choice. If the Resource's model has the `setdefault` aspect set to
-   `false` then the server will always choose which Version is the "default"
-   and any attempt by the client control it MUST result in the generation of
-   an error.
+1. Server's choice. If the Resource's model has the `setstickydefaultversion`
+   aspect set to `false` then the server will always choose which Version is
+   the "default" and any attempt by the client control it MUST result in the
+   generation of an error.
 
    This specification does not mandate the algorithm that the server uses,
    however the default choice SHOULD be to "newest = default" (option 2).
 
 2. Newest = Default. The newest Version created (based on creation timestamp,
-   even if the `createdon` feature is not enabled), is always the "default"
+   even if the `createdat` feature is not enabled), is always the "default"
    Version. This is the default choice.
 
 3. Client explicitly chooses the "default". In this option, a client has
    explicitly chosen which Version is the "default" (via the
    `setdefaultversionid` query parameter) and it will not change until a client
    chooses another Version, or that Version is deleted (in which case the
-   server MUST revert back to option 2 (newest = default)).
+   server MUST revert back to option 2 (newest = default)). This is referred
+   to as the default Version being "sticky" as it will not change until
+   explicitly requested by a client.
 
 If supported by the server, a client MAY choose the "default" Version via use
 of the `setdefaultversionid` query parameter:
@@ -3788,16 +3795,22 @@ of the `setdefaultversionid` query parameter:
 
 Where:
 - `vID` is the `id` of the Version that is to become the "default" version of
-  the referenced Resource or `null` if the client wishes to revert back to
-  the "newest = default" algorithm
-- If a non-null `vID` does not reference an existing Version of the Resource
-  then an HTTP `400 Bad Request` error MUST be generated
+  the referenced Resource. A value of `null` indicates that the client wishes
+  to switch to the "newest = default" algorithm, in other words, the "sticky"
+  aspect of the current default Version will be removed. It is STRONGLY
+  RECOMMENDED that clients provide an explicit `id` when possible. However,
+  if a Version create operation asks the server to choose the `id` then
+  including that `id` in the query parameter is not possible. In those cases
+  a value of `this` MAY be used, and if the request creates more than one
+  Version then an error MUST be generated.
+- If a non-null and non-this `vID` does not reference an existing Version of
+  the Resource then an HTTP `400 Bad Request` error MUST be generated
 
 This query parameter is available on many of the Resource and Version APIs,
 and when used it can reference any existing Version not just one of the
 Versions being managed by that particular request. Any use of this query
-parameter on a Resource that has the `setdefault` aspect set to `false` MUST
-generate an error.
+parameter on a Resource that has the `setstickydefaultversion` aspect set to
+`false` MUST generate an error.
 
 It is also possible to manage the default Version via a specialized case of
 the following API:
@@ -3824,12 +3837,12 @@ response as a `GET` to the targeted Resource.
 
 Regardless of which API the `setdefaultversionid` query parameter is used on,
 the act changing the default Version of a Resource MUST NOT increment the
-`epoch` or `modifiedon` values of any Version of the Resource.
+`epoch` or `modifiedat` values of any Version of the Resource.
 
-When a Resource's "default" Version has been explicitly set, the `setdefault`
-attribute MUST appear in the serialization of the Resource with a value of
-`true`. Otherwise, it MUST either have a value of `false` or not appear at all
-in the serialization.
+When a Resource's "default" Version has been explicitly set, the
+`stickydefaultversion` attribute MUST appear in the serialization of the
+Resource with a value of `true`. Otherwise, it MUST either have a value of
+`false` or not appear at all in the serialization.
 
 #### Retrieving all Versions
 
@@ -3864,9 +3877,9 @@ Link: <URL>;rel=next;count=UINTEGER ?
     "labels": { "STRING": "STRING" * }, ?
     "origin": "URI", ?
     "createdby": "STRING", ?
-    "createdon": "TIME", ?
+    "createdat": "TIME", ?
     "modifiedby": "STRING", ?
-    "modifiedon": "TIME", ?
+    "modifiedat": "TIME", ?
     "contenttype": "STRING", ?
 
     "RESOURCEurl": "URL", ?                  # If not local
@@ -3938,9 +3951,9 @@ xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING *
 xRegistry-origin: STRING ?
 xRegistry-createdby: STRING ?
-xRegistry-createdon: TIME ?
+xRegistry-createdat: TIME ?
 xRegistry-modifiedby: STRING ?
-xRegistry-modifiedon: TIME ?
+xRegistry-modifiedat: TIME ?
 
 ...Version contents...
 ```
@@ -3964,9 +3977,9 @@ xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING *
 xRegistry-origin: STRING ?
 xRegistry-createdby: STRING ?
-xRegistry-createdon: TIME ?
+xRegistry-createdat: TIME ?
 xRegistry-modifiedby: STRING ?
-xRegistry-modifiedon: TIME ?
+xRegistry-modifiedat: TIME ?
 xRegistry-RESOURCEurl: URL
 Location: URL
 ```
@@ -4029,9 +4042,9 @@ Content-Type: application/json; charset=utf-8
   "labels": { "STRING": "STRING" * }, ?
   "origin": "URI", ?
   "createdby": "STRING", ?
-  "createdon": "TIME", ?
+  "createdat": "TIME", ?
   "modifiedby": "STRING", ?
-  "modifiedon": "TIME", ?
+  "modifiedat": "TIME", ?
   "contenttype": "STRING", ?
 
   "RESOURCEurl": "URL", ?                  # If not local
