@@ -28,7 +28,7 @@
           "singular": "message",
           "plural": "messages",
           "maxversions": 1,
-          "setdefault": false,
+          "setstickydefaultversion": false,
           "hasdocument": false,
           "attributes": {
             "basemessageurl": {
