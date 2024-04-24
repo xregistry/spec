@@ -3243,17 +3243,9 @@ Where:
 Where:
 - See [Default Version of a Resource](#default-version-of-a-resource) for
   more information when there is no HTTP body and both `meta` and
-  `setdefaultversionid` are present. Otherwise, the following rules apply
-- This API MUST create or update one or more Versions of the Resource
-- When `meta` is present, the HTTP body MUST contain a map of Versions to
-  be create or updated, serialized as xRegistry metadata
-- When `meta` is absent, the request is to create or update a single Version
-  and the HTTP body MUST be that Version's document and there MUST be an
-  `xRegistry-id` HTTP header with the ID of the Version
-  - Additionally, a successful response would look like the result of a
-    `PUT /GROUPs/gID/RESOURCEs/rID/versions/vID` with respect to HTTP
-    status (`201` not `200`), HTTP headers and response body (new Version's
-    document, not the "default" Version's)
+  `setdefaultversionid` are present. Otherwise, this operation is an alias
+  for `POST /GROUPs/gID/RESOURCEs/rID/versions[?meta&setdefaultversionid=vID]`
+  (the next section) and the same rules apply
 
 `POST /GROUPs/gID/RESOURCEs/rID/versions[?meta&setdefaultversionid=vID]`
 
@@ -3261,9 +3253,22 @@ Where:
 - This API MUST create or update one or more Versions of the Resource
 - When `meta` is present, the HTTP body MUST contain a map of Versions to
   be create or updated, serialized as xRegistry metadata
-- When `meta` is absent, the request is to create or update a single Version
-  and the HTTP body MUST be that Version's document and there MUST be an
-  `xRegistry-id` HTTP header with the ID of the Version
+- When `meta` is absent, the request MUST create or update a single Version
+  and the HTTP body MUST be that Version's document
+  - Additionally, a successful response MUST look like the result of a
+    `PUT /GROUPs/gID/RESOURCEs/rID/versions/vID` with respect to HTTP
+    status (`201` not `200`), HTTP headers and response body (new Version's
+    document, not the "default" Version's)
+- If the Resource does not exist prior to this operation, and therefore it is
+  implicitly created, the following rules apply:
+  - If there is only one Version created, then it MUST become the default
+    Version, and use of the `setdefaultversionid` query parameter is OPTIONAL
+  - If there is more than one Version created, then use of the
+    `setdefaultversionid` is REQUIRED and MUST be set to the `id` of one of
+    the Versions
+  - If `meta` is present then there MUST be at least one Version specified
+    in the HTTP body. In other words, an empty collection MUST generate an
+    error
 
 `PUT  /GROUPs/gID/RESOURCEs/rID/versions/vID[?meta&setdefaultversionid=vID]`
 
@@ -3799,18 +3804,27 @@ Where:
   to switch to the "newest = default" algorithm, in other words, the "sticky"
   aspect of the current default Version will be removed. It is STRONGLY
   RECOMMENDED that clients provide an explicit `id` when possible. However,
-  if a Version create operation asks the server to choose the `id` then
+  if a Version create operation asks the server to choose the `id`, then
   including that `id` in the query parameter is not possible. In those cases
   a value of `this` MAY be used, and if the request creates more than one
   Version then an error MUST be generated.
 - If a non-null and non-this `vID` does not reference an existing Version of
-  the Resource then an HTTP `400 Bad Request` error MUST be generated
+  the Resource, after all Version processing is completed, then an HTTP
+  `400 Bad Request` error MUST be generated
 
 This query parameter is available on many of the Resource and Version APIs,
-and when used it can reference any existing Version not just one of the
-Versions being managed by that particular request. Any use of this query
-parameter on a Resource that has the `setstickydefaultversion` aspect set to
-`false` MUST generate an error.
+and MUST adhere to the following rules:
+- Aside from the special values of `null` and `this`, its value MUST be
+  the `id` of a Version for the specified Resource after all Version processing
+  is completed (i.e. after any Versions are added or removed). Its value is
+  not limited to the Versions involved in the current operation.
+- When the operation involves updating a Resource's "default" Version
+  properties, the processing of the `setdefaultversionid` parameter MUST be
+  done before the properties are updated. In other words, the Version updated
+  is new default Version, not the old one.
+
+Any use of this query parameter on a Resource that has the
+`setstickydefaultversion` aspect set to `false` MUST generate an error.
 
 It is also possible to manage the default Version via a specialized case of
 the following API:
@@ -3830,14 +3844,14 @@ Where:
 
 For clarity, the presence or absence of an HTTP body acts as the determining
 factor as to whether this API is just modifying the default Version ID or
-whether it is also creating a new Version.
+whether it is also creating/updating a Version.
 
 Upon successful completion of the request, the response MUST return the same
 response as a `GET` to the targeted Resource.
 
 Regardless of which API the `setdefaultversionid` query parameter is used on,
 the act changing the default Version of a Resource MUST NOT increment the
-`epoch` or `modifiedat` values of any Version of the Resource.
+`epoch`, `modifiedat` or `modifiedby` values of any Version of the Resource.
 
 When a Resource's "default" Version has been explicitly set, the
 `stickydefaultversion` attribute MUST appear in the serialization of the
