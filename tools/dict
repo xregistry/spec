@@ -1,10 +1,11 @@
 charset
 clientrequired
 contenttype
-createdby
 createdat
 datastore
 datatracker
+defaultversionid
+defaultversionurl
 definitionscount
 definitionsurl
 emoji
@@ -29,11 +30,8 @@ interoperable
 isdefault
 json
 jsonSchema
-defaultversionid
-defaultversionurl
 maxversions
 metadata
-modifiedby
 modifiedat
 myattr
 myendpoint
@@ -47,6 +45,9 @@ myschema
 mySchema
 mySchemas
 nbsp
+nodefaultversionid
+noepoch
+nostickydefaultversion
 png
 readonly
 rID
@@ -55,8 +56,8 @@ schemagroups
 schemagroupscount
 schemagroupsurl
 serverrequired
-setstickydefaultversion
 setdefaultversionid
+setstickydefaultversion
 setversionid
 siblingattributes
 someattribute

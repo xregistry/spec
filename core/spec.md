@@ -15,8 +15,14 @@ automation and tooling.
 - [Registry Attributes and APIs](#registry-attributes-and-apis)
   - [Attributes and Extensions](#attributes-and-extensions)
   - [Registry APIs](#registry-apis)
+    - [Registry Collections](#registry-collections)
+    - [Entity Processing Rules](#entity-processing-rules)
   - [Registry Entity](#registry-entity)
+    - [Retrieving the Registry](#retrieving-the-registry)
+    - [Updating the Registry Entity](#updating-the-registry-entity)
   - [Registry Model](#registry-model)
+    - [Retrieving the Registry Model](#retrieving-the-registry-model)
+    - [Updating the Registry Model](#updating-the-registry-model)
   - [Groups](#groups)
     - [Retrieving a Group Collection](#retrieving-a-group-collection)
     - [Creating or Updating Groups](#creating-or-updating-groups)
@@ -61,13 +67,13 @@ Group is similar to a "directory" on a filesystem.
 Resources represent the main data of interest for the Registry. In the
 filesystem analogy, these would be the "files". A Resource exist under a
 single Group and, similar to Groups, have a set of Registry metadata.
-However, unlike a Group which only has Registry metadata, Resources can
-have an associated "document" associated with it. This specification places
-no restriction on the type of content stored in the Resource's document.
+However, unlike a Group which only has Registry metadata, each Resource can
+have a "document" associated with it. For example, a "schema` Resource might
+have a "schema document" as its "document". This specification places no
+restriction on the type of content stored in the Resource's document.
 
 This specification defines a set of common metadata that can appear on both
-Groups and Resources, and allows for Registry (domain-specific) extensions to
-be added.
+Groups and Resources, and allows for domain-specific extensions to be added.
 
 The following 3 diagrams show (from left to right): 1) the core concepts of
 the Registry in its most basic form, 2) a Registry concept model with multiple
@@ -92,6 +98,8 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
+  "createdat": "TIME",
+  "modifiedat": "TIME",
 
   "model": {                            # Only if inlined
     "schemas": [ "STRING" * ], ?        # Available schema formats
@@ -159,10 +167,8 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       "documentation": "URL", ?
       "labels": { "STRING": "STRING" * }, ?
       "origin": "URI", ?
-      "createdby": "STRING", ?
-      "createdat": "TIME", ?
-      "modifiedby": "STRING", ?
-      "modifiedat": "TIME", ?
+      "createdat": "TIME",
+      "modifiedat": "TIME",
 
       # Repeat for each Resource type in the Group
       "RESOURCEsurl": "URL",                       # e.g. "definitionsurl"
@@ -173,21 +179,19 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
           "name": "STRING", ?
           "epoch": UINTEGER,
           "self": "URL",
-          "setstickydefaultversion": BOOLEAN,
+          "stickydefaultversion": BOOLEAN, ?
           "defaultversionid": "STRING",
           "defaultversionurl": "URL",
           "description": "STRING", ?
           "documentation": "URL", ?
           "labels": { "STRING": "STRING" * }, ?
           "origin": "URI", ?
-          "createdby": "STRING", ?
-          "createdat": "TIME", ?
-          "modifiedby": "STRING", ?
-          "modifiedat": "TIME", ?
+          "createdat": "TIME",
+          "modifiedat": "TIME",
           "contenttype": "STRING, ?
 
           "RESOURCEurl": "URL", ?                  # If not local
-          "RESOURCE": ... Resource contents ..., ? # If inlined & JSON
+          "RESOURCE": ... Resource document ..., ? # If inlined & JSON
           "RESOURCEbase64": "STRING", ?            # If inlined & ~JSON
 
           "versionsurl": "URL",
@@ -202,14 +206,12 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
               "documentation": "URL", ?
               "labels": { "STRING": "STRING" * }, ?
               "origin": "URI", ?
-              "createdby": "STRING", ?
-              "createdat": "TIME", ?
-              "modifiedby": "STRING", ?
-              "modifiedat": "TIME", ?
+              "createdat": "TIME",
+              "modifiedat": "TIME",
               "contenttype": "STRING", ?
 
               "RESOURCEurl": "URL", ?                  # If not local
-              "RESOURCE": ... Resource contents ..., ? # If inlined & JSON
+              "RESOURCE": ... Resource document ..., ? # If inlined & JSON
               "RESOURCEbase64": "STRING" ?             # If inlined & ~JSON
             } *
           } ?
@@ -290,16 +292,16 @@ versioned.
 ## Registry Attributes and APIs
 
 This section defines common Registry metadata attributes and APIs. It is an
-explicit goal for this specification that metadata can be created and managed in
-files in a file system, for instance in a Git repository, and also managed in a
-Registry service that implements the API described here.
+explicit goal for this specification that metadata can be created and managed
+in files in a file system, for instance in a Git repository, and also managed
+in a Registry service that implements the API described here.
 
 For instance, during development of a module, the metadata about the events
 raised by the modules will best be managed in a file that resides alongside the
 module's source code. When the module is ready to be deployed into a concrete
 system, the metadata about the events will be registered in a Registry service
-along with the endpoint where those events can be subscribed to or consumed
-from, and which allows discovery of the endpoint and all related metadata by
+along with the endpoints where those events can be subscribed to or consumed
+from, and which allows discovery of the endpoints and all related metadata by
 other systems at runtime.
 
 Therefore, the hierarchical structure of the Registry model is defined in such
@@ -310,7 +312,7 @@ In the remainder of this specification, in particular when defining the
 attributes of the Registry entities, the terms "document view" or "API view"
 will be used to indicate whether the serialization of the entity in question
 is meant for use as a stand-alone document or as part of a REST API message
-exchange.
+exchange - if there is a difference between the two usages.
 
 ### Attributes and Extensions
 
@@ -336,10 +338,8 @@ be one of the following data types:
     alphanumeric characters (`[a-z0-9]`), `-`, `_` or a `.`; be no longer
     than 63 characters; start with an alphanumeric character and be unique
     within the scope of this map
-  - When serialized as an HTTP header, each key MUST appear as a separate
-    HTTP header prefixed with `xRegistry-` and the map's owning attribute
-    name. The header value MUST be the key's "value". See
-    [HTTP Header Values](#http-header-values) for more information
+  - See [Serializaing Resource Documents](#serializing-resource-documents)
+    for more information about serializing maps as HTTP headers
 - `object` - a nested entity made up of a set of attributes of these data types
 - `string` - sequence of Unicode characters
 - `time` - an [RFC3339](https://tools.ietf.org/html/rfc3339) timestamp
@@ -363,11 +363,11 @@ following rules:
 - Their names MUST be between 1 and 63 characters in length
 - Their names MUST only contain lowercase alphanumeric characters or an
   underscore (`[a-z0-9_]`) and MUST NOT start with a digit (`[0-9]`)
-- For STRING attributes, and empty string is a valid value and MUST NOT be
+- For STRING attributes, an empty string is a valid value and MUST NOT be
   treated the same as an attribute with no value (or absence of the attribute)
-- The string serialization of the attribute name and its value MUST NOT exceed
-  4096 bytes. This is to ensure that it can appear in an HTTP header without
-  exceeding implementation limits (see
+- For scalar attributes, the string serialization of the attribute name and
+  its value MUST NOT exceed 4096 bytes. This is to ensure that it can appear
+  in an HTTP header without exceeding implementation limits (see
   [RFC6265/Limits](https://datatracker.ietf.org/doc/html/rfc6265#section-6.1)).
   In cases where larger amounts of data is needed, it is RECOMMENDED that
   an attribute (defined as a URL) be defined that references a separate
@@ -400,9 +400,9 @@ attributes. However they MUST adhere to the following rules:
     name at that level in the model
   - Be permitted due to the presence of an `any` type for one of its parent
     attribute definitions
-- They MUST NOT change, or extend, the semantics of the Registry - they MUST
-  only be additional metadata to be persisted in the Registry since servers
-  are mandated to persist all valid extensions
+- They MUST NOT change the semantics of the Registry - they MUST only be
+  additional metadata to be persisted in the Registry since servers MUST
+  persist all valid extensions
 - They MUST NOT conflict with the name of an attribute defined by this
   specification, including the `RESOURCE*` and `COLLECTION*` attributes that
   are implicitly defined. Note that if a Resource type has the `hasdocument`
@@ -430,12 +430,10 @@ form:
 - `"documentation": "URL"`
 - `"labels": { "STRING": "STRING" * }`
 - `"origin": "URI"`
-- `"createdby": "STRING"`
 - `"createdat": "TIME"`
-- `"modifiedby": "STRING"`
 - `"modifiedat": "TIME"`
 
-The definition of each attribute is defined below.
+The definition of each attribute is defined below:
 
 #### `id`
 
@@ -452,6 +450,12 @@ The definition of each attribute is defined below.
     be based on where the Registry is used. For example, a publicly accessible
     Registry might want to consider using a UUID, while a private Registry
     does not need to be so widely unique.
+  - In cases where an entity's `id` is specified outside of the serialization
+    of the entity (e.g. part of a request URL, or a map key), its
+    presence within the serialization of the entity is OPTIONAL. However, if
+    present, it MUST be the same as any other specification of the `id`
+    outside of the entity, and it MUST be the same as the entity's existing
+    `id` if one exists, otherwise an error MUST be generated
   - MUST be immutable
 - Examples:
   - `a183e0a9-abf8-4763-99bc-e6b7fcc9544b`
@@ -485,15 +489,22 @@ Then the existing entity can be deleted.
 - Description: A numeric value used to determine whether an entity has been
   modified. Each time the associated entity is updated, this value MUST be
   set to a new value that is greater than the current one.
-  Note, this attribute is most often managed by the Registry itself.
   Note, if a new Version of a Resource is created that is based on an
   existing Version of that Resource, then the new Version's `epoch` value MAY
   be reset (e.g. to zero) since the scope of its values is the Version and not
   the entire Resource
 
-  Note: during a single write operation, whether this value is incremented for
+  During a single write operation, whether this value is incremented for
   each modified attribute of an entity, or updated just once for the entire
   operation is an implementation choice.
+
+  During a create operation, if this attribute is present in the request then
+  it MUST be silently ignored by the server.
+
+  During an update operation, if this attribute is present in the request then
+  an error MUST be generated if the request includes a non-null value that
+  differs from the existing value. A value of `null` MUST be treated the same
+  as a request with no `epoch` attribute at all.
 - Constraints:
   - MUST be an unsigned integer equal to or greater than zero
   - MUST increase in value each time the entity is updated
@@ -508,9 +519,9 @@ Then the existing entity can be deleted.
   be a combination of the base URL for the collection appended with the `id`
   of the entity
 
-  When this URL references a Resource or Version, it MUST include the `?meta`
+  When this URL references a Resource or Version, it MUST include the `meta`
   query parameter if the request asked for the serialization of the xRegistry
-  metadata. This would happen when `?meta` was used in the request, or when
+  metadata. This would happen when `meta` was used in the request, or when
   the Resource (or Version) is included in the serialization of a Group, such
   as when the `inline` feature is used.
 - Constraints:
@@ -535,7 +546,7 @@ Then the existing entity can be deleted.
   This specification does not place any constraints on the data returned from
   an HTTP `GET` to this URL
 - Constraints:
-  - MUST be a non-empty URL
+  - If present, MUST be a non-empty URL
   - MUST support an HTTP(s) `GET` to this URL
 - Examples:
   - `https://example.com/docs/myQueue`
@@ -546,7 +557,7 @@ Then the existing entity can be deleted.
 - Description: A mechanism in which additional metadata about the entity can
   be stored without changing the schema of the entity
 - Constraints:
-  - MUST be a map of zero or more name/value string pairs. See
+  - If present, MUST be a map of zero or more name/value string pairs. See
     [Attributes and Extensions](#attributes-and-extensions) for more
     information
   - Keys MUST be non-empty strings
@@ -577,52 +588,22 @@ Then the existing entity can be deleted.
 - Examples:
   - `https://example2.com/myregistry/endpoints/9876`
 
-#### `createdby`
-
-- Type: String
-- Description: A reference to the user or component that was responsible for
-  the creation of this entity. This specification makes no requirement on
-  the semantics or syntax of this value
-- Constraints:
-  - If present, MUST be non-empty
-  - MUST be a read-only attribute in API view
-  - If this feature is enabled after an entity has already been created,
-    that entity's `createdby` value MUST remain empty
-- Examples:
-  - `John Smith`
-  - `john.smith@example.com`
-
 #### `createdat`
 
 - Type: Timestamp
 - Description: The date/time of when the entity was created
 - Constraints:
   - MUST be a [RFC3339](https://tools.ietf.org/html/rfc3339) timestamp
-  - MUST be a read-only attribute in API view
-  - If this feature is enabled after an entity has already been created,
-    that entity's `createdat` value MUST remain empty
+  - When present in a write operation request, the value MUST override any
+    existing value, however a value of `null` MUST use the current date/time
+    as the new value
+  - When absent in a write operation request, any existing value MUST remain
+    unchanged, or if not present, set to the current date/time
+  - In cases where the `createdat` attribute is set to the current date/time
+    on multiple entities within the same operation, the same value MUST be
+    applied to all of the entities
 - Examples:
   - `2030-12-19T06:00:00Z`
-
-#### `modifiedby`
-
-- Type: String
-- Description: A reference to the user or component that was responsible for
-  the most recent update of this entity. This specification makes no
-  requirement on the semantics or syntax of this value
-- Constraints:
-  - If present, MUST be non-empty
-  - MUST be a read-only attribute in API view
-  - Upon creation of a new entity, this attribute MUST match the `createdby`
-    attribute's value
-  - Setting an entity's `modifiedby` value MUST NOT implicitly update any
-    parent entity's `modifiedby` value
-  - If this feature is enabled after an entity has already been created,
-    that entity's `modifiedby` value MUST remain empty until a subsequent
-    update is performed on that entity
-- Examples:
-  - `John Smith`
-  - `john.smith@example.com`
 
 #### `modifiedat`
 
@@ -630,14 +611,22 @@ Then the existing entity can be deleted.
 - Description: The date/time of when the entity was last updated
 - Constraints:
   - MUST be a [RFC3339](https://tools.ietf.org/html/rfc3339) timestamp
-  - MUST be a read-only attribute in API view
   - Upon creation of a new entity, this attribute MUST match the `createdat`
     attribute's value
-  - Setting an entity's `modifiedat` value MUST NOT implicitly update any
-    parent entity's `modifiedat` value
-  - If this feature is enabled after an entity has already been created,
-    that entity's `modifiedat` value MUST remain empty until a subsequent
-    update is performed on that entity
+  - Setting an entity's `modifiedat` value MUST NOT update any parent
+    entity's `modifiedat` value
+  - When present in a write operation request, the following applies:
+    - If the request value is the same as the existing value, then the
+      current date/time MUST be used as its new value
+    - If the request value is different than the existing value, then the
+      request value MUST be used as its new value
+    - If the request value is `null` then the current date/time MUST be used
+      as the new value
+  - When absent in a write operation request, it MUST be set to the current
+    date/time
+  - In cases where the `modifiedat` attribute is set to the current date/time
+    on multiple entities within the same operation, the same value MUST be
+    applied to all of the entities
 - Examples:
   - `2030-12-19T06:00:00Z`
 
@@ -701,6 +690,42 @@ incorporate authentication and/or authorization mechanisms for the APIs.
 If an API is not supported by the server then a `405 Method Not Allowed`
 HTTP response MUST be generated.
 
+This specification attempts to follow a standard REST/HTTP processing model.
+The following key aspects are called out to help understand the overall
+pattern of the APIs:
+- A `PUT` or `POST` operation is a full replacement of the entities being
+  processed. Any missing attributes will be interpreted as a request for them
+  to be deleted. However, attributes that are managed by the server might have
+  specialized processing in those cases.
+- A `PATCH` operation will only modify the attributes explicitly mentioned
+  in the request. Any attribute with a value of `null` will be interpreted
+  as a request to delete the attribute, and as with `PUT`/`POST`, server
+  managed attributes might have specialized processing.
+- On write operations, without an `inline` query parameter, any included
+  xRegistry collections are ignored. In other words, the operation will only
+  modify the targeted entities, not any nested collections/entities.
+- `PUT` or `PATCH ` can not be targeted at xRegistry collections. A `POST`
+  would need to be used instead to add entities to the collection, and a
+  `DELETE` might also be needed to delete unwanted entities.
+- `POST` operations can only be targeted at xRegistry collections, not
+  individual entities - with the exception of a Resource entity. In that case
+  a `POST` to a Resource URL is treated as an alias for a `POST` to the
+  Resource's `version` collection.
+
+There might be situations where someone will do a `GET` to retrieve data
+from a Registry, and then do an update operation to a Registry with that data.
+Depending on the use case, they might not want some of the retrieved data
+to be applied during the update - for example, they might not want the
+`epoch` validation checking to occur. Rather than forcing the user to edit
+the data to remove the potentially problematic attributes, the following
+query parameters MAY be included to control certain aspects of the processing:
+- `noepoch` - presence of this query parameter indicates that any `epoch`
+  attribute included in the request MUST be ignored.
+- `nodefaultversionid` - presence of this query parameter indicates that any
+  `defaultversionid` attribute included in the request MUST be ignored.
+- `nostickydefaultversion` - presence of this query parameter indicates that
+  any `stickydefaultversion` attribute included in the request MUST be ignored.
+
 The remainder of this specification mainly focuses on the successful interaction
 patterns of the APIs. For example, most examples will show an HTTP "200 OK"
 as the response. Each implementation MAY choose to return a more appropriate
@@ -721,11 +746,11 @@ The serialization of a collection is done as 3 attributes and adheres to this
 form:
 
 ```yaml
-"COLLECTIONsurl": "URL", ?
-"COLLECTIONscount": UINTEGER, ?
+"COLLECTIONsurl": "URL",
+"COLLECTIONscount": UINTEGER,
 "COLLECTIONs": {
   # Map of entities in the collection, key is the "id" of each entity
-} ?
+}
 ```
 
 Where:
@@ -745,7 +770,7 @@ Where:
 - The `id` for each entity in the collection MUST be unique within the scope
   of the collection
 - The specifics of whether each attribute is REQUIRED or OPTIONAL will be
-  based whether document or API view is being used - see below
+  based whether document or API view is being used - see the next section
 
 When the `COLLECTIONs` attribute is expected to be present in the
 serialization, but the number of entities in the collection is zero, it MUST
@@ -787,23 +812,17 @@ In API view:
 - `COLLECTIONs` is OPTIONAL for responses and MUST only be included if the
   request included the [`inline`](#inlining) query parameter indicating that
   this collection's values are to be returned
-- `COLLECTIONs` is OPTIONAL for requests and how it is processed will vary
-  based on the presence, or absence, of the `inline` query parameter.
-  See [Updating Nested Registry
+- `COLLECTIONs` is OPTIONAL for requests and MUST be silently ignored if
+  the `inline` query parameter is not present. See [Updating Nested Registry
   Collections](#updating-nested-registry-collections) for more details.
-
-Note that the update semantics of a missing `COLLECTIONs` attribute is
-different from the update semantics of other attributes - where a missing
-non-`COLLECTIONs` attribute (in the HTTP body) means to delete it.
 
 ##### Updating Nested Registry Collections
 
 When updating an entity that might contain Registry collections, the request
 MAY contain the 3 collection attributes. The `COLLECTIONsurl` and
-`COLLECTIONscount` attributes MUST be silently ignored by the server. The
-processing of `COLLECTIONs` attribute, if present, will vary based on the
-value of an OPTIONAL `inline` query parameter. See `[Inlining](#inlining)
-for more information.
+`COLLECTIONscount` attributes MUST be silently ignored by the server.
+If the `inline` query parameter is not present, then the `COLLECTIONs`
+attribute MUST be silently ignored by the server.
 
 Note: in the [Inlining](#inlining) section of the specification, `inline`
 is defined such that it might include a `PATH` value. That is only used for
@@ -811,25 +830,24 @@ retrieval (`GET`) operations. On write operations, `PUT` or `POST`, the
 `inline` query parameter  does not define any values and therefore MUST be
 treated as a boolean flag.
 
-If the `inline` query parameter is not present, then the `COLLECTIONs`
-attribute MUST be silently ignored by the server.
+If the `inline` query parameter and the `COLLECTIONs` attribute is present,
+the server MUST process each entity in the collection map as a request to
+create or update that entity based on whether it already exists (as determined
+by its key value - its `id`). An entry in the map that isn't a valid entity
+(e.g. is `null`) MUST generate an error.
 
-If the `inline` query parameter is present, and when the `COLLECTIONs`
-attribute is present, the server MUST process each entity in the collection
-map as a request to create or update that entity based on whether it already
-exists (as determined by its key value). An entry in the map that isn't a
-valid entity (e.g. is `null`) MUST generate an error.
+The `inline` semantics MUST be applied to all nested `COLLECTIONs` attributes
+within the request regardless of the level in the hierarch in which they
+appear.
 
-If an entry in the map includes the `id` attribute, then it MUST match its
-key value in the map, otherwise an error MUST be generated.
+When processing a nested entry in the collection, it MUST be processed using
+the same semantics as the top-most entity. In other words, if a `PUT` or
+`POST` was used then any entities in the collection will be fully replaced. If
+a `PATCH` was used then only the attributes that appear in the serialization
+of the nested entity will be processed.
 
-The `inline` semantics MUST be applied to all `COLLECTIONs` attributes within
-the request regardless of the level in the hierarch in which they appear.
-
-When processing an entry in the collection, it MUST be processed as if there
-was a request to `PUT` that entity directly, with the HTTP body being the
-request's representation of the collection entity. Any error while processing
-a collection entity MUST result in the entire request being rejected.
+Any error while processing a nested collection entity MUST result in the entire
+request being rejected.
 
 An absent `COLLECTIONs` attribute MUST be interpreted as a request to not
 modify the collection at all due to processing of the request, regardless of
@@ -844,45 +862,51 @@ entity or Registry collection, the overall pattern is defined once in this
 section and any entity, or collection, specific rules will be detailed in the
 appropriate section in the specification.
 
-##### Creating or Updating Entities in a Registry Collection
+##### Creating or Updating Entities
+This defines the general rules for how to update entities.
 
-This defines the general rules for how to update entities in a Registry
-collection.
+Creating or updating entities MAY be done using HTTP `PUT`, `PATCH` or `POST`
+methods:
+- `PUT    PATH-TO-ENTITY[?OPTIONS]`           # Process a single entity
+- `PATCH  PATH-TO-ENTITY[?OPTIONS]`           # Process a single entity
+- `POST   PATH-TO-COLLECTION[?OPTIONS]`       # Process a set of entities
 
-Creating or updating entities via HTTP MAY be done using HTTP `PUT` or
-`POST` methods:
-- `PUT  PATH-TO_COLLETION/ID-OF-ENTITY[?inline]`
-- `POST PATH-TO-COLLECTION[?inline]`
-
-The following query parameters MUST be supported by servers:
-- `inline` - See
-   [Updating Nested Registry
-   Collections](#updating-nested-registry-collections) for more information
-
-Note that when the entity/collection is for Resources or Versions then the
-`meta` query parameter MAY also be used. See [Resource Metadata vs
-Resource Document](#resource-metadata-vs-resource-document) for more
-information.
+Based on the entity being processed, the `OPTIONS` available will vary.
 
 The `PUT` variant MUST adhere to the following:
-   - The URL MUST be of the form: `PATH-TO-COLLECTION/ID-OF-ENTITY`.
-   - The HTTP body MUST contain the serialization of the entity to be
-     processed.
-   - If the HTTP body is a serialization of xRegistry metadata, and it contains
-     an `id` attribute, then it MUST match the `id` used in the URL. Otherwise
-     an error MUST be generated.
+  - The URL MUST be of the form: `PATH-TO-ENTITY`.
+  - The HTTP body MUST contain the full serialization of the entity to be
+    processed.
+  - The entity processed MUST either be created (if it does not already
+    exist), or updated (if it does exist).
+  - Any mutable attribute which is either missing or present with a value of
+    `null`, MUST be interpreted as a request to delete the attribute.
+  - Excluding any Registry collection attributes, all mutable attributes
+    specified MUST be a full serialization of the attribute. Any missing
+    attribute MUST be interpreted as a request to delete the attribute.
 
 The `POST` variant MUST adhere to the following:
-   - The HTTP body MUST contain a JSON map where the key MUST be the `id` of
-     each entity in the map. Note that the `id` being present in the
-     serialization of the entity is OPTIONAL, but if present it MUST match
-     the map's key value for that entity. Key values MUST be unique within
-     the scope of the map.
-   - Each value in the map MUST be the JSON serialization of the entity to be
-     processed
-   - Each entity object in the map MUST either be created (if it does not
-     already exist), or updated (if it does exist) based on matching of the
-     key value.
+  - The HTTP body MUST contain a JSON map where the key MUST be the `id` of
+    each entity in the map.
+  - Each value in the map MUST be the JSON serialization of the entity to be
+    either added or updated. Note that `POST` does not support deleting
+    entities from a collection, so a separate delete operation might be needed
+    if there are entities that need to be removed.
+  - The processing of each individual entity in the map MUST follow the same
+    rules as defined for `PUT` above.
+
+The `PATCH` variant MUST adhere to the `PUT` semantics defined above with the
+following exceptions:
+  - Any mutable attribute which is missing MUST be interpreted as a request to
+    leave it unchanged. However, modifying some other attribute (or some other
+    server semantics) MAY modify it. A value of `null` MUST be interpreted as
+    a request to delete the attribute.
+  - When using `PATCH` for a Resource or Version, the `meta` query parameter
+    MUST be used. When the `meta` query parameter is absent, the processing
+    of the HTTP `xRegistry-` headers is already defined with "patch"
+    semantics.
+  - `PATCH` MAY be used to create new entities, but as with any of the create
+    operations, any missing REQUIRED attributes MUST generate an error.
 
 Note: when processing Resources and Versions, based on the use of the `meta`
 query parameter (see the [Resource Metadata vs Resource
@@ -897,7 +921,7 @@ the following:
 
 ```yaml
 {
-  "id": "ID", ?                                    # PUT or non-$KEY variants
+  "id": "ID", ?
   ... remaining entity attributes ...
 
   # Repeat for each nested Registry collection in the entity
@@ -907,23 +931,15 @@ the following:
 }
 ```
 
-In both the `PUT` and `POST` variants, the processing of each individual
-entity follows the same set of rules:
+The processing of each individual entity follows the same set of rules:
 - If an entity with the specified `id` already exists then it MUST be
   interpreted as a request to update the existing entity. Otherwise, it MUST
   be interpreted as a request to create a new entity with that `id`.
-- The `epoch` attribute for the incoming entity is OPTIONAL and if present
-  on a create request, MUST be silently ignored. For an update request, if it
-  does not match the existing entity's `epoch` value then an error MUST be
-  generated. Additionally, for an update request, the `epoch` value MUST be
-  incremented (see [epoch](#epoch) for more information).
-- The `createdby`, `createdat`, `modifiedby` and `modifiedat` attributes MUST
-  be updated appropriately if they are supported by the server.
-- Excluding any Registry collection attributes, when serialized in the HTTP
-  body, the entity's representation MUST be a full representation of its
-  mutable attributes (including complex attributes such as `labels` in their
-  entirety). Any attribute not present in the request MUST be interpreted as a
-  request to delete that attribute.
+- See the definition of each attribute for the rules governing how it is
+  processed.
+- All attributes present MUST be a full representation of its value. This means
+  any complex attributes (e.g. object, maps), MUST be fully replaced by the
+  incoming value.
 - A request to update, or delete, a read-only attribute MUST be silently
   ignored.
 - A request to update a mutable attribute with an invalid value MUST generate
@@ -931,19 +947,19 @@ entity follows the same set of rules:
 - Any Registry collection attributes MUST be processed per the rules specified
   in the [Updating Nested Registry
   Collections](#updating-nested-registry-collections) section.
-- Any error during the processing of an entity MUST result in the entire
-  request being rejected and no updates performed.
+- Any error during the processing of an entity, or its nested entities, MUST
+  result in the entire request being rejected and no updates performed.
 
-A successful response MUST be the same as a `GET` to the URL (without any query
-parameters) used in the request, showing the current representation of the
-entities processed, with the following exceptions:
+A successful response MUST be the same as a `GET` to the entity (or entities)
+processed without any query parameters, showing their current representation,
+with the following exceptions:
 - In the `POST` case, the result MUST contain only the entities processed,
   not the entire Registry collection, nor any entities deleted as a result
   of processing the request
-- In the `PUT` case, for a newly created entity, the HTTP status MUST be
-  `201 Created`, and it MUST include an HTTP `Location` header with a URL to
-  the newly created entity. Note that this URL MUST be the same as the `self`
-  attribute of that entity.
+- In the `PUT` or `PATCH` cases, for a newly created entity, the HTTP status
+  MUST be `201 Created`, and it MUST include an HTTP `Location` header with a
+  URL to the newly created entity. Note that this URL MUST be the same as the
+  `self` attribute of that entity.
 
 Otherwise an HTTP `200 OK` without an HTTP `Location` header MUST be returned.
 
@@ -1042,7 +1058,7 @@ Where:
 - If the entity can not be found, then an HTTP `404 Not Found` error MUST
   be generated
 
-The following query parameters MUST be supported by servers:
+The following query parameter MUST be supported by servers:
 - `epoch`<br>
   The presence of this query parameter indicates that the server MUST check
   to ensure that the `epoch` value matches the entity's current `epoch` value
@@ -1117,6 +1133,8 @@ The serialization of the Registry entity adheres to this form:
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
+  "createdat": "TIME",
+  "modifiedat": "TIME",
 
   "model": { Registry model }, ?      # Only if "?model" is on request
 
@@ -1128,14 +1146,15 @@ The serialization of the Registry entity adheres to this form:
 ```
 
 The Registry entity includes the following common attributes:
-- [`id`](#id) - REQUIRED
+- [`id`](#id) - REQUIRED in responses and document view, otherwise OPTIONAL
 - [`name`](#name) - OPTIONAL
 - [`epoch`](#epoch) - REQUIRED in responses, otherwise OPTIONAL
-- [`self`](#self) - REQUIRED in responses, OPTIONAL in requests and in
-  document view
+- [`self`](#self) - REQUIRED in responses, otherwise OPTIONAL
 - [`description`](#description) - OPTIONAL
 - [`documentation`](#documentation) - OPTIONAL
 - [`labels`](#labels) - OPTIONAL
+- [`createdat`](#createdat) - REQUIRED in responses, otherwise OPTIONAL
+- [`modifiedat`](#modifiedat) - REQUIRED in responses, otherwise OPTIONAL
 
 and the following Registry specific attributes:
 
@@ -1211,6 +1230,8 @@ Content-Type: application/json; charset=utf-8
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
+  "createdat": "TIME",
+  "modifiedat": "TIME",
 
   "model": { Registry model }, ?      # Only if "?model" is present
 
@@ -1239,6 +1260,8 @@ Content-Type: application/json; charset=utf-8
   "id": "987654321",
   "epoch": 1,
   "self": "https://example.com/",
+  "createdat": "2024-04-30T12:00:00Z",
+  "modifiedat": "2024-04-30T12:00:01Z",
 
   "endpointsurl": "https://example.com/endpoints",
   "endpointscount": 42,
@@ -1264,6 +1287,8 @@ Content-Type: application/json; charset=utf-8
   "id": "987654321",
   "epoch": 1,
   "self": "https://example.com/",
+  "createdat": "2024-04-30T12:00:00Z",
+  "modifiedat": "2024-04-30T12:00:01Z",
 
   "model": {
     "schemas": [ "xRegistry-json", "jsonSchema/2020-12" ],
@@ -1327,12 +1352,14 @@ Content-Type: application/json; charset=utf-8
 
 #### Updating the Registry Entity
 
-To update the Registry entity, an HTTP `PUT` MAY be used.
+To update the Registry entity, an HTTP `PUT` or `PATCH` MAY be used.
 
 The request MUST be of the form:
 
 ```yaml
 PUT /[?inline]
+or
+PATCH /[?inline]
 Content-Type: application/json; charset=utf-8
 
 {
@@ -1342,6 +1369,8 @@ Content-Type: application/json; charset=utf-8
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
+  "createdat": "TIME", ?
+  "modifiedat": "TIME", ?
 
   # Repeat for each Group type
   "GROUPsurl": "URL", ?               # Read-only, ignored by server
@@ -1353,15 +1382,6 @@ Content-Type: application/json; charset=utf-8
 Where:
 - The HTTP body MUST contain the full JSON representation of the Registry
   entity's mutable attributes
-- Attributes not present in the request MUST be interpreted as a request to
-  delete the attribute
-- A request to update, or delete, a read-only attribute MUST be silently ignored
-- A request to update a mutable attribute with an invalid value MUST
-  generate an error (this includes deleting a mandatory mutable attribute)
-- Complex attributes that have nested values (e.g. `labels`) MUST be specified
-  in their entirety
-- If `epoch` is present then the server MUST reject the request if the
-  Registry's current `epoch` value is different from the one in the request
 - The request SHOULD NOT include the `model` and if it does, then the
   server MUST silently ignore it. Updating the model MUST only be done via the
   `/model` API. See [Updating the Registry Model](#updating-the-registry-model)
@@ -1369,7 +1389,7 @@ Where:
 
 TODO: we allow updating the "model"?
 
-The following query parameters MUST be supported by servers:
+The following query parameter MUST be supported by servers:
 - `inline` - See
    [Updating Nested Registry
    Collections](#updating-nested-registry-collections) for more information
@@ -1390,6 +1410,8 @@ Content-Type: application/json; charset=utf-8
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
+  "createdat": "TIME",
+  "modifiedat": "TIME",
 
   # Repeat for each Group type
   "GROUPsurl": "URL",
@@ -1423,6 +1445,8 @@ Content-Type: application/json; charset=utf-8
   "epoch": 2,
   "self": "https://example.com/",
   "description": "An even cooler registry!",
+  "createdat": "2024-04-30T12:00:00Z",
+  "modifiedat": "2024-04-30T12:00:01Z",
 
   "endpointsurl": "https://example.com/endpoints",
   "endpointscount": 42,
@@ -2031,7 +2055,8 @@ Content-Type: application/json; charset=utf-8
 
 #### Updating the Registry Model
 
-To update the Registry model, an HTTP `PUT` MAY be used.
+To update the Registry model, an HTTP `PUT` MAY be used. Note that `PATCH`
+is not supported.
 
 The request MUST be of the form:
 
@@ -2362,12 +2387,12 @@ and the second import might look like:
 
 ### Groups
 
-Groups represent top-level entities in a Registry that typically act as a
-collection mechanism for related Resources. However, it is worth noting that
-Groups do not have to have Resources associated with them. It is possible to
-have Groups be the main (or only) entity of a Registry. Each Group type MAY
-have any number of Resource types within it. This specification does not
-define how the Resources within a Group type are related to each other.
+Groups represent entities that typically act as a collection mechanism for
+related Resources. However, it is worth noting that Groups do not have to have
+Resources associated with them. It is possible to have Groups be the main (or
+only) entity of a Registry. Each Group type MAY have any number of Resource
+types within it. This specification does not define how the Resources within a
+Group type are related to each other.
 
 The serialization of a Group entity adheres to this form:
 
@@ -2381,10 +2406,8 @@ The serialization of a Group entity adheres to this form:
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
   "origin": "URI", ?
-  "createdby": "STRING", ?
-  "createdat": "TIME", ?
-  "modifiedby": "STRING", ?
-  "modifiedat": "TIME", ?
+  "createdat": "TIME",
+  "modifiedat": "TIME",
 
   # Repeat for each Resource type in the Group
   "RESOURCEsurl": "URL",                    # e.g. "definitionsurl"
@@ -2394,19 +2417,16 @@ The serialization of a Group entity adheres to this form:
 ```
 
 Groups include the following common attributes:
-- [`id`](#id) - REQUIRED, except on create request
+- [`id`](#id) - REQUIRED in responses and document view, otherwise OPTIONAL
 - [`name`](#name) - OPTIONAL
 - [`epoch`](#epoch) - REQUIRED in responses, otherwise OPTIONAL
-- [`self`](#self) - REQUIRED in responses, OPTIONAL in requests and in
-  document view
+- [`self`](#self) - REQUIRED in responses, otherwise OPTIONAL
 - [`description`](#description) - OPTIONAL
 - [`documentation`](#documentation) - OPTIONAL
 - [`labels`](#labels) - OPTIONAL
 - [`origin`](#origin) - OPTIONAL
-- [`createdby`](#createdby) - OPTIONAL
-- [`createdat`](#createdat) - OPTIONAL
-- [`modifiedby`](#modifiedby) - OPTIONAL
-- [`modifiedat`](#modifiedat) - OPTIONAL
+- [`createdat`](#createdat) - REQUIRED in responses, otherwise OPTIONAL
+- [`modifiedat`](#modifiedat) - REQUIRED in responses, otherwise OPTIONAL
 
 and the following Group specific attributes:
 
@@ -2417,7 +2437,7 @@ and the following Group specific attributes:
 - Constraints:
   - REQUIRED in responses, MAY be present in requests
   - REQUIRED in document view
-  - If present in a response, it MUST include all nested Registry Collection
+  - If present in a response, it MUST include all nested Resource Collection
     types of the owning Group
 
 #### Retrieving a Group Collection
@@ -2451,10 +2471,8 @@ Link: <URL>;rel=next;count=UINTEGER ?
     "documentation": "URL", ?
     "labels": { "STRING": "STRING" * }, ?
     "origin": "URI", ?
-    "createdby": "STRING", ?
-    "createdat": "TIME", ?
-    "modifiedby": "STRING", ?
-    "modifiedat": "TIME", ?
+    "createdat": "TIME",
+    "modifiedat": "TIME",
 
     # Repeat for each Resource type in the Group
     "RESOURCEsurl": "URL",                    # e.g. "definitionsurl"
@@ -2483,6 +2501,8 @@ Link: <https://example.com/endpoints&page=2>;rel=next;count=100
     "name": "A cool endpoint",
     "epoch": 1,
     "self": "https://example.com/endpoints/123",
+    "createdat": "2024-04-30T12:00:00Z",
+    "modifiedat": "2024-04-30T12:00:01Z",
 
     "definitionsurl": "https://example.com/endpoints/123/definitions",
     "definitionscount": 5
@@ -2492,6 +2512,8 @@ Link: <https://example.com/endpoints&page=2>;rel=next;count=100
     "name": "Redis Queue",
     "epoch": 3,
     "self": "https://example.com/endpoints/124",
+    "createdat": "2024-04-30T12:00:00Z",
+    "modifiedat": "2024-04-30T12:00:01Z",
 
     "definitionsurl": "https://example.com/endpoints/124/definitions",
     "definitionscount": 1
@@ -2507,12 +2529,12 @@ and that there are total of 100 items in this collection.
 
 Creating or updating Groups via HTTP MAY be done by using the HTTP `PUT`
 or `POST` methods:
-- `PUT  /GROUPs/gID[?inline]`
-- `POST /GROUPs[?inline]`
+- `PUT   /GROUPs/gID[?inline]`
+- `PATCH /GROUPs/gID[?inline]`
+- `POST  /GROUPs[?inline]`
 
 The overall processing of these two APIs is defined in the [Creating or
-Updating Entities in a Registry
-Collection](#creating-or-updating-entities-in-a-registry-collection) section.
+Updating Entities](#creating-or-updating-entities) section.
 
 Each individual Group definition MUST adhere to the following:
 
@@ -2525,6 +2547,8 @@ Each individual Group definition MUST adhere to the following:
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
   "origin": "URI" ?
+  "createdat": "TIME", ?
+  "modifiedat": "TIME", ?
 
   # Repeat for each Resource type in the Group
   "RESOURCEsurl": "URL",                     # e.g. "definitionsurl"
@@ -2545,10 +2569,8 @@ Each individual Group in a successful response MUST adhere to the following:
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
   "origin": "URI", ?
-  "createdby": "STRING", ?
-  "createdat": "TIME", ?
-  "modifiedby": "STRING", ?
-  "modifiedat": "TIME", ?
+  "createdat": "TIME",
+  "modifiedat": "TIME",
 
   # Repeat for each Resource type in the Group
   "RESOURCEsurl": "URL",                    # e.g. "definitionsurl"
@@ -2644,10 +2666,8 @@ Content-Type: application/json; charset=utf-8
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
   "origin": "URI", ?
-  "createdby": "STRING", ?
-  "createdat": "TIME", ?
-  "modifiedby": "STRING", ?
-  "modifiedat": "TIME", ?
+  "createdat": "TIME",
+  "modifiedat": "TIME",
 
   # Repeat for each Resource type in the Group
   "RESOURCEsurl": "URL",                     # e.g. "definitionsurl"
@@ -2673,6 +2693,8 @@ Content-Type: application/json; charset=utf-8
   "name": "myEndpoint",
   "epoch": 1,
   "self": "https://example.com/endpoints/123",
+  "createdat": "2024-04-30T12:00:00Z",
+  "modifiedat": "2024-04-30T12:00:01Z",
 
   "definitionsurl": "https://example.com/endpoints/123/definitions",
   "definitionscount": 5
@@ -2713,9 +2735,9 @@ However, there are a few exceptions:
   Resource, but to ensure the Resource itself has a consistent `id` value
   it is distinct from any Version's `id`.
 
-  Additionally, Resource `id` values are often human readable (e.g.
-  `mySchema`), while Version `id` values are meant to be version string
-  values (e.g. `v1.0`).
+  Additionally, Resource `id` values are often human readable descriptions
+  of the Resource (e.g. `mySchema`), while Version `id` values are meant to be
+  version string values (e.g. `v1.0`).
 
 - `self` MUST be an absolute URL to the Resource, and not to the "default"
   Version in the `versions` collection. The Resource's `defaultversionurl`
@@ -2724,10 +2746,8 @@ However, there are a few exceptions:
 - Version specific attributes (e.g. `isdefault`) MUST NOT appear on the
   Resource serialization.
 
-- Resources have a Versions (`versions`) Registry collection, and therefore
-  also the 3 corresponding Registry Collection attributes.
-
-All other attributes, including extensions, are picked-up from  the Version.
+All other Version attributes, including extensions, are picked-up from the
+Version.
 
 The remainder of this section discusses the processing rules for Resources
 and Versions. While it mainly uses the term "Resource" for ease of reading, in
@@ -2745,7 +2765,7 @@ indicating whether a Resource has its own separate document or not.
 This specification does not define any requirements for the contents of this
 document, and it doesn't even need to be stored within the Registry itself.
 The Resource MAY choose to simply store a URL reference to the externally
-managed content instead. When the document is stored within the Registry, it
+managed document instead. When the document is stored within the Registry, it
 can be managed as an opaque array of bytes.
 
 When a Resource does have a separate document, the URL for the Resource
@@ -2759,8 +2779,7 @@ GET https://example.com/schemagroups/mygroup/schemas/myschema?meta
 ```
 will retrieve the xRegistry metadata information for the `myschema` Resource.
 
-The presence of the `meta` query parameter acts as a switch such that the
-contents of the Resource becomes the xRegistry metadata, and the Resource's
+When the `meta` query parameter is used to retrieve a Resource, the Resource's
 separate document becomes available via a set of `RESOURCE*` attributes within
 that metadata:
 
@@ -2773,12 +2792,11 @@ that metadata:
   happens to be in the same format as the xRegistry itself.
 
 - `RESOURCEbase64`: this attribute MUST be used when `RESOURCE` can not be
-  used. The Resource's document is base64 encoded and serialized as a string
-  value for this attribute.
+  used. The Resource's document is base64 encoded and serialized as a string.
 
 - `RESOURCEurl`: this attribute MUST be used when the Resource is stored
   external to the Registry and its value MUST be a URL that can be used to
-  retrieve its contents.
+  retrieve its contents via an HTTP(s) `GET`.
 
 When a Resource is managed using the `meta` query parameter, often it is to
 view or update the xRegistry metadata and not the document, as such, including
@@ -2792,16 +2810,16 @@ document's content is needed at the same time as updates to the Resource's
 metadata. However, the `RESOURCEurl` attribute MUST always appear if it has a
 value.
 
-Note that a Resource MUST only use at most one of these 3 attributes at a time.
+Note that the serialization of a Resource MUST only use at most one of these 3
+attributes at a time.
 
 #### Resource Attributes
 
 Resources (not Versions) include the following common attributes:
 
 (these values are from the Resource, not the default Version)
-- [`id`](#id) - REQUIRED, except on create request where it is OPTIONAL
-- [`self`](#self) - REQUIRED in responses, OPTIONAL in requests and in
-  document view
+- [`id`](#id) - REQUIRED in responses and document view, otherwise OPTIONAL
+- [`self`](#self) - REQUIRED in responses, otherwise OPTIONAL
 
 (these values are picked-up from the default Version)
 - [`name`](#name) - OPTIONAL
@@ -2810,10 +2828,8 @@ Resources (not Versions) include the following common attributes:
 - [`documentation`](#documentation) - OPTIONAL
 - [`labels`](#labels) - OPTIONAL
 - [`origin`](#origin) - OPTIONAL
-- [`createdby`](#createdby) - OPTIONAL
-- [`createdat`](#createdat) - OPTIONAL
-- [`modifiedby`](#modifiedby) - OPTIONAL
-- [`modifiedat`](#modifiedat) - OPTIONAL
+- [`createdat`](#createdat) - REQUIRED in responses, otherwise OPTIONAL
+- [`modifiedat`](#modifiedat) - REQUIRED in responses, otherwise OPTIONAL
 - [`contenttype`](#contenttype) - STRONGLY RECOMMENDED
 
 and the following Resource specific attributes:
@@ -2821,16 +2837,38 @@ and the following Resource specific attributes:
 **`stickydefaultversion`**
 - Type: Boolean
 - Description: indicates whether or not the "default" Version has been
-  explicitly set or whether the "default" Version is always the newest one. A
-  value of `true` means that it was chosen by a client and the value of the
-  "default" Version will not change until explicitly changed or that Version
-  is deleted
+  explicitly set or whether the "default" Version is always the newest one
+  based on the `createdat` timestamp. A value of `true` means that it has been
+  explicitly set and the value of `defaultversionid` MUST NOT change if newer
+  Versions are added. A value of `false` means the default Version MUST be
+  the newest.
+
+  When set to true, if the default Version is deleted, then without any
+  indication of which Version is to become the new default Version, the
+  sticky aspect MUST be disabled and the default Version MUST be the newest
+  Version.
+
+  Note: if there is more than one Version with the newest `createdat` value,
+  then the Version chosen by the server will be indeterminate
+
 - Constraints:
-  - REQUIRED in responses when the value is `true`, OPTIONAL when `false`
-  - REQUIRED in document view when the value is `true`, OPTIONAL when `false`
-  - If present, MUST be either `true` or `false`, case sensitive
-  - If not present in responses, the default value MUST be `false`
-  - If present in requests, it MUST be silently ignored
+  - When not present, the default value is `false`
+  - REQUIRED when `true`, otherwise OPTIONAL
+  - If present in a request, it MUST be either `true` or `false, case
+    sensitive. However, a value of `null` has the same meaning as deleting the
+    attribute, implicitly setting it to `false`
+  - Since this attribute and `defaultversionid` are closely related, the
+    processing of them in a request message MUST adhere to the following:
+    - The `stickydefaultversion` attribute is applied first. As a reminder,
+      in the `PATCH` case, if this attribute is missing in the request then
+      this attribute remains unchanged in the Resource
+    - If the resulting value of this attribute is `false` then the sticky
+      aspect MUST be turned off, and any `defaultversionid` in the request
+      MUST be ignored. The newest Version MUST be the default Version.
+    - If the resulting value of this attribute is `true` then the sticky
+      aspect MUST be turned on, and any `defaultversionid` attribute from
+      the request is applied - where a value of `null` means "newest". A
+      reference to a Version that does not exist MUST generate an error
 - Examples:
   - `true`, `false`
 
@@ -2842,11 +2880,11 @@ and the following Resource specific attributes:
   is assumed that newer Versions of a Resource will have a "higher"
   `id` value than older Versions. Also see [`epoch`](#epoch)
 - Constraints:
-  - REQUIRED in responses, OPTIONAL on requests
-  - REQUIRED in document view
-  - MUST be a read-only attribute in API view
+  - REQUIRED in responses and document view, OPTIONAL in requests
   - If present, MUST be non-empty
   - MUST be the `id` of the default Version of the Resource
+  - See the `stickydefaultversion` section above for how to process these two
+    attributes
 - Examples:
   - `1`, `2.0`, `v3-rc1`
 
@@ -2854,8 +2892,8 @@ and the following Resource specific attributes:
 - Type: URL
 - Description: an absolute URL to the default Version of the Resource
 
-  This URL MUST include the `?meta` query parameter if the request asked for
-  the serialization of the Resource metadata. This would happen when `?meta`
+  This URL MUST include the `meta` query parameter if the request asked for
+  the serialization of the Resource metadata. This would happen when `meta`
   was used in the request, or when the Resource is included in the
   serialization of a Group, such as when the `inline` feature is used
 - Constraints:
@@ -2873,14 +2911,14 @@ and the following Resource specific attributes:
 - Constraints:
   - REQUIRED in responses, MAY be present in requests
   - REQUIRED in document view
-  - If present, it MUST always have at least one Version (the "default" Version)
+  - If present, it MUST always have at least one Version
 
 The following Version specific attributes will appear on both Resources and
 Versions:
 
 **`RESOURCEurl`**
 - Type: URI
-- Description: if the content of the Resource are stored outside of the
+- Description: if the Resources document is stored outside of the
   current Registry then this attribute MUST contain a URL to the
   location where it can be retrieved. If the value of this attribute
   is a well-known identifier that is readily understood by all registry
@@ -2889,25 +2927,25 @@ Versions:
   location, then it is RECOMMENDED for the value to be a uniform resource
   name (URN).
 - Constraints:
-  - REQUIRED if the Resource contents are not stored inside of the current
+  - REQUIRED if the Resource's document is not stored inside of the current
     Registry
-  - If the contents are stored in a network accessible endpoint then the
+  - If the document is stored in a network accessible endpoint then the
     referenced URL MUST support an HTTP(s) `GET` to retrieve the contents
   - MUST NOT be present if the Resource's `hasdocument` model attribute is
     set to `false`
 
 **`RESOURCE`**
-- Type: Resource Contents
+- Type: Resource Document
 - Description: This attribute is a serialization of the corresponding
-  Resource entity's contents. If the contents bytes "as is" allow for them to
+  Resource document's contents. If the document bytes "as is" allow for them to
   appear as the value of this attribute, then this attribute MUST be used if
-  the request asked for the contents to be inlined in the response.
+  the request asked for the document to be inlined in the response.
 - Constraints
   - MUST NOT be present when the Resource's Registry metadata are being
     serialized as HTTP headers
-  - If the Resource's contents are to be serialized and they are not empty,
+  - If the Resource's document is to be serialized and is not empty,
     then either `RESOURCE` or `RESOURCEbase64` MUST be present
-  - MUST only be used if the Resource contents (bytes) are in the same
+  - MUST only be used if the Resource document (bytes) are in the same
     format as the Registry Resource entity
   - MUST NOT be present if `RESOURCEbase64` is also present
   - MUST NOT be present if the Resource's `hasdocument` model attribute is
@@ -2916,16 +2954,16 @@ Versions:
 **`RESOURCEbase64`**
 - Type: String
 - Description: This attribute is a base64 serialization of the corresponding
-  Resource entity's contents. If the Resource contents (which are stored as
+  Resource document's contents. If the Resource document (which are stored as
   an array of bytes) are not conformant with the format being used to serialize
   with the Resource object (i.e. as a JSON value), then this attribute MUST be
   used in instead of the `RESOURCE` attribute.
 - Constraints:
   - MUST NOT be present when the Resource's Registry metadata are being
     serialized as HTTP headers
-  - If the Resource's contents are to be serialized and they are not empty,
+  - If the Resource's document is to be serialized and it is not empty,
     then either `RESOURCE` or `RESOURCEbase64` MUST be present
-  - MUST be a base64 encoded string of the Resource's contents
+  - MUST be a base64 encoded string of the Resource's document
   - MUST NOT be present if `RESOURCE` is also present
   - MUST NOT be present if the Resource's `hasdocument` model attribute is
     set to `false
@@ -2959,7 +2997,7 @@ attribute prefixed with `xRegistry-`. Certain attributes do not follow this
 rule if a standard HTTP header name is to be used instead (e.g. `contenttype`
 MUST use `Content-Type`).
 
-Top-level map attributes whose values are of scalar types, MUST also appear as
+Top-level map attributes whose values are of scalar types MUST also appear as
 HTTP headers (each key having it's own HTTP header) and in those cases the
 HTTP header names will be of the form: `xRegistry-ATTRIBUTENAME-KEYNAME`. Note
 that map keys MAY contain the `-` character, so any `-` after the 2nd `-` is
@@ -2973,9 +3011,9 @@ appear as HTTP headers.
 On update requests, similar serialization rules apply. However, rather than
 these headers being REQUIRED, the client would only need to include those
 top-level attributes that they would like to change. But, including unchanged
-attributes MAY is permissible. Any attributes not included in request messages
-MUST remain unchanged in the server. Using a value of `null` indicates a
-request to delete that attribute.
+attributes MAY be done. Any attributes not included in request messages
+MUST be interpreted as a request to leave their values unchanged. Using a
+value of `null` indicates a request to delete that attribute.
 
 Any top-level map attributes that appear as HTTP headers MUST be included
 in their entirety and any missing keys MUST be interpreted as a request to
@@ -2986,7 +3024,7 @@ query parameter MUST be used to manage the others. See the next section for
 more details.
 
 When a Resource (not a Version) is serialized with the Resource document
-contents in the HTTP body, it MUST adhere to this form:
+in the HTTP body, it MUST adhere to this form:
 
 ```yaml
 Content-Type: STRING ?
@@ -2994,23 +3032,22 @@ xRegistry-id: STRING                       # ID of Resource, not default Version
 xRegistry-name: STRING ?
 xRegistry-epoch: UINT
 xRegistry-self: URL                        # URL of Resource,not default Version
+xRegistry-stickydefaultversion: BOOLEAN ?
 xRegistry-defaultversionid: STRING
 xRegistry-defaultversionurl: URL
 xRegistry-description: STRING ?
 xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING *
 xRegistry-origin: STRING ?
-xRegistry-createdby: STRING ?
-xRegistry-createdat: TIME ?
-xRegistry-modifiedby: STRING ?
-xRegistry-modifiedat: TIME ?
+xRegistry-createdat: TIME
+xRegistry-modifiedat: TIME
 xRegistry-versionsurl: URL
 xRegistry-versionscount: UINTEGER
 xRegistry-RESOURCEurl: URL ?
 Location: URL
 Content-Location: URL ?
 
-...Resource contents... ?
+... Resource document ... ?
 ```
 
 Where:
@@ -3031,9 +3068,8 @@ include Version specific ones). See the next sections for more information.
 
 The `meta` query parameter on the URL to a Resource indicates a request to
 manage the xRegistry metadata about a Resource rather than its "document".
-When `?meta` appears on the URL of a Resource then the HTTP body
-of the message MUST contain a serialization of the xRegistry metadata of that
-Resource.
+When `meta` appears on the URL of a Resource then the HTTP body of the message
+MUST contain a serialization of the xRegistry metadata of that Resource.
 
 When serialized as a JSON object, a Resource (not a Version) MUST adhere to
 this form:
@@ -3044,20 +3080,19 @@ this form:
   "name": "STRING", ?
   "epoch": UINTEGER,
   "self": "URL",                           # URL of Resource,not default Version
+  "stickydefaultversion": BOOLEAN, ?
   "defaultversionid": "STRING",
   "defaultversionurl": "URL",
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
   "origin": "URI", ?
-  "createdby": "STRING", ?
-  "createdat": "TIME", ?
-  "modifiedby": "STRING", ?
-  "modifiedat": "TIME", ?
+  "createdat": "TIME",
+  "modifiedat": "TIME",
   "contenttype": "STRING", ?
 
   "RESOURCEurl": "URL", ?                  # If not local
-  "RESOURCE": ... Resource contents ..., ? # If inlined & JSON
+  "RESOURCE": ... Resource document ..., ? # If inlined & JSON
   "RESOURCEbase64": "STRING", ?            # If inlined & ~JSON
 
   "versionsurl": "URL",
@@ -3081,7 +3116,8 @@ summarized as:
 
 - Creates or updates one or more Resources
 
-**`PUT /GROUPs/gID/RESOURCEs/rID`**
+**`PUT   /GROUPs/gID/RESOURCEs/rID`**
+**`PATCH /GROUPs/gID/RESOURCEs/rID`**
 
 - Creates or updates the default Version of a Resource
 
@@ -3093,7 +3129,8 @@ summarized as:
 
 - Creates or updates Versions of a Resource
 
-**`PUT /GROUPs/gID/RESOURCEs/rID/versions/vID`**
+**`PUT   /GROUPs/gID/RESOURCEs/rID/versions/vID`**
+**`PATCH /GROUPs/gID/RESOURCEs/rID/versions/vID`**
 
 - Creates or updates a single Version of a Resource
 
@@ -3109,7 +3146,7 @@ And the delete APIs are summarized as:
 
 **`DELETE /GROUPs/gID/RESOURCEs/rID/versions`**
 
-- Delete a list of Versions, or all (and the Resource) is the list is absent
+- Delete a list of Versions, or all (and the Resource) if the list is absent
 
 **`DELETE /GROUPs/gID/RESOURCEs/rID/versions/vID`**
 
@@ -3121,7 +3158,7 @@ The following sections go into more detail about each API.
 
 #### Retrieving a Resource Collection
 
-To retrieve all Resources in a Group, an HTTP `GET` MAY be used.
+To retrieve all Resources in a Resource Collection, an HTTP `GET` MAY be used.
 
 The request MUST be of the form:
 
@@ -3142,24 +3179,23 @@ Link: <URL>;rel=next;count=UINTEGER ?
 
 {
   "ID": {                                     # The Resource id
-    "id": "STRING",
+    "id": "STRING",                           # The Resource id
     "name": "STRING", ?
     "epoch": UINTEGER,
     "self": "URL",
+    "stickydefaultversion": BOOLEAN, ?
     "defaultversionid": "STRING",
     "defaultversionurl": "URL",
     "description": "STRING", ?
     "documentation": "URL", ?
     "labels": { "STRING": "STRING" * }, ?
     "origin": "URI", ?
-    "createdby": "STRING", ?
-    "createdat": "TIME", ?
-    "modifiedby": "STRING", ?
-    "modifiedat": "TIME", ?
+    "createdat": "TIME",
+    "modifiedat": "TIME",
     "contenttype": "STRING", ?
 
     "RESOURCEurl": "URL", ?                  # If not local
-    "RESOURCE": ... Resource contents ..., ? # If inlined & JSON
+    "RESOURCE": ... Resource document ..., ? # If inlined & JSON
     "RESOURCEbase64": "STRING", ?            # If inlined & ~JSON
 
     "versionsurl": "URL",
@@ -3195,6 +3231,8 @@ Link: <https://example.com/endpoints/123/definitions&page=2>;rel=next;count=100
     "defaultversionid": "1.0",
     "defaultversionurl": "https://example.com/endpoints/123/definitions/456/versions/1.0?meta",
     "origin": "http://example.com",
+    "createdat": "2024-04-30T12:00:00Z",
+    "modifiedat": "2024-04-30T12:00:01Z",
 
     "versionsurl": "https://example.com/endpoints/123/definitions/456/versions",
     "versionscount": 1
@@ -3205,20 +3243,16 @@ Link: <https://example.com/endpoints/123/definitions&page=2>;rel=next;count=100
 #### Creating or Updating Resources and Versions
 
 These APIs follow the overall pattern described in the [Creating or Updating
-Entities in a Resource
-Collection](#creating-or-updating-entities-in-a-registry-collection) section.
-Any variations will be called out.
+Entities](#creating-or-updating-entities) section. Any variations will be
+called out.
 
-The following query parameters MAY be used:
+The following query parameter MAY be used:
 - `inline` - see [inlining](#inlining) section for more information
-- `setdefaultversionid` - see [Default Version of a
-   Resource](#default-version-of-a-resource) for more information and for how
-   the "default" Version of a Resource is determined
 
-Creating and updating of Resources via HTTP MAY be done using the HTTP `POST`
-or `PUT` methods as described below:
+Creating and updating of Resources via HTTP MAY be done using the HTTP `POST`,
+`PUT` or `PATCH` methods as described below:
 
-`POST /GROUPs/gID/RESOURCEs[?meta&inline&setdefaultversionid=vID]`
+`POST /GROUPs/gID/RESOURCEs[?meta&inline]`
 
 Where:
 - This API MUST create or update one or more Resources within the specified
@@ -3229,7 +3263,8 @@ Where:
   update a single Resource and the HTTP body MUST be that Resource's document
   and there MUST be an `xRegistry-id` HTTP header with the ID of the Resource
 
-`PUT  /GROUPs/gID/RESOURCEs/rID[?meta&inline&setdefaultversionid=vID]`
+`PUT   /GROUPs/gID/RESOURCEs/rID[?meta&inline]`
+`PATCH /GROUPs/gID/RESOURCEs/rID[?meta&inline]`
 
 Where:
 - This API MUST create or update a single Resource in the Group
@@ -3238,16 +3273,14 @@ Where:
 - When the `meta` query parameter is absent, the HTTP body MUST contain the
   Resource's document (an empty body means the document is to be empty)
 
-`POST /GROUPs/gID/RESOURCEs/rID[?meta&setdefaultversionid=vID]`
+`POST /GROUPs/gID/RESOURCEs/rID[?meta&setdefaultversionid=vID`
 
 Where:
-- See [Default Version of a Resource](#default-version-of-a-resource) for
-  more information when there is no HTTP body and both `meta` and
-  `setdefaultversionid` are present. Otherwise, this operation is an alias
-  for `POST /GROUPs/gID/RESOURCEs/rID/versions[?meta&setdefaultversionid=vID]`
+- This operation is an alias for
+  `POST /GROUPs/gID/RESOURCEs/rID/versions[?meta&setdefaultversionid=vID`
   (the next section) and the same rules apply
 
-`POST /GROUPs/gID/RESOURCEs/rID/versions[?meta&setdefaultversionid=vID]`
+`POST /GROUPs/gID/RESOURCEs/rID/versions[?meta&setdefaultversionid=vID`
 
 Where:
 - This API MUST create or update one or more Versions of the Resource
@@ -3270,13 +3303,20 @@ Where:
     in the HTTP body. In other words, an empty collection MUST generate an
     error
 
-`PUT  /GROUPs/gID/RESOURCEs/rID/versions/vID[?meta&setdefaultversionid=vID]`
+See [Default Version of a Resource](#default-version-of-a-resource) for more
+information about the `setdefaultversionid` query parameter.
+
+`PUT   /GROUPs/gID/RESOURCEs/rID/versions/vID[?meta&setdefaultversionid=vID]`
+`PATCH /GROUPs/gID/RESOURCEs/rID/versions/vID[?meta&setdefaultversionid=vID]`
 
 Where:
 - This API MUST create or update single Version in the Resource
 - When `meta` is present, the HTTP body MUST contain the xRegistry metadata
   serialization of the Version
 - When `meta` is absent, the HTTP body MUST contain the Version's document
+
+See [Default Version of a Resource](#default-version-of-a-resource) for more
+information about the `setdefaultversionid` query parameter.
 
 ---
 
@@ -3298,10 +3338,12 @@ request MUST adhere to the following:
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
   "origin": "URI", ?
+  "createdat": "TIME", ?
+  "modifiedat": "TIME", ?
   "contenttype": "STRING", ?
 
   "RESOURCEurl": "URL", ?                  # If not local
-  "RESOURCE": ... Resource contents ..., ? # If inlined & JSON
+  "RESOURCE": ... Resource document ..., ? # If inlined & JSON
   "RESOURCEbase64": "STRING", ?            # If inlined & ~JSON
 
   "versionsurl": "URL", ?                  # For Resources
@@ -3310,7 +3352,7 @@ request MUST adhere to the following:
 }
 ```
 
-When the HTTP body contains the Resource's content document, then any xRegistry
+When the HTTP body contains the Resource's document, then any xRegistry
 metadata MUST appear as HTTP headers and the request MUST adhere to the
 following:
 
@@ -3326,39 +3368,41 @@ xRegistry-labels-KEY: STRING *
 xRegistry-origin: STRING ?
 xRegistry-RESOURCEurl: URL ?
 
-...entity contents... ?
+... entity document ... ?
 ```
 
 Where:
 - In the cases where xRegistry metadata appears as HTTP headers, if the
   `RESOURCEurl` attribute is present with a non-null value, the HTTP body
   MUST be empty. If the `RESOURCEurl` attribute is absent, then the contents
-  of the HTTP body (even if empty) are to be used as the entity's contents
+  of the HTTP body (even if empty) are to be used as the entity's document
 - If the Resource's `hasdocument` model attribute has a value of `false` then
   the following rules apply:
   - Any request that includes the xRegistry HTTP headers (regardless of the
-    presence/absence of the `?meta` query parameter) MUST generate an error.
+    presence/absence of the `meta` query parameter) MUST generate an error.
   - An update request with an empty HTTP body MUST be interpreted as a request
     to delete all xRegistry mutable attributes - in essence, resetting the
     entity back to its default state
 - When the xRegistry metadata is serialized as a JSON object, the processing
   of the 3 `RESOURCE` attributes MUST follow these rules:
   - At most only one of the 3 attributes MAY be present in the request
-  - If the entity has content (not a `RESOURCEurl`), then absence of all 3
+  - If the entity has a document (not a `RESOURCEurl`), then absence of all 3
     attributes MUST leave it unchanged
   - The presence of `RESOURCE` or `RESOURCEbase64` attributes MUST set the
-    contents of the entity
+    document of the entity
   - The presence of a non-null value for any 3 of the attributes MUST delete
     the other 2 attributes (and any associated data)
   - An explicit value of `null` for any of the 3 attributes MUST delete all
     3 attributes (and any associated data)
 
 A successful response MUST include the current representation of the entities
-created or updated and format (`?meta` variant or not) as the request.
+created or updated and be in the same format (`meta` variant or not) as the
+request.
 
-If the request used the `PUT` variant, then a successful response MAY
-include a `Content-Location` HTTP header to the newly created Version entity,
-and if present, it MUST be the same as the Version's `self` attribute
+If the request used the `PUT` or `PATCH` variants and a new Version was
+created, then a successful response MUST include a `Content-Location` HTTP
+header to the newly created Version entity, and if present, it MUST be the
+same as the Version's `self` attribute
 
 Note that the response MUST NOT include any inlinable attributes (such as
 `RESOURCE`, `RESOURCEbase64` or nested collections).
@@ -3427,6 +3471,8 @@ Content-Location: https://example.com/endpoints/123/definitions/456/versions/1.0
   "defaultversionid": "1.0",
   "defaultversionurl": "https://example.com/endpoints/123/definitions/456/versions/1.0?meta",
   "description": "a cool event",
+  "createdat": "2024-04-30T12:00:00Z",
+  "modifiedat": "2024-04-30T12:00:01Z",
 
   "definition": {
     # Updated definition of a "Blob Created" event excluded for brevity
@@ -3500,8 +3546,8 @@ for the Resource and not the `id` of the underlying Version (see
 [Resources](#resources)).
 
 A successful response MUST either be:
-- `200 OK` with the Resource contents in the HTTP body
-- `303 See Other` with the location of the Resource's contents being
+- `200 OK` with the Resource document in the HTTP body
+- `303 See Other` with the location of the Resource's document being
   returned in the HTTP `Location` header if the Resource has a `RESOURCEurl`
   value, and the HTTP body MUST be empty
 
@@ -3510,7 +3556,7 @@ And in both cases the Resource's metadata attributes MUST be serialized as HTTP
 value of `true`.
 
 Note that if the Resource's `hasdocument` model attribute has a value of
-`false` then the "Resource contents" will be the xRegistry metadata for the
+`false` then the "Resource document" will be the xRegistry metadata for the
 default Version - same as in the [Retrieving a Resource as
 Metadata](#retrieving-a-resource-as-metadata) section but without the explicit
 usage of the `meta` query parameter.
@@ -3524,23 +3570,22 @@ xRegistry-id: STRING
 xRegistry-name: STRING ?
 xRegistry-epoch: UINT
 xRegistry-self: URL
+xRegistry-stickydefaultversion: BOOLEAN ?
 xRegistry-defaultversionid: STRING
 xRegistry-defaultversionurl: URL
 xRegistry-description: STRING ?
 xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING *
 xRegistry-origin: STRING ?
-xRegistry-createdby: STRING ?
-xRegistry-createdat: TIME ?
-xRegistry-modifiedby: STRING ?
-xRegistry-modifiedat: TIME ?
+xRegistry-createdat: TIME
+xRegistry-modifiedat: TIME
 xRegistry-versionsurl: URL
 xRegistry-versionscount: UINTEGER
 xRegistry-RESOURCEurl: URL      # If Resource is not in body
 Location: URL ?                 # If Resource is not in body
 Content-Location: URL ?
 
-...Resource contents...         # If RESOURCEurl is not set
+... Resource document ...       # If RESOURCEurl is not set
 ```
 
 Where:
@@ -3555,7 +3600,7 @@ Where:
 #### Retrieving a Resource as Metadata
 
 To retrieve a Resource's metadata (Resource attributes) as a JSON object, an
-HTTP `GET` with the `?meta` query parameter MAY be used.
+HTTP `GET` with the `meta` query parameter MAY be used.
 
 The request MUST be of the form:
 
@@ -3575,20 +3620,19 @@ Content-Location: URL ?
   "name": "STRING", ?
   "epoch": UINTEGER,
   "self": "URL",
+  "stickydefaultversion": BOOLEAN, ?
   "defaultversionid": "STRING",
   "defaultversionurl": "URL",
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
   "origin": "URI", ?
-  "createdby": "STRING", ?
-  "createdat": "TIME", ?
-  "modifiedby": "STRING", ?
-  "modifiedat": "TIME", ?
+  "createdat": "TIME",
+  "modifiedat": "TIME",
   "contenttype": "STRING", ?
 
   "RESOURCEurl": "URL", ?                  # If not local
-  "RESOURCE": ... Resource contents ..., ? # If inlined & JSON
+  "RESOURCE": ... Resource document ..., ? # If inlined & JSON
   "RESOURCEbase64": "STRING", ?            # If inlined & ~JSON
 
   "versionsurl": "URL",
@@ -3599,10 +3643,10 @@ Content-Location: URL ?
 
 Where:
 - `id` MUST be the Resource's `id` and not the `id` of the default Version
-- `self` is a URL to the Resource (with the `?meta`), not to the default
+- `self` is a URL to the Resource (with the `meta`), not to the default
   Version of the Resource
 - `RESOURCE`, or `RESOURCEbase64`, depending on the type of the Resource's
-  content, MUST only be included if requested via the `inline` query parameter
+  document, MUST only be included if requested via the `inline` query parameter
   and `RESOURCEurl` is not set
 - If `Content-Location` is present then it MUST be a URL to the Version of the
   Resource in the `versions` collection - same as `defaultversionurl`
@@ -3631,6 +3675,8 @@ Content-Location: https://example.com/endpoints/123/definitions/456/versions/1.0
   "self": "https://example.com/endpoints/123/definitions/456?meta,
   "defaultversionid": "1.0",
   "defaultversionurl": "https://example.com/endpoints/123/definitions/456/versions/1.0?meta",
+  "createdat": "2024-04-30T12:00:00Z",
+  "modifiedat": "2024-04-30T12:00:01Z",
 
   "versionsurl": "https://example.com/endpoints/123/definitions/456/versions",
   "versionscount": 1
@@ -3666,7 +3712,7 @@ the owning Resource.
 
 For example, updating the state of Resource without creating a new Version
 would make sense if there is a typo in the `description` field. But, adding
-additional data to the content of a Resource might require a new Version and
+additional data to the document of a Resource might require a new Version and
 a new ID (e.g. changing it from "1.0" to "1.1").
 
 This specification does not mandate a particular versioning algorithm  or
@@ -3685,32 +3731,29 @@ When serialized as a JSON object, the Version entity adheres to this form:
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
   "origin": "URI", ?
-  "createdby": "STRING", ?
-  "createdat": "TIME", ?
-  "modifiedby": "STRING", ?
-  "modifiedat": "TIME", ?
+  "createdat": "TIME",
+  "modifiedat": "TIME",
   "contenttype": "STRING", ?
 
   "RESOURCEurl": "URL", ?                  # If not local
-  "RESOURCE": ... Resource contents ..., ? # If inlined & JSON
+  "RESOURCE": ... Resource document ..., ? # If inlined & JSON
   "RESOURCEbase64": "STRING" ?             # If inlined & ~JSON
 }
 ```
 
 Versions include the following attributes as defined by the
 [Resource](#resources) entity:
-- [`id`](#id) - REQUIRED - Version's `id`, not the Resource's
+- [`id`](#id) - REQUIRED in responses and document view, otherwise OPTIONAL
 - [`name`](#name) - OPTIONAL
 - [`epoch`](#epoch) - REQUIRED in responses, otherwise OPTIONAL
-- [`self`](#self) - REQUIRED in responses, OPTIONAL in requests - URL to this Version, not the Resource
+- [`self`](#self) - REQUIRED in responses, otherwise OPTIONAL - URL to this
+  Version, not the Resource
 - [`description`](#description) - OPTIONAL
 - [`documentation`](#documentation) - OPTIONAL
 - [`labels`](#labels) - OPTIONAL
 - [`origin`](#origin) - OPTIONAL
-- [`createdby`](#createdby) - OPTIONAL
-- [`createdat`](#createdat) - OPTIONAL
-- [`modifiedby`](#modifiedby) - OPTIONAL
-- [`modifiedat`](#modifiedat) - OPTIONAL
+- [`createdat`](#createdat) - REQUIRED in responses, otherwise OPTIONAL
+- [`modifiedat`](#modifiedat) - REQUIRED in responses, otherwise OPTIONAL
 - [`contenttype`](#contenttype) - OPTIONAL
 - `RESOURCEurl` - OPTIONAL
 - `RESOURCE` - OPTIONAL
@@ -3779,20 +3822,27 @@ might be determined:
    This specification does not mandate the algorithm that the server uses,
    however the default choice SHOULD be to "newest = default" (option 2).
 
-2. Newest = Default. The newest Version created (based on creation timestamp,
-   even if the `createdat` feature is not enabled), is always the "default"
-   Version. This is the default choice.
+2. Newest = Default. The newest Version created (based on `createdat` timestamp)
+   is always the "default" Version. This is the default choice. If more than
+   one Version has the same "newest" `createdat` timestamp, then the choice
+   is indeterminate.
 
 3. Client explicitly chooses the "default". In this option, a client has
-   explicitly chosen which Version is the "default" (via the
-   `setdefaultversionid` query parameter) and it will not change until a client
-   chooses another Version, or that Version is deleted (in which case the
-   server MUST revert back to option 2 (newest = default)). This is referred
-   to as the default Version being "sticky" as it will not change until
-   explicitly requested by a client.
+   explicitly chosen which Version is the "default" and it will not change
+   until a client chooses another Version, or that Version is deleted (in
+   which case the server MUST revert back to option 2 (newest = default)).
+   This is referred to as the default Version being "sticky" as it will not
+   change until explicitly requested by a client.
 
-If supported by the server, a client MAY choose the "default" Version via use
-of the `setdefaultversionid` query parameter:
+If supported (as determined by the `setstickydefaultversion` model attribute),
+a client MAY choose the "default" Version two ways:
+1. Via the Resource `stickydefaultversion` and `defaultversionid` attributes.
+   See [Resource Attributes](#resource-attributes) for more information
+   about these attributes.
+2. Via the `setdefaultversionid` query parameter that is available on certain
+   APIs, as defined below.
+
+The `setdefaultversionid` is defined as:
 
 ```yaml
 ...?setdefaultversionid=vID
@@ -3812,51 +3862,21 @@ Where:
   the Resource, after all Version processing is completed, then an HTTP
   `400 Bad Request` error MUST be generated
 
-This query parameter is available on many of the Resource and Version APIs,
-and MUST adhere to the following rules:
+Any use of this query parameter on a Resource that has the
+`setstickydefaultversion` aspect set to `false` MUST generate an error.
+
+Updating a Resource's default Verison, regardless of the mechanism used to
+do so, MUST adhere to the following rules:
 - Aside from the special values of `null` and `this`, its value MUST be
   the `id` of a Version for the specified Resource after all Version processing
   is completed (i.e. after any Versions are added or removed). Its value is
   not limited to the Versions involved in the current operation.
-- When the operation involves updating a Resource's "default" Version
-  properties, the processing of the `setdefaultversionid` parameter MUST be
-  done before the properties are updated. In other words, the Version updated
-  is new default Version, not the old one.
-
-Any use of this query parameter on a Resource that has the
-`setstickydefaultversion` aspect set to `false` MUST generate an error.
-
-It is also possible to manage the default Version via a specialized case of
-the following API:
-
-```yaml
-POST /GROUPs/gID/RESOURCEs/rID?meta&setdefaultversionid=vID
-```
-
-Where:
-- The HTTP body MUST be empty, otherwise it would be interpreted as a request
-  to also create a new Version based on the xRegistry metadata expected in the
-  body
-- The `meta` query parameter MUST be present otherwise it would be interpreted
-  as a request to also create a new Version with an empty document
-- Any xRegistry HTTP headers MUST be silently ignored, and SHOULD NOT be
-  present
-
-For clarity, the presence or absence of an HTTP body acts as the determining
-factor as to whether this API is just modifying the default Version ID or
-whether it is also creating/updating a Version.
-
-Upon successful completion of the request, the response MUST return the same
-response as a `GET` to the targeted Resource.
-
-Regardless of which API the `setdefaultversionid` query parameter is used on,
-the act changing the default Version of a Resource MUST NOT increment the
-`epoch`, `modifiedat` or `modifiedby` values of any Version of the Resource.
-
-When a Resource's "default" Version has been explicitly set, the
-`stickydefaultversion` attribute MUST appear in the serialization of the
-Resource with a value of `true`. Otherwise, it MUST either have a value of
-`false` or not appear at all in the serialization.
+- When the operation also involves updating a Resource's "default" Version's
+  properties, the update to the default Version pointer MUST be done before
+  the properties are updated. In other words, the Version updated is new
+  default Version, not the old one.
+- Changing the default Version of a Resource MUST NOT increment the `epoch`
+  or `modifiedat` values of any Version of the Resource.
 
 #### Retrieving all Versions
 
@@ -3890,14 +3910,12 @@ Link: <URL>;rel=next;count=UINTEGER ?
     "documentation": "URL", ?
     "labels": { "STRING": "STRING" * }, ?
     "origin": "URI", ?
-    "createdby": "STRING", ?
-    "createdat": "TIME", ?
-    "modifiedby": "STRING", ?
-    "modifiedat": "TIME", ?
+    "createdat": "TIME",
+    "modifiedat": "TIME",
     "contenttype": "STRING", ?
 
     "RESOURCEurl": "URL", ?                  # If not local
-    "RESOURCE": ... Resource contents ..., ? # If inlined & JSON
+    "RESOURCE": ... Resource document ..., ? # If inlined & JSON
     "RESOURCEbase64": "STRING" ?             # If inlined & ~JSON
   } *
 }
@@ -3926,7 +3944,9 @@ Link: <https://example.com/endpoints/123/definitions/456/versions&page=2>;rel=ne
     "name": "Blob Created",
     "epoch": 1,
     "self": "https://example.com/endpoints/123/definitions/456?meta",
-    "isdefault": true
+    "isdefault": true,
+    "createdat": "2024-04-30T12:00:00Z",
+    "modifiedat": "2024-04-30T12:00:01Z",
   }
 }
 ```
@@ -3949,7 +3969,7 @@ GET /GROUPs/gID/RESOURCEs/rID/versions/vID
 A successful response MUST either return the Version or an HTTP redirect to
 the `RESOURCEurl` value if set.
 
-In the case of returning the Version's contents, the response MUST be of the
+In the case of returning the Version's document, the response MUST be of the
 form:
 
 ```yaml
@@ -3959,17 +3979,15 @@ xRegistry-id: STRING
 xRegistry-name: STRING ?
 xRegistry-epoch: UINT
 xRegistry-self: URL
-xRegistry-isdefault: BOOL ?
+xRegistry-isdefault: BOOLEAN ?
 xRegistry-description: STRING ?
 xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING *
 xRegistry-origin: STRING ?
-xRegistry-createdby: STRING ?
-xRegistry-createdat: TIME ?
-xRegistry-modifiedby: STRING ?
-xRegistry-modifiedat: TIME ?
+xRegistry-createdat: TIME
+xRegistry-modifiedat: TIME
 
-...Version contents...
+... Version document ...
 ```
 
 Where:
@@ -3985,15 +4003,13 @@ xRegistry-id: STRING
 xRegistry-name: STRING ?
 xRegistry-epoch: UINT
 xRegistry-self: URL
-xRegistry-isdefault: BOOL ?
+xRegistry-isdefault: BOOLEAN ?
 xRegistry-description: STRING ?
 xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING *
 xRegistry-origin: STRING ?
-xRegistry-createdby: STRING ?
-xRegistry-createdat: TIME ?
-xRegistry-modifiedby: STRING ?
-xRegistry-modifiedat: TIME ?
+xRegistry-createdat: TIME
+xRegistry-modifiedat: TIME
 xRegistry-RESOURCEurl: URL
 Location: URL
 ```
@@ -4028,7 +4044,7 @@ xRegistry-isdefault: true
 #### Retrieving a Version as Metadata
 
 To retrieve a particular Version's metadata (Version attributes), an HTTP
-`GET` with the `?meta` query parameter MAY be used.
+`GET` with the `meta` query parameter MAY be used.
 
 The request MUST be of the form:
 
@@ -4036,7 +4052,7 @@ The request MUST be of the form:
 GET /GROUPs/gID/RESOURCEs/rID/versions/vID?meta[&inline=...]
 ```
 
-The following query parameters MUST be supported by servers:
+The following query parameter MUST be supported by servers:
 - `inline` - See [inlining](#inlining) for more information
 
 A successful response MUST be of the form:
@@ -4055,14 +4071,12 @@ Content-Type: application/json; charset=utf-8
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
   "origin": "URI", ?
-  "createdby": "STRING", ?
-  "createdat": "TIME", ?
-  "modifiedby": "STRING", ?
-  "modifiedat": "TIME", ?
+  "createdat": "TIME",
+  "modifiedat": "TIME",
   "contenttype": "STRING", ?
 
   "RESOURCEurl": "URL", ?                  # If not local
-  "RESOURCE": ... Resource contents ..., ? # If inlined & JSON
+  "RESOURCE": ... Resource document ..., ? # If inlined & JSON
   "RESOURCEbase64": "STRING" ?             # If inlined & ~JSON
 }
 ```
@@ -4088,7 +4102,9 @@ Content-Type: application/json; charset=utf-8
   "name": "Blob Created",
   "epoch": 2,
   "self": "https://example.com/endpoints/123/definitions/456/versions/1.0?meta",
-  "isdefault": true
+  "isdefault": true,
+  "createdat": "2024-04-30T12:00:00Z",
+  "modifiedat": "2024-04-30T12:00:01Z",
 }
 ```
 
@@ -4100,8 +4116,9 @@ To delete one or more Versions of a Resource, an HTTP `DELETE` MAY be used:
 
 The processing of these two APIs is defined in the [Deleting Entities in a
 Registry Collection](#deleting-entities-in-a-registry-collection)
-section, with support for the `setdefaultversionid` query parameter see the
-[Default Version of a Resource](#default-version-of-a-resource) section.
+section. For more information about the `setdefaultversionid` query
+parameter see the [Default Version of a
+Resource](#default-version-of-a-resource) section.
 
 If as a result of one of these operations a Resource has no Versions, then the
 Resource MUST also be deleted.
@@ -4218,14 +4235,15 @@ sent in one message. In those cases, the client will need to query the
 individual inlinable attributes in isolation so the Registry can leverage
 [pagination](../pagination/spec.md) of the response.
 
-#### Inlining PUT/POST Requests
+#### Inlining PUT/PATCH/POST Requests
 
-The `inline` query parameter on a `PUT` or `POST` request indicates that any
-Registry collection `COLLECTIONs` attribute MUST be processed and the entities
-listed in its map MUST be added to the collection. If an entity with the
-specified `id` already exists, then it MUST be updated in its entirety.
-If the `inline` query parameter is not present in the request then any
-`COLLECTIONs` attributes present in the request MUST be silently ignored.
+The `inline` query parameter on a `PUT`, `PATCH` or `POST` request indicates
+that any Registry collection `COLLECTIONs` attribute MUST be processed and the
+entities listed in its map MUST be added to the collection. If an entity with
+the specified `id` already exists, then it MUST be updated according to the
+semantics of the HTTP method used. If the `inline` query parameter is not
+present in the request then any `COLLECTIONs` attributes present in the
+request MUST be silently ignored.
 
 See [Updating Nested Registry
 Collections](#updating-nested-registry-collections) for more information.
@@ -4251,10 +4269,19 @@ If a client wishes to replace and entire collection, rather just add new
 entities, the client MUST use one of the `DELETE` operations on the collection
 first.
 
-Note that unlike the use of `inline` on the `GET` request, using `inline`
+Unlike the use of `inline` on the `GET` request, using `inline`
 has no impact on the processing of any `RESOURCE*` attributes in the request.
 That presence, or absence, of those attributes in the request will control
-whether the contents of the Resource/Version are changed or not.
+whether the document of the Resource/Version are changed or not.
+
+In cases where an update operation includes attributes meant to be applied
+to the "default" Version, and the incoming inlined `versions` collections
+includes that "default" Version, the Resource's default Version attributes MUST
+be silently ignored. This is to avoid any possible conflicting data between
+the two sets of data for that Version. In other words, the Version attributes
+in the incoming `versions` collection wins. Note that Resource specific
+attributes (e.g. `stickydefaultversion`) are not affected by this rule as
+they are not Version attributes.
 
 ---
 
@@ -4343,7 +4370,7 @@ other words, a `404 Not Found` would be generated in the HTTP protocol case.
 | / | `filter=endpoints.description=cool` | Only endpoints with the word `cool` in the description |
 | /endpoints | `filter=description=CooL` | Same results as previous, with a different request URL |
 | / | `filter=endpoints.definitions.versions.id=1.0` | Only versions (and their owning endpoints.definitions) that have an ID of `1.0` |
-| / | `filter=endpoints.name=myendpoint,endpoints.description=cool& filter=schemagroups.modifiedby=John` | Only endpoints whose name is `myendpoint` and whose description contains the word `cool`, as well as any schemagroups that were modified by 'John' |
+| / | `filter=endpoints.name=myendpoint,endpoints.description=cool& filter=schemagroups.labels.stage=dev` | Only endpoints whose name is `myendpoint` and whose description contains the word `cool`, as well as any schemagroups with a `label` name/value pair of `stage/dev` |
 | / | `filter=description=no-match` | Returns a 404 if the Registry's `description` doesn't contain `no-match` |
 
 Specifying a filter does not imply inlining.

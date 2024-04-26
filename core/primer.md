@@ -152,3 +152,15 @@ Let's walk through a complex example:
 - The result is: v8 regardless of whether v8 was created with latest=true or
   not
 
+# Potential Extensions
+
+- `createdby`, `modifiedby`<br>
+  These are related to the `createdat` and `modifiedat` attributes in that
+  they would normally be updated at the same time as their corresponding
+  `*at` attribute, and are use to track the identity of the person or
+  component that performed the related operation.
+
+  The xRegistry specfication does not define these since it does not define
+  any authentication mechanisms, or even manage tracking of these identities.
+  However, if an implementation does track this information, these attributes
+  might be of interest.
