@@ -65,6 +65,7 @@ someattributes
 specversion
 src
 stickydefaultversion
+typemap
 uinteger
 unescaping
 updateable
