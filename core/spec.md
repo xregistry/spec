@@ -1906,6 +1906,7 @@ The following describes the attributes of Registry model:
         the xRegistry metadata - in other words JSON, or<br>
     2 - The Resource's document can be considered a "string" and therefore
         can be serialized as a "string" with some escaping.<br>
+
     For some well-known `contenttype` values (e.g. `application/json`) the
     first case can be easily determined by the server. However, for custom
     values the server will need to be explicitly told to when to consider it
@@ -1913,23 +1914,48 @@ The following describes the attributes of Registry model:
     defining a mapping of `contenttype` values to well-known xRegistry format
     types.
 
+    Since the `contenttype` value is a "media-type" per
+    [RFC9110](https://datatracker.ietf.org/doc/html/rfc9110#media.type),
+    for purposes of looking it up in the `typemap`, just the `type/subtype`
+    portion of the value (case insensitively) MUST be used. Meaning, any
+    `parameters` MUST be excluded.
+
+    If more than one entry in the `typemap` matches the `contenttype`, but
+    they all have the same value, then that value MUST be used. If they are
+    not all the same, then `binary` MUST be used.
+
   - This specification defines the following values (case insensitive):
+    - `binary`
     - `json`
     - `string`
 
     Implementations MAY define additional values.
+
+    A value of `binary` indicates that the Resource's document is to be treated
+    as an array of bytes and serialized under the `RESOURCEbase64` attribute,
+    even if the `contenttype` is of the same type of the xRegistry metadata
+    (e.g. `application/json`). This is useful when it is desireable to not
+    have the server potentially modify the document (e.g. "pretty-print" it).
+
+    A value of `json` indicates that the Resource's document is JSON and MUST
+    be serialized under the `RESOURCE` attribute if it is valid JSON. Note that
+    if there is a syntax error in the JSON then the server MUST treat the
+    document as `binary` to avoid sending invalid JSON to the client.
 
     A value of `string` indicates that the Resource's document is to be treated
     as a string and serialized using the default string serialization rules
     for the format being used to serialize the Resource's metadata. For example,
     when using JSON, this means escaping all non-printable characters.
 
-    Specifying an unknown (or unsupported) value MUST generate an error.
+    Specifying an unknown (or unsupported) value MUST generate an error during
+    the update of the xRegistry model.
 
-    By default the following
+    By default, the following
     [RFC9110](https://datatracker.ietf.org/doc/html/rfc9110#media.type)
-    media types MUST be implicitly mapped as follows:
-    - `application/json` and ones ending in `+json`: mapped to `json`
+    `typemap` keys MUST be implicitly defined as follows, unless overridden
+    by an explicit `typemap` entry:
+    - `application/json`: mapped to `json`
+    - `*+json`: mapped to `json`
     - `text/plain`: mapped to `string`
 
   - Type: Map where the keys and values MUST be non-empty strings. The key
@@ -1937,11 +1963,6 @@ The following describes the attributes of Registry model:
     instance of any character at that position in the string - similar to a
     `.*` in a regular expression.
 
-    When comparing the `contenttype` value with the `typemap` keys, it MUST
-    be done case insensitively and MUST search for an exact match against the
-    non-wildcard keys first - stopping on the first match. Then, if no match
-    has been found, the wildcard keys MUST be checked. If there is more than
-    one wildcard key that matches then the results are indeterminate.
   - OPTIONAL.
   - Example:<br>
     ```
@@ -3465,6 +3486,19 @@ Where:
     the other 2 attributes (and any associated data).
   - An explicit value of `null` for any of the 3 attributes MUST delete all
     3 attributes (and any associated data).
+  - When `RESOURCE` is present, the server MAY choose to modify non-semantic
+    significant characters. For example, to remove (or add) whitespace. In
+    other words, there is no requirement for the server to persist the
+    document in the exact byte-for-byte format in which it was provided. If
+    that is desired then `RESOURCEbase64` MUST be used instead.
+  - On a `PUT` or `POST`, when `RESOURCE` is present, if no `contenttype`
+    value is provided then the server MUST set it to same type as the incoming
+    request, e.g. `application/json`, even if the entity previous had a
+    `contenttype` value.
+  - On a `PATCH`, when `RESOURCE` is present, if no `contenttype` value is
+    provided then the server MUST set it to the same type as the incoming
+    request, e.g. `application/json`, only if the entity does not already
+    have a value.  Otherwise, the existing value remains unchanged.
 
 A successful response MUST include the current representation of the entities
 created or updated and be in the same format (`meta` variant or not) as the
