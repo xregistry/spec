@@ -1,0 +1,18 @@
+#!/bin/bash
+
+set -e
+
+for f in $* ; do
+  echo Checking for tabs: $f
+
+  if grep -P '\t' $f > /dev/null ; then
+    echo "$f contains tabs" 
+    exit 1
+  fi
+
+  if grep "  *$" $f > /dev/null ; then 
+    echo "$f contains lines with extra spaces at the end" 
+    exit 1
+  fi
+
+done

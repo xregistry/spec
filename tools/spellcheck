@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Words from:
+# https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt
+
+set -e
+
+for f in $* ; do
+
+  echo Spell-checking: $f
+
+  sed "s/\([a-z0-9]\+\)/\n\1\n/gI" < $f | sort -iu | \
+	grep "^[a-z]" | grep -v "[0-9]" > specwords
+  sort -u tools/words tools/dict > words
+  comm -23 specwords words > extra
+  wc -l extra | grep "^0 extra" > /dev/null || \
+	( echo -e "\nMISSPELLED:" ; cat extra ; exit 1 )
+  rm specwords words extra
+
+done
