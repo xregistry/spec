@@ -1137,7 +1137,6 @@ and allows implementers to choose their own API base path.
 {
   # The following top-level attributes are identical to the xRegistry API root response
   # We may consider removing them here if we're bothered by the duplication.
-  "specversion": "STRING", # latest version of spec that is supported (?)
   "id": "STRING",
   "name": "STRING", ?
   "epoch": UINTEGER,
@@ -1150,14 +1149,15 @@ and allows implementers to choose their own API base path.
 
   # Describe where to find the xRegistry API and its capabilities
   "apis": {
-    "v1": { # Version of the xRegistry API protocol. In the future, there could be v2 in parallel.
-      "apiUrl": "URL", ? # Point to root URL of xRegistry API, e.g. /x-registry/v1/
+    "v1": { # Major version of the xRegistry API protocol. In the future, there could be v2 in parallel.
+      "specversion": "STRING", # full specversion, as returned by the API root response
+      "apiurl": "URL", ? # Point to root URL of xRegistry API, e.g. /x-registry/v1/
       "capabilities": ["inline", ""] # TODO: TBD
       # TODO: Also indicate whether API is available without protection or if protected, how to get access?
     }
   }
 
-  "modelUrl": { Registry model }, ? # Point to registry meta model
+  "modelurl": "URL", ? # Point to registry meta model
 }
 ```
 
