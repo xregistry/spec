@@ -1,7 +1,9 @@
+backend
 charset
 clientrequired
 contenttype
 createdat
+createdby
 datastore
 datatracker
 defaultversionid
@@ -12,8 +14,10 @@ emoji
 endpointscount
 endpointsurl
 enum
+etag
 filesystem
 gID
+gotchas
 hasdocument
 html
 http
@@ -32,7 +36,9 @@ json
 jsonSchema
 maxversions
 metadata
+middleware
 modifiedat
+modifiedby
 myattr
 myendpoint
 myEndpoint
@@ -45,6 +51,7 @@ myschema
 mySchema
 mySchemas
 nbsp
+nginx
 nodefaultversionid
 noepoch
 nostickydefaultversion
@@ -84,5 +91,7 @@ xreg
 xregbasicmodel
 xregfullmodel
 xRegistry
+xRegistries
+xml
 xy
 yaml
