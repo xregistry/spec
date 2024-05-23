@@ -58,13 +58,13 @@ can be defined that expose model specific Resources and metadata.
 
 A Registry consists of two main types of entities: Groups and Resources.
 
-Groups, as the name implies, is a mechanism by which related Resources are
+**Groups**, as the name implies, is a mechanism by which related Resources are
 arranged together under a single collection - the Group. The reason for the
 grouping is not defined by this specification, so the owners of the Registry
 can choose to define (or enforce) any pattern they wish. In this sense, a
 Group is similar to a "directory" on a filesystem.
 
-Resources represent the main data of interest for the Registry. In the
+**Resources** represent the main data of interest for the Registry. In the
 filesystem analogy, these would be the "files". A Resource exist under a
 single Group and, similar to Groups, have a set of Registry metadata.
 However, unlike a Group which only has Registry metadata, each Resource can
@@ -85,6 +85,11 @@ to a "Schema" document - all within the same Registry instance:
  height="300">&nbsp;&nbsp;&nbsp;<img
  src="./xregfullmodel.png" height="300">&nbsp;&nbsp;&nbsp;<img
  src="./sample.png" height="300">
+
+One purpose of the xRegistry is to enable easy and fully automated,
+machine-readable discovery. The starting point of the discovery is via a
+[well-known location](#registry-well-known-config): `/.well-known/xregistry.json`.
+This is relative to the base URL of the server.
 
 For easy reference, the JSON serialization of a Registry adheres to this form:
 
@@ -1116,6 +1121,47 @@ if, as an extension, the server chooses to return additional data in the
 HTTP body.
 
 ---
+
+### Registry Well-Known Config
+
+The registry comes with a well known location `/.well-known/xregistry.json`,
+following [RFC8615](https://datatracker.ietf.org/doc/html/rfc8615).
+
+It acts as a single entrypoint from where locations and capabilities of the
+xRegistry implementation can be retrieved. Since this URL is always the same,
+it can be used to find out whether xRegistry is supported and where to find the API.
+It also allows to support multiple versions of the xRegistry protocol at the same time
+and allows implementers to choose their own API base path.
+
+```yaml
+{
+  # The following top-level attributes are identical to the xRegistry API root response
+  # We may consider removing them here if we're bothered by the duplication.
+  "specversion": "STRING", # latest version of spec that is supported (?)
+  "id": "STRING",
+  "name": "STRING", ?
+  "epoch": UINTEGER,
+  "self": "URL",
+  "description": "STRING", ?
+  "documentation": "URL", ?
+  "labels": { "STRING": "STRING" * }, ?
+  "createdat": "TIME",
+  "modifiedat": "TIME",
+
+  # Describe where to find the xRegistry API and its capabilities
+  "apis": {
+    "v1": { # Version of the xRegistry API protocol. In the future, there could be v2 in parallel.
+      "apiUrl": "URL", ? # Point to root URL of xRegistry API, e.g. /x-registry/v1/
+      "capabilities": ["inline", ""] # TODO: TBD
+      # TODO: Also indicate whether API is available without protection or if protected, how to get access?
+    }
+  }
+
+  "modelUrl": { Registry model }, ? # Point to registry meta model
+}
+```
+
+It is RECOMMENDED to leave this endpoint unprotected as it SHOULD NOT contain any sensitive information.
 
 ### Registry Entity
 
