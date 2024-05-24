@@ -1133,31 +1133,24 @@ it can be used to find out whether xRegistry is supported and where to find the 
 It also allows to support multiple versions of the xRegistry protocol at the same time
 and allows implementers to choose their own API base path.
 
+The capabilities described on this level are independent from the xRegistry protocol version or its current meta model.
+They resemble the capabilities of the xRegistry implementation itself that consumers can rely upon.
+
 ```yaml
 {
-  # The following top-level attributes are identical to the xRegistry API root response
-  # We may consider removing them here if we're bothered by the duplication.
-  "id": "STRING",
-  "name": "STRING", ?
-  "epoch": UINTEGER,
-  "self": "URL",
+  # Some high-level description of the xRegistry that are independent from version of the protocol nor its meta model
   "description": "STRING", ?
   "documentation": "URL", ?
-  "labels": { "STRING": "STRING" * }, ?
-  "createdat": "TIME",
-  "modifiedat": "TIME",
+  "labels": { "STRING": "STRING" * }, ? #
 
   # Describe where to find the xRegistry API and its capabilities
-  "apis": {
-    "v1": { # Major version of the xRegistry API protocol. In the future, there could be v2 in parallel.
-      "specversion": "STRING", # full specversion, as returned by the API root response
-      "apiurl": "URL", ? # Point to root URL of xRegistry API, e.g. /x-registry/v1/
-      "capabilities": ["write", "update", "inline", "filter", "..."] # TODO: TBD
-      # TODO: Also indicate whether API is available without protection or if protected, how to get access?
-    }
-  }
-
-  "modelurl": "URL", ? # Point to registry meta model
+  "apis": [{ # Major version of the xRegistry API protocol. In the future, there could be v2 in parallel.
+    "specversion": "STRING", # full specversion, as returned by the API root response
+    "apiurl": "URL", ? # Point to root URL of xRegistry API, e.g. /x-registry/v1/
+    "capabilities": ["write", "update", "inline", "filter", "..."] # TODO: TBD
+    "modelurl": "URL", ? # Point to registry meta model
+    # TODO: Also indicate whether API is available without protection or if protected, how to get access?
+  }], ? # To clarify if APIs are mandatory or if we want to allow an alternative, document based approach. (but not in this PR)
 }
 ```
 
