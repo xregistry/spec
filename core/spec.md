@@ -1156,6 +1156,8 @@ They resemble the capabilities of the xRegistry implementation itself that consu
 
 It is RECOMMENDED to leave this endpoint unprotected as it SHOULD NOT contain any sensitive information.
 
+The well-known location SHOULD be available starting from the base URL, to enable fully automated discovery of the xRegistry capability.
+
 ### Registry Entity
 
 The Registry entity represents the root of a Registry and is the main
