@@ -1152,7 +1152,7 @@ and allows implementers to choose their own API base path.
     "v1": { # Major version of the xRegistry API protocol. In the future, there could be v2 in parallel.
       "specversion": "STRING", # full specversion, as returned by the API root response
       "apiurl": "URL", ? # Point to root URL of xRegistry API, e.g. /x-registry/v1/
-      "capabilities": ["inline", ""] # TODO: TBD
+      "capabilities": ["write", "update", "inline", "filter", "..."] # TODO: TBD
       # TODO: Also indicate whether API is available without protection or if protected, how to get access?
     }
   }
