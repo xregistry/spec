@@ -44,7 +44,11 @@ _SKIP_TEXT_PATTERN = re.compile(
     r"<!--\s*no[\s-]+verify[\s-]+(?P<type>\w+)[\s-]*-->", re.IGNORECASE
 )
 _NEWLINE_PATTERN = re.compile(r"\n")
-_MARKDOWN_BOOKMARK_PATTERN = re.compile(r"(?<![\\])\[[^\?=].+?\]\[.+?\]", re.IGNORECASE)
+# [asd][asd] is normally a bookmark but if it ends with a ` (</code) then
+# don't treat it as one
+_MARKDOWN_BOOKMARK_PATTERN = re.compile(
+	r"(?<![\\])\[[^\?=].+?\]\[.+?\](?!</code)",
+	re.IGNORECASE)
 _PHRASES_THAT_MUST_BE_CAPITALIZED_PATTERN = re.compile(
     r"(?<!`)(MUST(\s+NOT)?|"
     # ignore the "required" in the jsonschema of the json-format.md
@@ -216,6 +220,7 @@ def _undefined_bookmark_issues(html: HtmlText) -> Iterable[Issue]:
     Assuming the html was already rendered from markdown and all the unreferenced
     bookmarks remain as-is in the html text.
     """
+    # print(f"{html}")
     for match in _MARKDOWN_BOOKMARK_PATTERN.finditer(html):
         yield _pattern_issue(
             match,
