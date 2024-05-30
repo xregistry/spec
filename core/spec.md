@@ -3239,7 +3239,7 @@ summarized as:
 
 - Creates or updates one or more Resources.
 
-**`PUT   /GROUPs/gID/RESOURCEs/rID[$meta]`**
+**`PUT   /GROUPs/gID/RESOURCEs/rID[$meta]`**<br>
 **`PATCH /GROUPs/gID/RESOURCEs/rID[$meta]`**
 
 - Creates a new Resource, or update the default Version of a Resource.
@@ -3252,7 +3252,7 @@ summarized as:
 
 - Creates or updates one or more Versions of a Resource.
 
-**`PUT   /GROUPs/gID/RESOURCEs/rID/versions/vID`**
+**`PUT   /GROUPs/gID/RESOURCEs/rID/versions/vID`**<br>
 **`PATCH /GROUPs/gID/RESOURCEs/rID/versions/vID`**
 
 - Creates or updates a single Version of a Resource.
@@ -3375,7 +3375,7 @@ The following query parameter MAY be used:
 Creating and updating of Resources via HTTP MAY be done using the HTTP `POST`,
 `PUT` or `PATCH` methods as described below:
 
-`POST /GROUPs/gID/RESOURCEs\[?inline]`
+`POST /GROUPs/gID/RESOURCEs[?inline]`
 
 Where:
 - This API MUST create or update one or more Resources within the specified
@@ -3383,8 +3383,8 @@ Where:
 - The HTTP body MUST contain a map of Resources to be created or updated,
   serialized as xRegistry metadata.
 
-`PUT   /GROUPs/gID/RESOURCEs/rID\[$meta]\[?inline]`
-`PATCH /GROUPs/gID/RESOURCEs/rID\[$meta]\[?inline]`
+`PUT   /GROUPs/gID/RESOURCEs/rID[$meta][?inline]`<br>
+`PATCH /GROUPs/gID/RESOURCEs/rID[$meta][?inline]`
 
 Where:
 - These APIs MUST create or update a single Resource in the Group.
@@ -3393,7 +3393,7 @@ Where:
 - When `$meta` is absent, the HTTP body MUST contain the Resource's document
   (an empty body means the document is to be empty).
 
-`POST /GROUPs/gID/RESOURCEs/rID\[$meta]\[?setdefaultversionid=vID]`
+`POST /GROUPs/gID/RESOURCEs/rID[$meta][?setdefaultversionid=vID]`
 
 Where:
 - This API MUST create, or update, a single new Version of the specified
@@ -3426,8 +3426,8 @@ Where:
 See [Default Version of a Resource](#default-version-of-a-resource) for more
 information about the `setdefaultversionid` query parameter.
 
-`PUT   /GROUPs/gID/RESOURCEs/rID/versions/vID\[$meta]\[?setdefaultversionid=vID]`
-`PATCH /GROUPs/gID/RESOURCEs/rID/versions/vID.[$meta]\[?setdefaultversionid=vID]`
+`PUT   /GROUPs/gID/RESOURCEs/rID/versions/vID[$meta][?setdefaultversionid=vID]`<br>
+`PATCH /GROUPs/gID/RESOURCEs/rID/versions/vID[$meta][?setdefaultversionid=vID]`
 
 Where:
 - This API MUST create or update single Version in the Resource.
