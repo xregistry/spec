@@ -157,7 +157,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   # Repeat for each Group type
   "GROUPsurl": "URL",                              # e.g. "endpointsurl"
   "GROUPscount": UINTEGER,                         # e.g. "endpointscount"
-  "GROUPs": {                                      # Only if inlined
+  "GROUPs": {                                      # Only if inlined/nested
     "ID": {                                        # Key=the Group id
       "id": "STRING",                              # The Group ID
       "name": "STRING", ?
@@ -173,7 +173,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       # Repeat for each Resource type in the Group
       "RESOURCEsurl": "URL",                       # e.g. "definitionsurl"
       "RESOURCEscount": UINTEGER,                  # e.g. "definitionscount"
-      "RESOURCEs": {                               # Only if inlined
+      "RESOURCEs": {                               # Only if inlined/nested
         "ID": {                                    # The Resource id
           "id": "STRING",
           "name": "STRING", ?
@@ -196,7 +196,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
 
           "versionsurl": "URL",
           "versionscount": UINTEGER,
-          "versions": {                            # Only if inlined
+          "versions": {                            # Only if inlined/nested
             "ID": {                                # The Version id
               "id": "STRING",
               "name": "STRING", ?
@@ -444,7 +444,7 @@ The definition of each attribute is defined below:
   - MUST be a non-empty string consisting of [RFC3986 `unreserved`
     characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3)
     (ALPHA / DIGIT / "-" / "." / "_" / "~").
-  - Versions MUST NOT use an `id` value of `null` or `this` due to these
+  - Versions MUST NOT use an `id` value of `null` or `request` due to these
     being reserved for use by the `setdefaultversionid` operation.
   - MUST be case insensitive unique within the scope of the entity's parent.
     In the case of the `id` for the Registry itself, the uniqueness scope will
@@ -531,7 +531,6 @@ Then the existing entity can be deleted.
   appended to its `id` if the request asked for the serialization of the
   xRegistry metadata. This would happen when `$meta` was used in the request,
   or when the Resource (or Version) is included in the serialization of a
-  Group, such as when the `inline` feature is used.
 - Constraints:
   - MUST be a non-empty absolute URL.
   - MUST be a read-only attribute in API view.
@@ -713,9 +712,11 @@ pattern of the APIs:
   in the request. Any attribute with a value of `null` will be interpreted
   as a request to delete the attribute, and as with `PUT`/`POST`, server
   managed attributes might have specialized processing.
-- On write operations, without an `inline` query parameter, any included
-  xRegistry collections are ignored. In other words, the operation will only
-  modify the targeted entities, not any nested collections/entities.
+- On write operations, without a
+  [`nested`](#updating-nested-registry-collections) query parameter,
+  any included xRegistry collections are ignored. In other words, the
+  operation will only modify the targeted entities, not any nested
+  collections/entities.
 - `PUT` or `PATCH ` can not be targeted at xRegistry collections. A `POST`
   would need to be used instead to add entities to the collection, and a
   `DELETE` might also be needed to delete unwanted entities.
@@ -847,7 +848,8 @@ In API view:
   request included the [`inline`](#inlining) query parameter indicating that
   this collection's values are to be returned.
 - `COLLECTIONs` is OPTIONAL for requests and MUST be silently ignored if
-  the `inline` query parameter is not present. See [Updating Nested Registry
+  the [`nested`](#updating-nested-registry-collections) query parameter is not
+  present. See [Updating Nested Registry
   Collections](#updating-nested-registry-collections) for more details.
 
 ##### Updating Nested Registry Collections
@@ -855,37 +857,91 @@ In API view:
 When updating an entity that might contain Registry collections, the request
 MAY contain the 3 collection attributes. The `COLLECTIONsurl` and
 `COLLECTIONscount` attributes MUST be silently ignored by the server.
-If the `inline` query parameter is not present, then the `COLLECTIONs`
-attribute MUST also be silently ignored by the server.
+By default, in the absence of a `nested` query parameter, the server MUST
+ignore the `COLLECTIONs` attribute as well.
 
-Note: in the [Inlining](#inlining) section of the specification, `inline`
-is defined such that it might include a `PATH` value. That is only used for
-retrieval (`GET`) operations. On write operations, the `inline` query
-parameter does not define any values and therefore MUST be treated as a
-boolean flag.
-
-If the `inline` query parameter and the `COLLECTIONs` attribute is present,
+If the `nested` query parameter and the `COLLECTIONs` attribute are present,
 the server MUST process each entity in the collection map as a request to
-create or update that entity based on whether it already exists (as determined
-by its key value - its `id`). An entry in the map that isn't a valid entity
-(e.g. is `null`) MUST generate an error.
+create or update that entity according to the semantics of the HTTP method used.
+An entry in the map that isn't a valid entity (e.g. is `null`) MUST generate
+an error.
 
-The `inline` semantics MUST be applied to all nested `COLLECTIONs` attributes
-within the request regardless of the level in the hierarch in which they
+The `nested` semantics MUST be applied to all nested `COLLECTIONs` attributes
+within the request regardless of the level in the hierarchy in which they
 appear.
 
-When processing a nested entry in the collection, it MUST be processed using
-the same semantics as the top-most entity. In other words, if a `PUT` or
-`POST` was used then any entities in the collection will be fully replaced. If
-a `PATCH` was used then only the attributes that appear in the serialization
-of the nested entity will be processed.
+For example:
+
+```
+PUT https://example.com/endpoints/123?nested
+
+{
+  "id": "123",
+  "name": "A cool endpoint",
+
+  "definitions": {
+    "mydef1": { ... },
+    "mydef2:" { ... }
+  }
+}
+```
+
+Will not only create/update an `endpoint` Group with an `id` of `123` but will
+also create/update its `definition` Resources (`mydef1` and `mydef2`).
 
 Any error while processing a nested collection entity MUST result in the entire
 request being rejected.
 
 An absent `COLLECTIONs` attribute MUST be interpreted as a request to not
-modify the collection at all due to processing of the request, regardless of
-the presence (or absence) of the `inline` query parameter.
+modify the collection at all, regardless of the presence (or absence) of the
+`nested` query parameter.
+
+If a client wishes to replace an entire collection, rather than just add new
+entities, the client MUST use one of the `DELETE` operations on the collection
+first.
+
+In cases where an update operation includes attributes meant to be applied
+to the "default" Version, and the incoming inlined `versions` collections
+includes that "default" Version, the Resource's default Version attributes MUST
+be silently ignored. This is to avoid any possible conflicting data between
+the two sets of data for that Version. In other words, the Version attributes
+in the incoming `versions` collection wins. Note that Resource specific
+attributes (e.g. `stickydefaultversion`) are not affected by this rule as
+they are not Version attributes.
+
+To better understand this scenario, consider the following HTTP request to
+update a Definition where the `defaultversionid` is `v1`:
+
+```
+PUT http://example.com/endpoints/123/definitions/456?nested
+
+{
+  "id": "456",
+  "name": "Blob Created",
+  "defaultversionid": "v1",
+  "createdat": "2024-04-30T12:00:00Z",
+  "modifiedat": "2024-04-30T12:00:01Z",
+  "versions": {
+    "v1": {
+      "id": "v1",
+      "name": "Blob Created Definition",
+      "createdat": "2024-04-30T12:00:00Z",
+      "modifiedat": "2024-04-30T12:00:01Z"
+    }
+  }
+}
+```
+If the `versions` collection were not present with the `v1` entity, or if the
+`nested` query parameter was not provided, then the top-level attributes would
+be used to update the default Version (`v1` in this case). However, because
+they are present, the request to update `v1` becomes ambiguous because it is
+not clear if the server is meant to use the top-level attributes or if it
+is to use the attributes under the `v1` entity of the `versions` collection.
+When both sets of attributes are the same then it does not matter. However, in
+this cases the `name` attributes have different values. The paragraph above
+mandates that in these potentially ambiguous cases the entity in the
+`versions` collection is to be used and the top-level attributes are to be
+ignored - for the purposes of updating the "default" Version's attributes.
 
 ---
 
@@ -936,8 +992,8 @@ following exceptions:
     server semantics) MAY modify it. A value of `null` MUST be interpreted as
     a request to delete the attribute.
   - When using `PATCH` for a Resource or Version, `$meta` MUST be appended
-    to its `id`. When absent, the processing of the HTTP `xRegistry-` headers
-    is already defined with "patch" semantics.
+    to its `id` since, when it is absent, the processing of the HTTP
+    `xRegistry-` headers is already defined with "patch" semantics.
   - `PATCH` MAY be used to create new entities, but as with any of the create
     operations, any missing REQUIRED attributes MUST generate an error.
 
@@ -960,7 +1016,7 @@ the following:
   # Repeat for each nested Registry collection in the entity
   "COLLECTIONurl": "URL", ?                        # e.g. "endpointsurl"
   "COLLECTIONcount": UINTEGER", ?                  # e.g. "endpointscount"
-  "COLLECTIONs": { map of COLLECTION entities } ?  # If inlined
+  "COLLECTIONs": { map of COLLECTION entities } ?  # If inlined/nested
 }
 ```
 
@@ -1389,9 +1445,9 @@ To update the Registry entity, an HTTP `PUT` or `PATCH` MAY be used.
 The request MUST be of the form:
 
 ```yaml
-PUT /[?inline&model]
+PUT /[?nested&model]
 or
-PATCH /[?inline&model]
+PATCH /[?nested&model]
 Content-Type: application/json; charset=utf-8
 
 {
@@ -1409,7 +1465,7 @@ Content-Type: application/json; charset=utf-8
   # Repeat for each Group type
   "GROUPsurl": "URL", ?               # Read-only, ignored by server
   "GROUPscount": UINTEGER, ?          # Read-only, ignored by server
-  "GROUPs": { GROUPs collection } ?   # Only if "?inline" is present
+  "GROUPs": { GROUPs collection } ?   # Only if "?nested" is present
 }
 ```
 
@@ -1421,7 +1477,7 @@ Where:
   Registry Model](#updating-the-registry-model) for more information.
 
 The following query parameter SHOULD be supported by servers:
-- `inline` - See
+- `nested` - See
    [Updating Nested Registry
    Collections](#updating-nested-registry-collections) for more information.
 - `model` - when present, if the `model` attribute is also present then the
@@ -2532,7 +2588,7 @@ The serialization of a Group entity adheres to this form:
   # Repeat for each Resource type in the Group
   "RESOURCEsurl": "URL",                    # e.g. "definitionsurl"
   "RESOURCEscount": UINTEGER,               # e.g. "definitionscount"
-  "RESOURCEs": { RESOURCEs collection } ?   # If inlined
+  "RESOURCEs": { RESOURCEs collection } ?   # If inlined/nested
 }
 ```
 
@@ -2649,9 +2705,14 @@ and that there are total of 100 items in this collection.
 
 Creating or updating Groups via HTTP MAY be done by using the HTTP `PUT`
 or `POST` methods:
-- `PUT   /GROUPs/gID[?inline]`.
-- `PATCH /GROUPs/gID[?inline]`.
-- `POST  /GROUPs[?inline]`.
+- `PUT   /GROUPs/gID[?nested]`.
+- `PATCH /GROUPs/gID[?nested]`.
+- `POST  /GROUPs[?nested]`.
+
+The following query parameter SHOULD be supported by servers:
+- `nested` - See
+   [Updating Nested Registry
+   Collections](#updating-nested-registry-collections) for more information.
 
 The overall processing of these two APIs is defined in the [Creating or
 Updating Entities](#creating-or-updating-entities) section.
@@ -2673,7 +2734,7 @@ Each individual Group definition MUST adhere to the following:
   # Repeat for each Resource type in the Group
   "RESOURCEsurl": "URL",                     # e.g. "definitionsurl"
   "RESOURCEscount": UINTEGER,                # e.g. "definitionscount"
-  "RESOURCEs": { RESOURCEs collection } ?    # If "?inline" is present
+  "RESOURCEs": { RESOURCEs collection } ?    # If "?nested" is present
 }
 ```
 
@@ -3220,7 +3281,7 @@ this form:
 
   "versionsurl": "URL",
   "versionscount": UINTEGER,
-  "versions": { Versions collection } ?    # If inlined
+  "versions": { Versions collection } ?    # If inlined/nested
 }
 ```
 
@@ -3240,7 +3301,7 @@ summarized as:
 - Creates or updates one or more Resources.
 
 **`PUT   /GROUPs/gID/RESOURCEs/rID[$meta]`**<br>
-**`PATCH /GROUPs/gID/RESOURCEs/rID[$meta]`**
+**`PATCH /GROUPs/gID/RESOURCEs/rID$meta`**
 
 - Creates a new Resource, or update the default Version of a Resource.
 
@@ -3252,8 +3313,8 @@ summarized as:
 
 - Creates or updates one or more Versions of a Resource.
 
-**`PUT   /GROUPs/gID/RESOURCEs/rID/versions/vID`**<br>
-**`PATCH /GROUPs/gID/RESOURCEs/rID/versions/vID`**
+**`PUT   /GROUPs/gID/RESOURCEs/rID/versions/vID[$meta]`**<br>
+**`PATCH /GROUPs/gID/RESOURCEs/rID/versions/vID$meta`**
 
 - Creates or updates a single Version of a Resource.
 
@@ -3369,13 +3430,10 @@ These APIs follow the overall pattern described in the [Creating or Updating
 Entities](#creating-or-updating-entities) section. Any variations will be
 called out.
 
-The following query parameter MAY be used:
-- `inline` - see [inlining](#inlining) section for more information.
-
 Creating and updating of Resources via HTTP MAY be done using the HTTP `POST`,
 `PUT` or `PATCH` methods as described below:
 
-`POST /GROUPs/gID/RESOURCEs[?inline]`
+`POST /GROUPs/gID/RESOURCEs[?nested]`
 
 Where:
 - This API MUST create or update one or more Resources within the specified
@@ -3383,8 +3441,8 @@ Where:
 - The HTTP body MUST contain a map of Resources to be created or updated,
   serialized as xRegistry metadata.
 
-`PUT   /GROUPs/gID/RESOURCEs/rID[$meta][?inline]`<br>
-`PATCH /GROUPs/gID/RESOURCEs/rID[$meta][?inline]`
+`PUT   /GROUPs/gID/RESOURCEs/rID[$meta][?nested]`<br>
+`PATCH /GROUPs/gID/RESOURCEs/rID[$meta][?nested]`
 
 Where:
 - These APIs MUST create or update a single Resource in the Group.
@@ -3470,7 +3528,7 @@ Version in the request MUST adhere to the following:
 
   "versionsurl": "URL", ?                  # For Resources
   "versionscount": UINTEGER, ?             # For Resources
-  "versions": { Versions collection } ?    # For Resources, if inlined
+  "versions": { Versions collection } ?    # For Resources, if nested
 }
 ```
 
@@ -3994,10 +4052,10 @@ Where:
   RECOMMENDED that clients provide an explicit `id` when possible. However,
   if a Version create operation asks the server to choose the `id` values, then
   including that `id` in the query parameter is not possible. In those cases
-  a value of `this` MAY be used as a way to reference the Version being
+  a value of `request` MAY be used as a way to reference the Version being
   processed in the current request, and if the request creates more than one
   Version then an error MUST be generated.
-- If a non-null and non-this `vID` does not reference an existing Version of
+- If a non-null and non-request `vID` does not reference an existing Version of
   the Resource, after all Version processing is completed, then an HTTP
   `400 Bad Request` error MUST be generated.
 
@@ -4006,7 +4064,7 @@ Any use of this query parameter on a Resource that has the
 
 Updating a Resource's default Verison, regardless of the mechanism used to
 do so, MUST adhere to the following rules:
-- Aside from the special values of `null` and `this`, its value MUST be
+- Aside from the special values of `null` and `request`, its value MUST be
   the `id` of a Version for the specified Resource after all Version processing
   is completed (i.e. after any Versions are added or removed). Its value is
   not limited to the Versions involved in the current operation.
@@ -4293,11 +4351,9 @@ HTTP/1.1 204 No Content
 
 ### Inlining
 
-The `inline` query parameter MAY be used on requests or responses to indicate
-how nested collections or certain (potentially large) attributes are to be
-handled.
-
-#### Inlining GET Responses
+The `inline` query parameter MAY be used on read requests to indicate how
+nested collections, or certain (potentially large) attributes, are to be
+exposed in the response message.
 
 The `inline` query parameter on a `GET` request indicates that the response
 MUST include the contents of all specified inlinable attributes. Inlinable
@@ -4374,56 +4430,6 @@ message in the HTTP body indicating that the response is too large to be
 sent in one message. In those cases, the client will need to query the
 individual inlinable attributes in isolation so the Registry can leverage
 [pagination](../pagination/spec.md) of the response.
-
-#### Inlining PUT/PATCH/POST Requests
-
-The `inline` query parameter on a `PUT`, `PATCH` or `POST` request indicates
-that any Registry collection `COLLECTIONs` attribute MUST be processed and the
-entities listed in its map MUST be added to the collection. If an entity with
-the specified `id` already exists, then it MUST be updated according to the
-semantics of the HTTP method used. If the `inline` query parameter is not
-present in the request then any `COLLECTIONs` attributes present in the
-request MUST be silently ignored.
-
-See [Updating Nested Registry
-Collections](#updating-nested-registry-collections) for more information.
-
-The format of the `inline` query parameter is:
-
-```yaml
-inline
-```
-
-Note, unlike in the `GET` API, there is no value specified.
-
-The processing of the `COLLECTIONs` attribute MUST be done at all levels
-of the request body, not just at the top level.
-
-Absence of a `COLLECTIONs` attribute, at any level, MUST leave that collection
-unchanged.
-
-Any `COLLECTIONcount` and `COLLECTIONurl` attribute in a request MUST be
-silently ignored.
-
-If a client wishes to replace and entire collection, rather just add new
-entities, the client MUST use one of the `DELETE` operations on the collection
-first.
-
-Unlike the use of `inline` on the `GET` request, using `inline`
-has no impact on the processing of any `RESOURCE*` attributes in the request.
-That presence, or absence, of those attributes in the request will control
-whether the document of the Resource/Version are changed or not.
-
-In cases where an update operation includes attributes meant to be applied
-to the "default" Version, and the incoming inlined `versions` collections
-includes that "default" Version, the Resource's default Version attributes MUST
-be silently ignored. This is to avoid any possible conflicting data between
-the two sets of data for that Version. In other words, the Version attributes
-in the incoming `versions` collection wins. Note that Resource specific
-attributes (e.g. `stickydefaultversion`) are not affected by this rule as
-they are not Version attributes.
-
----
 
 ### Filtering
 
