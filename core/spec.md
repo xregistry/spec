@@ -1502,7 +1502,7 @@ Content-Type: application/json; charset=utf-8
 The Registry model defines the Groups, Resources, extension attributes and
 changes to specification defined core attributes. This information is
 intended to be used by tooling that does not have knowledge of the structure of
-the Registry in advance and therefore will need to dynamically discovery it.
+the Registry in advance and therefore will need to dynamically discover it.
 
 To enable support for a wide range of use cases, but to also ensure
 interoperability across implementations, the following rules have been defined

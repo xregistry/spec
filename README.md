@@ -6,7 +6,7 @@
 [![CLOMonitor](https://img.shields.io/endpoint?url=https://clomonitor.io/api/projects/cncf/cloudevents/badge)](https://clomonitor.io/projects/cncf/cloudevents)
 [![OpenSSF Best Practices](https://bestpractices.coreinfrastructure.org/projects/7295/badge)](https://bestpractices.coreinfrastructure.org/projects/7295)
 
-The xRegistry project defines an abstract model for how to manage metadata
+The xRegistry project (short for "extensible registry") defines an abstract model for how to manage metadata
 about resources and provide a REST-based interface for creating, modifying,
 deleting and discovering of those resources. The project includes a "core"
 specification that defines the basic model and APIs of a Registry and a
