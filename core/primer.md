@@ -17,7 +17,7 @@ Versions of a Resource, on the other hand, might change quite often and the
 `id` isn't meant to convey the purpose of the underlying entity, rather it is
 meant to uniquely specify its "version number".  As such, the semantics
 meaning and usage of the two `id` values are quite different. This means that
-there might be times when they are the same value However, while this is
+there might be times when they are the same value. However, while this is
 allowable, it has no influence on any specification defined semantics of the
 xRegistry model. As a result, implementations might want to avoid using `id`
 values that could appear on a Resource and one of its Versions simply to avoid
