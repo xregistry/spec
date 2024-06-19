@@ -1130,7 +1130,7 @@ following [RFC8615](https://datatracker.ietf.org/doc/html/rfc8615).
 It acts as a single entrypoint from where locations and capabilities of the
 xRegistry implementation can be retrieved. Since this URL is always the same,
 it can be used to find out whether xRegistry is supported and where to find the API.
-It also allows to support multiple versions of the xRegistry protocol at the same time
+It allows for support of multiple versions of the xRegistry protocol at the same time
 and allows implementers to choose their own API base path.
 
 The capabilities described on this level are independent from the xRegistry protocol version or its current meta model.
