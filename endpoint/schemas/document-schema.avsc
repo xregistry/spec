@@ -357,6 +357,26 @@
                         }
                       ],
                       "doc": "Binding identifier. This attribute MUST be the same as the 'binding' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups"
+                    },
+                    {
+                      "type": "string",
+                      "name": "schemaformat",
+                      "doc": "The schema format applicable to the message payload, equivalent to the 'format' attribute attribute of the schema registry"
+                    },
+                    {
+                      "type": "string",
+                      "name": "schema",
+                      "doc": "The inline schema for the message payload, equivalent to the 'schema' attribute of the schema registry"
+                    },
+                    {
+                      "type": "GenericRecord",
+                      "name": "schemaobject",
+                      "doc": "The inline schema object for the message payload, equivalent to the 'schemaobject' attribute of the schema registry"
+                    },
+                    {
+                      "type": "string",
+                      "name": "schemauri",
+                      "doc": "The URL of the schema for the message payload, equivalent to the 'schemaurl' attribute of the schema registry"
                     }
                   ]
                 }

@@ -66,6 +66,24 @@
           "type": "string",
           "format": "uri",
           "description": "Reference to a base definition for this definition, either via a (relative) URL or a fragment identifier. The base definition is overridden by this definition. If not present, this definition does not override any base definition"
+        },
+        "schemaformat": {
+          "type": "string",
+          "description": "The schema format applicable to the message payload, equivalent to the 'format' attribute attribute of the schema registry"
+        },
+        "schema": {
+          "type": "string",
+          "description": "The inline schema for the message payload, equivalent to the 'schema' attribute of the schema registry"
+        },
+        "schemaobject": {
+          "type": "object",
+          "description": "The inline schema object for the message payload, equivalent to the 'schemaobject' attribute of the schema registry",
+          "properties": {}
+        },
+        "schemauri": {
+          "type": "string",
+          "format": "uri",
+          "description": "The URL of the schema for the message payload, equivalent to the 'schemaurl' attribute of the schema registry"
         }
       },
       "required": [
@@ -1013,7 +1031,7 @@
                     "qos": {
                       "type": "integer",
                       "minimum": 0,
-                      "description": "The MQTT QoS level\u00c3\u00b6. May be 0, 1, or 2"
+                      "description": "The MQTT QoS level\u00f6. May be 0, 1, or 2"
                     },
                     "retain": {
                       "type": "boolean",
