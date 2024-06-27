@@ -114,6 +114,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
         "immutable": BOOLEAN, ?         # Once set, can't change. Default=false
         "clientrequired": BOOLEAN, ?    # Default: false
         "serverrequired": BOOLEAN, ?    # Default: false
+        "exportrequired": BOOLEAN, ?    # Default: false
         "default": VALUE, ?             # Attribute's default value, scalars
 
         "attributes": { ... }, ?        # If "type" above is object
@@ -176,6 +177,9 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       "RESOURCEs": {                               # Only if inlined/nested
         "ID": {                                    # The Resource id
           "id": "STRING",
+
+          "xref": "URL", ?
+
           "name": "STRING", ?
           "epoch": UINTEGER,
           "self": "URL",
@@ -222,6 +226,15 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   } ?
 }
 ```
+
+Note: the cardinality/optionality of a Resource's attributes are specified
+to indicate which are to be present when the Resource's attributes are
+included in its serialization. For example, when `?export` is used, the
+Resource's default attributes will not be present at all, which means listing
+`epoch` as mandatory in the above serialize is technically incorrect in
+general, but when the attributes do appear then `epoch` is mandatory. Since
+listing all attributes as OPTIONAL would reduce the usefulness of the above
+example, this inconsistency is deliberate.
 
 ## Notations and Terminology
 
@@ -872,7 +885,7 @@ appear.
 
 For example:
 
-```
+```yaml
 PUT https://example.com/endpoints/123?nested
 
 {
@@ -912,7 +925,7 @@ they are not Version attributes.
 To better understand this scenario, consider the following HTTP request to
 update a Definition where the `defaultversionid` is `v1`:
 
-```
+```yaml
 PUT http://example.com/endpoints/123/definitions/456?nested
 
 {
@@ -931,6 +944,7 @@ PUT http://example.com/endpoints/123/definitions/456?nested
   }
 }
 ```
+
 If the `versions` collection were not present with the `v1` entity, or if the
 `nested` query parameter was not provided, then the top-level attributes would
 be used to update the default Version (`v1` in this case). However, because
@@ -1075,12 +1089,13 @@ To retrieve a Registry collection, an HTTP `GET` MAY be used. The request
 MUST be of the form:
 
 ```yaml
-GET PATH-TO-COLLECTION[?inline=...&filter=...]
+GET PATH-TO-COLLECTION[?inline=...&filter=...&export]
 ```
 
 The following query parameters SHOULD be supported by servers:
 - `inline` - See [inlining](#inlining) for more information.
 - `filter` - See [filtering](#filtering) for more information.
+- `export` - See [exporting](#exporting) for more information.
 
 A successful response MUST be of the form:
 
@@ -1108,12 +1123,13 @@ To retrieve an entity, an HTTP `GET` MAY be used. The request MUST be of the
 form:
 
 ```yaml
-GET PATH-TO-COLLECTION/ID-OF-ENTITY[?inline=...&filter=...]
+GET PATH-TO-COLLECTION/ID-OF-ENTITY[?inline=...&filter=...&export]
 ```
 
 The following query parameters SHOULD be supported by servers:
 - `inline` - See [inlining](#inlining) for more information.
 - `filter` - See [filtering](#filtering) for more information.
+- `export` - See [exporting](#exporting) for more information.
 
 A successful response MUST be of the form:
 
@@ -1285,7 +1301,7 @@ MAY be used.
 The request MUST be of the form:
 
 ```yaml
-GET /[?model&specversion=...&inline=...&filter=...]
+GET /[?model&specversion=...&inline=...&filter=...&export]
 ```
 
 The following query parameters SHOULD be supported by servers:
@@ -1302,6 +1318,7 @@ The following query parameters SHOULD be supported by servers:
   version of this specification supported by the server.
 - `inline` - See [inlining](#inlining) for more information.
 - `filter` - See [filtering](#filtering) for more information.
+- `export` - See [exporting](#exporting) for more information.
 
 A successful response MUST be of the form:
 
@@ -1380,13 +1397,13 @@ Content-Type: application/json; charset=utf-8
 
   "model": {
     "schemas": [ "xRegistry-json", "jsonSchema/2020-12" ],
-    ... xRegistry core attributes excluded for brevity ...
+    ... xRegistry spec defined attributes excluded for brevity ...
     "groups": {
       "endpoints": {
         "plural": "endpoints",
         "singular": "endpoint",
         "attributes": {
-          ... xRegistry core attributes excluded for brevity ...
+          ... xRegistry spec defined attributes excluded for brevity ...
           "shared": {
             "name": "shared",
             "type": "boolean"
@@ -1398,7 +1415,7 @@ Content-Type: application/json; charset=utf-8
             "plural": "definitions",
             "singular": "definition",
             "attributes": {
-              ... xRegistry core attributes excluded for brevity ...
+              ... xRegistry spec defined attributes excluded for brevity ...
               "*": {
                 type: "any"
               }
@@ -1410,13 +1427,13 @@ Content-Type: application/json; charset=utf-8
       "schemagroups": {
         "plural": "schemagroups",
         "singular": "schemagroup",
-        ... xRegistry core attributes excluded for brevity ...
+        ... xRegistry spec defined attributes excluded for brevity ...
 
         "resources": {
           "schemas": {
             "plural": "schemas",
             "singular": "schema",
-            ... xRegistry core attributes excluded for brevity ...
+            ... xRegistry spec defined attributes excluded for brevity ...
             "maxversions": 1
           }
         }
@@ -1556,27 +1573,28 @@ Content-Type: application/json; charset=utf-8
 ### Registry Model
 
 The Registry model defines the Groups, Resources, extension attributes and
-changes to specification defined core attributes. This information is
+changes to specification defined attributes. This information is
 intended to be used by tooling that does not have knowledge of the structure of
 the Registry in advance and therefore will need to dynamically discover it.
 
 To enable support for a wide range of use cases, but to also ensure
 interoperability across implementations, the following rules have been defined
 with respect to how models are defined or updated:
-- Core attributes that are `serverrequired` MUST NOT have this aspect changed
-  to `false`.
-- Core attributes that are `readonly` and `serverrequired` MUST NOT have the
-  `readonly` aspect changed to `false`.
+- Specification defined attributes that are `serverrequired` MUST NOT have
+  this aspect changed to `false`.
+- Specification defined attributes that are `readonly` and `serverrequired`
+  MUST NOT have the `readonly` aspect changed to `false`.
 - The `name` and `type` aspects of attributes MUST NOT be changed.
 
-To indicate a change to a core attribute, the attribute MUST be defined as part
-of the Registry model. Any core attributes that are not explicitly defined in
-the model of a Registry MUST be implicitly present and be as defined by this
-specification. In other words, the Registry's model consists of the core
-attributes (as defined by this specification) overlaid with the core and
-extension attributes that are explicitly defined as part of its model.
+To indicate a change to a specification defined attribute, the attribute MUST
+be defined as part of the Registry model. Any specification defined attributes
+that are not explicitly defined in the model of a Registry MUST be implicitly
+present and be as defined by this specification. In other words, the
+Registry's model consists of the specification defined attributes overlaid
+with the attributes that are explicitly defined as part of its model.
 
-Note: there is no mechanism defined to delete core attributes from the model.
+Note: there is no mechanism defined to delete specification defined attributes
+from the model.
 
 Registries MAY support extensions to the model (meaning, new attributes within
 the model definitions themselves, e.g. a sibling to `schemas`), but only if
@@ -1649,6 +1667,7 @@ Regardless of how the model is retrieved, the overall format is as follows:
       "immutable": BOOLEAN, ?          # Once set, can't change. Default: false
       "clientrequired": BOOLEAN, ?     # Default: false
       "serverrequired": BOOLEAN, ?     # Default: false
+      "exportrequired": BOOLEAN, ?     # Default: false
       "default": VALUE, ?              # Attribute's default value, scalars
 
       "attributes": { ... }, ?         # If "type" above is object
@@ -1809,6 +1828,24 @@ The following describes the attributes of Registry model:
     When the attribute name is `*` then `serverrequired` MUST NOT be set to
     `true`. When `clientrequired` is `true` then `serverrequired` MUST also be
     `true`.
+
+    When the attribute in question is on a Resource the `serverrequired`
+    aspect only applies when the attribute is serialized as part of the
+    Resource. For example, if the `?export` flag is specified, meaning the
+    default Version attributes are excluded from the serialization of the
+    Resource, then an attribute with the `serverrequired` aspect set to `true`
+    but the `exportrequired` aspect set to `false` would not be included. Also
+    see the `exportrequired` aspect below.
+  - Type: Boolean
+  - OPTIONAL
+
+- `attributes."STRING".exportrequired`
+  - Indicates whether this Resource attribute would be included
+    in the serialization of the Resource even when `?export` is used.
+  - This aspect is for specification defined attributes and MUST NOT be used
+    on extension attributes. Its specification defined value MUST NOT be
+    changed by model updates.
+  - When not present, the default value is `false`.
   - Type: Boolean
   - OPTIONAL
 
@@ -2055,7 +2092,7 @@ The following describes the attributes of Registry model:
 
   - OPTIONAL.
   - Example:<br>
-    ```
+    ```yaml
     "typemap": {
       "text/*": "string",
       "text/mine": "json"
@@ -2192,14 +2229,14 @@ Content-Type: application/json; charset=utf-8
 {
   "schemas": [ "xRegistry-json", "jsonSchema/2020-12" ],
   "attributes": {
-    ... xRegistry core attributes excluded for brevity ...
+    ... xRegistry spec defined attributes excluded for brevity ...
   },
   "groups": {
     "endpoints": {
       "plural": "endpoints",
       "singular": "endpoint",
       "attributes": {
-        ... xRegistry core attributes excluded for brevity ...
+        ... xRegistry spec defined attributes excluded for brevity ...
         "shared": {
           "name": "shared",
           "type": "boolean"
@@ -2211,7 +2248,7 @@ Content-Type: application/json; charset=utf-8
           "plural": "definitions",
           "singular": "definition",
           "attributes": {
-            ... xRegistry core attributes excluded for brevity ...
+            ... xRegistry spec defined attributes excluded for brevity ...
             "*": {
               type: "any"
             }
@@ -2410,14 +2447,14 @@ Content-Type: application/json; charset=utf-8
 {
   "schemas": [ "xRegistry-json", "jsonSchema/2020-12" ],
   "attributes": {
-    ... xRegistry core attributes excluded for brevity ...
+    ... xRegistry spec defined attributes excluded for brevity ...
   },
   "groups": {
     "endpoints" {
       "plural": "endpoints",
       "singular": "endpoint",
       "attributes": {
-        ... xRegistry core attributes excluded for brevity ...
+        ... xRegistry spec defined attributes excluded for brevity ...
         "shared": {
           "name": "shared",
           "type": "boolean"
@@ -2428,7 +2465,7 @@ Content-Type: application/json; charset=utf-8
         "definitions": {
           "plural": "definitions",
           "singular": "definition",
-          ... xRegistry core attributes excluded for brevity ...
+          ... xRegistry spec defined attributes excluded for brevity ...
           "attributes": {
             "*": {
               type: "any"
@@ -2453,111 +2490,60 @@ Content-Type: application/json; charset=utf-8
 }
 ```
 
-##### Imports in the xRegistry Model Data
+##### Reuse of Resource Definitions
 
-There might be times when it is necessary for an xRegistry model to reuse
-portions of another xRegistry model defined elsewhere. Rather than forcing
-the duplication of the model definitions, an "import" type of JSON directive
-MAY be used.
-
-The general formats of the import are:
-```yaml
-"$import": "PATH-TO-DOCUMENT#JSON-POINTER-IN-DOC"
-```
-or
-```yaml
-"$imports": [ "PATH-TO-DOCUMENT#JSON-POINTER-IN-DOC" * ]
-```
-where the first form specifies a single reference to be imported, and the
-second form specifies multiple. The fragment (`#...`) portion is OPTIONAL.
-
-For example:
-```yaml
-"$import": "http://example.com/xreg-model.json#/groups/mygroup/attributes"
-```
-is asking for the attributes of a GROUP called `mygroup` to be included at
-this location of the current model definition.
-
-These directives MAY be used in any JSON Object or Map entity in an
-xRegistry model definition. The following rules apply for how to process the
-import directive:
-- The import path reference value MUST be compatible with the environment in
-  which the import is being evaluated. For example, in an xRegistry server it
-  would most likely always be a URL. However, in an external tool the reference
-  might be to a local file on disk or a URL.
-- The import MUST reference a JSON Object or Map that is consistent with
-  the model definition of where the import appears.
-- Any attributes already present (as siblings to the import) MUST take
-  precedence over an imported attribute - matching is done via comparing
-  the `name` of the attributes.
-- When `$imports` is used, the references MUST be processed in order and
-  earlier attributes imported take precedence over subsequently imported
-  attributes.
-- Both `$import` and `$imports` MUST NOT be present at the same time at the
-  same level in the model.
-- Imported model definitions MAY include import directives, but MUST NOT be
-  recursive.
-- Resolution of the import path MUST follow standard path resolution.
-  Meaning, relative paths are relative to the document with the import
-  directive.
-- If present, the fragment (`#...`) part of the reference MUST adhere to the
-  [JSON Pointer](https://datatracker.ietf.org/doc/html/rfc6901) specification.
-
-When the directives are used in a request to update the model, the server MUST
-resolve all imports prior to processing the request and MUST return the
-expanded model in responses to the request for the model. The imports MUST NOT
-be processed again at a later time. A request to re-evaluate the imports can
-be done via an subsequent model update operation.
-
-**Examples:**
-
-A model definition that imports xRegistry attributes from a file on a remote
-server, and adds the definition of one attribute to a GROUP named `mygroups`
-from an external Group named `group1` in another xRegistry.
+When a Resource type definition is to be shared between Groups, rather than
+creating a duplicate Resource definition the `ximport` mechanism MAY be used
+instead. When defining the Resources of a Group, a special Resource "plural"
+name MAY be used to reference other Resource definitions from within the same
+Registry. For example the following abbreviated model definition defines
+one Resource type (`definitions`) under the `messagegroups` Group, that is
+also used by the `endpoints` Group.
 
 ```yaml
-{
-  "attributes": {
-    "$import": "http://example.com/someattributes",
-    "someattribute": {
-      "name": "someattribute",
-      "type": "string"
-    }
-  }
+"model": {
   "groups": {
-    "mygroups": {
-      "plural": "mygroups",
-      "singular": "mygroup",
-      "attributes": {
-        "attr1": {
-          "$import": "http://example.com/model#/groups/group1/attributes/attr1"
+    "messagegroups": {
+      "plural": "messagegroups",
+      "singular": "messagegroup",
+      "resources": {
+        "definitions": {
+          "plural": "definitions",
+          "singular": "definition"
         }
-        ... remainder of model excluded for brevity ...
+      }
+    },
+    "endpoints": {
+      "plural": "endpoints",
+      "singular": "endpoint",
+      "resources": {
+        "ximport": [ "messagegroups/definitions" ]
       }
     }
   }
 }
 ```
 
-where `http://example.com/someattributes` might look like:
+The format of the `ximport` specification is:
 
 ```yaml
-{
-  "myattr": {
-    "name": "myattr",
-    "type": "string"
-  }
-}
+"ximport": [ "GROUPs/RESOURCEs", ... ]
 ```
 
-and the second import might look like:
+where:
+- Each array value MUST be a reference to another Group/Resource plural
+combination defined within the same Registry. It MUST NOT reference the
+same Group under which the `ximport` resides.
+- An empty array MAY be specified, implying no Resources are imported.
 
-```yaml
-{
-  "name": "attr1",
-  "type": "string"
-}
-```
+Use of the `ximport` feature MUST only be used once per Group definition.
+
+Additional locally defined Resources MAY be defined within a Group that uses
+the `ximport` feature, however, Resource `plural` and `singular` values
+MUST be unique across all imported and locally defined Resources.
+
+See [Cross Referencing Resources](#cross-referencing-resources) for more
+additional information.
 
 ---
 
@@ -2623,12 +2609,13 @@ To retrieve a Group collection, an HTTP `GET` MAY be used.
 The request MUST be of the form:
 
 ```yaml
-GET /GROUPs[?inline=...&filter=...]
+GET /GROUPs[?inline=...&filter=...&export]
 ```
 
 The following query parameters SHOULD be supported by servers:
 - `inline` - See [inlining](#inlining) for more information.
 - `filter` - See [filtering](#filtering) for more information.
+- `export` - See [exporting](#exporting) for more information.
 
 A successful response MUST be of the form:
 
@@ -2825,12 +2812,13 @@ To retrieve a Group, an HTTP `GET` MAY be used.
 The request MUST be of the form:
 
 ```yaml
-GET /GROUPs/gID[?inline=...&filter=...]
+GET /GROUPs/gID[?inline=...&filter=...&export]
 ```
 
 The following query parameters SHOULD be supported by servers:
 - `inline` - See [inlining](#inlining) for more information.
 - `filter` - See [filtering](#filtering) for more information.
+- `export` - See [exporting](#exporting) for more information.
 
 A successful response MUST be of the form:
 
@@ -3005,9 +2993,11 @@ Resources (not Versions) include the following common attributes:
 
 (these values are from the Resource, not the default Version)
 - [`id`](#id) - REQUIRED in responses and document view, otherwise OPTIONAL.
-- [`self`](#self) - REQUIRED in responses, otherwise OPTIONAL.
+- [`self`](#self) - REQUIRED in responses (when `xref` is not defined),
+  otherwise OPTIONAL.
 
-(these values are picked-up from the default Version)
+(these values are picked-up from the default Version and only present when
+the Resource's default attributes are serialized as part of the Resource)
 - [`name`](#name) - OPTIONAL.
 - [`epoch`](#epoch) - REQUIRED in responses, otherwise OPTIONAL.
 - [`description`](#description) - OPTIONAL.
@@ -3019,6 +3009,12 @@ Resources (not Versions) include the following common attributes:
 - [`contenttype`](#contenttype) - STRONGLY RECOMMENDED.
 
 and the following Resource specific attributes:
+
+**`xref`**
+- Type: Relative URL from base URL of Registry
+- Description: indicates that this Resource is a reference to another Resource
+  owned by another Group within the same Registry. See [Cross Referencing
+  Resources](#cross-referencing-resources) for more information.
 
 **`stickydefaultversion`**
 - Type: Boolean
@@ -3213,6 +3209,7 @@ in the HTTP body, it MUST adhere to this form:
 ```yaml
 Content-Type: STRING ?
 xRegistry-id: STRING                       # ID of Resource, not default Version
+xRegistry-xref: URL ?
 xRegistry-name: STRING ?
 xRegistry-epoch: UINT
 xRegistry-self: URL                        # URL of Resource,not default Version
@@ -3261,6 +3258,7 @@ this form:
 ```yaml
 {
   "id": "STRING",                          # ID of Resource, not default Version
+  "xref": "URL", ?
   "name": "STRING", ?
   "epoch": UINTEGER,
   "self": "URL",                           # URL of Resource,not default Version
@@ -3288,6 +3286,124 @@ this form:
 As before, Version's serialization will look similar but the set of attributes
 will be slightly different (to exclude Resource specific attributes, and
 include Version specific ones). More information on this in the next sections.
+
+#### Cross Referencing Resources
+
+Typically, Resources exist within the scope of a single Group, however there
+might be situations where a Resource needs to be related to multiple Groups.
+In these cases there are two options. First, a copy of the Resource could be
+made in the second Group. The obvious downside to this is that there's no
+relationship between the two Resources and any changes to one would need to
+be done in the other - running the risk of them getting out of sync.
+
+The second, and better option, is to create a cross-reference from one
+(the "source" Resource) to the other ("target" Resource). This is done
+by setting the `xref` attribute on the source Resource to be the relative
+URL to the target Resource. For example, a source Resource defined as:
+
+```yaml
+{
+  "id": "sourceresource",
+  "xref": "/groups/group2/resources/targetresource"
+}
+```
+
+means that this "sourceresource" references the "targetresource" from
+"group2". When the source Resource is serialized (e.g. as a result of a
+`GET`), then all of the target Resource's attributes (except its `id`) will
+appear as if they were locally defined. So, if the target Resource was defined
+as:
+
+```yaml
+{
+  "id": "targetresource",
+  "epoch" 2,
+  "self": "http://example.com/groups/group2/resources/targetresource$meta",
+  "defaultversionid": "v1",
+  "defaultversionurl": "http://example.com/groups/group2/resources/targetresource/versions/v1",
+  "createdat": "2024-01-01-T12:00:00",
+  "modifiedat": "2024-01-01-T12:01:00",
+  "versionscount": 1,
+  "versionsurl": "http://example.com/groups/group2/resources/targetresource/versions"
+}
+```
+
+then the resulting serialization of the source Resource would be:
+
+```yaml
+{
+  "id": sourceresource",
+  "xref": "groups/group2/resources/targetresource",
+  "epoch" 2,
+  "self": "http://example.com/groups/group1/resources/sourceresource$meta",
+  "defaultversionid": "v1",
+  "defaultversionurl": "http://example.com/groups/group1/resources/sourceresource/versions/v1",
+  "createdat": "2024-01-01-T12:00:00",
+  "modifiedat": "2024-01-01-T12:01:00",
+  "versionscount": 1,
+  "versionsurl": "http://example.com/groups/group1/resources/sourceresource/versions"
+}
+```
+
+Note:
+- The `id` of the source Resource MAY be different from the `id` of the target
+  Resource.
+- The `xref` attribute MUST appear so a client can easily determine that this
+  Resource is actually a cross-referenced Resource, and provide a URL to that
+  targeted Resource (if ever needed).
+- All calculated attributes (such as the `defaultversionurl` and `versionsurl`)
+  MUST use the `id` of the source Resource not the target Resource. In this
+  respect, users of this serialization would never know that this is a cross-
+  referenced Resource except for the presence of the `xref` attribute.
+- The URL of the target Resource MUST be a relative URL of the form:
+  `GROUPs/gID/RESOURCEs/rID`, and MUST reference a Resource within the same
+  Registry. However, it MUST NOT point to itself.
+
+From a consumption (read) perspective, aside from the presence of the `xref`
+attribute, the Resource appears to be a normal Resource that exists within
+`group1`. All of the specification defined features (e.g. `?inline`,
+`?filter`) MAY be used when retrieving the Resource.
+
+However, from a write perspective it is quite different. Only the
+`id` and `xref` attributes are persisted for the source Resource, the
+target Resource's attributes are inherited and not meant to be persisted
+with the source Resource. This means that a write-operation on the source
+Resource that includes the `xref` attribute SHOULD NOT include any target
+Resource attributes (or nested collections) and if present they MUST be
+ignored. In order to update the target Resource's attributes (or nested
+entities), a write operation MUST be done on the appropriate target Resource
+entity directly.
+
+A request that deletes the `xref` attribute MUST be interpreted as a request
+to convert the Resource from a cross-reference Resource into a normal
+Resource - in which case the normal semantics of updating the mutable
+attributes applies. And any relationship with the target Resource is deleted.
+Likewise, the presence of `xref` on a write request can be used to convert a
+normal Resource into a cross reference one, and in which case any existing
+attributes on the source Resource MUST be deleted (except for `id` and `xref`).
+
+The `xref` attribute MUST be a relative URL from the base URL of the Registry,
+and MUST NOT start with a `/`, while the base URL of the Registry MUST end
+with a `/`. This allows for simple concatenation of the two URLs to derive
+the full URL of the target Resource.
+
+If the target Resource itself is a cross reference Resource, then inlining
+of the target Resource's attributes MUST NOT be done when serializing the
+source Resource. Recursive, or transitively, following of `xref` URLs it not
+done.
+
+Both the source and target Resources MUST be of the same Resource model type,
+simply having similar Resource type definitions is not sufficient. This
+implies that use of the `ximport` feature in the model to reference a
+Resource type from another Group type definition MUST be used. See
+[`ximport`](#reuse-of-resource-definitions) for more information.
+
+An `xref` value that points to a non-existing Resource, either because
+it was deleted or never existed, is not an error and is not a condition
+that a server is REQUIRED to detect. In these "dangling xref" situations the
+serialization of the source Resource will not include any target Resource
+attributes, or nested collections. Rather, it will only show the `id` and
+`xref` attributes.
 
 ---
 
@@ -3347,12 +3463,13 @@ To retrieve all Resources in a Resource Collection, an HTTP `GET` MAY be used.
 The request MUST be of the form:
 
 ```yaml
-GET /GROUPs/gID/RESOURCEs[?inline=...&filter=...]
+GET /GROUPs/gID/RESOURCEs[?inline=...&filter=...&export]
 ```
 
 The following query parameters SHOULD be supported by servers:
 - `inline` - See [inlining](#inlining) for more information.
 - `filter` - See [filtering](#filtering) for more information.
+- `export` - See [exporting](#exporting) for more information.
 
 A successful response MUST be of the form:
 
@@ -3364,6 +3481,7 @@ Link: <URL>;rel=next;count=UINTEGER ?
 {
   "ID": {                                     # The Resource id
     "id": "STRING",                           # The Resource id
+    "xref": "URL", ?
     "name": "STRING", ?
     "epoch": UINTEGER,
     "self": "URL",
@@ -3510,6 +3628,7 @@ Version in the request MUST adhere to the following:
 ```yaml
 {
   "id": "STRING", ?                        # ID of Resource or Version
+  "xref": "URL", ?
   "name": "STRING", ?
   "epoch": UINTEGER, ?
   "stickydefaultversion": BOOLEAN, ?       # For Resources
@@ -3540,6 +3659,7 @@ following:
 [METHOD] [PATH]
 Content-Type: STRING ?
 xRegistry-id: STRING ?                     # Resource or Version ID
+xRegistry-xref: URL ?
 xRegistry-name: STRING ?
 xRegistry-epoch: UINTEGER ?
 xRegistry-stickydefaultversion: BOOLEAN ?  # For Resources
@@ -3763,6 +3883,7 @@ When `hasdocument` is `true`, the response MUST be of the form:
 HTTP/1.1 200 OK|303 See Other
 Content-Type: STRING ?
 xRegistry-id: STRING
+xRegistry-xref: URL ?
 xRegistry-name: STRING ?
 xRegistry-epoch: UINT
 xRegistry-self: URL
@@ -3801,7 +3922,7 @@ HTTP `GET` with `$meta` appended to its `id` MAY be used.
 The request MUST be of the form:
 
 ```yaml
-GET /GROUPs/gID/RESOURCEs/rID$meta[?inline=...&filter=...]
+GET /GROUPs/gID/RESOURCEs/rID$meta[?inline=...&filter=...&export]
 ```
 
 A successful response MUST be of the form:
@@ -3813,6 +3934,7 @@ Content-Location: URL ?
 
 {
   "id": "STRING",
+  "xref": "URL", ?
   "name": "STRING", ?
   "epoch": UINTEGER,
   "self": "URL",
@@ -3850,6 +3972,7 @@ Where:
 The following query parameters SHOULD be supported by servers:
 - `inline` - See [inlining](#inlining) for more information.
 - `filter` - See [filtering](#filtering) for more information.
+- `export` - See [exporting](#exporting) for more information.
 
 **Examples:**
 
@@ -4069,8 +4192,8 @@ do so, MUST adhere to the following rules:
   is completed (i.e. after any Versions are added or removed). Its value is
   not limited to the Versions involved in the current operation.
 - When the operation also involves updating a Resource's "default" Version's
-  properties, the update to the default Version pointer MUST be done before
-  the properties are updated. In other words, the Version updated is the new
+  attributes, the update to the default Version pointer MUST be done before
+  the attributes are updated. In other words, the Version updated is the new
   default Version, not the old one.
 - Changing the default Version of a Resource MUST NOT increment the `epoch`
   or `modifiedat` values of any Version of the Resource.
@@ -4082,12 +4205,13 @@ To retrieve all Versions of a Resource, an HTTP `GET` MAY be used.
 The request MUST be of the form:
 
 ```yaml
-GET /GROUPs/gID/RESOURCEs/rID/versions[?inline=...&filter=...]
+GET /GROUPs/gID/RESOURCEs/rID/versions[?inline=...&filter=...&export]
 ```
 
 The following query parameters SHOULD be supported by servers:
 - `inline` - See [inlining](#inlining) for more information.
 - `filter` - See [filtering](#filtering) for more information.
+- `export` - See [exporting](#exporting) for more information.
 
 A successful response MUST be of the form:
 
@@ -4251,6 +4375,7 @@ GET /GROUPs/gID/RESOURCEs/rID/versions/vID$meta[?inline=...]
 
 The following query parameter SHOULD be supported by servers:
 - `inline` - See [inlining](#inlining) for more information.
+- `export` - See [exporting](#exporting) for more information.
 
 A successful response MUST be of the form:
 
@@ -4520,6 +4645,33 @@ other words, a `404 Not Found` would be generated in the HTTP protocol case.
 | / | `filter=description=no-match` | Returns a 404 if the Registry's `description` doesn't contain `no-match` |
 
 Specifying a filter does not imply inlining.
+
+### Exporting
+
+The `export` query parameter MAY be used on read requests to indicate that the
+response processing MUST be modified in the following ways:
+- All possible inlining MUST be performed. In other words, an implied
+  `?inlining=*` MUST be in effect. The presence of the `?inline` query
+  parameter, even if set to `*` MUST generate an error.
+- No filtering of the response entities is to be done. The presence of the
+  `filter` query parameter MUST generate an error.
+- The serialization of a Resource MUST NOT include the default Version
+  attributes as they MUST appear in the serialization of the default Version
+  within the `versions` collection.
+- Resources that are cross references (i.e. they have the `xref` attribute
+  defined), MUST NOT include the target Resource's attributes or nested
+  collections in its serialization.
+- Resource attributes (not Version attributes) with the `exportrequired`
+  aspect set to `false` MUST NOT be serialized as part of the Resource.
+  However, attributes with `exportrequired` set to `true` MUST appear.
+
+The `export` semantics are designed to optimize the output for use by clients
+that want to retrieve a complete portion of the Registry's hierarchy with
+minimal duplication of information. Note that the `export` output can be
+used on a subsequent update/create operation.
+
+The `?export` query parameter MAY be used on any level of the Registry's
+hierarchy.
 
 ### HTTP Header Values
 
