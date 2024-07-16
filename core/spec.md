@@ -3304,7 +3304,7 @@ URL to the target Resource. For example, a source Resource defined as:
 ```yaml
 {
   "id": "sourceresource",
-  "xref": "/groups/group2/resources/targetresource"
+  "xref": "groups/group2/resources/targetresource"
 }
 ```
 
