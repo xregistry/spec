@@ -1,56 +1,66 @@
-## xRegistry Primer: A Standardized Resource Metadata Service
+# xRegistry Primer
 
-Similar to CloudEvents unifying event structures, xRegistry aims to standardize how metadata about resources is managed and discovered. This fosters interoperability across different systems and protocols. 
+## Abstract
 
-While CloudEvents excels at event structure, it doesn't address:
+This non-normative document provides an overview of the xRegistry specification. It is meant to complement the xRegistry specification to provide additional background and insight into the history and design decisions made during the development of the specification. This allows the specification itself to focus on the normative technical details.
 
-* **Discovery:** Where to produce/consume resources? What endpoints exist?
-* **Validation:** How to validate resource structure?
-* **Versioning:** How to manage resource versions and discover available ones?
-* **Extension Discovery:** How to identify resources using specific extensions?
+## Table of Contents
 
-**The Schema Registry Problem:**
+- [History](#history)
+- [Motivation](#motivation)
+- [Design Goals](#design-goals)
+- [Architecture](#architecture)
+- [Possible Use Cases](#possible-use-cases)
 
-Multiple schema registries exist (e.g., Confluent, Azure Event Hubs, Apicurio). When an event travels through various brokers, its schema needs registration in each. CloudEvents helps with schema consistency, but clients still face discrepancies in validation and other functionalities across different registry implementations.
+## History
 
-**xRegistry to the Rescue:**
+The CNCF Serverless Working group was originally created by the CNCF's Technical Oversight Committee to investigate Serverless Technology and to recommend some possible next steps for some CNCF related activities in this space. After creating the common event format [CloudEvents](https://github.com/cloudevents) as a foundation for an interoperable ecosystem for event-driven applications the next step was to create a metadata model for declaring CloudEvents, their payloads and associating those declarations with application endpoints. As a result, the xRegistry (extensible registry) specification was created.
 
-Like CloudEvents, xRegistry promotes interoperability by standardizing resource metadata management, independent of messaging brokers and protocols.
+xRegistry was initially part of CloudEvents, called "CloudEvents Discovery" but later moved into it's own repository and CNCF project.
 
-**xRegistry in Action:**
+## Motivation
 
-xRegistry, short for "extensible registry," focuses on resource metadata. This includes, but is not limited to:
+While CloudEvents are harmonizing different event structures across event providers and increase interoperability between different brokers and their protocols, they do not address:
 
-* Endpoints (APIs)
-* Message definitions
-* Schemas (JSON Schema, Avro, Protobuf, etc.)
+* **Discovery:** Where to produce/consume events? What endpoints exist?
+* **Validation:** How to validate event structures?
+* **Versioning:** How to version events – and see which versions exist?
+* **Extension Discovery:** How to identify which events using which specific extensions?
 
-**Example:**
+Schema registries can provide an answer to these questions, but just like event brokers, there are multiple registries, such as the Confluent Schema Registry, the Azure Event Hubs Registry or the Apicurio Registry. When an event travels through multiple brokers, its schema has to be introduced to the broker's registry and clients later have to deal with the implementation differences between different registries, for example when trying to validate an event structure. This hinders the interoperability of event brokers CloudEvents had in mind. xRegistry therefore comes in with a similar motivation to CloudEvents: Harmonize another piece of technology in the messaging / eventing ecosystem to increase interoperability and decouple event handling from broker products and protocols.
 
-Imagine a registry containing metadata for:
+Even though xRegistry was built with eventing in mind, the concept of this registry specification is far more powerful. Take a look ath the [Possible Use Cases](#possible-use-cases) for examples outside the eventing world.
 
-* An API endpoint `/users`
-* A message definition for user updates
-* The JSON Schema for the user data
+## Design Goals
 
-This registry would address the limitations mentioned earlier:
+* **Interoperability:** Enable effortless discovery, validation and versioning of resources.
+* **Standardization:** Establish a high level structure for managing resource metadata behind which vendors can unite.
+* **Extensibility:** Accommodate future innovations by allowing for the definition of custom attributes and extensions tailored to specific needs – not only for the happy path, but errors as well.
+* **Flexibility:** Support various resource types, protocols (MQTT, AMQP, Kafka, NATS, HTTP..) and schema languages (JSON Schema, Avro Schema, Protobuf..) – not just CloudEvents.
+* **Simplicity:** Allow simple use cases that do not need versioning of resources or a full blown schema registry on the server.
 
-* **Discovery:** Clients can discover the `/users` endpoint and its expected message format.
-* **Validation:** The registry can validate incoming user update messages against the defined schema.
-* **Versioning:** Different versions of the user schema can be stored and accessed.
-* **Extension Discovery:** Extensions for user data (e.g., additional profile information) can be documented and discovered.
+### Non-Goals
 
-**Beyond Events:**
+* **Authentication and Authorization:**
+* **Relationships between event channels:** Focus on precisely describing a single event channel before standardizing the relationships between event channels.
 
-While this example leans towards events, xRegistry's core functionality extends to any resource. It can manage metadata for files, configurations, or any data entity.
+## Architecture
 
-**Evolution of Resource Storage:**
+### Three levels: Groups, Resources and Versions
+
+### The model
+
+
+
+### Symmetry between representations: File, Cloud Storage (S3) and REST API
 
 xRegistry implementations can evolve over time, supporting different storage backends:
 
 1. **File System:** Store metadata in simple JSON files.
-2. **Cloud Storage (S3):** Leverage cloud storage for scalability and redundancy.
+2. **Cloud Storage (S3):** Seperate your JSON files and statically serve them via S3.
 3. **RESTful API:** Expose a full-fledged API for managing and accessing resource metadata.
+
+## Possible Use Cases
 
 **Use Case: A Centralized Metadata Hub:**
 
@@ -59,13 +69,15 @@ Imagine a repository acting as a central hub for metadata files like `package.js
 * Machine-readable access to project dependencies and configurations.
 * Consistent management of metadata across different tools and environments.
 
-**Beyond the Primer:**
+## Sources
 
-This primer provides a high-level overview of xRegistry. The official specification dives deeper into the technical details, APIs, and data formats used for resource metadata.
+* https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/primer.md
+* https://www.infoq.com/news/2024/04/cncf-cloudevents-graduation/
 
 
+---
 
-# xRegistry Primer
+# Old xRegistry Primer
 
 <!-- no verify-specs -->
 
