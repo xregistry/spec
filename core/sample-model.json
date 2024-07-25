@@ -143,41 +143,34 @@
               "name": "id",
               "type": "string",
               "immutable": true,
-              "serverrequired": true
+              "serverrequired": true,
+              "exportrequired": true
+            },
+            "self": {
+              "name": "self",
+              "type": "url",
+              "readonly": true,
+              "serverrequired": true,
+              "exportrequired": true
             },
             "name": {
               "name": "name",
               "type": "string"
+            },
+            "versionid": {
+              "name": "versionid",
+              "type": "string",
+              "immutable": true,
+              "serverrequired": true
             },
             "epoch": {
               "name": "epoch",
               "type": "uinteger",
               "serverrequired": true
             },
-            "self": {
-              "name": "self",
-              "type": "url",
-              "readonly": true,
-              "serverrequired": true
-            },
             "isdefault": {
               "name": "isdefault",
               "type": "boolean",
-              "readonly": true
-            },
-            "stickydefaultversion": {
-              "name": "stickydefaultversion",
-              "type": "boolean",
-              "readonly": true
-            },
-            "defaultversionid": {
-              "name": "defaultversionid",
-              "type": "string",
-              "readonly": true
-            },
-            "defaultversionurl": {
-              "name": "defaultversionurl",
-              "type": "url",
               "readonly": true
             },
             "description": {
@@ -223,6 +216,28 @@
               "name": "contenttype",
               "type": "string"
             }
+
+            "defaultversionsticky": {
+              "name": "stickydefaultversion",
+              "type": "boolean",
+              "readonly": true,
+              "serverrequired": true,
+              "exportrequired": true
+            },
+            "defaultversionid": {
+              "name": "defaultversionid",
+              "type": "string",
+              "readonly": true,
+              "serverrequired": true,
+              "exportrequired": true
+            },
+            "defaultversionurl": {
+              "name": "defaultversionurl",
+              "type": "url",
+              "readonly": true,
+              "serverrequired": true,
+              "exportrequired": true
+            },
           }
         }
       }

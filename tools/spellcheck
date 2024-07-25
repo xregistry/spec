@@ -6,11 +6,13 @@
 set -e
 
 for f in $* ; do
-
   echo Spell-checking: $f
 
-  sed "s/\([a-z0-9]\+\)/\n\1\n/gI" < $f | sort -iu | \
-	grep "^[a-z]" | grep -v "[0-9]" > specwords
+  sed "s/\([a-zA-Z0-9]\+\)/\n\1\n/gI" < $f | \
+    tr '[:upper:]' '[:lower:]' | \
+    sort -iu | \
+    grep "^[a-z]" | \
+    grep -v "[0-9]" > specwords
   sort -u tools/words tools/dict > words
   comm -23 specwords words > extra
   wc -l extra | grep "^0 extra" > /dev/null || \
