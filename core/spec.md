@@ -372,7 +372,7 @@ be one of the following data types:
   [RFC 6570 Section 3.2.1](https://tools.ietf.org/html/rfc6570#section-3.2.1).
 - `url` - URL as defined in
   [RFC 1738](https://datatracker.ietf.org/doc/html/rfc1738).
-- `xregid` - as defined in [Referencing xRegistry Entities](#xregid---referencing-xregistry-entities).
+- `xid` - as defined in [Referencing xRegistry Entities](#xid---referencing-xregistry-entities).
 
 The "scalar" data types are: `boolean`, `decimal`, `integer`, `string`,
 `timestamp`, `uinteger`, `uri`, `urireference`, `uritemplate`, `url`.
@@ -437,19 +437,19 @@ attributes. However they MUST adhere to the following rules:
   example, use of a model (or domain) specific prefix could be used to help
   avoid possible future conflicts.
 
-#### `xregid` - Referencing xRegistry Entities
+#### `xid` - Referencing xRegistry Entities
 
-An `xregid` is a URI according to
+An `xid` is a URI according to
 [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986) that
 uniquely identifies an entity within an xRegistry. Its purpose is to
 reference the entity and express a relation to it, even if it is not stored in
-the local registry. The `xregid` can also be used in other places where it
+the local registry. The `xid` can also be used in other places where it
 is helpful to use a URI, e.g. events or knowledge graphs.
-Each entity has exactly one `xregid`. Therefore, comparing two `xregid`
+Each entity has exactly one `xid`. Therefore, comparing two `xid`
 values is possible to determine, if they identify the same or different
 entities. To achieve this, an xRegistry-specific URI scheme `xreg` is defined:
 
-`regid` = `"xreg://" authority "/" entity-path "/" entity-id`
+`xid` = `"xreg://" authority "/" entity-path "/" entity-id`
 
 `entity-path` = `group-path` / `resource-path` / `version-path`
 
@@ -494,8 +494,7 @@ entity.
 
 __Example:__
 ```
-xregid of surrounding entity: xreg://example.
-com/messagegroups/group2
+xid of surrounding entity: xreg://example.com/messagegroups/group2
 
 Reference: messages/message1
 
@@ -508,7 +507,7 @@ group.
 
 __Example:__ 
 ```
-xregid of surrounding group: xreg://example.com/messagegroups/group2
+xid of surrounding group: xreg://example.com/messagegroups/group2
 
 Reference: /messagegroups/group1/messages/message1
 
@@ -517,8 +516,7 @@ De-referenced URI: xreg://example.com/messagegroups/group1/messages/message1
 
 ```
 
-##### Resolving an `xregid`
-
+##### Resolving an `xid`
 
 Bindings to HTTP, AMQP, registry as document  etc.
 
@@ -1413,7 +1411,7 @@ and the following Registry level attributes:
 - Type: String
 - Description: The default authority that is applied to groups without 
   explicit authority. If not present, there is no way to refer to groups 
-  without authority via an `xregid`.
+  without authority via an `xid`.
 - Constraints:
     - OPTIONAL.
     - If present, MUST be non-empty.
