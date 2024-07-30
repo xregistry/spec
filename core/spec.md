@@ -518,7 +518,23 @@ De-referenced URI: xreg://example.com/messagegroups/group1/messages/message1
 
 ##### Resolving an `xid`
 
+As an `xid` is an abstract identifier of an entity, it is necessary to 
+transform it into URLs or URL references to access the entity.
+
+For the HTTP API, the information from an `xid` can be used to construct a 
+URL like this:
+
+`<Registry-base-URL>/GROUPs/{authority}${gID}/RESOURCEs/{rID}/versions/{vID}`
+
+The authority is OPTIONAL if it is identical to the registry's default 
+authority. For a file-based registry, the URL looks similar but makes use of 
+a URL fragment section: 
+
+`<File-URL>/#GROUPs/{authority}${gID}/RESOURCEs/{rID}/versions/{vID}`
+
 Bindings to HTTP, AMQP, registry as document  etc.
+
+##### Comparing `xid` values
 
 
 
@@ -2811,6 +2827,7 @@ The serialization of a Group entity adheres to this form:
 ```yaml
 {
   "GROUPid": "STRING",
+  "authority": "STRING", ?
   "self": "URL",
   "epoch": UINTEGER,
   "name": "STRING", ?
@@ -2892,6 +2909,7 @@ Link: <URL>;rel=next;count=UINTEGER ?
 {
   "KEY": {                                     # GROUPid
     "GROUPid": "STRING",
+    "authority": "STRING", ?
     "self": "URL",
     "epoch": UINTEGER,
     "name": "STRING", ?
