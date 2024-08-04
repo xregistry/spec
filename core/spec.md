@@ -147,7 +147,6 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "setversionid": BOOLEAN, ?  # Supports client specified Version IDs
             "setdefaultversionsticky": BOOLEAN, ?    # Supports client "default" selection
             "hasdocument": BOOLEAN, ?   # Has a separate document. Default=true
-            "readonly": BOOLEAN, ?      # From client's POV. Default=false
             "typemap": MAP, ?           # contenttype mappings
             "attributes": { ... }, ?    # See "attributes" above
           } *
@@ -199,6 +198,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
 
           # These are Resource-only attributes
           "xref": "URL", ?                         # Ptr to other Resource
+          "readonly": BOOLEAN, ?                   # Default is "false"
 
           "defaultversionsticky": BOOLEAN, ?
           "defaultversionid": "STRING",            # Same as versionid above
@@ -743,6 +743,8 @@ aspects of the processing:
   `defaultversionid` attribute included in the request MUST be ignored.
 - `nodefaultversionsticky` - presence of this query parameter indicates that
   any `defaultversionsticky` attribute included in the request MUST be ignored.
+- `noreadonly` - presence of this query parameter indicates that any attempt
+  to update a read-only Resource MUST be silently ignored.
 
 #### No-Code Servers
 
@@ -1709,7 +1711,6 @@ Regardless of how the model is retrieved, the overall format is as follows:
           "setversionid": BOOLEAN, ?   # Supports client specified Version IDs
           "setdefaultversionsticky": BOOLEAN, ?     # Supports client "default" selection
           "hasdocument": BOOLEAN, ?    # Has a separate document. Default=true
-          "readonly": BOOLEAN, ?       # From client's POV. Default=false
           "immutable": BOOLEAN, ?      # Once set, can't change. Default=false
           "attributes": { ... } ?      # See "attributes" above
         } *
@@ -2034,16 +2035,6 @@ The following describes the attributes of Registry model:
   - A value of `true` indicates that Resource of this type supports a separate
     document to be associated with it.
 
-- `groups.resources.readonly`
-  - Indicates if Resources of this type are updateable by a client. A value of
-    `false` means that the server MUST support write operations on Resources
-    of this type in general, even if not all clients or specific situations
-    are supported. A value of `true` means that all `PUT`, `POST`, `PATCH` and
-    `DELETE` operations on Resources of this type MUST generate an error.
-  - Type: Boolean (`true` or `false`, case sensitive).
-  - OPTIONAL.
-  - The default value is `false`.
-
 - `groups.resources.typemap`
   - When a Resource's metadata is serialized in a response and the `inline`
     feature is enabled, the server will attempt to serialize the Resource's
@@ -2224,7 +2215,6 @@ Content-Type: application/json; charset=utf-8
           "setversionid": BOOLEAN, ?
           "setdefaultversionsticky": BOOLEAN, ?
           "hasdocument": BOOLEAN, ?
-          "readonly": BOOLEAN, ?
           "immutable": BOOLEAN, ?
           "attributes": { ... } ?
         } *
@@ -2338,7 +2328,6 @@ Content-Type: application/json; charset=utf-8
           "setversionid": BOOLEAN, ?
           "setdefaultversionsticky": BOOLEAN, ?
           "hasdocument": BOOLEAN, ?
-          "readonly": BOOLEAN, ?
           "immutable": BOOLEAN, ?
           "attributes": { ... } ?            # See "attributes" above
         } *
@@ -2405,7 +2394,6 @@ Content-Type: application/json; charset=utf-8
           "setversionid": BOOLEAN, ?
           "setdefaultversionsticky": BOOLEAN, ?
           "hasdocument": BOOLEAN, ?
-          "readonly": BOOLEAN, ?
           "immutable": BOOLEAN, ?
           "attributes": { ... } ?
         } *
@@ -3034,6 +3022,23 @@ and the following Resource specific attributes:
   owned by another Group within the same Registry. See [Cross Referencing
   Resources](#cross-referencing-resources) for more information.
 
+##### `readonly` Attribute
+- Type: Boolean
+- Description: indicates whether this Resource is updateable by clients. This
+  attribute is a server controlled attribute and therefore can not be modified
+  by clients. This specification makes no statement as to when Resource are to
+  be read-only.
+- Constraints:
+  - When not present, the default value is `false`,
+  - REQUIRED when `true`, otherwise OPTIONAL.
+  - When present, it MUST be a case sensitive `true` or `false`.
+  - A request to update this attribute, on a non-read-only Resource, MUST be
+    silently ignored.
+  - A request to update a read-only Resource MUST generate an error unless
+    the `?noreadonly` query parameter was used, in which case the error MUST
+    be silently ignored. See [Registry APIs](#registry-apis) for more
+    information.
+
 ##### `defaultversionsticky` Attribute
 - Type: Boolean
 - Description: indicates whether or not the "default" Version has been
@@ -3192,6 +3197,7 @@ xRegistry-createdat: TIME
 xRegistry-modifiedat: TIME
 xRegistry-RESOURCEurl: URL ?
 xRegistry-xref: URL ?
+xRegistry-readonly: BOOLEAN ?
 xRegistry-defaultversionsticky: BOOLEAN ?
 xRegistry-defaultversionid: STRING
 xRegistry-defaultversionurl: URL
@@ -3252,6 +3258,7 @@ this form:
 
   # Resource specific attributes
   "xref": "URL", ?
+  "readonly": BOOLEAN, ?
 
   "defaultversionsticky": BOOLEAN, ?
   "defaultversionid": "STRING",
@@ -3484,6 +3491,7 @@ Link: <URL>;rel=next;count=UINTEGER ?
     "RESOURCEbase64": "STRING", ?            # If inlined & ~JSON
 
     "xref": "URL", ?
+    "readonly": BOOLEAN, ?
 
     "defaultversionsticky": BOOLEAN, ?
     "defaultversionid": "STRING",
@@ -3620,6 +3628,7 @@ Version in the request MUST adhere to the following:
 {
   "id": "STRING", ?                        # ID of Resource
   "versionid": "STRING", ?                 # ID of Version
+
   "name": "STRING", ?
   "epoch": UINTEGER, ?
   "isdefault": BOOLEAN, ?
@@ -3635,12 +3644,14 @@ Version in the request MUST adhere to the following:
   "RESOURCE": ... Resource document ..., ? # If inlined & JSON
   "RESOURCEbase64": "STRING", ?            # If inlined & ~JSON
 
-  "xref": "URL", ?                         # For Resources
+  # Resource only attributes
+  "xref": "URL", ?
+  "readonly": BOOLEAN, ?
 
-  "defaultversionsticky": BOOLEAN, ?       # For Resources
-  "defaultversionid": "STRING", ?          # For Resources
+  "defaultversionsticky": BOOLEAN, ?
+  "defaultversionid": "STRING", ?
 
-  "versions": { Versions collection } ?    # For Resources, if nested
+  "versions": { Versions collection } ?
 }
 ```
 
@@ -3664,6 +3675,7 @@ xRegistry-createdat: TIME ?
 xRegistry-modifiedat: TIME ?
 xRegistry-RESOURCEurl: URL ?
 xRegistry-xref: URL ?
+xRegistry-readonly: BOOLEAN ?
 xRegistry-defaultversionsticky: BOOLEAN ?  # For Resources
 xRegistry-defaultversionid: STRING ?       # For Resources
 
@@ -3894,6 +3906,7 @@ xRegistry-createdat: TIME
 xRegistry-modifiedat: TIME
 xRegistry-RESOURCEurl: URL      # If Resource is not in body
 xRegistry-xref: URL ?
+xRegistry-readonly: BOOLEAN ?
 xRegistry-defaultversionsticky: BOOLEAN ?
 xRegistry-defaultversionid: STRING
 xRegistry-defaultversionurl: URL
@@ -3954,6 +3967,7 @@ Content-Location: URL ?
   "RESOURCEbase64": "STRING", ?            # If inlined & ~JSON
 
   "xref": "URL", ?
+  "readonly": BOOLEAN, ?
 
   "defaultversionsticky": BOOLEAN, ?
   "defaultversionid": "STRING",
@@ -4817,6 +4831,7 @@ Resource when `export` is used will adhere to the following:
   "self": "URL",
 
   "xref": "URL", ?
+  "readonly": BOOLEAN, ?
 
   "defaultversionsticky": BOOLEAN, ?
   "defaultversionid": "STRING",
