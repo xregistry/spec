@@ -64,6 +64,7 @@ nginx
 nodefaultversionid
 nodefaultversionsticky
 noepoch
+noreadonly
 png
 pov
 ptr
