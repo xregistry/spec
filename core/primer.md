@@ -256,3 +256,74 @@ Group and Resource names limited to only 58? Because when they appear as
 Collection attributes and we append `url` or `count` to them they still have
 to fit within the 63 character limit, and so we need to take into account
 the length of the word `count`.
+
+# Why use `$VIEW` instead of `?VIEW`?
+
+The specification of views was done via a suffix on the entity's URL path
+rather than a query parameter so as to support the retrieval of these different
+views of the entities when using a static file server. In those cases all of
+the `GET` responses would need to be available as separate files on disk. Using
+a query parameter would require there to be code associated with each query
+parameter, which might not be possible in all static file servers - such as
+a blob store service.
+
+# Why are there "views" at all, and why not a more pure REST API?
+
+The xRegistry specification tries to adhere to proper REST best practices,
+however, there are some overriding goals that required the use of some
+non-traditional choices.
+
+When processing the Registry root and Groups, those APIs should align with
+a normal REST API model. However, Resources and Versions are a bit special and
+required some special processing.
+
+One of the biggest design goals of the specification is to ensure that the
+user-experience for the most common interactions with the Registry required as
+little thinking and special processing as possible. With Resources being an
+alias for the "default Version", this introduced some interesting challenges.
+
+First, a vanilla `GET` to a Resource's URL MUST return the "document"
+associated with that Resources (assuming there is one). This is critical as it
+is probably the most important action taken by xRegistry users. Additionally,
+Often the Resource `id` will be (somewhat) human friendly. For example, in a
+schema registry the Resource URL to it might be:
+`schemagroups/mygroup/schemas/myschema.json`. And often the Resource `id`
+will end up being used as a filename. This means that this URL needs
+to remain as clean and natural for users when using tools such as `wget` on it.
+
+Next, the Resource's metadata needs to be considered. Normally, all data
+for an entity would be returned by a `GET` to its URL. But, as stated above,
+in our cases this `GET` needs to return the Resource's "document". This is
+why most of the Resource's metadata will be returned as HTTP response headers.
+However, there are times when using headers is not sufficicent - such as when
+the attributes are complex, or large, and encoding them in headers could be
+problematic. But, more importantly, in cases where a Resource is part of a
+bigger response flow (e.g. retrieving a Groups and inlining all Resources),
+each Resource's document (which is treated as an opaque byte array) and
+metadata needs to be represented separate from other Resources in the response.
+
+In order to do this, the document would need to be serialized (in JSON) in such
+a way as to allow for any binary document to be encoded - which means something
+like:
+```yaml
+  "document": "...encoded-binary-data..."
+```
+
+Additionally, user may wish to update multiple Resources along with their
+metadata at the same time....
+
+object, and that would mean serializing it as bytes of a attribute
+
+Next the usecase of the Resource not having a separate "document" needs
+to be considered. In those cases the xRegistry metadata is what is returned
+in a `GET` response.
+
+
+Some of them are:
+
+- As stated in the specification, there's a goal to try to align the API view
+  with the "document" view. Meaning, the URL structure of the APIs and the
+  possible on-disk layout of the various resources as individual files were
+  aligned.
+- 
+
