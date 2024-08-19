@@ -55,9 +55,9 @@ this form:
       "labels": { "STRING": "STRING" * }, ?
       "origin": "STRING", ?
       "createdby": "STRING", ?
-      "createdon": "TIME", ?
+      "createdon": "TIMESTAMP", ?
       "modifiedby": "STRING", ?
-      "modifiedon": "TIME", ?
+      "modifiedon": "TIMESTAMP", ?
 
       "format": "STRING", ?                    # Message attributes
       "binding": "STRING", ?
@@ -77,33 +77,23 @@ this form:
           "labels": { "STRING": "STRING" * }, ?
           "origin": "STRING", ?
           "createdby": "STRING", ?
-          "createdon": "TIME", ?
+          "createdon": "TIMESTAMP", ?
           "modifiedby": "STRING", ?
-          "modifiedon": "TIME", ?
+          "modifiedon": "TIMESTAMP", ?
 
           "basemessageurl": "URL", ?           # Message attributes
 
           "format": "STRING", ?                # or "binding"
           "metadata": {
-            "required": BOOLEAN, ?
-            "description": "STRING", ?
-            "value": ANY, ?
-            "type": "STRING", ?
-            "specurl": "URL" ?
-            "attributes": {
-              "STRING": {
-                "type": "STRING", ?
-                "value": ANY, ?
-                "required": BOOLEAN ?          # Default is 'false'
-              } *
-            } ?
+            ...
 
-            # "CloudEvents/1.0" format metadata
-            "type": {
-              "value": "STRING" ?
-            }
+            # For CloudEvents/1.0 "format" the "metadata" is of the form:
+            "STRING": {
+              "type": "TYPE", ?
+              "value": ANY, ?
+              "required": BOOLEAN ?            # Default is 'false'
+            } *
           }, ?
-
 
           "binding": "STRING", ?               # or "format"
           "message": { ... }, ?                # See Message Bindings section
@@ -505,10 +495,11 @@ The base attributes are defined as follows:
 
 | Attribute         | Type          |
 | ----------------- | ------------- |
+| `specversion`     | `string`      |
+| `id`              | `string`      |
 | `type`            | `string`      |
 | `source`          | `uritemplate` |
 | `subject`         | `string`      |
-| `id`              | `string`      |
 | `time`            | `timestamp`   |
 | `dataschema`      | `uritemplate` |
 | `datacontenttype` | `string`      |
@@ -544,6 +535,49 @@ placeholders using the [RFC6570][RFC6570] Level 1 URI Template syntax. When the
 same placeholder is used in multiple properties, the value of the placeholder is
 assumed to be identical.
 
+The following shows the format of a CloudEvents "metadata" section for a
+message (see the [model file](model.json) for the complete definition):
+
+```yaml
+"format": "CloudEvents/1.0",
+"metadata" {
+  # "CloudEvents/1.0" format metadata
+  "specversion": {
+    "value": "1.0",
+    "type": "string"
+  },
+  "id": {
+    "value": "STRING", ?
+    "type": "string", ?
+  },
+  "type": {
+    "value": "STRING", ?
+    "type": "string", ?
+  },
+  "source": {
+    "value": "STRING", ?
+    "type": "string", ?
+  },
+  "subject": {
+    "value": "STRING", ?
+    "type": "string" ?
+  },
+  "time": {
+    "value": "TIME", ?
+    "type": "timestamp" ?
+  },
+  "dataschema": {
+    "value": "URITEMPLATE", ?
+    "type": "uritemplate" ?
+  },
+  "*": {
+    "value": ANY, ?
+    "type": "TYPE", ?
+    "required": BOOLEAN ?
+  }
+}
+```
+
 The following example declares a CloudEvent with a JSON payload. The attribute
 `id` is REQUIRED in the declared event per the CloudEvents specification in
 spite of such a declaration being absent here, the `type` of the `type`
@@ -557,21 +591,19 @@ CloudEvents base specification. The implied `datacontenttype` is
 {
   "format": "CloudEvents/1.0",
   "metadata": {
-    "attributes": {
-      "type": {
-        "value": "com.example.myevent"
-      },
-      "source": {
-        "value": "https://{tenant}/{module}/myevent",
-        "type": "uritemplate"
-      },
-      "subject": {
-        "type": "urireference"
-      },
-      "time": {
-        "required": true
-      },
-    }
+    "type": {
+      "value": "com.example.myevent"
+    },
+    "source": {
+      "value": "https://{tenant}/{module}/myevent",
+      "type": "uritemplate"
+    },
+    "subject": {
+      "type": "urireference"
+    },
+    "time": {
+      "required": true
+    },
   },
   "schemaformat": "JsonSchema/draft-07",
   "schemaurl": "https://example.com/schemas/com.example.myevent.json",

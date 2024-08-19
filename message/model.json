@@ -6,7 +6,6 @@
     "messagegroups": {
       "singular": "messagegroup",
       "plural": "messagegroups",
-
       "attributes": {
         "format": {
           "name": "format",
@@ -49,6 +48,48 @@
                       "type": "object",
                       "description": "CloudEvents metadata constraints",
                       "attributes": {
+                        "specversion": {
+                          "name": "specversion",
+                          "description": "CloudEvents spec version",
+                          "type": "object",
+                          "attributes": {
+                            "value": {
+                              "name": "value",
+                              "description": "CloudEvents spec version",
+                              "type": "string"
+                            },
+                            "required": {
+                              "name": "required",
+                              "type": "boolean",
+                              "enum": [
+                                true
+                              ],
+                              "serverrequired": true,
+                              "default": true
+                            }
+                          }
+                        },
+                        "id": {
+                          "name": "id",
+                          "description": "CloudEvents id",
+                          "type": "object",
+                          "attributes": {
+                            "value": {
+                              "name": "value",
+                              "description": "CloudEvents id value template",
+                              "type": "string"
+                            },
+                            "required": {
+                              "name": "required",
+                              "type": "boolean",
+                              "enum": [
+                                true
+                              ],
+                              "serverrequired": true,
+                              "default": true
+                            }
+                          }
+                        },
                         "type": {
                           "name": "type",
                           "type": "object",
@@ -58,6 +99,15 @@
                               "name": "value",
                               "type": "string",
                               "description": "CloudEvents type value template"
+                            },
+                            "required": {
+                              "name": "required",
+                              "type": "boolean",
+                              "enum": [
+                                true
+                              ],
+                              "serverrequired": true,
+                              "default": true
                             }
                           }
                         },
@@ -70,6 +120,15 @@
                               "name": "value",
                               "description": "CloudEvents source value template",
                               "type": "string"
+                            },
+                            "required": {
+                              "name": "required",
+                              "type": "boolean",
+                              "enum": [
+                                true
+                              ],
+                              "serverrequired": true,
+                              "default": true
                             }
                           }
                         },
@@ -87,18 +146,6 @@
                               "name": "required",
                               "description": "CloudEvents subject required",
                               "type": "boolean"
-                            }
-                          }
-                        },
-                        "id": {
-                          "name": "id",
-                          "description": "CloudEvents id",
-                          "type": "object",
-                          "attributes": {
-                            "value": {
-                              "name": "value",
-                              "description": "CloudEvents id value template",
-                              "type": "string"
                             }
                           }
                         },
@@ -144,6 +191,11 @@
                             "value": {
                               "name": "value",
                               "description": "The value template",
+                              "type": "string"
+                            },
+                            "type": {
+                              "name": "type",
+                              "description": "The value type",
                               "type": "string"
                             },
                             "required": {
@@ -782,8 +834,8 @@
               "description": "The inline schema object for the message payload, equivalent to the 'schemaobject' attribute of the schema registry",
               "type": "object"
             },
-            "schemauri": {
-              "name": "schemauri",
+            "schemaurl": {
+              "name": "schemaurl",
               "description": "The URL of the schema for the message payload, equivalent to the 'schemaurl' attribute of the schema registry",
               "type": "uri"
             }

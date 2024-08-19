@@ -87,11 +87,9 @@ json_common_attributes = {
     "description": {"type": "string"},
     "documentation": {"type": "string", "format": "uri"},
     "labels": {"type": "object"},
-    "format": {"type": "string"},
-    "createdby": {"type": "string"},
-    "createdon": {"type": "string", "format": "date-time"},
-    "modifiedby": {"type": "string"},
-    "modifiedon": {"type": "string", "format": "date-time"}
+    "origin": {"type": "string", "format": "uri"},
+    "createdat": {"type": "string", "format": "date-time"},
+    "modifiedat": {"type": "string", "format": "date-time"}
 }
 
 avro_common_attributes = [
@@ -102,10 +100,9 @@ avro_common_attributes = [
     {"name": "description", "type": ["string", "null"]},
     {"name": "documentation", "type": ["string", "null"]},
     {"name": "labels", "type": { "type": "map", "values": ["string", "null"]}},
-    {"name": "createdby", "type": ["string", "null"]},
-    {"name": "createdon", "type": [{"type":"int", "logicalType": "time-millis"}, "null"]},
-    {"name": "modifiedby", "type": ["string", "null"]},
-    {"name": "modifiedon", "type": [{"type":"int", "logicalType": "time-millis"},"null"]}
+    {"name": "origin", "type": "string"},
+    {"name": "createdat", "type": [{"type":"int", "logicalType": "time-millis"}, "null"]},
+    {"name": "modifiedat", "type": [{"type":"int", "logicalType": "time-millis"},"null"]}
 ]
 
 

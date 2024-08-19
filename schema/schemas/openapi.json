@@ -1130,23 +1130,21 @@
           "labels": {
             "type": "object"
           },
+          "origin": {
+            "type": "string",
+            "format": "uri"
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time"
+          },
           "format": {
             "type": "string",
             "description": "Schema format identifier for this schema version"
-          },
-          "createdby": {
-            "type": "string"
-          },
-          "createdon": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "modifiedby": {
-            "type": "string"
-          },
-          "modifiedon": {
-            "type": "string",
-            "format": "date-time"
           }
         },
         "oneOf": [
@@ -1223,20 +1221,15 @@
           "labels": {
             "type": "object"
           },
-          "format": {
-            "type": "string"
+          "origin": {
+            "type": "string",
+            "format": "uri"
           },
-          "createdby": {
-            "type": "string"
-          },
-          "createdon": {
+          "createdat": {
             "type": "string",
             "format": "date-time"
           },
-          "modifiedby": {
-            "type": "string"
-          },
-          "modifiedon": {
+          "modifiedat": {
             "type": "string",
             "format": "date-time"
           }
@@ -1298,20 +1291,15 @@
           "labels": {
             "type": "object"
           },
-          "format": {
-            "type": "string"
+          "origin": {
+            "type": "string",
+            "format": "uri"
           },
-          "createdby": {
-            "type": "string"
-          },
-          "createdon": {
+          "createdat": {
             "type": "string",
             "format": "date-time"
           },
-          "modifiedby": {
-            "type": "string"
-          },
-          "modifiedon": {
+          "modifiedat": {
             "type": "string",
             "format": "date-time"
           },

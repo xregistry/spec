@@ -434,7 +434,7 @@
       },
       "resources": {
         "messages": {
-          "$import": "../message/model.json#/groups/messagegroups/resources/messages"
+          "$include": "../message/model.json#/groups/messagegroups/resources/messages"
         }        
       }
     }

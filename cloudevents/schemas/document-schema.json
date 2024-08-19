@@ -48,17 +48,15 @@
         "labels": {
           "type": "object"
         },
-        "createdby": {
-          "type": "string"
+        "origin": {
+          "type": "string",
+          "format": "uri"
         },
-        "createdon": {
+        "createdat": {
           "type": "string",
           "format": "date-time"
         },
-        "modifiedby": {
-          "type": "string"
-        },
-        "modifiedon": {
+        "modifiedat": {
           "type": "string",
           "format": "date-time"
         },
@@ -80,7 +78,7 @@
           "description": "The inline schema object for the message payload, equivalent to the 'schemaobject' attribute of the schema registry",
           "properties": {}
         },
-        "schemauri": {
+        "schemaurl": {
           "type": "string",
           "format": "uri",
           "description": "The URL of the schema for the message payload, equivalent to the 'schemaurl' attribute of the schema registry"
@@ -117,6 +115,32 @@
                   "type": "object",
                   "description": "CloudEvents metadata constraints",
                   "properties": {
+                    "specversion": {
+                      "type": "object",
+                      "description": "CloudEvents spec version",
+                      "properties": {
+                        "value": {
+                          "type": "string",
+                          "description": "CloudEvents spec version"
+                        },
+                        "required": {
+                          "type": "boolean"
+                        }
+                      }
+                    },
+                    "id": {
+                      "type": "object",
+                      "description": "CloudEvents id",
+                      "properties": {
+                        "value": {
+                          "type": "string",
+                          "description": "CloudEvents id value template"
+                        },
+                        "required": {
+                          "type": "boolean"
+                        }
+                      }
+                    },
                     "type": {
                       "type": "object",
                       "description": "CloudEvents type",
@@ -124,6 +148,9 @@
                         "value": {
                           "type": "string",
                           "description": "CloudEvents type value template"
+                        },
+                        "required": {
+                          "type": "boolean"
                         }
                       }
                     },
@@ -134,6 +161,9 @@
                         "value": {
                           "type": "string",
                           "description": "CloudEvents source value template"
+                        },
+                        "required": {
+                          "type": "boolean"
                         }
                       }
                     },
@@ -148,16 +178,6 @@
                         "required": {
                           "type": "boolean",
                           "description": "CloudEvents subject required"
-                        }
-                      }
-                    },
-                    "id": {
-                      "type": "object",
-                      "description": "CloudEvents id",
-                      "properties": {
-                        "value": {
-                          "type": "string",
-                          "description": "CloudEvents id value template"
                         }
                       }
                     },
@@ -198,6 +218,10 @@
                       "value": {
                         "type": "string",
                         "description": "The value template"
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "The value type"
                       },
                       "required": {
                         "type": "boolean",
@@ -810,27 +834,25 @@
         "labels": {
           "type": "object"
         },
-        "format": {
+        "origin": {
           "type": "string",
-          "description": "Endpoint metadata format identifier. If set, all definitions MUST use this format value"
+          "format": "uri"
         },
-        "createdby": {
-          "type": "string"
-        },
-        "createdon": {
+        "createdat": {
           "type": "string",
           "format": "date-time"
         },
-        "modifiedby": {
-          "type": "string"
-        },
-        "modifiedon": {
+        "modifiedat": {
           "type": "string",
           "format": "date-time"
         },
         "usage": {
           "type": "string",
           "description": "Client's expected usage of this endpoint"
+        },
+        "format": {
+          "type": "string",
+          "description": "Endpoint metadata format identifier. If set, all definitions MUST use this format value"
         },
         "binding": {
           "type": "string",
@@ -1222,23 +1244,21 @@
         "labels": {
           "type": "object"
         },
+        "origin": {
+          "type": "string",
+          "format": "uri"
+        },
+        "createdat": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "modifiedat": {
+          "type": "string",
+          "format": "date-time"
+        },
         "format": {
           "type": "string",
           "description": "Format identifier that defines the common metadata information for the message. All definitions in this group share this format. Mixed-format groups are not permitted"
-        },
-        "createdby": {
-          "type": "string"
-        },
-        "createdon": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "modifiedby": {
-          "type": "string"
-        },
-        "modifiedon": {
-          "type": "string",
-          "format": "date-time"
         },
         "binding": {
           "type": "string",
@@ -1281,23 +1301,21 @@
         "labels": {
           "type": "object"
         },
+        "origin": {
+          "type": "string",
+          "format": "uri"
+        },
+        "createdat": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "modifiedat": {
+          "type": "string",
+          "format": "date-time"
+        },
         "format": {
           "type": "string",
           "description": "Schema format identifier for this schema version"
-        },
-        "createdby": {
-          "type": "string"
-        },
-        "createdon": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "modifiedby": {
-          "type": "string"
-        },
-        "modifiedon": {
-          "type": "string",
-          "format": "date-time"
         }
       },
       "oneOf": [
@@ -1374,20 +1392,15 @@
         "labels": {
           "type": "object"
         },
-        "format": {
-          "type": "string"
+        "origin": {
+          "type": "string",
+          "format": "uri"
         },
-        "createdby": {
-          "type": "string"
-        },
-        "createdon": {
+        "createdat": {
           "type": "string",
           "format": "date-time"
         },
-        "modifiedby": {
-          "type": "string"
-        },
-        "modifiedon": {
+        "modifiedat": {
           "type": "string",
           "format": "date-time"
         }
@@ -1449,20 +1462,15 @@
         "labels": {
           "type": "object"
         },
-        "format": {
-          "type": "string"
+        "origin": {
+          "type": "string",
+          "format": "uri"
         },
-        "createdby": {
-          "type": "string"
-        },
-        "createdon": {
+        "createdat": {
           "type": "string",
           "format": "date-time"
         },
-        "modifiedby": {
-          "type": "string"
-        },
-        "modifiedon": {
+        "modifiedat": {
           "type": "string",
           "format": "date-time"
         },

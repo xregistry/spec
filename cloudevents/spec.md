@@ -132,7 +132,7 @@ schema for its payload.
                 "required": true
               },
               "time": {
-                "type": "datetime",
+                "type": "timestamp",
                 "required": true
               },
               "source": {
@@ -209,7 +209,7 @@ scenarios:
                 "required": true
               },
               "time": {
-                "type": "datetime",
+                "type": "timestamp",
                 "required": true
               },
               "source": {
