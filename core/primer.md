@@ -179,7 +179,7 @@ Open source repositories could provide an xRegistry represented as a simple JSON
 file on the top level of the folder structure and list all metadata files this
 repository contains like a `package.json`. This would allow machine-readable
 access to project dependencies and configurations as well as consistent
-management of metadate across different tools and environments.
+management of metadata across different tools and environments.
 
 ## Design decisions or topics of interest
 
