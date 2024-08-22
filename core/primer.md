@@ -1,8 +1,103 @@
+## Representations
+
+Priority: API Server > File > Static File Server
+
+- Money!
+- We need the API server to realistically generate files & files for the static
+  file server
+- Clemens has written these by hand
+- The CLI could generate a file representation (based on a xreg model)
+
+### File
+
+The registry is represented as a single JSON file.
+
+The primary use case for this representation is a registry which purpose is to
+describe a single project. It basically becomes a declaration manifest of the
+application and can therefore be used in public git repositories or your own projects.
+
+If you are just trying to get the idea of xRegistry, this is a great point to start.
+
+#### Use Cases
+
+1. Local Development
+
+- If you are just doing something on your local machine / home network or for
+  your own purposes, a file can be sufficient.
+- It is a declaration manifest of the application.
+- Public git repositories
+
+2. Beginners
+
+- If you are just trying to get the idea of xRegistry, this is a great point
+  to start.
+
+### Static File Server
+
+The registry is represented by multiple JSON files served via a static file server (e.g. S3 or similar) that
+follows the folder and file structure of the API server.
+
+#### Use Cases
+
+1. Transition between File and API Server representation.
+
+- Before choosing the full blown API server, splitting up your single JSON
+  file into multiple ones and structuring them in different folders can keep
+  things easy while avoiding the actual API.
+- Make the registry public without using the full-blown server.
+- When having to share your resources.
+- A single file gets too large.
+- Cross-references also get possible
+- Write access only via pipelines / indirect write.
+- Since the static file server is read-only, adding resources to the registry is
+  only indirectly possible.
+
+2. Only rent storage, no need for compute units
+
+- Save money (Could be done with GitHub Pages for free, just like a helm registry).
+- You do not have to maintain the compute unit.
+
+#### Anti Patterns
+
+1. Anything intelligent basically, no server logic possible (please!)
+
+### API Server
+
+1. Multiple teams, distributed ownership, therefore differentiated
+   authorization, direct write access
+
+- e.g. in large orgs
+- Distributed ownership
+- Trust differences between the parties who are populating the registry
+
+2. Easy access of schema documents
+
+- Documents first, metadata secondary
+
+2. Sharing resources with multiple end-users / consumers
+
+- Searching, filtering, (query parameters)
+- More options, more convinience
+
+3. Direct write access to the server
+
+- Easier CUD operations
+- No generation of files necessary
+
+4. Scaling without having to change representations
+
+- Its not that hard to run the API server. If you scale, you don't have to
+  migrate anytime. (its not as easy as a docker run, you need a persistence layer)
+
 # xRegistry Primer
 
 ## Abstract
 
-This non-normative document provides an overview of the xRegistry specification. It is meant to complement the xRegistry specification to provide additional background and insight into the history and design decisions made during the development of the specification. This allows the specification itself to focus on the normative technical details.
+This non-normative document provides an overview of the xRegistry specification.
+It is meant to complement the xRegistry specification to provide additional
+background and insight into the history and design decisions made during the
+development of the specification. This allows the specification itself to focus
+on the normative technical details.
 
 ## Table of Contents
 
@@ -11,75 +106,119 @@ This non-normative document provides an overview of the xRegistry specification.
 - [Design Goals](#design-goals)
 - [Architecture](#architecture)
 - [Possible Use Cases](#possible-use-cases)
+- [Design decisions or topics of
+  interest](#design-decisions-or-topics-of-interest)
 
 ## History
 
-The CNCF Serverless Working group was originally created by the CNCF's Technical Oversight Committee to investigate Serverless Technology and to recommend some possible next steps for some CNCF related activities in this space. After creating the common event format [CloudEvents](https://github.com/cloudevents) as a foundation for an interoperable ecosystem for event-driven applications the next step was to create a metadata model for declaring CloudEvents, their payloads and associating those declarations with application endpoints. As a result, the xRegistry (extensible registry) specification was created.
+The CNCF Serverless Working group was originally created by the CNCF's Technical
+Oversight Committee to investigate Serverless Technology and to recommend some
+possible next steps for some CNCF related activities in this space. After
+creating the common event format [CloudEvents](https://github.com/cloudevents)
+as a foundation for an interoperable ecosystem for event-driven applications the
+next step was to create a metadata model for declaring CloudEvents, their
+payloads and associating those declarations with application endpoints. As a
+result, the xRegistry (extensible registry) specification was created.
 
-xRegistry was initially part of CloudEvents, called "CloudEvents Discovery" but later moved into it's own repository and CNCF project.
+xRegistry was initially part of CloudEvents, called "CloudEvents Discovery" but
+later moved into it's own repository and CNCF project.
 
 ## Motivation
 
-While CloudEvents are harmonizing different event structures across event providers and increase interoperability between different brokers and their protocols, they do not address:
+While CloudEvents are harmonizing different event structures across event
+providers and increase interoperability between different brokers and their
+protocols, they do not address:
 
-* **Discovery:** Where to produce/consume events? What endpoints exist?
-* **Validation:** How to validate event structures?
-* **Versioning:** How to version events – and see which versions exist?
-* **Extension Discovery:** How to identify which events using which specific extensions?
+- **Discovery:** Where to produce/consume events? What endpoints exist?
+- **Validation:** How to validate event structures?
+- **Versioning:** How to version events – and see which versions exist?
+- **Extension Discovery:** How to identify which events using which specific
+  extensions?
 
-Schema registries can provide an answer to these questions, but just like event brokers, there are multiple registries, such as the Confluent Schema Registry, the Azure Event Hubs Registry or the Apicurio Registry. When an event travels through multiple brokers, its schema has to be introduced to the broker's registry and clients later have to deal with the implementation differences between different registries, for example when trying to validate an event structure. This hinders the interoperability of event brokers CloudEvents had in mind. xRegistry therefore comes in with a similar motivation to CloudEvents: Harmonize another piece of technology in the messaging / eventing ecosystem to increase interoperability and decouple event handling from broker products and protocols.
+Schema registries can provide an answer to these questions, but just like event
+brokers, there are multiple registries, such as the Confluent Schema Registry,
+the Azure Event Hubs Registry or the Apicurio Registry. When an event travels
+through multiple brokers, its schema has to be introduced to the broker's
+registry and clients later have to deal with the implementation differences
+between different registries, for example when trying to validate an event
+structure. This hinders the interoperability of event brokers CloudEvents had in
+mind. xRegistry therefore comes in with a similar motivation to CloudEvents:
+Harmonize another piece of technology in the messaging / eventing ecosystem to
+increase interoperability and decouple event handling from broker products and
+protocols.
 
-Even though xRegistry was built with eventing in mind, the concept of this registry specification is far more powerful. Take a look ath the [Possible Use Cases](#possible-use-cases) for examples outside the eventing world.
+Even though xRegistry was built with eventing in mind, the concept of this
+registry specification is far more powerful. Take a look ath the [Possible Use
+Cases](#possible-use-cases) for examples outside the eventing world.
 
 ## Design Goals
 
-* **Interoperability:** Enable effortless discovery, validation and versioning of resources.
-* **Standardization:** Establish a high level structure for managing resource metadata behind which vendors can unite.
-* **Extensibility:** Accommodate future innovations by allowing for the definition of custom attributes and extensions tailored to specific needs – not only for the happy path, but errors as well.
-* **Flexibility:** Support various resource types, protocols (MQTT, AMQP, Kafka, NATS, HTTP..) and schema languages (JSON Schema, Avro Schema, Protobuf..) – not just CloudEvents.
-* **Simplicity:** Allow simple use cases that do not need versioning of resources or a full blown schema registry on the server.
+- **Interoperability:** Enable effortless discovery, validation and versioning
+  of resources.
+- **Standardization:** Establish a high level structure for managing resource
+  metadata behind which vendors can unite.
+- **Extensibility:** Accommodate future innovations by allowing for the
+  definition of custom attributes and extensions tailored to specific needs
+  – not only for the happy path, but errors as well.
+- **Flexibility:** Support various resource types, protocols (MQTT, AMQP, Kafka,
+  NATS, HTTP..) and schema languages (JSON Schema, Avro Schema, Protobuf..)
+  – not just CloudEvents.
+- **Simplicity:** Allow simple use cases that do not need versioning of
+  resources or a full blown schema registry on the server.
 
 ### Non-Goals
 
-* **Authentication and Authorization:**
-* **Relationships between event channels:** Focus on precisely describing a single event channel before standardizing the relationships between event channels.
+- **Authentication and Authorization:** Rely on established security standards
+  depending on the registry representation.
+- **Relationships between event channels:** Focus on precisely describing a
+  single event channel before standardizing the relationships between event
+  channels.
 
 ## Architecture
 
 ### Three levels: Groups, Resources and Versions
 
+TODO: Why do we need this, why is useful, why did we decide that way?
+
 ### The model
 
-
+TODO:
 
 ### Symmetry between representations: File, Cloud Storage (S3) and REST API
 
-xRegistry implementations can evolve over time, supporting different storage backends:
+xRegistry implementations can evolve over time, supporting different storage
+backends:
 
 1. **File System:** Store metadata in simple JSON files.
-2. **Cloud Storage (S3):** Seperate your JSON files and statically serve them via S3.
-3. **RESTful API:** Expose a full-fledged API for managing and accessing resource metadata.
+2. **Cloud Storage (S3):** Seperate your JSON files and statically serve them
+   via S3.
+3. **RESTful API:** Expose a full-fledged API for managing and accessing
+   resource metadata.
 
 ## Possible Use Cases
 
-**Use Case: A Centralized Metadata Hub:**
+### CloudEvents
 
-Imagine a repository acting as a central hub for metadata files like `package.json` in projects. This allows for:
+When using CloudEvents
 
-* Machine-readable access to project dependencies and configurations.
-* Consistent management of metadata across different tools and environments.
+The obvious use case: When referencing
 
-## Sources
+- CloudEvents dataschema points to xreg
 
-* https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/primer.md
-* https://www.infoq.com/news/2024/04/cncf-cloudevents-graduation/
+### Business objects
 
+When defining the schemas of business objects in an enterprise, xRegistry can
+be the schema store for these definitions. One can then reference them in a data
+catalogue as well as in OpenAPI and AsyncAPI documents without repeating the
+schemas for the actual business objects.
 
----
+### Metadata files in repositories
 
-# Old xRegistry Primer
-
-<!-- no verify-specs -->
+Open source repositories could provide an xRegistry represented as a simple JSON
+file on the top level of the folder structure and list all metadata files this
+repository contains like a `package.json`. This would allow machine-readable
+access to project dependencies and configurations as well as consistent
+management of metadate across different tools and environments.
 
 ## Design decisions or topics of interest
 
@@ -94,7 +233,7 @@ the default Version of the Resource.
 
 Versions of a Resource, on the other hand, might change quite often and the
 `id` isn't meant to convey the purpose of the underlying entity, rather it is
-meant to uniquely specify its "version number".  As such, the semantics
+meant to uniquely specify its "version number". As such, the semantics
 meaning and usage of the two `id` values are quite different. This means that
 there might be times when they are the same value. However, while this is
 allowable, it has no influence on any specification defined semantics of the
@@ -110,6 +249,7 @@ uppercase characters are not permitted, this was done because considerations
 had to be made to take into account where these names might appear.
 
 Some of the challenges:
+
 - attribute and key name might appear as HTTP headers, which are
   case insensitive. On the surface this would mean that simply not allowing
   more than one name of different cases would suffice. However, in the case
@@ -142,7 +282,7 @@ variable or structure property names - they're usually just stored as
 ### Extensions
 
 - it's RECOMMENDED that all extensions be defined in advance as part of the
-  model. However, the spec does support an extension of "*" to allow for
+  model. However, the spec does support an extension of "\*" to allow for
   unknown/runtime-provided extensions. Since extensions can appear in case-
   insensitive situations (e.g. http header) we can't know the case of them
   when storing in the backend. As a result, all attributes and key names MUST
@@ -161,7 +301,7 @@ variable or structure property names - they're usually just stored as
 - xRegistry- headers: first "-" separates xRegistry from attribute name,
   next "-" separates attribute name from key, any subsequent "-" is part
   of the key name. E.g xRegistry-labels-abc-def:xxx => labels["abc-def"]=xxx
-- impact of "*required" flags at multiple levels
+- impact of "\*required" flags at multiple levels
 - why we don't use underscore in our property names, tho legal to do so
   - not all http proxies (e.g. nginx) pass them along by default
   - so, while spec allows underscores, use at your own risk
@@ -174,12 +314,14 @@ variable or structure property names - they're usually just stored as
 ### Deleting entities
 
 The "delete" operation typically has two variants:
+
 - DELETE .../ID[?setdefaultversionid=vID]
 - DELETE .../COLLECTION[?setdefaultversionid=vID]
 
 where the first will delete a single entity, and the second can be used to
 delete multiple entities. In the second case there are a couple of design
 points worth noting:
+
 - if the HTTP body is empty, then the entire collection will be deleted.
   If the collection is `versions`, then the owning Resource must also be
   deleted since a Resource must always have at least one Version
@@ -195,7 +337,7 @@ points worth noting:
 - when the `?setdefaultversionid` query parameter is specified (when
   deleting Version) then it will be applied after all requested items have
   been deleted successfully. It can be used even if the current "default"
-  Version isn't being deleted.  Note that a `404` in the `DELETE .../ID` case
+  Version isn't being deleted. Note that a `404` in the `DELETE .../ID` case
   is an error and no changes to the "default" Version will occur.
 
 # Default Version and Maximum Versions
@@ -211,6 +353,7 @@ user asked for it to be.
 
 In general, during an operation that creates, updates or deletes the Versions
 of a Resource, the following logic is applied:
+
 - Modify the Versions collection as requested
 - Apply the "default" processing logic by setting (or not) which Version is the
   "default"
@@ -220,6 +363,7 @@ of a Resource, the following logic is applied:
   it tagged as "default"
 
 Let's walk through a complex example:
+
 - Max allowed Versions is 2
 - Initially the following Versions exist: v4, v2 (default)
 - Max allowed Versions is now set to 0 (meaning unlimited)
@@ -327,4 +471,3 @@ sensitivity rules in the specification.
 
   All of these concerns are avoided by requiring IDs to be stored and compared
   in case insensitively.
-
