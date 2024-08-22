@@ -1,5 +1,7 @@
 # xRegistry Primer
 
+<!-- no verify-specs -->
+
 ## Abstract
 
 This non-normative document provides an overview of the xRegistry specification.
