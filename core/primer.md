@@ -1,94 +1,3 @@
-## Representations
-
-Priority: API Server > File > Static File Server
-
-- Money!
-- We need the API server to realistically generate files & files for the static
-  file server
-- Clemens has written these by hand
-- The CLI could generate a file representation (based on a xreg model)
-
-### File
-
-The registry is represented as a single JSON file.
-
-The primary use case for this representation is a registry which purpose is to
-describe a single project. It basically becomes a declaration manifest of the
-application and can therefore be used in public git repositories or your own projects.
-
-If you are just trying to get the idea of xRegistry, this is a great point to start.
-
-#### Use Cases
-
-1. Local Development
-
-- If you are just doing something on your local machine / home network or for
-  your own purposes, a file can be sufficient.
-- It is a declaration manifest of the application.
-- Public git repositories
-
-2. Beginners
-
-- If you are just trying to get the idea of xRegistry, this is a great point
-  to start.
-
-### Static File Server
-
-The registry is represented by multiple JSON files served via a static file server (e.g. S3 or similar) that
-follows the folder and file structure of the API server.
-
-#### Use Cases
-
-1. Transition between File and API Server representation.
-
-- Before choosing the full blown API server, splitting up your single JSON
-  file into multiple ones and structuring them in different folders can keep
-  things easy while avoiding the actual API.
-- Make the registry public without using the full-blown server.
-- When having to share your resources.
-- A single file gets too large.
-- Cross-references also get possible
-- Write access only via pipelines / indirect write.
-- Since the static file server is read-only, adding resources to the registry is
-  only indirectly possible.
-
-2. Only rent storage, no need for compute units
-
-- Save money (Could be done with GitHub Pages for free, just like a helm registry).
-- You do not have to maintain the compute unit.
-
-#### Anti Patterns
-
-1. Anything intelligent basically, no server logic possible (please!)
-
-### API Server
-
-1. Multiple teams, distributed ownership, therefore differentiated
-   authorization, direct write access
-
-- e.g. in large orgs
-- Distributed ownership
-- Trust differences between the parties who are populating the registry
-
-2. Easy access of schema documents
-
-- Documents first, metadata secondary
-
-2. Sharing resources with multiple end-users / consumers
-
-- Searching, filtering, (query parameters)
-- More options, more convinience
-
-3. Direct write access to the server
-
-- Easier CUD operations
-- No generation of files necessary
-
-4. Scaling without having to change representations
-
-- Its not that hard to run the API server. If you scale, you don't have to
-  migrate anytime. (its not as easy as a docker run, you need a persistence layer)
-
 # xRegistry Primer
 
 ## Abstract
@@ -104,7 +13,7 @@ on the normative technical details.
 - [History](#history)
 - [Motivation](#motivation)
 - [Design Goals](#design-goals)
-- [Architecture](#architecture)
+- [Representations](#representations)
 - [Possible Use Cases](#possible-use-cases)
 - [Design decisions or topics of
   interest](#design-decisions-or-topics-of-interest)
@@ -174,36 +83,86 @@ Cases](#possible-use-cases) for examples outside the eventing world.
   single event channel before standardizing the relationships between event
   channels.
 
-## Architecture
+## Representations
 
-### Three levels: Groups, Resources and Versions
+An xRegistry can be represented in the different ways: a JSON file, a static
+file server and an API server. When building up this spec the API server had the
+highest priority, followed by the file representation and the static file server
+as an option to transition between the first two. To enable this transition, one
+of the design goals is the symmetry between all representations.
 
-TODO: Why do we need this, why is useful, why did we decide that way?
+Whenever registries get large, you will realistically want to use the API server
+or CLI to create the registry and then use its export function to generate files
+for the file or static file server representation.
 
-### The model
+### File
 
-TODO:
+The registry is represented as a single JSON file.
 
-### Symmetry between representations: File, Cloud Storage (S3) and REST API
+The primary use case for this representation is a registry which purpose is to
+describe a single project. It basically becomes a declaration manifest of the
+application and can therefore be used in public git repositories or your own
+projects. If you are new to xRegistry and are just trying to get the idea of the
+project, this is a great point to start.
 
-xRegistry implementations can evolve over time, supporting different storage
-backends:
+Writing up a registry by hand can be a great way of getting the idea, but it can
+get tedious quickly. This is when you want to use the API server.
 
-1. **File System:** Store metadata in simple JSON files.
-2. **Cloud Storage (S3):** Seperate your JSON files and statically serve them
-   via S3.
-3. **RESTful API:** Expose a full-fledged API for managing and accessing
-   resource metadata.
+### Static File Server
+
+The registry is represented by multiple JSON files served via a static file
+server (e.g. S3 or similar) that follows the folder and file structure of the
+API server.
+
+The primary use case for this representation is the transition between File and
+API Server representation. When a single file gets too large or you want to
+share your resources beyond the scope of a single application, splitting up your
+single JSON file into multiple ones and structuring them in different folders
+can keep things easy.
+
+Another benefit of this representation is that you only have to rent storage,
+but no compute units. You could spin up an xRegistry using GitHub Pages, just
+like a Helm registry. You save money and don't have to worry about maintaining a
+compute unit.
+
+Since the static file server is read-only, adding resources to the registry is
+only possible by rebuilding the server and file structure, e.g. via pipelines.
+If you want to directly write to the server or need sophisticated searching and
+filtering, you might consider using the API server instead. Adding server logic
+to the static file server to make up for the features of the API server is
+considered an anti pattern.
+
+### API Server
+
+The API server is the most sophisticated representation of xRegistry. When you
+have multiple teams that are using the same registry with distributed ownership
+of the managed resources, therefore differentiated authorization – then the API
+server is your way to go. This could apply to large organizations, enterprises
+etc.
+
+The primary use case of the API server is sharing resources with multiple
+end-users and allowing direct write access to the server. You won't have to
+generate files and split them up in directories like in the static file server
+and can make use of the server-side logic like searching, filtering and export
+options.
+
+Running the API server requires you to set up a compute unit and a persistence
+layer and maintain both. In exchange you get all the benefits listed above.
+While starting with the API server might be a little more work upfront, it saves
+you from migrating representations as your registry grows.
 
 ## Possible Use Cases
 
 ### CloudEvents
 
-When using CloudEvents
-
-The obvious use case: When referencing
-
-- CloudEvents dataschema points to xreg
+Since xRegistry emerged from the CloudEvents project and initially was called
+"CloudEvents Discovery" the obvious use case is to manage all the CloudEvents of
+your event-driven architecture inside xRegistry. The spec supports "CloudEvents"
+as a format and allows you to define further restrictions on how your
+CloudEvents look, what extensions they use or which fields are required for your
+specific use-case even though the original spec marks them as optional. In
+addition, the `dataschema` attribute of a CloudEvent can then point to a
+xRegistry endpoint making this two projects that work hand in hand.
 
 ### Business objects
 
