@@ -58,14 +58,11 @@
               }
             },
             {
-              "name": "createdby",
-              "type": [
-                "string",
-                "null"
-              ]
+              "name": "origin",
+              "type": "string"
             },
             {
-              "name": "createdon",
+              "name": "createdat",
               "type": [
                 {
                   "type": "int",
@@ -75,14 +72,7 @@
               ]
             },
             {
-              "name": "modifiedby",
-              "type": [
-                "string",
-                "null"
-              ]
-            },
-            {
-              "name": "modifiedon",
+              "name": "modifiedat",
               "type": [
                 {
                   "type": "int",
@@ -155,14 +145,11 @@
                       }
                     },
                     {
-                      "name": "createdby",
-                      "type": [
-                        "string",
-                        "null"
-                      ]
+                      "name": "origin",
+                      "type": "string"
                     },
                     {
-                      "name": "createdon",
+                      "name": "createdat",
                       "type": [
                         {
                           "type": "int",
@@ -172,14 +159,7 @@
                       ]
                     },
                     {
-                      "name": "modifiedby",
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    {
-                      "name": "modifiedon",
+                      "name": "modifiedat",
                       "type": [
                         {
                           "type": "int",

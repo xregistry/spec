@@ -50,9 +50,9 @@ this form:
       "labels": { "STRING": "STRING" * }, ?
       "origin": "STRING", ?
       "createdby": "STRING", ?
-      "createdon": "TIME", ?
+      "createdon": "TIMESTAMP", ?
       "modifiedby": "STRING", ?
-      "modifiedon": "TIME", ?
+      "modifiedon": "TIMESTAMP", ?
 
       "usage": "STRING",                        # subscriber, consumer, producer
       "format": "STRING", ?

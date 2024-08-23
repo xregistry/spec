@@ -50,9 +50,9 @@ this form:
       "labels": { "STRING": "STRING" * }, ?
       "origin": "STRING", ?
       "createdby": "STRING", ?
-      "createdon": "TIME", ?
+      "createdon": "TIMESTAMP", ?
       "modifiedby": "STRING", ?
-      "modifiedon": "TIME", ?
+      "modifiedon": "TIMESTAMP", ?
 
       "schemasurl": "URL",                         # Schemas collection
       "schemascount": UINTEGER,
@@ -69,9 +69,9 @@ this form:
           "labels": { "STRING": "STRING" * }, ?
           "origin": "STRING", ?
           "createdby": "STRING", ?
-          "createdon": "TIME", ?
+          "createdon": "TIMESTAMP", ?
           "modifiedby": "STRING", ?
-          "modifiedon": "TIME", ?
+          "modifiedon": "TIMESTAMP", ?
 
           "format": "STRING",                      # Notice it is mandatory
 

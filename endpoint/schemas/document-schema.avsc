@@ -58,14 +58,11 @@
               }
             },
             {
-              "name": "createdby",
-              "type": [
-                "string",
-                "null"
-              ]
+              "name": "origin",
+              "type": "string"
             },
             {
-              "name": "createdon",
+              "name": "createdat",
               "type": [
                 {
                   "type": "int",
@@ -75,14 +72,7 @@
               ]
             },
             {
-              "name": "modifiedby",
-              "type": [
-                "string",
-                "null"
-              ]
-            },
-            {
-              "name": "modifiedon",
+              "name": "modifiedat",
               "type": [
                 {
                   "type": "int",
@@ -196,14 +186,11 @@
                       }
                     },
                     {
-                      "name": "createdby",
-                      "type": [
-                        "string",
-                        "null"
-                      ]
+                      "name": "origin",
+                      "type": "string"
                     },
                     {
-                      "name": "createdon",
+                      "name": "createdat",
                       "type": [
                         {
                           "type": "int",
@@ -213,14 +200,7 @@
                       ]
                     },
                     {
-                      "name": "modifiedby",
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    {
-                      "name": "modifiedon",
+                      "name": "modifiedat",
                       "type": [
                         {
                           "type": "int",
@@ -375,7 +355,7 @@
                     },
                     {
                       "type": "string",
-                      "name": "schemauri",
+                      "name": "schemaurl",
                       "doc": "The URL of the schema for the message payload, equivalent to the 'schemaurl' attribute of the schema registry"
                     }
                   ]

@@ -1,0 +1,12 @@
+{
+  "schemas": [
+    "xRegistry-json"
+  ],
+  "groups": {
+    "$includes": [
+      "../endpoint/model.json#groups",
+      "../message/model.json#groups",
+      "../schema/model.json#groups"
+    ]
+  }
+}

@@ -99,8 +99,8 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
-  "createdat": "TIME",
-  "modifiedat": "TIME",
+  "createdat": "TIMESTAMP",
+  "modifiedat": "TIMESTAMP",
 
   "model": {                            # Only if requested
     "schemas": [ "STRING" * ], ?        # Available schema formats
@@ -147,9 +147,8 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "setversionid": BOOLEAN, ?  # Supports client specified Version IDs
             "setdefaultversionsticky": BOOLEAN, ?    # Supports client "default" selection
             "hasdocument": BOOLEAN, ?   # Has a separate document. Default=true
-            "readonly": BOOLEAN, ?      # From client's POV. Default=false
             "typemap": MAP, ?           # contenttype mappings
-            "attributes": { ... }, ?    # See "attributes" above
+            "attributes": { ... } ?     # See "attributes" above
           } *
         } ?
       } *
@@ -169,8 +168,8 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       "documentation": "URL", ?
       "labels": { "STRING": "STRING" * }, ?
       "origin": "URI", ?
-      "createdat": "TIME",
-      "modifiedat": "TIME",
+      "createdat": "TIMESTAMP",
+      "modifiedat": "TIMESTAMP",
 
       # Repeat for each Resource type in the Group
       "RESOURCEsurl": "URL",                       # e.g. "definitionsurl"
@@ -180,7 +179,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
           "id": "STRING",                          # The Resource id
           "self": "URL",                           # Resource URL, not Version
 
-          # These are inherited from the default Version (excluded on export)
+          # These are inherited from the default Version (excluded sometimes)
           "versionid": "STRING",                   # Same a defaultversionid
           "name": "STRING", ?
           "epoch": UINTEGER,
@@ -189,16 +188,17 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
           "documentation": "URL", ?
           "labels": { "STRING": "STRING" * }, ?
           "origin": "URI", ?
-          "createdat": "TIME",
-          "modifiedat": "TIME",
+          "createdat": "TIMESTAMP",
+          "modifiedat": "TIMESTAMP",
           "contenttype": "STRING, ?
 
           "RESOURCEurl": "URL", ?                  # If not local
           "RESOURCE": ... Resource document ..., ? # If local & inlined & JSON
           "RESOURCEbase64": "STRING", ?            # If local & inlined & ~JSON
 
-          # These are Resource-only attributes
+          # Remainder are Resource level attributes
           "xref": "URL", ?                         # Ptr to other Resource
+          "readonly": BOOLEAN, ?                   # Default is "false"
 
           "defaultversionsticky": BOOLEAN, ?
           "defaultversionid": "STRING",            # Same as versionid above
@@ -218,8 +218,8 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
               "documentation": "URL", ?
               "labels": { "STRING": "STRING" * }, ?
               "origin": "URI", ?
-              "createdat": "TIME",
-              "modifiedat": "TIME",
+              "createdat": "TIMESTAMP",
+              "modifiedat": "TIMESTAMP",
               "contenttype": "STRING", ?
 
               "RESOURCEurl": "URL", ?                  # If not local
@@ -238,8 +238,8 @@ Note: the cardinality/optionality of a Resource's attributes are specified
 to indicate which are to be present when the Resource's attributes are
 included in its serialization. For example, when `?export` is used, the
 Resource's default Version attributes will not be present at all, which means
-listing `epoch` as mandatory in the above serialization is technically
-incorrect in general, but when the attributes do appear then `epoch` is
+listing `createdat` as mandatory in the above serialization is technically
+incorrect in general, but when the attributes do appear then `createdat` is
 mandatory. Since listing all attributes as OPTIONAL would reduce the
 usefulness of the above example, this inconsistency is deliberate.
 
@@ -282,7 +282,7 @@ information about each data type):
 - `MAP`
 - `OBJECT`
 - `STRING`
-- `TIME`
+- `TIMESTAMP`
 - `UINTEGER`
 - `URI`
 - `URIREFERENCE`
@@ -363,7 +363,7 @@ be one of the following data types:
     for more information about serializing maps as HTTP headers.
 - `object` - a nested entity made up of a set of attributes of these data types.
 - `string` - sequence of Unicode characters.
-- `time` - an [RFC3339](https://tools.ietf.org/html/rfc3339) timestamp.
+- `timestamp` - an [RFC3339](https://tools.ietf.org/html/rfc3339) timestamp.
 - `uinteger` - unsigned integer.
 - `uri` - absolute URI as defined in [RFC 3986 Section
   4.3](https://tools.ietf.org/html/rfc3986#section-4.3).
@@ -375,7 +375,7 @@ be one of the following data types:
   [RFC 1738](https://datatracker.ietf.org/doc/html/rfc1738).
 
 The "scalar" data types are: `boolean`, `decimal`, `integer`, `string`,
-`time`, `uinteger`, `uri`, `urireference`, `uritemplate`, `url`.
+`timestamp`, `uinteger`, `uri`, `urireference`, `uritemplate`, `url`.
 Note that `any` is not a "scalar" type as its runtime value could be a complex
 type such as `object`.
 
@@ -433,7 +433,7 @@ attributes. However they MUST adhere to the following rules:
 - It is RECOMMENDED that extension attributes on different entities not use the
   same name unless they have the exact same semantic meaning
 - It is STRONGLY RECOMMENDED that they be named in such a way as to avoid
-  potential conflicts with future Registry specification attributes. For
+  potential conflicts with future Registry level attributes. For
   example, use of a model (or domain) specific prefix could be used.
 
 #### Common Attributes
@@ -452,8 +452,8 @@ form:
 - `"documentation": "URL"`
 - `"labels": { "STRING": "STRING" * }`
 - `"origin": "URI"`
-- `"createdat": "TIME"`
-- `"modifiedat": "TIME"`
+- `"createdat": "TIMESTAMP"`
+- `"modifiedat": "TIMESTAMP"`
 
 The definition of each attribute is defined below:
 
@@ -743,6 +743,8 @@ aspects of the processing:
   `defaultversionid` attribute included in the request MUST be ignored.
 - `nodefaultversionsticky` - presence of this query parameter indicates that
   any `defaultversionsticky` attribute included in the request MUST be ignored.
+- `noreadonly` - presence of this query parameter indicates that any attempt
+  to update a read-only Resource MUST be silently ignored.
 
 #### No-Code Servers
 
@@ -914,7 +916,7 @@ to the "default" Version, and the incoming inlined `versions` collections
 includes that "default" Version, the Resource's default Version attributes MUST
 be silently ignored. This is to avoid any possible conflicting data between
 the two sets of data for that Version. In other words, the Version attributes
-in the incoming `versions` collection wins. Note that Resource specific
+in the incoming `versions` collection wins. Note that Resource level
 attributes (e.g. `defaultversionsticky`) are not affected by this rule as
 they are not Version attributes.
 
@@ -1246,8 +1248,8 @@ The serialization of the Registry entity adheres to this form:
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
-  "createdat": "TIME",
-  "modifiedat": "TIME",
+  "createdat": "TIMESTAMP",
+  "modifiedat": "TIMESTAMP",
 
   "model": { Registry model }, ?      # Only if "?model" is on request
 
@@ -1272,7 +1274,7 @@ The Registry entity includes the following common attributes:
 - [`modifiedat`](#modifiedat-attribute) - REQUIRED in responses, otherwise
   OPTIONAL
 
-and the following Registry specific attributes:
+and the following Registry level attributes:
 
 ##### `specversion` Attribute
 - Type: String
@@ -1348,8 +1350,8 @@ Content-Type: application/json; charset=utf-8
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
-  "createdat": "TIME",
-  "modifiedat": "TIME",
+  "createdat": "TIMESTAMP",
+  "modifiedat": "TIMESTAMP",
 
   "model": { Registry model }, ?      # Only if "?model" is present
 
@@ -1487,8 +1489,8 @@ Content-Type: application/json; charset=utf-8
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
-  "createdat": "TIME", ?
-  "modifiedat": "TIME", ?
+  "createdat": "TIMESTAMP", ?
+  "modifiedat": "TIMESTAMP", ?
 
   "model": { Registry model }, ?
 
@@ -1530,8 +1532,8 @@ Content-Type: application/json; charset=utf-8
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
-  "createdat": "TIME",
-  "modifiedat": "TIME",
+  "createdat": "TIMESTAMP",
+  "modifiedat": "TIMESTAMP",
 
   # Repeat for each Group type
   "GROUPsurl": "URL",
@@ -1639,7 +1641,7 @@ different set of changes are more appropriate:
   - Boolean: false.
   - Numeric: zero.
   - String, URI, URIReference, URI-Template, URL: empty string (`""`).
-  - Time: zero (00:00:00 UTC Jan 1, 1970).
+  - Timestamp: zero (00:00:00 UTC Jan 1, 1970).
 - If valid, String attributes SHOULD use `"undefined"`.
 
 If a backwards incompatible change is needed, and the existing entities need
@@ -1709,7 +1711,6 @@ Regardless of how the model is retrieved, the overall format is as follows:
           "setversionid": BOOLEAN, ?   # Supports client specified Version IDs
           "setdefaultversionsticky": BOOLEAN, ?     # Supports client "default" selection
           "hasdocument": BOOLEAN, ?    # Has a separate document. Default=true
-          "readonly": BOOLEAN, ?       # From client's POV. Default=false
           "immutable": BOOLEAN, ?      # Once set, can't change. Default=false
           "attributes": { ... } ?      # See "attributes" above
         } *
@@ -2034,16 +2035,6 @@ The following describes the attributes of Registry model:
   - A value of `true` indicates that Resource of this type supports a separate
     document to be associated with it.
 
-- `groups.resources.readonly`
-  - Indicates if Resources of this type are updateable by a client. A value of
-    `false` means that the server MUST support write operations on Resources
-    of this type in general, even if not all clients or specific situations
-    are supported. A value of `true` means that all `PUT`, `POST`, `PATCH` and
-    `DELETE` operations on Resources of this type MUST generate an error.
-  - Type: Boolean (`true` or `false`, case sensitive).
-  - OPTIONAL.
-  - The default value is `false`.
-
 - `groups.resources.typemap`
   - When a Resource's metadata is serialized in a response and the `inline`
     feature is enabled, the server will attempt to serialize the Resource's
@@ -2224,7 +2215,6 @@ Content-Type: application/json; charset=utf-8
           "setversionid": BOOLEAN, ?
           "setdefaultversionsticky": BOOLEAN, ?
           "hasdocument": BOOLEAN, ?
-          "readonly": BOOLEAN, ?
           "immutable": BOOLEAN, ?
           "attributes": { ... } ?
         } *
@@ -2338,7 +2328,6 @@ Content-Type: application/json; charset=utf-8
           "setversionid": BOOLEAN, ?
           "setdefaultversionsticky": BOOLEAN, ?
           "hasdocument": BOOLEAN, ?
-          "readonly": BOOLEAN, ?
           "immutable": BOOLEAN, ?
           "attributes": { ... } ?            # See "attributes" above
         } *
@@ -2405,7 +2394,6 @@ Content-Type: application/json; charset=utf-8
           "setversionid": BOOLEAN, ?
           "setdefaultversionsticky": BOOLEAN, ?
           "hasdocument": BOOLEAN, ?
-          "readonly": BOOLEAN, ?
           "immutable": BOOLEAN, ?
           "attributes": { ... } ?
         } *
@@ -2590,8 +2578,8 @@ The serialization of a Group entity adheres to this form:
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
   "origin": "URI", ?
-  "createdat": "TIME",
-  "modifiedat": "TIME",
+  "createdat": "TIMESTAMP",
+  "modifiedat": "TIMESTAMP",
 
   # Repeat for each Resource type in the Group
   "RESOURCEsurl": "URL",                    # e.g. "definitionsurl"
@@ -2615,7 +2603,7 @@ Groups include the following common attributes:
 - [`modifiedat`](#modifiedat-attribute) - REQUIRED in responses, otherwise
   OPTIONAL.
 
-and the following Group specific attributes:
+and the following Group level attributes:
 
 ##### `RESOURCEs` Collections
 - Type: Set of [Registry Collections](#registry-collections).
@@ -2659,8 +2647,8 @@ Link: <URL>;rel=next;count=UINTEGER ?
     "documentation": "URL", ?
     "labels": { "STRING": "STRING" * }, ?
     "origin": "URI", ?
-    "createdat": "TIME",
-    "modifiedat": "TIME",
+    "createdat": "TIMESTAMP",
+    "modifiedat": "TIMESTAMP",
 
     # Repeat for each Resource type in the Group
     "RESOURCEsurl": "URL",                    # e.g. "definitionsurl"
@@ -2740,8 +2728,8 @@ Each individual Group definition MUST adhere to the following:
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
   "origin": "URI" ?
-  "createdat": "TIME", ?
-  "modifiedat": "TIME", ?
+  "createdat": "TIMESTAMP", ?
+  "modifiedat": "TIMESTAMP", ?
 
   # Repeat for each Resource type in the Group
   "RESOURCEsurl": "URL",                     # e.g. "definitionsurl"
@@ -2762,8 +2750,8 @@ Each individual Group in a successful response MUST adhere to the following:
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
   "origin": "URI", ?
-  "createdat": "TIME",
-  "modifiedat": "TIME",
+  "createdat": "TIMESTAMP",
+  "modifiedat": "TIMESTAMP",
 
   # Repeat for each Resource type in the Group
   "RESOURCEsurl": "URL",                    # e.g. "definitionsurl"
@@ -2860,8 +2848,8 @@ Content-Type: application/json; charset=utf-8
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
   "origin": "URI", ?
-  "createdat": "TIME",
-  "modifiedat": "TIME",
+  "createdat": "TIMESTAMP",
+  "modifiedat": "TIMESTAMP",
 
   # Repeat for each Resource type in the Group
   "RESOURCEsurl": "URL",                     # e.g. "definitionsurl"
@@ -2950,7 +2938,7 @@ The Resource MAY choose to simply store a URL reference to the externally
 managed document instead. When the document is stored within the Registry, it
 can be managed as an opaque array of bytes.
 
-When a Resource does have a separate document, the URL for the Resource
+When a Resource does have a separate document, the default URL for the Resource
 references this document and not the Resource's xRegistry metadata. This
 allows for easy access to the data of interest by end users. In order to
 manage the Resource's xRegistry metadata, the URL to the Resource MUST
@@ -3026,13 +3014,30 @@ the Resource's default attributes are serialized as part of the Resource)
   OPTIONAL.
 - [`contenttype`](#contenttype-attribute) - STRONGLY RECOMMENDED.
 
-and the following Resource specific attributes:
+and the following Resource level attributes:
 
 ##### `xref` Attribute
 - Type: Relative URL from base URL of Registry
 - Description: indicates that this Resource is a reference to another Resource
   owned by another Group within the same Registry. See [Cross Referencing
   Resources](#cross-referencing-resources) for more information.
+
+##### `readonly` Attribute
+- Type: Boolean
+- Description: indicates whether this Resource is updateable by clients. This
+  attribute is a server controlled attribute and therefore can not be modified
+  by clients. This specification makes no statement as to when Resource are to
+  be read-only.
+- Constraints:
+  - When not present, the default value is `false`,
+  - REQUIRED when `true`, otherwise OPTIONAL.
+  - When present, it MUST be a case sensitive `true` or `false`.
+  - A request to update this attribute, on a non-read-only Resource, MUST be
+    silently ignored.
+  - A request to update a read-only Resource MUST generate an error unless
+    the `?noreadonly` query parameter was used, in which case the error MUST
+    be silently ignored. See [Registry APIs](#registry-apis) for more
+    information.
 
 ##### `defaultversionsticky` Attribute
 - Type: Boolean
@@ -3117,7 +3122,7 @@ and the following Resource specific attributes:
   - REQUIRED in document view.
   - If present, it MUST always have at least one Version.
 
-The following Version specific attributes will appear on both Resources and
+The following Version level attributes will appear on both Resources and
 Versions:
 
 #### Serializing Resources
@@ -3192,6 +3197,7 @@ xRegistry-createdat: TIME
 xRegistry-modifiedat: TIME
 xRegistry-RESOURCEurl: URL ?
 xRegistry-xref: URL ?
+xRegistry-readonly: BOOLEAN ?
 xRegistry-defaultversionsticky: BOOLEAN ?
 xRegistry-defaultversionid: STRING
 xRegistry-defaultversionurl: URL
@@ -3215,7 +3221,7 @@ Where:
   the "default" Version.
 
 Version serialization will look similar, but the set of xRegistry HTTP headers
-will be slightly different (to exclude Resource specific attributes). See the
+will be slightly different (to exclude Resource level attributes). See the
 next sections for more information.
 
 ##### Serializing Resource Metadata
@@ -3242,16 +3248,17 @@ this form:
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
   "origin": "URI", ?
-  "createdat": "TIME",
-  "modifiedat": "TIME",
+  "createdat": "TIMESTAMP",
+  "modifiedat": "TIMESTAMP",
   "contenttype": "STRING", ?
 
   "RESOURCEurl": "URL", ?                  # If not local
   "RESOURCE": ... Resource document ..., ? # If inlined & JSON
   "RESOURCEbase64": "STRING", ?            # If inlined & ~JSON
 
-  # Resource specific attributes
+  # Resource level attributes
   "xref": "URL", ?
+  "readonly": BOOLEAN, ?
 
   "defaultversionsticky": BOOLEAN, ?
   "defaultversionid": "STRING",
@@ -3264,7 +3271,7 @@ this form:
 ```
 
 As before, Version's serialization will look similar but the set of attributes
-will be slightly different (to exclude Resource specific attributes). More
+will be slightly different (to exclude Resource level attributes). More
 information on this in the next sections.
 
 #### Cross Referencing Resources
@@ -3475,8 +3482,8 @@ Link: <URL>;rel=next;count=UINTEGER ?
     "documentation": "URL", ?
     "labels": { "STRING": "STRING" * }, ?
     "origin": "URI", ?
-    "createdat": "TIME",
-    "modifiedat": "TIME",
+    "createdat": "TIMESTAMP",
+    "modifiedat": "TIMESTAMP",
     "contenttype": "STRING", ?
 
     "RESOURCEurl": "URL", ?                  # If not local
@@ -3484,6 +3491,7 @@ Link: <URL>;rel=next;count=UINTEGER ?
     "RESOURCEbase64": "STRING", ?            # If inlined & ~JSON
 
     "xref": "URL", ?
+    "readonly": BOOLEAN, ?
 
     "defaultversionsticky": BOOLEAN, ?
     "defaultversionid": "STRING",
@@ -3620,6 +3628,7 @@ Version in the request MUST adhere to the following:
 {
   "id": "STRING", ?                        # ID of Resource
   "versionid": "STRING", ?                 # ID of Version
+
   "name": "STRING", ?
   "epoch": UINTEGER, ?
   "isdefault": BOOLEAN, ?
@@ -3627,20 +3636,22 @@ Version in the request MUST adhere to the following:
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
   "origin": "URI", ?
-  "createdat": "TIME", ?
-  "modifiedat": "TIME", ?
+  "createdat": "TIMESTAMP", ?
+  "modifiedat": "TIMESTAMP", ?
   "contenttype": "STRING", ?
 
   "RESOURCEurl": "URL", ?                  # If not local
   "RESOURCE": ... Resource document ..., ? # If inlined & JSON
   "RESOURCEbase64": "STRING", ?            # If inlined & ~JSON
 
-  "xref": "URL", ?                         # For Resources
+  # Resource only attributes
+  "xref": "URL", ?
+  "readonly": BOOLEAN, ?
 
-  "defaultversionsticky": BOOLEAN, ?       # For Resources
-  "defaultversionid": "STRING", ?          # For Resources
+  "defaultversionsticky": BOOLEAN, ?
+  "defaultversionid": "STRING", ?
 
-  "versions": { Versions collection } ?    # For Resources, if nested
+  "versions": { Versions collection } ?
 }
 ```
 
@@ -3660,10 +3671,11 @@ xRegistry-description: STRING ?
 xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING *
 xRegistry-origin: STRING ?
-xRegistry-createdat: TIME ?
-xRegistry-modifiedat: TIME ?
+xRegistry-createdat: TIMESTAMP ?
+xRegistry-modifiedat: TIMESTAMP ?
 xRegistry-RESOURCEurl: URL ?
 xRegistry-xref: URL ?
+xRegistry-readonly: BOOLEAN ?
 xRegistry-defaultversionsticky: BOOLEAN ?  # For Resources
 xRegistry-defaultversionid: STRING ?       # For Resources
 
@@ -3894,6 +3906,7 @@ xRegistry-createdat: TIME
 xRegistry-modifiedat: TIME
 xRegistry-RESOURCEurl: URL      # If Resource is not in body
 xRegistry-xref: URL ?
+xRegistry-readonly: BOOLEAN ?
 xRegistry-defaultversionsticky: BOOLEAN ?
 xRegistry-defaultversionid: STRING
 xRegistry-defaultversionurl: URL
@@ -3945,8 +3958,8 @@ Content-Location: URL ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
   "origin": "URI", ?
-  "createdat": "TIME",
-  "modifiedat": "TIME",
+  "createdat": "TIMESTAMP",
+  "modifiedat": "TIMESTAMP",
   "contenttype": "STRING", ?
 
   "RESOURCEurl": "URL", ?                  # If not local
@@ -3954,6 +3967,7 @@ Content-Location: URL ?
   "RESOURCEbase64": "STRING", ?            # If inlined & ~JSON
 
   "xref": "URL", ?
+  "readonly": BOOLEAN, ?
 
   "defaultversionsticky": BOOLEAN, ?
   "defaultversionid": "STRING",
@@ -4061,8 +4075,8 @@ When serialized as a JSON object, the Version entity adheres to this form:
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
   "origin": "URI", ?
-  "createdat": "TIME",
-  "modifiedat": "TIME",
+  "createdat": "TIMESTAMP",
+  "modifiedat": "TIMESTAMP",
   "contenttype": "STRING", ?
 
   "RESOURCEurl": "URL", ?                  # If not local
@@ -4071,9 +4085,9 @@ When serialized as a JSON object, the Version entity adheres to this form:
 }
 ```
 
-Versions include the following attributes:
+Versions include the following common attributes:
 - [`id`](#id-attribute) - REQUIRED in responses and document view, otherwise
-  OPTIONAL.
+  OPTIONAL. MUST be the `id` of the owning Resource.
 - [`self`](#self-attribute) - REQUIRED in responses, otherwise OPTIONAL - URL
   to this Version, not the Resource.
 - [`name`](#name-attribute) - OPTIONAL.
@@ -4088,10 +4102,11 @@ Versions include the following attributes:
   OPTIONAL.
 - [`contenttype`](#contenttype-attribute) - OPTIONAL.
 
-and the following Version specific attributes:
+and the following Version level attributes:
 
 - [`versionid`](#versionid-attribute) - REQUIRED in responses and document view,
-  otherwise OPTIONAL.
+  otherwise OPTIONAL. MUST be the unique (within the scope of the owning
+  Resource) identifier of this Version.
 - [`isdefault`](#isdefault-attribute) - REQUIRED when `true`, otherwise
   OPTIONAL.
 - [`RESOURCEurl`](#resourceurl-attribute) - OPTIONAL.
@@ -4136,8 +4151,8 @@ of the existing Version. Then the existing Version can be deleted.
   owning Resource. This value is different from other attributes in that it
   might often be a calculated value rather than persisted in a datastore.
   Thus, when its value changes due to the default Version of a Resource
-  changing, the Version itself does not change - meaning the `epoch`, and
-  `modifiedat` values remains unchanged.
+  changing, the Version itself does not change - meaning attributes such as
+  `modifiedat` remains unchanged.
 
   See [Creating or Updating Resources and
   Versions](#creating-or-updating-resources-and-versions) for additional
@@ -4319,8 +4334,9 @@ do so, MUST adhere to the following rules:
   attributes, the update to the default Version pointer MUST be done before
   the attributes are updated. In other words, the Version updated is the new
   default Version, not the old one.
-- Changing the default Version of a Resource MUST NOT increment the `epoch`
-  or `modifiedat` values of any Version of the Resource.
+- Changing the default Version of a Resource MUST NOT change any attributes
+  in the Resource's Versions, for example, attributes such as `modifiedat`
+  remain unchanged.
 
 #### Retrieving all Versions
 
@@ -4357,8 +4373,8 @@ Link: <URL>;rel=next;count=UINTEGER ?
     "documentation": "URL", ?
     "labels": { "STRING": "STRING" * }, ?
     "origin": "URI", ?
-    "createdat": "TIME",
-    "modifiedat": "TIME",
+    "createdat": "TIMESTAMP",
+    "modifiedat": "TIMESTAMP",
     "contenttype": "STRING", ?
 
     "RESOURCEurl": "URL", ?                  # If not local
@@ -4525,8 +4541,8 @@ Content-Type: application/json; charset=utf-8
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
   "origin": "URI", ?
-  "createdat": "TIME",
-  "modifiedat": "TIME",
+  "createdat": "TIMESTAMP",
+  "modifiedat": "TIMESTAMP",
   "contenttype": "STRING", ?
 
   "RESOURCEurl": "URL", ?                  # If not local
@@ -4808,7 +4824,7 @@ The `?export` query parameter MAY be used on any level of the Registry's
 hierarchy.
 
 As noted above, `export` changes the serialization rules of Resources by
-removing the Version specific attributes. For clarity, the serialization of a
+removing the Version level attributes. For clarity, the serialization of a
 Resource when `export` is used will adhere to the following:
 
 ```yaml
@@ -4817,6 +4833,7 @@ Resource when `export` is used will adhere to the following:
   "self": "URL",
 
   "xref": "URL", ?
+  "readonly": BOOLEAN, ?
 
   "defaultversionsticky": BOOLEAN, ?
   "defaultversionid": "STRING",
