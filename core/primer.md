@@ -59,7 +59,7 @@ increase interoperability and decouple event handling from broker products and
 protocols.
 
 Even though xRegistry was built with eventing in mind, the concept of this
-registry specification is far more powerful. Take a look ath the [Possible Use
+registry specification is far more powerful. Take a look at the [Possible Use
 Cases](#possible-use-cases) for examples outside the eventing world.
 
 ## Design Goals
@@ -150,8 +150,8 @@ options.
 
 Running the API server requires you to set up a compute unit and a persistence
 layer and maintain both. In exchange you get all the benefits listed above.
-While starting with the API server might be a little more work upfront, it saves
-you from migrating representations as your registry grows.
+While starting with the API server might be a little more work up front, it
+saves you from migrating representations as your registry grows.
 
 ## Possible Use Cases
 
