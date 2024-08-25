@@ -218,7 +218,7 @@
             }
 
             "defaultversionsticky": {
-              "name": "stickydefaultversion",
+              "name": "defaultversionsticky",
               "type": "boolean",
               "readonly": true,
               "serverrequired": true,

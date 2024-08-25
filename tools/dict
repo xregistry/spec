@@ -11,6 +11,7 @@ createdby
 crlf
 datastore
 datatracker
+defaultversion
 defaultversionid
 defaultversionsticky
 defaultversionurl
@@ -26,6 +27,7 @@ gid
 gotchas
 groupscount
 groupsurl
+hasdoc
 hasdocument
 html
 http
