@@ -4,11 +4,12 @@
 
 ## Abstract
 
-This non-normative document provides an overview of the xRegistry specification.
-It is meant to complement the xRegistry specification to provide additional
-background and insight into the history and design decisions made during the
-development of the specification. This allows the specification itself to focus
-on the normative technical details.
+This non-normative document provides an overview of the [xRegistry
+specification](https://github.com/xregistry/spec/blob/main/core/spec.md). It is
+meant to complement the xRegistry specification to provide additional background
+and insight into the history and design decisions made during the development of
+the specification. This allows the specification itself to focus on the
+normative technical details.
 
 ## Table of Contents
 
@@ -25,14 +26,14 @@ on the normative technical details.
 The CNCF Serverless Working group was originally created by the CNCF's Technical
 Oversight Committee to investigate Serverless Technology and to recommend some
 possible next steps for some CNCF related activities in this space. After
-creating the common event format [CloudEvents](https://github.com/cloudevents)
-as a foundation for an interoperable ecosystem for event-driven applications the
-next step was to create a metadata model for declaring CloudEvents, their
-payloads and associating those declarations with application endpoints. As a
-result, the xRegistry (extensible registry) specification was created.
+creating [CloudEvents](https://github.com/cloudevents) as a foundation for an
+interoperable ecosystem for event-driven applications the next step was to
+create a metadata model for declaring CloudEvents, their payloads and
+associating those declarations with application endpoints. As a result, the
+xRegistry (extensible registry) specification was created.
 
 xRegistry was initially part of CloudEvents, called "CloudEvents Discovery" but
-later moved into it's own repository and CNCF project.
+later moved into it's own repository.
 
 ## Motivation
 
@@ -42,7 +43,10 @@ protocols, they do not address:
 
 - **Discovery:** Where to produce/consume events? What endpoints exist?
 - **Validation:** How to validate event structures?
-- **Versioning:** How to version events – and see which versions exist?
+- **Versioning:** How to version metadata describing events – and see which
+  versions exist?
+- **Serialization:** How are events serialized? How do their envelope (if any)
+  and formats (XML / JSON Schema) look like?
 - **Extension Discovery:** How to identify which events using which specific
   extensions?
 
@@ -59,7 +63,8 @@ increase interoperability and decouple event handling from broker products and
 protocols.
 
 Even though xRegistry was built with eventing in mind, the concept of this
-registry specification is far more powerful. Take a look at the [Possible Use
+registry specification is far more powerful and can be used for the exchange for
+any type of message. Take a look ath the [Possible Use
 Cases](#possible-use-cases) for examples outside the eventing world.
 
 ## Design Goals
@@ -101,26 +106,27 @@ for the file or static file server representation.
 
 The registry is represented as a single JSON file.
 
-The primary use case for this representation is a registry which purpose is to
-describe a single project. It basically becomes a declaration manifest of the
-application and can therefore be used in public git repositories or your own
-projects. If you are new to xRegistry and are just trying to get the idea of the
-project, this is a great point to start.
+The primary use case for this representation is a registry whose purpose is to
+be used in cases where file-based access is preferred over network-based access.
+This could be a project on your local machine or a public git repository, where
+the registry basically becomes a declaration manifest of the application(s). If
+you are new to xRegistry and are just trying to get the idea of the project,
+this is a great point to start.
 
 Writing up a registry by hand can be a great way of getting the idea, but it can
 get tedious quickly. This is when you want to use the API server.
 
 ### Static File Server
 
-The registry is represented by multiple JSON files served via a static file
-server (e.g. S3 or similar) that follows the folder and file structure of the
-API server.
+The registry is represented by multiple JSON files, where each one represents a
+single entity within the registry, served via a static file server (e.g. S3 or
+similar) that follows the folder and file structure of the API server.
 
 The primary use case for this representation is the transition between File and
-API Server representation. When a single file gets too large or you want to
-share your resources beyond the scope of a single application, splitting up your
-single JSON file into multiple ones and structuring them in different folders
-can keep things easy.
+API Server representation. To allow for sharing of individual entities of the
+registry rather than the entire registry as a single JSON document, splitting up
+your single JSON file into multiple ones and structuring them in different
+folders can keep things easy.
 
 Another benefit of this representation is that you only have to rent storage,
 but no compute units. You could spin up an xRegistry using GitHub Pages, just
@@ -150,8 +156,8 @@ options.
 
 Running the API server requires you to set up a compute unit and a persistence
 layer and maintain both. In exchange you get all the benefits listed above.
-While starting with the API server might be a little more work up front, it
-saves you from migrating representations as your registry grows.
+While starting with the API server might be a little more work upfront, it saves
+you from migrating representations as your registry grows.
 
 ## Possible Use Cases
 
@@ -164,12 +170,12 @@ as a format and allows you to define further restrictions on how your
 CloudEvents look, what extensions they use or which fields are required for your
 specific use-case even though the original spec marks them as optional. In
 addition, the `dataschema` attribute of a CloudEvent can then point to a
-xRegistry endpoint making this two projects that work hand in hand.
+xRegistry schema document making this two projects that work hand in hand.
 
 ### Business objects
 
-When defining the schemas of business objects in an enterprise, xRegistry can
-be the schema store for these definitions. One can then reference them in a data
+When defining the schemas of business objects in an enterprise, xRegistry can be
+the schema store for these definitions. One can then reference them in a data
 catalogue as well as in OpenAPI and AsyncAPI documents without repeating the
 schemas for the actual business objects.
 
