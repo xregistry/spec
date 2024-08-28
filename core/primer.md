@@ -64,7 +64,7 @@ protocols.
 
 Even though xRegistry was built with eventing in mind, the concept of this
 registry specification is far more powerful and can be used for the exchange for
-any type of message. Take a look ath the [Possible Use
+any type of message. Take a look at the [Possible Use
 Cases](#possible-use-cases) for examples outside the eventing world.
 
 ## Design Goals
