@@ -19,6 +19,7 @@ crlf
 dataschema
 datastore
 datatracker
+defaultversion
 defaultversionid
 defaultversionsticky
 defaultversionurl
@@ -36,6 +37,7 @@ github
 gotchas
 groupscount
 groupsurl
+hasdoc
 hasdocument
 html
 http

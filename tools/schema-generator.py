@@ -800,12 +800,12 @@ model_definition = {
 
 
 def resolve_imports(basedir, node):
-    """ recursively resolve all $imports in the model definition """
+    """ recursively resolve all $includes in the model definition """
     
     if isinstance(node, dict):
-        if "$import" in node:
+        if "$include" in node:
             obj_ref = ''
-            file_ref = node["$import"]
+            file_ref = node["$include"]
             # strip # anchor portion from the file reference
             if "#" in file_ref:
                 fr = file_ref.split("#")
@@ -815,7 +815,7 @@ def resolve_imports(basedir, node):
             import_file = os.path.join(basedir, file_ref)
             with open(import_file) as file:
                 import_definition = json.load(file)
-            del node["$import"]
+            del node["$include"]
             if obj_ref:
                 node.update(resolve_pointer(import_definition, obj_ref))
             else:
