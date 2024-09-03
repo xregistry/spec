@@ -4,10 +4,10 @@ verify: spellcheck tabcheck test_tools
 	@python tools/verify.py .
 
 spellcheck:
-	tools/spellcheck core/spec.md core/primer.md
+	tools/spellcheck */spec.md core/primer.md
 
 tabcheck:
-	tools/tabcheck core/spec.md core/primer.md
+	tools/tabcheck */spec.md core/primer.md
 
 deps:
 	@echo Loading python deps

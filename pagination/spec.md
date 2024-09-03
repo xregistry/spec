@@ -34,7 +34,7 @@ modify those values.
 
 - Type: `Unsigned 64-bit Integer`
 - Description: Indicates the maximum number of records per message
-  that the cient is willing to accept. If the server is unable to
+  that the client is willing to accept. If the server is unable to
   meet this criteria then it MUST generate an error.
   There is no default value for this attribute.
   If this attribute is not specified, then the server MAY choose to send back
@@ -111,7 +111,7 @@ this specification.
 - Description: Indicates when the set of records referenced by the
   `link` will no longer be available. When not specified, the availability
   of the data is undefined by this specification. However, it is RECOMMENDED
-  that this attribute only be excluded when the data being interated over
+  that this attribute only be excluded when the data being iterated over
   is not expected to change very often and therefore the server will
   typically not need to save any state related to this client's requests.
 - Constraints:
