@@ -28,12 +28,14 @@ this form:
 {
   "specversion": "STRING",                         # xRegistry core attributes
   "id": "STRING",
-  "name": "STRING", ?
-  "epoch": UINTEGER,
   "self": "URL",
+  "epoch": UINTEGER,
+  "name": "STRING", ?
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
+  "createdat": "TIMESTAMP",
+  "modifiedat": "TIMESTAMP",
 
   "model": { ... }, ?
 
@@ -42,42 +44,45 @@ this form:
   "schemagroups": {
     "ID": {
       "id": "STRING",                              # xRegistry core attributes
-      "name": "STRING", ?
-      "epoch": UINTEGER,
       "self": "URL",
+      "epoch": UINTEGER,
+      "name": "STRING", ?
       "description": "STRING", ?
       "documentation": "URL", ?
       "labels": { "STRING": "STRING" * }, ?
       "origin": "STRING", ?
-      "createdby": "STRING", ?
-      "createdon": "TIMESTAMP", ?
-      "modifiedby": "STRING", ?
-      "modifiedon": "TIMESTAMP", ?
+      "createdat": "TIMESTAMP",
+      "modifiedat": "TIMESTAMP",
 
       "schemasurl": "URL",                         # Schemas collection
       "schemascount": UINTEGER,
       "schemas": {
         "ID": {
           "id": "STRING",                          # xRegistry core attributes
-          "name": "STRING", ?
-          "epoch": UINTEGER,
           "self": "URL",
-          "latestversionid": "STRING",
-          "latestversionurl": "URL",
+          "xreg": "URL", ?
+          "epoch": UINTEGER,
+          "readonly": BOOLEAN, ?
+
+          "versionid": "STRING",
+          "name": "STRING", ?
+          "isdefault": true,
           "description": "STRING", ?
           "documentation": "URL", ?
           "labels": { "STRING": "STRING" * }, ?
           "origin": "STRING", ?
-          "createdby": "STRING", ?
-          "createdon": "TIMESTAMP", ?
-          "modifiedby": "STRING", ?
-          "modifiedon": "TIMESTAMP", ?
+          "createdat": "TIMESTAMP",
+          "modifiedat": "TIMESTAMP",
 
           "format": "STRING",                      # Notice it is mandatory
 
           "schemaobject": { ... }, ?               # TODO - check this
           "schema": "STRING", ?
           "schemaurl": "URL" ?
+
+          "defaultversionsticky": BOOLEAN, ?
+          "defaultversionid": "STRING",
+          "defaultversionurl": "URL",
 
           "versionsurl": "URL",
           "versionscount": UINTEGER,
@@ -129,7 +134,7 @@ is needed to decode the structured data from its serialized, binary form.
 
 We use the term **schema** (or schema Resource) in this specification as a
 logical grouping of **schema Versions**. A **schema Version** is a concrete
-document. The **schema** Resoruce is a semantic umbrella formed around one or
+document. The **schema** Resource is a semantic umbrella formed around one or
 more concrete schema Version documents. The semantic condition for **schema
 Versions** to coexist in the same **schema** is that any new schema Version
 MUST be backwards compatible with all previous versions of the same **schema**.
@@ -210,7 +215,7 @@ containing 5 schemas.
 ```yaml
 {
   "specversion": 0.5,
-  # other xRegsitry top-level attributes excluded for brevity
+  # other xRegistry top-level attributes excluded for brevity
 
   "schemagroupsurl": "http://example.com/schemagroups",
   "schemagroupscount": 1,
@@ -285,7 +290,7 @@ Versions for a schema named `com.example.telemetrydata`:
 ```yaml
 {
   "specversion": 0.5,
-  # other xRegsitry top-level attributes excluded for brevity
+  # other xRegistry top-level attributes excluded for brevity
 
   "schemagroupsurl": "http://example.com/schemagroups",
   "schemagroupscount": 1,
@@ -299,8 +304,8 @@ Versions for a schema named `com.example.telemetrydata`:
       "schemas": {
         "com.example.telemetrydata": {
           "id": "com.example.telemetrydata",
-          "latesversionurl": "http://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions/3",
-          "latestversionid": "3",
+          "defaultversionurl": "http://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions/3",
+          "defaultversionid": "3",
           "description": "device telemetry event data",
           "format": "Protobuf/3",
           # other xRegistry resource-level attributes excluded for brevity

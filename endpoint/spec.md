@@ -2,7 +2,7 @@
 
 ## Abstract
 
-This specification defines an endpoint registry existension to the xRegistry
+This specification defines an endpoint registry extension to the xRegistry
 document format and API [specification](../core/spec.md).
 
 
@@ -28,12 +28,14 @@ this form:
 {
   "specversion": "STRING",
   "id": "STRING",
-  "name": "STRING", ?
-  "epoch": UINTEGER,
   "self": "URL",
+  "epoch": UINTEGER,
+  "name": "STRING", ?
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
+  "createdat": "TIMESTAMP",
+  "modifiedat": "TIMESTAMP",
 
   "model": { ... }, ?
 
@@ -42,17 +44,15 @@ this form:
   "endpoints": {
     "ID": {
       "id": "STRING",                           # xRegistry core attributes
-      "name": "STRING", ?
-      "epoch": UINTEGER,
       "self": "URL",
+      "epoch": UINTEGER,
+      "name": "STRING", ?
       "description": "STRING", ?
       "documentation": "URL", ?
       "labels": { "STRING": "STRING" * }, ?
       "origin": "STRING", ?
-      "createdby": "STRING", ?
-      "createdon": "TIMESTAMP", ?
-      "modifiedby": "STRING", ?
-      "modifiedon": "TIMESTAMP", ?
+      "createdat": "TIMESTAMP",
+      "modifiedat": "TIMESTAMP",
 
       "usage": "STRING",                        # subscriber, consumer, producer
       "format": "STRING", ?
@@ -439,7 +439,7 @@ The following attributes are defined for the `endpoint` type:
   a resource managed by the network host is protocol specific.
 - Constraints:
   - OPTIONAL
-  - Each object key MUST contain a `uri` attirbute with a valid, absolute
+  - Each object key MUST contain a `uri` attribute with a valid, absolute
     URI (URL)
 - Examples:
   - `[ {"uri": "https://example.com" } ]`

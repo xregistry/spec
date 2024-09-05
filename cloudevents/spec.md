@@ -99,51 +99,78 @@ schema for its payload.
   "$schema": "https://cloudevents.io/schemas/registry",
   "specversion": "0.5-wip",
   "id": "urn:uuid:3978344f-8596-4c3a-a978-8fc9a6a469f7",
-  "endpoints":
-  {
+  "self": "http://example.com",
+  "epoch": 4,
+  "createdat": "2024-04-30T12:00:00Z",
+  "modifiedat": "2024-04-31T12:00:00Z",
+
+  "endpointsurl": "https://example.com/endpoints",
+  "endpointscount": 1,
+  "endpoints": {
     "com.example.telemetry": {
       "id": "com.example.telemetry",
+      "self": "https://example.com/endpoints/com.example.telemetry",
+      "epoch": 5,
+      "createdat": "2024-04-30T12:00:00Z",
+      "modifiedat": "2024-04-31T12:00:00Z",
+
       "usage": "consumer",
+      "format": "CloudEvents/1.0",
+
       "config": {
         "protocol": "MQTT/5.0",
-        "strict": false,
         "endpoints": [
-            "mqtt://mqtt.example.com:1883"
+            { "uri": "mqtt://mqtt.example.com:1883" }
         ],
         "options": {
             "topic": "{deviceid}/telemetry"
         }
       },
-      "format": "CloudEvents/1.0",
-      "definitions": {
+
+      "messagesurl": "https://example.com/endpoints/com.example.telemetry/messages",
+      "messagescount": 1,
+      "messages": {
         "com.example.telemetry": {
           "id": "com.example.telemetry",
+          "self": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry",
+          "epoch": 5,
+
+          "versionid": "1.0",
+          "isdefault": true,
           "description": "device telemetry event",
+          "createdat": "2024-04-30T12:00:00Z",
+          "modifiedat": "2024-04-31T12:00:00Z",
+
           "format": "CloudEvents/1.0",
           "metadata": {
-            "attributes": {
-              "id": {
-                "type": "string",
-                "required": true
-              },
-              "type": {
-                "type": "string",
-                "value": "com.example.telemetry",
-                "required": true
-              },
-              "time": {
-                "type": "timestamp",
-                "required": true
-              },
-              "source": {
-                "type": "uritemplate",
-                "value": "{deploymentid}/{deviceid}",
-                "required": true
-              }
+            "id": {
+              "type": "string",
+              "required": true
+            },
+            "type": {
+              "type": "string",
+              "value": "com.example.telemetry",
+              "required": true
+            },
+            "time": {
+              "type": "timestamp",
+              "required": true
+            },
+            "source": {
+              "type": "uritemplate",
+              "value": "{deploymentid}/{deviceid}",
+              "required": true
             }
           },
+
           "schemaformat": "Protobuf/3.0",
           "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; } }"
+
+          "defaultversionid": "1.0",
+          "defaultversionurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/versions/1.0",
+
+          "versionsurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/versions",
+          "versionscount": 1
         }
       }
     }
@@ -158,69 +185,98 @@ scenarios:
 ```yaml
 {
   "$schema": "https://cloudevents.io/schemas/registry",
-  "specversion": "0.4-wip",
+  "specversion": "0.5-wip",
   "id": "urn:uuid:3978344f-8596-4c3a-a978-8fc9a6a469f7",
+  "self": "http://example.com",
+  "epoch": 4,
+  "createdat": "2024-04-30T12:00:00Z",
+  "modifiedat": "2024-04-31T12:00:00Z",
 
-  "endpointsurl": "...",
+  "endpointsurl": "https://example.com/endpoints",
   "endpointscount": 1,
-  "endpoints":
-  {
+  "endpoints": {
     "com.example.telemetry": {
       "id": "com.example.telemetry",
+      "self": "https://example.com/endpoints/com.example.telemetry",
+      "epoch": 5,
+      "createdat": "2024-04-30T12:00:00Z",
+      "modifiedat": "2024-04-31T12:00:00Z",
+
       "usage": "consumer",
+      "format": "CloudEvents/1.0",
+
       "config": {
         "protocol": "MQTT/5.0",
-        "strict": false,
         "endpoints": [
-          "mqtt://mqtt.example.com:1883"
+            { "uri": "mqtt://mqtt.example.com:1883" }
         ],
         "options": {
-          "topic": "{deviceid}/telemetry"
+            "topic": "{deviceid}/telemetry"
         }
       },
-      "format": "CloudEvents/1.0",
-      "definitiongroups": [
-        "#/definitiongroups/com.example.telemetryEvents"
-      ]
+
+      "messagegroups": [ "#/messagegroups/com.example.telemetryEvents" ]
+
+      "messagesurl": "https://example.com/endpoints/com.example.telemetry/messages",
+      "messagescount": 0
     }
   },
 
-  "definitiongroupsurl": 1,
-  "definitiongroupscount": 1,
-  "definitiongroups": {
+  "messagegroupsurl": "https://example.com/messagegroups",
+  "messagegroupscount": 1,
+  "messagegroups": {
     "com.example.telemetryEvents": {
       "id": "com.example.telemetryEvents",
+      "self": "https://example.com/messagegroups/com.example.telemetryEvents",
+      "epoch": 3,
+      "createdat": "2024-04-30T12:00:00Z",
+      "modifiedat": "2024-04-31T12:00:00Z",
 
-      "definitionscount": 1,
-      "definitions": {
+      "messagesurl": "https://example.com/messagegroups/com.example.telemetryEvents/messages",
+      "messagescount": 1,
+      "messages": {
         "com.example.telemetry": {
           "id": "com.example.telemetry",
+          "self": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry",
+          "epoch": 5,
           "description": "device telemetry event",
+
+          "versionid": "1.0",
+          "isdefault": true,
+          "description": "device telemetry event",
+          "createdat": "2024-04-30T12:00:00Z",
+          "modifiedat": "2024-04-31T12:00:00Z",
+
           "format": "CloudEvents/1.0",
           "metadata": {
-            "attributes": {
-              "id": {
-                "type": "string",
-                "required": true
-              },
-              "type": {
-                "type": "string",
-                "value": "com.example.telemetry",
-                "required": true
-              },
-              "time": {
-                "type": "timestamp",
-                "required": true
-              },
-              "source": {
-                "type": "uritemplate",
-                "value": "{deploymentid}/{deviceid}",
-                "required": true
-              }
+            "id": {
+              "type": "string",
+              "required": true
+            },
+            "type": {
+              "type": "string",
+              "value": "com.example.telemetry",
+              "required": true
+            },
+            "time": {
+              "type": "timestamp",
+              "required": true
+            },
+            "source": {
+              "type": "uritemplate",
+              "value": "{deploymentid}/{deviceid}",
+              "required": true
             }
           },
+
           "schemaformat": "Protobuf/3.0",
           "schemaurl": "#/schemagroups/com.example.telemetry/schema/com.example.telemetrydata/versions/1.0"
+
+          "defaultversionid": "1.0",
+          "defaultversionurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/versions/1.0",
+
+          "versionsurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/versions",
+          "versionscount": 1
         }
       }
     }
@@ -230,18 +286,45 @@ scenarios:
   "schemagroups": {
     "com.example.telemetry": {
       "id": "com.example.telemetry",
+      "self": "https://example.com/schemagroups/com.example.telemetry",
+      "epoch": 5,
+      "createdat": "2024-04-30T12:00:00Z",
+      "modifiedat": "2024-04-31T12:00:00Z",
 
       "schemascount": 1,
       "schemas": {
         "com.example.telemetrydata": {
           "id": "com.example.telemetrydata",
+          "self": "https://example.com/schemagroups/com.example.telemetry/schemas",
+          "epoch": 5,
+
+          "versionid": "1.0",
+          "isdefault": true,
           "description": "device telemetry event data",
+          "createdat": "2024-04-30T12:00:00Z",
+          "modifiedat": "2024-04-31T12:00:00Z",
+
           "format": "Protobuf/3.0",
+          "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; }"
+
+          "defaultversionid": "1.0",
+          "defaultversionurl": "https://example.com/schemagroups/com.example.telemetry/schemas/versions/1.0",
 
           "versionscount": 1,
+          "versionsurl": "https://example.com/schemagroups/com.example.telemetry/schemas/versions",
           "versions": {
             "1.0": {
-              "id": "1.0",
+              "id": "com.example.telemetrydata",
+              "self": "https://example.com/schemagroups/com.example.telemetry/schemas/versions/1.0",
+              "epoch": 5,
+
+              "versionid": "1.0",
+              "isdefault": true,
+              "description": "device telemetry event data",
+              "createdat": "2024-04-30T12:00:00Z",
+              "modifiedat": "2024-04-31T12:00:00Z",
+
+              "format": "Protobuf/3.0",
               "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; }"
             }
           }
@@ -259,22 +342,27 @@ group with a deep link to the respective object in the service:
 ```yaml
 {
   "$schema": "https://cloudevents.io/schemas/registry",
-  "specversion": "0.4-wip",
+  "specversion": "0.5-wip",
   "id": "urn:uuid:3978344f-8596-4c3a-a978-8fc9a6a469f7",
 
+  "endpointsurl": "https://example.com/endpoints",
   "endpointscount": 1,
-  "endpoints":
-  {
+  "endpoints": {
     "com.example.telemetry": {
       "id": "com.example.telemetry",
+      "self": "https://example.com/endpoints/com.example.telemetry",
+      "epoch": 5,
+      "createdat": "2024-04-30T12:00:00Z",
+      "modifiedat": "2024-04-31T12:00:00Z",
+
       "usage": "consumer",
+      "format": "CloudEvents/1.0",
+
       "config": {
         # ... details ...
       },
-      "format": "CloudEvents/1.0",
-      "definitiongroups": [
-          "https://site.example.com/registry/definitiongroups/com.example.telemetryEvents"
-      ]
+
+      "messagegroups": [ "https://example.com/messagegroups/com.example.telemetryEvents" ]
     }
   }
 }
@@ -288,23 +376,27 @@ link will first reference the file and then the object within the file, using
 ```yaml
 {
   "$schema": "https://cloudevents.io/schemas/registry",
-  "specversion": "0.4-wip",
+  "specversion": "0.5-wip",
   "id": "urn:uuid:3978344f-8596-4c3a-a978-8fc9a6a469f7",
 
-  "endpointsurl": "...",
+  "endpointsurl": "https://example.com/endpoints",
   "endpointscount": 1,
-  "endpoints":
-  {
+  "endpoints": {
     "com.example.telemetry": {
       "id": "com.example.telemetry",
+      "self": "https://example.com/endpoints/com.example.telemetry",
+      "epoch": 5,
+      "createdat": "2024-04-30T12:00:00Z",
+      "modifiedat": "2024-04-31T12:00:00Z",
+
       "usage": "consumer",
-      "config": {
-        # ... details ......
-      },
       "format": "CloudEvents/1.0",
-      "definitiongroups": [
-        "https://rawdata.repos.example.com/myorg/myproject/main/example.telemetryEvents.cereg#/definitiongroups/com.example.telemetryEvents"
-      ]
+
+      "config": {
+        # ... details ...
+      },
+
+      "messagegroups": [ "https://rawdata.repos.example.com/myorg/myproject/main/example.telemetryEvents.cereg#/definitiongroups/com.example.telemetryEvents" ]
     }
   }
 }
@@ -352,20 +444,21 @@ embedded or referenced. Any of the three sub-registries MAY be omitted.
 
 ```yaml
 {
-   "$schema": "https://cloudevents.io/schemas/registry",
-   "specversion": "0.4-wip",
+  "$schema": "https://cloudevents.io/schemas/registry",
+  "specversion": "0.5-wip",
+  "id": "STRING",
 
-   "endpointsurl": "URL",
-   "endpointscount": INT,
-   "endpoints": { ... },
+  "endpointsurl": "URL",
+  "endpointscount": INT,
+  "endpoints": { ... },
 
-   "definitiongroupsurl": "URL",
-   "definitiongroupscount": INT,
-   "definitiongroups": { ... },
+  "definitiongroupsurl": "URL",
+  "definitiongroupscount": INT,
+  "definitiongroups": { ... },
 
-   "schemagroupsurl": "URL",
-   "schemagroupscount": INT,
-   "schemagroups": { ... }
+  "schemagroupsurl": "URL",
+  "schemagroupscount": INT,
+  "schemagroups": { ... }
 }
 ```
 

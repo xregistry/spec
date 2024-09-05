@@ -33,12 +33,14 @@ this form:
 {
   "specversion": "STRING",
   "id": "STRING",
-  "name": "STRING", ?
-  "epoch": UINTEGER,
   "self": "URL",
+  "epoch": UINTEGER,
+  "name": "STRING", ?
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
+  "createdat": "TIMESTAMP",
+  "modifiedat": "TIMESTAMP",
 
   "model": { ... }, ?
 
@@ -47,17 +49,15 @@ this form:
   "messagegroups": {
     "ID": {
       "id": "STRING",                           # xRegistry core attributes
-      "name": "STRING", ?
-      "epoch": UINTEGER,
       "self": "URL",
+      "epoch": UINTEGER,
+      "name": "STRING", ?
       "description": "STRING", ?
       "documentation": "URL", ?
       "labels": { "STRING": "STRING" * }, ?
       "origin": "STRING", ?
-      "createdby": "STRING", ?
-      "createdon": "TIMESTAMP", ?
-      "modifiedby": "STRING", ?
-      "modifiedon": "TIMESTAMP", ?
+      "createdat": "TIMESTAMP",
+      "modifiedat": "TIMESTAMP",
 
       "format": "STRING", ?                    # Message attributes
       "binding": "STRING", ?
@@ -67,19 +67,20 @@ this form:
       "messages" : {
         "ID": {
           "id": "STRING",                      # xRegistry core attributes
-          "name": "STRING", ?
-          "epoch": UINTEGER,
           "self": "URL",
-          "latestversionid": "STRING",
-          "latestversionurl": "URL",
+          "xref": "URL", ?
+          "epoch": UINTEGER,
+          "readonly": BOOLEAN, ?
+
+          "versionid": "STRING",
+          "name": "STRING", ?
+          "isdefault": true,
           "description": "STRING", ?
           "documentation": "URL", ?
           "labels": { "STRING": "STRING" * }, ?
           "origin": "STRING", ?
-          "createdby": "STRING", ?
-          "createdon": "TIMESTAMP", ?
-          "modifiedby": "STRING", ?
-          "modifiedon": "TIMESTAMP", ?
+          "createdat": "TIMESTAMP",
+          "modifiedat": "TIMESTAMP",
 
           "basemessageurl": "URL", ?           # Message attributes
 
@@ -101,6 +102,10 @@ this form:
           "schemaformat": "STRING", ?
           "schema": "STRING" | {},             # ??
           "schemaurl": "URL", ?
+
+          "defaultversionsticky": BOOLEAN, ?
+          "defaultversionid": "STRING",
+          "defaultversionurl": "URL",
 
           "versionsurl": "URL",
           "versionscount": UINTEGER,
@@ -524,7 +529,7 @@ The following rules apply to the attribute declarations:
   absent.
 - The `type` of the property definition defaults to the CloudEvents type
   definition for the attribute, if any. The `type` of an attribute MAY be
-  modified be to further constrainted. For instance, the `source` type
+  modified be to further constrained. For instance, the `source` type
   `urireference` MAY be changed to
   `uritemplate` or the `subject` type `string` MAY be constrained to a
   `urireference` or `stringified integer`. If no CloudEvents type definition
