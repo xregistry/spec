@@ -10,19 +10,10 @@
       "immutable": true,
       "serverrequired": true
     },
-    "id": {
+    "registryid": {
       "name": "id",
       "type": "string",
       "immutable": true,
-      "serverrequired": true
-    },
-    "name": {
-      "name": "name",
-      "type": "string"
-    },
-    "epoch": {
-      "name": "epoch",
-      "type": "uinteger",
       "serverrequired": true
     },
     "self": {
@@ -30,6 +21,15 @@
       "type": "url",
       "readonly": true,
       "serverrequired": true
+    },
+    "epoch": {
+      "name": "epoch",
+      "type": "uinteger",
+      "serverrequired": true
+    },
+    "name": {
+      "name": "name",
+      "type": "string"
     },
     "description": {
       "name": "description",
@@ -46,19 +46,9 @@
         "type": "string"
       }
     },
-    "createdby": {
-      "name": "createdby",
-      "type": "string",
-      "readonly": true
-    },
     "createdat": {
       "name": "createdat",
       "type": "timestamp",
-      "readonly": true
-    },
-    "modifiedby": {
-      "name": "modifiedby",
-      "type": "string",
       "readonly": true
     },
     "modifiedat": {
@@ -73,19 +63,10 @@
       "plural": "sample_groups",
       "singular": "sample_group",
       "attributes": {
-        "id": {
-          "name": "id",
+        "sample_groupid": {
+          "name": "sample_groupid",
           "type": "string",
           "immutable": true,
-          "serverrequired": true
-        },
-        "name": {
-          "name": "name",
-          "type": "string"
-        },
-        "epoch": {
-          "name": "epoch",
-          "type": "uinteger",
           "serverrequired": true
         },
         "self": {
@@ -93,6 +74,15 @@
           "type": "url",
           "readonly": true,
           "serverrequired": true
+        },
+        "epoch": {
+          "name": "epoch",
+          "type": "uinteger",
+          "serverrequired": true
+        },
+        "name": {
+          "name": "name",
+          "type": "string"
         },
         "description": {
           "name": "description",
@@ -113,25 +103,17 @@
           "name": "origin",
           "type": "uri"
         },
-        "createdby": {
-          "name": "createdby",
-          "type": "string",
-          "readonly": true
-        },
         "createdat": {
           "name": "createdat",
           "type": "timestamp",
-          "readonly": true
-        },
-        "modifiedby": {
-          "name": "modifiedby",
-          "type": "string",
-          "readonly": true
+          "readonly": true,
+          "serverrequired": true
         },
         "modifiedat": {
           "name": "modifiedat",
           "type": "timestamp",
-          "readonly": true
+          "readonly": true,
+          "serverrequired": true
         }
       },
       "resources": {
@@ -139,39 +121,35 @@
           "plural": "sample_resources",
           "singular": "sample_resource",
           "attributes": {
-            "id": {
+            "sample_resourceid": {
               "name": "id",
               "type": "string",
               "immutable": true,
-              "serverrequired": true,
-              "exportrequired": true
+              "serverrequired": true
             },
             "self": {
               "name": "self",
               "type": "url",
               "readonly": true,
-              "serverrequired": true,
-              "exportrequired": true
-            },
-            "name": {
-              "name": "name",
-              "type": "string"
-            },
-            "versionid": {
-              "name": "versionid",
-              "type": "string",
-              "immutable": true,
               "serverrequired": true
+            },
+            "xref": {
+              "name": "xref",
+              "type": "url"
             },
             "epoch": {
               "name": "epoch",
               "type": "uinteger",
               "serverrequired": true
             },
-            "isdefault": {
-              "name": "isdefault",
+            "readonly": {
+              "name": "readonly",
               "type": "boolean",
               "readonly": true
+            },
+            "name": {
+              "name": "name",
+              "type": "string"
             },
             "description": {
               "name": "description",
@@ -192,25 +170,17 @@
               "name": "origin",
               "type": "uri"
             },
-            "createdby": {
-              "name": "createdby",
-              "type": "string",
-              "readonly": true
-            },
             "createdat": {
               "name": "createdat",
               "type": "timestamp",
-              "readonly": true
-            },
-            "modifiedby": {
-              "name": "modifiedby",
-              "type": "string",
-              "readonly": true
+              "readonly": true,
+              "serverrequired": true
             },
             "modifiedat": {
               "name": "modifiedat",
               "type": "timestamp",
-              "readonly": true
+              "readonly": true,
+              "serverrequired": true
             },
             "contenttype": {
               "name": "contenttype",
@@ -220,24 +190,19 @@
             "defaultversionsticky": {
               "name": "defaultversionsticky",
               "type": "boolean",
-              "readonly": true,
-              "serverrequired": true,
-              "exportrequired": true
+              "serverrequired": true
             },
             "defaultversionid": {
               "name": "defaultversionid",
               "type": "string",
-              "readonly": true,
-              "serverrequired": true,
-              "exportrequired": true
+              "serverrequired": true
             },
             "defaultversionurl": {
               "name": "defaultversionurl",
               "type": "url",
               "readonly": true,
-              "serverrequired": true,
-              "exportrequired": true
-            },
+              "serverrequired": true
+            }
           }
         }
       }

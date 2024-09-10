@@ -10,19 +10,10 @@
       "immutable": true,
       "serverrequired": true
     },
-    "id": {
-      "name": "id",
+    "registryid": {
+      "name": "registryid",
       "type": "string",
       "immutable": true,
-      "serverrequired": true
-    },
-    "name": {
-      "name": "name",
-      "type": "string"
-    },
-    "epoch": {
-      "name": "epoch",
-      "type": "uinteger",
       "serverrequired": true
     },
     "self": {
@@ -30,6 +21,15 @@
       "type": "url",
       "readonly": true,
       "serverrequired": true
+    },
+    "epoch": {
+      "name": "epoch",
+      "type": "uinteger",
+      "serverrequired": true
+    },
+    "name": {
+      "name": "name",
+      "type": "string"
     },
     "description": {
       "name": "description",
@@ -46,18 +46,8 @@
         "type": "string"
       }
     },
-    "createdby": {
-      "name": "createdby",
-      "type": "string",
-      "readonly": true
-    },
     "createdat": {
       "name": "createdat",
-      "type": "timestamp",
-      "readonly": true
-    },
-    "modifiedby": {
-      "name": "modifiedby",
       "type": "timestamp",
       "readonly": true
     },

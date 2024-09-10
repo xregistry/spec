@@ -32,7 +32,7 @@ this form:
 ```yaml
 {
   "specversion": "STRING",
-  "id": "STRING",
+  "registryid": "STRING",
   "self": "URL",
   "epoch": UINTEGER,
   "name": "STRING", ?
@@ -47,8 +47,8 @@ this form:
   "messagegroupsurl": "URL",
   "messagegroupscount": UINTEGER,
   "messagegroups": {
-    "ID": {
-      "id": "STRING",                           # xRegistry core attributes
+    "KEY": {                                    # messagegroupid
+      "messagegroupid": "STRING",               # xRegistry core attributes
       "self": "URL",
       "epoch": UINTEGER,
       "name": "STRING", ?
@@ -65,16 +65,14 @@ this form:
       "messagesurl": "URL",
       "messagescount": UINTEGER,
       "messages" : {
-        "ID": {
-          "id": "STRING",                      # xRegistry core attributes
+        "KEY": {                               # messageid
+          "messageid": "STRING",               # xRegistry core attributes
           "self": "URL",
           "xref": "URL", ?
           "epoch": UINTEGER,
           "readonly": BOOLEAN, ?
 
-          "versionid": "STRING",
           "name": "STRING", ?
-          "isdefault": true,
           "description": "STRING", ?
           "documentation": "URL", ?
           "labels": { "STRING": "STRING" * }, ?
@@ -265,26 +263,26 @@ Illustrating example:
 "messagegroupscount": 2,
 "messagegroups": {
   "com.example.abc": {
-    "id": "com.example.abc",
+    "messagegroupid": "com.example.abc",
     "format": "CloudEvents/1.0",
 
     "messagesurl": "...",
     "messagescount": 2,
     "messages": {
       "com.example.abc.event1": {
-        "id": "com.example.abc.event1",
+        "messageid": "com.example.abc.event1",
         "format": "CloudEvents/1.0",
          # ... details ...
         }
       },
       "com.example.abc.event2": {
-        "id": "com.example.abc.event1",
+        "messageid": "com.example.abc.event1",
         "format": "CloudEvents/1.0",
         # ... details ...
       }
   },
   "com.example.def": {
-    "id": "com.example.def",
+    "messagegroupid": "com.example.def",
     "format": "CloudEvents/1.0",
 
     "messagesurl": "...",

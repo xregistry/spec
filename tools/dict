@@ -5,6 +5,7 @@ api
 apicurio
 apikey
 asyncapi
+attribs
 attributename
 authorityuri
 avro
@@ -49,6 +50,7 @@ deploymentid
 deviceid
 distributionmode
 emoji
+endpointid
 endpointscount
 endpointsurl
 enum
@@ -59,6 +61,7 @@ gid
 github
 gmt
 gotchas
+groupid
 groupscount
 groupsurl
 hasdoc
@@ -84,9 +87,11 @@ jsonschema
 keyname
 linkproperties
 maxversions
+messagegroupid
 messagegroupscount
 messagegroupsurl
 messagegroupurl
+messageid
 messagepack
 messagescount
 messagesurl
@@ -138,7 +143,9 @@ qos
 rawdata
 readonly
 redis
+registryid
 repos
+resourceid
 resourcescount
 resourcesurl
 resourceuri
@@ -148,9 +155,11 @@ rfc
 rid
 schemaformat
 schemagroup
+schemagroupid
 schemagroups
 schemagroupscount
 schemagroupsurl
+schemaid
 schemaobject
 schemascount
 schemasurl
@@ -162,6 +171,7 @@ setdefaultversionid
 setdefaultversionsticky
 setversionid
 siblingattributes
+singularid
 someattribute
 someattributes
 specurl

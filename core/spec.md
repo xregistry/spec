@@ -66,7 +66,7 @@ can choose to define (or enforce) any pattern they wish. In this sense, a
 Group is similar to a "directory" on a filesystem.
 
 Resources represent the main data of interest for the Registry. In the
-filesystem analogy, these would be the "files". A Resource exists under a
+filesystem analogy, these would be the "files". All Resource exists under a
 single Group and, similar to Groups, has a set of Registry metadata.
 However, unlike a Group which only has Registry metadata, each Resource can
 have a "document" associated with it. For example, a "schema" Resource might
@@ -92,7 +92,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
 ```yaml
 {
   "specversion": "STRING",
-  "id": "STRING",
+  "registryid": "STRING",
   "self": "URL",
   "epoch": UINTEGER,
   "name": "STRING", ?
@@ -140,9 +140,9 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
         "attributes": { ... }, ?        # See "attributes" above
 
         "resources": {
-          "STRING": {                   # Key=plural name, e.g. "definitions"
-            "plural": "STRING",         # e.g. "definitions"
-            "singular": "STRING",       # e.g. "definition"
+          "STRING": {                   # Key=plural name, e.g. "messages"
+            "plural": "STRING",         # e.g. "messages"
+            "singular": "STRING",       # e.g. "message"
             "maxversions": UINTEGER, ?  # Num Vers(>=0). Default=0, 0=unlimited
             "setversionid": BOOLEAN, ?  # Supports client specified Version IDs
             "setdefaultversionsticky": BOOLEAN, ?    # Supports client "default" selection
@@ -159,8 +159,8 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   "GROUPsurl": "URL",                              # e.g. "endpointsurl"
   "GROUPscount": UINTEGER,                         # e.g. "endpointscount"
   "GROUPs": {                                      # Only if inlined/nested
-    "ID": {                                        # Key=the Group id
-      "id": "STRING",                              # The Group ID
+    "KEY": {                                       # Key=the Group id
+      "GROUPid": "STRING",                         # The Group ID
       "self": "URL",
       "epoch": UINTEGER,
       "name": "STRING", ?
@@ -172,20 +172,18 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       "modifiedat": "TIMESTAMP",
 
       # Repeat for each Resource type in the Group
-      "RESOURCEsurl": "URL",                       # e.g. "definitionsurl"
-      "RESOURCEscount": UINTEGER,                  # e.g. "definitionscount"
+      "RESOURCEsurl": "URL",                       # e.g. "messagesurl"
+      "RESOURCEscount": UINTEGER,                  # e.g. "messagescount"
       "RESOURCEs": {                               # Only if inlined/nested
-        "ID": {                                    # The Resource id
-          "id": "STRING",                          # The Resource id
+        "KEY": {                                   # The Resource id
+          "RESOURCEid": "STRING",                  # The Resource id
           "self": "URL",                           # Resource URL, not Version
           "xref": "URL", ?                         # Ptr to linked Resource
           "epoch": UINTEGER,
           "readonly": BOOLEAN, ?                   # Default is "false"
 
-          # These are inherited from the default Version
-          "versionid": "STRING",                   # Same a defaultversionid
+          # These are inherited from the "default" Version
           "name": "STRING", ?
-          "isdefault": true,
           "description": "STRING", ?
           "documentation": "URL", ?
           "labels": { "STRING": "STRING" * }, ?
@@ -200,18 +198,18 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
 
           # Remainder are Resource level Version-related attributes
           "defaultversionsticky": BOOLEAN, ?
-          "defaultversionid": "STRING",            # Same as versionid above
+          "defaultversionid": "STRING",
           "defaultversionurl": "URL",
 
           "versionsurl": "URL",
           "versionscount": UINTEGER,
           "versions": {                            # Only if inlined/nested
-            "ID": {                                # The Version's versionid
-              "id": "STRING",                      # The Resource id
+            "KEY": {                               # The Version's versionid
+              "RESOURCEid": "STRING",              # The Resource id
+              "versionid": "STRING",               # The Version id
               "self": "URL",                       # Version URL
               "epoch": UINTEGER,                   # The Resource's epoch
 
-              "versionid": "STRING",
               "name": "STRING", ?
               "isdefault": BOOLEAN, ?
               "description": "STRING", ?
@@ -267,9 +265,10 @@ the JSON snippets are used for readability and are not normative.
 
 Use of the words `GROUP` and `RESOURCE` are meant to represent the singular
 form of a Group and Resource type being used. While `GROUPs` and `RESOURCEs`
-are the plural form of those respective types.
+are the plural form of those respective types. Use of the word `SINGULAR`
+represents the singular form of the entity being referenced.
 
-Use of acronyms and words in all capital letters (e.g. `ID`, `KEY`) typically
+Use of acronyms and words in all capital letters (e.g. `KEY`) typically
 represent a field that will be replaced by its real value at runtime.
 
 The following are used to denote an instance of one of the associated data
@@ -431,10 +430,11 @@ attributes. However they MUST adhere to the following rules:
   attribute set the `false` then this rule does not apply for the `RESOURCE*`
   attributes as those attributes are not used for that Resource type.
 - It is RECOMMENDED that extension attributes on different entities not use the
-  same name unless they have the exact same semantic meaning
+  same name unless they have the exact same semantic meaning.
 - It is STRONGLY RECOMMENDED that they be named in such a way as to avoid
   potential conflicts with future Registry level attributes. For
-  example, use of a model (or domain) specific prefix could be used.
+  example, use of a model (or domain) specific prefix could be used to help
+  avoid possible future conflicts.
 
 #### Common Attributes
 
@@ -444,7 +444,7 @@ throughout the specification.
 
 For easy reference, the JSON serialization these attributes adheres to this
 form:
-- `"id": "STRING"`
+- `"SINGULARid": "STRING"`
 - `"self": "URL"`
 - `"epoch": UINTEGER`
 - `"name": "STRING"`
@@ -457,61 +457,67 @@ form:
 
 The definition of each attribute is defined below:
 
-##### `id` Attribute
+##### `SINGULARid` (`id`) Attribute
 
 - Type: String
 - Description: An immutable unique identifier of the Registry, Group or
-  Resource
+  Resource. The actual name of this attribute will vary based on the entity it
+  identifies. For example, a `schema` Resource would use an attribute name of
+  `schemaid`. This attribute MUST be `registryid` for the Registry itself.
 - Constraints:
   - MUST be a non-empty string consisting of [RFC3986 `unreserved`
     characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3)
     (ALPHA / DIGIT / "-" / "." / "_" / "~").
-  - Note that in Versions, the `id` will be the `id` of the owning Resource
-    and there will be a `versionid` that uniquely identifies the Version within
-    the scope of its owning Resource. See the definition of `versionid` for
-    additional information.
   - MUST be case insensitive unique within the scope of the entity's parent.
-    In the case of the `id` for the Registry itself, the uniqueness scope will
-    be based on where the Registry is used. For example, a publicly accessible
-    Registry might want to consider using a UUID, while a private Registry
-    does not need to be so widely unique.
+    In the case of the `registryid` for the Registry itself, the uniqueness
+    scope will be based on where the Registry is used. For example, a publicly
+    accessible Registry might want to consider using a UUID, while a private
+    Registry does not need to be so widely unique.
   - This attribute MUST be treated as case sensitive for look-up purposes.
     This means that an HTTP request to an entity with the wrong case for its
-    `id` MUST be treated as "not found".
-  - In cases where an entity's `id` is specified outside of the serialization
-    of the entity (e.g. part of a request URL, or a map key), its
+    `SINGULARid` MUST be treated as "not found".
+  - In cases where an entity's `SINGULARid` is specified outside of the
+    serialization of the entity (e.g. part of a request URL, or a map key), its
     presence within the serialization of the entity is OPTIONAL. However, if
-    present, it MUST be the same as any other specification of the `id`
+    present, it MUST be the same as any other specification of the `SINGULARid`
     outside of the entity, and it MUST be the same as the entity's existing
-    `id` if one exists, otherwise an HTTP `400 Bad Request` error MUST be
-    generated.
+    `SINGULARid` if one exists, otherwise an HTTP `400 Bad Request` error MUST
+    be generated.
   - MUST be immutable.
 - Examples:
   - `a183e0a9-abf8-4763-99bc-e6b7fcc9544b`
   - `myEntity`
   - `myEntity.example.com`
 
-Note, since `id` is immutable, in order to change its value a new entity would
-need to be created with the new `id` that is a deep-copy of the existing entity.
-Then the existing entity can be deleted.
+While `SINGULARid` can be something like a UUID, when possible, it is
+RECOMMENDED that it be something human friendly as these value will often appear
+in user-facing situations such as URLs or as command-line parameters. And,
+in cases where [`name`](#name-attribute) is absent, it might be used as the
+display name.
+
+Note, since `SINGULARid` is immutable, in order to change its value a new
+entity would need to be created with the new `SINGULARid` that is a deep-copy
+of the existing entity. Then the existing entity can be deleted.
 
 ##### `self` Attribute
 
 - Type: URL
 - Description: A unique absolute URL for an entity. In the case of pointing
   to an entity in a [Registry Collection](#registry-collections), the URL MUST
-  be a combination of the base URL for the collection appended with the `id`
-  of the entity.
+  be a combination of the base URL for the collection appended with the
+  `SINGULARid` of the entity.
 
-  When this URL references a Resource or Version, it MUST include `$meta`
-  appended to its `id` if the request asked for the serialization of the
+  When this URL references a Resource or Version, and the Resource has the
+  `hasdocument` model aspect set to `true`, then it MUST include `$meta`
+  appended to its `SINGULARid` if the request asked for the serialization of the
   xRegistry metadata. This would happen when `$meta` was used in the request,
   or when the Resource (or Version) is included in the serialization of a
+  parent entity.
 - Constraints:
   - MUST be a non-empty absolute URL.
   - MUST be a read-only attribute in API view.
 - Examples:
-  - `https://example.com/registry/endpoints/123`
+  - `https://example.com/registry/endpoints/ep1`
 
 ##### `epoch` Attribute
 
@@ -536,10 +542,11 @@ Then the existing entity can be deleted.
   as a request with no `epoch` attribute at all.
 
   Versions do not have their own `epoch` values that are separate from their
-  owning Resource. Updating a Resource or any of its Versions will update the
-  shared `epoch` value for all of those entities. This means that concurrent
-  updates to different Versions of the same Resource might result in the epoch
-  validation error for the second update request mention above.
+  owning Resource's value. Updating a Resource or any of its Versions will
+  update the shared Resource `epoch` value for all of those entities. This
+  means that concurrent updates to different Versions of the same Resource
+  might result in an epoch validation error for the second update request
+  mention above.
 - Constraints:
   - MUST be an unsigned integer equal to or greater than zero.
   - MUST increase in value each time the entity is updated.
@@ -550,14 +557,21 @@ Then the existing entity can be deleted.
 
 - Type: String
 - Description: A human readable name of the entity. This is often used
-  as the "display name" for an entity rather than the `id` especially when
-  the `id` might be something like a UUID. In cases where `name` is OPTIONAL
-  and absent, the `id` value SHOULD be displayed in its place.
+  as the "display name" for an entity rather than the `SINGULARid` especially
+  when the `SINGULARid` might be something that isn't human friendly, like a
+  UUID. In cases where `name` is OPTIONAL and absent, the `SINGULARid` value
+  SHOULD be displayed in its place.
 
-  Note that implementations MAY choose to enforce constraints on this value.
-  For example, they could mandate that `id` and `name` be the same value.
-  How any such requirement is shared with all parties is out of scope of this
-  specification.
+  This specification places no uniqueness constraints on this attribute.
+  This means that two sibling entities MAY have the same value. Therefore,
+  this value SHOULD NOT be used for unique identification purposes, the
+  `SINGULARid` SHOULD be used instead.
+
+  Note that implementations MAY choose to enforce additional constraints on
+  this value. For example, they could mandate that `SINGULARid` and `name` be
+  the same value. Or, it could mandate that `name` be unique within the scope
+  of a parent entity. How any such requirement is shared with all parties is
+  out of scope of this specification.
 - Constraints:
   - If present, MUST be non-empty.
 - Examples:
@@ -619,7 +633,7 @@ Then the existing entity can be deleted.
   - REQUIRED if this Registry is not the authority owner.
   - If present, MUST be a non-empty URI.
 - Examples:
-  - `https://example2.com/myregistry/endpoints/9876`
+  - `https://example2.com/myregistry/endpoints/ep1`
 
 ##### `createdat` Attribute
 
@@ -687,10 +701,10 @@ This specification defines the following API patterns:
 Where:
 - `GROUPs` is a Group type name (plural). e.g. `endpoints`.
 - `GROUP`, not shown, is the singular name of a Group type.
-- `gID` is the `id` of a single Group.
-- `RESOURCEs` is a Resource type name (plural). e.g. `definitions`.
+- `gID` is the `SINGULARid` of a single Group.
+- `RESOURCEs` is a Resource type name (plural). e.g. `messages`.
 - `RESOURCE`, not shown, is the singular name of a Resource type.
-- `rID` is the `id` of a single Resource.
+- `rID` is the `SINGULARid` of a single Resource.
 - `vID` is the `versionid` of a single Version of a Resource.
 
 These acronym definitions apply to the remainder of this specification.
@@ -767,6 +781,13 @@ the read operations are OPTIONAL (typically specified by saying that they
 servers support the query parameters when possible to enable a better user
 experience, and increase interoperability.
 
+Note that simple file servers SHOULD support exposing Resources where the HTTP
+body response contains the Resource's associated "document" as well as the
+case where the HTTP response body contains a JSON serialization of the
+Resource via the `$meta` suffix on the URL path. This can be achieved by
+created a secondary sibling file on disk with `$meta` at the end of its
+filename.
+
 ---
 
 The remainder of this specification mainly focuses on the successful interaction
@@ -792,8 +813,7 @@ form:
 "COLLECTIONsurl": "URL",
 "COLLECTIONscount": UINTEGER,
 "COLLECTIONs": {
-  # Map of entities in the collection, key is the "id" for Groups and
-  # Resources, and "versionid" for Versions
+  # Map of entities in the collection, key is the "SINGULARid" of the entity
 }
 ```
 
@@ -811,8 +831,7 @@ Where:
   an write operation.
 - The `COLLECTIONs` attribute is a map and MUST contain the entities of the
   collection (after any necessary [filtering](#filtering)), and MUST use
-  the Group's `id`, Resource's `id` or Version's `versionid` as the key for
-  that map entry.
+  the `SINGULARid` of each entity as the map key.
 - The key of each entity in the collection MUST be unique within the scope of
   the collection.
 - The specifics of whether each attribute is REQUIRED or OPTIONAL will be
@@ -858,7 +877,9 @@ In API view:
    be silently ignored by the server if present.
 - `COLLECTIONs` is OPTIONAL for responses and MUST only be included if the
   request included the [`?inline`](#inlining) query parameter indicating that
-  this collection's entities are to be returned.
+  this collection's entities are to be returned. If `?inline` is present then
+  `COLLECTIONs` is REQUIRED and MUST be present in the response even if it is
+  empty (e.g. `{}`).
 - `COLLECTIONs` is OPTIONAL for requests and MUST be silently ignored if
   the [`?nested`](#updating-nested-registry-collections) query parameter is not
   present. See [Updating Nested Registry
@@ -885,21 +906,21 @@ appear.
 For example:
 
 ```yaml
-PUT https://example.com/endpoints/123?nested
+PUT https://example.com/endpoints/ep1?nested
 
 {
-  "id": "123",
+  "endpointid": "ep1",
   "name": "A cool endpoint",
 
-  "definitions": {
-    "mydef1": { ... },
-    "mydef2:" { ... }
+  "messages": {
+    "mymsg1": { ... },
+    "mymsg2:" { ... }
   }
 }
 ```
 
-Will not only create/update an `endpoint` Group with an `id` of `123` but will
-also create/update its `definition` Resources (`mydef1` and `mydef2`).
+Will not only create/update an `endpoint` Group with an `endpointid` of `ep1`
+but will also create/update its `message` Resources (`mymsg1` and `mymsg2`).
 
 Any error while processing a nested collection entity MUST result in the entire
 request being rejected.
@@ -913,32 +934,31 @@ entities, the client MUST use one of the `DELETE` operations on the collection
 first.
 
 In cases where an update operation includes attributes meant to be applied
-to the "default" Version, and the incoming inlined `versions` collections
-includes that "default" Version, the Resource's default Version attributes MUST
-be silently ignored. This is to avoid any possible conflicting data between
-the two sets of data for that Version. In other words, the Version attributes
-in the incoming `versions` collection wins. Note that Resource level
-attributes (e.g. `defaultversionsticky`) are not affected by this rule as
-they are not Version attributes.
+to the "default" Version of a Resource, and the incoming inlined `versions`
+collections includes that "default" Version, the Resource's default Version
+attributes MUST be silently ignored. This is to avoid any possible conflicting
+data between the two sets of data for that Version. In other words, the
+Version attributes in the incoming `versions` collection wins. Note that
+Resource level attributes (e.g. `defaultversionsticky`) are not affected by
+this rule as they are not Version attributes.
 
 To better understand this scenario, consider the following HTTP request to
-update a Definition where the `defaultversionid` is `v1`:
+update a Message where the `defaultversionid` is `v1`:
 
 ```yaml
-PUT http://example.com/endpoints/123/definitions/456?nested
-
+PUT http://example.com/endpoints/ep1/messages/msg1?nested
 {
-  "id": "456",
-  "versionid": "v1",
+  "messageid": "msg1",
   "name": "Blob Created",
   "defaultversionid": "v1",
   "createdat": "2024-04-30T12:00:00Z",
   "modifiedat": "2024-04-30T12:00:01Z",
+
   "versions": {
     "v1": {
-      "id": "456"
+      "messageid": "msg1",
       "versionid": "v1",
-      "name": "Blob Created Definition",
+      "name": "Blob Created Message Definition",
       "createdat": "2024-04-30T12:00:00Z",
       "modifiedat": "2024-04-30T12:00:01Z"
     }
@@ -958,7 +978,7 @@ mandates that in these potentially ambiguous cases the entity in the
 `versions` collection is to be used and the top-level attributes are to be
 ignored - for the purposes of updating the "default" Version's attributes.
 So, in this case the `name` of the default(`v1`) Version will be
-`Blob Created Definition`.
+`Blob Created Message Definition`.
 
 ---
 
@@ -993,9 +1013,9 @@ The `PUT` variant MUST adhere to the following:
     attribute MUST be interpreted as a request to delete the attribute.
 
 The `POST` variant MUST adhere to the following:
-  - The HTTP body MUST contain a JSON map where the key MUST be the `id` of
-    each entity in the map. Note, that in the case of a map of Versions, the
-    `versionid` is used instead.
+  - The HTTP body MUST contain a JSON map where the key MUST be the
+    `SINGULARid` of each entity in the map. Note, that in the case of a map of
+    Versions, the `versionid` is used instead.
   - Each value in the map MUST be the full serialization of the entity to be
     either added or updated. Note that `POST` does not support deleting
     entities from a collection, so a separate delete operation might be needed
@@ -1009,9 +1029,14 @@ following exceptions:
     leave it unchanged. However, modifying some other attribute (or some other
     server semantics) MAY modify it. A value of `null` MUST be interpreted as
     a request to delete the attribute.
-  - When using `PATCH` for a Resource or Version, `$meta` MUST be appended
-    to the path of the URL since, when it is absent, the processing of the HTTP
-    `xRegistry-` headers is already defined with "patch" semantics.
+  - When processing a Resource or Version, that has its `hasdocument` model
+    aspect set to `true`, the URL accessing the entity MUST include the `$meta`
+    suffix, and MUST generate an error in the absence of the `$meta` suffix.
+    This is because when it is absent, the processing of the HTTP `xRegistry-`
+    headers are already defined with "patch" semantics so a normal `PUT` or
+    `POST` can be used instead. Using `PATCH` in this case would mean that the
+    request is also trying to "patch" the Resources's "document", which this
+    specification does not support at this time.
   - `PATCH` MAY be used to create new entities, but as with any of the create
     operations, any missing REQUIRED attributes MUST generate an error.
 
@@ -1028,8 +1053,7 @@ the following:
 
 ```yaml
 {
-  "id": "ID", ?
-  # Note that Versions will also (optionally) have "versionid"
+  "SINGULARid": "STRING", ?
   ... remaining entity attributes ...
 
   # Repeat for each nested Registry collection in the entity
@@ -1040,10 +1064,9 @@ the following:
 ```
 
 The processing of each individual entity follows the same set of rules:
-- If an entity with the specified `id` (or `versionid` in the case of Versions)
-  already exists then it MUST be interpreted as a request to update the
-  existing entity. Otherwise, it MUST be interpreted as a request to create a
-  new entity with that value.
+- If an entity with the specified `SINGULARid` already exists then it MUST be
+  interpreted as a request to update the existing entity. Otherwise, it MUST
+  be interpreted as a request to create a new entity with that value.
 - See the definition of each attribute for the rules governing how it is
   processed.
 - All attributes present MUST be a full representation of its value. This means
@@ -1077,8 +1100,7 @@ successful response MUST adhere to the following:
 
 ```yaml
 {
-  "id": "ID",
-  # Note that Versions will also (optionally) have "versionid"
+  "SINGULARid": "STRING",
   ... remaining entity attributes ...
 
   # Repeat for each nested Registry collection in the entity
@@ -1088,7 +1110,7 @@ successful response MUST adhere to the following:
 ```
 
 Note that the response MUST NOT include any inlinable attributes (such as
-nested Registry collections, or `RESOURCE`/`RESOURECEbase64` attributes).
+nested Registry collections, or `RESOURCE`/`RESOURCEbase64` attributes).
 
 ##### Retrieving a Registry Collection
 
@@ -1114,9 +1136,8 @@ Content-Type: application/json; charset=utf-8
 Link: <URL>;rel=next;count=UINTEGER ?
 
 {
-  "ID": {
-    "id": "ID",
-    # Note that Versions will also have "versionid"
+  "KEY": {                                           # SINGULARid value
+    "SINGULARid": "STRING",
     ... remaining entity attributes ...
 
     # Repeat for each nested Registry collection in the entity
@@ -1148,8 +1169,7 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "id": "STRING",
-  # Note that Versions will also have "versionid"
+  "SINGULARid": "STRING",
   ... remaining entity attributes ...
 
   # Repeat for each nested Registry collection in the entity
@@ -1186,7 +1206,7 @@ The following query parameter MUST be supported by servers:
 DELETE PATH-TO-COLLECTION
 
 {
-  "KEY": {
+  "KEY": {                                            # SINGULARid of entity
     "epoch": UINTEGER ?
     # Remainder of entity serialization is OPTIONAL
   } *
@@ -1198,14 +1218,14 @@ Where:
   MUST be deleted.
 - If the request body is not empty, then it MUST be a map containing zero or
   more entries where the key of each entity is each entity's unique
-  identifier - which is the `id` for Groups and Resources, and the `versionid`
-  for Versions.
+  identifier - which is the `SINGULARid` of the entity.
 - If an `epoch` value is specified for an entity then the server MUST check
   to ensure that the value matches the entity's current `epoch` value and if it
   differs then an error MUST be generated.
 - If the entity's unique identifier is present in the object, then it MUST
-  match its corresponding key value. And for Versions, if `id` is present
-  then it MUST match the Resource ID specified in the URL.
+  match its corresponding key value. And for Versions, if `RESOURCEid` is
+  present then it MUST match the Resource's `SINGULARid` (`rID`) specified
+  in the URL.
 - Any other entity attributes that are present in the request MUST be silently
   ignored.
 - If one of the referenced entities can not be found then the server MUST
@@ -1244,7 +1264,7 @@ The serialization of the Registry entity adheres to this form:
 ```yaml
 {
   "specversion": "STRING",
-  "id": "STRING",
+  "registryid": "STRING",
   "self": "URL",
   "epoch": UINTEGER,
   "name": "STRING", ?
@@ -1264,8 +1284,8 @@ The serialization of the Registry entity adheres to this form:
 ```
 
 The Registry entity includes the following common attributes:
-- [`id`](#id-attribute) - REQUIRED in responses and document view, otherwise
-  OPTIONAL
+- [`SINGULARid`](#singularid-id-attribute) - REQUIRED in responses and document
+  view, otherwise OPTIONAL
 - [`self`](#self-attribute) - REQUIRED in responses, otherwise OPTIONAL
 - [`epoch`](#epoch-attribute) - REQUIRED in responses, otherwise OPTIONAL
 - [`name`](#name-attribute) - OPTIONAL
@@ -1346,7 +1366,7 @@ Content-Type: application/json; charset=utf-8
 
 {
   "specversion": "STRING",
-  "id": "STRING",
+  "registryid": "STRING",
   "self": "URL",
   "epoch": UINTEGER,
   "name": "STRING", ?
@@ -1380,7 +1400,7 @@ Content-Type: application/json; charset=utf-8
 
 {
   "specversion": "0.5",
-  "id": "987654321",
+  "registryid": "myRegistry",
   "self": "https://example.com/",
   "epoch": 1,
   "createdat": "2024-04-30T12:00:00Z",
@@ -1407,7 +1427,7 @@ Content-Type: application/json; charset=utf-8
 
 {
   "specversion": "0.5",
-  "id": "987654321",
+  "registryid": "myRegistry",
   "self": "https://example.com/",
   "epoch": 1,
   "createdat": "2024-04-30T12:00:00Z",
@@ -1429,9 +1449,9 @@ Content-Type: application/json; charset=utf-8
         },
 
         "resources": {
-          "definitions": {
-            "plural": "definitions",
-            "singular": "definition",
+          "messages": {
+            "plural": "messages",
+            "singular": "message",
             "attributes": {
               ... xRegistry spec defined attributes excluded for brevity ...
               "*": {
@@ -1466,7 +1486,7 @@ Content-Type: application/json; charset=utf-8
   "schemagroupscount": 1,
   "schemagroups": {
     "mySchemas": {
-      "id": "mySchemas",
+      "schemaid": "mySchemas",
       # Remainder of schemagroup is excluded for brevity
     }
   }
@@ -1486,7 +1506,7 @@ PATCH /[?nested&model]
 Content-Type: application/json; charset=utf-8
 
 {
-  "id": "STRING", ?
+  "registryid": "STRING", ?
   "epoch": UINTEGER, ?
   "name": "STRING", ?
   "description": "STRING", ?
@@ -1528,7 +1548,7 @@ Content-Type: application/json; charset=utf-8
 
 {
   "specversion": "STRING",
-  "id": "STRING",
+  "registryid": "STRING",
   "self": "URL",
   "epoch": UINTEGER,
   "name": "STRING", ?
@@ -1556,7 +1576,7 @@ PUT /
 Content-Type: application/json; charset=utf-8
 
 {
-  "id": "987654321",
+  "registryid": "myRegistry",
   "name": "My Registry",
   "description": "An even cooler registry!"
 }
@@ -1568,7 +1588,7 @@ Content-Type: application/json; charset=utf-8
 
 {
   "specversion": "0.5",
-  "id": "987654321",
+  "registryid": "myRegistry",
   "self": "https://example.com/",
   "epoch": 2,
   "name": "My Registry",
@@ -1707,9 +1727,9 @@ Regardless of how the model is retrieved, the overall format is as follows:
       "attributes": { ... }, ?         # See "attributes" above
 
       "resources": {
-        "STRING": {                    # Key=plural name, e.g. "definitions"
-          "plural": "STRING",          # e.g. "definitions"
-          "singular": "STRING",        # e.g. "definition"
+        "STRING": {                    # Key=plural name, e.g. "messages"
+          "plural": "STRING",          # e.g. "messages"
+          "singular": "STRING",        # e.g. "message"
           "maxversions": UINTEGER, ?   # Num Vers(>=0). Default=0, 0=unlimited
           "setversionid": BOOLEAN, ?   # Supports client specified Version IDs
           "setdefaultversionsticky": BOOLEAN, ?     # Supports client "default" selection
@@ -1818,7 +1838,7 @@ The following describes the attributes of Registry model:
 - `attributes."STRING".immutable`
   - Indicates whether this attribute's value can be changed once it is set.
     This MUST ONLY be used for server controlled specification defined
-    attributes, such as `specversion` and `id`, and MUST NOT be used for
+    attributes, such as `specversion` and `SINGULARid`, and MUST NOT be used for
     extension attributes. As such, it is only for informational purposes for
     clients.
 
@@ -1963,7 +1983,7 @@ The following describes the attributes of Registry model:
   - REQUIRED if there are any Resource types defined for the Group type.
 
 - `groups.resources.singular`
-  - The singular name of the Resource type e.g. `definition` (`RESOURCE`).
+  - The singular name of the Resource type e.g. `message` (`RESOURCE`).
   - Type: String.
   - REQUIRED.
   - MUST be non-empty and MUST be a valid attribute name with the exception
@@ -1971,7 +1991,7 @@ The following describes the attributes of Registry model:
   - MUST be unique within the scope of its owning Group type.
 
 - `groups.resources.plural`
-  - The plural name of the Resource type e.g. `definitions` (`RESOURCEs`).
+  - The plural name of the Resource type e.g. `messages` (`RESOURCEs`).
   - Type: String.
   - REQUIRED.
   - MUST be non-empty and MUST be a valid attribute name with the exception
@@ -2259,9 +2279,9 @@ Content-Type: application/json; charset=utf-8
       },
 
       "resources": {
-        "definitions": {
-          "plural": "definitions",
-          "singular": "definition",
+        "messages": {
+          "plural": "messages",
+          "singular": "message",
           "attributes": {
             ... xRegistry spec defined attributes excluded for brevity ...
             "*": {
@@ -2429,9 +2449,9 @@ Content-Type: application/json; charset=utf-8
       },
 
       "resources": {
-        "definitions": {
-          "plural": "definitions",
-          "singular": "definition",
+        "messages": {
+          "plural": "messages",
+          "singular": "message",
           "attributes": {
             "*": {
               type: "any"
@@ -2477,9 +2497,9 @@ Content-Type: application/json; charset=utf-8
       },
 
       "resources": {
-        "definitions": {
-          "plural": "definitions",
-          "singular": "definition",
+        "messages": {
+          "plural": "messages",
+          "singular": "message",
           ... xRegistry spec defined attributes excluded for brevity ...
           "attributes": {
             "*": {
@@ -2511,8 +2531,8 @@ When a Resource type definition is to be shared between Groups, rather than
 creating a duplicate Resource definition, the `ximport` mechanism MAY be used
 instead. When defining the Resources of a Group, a special Resource "plural"
 name MAY be used to reference other Resource definitions from within the same
-Registry. For example the following abbreviated model definition defines
-one Resource type (`definitions`) under the `messagegroups` Group, that is
+Registry. For example, the following abbreviated model definition defines
+one Resource type (`messages`) under the `messagegroups` Group, that is
 also used by the `endpoints` Group.
 
 ```yaml
@@ -2522,9 +2542,9 @@ also used by the `endpoints` Group.
       "plural": "messagegroups",
       "singular": "messagegroup",
       "resources": {
-        "definitions": {
-          "plural": "definitions",
-          "singular": "definition"
+        "messages": {
+          "plural": "messages",
+          "singular": "message"
         }
       }
     },
@@ -2532,7 +2552,7 @@ also used by the `endpoints` Group.
       "plural": "endpoints",
       "singular": "endpoint",
       "resources": {
-        "ximport": [ "messagegroups/definitions" ]
+        "ximport": [ "messagegroups/messages" ]
       }
     }
   }
@@ -2681,7 +2701,7 @@ The serialization of a Group entity adheres to this form:
 
 ```yaml
 {
-  "id": "STRING",
+  "GROUPid": "STRING",
   "self": "URL",
   "epoch": UINTEGER,
   "name": "STRING", ?
@@ -2693,15 +2713,15 @@ The serialization of a Group entity adheres to this form:
   "modifiedat": "TIMESTAMP",
 
   # Repeat for each Resource type in the Group
-  "RESOURCEsurl": "URL",                    # e.g. "definitionsurl"
-  "RESOURCEscount": UINTEGER,               # e.g. "definitionscount"
+  "RESOURCEsurl": "URL",                    # e.g. "messagesurl"
+  "RESOURCEscount": UINTEGER,               # e.g. "messagescount"
   "RESOURCEs": { RESOURCEs collection } ?   # If inlined/nested
 }
 ```
 
 Groups include the following common attributes:
-- [`id`](#id-attribute) - REQUIRED in responses and document view, otherwise
-  OPTIONAL.
+- [`GROUPid`](#singularid-id-attribute) - REQUIRED in responses and document
+  view, otherwise OPTIONAL.
 - [`self`](#self-attribute) - REQUIRED in responses, otherwise OPTIONAL.
 - [`epoch`](#epoch-attribute) - REQUIRED in responses, otherwise OPTIONAL.
 - [`name`](#name-attribute) - OPTIONAL.
@@ -2749,8 +2769,8 @@ Content-Type: application/json; charset=utf-8
 Link: <URL>;rel=next;count=UINTEGER ?
 
 {
-  "ID": {
-    "id": "STRING",
+  "KEY": {                                     # GROUPid
+    "GROUPid": "STRING",
     "self": "URL",
     "epoch": UINTEGER,
     "name": "STRING", ?
@@ -2762,8 +2782,8 @@ Link: <URL>;rel=next;count=UINTEGER ?
     "modifiedat": "TIMESTAMP",
 
     # Repeat for each Resource type in the Group
-    "RESOURCEsurl": "URL",                    # e.g. "definitionsurl"
-    "RESOURCEscount": UINTEGER,               # e.g. "definitionscount"
+    "RESOURCEsurl": "URL",                    # e.g. "messagesurl"
+    "RESOURCEscount": UINTEGER,               # e.g. "messagescount"
     "RESOURCEs": { RESOURCEs collection } ?   # If inlined
   } *
 }
@@ -2783,27 +2803,27 @@ Content-Type: application/json; charset=utf-8
 Link: <https://example.com/endpoints&page=2>;rel=next;count=100
 
 {
-  "123": {
-    "id": "123",
-    "self": "https://example.com/endpoints/123",
+  "ep1": {
+    "endpointid": "ep1",
+    "self": "https://example.com/endpoints/ep1",
     "epoch": 1,
     "name": "A cool endpoint",
     "createdat": "2024-04-30T12:00:00Z",
     "modifiedat": "2024-04-30T12:00:01Z",
 
-    "definitionsurl": "https://example.com/endpoints/123/definitions",
-    "definitionscount": 5
+    "messagesurl": "https://example.com/endpoints/ep1/messages",
+    "messagescount": 5
   },
-  "124": {
-    "id": "124",
-    "self": "https://example.com/endpoints/124",
+  "ep2": {
+    "endpointid": "ep2",
+    "self": "https://example.com/endpoints/ep2",
     "epoch": 3,
     "name": "Redis Queue",
     "createdat": "2024-04-30T12:00:00Z",
     "modifiedat": "2024-04-30T12:00:01Z",
 
-    "definitionsurl": "https://example.com/endpoints/124/definitions",
-    "definitionscount": 1
+    "messagesurl": "https://example.com/endpoints/ep2/messages",
+    "messagescount": 1
   }
 }
 ```
@@ -2832,7 +2852,7 @@ Each individual Group definition MUST adhere to the following:
 
 ```yaml
 {
-  "id": "STRING", ?
+  "GROUPid": "STRING", ?
   "self": "URL", ?
   "epoch": UINTEGER, ?
   "name": "STRING", ?
@@ -2844,8 +2864,8 @@ Each individual Group definition MUST adhere to the following:
   "modifiedat": "TIMESTAMP", ?
 
   # Repeat for each Resource type in the Group
-  "RESOURCEsurl": "URL",                     # e.g. "definitionsurl"
-  "RESOURCEscount": UINTEGER,                # e.g. "definitionscount"
+  "RESOURCEsurl": "URL",                     # e.g. "messagesurl"
+  "RESOURCEscount": UINTEGER,                # e.g. "messagescount"
   "RESOURCEs": { RESOURCEs collection } ?    # If "?nested" is present
 }
 ```
@@ -2854,7 +2874,7 @@ Each individual Group in a successful response MUST adhere to the following:
 
 ```yaml
 {
-  "id": "STRING",
+  "GROUPid": "STRING",
   "self": "URL",
   "epoch": UINTEGER,
   "name": "STRING", ?
@@ -2866,33 +2886,33 @@ Each individual Group in a successful response MUST adhere to the following:
   "modifiedat": "TIMESTAMP",
 
   # Repeat for each Resource type in the Group
-  "RESOURCEsurl": "URL",                    # e.g. "definitionsurl"
-  "RESOURCEscount": UINTEGER                # e.g. "definitionscount"
+  "RESOURCEsurl": "URL",                    # e.g. "messagesurl"
+  "RESOURCEscount": UINTEGER                # e.g. "messagescount"
 }
 ```
 
 **Examples:**
 
-Targeted request to a create a specific Group `id`:
+Targeted request to a create a specific Group by `GROUPid`:
 
 ```yaml
-PUT /endpoints/456
+PUT /endpoints/ep1
 Content-Type: application/json; charset=utf-8
 
 {
-  "id": "456",
-  ... remainder of Group 456 definition ...
+  "endpointid": "ep1",
+  ... remainder of Endpoint 'ep1' definition ...
 }
 ```
 
 ```yaml
 HTTP/1.1 201 Created
 Content-Type: application/json; charset=utf-8
-Location: https://example.com/endpoints/456
+Location: https://example.com/endpoints/ep1
 
 {
-  "id": "456",
-  ... remainder of Group 456 definition ...
+  "endpointid": "ep1",
+  ... remainder of Endpoint 'ep1' definition ...
 }
 ```
 
@@ -2903,13 +2923,13 @@ POST /endpoints
 Content-Type: application/json; charset=utf-8
 
 {
-  "group1": {
-    "id": "group1",
-    ... remainder of group1 definition ...
+  "ep1": {
+    "endpointid": "ep1",
+    ... remainder of ep1 definition ...
   },
-  "group2": {
-    "id": "group2",
-    ... remainder of group2 definition ...
+  "ep2": {
+    "endpointid": "ep2",
+    ... remainder of ep2 definition ...
   }
 }
 ```
@@ -2919,13 +2939,13 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "group1": {
-    "id": "group1",
-    ... remainder of group1 definition ...
+  "ep1": {
+    "endpointid": "ep1",
+    ... remainder of ep1 definition ...
   },
-  "group2": {
-    "id": "group2",
-    ... remainder of group2 definition ...
+  "ep2": {
+    "endpointid": "ep2",
+    ... remainder of ep2 definition ...
   }
 }
 ```
@@ -2952,7 +2972,7 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "id": "STRING",
+  "GROUPid": "STRING",
   "self": "URL",
   "epoch": UINTEGER,
   "name": "STRING", ?
@@ -2964,8 +2984,8 @@ Content-Type: application/json; charset=utf-8
   "modifiedat": "TIMESTAMP",
 
   # Repeat for each Resource type in the Group
-  "RESOURCEsurl": "URL",                     # e.g. "definitionsurl"
-  "RESOURCEscount": UINTEGER,                # e.g. "definitionscount"
+  "RESOURCEsurl": "URL",                     # e.g. "messagesurl"
+  "RESOURCEscount": UINTEGER,                # e.g. "messagescount"
   "RESOURCEs": { RESOURCEs collection } ?    # If inlined
 }
 ```
@@ -2975,7 +2995,7 @@ Content-Type: application/json; charset=utf-8
 Retrieve a single `endpoints` Group:
 
 ```yaml
-GET /endpoints/123
+GET /endpoints/ep1
 ```
 
 ```yaml
@@ -2983,15 +3003,15 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "id": "123",
-  "self": "https://example.com/endpoints/123",
+  "GROUPid": "ep1",
+  "self": "https://example.com/endpoints/ep1",
   "epoch": 1,
   "name": "myEndpoint",
   "createdat": "2024-04-30T12:00:00Z",
   "modifiedat": "2024-04-30T12:00:01Z",
 
-  "definitionsurl": "https://example.com/endpoints/123/definitions",
-  "definitionscount": 5
+  "messagesurl": "https://example.com/endpoints/ep1/messages",
+  "messagescount": 5
 }
 ```
 
@@ -3050,11 +3070,17 @@ The Resource MAY choose to simply store a URL reference to the externally
 managed document instead. When the document is stored within the Registry, it
 can be managed as an opaque array of bytes.
 
-When a Resource does have a separate document, the default URL for the Resource
-references this document and not the Resource's xRegistry metadata. This
-allows for easy access to the data of interest by end users. In order to
-manage the Resource's xRegistry metadata, the URL to the Resource MUST
+When a Resource does have a separate document, an HTTP `GET` request to the
+URL for the Resource returns this document and not the Resource's xRegistry
+metadata. This allows for easy access to the data of interest by end users. In
+order to manage the Resource's xRegistry metadata, the URL to the Resource MUST
 have `$meta` appended to the Resource's URL path. For example:
+
+```yaml
+GET https://example.com/schemagroups/mygroup/schemas/myschema
+```
+will retrieve the schema document associated with the `myschema` Resource,
+while:
 
 ```yaml
 GET https://example.com/schemagroups/mygroup/schemas/myschema$meta
@@ -3091,7 +3117,7 @@ When accessing a Resource's metadata via `$meta`, often it is to
 view or update the xRegistry metadata and not the document, as such, including
 the potentially large amount of data from the Resource's document in request
 and response messages could be cumbersome. To address this, the `RESOURCE` and
-`RESOURECEbase64` attributes do not appear by default as part of the
+`RESOURCEbase64` attributes do not appear by default as part of the
 serialization of the Resource. Rather, they MUST only appear in responses when
 the [`?inline`](#inlining) query parameter is used. Likewise, in requests, these
 attributes are OPTIONAL and would only need to be used when a change to the
@@ -3107,15 +3133,14 @@ attributes at a time.
 Resources (not Versions) include the following common attributes:
 
 (these values are from the Resource, not the default Version)
-- [`id`](#id-attribute) - REQUIRED in responses and document view, otherwise
-  OPTIONAL.
+- [`RESOURCEid`](#singularid-id-attribute) - REQUIRED in responses and document
+  view, otherwise OPTIONAL.
 - [`self`](#self-attribute) - REQUIRED in responses, otherwise OPTIONAL.
 - [`epoch`](#epoch-attribute) - REQUIRED in responses, otherwise OPTIONAL. Its
   value applies to the Resource and all of its Versions.
 
 (these values are inherited from the default Version and only present when
 the Resource's default attributes are serialized as part of the Resource)
-- [`versionid`](#versionid-attribute) - REQUIRED.
 - [`name`](#name-attribute) - OPTIONAL.
 - [`description`](#description-attribute) - OPTIONAL.
 - [`documentation`](#documentation-attribute) - OPTIONAL.
@@ -3208,7 +3233,7 @@ and the following Resource level attributes:
   - See the `defaultversionsticky` section above for how to process these two
     attributes.
 - Examples:
-  - `1`, `2.0`, `v3-rc1`
+  - `1`, `2.0`, `v3-rc1` (v3's release candidate 1)
 
 ##### `defaultversionurl` Attribute
 - Type: URL
@@ -3225,7 +3250,7 @@ and the following Resource level attributes:
   - MUST be an absolute URL to the default Version of the Resource, and MUST.
     be the same as the Version's `self` attribute.
 - Examples:
-  - `https://example.com/endpoints/123/definitions/456/versions/1.0`
+  - `https://example.com/endpoints/ep1/messages/msg1/versions/1.0`
 
 ##### `versions` Collection
 - Type: [Registry Collection](#registry-collections)
@@ -3296,12 +3321,12 @@ in the HTTP body, it MUST adhere to this form:
 
 ```yaml
 Content-Type: STRING ?
-xRegistry-id: STRING                       # ID of Resource, not default Version
+xRegistry-RESOURCEid: STRING               # ID of Resource, not default Version
 xRegistry-self: URL                        # Resource URL, not default Version
+xRegistry-xref: URL ?
 xRegistry-epoch: UINT
-xRegistry-versionid: STRING                # versionid of default Version
+xRegistry-readonly: BOOLEAN ?
 xRegistry-name: STRING ?
-xRegistry-isdefault: true
 xRegistry-description: STRING ?
 xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING *
@@ -3309,8 +3334,6 @@ xRegistry-origin: STRING ?
 xRegistry-createdat: TIME
 xRegistry-modifiedat: TIME
 xRegistry-RESOURCEurl: URL ?
-xRegistry-xref: URL ?
-xRegistry-readonly: BOOLEAN ?
 xRegistry-defaultversionsticky: BOOLEAN ?
 xRegistry-defaultversionid: STRING
 xRegistry-defaultversionurl: URL
@@ -3318,20 +3341,26 @@ xRegistry-versionsurl: URL
 xRegistry-versionscount: UINTEGER
 Location: URL
 Content-Location: URL ?
+Content-Disposition: STRING ?
 
 ... Resource document ... ?
 ```
 
 Where:
-- The `id` is the `id` of the Resource, not the default Version.
-- The `versionid` is the `versionid` of the default Version.
+- The `RESOURCEid` is the `SINGULARid` of the Resource, not the default
+  Version.
 - The `self` URL references the Resource, not the default Version.
 - The serialization of the `labels` attribute is split into separate HTTP
   headers (one per label name).
 - The `versionsurl` and `versionscount` attributes are included, but not
   the `versions` collection itself.
+- The `Location` header only appears in response to a create operation and
+  MUST be the same as the `self` URL.
 - The `Content-Location` header MAY appear, and if present, MUST reference
   the "default" Version.
+- `Content-Disposition` SHOULD be present and if so, MUST be the `RESOURCEid`
+  value. This allows for HTTP tooling that is not aware of xRegistry to know
+  the desired filename to use if the HTTP body were to be written to a file.
 
 Version serialization will look similar, but the set of xRegistry HTTP headers
 will be slightly different (to exclude Resource level attributes). See the
@@ -3352,16 +3381,14 @@ this form:
 
 ```yaml
 {
-  "id": "STRING",                          # ID of Resource, not default Version
+  "RESOURCEid": "STRING",                  # ID of Resource, not default Version
   "self": "URL",                           # URL of Resource,not default Version
   "xref": "URL", ?
   "epoch": UINTEGER,
   "readonly": BOOLEAN, ?
 
   # These are inherited from the default Version
-  "versionid": STRING",
   "name": "STRING", ?
-  "isdefault": true,
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
@@ -3397,7 +3424,7 @@ additional top-level JSON attributes.
 Typically, Resources exist within the scope of a single Group, however there
 might be situations where a Resource needs to be related to multiple Groups.
 In these cases there are two options. First, a copy of the Resource could be
-made in the second Group. The obvious downside to this is that there's no
+made into the second Group. The obvious downside to this is that there's no
 relationship between the two Resources and any changes to one would need to
 be done in the other - running the risk of them getting out of sync.
 
@@ -3408,25 +3435,23 @@ URL to the target Resource. For example, a source Resource defined as:
 
 ```yaml
 {
-  "id": "sourceresource",
+  "RESOURCEid": "sourceresource",
   "xref": "groups/group2/resources/targetresource"
 }
 ```
 
 means that this "sourceresource" references the "targetresource" from
 "group2". When the source Resource is serialized (e.g. as a result of a
-`GET`), then all of the target Resource's attributes (except its `id`) will
-appear as if they were locally defined. So, if the target Resource was defined
-as:
+`GET`), then all of the target Resource's attributes (except its `RESOURCEid`)
+will appear as if they were locally defined. So, if the target Resource was
+defined as:
 
 ```yaml
 {
-  "id": "targetresource",
+  "resourceid": "targetresource",
   "self": "http://example.com/groups/group2/resources/targetresource$meta",
   "epoch": 2,
 
-  "versionid": "v1",
-  "isdefault": true,
   "createdat": "2024-01-01-T12:00:00",
   "modifiedat": "2024-01-01-T12:01:00",
 
@@ -3441,13 +3466,11 @@ then the resulting serialization of the source Resource would be:
 
 ```yaml
 {
-  "id": sourceresource",
+  "resourceid": sourceresource",
   "self": "http://example.com/groups/group1/resources/sourceresource$meta",
   "xref": "groups/group2/resources/targetresource",
   "epoch": 2,
 
-  "versionid": "v1",
-  "isdefault": true,
   "createdat": "2024-01-01-T12:00:00",
   "modifiedat": "2024-01-01-T12:01:00",
 
@@ -3459,15 +3482,15 @@ then the resulting serialization of the source Resource would be:
 ```
 
 Note:
-- The `id` of the source Resource MAY be different from the `id` of the target
-  Resource.
+- The `RESOURCEid` of the source Resource MAY be different from the
+  `RESOURCEid` of the target Resource.
 - The `xref` attribute MUST appear so a client can easily determine that this
   Resource is actually a cross-referenced Resource, and provide a URL to that
   targeted Resource (if ever needed).
 - All calculated attributes (such as the `defaultversionurl` and `versionsurl`)
-  MUST use the `id` of the source Resource not the target Resource. In this
-  respect, users of this serialization would never know that this is a cross-
-  referenced Resource except for the presence of the `xref` attribute.
+  MUST use the `RESOURCEid` of the source Resource not the target Resource. In
+  this respect, users of this serialization would never know that this is a
+  cross-referenced Resource except for the presence of the `xref` attribute.
 - The URL of the target Resource MUST be a relative URL of the form:
   `GROUPs/gID/RESOURCEs/rID`, and MUST reference a Resource within the same
   Registry. However, it MUST NOT point to itself.
@@ -3478,7 +3501,7 @@ attribute, the Resource appears to be a normal Resource that exists within
 `?filter`) MAY be used when retrieving the Resource.
 
 However, from a write perspective it is quite different. Only the
-`id` and `xref` attributes are persisted for the source Resource, the
+`RESOURCEid` and `xref` attributes are persisted for the source Resource, the
 target Resource's attributes are inherited and not meant to be persisted
 with the source Resource. This means that a write-operation on the source
 Resource that includes the `xref` attribute SHOULD NOT include any target
@@ -3493,7 +3516,8 @@ Resource - in which case the normal semantics of updating the mutable
 attributes applies. And any relationship with the target Resource is deleted.
 Likewise, the presence of `xref` on a write request can be used to convert a
 normal Resource into a cross reference one, and in which case any existing
-attributes on the source Resource MUST be deleted (except for `id` and `xref`).
+attributes on the source Resource MUST be deleted (except for `RESOURCEid` and
+`xref`).
 
 The `xref` attribute MUST be a relative URL from the base URL of the Registry,
 and MUST NOT start with a `/`, while the base URL of the Registry MUST end
@@ -3515,8 +3539,8 @@ An `xref` value that points to a non-existing Resource, either because
 it was deleted or never existed, is not an error and is not a condition
 that a server is REQUIRED to detect. In these "dangling xref" situations the
 serialization of the source Resource will not include any target Resource
-attributes, or nested collections. Rather, it will only show the `id` and
-`xref` attributes.
+attributes, or nested collections. Rather, it will only show the `RESOURCEid`
+and `xref` attributes.
 
 ---
 
@@ -3592,14 +3616,14 @@ Content-Type: application/json; charset=utf-8
 Link: <URL>;rel=next;count=UINTEGER ?
 
 {
-  "ID": {                                     # The Resource id
-    "id": "STRING",                           # The Resource id
+  "KEY": {                                    # The Resource id
+    "RESOURCEid": "STRING",                   # The Resource id
     "self": "URL",                            # URL to the Resource
+    "xref": "URL", ?
     "epoch": UINTEGER,
+    "readonly": BOOLEAN, ?
 
-    "versionid": "STRING",
     "name": "STRING", ?
-    "isdefault": true,
     "description": "STRING", ?
     "documentation": "URL", ?
     "labels": { "STRING": "STRING" * }, ?
@@ -3612,8 +3636,6 @@ Link: <URL>;rel=next;count=UINTEGER ?
     "RESOURCE": ... Resource document ..., ? # If inlined & JSON
     "RESOURCEbase64": "STRING", ?            # If inlined & ~JSON
 
-    "xref": "URL", ?
-    "readonly": BOOLEAN, ?
 
     "defaultversionsticky": BOOLEAN, ?
     "defaultversionid": "STRING",
@@ -3627,39 +3649,37 @@ Link: <URL>;rel=next;count=UINTEGER ?
 ```
 
 Where:
-- The key (`ID`) of each item in the map MUST be the `id` of the respective
+- The key of each item in the map MUST be the `RESOURCEid` of the respective
   Resource.
 
 **Examples:**
 
-Retrieve all `definitions` of an `endpoint` whose `id` is `123`:
+Retrieve all `messages` of an `endpoint` whose `RESOURCEid` is `ep1`:
 
 ```yaml
-GET /endpoints/123/definitions
+GET /endpoints/ep1/messages
 ```
 
 ```yaml
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
-Link: <https://example.com/endpoints/123/definitions&page=2>;rel=next;count=100
+Link: <https://example.com/endpoints/ep1/messages&page=2>;rel=next;count=100
 
 {
-  "456": {
-    "id": "456",
-    "self": "https://example.com/endpoints/123/definitions/456$meta",
+  "msg1": {
+    "messageid": "msg1",
+    "self": "https://example.com/endpoints/ep1/messages/msg1$meta",
     "epoch": 1,
 
-    "versionid": "1.0",
     "name": "Blob Created",
-    "isdefault": true,
     "origin": "http://example.com",
     "createdat": "2024-04-30T12:00:00Z",
     "modifiedat": "2024-04-30T12:00:01Z",
 
     "defaultversionid": "1.0",
-    "defaultversionurl": "https://example.com/endpoints/123/definitions/456/versions/1.0$meta",
+    "defaultversionurl": "https://example.com/endpoints/ep1/messages/msg1/versions/1.0$meta",
 
-    "versionsurl": "https://example.com/endpoints/123/definitions/456/versions",
+    "versionsurl": "https://example.com/endpoints/ep1/messages/msg1/versions",
     "versionscount": 1
   }
 }
@@ -3740,22 +3760,23 @@ information about the `?setdefaultversionid` query parameter.
 
 To reduce the number of interactions needed, these APIs are designed to allow
 for the implicit creation of all parent entities specified in the PATH. And
-each entity not already present with the specified `ID` MUST be created with
-that `ID`. Note: if any of those entities have REQUIRED attributes then they
-can not be implicitly created, and would need to be created manually.
+each entity not already present with the specified `SINGULARid` MUST be
+created with that value. Note: if any of those entities have REQUIRED
+attributes then they can not be implicitly created, and would need to be
+created manually.
 
-When specified as an xRegistry JSON object, each individual Resource or
-Version in the request MUST adhere to the following:
+When specified as an xRegistry JSON object, each individual Resource or Version
+in the request MUST adhere to the following:
 
 ```yaml
 {
-  "id": "STRING", ?                        # ID of Resource
-  "xref": "URL", ?                         # Only on Resources
+  "RESOURCEid": "STRING", ?                # SINGULARid of Resource
+  "versionid": "STRING", ?                 # For Versions
+  "xref": "URL", ?                         # For Resources
   "epoch": UINTEGER,
 
-  "versionid": "STRING", ?                 # ID of Version
-  "name": "STRING", ?
-  "isdefault": BOOLEAN, ?
+  "name": "STRING", ?                      # Version level attributes
+  "isdefault": BOOLEAN, ?                  # For Versions
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
@@ -3768,10 +3789,10 @@ Version in the request MUST adhere to the following:
   "RESOURCE": ... Resource document ..., ? # If inlined & JSON
   "RESOURCEbase64": "STRING", ?            # If inlined & ~JSON
 
-  "defaultversionsticky": BOOLEAN, ?
-  "defaultversionid": "STRING", ?
+  "defaultversionsticky": BOOLEAN, ?       # For Resources
+  "defaultversionid": "STRING", ?          # For Resources
 
-  "versions": { Versions collection } ?
+  "versions": { Versions collection } ?    # For Resources, if ?nested used
 }
 ```
 
@@ -3782,11 +3803,13 @@ following:
 ```yaml
 [METHOD] [PATH]
 Content-Type: STRING ?
-xRegistry-id: STRING ?                     # ID of Resource
-xRegistry-versionid: STRING ?              # ID of Version
+xRegistry-RESOURCEid: STRING ?
+xRegistry-versionid: STRING ?              # For Versions
+xRegistry-xref: URL ?                      # For Resources
 xRegistry-name: STRING ?
+xRegistry-isdefault: BOOLEAN ?             # For Versions
 xRegistry-epoch: UINTEGER ?
-xRegistry-isdefault: BOOLEAN ?
+xRegistry-readonly: BOOLEAN ?
 xRegistry-description: STRING ?
 xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING *
@@ -3794,8 +3817,6 @@ xRegistry-origin: STRING ?
 xRegistry-createdat: TIMESTAMP ?
 xRegistry-modifiedat: TIMESTAMP ?
 xRegistry-RESOURCEurl: URL ?
-xRegistry-xref: URL ?
-xRegistry-readonly: BOOLEAN ?
 xRegistry-defaultversionsticky: BOOLEAN ?  # For Resources
 xRegistry-defaultversionid: STRING ?       # For Resources
 
@@ -3809,7 +3830,8 @@ Where:
   of the HTTP body (even if empty) are to be used as the entity's document.
 - If the Resource's `hasdocument` model attribute has a value of `false` then
   the following rules apply:
-  - Any use of the `$meta` suffix MUST generate an error.
+  - Any use of the `$meta` suffix MUST be silently ignored. Meaning, use of
+    `$meta` has no effect on these types of Resources.
   - Any request that includes the xRegistry HTTP headers MUST generate an
     error.
   - An update request with an empty HTTP body MUST be interpreted as a request
@@ -3859,7 +3881,7 @@ Note that the response MUST NOT include any inlinable attributes (such as
 Create a new Resource:
 
 ```yaml
-PUT /endpoints/123/definitions/456
+PUT /endpoints/ep1/messages/msg1
 Content-Type: application/json; charset=utf-8
 xRegistry-name: Blob Created
 
@@ -3871,17 +3893,17 @@ xRegistry-name: Blob Created
 ```yaml
 HTTP/1.1 201 Created
 Content-Type: application/json; charset=utf-8
-xRegistry-id: 456
-xRegistry-self: https://example.com/endpoints/123/definitions/456
+xRegistry-messageid: msg1
+xRegistry-self: https://example.com/endpoints/ep1/messages/msg1
 xRegistry-epoch: 1
-xRegistry-versionid: 1.0
 xRegistry-name: Blob Created
 xRegistry-defaultversionid: 1.0
-xRegistry-defaultversionurl: https://example.com/endpoints/123/definitions/456/versions/1.0
-xRegistry-versionsurl: https://example.com/endpoints/123/definitions/456/versions
+xRegistry-defaultversionurl: https://example.com/endpoints/ep1/messages/msg1/versions/1.0
+xRegistry-versionsurl: https://example.com/endpoints/ep1/messages/msg1/versions
 xRegistry-versionscount: 1
-Location: https://example.com/endpoints/123/definitions/456
-Content-Location: https://example.com/endpoints/123/definitions/456/versions/1.0
+Location: https://example.com/endpoints/ep1/messages/msg1
+Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1.0
+Content-Disposition: msg1
 
 {
   # Definition of a "Blob Created" event excluded for brevity
@@ -3891,17 +3913,17 @@ Content-Location: https://example.com/endpoints/123/definitions/456/versions/1.0
 Update default Version of a Resource as xRegistry metadata:
 
 ```yaml
-PUT /endpoints/123/definitions/456$meta
+PUT /endpoints/ep1/messages/msg1$meta
 Content-Type: application/json; charset=utf-8
 
 {
-  "id": "456",
+  "messageid": "msg1",
   "epoch": 1,
-  "name": "Blob Created",
 
+  "name": "Blob Created",
   "description": "a cool event",
 
-  "definition": {
+  "message": {
     # Updated definition of a "Blob Created" event excluded for brevity
   }
 }
@@ -3910,26 +3932,25 @@ Content-Type: application/json; charset=utf-8
 ```yaml
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
-Content-Location: https://example.com/endpoints/123/definitions/456/versions/1.0
+Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1.0
 
 {
-  "id": "456",
-  "self": "https://example.com/endpoints/123/definitions/456$meta",
+  "messageid": "msg1",
+  "self": "https://example.com/endpoints/ep1/messages/msg1$meta",
   "epoch": 2,
 
-  "versionid": "1.0",
   "name": "Blob Created",
   "description": "a cool event",
   "createdat": "2024-04-30T12:00:00Z",
   "modifiedat": "2024-04-30T12:00:01Z",
 
-  "definition": {
+  "message": {
     # Updated definition of a "Blob Created" event excluded for brevity
   },
 
   "defaultversionid": "1.0",
-  "defaultversionurl": "https://example.com/endpoints/123/definitions/456/versions/1.0$meta",
-  "versionsurl": "https://example.com/endpoints/123/definitions/456/versions",
+  "defaultversionurl": "https://example.com/endpoints/ep1/messages/msg1/versions/1.0$meta",
+  "versionsurl": "https://example.com/endpoints/ep1/messages/msg1/versions",
   "versionscount": 1
 }
 ```
@@ -3937,7 +3958,7 @@ Content-Location: https://example.com/endpoints/123/definitions/456/versions/1.0
 Update several Versions (adding a label):
 
 ```yaml
-POST /endpoints/123/definitions/456/versions
+POST /endpoints/ep1/messages/msg1/versions
 Content-Type: application/json; charset=utf-8
 
 {
@@ -3962,19 +3983,19 @@ Content-Type: application/json; charset=utf-8
 
 {
   "1.0": {
-    "id": "456",
+    "messageid": "msg1",
     "versionid": "1.0",
     "labels": { "customer": "abc" },
     # Remainder of xRegistry metadata excluded for brevity
   },
   "2.0": {
-    "id": "456",
+    "messageid": "msg1",
     "versionid": "2.0",
     "labels": { "customer": "abc" },
     # Remainder of xRegistry metadata excluded for brevity
   },
   "3.0": {
-    "id": "456",
+    "messageid": "msg1",
     "versionid": "3.0",
     "labels": { "customer": "abc" },
     # Remainder of xRegistry metadata excluded for brevity
@@ -4017,12 +4038,12 @@ When `hasdocument` is `true`, the response MUST be of the form:
 ```yaml
 HTTP/1.1 200 OK|303 See Other
 Content-Type: STRING ?
-xRegistry-id: STRING
+xRegistry-RESOURCEid: STRING
 xRegistry-self: URL
+xRegistry-xref: URL ?
 xRegistry-epoch: UINT
-xRegistry-versionid: STRING
+xRegistry-readonly: BOOLEAN ?
 xRegistry-name: STRING ?
-xRegistry-isdefault: true
 xRegistry-description: STRING ?
 xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING *
@@ -4030,8 +4051,6 @@ xRegistry-origin: STRING ?
 xRegistry-createdat: TIME
 xRegistry-modifiedat: TIME
 xRegistry-RESOURCEurl: URL      # If Resource is not in body
-xRegistry-xref: URL ?
-xRegistry-readonly: BOOLEAN ?
 xRegistry-defaultversionsticky: BOOLEAN ?
 xRegistry-defaultversionid: STRING
 xRegistry-defaultversionurl: URL
@@ -4039,23 +4058,27 @@ xRegistry-versionsurl: URL
 xRegistry-versionscount: UINTEGER
 Location: URL ?                 # If Resource is not in body
 Content-Location: URL ?
+Content-Disposition: STRING
 
 ... Resource document ...       # If RESOURCEurl is not set
 ```
 
 Where:
-- `id` MUST be the ID of the Resource, not of the default Version of the
-  Resource.
-- `versionid` MUST be the `versionid` of the default Version of the Resource.
+- `RESOURCEid` MUST be the `SINGULARid` of the Resource, not of the default
+  Version of the Resource.
 - `self` MUST be a URL to the Resource, not to the default Version of the
   Resource.
 - If `RESOURCEurl` is present then it MUST have the same value as `Location`.
 - If `Content-Location` is present then it MUST be a URL to the Version of the
   Resource in the `versions` collection - same as `defaultversionurl`.
+- `Content-Disposition` SHOULD be present and if so, MUST be the `RESOURCEid`
+  value. This allows for HTTP tooling that is not aware of xRegistry to know
+  the desired filename to use if the HTTP body were to be written to a file.
 
 #### Retrieving a Resource as Metadata
 
-To retrieve a Resource's metadata (Resource attributes) as a JSON object, an
+When a Resource has the `hasdocument` model attribute set to `true`, to
+retrieve a Resource's metadata (Resource attributes) as a JSON object, an
 HTTP `GET` with `$meta` appended to its URL path MAY be used.
 
 The request MUST be of the form:
@@ -4072,13 +4095,13 @@ Content-Type: application/json; charset=utf-8
 Content-Location: URL ?
 
 {
-  "id": "STRING",
+  "RESOURCEid": "STRING",
   "self": "URL",
+  "xref": "URL", ?
   "epoch": UINTEGER,
+  "readonly": BOOLEAN, ?
 
-  "versionid": "STRING",
   "name": "STRING", ?
-  "isdefault": true,
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
@@ -4091,9 +4114,6 @@ Content-Location: URL ?
   "RESOURCE": ... Resource document ..., ? # If inlined & JSON
   "RESOURCEbase64": "STRING", ?            # If inlined & ~JSON
 
-  "xref": "URL", ?
-  "readonly": BOOLEAN, ?
-
   "defaultversionsticky": BOOLEAN, ?
   "defaultversionid": "STRING",
   "defaultversionurl": "URL",
@@ -4105,8 +4125,8 @@ Content-Location: URL ?
 ```
 
 Where:
-- `id` MUST be the Resource's `id`, not the `id` of the default Version,
-  appended with `$meta`.
+- `RESOURCEid` MUST be the Resource's `SINGULARid`, not the `versionid` of
+  the default Version.
 - `self` is a URL to the Resource (with `$meta`), not to the default
   Version of the Resource.
 - `RESOURCE`, or `RESOURCEbase64`, MUST only be included if requested via the
@@ -4121,31 +4141,30 @@ The following query parameters SHOULD be supported by servers:
 
 **Examples:**
 
-Retrieve a `definition` Resource as xRegistry metadata:
+Retrieve a `message` Resource as xRegistry metadata:
 
 ```yaml
-GET /endpoints/123/definitions/456$meta
+GET /endpoints/ep1/messages/msg1$meta
 ```
 
 ```yaml
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
-Content-Location: https://example.com/endpoints/123/definitions/456/versions/1.0
+Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1.0
 
 {
-  "id": "456",
-  "self": "https://example.com/endpoints/123/definitions/456$meta,
+  "messageid": "msg1",
+  "self": "https://example.com/endpoints/ep1/messages/msg1$meta,
   "epoch": 1,
 
-  "versionid": "1.0",
   "name": "Blob Created",
   "isdefault": true,
   "createdat": "2024-04-30T12:00:00Z",
   "modifiedat": "2024-04-30T12:00:01Z",
 
   "defaultversionid": "1.0",
-  "defaultversionurl": "https://example.com/endpoints/123/definitions/456/versions/1.0$meta",
-  "versionsurl": "https://example.com/endpoints/123/definitions/456/versions",
+  "defaultversionurl": "https://example.com/endpoints/ep1/messages/msg1/versions/1.0$meta",
+  "versionsurl": "https://example.com/endpoints/ep1/messages/msg1/versions",
   "versionscount": 1
 }
 ```
@@ -4189,11 +4208,11 @@ When serialized as a JSON object, the Version entity adheres to this form:
 
 ```yaml
 {
-  "id": "STRING",                         # ID of Resource
+  "RESOURCEid": "STRING",                  # SINGULARid of Resource
+  "versionid": "STRING",
   "self": "URL",
   "epoch": UINTEGER,
 
-  "versionid": "STRING",
   "name": "STRING", ?
   "isdefault": BOOLEAN, ?
   "description": "STRING", ?
@@ -4214,8 +4233,11 @@ Version extension attributes would also appear as additional top-level JSON
 attributes.
 
 Versions include the following common attributes:
-- [`id`](#id-attribute) - REQUIRED in responses and document view, otherwise
-  OPTIONAL. MUST be the `id` of the owning Resource.
+- [`RESOURCEid`](#singularid-id-attribute) - REQUIRED in responses and document
+  view, otherwise OPTIONAL. MUST be the `RESOURCEid` of the owning Resource.
+- [`versionid`](#versionid-attribute) - REQUIRED in responses and document view,
+  otherwise OPTIONAL. MUST be the unique (within the scope of the owning
+  Resource) identifier of this Version.
 - [`self`](#self-attribute) - REQUIRED in responses, otherwise OPTIONAL - URL
   to this Version, not the Resource.
 - [`epoch`](#epoch-attribute) - REQUIRED in responses, otherwise OPTIONAL. MUST
@@ -4233,9 +4255,6 @@ Versions include the following common attributes:
 
 and the following Version level attributes:
 
-- [`versionid`](#versionid-attribute) - REQUIRED in responses and document view,
-  otherwise OPTIONAL. MUST be the unique (within the scope of the owning
-  Resource) identifier of this Version.
 - [`isdefault`](#isdefault-attribute) - REQUIRED when `true`, otherwise
   OPTIONAL.
 - [`RESOURCEurl`](#resourceurl-attribute) - OPTIONAL.
@@ -4269,6 +4288,7 @@ as defined below:
   - `1.0`
   - `v2`
   - `v3-rc`
+TODO reuse SINGULARid section instead of duplicating this
 
 Note, since `versionid` is immutable, in order to change its value a new
 Version would need to be created with the new `versionid` that is a deep-copy
@@ -4389,11 +4409,11 @@ Servers MAY have their own algorithm for the creation of new Version
   continue from the highest previously generated value.
 
 With this default versioning algorithm, when semantic versioning is needed,
-it is RECOMMENDED to include a major version identifier in the Resource `id`,
-like `"com.example.event.v1"` or `"com.example.event.2024-02"`, so that
-incompatible, but historically related Resources can be more easily identified
-by users and developers. The Version's `versionid` then functions as the
-semantic minor version identifier.
+it is RECOMMENDED to include a major version identifier in the Resource
+`RESOURCEid`, like `"com.example.event.v1"` or `"com.example.event.2024-02"`,
+so that incompatible, but historically related Resources can be more easily
+identified by users and developers. The Version's `versionid` then functions
+as the semantic minor version identifier.
 
 #### Default Version of a Resource
 
@@ -4463,7 +4483,7 @@ do so, MUST adhere to the following rules:
   attributes, the update to the default Version pointer MUST be done before
   the attributes are updated. In other words, the Version updated is the new
   default Version, not the old one.
-- Changing the default Version of a Resource MUST NOT change any attributes
+- Choosing a new default Version of a Resource MUST NOT change any attributes
   in the Resource's Versions, for example, attributes such as `modifiedat`
   remain unchanged.
 
@@ -4490,12 +4510,12 @@ Content-Type: application/json; charset=utf-8
 Link: <URL>;rel=next;count=UINTEGER ?
 
 {
-  "ID": {                                     # The versionid
-    "id": "STRING",                           # ID of Resource
+  "KEY": {                                    # The versionid
+    "RESOURCEid": "STRING",                   # ID of Resource
+    "versionid": "STRING",
     "self": "URL",
     "epoch": UINTEGER,
 
-    "versionid": "STRING",
     "name": "STRING", ?
     "isdefault": BOOLEAN,
     "description": "STRING", ?
@@ -4514,29 +4534,29 @@ Link: <URL>;rel=next;count=UINTEGER ?
 ```
 
 Where:
-- The key (`ID`) of each item in the map MUST be the `versionid` of the
-  respective Version.
+- The key of each item in the map MUST be the `versionid` of the respective
+  Version.
 
 **Examples:**
 
-Retrieve all Version of a `definition` Resource:
+Retrieve all Version of a `message` Resource:
 
 ```yaml
-GET /endpoints/123/definitions/456/versions
+GET /endpoints/ep1/messages/msg1/versions
 ```
 
 ```yaml
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
-Link: <https://example.com/endpoints/123/definitions/456/versions&page=2>;rel=next;count=100
+Link: <https://example.com/endpoints/ep1/messages/msg1/versions&page=2>;rel=next;count=100
 
 {
   "1.0": {
-    "id": "456",
-    "self": "https://example.com/endpoints/123/definitions/456$meta",
+    "messageid": "msg1",
+    "versionid": "1.0",
+    "self": "https://example.com/endpoints/ep1/messages/msg1$meta",
     "epoch": 1,
 
-    "versionid": "1.0",
     "name": "Blob Created",
     "isdefault": true,
     "createdat": "2024-04-30T12:00:00Z",
@@ -4569,10 +4589,10 @@ form:
 ```yaml
 HTTP/1.1 200 OK
 Content-Type: STRING ?
-xRegistry-id: STRING
+xRegistry-RESOURCEid: STRING
+xRegistry-versionid: STRING
 xRegistry-self: URL
 xRegistry-epoch: UINT
-xRegistry-versionid: STRING
 xRegistry-name: STRING ?
 xRegistry-isdefault: BOOLEAN ?
 xRegistry-description: STRING ?
@@ -4581,23 +4601,28 @@ xRegistry-labels-KEY: STRING *
 xRegistry-origin: STRING ?
 xRegistry-createdat: TIME
 xRegistry-modifiedat: TIME
+Content-Disposition: STRING
 
 ... Version document ...
 ```
 
 Where:
-- `id` MUST be the ID of the owning Resource
+- `RESOURCEid` MUST be the `SINGULARid` of the owning Resource.
+- `versionid` MUST be the `SINGULARid` of the Version.
 - `self` MUST be a URL to the Version, not to the owning Resource.
+- `Content-Disposition` SHOULD be present and if so, MUST be the `RESOURCEid`
+  value. This allows for HTTP tooling that is not aware of xRegistry to know
+  the desired filename to use if the HTTP body were to be written to a file.
 
 In the case of a redirect, the response MUST be of the form:
 
 ```yaml
 HTTP/1.1 303 See Other
 Content-Type: STRING ?
-xRegistry-id: STRING
+xRegistry-RESOURCEid: STRING
+xRegistry-versionid: STRING
 xRegistry-self: URL
 xRegistry-epoch: UINT
-xRegistry-versionid: STRING
 xRegistry-name: STRING ?
 xRegistry-isdefault: BOOLEAN ?
 xRegistry-description: STRING ?
@@ -4608,30 +4633,30 @@ xRegistry-createdat: TIME
 xRegistry-modifiedat: TIME
 xRegistry-RESOURCEurl: URL
 Location: URL
+Content-Disposition: STRING     TODO: yes or let redirect do it?
 ```
 
 Where:
-- `id` MUST be the ID of the owning Resource
-- `self` MUST be a URL to the Version, not to the owning Resource.
 - `Location` and `RESOURCEurl` MUST have the same value.
 
 **Examples:**
 
-Retrieve a specific Version (`1.0`) of a `definition` Resource:
+Retrieve a specific Version (`1.0`) of a `message` Resource:
 
 ```yaml
-GET /endpoints/123/definitions/456/versions/1.0
+GET /endpoints/ep1/messages/msg1/versions/1.0
 ```
 
 ```yaml
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
-xRegistry-id: 456
-xRegistry-self: https://example.com/endpoints/123/definitions/456/versions/1.0
-xRegistry-epoch: 2
+xRegistry-messageid: msg1
 xRegistry-versionid: 1.0
+xRegistry-self: https://example.com/endpoints/ep1/messages/msg1/versions/1.0
+xRegistry-epoch: 2
 xRegistry-name: Blob Created
 xRegistry-isdefault: true
+Content-Disposition: msg1
 
 {
   # Definition of a "Blob Created" event excluded for brevity
@@ -4641,7 +4666,7 @@ xRegistry-isdefault: true
 #### Retrieving a Version as Metadata
 
 To retrieve a particular Version's metadata, an HTTP `GET` with `$meta`
-appended to its `id` MAY be used.
+appended to its `RESOURCEid` MAY be used.
 
 The request MUST be of the form:
 
@@ -4660,11 +4685,11 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "id": "STRING",
+  "RESOURCEid": "STRING",
+  "versionid": "STRING",
   "self": "URL",
   "epoch": UINTEGER,
 
-  "versionid": "STRING",
   "name": "STRING", ?
   "isdefault": BOOLEAN,
   "description": "STRING", ?
@@ -4682,15 +4707,16 @@ Content-Type: application/json; charset=utf-8
 ```
 
 Where:
-- `id` MUST be the Version's `id` and not the `id` of the owning Resource.
+- `RESOURCEid` MUST be the `SINGULARid` of the owning Resource.
+- `versionid` MUST be the `SINGULARid` of the Version.
 - `self` MUST be a URL to the Version, not to the owning Resource.
 
 **Examples:**
 
-Retrieve a specific Version of a `definition` Resource as xRegistry metadata:
+Retrieve a specific Version of a `message` Resource as xRegistry metadata:
 
 ```yaml
-GET /endpoints/123/definitions/456/versions/1.0$meta
+GET /endpoints/ep1/messages/msg1/versions/1.0$meta
 ```
 
 ```yaml
@@ -4698,11 +4724,11 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "id": "456",
-  "self": "https://example.com/endpoints/123/definitions/456/versions/1.0$meta",
+  "messageid": "msg1",
+  "versionid": "1.0",
+  "self": "https://example.com/endpoints/ep1/messages/msg1/versions/1.0$meta",
   "epoch": 2,
 
-  "versionid": "1.0",
   "name": "Blob Created",
   "isdefault": true,
   "createdat": "2024-04-30T12:00:00Z",
@@ -4742,10 +4768,10 @@ HTTP body.
 
 **Examples:**
 
-Delete a single Version of a `definition` Resource:
+Delete a single Version of a `message` Resource:
 
 ```yaml
-DELETE /endpoints/123/definitions/456/versions/1.0
+DELETE /endpoints/ep1/messages/msg1/versions/1.0
 ```
 
 ```yaml
@@ -4756,17 +4782,17 @@ HTTP/1.1 204 No Content
 
 ### Resource Only Serialization
 
-The `?resource` query parameter MAY be used on requests to indicate that the
+The `?attribs` query parameter MAY be used on requests to indicate that the
 operation MUST NOT apply to the default Version attributes of any Resources
 processed by the request. When used on a read operation, the serialization of
-the Resource MUST NOT include the default Version attributes, including the
-`versionid` attribute. Additionally, filtering by default Version attributes
-MUST NOT yield successful results as they are excluded from processing.
+the Resource MUST NOT include the default Version attributes. Additionally,
+filtering by default Version attributes MUST NOT yield successful results as
+they are excluded from processing.
 
 When used on a write operation, any default Version attributes present in the
 request MUST be silently ignored. In addition, the default Version's
 `modifiedat` value MUST NOT be changed, however the Resource's `epoch` value
-would.
+would change.
 
 This feature is most useful when Resource level attributes need to be updated
 without touching the default Version - such as updating the `defaultversionid`
@@ -4808,9 +4834,9 @@ to be represented as a single (self-contained) document.
 
 Some examples:
 - `GET /?inline=endpoints`
-- `GET /?inline=endpoints.definitions`
-- `GET /endpoints/123/?inline=definitions.definition`
-- `GET /endpoints/123/definitions/456?inline=definition`
+- `GET /?inline=endpoints.messages`
+- `GET /endpoints/ep1/?inline=messages.message`
+- `GET /endpoints/ep1/messages/msg1?inline=message`
 
 The format of the `?inline` query parameter is:
 
@@ -4835,22 +4861,22 @@ For example, a request to the root of the Registry MUST start with a `GROUPs`
 name, while a request directed at a Group would start with a `RESOURCEs` name.
 
 For example, given a Registry with a model that has `endpoints` as a Group and
-`definitions` as a Resource within `endpoints`, the table below shows some
+`messages` as a Resource within `endpoints`, the table below shows some
 `PATH` values and a description of the result:
 
 | HTTP `GET` Path | Example ?inline=PATH values | Comment |
 | --- | --- | --- |
 | / | ?inline=endpoints | Inlines the `endpoints` collection, but just one level of it, not any nested inlinable attributes |
-| / | ?inline=endpoints.definitions.versions | Inlines the `versions` collection of all definitions. Note that this implicitly means the parent attributes (`definitions` and `endpoints` would also be inlined - however any other `GROUPs` or `RESOURCE`s types would not be |
-| /endpoints | ?inline=definitions | Inlines just `definitions` and not any nested attributes. Note we don't need to specify the parent `GROUP` since the URL already included it |
-| /endpoints/123 | ?inline=definitions.versions | Similar to the previous `endpoints.definitions.version` example |
-| /endpoints/123 | ?inline=definitions.definition | Inline the Resource itself |
-| /endpoints/123 | ?inline=endpoints | Invalid, already in `endpoints` and there is no `RESOURCE` called `endpoints` |
+| / | ?inline=endpoints.messages.versions | Inlines the `versions` collection of all messages. Note that this implicitly means the parent attributes (`messages` and `endpoints` would also be inlined - however any other `GROUPs` or `RESOURCE`s types would not be |
+| /endpoints | ?inline=messages | Inlines just `messages` and not any nested attributes. Note we don't need to specify the parent `GROUP` since the URL already included it |
+| /endpoints/ep1 | ?inline=messages.versions | Similar to the previous `endpoints.messages.version` example |
+| /endpoints/ep1 | ?inline=messages.message | Inline the Resource itself |
+| /endpoints/ep1 | ?inline=endpoints | Invalid, already in `endpoints` and there is no `RESOURCE` called `endpoints` |
 
 Note that asking for an attribute to be inlined will implicitly cause all of
-its parents to be inlined as well, but just the parent's attributes needed to
-show the child's attribute. In other words, just the child's Registry
-Collection in the parent, not all of them.
+its parents to be inlined as well, but just the parent's collections needed to
+show the child. In other words, just the collection in the parent in which the
+child appears, not all collections in the parent.
 
 When specifying a collection to be inlined, it MUST be specified using the
 plural name for the collection in its defined case.
@@ -4890,8 +4916,9 @@ Where:
   MUST be evaluated as a logical `AND` and any matching entities MUST satisfy
   all of the specified expressions within that `?filter` query parameter.
 - The `?filter` query parameter can appear multiple times and if so MUST
-  be evaluated as a logical `OR` and the response MUST include all entities
-  that match any of the individual `?filter` query parameters.
+  be evaluated as a logical `OR` with the other `?filter` query parameters that
+  appear and the response MUST include all entities that match any of the
+  individual `?filter` query parameters.
 
 The abstract processing logic would be:
 - For each `?filter` query parameter, find all entities that satisfy all
@@ -4933,11 +4960,15 @@ Where:
 
 When comparing an `ATTRIBUTE` to the specified `VALUE` the following rules
 MUST apply for an entity to be considered a match of the filter expression:
-- For numeric attributes, it MUST be an exact match.
-- For string attributes, its value MUST contain the `VALUE` within it but
-  does not need to be an exact case match.
 - For boolean attributes, its value MUST be an exact case sensitive match
   (`true` or `false`).
+- For numeric attributes, it MUST be an exact match.
+- For string attributes, it MUST be an exact match (case insensitive) when no
+  wildcard (`*`) character appears in the `VALUE`. The presence of a wildcard
+  indicates that any number of characters can appear at that location in the
+  `VALUE`. The wildcard MAY be escaped via the use of a backslash (`\\`)
+  character (e.g. `abc\*def`) to mean that the `*` is to be interpreted as
+  a normal character and not as a wildcard.
 
 If the request references an entity (not a collection), and the `EXPRESSION`
 references an attribute in that entity (i.e. there is no `PATH`), then if the
@@ -4948,11 +4979,11 @@ other words, a `404 Not Found` would be generated in the HTTP protocol case.
 
 | Request PATH | Filter query | Commentary |
 | --- | --- | --- |
-| / | `filter=endpoints.description=cool` | Only endpoints with the word `cool` in the description |
-| /endpoints | `filter=description=CooL` | Same results as previous, with a different request URL |
-| / | `filter=endpoints.definitions.versions.versionid=1.0` | Only versions (and their owning endpoints.definitions) that have a versionid of `1.0` |
-| / | `filter=endpoints.name=myendpoint,endpoints.description=cool& filter=schemagroups.labels.stage=dev` | Only endpoints whose name is `myendpoint` and whose description contains the word `cool`, as well as any schemagroups with a `label` name/value pair of `stage/dev` |
-| / | `filter=description=no-match` | Returns a 404 if the Registry's `description` doesn't contain `no-match` |
+| / | `filter=endpoints.description=*cool*` | Only endpoints with the word `cool` in the description |
+| /endpoints | `filter=description=*CooL*` | Same results as previous, with a different request URL |
+| / | `filter=endpoints.messages.versions.versionid=1.0` | Only versions (and their owning endpoints.messages) that have a versionid of `1.0` |
+| / | `filter=endpoints.name=myendpoint,endpoints.description=*cool*& filter=schemagroups.labels.stage=dev` | Only endpoints whose name is `myendpoint` and whose description contains the word `cool`, as well as any schemagroups with a `label` name/value pair of `stage/dev` |
+| / | `filter=description=no-match` | Returns a 404 if the Registry's `description` doesn't equal `no-match` |
 
 Specifying a filter does not imply inlining.
 
@@ -4972,7 +5003,7 @@ During an `export` operation the following rules apply:
   `?filter` query parameter MUST generate an error.
 - All Resources are serialized as JSON objects - meaning, Resource with the
   `hasdoc` aspect set to `true` are serialized with implied `$meta` semantics.
-- All Resources are serialized with an implied `?resource` query parameter
+- All Resources are serialized with an implied `?attribs` query parameter
   being in effect. In other words, default Version attributes are not
   serialized as part of a Resource's serialization.
 - Resources that are cross references (i.e. they have the `xref` attribute
@@ -4992,7 +5023,7 @@ Resource when `export` is used will adhere to the following:
 
 ```yaml
 {
-  "id": "STRING",
+  "RESOURCEid": "STRING",
   "self": "URL",
   "xref": "URL", ?
   # The rest will only appear if 'xref' is absent

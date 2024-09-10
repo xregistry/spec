@@ -27,7 +27,7 @@ this form:
 ```yaml
 {
   "specversion": "STRING",                         # xRegistry core attributes
-  "id": "STRING",
+  "registryid": "STRING",
   "self": "URL",
   "epoch": UINTEGER,
   "name": "STRING", ?
@@ -42,8 +42,8 @@ this form:
   "schemagroupsurl": "URL",                        # SchemaGroups collection
   "schemagroupscount": UINTEGER,
   "schemagroups": {
-    "ID": {
-      "id": "STRING",                              # xRegistry core attributes
+    "KEY": {                                       # schemagroupid
+      "schemagroupid": "STRING",                   # xRegistry core attributes
       "self": "URL",
       "epoch": UINTEGER,
       "name": "STRING", ?
@@ -57,16 +57,14 @@ this form:
       "schemasurl": "URL",                         # Schemas collection
       "schemascount": UINTEGER,
       "schemas": {
-        "ID": {
-          "id": "STRING",                          # xRegistry core attributes
+        "KEY": {                                   # schemaid
+          "schemaid": "STRING",                    # xRegistry core attributes
           "self": "URL",
           "xreg": "URL", ?
           "epoch": UINTEGER,
           "readonly": BOOLEAN, ?
 
-          "versionid": "STRING",
           "name": "STRING", ?
-          "isdefault": true,
           "description": "STRING", ?
           "documentation": "URL", ?
           "labels": { "STRING": "STRING" * }, ?
@@ -221,7 +219,7 @@ containing 5 schemas.
   "schemagroupscount": 1,
   "schemagroups": {
     "com.example.schemas": {
-      "id": "com.example.schemas",
+      "schemagroupid": "com.example.schemas",
       # Other xRegistry group-level attributes excluded for brevity
 
       "schemasurl": "https://example.com/schemagroups/com.example.schemas/schemas",
@@ -296,14 +294,14 @@ Versions for a schema named `com.example.telemetrydata`:
   "schemagroupscount": 1,
   "schemagroups": {
     "com.example.telemetry": {
-      "id": "com.example.telemetry",
+      "schemagroupid": "com.example.telemetry",
       # other xRegistry group-level attributes excluded for brevity
 
       "schemasurl": "http://example.com/schemagroups/com.example.telemetry/schemas",
       "schemascount": 1,
       "schemas": {
         "com.example.telemetrydata": {
-          "id": "com.example.telemetrydata",
+          "schemaid": "com.example.telemetrydata",
           "defaultversionurl": "http://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions/3",
           "defaultversionid": "3",
           "description": "device telemetry event data",
@@ -316,7 +314,8 @@ Versions for a schema named `com.example.telemetrydata`:
           "versionscount": 3,
           "versions": {
             "1": {
-              "id": "1",
+              "schemaid": "com.example.telemetrydata",
+              "versionid": "1",
               "description": "device telemetry event data",
               "format": "Protobuf/3",
               # other xRegistry resource-level attributes excluded for brevity
@@ -324,7 +323,8 @@ Versions for a schema named `com.example.telemetrydata`:
               "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; } }"
             },
             "2": {
-              "id": "2",
+              "schemaid": "com.example.telemetrydata",
+              "versionid": "2",
               "description": "device telemetry event data",
               "format": "Protobuf/3",
               # other xRegistry resource-level attributes excluded for brevity
@@ -332,7 +332,8 @@ Versions for a schema named `com.example.telemetrydata`:
               "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; } }"
             },
             "3": {
-              "id": "3",
+              "schemaid": "com.example.telemetrydata",
+              "versionid": "3",
               "description": "device telemetry event data",
               "format": "Protobuf/3",
               # other xRegistry resource-level attributes excluded for brevity

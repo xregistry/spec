@@ -98,7 +98,7 @@ schema for its payload.
 {
   "$schema": "https://cloudevents.io/schemas/registry",
   "specversion": "0.5-wip",
-  "id": "urn:uuid:3978344f-8596-4c3a-a978-8fc9a6a469f7",
+  "registryid": "Example Registry",
   "self": "http://example.com",
   "epoch": 4,
   "createdat": "2024-04-30T12:00:00Z",
@@ -108,7 +108,7 @@ schema for its payload.
   "endpointscount": 1,
   "endpoints": {
     "com.example.telemetry": {
-      "id": "com.example.telemetry",
+      "endpointid": "com.example.telemetry",
       "self": "https://example.com/endpoints/com.example.telemetry",
       "epoch": 5,
       "createdat": "2024-04-30T12:00:00Z",
@@ -131,12 +131,10 @@ schema for its payload.
       "messagescount": 1,
       "messages": {
         "com.example.telemetry": {
-          "id": "com.example.telemetry",
+          "messageid": "com.example.telemetry",
           "self": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry",
           "epoch": 5,
 
-          "versionid": "1.0",
-          "isdefault": true,
           "description": "device telemetry event",
           "createdat": "2024-04-30T12:00:00Z",
           "modifiedat": "2024-04-31T12:00:00Z",
@@ -186,7 +184,7 @@ scenarios:
 {
   "$schema": "https://cloudevents.io/schemas/registry",
   "specversion": "0.5-wip",
-  "id": "urn:uuid:3978344f-8596-4c3a-a978-8fc9a6a469f7",
+  "registryid": "Example Registry",
   "self": "http://example.com",
   "epoch": 4,
   "createdat": "2024-04-30T12:00:00Z",
@@ -196,7 +194,7 @@ scenarios:
   "endpointscount": 1,
   "endpoints": {
     "com.example.telemetry": {
-      "id": "com.example.telemetry",
+      "endpointid": "com.example.telemetry",
       "self": "https://example.com/endpoints/com.example.telemetry",
       "epoch": 5,
       "createdat": "2024-04-30T12:00:00Z",
@@ -226,7 +224,7 @@ scenarios:
   "messagegroupscount": 1,
   "messagegroups": {
     "com.example.telemetryEvents": {
-      "id": "com.example.telemetryEvents",
+      "messageid": "com.example.telemetryEvents",
       "self": "https://example.com/messagegroups/com.example.telemetryEvents",
       "epoch": 3,
       "createdat": "2024-04-30T12:00:00Z",
@@ -236,13 +234,11 @@ scenarios:
       "messagescount": 1,
       "messages": {
         "com.example.telemetry": {
-          "id": "com.example.telemetry",
+          "messageid": "com.example.telemetry",
           "self": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry",
           "epoch": 5,
           "description": "device telemetry event",
 
-          "versionid": "1.0",
-          "isdefault": true,
           "description": "device telemetry event",
           "createdat": "2024-04-30T12:00:00Z",
           "modifiedat": "2024-04-31T12:00:00Z",
@@ -285,7 +281,7 @@ scenarios:
   "schemagroupscount": 1,
   "schemagroups": {
     "com.example.telemetry": {
-      "id": "com.example.telemetry",
+      "schemagroupid": "com.example.telemetry",
       "self": "https://example.com/schemagroups/com.example.telemetry",
       "epoch": 5,
       "createdat": "2024-04-30T12:00:00Z",
@@ -294,12 +290,10 @@ scenarios:
       "schemascount": 1,
       "schemas": {
         "com.example.telemetrydata": {
-          "id": "com.example.telemetrydata",
+          "schemaid": "com.example.telemetrydata",
           "self": "https://example.com/schemagroups/com.example.telemetry/schemas",
           "epoch": 5,
 
-          "versionid": "1.0",
-          "isdefault": true,
           "description": "device telemetry event data",
           "createdat": "2024-04-30T12:00:00Z",
           "modifiedat": "2024-04-31T12:00:00Z",
@@ -314,11 +308,11 @@ scenarios:
           "versionsurl": "https://example.com/schemagroups/com.example.telemetry/schemas/versions",
           "versions": {
             "1.0": {
-              "id": "com.example.telemetrydata",
+              "resourceid": "com.example.telemetrydata",
+              "versionid": "1.0",
               "self": "https://example.com/schemagroups/com.example.telemetry/schemas/versions/1.0",
               "epoch": 5,
 
-              "versionid": "1.0",
               "isdefault": true,
               "description": "device telemetry event data",
               "createdat": "2024-04-30T12:00:00Z",
@@ -343,13 +337,13 @@ group with a deep link to the respective object in the service:
 {
   "$schema": "https://cloudevents.io/schemas/registry",
   "specversion": "0.5-wip",
-  "id": "urn:uuid:3978344f-8596-4c3a-a978-8fc9a6a469f7",
+  "registryid": "Example Registry",
 
   "endpointsurl": "https://example.com/endpoints",
   "endpointscount": 1,
   "endpoints": {
     "com.example.telemetry": {
-      "id": "com.example.telemetry",
+      "endpointid": "com.example.telemetry",
       "self": "https://example.com/endpoints/com.example.telemetry",
       "epoch": 5,
       "createdat": "2024-04-30T12:00:00Z",
@@ -377,13 +371,13 @@ link will first reference the file and then the object within the file, using
 {
   "$schema": "https://cloudevents.io/schemas/registry",
   "specversion": "0.5-wip",
-  "id": "urn:uuid:3978344f-8596-4c3a-a978-8fc9a6a469f7",
+  "registryid": "Example Registry",
 
   "endpointsurl": "https://example.com/endpoints",
   "endpointscount": 1,
   "endpoints": {
     "com.example.telemetry": {
-      "id": "com.example.telemetry",
+      "endpointid": "com.example.telemetry",
       "self": "https://example.com/endpoints/com.example.telemetry",
       "epoch": 5,
       "createdat": "2024-04-30T12:00:00Z",
@@ -446,7 +440,7 @@ embedded or referenced. Any of the three sub-registries MAY be omitted.
 {
   "$schema": "https://cloudevents.io/schemas/registry",
   "specversion": "0.5-wip",
-  "id": "STRING",
+  "registryid": "STRING",
 
   "endpointsurl": "URL",
   "endpointscount": INT,
