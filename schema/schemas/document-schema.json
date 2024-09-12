@@ -51,6 +51,10 @@
         "format": {
           "type": "string",
           "description": "Schema format identifier for this schema version"
+        },
+        "validation": {
+          "type": "boolean",
+          "description": "Verify compliance with specified schema 'format'"
         }
       },
       "oneOf": [

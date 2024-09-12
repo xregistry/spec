@@ -514,6 +514,12 @@ of the existing entity. Then the existing entity can be deleted.
   xRegistry metadata. This would happen when `$meta` was used in the request,
   or when the Resource (or Version) is included in the serialization of a
   parent entity.
+
+  If the Resource or Version has the `hasdocument` model aspect set to `false`,
+  then this URL MUST be appended with `$meta` only if the request was directed
+  at the Resource or Version and included `$meta`. Otherwise in all other
+  situations `$meta` MUST NOT be included.
+
 - Constraints:
   - MUST be a non-empty absolute URL.
   - MUST be a read-only attribute in API view.
@@ -734,9 +740,7 @@ pattern of the APIs:
   managed attributes might have specialized processing.
 - On write operations, without a
   [`?nested`](#updating-nested-registry-collections) query parameter,
-  any included xRegistry collections are ignored. In other words, the
-  operation will only modify the targeted entities, not any nested
-  collections/entities.
+  any included xRegistry collections will generate an error.
 - `PUT` or `PATCH ` can not be targeted at xRegistry collections. A `POST`
   would need to be used instead to add entities to the collection, and a
   `DELETE` might also be needed to delete unwanted entities.
@@ -872,8 +876,11 @@ In document view:
 ##### API view
 
 In API view:
-- `COLLECTIONsurl` and `COLLECTIONscount` are REQUIRED for responses even if
-  there are no entities in the collection.
+- `COLLECTIONsurl` is REQUIRED for responses even if there are not entities
+  in the collection.
+- `COLLECTIONscount` is STRONGLY RECOMMENDED for responses even if
+  there are no entities in the collection. This requirement is not mandated
+  to allow for cases where calculating the exact count is too costly.
 - `COLLECTIONsurl` and `COLLECTIONscount` are OPTIONAL for requests and MUST
    be silently ignored by the server if present.
 - `COLLECTIONs` is OPTIONAL for responses and MUST only be included if the
@@ -881,7 +888,7 @@ In API view:
   this collection's entities are to be returned. If `?inline` is present then
   `COLLECTIONs` is REQUIRED and MUST be present in the response even if it is
   empty (e.g. `{}`).
-- `COLLECTIONs` is OPTIONAL for requests and MUST be silently ignored if
+- `COLLECTIONs` is OPTIONAL for requests and MUST generate an error if
   the [`?nested`](#updating-nested-registry-collections) query parameter is not
   present. See [Updating Nested Registry
   Collections](#updating-nested-registry-collections) for more details.
@@ -891,8 +898,10 @@ In API view:
 When updating an entity that can contain Registry collections, the request
 MAY contain the 3 collection attributes. The `COLLECTIONsurl` and
 `COLLECTIONscount` attributes MUST be silently ignored by the server.
-By default, in the absence of a `?nested` query parameter, the server MUST
-ignore the `COLLECTIONs` attribute as well.
+
+A request that includes `COLLECTIONs` attributes MUST generate an error
+if the `?nested` query parameter is not present. This acts as a check to
+ensure the client is not accidentally updating the children entities.
 
 If the `?nested` query parameter and the `COLLECTIONs` attribute are both
 present, the server MUST process each entity in the collection map as a
@@ -1658,8 +1667,8 @@ but it is NOT REQUIRED for implementations to follow these rules if a
 different set of changes are more appropriate:
 - If a `default` value is defined for the attribute, then it SHOULD be used.
 - If the attribute is OPTIONAL, then the attribute SHOULD be deleted.
-- If an enum defined and `strict` is `true`, the first `enum` value SHOULD be
-  used.
+- If an enum is defined and `strict` is `true`, the first `enum` value SHOULD
+  be used.
 - If valid, the zero value for the attribute's type SHOULD be used:
   - Array, Map, Object: empty value (e.g. `[]`, `{}`, `{}` respectively).
   - Boolean: false.
@@ -2046,8 +2055,9 @@ The following describes the attributes of Registry model:
     document". Meaning, an HTTP `GET` to the Resource's URL will return the
     xRegistry metadata in the HTTP body. The `xRegistry-` HTTP headers MUST
     NOT be used for requests or response messages for these Resources.
-    Likewise, use of `$meta` URL path suffix in these cases MUST generate an
-    error.
+    Use of `$meta` on the request URLs MAY be used to provide consistency with
+    the cases where this attribute is set to `true` - but the output remains
+    the same.
 
     A value of `true` does not mean that these Resources are guaranteed to
     have a non-empty document, and an HTTP `GET` to the Resource MAY return an
@@ -3831,8 +3841,10 @@ Where:
   of the HTTP body (even if empty) are to be used as the entity's document.
 - If the Resource's `hasdocument` model attribute has a value of `false` then
   the following rules apply:
-  - Any use of the `$meta` suffix MUST be silently ignored. Meaning, use of
-    `$meta` has no effect on these types of Resources.
+  - Only the first form (serialization as a JSON Object) MUST be used.
+  - Use of the `$meta` suffix on the request URL is OPTIONAL and has no
+    impact on processing beyond resulting in any URLs in the response being
+    appended with `$meta` if they reference this Resource (or its Versions).
   - Any request that includes the xRegistry HTTP headers MUST generate an
     error.
   - An update request with an empty HTTP body MUST be interpreted as a request
@@ -4922,10 +4934,10 @@ Where:
 
 The abstract processing logic would be:
 - For each `?filter` query parameter, find all entities that satisfy all
-  expressions for that `filter`.
+  expressions for that `filter`. Each will result in a sub-tree of entities.
 - After processing all individual `?filter` query parameters, combine those
-  individual results into one result set and remove any duplicates - adjusting
-  any collection `url` and `count` values as needed.
+  sub-trees into one result set and remove any duplicates - adjusting any
+  collection `url` and `count` values as needed.
 
 The format of `EXPRESSION` is:
 
@@ -4985,7 +4997,76 @@ other words, a `404 Not Found` would be generated in the HTTP protocol case.
 | / | `filter=endpoints.name=myendpoint,endpoints.description=*cool*& filter=schemagroups.labels.stage=dev` | Only endpoints whose name is `myendpoint` and whose description contains the word `cool`, as well as any schemagroups with a `label` name/value pair of `stage/dev` |
 | / | `filter=description=no-match` | Returns a 404 if the Registry's `description` doesn't equal `no-match` |
 
-Specifying a filter does not imply inlining.
+Specifying a filter does not imply inlining. However, inlining can be used at
+the same time but MUST NOT result in additional entities being included in
+the results unless they are children of leaf entity from one of the sub-trees.
+
+For example, in the following entity URL paths representing a Registry:
+
+```yaml
+mygroups/g1/myresources/r1/versions/v1
+mygroups/g1/myresources/r1/versions/v2
+mygroups/g1/myresources/r2/versions/v1
+mygroups/g2/myresources/r3/versions/v1
+```
+
+This request:
+```yaml
+GET /?filter=mygroups.myresources.myresourceid=r1&inline=*
+```
+
+would result in the following entities (and their parents along the specified
+paths) being returned:
+
+```yaml
+mygroups/g1/myresources/r1/versions/v1  # versions are due to inlining
+mygroups/g1/myresources/r1/versions/v2
+```
+
+However, this request:
+
+```yaml
+GET /?filter=mygroups.mygroupid=g2&filter=mygroups.myresources.myresourceid=r1&inline=*
+```
+
+would result in the following returned:
+
+```yaml
+mygroups/g1/myresources/r1/versions/v1   # from 2nd ?filter
+mygroups/g1/myresources/r1/versions/v2   # from 2nd ?filter
+mygroups/g2/myresources/r3/versions/v1   # from 1nd ?filter
+```
+
+And, this request:
+
+```yaml
+GET /?filter=mygroups.mygroupid=g1&filter=mygroups.myresources.myresourceid=r1&inline=*
+```
+
+would result in the following being returned:
+
+```yaml
+mygroups/g1/myresources/r1/versions/v1   # from 2nd ?filter
+mygroups/g1/myresources/r1/versions/v2   # from 2nd ?filter
+mygroups/g1/myresources/r2/versions/v1   # from 1st ?filter
+```
+
+And, finally this request:
+
+```yaml
+GET /?filter=mygroups.mygroupid=g1,mygroups.myresources.myresourceid=r1&inline=*
+```
+
+would result in the following being returned:
+
+```yaml
+mygroups/g1/myresources/r1/versions/v1
+mygroups/g1/myresources/r1/versions/v2
+```
+
+Notice the first part of the `?filter` expression (to the left of the "and"
+(`,`)) has no impact on the results because the list of resulting leaves in
+that sub-tree is not changed by that search criteria.
 
 ### Exporting
 

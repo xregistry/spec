@@ -403,7 +403,7 @@ While the CloudEvents Registry is primarily motivated by enabling development of
 CloudEvents-based event flows, the registry is not limited to CloudEvents. It
 can be used to describe any asynchronous messaging or eventing endpoint and its
 messages, including endpoints that do not use CloudEvents at all. The [Message
-Formats](../message/spec.md#metadata-formats-and-message-bindings) section
+Formats](../message/spec.md#metadata-envelopes-and-message-protocols) section
 therefore not only describes the attribute meta-schema for CloudEvents, but also
 meta-schemas for the native message envelopes of MQTT, AMQP, and other messaging
 protocols.

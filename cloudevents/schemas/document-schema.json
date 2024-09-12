@@ -67,21 +67,16 @@
         },
         "schemaformat": {
           "type": "string",
-          "description": "The schema format applicable to the message payload, equivalent to the 'format' attribute attribute of the schema registry"
+          "description": "The schema format applicable to the message payload, equivalent to the 'format' attribute of the schema registry"
         },
         "schema": {
-          "type": "string",
+          "type": "object",
           "description": "The inline schema for the message payload, equivalent to the 'schema' attribute of the schema registry"
         },
-        "schemaobject": {
-          "type": "object",
-          "description": "The inline schema object for the message payload, equivalent to the 'schemaobject' attribute of the schema registry",
-          "properties": {}
-        },
-        "schemaurl": {
+        "schemauri": {
           "type": "string",
           "format": "uri",
-          "description": "The URL of the schema for the message payload, equivalent to the 'schemaurl' attribute of the schema registry"
+          "description": "The URI of the schema for the message payload, equivalent to the 'schemaurl' attribute of the schema registry"
         }
       },
       "required": [
@@ -92,9 +87,9 @@
           "oneOf": [
             {
               "properties": {
-                "format": {
+                "envelope": {
                   "type": "string",
-                  "description": "Message format identifier. This attribute MUST be the same as the 'format' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
+                  "description": "Message envelope format identifier. This attribute MUST be the same as the 'envelope' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
                   "enum": [
                     "None"
                   ],
@@ -104,14 +99,14 @@
             },
             {
               "properties": {
-                "format": {
+                "envelope": {
                   "type": "string",
-                  "description": "Message format identifier. This attribute MUST be the same as the 'format' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
+                  "description": "Message envelope format identifier. This attribute MUST be the same as the 'envelope' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
                   "enum": [
                     "CloudEvents/1.0"
                   ]
                 },
-                "metadata": {
+                "envelopemetadata": {
                   "type": "object",
                   "description": "CloudEvents metadata constraints",
                   "properties": {
@@ -229,10 +224,24 @@
                       }
                     }
                   }
+                },
+                "envelopeoptions": {
+                  "type": "object",
+                  "description": "Envelope metadata constraints",
+                  "properties": {
+                    "mode": {
+                      "type": "string",
+                      "description": "Whether CloudEvents 'binary' or 'structure' mode will be used"
+                    },
+                    "format": {
+                      "type": "string",
+                      "description": "The media type format used to serialize the CloudEvent in the case of mode=structured"
+                    }
+                  }
                 }
               },
               "required": [
-                "format"
+                "envelope"
               ]
             }
           ]
@@ -241,9 +250,9 @@
           "oneOf": [
             {
               "properties": {
-                "binding": {
+                "protocol": {
                   "type": "string",
-                  "description": "Binding identifier. This attribute MUST be the same as the 'binding' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
+                  "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
                   "enum": [
                     "None"
                   ],
@@ -253,14 +262,14 @@
             },
             {
               "properties": {
-                "binding": {
+                "protocol": {
                   "type": "string",
-                  "description": "Binding identifier. This attribute MUST be the same as the 'binding' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
+                  "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
                   "enum": [
                     "AMQP/1.0"
                   ]
                 },
-                "message": {
+                "protocoloptions": {
                   "type": "object",
                   "description": "AMQP message metadata constraints",
                   "properties": {
@@ -541,19 +550,19 @@
                 }
               },
               "required": [
-                "binding"
+                "protocol"
               ]
             },
             {
               "properties": {
-                "binding": {
+                "protocol": {
                   "type": "string",
-                  "description": "Binding identifier. This attribute MUST be the same as the 'binding' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
+                  "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
                   "enum": [
                     "MQTT/3.1.1"
                   ]
                 },
-                "message": {
+                "protocoloptions": {
                   "type": "object",
                   "description": "MQTT message metadata constraints",
                   "properties": {
@@ -591,19 +600,19 @@
                 }
               },
               "required": [
-                "binding"
+                "protocol"
               ]
             },
             {
               "properties": {
-                "binding": {
+                "protocol": {
                   "type": "string",
-                  "description": "Binding identifier. This attribute MUST be the same as the 'binding' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
+                  "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
                   "enum": [
                     "MQTT/5.0"
                   ]
                 },
-                "message": {
+                "protocoloptions": {
                   "type": "object",
                   "description": "MQTT message metadata constraints",
                   "properties": {
@@ -698,19 +707,19 @@
                 }
               },
               "required": [
-                "binding"
+                "protocol"
               ]
             },
             {
               "properties": {
-                "binding": {
+                "protocol": {
                   "type": "string",
-                  "description": "Binding identifier. This attribute MUST be the same as the 'binding' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
+                  "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
                   "enum": [
                     "KAFKA"
                   ]
                 },
-                "message": {
+                "protocoloptions": {
                   "type": "object",
                   "description": "The Apache Kafka message metadata constraints",
                   "properties": {
@@ -751,19 +760,19 @@
                 }
               },
               "required": [
-                "binding"
+                "protocol"
               ]
             },
             {
               "properties": {
-                "binding": {
+                "protocol": {
                   "type": "string",
-                  "description": "Binding identifier. This attribute MUST be the same as the 'binding' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
+                  "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
                   "enum": [
                     "HTTP"
                   ]
                 },
-                "message": {
+                "protocoloptions": {
                   "type": "object",
                   "description": "The HTTP message metadata constraints",
                   "properties": {
@@ -801,7 +810,7 @@
                 }
               },
               "required": [
-                "binding"
+                "protocol"
               ]
             }
           ]
@@ -850,14 +859,6 @@
           "type": "string",
           "description": "Client's expected usage of this endpoint"
         },
-        "format": {
-          "type": "string",
-          "description": "Endpoint metadata format identifier. If set, all definitions MUST use this format value"
-        },
-        "binding": {
-          "type": "string",
-          "description": "Endpoint message binding identifier. If set, all definitions MUST use this binding value"
-        },
         "channel": {
           "type": "string",
           "description": "tbd"
@@ -888,73 +889,118 @@
             }
           }
         },
-        "config": {
+        "messagegroups": {
+          "type": "array",
+          "description": "The message groups that are supported by this endpoint",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "messages": {
           "type": "object",
-          "description": "Configuration information for this endpoint",
-          "properties": {
-            "endpoints": {
-              "type": "array",
-              "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URI just identifies a network host or links directly to a resource managed by the network host is protocol specific",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "uri": {
-                    "type": "string",
-                    "format": "uri",
-                    "description": "Network accessible location"
-                  }
-                }
-              }
-            },
-            "authorization": {
-              "type": "array",
-              "description": "Authorization options. These are hints for the adapter for interacting with the authorization endpoint. This is not a credentials configuration",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "description": "The authentication/authorization type. OAuth2, Plain, APIKey, and X509Cert are well-defined"
-                  },
-                  "resourceurl": {
-                    "type": "string",
-                    "format": "uri",
-                    "description": "The resource uri for which authorization shall be granted (if applicable)"
-                  },
-                  "authorityuri": {
-                    "type": "string",
-                    "format": "uri",
-                    "description": "The authority uri where authorization shall be requested (if applicable)"
-                  },
-                  "granttypes": {
-                    "type": "array",
-                    "description": "The grant types that can be requested (if applicable)",
-                    "items": {
+          "additionalProperties": {
+            "$ref": "#/definitions/message"
+          }
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "allOf": [
+        {
+          "oneOf": [
+            {
+              "properties": {
+                "envelope": {
+                  "type": "string",
+                  "description": "Envelope metadata format identifier. If set, all definitions MUST use this format value",
+                  "enum": [
+                    "CloudEvents/1.0"
+                  ]
+                },
+                "envelopeoptions": {
+                  "type": "object",
+                  "description": "Envelope metadata constraints",
+                  "properties": {
+                    "mode": {
+                      "type": "string"
+                    },
+                    "format": {
                       "type": "string"
                     }
                   }
                 }
-              }
-            },
-            "deployed": {
-              "type": "boolean",
-              "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint"
+              },
+              "required": [
+                "envelope"
+              ]
             }
-          },
+          ]
+        },
+        {
           "oneOf": [
             {
               "properties": {
                 "protocol": {
                   "type": "string",
-                  "description": "endpoint protocol identifier",
+                  "description": "Endpoint protocol identifier. If set, all definitions MUST use this protocol value",
                   "enum": [
                     "AMQP/1.0"
                   ]
                 },
-                "options": {
+                "protocoloptions": {
                   "type": "object",
-                  "description": "AMQP 1.0 connection options",
+                  "description": "Configuration information for this endpoint",
                   "properties": {
+                    "endpoints": {
+                      "type": "array",
+                      "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URI just identifies a network host or links directly to a resource managed by the network host is protocol specific",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "uri": {
+                            "type": "string",
+                            "format": "uri",
+                            "description": "Network accessible location"
+                          }
+                        }
+                      }
+                    },
+                    "authorization": {
+                      "type": "array",
+                      "description": "Authorization options. These are hints for the adapter for interacting with the authorization endpoint. This is not a credentials configuration",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "description": "The authentication/authorization type. OAuth2, Plain, APIKey, and X509Cert are well-defined"
+                          },
+                          "resourceurl": {
+                            "type": "string",
+                            "format": "uri",
+                            "description": "The resource uri for which authorization shall be granted (if applicable)"
+                          },
+                          "authorityuri": {
+                            "type": "string",
+                            "format": "uri",
+                            "description": "The authority uri where authorization shall be requested (if applicable)"
+                          },
+                          "granttypes": {
+                            "type": "array",
+                            "description": "The grant types that can be requested (if applicable)",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "deployed": {
+                      "type": "boolean",
+                      "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint"
+                    },
                     "node": {
                       "type": "string",
                       "description": "The AMQP node name. Commonly the name of a queue or a topic"
@@ -992,15 +1038,63 @@
               "properties": {
                 "protocol": {
                   "type": "string",
-                  "description": "endpoint protocol identifier",
+                  "description": "Endpoint protocol identifier. If set, all definitions MUST use this protocol value",
                   "enum": [
                     "MQTT/5.0"
                   ]
                 },
-                "options": {
+                "protocoloptions": {
                   "type": "object",
-                  "description": "MQTT 5.0 connection options",
+                  "description": "Configuration information for this endpoint",
                   "properties": {
+                    "endpoints": {
+                      "type": "array",
+                      "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URI just identifies a network host or links directly to a resource managed by the network host is protocol specific",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "uri": {
+                            "type": "string",
+                            "format": "uri",
+                            "description": "Network accessible location"
+                          }
+                        }
+                      }
+                    },
+                    "authorization": {
+                      "type": "array",
+                      "description": "Authorization options. These are hints for the adapter for interacting with the authorization endpoint. This is not a credentials configuration",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "description": "The authentication/authorization type. OAuth2, Plain, APIKey, and X509Cert are well-defined"
+                          },
+                          "resourceurl": {
+                            "type": "string",
+                            "format": "uri",
+                            "description": "The resource uri for which authorization shall be granted (if applicable)"
+                          },
+                          "authorityuri": {
+                            "type": "string",
+                            "format": "uri",
+                            "description": "The authority uri where authorization shall be requested (if applicable)"
+                          },
+                          "granttypes": {
+                            "type": "array",
+                            "description": "The grant types that can be requested (if applicable)",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "deployed": {
+                      "type": "boolean",
+                      "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint"
+                    },
                     "topic": {
                       "type": "string",
                       "description": "The MQTT topic path"
@@ -1037,15 +1131,63 @@
               "properties": {
                 "protocol": {
                   "type": "string",
-                  "description": "endpoint protocol identifier",
+                  "description": "Endpoint protocol identifier. If set, all definitions MUST use this protocol value",
                   "enum": [
                     "MQTT/3.1.1"
                   ]
                 },
-                "options": {
+                "protocoloptions": {
                   "type": "object",
-                  "description": "MQTT 3.1.1 connection options",
+                  "description": "Configuration information for this endpoint",
                   "properties": {
+                    "endpoints": {
+                      "type": "array",
+                      "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URI just identifies a network host or links directly to a resource managed by the network host is protocol specific",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "uri": {
+                            "type": "string",
+                            "format": "uri",
+                            "description": "Network accessible location"
+                          }
+                        }
+                      }
+                    },
+                    "authorization": {
+                      "type": "array",
+                      "description": "Authorization options. These are hints for the adapter for interacting with the authorization endpoint. This is not a credentials configuration",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "description": "The authentication/authorization type. OAuth2, Plain, APIKey, and X509Cert are well-defined"
+                          },
+                          "resourceurl": {
+                            "type": "string",
+                            "format": "uri",
+                            "description": "The resource uri for which authorization shall be granted (if applicable)"
+                          },
+                          "authorityuri": {
+                            "type": "string",
+                            "format": "uri",
+                            "description": "The authority uri where authorization shall be requested (if applicable)"
+                          },
+                          "granttypes": {
+                            "type": "array",
+                            "description": "The grant types that can be requested (if applicable)",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "deployed": {
+                      "type": "boolean",
+                      "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint"
+                    },
                     "topic": {
                       "type": "string",
                       "description": "MQTT topic path"
@@ -1082,15 +1224,63 @@
               "properties": {
                 "protocol": {
                   "type": "string",
-                  "description": "endpoint protocol identifier",
+                  "description": "Endpoint protocol identifier. If set, all definitions MUST use this protocol value",
                   "enum": [
                     "HTTP"
                   ]
                 },
-                "options": {
+                "protocoloptions": {
                   "type": "object",
-                  "description": "HTTP options. These apply to all HTTP versions since the application model is the same across versions",
+                  "description": "Configuration information for this endpoint",
                   "properties": {
+                    "endpoints": {
+                      "type": "array",
+                      "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URI just identifies a network host or links directly to a resource managed by the network host is protocol specific",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "uri": {
+                            "type": "string",
+                            "format": "uri",
+                            "description": "Network accessible location"
+                          }
+                        }
+                      }
+                    },
+                    "authorization": {
+                      "type": "array",
+                      "description": "Authorization options. These are hints for the adapter for interacting with the authorization endpoint. This is not a credentials configuration",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "description": "The authentication/authorization type. OAuth2, Plain, APIKey, and X509Cert are well-defined"
+                          },
+                          "resourceurl": {
+                            "type": "string",
+                            "format": "uri",
+                            "description": "The resource uri for which authorization shall be granted (if applicable)"
+                          },
+                          "authorityuri": {
+                            "type": "string",
+                            "format": "uri",
+                            "description": "The authority uri where authorization shall be requested (if applicable)"
+                          },
+                          "granttypes": {
+                            "type": "array",
+                            "description": "The grant types that can be requested (if applicable)",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "deployed": {
+                      "type": "boolean",
+                      "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint"
+                    },
                     "method": {
                       "type": "string",
                       "description": "The HTTP method name"
@@ -1130,15 +1320,63 @@
               "properties": {
                 "protocol": {
                   "type": "string",
-                  "description": "endpoint protocol identifier",
+                  "description": "Endpoint protocol identifier. If set, all definitions MUST use this protocol value",
                   "enum": [
                     "KAFKA"
                   ]
                 },
-                "options": {
+                "protocoloptions": {
                   "type": "object",
-                  "description": "Apache Kafka options",
+                  "description": "Configuration information for this endpoint",
                   "properties": {
+                    "endpoints": {
+                      "type": "array",
+                      "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URI just identifies a network host or links directly to a resource managed by the network host is protocol specific",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "uri": {
+                            "type": "string",
+                            "format": "uri",
+                            "description": "Network accessible location"
+                          }
+                        }
+                      }
+                    },
+                    "authorization": {
+                      "type": "array",
+                      "description": "Authorization options. These are hints for the adapter for interacting with the authorization endpoint. This is not a credentials configuration",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "description": "The authentication/authorization type. OAuth2, Plain, APIKey, and X509Cert are well-defined"
+                          },
+                          "resourceurl": {
+                            "type": "string",
+                            "format": "uri",
+                            "description": "The resource uri for which authorization shall be granted (if applicable)"
+                          },
+                          "authorityuri": {
+                            "type": "string",
+                            "format": "uri",
+                            "description": "The authority uri where authorization shall be requested (if applicable)"
+                          },
+                          "granttypes": {
+                            "type": "array",
+                            "description": "The grant types that can be requested (if applicable)",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "deployed": {
+                      "type": "boolean",
+                      "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint"
+                    },
                     "topic": {
                       "type": "string",
                       "description": "Apache Kafka topic name"
@@ -1177,15 +1415,63 @@
               "properties": {
                 "protocol": {
                   "type": "string",
-                  "description": "endpoint protocol identifier",
+                  "description": "Endpoint protocol identifier. If set, all definitions MUST use this protocol value",
                   "enum": [
                     "NATS"
                   ]
                 },
-                "options": {
+                "protocoloptions": {
                   "type": "object",
-                  "description": "NATS options",
+                  "description": "Configuration information for this endpoint",
                   "properties": {
+                    "endpoints": {
+                      "type": "array",
+                      "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URI just identifies a network host or links directly to a resource managed by the network host is protocol specific",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "uri": {
+                            "type": "string",
+                            "format": "uri",
+                            "description": "Network accessible location"
+                          }
+                        }
+                      }
+                    },
+                    "authorization": {
+                      "type": "array",
+                      "description": "Authorization options. These are hints for the adapter for interacting with the authorization endpoint. This is not a credentials configuration",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "description": "The authentication/authorization type. OAuth2, Plain, APIKey, and X509Cert are well-defined"
+                          },
+                          "resourceurl": {
+                            "type": "string",
+                            "format": "uri",
+                            "description": "The resource uri for which authorization shall be granted (if applicable)"
+                          },
+                          "authorityuri": {
+                            "type": "string",
+                            "format": "uri",
+                            "description": "The authority uri where authorization shall be requested (if applicable)"
+                          },
+                          "granttypes": {
+                            "type": "array",
+                            "description": "The grant types that can be requested (if applicable)",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "deployed": {
+                      "type": "boolean",
+                      "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint"
+                    },
                     "subject": {
                       "type": "string",
                       "description": "The NATS subject"
@@ -1198,24 +1484,7 @@
               ]
             }
           ]
-        },
-        "messagegroups": {
-          "type": "array",
-          "description": "The message groups that are supported by this endpoint",
-          "items": {
-            "type": "string",
-            "format": "uri"
-          }
-        },
-        "messages": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/message"
-          }
         }
-      },
-      "required": [
-        "id"
       ]
     },
     "messagegroup": {
@@ -1256,13 +1525,13 @@
           "type": "string",
           "format": "date-time"
         },
-        "format": {
+        "envelope": {
           "type": "string",
-          "description": "Format identifier that defines the common metadata information for the message. All definitions in this group share this format. Mixed-format groups are not permitted"
+          "description": "Envelope format identifier that defines the common metadata information for the message. All definitions in this group share this envelope format. Mixed-envelope-format groups are not permitted"
         },
-        "binding": {
+        "protocol": {
           "type": "string",
-          "description": "Binding identifier that defines the transport message binding. All definitions in this group share this binding type. Mixed-binding groups are not permitted"
+          "description": "Protocol identifier that defines the transport message protocol. All definitions in this group share this protocol type. Mixed-protocol groups are not permitted"
         },
         "messages": {
           "type": "object",
@@ -1316,6 +1585,10 @@
         "format": {
           "type": "string",
           "description": "Schema format identifier for this schema version"
+        },
+        "validation": {
+          "type": "boolean",
+          "description": "Verify compliance with specified schema 'format'"
         }
       },
       "oneOf": [

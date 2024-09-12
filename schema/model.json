@@ -23,9 +23,13 @@
             "format": {
               "name": "format",
               "type": "string",
-              "description": "Schema format identifier for this schema version",
-              "clientrequired": true,
-              "serverrequired": true
+              "description": "Schema format identifier for this schema version"
+            },
+            "validation": {
+              "name": "validation",
+              "type": "boolean",
+              "description": "Verify compliance with specified schema 'format'",
+              "location": "resource"
             },
             "*": {
               "name": "*",

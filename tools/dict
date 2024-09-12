@@ -7,6 +7,7 @@ apikey
 asyncapi
 attribs
 attributename
+attrs
 authorityuri
 avro
 avsc
@@ -54,6 +55,8 @@ endpointid
 endpointscount
 endpointsurl
 enum
+envelopemetadata
+envelopeoptions
 etag
 eventing
 filesystem
@@ -109,6 +112,7 @@ myendpoint
 myentity
 myevent
 mygroup
+mygroupid
 mygroups
 mykey
 mylinkproperty
@@ -118,6 +122,8 @@ myorg
 myproject
 myqueue
 myregistry
+myresourceid
+myresources
 myschema
 myschemas
 myspec
@@ -138,6 +144,8 @@ png
 pov
 producerrecord
 protobuf
+protocoloptions
+protocoloptionsendpoints
 ptr
 qos
 rawdata
@@ -163,6 +171,7 @@ schemaid
 schemaobject
 schemascount
 schemasurl
+schemauri
 schemaurl
 schemaversion
 serverless

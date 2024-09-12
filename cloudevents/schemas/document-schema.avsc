@@ -88,16 +88,6 @@
             },
             {
               "type": "string",
-              "name": "format",
-              "doc": "Endpoint metadata format identifier. If set, all definitions MUST use this format value"
-            },
-            {
-              "type": "string",
-              "name": "binding",
-              "doc": "Endpoint message binding identifier. If set, all definitions MUST use this binding value"
-            },
-            {
-              "type": "string",
               "name": "channel",
               "doc": "tbd"
             },
@@ -107,9 +97,93 @@
               "doc": "tbd"
             },
             {
-              "type": "GenericRecord",
-              "name": "config",
-              "doc": "Configuration information for this endpoint"
+              "name": "envelope",
+              "type": [
+                {
+                  "type": "record",
+                  "name": "EnvelopeCloudevents10Type",
+                  "fields": [
+                    {
+                      "type": "GenericRecord",
+                      "name": "envelopeoptions",
+                      "doc": "Envelope metadata constraints"
+                    }
+                  ]
+                }
+              ],
+              "doc": "Envelope metadata format identifier. If set, all definitions MUST use this format value"
+            },
+            {
+              "name": "protocol",
+              "type": [
+                {
+                  "type": "record",
+                  "name": "ProtocolAmqp10Type",
+                  "fields": [
+                    {
+                      "type": "GenericRecord",
+                      "name": "protocoloptions",
+                      "doc": "Configuration information for this endpoint"
+                    }
+                  ]
+                },
+                {
+                  "type": "record",
+                  "name": "ProtocolMqtt50Type",
+                  "fields": [
+                    {
+                      "type": "GenericRecord",
+                      "name": "protocoloptions",
+                      "doc": "Configuration information for this endpoint"
+                    }
+                  ]
+                },
+                {
+                  "type": "record",
+                  "name": "ProtocolMqtt311Type",
+                  "fields": [
+                    {
+                      "type": "GenericRecord",
+                      "name": "protocoloptions",
+                      "doc": "Configuration information for this endpoint"
+                    }
+                  ]
+                },
+                {
+                  "type": "record",
+                  "name": "ProtocolHTTPType",
+                  "fields": [
+                    {
+                      "type": "GenericRecord",
+                      "name": "protocoloptions",
+                      "doc": "Configuration information for this endpoint"
+                    }
+                  ]
+                },
+                {
+                  "type": "record",
+                  "name": "ProtocolKAFKAType",
+                  "fields": [
+                    {
+                      "type": "GenericRecord",
+                      "name": "protocoloptions",
+                      "doc": "Configuration information for this endpoint"
+                    }
+                  ]
+                },
+                {
+                  "type": "record",
+                  "name": "ProtocolNATSType",
+                  "fields": [
+                    {
+                      "type": "GenericRecord",
+                      "name": "protocoloptions",
+                      "doc": "Configuration information for this endpoint"
+                    }
+                  ]
+                }
+              ],
+              "doc": "Endpoint protocol identifier. If set, all definitions MUST use this protocol value"
             },
             {
               "type": {
@@ -215,16 +289,16 @@
                       "doc": "Reference to a base definition for this definition, either via a (relative) URL or a fragment identifier. The base definition is overridden by this definition. If not present, this definition does not override any base definition"
                     },
                     {
-                      "name": "format",
+                      "name": "envelope",
                       "type": [
                         {
                           "type": "record",
-                          "name": "FormatNoneType",
+                          "name": "EnvelopeNoneType",
                           "fields": []
                         },
                         {
                           "type": "record",
-                          "name": "FormatCloudevents10Type",
+                          "name": "EnvelopeCloudevents10Type",
                           "fields": [
                             {
                               "type": {
@@ -264,99 +338,132 @@
                                   }
                                 ]
                               },
-                              "name": "metadata",
+                              "name": "envelopemetadata",
                               "doc": "CloudEvents metadata constraints"
+                            },
+                            {
+                              "type": "GenericRecord",
+                              "name": "envelopeoptions",
+                              "doc": "Envelope metadata constraints"
                             }
                           ]
                         }
                       ],
-                      "doc": "Message format identifier. This attribute MUST be the same as the 'format' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups"
+                      "doc": "Message envelope format identifier. This attribute MUST be the same as the 'envelope' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups"
                     },
                     {
-                      "name": "binding",
+                      "name": "protocol",
                       "type": [
                         {
                           "type": "record",
-                          "name": "BindingNoneType",
+                          "name": "ProtocolNoneType",
                           "fields": []
                         },
                         {
                           "type": "record",
-                          "name": "BindingAmqp10Type",
+                          "name": "ProtocolAmqp10Type",
                           "fields": [
                             {
                               "type": "GenericRecord",
-                              "name": "message",
+                              "name": "protocoloptions",
                               "doc": "AMQP message metadata constraints"
                             }
                           ]
                         },
                         {
                           "type": "record",
-                          "name": "BindingMqtt311Type",
+                          "name": "ProtocolMqtt311Type",
                           "fields": [
                             {
                               "type": "GenericRecord",
-                              "name": "message",
+                              "name": "protocoloptions",
                               "doc": "MQTT message metadata constraints"
                             }
                           ]
                         },
                         {
                           "type": "record",
-                          "name": "BindingMqtt50Type",
+                          "name": "ProtocolMqtt50Type",
                           "fields": [
                             {
                               "type": "GenericRecord",
-                              "name": "message",
+                              "name": "protocoloptions",
                               "doc": "MQTT message metadata constraints"
                             }
                           ]
                         },
                         {
                           "type": "record",
-                          "name": "BindingKAFKAType",
+                          "name": "ProtocolKAFKAType",
                           "fields": [
                             {
                               "type": "GenericRecord",
-                              "name": "message",
+                              "name": "protocoloptions",
                               "doc": "The Apache Kafka message metadata constraints"
                             }
                           ]
                         },
                         {
                           "type": "record",
-                          "name": "BindingHTTPType",
+                          "name": "ProtocolHTTPType",
                           "fields": [
                             {
                               "type": "GenericRecord",
-                              "name": "message",
+                              "name": "protocoloptions",
                               "doc": "The HTTP message metadata constraints"
                             }
                           ]
                         }
                       ],
-                      "doc": "Binding identifier. This attribute MUST be the same as the 'binding' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups"
+                      "doc": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups"
                     },
                     {
                       "type": "string",
                       "name": "schemaformat",
-                      "doc": "The schema format applicable to the message payload, equivalent to the 'format' attribute attribute of the schema registry"
+                      "doc": "The schema format applicable to the message payload, equivalent to the 'format' attribute of the schema registry"
                     },
                     {
-                      "type": "string",
+                      "type": "record",
                       "name": "schema",
+                      "fields": [
+                        {
+                          "name": "object",
+                          "type": {
+                            "type": "map",
+                            "values": [
+                              "null",
+                              "boolean",
+                              "int",
+                              "long",
+                              "float",
+                              "double",
+                              "bytes",
+                              "string",
+                              {
+                                "type": "array",
+                                "items": [
+                                  "null",
+                                  "boolean",
+                                  "int",
+                                  "long",
+                                  "float",
+                                  "double",
+                                  "bytes",
+                                  "string",
+                                  "GenericRecord"
+                                ]
+                              },
+                              "GenericRecord"
+                            ]
+                          }
+                        }
+                      ],
                       "doc": "The inline schema for the message payload, equivalent to the 'schema' attribute of the schema registry"
                     },
                     {
-                      "type": "GenericRecord",
-                      "name": "schemaobject",
-                      "doc": "The inline schema object for the message payload, equivalent to the 'schemaobject' attribute of the schema registry"
-                    },
-                    {
                       "type": "string",
-                      "name": "schemaurl",
-                      "doc": "The URL of the schema for the message payload, equivalent to the 'schemaurl' attribute of the schema registry"
+                      "name": "schemauri",
+                      "doc": "The URI of the schema for the message payload, equivalent to the 'schemaurl' attribute of the schema registry"
                     }
                   ]
                 }
@@ -446,13 +553,13 @@
             },
             {
               "type": "string",
-              "name": "format",
-              "doc": "Format identifier that defines the common metadata information for the message. All definitions in this group share this format. Mixed-format groups are not permitted"
+              "name": "envelope",
+              "doc": "Envelope format identifier that defines the common metadata information for the message. All definitions in this group share this envelope format. Mixed-envelope-format groups are not permitted"
             },
             {
               "type": "string",
-              "name": "binding",
-              "doc": "Binding identifier that defines the transport message binding. All definitions in this group share this binding type. Mixed-binding groups are not permitted"
+              "name": "protocol",
+              "doc": "Protocol identifier that defines the transport message protocol. All definitions in this group share this protocol type. Mixed-protocol groups are not permitted"
             },
             {
               "name": "Extensions",
@@ -643,6 +750,11 @@
                       "type": "string",
                       "name": "format",
                       "doc": "Schema format identifier for this schema version"
+                    },
+                    {
+                      "type": "boolean",
+                      "name": "validation",
+                      "doc": "Verify compliance with specified schema 'format'"
                     },
                     {
                       "name": "Extensions",
