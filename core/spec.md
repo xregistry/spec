@@ -66,7 +66,7 @@ can choose to define (or enforce) any pattern they wish. In this sense, a
 Group is similar to a "directory" on a filesystem.
 
 Resources represent the main data of interest for the Registry. In the
-filesystem analogy, these would be the "files". All Resource exists under a
+filesystem analogy, these would be the "files". All Resources exists under a
 single Group and, similar to Groups, has a set of Registry metadata.
 However, unlike a Group which only has Registry metadata, each Resource can
 have a "document" associated with it. For example, a "schema" Resource might
@@ -460,10 +460,11 @@ The definition of each attribute is defined below:
 ##### `SINGULARid` (`id`) Attribute
 
 - Type: String
-- Description: An immutable unique identifier of the Registry, Group or
-  Resource. The actual name of this attribute will vary based on the entity it
+- Description: An immutable unique identifier of the Registry, Group, Resource
+  or Version. The actual name of this attribute will vary based on the entity it
   identifies. For example, a `schema` Resource would use an attribute name of
-  `schemaid`. This attribute MUST be `registryid` for the Registry itself.
+  `schemaid`. This attribute MUST be named `registryid` for the Registry
+  itself, and MUST be named `versionid` for all Version entities.
 - Constraints:
   - MUST be a non-empty string consisting of [RFC3986 `unreserved`
     characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3)
@@ -471,8 +472,8 @@ The definition of each attribute is defined below:
   - MUST be case insensitive unique within the scope of the entity's parent.
     In the case of the `registryid` for the Registry itself, the uniqueness
     scope will be based on where the Registry is used. For example, a publicly
-    accessible Registry might want to consider using a UUID, while a private
-    Registry does not need to be so widely unique.
+    accessible Registry might want to consider using a globally unique value,
+    while a private Registry does not need to be so widely unique.
   - This attribute MUST be treated as case sensitive for look-up purposes.
     This means that an HTTP request to an entity with the wrong case for its
     `SINGULARid` MUST be treated as "not found".
@@ -490,10 +491,10 @@ The definition of each attribute is defined below:
   - `myEntity.example.com`
 
 While `SINGULARid` can be something like a UUID, when possible, it is
-RECOMMENDED that it be something human friendly as these value will often appear
-in user-facing situations such as URLs or as command-line parameters. And,
-in cases where [`name`](#name-attribute) is absent, it might be used as the
-display name.
+RECOMMENDED that it be something human friendly as these values will often
+appear in user-facing situations such as URLs or as command-line parameters.
+And, in cases where [`name`](#name-attribute) is absent, it might be used as
+the display name.
 
 Note, since `SINGULARid` is immutable, in order to change its value a new
 entity would need to be created with the new `SINGULARid` that is a deep-copy
@@ -785,7 +786,7 @@ Note that simple file servers SHOULD support exposing Resources where the HTTP
 body response contains the Resource's associated "document" as well as the
 case where the HTTP response body contains a JSON serialization of the
 Resource via the `$meta` suffix on the URL path. This can be achieved by
-created a secondary sibling file on disk with `$meta` at the end of its
+creating a secondary sibling file on disk with `$meta` at the end of its
 filename.
 
 ---
@@ -1035,7 +1036,7 @@ following exceptions:
     This is because when it is absent, the processing of the HTTP `xRegistry-`
     headers are already defined with "patch" semantics so a normal `PUT` or
     `POST` can be used instead. Using `PATCH` in this case would mean that the
-    request is also trying to "patch" the Resources's "document", which this
+    request is also trying to "patch" the Resource's "document", which this
     specification does not support at this time.
   - `PATCH` MAY be used to create new entities, but as with any of the create
     operations, any missing REQUIRED attributes MUST generate an error.
@@ -1284,7 +1285,7 @@ The serialization of the Registry entity adheres to this form:
 ```
 
 The Registry entity includes the following common attributes:
-- [`SINGULARid`](#singularid-id-attribute) - REQUIRED in responses and document
+- [`registryid`](#singularid-id-attribute) - REQUIRED in responses and document
   view, otherwise OPTIONAL
 - [`self`](#self-attribute) - REQUIRED in responses, otherwise OPTIONAL
 - [`epoch`](#epoch-attribute) - REQUIRED in responses, otherwise OPTIONAL
@@ -4236,8 +4237,7 @@ Versions include the following common attributes:
 - [`RESOURCEid`](#singularid-id-attribute) - REQUIRED in responses and document
   view, otherwise OPTIONAL. MUST be the `RESOURCEid` of the owning Resource.
 - [`versionid`](#versionid-attribute) - REQUIRED in responses and document view,
-  otherwise OPTIONAL. MUST be the unique (within the scope of the owning
-  Resource) identifier of this Version.
+  otherwise OPTIONAL.
 - [`self`](#self-attribute) - REQUIRED in responses, otherwise OPTIONAL - URL
   to this Version, not the Resource.
 - [`epoch`](#epoch-attribute) - REQUIRED in responses, otherwise OPTIONAL. MUST
