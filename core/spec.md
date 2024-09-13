@@ -799,6 +799,7 @@ This specification defines the following API patterns:
 ```yaml
 /                                               # Access the Registry
 /model                                          # Access the model definitions
+/resolution
 /GROUPs                                         # Access a Group Type
 /GROUPs/gID                                     # Access a Group
 /GROUPs/gID/RESOURCEs                           # Access a Resource Type
@@ -1364,6 +1365,52 @@ if, as an extension, the server chooses to return additional data in the
 HTTP body.
 
 ---
+
+### `xid` Resolution API
+
+The resolution API is used to translate an `xid` into a URL that can be used
+to access an xRegistry entity. An implementation of the registry API SHOULD
+provide a resolution API under the path `/resolution`.
+The resolution API MAY also be offered independently of the registry API.
+It can resolve `xids` and federate access to multiple registries.
+In the following, `/` is the root of the resolution API, even if it would be
+provided under `/resolution` as part of an registry.
+
+#### `GET /xid/{xid}` and `HEAD /xid/{xid}`
+
+The placeholder `{xid}` depicts the `xid` to resolve. As `xids` MAY be full
+URIs or URI references, the `xid` MUST be percent-encoded accordingly.
+
+For `GET` and `HEAD` requests, the server MUST respond as follows:
+
+- If the `xid` is not found, the server MUST respond with an HTTP
+  `404 Not Found`.
+- If the `xid` is found and there exists exactly one URL to access the entity,
+  the server MUST respond with an HTTP `308` where the `Location` header
+  MUST contain the URL to access the entity.
+- If the `xid` is found and there are multiple URLs to access the entity, the
+  server MUST respond with an HTTP `300 Multiple Choices` where the choices
+  are listed as `Link` headers. Each `Link` header MUST contain a
+  `rel="alternate"`as specified
+  in [RFC5988](https://tools.ietf.org/html/rfc5988), 
+[RFC8288](https://tools.ietf.org/html/rfc8288)
+  and
+  [RFC7231](https://tools.ietf.org/rfc/rfc7231#section-6.4.1). If the server 
+  has a preferred URL, e.g. the authoritative URL, it SHOULD be returned as 
+  `Location` header.
+
+If the applied request method is `GET`, the body of the response MUST be a
+JSON object as follows:
+
+```yaml
+{
+  "xid": "URI",     # The xid to resolve
+  [
+    "url": "URL",   # The URL to access the entity
+    "authoritative": boolean
+  ]
+}
+```
 
 ### Registry Entity
 
@@ -2656,8 +2703,8 @@ When a Resource type definition is to be shared between Groups, rather than
 creating a duplicate Resource definition, the `ximport` mechanism MAY be used
 instead. When defining the Resources of a Group, a special Resource "plural"
 name MAY be used to reference other Resource definitions from within the same
-Registry. For example, the following abbreviated model definition defines
-one Resource type (`messages`) under the `messagegroups` Group, that is
+Registry. For example the following abbreviated model definition defines
+one Resource type (`definitions`) under the `messagegroups` Group, that is
 also used by the `endpoints` Group.
 
 ```yaml
@@ -2667,9 +2714,9 @@ also used by the `endpoints` Group.
       "plural": "messagegroups",
       "singular": "messagegroup",
       "resources": {
-        "messages": {
-          "plural": "messages",
-          "singular": "message"
+        "definitions": {
+          "plural": "definitions",
+          "singular": "definition"
         }
       }
     },
@@ -2677,7 +2724,7 @@ also used by the `endpoints` Group.
       "plural": "endpoints",
       "singular": "endpoint",
       "resources": {
-        "ximport": [ "messagegroups/messages" ]
+        "ximport": [ "messagegroups/definitions" ]
       }
     }
   }
