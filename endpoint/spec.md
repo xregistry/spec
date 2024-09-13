@@ -27,7 +27,7 @@ this form:
 ```yaml
 {
   "specversion": "STRING",
-  "id": "STRING",
+  "registryid": "STRING",
   "self": "URL",
   "epoch": UINTEGER,
   "name": "STRING", ?
@@ -42,8 +42,8 @@ this form:
   "endpointsurl": "URL",
   "endpointscount": UINTEGER,
   "endpoints": {
-    "ID": {
-      "id": "STRING",                           # xRegistry core attributes
+    "KEY": {
+      "endpointid": "STRING",                   # xRegistry core attributes
       "self": "URL",
       "epoch": UINTEGER,
       "name": "STRING", ?
@@ -129,7 +129,7 @@ this form:
       "messagesurl": "URL", ?
       "messagescount": UINTEGER, ?
       "messages": {
-        "ID": {
+        "KEY": {                                         # messageid
           # See Message Definition spec for details
         }, *
       } ?
