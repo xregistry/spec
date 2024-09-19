@@ -1104,11 +1104,11 @@
           }
         }
       },
-      "format_None": {
+      "envelope_None": {
         "properties": {
-          "format": {
+          "envelope": {
             "type": "string",
-            "description": "Message format identifier. This attribute MUST be the same as the 'format' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
+            "description": "Message envelope format identifier. This attribute MUST be the same as the 'envelope' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
             "enum": [
               "None"
             ],
@@ -1116,16 +1116,16 @@
           }
         }
       },
-      "format_CloudEvents_1_0": {
+      "envelope_CloudEvents_1_0": {
         "properties": {
-          "format": {
+          "envelope": {
             "type": "string",
-            "description": "Message format identifier. This attribute MUST be the same as the 'format' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
+            "description": "Message envelope format identifier. This attribute MUST be the same as the 'envelope' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
             "enum": [
               "CloudEvents/1.0"
             ]
           },
-          "metadata": {
+          "envelopemetadata": {
             "type": "object",
             "description": "CloudEvents metadata constraints",
             "properties": {
@@ -1243,17 +1243,31 @@
                 }
               }
             }
+          },
+          "envelopeoptions": {
+            "type": "object",
+            "description": "Envelope metadata constraints",
+            "properties": {
+              "mode": {
+                "type": "string",
+                "description": "Whether CloudEvents 'binary' or 'structure' mode will be used"
+              },
+              "format": {
+                "type": "string",
+                "description": "The media type format used to serialize the CloudEvent in the case of mode=structured"
+              }
+            }
           }
         },
         "required": [
-          "format"
+          "envelope"
         ]
       },
-      "binding_None": {
+      "protocol_None": {
         "properties": {
-          "binding": {
+          "protocol": {
             "type": "string",
-            "description": "Binding identifier. This attribute MUST be the same as the 'binding' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
+            "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
             "enum": [
               "None"
             ],
@@ -1261,16 +1275,16 @@
           }
         }
       },
-      "binding_AMQP_1_0": {
+      "protocol_AMQP_1_0": {
         "properties": {
-          "binding": {
+          "protocol": {
             "type": "string",
-            "description": "Binding identifier. This attribute MUST be the same as the 'binding' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
+            "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
             "enum": [
               "AMQP/1.0"
             ]
           },
-          "message": {
+          "protocoloptions": {
             "type": "object",
             "description": "AMQP message metadata constraints",
             "properties": {
@@ -1551,19 +1565,19 @@
           }
         },
         "required": [
-          "binding"
+          "protocol"
         ]
       },
-      "binding_MQTT_3_1_1": {
+      "protocol_MQTT_3_1_1": {
         "properties": {
-          "binding": {
+          "protocol": {
             "type": "string",
-            "description": "Binding identifier. This attribute MUST be the same as the 'binding' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
+            "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
             "enum": [
               "MQTT/3.1.1"
             ]
           },
-          "message": {
+          "protocoloptions": {
             "type": "object",
             "description": "MQTT message metadata constraints",
             "properties": {
@@ -1601,19 +1615,19 @@
           }
         },
         "required": [
-          "binding"
+          "protocol"
         ]
       },
-      "binding_MQTT_5_0": {
+      "protocol_MQTT_5_0": {
         "properties": {
-          "binding": {
+          "protocol": {
             "type": "string",
-            "description": "Binding identifier. This attribute MUST be the same as the 'binding' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
+            "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
             "enum": [
               "MQTT/5.0"
             ]
           },
-          "message": {
+          "protocoloptions": {
             "type": "object",
             "description": "MQTT message metadata constraints",
             "properties": {
@@ -1708,19 +1722,19 @@
           }
         },
         "required": [
-          "binding"
+          "protocol"
         ]
       },
-      "binding_KAFKA": {
+      "protocol_KAFKA": {
         "properties": {
-          "binding": {
+          "protocol": {
             "type": "string",
-            "description": "Binding identifier. This attribute MUST be the same as the 'binding' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
+            "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
             "enum": [
               "KAFKA"
             ]
           },
-          "message": {
+          "protocoloptions": {
             "type": "object",
             "description": "The Apache Kafka message metadata constraints",
             "properties": {
@@ -1761,19 +1775,19 @@
           }
         },
         "required": [
-          "binding"
+          "protocol"
         ]
       },
-      "binding_HTTP": {
+      "protocol_HTTP": {
         "properties": {
-          "binding": {
+          "protocol": {
             "type": "string",
-            "description": "Binding identifier. This attribute MUST be the same as the 'binding' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
+            "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
             "enum": [
               "HTTP"
             ]
           },
-          "message": {
+          "protocoloptions": {
             "type": "object",
             "description": "The HTTP message metadata constraints",
             "properties": {
@@ -1811,7 +1825,7 @@
           }
         },
         "required": [
-          "binding"
+          "protocol"
         ]
       },
       "message": {
@@ -1859,35 +1873,30 @@
           },
           "schemaformat": {
             "type": "string",
-            "description": "The schema format applicable to the message payload, equivalent to the 'format' attribute attribute of the schema registry"
+            "description": "The schema format applicable to the message payload, equivalent to the 'format' attribute of the schema registry"
           },
           "schema": {
-            "type": "string",
+            "type": "object",
             "description": "The inline schema for the message payload, equivalent to the 'schema' attribute of the schema registry"
           },
-          "schemaobject": {
-            "type": "object",
-            "description": "The inline schema object for the message payload, equivalent to the 'schemaobject' attribute of the schema registry",
-            "properties": {}
-          },
-          "schemaurl": {
+          "schemauri": {
             "type": "string",
             "format": "uri",
-            "description": "The URL of the schema for the message payload, equivalent to the 'schemaurl' attribute of the schema registry"
+            "description": "The URI of the schema for the message payload, equivalent to the 'schemaurl' attribute of the schema registry"
           }
         },
         "required": [
           "id"
         ],
         "discriminator": {
-          "propertyName": "binding",
+          "propertyName": "protocol",
           "mapping": {
-            "None": "#/components/schemas/binding_None",
-            "AMQP/1.0": "#/components/schemas/binding_AMQP_1_0",
-            "MQTT/3.1.1": "#/components/schemas/binding_MQTT_3_1_1",
-            "MQTT/5.0": "#/components/schemas/binding_MQTT_5_0",
-            "KAFKA": "#/components/schemas/binding_KAFKA",
-            "HTTP": "#/components/schemas/binding_HTTP"
+            "None": "#/components/schemas/protocol_None",
+            "AMQP/1.0": "#/components/schemas/protocol_AMQP_1_0",
+            "MQTT/3.1.1": "#/components/schemas/protocol_MQTT_3_1_1",
+            "MQTT/5.0": "#/components/schemas/protocol_MQTT_5_0",
+            "KAFKA": "#/components/schemas/protocol_KAFKA",
+            "HTTP": "#/components/schemas/protocol_HTTP"
           }
         }
       },
@@ -1929,13 +1938,13 @@
             "type": "string",
             "format": "date-time"
           },
-          "format": {
+          "envelope": {
             "type": "string",
-            "description": "Format identifier that defines the common metadata information for the message. All definitions in this group share this format. Mixed-format groups are not permitted"
+            "description": "Envelope format identifier that defines the common metadata information for the message. All definitions in this group share this envelope format. Mixed-envelope-format groups are not permitted"
           },
-          "binding": {
+          "protocol": {
             "type": "string",
-            "description": "Binding identifier that defines the transport message binding. All definitions in this group share this binding type. Mixed-binding groups are not permitted"
+            "description": "Protocol identifier that defines the transport message protocol. All definitions in this group share this protocol type. Mixed-protocol groups are not permitted"
           },
           "messages": {
             "type": "object",

@@ -13,8 +13,8 @@ the storage, management and discovery of schema documents.
   - [Notational Conventions](#notational-conventions)
   - [Terminology](#terminology)
 - [Schema Registry](#schema-registry)
-  - [Schema Groups](#group-schemagroups)
-  - [Schemas](#resource-schemas)
+  - [Schema Groups](#schema-groups)
+  - [Schema Resources](#schema-resources)
 
 ## Overview
 
@@ -64,7 +64,9 @@ this form:
           "epoch": UINTEGER,
           "readonly": BOOLEAN, ?
 
-          "name": "STRING", ?
+          "validation": BOOLEAN, ?                 # Resource level attrs
+
+          "name": "STRING", ?                      # Version level attrs
           "description": "STRING", ?
           "documentation": "URL", ?
           "labels": { "STRING": "STRING" * }, ?
@@ -72,13 +74,13 @@ this form:
           "createdat": "TIMESTAMP",
           "modifiedat": "TIMESTAMP",
 
-          "format": "STRING",                      # Notice it is mandatory
+          "format": "STRING", ?
 
-          "schemaobject": { ... }, ?               # TODO - check this
+          "schemaobject": ANY, ?         # TODO why is this not using RESOURCE*?
           "schema": "STRING", ?
-          "schemaurl": "URL" ?
+          "schemauri": "URI" ?
 
-          "defaultversionsticky": BOOLEAN, ?
+          "defaultversionsticky": BOOLEAN, ?       # Res level Ver-related attrs
           "defaultversionid": "STRING",
           "defaultversionurl": "URL",
 
@@ -176,9 +178,13 @@ detail below, is as follows:
             "format": {
               "name": "format",
               "type": "string",
-              "description": "Schema format identifier for this schema version",
-              "clientrequired": true,
-              "serverrequired": true
+              "description": "Schema format identifier for this schema version"
+            },
+            "validation": {
+              "name": "validation",
+              "type": "boolean",
+              "description": "Verify compliance with specified 'format'",
+              "location": "resource"
             }
           }
         }
@@ -195,7 +201,7 @@ Since the Schema Registry is an application of the xRegistry specification, all
 attributes for Groups, Resources, and Resource Version objects are inherited
 from there.
 
-### Group: schemagroups
+### Schema Groups
 
 The group (GROUP) name for the Schema Registry is `schemagroups`. The group does
 not have any specific extension attributes.
@@ -229,7 +235,7 @@ containing 5 schemas.
 }
 ```
 
-### Resource: schemas
+### Schema Resources
 
 The resources (RESOURCE) collection inside of schema groups is named `schemas`.
 The type of the resource is `schema`. Any single `schema` is a container for
@@ -270,9 +276,12 @@ core xRegistry Resource
   specification defines a set of common [schema format names](#schema-formats)
   that MUST be used for the given formats, but applications MAY define
   extensions for other formats on their own.
+
+  For many schema registry use cases this attribute is important for schema
+  validation purposes, and as such implementations can choose to modify the
+  model to make this attribute mandatory.
 - Constraints:
-  - REQUIRED
-  - MUST be a non-empty string
+  - If present, MUST be a non-empty string
   - MUST follow the naming convention `{NAME}/{VERSION}`, whereby `{NAME}` is
     the name of the schema format and `{VERSION}` is the Version of the schema
     format in the format defined by the schema format itself.
@@ -348,6 +357,26 @@ Versions for a schema named `com.example.telemetrydata`:
 }
 ```
 
+#### `validation`
+
+- Type: Boolean
+- Description: Indicates whether or not the server will validate the Resource's
+  document(s) against the specified `format` attribute. A value of `true`
+  indicates that the server MUST reject any request that would cause any
+  Version of this Resource to be invalid per the rules as defined by the
+  `format` specification. Note, this includes a request to set this attribute
+  to `true`. This means that before validation can be enabled all existing
+  Versions of the Resource MUST be compliant.
+
+  A value of `false` indicates that the server MUST NOT do any validation.
+
+  If `format` is not specified, or if the value is not known by the server
+  (but it an allowable value), then the server MUST NOT perform any validation.
+- Constraints:
+  - OPTIONAL
+  - When not specified, the default value is `true`.
+  - MUST be a Resource level attribute
+
 ### Schema Formats
 
 This section defines a set of common schema `format` values that MUST be used
@@ -363,7 +392,7 @@ the schema Resource is a JSON object representing a JSON Schema document
 conformant with the declared version.
 
 A URI-reference, like
-[`schemaurl`](../message/spec.md#schemaurl-message-schema-url) that points
+[`schemauri`](../message/spec.md#schemauri) that points
 to a JSON Schema document MAY use a JSON pointer expression to deep link into
 the schema document to reference a particular type definition. Otherwise the
 top-level object definition of the schema is used.
@@ -400,7 +429,7 @@ schema Resource is a string containing an XML Schema document conformant with
 the declared version.
 
 A URI-reference, like
-[`schemaurl`](../message/spec.md#schemaurl-message-schema-url) that points
+[`schemauri`](../message/spec.md#schemauri) that points
 to a XSD Schema document MAY use an XPath expression to deep link into the
 schema document to reference a particular type definition. Otherwise the root
 element definition of the schema is used.
@@ -431,7 +460,7 @@ Examples:
 - `Avro/1.11.0` is the identifier for the Apache Avro release 1.11.0
 
 A URI-reference, like
-[`schemaurl`](../message/spec.md#schemaurl-message-schema-url) that points
+[`schemauri`](../message/spec.md#schemauri) that points
 to an Avro Schema document MUST reference an Avro record declaration contained
 in the schema document using a URI fragment suffix `[:]{record-name}`. The ':'
 character is used as a separator when the URI already contains a fragment.
@@ -461,7 +490,7 @@ with the declared version.
 - `Protobuf/2` is the identifier for the Protobuf syntax version 2.
 
 A URI-reference, like
-[`schemaurl`](../message/spec.md#schemaurl-message-schema-url) that points
+[`schemauri`](../message/spec.md##schemauri that points
 to an Protobuf Schema document MUST reference an Protobuf `message` declaration
 contained in the schema document using a URI fragment suffix
 `[:]{message-name}`. The ':' character is used as a separator when the URI

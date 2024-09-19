@@ -13,13 +13,13 @@ document format and API [specification](../core/spec.md).
   - [Notational Conventions](#notational-conventions)
   - [Terminology](#terminology)
 - [Endpoint Registry](#endpoint-registry)
-  - [Endpoints](#endpoints-endpoints)
+  - [Endpoints](#endpoints)
 
 ## Overview
 
 This specification defines a registry of metadata definitions for abstract and
 concrete network endpoints to which messages can be produced, from which
-messages can be consumed, or which make messages available for subscription.
+messages can be consumed, or which make messages available for subscriptions.
 
 For easy reference, the JSON serialization of an Endpoint Registry adheres to
 this form:
@@ -55,8 +55,6 @@ this form:
       "modifiedat": "TIMESTAMP",
 
       "usage": "STRING",                        # subscriber, consumer, producer
-      "format": "STRING", ?
-      "binding": "STRING", ?
       "channel": "STRING", ?
       "deprecated": {
         "effective": "TIMESTAMP", ?
@@ -65,8 +63,20 @@ this form:
         "docs": "URL"?
       }, ?
 
-      "config": {
-        "protocol": "STRING",
+      "envelope": "STRING", ?                   # e.g. CloudEvents/1.0
+      "envelopeoptions": {
+        "STRING": JSON-VALUE *
+
+        # CloudEvents/1.0 options
+        "mode": "STRING", ?                     # binary, structured
+        "format": "STRING" ?                    # e.g. application/json
+      },
+
+      "protocol": "STRING", ?                   # e.g. HTTP/1.1
+      "protocoloptions": {
+        "STRING": JSON-VALUE *
+
+        # Common protocol options
         "endpoints": [
           {
             "uri": "URI"                        # plus endpoint extensions
@@ -80,48 +90,44 @@ this form:
         }, ?
         "deployed": BOOLEAN, ?
 
-        "options": {
-          "STRING": JSON-VALUE *
+        # "HTTP" protocol options
+        "method": "STRING", ?                          # default: POST
+        "headers": [ { "name": "STRING", "value": "STRING" } * ], ?
+        "query": { "STRING": "STRING" * } ?
 
-          # "HTTP" protocol options
-          "method": "STRING", ?                          # default: POST
-          "headers": [ { "name": "STRING", "value": "STRING" } * ], ?
-          "query": { "STRING": "STRING" * } ?
+        # "AMQP/1.0" protocol options
+        "node": "STRING", ?
+        "durable": BOOLEAN, ?                          # default: false
+        "linkproperties": { "STRING": "STRING" * }, ?
+        "connectionproperties": { "STRING": "STRING" * }, ?
+        "distributionmode": "move" | "copy" ?          # default: "move"
 
-          # "AMQP/1.0" protocol options
-          "node": "STRING", ?
-          "durable": BOOLEAN, ?                          # default: false
-          "linkproperties": { "STRING": "STRING" * }, ?
-          "connectionproperties": { "STRING": "STRING" * }, ?
-          "distributionmode": "move" | "copy" ?          # default: "move"
+        # "MQTT/3.1.1" protocol options
+        "topic": "STRING", ?
+        "qos": UINTEGER, ?                             # default: 0
+        "retrain": BOOLEAN, ?                          # default: false
+        "cleansession": BOOLEAN, ?                     # default: true
+        "willtopic": "STRING", ?
+        "willmessage": "STRING" ?
 
-          # "MQTT/3.1.1" protocol options
-          "topic": "STRING", ?
-          "qos": UINTEGER, ?                             # default: 0
-          "retrain": BOOLEAN, ?                          # default: false
-          "cleansession": BOOLEAN, ?                     # default: true
-          "willtopic": "STRING", ?
-          "willmessage": "STRING" ?
+        # "MQTT/5.0" protocol options
+        "topic": "STRING", ?
+        "qos": UINTEGER, ?                             # default: 0
+        "retrain": BOOLEAN, ?                          # default: false
+        "cleansession": BOOLEAN, ?                     # default: true
+        "willtopic": "STRING", ?
+        "willmessage": "STRING" ?
 
-          # "MQTT/5.0" protocol options
-          "topic": "STRING", ?
-          "qos": UINTEGER, ?                             # default: 0
-          "retrain": BOOLEAN, ?                          # default: false
-          "cleansession": BOOLEAN, ?                     # default: true
-          "willtopic": "STRING", ?
-          "willmessage": "STRING" ?
+        # "KAFKA" protocol options
+        "topic": "STRING", ?
+        "acks": INTEGER, ?                             # default: 1
+        "key": "STRING", ?
+        "partition": INTEGER, ?
+        "consumergroup": "STRING", ?
+        "headers": { "STRING": "STRING" * } ?
 
-          # "KAFKA" protocol options
-          "topic": "STRING", ?
-          "acks": INTEGER, ?                             # default: 1
-          "key": "STRING", ?
-          "partition": INTEGER, ?
-          "consumergroup": "STRING", ?
-          "headers": { "STRING": "STRING" * } ?
-
-          # "NATS" protocol options
-          "subject": "STRING" ?
-        } ?
+        # "NATS" protocol options
+        "subject": "STRING" ?
       }, ?
 
       "messagegroups": [ URI * ], ?
@@ -129,9 +135,9 @@ this form:
       "messagesurl": "URL", ?
       "messagescount": UINTEGER, ?
       "messages": {
-        "KEY": {                                         # messageid
+        "KEY": {                                # messageid
           # See Message Definition spec for details
-        }, *
+        } *
       } ?
     } *
   } ?
@@ -169,29 +175,30 @@ This specification defines the following terms:
 
 An "endpoint" is a logical or physical network location to which messages can
 be produced, from which messages can be consumed, or which makes messages
-available for subscription for delivery to a consumer-designated endpoint.
+available via subscription for delivery to a consumer-designated endpoint.
 
 ## Endpoint Registry
 
 The Endpoint Registry is a registry of metadata definitions for abstract and
-concrete network endpoint to which messages can be produced, from which messages
-can be consumed, or which makes messages available for subscription and
-delivery to a consumer-designated endpoint.
+concrete network endpoints to which messages can be produced, from which
+messages can be consumed, or which makes messages available via subscription
+and delivery to a consumer-designated endpoint.
 
 As discussed in [CloudEvents Registry overview](../cloudevents/spec.md),
 endpoints are supersets of
 [message definition groups](../message/spec.md#message-definition-groups) and
-MAY contain inlined messages. Therefore, the RESOURCE level in the meta-model
-for the Endpoint Registry are likewise `messages` as defined in the
+MAY contain inlined messages. Therefore, the Resources in the meta-model for
+the Endpoint Registry are likewise `messages` as defined in the
 [message catalog specification](../message/spec.md).
 
 The resource model for endpoints can be found in [model.json](model.json).
 
-### Endpoints: endpoints
+### Endpoints
 
-A Group (GROUP) name is `endpoints`. The type of a group is `endpoint`.
+Endpoints are a Group type with a plural name (`GROUPs`) of `endpoints`, and a
+singular name (`GROUP`) of `endpoint`.
 
-The following attributes are defined for the `endpoint` type:
+The following attributes are defined for Endpoints:
 
 #### `usage`
 
@@ -256,57 +263,6 @@ The following attributes are defined for the `endpoint` type:
 - Constraints:
   - REQUIRED
   - MUST be one of "subscriber", "consumer", or "producer".
-
-### `format`
-
-- Type: String
-- Description: The name of the specification that defines the Resource
-  stored in the registry. Often it is difficult to unambiguously determine
-  what a Resource is via simple inspect of its serialization. This attribute
-  provides a mechanism by which it can be determined without examination of
-  the Resource at all
-- Constraints:
-  - At least one of `format` and `binding` MUST be specified
-  - MUST be a non-empty string of the form `SPEC[/VERSION]`,
-    where `SPEC` is the non-empty string name of the specification that
-    defines the Resource. An OPTIONAL `VERSION` value SHOULD be included if
-    there are multiple versions of the specification available
-  - For comparison purposes, this attribute MUST be considered case sensitive
-  - If a `VERSION` is specified at the Group level, all Resources within that
-    Group MUST have a `VERSION` value that is at least as precise as its
-    Group, and MUST NOT expand it. For example, if a Group had a
-    `format` value of `myspec`, then Resources within that Group can have
-    `format` values of `myspec` or `myspec/1.0`. However, if a Group has a
-    value of `myspec/1.0` it would be invalid for a Resource to have a value of
-    `myspec/2.0` or just `myspec`. Additionally, if a Group does not have
-    a `format` attribute then there are no constraints on its Resources
-    `format` attributes
-  - This specification places no restriction on the case of the `SPEC` value
-    or on the syntax of the `VERSION` value
-- Examples:
-  - `CloudEvents/1.0`
-  - `MQTT`
-
-### `binding`
-
-- Type: String
-- Description: Identifies a transport protocol message binding. Bindings are
-  referenced by name and version as `{NAME}/{VERSION}`. The Messaging
-  specification defines a set of common
-  [message binding names](../message/spec.md#message-bindings) that MUST
-  be used for the given protocols, but applications MAY define extensions for
-  other protocol bindings on their own. All messages inside an Endpoint MUST
-  use this same binding
-- Constraints:
-  - At least one of `format` and `binding` MUST be specified
-  - If present, MUST be a non-empty string
-  - If present, MUST follow the naming convention `{NAME}/{VERSION}`,
-    whereby `{NAME}` is the name of the protocol and `{VERSION}` is the
-    version of protocol.
-- Examples:
-  - `MQTT/3.1.1`
-  - `AMQP/1.0`
-  - `Kafka/0.11`
 
 ### `channel`
 
@@ -385,17 +341,116 @@ The following attributes are defined for the `endpoint` type:
     }
     ```
 
-#### `config`
+### `envelope`
+
+- Type: String
+- Description: The name of the specification that defines the Resource
+  stored in the registry. Often it is difficult to unambiguously determine
+  what a Resource is via simple inspect of its serialization. This attribute
+  provides a mechanism by which it can be determined without examination of
+  the Resource at all
+- Constraints:
+  - At least one of `envelope` and `protocol` MUST be specified
+  - MUST be a non-empty string of the form `SPEC[/VERSION]`,
+    where `SPEC` is the non-empty string name of the specification that
+    defines the Resource. An OPTIONAL `VERSION` value SHOULD be included if
+    there are multiple versions of the specification available
+  - For comparison purposes, this attribute MUST be considered case sensitive
+  - If a `VERSION` is specified at the Group level, all Resources within that
+    Group MUST have a `VERSION` value that is at least as precise as its
+    Group, and MUST NOT expand it. For example, if a Group had a
+    `envelope` value of `myspec`, then Resources within that Group can have
+    `envelope` values of `myspec` or `myspec/1.0`. However, if a Group has a
+    value of `myspec/1.0` it would be invalid for a Resource to have a value of
+    `myspec/2.0` or just `myspec`. Additionally, if a Group does not have
+    a `envelope` attribute then there are no constraints on its Resources
+    `envelope` attributes
+  - This specification places no restriction on the case of the `SPEC` value
+    or on the syntax of the `VERSION` value
+- Examples:
+  - `CloudEvents/1.0`
+  - `MQTT`
+
+### `envelopeoptions`
 
 - Type: Map
-- Description: Configuration details of the endpoint. An endpoint
-  MAY be defined without detail configuration. In this case, the endpoint is
-  considered to be "abstract".
+- Description: Configuration details of the endpoint with respect to the
+  envelope format use to transmit the messages.
+
+- Constraints:
+  - OPTIONAL
+- Examples:
+  - For an endpoint using an `envelope` value of `CloudEvents/1.0`:
+    `{ "mode": "binary", "format": "application/json" }`
+
+This specification defines the following envelope options for the indicated
+`envelope` values:
+
+#### `CloudEvents/1.0`
+
+- `mode` : indicates whether the CloudEvent generated will use `binary` or
+  `structured`
+  (mode)[https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#message].
+  If present, its value MUST be one of: `binary` or `structured`. When not
+  present, the endpoint is indicating that either mode is acceptable.
+- `format` : indicates the format of the CloudEvent when sent in `structured`
+  mode. This attribute MUST NOT be present when `mode` is `binary`. The value
+  used MUST match the expected content type of the message (e.g. for HTTP the
+  `Content-Type` header value).
+
+### `protocol`
+
+- Type: String
+- Description: The transport or application protocol used by the endpoint. This
+  specification defines a set of common protocol names that MUST be used for
+  respective protocol endpoints, but implementations MAY define and use
+  additional protocol names.
+
+  An example for an extension protocol identifier might be "BunnyMQ/0.9.1".
+
+  Predefined protocols SHOULD be referred to by name and version as
+  `{NAME}/{VERSION}`. If the version is not specified, the default version of
+  the protocol is assumed. The version number format is determined by the
+  protocol specification's usage of versions.
+
+  The predefined protocol names are:
+  - "HTTP/1.1", "HTTP/2", "HTTP/3" - Use the *lowest* HTTP version
+    that the endpoints supports; that is commonly "HTTP/1.1". The default
+    version is "HTTP/1.1" and MAY be shortened to "HTTP".
+  - "AMQP/1.0" - Use the [AMQP 1.0][AMQP 1.0] protocol. MAY be shortened to
+    "AMQP". AMQP draft versions before 1.0 (e.g. 0.9) are *not* AMQP.
+  - "MQTT/3.1.1", "MQTT/5.0" - Use the MQTT [3.1.1][MQTT 3.1.1] or [5.0][MQTT
+    5.0] protocol. The shorthand "MQTT" maps to "MQTT/5.0".
+  - "NATS/1.0.0" - Use the [NATS][NATS] protocol. MAY be shortened to "NATS",
+  - Which assumes usage of the latest NATS clients.
+  - "KAFKA/3.5" - Use the [Apache Kafka][Apache Kafka] protocol. MAY be
+    shortened to "KAFKA", which assumes usage of the latest Apache Kafka
+    clients.
+
+  All messages inside an Endpoint MUST use this same protocol
+- Constraints:
+  - At least one of `envelope` and `protocol` MUST be specified
+  - MUST be a non-empty string
+  - SHOULD follow the naming convention `{NAME}/{VERSION}`,
+    whereby `{NAME}` is the name of the protocol and `{VERSION}` is the
+    version of protocol.
+- Examples:
+  - `MQTT/3.1.1`
+  - `AMQP/1.0`
+  - `Kafka/0.11`
+
+#### `protocoloptions`
+
+- Type: Map
+- Description: Configuration details of the endpoint related to the protocol
+  used to transmit the messages. An endpoint MAY be defined without detail
+  configuration. In this case, the endpoint is considered to be "abstract".
 
 - Constraints:
   - OPTIONAL
 
-#### `config.protocol`
+#### `protocoloptions.protocol`
+TODO merge this into the previous 'protocol' section
 
 - Type: String
 - Description: The transport or application protocol used by the endpoint. This
@@ -428,7 +483,7 @@ The following attributes are defined for the `endpoint` type:
   - REQUIRED
   - MUST be a non-empty string.
 
-#### `config.endpoints`
+#### `protocoloptions.endpoints`
 
 - Type: Array of Objects
 - Description: An array of objects map where each object contains a `uri`
@@ -464,7 +519,7 @@ The following attributes are defined for the `endpoint` type:
     ]
     ```
 
-#### `config.authorization`
+#### `protocoloptions.authorization`
 
 - Type: Map
 - Description: OPTIONAL authorization configuration details of the endpoint.
@@ -477,7 +532,7 @@ The following attributes are defined for the `endpoint` type:
   - MUST only be used for authorization configuration
   - MUST NOT be used for credential configuration
 
-#### `config.authorization.type`
+#### `protocoloptions.authorization.type`
 
 - Type: String
 - Description: The type of the authorization configuration. The value SHOULD be
@@ -492,7 +547,7 @@ The following attributes are defined for the `endpoint` type:
   - OPTIONAL
   - MUST be a non-empty string if used
 
-#### `config.authorization.resourceuri`
+#### `protocoloptions.authorization.resourceuri`
 
 - Type: URI
 - Description: The URI of the resource for which the authorization is
@@ -502,7 +557,7 @@ The following attributes are defined for the `endpoint` type:
   - OPTIONAL
   - MUST be a non-empty URI if used
 
-#### `config.authorization.authorityuri`
+#### `protocoloptions.authorization.authorityuri`
 
 - Type: URI
 - Description: The URI of the authorization authority from which the
@@ -513,7 +568,7 @@ The following attributes are defined for the `endpoint` type:
   - OPTIONAL
   - MUST be a non-empty URI if used
 
-#### `config.authorization.grant_types`
+#### `protocoloptions.authorization.grant_types`
 
 - Type: Array of Strings
 - Description: The supported authorization grant types. The value SHOULD be a
@@ -523,7 +578,7 @@ The following attributes are defined for the `endpoint` type:
   - OPTIONAL
   - MUST be a non-empty array if used
 
-#### `config.deployed`
+#### `protocoloptions.deployed`
 
 - Type: Boolean
 - Description: If `true`, the endpoint metadata represents a public, live
@@ -533,7 +588,7 @@ The following attributes are defined for the `endpoint` type:
   - OPTIONAL.
   - Default value is `false`.
 
-#### `config.options`
+#### `protocoloptions.options`
 
 - Type: Map
 - Description: Additional configuration options for the endpoint. The
@@ -542,10 +597,10 @@ The following attributes are defined for the `endpoint` type:
 - Constraints:
   - OPTIONAL
   - When present, MUST be a map of non-empty strings to `ANY` type values.
-  - If `config.protocol` is a well-known protocol, the options MUST be
+  - If `protocoloptions.protocol` is a well-known protocol, the options MUST be
     compliant with the [protocol's options](#protocol-options).
 
-#### `messages` (Endpoint)
+#### `messages`
 
 Endpoints are supersets of
 [message definition groups](../message/spec.md#message-definition-groups) and
@@ -565,8 +620,8 @@ Example:
   "messagescount": 1,
   "messages": {
     "myevent": {
-      "format": "CloudEvents/1.0",
-      "metadata": {
+      "envelope": "CloudEvents/1.0",
+      "envelopemetadata": {
         "attributes": {
           "type": {
             "value": "myevent"
@@ -578,7 +633,7 @@ Example:
 }
 ```
 
-#### `messagegroups` (Endpoint)
+#### `messagegroups`
 
 The `messagegroups` attribute is an array of URI-references to message
 definition groups. The `messagegroups` attribute is used to reference
@@ -600,13 +655,13 @@ Example:
 
 #### Protocol Options
 
-The following protocol options (`config.options`) are defined for the respective
-protocols. All of these are OPTIONAL.
+The following protocol options (`protocoloptions.options`) are defined for the
+respective protocols. All of these are OPTIONAL.
 
 ##### HTTP options
 
-The [endpoint URIs](#configendpoints) for "HTTP" endpoints MUST be valid HTTP
-URIs using the "http" or "https" scheme.
+The [endpoint URIs](#protocoloptionsendpoints) for "HTTP" endpoints MUST be
+valid HTTP URIs using the "http" or "https" scheme.
 
 The following options are defined for HTTP:
 
@@ -646,9 +701,9 @@ Example:
 
 #### AMQP options
 
-The [endpoint URIs](#configendpoints) for "AMQP" endpoints MUST be valid AMQP
-URIs using the "amqp" or "amqps" scheme. If the path portion of the URI is
-present, it MUST be a valid AMQP node name.
+The [endpoint URIs](#protocoloptionsendpoints) for "AMQP" endpoints MUST be
+valid AMQP URIs using the "amqp" or "amqps" scheme. If the path portion of the
+URI is present, it MUST be a valid AMQP node name.
 
 The following options are defined for AMQP endpoints.
 
@@ -678,7 +733,7 @@ Example:
 {
   "usage": "producer",
   "protocol": "AMQP/1.0",
-  "options": {
+  "protocoloptions": {
     "node": "myqueue",
     "durable": true,
     "linkproperties": {
@@ -694,11 +749,11 @@ Example:
 
 #### MQTT options
 
-The [endpoint URIs](#configendpoints) for "MQTT" endpoints MUST be valid MQTT
-URIs using the (informal) "mqtt" or "mqtts" scheme. If the path portion of the
-URI is present, it MUST be a valid MQTT topic name. The informal schemes "tcp"
-(plain TCP/1883), "ssl" (TLS TCP/8883), and "wss" (Websockets/443) MAY also be
-used, but MUST NOT have a path.
+The [endpoint URIs](#protocoloptionsendpoints) for "MQTT" endpoints MUST be
+valid MQTT URIs using the (informal) "mqtt" or "mqtts" scheme. If the path
+portion of the URI is present, it MUST be a valid MQTT topic name. The informal
+schemes "tcp" (plain TCP/1883), "ssl" (TLS TCP/8883), and "wss"
+(Websockets/443) MAY also be used, but MUST NOT have a path.
 
 The following options are defined for MQTT endpoints.
 
@@ -708,11 +763,11 @@ The following options are defined for MQTT endpoints.
 - `qos`: The MQTT Quality of Service (QoS) level to use for the endpoint. The
   value MUST be an integer between 0 and 2. The default value is 0. The value is
   overidden by the `qos` property of the
-  [MQTT message format](../message/spec.md#mqtt311-and-mqtt50-bindings).
+  [MQTT message format](../message/spec.md#mqtt311-and-mqtt50-protocols).
 - `retain`: If `true`, the MQTT `retain` flag is set on transfers. The default
   value is `false`. The value is overidden by the `retain` property of the [MQTT
-  message format](../message/spec.md#mqtt311-and-mqtt50-bindings). This option only
-  applies to `usage:producer` endpoints.
+  message format](../message/spec.md#mqtt311-and-mqtt50-protocols). This
+  option only applies to `usage:producer` endpoints.
 - `cleansession`: If `true`, the MQTT `cleansession` flag is set on
   connections. The default value is `true`.
 - `willtopic`: The MQTT `willtopic` to use for the endpoint. The value MUST be
@@ -723,8 +778,8 @@ The following options are defined for MQTT endpoints.
   It MUST point to a valid
   [´message´](../message/spec.md#message-definitions) that MUST either
   use the ["CloudEvents/1.0"](../message/spec.md#cloudevents10) or
-  ["MQTT/3.1.1." or "MQTT/5.0"](../message/spec.md#mqtt311-and-mqtt50-bindings)
-  [`format`](../message/spec.md#format-metadata-format).
+  ["MQTT/3.1.1." or "MQTT/5.0"](../message/spec.md#mqtt311-and-mqtt50-protocols)
+  [`envelope`](../message/spec.md#envelope).
 
 Example:
 
@@ -732,7 +787,7 @@ Example:
 {
   "usage": "producer",
   "protocol": "MQTT/5.0",
-  "options": {
+  "protocoloptions": {
     "topic": "mytopic",
     "qos": 1,
     "retain": false,
@@ -745,9 +800,9 @@ Example:
 
 #### KAFKA options
 
-The [endpoint URIs](#configendpoints) for "Kafka" endpoints MUST be valid Kafka
-bootstrap server addresses. The scheme follows Kafka configuration usage, e.g.
-`SSL://{host}:{port}` or `PLAINTEXT://{host}:{port}`.
+The [endpoint URIs](#protocoloptionsendpoints) for "Kafka" endpoints MUST be
+valid Kafka bootstrap server addresses. The scheme follows Kafka configuration
+usage, e.g.  `SSL://{host}:{port}` or `PLAINTEXT://{host}:{port}`.
 
 The following options are defined for Kafka endpoints.
 
@@ -775,7 +830,7 @@ Example:
 {
   "usage": "producer",
   "protocol": "Kafka/2.0",
-  "options": {
+  "protocoloptions": {
     "topic": "mytopic",
     "acks": 1,
     "key": "mykey",
@@ -785,9 +840,9 @@ Example:
 
 #### NATS options
 
-The [endpoint URIs](#configendpoints) for "NATS" endpoints MUST be valid NATS
-URIs. The scheme MUST be "nats" or "tls" or "ws" and the URI MUST include a port
-number, e.g. `nats://{host}:{port}` or `tls://{host}:{port}`.
+The [endpoint URIs](#protocoloptionsendpoints) for "NATS" endpoints MUST be
+valid NATS URIs. The scheme MUST be "nats" or "tls" or "ws" and the URI MUST
+include a port number, e.g. `nats://{host}:{port}` or `tls://{host}:{port}`.
 
 The following options are defined for NATS endpoints.
 
@@ -800,7 +855,7 @@ Example:
 {
   "usage": "producer",
   "protocol": "NATS/1.0.0",
-  "options": {
+  "protocoloptions": {
     "subject": "mysubject"
   }
 }

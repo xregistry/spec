@@ -122,7 +122,14 @@
           "singular": "sample_resource",
           "attributes": {
             "sample_resourceid": {
-              "name": "id",
+              "name": "sample_resourceid",
+              "type": "string",
+              "immutable": true,
+              "serverrequired": true,
+              "location": "resource"
+            },
+            "versionid": {
+              "name": "versionid",
               "type": "string",
               "immutable": true,
               "serverrequired": true
@@ -131,21 +138,25 @@
               "name": "self",
               "type": "url",
               "readonly": true,
-              "serverrequired": true
+              "serverrequired": true,
+              "location": "both"
             },
             "xref": {
               "name": "xref",
-              "type": "url"
+              "type": "url",
+              "location": "resource"
             },
             "epoch": {
               "name": "epoch",
               "type": "uinteger",
-              "serverrequired": true
+              "serverrequired": true,
+              "location": "resource"
             },
             "readonly": {
               "name": "readonly",
               "type": "boolean",
-              "readonly": true
+              "readonly": true,
+              "location": "resource"
             },
             "name": {
               "name": "name",
@@ -190,18 +201,21 @@
             "defaultversionsticky": {
               "name": "defaultversionsticky",
               "type": "boolean",
-              "serverrequired": true
+              "serverrequired": true,
+              "location": "resource"
             },
             "defaultversionid": {
               "name": "defaultversionid",
               "type": "string",
-              "serverrequired": true
+              "serverrequired": true,
+              "location": "resource"
             },
             "defaultversionurl": {
               "name": "defaultversionurl",
               "type": "url",
               "readonly": true,
-              "serverrequired": true
+              "serverrequired": true,
+              "location": "resource"
             }
           }
         }
