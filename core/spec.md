@@ -1405,12 +1405,32 @@ JSON object as follows:
 ```yaml
 {
   "xid": "URI",     # The xid to resolve
-  [
-    "url": "URL",   # The URL to access the entity
-    "authoritative": boolean
-  ]
+  "locations": [
+    {
+      "url": "URL",   # The URL to access the entity
+      "authoritative": boolean
+    } *                 
+  ], 
+  "externalids":[ 
+    {
+      "type": "STRING",  # The type of the external ID
+      "id": "STRING"         # External IDs that are equivalent to the xid"
+    } *
+  ] ?
 }
 ```
+
+#### `locations`
+
+The `locations` array contains the URLs to access the entity. In addition to 
+the `url`, the `authoritative` attribute indicates whether the URL points to 
+the registry that is authoritative for the entity.
+
+#### `externalids`
+
+The `externalids` array is optional. If the entity can also be identified by 
+identifiers outside from xRegistry, they can be listed here. The `type` 
+attribute describes the type of the external ID.
 
 ### Registry Entity
 
