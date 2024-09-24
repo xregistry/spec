@@ -3587,13 +3587,13 @@
             "type": "string",
             "format": "date-time"
           },
-          "format": {
-            "type": "string",
-            "description": "Schema format identifier for this schema version"
-          },
           "validation": {
             "type": "boolean",
             "description": "Verify compliance with specified schema 'format'"
+          },
+          "format": {
+            "type": "string",
+            "description": "Schema format identifier for this schema version"
           }
         },
         "oneOf": [

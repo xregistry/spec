@@ -76,9 +76,9 @@ this form:
 
           "format": "STRING", ?
 
-          "schemaobject": ANY, ?         # TODO why is this not using RESOURCE*?
-          "schema": "STRING", ?
-          "schemauri": "URI" ?
+          "schemaurl": "URL", ?
+          "schema": ANY ?
+          "schemabase64": "STRING", ?
 
           "defaultversionsticky": BOOLEAN, ?       # Res level Ver-related attrs
           "defaultversionid": "STRING",
@@ -263,9 +263,30 @@ major version identifier in the schema `id`, like `"com.example.event.v1"` or
 schemas can be more easily identified by users and developers. The schema
 Version `id` then functions as the semantic minor version identifier.
 
-The following extensions are defined for the `schema` object in addition to the
-core xRegistry Resource
+The following extensions are defined for the `schema` Resource in addition to
+the core xRegistry Resource
 [attributes](../core/spec.md#attributes-and-extensions):
+
+#### `validation`
+
+- Type: Boolean
+- Description: Indicates whether or not the server will validate the Resource's
+  document(s) against the specified `format` attribute. A value of `true`
+  indicates that the server MUST reject any request that would cause any
+  Version of this Resource to be invalid per the rules as defined by the
+  `format` specification. Note, this includes a request to set this attribute
+  to `true`. This means that before validation can be enabled all existing
+  Versions of the Resource MUST be compliant.
+
+  A value of `false` indicates that the server MUST NOT do any validation.
+
+  If `format` is not specified, or if the value is not known by the server
+  (but it an allowable value), then the server MUST NOT perform any validation.
+- Constraints:
+  - OPTIONAL
+  - When not specified, the default value is `true`.
+  - MUST be a Resource level attribute as defined by the xRegistry [`location`
+    model aspect](../core/spec.md#registry-model).
 
 #### `format`
 
@@ -285,6 +306,8 @@ core xRegistry Resource
   - MUST follow the naming convention `{NAME}/{VERSION}`, whereby `{NAME}` is
     the name of the schema format and `{VERSION}` is the Version of the schema
     format in the format defined by the schema format itself.
+  - MUST be a Version level attribute as defined by the xRegistry [`location`
+    model aspect](../core/spec.md#registry-model).
 - Examples:
   - `JsonSchema/draft-07`
   - `Protobuf/3`
@@ -356,26 +379,6 @@ Versions for a schema named `com.example.telemetrydata`:
   }
 }
 ```
-
-#### `validation`
-
-- Type: Boolean
-- Description: Indicates whether or not the server will validate the Resource's
-  document(s) against the specified `format` attribute. A value of `true`
-  indicates that the server MUST reject any request that would cause any
-  Version of this Resource to be invalid per the rules as defined by the
-  `format` specification. Note, this includes a request to set this attribute
-  to `true`. This means that before validation can be enabled all existing
-  Versions of the Resource MUST be compliant.
-
-  A value of `false` indicates that the server MUST NOT do any validation.
-
-  If `format` is not specified, or if the value is not known by the server
-  (but it an allowable value), then the server MUST NOT perform any validation.
-- Constraints:
-  - OPTIONAL
-  - When not specified, the default value is `true`.
-  - MUST be a Resource level attribute
 
 ### Schema Formats
 

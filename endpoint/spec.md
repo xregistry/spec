@@ -600,12 +600,36 @@ TODO merge this into the previous 'protocol' section
   - If `protocoloptions.protocol` is a well-known protocol, the options MUST be
     compliant with the [protocol's options](#protocol-options).
 
+#### `messagegroups`
+
+The `messagegroups` attribute is an array of URI-references to message
+definition groups. The `messagegroups` attribute is used to reference
+message definition groups that are not inlined in the endpoint definition.
+
+Example:
+
+```yaml
+{
+  "protocol": "HTTP/1.1",
+  "options": {
+    "method": "POST"
+  },
+  "messagegroups": [
+    "https://example.com/registry/messagegroups/mygroup"
+  ]
+}
+```
+
 #### `messages`
 
 Endpoints are supersets of
 [message definition groups](../message/spec.md#message-definition-groups) and
 MAY contain inlined messages. See
 [Message Definitions](../message/spec.md#message-definitions).
+
+It is STRONGLY RECOMMENDED that the `messageid` values of the inlined messages
+be unique across all messages within the `messages` collection and the messages
+referenced by the `messagegroups` references.
 
 Example:
 
@@ -630,26 +654,6 @@ Example:
       }
     }
   }
-}
-```
-
-#### `messagegroups`
-
-The `messagegroups` attribute is an array of URI-references to message
-definition groups. The `messagegroups` attribute is used to reference
-message definition groups that are not inlined in the endpoint definition.
-
-Example:
-
-```yaml
-{
-  "protocol": "HTTP/1.1",
-  "options": {
-    "method": "POST"
-  },
-  "messagegroups": [
-    "https://example.com/registry/messagegroups/mygroup"
-  ]
 }
 ```
 

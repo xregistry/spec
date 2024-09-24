@@ -20,16 +20,16 @@
           "plural": "schemas",
 
           "attributes": {
-            "format": {
-              "name": "format",
-              "type": "string",
-              "description": "Schema format identifier for this schema version"
-            },
             "validation": {
               "name": "validation",
               "type": "boolean",
               "description": "Verify compliance with specified schema 'format'",
               "location": "resource"
+            },
+            "format": {
+              "name": "format",
+              "type": "string",
+              "description": "Schema format identifier for this schema version"
             },
             "*": {
               "name": "*",

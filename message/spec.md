@@ -101,7 +101,7 @@ this form:
           "protocoloptions": { ... }, ?
 
           "schemaformat": "STRING", ?
-          "schema": ANY,
+          "schema": ANY, ?
           "schemauri": "URI", ?
 
           "defaultversionsticky": BOOLEAN, ?
@@ -230,8 +230,15 @@ Different from schemas, message definitions do not contain a
 version history. If the metadata of two messages differs, they are considered
 different messages.
 
-The following extension is defined for the `message` object in addition to
-the basic [attributes](../core/spec.md#attributes-and-extensions):
+When [CloudEvents](https://cloudevents.io) is being used for a particular
+message, it is RECOMMENDED that the message's `messageid` attribute be the
+same as the [CloudEvents `type`
+attribute](https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#type). Doing so makes for easier management of the meta-model by correlating
+the look-up value (id) of messages with their related events.
+
+The following extensions are defined for the `message` Resource in addition to
+the core xRegistry Resource
+[attributes](../core/spec.md#attributes-and-extensions):
 
 #### `basemessageurl`
 
