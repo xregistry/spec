@@ -24,8 +24,8 @@ project, and in April 2023 it was split into its own project but continues
 so share many organizational resources with the CloudEvents and CNCF Serverless
 Working Group (such as the weekly meetings).
 
-The name `xRegistry` is meant to be written with a lowercase `x`, even when
-the first word in a sentence.
+The name `xRegistry` (standing for extensible registry) is meant to be written
+with a lowercase `x`, even when the first word in a sentence.
 
 ## xRegistry Documents
 
