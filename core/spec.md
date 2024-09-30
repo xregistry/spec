@@ -1887,9 +1887,11 @@ The following describes the attributes of Registry model:
     attribute that appears in the serialization of a Resource or a Version
     is associated with the the referenced Version or its owning Resource.
   - A value of `resource` indicates that the attribute is a Resource level
-    attribute.
+    attribute and MUST (if set) only appear when viewing the Resource, not a
+    Version of the Resource.
   - A value of `version` indicates that the attribute is a Version level
-    attribute.
+    attribute and (if set) MUST appear when viewing a Resource (and its default
+    attributes) as well as on Versions.
   - A value of `both` indicates that the attribute is both a Resource level
     attribute as well as a Version level attribute, but their values might
     not be the same. An example of this would be `self`. This value MUST only
@@ -4980,7 +4982,10 @@ MUST apply for an entity to be considered a match of the filter expression:
   indicates that any number of characters can appear at that location in the
   `VALUE`. The wildcard MAY be escaped via the use of a backslash (`\\`)
   character (e.g. `abc\*def`) to mean that the `*` is to be interpreted as
-  a normal character and not as a wildcard.
+  a normal character and not as a wildcard. Note that a `VALUE` of `*` MUST
+  be equivalent to checking for the the existence of the attribute, with any
+  value (even an empty string). In other words, the filter will only fail if
+  the attribute has no value at all.
 
 If the request references an entity (not a collection), and the `EXPRESSION`
 references an attribute in that entity (i.e. there is no `PATH`), then if the

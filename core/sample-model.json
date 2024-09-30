@@ -11,7 +11,7 @@
       "serverrequired": true
     },
     "registryid": {
-      "name": "id",
+      "name": "registryid",
       "type": "string",
       "immutable": true,
       "serverrequired": true
