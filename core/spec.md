@@ -1187,6 +1187,7 @@ Content-Type: application/json; charset=utf-8
   "COLLECTIONscount": UINTEGER",                   # e.g. "endpointscount"
   "COLLECTIONs": { map of COLLECTION entities } ?  # If inlined
 }
+```
 
 ##### Deleting Entities in a Registry Collection
 
@@ -1218,7 +1219,7 @@ DELETE PATH-TO-COLLECTION
 {
   "KEY": {                                            # SINGULARid of entity
     "epoch": UINTEGER ?
-    # Remainder of entity serialization is OPTIONAL
+    # Remainder of entity serialization is ignored
   } *
 } ?
 ```
@@ -1233,11 +1234,9 @@ Where:
   to ensure that the value matches the entity's current `epoch` value and if it
   differs then an error MUST be generated.
 - If the entity's unique identifier is present in the object, then it MUST
-  match its corresponding key value. And for Versions, if `RESOURCEid` is
-  present then it MUST match the Resource's `SINGULARid` (`rID`) specified
-  in the URL.
+  match its corresponding `KEY` value.
 - Any other entity attributes that are present in the request MUST be silently
-  ignored.
+  ignored, even if their values are invalid.
 - If one of the referenced entities can not be found then the server MUST
   silently ignore this condition and not treat it as an error.
 
