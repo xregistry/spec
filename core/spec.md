@@ -181,6 +181,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
           "xref": "URL", ?                         # Ptr to linked Resource
           "epoch": UINTEGER,
           "readonly": BOOLEAN, ?                   # Default is "false"
+          "compatibility": "STRING", ?             # Default is "none"
 
           # These are inherited from the "default" Version
           "name": "STRING", ?
@@ -552,8 +553,7 @@ of the existing entity. Then the existing entity can be deleted.
   owning Resource's value. Updating a Resource or any of its Versions will
   update the shared Resource `epoch` value for all of those entities. This
   means that concurrent updates to different Versions of the same Resource
-  might result in an epoch validation error for the second update request
-  mention above.
+  might result in an epoch validation error for the second update request.
 - Constraints:
   - MUST be an unsigned integer equal to or greater than zero.
   - MUST increase in value each time the entity is updated.
@@ -1899,6 +1899,8 @@ The following describes the attributes of Registry model:
     used at the Resource level or Version level, but not both at the same time.
   - Type: String
   - OPTIONAL
+  - MUST only be used when defining top-level Resource attributes. Usage at
+    any other level in the model MUST generate an error.
   - If present, MUST be: `resource`, `version` or `both` - case sensitive.
   - When not present, the default value is `version`.
 
@@ -3179,7 +3181,7 @@ and the following Resource level attributes:
   by clients. This specification makes no statement as to when Resource are to
   be read-only.
 - Constraints:
-  - When not present, the default value is `false`,
+  - When not present, the default value is `false`.
   - REQUIRED when `true`, otherwise OPTIONAL.
   - When present, it MUST be a case sensitive `true` or `false`.
   - A request to update this attribute, on a non-read-only Resource, MUST be
@@ -3188,6 +3190,50 @@ and the following Resource level attributes:
     the `?noreadonly` query parameter was used, in which case the error MUST
     be silently ignored. See [Registry APIs](#registry-apis) for more
     information.
+
+##### `compatibility` Attribute
+- Type: String (with resource-specified enumeration of possible values)
+- Description: indicates whether Versions of this Resource need to adhere to
+  a certain compatibility rule. For example, a "backward" compatibility
+  value would indicate that all Versions of a Resource are mandated to be
+  backwards compatible with the next oldest Version, as determined by their
+  `createdat` timestamp attributes.
+
+  The exact meaning of what each `compatibility` value means might vary based
+  on the data model of the Resource, therefore this specification only defines
+  a very high-level abstract meaning for each to ensure some degree of
+  consistency. However, domain specific specifications are expected to
+  modify the `compatibility` enum values defined in the Resource's model to
+  limit the list of available values and to define the exact meaning of each.
+  Implementations MUST include `none` as one of the possible values and when
+  set to `none` then compatibility checking MUST NOT be performed.
+
+  Implementations of this specification are REQUIRED to perform the proper
+  compatibility checks to ensure that all Versions of a Resource adhere to the
+  rules defined by the current value of this attribute. This includes rejecting
+  requests to add/delete/modify Versions or update this attribute in such a
+  way as to make the existing Versions incompatible due to the new value.
+
+  Note that, like all attributes, if a default value is defined as part of the
+  model, then this attribute MUST be populated with that value if no value
+  is provided.
+
+  This specification defines the following enumeration values. Implementations
+  MAY choose to extend this list, or use a subset of it.
+  - `backward` - A Version is compatible with the next oldest Version.
+  - `backward_transitive` - A Version is compatible with all older Versions.
+  - `forward` - A Version is compatible with the next newest Version.
+  - `forward_transitive` - A Version is compatible with all newer Versions.
+  - `full` - A Version is compatible with the next oldest and next newest
+    Versions.
+  - `full_transitive` - A Version is compatible with all older and all newer
+    Versions.
+  - `none` - No compatibility checking is performed.
+
+- Constraints:
+  - When present, it MUST be a case sensitive value from the model defined
+    enumeration range.
+  - When not present, the implied default value is `none`.
 
 ##### `defaultversionsticky` Attribute
 - Type: Boolean
