@@ -10,13 +10,16 @@ automation and tooling.
 
 - [Overview](#overview)
 - [Notations and Terminology](#notations-and-terminology)
-  - [Notational Conventions](#notational-conventions)
-  - [Terminology](#terminology)
+    - [Notational Conventions](#notational-conventions)
+    - [Terminology](#terminology)
 - [Registry Attributes and APIs](#registry-attributes-and-apis)
   - [Attributes and Extensions](#attributes-and-extensions)
+    - [Common Attributes](#common-attributes)
+    - [`xid` - Referencing xRegistry Entities](#xid---referencing-xregistry-entities)
   - [Registry APIs](#registry-apis)
     - [Registry Collections](#registry-collections)
     - [Entity Processing Rules](#entity-processing-rules)
+  - [`xid` Resolution API](#xid-resolution-api)
   - [Registry Entity](#registry-entity)
     - [Retrieving the Registry](#retrieving-the-registry)
     - [Updating the Registry Entity](#updating-the-registry-entity)
@@ -437,7 +440,9 @@ attributes. However they MUST adhere to the following rules:
   example, use of a model (or domain) specific prefix could be used to help
   avoid possible future conflicts.
 
-#### `xid` - Referencing xRegistry Entities
+#### `xid`
+
+##### Referencing xRegistry Entities
 
 An `xid` is a URI according to
 [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986) that
@@ -448,8 +453,9 @@ is helpful to use a URI, e.g. events or knowledge graphs.
 Each entity has exactly one `xid`. Therefore, comparing two `xid`
 values is possible to determine, if they identify the same or different
 entities. To achieve this, an xRegistry-specific URI scheme `xreg` is defined:
+ABNF https://datatracker.ietf.org/doc/html/rfc5234
 
-`xid` = `"xreg://" authority "/" entity-path "/" entity-id`
+`xid` = `"xreg://" authority "/" entity-path`
 
 `entity-path` = `group-path` / `resource-path` / `version-path`
 
@@ -469,30 +475,30 @@ Where:
 - `rID` is the `id` of a single Resource.
 - `vID` is the `id` of a single Version of a Resource.
 
-##### `authority`
+###### `authority`
 
 The `authority` is a string that uniquely identifies the entity's authority.
-It could be regarded as a namespace and SHOULD be based on a domain name that is
-under the control of the entity's publisher.
+It could be regarded as a namespace and SHOULD be based on a unique name
+like an entry in the domain name system (DNS) that is under the control of
+the entity's publisher.
 
-##### `entity-path`
+###### `entity-path`
 
 As xRegistry entities are organized in a hierarchy, the `entity-path`
 outlines the entity's position in the hierarchy. As the ABNF above shows,
 there can be paths for groups, resources, and versions.
 
-##### `entity-id`
-
 ##### De-referencing a relative URI reference
 
 A relative URI reference can only be de-referenced if the base URI is known
-from the context. 
+from the context.
 
-If the relative URI reference consists of a relative path segment, i.e. it 
-does not begin with a slash, then the base URI is the URI of the surrounding 
+If the relative URI reference consists of a relative path segment, i.e. it
+does not begin with a slash, then the base URI is the URI of the surrounding
 entity.
 
 __Example:__
+
 ```
 xid of surrounding entity: xreg://example.com/messagegroups/group2
 
@@ -501,11 +507,12 @@ Reference: messages/message1
 De-referenced URI: xreg://example.com/messagegroups/group2/messages/message1
 ```
 
-If the relative URI reference consists of an absolute path segment, i.e. it 
-begins with a slash, then the base URI is the authority of the surrounding 
+If the relative URI reference consists of an absolute path segment, i.e. it
+begins with a slash, then the base URI is the authority of the surrounding
 group.
 
-__Example:__ 
+__Example:__
+
 ```
 xid of surrounding group: xreg://example.com/messagegroups/group2
 
@@ -516,27 +523,32 @@ De-referenced URI: xreg://example.com/messagegroups/group1/messages/message1
 
 ```
 
-##### Resolving an `xid`
+##### Binding an `xid`
 
-As an `xid` is an abstract identifier of an entity, it is necessary to 
+As an `xid` is an abstract identifier of an entity, it is necessary to
 transform it into URLs or URL references to access the entity.
 
-For the HTTP API, the information from an `xid` can be used to construct a 
+For the HTTP API, the information from an `xid` can be used to construct a
 URL like this:
 
 `<Registry-base-URL>/GROUPs/{authority}${gID}/RESOURCEs/{rID}/versions/{vID}`
 
-The authority is OPTIONAL if it is identical to the registry's default 
-authority. For a file-based registry, the URL looks similar but makes use of 
-a URL fragment section: 
+The authority is OPTIONAL if it is identical to the registry's default
+authority. For a file-based registry, the URL looks similar but makes use of
+a URL fragment section:
 
 `<File-URL>/#GROUPs/{authority}${gID}/RESOURCEs/{rID}/versions/{vID}`
 
-Bindings to HTTP, AMQP, registry as document  etc.
+Further bindings MAY be defined in the future, e.g. for AMQP or GraphQL.
 
 ##### Comparing `xid` values
 
+A key feature of the `xid` is that it is a URI and can be efficiently compared
+with other `xids`:
 
+__Two `xids` are equal if and only if their authority, their group type name,
+their resource type name (if applicable), and all ID fields they contain are 
+equal.__
 
 #### Common Attributes
 
@@ -588,9 +600,9 @@ The definition of each attribute is defined below:
     be generated.
   - MUST be immutable.
 - Examples:
-  - `a183e0a9-abf8-4763-99bc-e6b7fcc9544b`
-  - `myEntity`
-  - `myEntity.example.com`
+    - `a183e0a9-abf8-4763-99bc-e6b7fcc9544b`
+    - `myEntity`
+    - `myEntity.example.com`
 
 While `SINGULARid` can be something like a UUID, when possible, it is
 RECOMMENDED that it be something human friendly as these values will often
@@ -657,10 +669,10 @@ of the existing entity. Then the existing entity can be deleted.
   might result in an epoch validation error for the second update request
   mention above.
 - Constraints:
-  - MUST be an unsigned integer equal to or greater than zero.
-  - MUST increase in value each time the entity is updated.
+    - MUST be an unsigned integer equal to or greater than zero.
+    - MUST increase in value each time the entity is updated.
 - Examples:
-  - `0`, `1`, `2`, `3`
+    - `0`, `1`, `2`, `3`
 
 ##### `name` Attribute
 
@@ -691,9 +703,9 @@ of the existing entity. Then the existing entity can be deleted.
 - Type: String
 - Description: A human readable summary of the purpose of the entity.
 - Constraints:
-  - None
+    - None
 - Examples:
-  - `A queue of the sensor generated messages`
+    - `A queue of the sensor generated messages`
 
 ##### `documentation` Attribute
 
@@ -702,10 +714,10 @@ of the existing entity. Then the existing entity can be deleted.
   This specification does not place any constraints on the data returned from
   an HTTP `GET` to this URL.
 - Constraints:
-  - If present, MUST be a non-empty URL.
-  - MUST support an HTTP(s) `GET` to this URL.
+    - If present, MUST be a non-empty URL.
+    - MUST support an HTTP(s) `GET` to this URL.
 - Examples:
-  - `https://example.com/docs/myQueue`
+    - `https://example.com/docs/myQueue`
 
 ##### `labels` Attribute
 
@@ -713,15 +725,15 @@ of the existing entity. Then the existing entity can be deleted.
 - Description: A mechanism in which additional metadata about the entity can
   be stored without changing the schema of the entity.
 - Constraints:
-  - If present, MUST be a map of zero or more name/value string pairs. See
-    [Attributes and Extensions](#attributes-and-extensions) for more
-    information.
-  - Keys MUST be non-empty strings.
-  - Values MAY be empty strings.
+    - If present, MUST be a map of zero or more name/value string pairs. See
+      [Attributes and Extensions](#attributes-and-extensions) for more
+      information.
+    - Keys MUST be non-empty strings.
+    - Values MAY be empty strings.
 - Examples:
-  - `"labels": { "owner": "John", "verified": "" }` when in the HTTP body
-  - `xRegistry-labels-owner: John` <br>
-    `xRegistry-labels-verified:`  when in HTTP headers
+    - `"labels": { "owner": "John", "verified": "" }` when in the HTTP body
+    - `xRegistry-labels-owner: John` <br>
+      `xRegistry-labels-verified:`  when in HTTP headers
 
   Note: HTTP header values can be empty strings but some client-side tooling
   might make it challenging to produce them. For example, `curl` requires
@@ -738,9 +750,9 @@ of the existing entity. Then the existing entity can be deleted.
   is the value of the `self` attribute and in those cases its presence in the
   serialization of the entity is OPTIONAL.
 - Constraints:
-  - OPTIONAL if this Registry is the authority owner.
-  - REQUIRED if this Registry is not the authority owner.
-  - If present, MUST be a non-empty URI.
+    - OPTIONAL if this Registry is the authority owner.
+    - REQUIRED if this Registry is not the authority owner.
+    - If present, MUST be a non-empty URI.
 - Examples:
   - `https://example2.com/myregistry/endpoints/ep1`
 
@@ -749,15 +761,15 @@ of the existing entity. Then the existing entity can be deleted.
 - Type: Timestamp
 - Description: The date/time of when the entity was created.
 - Constraints:
-  - MUST be a [RFC3339](https://tools.ietf.org/html/rfc3339) timestamp.
-  - When present in a write operation request, the value MUST override any
-    existing value, however a value of `null` MUST use the current date/time
-    as the new value.
-  - When absent in a write operation request, any existing value MUST remain
-    unchanged, or if not present, set to the current date/time
-  - In cases where the `createdat` attribute is set to the current date/time
-    on multiple entities within the same operation, the same value MUST be
-    applied to all of the entities.
+    - MUST be a [RFC3339](https://tools.ietf.org/html/rfc3339) timestamp.
+    - When present in a write operation request, the value MUST override any
+      existing value, however a value of `null` MUST use the current date/time
+      as the new value.
+    - When absent in a write operation request, any existing value MUST remain
+      unchanged, or if not present, set to the current date/time
+    - In cases where the `createdat` attribute is set to the current date/time
+      on multiple entities within the same operation, the same value MUST be
+      applied to all of the entities.
 - Examples:
   - `2030-12-19T06:00:00Z`
 
@@ -766,29 +778,29 @@ of the existing entity. Then the existing entity can be deleted.
 - Type: Timestamp
 - Description: The date/time of when the entity was last updated
 - Constraints:
-  - MUST be a [RFC3339](https://tools.ietf.org/html/rfc3339) timestamp
-    representing the time when the entity was last updated.
-  - Any update operation (even one that does not change any attribute, such as
-    a `PATCH` with no attributes provided), MUST update this attribute. This
-    then acts like a `touch` type of operation.
-  - Upon creation of a new entity, this attribute MUST match the `createdat`
-    attribute's value.
-  - Setting an entity's `modifiedat` value MUST NOT update any parent
-    entity's `modifiedat` value.
-  - When present in a write operation request, the following applies:
-    - If the request value is the same as the existing value, then the
-      current date/time MUST be used as its new value.
-    - If the request value is different than the existing value, then the
-      request value MUST be used as its new value.
-    - If the request value is `null` then the current date/time MUST be used
-      as the new value.
-  - When absent in a write operation request, it MUST be set to the current
-    date/time.
-  - In cases where the `modifiedat` attribute is set to the current date/time
-    on multiple entities within the same operation, the same value MUST be
-    applied to all of the entities.
+    - MUST be a [RFC3339](https://tools.ietf.org/html/rfc3339) timestamp
+      representing the time when the entity was last updated.
+    - Any update operation (even one that does not change any attribute, such as
+      a `PATCH` with no attributes provided), MUST update this attribute. This
+      then acts like a `touch` type of operation.
+    - Upon creation of a new entity, this attribute MUST match the `createdat`
+      attribute's value.
+    - Setting an entity's `modifiedat` value MUST NOT update any parent
+      entity's `modifiedat` value.
+    - When present in a write operation request, the following applies:
+        - If the request value is the same as the existing value, then the
+          current date/time MUST be used as its new value.
+        - If the request value is different than the existing value, then the
+          request value MUST be used as its new value.
+        - If the request value is `null` then the current date/time MUST be used
+          as the new value.
+    - When absent in a write operation request, it MUST be set to the current
+      date/time.
+    - In cases where the `modifiedat` attribute is set to the current date/time
+      on multiple entities within the same operation, the same value MUST be
+      applied to all of the entities.
 - Examples:
-  - `2030-12-19T06:00:00Z`
+    - `2030-12-19T06:00:00Z`
 
 ---
 
@@ -2031,31 +2043,31 @@ The following describes the attributes of Registry model:
     extension attributes. As such, it is only for informational purposes for
     clients.
 
-    Once set, any attempt to update the value MUST be silently ignored by
-    the server.
+      Once set, any attempt to update the value MUST be silently ignored by
+      the server.
 
-    When not specified, the default value is `false`.
-  - Type: Boolean.
-  - OPTIONAL.
+      When not specified, the default value is `false`.
+    - Type: Boolean.
+    - OPTIONAL.
 
 - `attributes."STRING".clientrequired`
-  - Indicates whether this attribute is a REQUIRED field for a client when
-    creating or updating an entity. When not specified the default value is
-    `false`. When the attribute name is `*` then `clientrequired` MUST NOT be
-    set to `true`.
+    - Indicates whether this attribute is a REQUIRED field for a client when
+      creating or updating an entity. When not specified the default value is
+      `false`. When the attribute name is `*` then `clientrequired` MUST NOT be
+      set to `true`.
 
-    During creation or update of an entity if this attribute is not
-    specified then an error MUST be generated.
+      During creation or update of an entity if this attribute is not
+      specified then an error MUST be generated.
 
-  - Type: Boolean.
-  - OPTIONAL.
+    - Type: Boolean.
+    - OPTIONAL.
 
 - `attributes."STRING".serverrequired`
-  - Indicates whether this attribute is a REQUIRED field for a server when
-    serializing an entity. When not specified the default value is `false`.
-    When the attribute name is `*` then `serverrequired` MUST NOT be set to
-    `true`. When `clientrequired` is `true` then `serverrequired` MUST also be
-    `true`.
+    - Indicates whether this attribute is a REQUIRED field for a server when
+      serializing an entity. When not specified the default value is `false`.
+      When the attribute name is `*` then `serverrequired` MUST NOT be set to
+      `true`. When `clientrequired` is `true` then `serverrequired` MUST also be
+      `true`.
 
   - Type: Boolean
   - OPTIONAL
@@ -2083,14 +2095,14 @@ The following describes the attributes of Registry model:
   - When not present, the default value is `version`.
 
 - `attributes."STRING".default`
-  - This value MUST be used to populate this attribute's value if one was
-    not provided by a client. An attribute with a default value does not mean
-    that its owning Object is mandated to be present, rather the attribute
-    would only appear when the owning Object is present. By default,
-    attributes have no default values.
-  - Type: MUST be the same type as the `type` of this attribute and MUST
-    only be used for scalar types.
-  - OPTIONAL.
+    - This value MUST be used to populate this attribute's value if one was
+      not provided by a client. An attribute with a default value does not mean
+      that its owning Object is mandated to be present, rather the attribute
+      would only appear when the owning Object is present. By default,
+      attributes have no default values.
+    - Type: MUST be the same type as the `type` of this attribute and MUST
+      only be used for scalar types.
+    - OPTIONAL.
 
 - `attributes."STRING".attributes`
   - This contains the list of attributes defined as part of a nested resource.
@@ -2100,24 +2112,24 @@ The following describes the attributes of Registry model:
     defined attributes for the nested `object`.
 
 - `attributes."STRING".item`
-  - Defines the nested resource that this attribute references. This
-    attribute MUST only be used when the owning attribute's `type` value is
-    `map` or `array`.
-  - Type: Object.
-  - REQUIRED when owning attribute's `type` is `map` or `array`.
+    - Defines the nested resource that this attribute references. This
+      attribute MUST only be used when the owning attribute's `type` value is
+      `map` or `array`.
+    - Type: Object.
+    - REQUIRED when owning attribute's `type` is `map` or `array`.
 
 - `attributes."STRING".item.type`
-  - The "TYPE" of this nested resource.
-  - Type: TYPE.
-  - REQUIRED.
+    - The "TYPE" of this nested resource.
+    - Type: TYPE.
+    - REQUIRED.
 
 - `attributes."STRING".item.attributes`
-  - See `attributes` above.
-  - OPTIONAL, and MUST ONLY be used when `item.type` is `object`.
+    - See `attributes` above.
+    - OPTIONAL, and MUST ONLY be used when `item.type` is `object`.
 
 - `attributes."STRING".item.item`
-  - See `attributes."STRING".item` above.
-  - REQUIRED when `item.type` is `map` or `array`.
+    - See `attributes."STRING".item` above.
+    - REQUIRED when `item.type` is `map` or `array`.
 
 - `attributes."STRING".ifvalues`
   - This map can be used to conditionally include additional
@@ -2126,46 +2138,46 @@ The following describes the attributes of Registry model:
     the `ifvalues` `"VALUE"` (case sensitive) then the `siblingattributes` MUST
     be included in the model as siblings to this attribute.
 
-    If `enum` is not empty and `strict` is `true` then this map MUST NOT
-    contain any value that is not specified in the `enum` array.
+      If `enum` is not empty and `strict` is `true` then this map MUST NOT
+      contain any value that is not specified in the `enum` array.
 
-    This aspect MUST only be used for scalar attributes.
+      This aspect MUST only be used for scalar attributes.
 
-    All attributes defined for this `ifvalues` MUST be unique within the scope
-    of this `ifvalues` and MUST NOT match a named attributed defined at this
-    level of the entity. If multiple `ifvalues` sections, at the same entity
-    level, are active at the same time then there MUST NOT be duplicate
-    `ifvalues` attributes names between those `ifvalues` sections.
-  - `ifvalues` `"VALUE"` MUST NOT be an empty string.
-  - `ifvalues` `siblingattributes` MAY include additional `ifvalues`
-    definitions.
-  - Type: Map where each value of the attribute is the key of the map.
-  - OPTIONAL.
+      All attributes defined for this `ifvalues` MUST be unique within the scope
+      of this `ifvalues` and MUST NOT match a named attributed defined at this
+      level of the entity. If multiple `ifvalues` sections, at the same entity
+      level, are active at the same time then there MUST NOT be duplicate
+      `ifvalues` attributes names between those `ifvalues` sections.
+    - `ifvalues` `"VALUE"` MUST NOT be an empty string.
+    - `ifvalues` `siblingattributes` MAY include additional `ifvalues`
+      definitions.
+    - Type: Map where each value of the attribute is the key of the map.
+    - OPTIONAL.
 
 - `groups`
-  - The set of Group types supported by the Registry.
-  - Type: Map where the key MUST be the plural name (`groups.plural`) of the
-    Group type (`GROUPs`).
-  - REQUIRED if there are any Group types defined for the Registry.
+    - The set of Group types supported by the Registry.
+    - Type: Map where the key MUST be the plural name (`groups.plural`) of the
+      Group type (`GROUPs`).
+    - REQUIRED if there are any Group types defined for the Registry.
 
 - `groups.singular`
-  - The singular name of a Group type e.g. `endpoint` (`GROUP`).
-  - Type: String.
-  - REQUIRED.
-  - MUST be unique across all Group types in the Registry.
-  - MUST be non-empty and MUST be a valid attribute name with the exception
-    that it MUST NOT exceed 58 characters (not 63).
+    - The singular name of a Group type e.g. `endpoint` (`GROUP`).
+    - Type: String.
+    - REQUIRED.
+    - MUST be unique across all Group types in the Registry.
+    - MUST be non-empty and MUST be a valid attribute name with the exception
+      that it MUST NOT exceed 58 characters (not 63).
 
 - `groups.plural`
-  - The plural name of the Group type e.g. `endpoints` (`GROUPs`).
-  - Type: String.
-  - REQUIRED.
-  - MUST be unique across all Group types in the Registry.
-  - MUST be non-empty and MUST be a valid attribute name with the exception
-    that it MUST NOT exceed 58 characters (not 63).
+    - The plural name of the Group type e.g. `endpoints` (`GROUPs`).
+    - Type: String.
+    - REQUIRED.
+    - MUST be unique across all Group types in the Registry.
+    - MUST be non-empty and MUST be a valid attribute name with the exception
+      that it MUST NOT exceed 58 characters (not 63).
 
 - `groups.attributes`
-  - See `attributes` above.
+    - See `attributes` above.
 
 - `groups.resources`
   - The set of Resource types defined for the Group type.
@@ -2190,45 +2202,45 @@ The following describes the attributes of Registry model:
   - MUST be unique within the scope of its owning Group type.
 
 - `groups.resources.maxversions`
-  - Number of Versions that will be stored in the Registry for this Resource
-    type.
-  - Type: Unsigned Integer.
-  - OPTIONAL.
-  - The default value is zero (`0`).
-  - A value of zero (`0`) indicates there is no stated limit, and
-    implementations MAY prune non-default Versions at any time.
-  - When the limit is exceeded, implementations MUST prune Versions by
-    deleting the oldest Version (based on creation times) first, skipping the
-    Version marked as "default". An exception to this pruning rule is if
-    `maxversions` value is one (`1`) then the newest Version of the Resource
-    MUST always be the "default" and the `setdefaultversionsticky` aspect
-    MUST be `false`.
+    - Number of Versions that will be stored in the Registry for this Resource
+      type.
+    - Type: Unsigned Integer.
+    - OPTIONAL.
+    - The default value is zero (`0`).
+    - A value of zero (`0`) indicates there is no stated limit, and
+      implementations MAY prune non-default Versions at any time.
+    - When the limit is exceeded, implementations MUST prune Versions by
+      deleting the oldest Version (based on creation times) first, skipping the
+      Version marked as "default". An exception to this pruning rule is if
+      `maxversions` value is one (`1`) then the newest Version of the Resource
+      MUST always be the "default" and the `setdefaultversionsticky` aspect
+      MUST be `false`.
 
 - `groups.resources.setversionid`
-  - Indicates whether support for client-side setting of a Version's
-    `versionid` is supported.
-  - Type: Boolean (`true` or `false`, case sensitive).
-  - OPTIONAL.
-  - The default value is `true`.
-  - A value of `true` indicates the client MAY specify the `versionid` of a
-    Version during its creation process.
-  - A value of `false` indicates that the server MUST choose an appropriate
-    `versionid` value during creation of the Version.
+    - Indicates whether support for client-side setting of a Version's
+      `versionid` is supported.
+    - Type: Boolean (`true` or `false`, case sensitive).
+    - OPTIONAL.
+    - The default value is `true`.
+    - A value of `true` indicates the client MAY specify the `versionid` of a
+      Version during its creation process.
+    - A value of `false` indicates that the server MUST choose an appropriate
+      `versionid` value during creation of the Version.
 
 - `groups.resources.setdefaultversionsticky`
-  - Indicates whether support for client-side selection of the "default"
-    Version is supported for Resources of this type. Once set, the default
-    Version MUST NOT change unless there is some explicit action by a client
-    to change it - hence the term "sticky".
-  - Type: Boolean (`true` or `false`, case sensitive).
-  - OPTIONAL.
-  - The default value is `true`.
-  - A value of `true` indicates a client MAY select the default Version of
-    a Resource via one of the methods described in this specification rather
-    than the server always choosing the default Version.
-  - A value of `false` indicates the server MUST choose which Version is the
-    default Version.
-  - This attribute MUST NOT be `true` if `maxversions` is one (`1`).
+    - Indicates whether support for client-side selection of the "default"
+      Version is supported for Resources of this type. Once set, the default
+      Version MUST NOT change unless there is some explicit action by a client
+      to change it - hence the term "sticky".
+    - Type: Boolean (`true` or `false`, case sensitive).
+    - OPTIONAL.
+    - The default value is `true`.
+    - A value of `true` indicates a client MAY select the default Version of
+      a Resource via one of the methods described in this specification rather
+      than the server always choosing the default Version.
+    - A value of `false` indicates the server MUST choose which Version is the
+      default Version.
+    - This attribute MUST NOT be `true` if `maxversions` is one (`1`).
 
 - `groups.resources.hasdocument`
   - Indicates whether or not Resources of this type can have a document
@@ -2240,14 +2252,14 @@ The following describes the attributes of Registry model:
     the cases where this attribute is set to `true` - but the output remains
     the same.
 
-    A value of `true` does not mean that these Resources are guaranteed to
-    have a non-empty document, and an HTTP `GET` to the Resource MAY return an
-    empty HTTP body.
-  - Type: Boolean (`true` or `false`, case sensitive).
-  - OPTIONAL.
-  - The default value is `true`.
-  - A value of `true` indicates that Resource of this type supports a separate
-    document to be associated with it.
+      A value of `true` does not mean that these Resources are guaranteed to
+      have a non-empty document, and an HTTP `GET` to the Resource MAY return an
+      empty HTTP body.
+    - Type: Boolean (`true` or `false`, case sensitive).
+    - OPTIONAL.
+    - The default value is `true`.
+    - A value of `true` indicates that Resource of this type supports a separate
+      document to be associated with it.
 
 - `groups.resources.typemap`
   - When a Resource's metadata is serialized in a response and the `inline`
@@ -2266,22 +2278,22 @@ The following describes the attributes of Registry model:
     The `typemap` attribute allows for this by defining a mapping of
     `contenttype` values to well-known xRegistry format types.
 
-    Since the `contenttype` value is a "media-type" per
-    [RFC9110](https://datatracker.ietf.org/doc/html/rfc9110#media.type),
-    for purposes of looking it up in the `typemap`, just the `type/subtype`
-    portion of the value (case insensitively) MUST be used. Meaning, any
-    `parameters` MUST be excluded.
+      Since the `contenttype` value is a "media-type" per
+      [RFC9110](https://datatracker.ietf.org/doc/html/rfc9110#media.type),
+      for purposes of looking it up in the `typemap`, just the `type/subtype`
+      portion of the value (case insensitively) MUST be used. Meaning, any
+      `parameters` MUST be excluded.
 
-    If more than one entry in the `typemap` matches the `contenttype`, but
-    they all have the same value, then that value MUST be used. If they are
-    not all the same, then `binary` MUST be used.
+      If more than one entry in the `typemap` matches the `contenttype`, but
+      they all have the same value, then that value MUST be used. If they are
+      not all the same, then `binary` MUST be used.
 
-  - This specification defines the following values (case insensitive):
-    - `binary`
-    - `json`
-    - `string`
+    - This specification defines the following values (case insensitive):
+        - `binary`
+        - `json`
+        - `string`
 
-    Implementations MAY define additional values.
+      Implementations MAY define additional values.
 
     A value of `binary` indicates that the Resource's document is to be treated
     as an array of bytes and serialized under the `RESOURCEbase64` attribute,
@@ -2304,33 +2316,33 @@ The following describes the attributes of Registry model:
     Specifying an unknown (or unsupported) value MUST generate an error during
     the update of the xRegistry model.
 
-    By default, the following
-    [RFC9110](https://datatracker.ietf.org/doc/html/rfc9110#media.type)
-    `typemap` keys MUST be implicitly defined as follows, unless overridden
-    by an explicit `typemap` entry:
-    - `application/json`: mapped to `json`
-    - `*+json`: mapped to `json`
-    - `text/plain`: mapped to `string`
+      By default, the following
+      [RFC9110](https://datatracker.ietf.org/doc/html/rfc9110#media.type)
+      `typemap` keys MUST be implicitly defined as follows, unless overridden
+      by an explicit `typemap` entry:
+        - `application/json`: mapped to `json`
+        - `*+json`: mapped to `json`
+        - `text/plain`: mapped to `string`
 
-  - Type: Map where the keys and values MUST be non-empty strings. The key
-    MAY include at most one `*` to act as a wildcard to mean zero or more
-    instance of any character at that position in the string - similar to a
-    `.*` in a regular expression. The key MUST be a case insensitive string.
+    - Type: Map where the keys and values MUST be non-empty strings. The key
+      MAY include at most one `*` to act as a wildcard to mean zero or more
+      instance of any character at that position in the string - similar to a
+      `.*` in a regular expression. The key MUST be a case insensitive string.
 
-  - OPTIONAL.
-  - Example:<br>
-    ```yaml
-    "typemap": {
-      "text/*": "string",
-      "text/mine": "json"
-    }
-    ```
+    - OPTIONAL.
+    - Example:<br>
+      ```yaml
+      "typemap": {
+        "text/*": "string",
+        "text/mine": "json"
+      }
+      ```
 
 - `groups.resources.attributes`
-  - See `attributes` above.
-  - Note that Resources only have a few attributes, and most of the attributes
-    listed here would be for the Versions. However, they would appear on the
-    Resource when asking for the default Version of the Resource.
+    - See `attributes` above.
+    - Note that Resources only have a few attributes, and most of the attributes
+      listed here would be for the Versions. However, they would appear on the
+      Resource when asking for the default Version of the Resource.
 
 #### Retrieving the Registry Model
 
@@ -2932,16 +2944,17 @@ and the following Group level attributes:
 ##### `authority` Attribute
 
 - Type: String
-- Description: The authority under which this group is defined. If not present, 
-  the according `defaultauthority` will be applied. 
+- Description: The authority under which this group is defined. If not present,
+  the according `defaultauthority` will be applied.
 - Constraints:
-    - OPTIONAL.
-    - If present, MUST be non-empty.
-    - Must be a valid authority as defined under [authority](#authority).
-    - If not present, the `defaultauthority` will be applied, when the group 
-      is exported.
+  - OPTIONAL.
+  - If present, MUST be non-empty.
+  - Must be a valid authority as defined under [authority](#authority).
+  - If not present, the `defaultauthority` will be applied, when the group
+    is exported.
 
 ##### `RESOURCEs` Collections
+
 - Type: Set of [Registry Collections](#registry-collections).
 - Description: A list of Registry collections that contain the set of
   Resources supported by the Group.
@@ -3401,29 +3414,29 @@ and the following Resource level attributes:
   then the Version chosen by the server will be indeterminate.
 
 - Constraints:
-  - When not present, the default value is `false`.
-  - REQUIRED when `true`, otherwise OPTIONAL.
-  - When present, it MUST be a case sensitive `true` or `false`.
-  - If present in a request, a value of `null` has the same meaning as
-    deleting the attribute, implicitly setting it to `false`.
-  - Since this attribute and `defaultversionid` are closely related, the
-    processing of them in a request message MUST adhere to the following:
-    - The `defaultversionsticky` attribute is applied first. As a reminder,
-      in the `PATCH` case, if this attribute is missing in the request then
-      this attribute remains unchanged in the Resource.
-    - If the resulting value of this attribute is `false` then the sticky
-      aspect MUST be turned off, and any `defaultversionid` in the request
-      MUST be ignored. The newest Version MUST be the default Version.
-    - If the resulting value of this attribute is `true` then the sticky
-      aspect MUST be turned on, and any `defaultversionid` attribute from
-      the request is applied - where a value of `null` means "newest".
-      If the request was a `PUT` or `POST` and did not have a
-      `defaultversionid` then the implicit value of `null` MUST be used,
-      resulting in "newest". If the request was a `PATCH` and did not have a
-      `defaultversionid` then the current default Version MUST be used.
-      A reference to a Version that does not exist MUST generate an error.
+    - When not present, the default value is `false`.
+    - REQUIRED when `true`, otherwise OPTIONAL.
+    - When present, it MUST be a case sensitive `true` or `false`.
+    - If present in a request, a value of `null` has the same meaning as
+      deleting the attribute, implicitly setting it to `false`.
+    - Since this attribute and `defaultversionid` are closely related, the
+      processing of them in a request message MUST adhere to the following:
+        - The `defaultversionsticky` attribute is applied first. As a reminder,
+          in the `PATCH` case, if this attribute is missing in the request then
+          this attribute remains unchanged in the Resource.
+        - If the resulting value of this attribute is `false` then the sticky
+          aspect MUST be turned off, and any `defaultversionid` in the request
+          MUST be ignored. The newest Version MUST be the default Version.
+        - If the resulting value of this attribute is `true` then the sticky
+          aspect MUST be turned on, and any `defaultversionid` attribute from
+          the request is applied - where a value of `null` means "newest".
+          If the request was a `PUT` or `POST` and did not have a
+          `defaultversionid` then the implicit value of `null` MUST be used,
+          resulting in "newest". If the request was a `PATCH` and did not have a
+          `defaultversionid` then the current default Version MUST be used.
+          A reference to a Version that does not exist MUST generate an error.
 - Examples:
-  - `true`, `false`
+    - `true`, `false`
 
 ##### `defaultversionid` Attribute
 - Type: String
@@ -3433,11 +3446,11 @@ and the following Resource level attributes:
   is assumed that newer Versions of a Resource will have a "higher"
   value than older Versions.
 - Constraints:
-  - REQUIRED in responses and document view, OPTIONAL in requests.
-  - If present, MUST be non-empty.
-  - MUST be the `versionid` of the default Version of the Resource.
-  - See the `defaultversionsticky` section above for how to process these two
-    attributes.
+    - REQUIRED in responses and document view, OPTIONAL in requests.
+    - If present, MUST be non-empty.
+    - MUST be the `versionid` of the default Version of the Resource.
+    - See the `defaultversionsticky` section above for how to process these two
+      attributes.
 - Examples:
   - `1`, `2.0`, `v3-rc1` (v3's release candidate 1)
 
