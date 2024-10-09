@@ -552,8 +552,7 @@ of the existing entity. Then the existing entity can be deleted.
   owning Resource's value. Updating a Resource or any of its Versions will
   update the shared Resource `epoch` value for all of those entities. This
   means that concurrent updates to different Versions of the same Resource
-  might result in an epoch validation error for the second update request
-  mention above.
+  might result in an epoch validation error for the second update request.
 - Constraints:
   - MUST be an unsigned integer equal to or greater than zero.
   - MUST increase in value each time the entity is updated.
@@ -1899,6 +1898,8 @@ The following describes the attributes of Registry model:
     used at the Resource level or Version level, but not both at the same time.
   - Type: String
   - OPTIONAL
+  - MUST only be used when defining top-level Resource attributes. Usage at
+    any other level in the model MUST generate an error.
   - If present, MUST be: `resource`, `version` or `both` - case sensitive.
   - When not present, the default value is `version`.
 
