@@ -14,9 +14,12 @@ automation and tooling.
   - [Terminology](#terminology)
 - [Registry Attributes and APIs](#registry-attributes-and-apis)
   - [Attributes and Extensions](#attributes-and-extensions)
+    - [Common Attributes](#common-attributes)
+    - [`xid`](#xid)
   - [Registry APIs](#registry-apis)
     - [Registry Collections](#registry-collections)
     - [Entity Processing Rules](#entity-processing-rules)
+  - [`xid` Resolution API](#xid-resolution-api)
   - [Registry Entity](#registry-entity)
     - [Retrieving the Registry](#retrieving-the-registry)
     - [Updating the Registry Entity](#updating-the-registry-entity)
@@ -31,7 +34,7 @@ automation and tooling.
   - [Resources](#resources)
     - [Retrieving a Resource Collection](#retrieving-a-resource-collection)
     - [Creating or Updating Resources and
-       Versions](#creating-or-updating-resources-and-versions)
+      Versions](#creating-or-updating-resources-and-versions)
     - [Retrieving a Resource](#retrieving-a-resource)
     - [Deleting Resources](#deleting-resources)
   - [Versions](#versions)
@@ -372,6 +375,7 @@ be one of the following data types:
   [RFC 6570 Section 3.2.1](https://tools.ietf.org/html/rfc6570#section-3.2.1).
 - `url` - URL as defined in
   [RFC 1738](https://datatracker.ietf.org/doc/html/rfc1738).
+- `xid` - as defined in [Referencing xRegistry Entities](#xid---referencing-xregistry-entities).
 
 The "scalar" data types are: `boolean`, `decimal`, `integer`, `string`,
 `timestamp`, `uinteger`, `uri`, `urireference`, `uritemplate`, `url`.
@@ -435,6 +439,117 @@ attributes. However they MUST adhere to the following rules:
   potential conflicts with future Registry level attributes. For
   example, use of a model (or domain) specific prefix could be used to help
   avoid possible future conflicts.
+
+#### `xid`
+
+##### Referencing xRegistry Entities
+
+An `xid` is a URI according to
+[RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986) that
+uniquely identifies an entity within an xRegistry. Its purpose is to
+reference the entity and express a relation to it, even if it is not stored in
+the local registry. The `xid` can also be used in other places where it
+is helpful to use a URI, e.g. events or knowledge graphs.
+Each entity has exactly one `xid`. Therefore, comparing two `xid`
+values is possible to determine, if they identify the same or different
+entities. To achieve this, an xRegistry-specific URI scheme `xreg` is defined.
+Below, [ABNF](https://datatracker.ietf.org/doc/html/rfc5234)  notation is used 
+to describe how `xids` are structured:
+
+`xid` = `"xreg://" authority "/" entity-path`
+
+`entity-path` = `group-path` / `resource-path` / `version-path`
+
+`group-path`= `GROUPs "/" gID`
+
+`resource-path`= `group-path "/" RESOURCEs "/" rID`
+
+`version-path`= `resource-path "/" versions "/" vID`
+
+Where:
+
+- `GROUPs` is a Group type name (plural). e.g. `endpoints`.
+- `GROUP`, not shown, is the singular name of a Group type.
+- `gID` is the `id` of a single Group.
+- `RESOURCEs` is a Resource type name (plural). e.g. `definitions`.
+- `RESOURCE`, not shown, is the singular name of a Resource type.
+- `rID` is the `id` of a single Resource.
+- `vID` is the `id` of a single Version of a Resource.
+
+###### `authority`
+
+The `authority` is a string that uniquely identifies the entity's authority.
+It could be regarded as a namespace and SHOULD be based on a unique name
+like an entry in the domain name system (DNS) that is under the control of
+the entity's publisher.
+
+###### `entity-path`
+
+As xRegistry entities are organized in a hierarchy, the `entity-path`
+outlines the entity's position in the hierarchy. As the ABNF above shows,
+there can be paths for groups, resources, and versions.
+
+##### De-referencing a relative URI reference
+
+A relative URI reference can only be de-referenced if the base URI is known
+from the context.
+
+If the relative URI reference consists of a relative path segment, i.e. it
+does not begin with a slash, then the base URI is the URI of the surrounding
+entity.
+
+__Example:__
+
+```
+xid of surrounding entity: xreg://example.com/messagegroups/group2
+
+Reference: messages/message1
+
+De-referenced URI: xreg://example.com/messagegroups/group2/messages/message1
+```
+
+If the relative URI reference consists of an absolute path segment, i.e. it
+begins with a slash, then the base URI is the authority of the surrounding
+group.
+
+__Example:__
+
+```
+xid of surrounding group: xreg://example.com/messagegroups/group2
+
+Reference: /messagegroups/group1/messages/message1
+
+De-referenced URI: xreg://example.com/messagegroups/group1/messages/message1
+
+
+```
+
+##### Binding an `xid`
+
+As an `xid` is an abstract identifier of an entity, it is necessary to
+transform it into URLs or URL references to access the entity.
+
+For the HTTP API, the information from an `xid` can be used to construct a
+URL like this:
+
+`<Registry-base-URL>/GROUPs/{gID}@{authority}/RESOURCEs/{rID}/versions/{vID}`
+
+The authority is OPTIONAL if it is identical to the registry's default
+authority. For a file-based registry, the URL looks similar but makes use of
+a URL fragment section:
+
+`<File-URL>/#GROUPs/{gID}@{authority}/RESOURCEs/{rID}/versions/{vID}`
+
+Further bindings MAY be defined in the future, e.g. for AMQP or GraphQL.
+
+##### Comparing `xid` values
+
+A key feature of the `xid` is that it is a URI and can be efficiently compared
+with other `xids`:
+
+__Two `xids` are equal if and only if their authority, their group type name,
+their resource type name (if applicable), and all ID fields they contain are 
+equal.__
 
 #### Common Attributes
 
@@ -697,6 +812,7 @@ This specification defines the following API patterns:
 ```yaml
 /                                               # Access the Registry
 /model                                          # Access the model definitions
+/resolution
 /GROUPs                                         # Access a Group Type
 /GROUPs/gID                                     # Access a Group
 /GROUPs/gID/RESOURCEs                           # Access a Resource Type
@@ -1263,6 +1379,72 @@ HTTP body.
 
 ---
 
+### `xid` Resolution API
+
+The resolution API is used to translate an `xid` into a URL that can be used
+to access an xRegistry entity. An implementation of the registry API SHOULD
+provide a resolution API under the path `/resolution`.
+The resolution API MAY also be offered independently of the registry API.
+It can resolve `xids` and federate access to multiple registries.
+In the following, `/` is the root of the resolution API, even if it would be
+provided under `/resolution` as part of an registry.
+
+#### `GET /xid/{xid}` and `HEAD /xid/{xid}`
+
+The placeholder `{xid}` depicts the `xid` to resolve. As `xids` MAY be full
+URIs or URI references, the `xid` MUST be percent-encoded accordingly.
+
+For `GET` and `HEAD` requests, the server MUST respond as follows:
+
+- If the `xid` is not found, the server MUST respond with an HTTP
+  `404 Not Found`.
+- If the `xid` is found and there exists exactly one URL to access the entity,
+  the server MUST respond with an HTTP `308` where the `Location` header
+  MUST contain the URL to access the entity.
+- If the `xid` is found and there are multiple URLs to access the entity, the
+  server MUST respond with an HTTP `300 Multiple Choices` where the choices
+  are listed as `Link` headers. Each `Link` header MUST contain a
+  `rel="alternate"`as specified
+  in [RFC5988](https://tools.ietf.org/html/rfc5988), 
+[RFC8288](https://tools.ietf.org/html/rfc8288)
+  and
+  [RFC7231](https://tools.ietf.org/rfc/rfc7231#section-6.4.1). If the server 
+  has a preferred URL, e.g. the authoritative URL, it SHOULD be returned as 
+  `Location` header.
+
+If the applied request method is `GET`, the body of the response MUST be a
+JSON object as follows:
+
+```yaml
+{
+  "xid": "URI",     # The xid to resolve
+  "locations": [
+    {
+      "url": "URL",   # The URL to access the entity
+      "authoritative": boolean
+    } *                 
+  ], 
+  "externalids":[ 
+    {
+      "type": "STRING",  # The type of the external ID
+      "id": "STRING"         # External IDs that are equivalent to the xid"
+    } *
+  ] ?
+}
+```
+
+#### `locations`
+
+The `locations` array contains the URLs to access the entity. In addition to 
+the `url`, the `authoritative` attribute indicates whether the URL points to 
+the registry that is authoritative for the entity.
+
+#### `externalids`
+
+The `externalids` array is optional. If the entity can also be identified by 
+identifiers outside from xRegistry, they can be listed here. The `type` 
+attribute describes the type of the external ID.
+
 ### Registry Entity
 
 The Registry entity represents the root of a Registry and is the main
@@ -1320,7 +1502,19 @@ and the following Registry level attributes:
 - Examples:
   - `1.0`
 
+#### `defaultauthority` Attribute
+
+- Type: String
+- Description: The default authority that is applied to groups without
+  explicit authority. If not present, there is no way to refer to groups
+  without authority via an `xid`.
+- Constraints:
+  - OPTIONAL.
+  - If present, MUST be non-empty.
+  - Must be a valid authority as defined under [authority](#authority).
+
 ##### `model` Attribute
+
 - Type: Registry Model
 - Description: A description of the features, extension attributes, Groups and
   Resources supported by this Registry. See [Registry Model](#registry-model)
@@ -2578,9 +2772,10 @@ The format of the `ximport` specification is:
 ```
 
 where:
+
 - Each array value MUST be a reference to another Group/Resource plural
-combination defined within the same Registry. It MUST NOT reference the
-same Group under which the `ximport` resides.
+  combination defined within the same Registry. It MUST NOT reference the
+  same Group under which the `ximport` resides.
 - An empty array MAY be specified, implying no Resources are imported.
 
 Use of the `ximport` feature MUST only be used once per Group definition.
@@ -2714,6 +2909,7 @@ The serialization of a Group entity adheres to this form:
 ```yaml
 {
   "GROUPid": "STRING",
+  "authority": "STRING", ?
   "self": "URL",
   "epoch": UINTEGER,
   "name": "STRING", ?
@@ -2748,7 +2944,20 @@ Groups include the following common attributes:
 
 and the following Group level attributes:
 
+##### `authority` Attribute
+
+- Type: String
+- Description: The authority under which this group is defined. If not present,
+  the according `defaultauthority` will be applied.
+- Constraints:
+  - OPTIONAL.
+  - If present, MUST be non-empty.
+  - Must be a valid authority as defined under [authority](#authority).
+  - If not present, the `defaultauthority` will be applied, when the group
+    is exported.
+
 ##### `RESOURCEs` Collections
+
 - Type: Set of [Registry Collections](#registry-collections).
 - Description: A list of Registry collections that contain the set of
   Resources supported by the Group.
@@ -2783,6 +2992,7 @@ Link: <URL>;rel=next;count=UINTEGER ?
 {
   "KEY": {                                     # GROUPid
     "GROUPid": "STRING",
+    "authority": "STRING", ?
     "self": "URL",
     "epoch": UINTEGER,
     "name": "STRING", ?
@@ -3232,6 +3442,7 @@ and the following Resource level attributes:
   - `true`, `false`
 
 ##### `defaultversionid` Attribute
+
 - Type: String
 - Description: the `versionid` of the default Version of the Resource.
   This specification makes no statement as to the format of this string or
