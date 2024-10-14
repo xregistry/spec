@@ -375,7 +375,7 @@ be one of the following data types:
   [RFC 6570 Section 3.2.1](https://tools.ietf.org/html/rfc6570#section-3.2.1).
 - `url` - URL as defined in
   [RFC 1738](https://datatracker.ietf.org/doc/html/rfc1738).
-- `xid` - as defined in [Referencing xRegistry Entities](#xid---referencing-xregistry-entities).
+- `xid` - as defined in [Referencing xRegistry Entities](#xid).
 
 The "scalar" data types are: `boolean`, `decimal`, `integer`, `string`,
 `timestamp`, `uinteger`, `uri`, `urireference`, `uritemplate`, `url`.
@@ -453,7 +453,7 @@ is helpful to use a URI, e.g. events or knowledge graphs.
 Each entity has exactly one `xid`. Therefore, comparing two `xid`
 values is possible to determine, if they identify the same or different
 entities. To achieve this, an xRegistry-specific URI scheme `xreg` is defined.
-Below, [ABNF](https://datatracker.ietf.org/doc/html/rfc5234)  notation is used 
+Below, [ABNF](https://datatracker.ietf.org/doc/html/rfc5234)  notation is used
 to describe how `xids` are structured:
 
 `xid` = `"xreg://" authority "/" entity-path`
@@ -548,7 +548,7 @@ A key feature of the `xid` is that it is a URI and can be efficiently compared
 with other `xids`:
 
 __Two `xids` are equal if and only if their authority, their group type name,
-their resource type name (if applicable), and all ID fields they contain are 
+their resource type name (if applicable), and all ID fields they contain are
 equal.__
 
 #### Common Attributes
@@ -1405,11 +1405,11 @@ For `GET` and `HEAD` requests, the server MUST respond as follows:
   server MUST respond with an HTTP `300 Multiple Choices` where the choices
   are listed as `Link` headers. Each `Link` header MUST contain a
   `rel="alternate"`as specified
-  in [RFC5988](https://tools.ietf.org/html/rfc5988), 
+  in [RFC5988](https://tools.ietf.org/html/rfc5988),
 [RFC8288](https://tools.ietf.org/html/rfc8288)
   and
-  [RFC7231](https://tools.ietf.org/rfc/rfc7231#section-6.4.1). If the server 
-  has a preferred URL, e.g. the authoritative URL, it SHOULD be returned as 
+  [RFC7231](https://tools.ietf.org/rfc/rfc7231#section-6.4.1). If the server
+  has a preferred URL, e.g. the authoritative URL, it SHOULD be returned as
   `Location` header.
 
 If the applied request method is `GET`, the body of the response MUST be a
@@ -1422,9 +1422,9 @@ JSON object as follows:
     {
       "url": "URL",   # The URL to access the entity
       "authoritative": boolean
-    } *                 
-  ], 
-  "externalids":[ 
+    } *
+  ],
+  "externalids":[
     {
       "type": "STRING",  # The type of the external ID
       "id": "STRING"         # External IDs that are equivalent to the xid"
@@ -1435,14 +1435,14 @@ JSON object as follows:
 
 #### `locations`
 
-The `locations` array contains the URLs to access the entity. In addition to 
-the `url`, the `authoritative` attribute indicates whether the URL points to 
+The `locations` array contains the URLs to access the entity. In addition to
+the `url`, the `authoritative` attribute indicates whether the URL points to
 the registry that is authoritative for the entity.
 
 #### `externalids`
 
-The `externalids` array is optional. If the entity can also be identified by 
-identifiers outside from xRegistry, they can be listed here. The `type` 
+The `externalids` array is OPTIONAL. If the entity can also be identified by
+identifiers outside from xRegistry, they can be listed here. The `type`
 attribute describes the type of the external ID.
 
 ### Registry Entity
@@ -1511,7 +1511,7 @@ and the following Registry level attributes:
 - Constraints:
   - OPTIONAL.
   - If present, MUST be non-empty.
-  - Must be a valid authority as defined under [authority](#authority).
+  - MUST be a valid authority as defined under [authority](#authority).
 
 ##### `model` Attribute
 
@@ -2952,7 +2952,7 @@ and the following Group level attributes:
 - Constraints:
   - OPTIONAL.
   - If present, MUST be non-empty.
-  - Must be a valid authority as defined under [authority](#authority).
+  - MUST be a valid authority as defined under [authority](#authority).
   - If not present, the `defaultauthority` will be applied, when the group
     is exported.
 
