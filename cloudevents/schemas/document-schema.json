@@ -1582,13 +1582,6 @@
           "type": "string",
           "format": "date-time"
         },
-        "compatibility": {
-          "type": "string"
-        },
-        "validation": {
-          "type": "boolean",
-          "description": "Verify compliance with specified schema 'format'"
-        },
         "format": {
           "type": "string",
           "description": "Schema format identifier for this schema version"

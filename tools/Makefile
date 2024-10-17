@@ -2,12 +2,15 @@ all: verify
 
 verify: spellcheck tabcheck test_tools
 	@python tools/verify.py .
+	@echo
 
 spellcheck:
 	tools/spellcheck */spec.md core/primer.md
+	@echo
 
 tabcheck:
-	tools/tabcheck */spec.md core/primer.md
+	tools/tabcheck */*.md  */*.json
+	@echo
 
 deps:
 	@echo Loading python deps

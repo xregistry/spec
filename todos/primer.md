@@ -45,8 +45,8 @@ Within that scope, two obvious items popped up:
     This includes things such as: how does an event consumer know which events
     a producer will generated? Which transport, and encoding, mechanisms do
     they support? How should a consumer subscribe for events?
-    
-2 - Subscriptions: 
+
+2 - Subscriptions:
     Once the consumer determines if a particular producer will generate events
     that are of interest to them, how can they subscribe? Ideally, in an
     interoperable way so as to not need to have custom logic for each producer.
@@ -72,7 +72,7 @@ insight into the team's focus during the development cycle.
 - Consumer wants to programmatically determine the list of events (event types)
   that a producer will generate so they can properly specify the list of events
   they are interested in as part of the subscribe() operation.
-  
+
 - Consumer wants to know which producers support certain event types so as to
   allow for the consumer to subscribe only to those producers since those are
   the only events that the consumer is interested in, or can support.

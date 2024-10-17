@@ -6,7 +6,7 @@
 set -e
 
 for f in $* ; do
-  echo Spell-checking: $f
+  echo "> $f"
 
   sed "s/\([a-zA-Z0-9]\+\)/\n\1\n/gI" < $f | \
     tr '[:upper:]' '[:lower:]' | \
