@@ -13,40 +13,54 @@
     "schemaVersion": {
       "type": "object",
       "properties": {
-        "id": {
-          "type": "string"
+        "versionid": {
+          "type": "string",
+          "description": "ID of the schema version"
+        },
+        "schemaid": {
+          "type": "string",
+          "description": "ID of the schema object"
         },
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "Name of the object"
         },
         "epoch": {
-          "type": "integer"
+          "type": "integer",
+          "description": "Epoch time of the object creation"
         },
         "self": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "description": "URI of the object"
         },
         "description": {
-          "type": "string"
+          "type": "string",
+          "description": "Description of the object"
         },
         "documentation": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "description": "URI of the documentation of the object"
         },
         "labels": {
-          "type": "object"
+          "type": "object",
+          "description": "Labels for the object"
         },
         "origin": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "description": "URI of the object origin"
         },
         "createdat": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "description": "Time of the object creation"
         },
         "modifiedat": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "description": "Time of the object modification"
         },
         "validation": {
           "type": "boolean",
@@ -73,7 +87,6 @@
             }
           },
           "required": [
-            "id",
             "schema"
           ]
         },
@@ -86,7 +99,6 @@
             }
           },
           "required": [
-            "id",
             "schemabase64"
           ]
         },
@@ -99,7 +111,6 @@
             }
           },
           "required": [
-            "id",
             "schemaurl"
           ]
         }
@@ -108,40 +119,50 @@
     "schema": {
       "type": "object",
       "properties": {
-        "id": {
-          "type": "string"
+        "schemaid": {
+          "type": "string",
+          "description": "ID of the schema object"
         },
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "Name of the object"
         },
         "epoch": {
-          "type": "integer"
+          "type": "integer",
+          "description": "Epoch time of the object creation"
         },
         "self": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "description": "URI of the object"
         },
         "description": {
-          "type": "string"
+          "type": "string",
+          "description": "Description of the object"
         },
         "documentation": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "description": "URI of the documentation of the object"
         },
         "labels": {
-          "type": "object"
+          "type": "object",
+          "description": "Labels for the object"
         },
         "origin": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "description": "URI of the object origin"
         },
         "createdat": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "description": "Time of the object creation"
         },
         "modifiedat": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "description": "Time of the object modification"
         }
       },
       "oneOf": [
@@ -155,7 +176,6 @@
             }
           },
           "required": [
-            "id",
             "versionsurl"
           ]
         },
@@ -169,7 +189,6 @@
             }
           },
           "required": [
-            "id",
             "versions"
           ]
         }
@@ -178,40 +197,50 @@
     "schemagroup": {
       "type": "object",
       "properties": {
-        "id": {
-          "type": "string"
+        "schemagroupid": {
+          "type": "string",
+          "description": "ID of the schemagroup object"
         },
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "Name of the object"
         },
         "epoch": {
-          "type": "integer"
+          "type": "integer",
+          "description": "Epoch time of the object creation"
         },
         "self": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "description": "URI of the object"
         },
         "description": {
-          "type": "string"
+          "type": "string",
+          "description": "Description of the object"
         },
         "documentation": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "description": "URI of the documentation of the object"
         },
         "labels": {
-          "type": "object"
+          "type": "object",
+          "description": "Labels for the object"
         },
         "origin": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "description": "URI of the object origin"
         },
         "createdat": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "description": "Time of the object creation"
         },
         "modifiedat": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "description": "Time of the object modification"
         },
         "schemas": {
           "type": "object",
@@ -219,10 +248,7 @@
             "$ref": "#/definitions/schema"
           }
         }
-      },
-      "required": [
-        "id"
-      ]
+      }
     }
   }
 }
