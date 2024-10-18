@@ -48,6 +48,9 @@
           "type": "string",
           "format": "date-time"
         },
+        "compatibility": {
+          "type": "string"
+        },
         "validation": {
           "type": "boolean",
           "description": "Verify compliance with specified schema 'format'"

@@ -747,6 +747,10 @@
                       ]
                     },
                     {
+                      "type": "string",
+                      "name": "compatibility"
+                    },
+                    {
                       "type": "boolean",
                       "name": "validation",
                       "doc": "Verify compliance with specified schema 'format'"

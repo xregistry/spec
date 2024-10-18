@@ -5,13 +5,12 @@ set -e
 for f in $* ; do
   echo Checking for tabs: $f
 
-  if grep -P '\t' $f > /dev/null ; then
-    echo "$f contains tabs" 
+  if grep -nP '\t' $f ; then
     exit 1
   fi
 
-  if grep "  *$" $f > /dev/null ; then 
-    echo "$f contains lines with extra spaces at the end" 
+  echo Checking for trailing spaces: $f
+  if grep -n "  *$" $f ; then
     exit 1
   fi
 

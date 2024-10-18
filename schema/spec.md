@@ -135,10 +135,11 @@ is needed to decode the structured data from its serialized, binary form.
 We use the term **schema** (or schema Resource) in this specification as a
 logical grouping of **schema Versions**. A **schema Version** is a concrete
 document. The **schema** Resource is a semantic umbrella formed around one or
-more concrete schema Version documents. The semantic condition for **schema
-Versions** to coexist in the same **schema** is that any new schema Version
-MUST be backwards compatible with all previous versions of the same **schema**.
-Any breaking change MUST result in a new **schema** Resource.
+more concrete schema Version documents. Per the definition of the
+[`compatibility`](../core/spec.md#compatibility-attribute) attribute, all
+Versions of a single **schema** MUST adhere to the rules defined by the
+`compatibility` attribute. Any breaking change MUST result in a new **schema**
+being created.
 
 In "semantic Versioning" terms, you can think of a **schema** as a "major
 version" and the **schema Versions** as "minor versions".
@@ -242,26 +243,34 @@ The type of the resource is `schema`. Any single `schema` is a container for
 one or more `Versions`, which hold the concrete schema documents or schema
 document references.
 
-Any new schema Version that is added to a schema definition SHOULD be backwards
-compatible with all previous Versions of the schema, meaning that a consumer
-using the new schema would be able to understand data encoded using a prior
-Version of the schema. If a new Version introduces a breaking change, it SHOULD
-be registered as a new schema with a new name.
+All Versions of a schema MUST adhere to the semantic rules of the schema's
+`compatibility` attribute. This specification defines "compatibility" for
+schemas as follows; version B of a schema is said to be compatible with
+version A of a schema if all of the following are true:
+- Any document that adheres to the rules specified by schema A also adheres to
+  rules specified by schema B.
+- Any processing rules defined for schema A also apply for schema B.
+- Any processing rules defined for schema B, that are not defined for schema
+  A, do not conflict with the processing rules for schema A.
+
+Implementations of this specification MAY choose to support any of the
+[`compatibility`](../core/spec.md#compatibility-attribute) values defined in
+the core xRegistry specification.
 
 Implementations of this specification SHOULD use the xRegistry default
-algorithm for generating new `id` values and for determining which is the
-latest Version. See [Version IDs](../core/spec.md#version-ids) for more
+algorithm for generating new `versionid` values and for determining which is
+the latest Version. See [Version IDs](../core/spec.md#version-ids) for more
 information, but in summary it means:
-- `id`s are unsigned integers starting with `1`
+- `versionid`s are unsigned integers starting with `1`
 - They monotomically increase by `1` with each new Version
-- The latest is the Version with the lexically largest `id` value after all
-  Version's `id`s have been left-padded with spaces to the same length
+- The latest is the Version with the lexically largest `versionid` value after
+  all `versionid`s have been left-padded with spaces to the same length
 
 When semantic versioning is used in a solution, it is RECOMMENDED to include a
-major version identifier in the schema `id`, like `"com.example.event.v1"` or
+major version identifier in the `schemaid`, like `"com.example.event.v1"` or
 `"com.example.event.2024-02"`, so that incompatible, but historically related
 schemas can be more easily identified by users and developers. The schema
-Version `id` then functions as the semantic minor version identifier.
+`versionid` then functions as the semantic minor version identifier.
 
 The following extensions are defined for the `schema` Resource in addition to
 the core xRegistry Resource

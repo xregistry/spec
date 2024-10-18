@@ -20,6 +20,14 @@
           "plural": "schemas",
 
           "attributes": {
+            "compatibility": {
+              "name": "compatibility",
+              "type": "string",
+              "enum": [ "none", "backward", "backward_transitive", "forward",
+                        "forward_transitive", "full", "full_transitive" ],
+              "default": "backwards",
+              "location": "resource"
+            },
             "validation": {
               "name": "validation",
               "type": "boolean",
