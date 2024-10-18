@@ -80,29 +80,27 @@ json_type_mapping = {
 }
 
 json_common_attributes = {
-    "id": {"type": "string"},
-    "name": {"type": "string"},
-    "epoch": {"type": "integer"},
-    "self": {"type": "string", "format": "uri"},
-    "description": {"type": "string"},
-    "documentation": {"type": "string", "format": "uri"},
-    "labels": {"type": "object"},
-    "origin": {"type": "string", "format": "uri"},
-    "createdat": {"type": "string", "format": "date-time"},
-    "modifiedat": {"type": "string", "format": "date-time"}
+    "name": {"type": "string", "description": "Name of the object"},
+    "epoch": {"type": "integer", "description": "Epoch time of the object creation"},
+    "self": {"type": "string", "format": "uri", "description": "URI of the object"},
+    "description": {"type": "string", "description": "Description of the object"},
+    "documentation": {"type": "string", "format": "uri", "description": "URI of the documentation of the object"},
+    "labels": {"type": "object", "description": "Labels for the object"},
+    "origin": {"type": "string", "format": "uri", "description": "URI of the object origin"},
+    "createdat": {"type": "string", "format": "date-time", "description": "Time of the object creation"},
+    "modifiedat": {"type": "string", "format": "date-time", "description": "Time of the object modification"}
 }
 
 avro_common_attributes = [
-    {"name": "id", "type": "string"},
-    {"name": "name", "type": ["string", "null"]},
-    {"name": "epoch", "type": ["int", "null"]},
-    {"name": "self", "type": "string"},
-    {"name": "description", "type": ["string", "null"]},
-    {"name": "documentation", "type": ["string", "null"]},
-    {"name": "labels", "type": { "type": "map", "values": ["string", "null"]}},
-    {"name": "origin", "type": "string"},
-    {"name": "createdat", "type": [{"type":"int", "logicalType": "time-millis"}, "null"]},
-    {"name": "modifiedat", "type": [{"type":"int", "logicalType": "time-millis"},"null"]}
+    {"name": "name", "type": ["string", "null"], "doc": "Name of the object"},
+    {"name": "epoch", "type": ["int", "null"], "doc": "Epoch time of the object creation"},
+    {"name": "self", "type": "string", "doc": "URI of the object"},
+    {"name": "description", "type": ["string", "null"], "doc": "Description of the object"},
+    {"name": "documentation", "type": ["string", "null"], "doc": "URI of the documentation of the object"},
+    {"name": "labels", "type": { "type": "map", "values": ["string", "null"]} , "doc": "Labels for the object"},
+    {"name": "origin", "type": "string", "doc": "URI of the object origin"},
+    {"name": "createdat", "type": [{"type":"int", "logicalType": "time-millis"}, "null"], "doc": "Time of the object creation"},
+    {"name": "modifiedat", "type": [{"type":"int", "logicalType": "time-millis"},"null"], "doc": "Time of the object modification"}
 ]
 
 
@@ -442,11 +440,14 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
         for _, resource in group.get("resources", {}).items():
             resource = resolve_resource(group, resource)            
             resource_name = resource["singular"]
-
+            props = {}
+            props[resource_name+"id"] = {"type": "string", "description": f"ID of the {resource_name} object"}
+            props.update(copy.deepcopy(json_common_attributes))
+            
             if resource.get("hasdocument", True):
-                resource_schema = {
+                 resource_schema = {
                     "type": "object",
-                    "properties": copy.deepcopy(json_common_attributes),
+                    "properties": props,
                     "oneOf": [
                         {
                             "properties": {
@@ -455,7 +456,7 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
                                     "oneOf": [{"type": "object"},{"type": "string"}] 
                                 }
                             },
-                            "required": ["id", resource_name]
+                            "required": [resource_name]
                         },
                         {   
                             "properties": {
@@ -465,7 +466,7 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
                                     "format": "base64"
                                 }
                             },
-                            "required": ["id", resource_name+"base64"]
+                            "required": [resource_name+"base64"]
                         },
                         {
                             "properties": {
@@ -475,20 +476,23 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
                                     "format": "uri"
                                 }
                             },
-                            "required": ["id", resource_name+"url"]
+                            "required": [resource_name+"url"]
                         }
                     ]
                 }                        
             else:
                 resource_schema = {
                     "type": "object",
-                    "properties": copy.deepcopy(json_common_attributes),
-                    "required": ["id"],
+                    "properties": props
                 }
 
             attributes = resource.get("attributes", {})
             if resource.get("maxversions", -1) != 1:
                 resource_version_schema = copy.deepcopy(resource_schema)
+                props = {}
+                props["versionid"] = {"type": "string", "description": f"ID of the {resource_name} version"}
+                props.update(copy.deepcopy(resource_version_schema["properties"]))
+                resource_version_schema["properties"] = props
                 handle_attributes(resource_version_schema, attributes)
                 
                 resource_schema["oneOf"] = [
@@ -497,7 +501,7 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
                                 "versionsurl": {"type": "string"},
                                 "versionscount": {"type": "integer"},
                             },
-                            "required": ["id", "versionsurl"]
+                            "required": ["versionsurl"]
                         },
                         {
                             "properties": {
@@ -508,7 +512,7 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
                                     }
                                 }
                             },
-                            "required": ["id", "versions"]
+                            "required": ["versions"]
                         }
                     ]
                 
@@ -524,11 +528,12 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
                     }
                 }
             
-
+        props = {}
+        props[group_name+"id"] = {"type": "string", "description": f"ID of the {group_name} object"}
+        props.update(copy.deepcopy(json_common_attributes))
         group_schema = {
             "type": "object",
-            "properties": copy.deepcopy(json_common_attributes),
-            "required": ["id"],
+            "properties": props
         }
         attributes = group.get("attributes", {})
         handle_attributes(group_schema, attributes)
@@ -691,14 +696,17 @@ def generate_avro_schema(model_definition) -> dict:
                     })
             else:
                 record_types.add(resource_name)
+                props = copy.deepcopy(avro_common_attributes)
+                props.insert(0, {"name": resource_name+"id", "type": "string", "description": f"ID of the {resource_name} object"})
                 resource_schema = {
                     "type": "record",
                     "name": pascal(resource_name)+"Type",
-                    "fields": copy.deepcopy(avro_common_attributes)
+                    "fields": props
                 }
                 attributes = resource.get("attributes", {})
                 if resource.get("versions", 1) != 1:
                     resource_version_schema = copy.deepcopy(resource_schema)
+                    resource_version_schema["fields"].insert(0, {"name" : "versionid", "type": "string", "description": f"ID of the {resource_name} version"})
                     handle_attributes(resource_version_schema, attributes)
                     resource_version_schema["name"] = pascal(resource_name)+"VersionType"
                     resource_schema["fields"].append(
@@ -736,11 +744,12 @@ def generate_avro_schema(model_definition) -> dict:
                     }
                 })
            
-
+        props = copy.deepcopy(avro_common_attributes)
+        props.insert(0, {"name" : group_name+"id", "type": "string", "description": f"ID of the {group_name} object"})
         group_schema = {
             "type": "record",
             "name": pascal(group_name)+"Type",
-            "fields": copy.deepcopy(avro_common_attributes),
+            "fields": props,
         }
         attributes = group.get("attributes", {})
         handle_attributes(group_schema, attributes)

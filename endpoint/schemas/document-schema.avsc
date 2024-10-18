@@ -12,40 +12,46 @@
           "name": "EndpointType",
           "fields": [
             {
-              "name": "id",
-              "type": "string"
+              "name": "endpointid",
+              "type": "string",
+              "description": "ID of the endpoint object"
             },
             {
               "name": "name",
               "type": [
                 "string",
                 "null"
-              ]
+              ],
+              "doc": "Name of the object"
             },
             {
               "name": "epoch",
               "type": [
                 "int",
                 "null"
-              ]
+              ],
+              "doc": "Epoch time of the object creation"
             },
             {
               "name": "self",
-              "type": "string"
+              "type": "string",
+              "doc": "URI of the object"
             },
             {
               "name": "description",
               "type": [
                 "string",
                 "null"
-              ]
+              ],
+              "doc": "Description of the object"
             },
             {
               "name": "documentation",
               "type": [
                 "string",
                 "null"
-              ]
+              ],
+              "doc": "URI of the documentation of the object"
             },
             {
               "name": "labels",
@@ -55,11 +61,13 @@
                   "string",
                   "null"
                 ]
-              }
+              },
+              "doc": "Labels for the object"
             },
             {
               "name": "origin",
-              "type": "string"
+              "type": "string",
+              "doc": "URI of the object origin"
             },
             {
               "name": "createdat",
@@ -69,7 +77,8 @@
                   "logicalType": "time-millis"
                 },
                 "null"
-              ]
+              ],
+              "doc": "Time of the object creation"
             },
             {
               "name": "modifiedat",
@@ -79,7 +88,8 @@
                   "logicalType": "time-millis"
                 },
                 "null"
-              ]
+              ],
+              "doc": "Time of the object modification"
             },
             {
               "type": "string",
@@ -214,40 +224,46 @@
                   "name": "MessageType",
                   "fields": [
                     {
-                      "name": "id",
-                      "type": "string"
+                      "name": "messageid",
+                      "type": "string",
+                      "description": "ID of the message object"
                     },
                     {
                       "name": "name",
                       "type": [
                         "string",
                         "null"
-                      ]
+                      ],
+                      "doc": "Name of the object"
                     },
                     {
                       "name": "epoch",
                       "type": [
                         "int",
                         "null"
-                      ]
+                      ],
+                      "doc": "Epoch time of the object creation"
                     },
                     {
                       "name": "self",
-                      "type": "string"
+                      "type": "string",
+                      "doc": "URI of the object"
                     },
                     {
                       "name": "description",
                       "type": [
                         "string",
                         "null"
-                      ]
+                      ],
+                      "doc": "Description of the object"
                     },
                     {
                       "name": "documentation",
                       "type": [
                         "string",
                         "null"
-                      ]
+                      ],
+                      "doc": "URI of the documentation of the object"
                     },
                     {
                       "name": "labels",
@@ -257,11 +273,13 @@
                           "string",
                           "null"
                         ]
-                      }
+                      },
+                      "doc": "Labels for the object"
                     },
                     {
                       "name": "origin",
-                      "type": "string"
+                      "type": "string",
+                      "doc": "URI of the object origin"
                     },
                     {
                       "name": "createdat",
@@ -271,7 +289,8 @@
                           "logicalType": "time-millis"
                         },
                         "null"
-                      ]
+                      ],
+                      "doc": "Time of the object creation"
                     },
                     {
                       "name": "modifiedat",
@@ -281,7 +300,8 @@
                           "logicalType": "time-millis"
                         },
                         "null"
-                      ]
+                      ],
+                      "doc": "Time of the object modification"
                     },
                     {
                       "type": "string",
