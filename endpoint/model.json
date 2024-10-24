@@ -210,7 +210,7 @@
                       "type": "any"
                     }
                   }
-                }  
+                }
               }
             },
             "MQTT/5.0": {
@@ -767,7 +767,7 @@
           "item" : {
             "type": "uri"
           }
-        },          
+        },
         "*": {
           "name": "*",
           "type": "any"
@@ -776,7 +776,7 @@
       "resources": {
         "messages": {
           "$include": "../message/model.json#/groups/messagegroups/resources/messages"
-        }        
+        }
       }
     }
   }

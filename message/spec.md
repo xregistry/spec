@@ -67,11 +67,9 @@ this form:
       "messages" : {
         "KEY": {                               # messageid
           "messageid": "STRING",               # xRegistry core attributes
+          "versionid": "STRING",
           "self": "URL",
-          "xref": "URL", ?
           "epoch": UINTEGER,
-          "readonly": BOOLEAN, ?
-
           "name": "STRING", ?
           "description": "STRING", ?
           "documentation": "URL", ?
@@ -104,10 +102,8 @@ this form:
           "schema": ANY, ?
           "schemauri": "URI", ?
 
-          "defaultversionsticky": BOOLEAN, ?
-          "defaultversionid": "STRING",
-          "defaultversionurl": "URL",
-
+          "metaurl": "URL",
+          "meta": { ... }, ?
           "versionsurl": "URL",
           "versionscount": UINTEGER,
           "versions": { ... } ?

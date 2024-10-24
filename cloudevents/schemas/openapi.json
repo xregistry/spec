@@ -3622,13 +3622,6 @@
             "format": "date-time",
             "description": "Time of the object modification"
           },
-          "compatibility": {
-            "type": "string"
-          },
-          "validation": {
-            "type": "boolean",
-            "description": "Verify compliance with specified schema 'format'"
-          },
           "format": {
             "type": "string",
             "description": "Schema format identifier for this schema version"

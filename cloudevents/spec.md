@@ -132,9 +132,10 @@ schema for its payload.
       "messages": {
         "com.example.telemetry": {
           "messageid": "com.example.telemetry",
+          "versionid": "1.0",
           "self": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry",
           "epoch": 5,
-
+          "isdefault": true,
           "description": "device telemetry event",
           "createdat": "2024-04-30T12:00:00Z",
           "modifiedat": "2024-04-31T12:00:00Z",
@@ -164,9 +165,7 @@ schema for its payload.
           "schemaformat": "Protobuf/3.0",
           "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; } }"
 
-          "defaultversionid": "1.0",
-          "defaultversionurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/versions/1.0",
-
+          "metaurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/meta",
           "versionsurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/versions",
           "versionscount": 1
         }
@@ -235,10 +234,10 @@ scenarios:
       "messages": {
         "com.example.telemetry": {
           "messageid": "com.example.telemetry",
+          "versionid": "1.0",
           "self": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry",
           "epoch": 5,
-          "description": "device telemetry event",
-
+          "isdefault": true,
           "description": "device telemetry event",
           "createdat": "2024-04-30T12:00:00Z",
           "modifiedat": "2024-04-31T12:00:00Z",
@@ -268,9 +267,7 @@ scenarios:
           "schemaformat": "Protobuf/3.0",
           "schemaurl": "#/schemagroups/com.example.telemetry/schema/com.example.telemetrydata/versions/1.0"
 
-          "defaultversionid": "1.0",
-          "defaultversionurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/versions/1.0",
-
+          "metaurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/meta",
           "versionsurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/versions",
           "versionscount": 1
         }
@@ -291,9 +288,10 @@ scenarios:
       "schemas": {
         "com.example.telemetrydata": {
           "schemaid": "com.example.telemetrydata",
+          "versionid": "1.0",
           "self": "https://example.com/schemagroups/com.example.telemetry/schemas",
           "epoch": 5,
-
+          "isdefault": true,
           "description": "device telemetry event data",
           "createdat": "2024-04-30T12:00:00Z",
           "modifiedat": "2024-04-31T12:00:00Z",
@@ -301,27 +299,9 @@ scenarios:
           "format": "Protobuf/3.0",
           "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; }"
 
-          "defaultversionid": "1.0",
-          "defaultversionurl": "https://example.com/schemagroups/com.example.telemetry/schemas/versions/1.0",
-
+          "metaurl": "https://example.com/schemagroups/com.example.telemetry/schemas/meta",
           "versionscount": 1,
-          "versionsurl": "https://example.com/schemagroups/com.example.telemetry/schemas/versions",
-          "versions": {
-            "1.0": {
-              "resourceid": "com.example.telemetrydata",
-              "versionid": "1.0",
-              "self": "https://example.com/schemagroups/com.example.telemetry/schemas/versions/1.0",
-              "epoch": 5,
-
-              "isdefault": true,
-              "description": "device telemetry event data",
-              "createdat": "2024-04-30T12:00:00Z",
-              "modifiedat": "2024-04-31T12:00:00Z",
-
-              "format": "Protobuf/3.0",
-              "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; }"
-            }
-          }
+          "versionsurl": "https://example.com/schemagroups/com.example.telemetry/schemas/versions"
         }
       }
     }

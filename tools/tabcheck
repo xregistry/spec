@@ -3,13 +3,12 @@
 set -e
 
 for f in $* ; do
-  echo Checking for tabs: $f
+  echo "> $f"
 
   if grep -nP '\t' $f ; then
     exit 1
   fi
 
-  echo Checking for trailing spaces: $f
   if grep -n "  *$" $f ; then
     exit 1
   fi

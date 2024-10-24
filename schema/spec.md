@@ -59,13 +59,9 @@ this form:
       "schemas": {
         "KEY": {                                   # schemaid
           "schemaid": "STRING",                    # xRegistry core attributes
+          "versionid": "STRING",
           "self": "URL",
-          "xreg": "URL", ?
           "epoch": UINTEGER,
-          "readonly": BOOLEAN, ?
-
-          "validation": BOOLEAN, ?                 # Resource level attrs
-
           "name": "STRING", ?                      # Version level attrs
           "description": "STRING", ?
           "documentation": "URL", ?
@@ -80,9 +76,11 @@ this form:
           "schema": ANY ?
           "schemabase64": "STRING", ?
 
-          "defaultversionsticky": BOOLEAN, ?       # Res level Ver-related attrs
-          "defaultversionid": "STRING",
-          "defaultversionurl": "URL",
+          "metaurl": "URL",                        # Resource level attrs
+          "meta": {
+            ... core spec meta attributes ...
+            "validation": BOOLEAN ?
+          }, ?
 
           "versionsurl": "URL",
           "versionscount": UINTEGER,
@@ -180,12 +178,13 @@ detail below, is as follows:
               "name": "format",
               "type": "string",
               "description": "Schema format identifier for this schema version"
-            },
+            }
+          },
+          "metaattributes": {
             "validation": {
               "name": "validation",
               "type": "boolean",
-              "description": "Verify compliance with specified 'format'",
-              "location": "resource"
+              "description": "Verify compliance with specified 'format'"
             }
           }
         }
@@ -294,8 +293,8 @@ the core xRegistry Resource
 - Constraints:
   - OPTIONAL
   - When not specified, the default value is `true`.
-  - MUST be a Resource level attribute as defined by the xRegistry [`location`
-    model aspect](../core/spec.md#registry-model).
+  - MUST be a Resource level attribute defined within the `metaattributes`
+    section of the model.
 
 #### `format`
 
@@ -315,8 +314,8 @@ the core xRegistry Resource
   - MUST follow the naming convention `{NAME}/{VERSION}`, whereby `{NAME}` is
     the name of the schema format and `{VERSION}` is the Version of the schema
     format in the format defined by the schema format itself.
-  - MUST be a Version level attribute as defined by the xRegistry [`location`
-    model aspect](../core/spec.md#registry-model).
+  - MUST be a Version level attribute defined within the `attributes` section
+    of the model.
 - Examples:
   - `JsonSchema/draft-07`
   - `Protobuf/3`
@@ -343,14 +342,14 @@ Versions for a schema named `com.example.telemetrydata`:
       "schemas": {
         "com.example.telemetrydata": {
           "schemaid": "com.example.telemetrydata",
-          "defaultversionurl": "http://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions/3",
-          "defaultversionid": "3",
+          "versionid": "3",
           "description": "device telemetry event data",
           "format": "Protobuf/3",
-          # other xRegistry resource-level attributes excluded for brevity
+          # other xRegistry default Version attributes excluded for brevity
 
           "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; string description = 3; } }"
 
+          "metaurl": "http://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/meta",
           "versionsurl": "http://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions",
           "versionscount": 3,
           "versions": {
@@ -359,7 +358,7 @@ Versions for a schema named `com.example.telemetrydata`:
               "versionid": "1",
               "description": "device telemetry event data",
               "format": "Protobuf/3",
-              # other xRegistry resource-level attributes excluded for brevity
+              # other xRegistry Version-level attributes excluded for brevity
 
               "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; } }"
             },
@@ -368,7 +367,7 @@ Versions for a schema named `com.example.telemetrydata`:
               "versionid": "2",
               "description": "device telemetry event data",
               "format": "Protobuf/3",
-              # other xRegistry resource-level attributes excluded for brevity
+              # other xRegistry Version-level attributes excluded for brevity
 
               "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; } }"
             },
@@ -377,7 +376,7 @@ Versions for a schema named `com.example.telemetrydata`:
               "versionid": "3",
               "description": "device telemetry event data",
               "format": "Protobuf/3",
-              # other xRegistry resource-level attributes excluded for brevity
+              # other xRegistry Version-level attributes excluded for brevity
 
               "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; string description = 3; } }"
             }

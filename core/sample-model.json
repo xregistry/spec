@@ -84,6 +84,10 @@
           "name": "name",
           "type": "string"
         },
+        "isdefault": {
+          "name": "isdefault",
+          "type": "boolean"
+        },
         "description": {
           "name": "description",
           "type": "string"
@@ -125,8 +129,7 @@
               "name": "sample_resourceid",
               "type": "string",
               "immutable": true,
-              "serverrequired": true,
-              "location": "resource"
+              "serverrequired": true
             },
             "versionid": {
               "name": "versionid",
@@ -138,32 +141,12 @@
               "name": "self",
               "type": "url",
               "readonly": true,
-              "serverrequired": true,
-              "location": "both"
-            },
-            "xref": {
-              "name": "xref",
-              "type": "url",
-              "location": "resource"
+              "serverrequired": true
             },
             "epoch": {
               "name": "epoch",
               "type": "uinteger",
-              "serverrequired": true,
-              "location": "resource"
-            },
-            "readonly": {
-              "name": "readonly",
-              "type": "boolean",
-              "readonly": true,
-              "location": "resource"
-            },
-            "compatibility": {
-              "name": "compatibility",
-              "type": "string",
-              "enum": [ "none", "backward", "backward_transitive", "forward",
-                        "forward_transitive", "full", "full_transitive" ],
-              "location": "resource"
+              "serverrequired": true
             },
             "name": {
               "name": "name",
@@ -203,26 +186,56 @@
             "contenttype": {
               "name": "contenttype",
               "type": "string"
+            }
+          },
+          "metaattributes": {
+            "sample_resourceid": {
+              "name": "sample_resourceid",
+              "type": "string",
+              "immutable": true,
+              "serverrequired": true
             },
-
+            "self": {
+              "name": "self",
+              "type": "url",
+              "readonly": true,
+              "serverrequired": true
+            },
+            "xref": {
+              "name": "xref",
+              "type": "url"
+            },
+            "epoch": {
+              "name": "epoch",
+              "type": "uinteger",
+              "serverrequired": true
+            },
+            "readonly": {
+              "name": "readonly",
+              "type": "boolean",
+              "readonly": true
+            },
+            "compatibility": {
+              "name": "compatibility",
+              "type": "string",
+              "enum": [ "none", "backward", "backward_transitive", "forward",
+                        "forward_transitive", "full", "full_transitive" ]
+            },
             "defaultversionsticky": {
               "name": "defaultversionsticky",
               "type": "boolean",
-              "serverrequired": true,
-              "location": "resource"
+              "serverrequired": true
             },
             "defaultversionid": {
               "name": "defaultversionid",
               "type": "string",
-              "serverrequired": true,
-              "location": "resource"
+              "serverrequired": true
             },
             "defaultversionurl": {
               "name": "defaultversionurl",
               "type": "url",
               "readonly": true,
-              "serverrequired": true,
-              "location": "resource"
+              "serverrequired": true
             }
           }
         }

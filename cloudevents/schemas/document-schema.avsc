@@ -798,15 +798,6 @@
                     },
                     {
                       "type": "string",
-                      "name": "compatibility"
-                    },
-                    {
-                      "type": "boolean",
-                      "name": "validation",
-                      "doc": "Verify compliance with specified schema 'format'"
-                    },
-                    {
-                      "type": "string",
                       "name": "format",
                       "doc": "Schema format identifier for this schema version"
                     },
