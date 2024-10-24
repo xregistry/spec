@@ -25,40 +25,50 @@
     "message": {
       "type": "object",
       "properties": {
-        "id": {
-          "type": "string"
+        "messageid": {
+          "type": "string",
+          "description": "ID of the message object"
         },
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "Name of the object"
         },
         "epoch": {
-          "type": "integer"
+          "type": "integer",
+          "description": "Epoch time of the object creation"
         },
         "self": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "description": "URI of the object"
         },
         "description": {
-          "type": "string"
+          "type": "string",
+          "description": "Description of the object"
         },
         "documentation": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "description": "URI of the documentation of the object"
         },
         "labels": {
-          "type": "object"
+          "type": "object",
+          "description": "Labels for the object"
         },
         "origin": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "description": "URI of the object origin"
         },
         "createdat": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "description": "Time of the object creation"
         },
         "modifiedat": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "description": "Time of the object modification"
         },
         "basemessageurl": {
           "type": "string",
@@ -79,9 +89,6 @@
           "description": "The URI of the schema for the message payload, equivalent to the 'schemaurl' attribute of the schema registry"
         }
       },
-      "required": [
-        "id"
-      ],
       "allOf": [
         {
           "oneOf": [
@@ -820,40 +827,50 @@
     "endpoint": {
       "type": "object",
       "properties": {
-        "id": {
-          "type": "string"
+        "endpointid": {
+          "type": "string",
+          "description": "ID of the endpoint object"
         },
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "Name of the object"
         },
         "epoch": {
-          "type": "integer"
+          "type": "integer",
+          "description": "Epoch time of the object creation"
         },
         "self": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "description": "URI of the object"
         },
         "description": {
-          "type": "string"
+          "type": "string",
+          "description": "Description of the object"
         },
         "documentation": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "description": "URI of the documentation of the object"
         },
         "labels": {
-          "type": "object"
+          "type": "object",
+          "description": "Labels for the object"
         },
         "origin": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "description": "URI of the object origin"
         },
         "createdat": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "description": "Time of the object creation"
         },
         "modifiedat": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "description": "Time of the object modification"
         },
         "usage": {
           "type": "string",
@@ -904,9 +921,6 @@
           }
         }
       },
-      "required": [
-        "id"
-      ],
       "allOf": [
         {
           "oneOf": [
@@ -1195,7 +1209,7 @@
                     "qos": {
                       "type": "integer",
                       "minimum": 0,
-                      "description": "The MQTT QoS level\u00f6. May be 0, 1, or 2"
+                      "description": "The MQTT QoS level\u00c3\u00b6. May be 0, 1, or 2"
                     },
                     "retain": {
                       "type": "boolean",
@@ -1490,40 +1504,50 @@
     "messagegroup": {
       "type": "object",
       "properties": {
-        "id": {
-          "type": "string"
+        "messagegroupid": {
+          "type": "string",
+          "description": "ID of the messagegroup object"
         },
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "Name of the object"
         },
         "epoch": {
-          "type": "integer"
+          "type": "integer",
+          "description": "Epoch time of the object creation"
         },
         "self": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "description": "URI of the object"
         },
         "description": {
-          "type": "string"
+          "type": "string",
+          "description": "Description of the object"
         },
         "documentation": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "description": "URI of the documentation of the object"
         },
         "labels": {
-          "type": "object"
+          "type": "object",
+          "description": "Labels for the object"
         },
         "origin": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "description": "URI of the object origin"
         },
         "createdat": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "description": "Time of the object creation"
         },
         "modifiedat": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "description": "Time of the object modification"
         },
         "envelope": {
           "type": "string",
@@ -1539,48 +1563,59 @@
             "$ref": "#/definitions/message"
           }
         }
-      },
-      "required": [
-        "id"
-      ]
+      }
     },
     "schemaVersion": {
       "type": "object",
       "properties": {
-        "id": {
-          "type": "string"
+        "versionid": {
+          "type": "string",
+          "description": "ID of the schema version"
+        },
+        "schemaid": {
+          "type": "string",
+          "description": "ID of the schema object"
         },
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "Name of the object"
         },
         "epoch": {
-          "type": "integer"
+          "type": "integer",
+          "description": "Epoch time of the object creation"
         },
         "self": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "description": "URI of the object"
         },
         "description": {
-          "type": "string"
+          "type": "string",
+          "description": "Description of the object"
         },
         "documentation": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "description": "URI of the documentation of the object"
         },
         "labels": {
-          "type": "object"
+          "type": "object",
+          "description": "Labels for the object"
         },
         "origin": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "description": "URI of the object origin"
         },
         "createdat": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "description": "Time of the object creation"
         },
         "modifiedat": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "description": "Time of the object modification"
         },
         "compatibility": {
           "type": "string"
@@ -1610,7 +1645,6 @@
             }
           },
           "required": [
-            "id",
             "schema"
           ]
         },
@@ -1623,7 +1657,6 @@
             }
           },
           "required": [
-            "id",
             "schemabase64"
           ]
         },
@@ -1636,7 +1669,6 @@
             }
           },
           "required": [
-            "id",
             "schemaurl"
           ]
         }
@@ -1645,40 +1677,50 @@
     "schema": {
       "type": "object",
       "properties": {
-        "id": {
-          "type": "string"
+        "schemaid": {
+          "type": "string",
+          "description": "ID of the schema object"
         },
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "Name of the object"
         },
         "epoch": {
-          "type": "integer"
+          "type": "integer",
+          "description": "Epoch time of the object creation"
         },
         "self": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "description": "URI of the object"
         },
         "description": {
-          "type": "string"
+          "type": "string",
+          "description": "Description of the object"
         },
         "documentation": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "description": "URI of the documentation of the object"
         },
         "labels": {
-          "type": "object"
+          "type": "object",
+          "description": "Labels for the object"
         },
         "origin": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "description": "URI of the object origin"
         },
         "createdat": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "description": "Time of the object creation"
         },
         "modifiedat": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "description": "Time of the object modification"
         }
       },
       "oneOf": [
@@ -1692,7 +1734,6 @@
             }
           },
           "required": [
-            "id",
             "versionsurl"
           ]
         },
@@ -1706,7 +1747,6 @@
             }
           },
           "required": [
-            "id",
             "versions"
           ]
         }
@@ -1715,40 +1755,50 @@
     "schemagroup": {
       "type": "object",
       "properties": {
-        "id": {
-          "type": "string"
+        "schemagroupid": {
+          "type": "string",
+          "description": "ID of the schemagroup object"
         },
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "Name of the object"
         },
         "epoch": {
-          "type": "integer"
+          "type": "integer",
+          "description": "Epoch time of the object creation"
         },
         "self": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "description": "URI of the object"
         },
         "description": {
-          "type": "string"
+          "type": "string",
+          "description": "Description of the object"
         },
         "documentation": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "description": "URI of the documentation of the object"
         },
         "labels": {
-          "type": "object"
+          "type": "object",
+          "description": "Labels for the object"
         },
         "origin": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "description": "URI of the object origin"
         },
         "createdat": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "description": "Time of the object creation"
         },
         "modifiedat": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "description": "Time of the object modification"
         },
         "schemas": {
           "type": "object",
@@ -1756,10 +1806,7 @@
             "$ref": "#/definitions/schema"
           }
         }
-      },
-      "required": [
-        "id"
-      ]
+      }
     }
   }
 }
