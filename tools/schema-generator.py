@@ -445,7 +445,7 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
             props.update(copy.deepcopy(json_common_attributes))
             
             if resource.get("hasdocument", True):
-                 resource_schema = {
+                resource_schema = {
                     "type": "object",
                     "properties": props,
                     "oneOf": [
