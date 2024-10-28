@@ -1,3 +1,4 @@
+abnf
 acks
 amqp
 amqps
@@ -39,6 +40,7 @@ dataschema
 datastore
 datatracker
 datetime
+defaultauthority
 defaultversion
 defaultversionid
 defaultversionsticky
@@ -51,6 +53,7 @@ definitionsurl
 deploymentid
 deviceid
 distributionmode
+dns
 emoji
 endpointid
 endpointscount
@@ -60,11 +63,13 @@ envelopemetadata
 envelopeoptions
 etag
 eventing
+externalids
 filesystem
 gid
 github
 gmt
 gotchas
+graphql
 groupid
 groupscount
 groupsurl
@@ -134,6 +139,7 @@ myspec
 mysubject
 mytopic
 mywillmessage
+namespace
 nats
 nbsp
 nginx
@@ -232,6 +238,8 @@ willtopic
 wip
 wss
 www
+xid
+xids
 xml
 xmlschema
 xpath
