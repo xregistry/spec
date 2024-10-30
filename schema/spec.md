@@ -76,9 +76,9 @@ this form:
           "schema": ANY ?
           "schemabase64": "STRING", ?
 
-          "metaurl": "URL",                        # Resource level attrs
+          "metaurl": "URL",                    # Resource level attrs
           "meta": {
-            ... core spec meta attributes ...
+            ... core spec metadata attributes ...
             "validation": BOOLEAN ?
           }, ?
 

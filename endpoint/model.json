@@ -405,7 +405,7 @@
                     "qos": {
                       "name": "qos",
                       "type": "uinteger",
-                      "description": "The MQTT QoS levelö. May be 0, 1, or 2"
+                      "description": "The MQTT QoS level. May be 0, 1, or 2"
                     },
                     "retain": {
                       "name": "retain",
