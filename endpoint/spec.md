@@ -195,7 +195,7 @@ The resource model for endpoints can be found in [model.json](model.json).
 
 ### Endpoints
 
-Endpoints are a Group type with a plural name (`GROUPs`) of `endpoints`, and a
+Endpoints are a Group type with a plural name (`GROUPS`) of `endpoints`, and a
 singular name (`GROUP`) of `endpoint`.
 
 The following attributes are defined for Endpoints:
