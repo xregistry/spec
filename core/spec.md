@@ -5017,11 +5017,14 @@ Use of this feature is useful for cases where the contents of the Registry are
 to be represented as a single (self-contained) document.
 
 Some examples:
-- `GET /?inline=model`
-- `GET /?inline=model,endpoints`
-- `GET /?inline=endpoints.messages`
-- `GET /endpoints/ep1/?inline=messages.message`
-- `GET /endpoints/ep1/messages/msg1?inline=message`
+- `GET /?inline=model`                 # Just 'model'
+- `GET /?inline=model,endpoints`       # Model and one level under `endpoints`
+- `GET /?inline=*`                     # Everything except 'model'
+- `GET /?inline=model,*`               # Everything, including 'model'
+- `GET /?inline=endpoints.messages`    # One level below 'endpoints.messages'
+- `GET /?inline=endpoints.*`           # Everything below 'endpoints'
+- `GET /endpoints/ep1/?inline=messages.message`     # Just 'message'
+- `GET /endpoints/ep1/messages/msg1?inline=message` # Just 'message'
 
 The format of the `?inline` query parameter is:
 
@@ -5038,8 +5041,12 @@ as `prop1['my.name'].prop2` if `my.name` is the name of one attribute.
 
 There MAY be multiple `PATH`s specified, either as comma separated values on
 a single `?inline` query parameter or via multiple `?inline` query parameters.
-Absence of a `PATH`, or a `PATH` value of `*` indicates that all nested
-inlinable attributes MUST be inlined on all levels of the data returned.
+
+Absence of a `PATH`, or a `PATH` attribute with a value of `*` indicates that
+all nested inlinable attributes at that level in the hierarchy (and below)
+MUST be inlined. Use of `*` MUST only be used as the last attribute name
+(in its entirety) in the `PATH`. For example, `foo*`, or `*.foo` are not
+valid `PATH`s, but `*` and `endpoints.*` are.
 
 The specific value of `PATH` will vary based on where the request is directed.
 For example, a request to the root of the Registry MUST start with a `GROUPS`
@@ -5058,6 +5065,7 @@ For example, given a Registry with a model that has `endpoints` as a Group and
 | /endpoints/ep1 | ?inline=messages.message | Inline the Resource itself |
 | /endpoints/ep1 | ?inline=endpoints | Invalid, already in `endpoints` and there is no `RESOURCE` called `endpoints` |
 | / | ?inline=endpoints.messages.meta | Inlines the `meta` attributes/sub-object of each `message` returned. |
+| / | ?inline=endpoints.* | Inlines everything for all `endpoints`. |
 
 Note that asking for an attribute to be inlined will implicitly cause all of
 its parents to be inlined as well, but just the parent's collections needed to
