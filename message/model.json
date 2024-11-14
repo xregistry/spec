@@ -53,6 +53,14 @@
                           "description": "CloudEvents spec version",
                           "type": "object",
                           "attributes": {
+                            "description": {
+                              "name": "description",
+                              "type": "string"
+                            },
+                            "type": {
+                              "name": "type",
+                              "type": "string"
+                            },
                             "value": {
                               "name": "value",
                               "description": "CloudEvents spec version",
@@ -74,6 +82,14 @@
                           "description": "CloudEvents id",
                           "type": "object",
                           "attributes": {
+                            "description": {
+                              "name": "description",
+                              "type": "string"
+                            },
+                            "type": {
+                              "name": "type",
+                              "type": "string"
+                            },
                             "value": {
                               "name": "value",
                               "description": "CloudEvents id value template",
@@ -95,6 +111,14 @@
                           "type": "object",
                           "description": "CloudEvents type",
                           "attributes": {
+                            "description": {
+                              "name": "description",
+                              "type": "string"
+                            },
+                            "type": {
+                              "name": "type",
+                              "type": "string"
+                            },
                             "value": {
                               "name": "value",
                               "type": "string",
@@ -116,6 +140,14 @@
                           "description": "CloudEvents source",
                           "type": "object",
                           "attributes": {
+                            "description": {
+                              "name": "description",
+                              "type": "string"
+                            },
+                            "type": {
+                              "name": "type",
+                              "type": "string"
+                            },
                             "value": {
                               "name": "value",
                               "description": "CloudEvents source value template",
@@ -137,6 +169,14 @@
                           "description": "CloudEvents subject",
                           "type": "object",
                           "attributes": {
+                            "description": {
+                              "name": "description",
+                              "type": "string"
+                            },
+                            "type": {
+                              "name": "type",
+                              "type": "string"
+                            },
                             "value": {
                               "name": "value",
                               "description": "CloudEvents subject value template",
@@ -154,6 +194,14 @@
                           "description": "The timestamp of when the event happened",
                           "type": "object",
                           "attributes": {
+                            "description": {
+                              "name": "description",
+                              "type": "string"
+                            },
+                            "type": {
+                              "name": "type",
+                              "type": "string"
+                            },
                             "value": {
                               "name": "value",
                               "description": "The timestamp value template",
@@ -171,6 +219,14 @@
                           "description": "The uri of the schema that the event payload adheres to. If the dataschema attribute is not present, it MUST be interpreted as no schema. An application MAY assign a meaning to the dataschema attribute if it is not present by default",
                           "type": "object",
                           "attributes": {
+                            "description": {
+                              "name": "description",
+                              "type": "string"
+                            },
+                            "type": {
+                              "name": "type",
+                              "type": "string"
+                            },
                             "value": {
                               "name": "value",
                               "description": "The uri value template",
@@ -188,14 +244,18 @@
                           "description": "CloudEvent extension property",
                           "type": "object",
                           "attributes": {
-                            "value": {
-                              "name": "value",
-                              "description": "The value template",
+                            "description": {
+                              "name": "description",
                               "type": "string"
                             },
                             "type": {
                               "name": "type",
                               "description": "The value type",
+                              "type": "string"
+                            },
+                            "value": {
+                              "name": "value",
+                              "description": "The value template",
                               "type": "string"
                             },
                             "required": {
@@ -255,6 +315,15 @@
                               "description": "AMQP message-id",
                               "type": "object",
                               "attributes": {
+                                "description": {
+                                  "name": "description",
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "name": "type",
+                                  "description": "AMQP message-id value type",
+                                  "type": "string"
+                                },
                                 "value": {
                                   "name": "value",
                                   "description": "AMQP message-id value template",
@@ -272,6 +341,15 @@
                               "description": "AMQP user-id",
                               "type": "object",
                               "attributes": {
+                                "description": {
+                                  "name": "description",
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "name": "type",
+                                  "description": "AMQP user-id value type",
+                                  "type": "string"
+                                },
                                 "value": {
                                   "name": "value",
                                   "description": "AMQP user-id value template",
@@ -289,6 +367,15 @@
                               "description": "AMQP to",
                               "type": "object",
                               "attributes": {
+                                "description": {
+                                  "name": "description",
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "name": "type",
+                                  "description": "AMQP to value type",
+                                  "type": "string"
+                                },
                                 "value": {
                                   "name": "value",
                                   "description": "AMQP to value template",
@@ -306,6 +393,15 @@
                               "description": "AMQP subject",
                               "type": "object",
                               "attributes": {
+                                "description": {
+                                  "name": "description",
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "name": "type",
+                                  "description": "AMQP subject value type",
+                                  "type": "string"
+                                },
                                 "value": {
                                   "name": "value",
                                   "description": "AMQP subject value template",
@@ -323,6 +419,15 @@
                               "description": "AMQP reply-to",
                               "type": "object",
                               "attributes": {
+                                "description": {
+                                  "name": "description",
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "name": "type",
+                                  "description": "AMQP reply-to value type",
+                                  "type": "string"
+                                },
                                 "value": {
                                   "name": "value",
                                   "description": "AMQP reply-to value template",
@@ -340,6 +445,15 @@
                               "description": "AMQP correlation-id",
                               "type": "object",
                               "attributes": {
+                                "description": {
+                                  "name": "description",
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "name": "type",
+                                  "description": "AMQP correlation-id value type",
+                                  "type": "string"
+                                },
                                 "value": {
                                   "name": "value",
                                   "description": "AMQP correlation-id value template",
@@ -357,6 +471,15 @@
                               "description": "AMQP content-type",
                               "type": "object",
                               "attributes": {
+                                "description": {
+                                  "name": "description",
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "name": "type",
+                                  "description": "AMQP content-type value type",
+                                  "type": "string"
+                                },
                                 "value": {
                                   "name": "value",
                                   "description": "AMQP content-type value template",
@@ -374,6 +497,15 @@
                               "description": "AMQP content-encoding",
                               "type": "object",
                               "attributes": {
+                                "description": {
+                                  "name": "description",
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "name": "type",
+                                  "description": "AMQP content-encoding value type",
+                                  "type": "string"
+                                },
                                 "value": {
                                   "name": "value",
                                   "description": "AMQP content-encoding value template",
@@ -391,6 +523,15 @@
                               "description": "AMQP absolute-expiry-time",
                               "type": "object",
                               "attributes": {
+                                "description": {
+                                  "name": "description",
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "name": "type",
+                                  "description": "AMQP absolute-expiry-time value type",
+                                  "type": "string"
+                                },
                                 "value": {
                                   "name": "value",
                                   "description": "AMQP absolute-expiry-time value template",
@@ -408,6 +549,15 @@
                               "description": "AMQP group-id",
                               "type": "object",
                               "attributes": {
+                                "description": {
+                                  "name": "description",
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "name": "type",
+                                  "description": "AMQP group-id value type",
+                                  "type": "string"
+                                },
                                 "value": {
                                   "name": "value",
                                   "description": "AMQP group-id value template",
@@ -425,6 +575,15 @@
                               "description": "AMQP group-sequence",
                               "type": "object",
                               "attributes": {
+                                "description": {
+                                  "name": "description",
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "name": "type",
+                                  "description": "AMQP group-sequence value type",
+                                  "type": "string"
+                                },
                                 "value": {
                                   "name": "value",
                                   "description": "AMQP group-sequence value template",
@@ -442,6 +601,15 @@
                               "description": "AMQP reply-to-group-id",
                               "type": "object",
                               "attributes": {
+                                "description": {
+                                  "name": "description",
+                                  "type": "string"
+                                },
+                                "type": {
+                                  "name": "type",
+                                  "description": "AMQP reply-to-group-id value type",
+                                  "type": "string"
+                                },
                                 "value": {
                                   "name": "value",
                                   "description": "AMQP reply-to-group-id value template",
@@ -462,6 +630,15 @@
                           "item": {
                             "type": "object",
                             "attributes": {
+                              "description": {
+                                "name": "description",
+                                "type": "string"
+                              },
+                              "type": {
+                                "name": "type",
+                                "description": "The application property type",
+                                "type": "string"
+                              },
                               "value": {
                                 "name": "value",
                                 "description": "The application property value template",
@@ -471,11 +648,6 @@
                                 "name": "required",
                                 "description": "The application property required",
                                 "type": "boolean"
-                              },
-                              "type": {
-                                "name": "type",
-                                "description": "The application property type",
-                                "type": "string"
                               }
                             }
                           }
@@ -486,6 +658,15 @@
                           "item": {
                             "type": "object",
                             "attributes": {
+                              "description": {
+                                "name": "description",
+                                "type": "string"
+                              },
+                              "type": {
+                                "name": "type",
+                                "description": "The message annotation type",
+                                "type": "string"
+                              },
                               "value": {
                                 "name": "value",
                                 "description": "The message annotation value",
@@ -495,11 +676,6 @@
                                 "name": "required",
                                 "description": "Whether the message annotation is required",
                                 "type": "boolean"
-                              },
-                              "type": {
-                                "name": "type",
-                                "description": "The message annotation type",
-                                "type": "string"
                               }
                             }
                           }
@@ -510,6 +686,15 @@
                           "item": {
                             "type": "object",
                             "attributes": {
+                              "description": {
+                                "name": "description",
+                                "type": "string"
+                              },
+                              "type": {
+                                "name": "type",
+                                "description": "The annotation type",
+                                "type": "string"
+                              },
                               "value": {
                                 "name": "value",
                                 "description": "The delivery annotation value",
@@ -519,11 +704,6 @@
                                 "name": "required",
                                 "description": "Whether the annotation is required",
                                 "type": "boolean"
-                              },
-                              "type": {
-                                "name": "type",
-                                "description": "The annotation type",
-                                "type": "string"
                               }
                             }
                           }
@@ -534,6 +714,15 @@
                           "item": {
                             "type": "object",
                             "attributes": {
+                              "description": {
+                                "name": "description",
+                                "type": "string"
+                              },
+                              "type": {
+                                "name": "type",
+                                "description": "AMQP header type",
+                                "type": "string"
+                              },
                               "value": {
                                 "name": "value",
                                 "description": "AMQP header value",
@@ -543,11 +732,6 @@
                                 "name": "required",
                                 "description": "AMQP header required",
                                 "type": "boolean"
-                              },
-                              "type": {
-                                "name": "type",
-                                "description": "AMQP header type",
-                                "type": "string"
                               }
                             }
                           }
@@ -558,6 +742,15 @@
                           "item": {
                             "type": "object",
                             "attributes": {
+                              "description": {
+                                "name": "description",
+                                "type": "string"
+                              },
+                              "type": {
+                                "name": "type",
+                                "description": "AMQP footer type",
+                                "type": "string"
+                              },
                               "value": {
                                 "name": "value",
                                 "description": "AMQP footer value",
@@ -567,11 +760,6 @@
                                 "name": "required",
                                 "description": "AMQP footer required",
                                 "type": "boolean"
-                              },
-                              "type": {
-                                "name": "type",
-                                "description": "AMQP footer type",
-                                "type": "string"
                               }
                             }
                           }
@@ -592,10 +780,19 @@
                           "description": "MQTT qos",
                           "type": "object",
                           "attributes": {
+                            "description": {
+                              "name": "description",
+                              "type": "string"
+                            },
                             "value": {
                               "name": "value",
                               "description": "MQTT qos value template",
                               "type": "string"
+                            },
+                            "required": {
+                              "name": "required",
+                              "description": "MQTT qos value required",
+                              "type": "boolean"
                             }
                           }
                         },
@@ -604,9 +801,18 @@
                           "description": "MQTT retain",
                           "type": "object",
                           "attributes": {
+                            "description": {
+                              "name": "description",
+                              "type": "string"
+                            },
                             "value": {
                               "name": "value",
                               "description": "MQTT retain value template",
+                              "type": "boolean"
+                            },
+                            "required": {
+                              "name": "required",
+                              "description": "MQTT retain value required",
                               "type": "boolean"
                             }
                           }
@@ -616,10 +822,19 @@
                           "description": "MQTT topic-name",
                           "type": "object",
                           "attributes": {
+                            "description": {
+                              "name": "description",
+                              "type": "string"
+                            },
                             "value": {
                               "name": "value",
                               "description": "MQTT topic-name value template",
                               "type": "string"
+                            },
+                            "required": {
+                              "name": "required",
+                              "description": "MQTT topic-name value required",
+                              "type": "boolean"
                             }
                           }
                         }
@@ -639,10 +854,19 @@
                           "description": "MQTT qos",
                           "type": "object",
                           "attributes": {
+                            "description": {
+                              "name": "description",
+                              "type": "string"
+                            },
                             "value": {
                               "name": "value",
                               "description": "MQTT qos value template",
                               "type": "integer"
+                            },
+                            "required": {
+                              "name": "required",
+                              "description": "MQTT qos value required",
+                              "type": "boolean"
                             }
                           }
                         },
@@ -651,9 +875,18 @@
                           "description": "MQTT retain",
                           "type": "object",
                           "attributes": {
+                            "description": {
+                              "name": "description",
+                              "type": "string"
+                            },
                             "value": {
                               "name": "value",
                               "description": "MQTT retain value template",
+                              "type": "boolean"
+                            },
+                            "required": {
+                              "name": "required",
+                              "description": "MQTT retain value required",
                               "type": "boolean"
                             }
                           }
@@ -663,10 +896,19 @@
                           "description": "MQTT topic-name",
                           "type": "object",
                           "attributes": {
+                            "description": {
+                              "name": "description",
+                              "type": "string"
+                            },
                             "value": {
                               "name": "value",
                               "description": "MQTT topic-name value template",
                               "type": "string"
+                            },
+                            "required": {
+                              "name": "required",
+                              "description": "MQTT topic-name value required",
+                              "type": "boolean"
                             }
                           }
                         },
@@ -675,10 +917,19 @@
                           "description": "MQTT message-expiry-interval",
                           "type": "object",
                           "attributes": {
+                            "description": {
+                              "name": "description",
+                              "type": "string"
+                            },
                             "value": {
                               "name": "value",
                               "description": "MQTT message-expiry-interval value template",
                               "type": "integer"
+                            },
+                            "required": {
+                              "name": "required",
+                              "description": "MQTT message-expiry-interval value required",
+                              "type": "boolean"
                             }
                           }
                         },
@@ -687,10 +938,19 @@
                           "description": "MQTT response-topic",
                           "type": "object",
                           "attributes": {
+                            "description": {
+                              "name": "description",
+                              "type": "string"
+                            },
                             "value": {
                               "name": "value",
                               "description": "MQTT response-topic value template",
                               "type": "string"
+                            },
+                            "required": {
+                              "name": "required",
+                              "description": "MQTT response-topic value required",
+                              "type": "boolean"
                             }
                           }
                         },
@@ -699,10 +959,19 @@
                           "description": "MQTT correlation-data",
                           "type": "object",
                           "attributes": {
+                            "description": {
+                              "name": "description",
+                              "type": "string"
+                            },
                             "value": {
                               "name": "value",
                               "description": "MQTT correlation-data value template",
                               "type": "string"
+                            },
+                            "required": {
+                              "name": "required",
+                              "description": "MQTT correlation-data value required",
+                              "type": "boolean"
                             }
                           }
                         },
@@ -711,10 +980,19 @@
                           "description": "MQTT content-type",
                           "type": "object",
                           "attributes": {
+                            "description": {
+                              "name": "description",
+                              "type": "string"
+                            },
                             "value": {
                               "name": "value",
                               "description": "MQTT content-type value template",
                               "type": "string"
+                            },
+                            "required": {
+                              "name": "required",
+                              "description": "MQTT content-type value required",
+                              "type": "boolean"
                             }
                           }
                         },
@@ -728,6 +1006,10 @@
                               "name": {
                                 "name": "name",
                                 "description": "MQTT user-property name",
+                                "type": "string"
+                              },
+                              "description": {
+                                "name": "description",
                                 "type": "string"
                               },
                               "value": {
@@ -776,10 +1058,19 @@
                                 "description": "The Apache Kafka header name",
                                 "type": "string"
                               },
+                              "description": {
+                                "name": "description",
+                                "type": "string"
+                              },
                               "value": {
                                 "name": "value",
                                 "description": "The Apache Kafka header value",
                                 "type": "string"
+                              },
+                              "required": {
+                                "name": "required",
+                                "description": "The Apache Kafka header required",
+                                "type": "boolean"
                               }
                             }
                           }
@@ -812,10 +1103,19 @@
                                 "description": "The HTTP header name",
                                 "type": "string"
                               },
+                              "description": {
+                                "name": "description",
+                                "type": "string"
+                              },
                               "value": {
                                 "name": "value",
                                 "description": "The HTTP header value",
                                 "type": "string"
+                              },
+                              "required": {
+                                "name": "required",
+                                "description": "The HTTP header required",
+                                "type": "boolean"
                               }
                             }
                           }
@@ -823,7 +1123,31 @@
                         "query": {
                           "name": "query",
                           "description": "The HTTP query parameters",
-                          "type": "object"
+                          "type": "array",
+                          "item": {
+                            "type": "object",
+                            "attributes": {
+                              "name": {
+                                "name": "name",
+                                "description": "The HTTP query parameter",
+                                "type": "string"
+                              },
+                              "description": {
+                                "name": "description",
+                                "type": "string"
+                              },
+                              "value": {
+                                "name": "value",
+                                "description": "The HTTP query parameter value",
+                                "type": "string"
+                              },
+                              "required": {
+                                "name": "required",
+                                "description": "The HTTP query parameter required",
+                                "type": "boolean"
+                              }
+                            }
+                          }
                         },
                         "path": {
                           "name": "path",
@@ -841,20 +1165,25 @@
                 }
               }
             },
-            "schemaformat": {
-              "name": "schemaformat",
+            "dataschemaformat": {
+              "name": "dataschemaformat",
               "description": "The schema format applicable to the message payload, equivalent to the 'format' attribute of the schema registry",
               "type": "string"
             },
-            "schema": {
-              "name": "schema",
+            "dataschema": {
+              "name": "dataschema",
               "description": "The inline schema for the message payload, equivalent to the 'schema' attribute of the schema registry",
               "type": "any"
             },
-            "schemauri": {
-              "name": "schemauri",
+            "dataschemauri": {
+              "name": "dataschemauri",
               "description": "The URI of the schema for the message payload, equivalent to the 'schemaurl' attribute of the schema registry",
               "type": "uri"
+            },
+            "datacontenttype": {
+              "name": "datacontenttype",
+              "description": "The content type for the message payload",
+              "type": "string"
             }
           }
         }

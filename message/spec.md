@@ -98,9 +98,10 @@ this form:
           "protocol": "STRING", ?              # e.g. HTTP/1.1
           "protocoloptions": { ... }, ?
 
-          "schemaformat": "STRING", ?
-          "schema": ANY, ?
-          "schemauri": "URI", ?
+          "dataschemaformat": "STRING", ?
+          "dataschema": ANY, ?
+          "dataschemauri": "URI", ?
+          "datacontenttype": "STRING", ?
 
           "metaurl": "URL",
           "meta": { ... }, ?
@@ -337,7 +338,7 @@ specification.
 - Examples:
   - See [Message protocols](#message-protocols)
 
-#### `schemaformat`
+#### `dataschemaformat`
 
 - Type: String
 - Description: Identifies the schema format applicable to the message payload,
@@ -354,34 +355,63 @@ specification.
   - 'Avro/1.9.0'
   - 'Protobuf/3'
 
-#### `schema`
+#### `dataschema`
 
 - Type: Any
 - Description: Contains the inline schema for the message payload. The schema
-  format is identified by the `schemaformat` attribute. Equivalent to the
+  format is identified by the `dataschemaformat` attribute. Equivalent to the
   schemaversion
   ['schema'](../schema/spec.md#schema) attribute
 - Constraints:
   - OPTIONAL.
-  - Mutually exclusive with the `schemauri` attribute.
-  - If present, `schemaformat` MUST be present.
+  - Mutually exclusive with the `dataschemauri` attribute.
+  - If present, `dataschemaformat` MUST be present.
 - Examples:
   - See [Schema Formats](../schema/spec.md#schema-formats)
 
-#### `schemauri`
+#### `dataschemauri`
 
 - Type: URI-reference
 - Description: Contains a relative or absolute URI that points to the schema
   object to use for the message payload. The schema format is identified by the
-  `schemaformat` attribute. See
+  `dataschemaformat` attribute. See
   [Schema Formats](../schema/spec.md#schema-formats) for details on
   how to reference specific schema objects for the message payload. It is not
   sufficient for the URI-reference to point to a schema document; it MUST
   resolve to a concrete schema object.
 - Constraints:
   - OPTIONAL.
-  - Mutually exclusive with the `schema` attribute.
-  - If present, `schemaformat` MUST be present.
+  - Mutually exclusive with the `dataschema` attribute.
+  - If present, `dataschemaformat` MUST be present.
+
+#### `datacontenttype`
+
+- Type: Type: `String` per [RFC 2046](https://tools.ietf.org/html/rfc2046)
+- Description: Content type of the message payload. This attribute MAY be
+  duplicative with some other metadata within the message definition. For
+  example, in the case of using CloudEvents, the `envelopemetadata` attribute
+  might include the `datacontenttype` attribute. This possible duplication
+  of data is expected so as to allow for a more consistent, and easy, discovery
+  of the message's format. This means that if this information does appear in
+  more than one location within the message metadata they MUST all have the
+  same values.
+
+  Note that when an `envelope` is defined for a message and the data of
+  interest is serialized as being nested within the envelope (e.g.
+  CloudEvents "structured" mode), then this attribute MUST be the content type
+  of the message envelope and not of the data nested within the envelope.
+
+  As specified in [RFC 2045](https://tools.ietf.org/html/rfc2045), the media
+  type part of the content type MUST be treated in a case-insensitive manner
+  by consumers, along with the attribute names in parameters. For example,
+  a `datacontenttype` of `text/plain; charset=utf-8` MUST be treated in the
+  same way as `TEXT/Plain; CharSet=utf-8`.
+- Constraints:
+  - OPTIONAL
+  - If present, MUST adhere to the format specified in
+    [RFC 2046](https://tools.ietf.org/html/rfc2046)
+- For Media Type examples see
+  [IANA Media Types](http://www.iana.org/assignments/media-types/media-types.xhtml)
 
 ### Metadata Envelopes and Message Protocols
 
@@ -532,10 +562,11 @@ The following rules apply to the attribute declarations:
 - The `time` attribute's `value` defaults to `01-01-0000T00:00:00Z` ("current
   time") and SHOULD NOT be declared with a different value.
 - The `datacontenttype` attribute's `value` is inferred from the
-  [`schemaformat`](#schemaformat) attribute of the message definition if absent.
+  [`dataschemaformat`](#dataschemaformat) attribute of the message definition
+  if absent.
 - The `dataschema` attribute's `value` is inferred from the
-  [`schemauri`](#schemauri) attribute or
-  [`schema`](#schema) attribute of the message definition if
+  [`dataschemauri`](#dataschemauri) attribute or
+  [`dataschema`](#dataschema) attribute of the message definition if
   absent.
 - The `type` of the property definition defaults to the CloudEvents type
   definition for the attribute, if any. The `type` of an attribute MAY be
@@ -620,8 +651,8 @@ CloudEvents base specification. The implied `datacontenttype` is
       "required": true
     },
   },
-  "schemaformat": "JsonSchema/draft-07",
-  "schemauri": "https://example.com/schemas/com.example.myevent.json",
+  "dataschemaformat": "JsonSchema/draft-07",
+  "dataschemauri": "https://example.com/schemas/com.example.myevent.json",
 }
 ```
 
@@ -679,14 +710,17 @@ The following example defines a message that is sent over HTTP/1.1:
         "value": "application/json"
       }
     ],
-    "query": {
-      "foo": "bar"
-    },
+    "query": [
+      {
+        "name": "foo",
+        "value": "bar"
+      }
+    ],
     "path": "/foo/{bar}",
     "method": "POST"
   },
-  "schemaformat": "JsonSchema/draft-07",
-  "schemauri": "https://example.com/schemas/com.example.myevent.json",
+  "dataschemaformat": "JsonSchema/draft-07",
+  "dataschemauri": "https://example.com/schemas/com.example.myevent.json",
 }
 ```
 

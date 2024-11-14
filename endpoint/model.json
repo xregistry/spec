@@ -111,9 +111,9 @@
                       "item": {
                         "type": "object",
                         "attributes": {
-                          "uri": {
-                            "name": "uri",
-                            "type": "uri",
+                          "url": {
+                            "name": "url",
+                            "type": "url",
                             "description": "Network accessible location",
                             "clientrequired": true,
                             "serverrequired": true
@@ -139,9 +139,9 @@
                             "clientrequired": true,
                             "serverrequired": true
                           },
-                          "resourceurl": {
-                            "name": "resourceurl",
-                            "type": "url",
+                          "resourceuri": {
+                            "name": "resourceuri",
+                            "type": "uri",
                             "description": "The resource uri for which authorization shall be granted (if applicable)"
                           },
                           "authorityuri": {

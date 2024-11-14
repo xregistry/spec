@@ -439,12 +439,12 @@
                     },
                     {
                       "type": "string",
-                      "name": "schemaformat",
+                      "name": "dataschemaformat",
                       "doc": "The schema format applicable to the message payload, equivalent to the 'format' attribute of the schema registry"
                     },
                     {
                       "type": "record",
-                      "name": "schema",
+                      "name": "dataschema",
                       "fields": [
                         {
                           "name": "object",
@@ -482,8 +482,13 @@
                     },
                     {
                       "type": "string",
-                      "name": "schemauri",
+                      "name": "dataschemauri",
                       "doc": "The URI of the schema for the message payload, equivalent to the 'schemaurl' attribute of the schema registry"
+                    },
+                    {
+                      "type": "string",
+                      "name": "datacontenttype",
+                      "doc": "The content type for the message payload"
                     }
                   ]
                 }

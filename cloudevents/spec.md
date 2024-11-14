@@ -162,8 +162,9 @@ schema for its payload.
             }
           },
 
-          "schemaformat": "Protobuf/3.0",
-          "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; } }"
+          "dataschemaformat": "Protobuf/3.0",
+          "dataschema": "syntax = \"proto3\"; message Metrics { float metric = 1; } }"
+          "datacontenttype": "Protobuf/3.0",
 
           "metaurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/meta",
           "versionsurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/versions",
@@ -264,8 +265,9 @@ scenarios:
             }
           },
 
-          "schemaformat": "Protobuf/3.0",
-          "schemaurl": "#/schemagroups/com.example.telemetry/schema/com.example.telemetrydata/versions/1.0"
+          "dataschemaformat": "Protobuf/3.0",
+          "dataschemauri": "#/schemagroups/com.example.telemetry/schema/com.example.telemetrydata/versions/1.0"
+          "datacontenttype": "Protobuf/3.0",
 
           "metaurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/meta",
           "versionsurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/versions",

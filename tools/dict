@@ -36,6 +36,8 @@ createdby
 crlf
 datacontenttype
 dataschema
+dataschemaformat
+dataschemauri
 datastore
 datatracker
 datetime
@@ -74,6 +76,7 @@ html
 http
 https
 hxregistry
+iana
 ietf
 ifvalues
 img
@@ -165,7 +168,6 @@ resourceurl
 resultset
 rfc
 rid
-schemaformat
 schemagroup
 schemagroupid
 schemagroups
@@ -232,6 +234,7 @@ willtopic
 wip
 wss
 www
+xhtml
 xml
 xmlschema
 xpath

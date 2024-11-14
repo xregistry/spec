@@ -79,12 +79,12 @@ this form:
         # Common protocol options
         "endpoints": [
           {
-            "uri": "URI"                        # plus endpoint extensions
+            "url": "URL"                        # plus endpoint extensions
           } *
         ], ?
         "authorization": {
           "type": "STRING", ?
-          "resourceurl": "URL", ?
+          "resourceuri": "URI", ?
           "authorityuri": "URI", ?
           "grant_types": [ "STRING" * ] ?
         }, ?
@@ -283,6 +283,16 @@ The following attributes are defined for Endpoints:
   `producer` endpoint and a `consumer` endpoint, all with the same `channel`
   attribute value of "pipeline1", or some further qualification like
   "pipeline1-stage1", etc.
+
+  This specification does not make any statement about whether two endpoints
+  that do not share the same non-empty value have any relationship or not.
+  They might, but how this is determined is out of scope of this specification.
+  Additionally, while it is expected that this attribute's value will be a
+  single value, given this specification does not place any constraints on
+  its syntax or semantic meaning, implementations might choose to "encode"
+  multiple values within this single string. That would then imply that the
+  comparison algorithm of two `channel` values might need to be more
+  complicated than a "string compare" in those cases.
 
   When this property has no value it MUST either be serialized as an empty
   string or excluded from the serialization entirely.
@@ -497,22 +507,22 @@ TODO merge this into the previous 'protocol' section
   - Each object key MUST contain a `uri` attribute with a valid, absolute
     URI (URL)
 - Examples:
-  - `[ {"uri": "https://example.com" } ]`
+  - `[ {"url": "https://example.com" } ]`
   - ```
     [
-      { "uri": "tcp://example.com" },
-      { "uri": "wss://example.com" }
+      { "url": "tcp://example.com" },
+      { "url": "wss://example.com" }
     ]
     ```
   - ```
     [
       {
-        "uri": "tcp://example.com",
+        "url": "tcp://example.com",
         "priority": 1,
         "status": "down"
       },
       {
-        "uri": "wss://example.com",
+        "url": "wss://example.com",
         "priority": 2,
         "status": "up"
       }
@@ -627,10 +637,6 @@ Endpoints are supersets of
 MAY contain inlined messages. See
 [Message Definitions](../message/spec.md#message-definitions).
 
-It is STRONGLY RECOMMENDED that the `messageid` values of the inlined messages
-be unique across all messages within the `messages` collection and the messages
-referenced by the `messagegroups` references.
-
 Example:
 
 ```yaml
@@ -656,6 +662,33 @@ Example:
   }
 }
 ```
+
+When this specification, and the [message specification](../message/spec.md),
+are used with specifications such as [CloudEvents](https://cloudevents.io),
+where a semantically unique identifier is used in a runtime message (e.g.
+CloudEvent's `type` attribute), it is STRONGLY RECOMMENDED that the
+`messageid` values of the message definitions for an Endpoint match that
+unique identifier and therefore be unique across all messages within the
+`messages` collection and the messages referenced by the `messagegroups`
+attribute. This will allow for an easily "lookup" from an incoming runtime
+message to it's related message definition.
+
+However, there are times when this is not possible. For example, take the case
+where an Endpoint might have the same semantic message defined twice, once for
+a JSON serialization and once for an XML serialization. Using the same
+`messageid` value is not possible (even though the CloudEvent `type` attribute
+would be the same for both runtime messages), so one (or both) message
+definition's `messageid` values might not match the runtime message's `type`
+value. In those cases, finding the appropriate message definition will need to
+be done via examination of some other metadata - such as the message's
+`envelopemetadata.type` value along with its `envelopeoptions.format` value.
+These details are of scope for this specification to define and are left as
+an implementation detail.
+
+Implementations MAY choose to generate an error if it detects duplicate
+`messageid` values across the `messages` collection message definitions and
+the `messagegroups` referenced message definitions, if that is the desired
+constraints for their users.
 
 #### Protocol Options
 

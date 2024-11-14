@@ -403,7 +403,7 @@ the schema Resource is a JSON object representing a JSON Schema document
 conformant with the declared version.
 
 A URI-reference, like
-[`schemauri`](../message/spec.md#schemauri) that points
+[`schemauri`](../message/spec.md#dataschemauri) that points
 to a JSON Schema document MAY use a JSON pointer expression to deep link into
 the schema document to reference a particular type definition. Otherwise the
 top-level object definition of the schema is used.
@@ -440,7 +440,7 @@ schema Resource is a string containing an XML Schema document conformant with
 the declared version.
 
 A URI-reference, like
-[`schemauri`](../message/spec.md#schemauri) that points
+[`schemauri`](../message/spec.md#dataschemauri) that points
 to a XSD Schema document MAY use an XPath expression to deep link into the
 schema document to reference a particular type definition. Otherwise the root
 element definition of the schema is used.
@@ -471,7 +471,7 @@ Examples:
 - `Avro/1.11.0` is the identifier for the Apache Avro release 1.11.0
 
 A URI-reference, like
-[`schemauri`](../message/spec.md#schemauri) that points
+[`schemauri`](../message/spec.md#dataschemauri) that points
 to an Avro Schema document MUST reference an Avro record declaration contained
 in the schema document using a URI fragment suffix `[:]{record-name}`. The ':'
 character is used as a separator when the URI already contains a fragment.
@@ -501,7 +501,7 @@ with the declared version.
 - `Protobuf/2` is the identifier for the Protobuf syntax version 2.
 
 A URI-reference, like
-[`schemauri`](../message/spec.md##schemauri that points
+[`schemauri`](../message/spec.md#dataschemauri that points
 to an Protobuf Schema document MUST reference an Protobuf `message` declaration
 contained in the schema document using a URI fragment suffix
 `[:]{message-name}`. The ':' character is used as a separator when the URI
