@@ -1906,6 +1906,8 @@ The following describes the attributes of Registry model:
     level, are active at the same time then there MUST NOT be duplicate
     `ifvalues` attributes names between those `ifvalues` sections.
   - `ifvalues` `"VALUE"` MUST NOT be an empty string.
+  - `ifvalues` `"VALUE"` MUST NOT start with the `^` (carrot) character as its
+    presence at the beginning of `"VALUE"` is reserved for future use.
   - `ifvalues` `siblingattributes` MAY include additional `ifvalues`
     definitions.
   - Type: Map where each value of the attribute is the key of the map.
@@ -5034,19 +5036,27 @@ inline[=PATH[,...]]
 
 Where `PATH` is a string indicating which inlinable attributes to show in
 in the response. References to nested attributes are represented using a
-dot(`.`) notation - for example `GROUPS.RESOURCES`. To reference an attribute
-with a dot as part of its name, the JSON PATH escaping mechanism MUST be
-used: `['my.name']`. For example, `prop1.my.name.prop2` would be specified
-as `prop1['my.name'].prop2` if `my.name` is the name of one attribute.
+dot(`.`) notation where the xRegistry collections names along the hierarchy
+are concatenated. For example: `endpoints.messages.versions` will inline all
+Versions of Messages. Non-leaf parts of the `PATH` MUST only reference
+xRegistry collection names and not any specific entity IDs since `PATH` is
+meant to be an abstract traversal of the model.
+
+To reference an attribute with a dot as part of its name, the JSON PATH
+escaping mechanism MUST be used: `['my.name']`. For example,
+`prop1.my.name.prop2` would be specified as `prop1['my.name'].prop2` if
+`my.name` is the name of one attribute.
 
 There MAY be multiple `PATH`s specified, either as comma separated values on
 a single `?inline` query parameter or via multiple `?inline` query parameters.
 
-Absence of a `PATH`, or a `PATH` attribute with a value of `*` indicates that
-all nested inlinable attributes at that level in the hierarchy (and below)
-MUST be inlined. Use of `*` MUST only be used as the last attribute name
-(in its entirety) in the `PATH`. For example, `foo*`, or `*.foo` are not
-valid `PATH`s, but `*` and `endpoints.*` are.
+The `*` value MAY be used to indicate that all nested inlinable attributes
+at that level in the hierarchy (and below) MUST be inlined. Use of `*` MUST
+only be used as the last part of the `PATH` (in its entirety). For example,
+`foo*` and `*.foo` are not valid `PATH` values, but `*` and `endpoints.*` are.
+
+An `?inline` query parameter without any value MAY be supported and if so it
+MUST have the same semantic meaning as `?inline=*`.
 
 The specific value of `PATH` will vary based on where the request is directed.
 For example, a request to the root of the Registry MUST start with a `GROUPS`
