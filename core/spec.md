@@ -207,9 +207,9 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "compatibility": "STRING", ?           # Default is "none"
             # TODO - add timestamp?
 
-            "defaultversionsticky": BOOLEAN, ?     # Default is "false"
             "defaultversionid": "STRING",
-            "defaultversionurl": "URL"
+            "defaultversionurl": "URL",
+            "defaultversionsticky": BOOLEAN ?      # Default is "false"
           }, ?
           "versionsurl": "URL",
           "versionscount": UINTEGER,
@@ -262,6 +262,9 @@ In the pseudo JSON format snippets `?` means the preceding item is OPTIONAL,
 preceding item MUST appear at least once. The presence of the `#` character
 means the remaining portion of the line is a comment. Whitespace characters in
 the JSON snippets are used for readability and are not normative.
+
+When HTTP query parameters are discussed, they are presented as `?NAME` where
+`NAME` is the name of the query parameter.
 
 Use of the words `GROUP` and `RESOURCE` are meant to represent the singular
 form of a Group and Resource type being used. While `GROUPS` and `RESOURCES`
@@ -570,6 +573,11 @@ of the existing entity. Then the existing entity can be deleted.
   - The `If-Match` verification MUST be done in addition to the `epoch`
     checking specified above. In other words, a present but non-matching value
     in either location MUST generate an error.
+
+  If an entity has a nested xRegistry collection, its `epoch` value MUST
+  be updated each time an entity in that collection is added or removed.
+  However, its `epoch` value MUST NOT be updated solely due to modifications of
+  an existing entity in the collection.
 - Constraints:
   - MUST be an unsigned integer equal to or greater than zero.
   - MUST increase in value each time the entity is updated.
@@ -687,8 +695,10 @@ of the existing entity. Then the existing entity can be deleted.
     then acts like a `touch` type of operation.
   - Upon creation of a new entity, this attribute MUST match the `createdat`
     attribute's value.
-  - Setting an entity's `modifiedat` value MUST NOT update any parent
-    entity's `modifiedat` value.
+  - Updates to an existing entity in an xRegistry collection MUST NOT cause an
+    update to its parent entity's `modifiedat` value. However, adding or
+    removing an entity from a nested xRegistry collection MUST update the
+    `modifiedat` value of the parent entity.
   - If present in a write operation request, the following applies:
     - If the request value is the same as the existing value, then the
       current date/time MUST be used as its new value.
@@ -930,7 +940,7 @@ request to create or update that entity according to the semantics of the HTTP
 method used. An entry in the map that isn't a valid entity (e.g. is `null`)
 MUST generate an error.
 
-The `nested` semantics MUST be applied to all nested `COLLECTIONS` attributes
+The `?nested` semantics MUST be applied to all nested `COLLECTIONS` attributes
 within the request regardless of the level in the hierarchy in which they
 appear.
 
@@ -950,7 +960,7 @@ PUT https://example.com/endpoints/ep1?nested
 }
 ```
 
-Will not only create/update an `endpoint` Group with an `endpointid` of `ep1`
+will not only create/update an `endpoint` Group with an `endpointid` of `ep1`
 but will also create/update its `message` Resources (`mymsg1` and `mymsg2`).
 
 Any error while processing a nested collection entity MUST result in the entire
@@ -1128,9 +1138,9 @@ GET PATH-TO-COLLECTION[?inline=...&filter=...&export]
 ```
 
 The following query parameters SHOULD be supported by servers:
-- `inline`   - See [inlining](#inlining) for more information.
-- `filter`   - See [filtering](#filtering) for more information.
-- `export`   - See [exporting](#exporting) for more information.
+- `?inline`   - See [inlining](#inlining) for more information.
+- `?filter`   - See [filtering](#filtering) for more information.
+- `?export`   - See [exporting](#exporting) for more information.
 
 A successful response MUST be of the form:
 
@@ -1157,9 +1167,9 @@ GET PATH-TO-COLLECTION/ID-OF-ENTITY[?inline=...&filter=...&export]
 ```
 
 The following query parameters SHOULD be supported by servers:
-- `inline` - See [inlining](#inlining) for more information.
-- `filter` - See [filtering](#filtering) for more information.
-- `export` - See [exporting](#exporting) for more information.
+- `?inline` - See [inlining](#inlining) for more information.
+- `?filter` - See [filtering](#filtering) for more information.
+- `?export` - See [exporting](#exporting) for more information.
 
 A successful response MUST be of the form:
 
@@ -1345,9 +1355,9 @@ The following query parameters SHOULD be supported by servers:
   query parameter MAY be included on any API request to the server not just the
   root of the Registry. When not present, the default value is the newest
   version of this specification supported by the server.
-- `inline` - See [inlining](#inlining) for more information.
-- `filter` - See [filtering](#filtering) for more information.
-- `export` - See [exporting](#exporting) for more information.
+- `?inline` - See [inlining](#inlining) for more information.
+- `?filter` - See [filtering](#filtering) for more information.
+- `?export` - See [exporting](#exporting) for more information.
 
 A successful response MUST be of the form:
 
@@ -1523,15 +1533,13 @@ Where:
 - The request MAY include the `'model` attribute if the Registry model
   definitions are to be updated as part of the request. See [Updating the
   Registry Model](#updating-the-registry-model) for more information.
+  If present, the Registry's model MUST be updated prior to any entities being
+  updated. A value of `null` MUST generate an error.
 
 The following query parameter SHOULD be supported by servers:
-- `nested` - See
+- `?nested` - See
   [Updating Nested Registry
   Collections](#updating-nested-registry-collections) for more information.
-  If `nested` is present, and the `model` attribute is also present then the
-  Registry's model MUST be updated prior to any entities being updated. A
-  value of `null` MUST generate an error. If the `model` attribute is present
-  but the `?nested` query parameter is not, then an error MUST be generated.
 
 A successful response MUST include the same content that an HTTP `GET`
 on the Registry would return, and be of the form:
@@ -2045,7 +2053,7 @@ The following describes the attributes of Registry model:
     document to be associated with it.
 
 - `groups.resources.typemap`
-  - When a Resource's metadata is serialized in a response and the `inline`
+  - When a Resource's metadata is serialized in a response and the `?inline`
     feature is enabled, the server will attempt to serialize the Resource's
     "document" under the `RESOURCE` attribute. However, this can
     only happen under two situations:<br>
@@ -2765,9 +2773,9 @@ GET /GROUPS[?inline=...&filter=...&export]
 ```
 
 The following query parameters SHOULD be supported by servers:
-- `inline` - See [inlining](#inlining) for more information.
-- `filter` - See [filtering](#filtering) for more information.
-- `export` - See [exporting](#exporting) for more information.
+- `?inline` - See [inlining](#inlining) for more information.
+- `?filter` - See [filtering](#filtering) for more information.
+- `?export` - See [exporting](#exporting) for more information.
 
 A successful response MUST be of the form:
 
@@ -2851,7 +2859,7 @@ or `POST` methods:
 - `POST  /GROUPS[?nested]`.
 
 The following query parameter SHOULD be supported by servers:
-- `nested` - See
+- `?nested` - See
    [Updating Nested Registry
    Collections](#updating-nested-registry-collections) for more information.
 
@@ -2971,9 +2979,9 @@ GET /GROUPS/gID[?inline=...&filter=...&export]
 ```
 
 The following query parameters SHOULD be supported by servers:
-- `inline` - See [inlining](#inlining) for more information.
-- `filter` - See [filtering](#filtering) for more information.
-- `export` - See [exporting](#exporting) for more information.
+- `?inline` - See [inlining](#inlining) for more information.
+- `?filter` - See [filtering](#filtering) for more information.
+- `?export` - See [exporting](#exporting) for more information.
 
 A successful response MUST be of the form:
 
@@ -3203,9 +3211,9 @@ Resource attribute MUST adhere to the following:
     "compatibility": "STRING", ?           # Default is "none"
     # TODO - add timestamp?
 
-    "defaultversionsticky": BOOLEAN, ?     # Default is "false"
     "defaultversionid": "STRING",
-    "defaultversionurl": "URL"
+    "defaultversionurl": "URL",
+    "defaultversionsticky": BOOLEAN ?      # Default is "false"
   }, ?
   "versionsurl": "URL",
   "versionscount": UINTEGER,
@@ -3217,8 +3225,8 @@ Note that the `meta` and `versions` attributes MUST only appear when
 requested by the client - for example, via the `?inline` flag.
 
 When the Resource is serialized with its domain specific document in the
-HTTP body, then the `meta` and `versions` scalar attributes MUST appear as
-HTTP headers and adhere to the following:
+HTTP body, then the `metaurl`, `versionsurl` and `versionscount` attributes
+MUST appear as HTTP headers and adhere to the following:
 
 ```yaml
 xRegistry-RESOURCEid: STRING
@@ -3307,6 +3315,39 @@ and the following Resource level attributes:
     enumeration range.
   - When not present, the implied default value is `none`.
 
+##### `defaultversionid` Attribute
+- Type: String
+- Description: the `versionid` of the default Version of the Resource.
+  This specification makes no statement as to the format of this string or
+  versioning scheme used by implementations of this specification. However, it
+  is assumed that newer Versions of a Resource will have a "higher"
+  value than older Versions.
+- Constraints:
+  - REQUIRED in responses and document view, OPTIONAL in requests.
+  - If present, MUST be non-empty.
+  - MUST be the `versionid` of the default Version of the Resource.
+  - See the `defaultversionsticky` section above for how to process these two
+    attributes.
+- Examples:
+  - `1`, `2.0`, `v3-rc1` (v3's release candidate 1)
+
+##### `defaultversionurl` Attribute
+- Type: URL
+- Description: an absolute URL to the default Version of the Resource.
+
+  The Version URL path MUST include `$structure` if the request asked for
+  the serialization of the Resource metadata. This would happen when
+  `$structure` was used in the request, or when the Resource is included in the
+  serialization of a Group, such as when the `?inline` feature is used.
+- Constraints:
+  - REQUIRED in responses, OPTIONAL in requests.
+  - OPTIONAL in document view.
+  - MUST be a read-only attribute in API view.
+  - MUST be an absolute URL to the default Version of the Resource, and MUST.
+    be the same as the Version's `self` attribute.
+- Examples:
+  - `https://example.com/endpoints/ep1/messages/msg1/versions/1.0`
+
 ##### `defaultversionsticky` Attribute
 - Type: Boolean
 - Description: indicates whether or not the "default" Version has been
@@ -3349,39 +3390,6 @@ and the following Resource level attributes:
 - Examples:
   - `true`, `false`
 
-##### `defaultversionid` Attribute
-- Type: String
-- Description: the `versionid` of the default Version of the Resource.
-  This specification makes no statement as to the format of this string or
-  versioning scheme used by implementations of this specification. However, it
-  is assumed that newer Versions of a Resource will have a "higher"
-  value than older Versions.
-- Constraints:
-  - REQUIRED in responses and document view, OPTIONAL in requests.
-  - If present, MUST be non-empty.
-  - MUST be the `versionid` of the default Version of the Resource.
-  - See the `defaultversionsticky` section above for how to process these two
-    attributes.
-- Examples:
-  - `1`, `2.0`, `v3-rc1` (v3's release candidate 1)
-
-##### `defaultversionurl` Attribute
-- Type: URL
-- Description: an absolute URL to the default Version of the Resource.
-
-  The Version URL path MUST include `$structure` if the request asked for
-  the serialization of the Resource metadata. This would happen when
-  `$structure` was used in the request, or when the Resource is included in the
-  serialization of a Group, such as when the `inline` feature is used.
-- Constraints:
-  - REQUIRED in responses, OPTIONAL in requests.
-  - OPTIONAL in document view.
-  - MUST be a read-only attribute in API view.
-  - MUST be an absolute URL to the default Version of the Resource, and MUST.
-    be the same as the Version's `self` attribute.
-- Examples:
-  - `https://example.com/endpoints/ep1/messages/msg1/versions/1.0`
-
 ##### `meta` Attribute/Sub-object
 - Type: Object
 - Description: an object that contains most of the Resource level attributes.
@@ -3404,6 +3412,10 @@ default Version attributes in the request. If not present, the server will
 interpret it as a request to delete the default Version attributes. If
 possible, an update request to the `metaurl` directly would be a better
 choice, or use `PATCH` instead and only include the `meta` sub-object.
+
+During a write operation, the absence of the `meta` attribute indicates that
+no changes are to be made to the `meta` sub-object. The presence of the
+`meta` attribute does not need to use the `?nested` query parameter.
 
 ##### `metaurl` Attribute
 - Type: URL
@@ -3563,8 +3575,8 @@ xRegistry metadata and not just the scalar values - as is the case when they
 appear as HTTP headers. This allows for management of all metadata as well
 as any possible domain specific document at one time.
 
-Note that in the case of a reference to a Resource, the xRegistry metadata
-will be from the default Version, plus the extra `meta` and `versions`
+Note that in the case of a reference to a Resource (not a Version), the
+metadata will be from the default Version, plus the extra `meta` and `versions`
 related attributes.
 
 When serialized as a JSON object, a Resource (not a Version) MUST adhere to
@@ -3601,9 +3613,9 @@ this form:
     "readonly": BOOLEAN, ?                 # Default is "false"
     "compatibility": "STRING", ?           # Default is "none"
 
-    "defaultversionsticky": BOOLEAN, ?     # Default is "false"
     "defaultversionid": "STRING",
-    "defaultversionurl": "URL"
+    "defaultversionurl": "URL",
+    "defaultversionsticky": BOOLEAN ?      # Default is "false"
   }, ?
   "versionsurl": "URL",
   "versionscount": UINTEGER,
@@ -3627,7 +3639,8 @@ be done in the other - running the risk of them getting out of sync.
 The second, and better, option is to create a cross-reference from one
 (the "source" Resource) to the other ("target" Resource). This is done
 by setting the `xref` attribute on the source Resource to be the relative
-URL to the target Resource. For example, a source Resource defined as:
+URL to the target Resource. For example, a source Resource's `meta` sub-object
+defined as:
 
 ```yaml
 {
@@ -3714,7 +3727,7 @@ entity directly.
 A request that deletes the `xref` attribute MUST be interpreted as a request
 to convert the Resource from a cross-reference Resource into a normal
 Resource - in which case the normal semantics of updating the mutable
-attributes applies. And any relationship with the target Resource is deleted.
+attributes apply. And any relationship with the target Resource is deleted.
 Likewise, the presence of `xref` on a write request can be used to convert a
 normal Resource into a cross reference one, and in which case any existing
 attributes on the source Resource MUST be deleted (except for `RESOURCEid` and
@@ -3813,9 +3826,9 @@ GET /GROUPS/gID/RESOURCES[?inline=...&filter=...&export]
 ```
 
 The following query parameters SHOULD be supported by servers:
-- `inline` - See [inlining](#inlining) for more information.
-- `filter` - See [filtering](#filtering) for more information.
-- `export` - See [exporting](#exporting) for more information.
+- `?inline` - See [inlining](#inlining) for more information.
+- `?filter` - See [filtering](#filtering) for more information.
+- `?export` - See [exporting](#exporting) for more information.
 
 A successful response MUST be of the form:
 
@@ -3854,9 +3867,9 @@ Link: <URL>;rel=next;count=UINTEGER ?
       "readonly": BOOLEAN, ?                 # Default is "false"
       "compatibility": "STRING", ?           # Default is "none"
 
-      "defaultversionsticky": BOOLEAN, ?
       "defaultversionid": "STRING",
       "defaultversionurl": "URL",
+      "defaultversionsticky": BOOLEAN ?
     }
     "versionsurl": "URL",
     "versionscount": UINTEGER,
@@ -4025,9 +4038,9 @@ in the request MUST adhere to the following:
     "readonly": BOOLEAN, ?
     "compatibility": "STRING", ?
 
-    "defaultversionsticky": BOOLEAN, ?
     "defaultversionid": "STRING",
-    "defaultversionurl": "URL"
+    "defaultversionurl": "URL",
+    "defaultversionsticky": BOOLEAN ?
   }
   "versionsurl": "URL",
   "versionscount": UINTEGER,
@@ -4363,9 +4376,9 @@ ETag: "UINTEGER"
     "epoch": UINTEGER,
     "readonly": BOOLEAN, ?
     "compatibility": "STRING", ?
-    "defaultversionsticky": BOOLEAN, ?
     "defaultversionid": "STRING",
-    "defaultversionurl": "URL"
+    "defaultversionurl": "URL",
+    "defaultversionsticky": BOOLEAN ?
   },
   "versionsurl": "URL",
   "versionscount": UINTEGER,
@@ -4384,9 +4397,9 @@ Where:
   Resource in the `versions` collection - same as `defaultversionurl`.
 
 The following query parameters SHOULD be supported by servers:
-- `inline` - See [inlining](#inlining) for more information.
-- `filter` - See [filtering](#filtering) for more information.
-- `export` - See [exporting](#exporting) for more information.
+- `?inline` - See [inlining](#inlining) for more information.
+- `?filter` - See [filtering](#filtering) for more information.
+- `?export` - See [exporting](#exporting) for more information.
 
 **Examples:**
 
@@ -4746,9 +4759,9 @@ GET /GROUPS/gID/RESOURCES/rID/versions[?inline=...&filter=...&export]
 ```
 
 The following query parameters SHOULD be supported by servers:
-- `inline` - See [inlining](#inlining) for more information.
-- `filter` - See [filtering](#filtering) for more information.
-- `export` - See [exporting](#exporting) for more information.
+- `?inline` - See [inlining](#inlining) for more information.
+- `?filter` - See [filtering](#filtering) for more information.
+- `?export` - See [exporting](#exporting) for more information.
 
 A successful response MUST be of the form:
 
@@ -4921,8 +4934,8 @@ GET /GROUPS/gID/RESOURCES/rID/versions/vID$structure[?inline=...]
 ```
 
 The following query parameter SHOULD be supported by servers:
-- `inline` - See [inlining](#inlining) for more information.
-- `export` - See [exporting](#exporting) for more information.
+- `?inline` - See [inlining](#inlining) for more information.
+- `?export` - See [exporting](#exporting) for more information.
 
 A successful response MUST be of the form:
 
@@ -5127,12 +5140,12 @@ to have any inlinable attributes (except for `RESOURCE*`) that are present in
 the request processed. Absence of the `?nested` query parameter when an
 inlinable attribute is present MUST generate an error.
 
-Note: If the Registry can not return all expected data in one response then it
-MUST generate an HTTP `406 Not Acceptable` error and SHOULD include a error
-message in the HTTP body indicating that the response is too large to be
-sent in one message. In those cases, the client will need to query the
-individual inlinable attributes in isolation so the Registry can leverage
-[pagination](../pagination/spec.md) of the response.
+Note: If the Registry can not return all expected data in one response because
+it is too large then it MUST generate an HTTP `406 Not Acceptable` error and
+SHOULD include an error message in the HTTP body indicating which attributes
+are too large to be sent in one message. In those cases, the client will need
+to query the individual inlinable attributes in isolation so the Registry can
+leverage [pagination](../pagination/spec.md) of the response.
 
 ### Filtering
 
@@ -5165,7 +5178,7 @@ Where:
 
 The abstract processing logic would be:
 - For each `?filter` query parameter, find all entities that satisfy all
-  expressions for that `filter`. Each will result in a sub-tree of entities.
+  expressions for that `?filter`. Each will result in a sub-tree of entities.
 - After processing all individual `?filter` query parameters, combine those
   sub-trees into one result set and remove any duplicates - adjusting any
   collection `url` and `count` values as needed.
@@ -5225,12 +5238,12 @@ other words, a `404 Not Found` would be generated in the HTTP protocol case.
 
 | Request PATH | Filter query | Commentary |
 | --- | --- | --- |
-| / | `filter=endpoints.description=*cool*` | Only endpoints with the word `cool` in the description |
-| /endpoints | `filter=description=*CooL*` | Same results as previous, with a different request URL |
-| / | `filter=endpoints.messages.versions.versionid=1.0` | Only versions (and their owning endpoints.messages) that have a versionid of `1.0` |
-| / | `filter=endpoints.name=myendpoint,endpoints.description=*cool*& filter=schemagroups.labels.stage=dev` | Only endpoints whose name is `myendpoint` and whose description contains the word `cool`, as well as any schemagroups with a `label` name/value pair of `stage/dev` |
-| / | `filter=description=no-match` | Returns a 404 if the Registry's `description` doesn't equal `no-match` |
-| / | `filter=endpoints.messages.meta.readonly=true` | Only messages that are `readonly` |
+| / | `?filter=endpoints.description=*cool*` | Only endpoints with the word `cool` in the description |
+| /endpoints | `?filter=description=*CooL*` | Same results as previous, with a different request URL |
+| / | `?filter=endpoints.messages.versions.versionid=1.0` | Only versions (and their owning endpoints.messages) that have a versionid of `1.0` |
+| / | `?filter=endpoints.name=myendpoint,endpoints.description=*cool*& filter=schemagroups.labels.stage=dev` | Only endpoints whose name is `myendpoint` and whose description contains the word `cool`, as well as any schemagroups with a `label` name/value pair of `stage/dev` |
+| / | `?filter=description=no-match` | Returns a 404 if the Registry's `description` doesn't equal `no-match` |
+| / | `?filter=endpoints.messages.meta.readonly=true` | Only messages that are `readonly` |
 
 Specifying a filter does not imply inlining. However, inlining can be used at
 the same time but MUST NOT result in additional entities being included in
@@ -5305,19 +5318,19 @@ that sub-tree is not changed by that search criteria.
 
 ### Exporting
 
-The `export` semantics are designed to optimize the output for use by clients
+The export semantics are designed to optimize the output for use by clients
 that want to retrieve a complete portion of the Registry's hierarchy with
-minimal duplication of information. Note that the `export` output can be used
+minimal duplication of information. Note that the export output can be used
 on a subsequent update/create operation.
 
-During an `export` operation the following rules apply:
+During an export operation the following rules apply:
 
 - All possible inlining MUST be performed. In other words, an implied
   `?inlining=*` MUST be in effect. The presence of the `?inline` query
   parameter, even if set to `*` MUST generate an error.
 - No filtering of the response entities is to be done. The presence of the
   `?filter` query parameter MUST generate an error.
-- All Resources are serialized as JSON objects - meaning, Resource with the
+- All Resources are serialized as JSON objects - meaning, Resources with the
   `hasdoc` aspect set to `true` are serialized with implied `$structure`
   semantics.
 - All Resources are serialized without the default Version attributes being
@@ -5327,16 +5340,16 @@ During an `export` operation the following rules apply:
   defined), MUST NOT include the target Resource's attributes or nested
   collections in its serialization.
 
-There are two ways to `export`:
+There are two ways to export:
 - The `?export` query parameter MAY be used on any `GET` request to any level
   of the Registry's hierarchy.
 - The `/export` API MAY be used with the `GET` method to retrieve the entire
   Registry. This is semantically equivalent to a `GET /?export` but expressed
   as an API so that a static file server implementation can support it.
 
-As noted above, `export` changes the serialization rules of Resources by
-removing the Version level attributes. For clarity, the serialization of a
-Resource when `export` is used will adhere to the following:
+As noted above, export changes the serialization rules of Resources by
+removing the default Version attributes. For clarity, the serialization of a
+Resource when exported will adhere to the following:
 
 ```yaml
 {
