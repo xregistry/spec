@@ -307,6 +307,37 @@ points worth noting:
   Version isn't being deleted. Note that a `404` in the `DELETE .../ID` case
   is an error and no changes to the "default" Version will occur.
 
+### Detection of Referenced Resources
+
+The xRegistry specification allows for Resources to appear in multiple Groups
+via use of the `xref` feature. This could lead to situations where a user
+deletes a Resource without knowing that other Resources reference it -
+resulting in "dangling pointers". The specification does not define any
+mechanism by which a user can determine if a Resource is the target of an
+`xref`, or how many other Resources might reference it, in order to avoid
+this situation. However, implementations may choose to take some action to
+help users if they wish. For example, provide some kind of "warning" of the
+impending "dangling pointer" state prior to doing the delete, or providing
+some kind of "xref counter" extension on the target Resource. The specification
+might consider adding some feature to address this in the future, but as of now
+it is left as an implementation choice.
+
+### Shared/Referenced Resources
+
+As discussed above, Resource may appear in multiple Groups via use of the
+`xref` feature. Users of the Registry may wish to consider how best to manage
+these "shared" Resources within their associated Groups. For example, if a
+Resource might be removed from any of the Groups it is a member of, then it
+might be best to create a dedicated "shared resources" type of Group so that
+it can have a lifecycle that is independent of its association of any other
+Group. Similarly, choosing an initial Group for the Resource could be a
+critical decision as it can not be changed later on, and that Group ID will
+be part of the Resource's unique identifier forever.
+
+Additionally, how the implementation of the xRegistry manages
+access-control-rights of Resources (often via Groups) might influence the
+initial placement into a Group of a new Resource.
+
 # Default Version and Maximum Versions
 
 Each Resource type can specify the maximum number of Versions that the

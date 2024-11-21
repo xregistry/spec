@@ -90,8 +90,10 @@ interoperable
 isdefault
 javadoc
 json
+jsonpath
 jsonschema
 keyname
+lifecycle
 linkproperties
 maxversions
 messagegroupid

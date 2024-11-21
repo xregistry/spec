@@ -548,11 +548,28 @@ of the existing entity. Then the existing entity can be deleted.
   differs from the existing value. A value of `null` MUST be treated the same
   as a request with no `epoch` attribute at all.
 
-  Versions do not have their own `epoch` values that are separate from their
-  owning Resource's value. Updating a Resource or any of its Versions will
-  update the shared Resource `epoch` value for all of those entities. This
-  means that concurrent updates to different Versions of the same Resource
-  might result in an epoch validation error for the second update request.
+  The semantics of `epoch` are the same as the semantics of the
+  [HTTP ETag](https://datatracker.ietf.org/doc/html/rfc9110#section-8.8.3)
+  and
+  [HTTP If-Match](https://datatracker.ietf.org/doc/html/rfc9110#section-13.1.1)
+  Headers, and as such the following rules apply when using HTTP as the
+  protocol:
+  - When the response body references a single entity, its `epoch` value MUST
+    also appear as an HTTP `ETag` header. Note that a response body with a
+    map or array that only includes one entity does not satisfy this
+    requirement.
+  - When the xRegistry metadata of a Resource, or Version, is serialized as
+    HTTP headers, and prefixed with `xRegistry-`, the `xRegistry-epoch` header
+    MUST NOT be present since the `ETag` header MUST already be present with
+    the value.
+  - When a request includes an HTTP `If-Match` header, then its value MUST
+    match the existing entity's `epoch` value. And if not, a
+    `412 Precondition Failed` error MUST be generated. Note, that `*` MUST
+    match all possible `epoch` value, but will fail if the entity does not
+    already exist (per the HTTP specification).
+  - The `If-Match` verification MUST be done in addition to the `epoch`
+    checking specified above. In other words, a present but non-matching value
+    in either location MUST generate an error.
 - Constraints:
   - MUST be an unsigned integer equal to or greater than zero.
   - MUST increase in value each time the entity is updated.
@@ -959,6 +976,7 @@ update a Message where the `defaultversionid` is `v1`:
 
 ```yaml
 PUT http://example.com/endpoints/ep1/messages/msg1?nested
+
 {
   "messageid": "msg1",
   "versionid": "v1",
@@ -1336,6 +1354,7 @@ A successful response MUST be of the form:
 ```yaml
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
+ETag: "UINTEGER"
 
 {
   "specversion": "STRING",
@@ -1370,6 +1389,7 @@ GET /
 ```yaml
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
+ETag: "1"
 
 {
   "specversion": "0.5",
@@ -1397,6 +1417,7 @@ GET /?inline=schemagroups,model
 
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
+ETag: "1"
 
 {
   "specversion": "0.5",
@@ -1477,6 +1498,7 @@ PUT /[?nested]
 or
 PATCH /[?nested]
 Content-Type: application/json; charset=utf-8
+If-Match: "UINTEGER|*" ?
 
 {
   "registryid": "STRING", ?
@@ -1517,6 +1539,7 @@ on the Registry would return, and be of the form:
 ```yaml
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
+ETag: "UINTEGER"
 
 {
   "specversion": "STRING",
@@ -1557,6 +1580,7 @@ Content-Type: application/json; charset=utf-8
 ```yaml
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
+ETag: "2"
 
 {
   "specversion": "0.5",
@@ -1906,6 +1930,8 @@ The following describes the attributes of Registry model:
     level, are active at the same time then there MUST NOT be duplicate
     `ifvalues` attributes names between those `ifvalues` sections.
   - `ifvalues` `"VALUE"` MUST NOT be an empty string.
+  - `ifvalues` `"VALUE"` MUST NOT start with the `^` (caret) character as its
+    presence at the beginning of `"VALUE"` is reserved for future use.
   - `ifvalues` `siblingattributes` MAY include additional `ifvalues`
     definitions.
   - Type: Map where each value of the attribute is the key of the map.
@@ -2749,6 +2775,7 @@ A successful response MUST be of the form:
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 Link: <URL>;rel=next;count=UINTEGER ?
+ETag: "UINTEGER"
 
 {
   "KEY": {                                     # GROUPid
@@ -2953,6 +2980,7 @@ A successful response MUST be of the form:
 ```yaml
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
+ETag: "UINTEGER"
 
 {
   "GROUPid": "STRING",
@@ -2984,6 +3012,7 @@ GET /endpoints/ep1
 ```yaml
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
+ETag: "1"
 
 {
   "GROUPid": "ep1",
@@ -4129,6 +4158,7 @@ Update default Version of a Resource as xRegistry metadata:
 ```yaml
 PUT /endpoints/ep1/messages/msg1$structure
 Content-Type: application/json; charset=utf-8
+ETag: "1"
 
 {
   "epoch": 1,
@@ -4145,6 +4175,7 @@ Content-Type: application/json; charset=utf-8
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1.0
+ETag: "2"
 
 {
   "messageid": "msg1",
@@ -4304,6 +4335,7 @@ A successful response MUST be of the form:
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 Content-Location: URL ?
+ETag: "UINTEGER"
 
 {
   "RESOURCEid": "STRING",
@@ -4368,6 +4400,7 @@ GET /endpoints/ep1/messages/msg1$structure
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1.0
+ETag: "1"
 
 {
   "messageid": "msg1",
@@ -4896,6 +4929,7 @@ A successful response MUST be of the form:
 ```yaml
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
+ETag: "UINTEGER"
 
 {
   "RESOURCEid": "STRING",
@@ -4934,6 +4968,7 @@ GET /endpoints/ep1/messages/msg1/versions/1.0$structure
 ```yaml
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
+ETag: "2"
 
 {
   "messageid": "msg1",
@@ -5034,19 +5069,27 @@ inline[=PATH[,...]]
 
 Where `PATH` is a string indicating which inlinable attributes to show in
 in the response. References to nested attributes are represented using a
-dot(`.`) notation - for example `GROUPS.RESOURCES`. To reference an attribute
-with a dot as part of its name, the JSON PATH escaping mechanism MUST be
-used: `['my.name']`. For example, `prop1.my.name.prop2` would be specified
-as `prop1['my.name'].prop2` if `my.name` is the name of one attribute.
+dot (`.`) notation where the xRegistry collections names along the hierarchy
+are concatenated. For example: `endpoints.messages.versions` will inline all
+Versions of Messages. Non-leaf parts of the `PATH` MUST only reference
+xRegistry collection names and not any specific entity IDs since `PATH` is
+meant to be an abstract traversal of the model.
+
+To reference an attribute with a dot as part of its name, the JSONPath
+escaping mechanism MUST be used: `['my.name']`. For example,
+`prop1.my.name.prop2` would be specified as `prop1['my.name'].prop2` if
+`my.name` is the name of one attribute.
 
 There MAY be multiple `PATH`s specified, either as comma separated values on
 a single `?inline` query parameter or via multiple `?inline` query parameters.
 
-Absence of a `PATH`, or a `PATH` attribute with a value of `*` indicates that
-all nested inlinable attributes at that level in the hierarchy (and below)
-MUST be inlined. Use of `*` MUST only be used as the last attribute name
-(in its entirety) in the `PATH`. For example, `foo*`, or `*.foo` are not
-valid `PATH`s, but `*` and `endpoints.*` are.
+The `*` value MAY be used to indicate that all nested inlinable attributes
+at that level in the hierarchy (and below) MUST be inlined. Use of `*` MUST
+only be used as the last part of the `PATH` (in its entirety). For example,
+`foo*` and `*.foo` are not valid `PATH` values, but `*` and `endpoints.*` are.
+
+An `?inline` query parameter without any value MAY be supported and if so it
+MUST have the same semantic meaning as `?inline=*`.
 
 The specific value of `PATH` will vary based on where the request is directed.
 For example, a request to the root of the Registry MUST start with a `GROUPS`
@@ -5134,17 +5177,17 @@ The format of `EXPRESSION` is:
 ```
 
 Where:
-- `PATH` MUST be a dot(`.`) notation traversal of the Registry to the entity
+- `PATH` MUST be a dot (`.`) notation traversal of the Registry to the entity
   of interest, or absent if at the top of the Registry request. Note that
   the `PATH` value is based on the requesting URL and not the root of the
   Registry. See the examples below. To reference an attribute with a dot as
-  part of its name, the JSON PATH escaping mechanism MUST be used:
+  part of its name, the JSONPath escaping mechanism MUST be used:
   `['my.name']`. For example, `prop1.my.name.prop2` would be specified as
   `prop1['my.name'].prop2` if `my.name` is the name of one attribute.
 - `PATH` MUST only consist of valid `GROUPS`, `RESOURCES` or `versions`,
   otherwise an error MUST be generated.
 - `ATTRIBUTE` MUST be the attribute in the entity to be examined.
-- Complex attributes (e.g. `labels`) MUST use dot(`.`) to reference nested
+- Complex attributes (e.g. `labels`) MUST use dot (`.`) to reference nested
   attributes. For example: `labels.stage=dev` for a filter.
 - A reference to a nonexistent attribute SHOULD NOT generate an error and
   SHOULD be treated the same as a non-matching situation.
