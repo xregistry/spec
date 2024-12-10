@@ -76,9 +76,9 @@ restriction on the type of content stored in the Resource's document.
 This specification defines a set of common metadata that can appear on both
 Groups and Resources, and allows for domain-specific extensions to be added.
 
-The following 3 diagrams show (from left to right):
-1 - The core concepts of the Registry in its most abstract form.
-2 - A Registry concept model with multiple types of Groups/Resources.
+The following 3 diagrams show (from left to right):<br>
+1 - The core concepts of the Registry in its most abstract form.<br>
+2 - A Registry concept model with multiple types of Groups/Resources.<br>
 3 - A concrete sample usage of Registry that includes the use of an attribute
     on "Message Definition" that is a reference to a "Schema" document - all
     within the same Registry instance.
@@ -203,6 +203,8 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "self": "URL",                         # URL to "meta" object
             "xref": "URL", ?                       # Ptr to linked Resource
             "epoch": UINTEGER,                     # Resource's epoch
+            "createdat": "TIMESTAMP",              # Resource's
+            "modifiedat": "TIMESTAMP",             # Resource's
             "readonly": BOOLEAN, ?                 # Default is "false"
             "compatibility": "STRING", ?           # Default is "none"
             # TODO - add timestamp?
@@ -1198,6 +1200,9 @@ Where:
 - The request body SHOULD be empty.
 - If the entity can not be found, then an HTTP `404 Not Found` error MUST
   be generated.
+- In the case of deleting Resources, a `DELETE` directed to the `meta`
+  sub-object is not supported and MUST generate an HTTP
+  `405 Method Not Allowed` error in response.
 
 The following query parameter MUST be supported by servers:
 - `epoch`<br>
@@ -2853,10 +2858,10 @@ and that there are total of 100 items in this collection.
 
 Creating or updating Groups via HTTP MAY be done by using the HTTP `PUT`
 or `POST` methods:
-- `PUT   /GROUPS/gID[?nested]`.
-- `PATCH /GROUPS/gID[?nested]`.
-- `PATCH /GROUPS[?nested]`.
-- `POST  /GROUPS[?nested]`.
+- `PUT   /GROUPS/gID[?nested]`
+- `PATCH /GROUPS/gID[?nested]`
+- `PATCH /GROUPS[?nested]`
+- `POST  /GROUPS[?nested]`
 
 The following query parameter SHOULD be supported by servers:
 - `?nested` - See
@@ -3038,8 +3043,8 @@ ETag: "1"
 #### Deleting Groups
 
 To delete one or more Groups, an HTTP `DELETE` MAY be used:
-- `DELETE /GROUPS/gID[?epoch=UINTEGER]`.
-- `DELETE /GROUPS`.
+- `DELETE /GROUPS/gID[?epoch=UINTEGER]`
+- `DELETE /GROUPS`
 
 The processing of these two APIs is defined in the [Deleting Entities in a
 Registry Collection](#deleting-entities-in-a-registry-collection)
@@ -3065,12 +3070,12 @@ The Resource entity serves three purposes:
 1 - It represents the collection for the historical Versions of the data being
     managed. This is true even if the Resource type is defined to not use
     versioning, meaning the number of Versions allowed is just one. The
-    Versions will appear as a nested entity under the `versions` attribute.
+    Versions will appear as a nested entity under the `versions` attribute.<br>
 2 - It is an alias for the "default" Version of the Resource. And most
     operations directed at the URL of the Resource will act upon that Version,
     not the Resource itself. See
     [Default Version of a Resource](#default-version-of-a-resource) and
-    [Versions](#versions) for more details.
+    [Versions](#versions) for more details.<br>
 3 - It has a set of attributes for Resource level metadata - data that is not
     specific to one Version of the Resource but instead applies to the
     Resource in general. These attributes appear under a `meta`
@@ -3186,7 +3191,7 @@ they are serialized in two different ways:
     This keeps them separate from the default Version attributes that might
     appear. However, the `meta` attribute itself will appear as a sibling to
     the default Version attributes. Note that `meta` will only be
-    serialized when requested by the client.
+    serialized when requested by the client.<br>
 2 - some will appear as siblings to the default Version attributes within the
     Resource serialization. These appear here, rather than under `meta`,
     because they are specifically designed to help with the traversal of the
@@ -3207,6 +3212,8 @@ Resource attribute MUST adhere to the following:
     "self": "URL",                         # Resource URL, not Version
     "xref": "URL", ?                       # Ptr to linked Resource
     "epoch": UINTEGER,                     # Resource's epoch
+    "createdat": "TIMESTAMP",              # Resource's
+    "modifiedat": "TIMESTAMP",             # Resource's
     "readonly": BOOLEAN, ?                 # Default is "false"
     "compatibility": "STRING", ?           # Default is "none"
     # TODO - add timestamp?
@@ -3610,6 +3617,8 @@ this form:
     "self": "URL",                         # URL to "meta"
     "xref": "URL", ?                       # Ptr to linked Resource
     "epoch": UINTEGER,                     # Resource's epoch
+    "createdat": "TIMESTAMP",              # Resource's
+    "modifiedat": "TIMESTAMP",             # Resource's
     "readonly": BOOLEAN, ?                 # Default is "false"
     "compatibility": "STRING", ?           # Default is "none"
 
@@ -3689,6 +3698,8 @@ then the resulting serialization of the source Resource would be:
     "resourceid": "sourceresource",
     "self": "http://example.com/groups/groups2/resource/sourceresource/meta",
     "xref": "groups/group2/resources/targetresource",
+    "createdat": "2024-01-01-T12:00:00",
+    "modifiedat": "2024-01-01-T12:01:00"
   },
   "versionscount": 1,
   "versionsurl": "http://example.com/groups/group1/resources/sourceresource/versions"
@@ -3763,7 +3774,7 @@ and `xref` attributes.
 For convenience, the Resource and Version create, update and delete APIs can be
 summarized as:
 
-**`POST /GROUPS/gID/RESOURCES`**
+**`POST /GROUPS/gID/RESOURCES`**<br>
 **`PATCH /GROUPS/gID/RESOURCES`**
 
 - Creates or updates one or more Resources.
@@ -3773,7 +3784,7 @@ summarized as:
 
 - Creates a new Resource, or update the default Version of a Resource.
 
-**`POST /GROUPS/gID/RESOURCES/rID[$structure]`**
+**`POST /GROUPS/gID/RESOURCES/rID[$structure]`**<br>
 **`PATCH /GROUPS/gID/RESOURCES/rID$structure`**
 
 - Creates or updates a single Version of a Resource.
@@ -3783,7 +3794,7 @@ summarized as:
 
 - Updates the `meta` sub-object of a Resource.
 
-**`POST /GROUPS/gID/RESOURCES/rID/versions`**
+**`POST /GROUPS/gID/RESOURCES/rID/versions`**<br>
 **`PATCH /GROUPS/gID/RESOURCES/rID/versions`**
 
 - Creates or updates one or more Versions of a Resource.
@@ -3864,6 +3875,8 @@ Link: <URL>;rel=next;count=UINTEGER ?
       "self": "URL",                         # URL to "meta"
       "xref": "URL", ?                       # Ptr to linked Resource
       "epoch": UINTEGER,                     # Resource's epoch
+      "createdat": "TIMESTAMP",              # Resource's
+      "modifiedat": "TIMESTAMP",             # Resource's
       "readonly": BOOLEAN, ?                 # Default is "false"
       "compatibility": "STRING", ?           # Default is "none"
 
@@ -3922,7 +3935,7 @@ called out.
 Creating and updating of Resources via HTTP MAY be done using the HTTP `POST`,
 `PUT` or `PATCH` methods as described below:
 
-`POST /GROUPS/gID/RESOURCES[?nested]`
+`POST /GROUPS/gID/RESOURCES[?nested]`<br>
 `PATCH /GROUPS/gID/RESOURCES[?nested]`
 
 Where:
@@ -3941,7 +3954,7 @@ Where:
 - When `$structure` is absent, the HTTP body MUST contain the Resource's
   document (an empty body means the document is to be empty).
 
-`POST /GROUPS/gID/RESOURCES/rID[$structure][?setdefaultversionid=vID]`
+`POST /GROUPS/gID/RESOURCES/rID[$structure][?setdefaultversionid=vID]`<br>
 `PATCH /GROUPS/gID/RESOURCES/rID$structure[?setdefaultversionid=vID]`
 
 Where:
@@ -3954,7 +3967,7 @@ Where:
   xRegistry metadata (e.g. the Version's `versionid`) MAY be included as HTTP
   headers.
 
-`PUT /GROUPS/gID/RESOURCES/rID/meta`
+`PUT /GROUPS/gID/RESOURCES/rID/meta`<br>
 `PATCH /GROUPS/gID/RESOURCES/rID/meta`
 Where:
 - This API MUST update the `meta` sub-object of the specified Resource.
@@ -3962,7 +3975,7 @@ Where:
   value that does not match the existing `meta` `epoch` value then an
   error MUST be generated.
 
-`POST /GROUPS/gID/RESOURCES/rID/versions[?setdefaultversionid=vID]`
+`POST /GROUPS/gID/RESOURCES/rID/versions[?setdefaultversionid=vID]`<br>
 `PATCH /GROUPS/gID/RESOURCES/rID/versions[?setdefaultversionid=vID]`
 
 Where:
@@ -4035,6 +4048,8 @@ in the request MUST adhere to the following:
     "self": "URL",
     "xref": "URL", ?
     "epoch": UINTEGER,
+    "createdat": "TIMESTAMP",
+    "modifiedat": "TIMESTAMP",
     "readonly": BOOLEAN, ?
     "compatibility": "STRING", ?
 
@@ -4374,6 +4389,8 @@ ETag: "UINTEGER"
     "self": "URL",                         # URL to "meta" sub-object
     "xref": "URL", ?
     "epoch": UINTEGER,
+    "createdat": "TIMESTAMP",
+    "modifiedat": "TIMESTAMP",
     "readonly": BOOLEAN, ?
     "compatibility": "STRING", ?
     "defaultversionid": "STRING",
@@ -4819,7 +4836,7 @@ Link: <https://example.com/endpoints/ep1/messages/msg1/versions&page=2>;rel=next
     "name": "Blob Created",
     "isdefault": true,
     "createdat": "2024-04-30T12:00:00Z",
-    "modifiedat": "2024-04-30T12:00:01Z",
+    "modifiedat": "2024-04-30T12:00:01Z"
   }
 }
 ```
@@ -4991,7 +5008,7 @@ ETag: "2"
   "name": "Blob Created",
   "isdefault": true,
   "createdat": "2024-04-30T12:00:00Z",
-  "modifiedat": "2024-04-30T12:00:01Z",
+  "modifiedat": "2024-04-30T12:00:01Z"
 }
 ```
 
