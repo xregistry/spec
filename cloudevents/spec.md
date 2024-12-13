@@ -100,6 +100,7 @@ schema for its payload.
   "specversion": "0.5-wip",
   "registryid": "Example Registry",
   "self": "http://example.com",
+  "xid": "/",
   "epoch": 4,
   "createdat": "2024-04-30T12:00:00Z",
   "modifiedat": "2024-04-31T12:00:00Z",
@@ -110,6 +111,7 @@ schema for its payload.
     "com.example.telemetry": {
       "endpointid": "com.example.telemetry",
       "self": "https://example.com/endpoints/com.example.telemetry",
+      "xid": "/endpoints/com.example.telemetry",
       "epoch": 5,
       "createdat": "2024-04-30T12:00:00Z",
       "modifiedat": "2024-04-31T12:00:00Z",
@@ -134,6 +136,7 @@ schema for its payload.
           "messageid": "com.example.telemetry",
           "versionid": "1.0",
           "self": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry",
+          "xid": "/endpoints/com.example.telemetry/messages/com.example.telemetry",
           "epoch": 5,
           "isdefault": true,
           "description": "device telemetry event",
@@ -186,6 +189,7 @@ scenarios:
   "specversion": "0.5-wip",
   "registryid": "Example Registry",
   "self": "http://example.com",
+  "xid": "/",
   "epoch": 4,
   "createdat": "2024-04-30T12:00:00Z",
   "modifiedat": "2024-04-31T12:00:00Z",
@@ -196,6 +200,7 @@ scenarios:
     "com.example.telemetry": {
       "endpointid": "com.example.telemetry",
       "self": "https://example.com/endpoints/com.example.telemetry",
+      "xid": "/endpoints/com.example.telemetry",
       "epoch": 5,
       "createdat": "2024-04-30T12:00:00Z",
       "modifiedat": "2024-04-31T12:00:00Z",
@@ -226,6 +231,7 @@ scenarios:
     "com.example.telemetryEvents": {
       "messageid": "com.example.telemetryEvents",
       "self": "https://example.com/messagegroups/com.example.telemetryEvents",
+      "xid": "/messagegroups/com.example.telemetryEvents",
       "epoch": 3,
       "createdat": "2024-04-30T12:00:00Z",
       "modifiedat": "2024-04-31T12:00:00Z",
@@ -237,6 +243,7 @@ scenarios:
           "messageid": "com.example.telemetry",
           "versionid": "1.0",
           "self": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry",
+          "xid": "/endpoints/com.example.telemetry/messages/com.example.telemetry",
           "epoch": 5,
           "isdefault": true,
           "description": "device telemetry event",
@@ -282,6 +289,7 @@ scenarios:
     "com.example.telemetry": {
       "schemagroupid": "com.example.telemetry",
       "self": "https://example.com/schemagroups/com.example.telemetry",
+      "xid": "/schemagroups/com.example.telemetry",
       "epoch": 5,
       "createdat": "2024-04-30T12:00:00Z",
       "modifiedat": "2024-04-31T12:00:00Z",
@@ -292,6 +300,7 @@ scenarios:
           "schemaid": "com.example.telemetrydata",
           "versionid": "1.0",
           "self": "https://example.com/schemagroups/com.example.telemetry/schemas",
+          "xid": "/schemagroups/com.example.telemetry/schemas",
           "epoch": 5,
           "isdefault": true,
           "description": "device telemetry event data",
@@ -327,6 +336,7 @@ group with a deep link to the respective object in the service:
     "com.example.telemetry": {
       "endpointid": "com.example.telemetry",
       "self": "https://example.com/endpoints/com.example.telemetry",
+      "xid": "/endpoints/com.example.telemetry",
       "epoch": 5,
       "createdat": "2024-04-30T12:00:00Z",
       "modifiedat": "2024-04-31T12:00:00Z",
@@ -361,6 +371,7 @@ link will first reference the file and then the object within the file, using
     "com.example.telemetry": {
       "endpointid": "com.example.telemetry",
       "self": "https://example.com/endpoints/com.example.telemetry",
+      "xid": "/endpoints/com.example.telemetry",
       "epoch": 5,
       "createdat": "2024-04-30T12:00:00Z",
       "modifiedat": "2024-04-31T12:00:00Z",

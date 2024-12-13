@@ -82,11 +82,11 @@ json_type_mapping = {
 json_common_attributes = {
     "name": {"type": "string", "description": "Name of the object"},
     "epoch": {"type": "integer", "description": "Epoch time of the object creation"},
-    "self": {"type": "string", "format": "uri", "description": "URI of the object"},
+    "self": {"type": "string", "format": "uri", "description": "URL of the object"},
+    "xid": {"type": "string", "format": "uri", "description": "Relative URL of the object"},
     "description": {"type": "string", "description": "Description of the object"},
     "documentation": {"type": "string", "format": "uri", "description": "URI of the documentation of the object"},
     "labels": {"type": "object", "description": "Labels for the object"},
-    "origin": {"type": "string", "format": "uri", "description": "URI of the object origin"},
     "createdat": {"type": "string", "format": "date-time", "description": "Time of the object creation"},
     "modifiedat": {"type": "string", "format": "date-time", "description": "Time of the object modification"}
 }
@@ -94,11 +94,11 @@ json_common_attributes = {
 avro_common_attributes = [
     {"name": "name", "type": ["string", "null"], "doc": "Name of the object"},
     {"name": "epoch", "type": ["int", "null"], "doc": "Epoch time of the object creation"},
-    {"name": "self", "type": "string", "doc": "URI of the object"},
+    {"name": "self", "type": "string", "doc": "URL of the object"},
+    {"name": "xid", "type": "string", "doc": "Relative URL of the object"},
     {"name": "description", "type": ["string", "null"], "doc": "Description of the object"},
     {"name": "documentation", "type": ["string", "null"], "doc": "URI of the documentation of the object"},
     {"name": "labels", "type": { "type": "map", "values": ["string", "null"]} , "doc": "Labels for the object"},
-    {"name": "origin", "type": "string", "doc": "URI of the object origin"},
     {"name": "createdat", "type": [{"type":"int", "logicalType": "time-millis"}, "null"], "doc": "Time of the object creation"},
     {"name": "modifiedat", "type": [{"type":"int", "logicalType": "time-millis"},"null"], "doc": "Time of the object modification"}
 ]
