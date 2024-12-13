@@ -1,7 +1,4 @@
 {
-  "schemas": [
-    "json-schema/draft-07"
-  ],
   "groups": {
     "schemagroups": {
       "singular": "schemagroup",

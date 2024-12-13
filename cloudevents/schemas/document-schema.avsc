@@ -35,7 +35,12 @@
             {
               "name": "self",
               "type": "string",
-              "doc": "URI of the object"
+              "doc": "URL of the object"
+            },
+            {
+              "name": "xid",
+              "type": "string",
+              "doc": "Relative URL of the object"
             },
             {
               "name": "description",
@@ -63,11 +68,6 @@
                 ]
               },
               "doc": "Labels for the object"
-            },
-            {
-              "name": "origin",
-              "type": "string",
-              "doc": "URI of the object origin"
             },
             {
               "name": "createdat",
@@ -247,7 +247,12 @@
                     {
                       "name": "self",
                       "type": "string",
-                      "doc": "URI of the object"
+                      "doc": "URL of the object"
+                    },
+                    {
+                      "name": "xid",
+                      "type": "string",
+                      "doc": "Relative URL of the object"
                     },
                     {
                       "name": "description",
@@ -275,11 +280,6 @@
                         ]
                       },
                       "doc": "Labels for the object"
-                    },
-                    {
-                      "name": "origin",
-                      "type": "string",
-                      "doc": "URI of the object origin"
                     },
                     {
                       "name": "createdat",
@@ -530,7 +530,12 @@
             {
               "name": "self",
               "type": "string",
-              "doc": "URI of the object"
+              "doc": "URL of the object"
+            },
+            {
+              "name": "xid",
+              "type": "string",
+              "doc": "Relative URL of the object"
             },
             {
               "name": "description",
@@ -558,11 +563,6 @@
                 ]
               },
               "doc": "Labels for the object"
-            },
-            {
-              "name": "origin",
-              "type": "string",
-              "doc": "URI of the object origin"
             },
             {
               "name": "createdat",
@@ -648,7 +648,12 @@
             {
               "name": "self",
               "type": "string",
-              "doc": "URI of the object"
+              "doc": "URL of the object"
+            },
+            {
+              "name": "xid",
+              "type": "string",
+              "doc": "Relative URL of the object"
             },
             {
               "name": "description",
@@ -676,11 +681,6 @@
                 ]
               },
               "doc": "Labels for the object"
-            },
-            {
-              "name": "origin",
-              "type": "string",
-              "doc": "URI of the object origin"
             },
             {
               "name": "createdat",
@@ -745,7 +745,12 @@
                     {
                       "name": "self",
                       "type": "string",
-                      "doc": "URI of the object"
+                      "doc": "URL of the object"
+                    },
+                    {
+                      "name": "xid",
+                      "type": "string",
+                      "doc": "Relative URL of the object"
                     },
                     {
                       "name": "description",
@@ -773,11 +778,6 @@
                         ]
                       },
                       "doc": "Labels for the object"
-                    },
-                    {
-                      "name": "origin",
-                      "type": "string",
-                      "doc": "URI of the object origin"
                     },
                     {
                       "name": "createdat",

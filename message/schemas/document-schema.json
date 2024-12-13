@@ -28,7 +28,12 @@
         "self": {
           "type": "string",
           "format": "uri",
-          "description": "URI of the object"
+          "description": "URL of the object"
+        },
+        "xid": {
+          "type": "string",
+          "format": "uri",
+          "description": "Relative URL of the object"
         },
         "description": {
           "type": "string",
@@ -42,11 +47,6 @@
         "labels": {
           "type": "object",
           "description": "Labels for the object"
-        },
-        "origin": {
-          "type": "string",
-          "format": "uri",
-          "description": "URI of the object origin"
         },
         "createdat": {
           "type": "string",
@@ -1084,7 +1084,12 @@
         "self": {
           "type": "string",
           "format": "uri",
-          "description": "URI of the object"
+          "description": "URL of the object"
+        },
+        "xid": {
+          "type": "string",
+          "format": "uri",
+          "description": "Relative URL of the object"
         },
         "description": {
           "type": "string",
@@ -1098,11 +1103,6 @@
         "labels": {
           "type": "object",
           "description": "Labels for the object"
-        },
-        "origin": {
-          "type": "string",
-          "format": "uri",
-          "description": "URI of the object origin"
         },
         "createdat": {
           "type": "string",

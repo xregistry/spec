@@ -29,6 +29,7 @@ this form:
   "specversion": "STRING",                         # xRegistry core attributes
   "registryid": "STRING",
   "self": "URL",
+  "xid": "URL",
   "epoch": UINTEGER,
   "name": "STRING", ?
   "description": "STRING", ?
@@ -49,12 +50,12 @@ this form:
     "KEY": {                                       # schemagroupid
       "schemagroupid": "STRING",                   # xRegistry core attributes
       "self": "URL",
+      "xid": "URL",
       "epoch": UINTEGER,
       "name": "STRING", ?
       "description": "STRING", ?
       "documentation": "URL", ?
       "labels": { "STRING": "STRING" * }, ?
-      "origin": "STRING", ?
       "createdat": "TIMESTAMP",
       "modifiedat": "TIMESTAMP",
 
@@ -65,12 +66,12 @@ this form:
           "schemaid": "STRING",                    # xRegistry core attributes
           "versionid": "STRING",
           "self": "URL",
+          "xid": "URL",
           "epoch": UINTEGER,
           "name": "STRING", ?                      # Version level attrs
           "description": "STRING", ?
           "documentation": "URL", ?
           "labels": { "STRING": "STRING" * }, ?
-          "origin": "STRING", ?
           "createdat": "TIMESTAMP",
           "modifiedat": "TIMESTAMP",
 
@@ -170,9 +171,6 @@ detail below, is as follows:
 
 ```yaml
 {
-  "schemas": [
-    "json-schema/draft-07"
-  ],
   "groups": [
     {
       "singular": "schemagroup",

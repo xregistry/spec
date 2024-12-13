@@ -1,7 +1,4 @@
 {
-  "schemas": [
-    "xregistry/0.5"
-  ],
   "attributes": {
     "specversion": {
       "name": "specversion",
@@ -19,6 +16,12 @@
     "self": {
       "name": "self",
       "type": "url",
+      "readonly": true,
+      "serverrequired": true
+    },
+    "xid": {
+      "name": "xid",
+      "type": "uri",
       "readonly": true,
       "serverrequired": true
     },

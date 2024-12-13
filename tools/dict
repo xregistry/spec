@@ -58,6 +58,7 @@ emoji
 endpointid
 endpointscount
 endpointsurl
+enforcecompatibility
 enum
 envelopemetadata
 envelopeoptions
@@ -189,12 +190,15 @@ serverrequired
 setdefaultversionid
 setdefaultversionsticky
 setversionid
+shortself
+shorturl
 siblingattributes
 singularid
 someattribute
 someattributes
 specurl
 specversion
+specversions
 src
 ssl
 stringified
@@ -204,6 +208,7 @@ telemetryevent
 telemetryevents
 thisdevice
 thu
+tinyurl
 tls
 todo
 ttl
@@ -239,6 +244,7 @@ wip
 wss
 www
 xhtml
+xid
 xml
 xmlschema
 xpath

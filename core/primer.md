@@ -477,3 +477,36 @@ Group and Resource names limited to only 58? Because when they appear as
 Collection attributes and we append `url` or `count` to them they still have
 to fit within the 63 character limit, and so we need to take into account
 the length of the word `count`.
+
+# Why must Group type and Resource type names be valid attribute names?
+
+Since Group type and Resource type names will appear as attribute names (e.g.
+`GROUPScount` and `RESOURCEurl`), the character set (and length) of their
+names need to be restricted in the same way as a attribute names.
+
+# Choosing unique Group and Resource names
+
+Aside from choosing names that give some descriptive meaning to the purpose
+of these entities, care should be taken when choosing names for entities that
+might be imported into other Registries. For example, Group names are often
+suffixed (or prefixed) with domain (or company) specific words to avoid
+name collisions with other similarly named entities. This might be useful
+for Resource names too (if they might co-exist under shared Groups), but
+normally ensuring uniqueness at the Group level is sufficient.
+
+# Are `self` and `shortself` attributes static?
+
+In general any URL reference to an entity in the Registry should remain
+static for the lifetime of the entity, otherwise anything persisting that
+reference will break when it attempts to use it. So, in this sense, yes
+these attributes should be static in general. However, the specification
+can not mandate this because there may be times when the risk of breaking
+existing references becomes necessary.
+
+For example, perhaps a Registry needs to move to a new host, and the old
+one is no longer available, even to offer a redirect. Or, if the server
+needs to switch to a new "URL shortener" service and so all of the "shortself"
+values need to change.
+
+Obviously, situations like these should be rare but the specification needs
+to allow for them.
