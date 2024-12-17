@@ -17,6 +17,9 @@
           "type": "string",
           "description": "Protocol identifier that defines the transport message protocol. All definitions in this group share this protocol type. Mixed-protocol groups are not permitted"
         },
+        // Registries MAY support extension attributes to the model language 
+        // (meaning, new attributes within the model definitions themselves), but only if the server supports them. 
+        // Servers MUST reject model definitions that include unknown model language attributes.
         "*": {
           "name": "*",
           "type": "any"
@@ -236,8 +239,13 @@
                               "name": "required",
                               "description": "The uri required",
                               "type": "boolean"
-                            }
+                            },
                           }
+                        },
+                        "dataschemaid": {
+                          "type": "relation",
+                          // If we point to a specific version, we append /versions
+                          "target": "schemagroups/schemas/versions"
                         },
                         "*": {
                           "name": "*",

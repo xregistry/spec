@@ -1276,7 +1276,24 @@ The serialization of the Registry entity adheres to this form:
   "registryid": "STRING",
   "self": "URL",
   "epoch": UINTEGER,
-  "name": "STRING", ?
+
+  # Self is the URL to the response I currently have. The same thing can have more than one "self" link
+  "self": "URL", # base URL to xregistry root + xid (relative JSON Pointer) + ?structure maybe
+
+  # NEW Proposal
+  # only available if xregistry uses URL shortener capability, short alias for "self".
+  "selfshort": "URL", ? 
+
+  # NEW Proposal
+  # xid is the locally unique identity of the "thing" I'm looking at
+  # xid are the value for "relations" and can be used to point to something in the registry
+  # Relative JSON Pointer to Group Instance, Resource Instance or Resource Version, MUST start with "/"
+  # Example: "/schemagroup/abc" # link to group instance
+  # Example: "/schemagroup/abc/schema/adfsdf" # link to resource instance, implies also "default" version
+  # Example: "/schemagroup/abc/schema/adfsdf/version/v1" # link to specific version
+  # For consistency, we also have "/" at the root level of the xregistry
+  "xid": "URI", 
+
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
