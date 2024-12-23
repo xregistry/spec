@@ -14,6 +14,7 @@ normative technical details.
 ## Table of Contents
 
 - [History](#history)
+- [Value proposition](#value-proposition)
 - [Motivation](#motivation)
 - [Design Goals](#design-goals)
 - [Representations](#representations)
@@ -33,7 +34,139 @@ associating those declarations with application endpoints. As a result, the
 xRegistry (extensible registry) specification was created.
 
 xRegistry was initially part of CloudEvents, called "CloudEvents Discovery" but
-later moved into it's own repository.
+later moved into its own repository.
+
+## Value proposition
+
+xRegistry provides a specification to define metadata and extensions for
+resources in an abstract model that can be used to centralize and standardize
+information about resources in a system. The core specification defines the
+basic building blocks for managing metadata about resources and provides
+multiple formats to [represent](#representations) this information.
+
+xRegistry can be used to represent any type of metadata, as long as it adheres
+to the basic model in which a registry consists of groups, which in turn
+consists of multiple resources which can have multiple versions defined. This
+model is useful for any metadata that is crucial to the operation of a system or
+helps facilitate the interaction between systems. The use cases for xRegistry
+are therefore very broad. See
+[possible use cases](#possible-use-cases) for more examples.
+
+In addition to the core specification, xRegistry provides secondary
+specifications for [endpoints](/endpoint/spec.md), [schemas](/schema/spec.md),
+and [messages](/message/spec.md), that further build upon the core to provide
+more domain-specific standardization in the context of event-driven systems. The
+following subsections provide a more specific overview of how xRegistry can be
+used to address common challenges in the event-driven space.
+
+### Discovery
+
+One of the pain points of event-driven systems is the need to create and
+maintain documentation about endpoints and the events they expose, enabling
+consumers from other teams or even other organizations to have all relevant
+information required to implement their use cases successfully. By relying on a
+centralized registry, individual teams who want to discover, query, produce and
+consume events from endpoints have a single point of truth to refer to. In
+addition, xRegistry allows specifying extensions and metadata that can further
+describe events on more detailed levels. As an example, it is possible to define
+an event, and mark specific metadata that are required. Due to its rich metadata
+model, metadata can also be expressed in human language, making it easier for
+developers, data-analysts, or even business analysts to understand.
+
+### Vendor-agnostic
+
+xRegistry provides a specification to define, query, group, version and enforce
+schemas for systems. Multiple schema registry solutions exist already,
+including [Confluent Schema Registry](https://docs.confluent.io/platform/current/schema-registry/index.html), [Azure Event Hubs Registry](https://learn.microsoft.com/en-us/azure/event-hubs/schema-registry-overview)
+or [Apicurio Registry](https://www.apicur.io/registry/), [AWS Glue Schema Registry](https://docs.aws.amazon.com/glue/latest/dg/schema-registry.html)
+and more.
+
+These schema registries are broker- and therefore vendor-specific and even
+protocol-specific, which causes friction when an event travels through multiple
+brokers. In such cases, clients have to deal with the implementation differences
+across registries, for example when validating event structures, hindering
+interoperability and, therefore, complicating integration scenarios. xRegistry
+aims to address this with an agnostic specification, providing a common base
+across these offerings.
+
+### Versioning
+
+As systems evolve, the endpoints that emit events may change, as may the events
+themselves. Changes can sometimes break consumers making compatibility
+strategies essential to indicate to consumers how they may expect events or
+endpoints to evolve. xRegistry allows indicating a registry’s compatibility
+strategy which is enforced when making changes to the registry, avoiding
+mistakes. The specifications further also enables marking endpoints as
+deprecated, possibly providing an alternative endpoint, making these easier to
+discover for consumers. Finally, event schemas are also version aware, storing
+multiple versions of an event’s data schema.
+
+### Schema validation
+
+The registry contains granular definitions for events defining their schemas,
+which serve as a contract between publishers and consumers. This doesn’t only
+apply to the message payload, but also to the message metadata, allowing
+granular control of required fields on the metadata level. The registry does not
+only serve as a definition of the required schemas, but can also be used to
+enforce it. A registry service could use the registry to perform validation
+on-publish, rejecting any events that don’t adhere to the schema for that
+context, avoiding the problem of poison messages.
+
+### Payload reduction
+
+Schema information enables real-time analysis of incoming data based on its
+contextual meaning, which is why applications often use serialization mechanisms
+which include schema information (such as JSON) in payloads. Having a
+centralized registry, enables applications to rely on lighter weight
+serialization formats, significantly reducing bandwidth, while still allowing
+accurate real-time analysis of incoming data using the registry.
+
+### Schema-based data contract generation
+
+xRegistry provides a specification to manage metadata in files which can be
+stored next to the corresponding source code. This enables storing versions of
+the model with their corresponding code in source control. This greatly
+simplifies accurate recreation of the state of the system or environment, as all
+schema-information is stored side-by-side with the code, avoiding issues in
+reconciling the version of the code with the version of the schema.
+
+Alternatively, metadata can also be managed in a Registry service, assuming it
+adheres to the xRegistry API specification. The Registry service acts as a
+central component that can be queried by any service that needs to interact with
+the metadata.
+
+This enables teams to use code generation to generate relevant data contracts
+when interacting with endpoints. This removes the need for shared code packages
+and avoids any bugs on the data contract level.
+
+### Producer and consumer generation
+
+Further, building upon the idea of schema-based data contract generation, even
+client-code can be generated. When the schema is defined in a vendor-agnostic,
+well-defined format, tooling can be built upon this foundation to generate
+broker-specific consumers that can consume events from endpoints defined in the
+registry. This is not only limited to event consumers, but may also include
+generation of event store inserts. This can further speed up and streamline the
+development of both producers and consumers, significantly reducing development
+and testing time and minimizing the risk of introducing bugs at this level.
+Clemens Vasters built a proof-of-concept that shows this approach in
+the [Avrotize VS Code Extension](https://github.com/clemensv/avrotize).
+
+### Basis for further developments
+
+CloudEvents serve as a mechanism to aid in the delivery of events from a
+producer to a consumer, which is applicable independently of the protocol (MQTT,
+HTTP, Kafka, and AMQP) or encoding (JSON, XML, SOAP, Avro, etc). xRegistry
+further builds upon this by providing a specification to define resources that
+correlate specific events to endpoints, providing versioning information and
+more extensive metadata.
+
+The xRegistry specification serves as a strong foundation to further build upon
+in subsequent versions and/or outside of xRegistry, by correlating events and
+endpoints system-wide. This will eventually lead to the definition of event
+flows, making these discoverable and predictable, as opposed to relying on
+human-produced documentation or observability on emerging behavior to understand
+complex flows.
 
 ## Motivation
 

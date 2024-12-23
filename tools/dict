@@ -2,6 +2,7 @@ acks
 amqp
 amqps
 api
+apicur
 apicurio
 apikey
 asyncapi
@@ -10,7 +11,9 @@ attributename
 attrs
 authorityuri
 avro
+avrotize
 avsc
+aws
 backend
 basemessageurl
 bson
@@ -18,6 +21,8 @@ bunnymq
 cereg
 charset
 cleansession
+clemens
+clemensv
 clientrequired
 cloudevent
 cloudevents
@@ -111,6 +116,7 @@ metadata
 metaschema
 metaschemas
 metaurl
+microsoft
 middleware
 modelversion
 modifiedat
@@ -235,6 +241,7 @@ utc
 utf
 uuid
 validator
+vasters
 versioned
 versionid
 versioning
