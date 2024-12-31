@@ -38,7 +38,8 @@ this form:
   "name": "STRING", ?
   "description": "STRING", ?
   "documentation": "URL", ?
-    "labels": { 
+  "labels": { 
+    "modelversion": "1.0",
     "compatiblewith": "https://github.com/xregistry/spec/blob/main/message/spec.md", 
     "STRING": "STRING" * 
   }, ?
