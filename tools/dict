@@ -25,6 +25,7 @@ cncf
 collectionscount
 collectionsurl
 commonattributes
+compatiblewith
 config
 configendpoints
 connectionproperties
@@ -110,6 +111,7 @@ metaschema
 metaschemas
 metaurl
 middleware
+modelversion
 modifiedat
 modifiedby
 monotomically
