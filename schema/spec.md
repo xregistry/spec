@@ -33,10 +33,10 @@ this form:
   "name": "STRING", ?
   "description": "STRING", ?
   "documentation": "URL", ?
-  "labels": { 
+  "labels": {
     "modelversion": "1.0",
-    "compatiblewith": "https://github.com/xregistry/spec/blob/main/schema/spec.md", 
-    "STRING": "STRING" * 
+    "compatiblewith": "https://github.com/xregistry/spec/blob/main/schema/spec.md",
+    "STRING": "STRING" *
   }, ?
   "createdat": "TIMESTAMP",
   "modifiedat": "TIMESTAMP",
