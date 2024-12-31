@@ -34,6 +34,7 @@ this form:
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { 
+    "modelversion": "1.0",
     "compatiblewith": "https://github.com/xregistry/spec/blob/main/endpoint/spec.md", 
     "STRING": "STRING" * 
   }, ?
