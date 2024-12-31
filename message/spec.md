@@ -178,7 +178,7 @@ The formal xRegistry extension model of the Message Definitions Registry
 resides in the [model.json](model.json) file.
 
 By importing and keeping the `compatiblewith` label, interoperability on the
-CNCF defined endpoint model is stated. See [Interoperability TODO: link](#). 
+CNCF defined endpoint model is stated. See Interoperability **TODO: link**.
 
 ### Message Definition Groups
 
