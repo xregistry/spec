@@ -1,7 +1,4 @@
 {
-  "schemas": [
-    "xRegistry-json/0.5"
-  ],
   "attributes": {
     "specversion": {
       "name": "specversion",
@@ -19,6 +16,12 @@
     "self": {
       "name": "self",
       "type": "url",
+      "readonly": true,
+      "serverrequired": true
+    },
+    "xid": {
+      "name": "xid",
+      "type": "uri",
       "readonly": true,
       "serverrequired": true
     },
@@ -75,6 +78,12 @@
           "readonly": true,
           "serverrequired": true
         },
+        "xid": {
+          "name": "xid",
+          "type": "uri",
+          "readonly": true,
+          "serverrequired": true
+        },
         "epoch": {
           "name": "epoch",
           "type": "uinteger",
@@ -102,10 +111,6 @@
           "item": {
             "type": "string"
           }
-        },
-        "origin": {
-          "name": "origin",
-          "type": "uri"
         },
         "createdat": {
           "name": "createdat",
@@ -143,6 +148,12 @@
               "readonly": true,
               "serverrequired": true
             },
+            "xid": {
+              "name": "xid",
+              "type": "uri",
+              "readonly": true,
+              "serverrequired": true
+            },
             "epoch": {
               "name": "epoch",
               "type": "uinteger",
@@ -166,10 +177,6 @@
               "item": {
                 "type": "string"
               }
-            },
-            "origin": {
-              "name": "origin",
-              "type": "uri"
             },
             "createdat": {
               "name": "createdat",
@@ -198,6 +205,12 @@
             "self": {
               "name": "self",
               "type": "url",
+              "readonly": true,
+              "serverrequired": true
+            },
+            "xid": {
+              "name": "xid",
+              "type": "uri",
               "readonly": true,
               "serverrequired": true
             },

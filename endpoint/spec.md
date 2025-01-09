@@ -29,6 +29,7 @@ this form:
   "specversion": "STRING",
   "registryid": "STRING",
   "self": "URL",
+  "xid": "URL",
   "epoch": UINTEGER,
   "name": "STRING", ?
   "description": "STRING", ?
@@ -45,12 +46,12 @@ this form:
     "KEY": {
       "endpointid": "STRING",                   # xRegistry core attributes
       "self": "URL",
+      "xid": "URL",
       "epoch": UINTEGER,
       "name": "STRING", ?
       "description": "STRING", ?
       "documentation": "URL", ?
       "labels": { "STRING": "STRING" * }, ?
-      "origin": "STRING", ?
       "createdat": "TIMESTAMP",
       "modifiedat": "TIMESTAMP",
 

@@ -34,6 +34,7 @@ this form:
   "specversion": "STRING",
   "registryid": "STRING",
   "self": "URL",
+  "xid": "URL",
   "epoch": UINTEGER,
   "name": "STRING", ?
   "description": "STRING", ?
@@ -50,12 +51,12 @@ this form:
     "KEY": {                                    # messagegroupid
       "messagegroupid": "STRING",               # xRegistry core attributes
       "self": "URL",
+      "xid": "URL",
       "epoch": UINTEGER,
       "name": "STRING", ?
       "description": "STRING", ?
       "documentation": "URL", ?
       "labels": { "STRING": "STRING" * }, ?
-      "origin": "STRING", ?
       "createdat": "TIMESTAMP",
       "modifiedat": "TIMESTAMP",
 
@@ -69,12 +70,12 @@ this form:
           "messageid": "STRING",               # xRegistry core attributes
           "versionid": "STRING",
           "self": "URL",
+          "xid": "URL",
           "epoch": UINTEGER,
           "name": "STRING", ?
           "description": "STRING", ?
           "documentation": "URL", ?
           "labels": { "STRING": "STRING" * }, ?
-          "origin": "STRING", ?
           "createdat": "TIMESTAMP",
           "modifiedat": "TIMESTAMP",
 

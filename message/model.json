@@ -1,7 +1,4 @@
 {
-  "schemas": [
-    "json-schema/draft-07"
-  ],
   "groups": {
     "messagegroups": {
       "singular": "messagegroup",
