@@ -41,9 +41,9 @@ automation and tooling.
     - [Retrieving a Version](#retrieving-a-version)
     - [Deleting Versions](#deleting-versions)
   - [Configuring Responses[#configuring-responses]
-    - [Inlining](#inlining)
-    - [Filtering](#filtering)
-    - [Exporting](#exporting)
+    - [Inline](#inline)
+    - [Filter](#filter)
+    - [Compact](#compact)
   - [HTTP Header Values](#http-header-values)
 
 ## Overview
@@ -111,7 +111,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   "capabilities": {                     # Supported capabilities/options
     "enforcecompatibility": BOOLEAN, ?
     "flags": [                          # Query parameters
-      "epoch",? "export",? "filter",? "inline",? "nested",?
+      "epoch",? "compact",? "filter",? "inline",?
       "nodefaultversionid",? "nodefaultversionsticky",? "noepoch",?
       "noreadonly",?  "schema",? "setdefaultversionid",? "specversion",?
       "STRING" *
@@ -127,7 +127,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
     "STRING": ... *                     # Extension capabilities
   }, ?
 
-  "model": {                            # Only if inlined/nested
+  "model": {                            # Only if inlined
     "labels": { "STRING": "STRING" * }, ?
     "attributes": {                     # Registry level attributes/extensions
       "STRING": {                       # Attribute name (case sensitive)
@@ -186,7 +186,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   # Repeat for each Group type
   "GROUPSurl": "URL",                              # e.g. "endpointsurl"
   "GROUPScount": UINTEGER,                         # e.g. "endpointscount"
-  "GROUPS": {                                      # Only if inlined/nested
+  "GROUPS": {                                      # Only if inlined
     "KEY": {                                       # Key=the Group id
       "GROUPid": "STRING",                         # The Group ID
       "self": "URL",
@@ -203,7 +203,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       # Repeat for each Resource type in the Group
       "RESOURCESurl": "URL",                       # e.g. "messagesurl"
       "RESOURCEScount": UINTEGER,                  # e.g. "messagescount"
-      "RESOURCES": {                               # Only if inlined/nested
+      "RESOURCES": {                               # Only if inlined
         "KEY": {                                   # The Resource id
           # These are inherited from the "default" Version (except 'self')
           "RESOURCEid": "STRING",
@@ -246,7 +246,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
           }, ?
           "versionsurl": "URL",
           "versionscount": UINTEGER,
-          "versions": {                            # Only if inlined/nested
+          "versions": {                            # Only if inlined
             "KEY": {                               # The Version's versionid
               "RESOURCEid": "STRING",              # The Resource id
               "versionid": "STRING",               # The Version id
@@ -520,7 +520,8 @@ The definition of each attribute is defined below:
 - Constraints:
   - MUST be a non-empty string consisting of [RFC3986 `unreserved`
     characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3)
-    (ALPHA / DIGIT / "-" / "." / "_" / "~") and `@`.
+    (ALPHA / DIGIT / "-" / "." / "_" / "~") and `@`, MUST start with
+    ALPHA, DIGIT or "_" and MUST be between 1 and 128 characters in length.
   - MUST be case insensitive unique within the scope of the entity's parent.
     In the case of the `registryid` for the Registry itself, the uniqueness
     scope will be based on where the Registry is used. For example, a publicly
@@ -561,16 +562,16 @@ of the existing entity. Then the existing entity can be deleted.
   base URL for the collection appended with the `SINGULARid` of the entity.
 
   When this URL references a Resource or Version, and the Resource has the
-  `hasdocument` model aspect set to `true`, then it MUST include `$structure`
+  `hasdocument` model aspect set to `true`, then it MUST include `$details`
   appended to its `SINGULARid` if the request asked for the serialization of the
-  xRegistry metadata. This would happen when `$structure` was used in the
+  xRegistry metadata. This would happen when `$details` was used in the
   request, or when the Resource (or Version) is included in the serialization
   of a parent entity.
 
   If the Resource or Version has the `hasdocument` model aspect set to `false`,
-  then this URL MUST be appended with `$structure` only if the request was
-  directed at the Resource or Version and included `$structure`. Otherwise in
-  all other situations `$structure` MUST NOT be included.
+  then this URL MUST be appended with `$details` only if the request was
+  directed at the Resource or Version and included `$details`. Otherwise in
+  all other situations `$details` MUST NOT be included.
 
 - Constraints:
   - MUST be unique across all entities in the Registry.
@@ -623,7 +624,7 @@ of the existing entity. Then the existing entity can be deleted.
   MUST be unique across the entire Registry, and as such is defined to be a
   relative URL from the root of the Registry. This value MUST be the same as
   the PATH portion of the `self` URL, after the Registry's base URL, without
-  any `$` suffix (e.g. `$structure`).
+  any `$` suffix (e.g. `$details`).
 
   This attribute is provided as a convenience for users who need a reference
   to the entity without running the risk of incorrectly extracting it from
@@ -821,7 +822,9 @@ This specification defines the following API patterns:
 
 ```yaml
 /                                               # Access the Registry
+/capabilities                                   # Access available features
 /model                                          # Access the model definitions
+/export                                         # Retrieve compact Registry
 /GROUPS                                         # Access a Group Type
 /GROUPS/gID                                     # Access a Group
 /GROUPS/gID/RESOURCES                           # Access a Resource Type
@@ -880,10 +883,6 @@ pattern of the APIs:
   in the request. Any attribute with a value of `null` MUST be interpreted
   as a request to delete the attribute, and as with `PUT`/`POST`, server
   managed attributes might have specialized processing.
-- On write operations, without a
-  [`?nested`](#updating-nested-registry-collections) query parameter,
-  any included inlinable attributes (except `RESOURCE*`) MUST generate an
-  error.
 - `PUT` MUST NOT be targeted at xRegistry collections. A `POST` or `PATCH`
   MUST be used instead to add entities to the collection, and a
   `DELETE` MUST be used to delete unwanted entities.
@@ -946,8 +945,8 @@ experience, and increase interoperability.
 Note that simple file servers SHOULD support exposing Resources where the HTTP
 body response contains the Resource's associated "document" as well as the
 case where the HTTP response body contains a JSON serialization of the
-Resource via the `$structure` suffix on the URL path. This can be achieved by
-creating a secondary sibling file on disk with `$structure` at the end of its
+Resource via the `$details` suffix on the URL path. This can be achieved by
+creating a secondary sibling file on disk with `$details` at the end of its
 filename.
 
 ---
@@ -984,15 +983,15 @@ Where:
   (e.g. `endpoints`, `versions`).
 - The `COLLECTIONSurl` attribute MUST be an absolute URL that can be used to
   retrieve the `COLLECTIONS` map via an HTTP(s) `GET` (including any necessary
-  [filter](#filtering)) and MUST be a read-only attribute that MUST be silently
+  [filtering](#filter)) and MUST be a read-only attribute that MUST be silently
   ignored by a server during a write operation. An empty collection MUST
   return an HTTP 200 with an empty map (`{}`).
 - The `COLLECTIONScount` attribute MUST contain the number of entities in the
-  `COLLECTIONS` map (after any necessary [filtering](#filtering)) and MUST
+  `COLLECTIONS` map (after any necessary [filtering](#filter)) and MUST
   be a read-only attribute that MUST be silently ignored by a server during
   an write operation.
 - The `COLLECTIONS` attribute is a map and MUST contain the entities of the
-  collection (after any necessary [filtering](#filtering)), and MUST use
+  collection (after any necessary [filtering](#filter)), and MUST use
   the `SINGULARid` of each entity as its map key.
 - The key of each entity in the collection MUST be unique within the scope of
   the collection.
@@ -1043,13 +1042,11 @@ In API view:
 - `COLLECTIONSurl` and `COLLECTIONScount` are OPTIONAL for requests and MUST
    be silently ignored by the server if present.
 - `COLLECTIONS` is OPTIONAL for responses and MUST only be included if the
-  request included the [`?inline`](#inlining) query parameter indicating that
+  request included the [`?inline`](#inline) query parameter indicating that
   this collection's entities are to be returned. If `?inline` is present then
   `COLLECTIONS` is REQUIRED and MUST be present in the response even if it is
   empty (e.g. `{}`).
-- `COLLECTIONS` is OPTIONAL for requests and MUST generate an error if
-  the [`?nested`](#updating-nested-registry-collections) query parameter is not
-  present. See [Updating Nested Registry
+- `COLLECTIONS` is OPTIONAL for requests. See [Updating Nested Registry
   Collections](#updating-nested-registry-collections) for more details.
 
 ##### Updating Nested Registry Collections
@@ -1058,24 +1055,15 @@ When updating an entity that can contain Registry collections, the request
 MAY contain the 3 collection attributes. The `COLLECTIONSurl` and
 `COLLECTIONScount` attributes MUST be silently ignored by the server.
 
-A request that includes `COLLECTIONS` attributes MUST generate an error
-if the `?nested` query parameter is not present. This acts as a check to
-ensure the client is not accidentally updating the children entities.
-
-If the `?nested` query parameter and the `COLLECTIONS` attribute are both
-present, the server MUST process each entity in the collection map as a
-request to create or update that entity according to the semantics of the HTTP
-method used. An entry in the map that isn't a valid entity (e.g. is `null`)
-MUST generate an error.
-
-The `?nested` semantics MUST be applied to all nested `COLLECTIONS` attributes
-within the request regardless of the level in the hierarchy in which they
-appear.
+If the `COLLECTIONS` attribute is present, the server MUST process each entity
+in the collection map as a request to create or update that entity according to
+the semantics of the HTTP method used. An entry in the map that isn't a valid
+entity (e.g. is `null`) MUST generate an error.
 
 For example:
 
 ```yaml
-PUT https://example.com/endpoints/ep1?nested
+PUT https://example.com/endpoints/ep1
 
 {
   "endpointid": "ep1",
@@ -1095,8 +1083,7 @@ Any error while processing a nested collection entity MUST result in the entire
 request being rejected.
 
 An absent `COLLECTIONS` attribute MUST be interpreted as a request to not
-modify the collection at all, regardless of the presence (or absence) of the
-`?nested` query parameter.
+modify the collection at all.
 
 If a client wishes to replace an entire collection, rather than just add new
 entities, the client MUST use one of the `DELETE` operations on the collection
@@ -1113,7 +1100,7 @@ To better understand this scenario, consider the following HTTP request to
 update a Message where the `defaultversionid` is `v1`:
 
 ```yaml
-PUT http://example.com/endpoints/ep1/messages/msg1?nested
+PUT http://example.com/endpoints/ep1/messages/msg1
 
 {
   "messageid": "msg1",
@@ -1195,8 +1182,8 @@ semantics defined above with the following exceptions:
     a request to delete the attribute.
   - When processing a Resource or Version, that has its `hasdocument` model
     aspect set to `true`, the URL accessing the entity MUST include the
-    `$structure` suffix, and MUST generate an error in the absence of the
-    `$structure` suffix.
+    `$details` suffix, and MUST generate an error in the absence of the
+    `$details` suffix.
     This is because when it is absent, the processing of the HTTP `xRegistry-`
     headers are already defined with "patch" semantics so a normal `PUT` or
     `POST` can be used instead. Using `PATCH` in this case would mean that the
@@ -1673,10 +1660,10 @@ If-Match: "UINTEGER|*" ?
   "createdat": "TIMESTAMP", ?
   "modifiedat": "TIMESTAMP", ?
 
-  "model": { Registry model }, ?      # Only if "?nested" is present
+  "model": { Registry model }, ?
 
   # Repeat for each Group type
-  "GROUPS": { GROUPS collection } ?   # Only if "?nested" is present
+  "GROUPS": { GROUPS collection } ?
 }
 ```
 
@@ -1842,14 +1829,14 @@ The following defines the specification defined capabilities:
 - Description: The list of supported flags (query parameters). Absence in the
   map indicates no support for that flag, and if included in a request
   SHOULD be silently ignored by servers.
-- Supported values:
-    `epoch`, `export`, `filter`, `inline`, `nested`,
-    `nodefaultversionid`, `nodefaultversionsticky`, `noepoch`, `noreadonly`,
-    `schema`, `setdefaultversionid`, `specversion`.
+- Defined values:
+    `epoch`, `compact`, `filter`, `inline`, `nodefaultversionid`,
+    `nodefaultversionsticky`, `noepoch`, `noreadonly`, `schema`,
+    `setdefaultversionid`, `specversion`.
   - If not specified, the default value is an empty list and no query
     parameters are supported.
 - Examples:
-  - `"flags": [ "filter", "nested" ]`    # Just these 2
+  - `"flags": [ "filter", "inline" ]`    # Just these 2
   - `"flags": [ "*" ]                    # All flags
 
 #### `mutable`
@@ -2423,7 +2410,7 @@ The following describes the attributes of Registry model:
     document". Meaning, an HTTP `GET` to the Resource's URL will return the
     xRegistry metadata in the HTTP body. The `xRegistry-` HTTP headers MUST
     NOT be used for requests or response messages for these Resources.
-    Use of `$structure` on the request URLs MAY be used to provide consistency
+    Use of `$details` on the request URLs MAY be used to provide consistency
     with the cases where this attribute is set to `true` - but the output
     remains the same.
 
@@ -3094,6 +3081,24 @@ and the second include target might look like:
 
 ---
 
+### Exporting
+
+The `/export` API MUST be an alias for
+`GET /?compact&inline=*,model,capabilities". If supported, it MUST only
+support the `GET` HTTP method. This API was created:
+- As a short-hand convenience syntax for clients that need to download the
+  entire Registry as a single document. For example, to then be used in an
+  "import" type of operation for another Registry, or for tooling that
+  does not need the duplication of information that `?compact` removes.
+- To allow for servers that do not support query parameters (such as
+  [No-Code Servers](#no-code-servers)) to expose the entire Registry with a
+  single API call.
+
+Query parameters MAY be included on the request and any `?inline` flag
+specified MUST override the default value defined above.
+
+---
+
 ### Groups
 
 Groups represent entities that typically act as a collection mechanism for
@@ -3122,7 +3127,7 @@ The serialization of a Group entity adheres to this form:
   # Repeat for each Resource type in the Group
   "RESOURCESurl": "URL",                    # e.g. "messagesurl"
   "RESOURCEScount": UINTEGER,               # e.g. "messagescount"
-  "RESOURCES": { RESOURCES collection } ?   # If inlined/nested
+  "RESOURCES": { RESOURCES collection } ?   # If inlined
 }
 ```
 
@@ -3271,7 +3276,7 @@ Each individual Group definition MUST adhere to the following:
   # Repeat for each Resource type in the Group
   "RESOURCESurl": "URL",                     # e.g. "messagesurl"
   "RESOURCEScount": UINTEGER,                # e.g. "messagescount"
-  "RESOURCES": { RESOURCES collection } ?    # If "?nested" is present
+  "RESOURCES": { RESOURCES collection } ?
 }
 ```
 
@@ -3503,7 +3508,7 @@ the data of interest for end users. As a convenance, the simple (mainly
 scalar) xRegistry metadata of the Resource will appear as HTTP headers.
 
 To change this view such that the xRegistry metadata becomes the data of
-interest, the request URLs MUST have `$structure` appended to them. In these
+interest, the request URLs MUST have `$details` appended to them. In these
 cases the HTTP body of the requests and responses MUST have a JSON
 serialization of the entity's xRegistry metadata, and the separate document
 MAY appear as an attribute within that metadata based on the specific
@@ -3518,11 +3523,11 @@ will retrieve the schema document associated with the `myschema` Resource,
 while:
 
 ```yaml
-GET https://example.com/schemagroups/mygroup/schemas/myschema$structure
+GET https://example.com/schemagroups/mygroup/schemas/myschema$details
 ```
 will retrieve the xRegistry metadata information for the `myschema` Resource.
 
-When the Resource's path is appended with `$structure`, the Resource's document
+When the Resource's path is appended with `$details`, the Resource's document
 becomes available via a set of `RESOURCE*` attributes within that metadata:
 
 - `RESOURCE`: this attribute MUST be used when the contents of the Resource's
@@ -3548,13 +3553,13 @@ becomes available via a set of `RESOURCE*` attributes within that metadata:
   external to the Registry and its value MUST be a URL that can be used to
   retrieve its contents via an HTTP(s) `GET`.
 
-When accessing a Resource's metadata via `$structure`, often it is to
+When accessing a Resource's metadata via `$details`, often it is to
 view or update the xRegistry metadata and not the document, as such, including
 the potentially large amount of data from the Resource's document in request
 and response messages could be cumbersome. To address this, the `RESOURCE` and
 `RESOURCEbase64` attributes do not appear by default as part of the
 serialization of the Resource. Rather, they MUST only appear in responses when
-the [`?inline=RESOURCE`](#inlining) query parameter is used. Likewise, in
+the [`?inline=RESOURCE`](#inline) query parameter is used. Likewise, in
 requests, these attributes are OPTIONAL and would only need to be used when a
 change to the document's content is needed at the same time as updates to the
 Resource's metadata. However, the `RESOURCEurl` attribute MUST always appear
@@ -3594,7 +3599,7 @@ Resource attribute MUST adhere to the following:
   # Default Version attributes appear here
 
   "metaurl": "URL",
-  "meta": {                                # Only if inlined/nested
+  "meta": {                                # Only if inlined
     "RESOURCEid": "STRING",
     "self": "URL",                         # Absolute Meta URL, not Version
     "shortself": "URL", ?
@@ -3613,7 +3618,7 @@ Resource attribute MUST adhere to the following:
   }, ?
   "versionsurl": "URL",
   "versionscount": UINTEGER,
-  "versions": { map of Versions }          # Only if inlined/nested
+  "versions": { map of Versions }          # Only if inlined
 }
 ```
 
@@ -3738,9 +3743,9 @@ and the following Resource level attributes:
 - Type: URL
 - Description: an absolute URL to the default Version of the Resource.
 
-  The Version URL path MUST include `$structure` if the request asked for
+  The Version URL path MUST include `$details` if the request asked for
   the serialization of the Resource metadata. This would happen when
-  `$structure` was used in the request, or when the Resource is included in the
+  `$details` was used in the request, or when the Resource is included in the
   serialization of a Group, such as when the `?inline` feature is used.
 - Constraints:
   - REQUIRED in responses, OPTIONAL in requests.
@@ -3815,8 +3820,7 @@ possible, an update request to the `metaurl` directly would be a better
 choice, or use `PATCH` instead and only include the `meta` sub-object.
 
 During a write operation, the absence of the `meta` attribute indicates that
-no changes are to be made to the `meta` sub-object. The presence of the
-`meta` attribute does not need to use the `?nested` query parameter.
+no changes are to be made to the `meta` sub-object.
 
 ##### `metaurl` Attribute
 - Type: URL
@@ -3863,14 +3867,14 @@ message's body:
 - As its underlying domain specific document.
 - As its xRegistry metadata.
 
-Which variant is used is controlled by the use of `$structure` on the URL path.
+Which variant is used is controlled by the use of `$details` on the URL path.
 The following sections go into more details about these two serialization
 options.
 
 ##### Serializing Resource Documents
 
 When a Resource is serialized as its underlying domain specific document,
-in other words `$structure` is not appended to its URL path, the HTTP body of
+in other words `$details` is not appended to its URL path, the HTTP body of
 requests and responses MUST be the exact bytes of the document. If the
 document is empty, or there is no document, then the HTTP body MUST be empty
 (zero length).
@@ -3907,7 +3911,7 @@ Any top-level map attributes that appear as HTTP headers MUST be included
 in their entirety and any missing keys MUST be interpreted as a request to
 delete those keys from the map.
 
-Since only some types of attributes can appear as HTTP headers, `$structure`
+Since only some types of attributes can appear as HTTP headers, `$details`
 MUST be used to manage the others. See the next section for more details.
 
 When a Resource (not a Version) is serialized with the Resource document
@@ -3966,7 +3970,7 @@ Scalar default Version extension attributes would also appear as
 
 ##### Serializing Resource Metadata
 
-Appending `$structure` to a Resource or Version's URL path modifies the
+Appending `$details` to a Resource or Version's URL path modifies the
 serialization of the entity such that rather than the HTTP body containing
 the entity's domain specific "document" and the xRegistry metadata being
 in HTTP headers, all of them are instead within the HTTP body as one JSON
@@ -4009,7 +4013,7 @@ this form:
 
   # Resource level helper attributes
   "metaurl": "URL",
-  "meta": {                                # If inlined/nested
+  "meta": {                                # If inlined
     "RESOURCEid": "STRING",
     "self": "URL",                         # URL to "meta"
     "shortself": "URL", ?
@@ -4027,7 +4031,7 @@ this form:
   }, ?
   "versionsurl": "URL",
   "versionscount": UINTEGER,
-  "versions": { Versions collection } ?    # If inlined/nested
+  "versions": { Versions collection } ?    # If inlined
 }
 ```
 
@@ -4184,7 +4188,7 @@ Both the source and target Resources MUST be of the same Resource model type,
 simply having similar Resource type definitions is not sufficient. This
 implies that use of the `ximport` feature in the model to reference a
 Resource type from another Group type definition MUST be used if the same
-Resource type is to exist in different Group tyes. See
+Resource type is to exist in different Group types. See
 [`ximport`](#reuse-of-resource-definitions) for more information.
 
 An `xref` value that points to a non-existing Resource, either because
@@ -4206,13 +4210,13 @@ summarized as:
 
 - Creates or updates one or more Resources.
 
-**`PUT   /GROUPS/gID/RESOURCES/rID[$structure]`**<br>
-**`PATCH /GROUPS/gID/RESOURCES/rID$structure`**
+**`PUT   /GROUPS/gID/RESOURCES/rID[$details]`**<br>
+**`PATCH /GROUPS/gID/RESOURCES/rID$details`**
 
 - Creates a new Resource, or update the default Version of a Resource.
 
-**`POST /GROUPS/gID/RESOURCES/rID[$structure]`**<br>
-**`PATCH /GROUPS/gID/RESOURCES/rID$structure`**
+**`POST /GROUPS/gID/RESOURCES/rID[$details]`**<br>
+**`PATCH /GROUPS/gID/RESOURCES/rID$details`**
 
 - Creates or updates a single Version of a Resource.
 
@@ -4226,8 +4230,8 @@ summarized as:
 
 - Creates or updates one or more Versions of a Resource.
 
-**`PUT   /GROUPS/gID/RESOURCES/rID/versions/vID[$structure]`**<br>
-**`PATCH /GROUPS/gID/RESOURCES/rID/versions/vID$structure`**
+**`PUT   /GROUPS/gID/RESOURCES/rID/versions/vID[$details]`**<br>
+**`PATCH /GROUPS/gID/RESOURCES/rID/versions/vID$details`**
 
 - Creates or updates a single Version of a Resource.
 
@@ -4337,7 +4341,7 @@ Link: <https://example.com/endpoints/ep1/messages&page=2>;rel=next;count=100
   "msg1": {
     "messageid": "msg1",
     "versionid": "1.0",
-    "self": "https://example.com/endpoints/ep1/messages/msg1$structure",
+    "self": "https://example.com/endpoints/ep1/messages/msg1$details",
     "xid": "/endpoints/ep1/messages/msg1",
     "epoch": 1,
     "name": "Blob Created",
@@ -4369,26 +4373,26 @@ Where:
 - The HTTP body MUST contain a map of Resources to be created or updated,
   serialized as xRegistry metadata.
 
-`PUT   /GROUPS/gID/RESOURCES/rID[$structure]`<br>
-`PATCH /GROUPS/gID/RESOURCES/rID[$structure]`
+`PUT   /GROUPS/gID/RESOURCES/rID[$details]`<br>
+`PATCH /GROUPS/gID/RESOURCES/rID[$details]`
 
 Where:
 - These APIs MUST create or update a single Resource in the Group.
-- When `$structure` is present, the HTTP body MUST be an xRegistry
+- When `$details` is present, the HTTP body MUST be an xRegistry
   serialization of the Resource.
-- When `$structure` is absent, the HTTP body MUST contain the Resource's
+- When `$details` is absent, the HTTP body MUST contain the Resource's
   document (an empty body means the document is to be empty).
 
-`POST  /GROUPS/gID/RESOURCES/rID[$structure][?setdefaultversionid=vID]`<br>
-`PATCH /GROUPS/gID/RESOURCES/rID[$structure][?setdefaultversionid=vID]`
+`POST  /GROUPS/gID/RESOURCES/rID[$details][?setdefaultversionid=vID]`<br>
+`PATCH /GROUPS/gID/RESOURCES/rID[$details][?setdefaultversionid=vID]`
 
 Where:
 - This API MUST create, or update, a single new Version of the specified
   Resource.
 - When the Resource has the `hasdocument` aspect set to `true`:
-  - If `$structure` is present in the URL, then the HTTP body MUST be an
+  - If `$details` is present in the URL, then the HTTP body MUST be an
     xRegistry serialization of the Version that is to be created or updated.
-  - If `$structure` is absent in the URL, then the HTTP body MUST contain
+  - If `$details` is absent in the URL, then the HTTP body MUST contain
     the Version's document (an empty body means the document is to be empty).
     Note that the xRegistry metadata (e.g. the Version's `versionid`) MAY be
     included as HTTP headers.
@@ -4425,15 +4429,15 @@ Where:
 See [Default Version of a Resource](#default-version-of-a-resource) for more
 information about the `?setdefaultversionid` query parameter.
 
-`PUT   /GROUPS/gID/RESOURCES/rID/versions/vID[$structure][?setdefaultversionid=vID]`<br>
-`PATCH /GROUPS/gID/RESOURCES/rID/versions/vID[$structure][?setdefaultversionid=vID]`
+`PUT   /GROUPS/gID/RESOURCES/rID/versions/vID[$details][?setdefaultversionid=vID]`<br>
+`PATCH /GROUPS/gID/RESOURCES/rID/versions/vID[$details][?setdefaultversionid=vID]`
 
 Where:
 - This API MUST create or update single Version in the Resource.
 - When the Resource has the `hasdocument` aspect set to `true`:
-  - If `$structure` is present in the URL, then the HTTP body MUST be an
+  - If `$details` is present in the URL, then the HTTP body MUST be an
     xRegistry serialization of the Version that is to be created or updated.
-  - If `$structure` is absent in the URL, then the HTTP body MUST contain
+  - If `$details` is absent in the URL, then the HTTP body MUST contain
     the Version's document (an empty body means the document is to be empty).
     Note that the xRegistry metadata (e.g. the Version's `versionid`) MAY be
     included as HTTP headers.
@@ -4478,7 +4482,7 @@ in the request MUST adhere to the following:
   "RESOURCEbase64": "STRING", ?            # If inlined & ~JSON
 
   "metaurl": "STRING",                     # Resource level attributes
-  "meta": {                                # If ?nested is used
+  "meta": {
     "RESOURCEid": "STRING",
     "self": "URL",
     "shortself": "URL", ?
@@ -4496,7 +4500,7 @@ in the request MUST adhere to the following:
   }
   "versionsurl": "URL",
   "versionscount": UINTEGER,
-  "versions": { Versions collection } ?    # If ?nested is used
+  "versions": { Versions collection } ?
 }
 ```
 
@@ -4535,9 +4539,9 @@ Where:
 - If the Resource's `hasdocument` model attribute has a value of `false` then
   the following rules apply:
   - Only the first form (serialization as a JSON Object) MUST be used.
-  - Use of the `$structure` suffix on the request URL is OPTIONAL and has no
+  - Use of the `$details` suffix on the request URL is OPTIONAL and has no
     impact on processing beyond resulting in any URLs in the response being
-    appended with `$structure` if they reference this Resource (or its
+    appended with `$details` if they reference this Resource (or its
     Versions).
   - Any request that includes the xRegistry HTTP headers MUST generate an
     error.
@@ -4572,7 +4576,7 @@ Where:
     unchanged.
 
 A successful response MUST include the current representation of the entities
-created or updated and be in the same format (`$structure` variant or not) as
+created or updated and be in the same format (`$details` variant or not) as
 the request.
 
 If the request used the `PUT` or `PATCH` variants directed at a single entity,
@@ -4622,7 +4626,7 @@ Content-Disposition: msg1
 Update default Version of a Resource as xRegistry metadata:
 
 ```yaml
-PUT /endpoints/ep1/messages/msg1$structure
+PUT /endpoints/ep1/messages/msg1$details
 Content-Type: application/json; charset=utf-8
 ETag: "1"
 
@@ -4646,7 +4650,7 @@ ETag: "2"
 {
   "messageid": "msg1",
   "versionid": "1.0",
-  "self": "https://example.com/endpoints/ep1/messages/msg1$structure",
+  "self": "https://example.com/endpoints/ep1/messages/msg1$details",
   "xid": "/endpoints/ep1/messages/msg1",
   "epoch": 2,
   "name": "Blob Created",
@@ -4743,7 +4747,7 @@ Note that if the Resource's `hasdocument` model attribute has a value of
 `false` then the "Resource document" will be the xRegistry metadata for the
 default Version - same as in the [Retrieving a Resource as
 Metadata](#retrieving-a-resource-as-metadata) section but without the explicit
-usage of `$structure`.
+usage of `$details`.
 
 When `hasdocument` is `true`, the response MUST be of the form:
 
@@ -4791,12 +4795,12 @@ Where:
 
 When a Resource has the `hasdocument` model attribute set to `true`, to
 retrieve a Resource's metadata (Resource attributes) as a JSON object, an
-HTTP `GET` with `$structure` appended to its URL path MAY be used.
+HTTP `GET` with `$details` appended to its URL path MAY be used.
 
 The request MUST be of the form:
 
 ```yaml
-GET /GROUPS/gID/RESOURCES/rID$structure
+GET /GROUPS/gID/RESOURCES/rID$details
 ```
 
 A successful response MUST be of the form:
@@ -4852,10 +4856,10 @@ ETag: "UINTEGER"
 Where:
 - `RESOURCEid` MUST be the Resource's `SINGULARid`, not the `versionid` of
   the default Version.
-- `self` is a URL to the Resource (with `$structure`), not to the default
+- `self` is a URL to the Resource (with `$details`), not to the default
   Version of the Resource.
 - `shortself`, if present, MUST be an alternative URL for `self`.
-- `xid` is a relative URL to the Resource (without `$structure`), not to the
+- `xid` is a relative URL to the Resource (without `$details`), not to the
   default Version of the Resource.
 - `RESOURCE`, or `RESOURCEbase64`, MUST only be included if requested via use
   of the `?inline` feature and `RESOURCEurl` is not set.
@@ -4867,7 +4871,7 @@ Where:
 Retrieve a `message` Resource as xRegistry metadata:
 
 ```yaml
-GET /endpoints/ep1/messages/msg1$structure
+GET /endpoints/ep1/messages/msg1$details
 ```
 
 ```yaml
@@ -4879,7 +4883,7 @@ ETag: "1"
 {
   "messageid": "msg1",
   "versionid": "1.0",
-  "self": "https://example.com/endpoints/ep1/messages/msg1$structure,
+  "self": "https://example.com/endpoints/ep1/messages/msg1$details,
   "xid": "/endpoints/ep1/messages/msg1,
   "epoch": 1,
   "name": "Blob Created",
@@ -5279,7 +5283,7 @@ Link: <https://example.com/endpoints/ep1/messages/msg1/versions&page=2>;rel=next
   "1.0": {
     "messageid": "msg1",
     "versionid": "1.0",
-    "self": "https://example.com/endpoints/ep1/messages/msg1$structure",
+    "self": "https://example.com/endpoints/ep1/messages/msg1$details",
     "xid": "/endpoints/ep1/messages/msg1",
     "epoch": 1,
     "name": "Blob Created",
@@ -5393,13 +5397,13 @@ Content-Disposition: msg1
 
 #### Retrieving a Version as Metadata
 
-To retrieve a particular Version's metadata, an HTTP `GET` with `$structure`
+To retrieve a particular Version's metadata, an HTTP `GET` with `$details`
 appended to its `RESOURCEid` MAY be used.
 
 The request MUST be of the form:
 
 ```yaml
-GET /GROUPS/gID/RESOURCES/rID/versions/vID$structure
+GET /GROUPS/gID/RESOURCES/rID/versions/vID$details
 ```
 
 A successful response MUST be of the form:
@@ -5443,7 +5447,7 @@ Where:
 Retrieve a specific Version of a `message` Resource as xRegistry metadata:
 
 ```yaml
-GET /endpoints/ep1/messages/msg1/versions/1.0$structure
+GET /endpoints/ep1/messages/msg1/versions/1.0$details
 ```
 
 ```yaml
@@ -5454,7 +5458,7 @@ ETag: "2"
 {
   "messageid": "msg1",
   "versionid": "1.0",
-  "self": "https://example.com/endpoints/ep1/messages/msg1/versions/1.0$structure",
+  "self": "https://example.com/endpoints/ep1/messages/msg1/versions/1.0$details",
   "xid": "/endpoints/ep1/messages/msg1/versions/1.0",
   "epoch": 2,
   "name": "Blob Created",
@@ -5513,9 +5517,9 @@ HTTP/1.1 204 No Content
 Any request MAY include a set of query parameters (flags) to control how the
 response is to be generated. The following sections will defined the following
 flags:
-- [`?inline`](#inlining)
-- [`?filter`](#filtering)
-- [`?export`](#exporting)
+- [`?inline`](#inline)
+- [`?filter`](#filter)
+- [`?compact`](#compact)
 
 Implementations of this specification SHOULD support all 3 flags.
 
@@ -5526,9 +5530,9 @@ are too large to be sent in one message. In those cases, the client will need
 to query the individual inlinable attributes in isolation so the Registry can
 leverage [pagination](../pagination/spec.md) of the response.
 
-#### Inlining
+#### Inline
 
-The `?inline` query parameter MAY be used on requests to indicate whether
+The `?inline` query parameter (flag) MAY be used on requests to indicate whether
 nested collections/objects, or certain (potentially large) attributes, are to
 be included in the response message.
 
@@ -5626,17 +5630,9 @@ plural name for the collection in its defined case.
 A request to inline an unknown, or non-inlinable, attribute MUST generate an
 error.
 
-The `?nested` query parameter acts as the compliment to `?inline` in that
-`?nested` MUST be used on write requests to indicate that the client wishes
-to have any inlinable attributes (except for `RESOURCE*`) that are present in
-the request processed. Absence of the `?nested` query parameter when an
-inlinable collection is present MUST generate an error. See
-[Updating Nested Registry Collections](#updating-nested-registry-collections)
-for more information.
+#### Filter
 
-#### Filtering
-
-The `?filter` query parameter on a request indicates that the response
+The `?filter` query parameter (flag) on a request indicates that the response
 MUST include only those entities that match the specified filter criteria.
 This means that any Registry Collection's attributes MUST be modified
 to match the resulting subset. In particular:
@@ -5803,41 +5799,22 @@ Notice the first part of the `?filter` expression (to the left of the "and"
 (`,`)) has no impact on the results because the list of resulting leaves in
 that sub-tree is not changed by that search criteria.
 
-#### Exporting
+#### Compact
 
-The export semantics are designed to optimize the output for use by clients
-that want to retrieve a complete portion of the Registry's hierarchy with
-minimal duplication of information. Note that the export output can be used
-on a subsequent update/create operation.
+The `?compact` query parameter (flag) MAY be used to indicate that the response
+MUST be modified to do the following:
+- Remove the default Version attributes from a Resource's serialization.
+- When a Resource (source) uses the `xref` feature, the target Resource's
+  attributes are excluded from the source's serialization.
 
-During an export operation the following rules apply:
+This is useful when a client wants to minimize the amount of data returned by
+a server because the duplication of that data (typically used for human
+readability purposes) isn't necessary. For example, if tooling would ignore
+the duplication, or if the data will be used to populate a new Registry, then
+this feature might be used.
 
-- All possible inlining MUST be performed. In other words, an implied
-  `?inlining=*,model,capabilities` is directed at the root of
-  the Registry) MUST be in effect. The presence of the `?inline` query
-  parameter, even if set to the implied values MUST generate an error.
-- No filtering of the response entities is to be done. The presence of the
-  `?filter` query parameter MUST generate an error.
-- All Resources are serialized as JSON objects - meaning, Resources with the
-  `hasdoc` aspect set to `true` are serialized with implied `$structure`
-  semantics.
-- All Resources are serialized without the default Version attributes being
-  copied into the Resource. This is because they will already appear as
-  part of the `versions` collection so duplicating them is unnecessary.
-- Resources that are cross references (i.e. they have the `xref` attribute
-  defined), MUST NOT include the target Resource's attributes or nested
-  collections in its serialization.
-
-There are two ways to export:
-- The `?export` query parameter MAY be used on any `GET` request at any level
-  of the Registry's hierarchy.
-- The `/export` API MAY be used with the `GET` method to retrieve the entire
-  Registry. This is semantically equivalent to a `GET /?export` but expressed
-  as an API so that a static file server implementation can support it.
-
-As noted above, export changes the serialization rules of Resources by
-removing the default Version attributes. For clarity, the serialization of a
-Resource when exported will adhere to the following:
+For clarity, the serialization of a Resource when "compact" is used will
+adhere to the following:
 
 ```yaml
 {
@@ -5847,12 +5824,41 @@ Resource when exported will adhere to the following:
   "xid": "URI",
 
   "metaurl": "URL",
-  "meta": { ... },
-  "versionsurl": "URL",
-  "versionscount": UINTEGER,
-  "versions": { ... }
+  "meta": {
+    "RESOURCEid": "STRING",
+    "self": URL",
+    "shortself": "URL", ?
+    "xid": "URL",
+    "xref": "URL" ?
+    # Remaining attributes are absent if 'xref' is set
+    "epoch": UINTEGER",
+    "createdat": "TIMESTAMP",
+    "modifiedat": "TIMESTAMP",
+    "readonly": BOOLEAN, ?
+    "compatibility": "STRING", ?
+
+    "defaultversionid": "STRING",
+    "defaultversionurl": "URL"
+    "defaultversionsticky": BOOLEAN ?
+  }
 }
 ```
+
+Note that the attributes `epoch` through `defaultversionsticky` MUST be
+excluded if `xref` is set because those would be picked-up from the target
+Resource's `meta` sub-object.
+
+If `?compact` is used on a request directed to a Resource, or Version,
+that has the `hasdocument` model aspect set to `true`, then the processing
+of the request MUST take place as if the `$details` suffix was specified
+in the URL.
+
+If `?compact` is used on a request directed to a Resource's `versions`
+collection, or to one of its Versions, but the Resource is defined as an
+`xref` to another Resource, then the server MUST generate a
+`400 Bad Request` error and SHOULD indicate that using `?compact` on this
+part of the hierarchy is not valid - due to it not technically existing
+in this "compact" view.
 
 ### HTTP Header Values
 
