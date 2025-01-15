@@ -41,9 +41,9 @@ automation and tooling.
     - [Retrieving a Version](#retrieving-a-version)
     - [Deleting Versions](#deleting-versions)
   - [Configuring Responses[#configuring-responses]
-    - [Inlining](#inlining)
-    - [Filtering](#filtering)
-    - [Exporting](#exporting)
+    - [Inline](#inline)
+    - [Filter](#filter)
+    - [Compact](#compact)
   - [HTTP Header Values](#http-header-values)
 
 ## Overview
@@ -111,7 +111,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   "capabilities": {                     # Supported capabilities/options
     "enforcecompatibility": BOOLEAN, ?
     "flags": [                          # Query parameters
-      "epoch",? "export",? "filter",? "inline",? "nested",?
+      "epoch",? "compact",? "filter",? "inline",? "nested",?
       "nodefaultversionid",? "nodefaultversionsticky",? "noepoch",?
       "noreadonly",?  "schema",? "setdefaultversionid",? "specversion",?
       "STRING" *
@@ -821,7 +821,9 @@ This specification defines the following API patterns:
 
 ```yaml
 /                                               # Access the Registry
+/capabilities                                   # Access available features
 /model                                          # Access the model definitions
+/export                                         # Retrieve compact Registry
 /GROUPS                                         # Access a Group Type
 /GROUPS/gID                                     # Access a Group
 /GROUPS/gID/RESOURCES                           # Access a Resource Type
@@ -984,15 +986,15 @@ Where:
   (e.g. `endpoints`, `versions`).
 - The `COLLECTIONSurl` attribute MUST be an absolute URL that can be used to
   retrieve the `COLLECTIONS` map via an HTTP(s) `GET` (including any necessary
-  [filter](#filtering)) and MUST be a read-only attribute that MUST be silently
+  [filtering](#filter)) and MUST be a read-only attribute that MUST be silently
   ignored by a server during a write operation. An empty collection MUST
   return an HTTP 200 with an empty map (`{}`).
 - The `COLLECTIONScount` attribute MUST contain the number of entities in the
-  `COLLECTIONS` map (after any necessary [filtering](#filtering)) and MUST
+  `COLLECTIONS` map (after any necessary [filtering](#filter)) and MUST
   be a read-only attribute that MUST be silently ignored by a server during
   an write operation.
 - The `COLLECTIONS` attribute is a map and MUST contain the entities of the
-  collection (after any necessary [filtering](#filtering)), and MUST use
+  collection (after any necessary [filtering](#filter)), and MUST use
   the `SINGULARid` of each entity as its map key.
 - The key of each entity in the collection MUST be unique within the scope of
   the collection.
@@ -1043,7 +1045,7 @@ In API view:
 - `COLLECTIONSurl` and `COLLECTIONScount` are OPTIONAL for requests and MUST
    be silently ignored by the server if present.
 - `COLLECTIONS` is OPTIONAL for responses and MUST only be included if the
-  request included the [`?inline`](#inlining) query parameter indicating that
+  request included the [`?inline`](#inline) query parameter indicating that
   this collection's entities are to be returned. If `?inline` is present then
   `COLLECTIONS` is REQUIRED and MUST be present in the response even if it is
   empty (e.g. `{}`).
@@ -1843,7 +1845,7 @@ The following defines the specification defined capabilities:
   map indicates no support for that flag, and if included in a request
   SHOULD be silently ignored by servers.
 - Supported values:
-    `epoch`, `export`, `filter`, `inline`, `nested`,
+    `epoch`, `compact`, `filter`, `inline`, `nested`,
     `nodefaultversionid`, `nodefaultversionsticky`, `noepoch`, `noreadonly`,
     `schema`, `setdefaultversionid`, `specversion`.
   - If not specified, the default value is an empty list and no query
@@ -3094,6 +3096,24 @@ and the second include target might look like:
 
 ---
 
+### Exporting
+
+The `/export` API MUST be an alias for
+`GET /?compact&inline=*,model,capabilities". If supported, it MUST only
+support the `GET` HTTP method. This API was created:
+- As a short-hand convenience syntax for clients that need to download the
+  entire Registry as a single document. For example, to then be used in an
+  "import" type of operation for another Registry, or for tooling that
+  does not need the duplication of information that `?compact` removes.
+- To allow for servers that do not support query parameters (such as
+  [No-Code Servers](#no-code-servers)) to expose the entire Registry with a
+  single API call.
+
+Query parameters MAY be included on the request and any `?inline` flag
+specified MUST override the default value defined above.
+
+---
+
 ### Groups
 
 Groups represent entities that typically act as a collection mechanism for
@@ -3554,7 +3574,7 @@ the potentially large amount of data from the Resource's document in request
 and response messages could be cumbersome. To address this, the `RESOURCE` and
 `RESOURCEbase64` attributes do not appear by default as part of the
 serialization of the Resource. Rather, they MUST only appear in responses when
-the [`?inline=RESOURCE`](#inlining) query parameter is used. Likewise, in
+the [`?inline=RESOURCE`](#inline) query parameter is used. Likewise, in
 requests, these attributes are OPTIONAL and would only need to be used when a
 change to the document's content is needed at the same time as updates to the
 Resource's metadata. However, the `RESOURCEurl` attribute MUST always appear
@@ -4184,7 +4204,7 @@ Both the source and target Resources MUST be of the same Resource model type,
 simply having similar Resource type definitions is not sufficient. This
 implies that use of the `ximport` feature in the model to reference a
 Resource type from another Group type definition MUST be used if the same
-Resource type is to exist in different Group tyes. See
+Resource type is to exist in different Group types. See
 [`ximport`](#reuse-of-resource-definitions) for more information.
 
 An `xref` value that points to a non-existing Resource, either because
@@ -5513,9 +5533,9 @@ HTTP/1.1 204 No Content
 Any request MAY include a set of query parameters (flags) to control how the
 response is to be generated. The following sections will defined the following
 flags:
-- [`?inline`](#inlining)
-- [`?filter`](#filtering)
-- [`?export`](#exporting)
+- [`?inline`](#inline)
+- [`?filter`](#filter)
+- [`?compact`](#compact)
 
 Implementations of this specification SHOULD support all 3 flags.
 
@@ -5526,9 +5546,9 @@ are too large to be sent in one message. In those cases, the client will need
 to query the individual inlinable attributes in isolation so the Registry can
 leverage [pagination](../pagination/spec.md) of the response.
 
-#### Inlining
+#### Inline
 
-The `?inline` query parameter MAY be used on requests to indicate whether
+The `?inline` query parameter (flag) MAY be used on requests to indicate whether
 nested collections/objects, or certain (potentially large) attributes, are to
 be included in the response message.
 
@@ -5628,15 +5648,16 @@ error.
 
 The `?nested` query parameter acts as the compliment to `?inline` in that
 `?nested` MUST be used on write requests to indicate that the client wishes
-to have any inlinable attributes (except for `RESOURCE*`) that are present in
-the request processed. Absence of the `?nested` query parameter when an
-inlinable collection is present MUST generate an error. See
+to have any Registry collections processed. Absence of the `?nested` query
+parameter when a Registry collection is present MUST generate an error. See
 [Updating Nested Registry Collections](#updating-nested-registry-collections)
 for more information.
 
-#### Filtering
+TODO pull out ?nested into its own section
 
-The `?filter` query parameter on a request indicates that the response
+#### Filter
+
+The `?filter` query parameter (flag) on a request indicates that the response
 MUST include only those entities that match the specified filter criteria.
 This means that any Registry Collection's attributes MUST be modified
 to match the resulting subset. In particular:
@@ -5803,41 +5824,22 @@ Notice the first part of the `?filter` expression (to the left of the "and"
 (`,`)) has no impact on the results because the list of resulting leaves in
 that sub-tree is not changed by that search criteria.
 
-#### Exporting
+#### Compact
 
-The export semantics are designed to optimize the output for use by clients
-that want to retrieve a complete portion of the Registry's hierarchy with
-minimal duplication of information. Note that the export output can be used
-on a subsequent update/create operation.
+The "compact" query parameter (flag) MAY be used to indicate that the response
+MUST be modified to do the following:
+- Remove the default Version attributes from a Resource's serialization.
+- When a Resource (source) uses the `xref` feature, the target Resource's
+  attributes are excluded from the source's serialization.
 
-During an export operation the following rules apply:
+This is useful when a client wants to minimize the amount of data returned by
+a server because the duplication of that data (typically used for human
+readability purposes) isn't necessary. For example, if tooling would ignore
+the duplication, or if the data will be used to populate a new Registry, then
+this feature might be used.
 
-- All possible inlining MUST be performed. In other words, an implied
-  `?inlining=*,model,capabilities` is directed at the root of
-  the Registry) MUST be in effect. The presence of the `?inline` query
-  parameter, even if set to the implied values MUST generate an error.
-- No filtering of the response entities is to be done. The presence of the
-  `?filter` query parameter MUST generate an error.
-- All Resources are serialized as JSON objects - meaning, Resources with the
-  `hasdoc` aspect set to `true` are serialized with implied `$structure`
-  semantics.
-- All Resources are serialized without the default Version attributes being
-  copied into the Resource. This is because they will already appear as
-  part of the `versions` collection so duplicating them is unnecessary.
-- Resources that are cross references (i.e. they have the `xref` attribute
-  defined), MUST NOT include the target Resource's attributes or nested
-  collections in its serialization.
-
-There are two ways to export:
-- The `?export` query parameter MAY be used on any `GET` request at any level
-  of the Registry's hierarchy.
-- The `/export` API MAY be used with the `GET` method to retrieve the entire
-  Registry. This is semantically equivalent to a `GET /?export` but expressed
-  as an API so that a static file server implementation can support it.
-
-As noted above, export changes the serialization rules of Resources by
-removing the default Version attributes. For clarity, the serialization of a
-Resource when exported will adhere to the following:
+For clarity, the serialization of a Resource when "compact" is used will
+adhere to the following:
 
 ```yaml
 {
@@ -5847,12 +5849,41 @@ Resource when exported will adhere to the following:
   "xid": "URI",
 
   "metaurl": "URL",
-  "meta": { ... },
-  "versionsurl": "URL",
-  "versionscount": UINTEGER,
-  "versions": { ... }
+  "meta": {
+    "RESOURCEid": "STRING",
+    "self": URL",
+    "shortself": "URL", ?
+    "xid": "URL",
+    "xref": "URL" ?
+    # Remaining attributes are absent if 'xref' is set
+    "epoch": UINTEGER",
+    "createdat": "TIMESTAMP",
+    "modifiedat": "TIMESTAMP",
+    "readonly": BOOLEAN, ?
+    "compatibility": "STRING", ?
+
+    "defaultversionid": "STRING",
+    "defaultversionurl": "URL"
+    "defaultversionsticky": BOOLEAN ?
+  }
 }
 ```
+
+Note that the attributes `epoch` through `defaultversionsticky` MUST be
+excluded if `xref` is set because those would be picked-up from the target
+Resource's `meta` sub-object.
+
+If `?compact` is used on a request directed to a Resource, or Version,
+that has the `hasdocument` model aspect set to `true`, then the processing
+of the request MUST take place as if the `$structure` suffix was specified
+in the URL.
+
+If `?compact` is used on a request directed to a Resource's `versions`
+collection, or to one of its Versions, but the Resource is defined as an
+`xref` to another Resource, then the server MUST generate a
+`400 Bad Request` error and SHOULD indicate that using `?compact` on this
+part of the hierarchy is not valid - due to it not technically existing
+in this "compact" view.
 
 ### HTTP Header Values
 
