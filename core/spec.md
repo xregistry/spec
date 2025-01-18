@@ -40,7 +40,7 @@ automation and tooling.
     - [Creating or Updating Versions](#creating-or-updating-versions)
     - [Retrieving a Version](#retrieving-a-version)
     - [Deleting Versions](#deleting-versions)
-  - [Configuring Responses[#configuring-responses]
+  - [Configuring Responses](#configuring-responses)
     - [Inline](#inline)
     - [Filter](#filter)
     - [Compact](#compact)
@@ -232,7 +232,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "self": "URL",                         # URL to "meta" object
             "shortself": "URL", ?
             "xid": "URI",
-            "xref": "URL", ?                       # Ptr to linked Resource
+            "xref": "URL", ?                       # xid of linked Resource
             "epoch": UINTEGER,                     # Resource's epoch
             "createdat": "TIMESTAMP",              # Resource's
             "modifiedat": "TIMESTAMP",             # Resource's
@@ -407,11 +407,13 @@ be one of the following data types:
   - See [Serializing Resource Documents](#serializing-resource-documents)
     for more information about serializing maps as HTTP headers.
 - `object` - a nested entity made up of a set of attributes of these data types.
-- `relation` - a relative URL reference to a type of entity in the Registry.
-  This type of attribute is used in place of `url` so that the Registry can
-  do "type checking" to ensure the value references the correct type of
-  Registry entity. See the definition of the [`target` model
-  attribute](#model.target) for more information.
+- `relation` - MUST be a `URL` (xid) reference to another entity defined within
+  the Registry. The actual entity attribute value MAY reference a non-existing
+  entity (i.e. dangling pointer), but the syntax MUST reference a
+  defined/valid type in the Registry. This type of attribute is used in
+  place of `url` so that the Registry can do "type checking" to ensure the
+  value references the correct type of Registry entity. See the definition of
+  the [`target` model attribute](#model.target) for more information.
 - `string` - sequence of Unicode characters.
 - `timestamp` - an [RFC3339](https://tools.ietf.org/html/rfc3339) timestamp.
 - `uinteger` - unsigned integer.
@@ -423,6 +425,11 @@ be one of the following data types:
   [RFC 6570 Section 3.2.1](https://tools.ietf.org/html/rfc6570#section-3.2.1).
 - `url` - URL as defined in
   [RFC 1738](https://datatracker.ietf.org/doc/html/rfc1738).
+
+All relative URIs and URLs that reference entities within the Registry MUST
+begin with `/` and MUST be relative to the root path of the Registry service.
+The root path of a Registry service MAY be at the root of a host or have a
+`PATH` portion in its URL (e.g. `http://example.com/myregistry`)
 
 The "scalar" data types are: `boolean`, `decimal`, `integer`, `relation`,
 `string`, `timestamp`, `uinteger`, `uri`, `urireference`, `uritemplate`, `url`.
@@ -520,8 +527,8 @@ The definition of each attribute is defined below:
 - Constraints:
   - MUST be a non-empty string consisting of [RFC3986 `unreserved`
     characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3)
-    (ALPHA / DIGIT / "-" / "." / "_" / "~") and `@`, MUST start with
-    ALPHA, DIGIT or "_" and MUST be between 1 and 128 characters in length.
+    (ALPHA / DIGIT / `-` / `.` / `_` / `~`) and `@`, MUST start with
+    ALPHA, DIGIT or `_` and MUST be between 1 and 128 characters in length.
   - MUST be case insensitive unique within the scope of the entity's parent.
     In the case of the `registryid` for the Registry itself, the uniqueness
     scope will be based on where the Registry is used. For example, a publicly
@@ -556,7 +563,7 @@ of the existing entity. Then the existing entity can be deleted.
 ##### `self` Attribute
 
 - Type: URL
-- Description: A server generated unique absolute URL for an entity. In the
+- Description: A server generated unique URL for the current entity. In the
   case of pointing to an entity in a [Registry
   Collection](#registry-collections), the URL MUST be a combination of the
   base URL for the collection appended with the `SINGULARid` of the entity.
@@ -575,7 +582,8 @@ of the existing entity. Then the existing entity can be deleted.
 
 - Constraints:
   - MUST be unique across all entities in the Registry.
-  - MUST be a non-empty absolute URL.
+  - MUST be a non-empty absolute URL, except when `?compact` is enabled
+    then it MUST be a relative URL.
   - MUST be a read-only attribute in API view.
 - Examples:
   - `https://example.com/registry/endpoints/ep1`
@@ -623,7 +631,7 @@ of the existing entity. Then the existing entity can be deleted.
   Unlike `SINGULARid`, which is unique within the scope of its parent, `xid`
   MUST be unique across the entire Registry, and as such is defined to be a
   relative URL from the root of the Registry. This value MUST be the same as
-  the PATH portion of the `self` URL, after the Registry's base URL, without
+  the PATH portion of its `self` URL, after the Registry's base URL, without
   any `$` suffix (e.g. `$details`).
 
   This attribute is provided as a convenience for users who need a reference
@@ -981,11 +989,13 @@ to their respective forms as follows:
 Where:
 - The term `COLLECTIONS` MUST be the plural name of the collection
   (e.g. `endpoints`, `versions`).
-- The `COLLECTIONSurl` attribute MUST be an absolute URL that can be used to
-  retrieve the `COLLECTIONS` map via an HTTP(s) `GET` (including any necessary
-  [filtering](#filter)) and MUST be a read-only attribute that MUST be silently
-  ignored by a server during a write operation. An empty collection MUST
-  return an HTTP 200 with an empty map (`{}`).
+- The `COLLECTIONSurl` attribute MUST be a URL that can be used to retrieve
+  the `COLLECTIONS` map via an HTTP(s) `GET` (including any necessary
+  [filtering](#filter)) and MUST be a read-only attribute that MUST
+  be silently ignored by a server during a write operation. An empty
+  collection MUST return an HTTP 200 with an empty map (`{}`). This attribute
+  MUST be an absolute URL except when `?compact` is enabled and the collection
+  is inlined, in which case it MUST be a relative URL.
 - The `COLLECTIONScount` attribute MUST contain the number of entities in the
   `COLLECTIONS` map (after any necessary [filtering](#filter)) and MUST
   be a read-only attribute that MUST be silently ignored by a server during
@@ -2010,6 +2020,11 @@ different set of changes are more appropriate:
   - Timestamp: zero (00:00:00 UTC Jan 1, 1970).
 - If valid, String attributes SHOULD use `"undefined"`.
 
+Changes to the model MUST NOT include changing the `hasDocument` aspect of a
+Resource from `false` to `true` if there are attributes defined on that
+Resource whose names conflict with the `RESOURCE*` attributes. Any attempt do
+to so MUST generate an error.
+
 If a backwards incompatible change is needed, and the existing entities need
 to be preserved, then it is RECOMMENDED that users define a new Group or
 Resource types for future instances of those entities.
@@ -2101,10 +2116,16 @@ The following describes the attributes of Registry model:
   - Values MAY be empty strings.
   - The following labels are defined for convenience and MAY also be used
     as labels for Groups or Resource model types:
+    - Name: `modelversion`
+      Value: The version of the model. For many specifications it's a
+      combination of major and minor version numbers, e.g. `1.2`.
+      This label will most likely only appear as a label on the model itself,
+      not on Groups or Resource model definitions.
     - Name: `compatiblewith`
-      Value: A URI reference to Registry that this Registry's model is
+      Value: An absolute URL to the model specification that this model is
       compatible with. This specification does not mandate any runtime
       validation of this claim.
+  - Model authors MAY define additional labels.
 
 - `attributes`
   - The set of attributes defined at the indicated level of the Registry. This
@@ -2154,7 +2175,9 @@ The following describes the attributes of Registry model:
 
 - `attributes."STRING".target` <span id="model.target"></span>
   - The type of entity that this attribute points to when `type` is set to
-    `relation`. The value of this model attribute MUST be one of:
+    `relation`, `url-reference` or `uri-reference`. `target` MUST NOT be used
+    for any other type of attribute. The value of this model attribute MUST be
+    a "xid template" of one of the following forms:
     - `/GROUPS` - a plural Group type name. An entity attribute of this
       type/target MUST reference an instance of this Group type.
     - `/GROUPS/RESOURCES` - a plural Resource type name. An entity attribute
@@ -2167,12 +2190,19 @@ The following describes the attributes of Registry model:
       attribute of this type/target MUST reference an instance of a Version
       of this Resource type, not the Resource itself.
   - Example: `/endpoints/messages`
-  - An entity attribute of type `relation` MUST use the `xid` value of the
-    entity to which it points. For example, a `target` value of `/endpoints`
-    might result in an entity attribute value of `/endpoints/e1`.
+  - A `relation` entity attribute that includes a `target` value as part of
+    its model definition MUST match the `target` entity type specified. A
+    `relation` attribute that does not include `target` definition has no
+    such restriction and MAY be any valid `xid` value.
+  - A URI/URL-reference entity attribute MAY include `target` as part of its
+    definition. If so, then any runtime value that is a relative URI/URL
+    (begins with `/`) MUST be an `xid` and MUST adhere to the `target` entity
+    type specified. Absolute URIs/URLs are not constrained by the presence of
+    a `target` value.
   - Type: STRING.
-  - REQUIRED if `type` is "relation".
-  - MUST NOT be used when `type` is not "relation".
+  - To keep the model, and processing simple, the value MUST NOT reference a
+    type that uses `ximport` to reference another model entity definition. In
+    other words, `target` is not transitive.
 
 - `attributes."STRING".description`
   - A human readable description of the attribute.
@@ -3477,7 +3507,7 @@ However, there a few exceptions:
   attribute (in the `meta` sub-object) can be used to locate the "default"
   Version.
 - `shortself`, if present, MUST be an alternative URL for `self`.
-- `xid` MUST be a relative URL to the Resource, and not to the "default"
+- `xid` MUST be a relative URI to the Resource, and not to the "default"
   Version in the `versions` collection.
 - A few extra attributes will appear to help with the navigation of the
   Resource. For example, a URL to the `meta` sub-object and the `versions`
@@ -3610,7 +3640,6 @@ Resource attribute MUST adhere to the following:
     "modifiedat": "TIMESTAMP",             # Resource's
     "readonly": BOOLEAN, ?                 # Default is "false"
     "compatibility": "STRING", ?           # Default is "none"
-    # TODO - add timestamp?
 
     "defaultversionid": "STRING",
     "defaultversionurl": "URL",
@@ -3633,7 +3662,7 @@ MUST appear as HTTP headers and adhere to the following:
 xRegistry-RESOURCEid: STRING
 xRegistry-versionid: STRING
 xRegistry-self: URL
-xRegistry-xid: URL
+xRegistry-xid: URI
 # Default Version attributes, and other HTTP headers, appear here
 xRegistry-metaurl: URL
 xRegistry-versionsurl: URL
@@ -3656,7 +3685,7 @@ The Resource level attributes include the following
 and the following Resource level attributes:
 
 ##### `xref` Attribute
-- Type: Relative URL from base URL of Registry
+- Type: Relative URL (xid) of a same-typed entity in the Registry.
 - Description: indicates that this Resource is a reference to another Resource
   within the same Registry. See [Cross Referencing
   Resources](#cross-referencing-resources) for more information.
@@ -3741,7 +3770,7 @@ and the following Resource level attributes:
 
 ##### `defaultversionurl` Attribute
 - Type: URL
-- Description: an absolute URL to the default Version of the Resource.
+- Description: a URL to the default Version of the Resource.
 
   The Version URL path MUST include `$details` if the request asked for
   the serialization of the Resource metadata. This would happen when
@@ -3751,8 +3780,10 @@ and the following Resource level attributes:
   - REQUIRED in responses, OPTIONAL in requests.
   - OPTIONAL in document view.
   - MUST be a read-only attribute in API view.
-  - MUST be an absolute URL to the default Version of the Resource, and MUST.
-    be the same as the Version's `self` attribute.
+  - MUST be an absolute URL to the default Version of the Resource, and MUST
+    be the same as the Version's `self` attribute, except when `?compact`
+    is enabled, and the Version is present in the response, then it MUST be a
+    relative URL.
 - Examples:
   - `https://example.com/endpoints/ep1/messages/msg1/versions/1.0`
 
@@ -3824,15 +3855,17 @@ no changes are to be made to the `meta` sub-object.
 
 ##### `metaurl` Attribute
 - Type: URL
-- Description: an absolute URL to the Resource's `meta` sub-object. This
-  sub-object will contain most of the Resource level attributes.
+- Description: a URL to the Resource's `meta` sub-object. This sub-object will
+  contain most of the Resource level attributes.
 - Constraints:
   - If present, it MUST appear as an attribute of the Resource as a sibling
     to the Resource's default Version attributes.
   - REQUIRED in responses, OPTIONAL in requests.
   - OPTIONAL in document view.
   - MUST be a read-only attribute in API view.
-  - MUST be an absolute URL to the Resource's `meta` sub-object.
+  - MUST be an absolute URL to the Resource's `meta` sub-object, except when
+    `?compact` is enabled and the meta sub-object is inlined, in which case
+    it MUST be a relative URL.
 - Examples:
   - `https://example.com/endpoints/ep1/messages/msg1/meta`
 
@@ -3922,7 +3955,7 @@ Content-Type: STRING ?
 xRegistry-RESOURCEid: STRING               # ID of Resource, not default Version
 xRegistry-versionid: STRING                # ID of the default Version
 xRegistry-self: URL                        # Resource URL, not default Version
-xRegistry-xid: URL                         # Relative Resource URL
+xRegistry-xid: URI                         # Relative Resource URI
 xRegistry-epoch: UINT                      # Start default Version's attributes
 xRegistry-name: STRING ?
 xRegistry-isdefault: true ?
@@ -3948,7 +3981,7 @@ Where:
 - The `versionid` attribute MUST be the ID of the Resource's default Version.
 - The `self` URL references the Resource, not the default Version.
 - The `shortself` URL, if present, MUST be an alternative URL for `self`.
-- The `xid` URL references the Resource, not the default Version.
+- The `xid` URI references the Resource, not the default Version.
 - The serialization of the `labels` attribute is split into separate HTTP
   headers (one per label name).
 - The `versionsurl` and `versionscount` Collection attributes are included,
@@ -4051,37 +4084,82 @@ be done in the other - running the risk of them getting out of sync.
 The second, and better, option is to create a cross-reference from one
 (the "source" Resource) to the other ("target" Resource). This is done
 by setting the `xref` attribute on the source Resource to be the `xid`
-of the target Resource. For example, a source Resource's `meta` sub-object
-defined as:
+of the target Resource.
+
+The `xref` attribute is defined in the model as:
 
 ```yaml
-{
-  # Resource URL: http://example.com/groups/group1/resource/sourceresource
-  "RESOURCEid": "sourceresource",
-  "xref": "/groups/group2/resources/targetresource"
+"xref": {
+  "name": "xref",
+  "type": "relation",
+  "target": "/GROUPS/RESOURCES"
 }
 ```
 
-means that this "sourceresource" references the "targetresource" from
-"group2". When the source Resource is serialized (e.g. as a result of a
-`GET`), then all of the target Resource's attributes (except its `RESOURCEid`)
-will appear as if they were locally defined. So, if the target Resource was
-defined as:
+where `/GROUPS/RESOURCES` will be the actual Group and Resource plural names
+of this Resource.
+
+Looking at a specific example, a Group/Resource model definition of:
 
 ```yaml
 {
-  "resourceid": "targetresource",
+  "groups" : {
+    "schemagroups": {
+      "plural": "schemagroups",
+      "singular": "schemagroup",
+
+      "resources": {
+        "plural": "schemas",
+        "singular": "schema",
+        "attributes": {
+          "xref": {
+            "name": "xref",
+            "type": "relation",
+            "target": "/schemagroups/schemas"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+Means that `schemas` can be cross-referenced to other `/schemagroups/schema`
+Resource. Notice that `target` is a `xid` template to itself.
+
+For example: a `schema` Resource instance defined as (HTTP body of
+`PUT /schemagroups/group1/schemas/mySchema$details`):
+
+```yaml
+{
+  "schemaid": "mySchema",
+  "meta": {
+    "xref": "/schemagroups/group2/schemas/sharedSchema"
+  }
+}
+```
+
+means that `mySchema` references `sharedSchema`, which exists in `group2`.
+When this source Resource (`mySchema`) is retrieved, all of the target
+Resource's attributes (except its `RESOURCEid`) will appear as if they were
+locally defined.
+
+So, if the target Resource (`sharedSchema`) is defined as:
+
+```yaml
+{
+  "resourceid": "sharedSchema",
   "versionid": "v1",
-  "self": "http://example.com/groups/group2/resources/targetresource",
-  "xid": "/groups/group2/resources/targetresource",
+  "self": "http://example.com/schemagroups/group2/schemas/sharedSchema",
+  "xid": "/schemagroups/group2/schemas/sharedSchema",
   "epoch": 2,
   "isdefault": true,
   "createdat": "2024-01-01-T12:00:00",
   "modifiedat": "2024-01-01-T12:01:00",
 
-  "metaurl": "http://example.com/groups/groups2/resource/targetresource/meta",
+  "metaurl": "http://example.com/schemagroups/group2/schemas/sharedSchema/meta",
   "versionscount": 1,
-  "versionsurl": "http://example.com/groups/group2/resources/targetresource/versions"
+  "versionsurl": "http://example.com/schemagroups/group2/schemas/sharedSchema/versions"
 }
 ```
 
@@ -4089,51 +4167,50 @@ then the resulting serialization of the source Resource would be:
 
 ```yaml
 {
-  "resourceid": "sourceresource",
+  "resourceid": "mySchema",
   "versionid": "v1",
-  "self": "http://example.com/groups/group1/resources/sourceresource",
-  "xid": "/groups/group1/resources/sourceresource",
+  "self": "http://example.com/schemagroups/group1/schemas/mySchema",
+  "xid": "/schemagroups/group1/schemas/mySchema",
   "epoch": 2,
   "isdefault": true,
   "createdat": "2024-01-01-T12:00:00",
   "modifiedat": "2024-01-01-T12:01:00",
 
-  "metaurl": "http://example.com/groups/group1/resource/sourceresource/meta",
+  "metaurl": "http://example.com/schemagroups/group1/schemas/mySchema/meta",
   "meta": {
-    "resourceid": "sourceresource",
-    "self": "http://example.com/groups/groups2/resource/sourceresource/meta",
-    "xid": "/groups/groups2/resource/sourceresource/meta",
-    "xref": "/groups/group2/resources/targetresource",
+    "resourceid": "mySchema",
+    "self": "http://example.com/schemagroups/group1/schemas/mySchema/meta",
+    "xid": "/schemagroups/group1/schemas/mySchema/meta",
+    "xref": "/schemagroups/group2/schemas/sharedSchema",
     "createdat": "2024-01-01-T12:00:00",
     "modifiedat": "2024-01-01-T12:01:00"
   },
   "versionscount": 1,
-  "versionsurl": "http://example.com/groups/group1/resources/sourceresource/versions"
+  "versionsurl": "http://example.com/schemagroups/group1/schemas/mySchema/versions"
 }
 ```
 
 Note:
-- The `RESOURCEid` of the source Resource MAY be different from the
-  `RESOURCEid` of the target Resource.
-- The `xref` attribute MUST appear within the `meta` sub-object so a client
-  can easily determine that this Resource is a cross-referenced Resource, and
-  provide a URL to that targeted Resource (if ever needed).
-- All calculated attributes (such as the `defaultversionurl` and `versionsurl`)
-  MUST use the `RESOURCEid` of the source Resource not the target Resource. In
+- Any attributes referencing the source MUST use the source's metadata. In
   this respect, users of this serialization would never know that this is a
   cross-referenced Resource except for the presence of the `xref` attribute.
-- The URL of the target Resource MUST be the `xid` of the target Resource, and
-  be of the form: `/GROUPS/gID/RESOURCES/rID`, and MUST reference a Resource
-  within the same Registry. However, it MUST NOT point to itself.
+  For example, its `RESOURCEid` MUST be the source's `id` and not the target's.
+- The `xref` attribute MUST appear within the `meta` sub-object so a client
+  can easily determine that this Resource is a cross-referenced Resource, and
+  it provides a reference to the targeted Resource.
+- The `xref` URL MUST be the `xid` of the target Resource.
 
 From a consumption (read) perspective, aside from the presence of the `xref`
 attribute, the Resource appears to be a normal Resource that exists within
 `group1`. All of the specification defined features (e.g. `?inline`,
 `?filter`) MAY be used when retrieving the Resource.
 
-However, from a write perspective it is quite different. Depending on the
-state of the source Resource different rules apply - see the following
-text:
+However, from a write perspective it is quite different. In order to update
+the target Resource's attributes (or nested entities), a write operation MUST
+be done on the appropriate target Resource entity directly. Write
+operations on the source MAY be done, however the changes are limited to
+converting it from a "cross-reference" Resource back into a "normal"
+Resource.  See the following for more information:
 
 When converting a "normal" Resource into a cross-reference Resource (adding
 an `xref` value), or creating a new Resource that will be a cross-reference
@@ -4168,19 +4245,15 @@ following MUST be adhered to:
   This will ensure that the Resource's `epoch` value will never decrease as a
   result of this operation. Note that going from a "normal" Resource to a
   cross-reference Resource does not have this guarantee. If the target Resource
-  no longer exists then `target_Resource_Epoch` can be treated as zero.
+  no longer exists then `target_Resource_Epoch` MUST be treated as zero.
 - Aside from the processing rules specified above, the Resource's attributes
   that might have existed prior to the Resource being converted from a
   "normal" Resource into a cross-reference Resource MUST NOT be resurrected
   with their old values.
 - Any relationship with the target Resource MUST be deleted.
 
-In order to update the target Resource's attributes (or nested entities), a
-write operation MUST be done on the appropriate target Resource entity
-directly.
-
-If the target Resource itself is a cross reference Resource, then inlining
-of the target Resource's attributes MUST NOT be done when serializing the
+If the target Resource itself is a cross reference Resource, then including
+the target Resource's attributes MUST NOT be done when serializing the
 source Resource. Recursive, or transitively, following of `xref` URLs it not
 done.
 
@@ -4421,7 +4494,7 @@ Where:
   - If there is only one Version created, then it MUST become the default
     Version, and use of the `?setdefaultversionid` query parameter is OPTIONAL.
   - If there is more than one Version created, then use of the
-    `setdefaultversionid` is RECOMMENDED.
+    `?setdefaultversionid` query parameter is RECOMMENDED.
   - There MUST be at least one Version specified in the HTTP body. In other
     words, an empty collection MUST generate an error since creating a Resource
     with no Versions would immediate delete that Resource.
@@ -4514,7 +4587,7 @@ Content-Type: STRING ?
 xRegistry-RESOURCEid: STRING ?
 xRegistry-versionid: STRING ?
 xRegistry-self: URL
-xRegistry-xid: URL
+xRegistry-xid: URI
 xRegistry-epoch: UINTEGER ?
 xRegistry-name: STRING ?
 xRegistry-isdefault: BOOLEAN ?
@@ -4757,7 +4830,7 @@ Content-Type: STRING ?
 xRegistry-RESOURCEid: STRING
 xRegistry-versionid: STRING
 xRegistry-self: URL
-xRegistry-xid: URL
+xRegistry-xid: URI
 xRegistry-epoch: UINT
 xRegistry-name: STRING ?
 xRegistry-description: STRING ?
@@ -4782,7 +4855,7 @@ Where:
 - `self` MUST be a URL to the Resource, not to the default Version of the
   Resource.
 - `shortself`, if present, MUST be an alternative URL for `self`.
-- `xid` MUST be a relative URL to the Resource, not to the default Version of
+- `xid` MUST be a relative URI to the Resource, not to the default Version of
   the Resource.
 - If `RESOURCEurl` is present then it MUST have the same value as `Location`.
 - If `Content-Location` is present then it MUST be a URL to the Version of the
@@ -4859,7 +4932,7 @@ Where:
 - `self` is a URL to the Resource (with `$details`), not to the default
   Version of the Resource.
 - `shortself`, if present, MUST be an alternative URL for `self`.
-- `xid` is a relative URL to the Resource (without `$details`), not to the
+- `xid` is a relative URI to the Resource (without `$details`), not to the
   default Version of the Resource.
 - `RESOURCE`, or `RESOURCEbase64`, MUST only be included if requested via use
   of the `?inline` feature and `RESOURCEurl` is not set.
@@ -4999,31 +5072,13 @@ as defined below:
 - Type: String
 - Description: An immutable unique identifier of the Version.
 - Constraints:
-  - MUST be a non-empty string consisting of [RFC3986 `unreserved`
-    characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3)
-    (ALPHA / DIGIT / "-" / "." / "_" / "~").
+  - See [SINGULARid](#singularid-id-attribute).
   - MUST NOT use a value of `null` or `request` due to these being reserved
-    for use by the `setdefaultversionid` operation.
-  - MUST be case insensitive unique within the scope of the owning Resource.
-  - This attribute MUST be treated as case sensitive for look-up purposes.
-    This means that an HTTP URL request to an entity with the wrong case for its
-    `versionid` MUST be treated as "not found".
-  - In cases where the `versionid` is specified outside of the serialization
-    of the Version (e.g. part of a request URL, or a map key), its
-    presence within the serialization of the entity is OPTIONAL. However, if
-    present, it MUST be the same as any other specification of the `versionid`
-    outside of the entity, and it MUST be the same as the entity's existing
-    `versionid` if one exists, otherwise an error MUST be generated.
-  - MUST be immutable.
+    for use by the `?setdefaultversionid` feature.
 - Examples:
   - `1.0`
   - `v2`
   - `v3-rc`
-TODO reuse SINGULARid section instead of duplicating this
-
-Note, since `versionid` is immutable, in order to change its value a new
-Version would need to be created with the new `versionid` that is a deep-copy
-of the existing Version. Then the existing Version can be deleted.
 
 ##### `isdefault` Attribute
 - Type: Boolean
@@ -5321,7 +5376,7 @@ Content-Type: STRING ?
 xRegistry-RESOURCEid: STRING
 xRegistry-versionid: STRING
 xRegistry-self: URL
-xRegistry-xid: URL
+xRegistry-xid: URI
 xRegistry-epoch: UINT
 xRegistry-name: STRING ?
 xRegistry-isdefault: BOOLEAN ?
@@ -5340,7 +5395,7 @@ Where:
 - `versionid` MUST be the `SINGULARid` of the Version.
 - `self` MUST be a URL to the Version, not to the owning Resource.
 - `shortself` MUST be an alternative URL for `self`.
-- `xid` MUST be a relative URL to the Version, not to the owning Resource.
+- `xid` MUST be a relative URI to the Version, not to the owning Resource.
 - `Content-Disposition` SHOULD be present and if so, MUST be the `RESOURCEid`
   value. This allows for HTTP tooling that is not aware of xRegistry to know
   the desired filename to use if the HTTP body were to be written to a file.
@@ -5353,7 +5408,7 @@ Content-Type: STRING ?
 xRegistry-RESOURCEid: STRING
 xRegistry-versionid: STRING
 xRegistry-self: URL
-xRegistry-xid: URL
+xRegistry-xid: URI
 xRegistry-epoch: UINT
 xRegistry-name: STRING ?
 xRegistry-isdefault: BOOLEAN ?
@@ -5440,7 +5495,7 @@ Where:
 - `versionid` MUST be the `SINGULARid` of the Version.
 - `self` MUST be a URL to the Version, not to the owning Resource.
 - `shortself` MUST be an alternative URL for `self`.
-- `xid` MUST be a relative URL to the Version, not to the owning Resource.
+- `xid` MUST be a relative URI to the Version, not to the owning Resource.
 
 **Examples:**
 
@@ -5476,7 +5531,7 @@ To delete one or more Versions of a Resource, an HTTP `DELETE` MAY be used:
 
 The processing of these two APIs is defined in the [Deleting Entities in a
 Registry Collection](#deleting-entities-in-a-registry-collection)
-section. For more information about the `setdefaultversionid` query
+section. For more information about the `?setdefaultversionid` query
 parameter see the [Default Version of a
 Resource](#default-version-of-a-resource) section.
 
@@ -5806,12 +5861,16 @@ MUST be modified to do the following:
 - Remove the default Version attributes from a Resource's serialization.
 - When a Resource (source) uses the `xref` feature, the target Resource's
   attributes are excluded from the source's serialization.
+- Convert the following attributes into relative URLs if the entities that
+  they reference are included in the response output:
+  `self`, `COLLECTIONSurl`, `metaurl`, `defaultversionurl`.
 
 This is useful when a client wants to minimize the amount of data returned by
 a server because the duplication of that data (typically used for human
-readability purposes) isn't necessary. For example, if tooling would ignore
+readability purposes) isn't necessary.  For example, if tooling would ignore
 the duplication, or if the data will be used to populate a new Registry, then
-this feature might be used.
+this feature might be used. It also makes the output more of a "stand-alone"
+document that minimizes external references.
 
 For clarity, the serialization of a Resource when "compact" is used will
 adhere to the following:
@@ -5828,7 +5887,7 @@ adhere to the following:
     "RESOURCEid": "STRING",
     "self": URL",
     "shortself": "URL", ?
-    "xid": "URL",
+    "xid": "URI",
     "xref": "URL" ?
     # Remaining attributes are absent if 'xref' is set
     "epoch": UINTEGER",

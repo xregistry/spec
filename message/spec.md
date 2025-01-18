@@ -79,6 +79,13 @@ this form:
           "createdat": "TIMESTAMP",
           "modifiedat": "TIMESTAMP",
 
+          "deprecated": {
+            "effective": "TIMESTAMP", ?
+            "removal": "TIMESTAMP", ?
+            "alternative": "URL", ?
+            "docs": "URL"?
+          }, ?
+
           "basemessageurl": "URL", ?           # Message being extended
 
           "envelope": "STRING", ?              # e.g. CloudEvents/1.0
@@ -237,6 +244,50 @@ the look-up value (id) of messages with their related events.
 The following extensions are defined for the `message` Resource in addition to
 the core xRegistry Resource
 [attributes](../core/spec.md#attributes-and-extensions):
+
+#### `deprecated`
+
+- Type: Object containing the following properties:
+  - `effective`<br>
+    An OPTIONAL property indicating the time when the message entered, or will
+    enter, a deprecated state. The date MAY be in the past or future. If this
+    property is not present the message is already in a deprecated state.
+    If present, this MUST be an [RFC3339][rfc3339] timestamp.
+
+  - `removal`<br>
+    An OPTIONAL property indicating the time when the message MAY be removed.
+    The message MUST NOT be removed before this time. If this property is not
+    present then client can not make any assumption as to when the message
+    might be removed. Note: as with most properties, this property is mutable.
+    If present, this MUST be an [RFC3339][rfc3339] timestamp and MUST NOT be
+    sooner than the `effective` time if present.
+
+  - `alternative`<br>
+    An OPTIONAL property specifying the URL to an alternative message the
+    client can consider as a replacement for this message. There is no
+    guarantee that the referenced message is an exact replacement, rather the
+    client is expected to investigate the message to determine if it is
+    appropriate.
+
+  - `docs`<br>
+    An OPTIONAL property specifying the URL to additional information about
+    the deprecation of the message. This specification does not mandate any
+    particular format or information, however some possibilities include:
+    reasons for the deprecation or additional information about likely
+    alternative message. The URL MUST support an HTTP GET request.
+
+  Note that an implementation is not mandated to use this attribute in
+  advance of removing an message, but is it RECOMMENDED that they do so.
+- Constraints:
+  - OPTIONAL
+- Examples:
+  - `"deprecated": {}`
+  - ```
+    "deprecated": {
+      "removal": "2030-12-19T00:00:00-00:00",
+      "alternative": "https://example.com/messages/popped"
+    }
+    ```
 
 #### `basemessageurl`
 
