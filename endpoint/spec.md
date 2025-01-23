@@ -29,11 +29,16 @@ this form:
   "specversion": "STRING",
   "registryid": "STRING",
   "self": "URL",
+  "xid": "URL",
   "epoch": UINTEGER,
   "name": "STRING", ?
   "description": "STRING", ?
   "documentation": "URL", ?
-  "labels": { "STRING": "STRING" * }, ?
+  "labels": {
+    "modelversion": "1.0",
+    "compatiblewith": "https://github.com/xregistry/spec/blob/main/endpoint/spec.md",
+    "STRING": "STRING" *
+  }, ?
   "createdat": "TIMESTAMP",
   "modifiedat": "TIMESTAMP",
 
@@ -45,12 +50,12 @@ this form:
     "KEY": {
       "endpointid": "STRING",                   # xRegistry core attributes
       "self": "URL",
+      "xid": "URL",
       "epoch": UINTEGER,
       "name": "STRING", ?
       "description": "STRING", ?
       "documentation": "URL", ?
       "labels": { "STRING": "STRING" * }, ?
-      "origin": "STRING", ?
       "createdat": "TIMESTAMP",
       "modifiedat": "TIMESTAMP",
 
@@ -192,6 +197,9 @@ the Endpoint Registry are likewise `messages` as defined in the
 [message catalog specification](../message/spec.md).
 
 The resource model for endpoints can be found in [model.json](model.json).
+
+By importing and keeping the `compatiblewith` label, interoperability on the
+CNCF defined endpoint model is stated.
 
 ### Endpoints
 

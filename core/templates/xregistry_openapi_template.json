@@ -350,26 +350,17 @@
               "resource-description": {
                 "$ref": "#/components/headers/resource-description"
               },
-              "resource-docs": {
-                "$ref": "#/components/headers/resource-docs"
+              "resource-documentation": {
+                "$ref": "#/components/headers/resource-documentation"
               },
-              "resource-origin": {
-                "$ref": "#/components/headers/resource-origin"
+              "resource-labels": {
+                "$ref": "#/components/headers/resource-labels"
               },
-              "resource-tags": {
-                "$ref": "#/components/headers/resource-tags"
+              "resource-createdat": {
+                "$ref": "#/components/headers/resource-createdat"
               },
-              "resource-createdby": {
-                "$ref": "#/components/headers/resource-createdby"
-              },
-              "resource-createdon": {
-                "$ref": "#/components/headers/resource-createdon"
-              },
-              "resource-modifiedby": {
-                "$ref": "#/components/headers/resource-modifiedby"
-              },
-              "resource-modifiedon": {
-                "$ref": "#/components/headers/resource-modifiedon"
+              "resource-modifiedat": {
+                "$ref": "#/components/headers/resource-modifiedat"
               },
               "Content-Location": {
                 "description": "permalink location of the returned version",
@@ -418,13 +409,10 @@
             "$ref": "#/components/parameters/resource-description"
           },
           {
-            "$ref": "#/components/parameters/resource-docs"
+            "$ref": "#/components/parameters/resource-documentation"
           },
           {
-            "$ref": "#/components/parameters/resource-origin"
-          },
-          {
-            "$ref": "#/components/parameters/resource-tags"
+            "$ref": "#/components/parameters/resource-labels"
           }
         ],
         "summary": "Create or update a resource",
@@ -475,13 +463,10 @@
             "$ref": "#/components/parameters/resource-description"
           },
           {
-            "$ref": "#/components/parameters/resource-docs"
+            "$ref": "#/components/parameters/resource-documentation"
           },
           {
-            "$ref": "#/components/parameters/resource-origin"
-          },
-          {
-            "$ref": "#/components/parameters/resource-tags"
+            "$ref": "#/components/parameters/resource-labels"
           },
           {
             "in": "header",
@@ -527,26 +512,17 @@
               "resource-description": {
                 "$ref": "#/components/headers/resource-description"
               },
-              "resource-docs": {
-                "$ref": "#/components/headers/resource-docs"
+              "resource-documentation": {
+                "$ref": "#/components/headers/resource-documentation"
               },
-              "resource-origin": {
-                "$ref": "#/components/headers/resource-origin"
+              "resource-labels": {
+                "$ref": "#/components/headers/resource-labels"
               },
-              "resource-tags": {
-                "$ref": "#/components/headers/resource-tags"
+              "resource-createdat": {
+                "$ref": "#/components/headers/resource-createdat"
               },
-              "resource-createdby": {
-                "$ref": "#/components/headers/resource-createdby"
-              },
-              "resource-createdon": {
-                "$ref": "#/components/headers/resource-createdon"
-              },
-              "resource-modifiedby": {
-                "$ref": "#/components/headers/resource-modifiedby"
-              },
-              "resource-modifiedon": {
-                "$ref": "#/components/headers/resource-modifiedon"
+              "resource-modifiedat": {
+                "$ref": "#/components/headers/resource-modifiedat"
               }
             },
             "content": {
@@ -716,26 +692,17 @@
               "resource-description": {
                 "$ref": "#/components/headers/resource-description"
               },
-              "resource-docs": {
-                "$ref": "#/components/headers/resource-docs"
+              "resource-documentation": {
+                "$ref": "#/components/headers/resource-documentation"
               },
-              "resource-origin": {
-                "$ref": "#/components/headers/resource-origin"
+              "resource-labels": {
+                "$ref": "#/components/headers/resource-labels"
               },
-              "resource-tags": {
-                "$ref": "#/components/headers/resource-tags"
+              "resource-createdat": {
+                "$ref": "#/components/headers/resource-createdat"
               },
-              "resource-createdby": {
-                "$ref": "#/components/headers/resource-createdby"
-              },
-              "resource-createdon": {
-                "$ref": "#/components/headers/resource-createdon"
-              },
-              "resource-modifiedby": {
-                "$ref": "#/components/headers/resource-modifiedby"
-              },
-              "resource-modifiedon": {
-                "$ref": "#/components/headers/resource-modifiedon"
+              "resource-modifiedat": {
+                "$ref": "#/components/headers/resource-modifiedat"
               }
             },
             "content": {
@@ -857,16 +824,16 @@
       },
       "resourceType": {
         "in": "path",
-        "name": "id",
+        "name": "resourceType",
         "description": "The resourceType (plural)",
         "required": true,
         "schema": {
           "type": "string"
         }
       },
-      "id": {
+      "endpointid": {
         "in": "path",
-        "name": "id",
+        "name": "endpointid",
         "description": "The id of the endpoint",
         "required": true,
         "schema": {
@@ -964,49 +931,30 @@
           "type": "string"
         }
       },
-      "resource-docs": {
+      "resource-documentation": {
         "in": "header",
         "required": false,
-        "name": "resource-docs",
+        "name": "resource-documentation",
         "description": "Absolute URL that provides a link to additional documentation about the resource.",
         "schema": {
           "type": "string",
           "format": "uri"
         }
       },
-      "resource-origin": {
+      "resource-labels": {
         "in": "header",
-        "required": false,
-        "name": "resource-origin",
-        "description": "A URI reference to the original source of this resource.",
-        "schema": {
-          "type": "string",
-          "format": "uri-reference"
-        }
-      },
-      "resource-tags": {
-        "in": "header",
-        "name": "resource-tags",
+        "name": "resource-labels",
         "required": false,
         "schema": {
           "type": "array",
           "items": {
-            "$ref": "#/components/schemas/resource-tag"
+            "$ref": "#/components/schemas/resource-labels"
           }
         }
       },
-      "resource-createdby": {
+      "resource-createdat": {
         "in": "header",
-        "name": "resource-createdby",
-        "required": false,
-        "description": "Identity of who created this entity",
-        "schema": {
-          "type": "string"
-        }
-      },
-      "resource-createdon": {
-        "in": "header",
-        "name": "resource-createdon",
+        "name": "resource-createdat",
         "required": false,
         "description": "Time when this entity was created",
         "schema": {
@@ -1014,18 +962,9 @@
           "format": "date-time"
         }
       },
-      "resource-modifiedby": {
+      "resource-modifiedat": {
         "in": "header",
-        "name": "resource-modifiedby",
-        "required": false,
-        "description": "Identity of who last modified this entity",
-        "schema": {
-          "type": "string"
-        }
-      },
-      "resource-modifiedon": {
-        "in": "header",
-        "name": "resource-modifiedon",
+        "name": "resource-modifiedat",
         "required": false,
         "description": "Time when this entity was last modified",
         "schema": {
@@ -1079,37 +1018,23 @@
           "type": "string"
         }
       },
-      "resource-docs": {
+      "resource-documentation": {
         "description": "Absolute URL that provides a link to additional documentation about the resource.",
         "schema": {
           "type": "string",
           "format": "uri"
         }
       },
-      "resource-origin": {
-        "description": "A URI reference to the original source of this resource.",
-        "schema": {
-          "type": "string",
-          "format": "uri-reference"
-        }
-      },
-      "resource-tags": {
+      "resource-labels": {
         "required": false,
         "schema": {
           "type": "array",
           "items": {
-            "$ref": "#/components/schemas/resource-tag"
+            "$ref": "#/components/schemas/resource-labels"
           }
         }
       },
-      "resource-createdby": {
-        "required": false,
-        "description": "Identity of who created this entity",
-        "schema": {
-          "type": "string"
-        }
-      },
-      "resource-createdon": {
+      "resource-createdat": {
         "required": false,
         "description": "Time when this entity was created",
         "schema": {
@@ -1117,14 +1042,7 @@
           "format": "date-time"
         }
       },
-      "resource-modifiedby": {
-        "required": false,
-        "description": "Identity of who last modified this entity",
-        "schema": {
-          "type": "string"
-        }
-      },
-      "resource-modifiedon": {
+      "resource-modifiedat": {
         "required": false,
         "description": "Time when this entity was last modified",
         "schema": {
@@ -1134,7 +1052,7 @@
       }
     },
     "schemas": {
-      "resource-tag": {
+      "resource-labels": {
         "type": "object",
         "properties": {
           "name": {
