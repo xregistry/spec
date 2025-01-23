@@ -199,7 +199,7 @@ the Endpoint Registry are likewise `messages` as defined in the
 The resource model for endpoints can be found in [model.json](model.json).
 
 By importing and keeping the `compatiblewith` label, interoperability on the
-CNCF defined endpoint model is stated. See Interoperability **TODO: link**.
+CNCF defined endpoint model is stated.
 
 ### Endpoints
 
