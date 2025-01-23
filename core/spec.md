@@ -2101,8 +2101,11 @@ The following describes the attributes of Registry model:
   - Values MAY be empty strings.
   - The following labels are defined for convenience and MAY also be used
     as labels for Groups or Resource model types:
+    - Name: `modelversion`
+      Value: The version of the model. For many specs its a combination of
+      major and minor, e.g. `1.2`.
     - Name: `compatiblewith`
-      Value: A URI reference to Registry that this Registry's model is
+      Value: An absolute URL to the model specification that this model is
       compatible with. This specification does not mandate any runtime
       validation of this claim.
 
