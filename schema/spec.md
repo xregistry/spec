@@ -29,11 +29,16 @@ this form:
   "specversion": "STRING",                         # xRegistry core attributes
   "registryid": "STRING",
   "self": "URL",
+  "xid": "URL",
   "epoch": UINTEGER,
   "name": "STRING", ?
   "description": "STRING", ?
   "documentation": "URL", ?
-  "labels": { "STRING": "STRING" * }, ?
+  "labels": {
+    "modelversion": "1.0", ?
+    "compatiblewith": "https://github.com/xregistry/spec/blob/main/schema/spec.md", ?
+    "STRING": "STRING" *
+  }, ?
   "createdat": "TIMESTAMP",
   "modifiedat": "TIMESTAMP",
 
@@ -45,12 +50,12 @@ this form:
     "KEY": {                                       # schemagroupid
       "schemagroupid": "STRING",                   # xRegistry core attributes
       "self": "URL",
+      "xid": "URL",
       "epoch": UINTEGER,
       "name": "STRING", ?
       "description": "STRING", ?
       "documentation": "URL", ?
       "labels": { "STRING": "STRING" * }, ?
-      "origin": "STRING", ?
       "createdat": "TIMESTAMP",
       "modifiedat": "TIMESTAMP",
 
@@ -61,14 +66,21 @@ this form:
           "schemaid": "STRING",                    # xRegistry core attributes
           "versionid": "STRING",
           "self": "URL",
+          "xid": "URL",
           "epoch": UINTEGER,
           "name": "STRING", ?                      # Version level attrs
           "description": "STRING", ?
           "documentation": "URL", ?
           "labels": { "STRING": "STRING" * }, ?
-          "origin": "STRING", ?
           "createdat": "TIMESTAMP",
           "modifiedat": "TIMESTAMP",
+
+          "deprecated": {
+            "effective": "TIMESTAMP", ?
+            "removal": "TIMESTAMP", ?
+            "alternative": "URL", ?
+            "docs": "URL"?
+          }, ?
 
           "format": "STRING", ?
 
@@ -142,12 +154,19 @@ being created.
 In "semantic Versioning" terms, you can think of a **schema** as a "major
 version" and the **schema Versions** as "minor versions".
 
+## Schema Registry Model
+
+The formal xRegistry extension model of the Schema Registry resides in the
+[model.json](model.json) file.
+
+By importing and keeping the `compatiblewith` label, interoperability on the
+CNCF defined endpoint model is stated.
+
 #### Schema Group
 
 A schema group is a container for schemas that are related to each other in some
 application-defined way. This specification does not impose any restrictions on
 what schemas can be contained in a schema group.
-
 
 ## Schema Registry
 
@@ -159,9 +178,6 @@ detail below, is as follows:
 
 ```yaml
 {
-  "schemas": [
-    "json-schema/draft-07"
-  ],
   "groups": [
     {
       "singular": "schemagroup",
@@ -295,6 +311,50 @@ the core xRegistry Resource
   - When not specified, the default value is `true`.
   - MUST be a Resource level attribute defined within the `metaattributes`
     section of the model.
+
+#### `deprecated`
+
+- Type: Object containing the following properties:
+  - `effective`<br>
+    An OPTIONAL property indicating the time when the schema entered, or will
+    enter, a deprecated state. The date MAY be in the past or future. If this
+    property is not present the schema is already in a deprecated state.
+    If present, this MUST be an [RFC3339][rfc3339] timestamp.
+
+  - `removal`<br>
+    An OPTIONAL property indicating the time when the schema MAY be removed.
+    The schema MUST NOT be removed before this time. If this property is not
+    present then client can not make any assumption as to when the schema
+    might be removed. Note: as with most properties, this property is mutable.
+    If present, this MUST be an [RFC3339][rfc3339] timestamp and MUST NOT be
+    sooner than the `effective` time if present.
+
+  - `alternative`<br>
+    An OPTIONAL property specifying the URL to an alternative schema the
+    client can consider as a replacement for this schema. There is no
+    guarantee that the referenced schema is an exact replacement, rather the
+    client is expected to investigate the schema to determine if it is
+    appropriate.
+
+  - `docs`<br>
+    An OPTIONAL property specifying the URL to additional information about
+    the deprecation of the schema. This specification does not mandate any
+    particular format or information, however some possibilities include:
+    reasons for the deprecation or additional information about likely
+    alternative schema. The URL MUST support an HTTP GET request.
+
+  Note that an implementation is not mandated to use this attribute in
+  advance of removing an schema, but is it RECOMMENDED that they do so.
+- Constraints:
+  - OPTIONAL
+- Examples:
+  - `"deprecated": {}`
+  - ```
+    "deprecated": {
+      "removal": "2030-12-19T00:00:00-00:00",
+      "alternative": "https://example.com/schema/myschema"
+    }
+    ```
 
 #### `format`
 

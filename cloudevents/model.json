@@ -1,7 +1,4 @@
 {
-  "schemas": [
-    "xRegistry-json"
-  ],
   "groups": {
     "$includes": [
       "../endpoint/model.json#groups",
