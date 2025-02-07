@@ -17,14 +17,16 @@ _Setup_ - Completed - 2023/04/20
 _Release Candidate 1_ - WIP - 2025/02/28
 
 * [Core
-  features]((https://github.com/xregistry/spec/issues?q=is%3Aissue%20state%3Aopen%20label%3Av1))
+  features](https://github.com/xregistry/spec/issues?q=is%3Aissue%20state%3Aopen%20label%3Av1)
   completed
 * Ready for implementation testing and thorough review of the spec
 
 _Release Candidate 2_ – WIP – 2025/04/30
 
 * Tested with at least one implementation
-* All specs reviewed for completeness
+* All specs ([core](../core/spec.md), [CloudEvents](../cloudevents/spec.md),
+  [Endpoint](../endpoint/spec.md), [Messages](../message/spec.md) and
+  [Schema](../schema/spec.md)) reviewed for completeness
 
 _Version 1.0_ – WIP – 2025/06/30
 
