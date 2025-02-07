@@ -1048,7 +1048,7 @@
           },
           "xid": {
             "type": "string",
-            "format": "uri",
+            "format": "xid",
             "description": "Relative URL of the object"
           },
           "description": {
@@ -1146,7 +1146,7 @@
           },
           "xid": {
             "type": "string",
-            "format": "uri",
+            "format": "xid",
             "description": "Relative URL of the object"
           },
           "description": {
@@ -1224,7 +1224,7 @@
           },
           "xid": {
             "type": "string",
-            "format": "uri",
+            "format": "xid",
             "description": "Relative URL of the object"
           },
           "description": {
