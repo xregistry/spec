@@ -29,7 +29,7 @@ this form:
   "specversion": "STRING",                         # xRegistry core attributes
   "registryid": "STRING",
   "self": "URL",
-  "xid": "URL",
+  "xid": "XID",
   "epoch": UINTEGER,
   "name": "STRING", ?
   "description": "STRING", ?
@@ -50,7 +50,7 @@ this form:
     "KEY": {                                       # schemagroupid
       "schemagroupid": "STRING",                   # xRegistry core attributes
       "self": "URL",
-      "xid": "URL",
+      "xid": "XID",
       "epoch": UINTEGER,
       "name": "STRING", ?
       "description": "STRING", ?
@@ -66,7 +66,7 @@ this form:
           "schemaid": "STRING",                    # xRegistry core attributes
           "versionid": "STRING",
           "self": "URL",
-          "xid": "URL",
+          "xid": "XID",
           "epoch": UINTEGER,
           "name": "STRING", ?                      # Version level attrs
           "description": "STRING", ?

@@ -34,7 +34,7 @@ this form:
   "specversion": "STRING",
   "registryid": "STRING",
   "self": "URL",
-  "xid": "URL",
+  "xid": "XID",
   "epoch": UINTEGER,
   "name": "STRING", ?
   "description": "STRING", ?
@@ -55,7 +55,7 @@ this form:
     "KEY": {                                    # messagegroupid
       "messagegroupid": "STRING",               # xRegistry core attributes
       "self": "URL",
-      "xid": "URL",
+      "xid": "XID",
       "epoch": UINTEGER,
       "name": "STRING", ?
       "description": "STRING", ?
@@ -74,7 +74,7 @@ this form:
           "messageid": "STRING",               # xRegistry core attributes
           "versionid": "STRING",
           "self": "URL",
-          "xid": "URL",
+          "xid": "XID",
           "epoch": UINTEGER,
           "name": "STRING", ?
           "description": "STRING", ?

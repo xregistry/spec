@@ -21,7 +21,7 @@
     },
     "xid": {
       "name": "xid",
-      "type": "uri",
+      "type": "xid",
       "readonly": true,
       "serverrequired": true
     },

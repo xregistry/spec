@@ -40,7 +40,7 @@
             {
               "name": "xid",
               "type": "string",
-              "doc": "Relative URL of the object"
+              "doc": "XID of the object"
             },
             {
               "name": "description",
@@ -137,7 +137,7 @@
                     {
                       "name": "xid",
                       "type": "string",
-                      "doc": "Relative URL of the object"
+                      "doc": "XID of the object"
                     },
                     {
                       "name": "description",
