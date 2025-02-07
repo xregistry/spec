@@ -43,7 +43,7 @@ automation and tooling.
   - [Configuring Responses](#configuring-responses)
     - [Inline](#inline)
     - [Filter](#filter)
-    - [Compact](#compact)
+    - [Doc](#doc)
   - [HTTP Header Values](#http-header-values)
 
 ## Overview
@@ -99,7 +99,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   "registryid": "STRING",
   "self": "URL",
   "shortself": "URL", ?
-  "xid": "URI",
+  "xid": "XID",
   "epoch": UINTEGER,
   "name": "STRING", ?
   "description": "STRING", ?
@@ -111,7 +111,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   "capabilities": {                     # Supported capabilities/options
     "enforcecompatibility": BOOLEAN, ?
     "flags": [                          # Query parameters
-      "epoch",? "compact",? "filter",? "inline",?
+      "doc",? "epoch",? "filter",? "inline",?
       "nodefaultversionid",? "nodefaultversionsticky",? "noepoch",?
       "noreadonly",?  "schema",? "setdefaultversionid",? "specversion",?
       "STRING" *
@@ -133,7 +133,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       "STRING": {                       # Attribute name (case sensitive)
         "name": "STRING",               # Same as attribute's key
         "type": "TYPE",                 # string, decimal, array, object, ...
-        "target": "STRING", ?           # If "type" is "relation"
+        "target": "STRING", ?           # If "type" is "xid"
         "description": "STRING", ?
         "enum": [ VALUE * ], ?          # Array of scalar values of type "TYPE"
         "strict": BOOLEAN, ?            # Just "enum" values or not.Default=true
@@ -191,7 +191,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       "GROUPid": "STRING",                         # The Group ID
       "self": "URL",
       "shortself": "URL", ?
-      "xid": "URI",
+      "xid": "XID",
       "epoch": UINTEGER,
       "name": "STRING", ?
       "description": "STRING", ?
@@ -210,7 +210,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
           "versionid": "STRING",
           "self": "URL",                           # Resource URL, not Version
           "shortself": "URL", ?
-          "xid": "URI",
+          "xid": "XID",
           "epoch": UINTEGER,                       # Version's epoch
           "name": "STRING", ?
           "isdefault": true,
@@ -231,7 +231,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "RESOURCEid": "STRING",
             "self": "URL",                         # URL to "meta" object
             "shortself": "URL", ?
-            "xid": "URI",
+            "xid": "XID",
             "xref": "URL", ?                       # xid of linked Resource
             "epoch": UINTEGER,                     # Resource's epoch
             "createdat": "TIMESTAMP",              # Resource's
@@ -252,7 +252,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
               "versionid": "STRING",               # The Version id
               "self": "URL",                       # Version URL
               "shortself": "URL", ?
-              "xid": "URI",
+              "xid": "XID",
               "epoch": UINTEGER,                   # Version's epoch
               "name": "STRING", ?
               "isdefault": BOOLEAN, ?
@@ -317,7 +317,6 @@ information about each data type):
 - `INTEGER`
 - `MAP`
 - `OBJECT`
-- `RELATION`
 - `STRING`
 - `TIMESTAMP`
 - `UINTEGER`
@@ -325,6 +324,7 @@ information about each data type):
 - `URIREFERENCE`
 - `URITEMPLATE`
 - `URL`
+- `XID`
 - `TYPE` - one of the allowable data type names (MUST be in lower case) listed
   in [Attributes and Extensions](#attributes-and-extensions)
 
@@ -376,9 +376,28 @@ concerns.
 
 In the remainder of this specification, in particular when defining the
 attributes of the Registry entities, the terms "document view" or "API view"
-will be used to indicate whether the serialization of the entity in question
+will be used to indicate whether the serialization of the entity in a response
 is meant for use as a stand-alone document or as part of a REST API message
-exchange - if there is a difference between the two usages.
+exchange. The most notable differences are that in document view:
+
+- References (e.g. URLs) between entities within responses will use relative
+  references rather than absolute ones. This is an indication to tooling that
+  the entity in question can be found within the current document and does not
+  need an additional HTTP `GET` to retrieve it.
+- Duplicate data will be removed. In particular, Resources will not include
+  attributes from the "default" Version as part of their serialization. This is
+  done with the assumption the nested `versions` collection will most likely
+  include the "default" Version, so duplicating that information is redundant.
+
+Most of these differences are to make it easier for tooling to use the
+"stand-alone" document view of the Registry. For a complete list of the
+differences in "document view" see the [Doc](#doc) flag and the
+[Exporting](#exporting) section.
+
+Note that "document view" only refers to response messages. There is no
+"document view" concept for requests. However, "document view" responses
+are designed such that they can be used in request messages as they still
+convey the same information as an "API view" response.
 
 ### Attributes and Extensions
 
@@ -407,7 +426,7 @@ be one of the following data types:
   - See [Serializing Resource Documents](#serializing-resource-documents)
     for more information about serializing maps as HTTP headers.
 - `object` - a nested entity made up of a set of attributes of these data types.
-- `relation` - MUST be a `URL` (xid) reference to another entity defined within
+- `xid` - MUST be a `URL` (xid) reference to another entity defined within
   the Registry. The actual entity attribute value MAY reference a non-existing
   entity (i.e. dangling pointer), but the syntax MUST reference a
   defined/valid type in the Registry. This type of attribute is used in
@@ -427,12 +446,30 @@ be one of the following data types:
   [RFC 1738](https://datatracker.ietf.org/doc/html/rfc1738).
 
 All relative URIs and URLs that reference entities within the Registry MUST
-begin with `/` and MUST be relative to the root path of the Registry service.
-The root path of a Registry service MAY be at the root of a host or have a
-`PATH` portion in its URL (e.g. `http://example.com/myregistry`)
+begin with `#/` followed by a [JSON Pointer] reference to the entity. With the
+exception of `xid` values, relative URIs/URLs that reference entities that are
+part of a document view `GET` response (`?doc` is enabled), MUST be relative
+to the path specified on the request. Relative `xid` values MUST be relative
+to the root of Registry regardless of the path specified on the request.
 
-The "scalar" data types are: `boolean`, `decimal`, `integer`, `relation`,
-`string`, `timestamp`, `uinteger`, `uri`, `urireference`, `uritemplate`, `url`.
+For clarity, if a Registry has a Schema Resource at
+`/schemagroups/g1/schemas/s1`, then this entity's `self` URL (when serialized
+in document view) would change based on the path specified on the `GET`
+request:
+
+| GET Path | `self` URL |
+| --- | --- |
+| `http://example.com/myreg` | `#/schemagroups/g1/schemas/s1` |
+| `http://example.com/myreg/schemagroups` | `#/g1/schemas/s1` |
+| `http://example.com/myreg/schemagroups/g1/ ` | `#/schemas/s1` |
+| `http://example.com/myreg/schemagroups/g1/schemas ` | `#/s1` |
+| `http://example.com/myreg/schemagroups/g1/schemas/s1` | `#/` |
+
+The root path of a Registry service MAY be at the root of a host or have a
+`PATH` portion in its URL (e.g. `http://example.com/myregistry`).
+
+The "scalar" data types are: `boolean`, `decimal`, `integer`, `string`,
+`timestamp`, `uinteger`, `uri`, `urireference`, `uritemplate`, `url`, `xid`.
 Note that `any` is not a "scalar" type as its runtime value could be a complex
 type such as `object`.
 
@@ -505,7 +542,7 @@ form:
 - `"SINGULARid": "STRING"`
 - `"self": "URL"`
 - `"shortself": "URL"`
-- `"xid": "URI"`
+- `"xid": "XID"`
 - `"epoch": UINTEGER`
 - `"name": "STRING"`
 - `"description": "STRING"`
@@ -569,22 +606,25 @@ of the existing entity. Then the existing entity can be deleted.
   base URL for the collection appended with the `SINGULARid` of the entity.
 
   When this URL references a Resource or Version, and the Resource has the
-  `hasdocument` model aspect set to `true`, then it MUST include `$details`
-  appended to its `SINGULARid` if the request asked for the serialization of the
-  xRegistry metadata. This would happen when `$details` was used in the
-  request, or when the Resource (or Version) is included in the serialization
-  of a parent entity.
+  `hasdocument` model aspect set to `true`, and `?doc` mode is not enabled,
+  then it MUST include `$details` appended to its `SINGULARid` if the request
+  asked for the serialization of the xRegistry metadata. This would happen
+  when `$details` was used in the request, or when the Resource (or Version)
+  is included in the serialization of a parent entity. If `?doc` mode
+  is enabled, then `$details` MUST appear when this URL is an absolute URL,
+  otherwise for relative URLs it MUST NOT appear.
 
   If the Resource or Version has the `hasdocument` model aspect set to `false`,
-  then this URL MUST be appended with `$details` only if the request was
+  then this URL MAY be appended with `$details` only if the request was
   directed at the Resource or Version and included `$details`. Otherwise in
   all other situations `$details` MUST NOT be included.
 
 - Constraints:
   - MUST be unique across all entities in the Registry.
-  - MUST be a non-empty absolute URL, except when `?compact` is enabled
+  - MUST be a non-empty absolute URL, except when `?doc` is enabled
     then it MUST be a relative URL.
   - MUST be a read-only attribute in API view.
+  - REQUIRED in responses and document view, OPTIONAL in requests.
 - Examples:
   - `https://example.com/registry/endpoints/ep1`
 
@@ -626,20 +666,22 @@ of the existing entity. Then the existing entity can be deleted.
 
 ##### `xid` Attribute
 
-- Type: URL
+- Type: XID
 - Description: An immutable server generated unique identifier of the entity.
   Unlike `SINGULARid`, which is unique within the scope of its parent, `xid`
   MUST be unique across the entire Registry, and as such is defined to be a
   relative URL from the root of the Registry. This value MUST be the same as
   the PATH portion of its `self` URL, after the Registry's base URL, without
-  any `$` suffix (e.g. `$details`).
+  any `$` suffix (e.g. `$details`). Unlike some other relative URIs, `xid`
+  values MUST NOT be shortened based on the incoming request's URL. `xid`s
+  are always relative to the root path of the Registry.
 
   This attribute is provided as a convenience for users who need a reference
   to the entity without running the risk of incorrectly extracting it from
   the `self` URL, which might be ambiguous at times. The `xid` value is also
   meant to be used as a `xref` value (see [Cross Referencing
   Resources](#cross-referencing-resources), or as the value attributes of
-  type `relation` (see [`target` model attribute](#model.target)).
+  type `xid` (see [`target` model attribute](#model.target)).
 
 - Constraints:
   - MUST be a non-empty relative URL to the current entity.
@@ -832,7 +874,7 @@ This specification defines the following API patterns:
 /                                               # Access the Registry
 /capabilities                                   # Access available features
 /model                                          # Access the model definitions
-/export                                         # Retrieve compact Registry
+/export                                         # Retrieve Registry as a doc
 /GROUPS                                         # Access a Group Type
 /GROUPS/gID                                     # Access a Group
 /GROUPS/gID/RESOURCES                           # Access a Resource Type
@@ -994,7 +1036,7 @@ Where:
   [filtering](#filter)) and MUST be a read-only attribute that MUST
   be silently ignored by a server during a write operation. An empty
   collection MUST return an HTTP 200 with an empty map (`{}`). This attribute
-  MUST be an absolute URL except when `?compact` is enabled and the collection
+  MUST be an absolute URL except when `?doc` is enabled and the collection
   is inlined, in which case it MUST be a relative URL.
 - The `COLLECTIONScount` attribute MUST contain the number of entities in the
   `COLLECTIONS` map (after any necessary [filtering](#filter)) and MUST
@@ -1033,15 +1075,15 @@ indicates the use of the [pagination specification](../pagination/spec.md)
 MAY be used for that API.
 
 The requirements on the presence of the 3 `COLLECTIONS` attributes varies
-between Document and API views, and is defined below:
+between document and API views, and is defined below:
 
-##### Document view
+##### Collections in Document View
 
 In document view:
 - `COLLECTIONSurl` and `COLLECTIONScount` are OPTIONAL.
-- `COLLECTIONS` is REQUIRED.
+- `COLLECTIONS` is REQUIRED if the document is meant to be self contained.
 
-##### API view
+##### Collections in API View
 
 In API view:
 - `COLLECTIONSurl` is REQUIRED for responses even if there are no entities
@@ -1051,11 +1093,11 @@ In API view:
   to allow for cases where calculating the exact count is too costly.
 - `COLLECTIONSurl` and `COLLECTIONScount` are OPTIONAL for requests and MUST
    be silently ignored by the server if present.
-- `COLLECTIONS` is OPTIONAL for responses and MUST only be included if the
-  request included the [`?inline`](#inline) query parameter indicating that
-  this collection's entities are to be returned. If `?inline` is present then
-  `COLLECTIONS` is REQUIRED and MUST be present in the response even if it is
-  empty (e.g. `{}`).
+- `COLLECTIONS` is conditional in responses based on the values in the
+  [`?inline`](#inline) flag. If a collection is part of the flag's value then
+  `COLLECTIONS` MUST be present in the response even if it is empty
+  (e.g. `{}`). If the collection is not part of the flag value then
+  `COLLECTIONS` MUST NOT be included in the response.
 - `COLLECTIONS` is OPTIONAL for requests. See [Updating Nested Registry
   Collections](#updating-nested-registry-collections) for more details.
 
@@ -1414,7 +1456,7 @@ The serialization of the Registry entity adheres to this form:
   "registryid": "STRING",
   "self": "URL",
   "shortself": "URL", ?
-  "xid": "URI",
+  "xid": "XID",
   "epoch": UINTEGER,
   "name": "STRING", ?
   "description": "STRING", ?
@@ -1517,7 +1559,7 @@ ETag: "UINTEGER"
   "registryid": "STRING",
   "self": "URL",
   "shortself": "URL", ?
-  "xid": "URI",
+  "xid": "XID",
   "epoch": UINTEGER,
   "name": "STRING", ?
   "description": "STRING", ?
@@ -1699,7 +1741,7 @@ ETag: "UINTEGER"
   "registryid": "STRING",
   "self": "URL",
   "shortself": "URL", ?
-  "xid": "URI",
+  "xid": "XID",
   "epoch": UINTEGER,
   "name": "STRING", ?
   "description": "STRING", ?
@@ -1840,7 +1882,7 @@ The following defines the specification defined capabilities:
   map indicates no support for that flag, and if included in a request
   SHOULD be silently ignored by servers.
 - Defined values:
-    `epoch`, `compact`, `filter`, `inline`, `nodefaultversionid`,
+    `doc`, `epoch`, `filter`, `inline`, `nodefaultversionid`,
     `nodefaultversionsticky`, `noepoch`, `noreadonly`, `schema`,
     `setdefaultversionid`, `specversion`.
   - If not specified, the default value is an empty list and no query
@@ -2054,7 +2096,7 @@ Regardless of how the model is retrieved, the overall format is as follows:
     "STRING": {                        # Attribute name
       "name": "STRING",                # Same as attribute's key
       "type": "TYPE",                  # boolean, string, array, object, ...
-      "target": "STRING", ?            # If "type" is "relation"
+      "target": "STRING", ?            # If "type" is "xid"
       "description": "STRING",
       "enum": [ VALUE * ], ?           # Array of values of type "TYPE"
       "strict": BOOLEAN, ?             # Just "enum" values or not. Default=true
@@ -2175,7 +2217,7 @@ The following describes the attributes of Registry model:
 
 - `attributes."STRING".target` <span id="model.target"></span>
   - The type of entity that this attribute points to when `type` is set to
-    `relation`, `url-reference` or `uri-reference`. `target` MUST NOT be used
+    `url-reference`, `uri-reference` or `xid`. `target` MUST NOT be used
     for any other type of attribute. The value of this model attribute MUST be
     a "xid template" of one of the following forms:
     - `/GROUPS` - a plural Group type name. An entity attribute of this
@@ -2190,9 +2232,9 @@ The following describes the attributes of Registry model:
       attribute of this type/target MUST reference an instance of a Version
       of this Resource type, not the Resource itself.
   - Example: `/endpoints/messages`
-  - A `relation` entity attribute that includes a `target` value as part of
-    its model definition MUST match the `target` entity type specified. A
-    `relation` attribute that does not include `target` definition has no
+  - An `xid` entity attribute that includes a `target` value as part of
+    its model definition MUST match the `target` entity type specified. An
+    `xid` attribute that does not include `target` definition has no
     such restriction and MAY be any valid `xid` value.
   - A URI/URL-reference entity attribute MAY include `target` as part of its
     definition. If so, then any runtime value that is a relative URI/URL
@@ -3114,12 +3156,12 @@ and the second include target might look like:
 ### Exporting
 
 The `/export` API MUST be an alias for
-`GET /?compact&inline=*,model,capabilities". If supported, it MUST only
+`GET /?doc&inline=*,model,capabilities". If supported, it MUST only
 support the `GET` HTTP method. This API was created:
 - As a short-hand convenience syntax for clients that need to download the
   entire Registry as a single document. For example, to then be used in an
   "import" type of operation for another Registry, or for tooling that
-  does not need the duplication of information that `?compact` removes.
+  does not need the duplication of information that `?doc` removes.
 - To allow for servers that do not support query parameters (such as
   [No-Code Servers](#no-code-servers)) to expose the entire Registry with a
   single API call.
@@ -3145,7 +3187,7 @@ The serialization of a Group entity adheres to this form:
   "GROUPid": "STRING",
   "self": "URL",
   "shortself": "URL", ?
-  "xid": "URI",
+  "xid": "XID",
   "epoch": UINTEGER,
   "name": "STRING", ?
   "description": "STRING", ?
@@ -3213,7 +3255,7 @@ ETag: "UINTEGER"
     "GROUPid": "STRING",
     "self": "URL",
     "shortself": "URL", ?
-    "xid": "URI",
+    "xid": "XID",
     "epoch": UINTEGER,
     "name": "STRING", ?
     "description": "STRING", ?
@@ -3294,7 +3336,7 @@ Each individual Group definition MUST adhere to the following:
   "GROUPid": "STRING", ?
   "self": "URL", ?
   "shortself": "URL", ?
-  "xid": "URI", ?
+  "xid": "XID", ?
   "epoch": UINTEGER, ?
   "name": "STRING", ?
   "description": "STRING", ?
@@ -3317,7 +3359,7 @@ Each individual Group in a successful response MUST adhere to the following:
   "GROUPid": "STRING",
   "self": "URL",
   "shortself": "URL", ?
-  "xid": "URI",
+  "xid": "XID",
   "epoch": UINTEGER,
   "name": "STRING", ?
   "description": "STRING", ?
@@ -3412,7 +3454,7 @@ ETag: "UINTEGER"
   "GROUPid": "STRING",
   "self": "URL",
   "shortself": "URL", ?
-  "xid": "URI",
+  "xid": "XID",
   "epoch": UINTEGER,
   "name": "STRING", ?
   "description": "STRING", ?
@@ -3625,7 +3667,7 @@ Resource attribute MUST adhere to the following:
   "versionid": "STRING",
   "self": "URL",                           # URL to Resource, not Version
   "shortself": "URL", ?
-  "xid": "URI",                            # Relative URI to Resource
+  "xid": "XID",                            # Relative URI to Resource
   # Default Version attributes appear here
 
   "metaurl": "URL",
@@ -3633,7 +3675,7 @@ Resource attribute MUST adhere to the following:
     "RESOURCEid": "STRING",
     "self": "URL",                         # Absolute Meta URL, not Version
     "shortself": "URL", ?
-    "xid": "URI",                          # Relative Meta URI, not Version
+    "xid": "XID",                          # Relative Meta URI, not Version
     "xref": "URL", ?                       # Ptr to linked Resource
     "epoch": UINTEGER,                     # Resource's epoch
     "createdat": "TIMESTAMP",              # Resource's
@@ -3772,16 +3814,14 @@ and the following Resource level attributes:
 - Type: URL
 - Description: a URL to the default Version of the Resource.
 
-  The Version URL path MUST include `$details` if the request asked for
-  the serialization of the Resource metadata. This would happen when
-  `$details` was used in the request, or when the Resource is included in the
-  serialization of a Group, such as when the `?inline` feature is used.
+  If the Resource's `hasdocument` aspect set to `true`, then the Version URL
+  path MUST include the `$details` suffix, unless `?doc` is enabled and
+  the Version is included in the output, then `$details` is omitted.
 - Constraints:
-  - REQUIRED in responses, OPTIONAL in requests.
-  - OPTIONAL in document view.
+  - REQUIRED in responses and document view, OPTIONAL in requests.
   - MUST be a read-only attribute in API view.
   - MUST be an absolute URL to the default Version of the Resource, and MUST
-    be the same as the Version's `self` attribute, except when `?compact`
+    be the same as the Version's `self` attribute, except when `?doc`
     is enabled, and the Version is present in the response, then it MUST be a
     relative URL.
 - Examples:
@@ -3793,7 +3833,7 @@ and the following Resource level attributes:
   explicitly set or whether the "default" Version is always the newest one
   based on the `createdat` timestamp. A value of `true` means that it has been
   explicitly set and the value of `defaultversionid` MUST NOT automatically
-  change if newer Versions are added. A value of `false` means the default
+  change if Versions are added or removed. A value of `false` means the default
   Version MUST be the newest Version based on `createdat` timestamps.
 
   When set to `true`, if the default Version is deleted, then without any
@@ -3808,22 +3848,31 @@ and the following Resource level attributes:
   - If present, it MUST be a case sensitive `true` or `false`.
   - If present in a request, a value of `null` has the same meaning as
     deleting the attribute, implicitly setting it to `false`.
-  - Since this attribute and `defaultversionid` are closely related, the
-    processing of them in a request message MUST adhere to the following:
-    - The `defaultversionsticky` attribute is applied first. As a reminder,
-      in the `PATCH` case, if this attribute is missing in the request then
-      this attribute remains unchanged in the Resource.
-    - If the resulting value of this attribute is `false` then the sticky
-      aspect MUST be turned off, and any `defaultversionid` in the request
-      MUST be ignored. The newest Version MUST be the default Version.
-    - If the resulting value of this attribute is `true` then the sticky
-      aspect MUST be turned on, and any `defaultversionid` attribute from
-      the request is applied - where a value of `null` means "newest".
-      If the request was a `PUT` or `POST` and did not have a
-      `defaultversionid` then the implicit value of `null` MUST be used,
-      resulting in "newest". If the request was a `PATCH` and did not have a
-      `defaultversionid` then the current default Version MUST be used.
-      A reference to a Version that does not exist MUST generate an error.
+  - The processing of the `defaultversionsticky` and `defaultversionid`
+    attributes are related, and is described as follows:
+    - When `PATCH` is used but only one of the two attributes is specified
+      in the request, then:
+      - A non-`null` `defaultversionid` MUST result in processing as if
+        `defaultversionsticky` has a value of `true`.
+      - A `null` `defaultversionid` MUST result in processing as if
+        `defaultversionsticky` has a value of `false`.
+      - A `null` or `false` `defaultversionsticky` MUST result in processing
+        as if `defaultversionid` has a value of `null`.
+      - The processing then continues on the patched `meta` sub-object as if
+        `PUT` or `POST` was used.
+    - When `PUT` or `POST` is used:
+      - A `null` or absent `defaultversionid` in the request MUST result in the
+        same semantics as it referencing "the newest Version".
+      - A `null` or absent `defaultversionsticky` in the request MUST result in
+        the same semantics as it being set to `false`.
+      - A `defaultversionid` referencing a non-existing Version MUST generate
+        an error.
+      - If `defaultversionsticky` is `false` and `defaultversionid` does not
+        reference the newest Version then an error MUST be generated, as this
+        would result in an inconsistent state.
+      - For clarity, if the net result of the processing is that the sticky
+        feature is turned off, then the `defaultversionid` MUST reference the
+        newest Version.
 - Examples:
   - `true`, `false`
 
@@ -3860,11 +3909,10 @@ no changes are to be made to the `meta` sub-object.
 - Constraints:
   - If present, it MUST appear as an attribute of the Resource as a sibling
     to the Resource's default Version attributes.
-  - REQUIRED in responses, OPTIONAL in requests.
-  - OPTIONAL in document view.
+  - REQUIRED in responses and document view, OPTIONAL in requests.
   - MUST be a read-only attribute in API view.
   - MUST be an absolute URL to the Resource's `meta` sub-object, except when
-    `?compact` is enabled and the meta sub-object is inlined, in which case
+    `?doc` is enabled and the meta sub-object is inlined, in which case
     it MUST be a relative URL.
 - Examples:
   - `https://example.com/endpoints/ep1/messages/msg1/meta`
@@ -4028,7 +4076,7 @@ this form:
   "versionid": "STRING",                   # ID of default Version
   "self": "URL",                           # URL of Resource,not default Version
   "shortself": "URL", ?
-  "xid": "URI",                            # Relative URI of Resource
+  "xid": "XID",                            # Relative URI of Resource
   # These are inherited from the default Version
   "epoch": UINTEGER,
   "name": "STRING", ?
@@ -4050,7 +4098,7 @@ this form:
     "RESOURCEid": "STRING",
     "self": "URL",                         # URL to "meta"
     "shortself": "URL", ?
-    "xid": "URI",                          # Relative URI to "meta"
+    "xid": "XID",                          # Relative URI to "meta"
     "xref": "URL", ?                       # Ptr to linked Resource
     "epoch": UINTEGER,                     # Resource's epoch
     "createdat": "TIMESTAMP",              # Resource's
@@ -4091,7 +4139,7 @@ The `xref` attribute is defined in the model as:
 ```yaml
 "xref": {
   "name": "xref",
-  "type": "relation",
+  "type": "xid",
   "target": "/GROUPS/RESOURCES"
 }
 ```
@@ -4114,7 +4162,7 @@ Looking at a specific example, a Group/Resource model definition of:
         "attributes": {
           "xref": {
             "name": "xref",
-            "type": "relation",
+            "type": "xid",
             "target": "/schemagroups/schemas"
           }
         }
@@ -4353,7 +4401,7 @@ Link: <URL>;rel=next;count=UINTEGER ?
     "versionid": "STRING",                    # Default Version ID
     "self": "URL",                            # URL to the Resource
     "shortself": "URL", ?
-    "xid": "URI",                             # Relative URI to the Resource
+    "xid": "XID",                             # Relative URI to the Resource
     "epoch": UINTEGER,                        # Start of Default Ver attribs
     "name": "STRING", ?
     "isdefault": true,
@@ -4374,7 +4422,7 @@ Link: <URL>;rel=next;count=UINTEGER ?
       "RESOURCEid": "STRING",                # Resource ID
       "self": "URL",                         # URL to "meta"
       "shortself": "URL", ?
-      "xid": "URI",                          # Relative URI to "meta"
+      "xid": "XID",                          # Relative URI to "meta"
       "xref": "URL", ?                       # Ptr to linked Resource
       "epoch": UINTEGER,                     # Resource's epoch
       "createdat": "TIMESTAMP",              # Resource's
@@ -4539,7 +4587,7 @@ in the request MUST adhere to the following:
   "versionid": "STRING", ?
   "self": "URL",
   "shortself": "URL", ?
-  "xid": "URI",
+  "xid": "XID",
   "epoch": UINTEGER,
   "name": "STRING", ?                      # Version level attributes
   "isdefault": BOOLEAN, ?
@@ -4559,7 +4607,7 @@ in the request MUST adhere to the following:
     "RESOURCEid": "STRING",
     "self": "URL",
     "shortself": "URL", ?
-    "xid": "URI",
+    "xid": "XID",
     "xref": "URL", ?
     "epoch": UINTEGER,
     "createdat": "TIMESTAMP",
@@ -4889,7 +4937,7 @@ ETag: "UINTEGER"
   "versionid": "STRING",
   "self": "URL",                           # URL to Resource, not default Ver
   "shortself": "URL", ?
-  "xid": "URI",                            # Relative URI to Resource
+  "xid": "XID",                            # Relative URI to Resource
   "epoch": UINTEGER,
   "name": "STRING", ?
   "description": "STRING", ?
@@ -4908,7 +4956,7 @@ ETag: "UINTEGER"
     "RESOURCEid": "STRING", ?
     "self": "URL",                         # URL to "meta" sub-object
     "shortself": "URL", ?
-    "xid": "URI",                          # Relative URI to "meta" sub-object
+    "xid": "XID",                          # Relative URI to "meta" sub-object
     "xref": "URL", ?
     "epoch": UINTEGER,
     "createdat": "TIMESTAMP",
@@ -5013,7 +5061,7 @@ When serialized as a JSON object, the Version entity adheres to this form:
   "versionid": "STRING",
   "self": "URL",
   "shortself": "URL", ?
-  "xid": "URI",
+  "xid": "XID",
   "epoch": UINTEGER,
   "name": "STRING", ?
   "isdefault": BOOLEAN, ?
@@ -5246,11 +5294,11 @@ The `?setdefaultversionid` query parameter is defined as:
 
 Where:
 - `vID` is the `versionid` of the Version that is to become the "default"
-  version of the referenced Resource. A value of `null` indicates that the
+  Version of the referenced Resource. A value of `null` indicates that the
   client wishes to switch to the "newest = default" algorithm, in other words,
   the "sticky" aspect of the current default Version will be removed. It is
   STRONGLY RECOMMENDED that clients provide an explicit value when possible.
-  However, if a Version create operation asks the server to choose the value,
+  However, if a Version create operation asks the server to choose the `vID`,
   then including that value in the query parameter is not possible. In those
   cases a value of `request` MAY be used as a way to reference the Version
   being processed in the current request, and if the request creates more than
@@ -5299,7 +5347,7 @@ Link: <URL>;rel=next;count=UINTEGER ?
     "versionid": "STRING",
     "self": "URL",
     "shortself": "URL", ?
-    "xid": "URI",
+    "xid": "XID",
     "epoch": UINTEGER,
     "name": "STRING", ?
     "isdefault": BOOLEAN,
@@ -5473,7 +5521,7 @@ ETag: "UINTEGER"
   "versionid": "STRING",
   "self": "URL",
   "shortself": "URL", ?
-  "xid": "URI",
+  "xid": "XID",
   "epoch": UINTEGER,
   "name": "STRING", ?
   "isdefault": BOOLEAN,
@@ -5574,7 +5622,7 @@ response is to be generated. The following sections will defined the following
 flags:
 - [`?inline`](#inline)
 - [`?filter`](#filter)
-- [`?compact`](#compact)
+- [`?doc`](#doc)
 
 Implementations of this specification SHOULD support all 3 flags.
 
@@ -5854,15 +5902,16 @@ Notice the first part of the `?filter` expression (to the left of the "and"
 (`,`)) has no impact on the results because the list of resulting leaves in
 that sub-tree is not changed by that search criteria.
 
-#### Compact
+#### Doc
 
-The `?compact` query parameter (flag) MAY be used to indicate that the response
-MUST be modified to do the following:
+The `?doc` query parameter (flag) MAY be used to indicate that the response
+MUST use "document view" when serializing entities and MUST be modified to do
+the following:
 - Remove the default Version attributes from a Resource's serialization.
 - When a Resource (source) uses the `xref` feature, the target Resource's
   attributes are excluded from the source's serialization.
-- Convert the following attributes into relative URLs if the entities that
-  they reference are included in the response output:
+- Convert the following attributes into relative URLs if, and only if, the
+  entities that they reference are included in the response output:
   `self`, `COLLECTIONSurl`, `metaurl`, `defaultversionurl`.
 
 This is useful when a client wants to minimize the amount of data returned by
@@ -5872,24 +5921,24 @@ the duplication, or if the data will be used to populate a new Registry, then
 this feature might be used. It also makes the output more of a "stand-alone"
 document that minimizes external references.
 
-For clarity, the serialization of a Resource when "compact" is used will
-adhere to the following:
+For clarity, the serialization of a Resource in document view will adhere to
+the following:
 
 ```yaml
 {
   "RESOURCEid": "STRING",
   "self": "URL",
   "shortself": "URL", ?
-  "xid": "URI",
+  "xid": "XID",
 
   "metaurl": "URL",
   "meta": {
     "RESOURCEid": "STRING",
     "self": URL",
     "shortself": "URL", ?
-    "xid": "URI",
+    "xid": "XID",
     "xref": "URL" ?
-    # Remaining attributes are absent if 'xref' is set
+    # The following attributes are absent if 'xref' is set
     "epoch": UINTEGER",
     "createdat": "TIMESTAMP",
     "modifiedat": "TIMESTAMP",
@@ -5907,17 +5956,18 @@ Note that the attributes `epoch` through `defaultversionsticky` MUST be
 excluded if `xref` is set because those would be picked-up from the target
 Resource's `meta` sub-object.
 
-If `?compact` is used on a request directed to a Resource, or Version,
+If `?doc` is used on a request directed to a Resource, or Version,
 that has the `hasdocument` model aspect set to `true`, then the processing
 of the request MUST take place as if the `$details` suffix was specified
-in the URL.
+in the URL. Meaning, the response MUST be the xRegistry metadata view of the
+Resource and not the Resource's "document".
 
-If `?compact` is used on a request directed to a Resource's `versions`
+If `?doc` is used on a request directed to a Resource's `versions`
 collection, or to one of its Versions, but the Resource is defined as an
 `xref` to another Resource, then the server MUST generate a
-`400 Bad Request` error and SHOULD indicate that using `?compact` on this
+`400 Bad Request` error and SHOULD indicate that using `?doc` on this
 part of the hierarchy is not valid - due to it not technically existing
-in this "compact" view.
+in document view.
 
 ### HTTP Header Values
 
