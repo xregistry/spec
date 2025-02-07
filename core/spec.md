@@ -99,7 +99,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   "registryid": "STRING",
   "self": "URL",
   "shortself": "URL", ?
-  "xid": "URI",
+  "xid": "XID",
   "epoch": UINTEGER,
   "name": "STRING", ?
   "description": "STRING", ?
@@ -191,7 +191,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       "GROUPid": "STRING",                         # The Group ID
       "self": "URL",
       "shortself": "URL", ?
-      "xid": "URI",
+      "xid": "XID",
       "epoch": UINTEGER,
       "name": "STRING", ?
       "description": "STRING", ?
@@ -210,7 +210,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
           "versionid": "STRING",
           "self": "URL",                           # Resource URL, not Version
           "shortself": "URL", ?
-          "xid": "URI",
+          "xid": "XID",
           "epoch": UINTEGER,                       # Version's epoch
           "name": "STRING", ?
           "isdefault": true,
@@ -231,7 +231,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "RESOURCEid": "STRING",
             "self": "URL",                         # URL to "meta" object
             "shortself": "URL", ?
-            "xid": "URI",
+            "xid": "XID",
             "xref": "URL", ?                       # xid of linked Resource
             "epoch": UINTEGER,                     # Resource's epoch
             "createdat": "TIMESTAMP",              # Resource's
@@ -252,7 +252,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
               "versionid": "STRING",               # The Version id
               "self": "URL",                       # Version URL
               "shortself": "URL", ?
-              "xid": "URI",
+              "xid": "XID",
               "epoch": UINTEGER,                   # Version's epoch
               "name": "STRING", ?
               "isdefault": BOOLEAN, ?
@@ -446,24 +446,24 @@ be one of the following data types:
   [RFC 1738](https://datatracker.ietf.org/doc/html/rfc1738).
 
 All relative URIs and URLs that reference entities within the Registry MUST
-begin with `/`. With the exception of `xid` values, relative URIs/URLs that
-reference entities that are part of a document view `GET` response (`?doc`
-is enabled), MUST be relative to the path specified on the request. Relative
-`xid` values MUST be relative to the root of Registry regardless of the path
-specified on the request.
+begin with `#/` followed by a [JSON Pointer] reference to the entity. With the
+exception of `xid` values, relative URIs/URLs that reference entities that are
+part of a document view `GET` response (`?doc` is enabled), MUST be relative
+to the path specified on the request. Relative `xid` values MUST be relative
+to the root of Registry regardless of the path specified on the request.
 
 For clarity, if a Registry has a Schema Resource at
-`/schemagroups/g1/schemas/s1`, then the entity's `self` URL (when serialized
+`/schemagroups/g1/schemas/s1`, then this entity's `self` URL (when serialized
 in document view) would change based on the path specified on the `GET`
 request:
 
 | GET Path | `self` URL |
 | --- | --- |
-| `http://example.com/myreg` | `/schemagroups/g1/schemas/s1` |
-| `http://example.com/myreg/schemagroups` | `/g1/schemas/s1` |
-| `http://example.com/myreg/schemagroups/g1/ ` | `/schemas/s1` |
-| `http://example.com/myreg/schemagroups/g1/schemas ` | `/s1` |
-| `http://example.com/myreg/schemagroups/g1/schemas/s1` | `/` |
+| `http://example.com/myreg` | `#/schemagroups/g1/schemas/s1` |
+| `http://example.com/myreg/schemagroups` | `#/g1/schemas/s1` |
+| `http://example.com/myreg/schemagroups/g1/ ` | `#/schemas/s1` |
+| `http://example.com/myreg/schemagroups/g1/schemas ` | `#/s1` |
+| `http://example.com/myreg/schemagroups/g1/schemas/s1` | `#/` |
 
 The root path of a Registry service MAY be at the root of a host or have a
 `PATH` portion in its URL (e.g. `http://example.com/myregistry`).
@@ -542,7 +542,7 @@ form:
 - `"SINGULARid": "STRING"`
 - `"self": "URL"`
 - `"shortself": "URL"`
-- `"xid": "URI"`
+- `"xid": "XID"`
 - `"epoch": UINTEGER`
 - `"name": "STRING"`
 - `"description": "STRING"`
@@ -666,7 +666,7 @@ of the existing entity. Then the existing entity can be deleted.
 
 ##### `xid` Attribute
 
-- Type: URI
+- Type: XID
 - Description: An immutable server generated unique identifier of the entity.
   Unlike `SINGULARid`, which is unique within the scope of its parent, `xid`
   MUST be unique across the entire Registry, and as such is defined to be a
@@ -1456,7 +1456,7 @@ The serialization of the Registry entity adheres to this form:
   "registryid": "STRING",
   "self": "URL",
   "shortself": "URL", ?
-  "xid": "URI",
+  "xid": "XID",
   "epoch": UINTEGER,
   "name": "STRING", ?
   "description": "STRING", ?
@@ -1559,7 +1559,7 @@ ETag: "UINTEGER"
   "registryid": "STRING",
   "self": "URL",
   "shortself": "URL", ?
-  "xid": "URI",
+  "xid": "XID",
   "epoch": UINTEGER,
   "name": "STRING", ?
   "description": "STRING", ?
@@ -1741,7 +1741,7 @@ ETag: "UINTEGER"
   "registryid": "STRING",
   "self": "URL",
   "shortself": "URL", ?
-  "xid": "URI",
+  "xid": "XID",
   "epoch": UINTEGER,
   "name": "STRING", ?
   "description": "STRING", ?
@@ -3187,7 +3187,7 @@ The serialization of a Group entity adheres to this form:
   "GROUPid": "STRING",
   "self": "URL",
   "shortself": "URL", ?
-  "xid": "URI",
+  "xid": "XID",
   "epoch": UINTEGER,
   "name": "STRING", ?
   "description": "STRING", ?
@@ -3255,7 +3255,7 @@ ETag: "UINTEGER"
     "GROUPid": "STRING",
     "self": "URL",
     "shortself": "URL", ?
-    "xid": "URI",
+    "xid": "XID",
     "epoch": UINTEGER,
     "name": "STRING", ?
     "description": "STRING", ?
@@ -3336,7 +3336,7 @@ Each individual Group definition MUST adhere to the following:
   "GROUPid": "STRING", ?
   "self": "URL", ?
   "shortself": "URL", ?
-  "xid": "URI", ?
+  "xid": "XID", ?
   "epoch": UINTEGER, ?
   "name": "STRING", ?
   "description": "STRING", ?
@@ -3359,7 +3359,7 @@ Each individual Group in a successful response MUST adhere to the following:
   "GROUPid": "STRING",
   "self": "URL",
   "shortself": "URL", ?
-  "xid": "URI",
+  "xid": "XID",
   "epoch": UINTEGER,
   "name": "STRING", ?
   "description": "STRING", ?
@@ -3454,7 +3454,7 @@ ETag: "UINTEGER"
   "GROUPid": "STRING",
   "self": "URL",
   "shortself": "URL", ?
-  "xid": "URI",
+  "xid": "XID",
   "epoch": UINTEGER,
   "name": "STRING", ?
   "description": "STRING", ?
@@ -3667,7 +3667,7 @@ Resource attribute MUST adhere to the following:
   "versionid": "STRING",
   "self": "URL",                           # URL to Resource, not Version
   "shortself": "URL", ?
-  "xid": "URI",                            # Relative URI to Resource
+  "xid": "XID",                            # Relative URI to Resource
   # Default Version attributes appear here
 
   "metaurl": "URL",
@@ -3675,7 +3675,7 @@ Resource attribute MUST adhere to the following:
     "RESOURCEid": "STRING",
     "self": "URL",                         # Absolute Meta URL, not Version
     "shortself": "URL", ?
-    "xid": "URI",                          # Relative Meta URI, not Version
+    "xid": "XID",                          # Relative Meta URI, not Version
     "xref": "URL", ?                       # Ptr to linked Resource
     "epoch": UINTEGER,                     # Resource's epoch
     "createdat": "TIMESTAMP",              # Resource's
@@ -3848,33 +3848,31 @@ and the following Resource level attributes:
   - If present, it MUST be a case sensitive `true` or `false`.
   - If present in a request, a value of `null` has the same meaning as
     deleting the attribute, implicitly setting it to `false`.
-  - Since this attribute and `defaultversionid` can impact each other, their
-    processing is described by the following:
-    - When `PATCH` is used:
-      - If only `defaultversionid` is present in the request, and it has a
-        non-null value, then the sticky feature MUST be turned on. Otherwise,
-        a `null` value MUST result in the sticky feature being turned off.
-      - If only `defaultversionsticky` is present in the request, and it has a
-        value of `true`, then the current `defaultversionid` MUST become
-        sticky. Otherwise, a value of `false` MUST result in the sticky
-        feature being turned off.
-      - If both attributes are present in the request, then an error MUST be
-        generated if `defaultversionsticky` is `false` and `defaultversionid`
-        is non-null and not the newest Version. If `defaultversionsticky` is
-        `true` and `defaultversionid` is `null`, then the newest Version MUST
-        become the default Version and sticky.
+  - The processing of the `defaultversionsticky` and `defaultversionid`
+    attributes are related, and is described as follows:
+    - When `PATCH` is used but only one of the two attributes is specified
+      in the request, then:
+      - A non-`null` `defaultversionid` MUST result in processing as if
+        `defaultversionsticky` has a value of `true`.
+      - A `null` `defaultversionid` MUST result in processing as if
+        `defaultversionsticky` has a value of `false`.
+      - A `null` or `false` `defaultversionsticky` MUST result in processing
+        as if `defaultversionid` has a value of `null`.
+      - The processing then continues on the patched `meta` sub-object as if
+        `PUT` or `POST` was used.
     - When `PUT` or `POST` is used:
-      - If `defaultversionsticky` is `false` (explicitly or absent) and
-        `defaultversionid` is a non-null value, then an error MUST be
-        generated if its value is not the newest Version.
-      - If `defaultversionsticky` is `true` and `defaultversionid` is `null`
-        (explicitly or absent), then the newest Version MUST become the
-        default Version and sticky.
-    - In all cases, a reference to a non-existing Version MUST generate an
-      error.
-    - For clarity, if the net result of the processing is that the sticky
-      feature is turned off, then the `defaultversionid` attribute MUST
-      reference the newest Version.
+      - A `null` or absent `defaultversionid` in the request MUST result in the
+        same semantics as it referencing "the newest Version".
+      - A `null` or absent `defaultversionsticky` in the request MUST result in
+        the same semantics as it being set to `false`.
+      - A `defaultversionid` referencing a non-existing Version MUST generate
+        an error.
+      - If `defaultversionsticky` is `false` and `defaultversionid` does not
+        reference the newest Version then an error MUST be generated, as this
+        would result in an inconsistent state.
+      - For clarity, if the net result of the processing is that the sticky
+        feature is turned off, then the `defaultversionid` MUST reference the
+        newest Version.
 - Examples:
   - `true`, `false`
 
@@ -4078,7 +4076,7 @@ this form:
   "versionid": "STRING",                   # ID of default Version
   "self": "URL",                           # URL of Resource,not default Version
   "shortself": "URL", ?
-  "xid": "URI",                            # Relative URI of Resource
+  "xid": "XID",                            # Relative URI of Resource
   # These are inherited from the default Version
   "epoch": UINTEGER,
   "name": "STRING", ?
@@ -4100,7 +4098,7 @@ this form:
     "RESOURCEid": "STRING",
     "self": "URL",                         # URL to "meta"
     "shortself": "URL", ?
-    "xid": "URI",                          # Relative URI to "meta"
+    "xid": "XID",                          # Relative URI to "meta"
     "xref": "URL", ?                       # Ptr to linked Resource
     "epoch": UINTEGER,                     # Resource's epoch
     "createdat": "TIMESTAMP",              # Resource's
@@ -4403,7 +4401,7 @@ Link: <URL>;rel=next;count=UINTEGER ?
     "versionid": "STRING",                    # Default Version ID
     "self": "URL",                            # URL to the Resource
     "shortself": "URL", ?
-    "xid": "URI",                             # Relative URI to the Resource
+    "xid": "XID",                             # Relative URI to the Resource
     "epoch": UINTEGER,                        # Start of Default Ver attribs
     "name": "STRING", ?
     "isdefault": true,
@@ -4424,7 +4422,7 @@ Link: <URL>;rel=next;count=UINTEGER ?
       "RESOURCEid": "STRING",                # Resource ID
       "self": "URL",                         # URL to "meta"
       "shortself": "URL", ?
-      "xid": "URI",                          # Relative URI to "meta"
+      "xid": "XID",                          # Relative URI to "meta"
       "xref": "URL", ?                       # Ptr to linked Resource
       "epoch": UINTEGER,                     # Resource's epoch
       "createdat": "TIMESTAMP",              # Resource's
@@ -4589,7 +4587,7 @@ in the request MUST adhere to the following:
   "versionid": "STRING", ?
   "self": "URL",
   "shortself": "URL", ?
-  "xid": "URI",
+  "xid": "XID",
   "epoch": UINTEGER,
   "name": "STRING", ?                      # Version level attributes
   "isdefault": BOOLEAN, ?
@@ -4609,7 +4607,7 @@ in the request MUST adhere to the following:
     "RESOURCEid": "STRING",
     "self": "URL",
     "shortself": "URL", ?
-    "xid": "URI",
+    "xid": "XID",
     "xref": "URL", ?
     "epoch": UINTEGER,
     "createdat": "TIMESTAMP",
@@ -4939,7 +4937,7 @@ ETag: "UINTEGER"
   "versionid": "STRING",
   "self": "URL",                           # URL to Resource, not default Ver
   "shortself": "URL", ?
-  "xid": "URI",                            # Relative URI to Resource
+  "xid": "XID",                            # Relative URI to Resource
   "epoch": UINTEGER,
   "name": "STRING", ?
   "description": "STRING", ?
@@ -4958,7 +4956,7 @@ ETag: "UINTEGER"
     "RESOURCEid": "STRING", ?
     "self": "URL",                         # URL to "meta" sub-object
     "shortself": "URL", ?
-    "xid": "URI",                          # Relative URI to "meta" sub-object
+    "xid": "XID",                          # Relative URI to "meta" sub-object
     "xref": "URL", ?
     "epoch": UINTEGER,
     "createdat": "TIMESTAMP",
@@ -5063,7 +5061,7 @@ When serialized as a JSON object, the Version entity adheres to this form:
   "versionid": "STRING",
   "self": "URL",
   "shortself": "URL", ?
-  "xid": "URI",
+  "xid": "XID",
   "epoch": UINTEGER,
   "name": "STRING", ?
   "isdefault": BOOLEAN, ?
@@ -5349,7 +5347,7 @@ Link: <URL>;rel=next;count=UINTEGER ?
     "versionid": "STRING",
     "self": "URL",
     "shortself": "URL", ?
-    "xid": "URI",
+    "xid": "XID",
     "epoch": UINTEGER,
     "name": "STRING", ?
     "isdefault": BOOLEAN,
@@ -5523,7 +5521,7 @@ ETag: "UINTEGER"
   "versionid": "STRING",
   "self": "URL",
   "shortself": "URL", ?
-  "xid": "URI",
+  "xid": "XID",
   "epoch": UINTEGER,
   "name": "STRING", ?
   "isdefault": BOOLEAN,
@@ -5931,14 +5929,14 @@ the following:
   "RESOURCEid": "STRING",
   "self": "URL",
   "shortself": "URL", ?
-  "xid": "URI",
+  "xid": "XID",
 
   "metaurl": "URL",
   "meta": {
     "RESOURCEid": "STRING",
     "self": URL",
     "shortself": "URL", ?
-    "xid": "URI",
+    "xid": "XID",
     "xref": "URL" ?
     # The following attributes are absent if 'xref' is set
     "epoch": UINTEGER",
