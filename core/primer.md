@@ -510,3 +510,16 @@ values need to change.
 
 Obviously, situations like these should be rare but the specification needs
 to allow for them.
+
+# Why does an unknown query parameter not generate an error?
+
+People have identified cases where query parameters might be added to request
+URLs without the client (or developer) having control to prevent it. It might
+be client-side tooling or intermediaries (e.g. proxies) that might modify
+the URL - for example to add tracking or end-to-end tracing information.
+
+To avoid these client not being able interact with an xRegistry deployment,
+the authors chose to have the server ignore unknown query parameters. It is
+worth noting that the specification says they SHOULD be ignored, not that they
+MUST be ignored. So there is room for an implementation to be very picky if
+needed, but at the risk of potentially causing interoperability problems.
