@@ -518,7 +518,7 @@ URLs without the client (or developer) having control to prevent it. It might
 be client-side tooling or intermediaries (e.g. proxies) that might modify
 the URL - for example to add tracking or end-to-end tracing information.
 
-To avoid these client not being able interact with an xRegistry deployment,
+To avoid these clients not being able interact with an xRegistry deployment,
 the authors chose to have the server ignore unknown query parameters. It is
 worth noting that the specification says they SHOULD be ignored, not that they
 MUST be ignored. So there is room for an implementation to be very picky if
