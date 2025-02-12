@@ -111,9 +111,9 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   "capabilities": {                     # Supported capabilities/options
     "enforcecompatibility": BOOLEAN, ?
     "flags": [                          # Query parameters
-      "doc",? "epoch",? "filter",? "inline",?
-      "nodefaultversionid",? "nodefaultversionsticky",? "noepoch",?
-      "noreadonly",?  "schema",? "setdefaultversionid",? "specversion",?
+      "doc",? "epoch",? "filter",? "inline",?  "nodefaultversionid",?
+      "nodefaultversionsticky",? "noepoch",?  "noreadonly",?  "offered",?
+      "schema",? "setdefaultversionid",? "specversion",?
       "STRING" *
     ],
     "mutable": [                        # What is mutable in the Registry
@@ -282,7 +282,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
 "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be
 interpreted as described in [RFC 2119](https://tools.ietf.org/html/rfc2119).
 
-For clarity, OPTIONAL attributes (specification defined and extensions) are
+For clarity, OPTIONAL attributes (specification-defined and extensions) are
 OPTIONAL for clients to use, but servers MUST be prepared for them to appear
 in incoming requests and MUST support them since "support" simply means
 persisting them in the backing datastore. However, as with all attributes, if
@@ -479,7 +479,7 @@ The "scalar" data types are: `boolean`, `decimal`, `integer`, `string`,
 Note that `any` is not a "scalar" type as its runtime value could be a complex
 type such as `object`.
 
-All attributes (specification defined and extensions) MUST adhere to the
+All attributes (specification-defined and extensions) MUST adhere to the
 following rules:
 - Their names MUST be between 1 and 63 characters in length.
 - Their names MUST only contain lowercase alphanumeric characters or an
@@ -852,12 +852,12 @@ of the existing entity. Then the existing entity would be deleted.
     as the new value.
   - When absent in a write operation request, any existing value MUST remain
     unchanged, or if not already set, set to the current date/time
-  - During the processing of a single request, all entities that have their
-    `createdat` or `modifiedat` attributes set to the current date/time
-    MUST use the same value in all cases.
   - For Versions, if this attribute is updated such that the owning Version
     becomes the "newest" Version and the Resource's `defaultversionsticky`
     attribute is `false`, then this Version MUST become the "default" Version.
+  - During the processing of a single request, all entities that have their
+    `createdat` or `modifiedat` attributes set to the current date/time due
+    to the processing rules above, MUST use the same value in all cases.
 
 - Examples:
   - `2030-12-19T06:00:00Z`
@@ -890,8 +890,8 @@ of the existing entity. Then the existing entity would be deleted.
   - When absent in a write operation request, it MUST be set to the current
     date/time.
   - During the processing of a single request, all entities that have their
-    `createdat` or `modifiedat` attributes set to the current date/time
-    MUST use the same value in all cases.
+    `createdat` or `modifiedat` attributes set to the current date/time due
+    to the processing rules above MUST use the same value in all cases.
 
 - Examples:
   - `2030-12-19T06:00:00Z`
@@ -927,7 +927,7 @@ incorporate authentication and/or authorization mechanisms for the APIs.
 If an OPTIONAL HTTP path is not supported by an implementation, then any
 use of that API MUST generate a `404 Not Found` error.
 
-If a HTTP method is not supported for a supported HTTP path then a
+If an HTTP method is not supported for a supported HTTP path then a
 `405 Method Not Allowed` error MUST be generated.
 
 Implementations MAY support extension APIs however the following rules MUST
@@ -936,7 +936,7 @@ apply:
 - New root HTTP paths MAY be defined as long as they do not use Registry level
   HTTP paths or attribute names. This includes extension and GROUPS collection
   attribute names.
-- Additional HTTP methods for specification defined HTTP paths MUST NOT be
+- Additional HTTP methods for specification-defined HTTP paths MUST NOT be
   defined.
 
 For example, a new API with an HTTP path of `/my-api` is allowed, but APIs with
@@ -962,7 +962,7 @@ pattern of the APIs:
   a `POST` to a Resource URL MUST be treated as an alias for a `POST` to the
   Resource's `versions` collection.
 - Unknown query parameters SHOULD be silently ignored by servers. This
-  includes specification defined but unsupported query parameters.
+  includes specification-defined but unsupported query parameters.
 
 In general, if a server is unable to retrieve all of the data intended to be
 sent in a response then an error MUST be generated and the request rejected
@@ -1662,13 +1662,13 @@ ETag: "1"
   "modifiedat": "2024-04-30T12:00:01Z",
 
   "model": {
-    ... xRegistry spec defined attributes excluded for brevity ...
+    ... xRegistry spec-defined attributes excluded for brevity ...
     "groups": {
       "endpoints": {
         "plural": "endpoints",
         "singular": "endpoint",
         "attributes": {
-          ... xRegistry spec defined attributes excluded for brevity ...
+          ... xRegistry spec-defined attributes excluded for brevity ...
           "shared": {
             "name": "shared",
             "type": "boolean"
@@ -1680,7 +1680,7 @@ ETag: "1"
             "plural": "messages",
             "singular": "message",
             "attributes": {
-              ... xRegistry spec defined attributes excluded for brevity ...
+              ... xRegistry spec-defined attributes excluded for brevity ...
               "*": {
                 type: "any"
               }
@@ -1692,13 +1692,13 @@ ETag: "1"
       "schemagroups": {
         "plural": "schemagroups",
         "singular": "schemagroup",
-        ... xRegistry spec defined attributes excluded for brevity ...
+        ... xRegistry spec-defined attributes excluded for brevity ...
 
         "resources": {
           "schemas": {
             "plural": "schemas",
             "singular": "schema",
-            ... xRegistry spec defined attributes excluded for brevity ...
+            ... xRegistry spec-defined attributes excluded for brevity ...
             "maxversions": 1
           }
         }
@@ -1875,16 +1875,22 @@ Where:
   extensions use some domain-specific name to avoid possible conflicts with
   other extensions.
 
+All capability values, including extensions, MUST be defined as one of the
+following:
+- Numeric (one of: integer, unsigned integer, float)
+- Boolean
+- String
+- Array of one of the above
+
 Absence of a capability in the capability map is an indication of that feature
 not being supported, or if it is specification mandated feature, then its
 configuration is the default value as specified by this specification.
-Each capability MAY define its own value syntax and all supported extensions
-SHOULD be included in the list.
+All supported extensions SHOULD be included in the list.
 
 Absence, presence, or configuration values of a feature in the map MAY vary
 based on the authorization level of the client making the request.
 
-The following defines the specification defined capabilities:
+The following defines the specification-defined capabilities:
 
 #### `enforcecompatibility`
 - Name: `enforcecompatibility`
@@ -1914,7 +1920,7 @@ The following defines the specification defined capabilities:
   SHOULD be silently ignored by servers.
 - Defined values:
     `doc`, `epoch`, `filter`, `inline`, `nodefaultversionid`,
-    `nodefaultversionsticky`, `noepoch`, `noreadonly`, `schema`,
+    `nodefaultversionsticky`, `noepoch`, `noreadonly`, `offered`, `schema`,
     `setdefaultversionid`, `specversion`.
   - If not specified, the default value is an empty list and no query
     parameters are supported.
@@ -1978,6 +1984,8 @@ extension values.
 For clarity, servers SHOULD include all capabilities in the serialization,
 even if they are set to their default values or have empty lists.
 
+#### Updating the Capabilities of a Server
+
 If supported, updates to the server's capabilities MAY be done via an HTTP
 `PUT`, or `PATCH`, to the `/capabilities` API, or by updating the `capabilities`
 attribute on the root of the Registry. As with other APIs, a `PUT` MUST be
@@ -1991,6 +1999,14 @@ The request to the `/capabilities` API MUST be of the form:
 
 ```yaml
 PUT /capabilities
+Content-Type: application/json; charset=utf-8
+
+{ ... Capabilities map ...  }
+```
+
+or
+
+```yaml
 PATCH /capabilities
 Content-Type: application/json; charset=utf-8
 
@@ -2035,34 +2051,100 @@ response.
 Regardless of the mechanism used to update the capabilities, the Registry's
 `epoch` value MUST be incremented.
 
----
+In order for a client to discover the list of available values for each
+capability, an HTTP `GET` MAY be sent to the `/capabilities` API with the
+`?offered` query parameter and the response MUST adhere to the following:
+
+```yaml
+GET /capabilities?offered
+
+{
+  "STRING": [ OFFERED-VALUES ] *
+}
+```
+
+Where:
+- `"STRING"` is the capability name.
+- `OFFERED-VALUES` is an array of the valid values for that capability. The
+  data type of each value MUST adhere to the data type associated with the
+  capability, with the exception of the `#` (range)  variants described below.
+
+For example:
+
+```yaml
+GET /capabilities?offered
+
+{
+  "enforcecompatibility": [ true, false ],
+  "flags": [ "doc", "epoch", "filter", "inline", "nodefaultversionid",
+    "nodefaultversionsticky", "noepoch", "noreadonly", "offered", "schema",
+    "setdefaultversionid", "specversion" ],
+  "mutable": [ "capabilities", "entities", "model" ],
+  "pagination": [ true, false ],
+  "schemas": [ "xRegistry-json/0.5" ],
+  "shortself": [ true, false ],
+  "specversions": [ "0.5" ]
+}
+```
+
+The array of values allows for some special cases:
+- `"*"` mean that all possible values of that data type are allowed.
+- Numeric capabilities MAY express ranges via `"#-#"` (min-max),
+  `"#-"` (value or greater) or `"-#"` (less than or equal to value) where `#`
+  is a valid numeric value.
+- String capabilities MAY include `*` as a wildcard character in a value
+  to indicate zero or more unspecified characters MAY appear at that location
+  in the value string.
+
+A request to update a capability with a value that is compliant with the
+output of the `/capabilities?offered` MAY still be rejected if the server
+determines it can not support the request. For example, due to authorization
+concerns or the value, while syntactically valid, isn't allow in certain
+situations.
+
+For clarity, even in cases where there is no variability allowed with certain
+capabilities they SHOULD still be listed in both the `/capabilities` API
+and the `/capabilities?offered` API to maximize discoverability. For example,
+if `pagination` is not supported, then a server SHOULD still include:
+
+```yaml
+  "pagination": false
+```
+
+in the `/capabilities` output, and
+
+```yaml
+  "pagination": [ false ]
+```
+
+in the `/capabilities?offered` output (assuming both APIs are supported).
 
 ### Registry Model
 
 The Registry model defines the Groups, Resources, extension attributes and
-changes to specification defined attributes. This information is
+changes to specification-defined attributes. This information is
 intended to be used by tooling that does not have knowledge of the structure of
 the Registry in advance and therefore will need to dynamically discover it.
 
 To enable support for a wide range of use cases, but to also ensure
 interoperability across implementations, the following rules have been defined
 with respect to how models are defined or updated:
-- Changes to specification defined attributes MAY be included in the model but
+- Changes to specification-defined attributes MAY be included in the model but
   MUST NOT change them such that they become incompatible with the
   specification. For example, changes to further constrain the allowable values
   of an attribute is typically allowed, but changing its `type` from `string`
   to `int` is not.
-- Specification defined attributes that are `serverrequired` MUST NOT have
+- Specification-defined attributes that are `serverrequired` MUST NOT have
   this aspect changed to `false`.
-- Specification defined attributes that are `readonly` and `serverrequired`
+- Specification-defined attributes that are `readonly` and `serverrequired`
   MUST NOT have the `readonly` aspect changed to `false`.
 
 Any specification attributes not included in the request MUST be included in
 the resulting model. In other words, the Registry's model consists of the
-specification defined attributes overlaid with the attributes that are
-explicitly defined as part of a model create/update request.
+specification-defined attributes overlaid with the attributes that are
+explicitly-defined as part of a model create/update request.
 
-Note: there is no mechanism defined to delete specification defined attributes
+Note: there is no mechanism defined to delete specification-defined attributes
 from the model.
 
 Registries MAY support extension attributes to the model language (meaning,
@@ -2196,9 +2278,9 @@ The following describes the attributes of Registry model:
 
 - `attributes` <span id="model.attributes"></span>
   - The set of attributes defined at the indicated level of the Registry. This
-    includes extensions and specification defined/modified attributes.
+    includes extensions and specification-defined/modified attributes.
   - Type: Map where each attribute's name MUST match the key of the map.
-  - REQUIRED at specification defined locations, otherwise OPTIONAL for
+  - REQUIRED at specification-defined locations, otherwise OPTIONAL for
     extensions Objects.
 
 - `attributes."STRING"`
@@ -2225,7 +2307,7 @@ The following describes the attributes of Registry model:
     isn't already one defined for this level in the entity
 
     An extension attribute MUST NOT use a name that conflicts with any
-    specification defined attribute, sub-object attribute or collection
+    specification-defined attribute, sub-object attribute or collection
     related attribute names defined at the same level in the hierarchy. For
     Resource/Version attributes, this applies for both levels - e.g. a Version
     level extension MUST NOT use a name that conflicts with its Resource level
@@ -2314,7 +2396,7 @@ The following describes the attributes of Registry model:
 
 - `attributes."STRING".immutable`
   - Indicates whether this attribute's value can be changed once it is set.
-    This MUST ONLY be used for server controlled specification defined
+    This MUST ONLY be used for server controlled specification-defined
     attributes, such as `specversion` and `SINGULARid`, and MUST NOT be used for
     extension attributes. As such, it is only for informational purposes for
     clients.
@@ -2624,11 +2706,11 @@ formats. The `schemas` capabilities attribute MUST expose the set of schema
 formats available.
 
 The resulting schema document MUST include the full Registry model - meaning
-all specification defined attributes, extension attributes, Group types and
+all specification-defined attributes, extension attributes, Group types and
 Resource types.
 
 For the sake of brevity, this specification doesn't include the full definition
-of the specification defined attributes as part of the snippets of output.
+of the specification-defined attributes as part of the snippets of output.
 However, the full model definition of the Registry level attributes can be
 found in [model.json](model.json), and the Group and Resource level attributes
 can be found in this sample [sample-model.json](sample-model.json).
@@ -2740,14 +2822,14 @@ Content-Type: application/json; charset=utf-8
 
 {
   "attributes": {
-    ... xRegistry spec defined attributes excluded for brevity ...
+    ... xRegistry spec-defined attributes excluded for brevity ...
   },
   "groups": {
     "endpoints": {
       "plural": "endpoints",
       "singular": "endpoint",
       "attributes": {
-        ... xRegistry spec defined attributes excluded for brevity ...
+        ... xRegistry spec-defined attributes excluded for brevity ...
         "shared": {
           "name": "shared",
           "type": "boolean"
@@ -2758,13 +2840,13 @@ Content-Type: application/json; charset=utf-8
         "messages": {
           "plural": "messages",
           "singular": "message",
-            ... xRegistry spec defined attributes excluded for brevity ...
+            ... xRegistry spec-defined attributes excluded for brevity ...
             "*": {
               type: "any"
             }
           },
           "metaattributes": {
-            ... xRegistry spec defined attributes excluded for brevity ...
+            ... xRegistry spec-defined attributes excluded for brevity ...
             "*": {
               type: "any"
             }
@@ -2848,7 +2930,7 @@ Content-Type: application/json; charset=utf-8
 Where:
 - The HTTP body MUST contain all of the attributes, Groups and Resources that
   the client wishes to define.
-- Specification defined attributes not included in the request MUST be added
+- Specification-defined attributes not included in the request MUST be added
   by the server with their default definitions.
 
 See [Registry Model](#registry-model) for more details about the list of
@@ -2966,14 +3048,14 @@ Content-Type: application/json; charset=utf-8
 
 {
   "attributes": {
-    ... xRegistry spec defined attributes excluded for brevity ...
+    ... xRegistry spec-defined attributes excluded for brevity ...
   },
   "groups": {
     "endpoints" {
       "plural": "endpoints",
       "singular": "endpoint",
       "attributes": {
-        ... xRegistry spec defined attributes excluded for brevity ...
+        ... xRegistry spec-defined attributes excluded for brevity ...
         "shared": {
           "name": "shared",
           "type": "boolean"
@@ -2984,7 +3066,7 @@ Content-Type: application/json; charset=utf-8
         "messages": {
           "plural": "messages",
           "singular": "message",
-          ... xRegistry spec defined attributes excluded for brevity ...
+          ... xRegistry spec-defined attributes excluded for brevity ...
           "attributes": {
             "*": {
               type: "any"
@@ -3002,7 +3084,7 @@ Content-Type: application/json; charset=utf-8
         "schemas": {
           "plural": "schemas",
           "singular": "schema"
-          ... xRegistry spec defined attributes excluded for brevity ...
+          ... xRegistry spec-defined attributes excluded for brevity ...
         }
       }
     }
@@ -3926,7 +4008,7 @@ and the following Resource level attributes:
 - Type: Object
 - Description: an object that contains most of the Resource level attributes.
 
-  The `meta` sub-object is an entity unto itself, meaning it supports the
+  The `meta` sub-object is an entity in its own right, meaning it supports the
   `GET`, `PUT` and `PATCH` APIs as described for all entities within the
   xRegistry. It also has its own `epoch` value which adheres to the normal
   `epoch` processing rules already described, and its value is only updated
@@ -4039,7 +4121,8 @@ to control the HTTP response headers.
 
 Certain attributes do not follow this rule if a standard HTTP header name is
 to be used instead (e.g. `contenttype` MUST use `Content-Type`, not
-`xRegistry-contenttype`).
+`xRegistry-contenttype`). Each attribute that falls into this category will
+be identified as part of its definition.
 
 Top-level map attributes whose values are of scalar types MUST also appear as
 HTTP headers (each key having it's own HTTP header) and in those cases the
@@ -4317,7 +4400,7 @@ Note:
 
 From a consumption (read) perspective, aside from the presence of the `xref`
 attribute, the Resource appears to be a normal Resource that exists within
-`group1`. All of the specification defined features (e.g. `?inline`,
+`group1`. All of the specification-defined features (e.g. `?inline`,
 `?filter`) MAY be used when retrieving the Resource.
 
 However, from a write perspective it is quite different. In order to update
@@ -5352,10 +5435,10 @@ might be done:
    with `versionid` values of `v10`, `z1` and `V2`, then ordering of the
    Versions from oldest to newest would be: `v10`, `V2`, `z1.
 
-2. Client explicitly chooses the "default". In this option, a client has
+1. Client explicitly chooses the "default". In this option, a client has
    explicitly chosen which Version is the "default" and it will not change
    until a client chooses another Version, or that Version is deleted (in
-   which case the server MUST revert back to option 2 (newest = default), if
+   which case the server MUST revert back to option 1 (newest = default), if
    the client did not use `?setdefaultversionid` to choose the next "default"
    Version - see below). This is referred to as the default Version being
    "sticky" as it will not change until explicitly requested by a client.
@@ -6123,7 +6206,7 @@ Steps to encode a Unicode character:
   bits of the byte.
 
 Percent-encoding SHOULD be performed using upper-case for values A-F,
-but decoding MUST accept lower-case values.
+but decoding MUST accept lowercase values.
 
 When performing percent-decoding, values that have been unnecessarily
 percent-encoded MUST be accepted, but encoded byte sequences which are
