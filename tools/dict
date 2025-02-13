@@ -221,10 +221,14 @@ unescaping
 unicode
 updateable
 upfront
+uriabsolute
 urireference
+urirelative
 uris
 uritemplate
 url
+urlabsolute
+urlrelative
 urls
 username
 utc
