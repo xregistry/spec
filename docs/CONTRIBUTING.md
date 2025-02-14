@@ -119,3 +119,16 @@ Documents in this repository will adhere to the following rules:
 - Lines are wrapped at 80 columns (when possible)
 - Specifications will use [RFC2119](https://tools.ietf.org/html/rfc2119)
   keywords to indicate normative requirements
+
+## Testing Changes Locally
+
+Each PR will run through some checks to verify everything looks ok. Checks
+include:
+- all links resolve successfully
+- no spelling errors are found
+- no tabs in markdown files
+- all RFC2119 keywords are in all-caps
+
+To test your changes locally you have 2 options:
+1 - `make -f tools/Makefile` - if you have Python/bash locally installed
+2 - `make -f tools/Makefile docker` - if you have Docker locally installed

@@ -1,4 +1,7 @@
-all: verify
+all: verify makeschema
+	@git diff --name-status --exit-code */schemas > /dev/null 2>&1 || \
+		( echo "schema files have been updated, make sure you commit them" ; \
+		  exit 1 )
 
 verify: spellcheck tabcheck test_tools
 	@python tools/verify.py .
@@ -36,7 +39,4 @@ test_tools: deps
 
 docker:
 	@docker run -ti -v $(PWD):/tmp/spec -w /tmp/spec python:3.11 \
-	    make -f tools/Makefile verify makeschema
-	@git diff
-	@git diff-index HEAD || \
-		( echo "schema files need to be updated: make 'makeschema'" ; exit 1 )
+	    make -f tools/Makefile
