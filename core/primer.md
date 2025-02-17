@@ -53,11 +53,12 @@ are therefore very broad. See
 [possible use cases](#possible-use-cases) for more examples.
 
 In addition to the core specification, xRegistry provides secondary
-specifications for [endpoints](/endpoint/spec.md), [schemas](/schema/spec.md),
-and [messages](/message/spec.md), that further build upon the core to provide
-more domain-specific standardization in the context of event-driven systems. The
-following subsections provide a more specific overview of how xRegistry can be
-used to address common challenges in the event-driven space.
+specifications for [endpoints](../endpoint/spec.md),
+[schemas](../schema/spec.md), and [messages](../message/spec.md), that further
+build upon the core to provide more domain-specific standardization in the
+context of event-driven systems. The following subsections provide a more
+specific overview of how xRegistry can be used to address common challenges in
+the event-driven space.
 
 ### Discovery
 
