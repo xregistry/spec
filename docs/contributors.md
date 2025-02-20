@@ -15,14 +15,21 @@ Contributions do not constitute an official endorsement.
 
 - **Google**
   - Jon Skeet - [@jskeet](https://github.com/jskeet)
-- **Linkall**
-  - Jie Ding - [@jieding](https://github.com/jieding)
+
 - **Microsoft**
-  - Doug Davis - [@duglin](https://github.com/duglin)
   - Clemens Vasters - [@clemensv](https://github.com/clemensv)
-- **Red Hat**
-  - Lance Ball - [@lance](https://github.com/lance)
+
+- **Particular Software**
+  - Laila Bourgria - [@lailabougria](https://github.com/lailabougria)
+
 - **SAP**
   - Klaus Deissner - [@deissnerk](https://github.com/deissnerk)
-- **VMWare**
+  - Simon Heimler - [@Fannon](https://github.com/Fannon)
+
+- **Solace**
+  - Jesse Menning - [jessemenning](https://github.com/jessemenning)
+
+- **Independent**
+  - Doug Davis - [@duglin](https://github.com/duglin)
+  - Erik Erikson - [@erikerikson](https://github.com/erikerikson)
   - Mark Peek - [@markpeek](https://github.com/markpeek)

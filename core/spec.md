@@ -2157,8 +2157,9 @@ Once a Registry has been created, changes to the model are limited to:
 - Adding new OPTIONAL attributes.
 
 Any model change that might result in existing data within the Registry
-becoming non-compliant MUST generate an error, even if it does not do so. For
-example, the following non-exhaustive list of changes MUST generate an error:
+becoming non-compliant MUST generate an error, even if the existing data
+doesn't result in non-compliance. For example, the following non-exhaustive
+list of changes MUST generate an error:
 - Deleting an attribute, Group or Resource.
 - Changing the `name` or `type` of an attribute.
 - Removing a value from the enumeration list of an attribute.
@@ -3880,7 +3881,7 @@ and the following Resource level attributes:
   Implementations MUST include `none` as one of the possible values and when
   set to `none` then compatibility checking MUST NOT be performed.
 
-  If the `enforcecompatibility" capability is set to `true` then
+  If the `enforcecompatibility` capability is set to `true` then
   implementations of this specification are REQUIRED to perform the proper
   compatibility checks to ensure that all Versions of a Resource adhere to the
   rules defined by the current value of this attribute. This includes rejecting
@@ -5988,15 +5989,15 @@ other words, a `404 Not Found` would be generated in the HTTP protocol case.
 | Request PATH | Filter query | Commentary |
 | --- | --- | --- |
 | / | `?filter=endpoints.description=*cool*` | Only endpoints with the word `cool` in the description |
-| /endpoints | `?filter=description=*CooL*` | Same results as previous, with a different request URL |
-| / | `?filter=endpoints.messages.versions.versionid=1.0` | Only versions (and their owning endpoints.messages) that have a versionid of `1.0` |
+| /endpoints | `?filter=description=*CooL*` | Similar results as previous, with a different request URL |
+| / | `?filter=endpoints.messages.versions.versionid=1.0` | Only versions (and their owning parents) that have a versionid of `1.0` |
 | / | `?filter=endpoints.name=myendpoint,endpoints.description=*cool*& filter=schemagroups.labels.stage=dev` | Only endpoints whose name is `myendpoint` and whose description contains the word `cool`, as well as any schemagroups with a `label` name/value pair of `stage/dev` |
 | / | `?filter=description=no-match` | Returns a 404 if the Registry's `description` doesn't equal `no-match` |
 | / | `?filter=endpoints.messages.meta.readonly=true` | Only messages that are `readonly` |
 
 Specifying a filter does not imply inlining. However, inlining can be used at
 the same time but MUST NOT result in additional entities being included in
-the results unless they are children of leaf entity from one of the sub-trees.
+the results unless they are children of a matching leaf entity.
 
 For example, in the following entity URL paths representing a Registry:
 
@@ -6079,7 +6080,7 @@ the following:
 
 All of the relative URLs mentioned in the last bullet MUST begin with `#`
 and be followed by a
-[JSON Pointer](https://datatracker.ietf.org/doc/html/rfc6901)reference to the
+[JSON Pointer](https://datatracker.ietf.org/doc/html/rfc6901) reference to the
 entity within the response, e.g. `#/endpoints/e1`. This means that they are
 relative to the root of the document (response) generated, and not necessarily
 relative to the root of the Registry. Additionally, when those URLs are
