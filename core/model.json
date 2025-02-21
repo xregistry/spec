@@ -5,7 +5,8 @@
       "type": "string",
       "readonly": true,
       "immutable": true,
-      "serverrequired": true
+      "serverrequired": true,
+      "default": "0.5"
     },
     "registryid": {
       "name": "registryid",
