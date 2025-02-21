@@ -100,7 +100,7 @@ this form:
             "STRING": {
               "type": "TYPE", ?
               "value": ANY, ?
-              "required": BOOLEAN ?            # Default is 'false'
+              "required": BOOLEAN              # Default=false
             } *
           }, ?
           "envelopeoptions": {
@@ -509,7 +509,7 @@ headers/properties/attributes constraints:
 - Description: Indicates whether the property is REQUIRED to be present in a
   message of this type.
 - Constraints:
-  - OPTIONAL. Defaults to `false`.
+  - OPTIONAL. Defaults MUST be `false`.
   - If present, MUST be a boolean value.
 
 ##### `description`
@@ -555,7 +555,7 @@ current timestamp when creating a message.
 - Description: The type of the property. This is used to constrain the value of
   the property.
 - Constraints:
-  - OPTIONAL. Defaults to "string".
+  - OPTIONAL. Default value MUST be "string".
   - The valid types are those defined in the [CloudEvents][CloudEvents Types]
     core specification, with some additions:
     - `var`: Any type of value, including `null`.
@@ -618,8 +618,8 @@ The following rules apply to the attribute declarations:
 - The `type`, `id`, and `source` attributes implicitly have the `required` flag
   set to `true` and MUST NOT be declared as `required: false`.
 - The `id` attribute's `value` SHOULD NOT be defined.
-- The `time` attribute's `value` defaults to `01-01-0000T00:00:00Z` ("current
-  time") and SHOULD NOT be declared with a different value.
+- The `time` attribute's `value` default value MUST be `01-01-0000T00:00:00Z`
+  ("current time") and SHOULD NOT be declared with a different value.
 - The `datacontenttype` attribute's `value` is inferred from the
   [`dataschemaformat`](#dataschemaformat) attribute of the message definition
   if absent.
@@ -633,7 +633,7 @@ The following rules apply to the attribute declarations:
   `urireference` MAY be changed to
   `uritemplate` or the `subject` type `string` MAY be constrained to a
   `urireference` or `stringified integer`. If no CloudEvents type definition
-  exists, the type defaults to `string`.
+  exists, the default value MUST be `string`.
 
 The values of all `string` and `uritemplate`-typed attributes MAY contain
 placeholders using the [RFC6570][RFC6570] Level 1 URI Template syntax. When the

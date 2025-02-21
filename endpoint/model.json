@@ -164,7 +164,9 @@
                     "deployed": {
                       "name": "deployed",
                       "type": "boolean",
-                      "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint"
+                      "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint",
+                      "serverrequired": true,
+                      "default": false
                     },
 
                     "node": {
@@ -175,7 +177,9 @@
                     "durable": {
                       "name": "durable",
                       "type": "boolean",
-                      "description": "The AMQP durable flag. Whether the node is durable or transient"
+                      "description": "The AMQP durable flag. Whether the node is durable or transient",
+                      "serverrequired": true,
+                      "default": false
                     },
                     "linkproperties": {
                       "name": "linkproperties",
@@ -196,11 +200,13 @@
                     "distributionmode": {
                       "name": "distributionmode",
                       "type": "string",
-                      "description": "The AMQP distribution mode for receivers. Can be 'move' or 'copy'.  A value of 'move' indicates an exclusive lock on the message. A value of 'copy' indicates a non-exclusive lock on the message",
                       "enum": [
                         "move",
                         "copy"
-                      ]
+                      ],
+                      "description": "The AMQP distribution mode for receivers. Can be 'move' or 'copy'.  A value of 'move' indicates an exclusive lock on the message. A value of 'copy' indicates a non-exclusive lock on the message",
+                      "serverrequired": true,
+                      "default": "move"
                     },
                     "*": {
                       "name": "*",
@@ -280,7 +286,9 @@
                     "deployed": {
                       "name": "deployed",
                       "type": "boolean",
-                      "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint"
+                      "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint",
+                      "serverrequired": true,
+                      "default": false
                     },
 
                     "topic": {
@@ -291,17 +299,23 @@
                     "qos": {
                       "name": "qos",
                       "type": "uinteger",
-                      "description": "The MQTT QoS level. May be 0, 1, or 2"
+                      "description": "The MQTT QoS level. May be 0, 1, or 2",
+                      "serverrequired": true,
+                      "default": 0
                     },
                     "retain": {
                       "name": "retain",
                       "type": "boolean",
-                      "description": "The MQTT retain flag to use for publishers on ths endpoint"
+                      "description": "The MQTT retain flag to use for publishers on ths endpoint",
+                      "serverrequired": true,
+                      "default": false
                     },
                     "cleansession": {
                       "name": "cleansession",
                       "type": "boolean",
-                      "description": "The MQTT clean session flag to use for publishers on this endpoint"
+                      "description": "The MQTT clean session flag to use for publishers on this endpoint",
+                      "serverrequired": true,
+                      "default": true
                     },
                     "willtopic": {
                       "name": "willtopic",
@@ -391,7 +405,9 @@
                     "deployed": {
                       "name": "deployed",
                       "type": "boolean",
-                      "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint"
+                      "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint",
+                      "serverrequired": true,
+                      "default": false
                     },
 
                     "topic": {
@@ -402,17 +418,23 @@
                     "qos": {
                       "name": "qos",
                       "type": "uinteger",
-                      "description": "The MQTT QoS level. May be 0, 1, or 2"
+                      "description": "The MQTT QoS level. May be 0, 1, or 2",
+                      "serverrequired": true,
+                      "default": 0
                     },
                     "retain": {
                       "name": "retain",
                       "type": "boolean",
-                      "description": "The MQTT retain flag to use for publishers on ths endpoint"
+                      "description": "The MQTT retain flag to use for publishers on ths endpoint",
+                      "serverrequired": true,
+                      "default": false
                     },
                     "cleansession": {
                       "name": "cleansession",
                       "type": "boolean",
-                      "description": "The MQTT clean session flag to use for publishers on this endpoint"
+                      "description": "The MQTT clean session flag to use for publishers on this endpoint",
+                      "serverrequired": true,
+                      "default": true
                     },
                     "willtopic": {
                       "name": "willtopic",
@@ -502,13 +524,17 @@
                     "deployed": {
                       "name": "deployed",
                       "type": "boolean",
-                      "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint"
+                      "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint",
+                      "serverrequired": true,
+                      "default": false
                     },
 
                     "method": {
                       "name": "method",
                       "type": "string",
-                      "description": "The HTTP method name"
+                      "description": "The HTTP method name",
+                      "serverrequired": true,
+                      "default": "POST"
                     },
                     "headers": {
                       "name": "headers",
@@ -620,7 +646,9 @@
                     "deployed": {
                       "name": "deployed",
                       "type": "boolean",
-                      "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint"
+                      "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint",
+                      "serverrequired": true,
+                      "default": false
                     },
 
                     "topic": {
@@ -633,7 +661,9 @@
                     "acks": {
                       "name": "acks",
                       "type": "integer",
-                      "description": "The Apache Kafka acks setting to use. If no acks setting is specified, the default is -1"
+                      "description": "The Apache Kafka acks setting to use. If no acks setting is specified, the default is -1",
+                      "serverrequired": true,
+                      "default": 1
                     },
                     "key": {
                       "name": "key",
@@ -736,7 +766,9 @@
                     "deployed": {
                       "name": "deployed",
                       "type": "boolean",
-                      "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint"
+                      "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint",
+                      "serverrequired": true,
+                      "default": false
                     },
 
                     "subject": {

@@ -116,6 +116,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       "schema",? "setdefaultversionid",? "specversion",?
       "STRING" *
     ],
+    "maxmaxversions": UINTEGER,
     "mutable": [                        # What is mutable in the Registry
       "capabilities",? "entities",? "model",? "STRING"*
     ], ?
@@ -123,6 +124,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
     "schemas": [ "xRegistry-json/0.5", "STRING" * ], ?
     "shortself": BOOLEAN, ?
     "specversions": [ "0.5", "STRING"* ], ?
+    "sticky": BOOLEAN, ?
 
     "STRING": ... *                     # Extension capabilities
   }, ?
@@ -136,12 +138,12 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
         "target": "STRING", ?           # If "type" is "xid"
         "description": "STRING", ?
         "enum": [ VALUE * ], ?          # Array of scalar values of type "TYPE"
-        "strict": BOOLEAN, ?            # Just "enum" values or not.Default=true
-        "readonly": BOOLEAN, ?          # From client's POV. Default: false
+        "strict": BOOLEAN, ?            # Just "enum" values? Default=true
+        "readonly": BOOLEAN, ?          # From client's POV. Default=false
         "immutable": BOOLEAN, ?         # Once set, can't change. Default=false
-        "clientrequired": BOOLEAN, ?    # Default: false
-        "serverrequired": BOOLEAN, ?    # Default: false
-        "default": VALUE, ?             # Attribute's default value, scalars
+        "clientrequired": BOOLEAN, ?    # Default=false
+        "serverrequired": BOOLEAN, ?    # Default=false
+        "default": VALUE, ?             # Scalar attribute's default value
 
         "attributes": { ... }, ?        # If "type" above is object
         "item": {                       # If "type" above is map,array
@@ -170,8 +172,8 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "plural": "STRING",         # e.g. "messages"
             "singular": "STRING",       # e.g. "message"
             "maxversions": UINTEGER, ?  # Num Vers(>=0). Default=0, 0=unlimited
-            "setversionid": BOOLEAN, ?  # Supports client specified Version IDs
-            "setdefaultversionsticky": BOOLEAN, ?    # Supports client "default" selection
+            "setversionid": BOOLEAN, ?  # vid settable? Default=true
+            "setdefaultversionsticky": BOOLEAN, ? # sticky settable? Default=true
             "hasdocument": BOOLEAN, ?     # Has separate document. Default=true
             "typemap": MAP, ?             # contenttype mappings
             "labels": { "STRING": "STRING" * }, ?
@@ -236,12 +238,12 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "epoch": UINTEGER,                     # Resource's epoch
             "createdat": "TIMESTAMP",              # Resource's
             "modifiedat": "TIMESTAMP",             # Resource's
-            "readonly": BOOLEAN, ?                 # Default is "false"
-            "compatibility": "STRING", ?           # Default is "none"
+            "readonly": BOOLEAN,                   # Default=false
+            "compatibility": "STRING",             # Default=none
 
             "defaultversionid": "STRING",
             "defaultversionurl": "URL",
-            "defaultversionsticky": BOOLEAN ?      # Default is "false"
+            "defaultversionsticky": BOOLEAN        # Default=false
           }, ?
           "versionsurl": "URL",
           "versionscount": UINTEGER,
@@ -254,7 +256,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
               "xid": "XID",
               "epoch": UINTEGER,                   # Version's epoch
               "name": "STRING", ?
-              "isdefault": BOOLEAN, ?
+              "isdefault": BOOLEAN,                # Default=false
               "description": "STRING", ?
               "documentation": "URL", ?
               "labels": { "STRING": "STRING" * }, ?
@@ -510,6 +512,14 @@ following rules:
   the entity that appears under the scope of an `any` typed attribute or
   map-value is NOT REQUIRED to be validated except to ensure that the syntax
   is valid per the rules of the serialization format used.
+- Attribute instances that have no value (and have no default value defined)
+  are semantically equivalent to having a value of `null` or not being present
+  at all, and for the sake of brevity, SHOULD NOT be serialized as part of its
+  owning entity in server responses. Likewise, specifying them with a value of
+  `null` in client requests SHOULD be reserved for cases where the client
+  needs to indicate a request to delete an attribute value (`null` in the
+  request) rather than to leave the attribute untouched (absent in the
+  request), such as when `PATCH` is used.
 
 Implementations of this specification MAY define additional (extension)
 attributes. However they MUST adhere to the following rules:
@@ -949,7 +959,8 @@ pattern of the APIs:
   processed. Any missing attributes MUST be interpreted as a request for them
   to be deleted. However, attributes that are managed by the server might have
   specialized processing in those cases, in particular, mandatory attributes
-  MUST be reset to their default values rather than deleted.
+  as well as ones that have default values defined, MUST be reset to their
+  default values rather than deleted.
 - A `PATCH` operation MUST only modify the attributes explicitly mentioned
   in the request. Any attribute with a value of `null` MUST be interpreted
   as a request to delete the attribute, and as with `PUT`/`POST`, server
@@ -1204,7 +1215,7 @@ not matter. However, in this cases the `name` attributes have different
 values. The paragraph above mandates that in these potentially ambiguous cases
 the entity in the `versions` collection is to be used and the top-level
 attributes are to be ignored - for the purposes of updating the "default"
-Version's attributes. So, in this case the `name` of the default(`v1`)
+Version's attributes. So, in this case the `name` of the default (`v1`)
 Version will be `Blob Created Message Definition`.
 
 ---
@@ -1427,7 +1438,7 @@ Where:
 - If the request body is not empty, then it MUST be a map containing zero or
   more entries where the key of each entry is each entity's unique
   identifier - which is the `SINGULARid` of the entity.
-- If an `epoch` value is specified for an entity then the server MUST check
+- When an `epoch` value is specified for an entity then the server MUST check
   to ensure that the value matches the entity's current `epoch` value and if it
   differs then an error MUST be generated.
 - When deleting Resources, since the `epoch` attribute is located under the
@@ -1574,9 +1585,9 @@ The following query parameter SHOULD be supported by servers:
   MUST adhere to the xRegistry specification version specified (case
   insensitive). If the version is not supported then an error MUST be
   generated. Note that this query parameter MAY be included on any API request
-  to the server not just the root of the Registry. When not present, the
-  default value is the newest version of this specification supported by the
-  server.
+  to the server not just the root of the Registry. When not specified, the
+  default value MUST be the newest version of this specification supported by
+  the server.
 
 A successful response MUST be of the form:
 
@@ -1858,11 +1869,13 @@ be of the form:
 {
   "enforcecompatibility": BOOLEAN, ?
   "flags": [ "STRING" * ], ?
+  "maxmaxversions": UINTEGER, ?
   "mutable": [ "STRING" * ], ?
   "pagination": BOOLEAN, ?
   "schemas": [ "STRING" * ], ?
   "shortself": BOOLEAN, ?
   "specversions": [ "STRING" ], ?
+  "sticky": BOOLEAN, ?
 
   "STRING": ... capability configuration ... *   // Extension capabilities
 }
@@ -1883,9 +1896,7 @@ following:
 - Array of one of the above
 
 Absence of a capability in the capability map is an indication of that feature
-not being supported, or if it is specification mandated feature, then its
-configuration is the default value as specified by this specification.
-All supported extensions SHOULD be included in the list.
+not being supported. All supported extensions MUST be included in the list.
 
 Absence, presence, or configuration values of a feature in the map MAY vary
 based on the authorization level of the client making the request.
@@ -1910,7 +1921,7 @@ The following defines the specification-defined capabilities:
   Attempts to change this value from `false` to `true` MUST fail if doing so
   would result in any existing Version violating the `compatibility` rules
   defined for the owning Resource.
-- If not specified, the default value is `false`.
+- When not specified, the default value MUST be `false`.
 
 #### `flags`
 - Name: `flags`
@@ -1922,11 +1933,20 @@ The following defines the specification-defined capabilities:
     `doc`, `epoch`, `filter`, `inline`, `nodefaultversionid`,
     `nodefaultversionsticky`, `noepoch`, `noreadonly`, `offered`, `schema`,
     `setdefaultversionid`, `specversion`.
-  - If not specified, the default value is an empty list and no query
-    parameters are supported.
+- When not specified, the default value MUST be an empty list and no query
+  parameters are supported.
 - Examples:
   - `"flags": [ "filter", "inline" ]`    # Just these 2
   - `"flags": [ "*" ]                    # All flags
+
+#### `maxmaxversions`
+- Name `maxversions`
+- Type: Unsigned integer
+- Description: The maximum value that can be specified for a Resource's
+  `maxversions` model attribute.
+- When not specified, the default value MUST be zero (`0`).
+- A value of zero (`0`) indicates there is no stated limit, but the server
+  MAY still choose to reject a Resource's `maxversions` value if necessary.
 
 #### `mutable`
 - Name `mutable`
@@ -1939,7 +1959,7 @@ The following defines the specification-defined capabilities:
   all items of that type. For example, some Resources might still be read-only
   even if the client has the ability to edit Resources in general.
 - Supported values: `capabilities`, `entities`, `model`.
-- If not specified, the default value is an empty list and the Registry
+- When not specified, the default value MUST be an empty list and the Registry
   is read-only.
 
 #### `pagination`
@@ -1947,7 +1967,7 @@ The following defines the specification-defined capabilities:
 - Type: Boolean
 - Description: Indicates whether the server support the use of the
   [pagination](../pagination/spec.md) specification (value of `true`).
-- If not specified, the default value is `false`.
+- When not specified, the default value MUST be `false`.
 
 #### `schemas`
 - Name: `schemas`
@@ -1960,7 +1980,7 @@ The following defines the specification-defined capabilities:
   specification).
 - The values MUST be case insensitive.
 - A value of `xRegistry-json/0.5` MUST be included in the list.
-- If not specified, the default value is `xRegistry-json/0.5`.
+- When not specified, the default value MUST be `xRegistry-json/0.5`.
 
 #### `shortself`
 - Name: `shortself`
@@ -1968,7 +1988,7 @@ The following defines the specification-defined capabilities:
 - Description: Indicates whether the `shortself` attribute MUST be included
   in the server serialization of the entities within the Registry (value of
   `true`).
-- If not specified, the default value is `false`.
+- When not specified, the default value MUST be `false`.
 
 #### `specversions`
 - Name: `specversions`
@@ -1976,12 +1996,21 @@ The following defines the specification-defined capabilities:
 - Description: List of xRegistry specification versions supported.
 - Supported values include: `0.5`.
 - A value of `0.5` MUST be included in the list.
-- If not specified, the default value is `0.5`.
+- When not specified, the default value MUST be `0.5`.
+
+#### `sticky`
+- Name: `sticky`
+- Type: Boolean
+- Description: Indicates whether the server supports clients choosing which
+  Version of a Resource is to be the "default" Version. In other words, this
+  capability indicates whether a request to set a Resource's
+  `setdefaultversionsticky` attribute to `true` is allowed.
+- When not specified, the default value MUST be `true`.
 
 The list of values for the arrays MUST be case insensitive and MAY include
 extension values.
 
-For clarity, servers SHOULD include all capabilities in the serialization,
+For clarity, servers MUST include all known capabilities in the serialization,
 even if they are set to their default values or have empty lists.
 
 #### Updating the Capabilities of a Server
@@ -2053,21 +2082,42 @@ Regardless of the mechanism used to update the capabilities, the Registry's
 
 In order for a client to discover the list of available values for each
 capability, an HTTP `GET` MAY be sent to the `/capabilities` API with the
-`?offered` query parameter and the response MUST adhere to the following:
+`?offered` query parameter and the response MUST adhere to the following
+(which borrows many of the same structure from the `/model` API):
 
 ```yaml
 GET /capabilities?offered
 
 {
-  "STRING": [ OFFERED-VALUES ] *
+  "STRING": {
+    "type": "TYPE",
+    "item": {
+      "type": "TYPE"
+    }, ?
+    "enum": [ VALUE, * ], ?
+    "min": VALUE, ?
+    "max": VALUE, ?
+    "documentation": "URL" ?
+  }, *
 }
 ```
 
 Where:
-- `"STRING"` is the capability name.
-- `OFFERED-VALUES` is an array of the valid values for that capability. The
-  data type of each value MUST adhere to the data type associated with the
-  capability, with the exception of the `#` (range)  variants described below.
+- `STRING` MUST be the capability name.
+- `TYPE` MUST be one of `boolean`, `string`, `integer`, `decimal`, `uinteger`,
+  `array` as defined in [Attributes and
+  Extensions](#attributes-and-extensions).
+- When `"type"` is `array`, `"item.type"` MUST be one of `boolean`, `string`,
+  `integer`, `decimal`, `uinteger`, otherwise `"item"` MUST be absent.
+- `"enum"`, when specified, contains a list of zero or more `VALUE`s whose
+  type MUST match either `"type"` or `"item.type"` if `"item"` is `"array"`.
+  This indicates the list of allowable values for this capability.
+- `"min"` and `"max"`, when specified, MUST match the same type as either
+  `"type"` or `"item.type"` if `"item"` is `"array"`. These indicate the
+  minimum or maximum (inclusive) value range of this capability. When not
+  specified, there is no stated lower (or upper) limit.
+- `"documentation"` provides a URL with additional information about the
+  capability.
 
 For example:
 
@@ -2075,23 +2125,43 @@ For example:
 GET /capabilities?offered
 
 {
-  "enforcecompatibility": [ true, false ],
-  "flags": [ "doc", "epoch", "filter", "inline", "nodefaultversionid",
-    "nodefaultversionsticky", "noepoch", "noreadonly", "offered", "schema",
-    "setdefaultversionid", "specversion" ],
-  "mutable": [ "capabilities", "entities", "model" ],
-  "pagination": [ true, false ],
-  "schemas": [ "xRegistry-json/0.5" ],
-  "shortself": [ true, false ],
-  "specversions": [ "0.5" ]
+  "enforcecompatibility": {
+    "type": "boolean",
+    "enum": [ false, true ]
+  },
+  "flags": {
+    "type": "string",
+    "enum": [ "doc", "epoch", "filter", "inline", "nodefaultversionid",
+      "nodefaultversionsticky", "noepoch", "noreadonly", "offered", "schema",
+      "setdefaultversionid", "specversion" ]
+  },
+  "maxmaxversions": {
+    "type": "uinteger"
+  },
+  "pagination": {
+    "type": "boolean",
+    "enum": [ false, true ]
+  },
+  "schemas": {
+    "type": "string",
+    "enum": [ "xRegistry-json/0.5" ]
+  },
+  "shortself": {
+    "type": "boolean",
+    "enum": [ false, true ]
+  },
+  "specversions": {
+    "type": "string",
+    "enum": [ "xRegistry-json/0.5" ]
+  },
+  "sticky": {
+    "type": "boolean",
+    "enum": [ true ]
+  }
 }
 ```
 
-The array of values allows for some special cases:
-- `"*"` mean that all possible values of that data type are allowed.
-- Numeric capabilities MAY express ranges via `"#-#"` (min-max),
-  `"#-"` (value or greater) or `"-#"` (less than or equal to value) where `#`
-  is a valid numeric value.
+The enum of values allows for some special cases:
 - String capabilities MAY include `*` as a wildcard character in a value
   to indicate zero or more unspecified characters MAY appear at that location
   in the value string.
@@ -2114,7 +2184,10 @@ if `pagination` is not supported, then a server SHOULD still include:
 in the `/capabilities` output, and
 
 ```yaml
-  "pagination": [ false ]
+  "pagination": {
+    "type": "boolean",
+    "enum": [ false ]
+  }
 ```
 
 in the `/capabilities?offered` output (assuming both APIs are supported).
@@ -2165,11 +2238,16 @@ list of changes MUST generate an error:
 - Removing a value from the enumeration list of an attribute.
 - Enabling/disabling a feature that might impact storing data
   (e.g. `hasdocument`).
+- Changing the default value of a specification defined default value.
 
 Some example changes that are allowed:
 - Changing the `description` of an attribute.
 - Adding an enumeration value to an attribute.
-- Changing the `readonly` aspect or `default` value of an attribute.
+- Changing the `readonly` aspect or `default` value of an extension attribute,
+  if the specification of that extension allows it. Changes to a `default`
+  value MUST only impact future updates to instances of the attribute.
+  Existing instances of that attribute MUST NOT be changed as a result of
+  changing the attribute's model `default` value aspect.
 
 Implementations MAY choose to limit the types of changes made to the model,
 or not support model updates at all.
@@ -2208,11 +2286,11 @@ Regardless of how the model is retrieved, the overall format is as follows:
       "description": "STRING",
       "enum": [ VALUE * ], ?           # Array of values of type "TYPE"
       "strict": BOOLEAN, ?             # Just "enum" values or not. Default=true
-      "readonly": BOOLEAN, ?           # From client's POV. Default: false
-      "immutable": BOOLEAN, ?          # Once set, can't change. Default: false
-      "clientrequired": BOOLEAN, ?     # Default: false
-      "serverrequired": BOOLEAN, ?     # Default: false
-      "default": VALUE, ?              # Attribute's default value, scalars
+      "readonly": BOOLEAN, ?           # From client's POV. Default=false
+      "immutable": BOOLEAN, ?          # Once set, can't change. Default=false
+      "clientrequired": BOOLEAN, ?     # Default=false
+      "serverrequired": BOOLEAN, ?     # Default=false
+      "default": VALUE, ?              # Scalar attribute's default value
 
       "attributes": { ... }, ?         # If "type" above is object
       "item": {                        # If "type" above is map,array
@@ -2241,8 +2319,8 @@ Regardless of how the model is retrieved, the overall format is as follows:
           "plural": "STRING",          # e.g. "messages"
           "singular": "STRING",        # e.g. "message"
           "maxversions": UINTEGER, ?   # Num Vers(>=0). Default=0, 0=unlimited
-          "setversionid": BOOLEAN, ?   # Supports client specified Version IDs
-          "setdefaultversionsticky": BOOLEAN, ? # Supports client "default" selection
+          "setversionid": BOOLEAN, ?   # vid settable? Default=true
+          "setdefaultversionsticky": BOOLEAN, ? # sticky settable? Default=true
           "hasdocument": BOOLEAN, ?     # Has separate document. Default=true
           "typemap": MAP, ?             # contenttype mappings
           "labels": { "STRING": "STRING" * }, ?
@@ -2257,6 +2335,8 @@ Regardless of how the model is retrieved, the overall format is as follows:
 
 The following describes the attributes of Registry model:
 - `labels` <span id="model.labels"></span>
+  - Type: Map of string-string.
+  - OPTIONAL
   - A set of name/value pairs that allows for additional metadata about the
     Registry to be stored without changing the schema of the model.
   - If present, MUST be a map of zero or more name/value string pairs.
@@ -2278,19 +2358,22 @@ The following describes the attributes of Registry model:
   - Model authors MAY define additional labels.
 
 - `attributes` <span id="model.attributes"></span>
+  - Type: Map where each attribute's name MUST match the key of the map.
+  - OPTIONAL
   - The set of attributes defined at the indicated level of the Registry. This
     includes extensions and specification-defined/modified attributes.
-  - Type: Map where each attribute's name MUST match the key of the map.
   - REQUIRED at specification-defined locations, otherwise OPTIONAL for
     extensions Objects.
 
 - `attributes."STRING"`
-  - The name of the attribute being defined. See `attributes."STRING".name`
-    for more information.
   - Type: String.
   - REQUIRED.
+  - The name of the attribute being defined. See `attributes."STRING".name`
+    for more information.
 
 - `attributes."STRING".name`
+  - Type: String.
+  - REQUIRED.
   - The name of the attribute. MUST be the same as the key used in the owning
     `attributes` attribute. A value of `*` indicates support for undefined
     extension names. Absence of a `*` attribute indicates lack of support for
@@ -2313,17 +2396,17 @@ The following describes the attributes of Registry model:
     Resource/Version attributes, this applies for both levels - e.g. a Version
     level extension MUST NOT use a name that conflicts with its Resource level
     attribute names.
-  - Type: String.
-  - REQUIRED.
 
 - `attributes."STRING".type`
+  - Type: TYPE.
+  - REQUIRED.
   - The "TYPE" of the attribute being defined. MUST be one of the data types
     (in lower case) defined in [Attributes and
     Extensions](#attributes-and-extensions).
-  - Type: TYPE.
-  - REQUIRED.
 
 - `attributes."STRING".target` <span id="model.target"></span>
+  - Type: STRING.
+  - OPTIONAL
   - The type of entity that this attribute points to when `type` is set to
     `url-reference`, `uri-reference` or `xid`. `target` MUST NOT be used
     for any other type of attribute. The value of this model attribute MUST be
@@ -2339,7 +2422,6 @@ The following describes the attributes of Registry model:
     - `/GROUPS/RESOURCES/versions` - a Version of a Resource type. An entity
       attribute of this type/target MUST reference an instance of a Version
       of this Resource type, not the Resource itself.
-  - Example: `/endpoints/messages`
   - An `xid` entity attribute that includes a `target` value as part of
     its model definition MUST match the `target` entity type specified. An
     `xid` attribute that does not include `target` definition has no
@@ -2349,17 +2431,19 @@ The following describes the attributes of Registry model:
     (begins with `/`) MUST be an `xid` and MUST adhere to the `target` entity
     type specified. Absolute URIs/URLs are not constrained by the presence of
     a `target` value.
-  - Type: STRING.
   - To keep the model, and processing simple, the value MUST NOT reference a
     type that uses `ximport` to reference another model entity definition. In
     other words, `target` is not transitive.
+  - Example: `/endpoints/messages`
 
 - `attributes."STRING".description`
-  - A human readable description of the attribute.
   - Type: String.
   - OPTIONAL.
+  - A human readable description of the attribute.
 
 - `attributes."STRING".enum`
+  - Type: Array of values of type `attributes."STRING".type`..
+  - OPTIONAL.
   - A list of possible values for this attribute. Each item in the array MUST
     be of type defined by `type`. When not specified, or an empty array, there
     are no restrictions on the value set of this attribute. This MUST only be
@@ -2368,19 +2452,19 @@ The following describes the attributes of Registry model:
     When specified without `strict` being `true`, this list is just a
     suggested set of values and the attribute is NOT REQUIRED to use one of
     them.
-  - Type: Array.
-  - OPTIONAL.
 
 - `attributes."STRING".strict`
+  - Type: Boolean.
+  - OPTIONAL.
   - Indicates whether the attribute restricts its values to just the array of
     values specified in `enum` or not. A value of `true` means that any
     values used that is not part of the `enum` set MUST generate an error.
     This attribute has no impact when `enum` is absent or an empty array.
-  - When not specified, the default value is `true`.
-  - Type: Boolean.
-  - OPTIONAL.
+  - When not specified, the default value MUST be `true`.
 
 - `attributes."STRING".readonly`
+  - Type: Boolean.
+  - OPTIONAL.
   - Indicates whether this attribute is modifiable by a client. During
     creation, or update, of an entity if this attribute is specified then
     its value MUST be silently ignored by the server even if the value is
@@ -2389,13 +2473,14 @@ The following describes the attributes of Registry model:
     Typically, attributes that are completely under the server's control
     will be `readonly` - e.g. `self`.
 
-    When not specified the default value is `false`. When the attribute name is
-    `*` then `readonly` MUST NOT be set to `true`. Note, both `clientrequired`
-    and `readonly` MUST NOT be set to `true` at the same time.
-  - Type: Boolean.
-  - OPTIONAL.
+  - When not specified, the default value MUST be `false`.
+  - When the attribute name is `*` then `readonly` MUST NOT be set to `true`.
+    Note, both `clientrequired` and `readonly` MUST NOT be set to `true` at
+    the same time.
 
 - `attributes."STRING".immutable`
+  - Type: Boolean.
+  - OPTIONAL.
   - Indicates whether this attribute's value can be changed once it is set.
     This MUST ONLY be used for server controlled specification-defined
     attributes, such as `specversion` and `SINGULARid`, and MUST NOT be used for
@@ -2405,60 +2490,65 @@ The following describes the attributes of Registry model:
     Once set, any attempt to update the value MUST be silently ignored by
     the server.
 
-    When not specified, the default value is `false`.
-  - Type: Boolean.
-  - OPTIONAL.
+  - When not specified, the default value MUST be `false`.
 
 - `attributes."STRING".clientrequired`
-  - Indicates whether this attribute is a REQUIRED field for a client when
-    creating or updating an entity. When not specified the default value is
-    `false`. When the attribute name is `*` then `clientrequired` MUST NOT be
-    set to `true`.
-
-    During creation or update of an entity if this attribute is not
-    specified then an error MUST be generated.
-
   - Type: Boolean.
   - OPTIONAL.
-
-- `attributes."STRING".serverrequired`
-  - Indicates whether this attribute is a REQUIRED field for a server when
-    serializing an entity. When not specified the default value is `false`.
-    When the attribute name is `*` then `serverrequired` MUST NOT be set to
-    `true`. When `clientrequired` is `true` then `serverrequired` MUST also be
+  - Indicates whether this attribute is a REQUIRED field for a client when
+    creating or updating an entity. During creation or update of an entity if
+    this attribute is not specified in the request then an error MUST be
+    generated.
+  - When not specified, the default value MUST be `false`.
+  - When the attribute name is `*` then `clientrequired` MUST NOT be set to
     `true`.
 
+- `attributes."STRING".serverrequired`
   - Type: Boolean
   - OPTIONAL
+  - Indicates whether this attribute is a REQUIRED field for a server when
+    serializing an entity.
+  - When not specified the default value MUST be `false`.
+  - When the attribute name is `*` then `serverrequired` MUST NOT be set to
+    `true`.
+  - When `clientrequired` is `true` then `serverrequired` MUST also be `true`.
 
 - `attributes."STRING".default`
+  - Type: MUST be a non-`null` value of the type specified by the
+    `attributes."STRING".type` model attribute and MUST only be used for
+    scalar types.
+  - OPTIONAL.
   - This value MUST be used to populate this attribute's value if one was
     not provided by a client. An attribute with a default value does not mean
     that its owning Object is mandated to be present, rather the attribute
     would only appear when the owning Object is present. By default,
     attributes have no default values.
-  - Type: MUST be the same type as the `type` of this attribute and MUST
-    only be used for scalar types.
-  - OPTIONAL.
+  - When not specified, this attribute has no default value and has the same
+    semantic meaning a being absent or set to `null`.
+  - When a default value is specified, this attribute MUST be serialized in
+    responses from servers as part of its owning entity, even if it is set to
+    its default value. Additionally, the `serverrequired` aspect MUST also be
+    set to `true`.
 
 - `attributes."STRING".attributes`
-  - This contains the list of attributes defined as part of a nested resource.
   - Type: Object, see `attributes` above.
+  - OPTIONAL
+  - This contains the list of attributes defined as part of a nested resource.
   - MAY be present when the owning attribute's `type` is `object`, otherwise it
     MUST NOT be present. It MAY be absent or an empty list if there are no
     defined attributes for the nested `object`.
 
 - `attributes."STRING".item` <span id="model.attributes.item"></span>
+  - Type: Object.
+  - REQUIRED when owning attribute's `type` is `map` or `array`.
   - Defines the nested resource that this attribute references. This
     attribute MUST only be used when the owning attribute's `type` value is
     `map` or `array`.
-  - Type: Object.
-  - REQUIRED when owning attribute's `type` is `map` or `array`.
 
 - `attributes."STRING".item.type`
-  - The "TYPE" of this nested resource.
   - Type: TYPE.
   - REQUIRED.
+  - The "TYPE" of this nested resource.
 
 - `attributes."STRING".item.attributes`
   - See [`attributes`](#model.attributes) above.
@@ -2469,6 +2559,8 @@ The following describes the attributes of Registry model:
   - REQUIRED when `item.type` is `map` or `array`.
 
 - `attributes."STRING".ifvalues`
+  - Type: Map where each value of the attribute is the key of the map.
+  - OPTIONAL.
   - This map can be used to conditionally include additional
     attribute definitions based on the runtime value of the current attribute.
     If the string serialization of the runtime value of this attribute matches
@@ -2490,65 +2582,65 @@ The following describes the attributes of Registry model:
     presence at the beginning of `"VALUE"` is reserved for future use.
   - `ifvalues` `siblingattributes` MAY include additional `ifvalues`
     definitions.
-  - Type: Map where each value of the attribute is the key of the map.
-  - OPTIONAL.
 
 - `groups`
-  - The set of Group types supported by the Registry.
   - Type: Map where the key MUST be the plural name (`groups.plural`) of the
     Group type (`GROUPS`).
   - REQUIRED if there are any Group types defined for the Registry.
+  - The set of Group types supported by the Registry.
 
 - `groups.singular`
-  - The singular name of a Group type e.g. `endpoint` (`GROUP`).
   - Type: String.
   - REQUIRED.
+  - The singular name of a Group type e.g. `endpoint` (`GROUP`).
   - MUST be unique across all Group types in the Registry.
   - MUST be non-empty and MUST be a valid attribute name with the exception
     that it MUST NOT exceed 58 characters (not 63).
 
 - `groups.plural`
-  - The plural name of the Group type e.g. `endpoints` (`GROUPS`).
   - Type: String.
   - REQUIRED.
+  - The plural name of the Group type e.g. `endpoints` (`GROUPS`).
   - MUST be unique across all Group types in the Registry.
   - MUST be non-empty and MUST be a valid attribute name with the exception
     that it MUST NOT exceed 58 characters (not 63).
 
 - `groups.labels`
   - See [`labels`]((#model.labels) above.
+  - OPTIONAL
 
 - `groups.attributes`
   - See [`attributes`](#model.attributes) above.
+  - OPTIONAL
 
 - `groups.resources`
-  - The set of Resource types defined for the Group type.
   - Type: Map where the key MUST be the plural name (`groups.resources.plural`)
     of the Resource type (`RESOURCES`).
   - REQUIRED if there are any Resource types defined for the Group type.
+  - The set of Resource types defined for the Group type.
 
 - `groups.resources.singular`
-  - The singular name of the Resource type e.g. `message` (`RESOURCE`).
   - Type: String.
   - REQUIRED.
+  - The singular name of the Resource type e.g. `message` (`RESOURCE`).
   - MUST be non-empty and MUST be a valid attribute name with the exception
     that it MUST NOT exceed 58 characters (not 63).
   - MUST be unique within the scope of its owning Group type.
 
 - `groups.resources.plural`
-  - The plural name of the Resource type e.g. `messages` (`RESOURCES`).
   - Type: String.
   - REQUIRED.
+  - The plural name of the Resource type e.g. `messages` (`RESOURCES`).
   - MUST be non-empty and MUST be a valid attribute name with the exception
     that it MUST NOT exceed 58 characters (not 63).
   - MUST be unique within the scope of its owning Group type.
 
 - `groups.resources.maxversions`
-  - Number of Versions that will be stored in the Registry for this Resource
-    type.
   - Type: Unsigned Integer.
   - OPTIONAL.
-  - The default value is zero (`0`).
+  - Number of Versions that will be stored in the Registry for this Resource
+    type.
+  - When not specified, the default value MUST be zero (`0`).
   - A value of zero (`0`) indicates there is no stated limit, and
     implementations MAY prune non-default Versions at any time.
   - When the limit is exceeded, implementations MUST prune Versions by
@@ -2559,24 +2651,24 @@ The following describes the attributes of Registry model:
     MUST be `false`.
 
 - `groups.resources.setversionid`
-  - Indicates whether support for client-side setting of a Version's
-    `versionid` is supported.
   - Type: Boolean (`true` or `false`, case sensitive).
   - OPTIONAL.
-  - The default value is `true`.
+  - Indicates whether support for client-side setting of a Version's
+    `versionid` is supported.
+  - When not specified, the default value MUST be `true`.
   - A value of `true` indicates the client MAY specify the `versionid` of a
     Version during its creation process.
   - A value of `false` indicates that the server MUST choose an appropriate
     `versionid` value during creation of the Version.
 
 - `groups.resources.setdefaultversionsticky`
+  - Type: Boolean (`true` or `false`, case sensitive).
+  - OPTIONAL.
   - Indicates whether support for client-side selection of the "default"
     Version is supported for Resources of this type. Once set, the default
     Version MUST NOT change unless there is some explicit action by a client
     to change it - hence the term "sticky".
-  - Type: Boolean (`true` or `false`, case sensitive).
-  - OPTIONAL.
-  - The default value is `true`.
+  - When not specified, the default value MUST be `true`.
   - A value of `true` indicates a client MAY select the default Version of
     a Resource via one of the methods described in this specification rather
     than the server always choosing the default Version.
@@ -2585,6 +2677,8 @@ The following describes the attributes of Registry model:
   - This attribute MUST NOT be `true` if `maxversions` is one (`1`).
 
 - `groups.resources.hasdocument`
+  - Type: Boolean (`true` or `false`, case sensitive).
+  - OPTIONAL.
   - Indicates whether or not Resources of this type can have a document
     associated with it. If `false` then the xRegistry metadata becomes "the
     document". Meaning, an HTTP `GET` to the Resource's URL will return the
@@ -2597,13 +2691,16 @@ The following describes the attributes of Registry model:
     A value of `true` does not mean that these Resources are guaranteed to
     have a non-empty document, and an HTTP `GET` to the Resource MAY return an
     empty HTTP body.
-  - Type: Boolean (`true` or `false`, case sensitive).
-  - OPTIONAL.
-  - The default value is `true`.
+  - When not specified, the default value MUST be `true`.
   - A value of `true` indicates that Resource of this type supports a separate
     document to be associated with it.
 
 - `groups.resources.typemap`
+  - Type: Map where the keys and values MUST be non-empty strings. The key
+    MAY include at most one `*` to act as a wildcard to mean zero or more
+    instance of any character at that position in the string - similar to a
+    `.*` in a regular expression. The key MUST be a case insensitive string.
+  - OPTIONAL.
   - When a Resource's metadata is serialized in a response and the
     `?inline=RESOURCE` feature is enabled, the server will attempt to
     serialize the Resource's "document" under the `RESOURCE` attribute.
@@ -2666,12 +2763,6 @@ The following describes the attributes of Registry model:
     - `*+json`: mapped to `json`
     - `text/plain`: mapped to `string`
 
-  - Type: Map where the keys and values MUST be non-empty strings. The key
-    MAY include at most one `*` to act as a wildcard to mean zero or more
-    instance of any character at that position in the string - similar to a
-    `.*` in a regular expression. The key MUST be a case insensitive string.
-
-  - OPTIONAL.
   - Example:<br>
     ```yaml
     "typemap": {
@@ -2682,18 +2773,21 @@ The following describes the attributes of Registry model:
 
 - `groups.resources.labels`
   - See [`attributes`](#model.attributes) above.
+  - OPTIONAL
 
 - `groups.resources.attributes`
-  - The list of attributes associated with each Version of the Resource.
   - See [`attributes`](#model.attributes) above and
     [`metaattributes`](#model.metaattributes) below.
+  - OPTIONAL
+  - The list of attributes associated with each Version of the Resource.
   - The list of `groups.resources.attributes` names MUST NOT overlap with the
     list of `groups.resource.metaattributes` names.
 
 - `groups.resources.metaattributes` <span id="model.metaattributes"></span>
+  - See [`attributes`](#model.attributes) above.
+  - OPTIONAL
   - The list of attributes associated with the Resource, not its Versions,
     and will appear in the `meta` sub-object of the Resource.
-  - See [`attributes`](#model.attributes) above.
   - The list of `groups.resources.attributes` names MUST NOT overlap with the
     list of `groups.resource.metaattributes` names.
 
@@ -2723,9 +2817,9 @@ GET /model[?schema=NAME[/VERSION]]
 ```
 
 Where:
-- If specified, the `?schema` query parameter MUST be one of the valid
-  `schema` capabilities values (case insensitive). If not specified, the
-  default value MUST be `xRegistry-json/0.5`.
+- When specified, the `?schema` query parameter MUST be one of the valid
+  `schema` capabilities values (case insensitive).
+- When not specified, the default value MUST be `xRegistry-json/0.5`.
 
 Implementations of this specification MUST support `xRegistry-json/0.5`.
 
@@ -2741,8 +2835,8 @@ Content-Type: ...
 Where:
 - The HTTP body MUST be a schema representation of the Registry model
   in the format requested by the `?schema` query parameter.
-- If a `VERSION` is not specified as part of the `?schema` query parameter then
-  the server MAY choose any schema version of the specified schema format.
+- When a `VERSION` is not specified as part of the `?schema` query parameter
+  then the server MAY choose any schema version of the specified schema format.
   However, it is RECOMMENDED that the newest supported version be used.
 
 If the specified schema format is not supported then an HTTP `400 Bad Request`
@@ -3794,12 +3888,12 @@ Resource attribute MUST adhere to the following:
     "epoch": UINTEGER,                     # Resource's epoch
     "createdat": "TIMESTAMP",              # Resource's
     "modifiedat": "TIMESTAMP",             # Resource's
-    "readonly": BOOLEAN, ?                 # Default is "false"
-    "compatibility": "STRING", ?           # Default is "none"
+    "readonly": BOOLEAN,                   # Default=false
+    "compatibility": "STRING",             # Default=none
 
     "defaultversionid": "STRING",
     "defaultversionurl": "URL",
-    "defaultversionsticky": BOOLEAN ?      # Default is "false"
+    "defaultversionsticky": BOOLEAN        # Default=false
   }, ?
   "versionsurl": "URL",
   "versionscount": UINTEGER,
@@ -3856,7 +3950,7 @@ and the following Resource level attributes:
 
 - Constraints:
   - MUST be a read-only attribute.
-  - When not present, the default value is `false`.
+  - When not specified, the default value MUST be `false`.
   - REQUIRED when `true`, otherwise OPTIONAL.
   - If present, it MUST be a case sensitive `true` or `false`.
   - A request to update a read-only Resource MUST generate an error unless
@@ -3907,7 +4001,7 @@ and the following Resource level attributes:
 - Constraints:
   - If present, it MUST be a case sensitive value from the model defined
     enumeration range.
-  - When not present, the implied default value is `none`.
+  - When not specified, the default value MUST be `none`.
 
 ##### `defaultversionid` Attribute
 - Type: String
@@ -3971,11 +4065,10 @@ and the following Resource level attributes:
   for more information.
 
 - Constraints:
-  - When not present, the default value is `false`.
-  - REQUIRED when `true`, otherwise OPTIONAL.
-  - If present, it MUST be a case sensitive `true` or `false`.
-  - If present in a request, a value of `null` MUST have the same meaning as
-    deleting the attribute, implicitly setting it to `false`.
+  - When not specified, the default value MUST be `false`.
+  - When specified, it MUST be a case sensitive `true` or `false`.
+  - When specified in a request, a value of `null` MUST be interpreted as a
+    request to delete the attribute, implicitly setting it to `false`.
   - The processing of the `defaultversionsticky` and `defaultversionid`
     attributes are related, and is described as follows:
     - When `PATCH` is used but only one of the two attributes is specified
@@ -4015,7 +4108,7 @@ and the following Resource level attributes:
   `epoch` processing rules already described, and its value is only updated
   when the `meta` attributes are updated.
 
-  If present, it MUST appear as an attribute of the Resource as a sibling
+  When specified, it MUST appear as an attribute of the Resource as a sibling
   to the Resource's default Version attributes.
 
 - API View Constraints:
@@ -4028,7 +4121,7 @@ and the following Resource level attributes:
 
 Note: doing a `PUT` to a Resource, or a `POST` to an xRegistry Collection, as
 a mechanism to update the `meta` sub-object MUST include the Resource
-default Version attributes in the request. If not present, the server will
+default Version attributes in the request. When not specified, the server will
 interpret it as a request to delete the default Version attributes. If
 possible, an update request to the `metaurl` directly would be a better
 choice, or use `PATCH` instead and only include the `meta` sub-object.
@@ -4040,7 +4133,7 @@ no changes are to be made to the `meta` sub-object.
 - Type: URL
 - Description: a URL to the Resource's `meta` sub-object.
 
-  If present, it MUST appear as an attribute of the Resource as a sibling
+  When specified, it MUST appear as an attribute of the Resource as a sibling
   to the Resource's default Version attributes.
 
 - API View Constraints:
@@ -4254,12 +4347,12 @@ this form:
     "epoch": UINTEGER,                     # Resource's epoch
     "createdat": "TIMESTAMP",              # Resource's
     "modifiedat": "TIMESTAMP",             # Resource's
-    "readonly": BOOLEAN, ?                 # Default is "false"
-    "compatibility": "STRING", ?           # Default is "none"
+    "readonly": BOOLEAN,                   # Default=false
+    "compatibility": "STRING",             # Default=none
 
     "defaultversionid": "STRING",
     "defaultversionurl": "URL",
-    "defaultversionsticky": BOOLEAN ?      # Default is "false"
+    "defaultversionsticky": BOOLEAN        # Default=false
   }, ?
   "versionsurl": "URL",
   "versionscount": UINTEGER,
@@ -4382,7 +4475,9 @@ then the resulting serialization of the source Resource would be:
     "xid": "/schemagroups/group1/schemas/mySchema/meta",
     "xref": "/schemagroups/group2/schemas/sharedSchema",
     "createdat": "2024-01-01-T12:00:00",
-    "modifiedat": "2024-01-01-T12:01:00"
+    "modifiedat": "2024-01-01-T12:01:00",
+    "readonly": false,
+    "compatibility": "none"
   },
   "versionscount": 1,
   "versionsurl": "http://example.com/schemagroups/group1/schemas/mySchema/versions"
@@ -4433,9 +4528,9 @@ following MUST be adhered to:
   request to set the default Version attributes. Absence of any attributes
   MUST result in a a default Version being created with all attributes set
   to their default values. Note that normal Resource update semantics apply.
-- If not specified in the request, the Resource's `createdat` value MUST be
+- When not specified in the request, the Resource's `createdat` value MUST be
   reset to the timestamp of when this source Resource was originally created.
-- If not specified in the request, the Resource's `modifiedat` value MUST be
+- When not specified in the request, the Resource's `modifiedat` value MUST be
   set to "now".
 - The Resource's `epoch` value (in `meta`) MUST be greater than the original
   Resource's previously known value (if any) and greater than the target
@@ -4578,12 +4673,12 @@ Link: <URL>;rel=next;count=UINTEGER ?
       "epoch": UINTEGER,                     # Resource's epoch
       "createdat": "TIMESTAMP",              # Resource's
       "modifiedat": "TIMESTAMP",             # Resource's
-      "readonly": BOOLEAN, ?                 # Default is "false"
-      "compatibility": "STRING", ?           # Default is "none"
+      "readonly": BOOLEAN,                   # Default=false
+      "compatibility": "STRING",             # Default=none
 
       "defaultversionid": "STRING",
       "defaultversionurl": "URL",
-      "defaultversionsticky": BOOLEAN ?
+      "defaultversionsticky": BOOLEAN
     }
     "versionsurl": "URL",
     "versionscount": UINTEGER,
@@ -4617,6 +4712,7 @@ Link: <https://example.com/endpoints/ep1/messages&page=2>;rel=next;count=100
     "xid": "/endpoints/ep1/messages/msg1",
     "epoch": 1,
     "name": "Blob Created",
+    "isdefault": true,
     "createdat": "2024-04-30T12:00:00Z",
     "modifiedat": "2024-04-30T12:00:01Z",
 
@@ -4741,7 +4837,7 @@ in the request MUST adhere to the following:
   "xid": "XID",
   "epoch": UINTEGER,
   "name": "STRING", ?                      # Version level attributes
-  "isdefault": BOOLEAN, ?
+  "isdefault": BOOLEAN,
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
@@ -4763,12 +4859,12 @@ in the request MUST adhere to the following:
     "epoch": UINTEGER,
     "createdat": "TIMESTAMP",
     "modifiedat": "TIMESTAMP",
-    "readonly": BOOLEAN, ?
-    "compatibility": "STRING", ?
+    "readonly": BOOLEAN,
+    "compatibility": "STRING",
 
     "defaultversionid": "STRING",
     "defaultversionurl": "URL",
-    "defaultversionsticky": BOOLEAN ?
+    "defaultversionsticky": BOOLEAN
   }
   "versionsurl": "URL",
   "versionscount": UINTEGER,
@@ -5123,12 +5219,12 @@ ETag: "UINTEGER"
     "epoch": UINTEGER,
     "createdat": "TIMESTAMP",
     "modifiedat": "TIMESTAMP",
-    "readonly": BOOLEAN, ?
-    "compatibility": "STRING", ?
+    "readonly": BOOLEAN,
+    "compatibility": "STRING",
 
     "defaultversionid": "STRING",
     "defaultversionurl": "URL",
-    "defaultversionsticky": BOOLEAN ?
+    "defaultversionsticky": BOOLEAN
   },
   "versionsurl": "URL",
   "versionscount": UINTEGER,
@@ -5226,7 +5322,7 @@ When serialized as a JSON object, the Version entity adheres to this form:
   "xid": "XID",
   "epoch": UINTEGER,
   "name": "STRING", ?
-  "isdefault": BOOLEAN, ?
+  "isdefault": BOOLEAN,
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
@@ -5311,9 +5407,9 @@ as defined below:
   - MUST be a read-only attribute.
   - REQUIRED in API and document views when the value is `true`, OPTIONAL
     when `false`.
-  - If present, MUST be either `true` or `false`, case sensitive.
-  - If not present, the default value MUST be `false`.
-  - If present in requests, it MUST be silently ignored.
+  - When not specified, the default value MUST be `false`.
+  - When specified, MUST be either `true` or `false`, case sensitive.
+  - When specified in requests, it MUST be silently ignored.
 
 - Examples:
   - `true`
@@ -5933,10 +6029,13 @@ The abstract processing logic would be:
   sub-trees into one result set and remove any duplicates - adjusting any
   collection `url` and `count` values as needed.
 
-The format of `EXPRESSION` is:
+The format of `EXPRESSION` is one of:
 
 ```yaml
-[PATH.]ATTRIBUTE[=[VALUE]]
+[PATH.]ATTRIBUTE
+[PATH.]ATTRIBUTE=null
+[PATH.]ATTRIBUTE=[VALUE]
+[PATH.]ATTRIBUTE!=[VALUE]
 ```
 
 Where:
@@ -5953,16 +6052,29 @@ Where:
 - Complex attributes (e.g. `labels`) MUST use dot (`.`) to reference nested
   attributes. For example: `labels.stage=dev` for a filter.
 - A reference to a nonexistent attribute SHOULD NOT generate an error and
-  SHOULD be treated the same as a non-matching situation.
-- When the equals sign (`=`) is present with a `VALUE` then `VALUE` MUST be
-  the desired value of the attribute being examined. Only entities whose
-  specified `ATTRIBUTE` with this `VALUE` MUST be included in the response.
-- When the equals sign (`=`) is present without a `VALUE` then the implied
-  value is an empty string, and the matching MUST be as specified in the
-  previous bullet.
-- When the equals sign (`=`) is not present then the response MUST include all
-  entities that have the `ATTRIBUTE` present with any value. In database terms
-  this is equivalent to checking for entities with a non-NULL value.
+  SHOULD be treated the same as a non-matching situation. For example,
+  `?filter=myobj.myattr=5` would not match if: `myobj` is missing, `myattr` is
+  missing, or `myattr` is not `5`.
+- The operators are processed as follows:
+  - No operator:
+    - When no operator is specified then the response MUST include
+      all entities that have the `ATTRIBUTE` present with any non-`null` value.
+  - `=` operator:
+    - When `VALUE` is `null` then only entities without the specified
+      `ATTRIBUTE` MUST be included in the response.
+    - When a non-`null` `VALUE` is specified then `VALUE` MUST be the desired
+      value of the attribute being examined. Only entities whose specified
+      `ATTRIBUTE` with this `VALUE` MUST be included in the response.
+    - When `VALUE` is absent then the implied `VALUE` is an empty string and
+      the matching MUST be done as specified in the previous bullet.
+  - `!=` operator:
+    - When `VALUE` is `null` then it MUST have the same semantics as
+     `?filter=ATTRIBUTE` as specified above (present with any non-`null`
+     value).
+    - When `VALUE` is non-`null` then only entities without the specified
+      `ATTRIBUTE` and `VALUE` MUST be included in the response. This MUST be
+      semantically equivalent to `NOT(ATTRIBUTE=VALUE)`, and this also means
+      that if `ATTRIBUTE` is missing then that attribute will match the filter.
 
 When comparing an `ATTRIBUTE` to the specified `VALUE` the following rules
 MUST apply for an entity to be considered a match of the filter expression:
@@ -6128,12 +6240,12 @@ the following:
     "epoch": UINTEGER",
     "createdat": "TIMESTAMP",
     "modifiedat": "TIMESTAMP",
-    "readonly": BOOLEAN, ?
-    "compatibility": "STRING", ?
+    "readonly": BOOLEAN,
+    "compatibility": "STRING",
 
     "defaultversionid": "STRING",
     "defaultversionurl": "URL"
-    "defaultversionsticky": BOOLEAN ?
+    "defaultversionsticky": BOOLEAN
   }
 }
 ```

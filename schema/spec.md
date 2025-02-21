@@ -308,7 +308,7 @@ the core xRegistry Resource
   (but it an allowable value), then the server MUST NOT perform any validation.
 - Constraints:
   - OPTIONAL
-  - When not specified, the default value is `true`.
+  - When not specified, the default value MUST be `true`.
   - MUST be a Resource level attribute defined within the `metaattributes`
     section of the model.
 

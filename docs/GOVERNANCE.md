@@ -181,7 +181,7 @@ To create a new release:
   any potential noteworthy activities of the group:
   - Send it to the mailing list
   - Announce the release on our
-    [twitter account](http://twitter.com/xregistryio)
+    [twitter account](https://twitter.com/xregistryio)
   - Add it to the "announcement" section of our
     [website](https://xregistry.io/)
 
