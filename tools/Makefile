@@ -3,9 +3,9 @@ all: verify makeschema
 		( echo "schema files have been updated, make sure you commit them" ; \
 		  exit 1 )
 
-verify: spellcheck tabcheck test_tools
-	@python tools/verify.py .
-	@echo
+verify: text links
+
+text: spellcheck tabcheck
 
 spellcheck:
 	tools/spellcheck */spec.md core/primer.md
@@ -15,9 +15,9 @@ tabcheck:
 	tools/tabcheck */*.md  */*.json
 	@echo
 
-deps:
-	@echo Loading python deps
-	@python -m pip install -qq -r tools/requirements.txt
+links: test_tools
+	@python tools/verify.py .
+	@echo
 
 makeschema:
 	@echo Rebuilding the schemas...
@@ -33,6 +33,10 @@ makeschema:
 	@python tools/schema-generator.py --type json-schema --output cloudevents/schemas/document-schema.json endpoint/model.json message/model.json schema/model.json
 	@python tools/schema-generator.py --type avro-schema --output cloudevents/schemas/document-schema.avsc endpoint/model.json message/model.json schema/model.json
 	@python tools/schema-generator.py --type openapi --output cloudevents/schemas/openapi.json endpoint/model.json message/model.json schema/model.json
+
+deps:
+	@echo Loading python deps
+	@python -m pip install -qq -r tools/requirements.txt
 
 test_tools: deps
 	@pytest tools/

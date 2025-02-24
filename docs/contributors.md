@@ -16,6 +16,9 @@ Contributions do not constitute an official endorsement.
 - **Google**
   - Jon Skeet - [@jskeet](https://github.com/jskeet)
 
+- ** HDI Global SE**
+  - Manuel Ottlik - [@manuelottlik](https://github.com/manuelottlik)
+
 - **Microsoft**
   - Clemens Vasters - [@clemensv](https://github.com/clemensv)
 

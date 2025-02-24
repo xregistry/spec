@@ -5,7 +5,8 @@
       "type": "string",
       "readonly": true,
       "immutable": true,
-      "serverrequired": true
+      "serverrequired": true,
+      "default": "0.5"
     },
     "registryid": {
       "name": "registryid",
@@ -96,6 +97,8 @@
         "isdefault": {
           "name": "isdefault",
           "type": "boolean"
+          "serverrequired": true,
+          "default": false
         },
         "description": {
           "name": "description",
@@ -227,17 +230,16 @@
               "name": "readonly",
               "type": "boolean",
               "readonly": true
+              "serverrequired": true,
+              "default": false
             },
             "compatibility": {
               "name": "compatibility",
               "type": "string",
               "enum": [ "none", "backward", "backward_transitive", "forward",
                         "forward_transitive", "full", "full_transitive" ]
-            },
-            "defaultversionsticky": {
-              "name": "defaultversionsticky",
-              "type": "boolean",
-              "serverrequired": true
+              "serverrequired": true,
+              "default": "none"
             },
             "defaultversionid": {
               "name": "defaultversionid",
@@ -248,7 +250,13 @@
               "name": "defaultversionurl",
               "type": "url",
               "readonly": true,
-              "serverrequired": true
+              "serverrequired": true,
+            }
+            "defaultversionsticky": {
+              "name": "defaultversionsticky",
+              "type": "boolean",
+              "serverrequired": true,
+              "default": false
             }
           }
         }
