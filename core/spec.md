@@ -3860,7 +3860,7 @@ and the following Resource level attributes:
   - MUST be a read-only attribute.
   - When not present, the default value is `false`.
   - REQUIRED when `true`, otherwise OPTIONAL.
-  - If present, it MUST be a case sensitive `true` or `false`.
+  - If present, it MUST be a case-sensitive `true` or `false`.
   - A request to update a read-only Resource MUST generate an error unless
     the `?noreadonly` query parameter was used, in which case the error MUST
     be silently ignored. See [Registry APIs](#registry-apis) for more
@@ -3907,7 +3907,7 @@ and the following Resource level attributes:
   - `none` - No compatibility checking is performed.
 
 - Constraints:
-  - If present, it MUST be a case sensitive value from the model defined
+  - If present, it MUST be a case-sensitive value from the model defined
     enumeration range.
   - When not present, the implied default value is `none`.
 
@@ -3975,7 +3975,7 @@ and the following Resource level attributes:
 - Constraints:
   - When not present, the default value is `false`.
   - REQUIRED when `true`, otherwise OPTIONAL.
-  - If present, it MUST be a case sensitive `true` or `false`.
+  - If present, it MUST be a case-sensitive `true` or `false`.
   - If present in a request, a value of `null` MUST have the same meaning as
     deleting the attribute, implicitly setting it to `false`.
   - The processing of the `defaultversionsticky` and `defaultversionid`
