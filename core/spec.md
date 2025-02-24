@@ -3910,6 +3910,9 @@ and the following Resource level attributes:
   - If present, it MUST be a case-sensitive value from the model defined
     enumeration range.
   - When not present, the implied default value is `none`.
+  - The value may change from `none` to any other defined value. However, once
+    set to a non-`none` value, it MUST NOT be changed. Instead, a new
+    resource should be defined with the new compatibility value.
 
 ##### `defaultversionid` Attribute
 - Type: String
