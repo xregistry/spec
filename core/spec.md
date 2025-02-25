@@ -1900,16 +1900,18 @@ The following defines the specification-defined capabilities:
   reject all attempts to create/update a Resource (or its Versions) that would
   result in those entities violating the stated compatibility rules.
 
-  This includes the server rejecting requests to update the `compatibility`
-  attribute's value if any of the Resource's Versions would violate the
-  compatibility rules.
-
   A value of `false` indicates that the server MUST NOT perform any
   compatibility checking.
 
-  Attempts to change this value from `false` to `true` MUST fail if doing so
-  would result in any existing Version violating the `compatibility` rules
-  defined for the owning Resource.
+  Attempts to change this value from `false` to `true` SHOULD NOT result in
+  any validation of existing versions. Instead, compatibility will be
+  enforced for any new versions that are added.
+
+  This value can be set to `true` at any time, but can't be reset to`false`.
+  Once compatibility is enforced, it MUST remain enforced. Changing this
+  requires a new registry to be created as it's a fundamental change for
+  clients of the registry, which SHOULD be signaled accordingly.
+
 - If not specified, the default value is `false`.
 
 #### `flags`
@@ -3858,7 +3860,7 @@ and the following Resource level attributes:
   - MUST be a read-only attribute.
   - When not present, the default value is `false`.
   - REQUIRED when `true`, otherwise OPTIONAL.
-  - If present, it MUST be a case sensitive `true` or `false`.
+  - If present, it MUST be a case-sensitive `true` or `false`.
   - A request to update a read-only Resource MUST generate an error unless
     the `?noreadonly` query parameter was used, in which case the error MUST
     be silently ignored. See [Registry APIs](#registry-apis) for more
@@ -3905,9 +3907,12 @@ and the following Resource level attributes:
   - `none` - No compatibility checking is performed.
 
 - Constraints:
-  - If present, it MUST be a case sensitive value from the model defined
+  - If present, it MUST be a case-sensitive value from the model defined
     enumeration range.
   - When not present, the implied default value is `none`.
+  - The value MAY change from `none` to any other defined value. However, once
+    set to a non-`none` value, it MUST NOT be changed. Instead, a new
+    resource SHOULD be defined with the new compatibility value.
 
 ##### `defaultversionid` Attribute
 - Type: String
@@ -3973,7 +3978,9 @@ and the following Resource level attributes:
 - Constraints:
   - When not present, the default value is `false`.
   - REQUIRED when `true`, otherwise OPTIONAL.
-  - If present, it MUST be a case sensitive `true` or `false`.
+  - If `enforcecompatibility` is set to `true`, this attribute MUST always
+    be set to `false`.
+  - If present, it MUST be a case-sensitive `true` or `false`.
   - If present in a request, a value of `null` MUST have the same meaning as
     deleting the attribute, implicitly setting it to `false`.
   - The processing of the `defaultversionsticky` and `defaultversionid`
