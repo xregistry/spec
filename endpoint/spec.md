@@ -96,36 +96,36 @@ this form:
         "deployed": BOOLEAN, ?
 
         # "HTTP" protocol options
-        "method": "STRING", ?                          # default: POST
+        "method": "STRING", ?                          # Default: POST
         "headers": [ { "name": "STRING", "value": "STRING" } * ], ?
         "query": { "STRING": "STRING" * } ?
 
         # "AMQP/1.0" protocol options
         "node": "STRING", ?
-        "durable": BOOLEAN, ?                          # default: false
+        "durable": BOOLEAN, ?                          # Default: false
         "linkproperties": { "STRING": "STRING" * }, ?
         "connectionproperties": { "STRING": "STRING" * }, ?
-        "distributionmode": "move" | "copy" ?          # default: "move"
+        "distributionmode": "move" | "copy" ?          # Default: move
 
         # "MQTT/3.1.1" protocol options
         "topic": "STRING", ?
-        "qos": UINTEGER, ?                             # default: 0
-        "retrain": BOOLEAN, ?                          # default: false
-        "cleansession": BOOLEAN, ?                     # default: true
+        "qos": UINTEGER, ?                             # Default: 0
+        "retain": BOOLEAN, ?                           # Default: false
+        "cleansession": BOOLEAN, ?                     # Default: true
         "willtopic": "STRING", ?
         "willmessage": "STRING" ?
 
         # "MQTT/5.0" protocol options
         "topic": "STRING", ?
-        "qos": UINTEGER, ?                             # default: 0
-        "retrain": BOOLEAN, ?                          # default: false
-        "cleansession": BOOLEAN, ?                     # default: true
+        "qos": UINTEGER, ?                             # Default: 0
+        "retain": BOOLEAN, ?                           # Default: false
+        "cleansession": BOOLEAN, ?                     # Default: true
         "willtopic": "STRING", ?
         "willmessage": "STRING" ?
 
         # "KAFKA" protocol options
         "topic": "STRING", ?
-        "acks": INTEGER, ?                             # default: 1
+        "acks": INTEGER, ?                             # Default: 1
         "key": "STRING", ?
         "partition": INTEGER, ?
         "consumergroup": "STRING", ?
@@ -306,7 +306,7 @@ The following attributes are defined for Endpoints:
   string or excluded from the serialization entirely.
 - Constraints:
   - OPTIONAL
-  - If present, MUST be a string
+  - When specified, the value MUST be a non-empty string
 - Examples:
   - `queue1`
 
@@ -317,15 +317,15 @@ The following attributes are defined for Endpoints:
     An OPTIONAL property indicating the time when the Endpoint entered, or will
     enter, a deprecated state. The date MAY be in the past or future. If this
     property is not present the Endpoint is already in a deprecated state.
-    If present, this MUST be an [RFC3339][rfc3339] timestamp.
+    When specified, this MUST be an [RFC3339][rfc3339] timestamp.
 
   - `removal`<br>
     An OPTIONAL property indicating the time when the Endpoint MAY be removed.
     The Endpoint MUST NOT be removed before this time. If this property is not
     present then client can not make any assumption as to when the Endpoint
     might be removed. Note: as with most properties, this property is mutable.
-    If present, this MUST be an [RFC3339][rfc3339] timestamp and MUST NOT be
-    sooner than the `effective` time if present.
+    When specified, this MUST be an [RFC3339][rfc3339] timestamp and MUST NOT
+    be sooner than the `effective` time.
 
   - `alternative`<br>
     An OPTIONAL property specifying the URL to an alternative Endpoint the
@@ -409,10 +409,10 @@ This specification defines the following envelope options for the indicated
 - `mode` : indicates whether the CloudEvent generated will use `binary` or
   `structured`
   (mode)[https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#message].
-  If present, its value MUST be one of: `binary` or `structured`. When not
-  present, the endpoint is indicating that either mode is acceptable.
+  When specified, its value MUST be one of: `binary` or `structured`. When not
+  specified, the endpoint is indicating that either mode is acceptable.
 - `format` : indicates the format of the CloudEvent when sent in `structured`
-  mode. This attribute MUST NOT be present when `mode` is `binary`. The value
+  mode. This attribute MUST NOT be specified when `mode` is `binary`. The value
   used MUST match the expected content type of the message (e.g. for HTTP the
   `Content-Type` header value).
 
@@ -477,7 +477,7 @@ TODO merge this into the previous 'protocol' section
   additional protocol names.
 
   Predefined protocols are referred to by name and version as
-  `{NAME}/{VERSION}`. If the version is not specified, the default version of
+  `{NAME}/{VERSION}`. When the version is not specified, the default version of
   the protocol is assumed. The version number format is determined by the
   protocol specification's usage of versions.
 
@@ -541,7 +541,7 @@ TODO merge this into the previous 'protocol' section
 
 - Type: Map
 - Description: OPTIONAL authorization configuration details of the endpoint.
-  When present, the authorization configuration MUST be a map of non-empty
+  When specified, the authorization configuration MUST be a map of non-empty
   strings to non-empty strings. The configuration keys below MUST be used as
   defined. Additional, endpoint-specific configuration keys MAY be added.
 
@@ -604,7 +604,7 @@ TODO merge this into the previous 'protocol' section
   the liveness of the endpoint.
 - Constraints:
   - OPTIONAL.
-  - Default value is `false`.
+  - When not specified, the default value is MUST be `false`.
 
 #### `protocoloptions.options`
 
@@ -614,7 +614,7 @@ TODO merge this into the previous 'protocol' section
   [protocol options](#protocol-options) section below.
 - Constraints:
   - OPTIONAL
-  - When present, MUST be a map of non-empty strings to `ANY` type values.
+  - When specified, MUST be a map of non-empty strings to `ANY` type values.
   - If `protocoloptions.protocol` is a well-known protocol, the options MUST be
     compliant with the [protocol's options](#protocol-options).
 
@@ -710,8 +710,9 @@ valid HTTP URIs using the "http" or "https" scheme.
 
 The following options are defined for HTTP:
 
-- `method`: The HTTP method to use for the endpoint. The default value is
-  `POST`. The value MUST be a valid HTTP method name.
+- `method`: The HTTP method to use for the endpoint.
+  - When not specified the default value MUST be `POST`.
+  - The value MUST be a valid HTTP method name.
 - `headers`: An array of HTTP headers to use for the endpoint. HTTP allows for
   duplicate headers. The objects in the array have the following attributes:
   - `name`: The name of the HTTP header. The value MUST be a non-empty string.
@@ -753,19 +754,22 @@ URI is present, it MUST be a valid AMQP node name.
 The following options are defined for AMQP endpoints.
 
 - `node`: The name of the AMQP node (a queue or topic or some addressable
-  entity) to use for the endpoint. If present, the value overrides the path
-  portion of the Endpoint URI.
-- `durable`: If `true`, the AMQP `durable` flag is set on transfers. The default
-  value is `false`. This option only applies to `usage:producer` endpoints.
-- `linkproperties`: A map of AMQP link properties to use for the endpoint. The
-  value MUST be a map of non-empty strings to non-empty strings.
+  entity) to use for the endpoint.
+  - When specified, the value overrides the path portion of the Endpoint URI.
+- `durable`: If `true`, the AMQP `durable` flag is set on transfers.
+  - When not specified, the default value MUST be `false`.
+  - This option only applies to `usage:producer` endpoints.
+- `linkproperties`: A map of AMQP link properties to use for the endpoint.
+  - The value MUST be a map of non-empty strings to non-empty strings.
 - `connection-properties`: A map of AMQP connection properties to use for the
-  endpoint. The value MUST be a map of non-empty strings to non-empty strings.
-- `distribution-mode`: Either `move` or `copy`. The default value is `move`. The
-  distribution mode is AMQP's way of expressing whether a receiver operates on
-  copies of messages (it's a topic subscriber) or whether it moves messages from
-  the queue (it's a queue consumer). This option only applies to
-  `usage:consumer` endpoints.
+  endpoint.
+  - The value MUST be a map of non-empty strings to non-empty strings.
+- `distributionmode`: Either `move` or `copy`.
+  - When not specified, the default value MUST be `move`.
+  - The distribution mode is AMQP's way of expressing whether a receiver
+    operates on copies of messages (it's a topic subscriber) or whether it
+    moves messages from the queue (it's a queue consumer). This option only
+    applies to `usage:consumer` endpoints.
 
 The values of all `linkproperties` and `connection-properties` MAY contain
 placeholders using the [RFC6570][RFC6570] Level 1 URI Template syntax. When the
@@ -787,7 +791,7 @@ Example:
     "connection-properties": {
       "my-connection-property": "my-connection-property-value"
     },
-    "distribution-mode": "move"
+    "distributionmode": "move"
   }
 }
 ```
@@ -802,25 +806,31 @@ schemes "tcp" (plain TCP/1883), "ssl" (TLS TCP/8883), and "wss"
 
 The following options are defined for MQTT endpoints.
 
-- `topic`: The MQTT topic to use for the endpoint. If present, the value
-  overrides the path portion of the Endpoint URI. The value MAY contain
-  placeholders using the [RFC6570][RFC6570] Level 1 URI Template syntax
-- `qos`: The MQTT Quality of Service (QoS) level to use for the endpoint. The
-  value MUST be an integer between 0 and 2. The default value is 0. The value is
-  overidden by the `qos` property of the
-  [MQTT message format](../message/spec.md#mqtt311-and-mqtt50-protocols).
-- `retain`: If `true`, the MQTT `retain` flag is set on transfers. The default
-  value is `false`. The value is overidden by the `retain` property of the [MQTT
-  message format](../message/spec.md#mqtt311-and-mqtt50-protocols). This
-  option only applies to `usage:producer` endpoints.
+- `topic`: The MQTT topic to use for the endpoint.
+  - When specified, the value overrides the path portion of the Endpoint URI.
+  - The value MAY contain placeholders using the [RFC6570][RFC6570] Level 1
+    URI Template syntax.
+- `qos`: The MQTT Quality of Service (QoS) level to use for the endpoint.
+  - The value MUST be an integer between 0 and 2.
+  - When not specified, the default value MUST be 0.
+  - The value is overidden by the `qos` property of the
+    [MQTT message format](../message/spec.md#mqtt311-and-mqtt50-protocols).
+- `retain`: If `true`, the MQTT `retain` flag is set on transfers.
+  - When not specified, the default value is `false`.
+  - The value is overidden by the `retain` property of the [MQTT
+    message format](../message/spec.md#mqtt311-and-mqtt50-protocols). This
+    option only applies to `usage:producer` endpoints.
 - `cleansession`: If `true`, the MQTT `cleansession` flag is set on
-  connections. The default value is `true`.
-- `willtopic`: The MQTT `willtopic` to use for the endpoint. The value MUST be
-  a non-empty string. The value MAY contain placeholders using the
-  [RFC6570][RFC6570] Level 1 URI Template syntax
+  connections.
+  - When not specified, the default value MUST be `true`.
+- `willtopic`: The MQTT `willtopic` to use for the endpoint.
+  - The value MUST be a non-empty string.
+  - The value MAY contain placeholders using the [RFC6570][RFC6570] Level 1
+    URI Template syntax.
 - `willmessage`: This is URI and/or JSON Pointer that refers to the MQTT
-  `willmessage` to use for the endpoint. The value MUST be a non-empty string.
-  It MUST point to a valid
+  `willmessage` to use for the endpoint.
+  - The value MUST be a non-empty string.
+  - It MUST point to a valid
   [´message´](../message/spec.md#message-definitions) that MUST either
   use the ["CloudEvents/1.0"](../message/spec.md#cloudevents10) or
   ["MQTT/3.1.1." or "MQTT/5.0"](../message/spec.md#mqtt311-and-mqtt50-protocols)
@@ -851,23 +861,27 @@ usage, e.g.  `SSL://{host}:{port}` or `PLAINTEXT://{host}:{port}`.
 
 The following options are defined for Kafka endpoints.
 
-- `topic`: The Kafka topic to use for the endpoint. The value MUST be a
-  non-empty string if present. The value MAY contain placeholders using the
-  [RFC6570][RFC6570] Level 1 URI Template syntax
-- `acks`: The Kafka `acks` setting to use for the endpoint. The value MUST be an
-  integer between -1 and 1. The default value is 1. This option only applies to
-  `usage:producer` endpoints.
-- `key`: The fixed Kafka key to use for this endpoint. The value MUST be a
-  non-empty string if present. This option only applies to `usage:producer`
-  endpoints. The value MAY contain placeholders using the
-  [RFC6570][RFC6570] Level 1 URI Template syntax
-- `partition`: The fixed Kafka partition to use for this endpoint. The value
-  MUST be an integer if present. This option only applies to `usage:producer`
-  endpoints.
-- `consumergroup`: The Kafka consumer group to use for this endpoint. The value
-  MUST be a non-empty string if present. This option only applies to
-  `usage:consumer` endpoints. The value MAY contain placeholders using the
-  [RFC6570][RFC6570] Level 1 URI Template syntax
+- `topic`: The Kafka topic to use for the endpoint.
+  - When specified, the value MUST be a non-empty string.
+  - The value MAY contain placeholders using the [RFC6570][RFC6570] Level 1
+    URI Template syntax.
+- `acks`: The Kafka `acks` setting to use for the endpoint.
+  - The value MUST be an integer between -1 and 1.
+  - When not specified, the default value MUST be 1.
+  - This option only applies to `usage:producer` endpoints.
+- `key`: The fixed Kafka key to use for this endpoint.
+  - When specified, the value MUST be a non-empty string.
+  - This option only applies to `usage:producer` endpoints.
+  - The value MAY contain placeholders using the [RFC6570][RFC6570] Level 1
+    URI Template syntax.
+- `partition`: The fixed Kafka partition to use for this endpoint.
+  - When specified, the value MUST be an integer.
+  - This option only applies to `usage:producer` endpoints.
+- `consumergroup`: The Kafka consumer group to use for this endpoint.
+  - When specified, the value MUST be a non-empty string.
+  - This option only applies to `usage:consumer` endpoints.
+  - The value MAY contain placeholders using the [RFC6570][RFC6570] Level 1
+    URI Template syntax.
 
 Example:
 
@@ -891,8 +905,9 @@ include a port number, e.g. `nats://{host}:{port}` or `tls://{host}:{port}`.
 
 The following options are defined for NATS endpoints.
 
-- `subject`: The NATS subject to use. The value MAY contain placeholders using
-  the [RFC6570][RFC6570] Level 1 URI Template syntax
+- `subject`: The NATS subject to use.
+  - The value MAY contain placeholders using the [RFC6570][RFC6570] Level 1
+    URI Template syntax.
 
 Example:
 
@@ -907,7 +922,6 @@ Example:
 ```
 
 ## References
-
 
 [JSON Pointer]: https://www.rfc-editor.org/rfc/rfc6901
 [CloudEvents Types]: https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/spec.md#type-system

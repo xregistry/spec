@@ -31,7 +31,9 @@
             "validation": {
               "name": "validation",
               "type": "boolean",
-              "description": "Verify compliance with specified schema 'format'"
+              "description": "Verify compliance with specified schema 'format'",
+              "serverrequired": true,
+              "default": true
             }
           }
         }
