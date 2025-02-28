@@ -657,3 +657,20 @@ the authors chose to have the server ignore unknown query parameters. It is
 worth noting that the specification says they SHOULD be ignored, not that they
 MUST be ignored. So there is room for an implementation to be very picky if
 needed, but at the risk of potentially causing interoperability problems.
+
+# Updating attributes with `ifvalues`
+
+The `ifvalues` feature might be a new concept for some readers, so a point
+of clarification might be useful. If an attribute is defined with an `ifvalues`
+aspect, then if that attribute's value changes it is possible that the
+set of sibling attributes that are part of that entity's model could change
+due to a new `ifvalues` match (or due to no match at all).
+
+When a client is performing a write operation that changes that attribute's
+value, the client must ensure that the net result of the changes are compliant
+with the resulting model. Meaning, if that attribute's new value adds or
+removes attributes then the client might need to also change other attributes
+in the entity in order to be model compliant.
+
+Likewise, implementations of the server must validate the entire entity
+against the new model, not just a subset of the entity's attributes.

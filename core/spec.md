@@ -13,6 +13,7 @@ automation and tooling.
   - [Notational Conventions](#notational-conventions)
   - [Terminology](#terminology)
 - [Registry Attributes and APIs](#registry-attributes-and-apis)
+  - [Implementation Customizations](#implementation-customizations)
   - [Attributes and Extensions](#attributes-and-extensions)
   - [Registry APIs](#registry-apis)
     - [Registry Collections](#registry-collections)
@@ -59,6 +60,12 @@ created.
 
 This document is meant to be a framework from which additional specifications
 can be defined that expose model specific Resources and metadata.
+
+As of today this specification only specifies an HTTP-based interaction model.
+This is not meant to imply that other protocols can not be supported, and
+other protocols are very likely in the future. When that happens this
+specification will be restructured to have clean separation between a
+protocol-agnostic core and protocol-specific requirements.
 
 A Registry consists of two main types of entities: Groups and Resources.
 
@@ -116,7 +123,6 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       "schema",? "setdefaultversionid",? "specversion",?
       "STRING" *
     ],
-    "maxmaxversions": UINTEGER,
     "mutable": [                        # What is mutable in the Registry
       "capabilities",? "entities",? "model",? "STRING"*
     ], ?
@@ -136,18 +142,19 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
         "name": "STRING",               # Same as attribute's key
         "type": "TYPE",                 # string, decimal, array, object, ...
         "target": "STRING", ?           # If "type" is "xid"
+        "relaxednames": BOOLEAN, ?      # If "type" is "object"
         "description": "STRING", ?
         "enum": [ VALUE * ], ?          # Array of scalar values of type "TYPE"
         "strict": BOOLEAN, ?            # Just "enum" values? Default=true
         "readonly": BOOLEAN, ?          # From client's POV. Default=false
         "immutable": BOOLEAN, ?         # Once set, can't change. Default=false
-        "clientrequired": BOOLEAN, ?    # Default=false
-        "serverrequired": BOOLEAN, ?    # Default=false
+        "required": BOOLEAN, ?          # Default=false
         "default": VALUE, ?             # Scalar attribute's default value
 
         "attributes": { ... }, ?        # If "type" above is object
         "item": {                       # If "type" above is map,array
           "type": "TYPE", ?             # map value type, or array type
+          "relaxednames": BOOLEAN, ?    # If this item "type" is object
           "attributes": { ... }, ?      # If this item "type" is object
           "item": { ... } ?             # If this item "type" is map,array
         } ?
@@ -410,6 +417,33 @@ Note that "document view" only refers to response messages. There is no
 are designed such that they can be used in request messages as they still
 convey the same information as an "API view" response.
 
+### Implementation Customizations
+
+This specification only defines the core APIs, and their semantics, of a
+Registry service. It does not address many of the details that would need to
+be added for a live instance of a service; as often times these aspects are
+very specific to the environment in which the service is running. For example,
+this specification does not address authentication or authorization levels of
+users, nor how to securely protect the APIs (aside from the implied use of
+`https`), clients or servers from attacks. Implementations of this
+specification are expected to add these various features as needed.
+
+Additionally, implementation MAY choose to customize the data and behavior on
+a per-user basis as needed. For example, the following customizations might be
+implemented:
+- User-specific capabilities - e.g. admin users might see more features than
+  a non-admin user.
+- User-specific attribute aspects - e.g. admin users might be able to
+  edit a `readonly` Resource. Note that in this case the Resource's `readonly`
+  aspect will likely appear with a value of `true` even for the admin.
+
+The goal of these customizations is not to allow for implementation to
+violate the specification, rather it is to allow for real-world requirements
+to be met while maintaining the interoperability goals of the specification.
+
+Implementations are encouraged to contact the xRegistry community if it is
+unclear if certain customizations would violate the specification.
+
 ### Attributes and Extensions
 
 Unless otherwise noted, all attributes and extensions MUST be mutable and MUST
@@ -431,7 +465,7 @@ be one of the following data types:
 - `map` - set of key/value pairs, where the key MUST be of type string. The
    value MUST be of one of the types defined here.
   - Each key MUST be a non-empty string consisting of only lowercase
-    alphanumeric characters (`[a-z0-9]`), `-`, `_` or a `.`; be no longer
+    alphanumeric characters (`[a-z0-9]`), `:`, `-`, `_` or a `.`; be no longer
     than 63 characters; start with an alphanumeric character and be unique
     within the scope of this map.
   - See [Serializing Resource Documents](#serializing-resource-documents)
@@ -1869,7 +1903,6 @@ be of the form:
 {
   "enforcecompatibility": BOOLEAN, ?
   "flags": [ "STRING" * ], ?
-  "maxmaxversions": UINTEGER, ?
   "mutable": [ "STRING" * ], ?
   "pagination": BOOLEAN, ?
   "schemas": [ "STRING" * ], ?
@@ -1938,15 +1971,6 @@ The following defines the specification-defined capabilities:
 - Examples:
   - `"flags": [ "filter", "inline" ]`    # Just these 2
   - `"flags": [ "*" ]                    # All flags
-
-#### `maxmaxversions`
-- Name `maxversions`
-- Type: Unsigned integer
-- Description: The maximum value that can be specified for a Resource's
-  `maxversions` model attribute.
-- When not specified, the default value MUST be zero (`0`).
-- A value of zero (`0`) indicates there is no stated limit, but the server
-  MAY still choose to reject a Resource's `maxversions` value if necessary.
 
 #### `mutable`
 - Name `mutable`
@@ -2135,9 +2159,6 @@ GET /capabilities?offered
       "nodefaultversionsticky", "noepoch", "noreadonly", "offered", "schema",
       "setdefaultversionid", "specversion" ]
   },
-  "maxmaxversions": {
-    "type": "uinteger"
-  },
   "pagination": {
     "type": "boolean",
     "enum": [ false, true ]
@@ -2207,15 +2228,16 @@ with respect to how models are defined or updated:
   specification. For example, changes to further constrain the allowable values
   of an attribute is typically allowed, but changing its `type` from `string`
   to `int` is not.
-- Specification-defined attributes that are `serverrequired` MUST NOT have
-  this aspect changed to `false`.
-- Specification-defined attributes that are `readonly` and `serverrequired`
-  MUST NOT have the `readonly` aspect changed to `false`.
+- Specification-defined attributes that are `required` MUST NOT have this
+  aspect changed to `false`.
+- Specification-defined attributes that are `readonly` MUST NOT have this
+  aspect changed to `false`.
 
-Any specification attributes not included in the request MUST be included in
-the resulting model. In other words, the Registry's model consists of the
-specification-defined attributes overlaid with the attributes that are
-explicitly-defined as part of a model create/update request.
+Any specification attributes not included in a request to define, or update,
+a model MUST be included in the resulting model. In other words, the
+Registry's model consists of the specification-defined attributes overlaid
+with the attributes that are explicitly-defined as part of a model
+create/update request.
 
 Note: there is no mechanism defined to delete specification-defined attributes
 from the model.
@@ -2225,37 +2247,30 @@ new attributes within the model definitions themselves), but only if
 the server supports them. Servers MUST reject model definitions that include
 unknown model language attributes.
 
-Once a Registry has been created, changes to the model are limited to:
-- Adding new Groups or Resources.
-- Adding new OPTIONAL attributes.
+Once a Registry has been created, changes to the model MAY be supported by
+server implementations. This specification makes no statement as to what types
+of changes are allowed beyond the following requirements:
+- Any model changes MUST result in a specification compliant model definition.
+- Servers MUST ensure that the representation of all entities within the
+  Registry MUST adhere to the current model prior to completing any request.
 
-Any model change that might result in existing data within the Registry
-becoming non-compliant MUST generate an error, even if the existing data
-doesn't result in non-compliance. For example, the following non-exhaustive
-list of changes MUST generate an error:
-- Deleting an attribute, Group or Resource.
-- Changing the `name` or `type` of an attribute.
-- Removing a value from the enumeration list of an attribute.
-- Enabling/disabling a feature that might impact storing data
-  (e.g. `hasdocument`).
-- Changing the default value of a specification defined default value.
+Any request to update the model that does not adhere to those requirements
+MUST generate an error.
 
-Some example changes that are allowed:
-- Changing the `description` of an attribute.
-- Adding an enumeration value to an attribute.
-- Changing the `readonly` aspect or `default` value of an extension attribute,
-  if the specification of that extension allows it. Changes to a `default`
-  value MUST only impact future updates to instances of the attribute.
-  Existing instances of that attribute MUST NOT be changed as a result of
-  changing the attribute's model `default` value aspect.
+How the server guarantees that all entities in the Registry are compliant with
+the model is an implementation detail. For example, while it is
+NOT RECOMMENDED, it is valid for an implementation to modify (or even delete)
+existing entities to ensure model compliance. However, it is RECOMMENDED that
+the model update requests be rejected if existing entities are not compliant.
+This means that servers MUST validate all entities are compliant with the
+model prior to completing the model update, and reject the request if they are
+not.
+
+Additionally, is it STRONGLY RECOMMENDED that model updates be limited to
+backwards compatible changes.
 
 Implementations MAY choose to limit the types of changes made to the model,
 or not support model updates at all.
-
-Breaking model changes would need be done by creating a new Registry instance
-(with the new model), and then an export/import of the data would need to be
-performed. Or by creating new Groups/Resources and migrating the data from the
-old ones to the new ones.
 
 The xRegistry schema for an empty Registry can be found [here](./model.json),
 while a schema for a sample xRegistry (with Groups and Resources) can be
@@ -2283,18 +2298,19 @@ Regardless of how the model is retrieved, the overall format is as follows:
       "name": "STRING",                # Same as attribute's key
       "type": "TYPE",                  # boolean, string, array, object, ...
       "target": "STRING", ?            # If "type" is "xid"
+      "relaxednames": BOOLEAN, ?       # If "type" is "object"
       "description": "STRING",
       "enum": [ VALUE * ], ?           # Array of values of type "TYPE"
       "strict": BOOLEAN, ?             # Just "enum" values or not. Default=true
       "readonly": BOOLEAN, ?           # From client's POV. Default=false
       "immutable": BOOLEAN, ?          # Once set, can't change. Default=false
-      "clientrequired": BOOLEAN, ?     # Default=false
-      "serverrequired": BOOLEAN, ?     # Default=false
+      "required": BOOLEAN, ?           # Default=false
       "default": VALUE, ?              # Scalar attribute's default value
 
       "attributes": { ... }, ?         # If "type" above is object
       "item": {                        # If "type" above is map,array
         "type": "TYPE", ?              # map value type, or array type
+        "relaxednames": BOOLEAN, ?     # If this item "type" is object
         "attributes": { ... }, ?       # If this item "type" is object
         "item": { ... } ?              # If this item "type" is map,array
       } ?
@@ -2436,6 +2452,27 @@ The following describes the attributes of Registry model:
     other words, `target` is not transitive.
   - Example: `/endpoints/messages`
 
+- `attributes."STRING".relaxednames` <span id="model.relaxednames"></span>
+  - Type: Boolean.
+  - OPTIONAL, and MUST ONLY be used (`true`) when `type` is `object`.
+  - Indicates whether the attribute names of this object-typed attribute
+    are allowed to include additional characters beyond what attribute names
+    are typically allowed to have.
+
+    Per the [Attributes and Extensions](#attributes-and-extensions) section,
+    attribute names are normally limited to just the set of characters that
+    ensure they can reliably be used in cases such as code variable names
+    without the need for some escaping mechanism. However, there are
+    situations where object-typed attribute names need to support additional
+    characters, such as a dash (`-`), and it is known that they will never be
+    used in those restricted character set situations. By setting the
+    `relaxednames` aspect to `true` the server MUST allow for an extended
+    set of valid characters in attribute names for this object.
+
+    The allowable characters for `relaxednames` object's attributes MUST be:
+    `[-a-z0-9_]` (dash, lowercase alpha, numeric, underscore), and MUST start
+    with one of `[a-z_]` (lowercase alpha, underscore).
+
 - `attributes."STRING".description`
   - Type: String.
   - OPTIONAL.
@@ -2475,8 +2512,6 @@ The following describes the attributes of Registry model:
 
   - When not specified, the default value MUST be `false`.
   - When the attribute name is `*` then `readonly` MUST NOT be set to `true`.
-    Note, both `clientrequired` and `readonly` MUST NOT be set to `true` at
-    the same time.
 
 - `attributes."STRING".immutable`
   - Type: Boolean.
@@ -2492,26 +2527,19 @@ The following describes the attributes of Registry model:
 
   - When not specified, the default value MUST be `false`.
 
-- `attributes."STRING".clientrequired`
-  - Type: Boolean.
-  - OPTIONAL.
-  - Indicates whether this attribute is a REQUIRED field for a client when
-    creating or updating an entity. During creation or update of an entity if
-    this attribute is not specified in the request then an error MUST be
-    generated.
-  - When not specified, the default value MUST be `false`.
-  - When the attribute name is `*` then `clientrequired` MUST NOT be set to
-    `true`.
-
-- `attributes."STRING".serverrequired`
+- `attributes."STRING".required`
   - Type: Boolean
   - OPTIONAL
-  - Indicates whether this attribute is a REQUIRED field for a server when
-    serializing an entity.
+  - Indicates whether this attribute is REQUIRED to have a non-null value.
+    This specification does not mandate how this attribute's value is populated
+    (i.e. by a client, the server or via a default value), just that by the
+    end of processing any request it MUST have a non-null value, and generate
+    an error if not.
+  - This also implies that this attribute MUST be serialized in any response
+    from the server - with the exception of the optimizations specified for
+    document view.
   - When not specified the default value MUST be `false`.
-  - When the attribute name is `*` then `serverrequired` MUST NOT be set to
-    `true`.
-  - When `clientrequired` is `true` then `serverrequired` MUST also be `true`.
+  - When the attribute name is `*` then `required` MUST NOT be set to `true`.
 
 - `attributes."STRING".default`
   - Type: MUST be a non-`null` value of the type specified by the
@@ -2527,8 +2555,7 @@ The following describes the attributes of Registry model:
     semantic meaning a being absent or set to `null`.
   - When a default value is specified, this attribute MUST be serialized in
     responses from servers as part of its owning entity, even if it is set to
-    its default value. Additionally, the `serverrequired` aspect MUST also be
-    set to `true`.
+    its default value.
 
 - `attributes."STRING".attributes`
   - Type: Object, see `attributes` above.
@@ -2549,6 +2576,10 @@ The following describes the attributes of Registry model:
   - Type: TYPE.
   - REQUIRED.
   - The "TYPE" of this nested resource.
+
+- `attributes."STRING".item.relaxednames`
+  - See [`relaxednames`](#model.relaxednames) above.
+  - OPTIONAL, and MUST ONLY be used (`true`) when `item.type` is `object`.
 
 - `attributes."STRING".item.attributes`
   - See [`attributes`](#model.attributes) above.
@@ -2642,7 +2673,9 @@ The following describes the attributes of Registry model:
     type.
   - When not specified, the default value MUST be zero (`0`).
   - A value of zero (`0`) indicates there is no stated limit, and
-    implementations MAY prune non-default Versions at any time.
+    implementations MAY prune non-default Versions at any time. This means
+    it is valid for an implementation to only support one (`1`) Version when
+    `maxversions` is set to `0`.
   - When the limit is exceeded, implementations MUST prune Versions by
     deleting the oldest Version (based on creation times) first, skipping the
     Version marked as "default". An exception to this pruning rule is if
@@ -2855,13 +2888,14 @@ Content-Type: application/json; charset=utf-8
     "STRING": {
       "name": "STRING",
       "type": "TYPE",
+      "target": "STRING", ?
+      "relaxednames": BOOLEAN, ?
       "description": "STRING", ?
       "enum": [ VALUE * ], ?
       "strict": BOOLEAN, ?
       "readonly": BOOLEAN, ?
       "immutable": BOOLEAN, ?
-      "clientrequired": BOOLEAN, ?
-      "serverrequired": BOOLEAN, ?
+      "required": BOOLEAN, ?
       "default": VALUE, ?
 
       "attributes": { ... }, ?
@@ -2976,13 +3010,14 @@ Content-Type: application/json; charset=utf-8
     "STRING": {
       "name": "STRING",
       "type": "TYPE",
+      "target": "STRING", ?
+      "relaxednames": BOOLEAN, ?
       "description": "STRING", ?
       "enum": [ VALUE * ], ?
       "strict": BOOLEAN, ?
       "readonly": BOOLEAN, ?
       "immutable": BOOLEAN, ?
-      "clientrequired": BOOLEAN, ?
-      "serverrequired": BOOLEAN, ?
+      "required": BOOLEAN, ?
       "default": VALUE, ?
 
       "attributes": { ... }, ?               # For nested object
@@ -3044,13 +3079,14 @@ Content-Type: application/json; charset=utf-8
     "STRING": {
       "name": "STRING",
       "type": "TYPE",
+      "target": "STRING", ?
+      "relaxednames": BOOLEAN, ?
       "description": "STRING", ?
       "enum": [ VALUE * ], ?
       "strict": BOOLEAN, ?
       "readonly": BOOLEAN, ?
       "immutable": BOOLEAN, ?
-      "clientrequired": BOOLEAN, ?
-      "serverrequired": BOOLEAN, ?
+      "required": BOOLEAN, ?
       "default": VALUE, ?
 
       "attributes": { ... }, ?

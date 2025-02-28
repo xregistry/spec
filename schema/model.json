@@ -32,7 +32,7 @@
               "name": "validation",
               "type": "boolean",
               "description": "Verify compliance with specified schema 'format'",
-              "serverrequired": true,
+              "required": true,
               "default": true
             }
           }
