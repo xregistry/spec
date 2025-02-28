@@ -16,14 +16,14 @@ Contributions do not constitute an official endorsement.
 - **Google**
   - Jon Skeet - [@jskeet](https://github.com/jskeet)
 
-- ** HDI Global SE**
+- **HDI Global SE**
   - Manuel Ottlik - [@manuelottlik](https://github.com/manuelottlik)
 
 - **Microsoft**
   - Clemens Vasters - [@clemensv](https://github.com/clemensv)
 
 - **Particular Software**
-  - Laila Bourgria - [@lailabougria](https://github.com/lailabougria)
+  - Laila Bougria - [@lailabougria](https://github.com/lailabougria)
 
 - **SAP**
   - Klaus Deissner - [@deissnerk](https://github.com/deissnerk)
