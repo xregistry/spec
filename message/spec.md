@@ -56,6 +56,7 @@ this form:
       "messagegroupid": "STRING",               # xRegistry core attributes
       "self": "URL",
       "xid": "XID",
+      # Start of default Version's attributes
       "epoch": UINTEGER,
       "name": "STRING", ?
       "description": "STRING", ?
@@ -75,6 +76,7 @@ this form:
           "versionid": "STRING",
           "self": "URL",
           "xid": "XID",
+          # Start of default Version's attributes
           "epoch": UINTEGER,
           "name": "STRING", ?
           "description": "STRING", ?
@@ -114,6 +116,7 @@ this form:
           "dataschema": ANY, ?
           "dataschemauri": "URI", ?
           "datacontenttype": "STRING", ?
+          # End of default Version's attributes
 
           "metaurl": "URL",
           "meta": { ... }, ?

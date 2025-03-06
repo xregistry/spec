@@ -94,7 +94,7 @@
                 "protocoloptions": {
                   "name": "protocoloptions",
                   "type": "object",
-                  "relaxednames": true,
+                  "namecharset": "extended",
                   "description": "Configuration information for this endpoint",
                   "attributes": {
                     "endpoints": {

@@ -5,7 +5,7 @@ all: verify makeschema
 
 verify: text links
 
-text: spellcheck tabcheck
+text: spellcheck tabcheck errorcheck
 
 spellcheck:
 	tools/spellcheck */spec.md core/primer.md
@@ -13,6 +13,10 @@ spellcheck:
 
 tabcheck:
 	tools/tabcheck */*.md  */*.json
+	@echo
+
+errorcheck:
+	tools/errorcheck core/spec.md
 	@echo
 
 links: test_tools

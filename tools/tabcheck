@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Tabs are evil
+# And extra spaces at the end of lines are just annoying
+
 set -e
 
 for f in $* ; do
