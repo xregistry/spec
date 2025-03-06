@@ -173,6 +173,7 @@ rawdata
 readonly
 redis
 registryid
+relaxednames
 repos
 resourceid
 resourcescount

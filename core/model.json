@@ -5,31 +5,31 @@
       "type": "string",
       "readonly": true,
       "immutable": true,
-      "serverrequired": true,
+      "required": true,
       "default": "0.5"
     },
     "registryid": {
       "name": "registryid",
       "type": "string",
       "immutable": true,
-      "serverrequired": true
+      "required": true
     },
     "self": {
       "name": "self",
       "type": "url",
       "readonly": true,
-      "serverrequired": true
+      "required": true
     },
     "xid": {
       "name": "xid",
       "type": "xid",
       "readonly": true,
-      "serverrequired": true
+      "required": true
     },
     "epoch": {
       "name": "epoch",
       "type": "uinteger",
-      "serverrequired": true
+      "required": true
     },
     "name": {
       "name": "name",

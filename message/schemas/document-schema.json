@@ -126,7 +126,10 @@
                         "required": {
                           "type": "boolean"
                         }
-                      }
+                      },
+                      "required": [
+                        "required"
+                      ]
                     },
                     "id": {
                       "type": "object",
@@ -145,7 +148,10 @@
                         "required": {
                           "type": "boolean"
                         }
-                      }
+                      },
+                      "required": [
+                        "required"
+                      ]
                     },
                     "type": {
                       "type": "object",
@@ -164,7 +170,11 @@
                         "required": {
                           "type": "boolean"
                         }
-                      }
+                      },
+                      "required": [
+                        "type",
+                        "required"
+                      ]
                     },
                     "source": {
                       "type": "object",
@@ -183,7 +193,10 @@
                         "required": {
                           "type": "boolean"
                         }
-                      }
+                      },
+                      "required": [
+                        "required"
+                      ]
                     },
                     "subject": {
                       "type": "object",
@@ -203,7 +216,10 @@
                           "type": "boolean",
                           "description": "CloudEvents subject required"
                         }
-                      }
+                      },
+                      "required": [
+                        "required"
+                      ]
                     },
                     "time": {
                       "type": "object",
@@ -223,7 +239,10 @@
                           "type": "boolean",
                           "description": "The timestamp required"
                         }
-                      }
+                      },
+                      "required": [
+                        "required"
+                      ]
                     },
                     "dataschema": {
                       "type": "object",
@@ -244,7 +263,10 @@
                           "type": "boolean",
                           "description": "The uri required"
                         }
-                      }
+                      },
+                      "required": [
+                        "required"
+                      ]
                     }
                   },
                   "additionalProperties": {
@@ -266,7 +288,10 @@
                         "type": "boolean",
                         "description": "Whether the extension is required"
                       }
-                    }
+                    },
+                    "required": [
+                      "required"
+                    ]
                   }
                 },
                 "envelopeoptions": {
@@ -320,7 +345,7 @@
                     "properties": {
                       "type": "object",
                       "properties": {
-                        "message_id": {
+                        "message-id": {
                           "type": "object",
                           "description": "AMQP message-id",
                           "properties": {
@@ -339,9 +364,12 @@
                               "type": "boolean",
                               "description": "AMQP message-id required"
                             }
-                          }
+                          },
+                          "required": [
+                            "required"
+                          ]
                         },
-                        "user_id": {
+                        "user-id": {
                           "type": "object",
                           "description": "AMQP user-id",
                           "properties": {
@@ -360,7 +388,10 @@
                               "type": "boolean",
                               "description": "AMQP user-id required"
                             }
-                          }
+                          },
+                          "required": [
+                            "required"
+                          ]
                         },
                         "to": {
                           "type": "object",
@@ -381,7 +412,10 @@
                               "type": "boolean",
                               "description": "AMQP to required"
                             }
-                          }
+                          },
+                          "required": [
+                            "required"
+                          ]
                         },
                         "subject": {
                           "type": "object",
@@ -402,9 +436,12 @@
                               "type": "boolean",
                               "description": "AMQP subject required"
                             }
-                          }
+                          },
+                          "required": [
+                            "required"
+                          ]
                         },
-                        "reply_to": {
+                        "reply-to": {
                           "type": "object",
                           "description": "AMQP reply-to",
                           "properties": {
@@ -423,9 +460,12 @@
                               "type": "boolean",
                               "description": "AMQP reply-to required"
                             }
-                          }
+                          },
+                          "required": [
+                            "required"
+                          ]
                         },
-                        "correlation_id": {
+                        "correlation-id": {
                           "type": "object",
                           "description": "AMQP correlation-id",
                           "properties": {
@@ -444,9 +484,12 @@
                               "type": "boolean",
                               "description": "AMQP correlation-id required"
                             }
-                          }
+                          },
+                          "required": [
+                            "required"
+                          ]
                         },
-                        "content_type": {
+                        "content-type": {
                           "type": "object",
                           "description": "AMQP content-type",
                           "properties": {
@@ -465,9 +508,12 @@
                               "type": "boolean",
                               "description": "AMQP content-type required"
                             }
-                          }
+                          },
+                          "required": [
+                            "required"
+                          ]
                         },
-                        "content_encoding": {
+                        "content-encoding": {
                           "type": "object",
                           "description": "AMQP content-encoding",
                           "properties": {
@@ -486,7 +532,10 @@
                               "type": "boolean",
                               "description": "AMQP content-encoding required"
                             }
-                          }
+                          },
+                          "required": [
+                            "required"
+                          ]
                         },
                         "absolute_expiry_time": {
                           "type": "object",
@@ -507,9 +556,12 @@
                               "type": "boolean",
                               "description": "AMQP absolute-expiry-time required"
                             }
-                          }
+                          },
+                          "required": [
+                            "required"
+                          ]
                         },
-                        "group_id": {
+                        "group-id": {
                           "type": "object",
                           "description": "AMQP group-id",
                           "properties": {
@@ -528,9 +580,12 @@
                               "type": "boolean",
                               "description": "AMQP group-id required"
                             }
-                          }
+                          },
+                          "required": [
+                            "required"
+                          ]
                         },
-                        "group_sequence": {
+                        "group-sequence": {
                           "type": "object",
                           "description": "AMQP group-sequence",
                           "properties": {
@@ -549,7 +604,10 @@
                               "type": "boolean",
                               "description": "AMQP group-sequence required"
                             }
-                          }
+                          },
+                          "required": [
+                            "required"
+                          ]
                         },
                         "reply_to_group_id": {
                           "type": "object",
@@ -570,11 +628,14 @@
                               "type": "boolean",
                               "description": "AMQP reply-to-group-id required"
                             }
-                          }
+                          },
+                          "required": [
+                            "required"
+                          ]
                         }
                       }
                     },
-                    "application_properties": {
+                    "application-properties": {
                       "type": "object",
                       "additionalProperties": {
                         "type": "object",
@@ -594,10 +655,13 @@
                             "type": "boolean",
                             "description": "The application property required"
                           }
-                        }
+                        },
+                        "required": [
+                          "required"
+                        ]
                       }
                     },
-                    "message_annotations": {
+                    "message-annotations": {
                       "type": "object",
                       "additionalProperties": {
                         "type": "object",
@@ -617,10 +681,13 @@
                             "type": "boolean",
                             "description": "Whether the message annotation is required"
                           }
-                        }
+                        },
+                        "required": [
+                          "required"
+                        ]
                       }
                     },
-                    "delivery_annotations": {
+                    "delivery-annotations": {
                       "type": "object",
                       "additionalProperties": {
                         "type": "object",
@@ -640,7 +707,10 @@
                             "type": "boolean",
                             "description": "Whether the annotation is required"
                           }
-                        }
+                        },
+                        "required": [
+                          "required"
+                        ]
                       }
                     },
                     "header": {
@@ -663,7 +733,10 @@
                             "type": "boolean",
                             "description": "AMQP header required"
                           }
-                        }
+                        },
+                        "required": [
+                          "required"
+                        ]
                       }
                     },
                     "footer": {
@@ -686,7 +759,10 @@
                             "type": "boolean",
                             "description": "AMQP footer required"
                           }
-                        }
+                        },
+                        "required": [
+                          "required"
+                        ]
                       }
                     }
                   }
@@ -724,7 +800,10 @@
                           "type": "boolean",
                           "description": "MQTT qos value required"
                         }
-                      }
+                      },
+                      "required": [
+                        "required"
+                      ]
                     },
                     "retain": {
                       "type": "object",
@@ -741,9 +820,13 @@
                           "type": "boolean",
                           "description": "MQTT retain value required"
                         }
-                      }
+                      },
+                      "required": [
+                        "value",
+                        "required"
+                      ]
                     },
-                    "topic_name": {
+                    "topic-name": {
                       "type": "object",
                       "description": "MQTT topic-name",
                       "properties": {
@@ -758,7 +841,10 @@
                           "type": "boolean",
                           "description": "MQTT topic-name value required"
                         }
-                      }
+                      },
+                      "required": [
+                        "required"
+                      ]
                     }
                   }
                 }
@@ -795,7 +881,10 @@
                           "type": "boolean",
                           "description": "MQTT qos value required"
                         }
-                      }
+                      },
+                      "required": [
+                        "required"
+                      ]
                     },
                     "retain": {
                       "type": "object",
@@ -812,9 +901,13 @@
                           "type": "boolean",
                           "description": "MQTT retain value required"
                         }
-                      }
+                      },
+                      "required": [
+                        "value",
+                        "required"
+                      ]
                     },
-                    "topic_name": {
+                    "topic-name": {
                       "type": "object",
                       "description": "MQTT topic-name",
                       "properties": {
@@ -829,7 +922,10 @@
                           "type": "boolean",
                           "description": "MQTT topic-name value required"
                         }
-                      }
+                      },
+                      "required": [
+                        "required"
+                      ]
                     },
                     "message_expiry_interval": {
                       "type": "object",
@@ -846,9 +942,12 @@
                           "type": "boolean",
                           "description": "MQTT message-expiry-interval value required"
                         }
-                      }
+                      },
+                      "required": [
+                        "required"
+                      ]
                     },
-                    "response_topic": {
+                    "response-topic": {
                       "type": "object",
                       "description": "MQTT response-topic",
                       "properties": {
@@ -863,9 +962,12 @@
                           "type": "boolean",
                           "description": "MQTT response-topic value required"
                         }
-                      }
+                      },
+                      "required": [
+                        "required"
+                      ]
                     },
-                    "correlation_data": {
+                    "correlation-data": {
                       "type": "object",
                       "description": "MQTT correlation-data",
                       "properties": {
@@ -880,9 +982,12 @@
                           "type": "boolean",
                           "description": "MQTT correlation-data value required"
                         }
-                      }
+                      },
+                      "required": [
+                        "required"
+                      ]
                     },
-                    "content_type": {
+                    "content-type": {
                       "type": "object",
                       "description": "MQTT content-type",
                       "properties": {
@@ -897,9 +1002,12 @@
                           "type": "boolean",
                           "description": "MQTT content-type value required"
                         }
-                      }
+                      },
+                      "required": [
+                        "required"
+                      ]
                     },
-                    "user_properties": {
+                    "user-properties": {
                       "type": "array",
                       "description": "MQTT user-properties",
                       "items": {
@@ -972,14 +1080,20 @@
                             "type": "boolean",
                             "description": "The Apache Kafka header required"
                           }
-                        }
+                        },
+                        "required": [
+                          "required"
+                        ]
                       }
                     },
                     "timestamp": {
                       "type": "integer",
                       "description": "The Apache Kafka timestamp"
                     }
-                  }
+                  },
+                  "required": [
+                    "timestamp"
+                  ]
                 }
               },
               "required": [
@@ -1020,7 +1134,10 @@
                             "type": "boolean",
                             "description": "The HTTP header required"
                           }
-                        }
+                        },
+                        "required": [
+                          "required"
+                        ]
                       }
                     },
                     "query": {
@@ -1044,7 +1161,10 @@
                             "type": "boolean",
                             "description": "The HTTP query parameter required"
                           }
-                        }
+                        },
+                        "required": [
+                          "required"
+                        ]
                       }
                     },
                     "path": {
