@@ -1956,9 +1956,9 @@ The following defines the specification-defined capabilities:
   enforced for any new versions that are added.
 
   This value can be set to `true` at any time, but can't be reset to`false`.
-  Once compatibility is enforced, it must remain enforced. Changing this
+  Once compatibility is enforced, it MUST remain enforced. Changing this
   requires a new registry to be created as it's a fundamental change for
-  clients of the registry, which should be signaled accordingly.
+  clients of the registry, which MUST be signaled accordingly.
 
 - When not specified, the default value MUST be `false`.
 
@@ -4047,9 +4047,9 @@ and the following Resource level attributes:
   - If present, it MUST be a case-sensitive value from the model defined
     enumeration range.
   - When not specified, the default value MUST be `none`.
-  - The value may change from `none` to any other defined value. However, once
+  - The value MAY change from `none` to any other defined value. However, once
     set to a non-`none` value, it MUST NOT be changed. Instead, a new
-    resource should be defined with the new compatibility value.
+    resource SHOULD be defined with the new compatibility value.
 
 ##### `defaultversionid` Attribute
 - Type: String
@@ -5550,8 +5550,8 @@ as defined below:
 
   When creating multiple versions in a single operation, `versionsequence`
   MAY be set to indicate the sequence to the server. The `versionsequence`
-  SHOULD not consider existing version sequences within the scope of its
-  Resource. Instead, the `versionsequence` attribute should indicate the
+  SHOULD NOT consider existing version sequences within the scope of its
+  Resource. Instead, the `versionsequence` attribute SHOULD indicate the
   relative sequence within the request. The server MUST apply this sequence
   when creating the version.
 
