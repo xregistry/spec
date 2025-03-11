@@ -1951,9 +1951,15 @@ The following defines the specification-defined capabilities:
   A value of `false` indicates that the server MUST NOT perform any
   compatibility checking.
 
-  Attempts to change this value from `false` to `true` MUST fail if doing so
-  would result in any existing Version violating the `compatibility` rules
-  defined for the owning Resource.
+  Attempts to change this value from `false` to `true` SHOULD NOT result in
+  any validation of existing versions. Instead, compatibility will be
+  enforced for any new versions that are added.
+
+  This value can be set to `true` at any time, but can't be reset to`false`.
+  Once compatibility is enforced, it must remain enforced. Changing this
+  requires a new registry to be created as it's a fundamental change for
+  clients of the registry, which should be signaled accordingly.
+
 - When not specified, the default value MUST be `false`.
 
 #### `flags`
