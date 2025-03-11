@@ -1951,9 +1951,15 @@ The following defines the specification-defined capabilities:
   A value of `false` indicates that the server MUST NOT perform any
   compatibility checking.
 
-  Attempts to change this value from `false` to `true` MUST fail if doing so
-  would result in any existing Version violating the `compatibility` rules
-  defined for the owning Resource.
+  Attempts to change this value from `false` to `true` SHOULD NOT result in
+  any validation of existing versions. Instead, compatibility will be
+  enforced for any new versions that are added.
+
+  This value can be set to `true` at any time, but can't be reset to`false`.
+  Once compatibility is enforced, it MUST remain enforced. Changing this
+  requires a new registry to be created as it's a fundamental change for
+  clients of the registry, which MUST be signaled accordingly.
+
 - When not specified, the default value MUST be `false`.
 
 #### `flags`
@@ -4017,6 +4023,9 @@ and the following Resource level attributes:
   rules defined by the current value of this attribute. This includes rejecting
   requests to add/delete/modify Versions or update this attribute in such a
   way as to make the existing Versions incompatible due to the new value.
+  For `compatibility` strategies that require understanding the sequence in
+  which versions were created, the server MUST use the [`versionsequence`]
+  (#versionsequence-attribute) to determine the sequence of Versions.
 
   Note that, like all attributes, if a default value is defined as part of the
   model, then this attribute MUST be populated with that value if no value
@@ -4035,9 +4044,12 @@ and the following Resource level attributes:
   - `none` - No compatibility checking is performed.
 
 - Constraints:
-  - If present, it MUST be a case sensitive value from the model defined
+  - If present, it MUST be a case-sensitive value from the model defined
     enumeration range.
   - When not specified, the default value MUST be `none`.
+  - The value MAY change from `none` to any other defined value. However, once
+    set to a non-`none` value, it MUST NOT be changed. Instead, a new
+    resource SHOULD be defined with the new compatibility value.
 
 ##### `defaultversionid` Attribute
 - Type: String
@@ -5368,7 +5380,8 @@ When serialized as a JSON object, the Version entity adheres to this form:
 
   "RESOURCEurl": "URL", ?                  # If not local
   "RESOURCE": ... Resource document ..., ? # If inlined & JSON
-  "RESOURCEbase64": "STRING" ?             # If inlined & ~JSON
+  "RESOURCEbase64": "STRING", ?             # If inlined & ~JSON
+  "versionsequence": UINTEGER
 }
 ```
 
@@ -5408,6 +5421,8 @@ and the following Version level attributes:
 - [`RESOURCEurl`](#resourceurl-attribute) - OPTIONAL.
 - [`RESOURCE`](#resource-attribute) - OPTIONAL.
 - [`RESOURCEbase64`](#resourcebase64-attribute) - OPTIONAL.
+- [`versionsequence`](#versionsequence-attribute) - REQUIRED in API and
+  document views. OPTIONAL in requests.
 
 as defined below:
 
@@ -5527,6 +5542,28 @@ as defined below:
   - MUST NOT be present if `RESOURCE` is also present.
   - MUST NOT be present if the Resource's `hasdocument` model attribute is
     set to `false.
+
+##### `versionsequence` Attribute
+- Type: Unsigned Integer
+- Description: A numeric value used to indicate the sequence of versions as
+  they were created.
+
+  When creating multiple versions in a single operation, `versionsequence`
+  MAY be set to indicate the sequence to the server. The `versionsequence`
+  SHOULD NOT consider existing version sequences within the scope of its
+  Resource. Instead, the `versionsequence` attribute SHOULD indicate the
+  relative sequence within the request. The server MUST apply this sequence
+  when creating the version.
+
+  If an operation contains multiple versions, and `versionsequence` is
+  not set, the `versionid` attribute MUST be used to derive the sequence
+  based on alphabetical order.
+
+- Constraints: `versionsequence` attribute MUST NOT be modified after the
+  Version is created. The sequence is used to order versions in the context of
+  compatibility enforcement and can therefore not be changed past creation.
+  Therefore, when modifying an existing Version, the server MUST ignore the
+  `versionsequence` and only consider this attribute for new Versions.
 
 #### Version IDs
 
