@@ -5368,7 +5368,8 @@ When serialized as a JSON object, the Version entity adheres to this form:
 
   "RESOURCEurl": "URL", ?                  # If not local
   "RESOURCE": ... Resource document ..., ? # If inlined & JSON
-  "RESOURCEbase64": "STRING" ?             # If inlined & ~JSON
+  "RESOURCEbase64": "STRING", ?             # If inlined & ~JSON
+  "versionsequence": UINTEGER
 }
 ```
 
@@ -5408,6 +5409,8 @@ and the following Version level attributes:
 - [`RESOURCEurl`](#resourceurl-attribute) - OPTIONAL.
 - [`RESOURCE`](#resource-attribute) - OPTIONAL.
 - [`RESOURCEbase64`](#resourcebase64-attribute) - OPTIONAL.
+- [`versionsequence`](#versionsequence-attribute) - REQUIRED in API and
+  document views. OPTIONAL in requests.
 
 as defined below:
 
@@ -5527,6 +5530,28 @@ as defined below:
   - MUST NOT be present if `RESOURCE` is also present.
   - MUST NOT be present if the Resource's `hasdocument` model attribute is
     set to `false.
+
+##### `versionsequence` Attribute
+- Type: Unsigned Integer
+- Description: A numeric value used to indicate the sequence of versions as
+  they were created.
+
+  When creating multiple versions in a single operation, `versionsequence`
+  MAY be set to indicate the sequence to the server. The `versionsequence`
+  SHOULD not consider existing version sequences within the scope of its
+  Resource. Instead, the `versionsequence` attribute should indicate the
+  relative sequence within the request. The server MUST apply this sequence
+  when creating the version.
+
+  If an operation contains multiple versions, and `versionsequence` is
+  not set, the `versionid` attribute MUST be used to derive the sequence
+  based on alphabetical order.
+
+- Constraints: `versionsequence` attribute MUST NOT be modified after the
+  Version is created. The sequence is used to order versions in the context of
+  compatibility enforcement and can therefore not be changed past creation.
+  Therefore, when modifying an existing Version, the server MUST ignore the
+  `versionsequence` and only consider this attribute for new Versions.
 
 #### Version IDs
 
