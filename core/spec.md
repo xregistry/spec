@@ -4023,6 +4023,9 @@ and the following Resource level attributes:
   rules defined by the current value of this attribute. This includes rejecting
   requests to add/delete/modify Versions or update this attribute in such a
   way as to make the existing Versions incompatible due to the new value.
+  For `compatibility` strategies that require understanding the sequence in
+  which versions were created, the server MUST use the [`versionsequence`]
+  (#versionsequence-attribute) to determine the sequence of Versions.
 
   Note that, like all attributes, if a default value is defined as part of the
   model, then this attribute MUST be populated with that value if no value
