@@ -312,12 +312,12 @@
                       "name": "protocoloptions",
                       "description": "AMQP message metadata constraints",
                       "type": "object",
-                      "relaxednames": true,
+                      "namecharset": "extended",
                       "attributes": {
                         "properties": {
                           "name": "properties",
                           "type": "object",
-                          "relaxednames": true,
+                          "namecharset": "extended",
                           "attributes": {
                             "message-id": {
                               "name": "message-id",
@@ -817,7 +817,7 @@
                       "name": "protocoloptions",
                       "description": "MQTT message metadata constraints",
                       "type": "object",
-                      "relaxednames": true,
+                      "namecharset": "extended",
                       "attributes": {
                         "qos": {
                           "name": "qos",
@@ -900,7 +900,7 @@
                       "name": "protocoloptions",
                       "description": "MQTT message metadata constraints",
                       "type": "object",
-                      "relaxednames": true,
+                      "namecharset": "extended",
                       "attributes": {
                         "qos": {
                           "name": "qos",

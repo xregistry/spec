@@ -67,6 +67,7 @@ this form:
           "versionid": "STRING",
           "self": "URL",
           "xid": "XID",
+          #  Start of default Version's attributes
           "epoch": UINTEGER,
           "name": "STRING", ?                      # Version level attrs
           "description": "STRING", ?
@@ -87,6 +88,7 @@ this form:
           "schemaurl": "URL", ?
           "schema": ANY ?
           "schemabase64": "STRING", ?
+          #  End of default Version's attributes
 
           "metaurl": "URL",                    # Resource level attrs
           "meta": {

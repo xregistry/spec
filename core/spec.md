@@ -46,6 +46,7 @@ automation and tooling.
     - [Filter](#filter)
     - [Doc](#doc)
   - [HTTP Header Values](#http-header-values)
+  - [Error Processing](#error-processing)
 
 ## Overview
 
@@ -142,7 +143,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
         "name": "STRING",               # Same as attribute's key
         "type": "TYPE",                 # string, decimal, array, object, ...
         "target": "STRING", ?           # If "type" is "xid"
-        "relaxednames": BOOLEAN, ?      # If "type" is "object"
+        "namecharset": "STRING", ?      # If "type" is "object"
         "description": "STRING", ?
         "enum": [ VALUE * ], ?          # Array of scalar values of type "TYPE"
         "strict": BOOLEAN, ?            # Just "enum" values? Default=true
@@ -154,7 +155,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
         "attributes": { ... }, ?        # If "type" above is object
         "item": {                       # If "type" above is map,array
           "type": "TYPE", ?             # map value type, or array type
-          "relaxednames": BOOLEAN, ?    # If this item "type" is object
+          "namecharset": "STRING", ?    # If this item "type" is object
           "attributes": { ... }, ?      # If this item "type" is object
           "item": { ... } ?             # If this item "type" is map,array
         } ?
@@ -214,13 +215,12 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       "RESOURCEScount": UINTEGER,                  # e.g. "messagescount"
       "RESOURCES": {                               # Only if inlined
         "KEY": {                                   # The Resource id
-          # These are inherited from the "default" Version (except 'self')
           "RESOURCEid": "STRING",
-          "versionid": "STRING",
+          "versionid": "STRING",                   # Default Version's ID
           "self": "URL",                           # Resource URL, not Version
           "shortself": "URL", ?
-          "xid": "XID",
-          "epoch": UINTEGER,                       # Version's epoch
+          "xid": "XID",                            # Resource XID, not Version
+          "epoch": UINTEGER,                       # Start of default Ver attrs
           "name": "STRING", ?
           "isdefault": true,
           "description": "STRING", ?
@@ -228,12 +228,12 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
           "labels": { "STRING": "STRING" * }, ?
           "createdat": "TIMESTAMP",
           "modifiedat": "TIMESTAMP",
-          "contenttype": "STRING, ?
+          "contenttype": "STRING, ?                # Add default Ver extensions
 
           "RESOURCEurl": "URL", ?                  # If not local
           "RESOURCE": ... Resource document ..., ? # If local & inlined & JSON
           "RESOURCEbase64": "STRING", ?            # If local & inlined & ~JSON
-
+                                                   # End of default Ver attrs
           # Resource level helper attributes
           "metaurl": "URL",
           "meta": {                                # Only if inlined
@@ -384,13 +384,9 @@ Therefore, the hierarchical structure of the Registry model is defined in such
 a way that it can be represented in a single file, including but not limited
 to JSON, or via the entity graph of a REST API.
 
-If an error occurs during the processing of a request, even if the error was
-during the creation of the response (e.g. an invalid `?inline` value was
-provided), then an error MUST be generated and the entire request (even any
-update actions) MUST be undone. In general, when an error is generated it
-SHOULD be sent back to the client. However, this MAY not happen if the server
-determines there is a good reason to not do so - such as due to security
-concerns.
+If the processing of a request fails then an error MUST be generated and
+the entire request MUST be undone. See the
+[Error Processing](#error-processing) section for more information.
 
 In the remainder of this specification, in particular when defining the
 attributes of the Registry entities, the terms "document view" or "API view"
@@ -455,10 +451,11 @@ be one of the following data types:
    - Some serializations, such as JSON, allow for a `null` type of value to
      appear in array (e.g. `[ null, 2, 3 ]` in an array of integers). In these
      cases, while it is valid for the serialization being used, it is not
-     valid for the xRegistry since `null` is not a valid `integer`. Meaning,
+     valid for xRegistry since `null` is not a valid `integer`. Meaning,
      the serialization of an array that is syntactically valid for the
      format being used, but not semantically valid per the xRegistry model
-     definition MUST NOT be accepted and MUST generate an error.
+     definition MUST NOT be accepted and MUST generate an error
+     ([Invalid Data Type](#invalid-data-type)]).
 - `boolean` - case sensitive `true` or `false`.
 - `decimal` - number (integer or floating point).
 - `integer` - signed integer.
@@ -613,6 +610,7 @@ The definition of each attribute is defined below:
   itself, and MUST be named `versionid` for all Version entities.
 
 - Constraints:
+  - REQUIRED.
   - MUST be a non-empty string consisting of [RFC3986 `unreserved`
     characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3)
     (ALPHA / DIGIT / `-` / `.` / `_` / `~`) and `@`, MUST start with
@@ -661,6 +659,7 @@ of the existing entity. Then the existing entity would be deleted.
     appended with its `SINGULARid` value.
 
 - API View Constraints:
+  - REQUIRED.
   - MUST be a non-empty absolute URL based on the URL of the Registry.
   - When serializing Resources or Versions, if the `hasdocument` aspect is set
     to `true`, then this URL MUST include the `$details` suffix to its
@@ -669,15 +668,13 @@ of the existing entity. Then the existing entity would be deleted.
     `$details` only if the request was directed at a particular
     Resource/Version and included `$details` in the request URL.
   - MUST be a read-only attribute.
-  - REQUIRED.
-  - OPTIONAL, and ignored, in requests.
 
 - Document View Constraints:
+  - REQUIRED.
   - MUST be a relative URL of the form `#JSON-POINTER` where the `JSON-POINTER`
     locates this entity within the current document. See [Doc](#doc) for more
     information.
   - MUST NOT include `$details` suffix on its `SINGULARid`.
-  - REQUIRED.
 
 - Examples:
   - `https://example.com/registry/endpoints/ep1` (API View)
@@ -710,13 +707,13 @@ of the existing entity. Then the existing entity would be deleted.
   the attribute is serialized or not.
 
 - Constraints:
+  - REQUIRED if the `shortself` capability is enabled.
+  - MUST NOT appear in responses if the `shortself` capability is disabled.
   - MUST be unique across all entities in the Registry.
   - MUST be a non-empty absolute URL referencing the same entity as the `self`
     URL, either directly or indirectly via an HTTP redirect.
   - MUST be a read-only attribute.
   - MUST be immutable for the lifetime of the entity.
-  - REQUIRED if the `shortself` capability is enabled.
-  - MUST NOT appear if the `shortself` capability is disabled.
 
 - Examples:
   - `https://tinyurl.com/xreg123` redirects to
@@ -742,10 +739,12 @@ of the existing entity. Then the existing entity would be deleted.
   type `xid` (see [`target` model attribute](#model.target)).
 
 - Constraints:
+  - REQUIRED.
   - MUST be a non-empty relative URL to the current entity.
   - MUST be of the form: `/[GROUPS/gID[/RESOURCES/rID[/meta | /versions/vID]]]`.
   - MUST start with the `/` character.
   - MUST be a read-only attribute.
+  - MUST be immutable.
 
 - Examples:
   - `/endpoints/ep1`
@@ -800,6 +799,7 @@ of the existing entity. Then the existing entity would be deleted.
   an existing entity in the collection.
 
 - Constraints:
+  - REQUIRED.
   - MUST be an unsigned integer equal to or greater than zero.
   - MUST increase in value each time the entity is updated.
 
@@ -827,6 +827,7 @@ of the existing entity. Then the existing entity would be deleted.
   out of scope of this specification.
 
 - Constraints:
+  - OPTIONAL.
   - If present, MUST be non-empty.
 
 - Examples:
@@ -838,7 +839,7 @@ of the existing entity. Then the existing entity would be deleted.
 - Description: A human readable summary of the purpose of the entity.
 
 - Constraints:
-  - None
+  - OPTIONAL.
 
 - Examples:
   - `A queue of the sensor generated messages`
@@ -851,6 +852,7 @@ of the existing entity. Then the existing entity would be deleted.
   an HTTP `GET` to this URL.
 
 - Constraints:
+  - OPTIONAL.
   - If present, MUST be a non-empty URL.
   - MUST support an HTTP(s) `GET` to this URL.
 
@@ -864,6 +866,7 @@ of the existing entity. Then the existing entity would be deleted.
   be stored without changing the schema of the entity.
 
 - Constraints:
+  - OPTIONAL.
   - If present, MUST be a map of zero or more name/value string pairs. See
     [Attributes and Extensions](#attributes-and-extensions) for more
     information.
@@ -887,6 +890,7 @@ of the existing entity. Then the existing entity would be deleted.
 - Description: The date/time of when the entity was created.
 
 - Constraints:
+  - REQUIRED.
   - MUST be a [RFC3339](https://tools.ietf.org/html/rfc3339) timestamp.
   - This specification places no restrictions on the value of this attribute,
     nor on its value relative to its `modifiedat` value or the current
@@ -912,6 +916,7 @@ of the existing entity. Then the existing entity would be deleted.
 - Description: The date/time of when the entity was last updated
 
 - Constraints:
+  - REQUIRED.
   - MUST be a [RFC3339](https://tools.ietf.org/html/rfc3339) timestamp
     representing the time when the entity was last updated.
   - This specification places no restrictions on the value of this attribute,
@@ -1574,8 +1579,7 @@ and the following Registry level attributes:
   adheres to
 
 - Constraints:
-  - REQUIRED in API and document views.
-  - OPTIONAL in requests.
+  - REQUIRED.
   - MUST be a read-only attribute.
   - If present, MUST be non-empty.
 
@@ -1597,8 +1601,7 @@ and the following Registry level attributes:
   supported by the Registry.
 
 - Constraints:
-  - REQUIRED in API and document views.
-  - OPTIONAL in requests.
+  - REQUIRED.
   - If present, it MUST include all nested Group Collection types in the
     Registry, even if some of the collections are empty.
 
@@ -2298,7 +2301,7 @@ Regardless of how the model is retrieved, the overall format is as follows:
       "name": "STRING",                # Same as attribute's key
       "type": "TYPE",                  # boolean, string, array, object, ...
       "target": "STRING", ?            # If "type" is "xid"
-      "relaxednames": BOOLEAN, ?       # If "type" is "object"
+      "namecharset": "STRING", ?       # If "type" is "object"
       "description": "STRING",
       "enum": [ VALUE * ], ?           # Array of values of type "TYPE"
       "strict": BOOLEAN, ?             # Just "enum" values or not. Default=true
@@ -2310,7 +2313,7 @@ Regardless of how the model is retrieved, the overall format is as follows:
       "attributes": { ... }, ?         # If "type" above is object
       "item": {                        # If "type" above is map,array
         "type": "TYPE", ?              # map value type, or array type
-        "relaxednames": BOOLEAN, ?     # If this item "type" is object
+        "namecharset": "STRING", ?     # If this item "type" is object
         "attributes": { ... }, ?       # If this item "type" is object
         "item": { ... } ?              # If this item "type" is map,array
       } ?
@@ -2452,26 +2455,38 @@ The following describes the attributes of Registry model:
     other words, `target` is not transitive.
   - Example: `/endpoints/messages`
 
-- `attributes."STRING".relaxednames` <span id="model.relaxednames"></span>
-  - Type: Boolean.
-  - OPTIONAL, and MUST ONLY be used (`true`) when `type` is `object`.
-  - Indicates whether the attribute names of this object-typed attribute
-    are allowed to include additional characters beyond what attribute names
-    are typically allowed to have.
-
-    Per the [Attributes and Extensions](#attributes-and-extensions) section,
+- `attributes."STRING".namecharset` <span id="model.namecharset"></span>
+  - Type: String.
+  - OPTIONAL, and MUST only be used when `type` is `object`.
+  - Specifies the name of the character set that defines the allowable
+    characters that can be used for the object's top-level attribute names.
+    Any attempt to define a top-level attribute for this object that does
+    not adhere to the characters defined by the character set name MUST
+    generate an error.
+  - Per the [Attributes and Extensions](#attributes-and-extensions) section,
     attribute names are normally limited to just the set of characters that
     ensure they can reliably be used in cases such as code variable names
     without the need for some escaping mechanism. However, there are
     situations where object-typed attribute names need to support additional
     characters, such as a dash (`-`), and it is known that they will never be
     used in those restricted character set situations. By setting the
-    `relaxednames` aspect to `true` the server MUST allow for an extended
+    `namecharset` aspect to `extended` the server MUST allow for an extended
     set of valid characters in attribute names for this object.
 
-    The allowable characters for `relaxednames` object's attributes MUST be:
-    `[-a-z0-9_]` (dash, lowercase alpha, numeric, underscore), and MUST start
-    with one of `[a-z_]` (lowercase alpha, underscore).
+    The allowed character set for attribute names within an `object` MUST also
+    apply to the top-level `siblingattributes` of any `ifvalues` defined
+    for those attributes.
+  - This specification defines two character sets:
+    - `strict` - this character set is the same as the set of characters
+      defined for all attribute names - see [Attributes and
+      Extensions](#attributes-and-extensions).
+    - `extended` - this character set is the same as the set of characters
+      defined for all map key names - see [Attributes and
+      Extensions](#attributes-and-extensions).
+  - When not specified, the default value is `strict`.
+  - Implementations MAY define additional character sets, however, an attempt
+    to define a model that uses an unknown character set name MUST generate an
+    error.
 
 - `attributes."STRING".description`
   - Type: String.
@@ -2577,9 +2592,9 @@ The following describes the attributes of Registry model:
   - REQUIRED.
   - The "TYPE" of this nested resource.
 
-- `attributes."STRING".item.relaxednames`
-  - See [`relaxednames`](#model.relaxednames) above.
-  - OPTIONAL, and MUST ONLY be used (`true`) when `item.type` is `object`.
+- `attributes."STRING".item.namecharset`
+  - See [`namecharset`](#model.namecharset) above.
+  - OPTIONAL, and MUST only be used when `item.type` is `object`.
 
 - `attributes."STRING".item.attributes`
   - See [`attributes`](#model.attributes) above.
@@ -2889,7 +2904,7 @@ Content-Type: application/json; charset=utf-8
       "name": "STRING",
       "type": "TYPE",
       "target": "STRING", ?
-      "relaxednames": BOOLEAN, ?
+      "namecharset": "STRING", ?
       "description": "STRING", ?
       "enum": [ VALUE * ], ?
       "strict": BOOLEAN, ?
@@ -3011,7 +3026,7 @@ Content-Type: application/json; charset=utf-8
       "name": "STRING",
       "type": "TYPE",
       "target": "STRING", ?
-      "relaxednames": BOOLEAN, ?
+      "namecharset": "STRING", ?
       "description": "STRING", ?
       "enum": [ VALUE * ], ?
       "strict": BOOLEAN, ?
@@ -3080,7 +3095,7 @@ Content-Type: application/json; charset=utf-8
       "name": "STRING",
       "type": "TYPE",
       "target": "STRING", ?
-      "relaxednames": BOOLEAN, ?
+      "namecharset": "STRING", ?
       "description": "STRING", ?
       "enum": [ VALUE * ], ?
       "strict": BOOLEAN, ?
@@ -3470,8 +3485,7 @@ and the following Group level attributes:
   Resources supported by the Group.
 
 - Constraints:
-  - REQUIRED in API and document views.
-  - OPTIONAL in requests.
+  - REQUIRED.
   - If present in a response, it MUST include all nested Resource Collection
     types of the owning Group, even if some of the collections are empty.
 
@@ -3972,10 +3986,14 @@ The Resource level attributes include the following
 and the following Resource level attributes:
 
 ##### `xref` Attribute
-- Type: Relative URI (xid) of a same-typed entity in the Registry.
+- Type: Relative URI (xid).
 - Description: indicates that this Resource is a reference to another Resource
   within the same Registry. See [Cross Referencing
   Resources](#cross-referencing-resources) for more information.
+
+- Constraints:
+  - OPTIONAL.
+  - If present, it MUST be the `xid` of a same-typed Resource in the Registry.
 
 ##### `readonly` Attribute
 - Type: Boolean
@@ -3985,9 +4003,9 @@ and the following Resource level attributes:
   be read-only.
 
 - Constraints:
+  - REQUIRED.
   - MUST be a read-only attribute.
   - When not specified, the default value MUST be `false`.
-  - REQUIRED when `true`, otherwise OPTIONAL.
   - If present, it MUST be a case sensitive `true` or `false`.
   - A request to update a read-only Resource MUST generate an error unless
     the `?noreadonly` query parameter was used, in which case the error MUST
@@ -4035,9 +4053,11 @@ and the following Resource level attributes:
   - `none` - No compatibility checking is performed.
 
 - Constraints:
+  - REQUIRED.
   - If present, it MUST be a case sensitive value from the model defined
     enumeration range.
   - When not specified, the default value MUST be `none`.
+  - The enumeration range MUST include `none` as a valid value.
 
 ##### `defaultversionid` Attribute
 - Type: String
@@ -4048,12 +4068,10 @@ and the following Resource level attributes:
   value than older Versions.
 
 - Constraints:
-  - REQUIRED in API and document views. OPTIONAL in requests.
-  - If present, MUST be non-empty.
+  - REQUIRED.
   - MUST be the `versionid` of the default Version of the Resource.
   - See the [`defaultversionsticky` Attribute](#defaultversionsticky-attribute)
-    below for how to process these two
-    attributes.
+    below for how to process these two attributes.
 
 - Examples:
   - `1`, `2.0`, `v3-rc1` (v3's release candidate 1)
@@ -4067,20 +4085,19 @@ and the following Resource level attributes:
   the Version is included in the output, then `$details` is omitted.
 
 - API View Constraints:
+  - REQUIRED.
   - MUST be an absolute URL to the default Version of the Resource, and MUST
     be the same as the Version's `self` attribute.
   - MUST be a read-only attribute.
-  - REQUIRED.
-  - OPTIONAL, and ignored, in requests.
 
 - Document View Constraints:
+  - REQUIRED.
   - If the default Version is inlined in the document then this attribute
     MUST be a relative URL of the form `#JSON-POINTER` where the `JSON-POINTER`
     locates the default Version within the current document. See [Doc](#doc)
     for more information.
   - If the default Version is not inlined in the document then this attribute
     MUST be an absolute URL per the API view constraints listed above.
-  - REQUIRED.
 
 - Examples:
   - `https://example.com/endpoints/ep1/messages/msg1/versions/1.0`
@@ -4101,6 +4118,7 @@ and the following Resource level attributes:
   for more information.
 
 - Constraints:
+  - REQUIRED.
   - When not specified, the default value MUST be `false`.
   - When specified, it MUST be a case sensitive `true` or `false`.
   - When specified in a request, a value of `null` MUST be interpreted as a
@@ -4148,9 +4166,8 @@ and the following Resource level attributes:
   to the Resource's default Version attributes.
 
 - API View Constraints:
-  - REQUIRED only if requested by the client.
+  - REQUIRED.
   - MUST NOT appear unless requested by the client.
-  - OPTIONAL in requests.
 
 - Document View Constraints:
   - REQUIRED.
@@ -4167,25 +4184,24 @@ no changes are to be made to the `meta` sub-object.
 
 ##### `metaurl` Attribute
 - Type: URL
-- Description: a URL to the Resource's `meta` sub-object.
+- Description: a server generated URL to the Resource's `meta` sub-object.
 
   When specified, it MUST appear as an attribute of the Resource as a sibling
   to the Resource's default Version attributes.
 
 - API View Constraints:
+  - REQUIRED.
   - MUST be an absolute URL to the Resource's `meta` sub-object.
   - MUST be a read-only attribute.
-  - REQUIRED.
-  - OPTIONAL in requests.
 
 - Document View Constraints:
+  - REQUIRED.
   - If the `meta` sub-object is inlined in the document then this attribute
     MUST be a relative URL of the form `#JSON-POINTER` where the `JSON-POINTER`
     locates the `meta` sub-object within the current document. See [Doc](#doc)
     for more information.
   - If the `meta` sub-object is not inlined in the document then this attribute
     MUST be an absolute URL per the API view constraints listed above.
-  - REQUIRED.
 
 - Examples:
   - `https://example.com/endpoints/ep1/messages/msg1/meta`
@@ -4196,11 +4212,7 @@ no changes are to be made to the `meta` sub-object.
 
   Note that Resources MUST have at least one Version.
 
-- API View Constraints:
-  - REQUIRED.
-  - OPTIONAL in requests.
-
-- Document View Constraints:
+- Constraints:
   - REQUIRED.
 
 #### Serializing Resources
@@ -5440,12 +5452,10 @@ as defined below:
   information about this attribute.
 
 - Constraints:
+  - REQUIRED.
   - MUST be a read-only attribute.
-  - REQUIRED in API and document views when the value is `true`, OPTIONAL
-    when `false`.
   - When not specified, the default value MUST be `false`.
   - When specified, MUST be either `true` or `false`, case sensitive.
-  - When specified in requests, it MUST be silently ignored.
 
 - Examples:
   - `true`
@@ -5457,6 +5467,7 @@ as defined below:
   [RFC9110](https://datatracker.ietf.org/doc/html/rfc9110#media.type).
 
 - Constraints:
+  - OPTIONAL.
   - SHOULD be compliant with
     [RFC9110](https://datatracker.ietf.org/doc/html/rfc9110#media.type).
   - When serialized as an HTTP header, it MUST be named `Content-Type` not
@@ -5485,8 +5496,8 @@ as defined below:
   name ([URN](https://datatracker.ietf.org/doc/html/rfc8141)).
 
 - Constraints:
-  - REQUIRED in API and document view if the Resource's document is not stored
-    inside of the current Registry.
+  - REQUIRED if the Resource's document is not stored inside of the current
+    Registry.
   - If the document is stored in a network accessible endpoint then the
     referenced URL MUST support an HTTP(s) `GET` to retrieve the contents.
   - MUST NOT be present if the Resource's `hasdocument` model attribute is
@@ -6372,6 +6383,70 @@ follows:
   where "%20" is the encoded form of space, "%E2%82%AC" is the encoded form
   of the Euro symbol, and "%F0%9F%98%80" is the encoded form of the
   grinning face emoji.
+
+### Error Processing
+
+If an error occurs during the processing of a request, even if the error was
+during the creation of the response (e.g. an invalid `?inline` value was
+provided), then an error MUST be generated and the entire request MUST be
+undone.
+
+In general, when an error is generated it SHOULD be sent back to the client.
+However, this MAY not happen if the server determines there is a good reason
+to not do so - such as due to security concerns.
+
+Most of the error conditions mentioned in this specification will include a
+reference to one of the errors listed in this section. While it is RECOMMENDED
+that implementations use those errors (for consistency), they MAY choose to use
+a more appropriate one (or a custom one).
+
+When an error is transmitted back to clients, it SHOULD adhere to the format
+specified in this section - which references the [Problem Details for HTTP
+APIs](https://datatracker.ietf.org/doc/html/rfc9457) specification, and when
+used MUST be of the following form:
+
+```yaml
+HTTP/1.1 CODE
+Content-Type: application/json; charset=utf-8
+
+{
+  "type": "URI",
+  "instance": "URL",
+  "title": "STRING",
+  "detail": "STRING", ?
+  ... error specific fields ...
+}
+```
+
+Where:
+- `CODE` is the HTTP response code and status text (e.g. `404 Not Found`).
+- "type" is a URI to the error definition.
+- "instance" is a URL to the entity being processed when the error occurred.
+- "title" is a human readable summary of the error.
+- "detail" is human readable detailed information about the error. Typically
+  will include suggestions for how to fix the error.
+
+`CODE`, `"type"`, `"instance"` and `title` fields are REQUIRED. All other
+fields are OPTIONAL unless overwise stated as part of the error definition. Any
+substitutable information defined as part of an error MUST be populated
+appropriately.
+
+HTTP response codes and status text are defined in the [HTTP
+Semantics](https://datatracker.ietf.org/doc/html/rfc9110#name-status-codes)
+specification.
+
+In the following list of errors, the `Code`, `Type` and `Instance` values MUST
+be as specified. The other field values are recommendations and MAY be modified
+as appropriate, including being specified in a language other than English.
+
+#### Invalid Data Type
+
+* Type: `https://xregistry.io/errors/invalid-data-type`
+* Code: `405 Bad Request`
+* Instance: URL to the entity being processed
+* Title: `A value of an incorrect data-type was specified`
+* Data: ... The invalid data ...
+* Detail: ... Information specific to the processing details ...
 
 [rfc7230-section-3]: https://tools.ietf.org/html/rfc7230#section-3
 [rfc3986-section-2-1]: https://tools.ietf.org/html/rfc3986#section-2.1

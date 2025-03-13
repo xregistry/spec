@@ -59,6 +59,7 @@ this form:
       "createdat": "TIMESTAMP",
       "modifiedat": "TIMESTAMP",
 
+      # Start of default Version's attributes
       "usage": "STRING",                        # subscriber, consumer, producer
       "channel": "STRING", ?
       "deprecated": {
@@ -136,6 +137,7 @@ this form:
       }, ?
 
       "messagegroups": [ URI * ], ?
+      # End of default Version's attributes
 
       "messagesurl": "URL", ?
       "messagescount": UINTEGER, ?

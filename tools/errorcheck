@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Look for any unused errors in the spec. We should probably remove them.
+
+set -e
+
+PATTERN="Error Processing"
+
+for f in $* ; do
+  echo "> $f"
+
+  grep "$PATTERN" $f > /dev/null || \
+    (echo "Can't find '$PATTERN' in '$f'" ; exit 1)
+
+  first="UNUSED ERRORS:\n"
+
+  lines=$(sed -r -n "/### $PATTERN/,/\[rfc/p" $f | sed -n 's/#### //p')
+  readarray -t err_array <<< "$lines"
+  rc=0
+  for err in "${err_array[@]}"; do
+    ref=$(echo "$err" | tr '[:upper:]' '[:lower:]' | sed "s/ /-/g")
+    if grep "(#$ref)" $f > /dev/null ; then
+	  continue
+	fi
+	echo -ne $first
+	first=""
+	echo "$err (#$ref)"
+	rc=1
+  done
+  [[ "$rc" != "0" ]] && exit 1
+
+done
+
+exit 0
