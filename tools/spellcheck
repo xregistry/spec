@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# Words from:
+# 'words' from:
 # https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt
+# If you add words, add them to 'tools/dict'
 
 set -e
 
@@ -16,7 +17,7 @@ for f in $* ; do
   sort -u tools/words tools/dict > words
   comm -23 specwords words > extra
   wc -l extra | grep "^0 extra" > /dev/null || \
-	( echo -e "\nMISSPELLED:" ; cat extra ; exit 1 )
+	( echo -e "\nMISSPELLED (add to 'tools/dict'?):" ; cat extra ; exit 1 )
   rm specwords words extra
 
 done

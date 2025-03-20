@@ -852,6 +852,7 @@ def main():
     model_definition = { "groups": {} }
     for input_file in args.input_files:
         with open(input_file) as file:
+            print(f"> {input_file} as '{args.type}'")
             input_definition = json.load(file)
             input_definition = resolve_imports(os.path.dirname(input_file), input_definition)
             if "groups" in input_definition:

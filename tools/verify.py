@@ -47,14 +47,14 @@ _NEWLINE_PATTERN = re.compile(r"\n")
 # [asd][asd] is normally a bookmark but if it ends with a ` (</code) then
 # don't treat it as one
 _MARKDOWN_BOOKMARK_PATTERN = re.compile(
-	r"(?<![\\])\[[^\?=].+?\]\[.+?\](?!</code)",
-	re.IGNORECASE)
+    r"(?<![\\])\[[^\?=].+?\]\[.+?\](?!</code)",
+    re.IGNORECASE)
 _PHRASES_THAT_MUST_BE_CAPITALIZED_PATTERN = re.compile(
     r"(?<!`)(MUST(\s+NOT)?|"
     # ignore the "required" in the jsonschema of the json-format.md
-	# and ignore `required` cases (attribute name is `required`)
-	# and ignore .required cases (attribute name is "required")
-    r'(?<![.`"])REQUIRED(?![`"])|'
+    # and ignore `required` cases (attribute name is `required`)
+    # and ignore .required cases (attribute name is "required")
+    r'(?<![.`"_])REQUIRED(?![`"_])|'
     r"(?<!mar)SHALL(\s+NOT)?|"  # ignore the word "marshall"
     r"(?<!`)SHOULD(\s+NOT)?|"
     r"(?<!`)RECOMMENDED|"
@@ -65,7 +65,9 @@ _PHRASES_THAT_MUST_BE_CAPITALIZED_PATTERN = re.compile(
 )
 _BANNED_PHRASES_PATTERN = re.compile(r"Cloud\s+Events?", flags=re.IGNORECASE)
 _LANGUAGES_DIR_PATTERN = re.compile(f"[/^]{_LANGUAGES_DIR_NAME}[/$]")
-_CAPITAL_DASH_PATTERN = re.compile(r"(^\s*)(-\s*[a-z])", flags=re.MULTILINE)
+
+# Allow "- xRegistry"
+_CAPITAL_DASH_PATTERN = re.compile(r"(^\s*)(-\s*([a-wyz]|(x([^R]|$))))", flags=re.MULTILINE)
 
 
 def _is_text_all_uppercase(text: str) -> bool:
@@ -82,6 +84,7 @@ def _capital_dash_issues(text: str) -> Iterable[Issue]:
 
 
 def _miscased_phrase_issues(text: str) -> Iterable[Issue]:
+    # text = _remove_between(text)
     for match in _PHRASES_THAT_MUST_BE_CAPITALIZED_PATTERN.finditer(text):
         phrase = match.group(0)
         if not _is_text_all_uppercase(phrase):
@@ -91,6 +94,21 @@ def _miscased_phrase_issues(text: str) -> Iterable[Issue]:
                 f"{repr(phrase)} MUST be capitalized ({repr(phrase.upper())})",
             )
 
+def _remove_between(text):
+    lines = text.split('\n')
+    result = []
+    skip = False
+
+    for line in lines:
+        if '<!-- start-no-rfc -->' in line:
+            skip = True
+            continue
+        elif '<!-- end-no-rfc -->' in line:
+            skip = False
+            continue
+        if not skip:
+            result.append(line)
+    return '\n'.join(result)
 
 def _should_skip_plain_text_issues(text: str) -> bool:
     return _skip_type(text) == "specs"
@@ -137,7 +155,7 @@ def _skip_type(text: str) -> Optional[str]:
 
 
 def _find_all_uris(html: HtmlText) -> Iterable[Uri]:
-    for a in _html_parser(html).findAll("a"):
+    for a in _html_parser(html).find_all("a"):
         uri = a.get("href")
         if uri:
             yield Uri(uri.strip())

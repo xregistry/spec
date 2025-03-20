@@ -1,4 +1,4 @@
-# Registry Service - Version 0.5-wip
+# xRegistry Service - Version 0.5-wip
 
 ## Abstract
 
@@ -292,12 +292,13 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
 interpreted as described in [RFC 2119](https://tools.ietf.org/html/rfc2119).
 
 For clarity, OPTIONAL attributes (specification-defined and extensions) are
-OPTIONAL for clients to use, but servers MUST be prepared for them to appear
-in incoming requests and MUST support them since "support" simply means
-persisting them in the backing datastore. However, as with all attributes, if
-accepting the attribute would result in a bad state (such as exceeding a size
-limit, or results in a security issue), then the server MAY choose to generate
-an error.
+OPTIONAL for clients to use, but the servers' responsibility will vary.
+Server-unknown extension attributes MUST be silently stored in the backing
+datastore. Specification-defined, and server-known extension, attributes MUST
+generate an error if corresponding feature is not supported or enabled.
+However, as with all attributes, if accepting the attribute would result in a
+bad state (such as exceeding a size limit, or results in a security issue),
+then the server MAY choose to reject the request.
 
 In the pseudo JSON format snippets `?` means the preceding item is OPTIONAL,
 `*` means the preceding item MAY appear zero or more times, and `+` means the
@@ -455,7 +456,7 @@ be one of the following data types:
      the serialization of an array that is syntactically valid for the
      format being used, but not semantically valid per the xRegistry model
      definition MUST NOT be accepted and MUST generate an error
-     ([Invalid Data Type](#invalid-data-type)]).
+     ([invalid_data_type](#invalid_data_type)).
 - `boolean` - case sensitive `true` or `false`.
 - `decimal` - number (integer or floating point).
 - `integer` - signed integer.
@@ -625,7 +626,7 @@ The definition of each attribute is defined below:
     present, it MUST be the same as any other specification of the `SINGULARid`
     outside of the entity, and it MUST be the same as the entity's existing
     `SINGULARid` if one exists, otherwise an error
-    ([Mismatched IDs](#mismatched-ids)]) MUST be generated.
+    ([mismatched_id](#mismatched_id)) MUST be generated.
   - MUST be immutable.
 
 - Examples:
@@ -664,9 +665,7 @@ of the existing entity. Then the existing entity would be deleted.
   - When serializing Resources or Versions, if the `hasdocument` aspect is set
     to `true`, then this URL MUST include the `$details` suffix to its
     `SINGULARid` if it is serialized in the HTTP body response. If the aspect
-    is set to `false`, then this URL's `SINGULARid` MAY be appended with
-    `$details` only if the request was directed at a particular
-    Resource/Version and included `$details` in the request URL.
+    is set to `false`, then this URL's `SINGULARid` MUST NOT include it.
   - MUST be a read-only attribute.
 
 - Document View Constraints:
@@ -767,32 +766,10 @@ of the existing entity. Then the existing entity would be deleted.
   it MUST be silently ignored by the server.
 
   During an update operation, if this attribute is present in the request then
-  an error ([Mismatched Epoch](#mismatched-epoch)]) MUST be generated if the
+  an error ([mismatched_epoch](#mismatched_epoch)) MUST be generated if the
   request includes a non-null value that differs from the existing value. A
   value of `null` MUST be treated the same as a request with no `epoch`
   attribute at all.
-
-  The semantics of `epoch` are the same as the semantics of the
-  [HTTP ETag](https://datatracker.ietf.org/doc/html/rfc9110#section-8.8.3)
-  and
-  [HTTP If-Match](https://datatracker.ietf.org/doc/html/rfc9110#section-13.1.1)
-  Headers, and as such the following rules apply when using HTTP as the
-  protocol:
-  - When the response body references a single entity, its `epoch` value MUST
-    also appear as an HTTP `ETag` header. Note that a response body with a
-    map or array that only includes one entity does not satisfy this
-    requirement.
-  - When the xRegistry metadata of a Resource, or Version, is serialized as
-    HTTP headers, the `xRegistry-epoch` header MUST NOT be present since the
-    `ETag` header MUST already be present with the value.
-  - When a request includes an HTTP `If-Match` header, then its value MUST
-    match the existing entity's `epoch` value. And if not, an error
-    ([Mismatched ETag](#mismatched-etag)]) MUST be generated. Note, that
-    `*` MUST match all possible `epoch` values, but will fail if the entity
-    does not already exist (per the HTTP specification).
-  - The `If-Match` verification MUST be done in addition to the `epoch`
-    checking specified above. In other words, a present but non-matching value
-    in either location MUST generate an error, per the above error conditions.
 
   If an entity has a nested xRegistry collection, its `epoch` value MUST
   be updated each time an entity in that collection is added or removed.
@@ -975,10 +952,10 @@ least the "read" (e.g. HTTP `GET`) operations. Implementations MAY choose to
 incorporate authentication and/or authorization mechanisms for the APIs.
 
 If an OPTIONAL HTTP path is not supported by an implementation, then any
-use of that API MUST generate an error ([api-not-found](#api-not-found)]).
+use of that API MUST generate an error ([api_not_found](#api_not_found)).
 
 If an HTTP method is not supported for a supported HTTP path then an error
-([Method Not Allowed](#method-not-allowed)]) MUST be generated.
+([method_not_allowed](#method_not_allowed)) MUST be generated.
 
 Implementations MAY support extension APIs however the following rules MUST
 apply:
@@ -1016,16 +993,18 @@ pattern of the APIs:
   includes specification-defined but unsupported query parameters.
 
 In general, if a server is unable to retrieve all of the data intended to be
-sent in a response then an error MUST be generated and the request rejected
-without any changes being made. However, it is permissible for a server to
-attempt some creative processing. For example, if while processing a `GET`
-the server can only retrieve half of the entities to be returned at the
-current point in time, then it could return those with an indication of
-there being more (via the [pagination specification](../pagination/spec.md)).
-Then during the next `GET` request it could return the remainder of the data -
-or an error if it is still not available. Note, that if an entity is to be
-sent then it MUST be serialized in its entirety (all attributes, and requested
-child entities) or an error MUST be generated.
+sent in a response then an error
+([data_retrieval_error](#data_retrieval_error)) MUST be generated and the
+request rejected without any changes being made. However, it is permissible
+for a server to attempt some creative processing. For example, if while
+processing a `GET` the server can only retrieve half of the entities to be
+returned at the current point in time, then it could return those with an
+indication of there being more (via the [pagination
+specification](../pagination/spec.md)). Then during the next `GET` request it
+could return the remainder of the data - or an error if it is still not
+available. Note, that if an entity is to be sent then it MUST be serialized in
+its entirety (all attributes, and requested child entities) or an error MUST
+be generated.
 
 There might be situations where someone will do a `GET` to retrieve data
 from a Registry, and then do an update operation to a Registry with that data.
@@ -1186,7 +1165,7 @@ MAY contain the 3 collection attributes. The `COLLECTIONSurl` and
 If the `COLLECTIONS` attribute is present, the server MUST process each entity
 in the collection map as a request to create or update that entity according to
 the semantics of the HTTP method used. An entry in the map that isn't a valid
-entity (e.g. is `null`) MUST generate an error.
+entity (e.g. is `null`) MUST generate an error ([bad_request](#bad_request)).
 
 For example:
 
@@ -1310,15 +1289,16 @@ semantics defined above with the following exceptions:
     a request to delete the attribute.
   - When processing a Resource or Version, that has its `hasdocument` model
     aspect set to `true`, the URL accessing the entity MUST include the
-    `$details` suffix, and MUST generate an error in the absence of the
-    `$details` suffix.
-    This is because when it is absent, the processing of the HTTP `xRegistry-`
-    headers are already defined with "patch" semantics so a normal `PUT` or
-    `POST` can be used instead. Using `PATCH` in this case would mean that the
-    request is also trying to "patch" the Resource's "document", which this
-    specification does not support at this time.
+    `$details` suffix, and MUST generate an error
+    ([details_required](#details_required)) in the absence of the
+    `$details` suffix. This is because when it is absent, the processing of
+    the HTTP `xRegistry-` headers are already defined with "patch" semantics
+    so a normal `PUT` or `POST` can be used instead. Using `PATCH` in this
+    case would mean that the request is also trying to "patch" the Resource's
+    "document", which this specification does not support at this time.
   - `PATCH` MAY be used to create new entities, but as with any of the create
-    operations, any missing REQUIRED attributes MUST generate an error.
+    operations, any missing REQUIRED attributes MUST generate an error
+    ([required_attribute_missing](#required_attribute_missing)).
 
 The `PATCH` variant when directed at an xRegistry collection, MUST adhere to
 the following:
@@ -1342,12 +1322,13 @@ The processing of each individual entity follows the same set of rules:
   incoming value.
 - A request to update, or delete, a read-only attribute MUST be silently
   ignored. However, a request that includes a `SINGULARid` MUST be compared
-  with the entity's current value and if it differs then an error MUST be
-  generated. This include both `RESOURCEid` and `versionid` in the case of
-  Resources and Versions. This is to prevent accidentally updating the wrong
-  entity.
+  with the entity's current value and if it differs then an error
+  ([mismatched_id](#mismatched_id)) MUST be generated. This include both
+  `RESOURCEid` and `versionid` in the case of Resources and Versions. This is
+  to prevent accidentally updating the wrong entity.
 - A request to update a mutable attribute with an invalid value MUST generate
-  an error (this includes deleting a mandatory mutable attribute).
+  an error ([invalid_data](#invalid_data)) (this includes deleting a
+  mandatory mutable attribute).
 - Any Registry collection attributes MUST be processed per the rules specified
   in the [Updating Nested Registry
   Collections](#updating-nested-registry-collections) section.
@@ -1370,7 +1351,7 @@ Otherwise an HTTP `200 OK` without an HTTP `Location` header MUST be returned.
 
 Note that the response MUST be generated applying the semantics of any
 query parameters specified on the request URL (e.g. `?inline`). If an error
-is generated while generating the response (e.g. invalid `?filter`), then
+occurs while generating the response (e.g. invalid `?filter`), then
 an error MUST be generated and the entire operation MUST be undone.
 
 ##### Retrieving a Registry Collection
@@ -1431,17 +1412,18 @@ DELETE PATH-TO-COLLECTION/ID-OF-ENTITY[?epoch=UINTEGER]
 
 Where:
 - The request body SHOULD be empty.
-- If the entity can not be found, then an HTTP `404 Not Found` error MUST
+- If the entity can not be found, then an error ([not_found](#not_found)) MUST
   be generated.
 - In the case of deleting Resources, a `DELETE` directed to the `meta`
-  sub-object is not supported and MUST generate an HTTP
-  `405 Method Not Allowed` error in response.
+  sub-object is not supported and MUST generate an error
+  ([method_not_allowed](#method_not_allowed)).
 
 The following query parameter SHOULD be supported by servers:
 - `epoch`<br>
   The presence of this query parameter indicates that the server MUST check
   to ensure that the `epoch` value matches the entity's current `epoch` value
-  and if it differs then an error MUST be generated.
+  and if it differs then an error ([mismatched_epoch](#mismatched_epoch)) MUST
+  be generated.
 
 2. to delete multiple entities within a Registry collection the request MUST
 be in one of two forms:
@@ -1480,15 +1462,17 @@ Where:
   identifier - which is the `SINGULARid` of the entity.
 - When an `epoch` value is specified for an entity then the server MUST check
   to ensure that the value matches the entity's current `epoch` value and if it
-  differs then an error MUST be generated.
+  differs then an error ([mismatched_epoch](#mismatched_epoch)) MUST be
+  generated.
 - When deleting Resources, since the `epoch` attribute is located under the
   `meta` sub-object (and not as a top-level entity attribute), if included
   in the `DELETE` request, it MUST appear under a `meta` sub-object. Any
   additional `epoch` at the top-level MUST be silently ignored. Additionally,
-  `DELETE` request of Resources that only has `epoch` at a top-level attribute
-  but not as a `meta` attribute MUST generate an error as it is likely that
-  the client is using the Resource's default Version `epoch` value by mistake.
-  A top-level `epoch` in the presence of a `meta` `epoch` MUST be ignored.
+  `DELETE` request of Resources that only has `epoch` at a top-level attribute,
+  but not as a `meta` attribute, MUST generate an error
+  ([misplaced_epoch](#misplaced_epoch)) as it is likely that the client is
+  using the Resource's default Version `epoch` value by mistake.  A top-level
+  `epoch` in the presence of a `meta` `epoch` MUST be ignored.
 - If the entity's unique identifier is present in the object, then it MUST
   match its corresponding `KEY` value.
 - Any other entity attributes that are present in the request MUST be silently
@@ -1621,18 +1605,18 @@ The following query parameter SHOULD be supported by servers:
 - `specversion`<br>
   The presence of this OPTIONAL query parameter indicates that the response
   MUST adhere to the xRegistry specification version specified (case
-  insensitive). If the version is not supported then an error MUST be
-  generated. Note that this query parameter MAY be included on any API request
-  to the server not just the root of the Registry. When not specified, the
-  default value MUST be the newest version of this specification supported by
-  the server.
+  insensitive). If the version is not supported then an error
+  ([unsupported_specversion](#unsupported_specversion)) MUST be generated.
+  Note that this query parameter MAY be included on any API request to the
+  server not just the root of the Registry. When not specified, the default
+  value MUST be the newest version of this specification supported by the
+  server.
 
 A successful response MUST be of the form:
 
 ```yaml
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
-ETag: "UINTEGER"
 
 {
   "specversion": "STRING",
@@ -1670,7 +1654,6 @@ GET /
 ```yaml
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
-ETag: "1"
 
 {
   "specversion": "0.5",
@@ -1699,7 +1682,6 @@ GET /?inline=schemagroups,model
 
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
-ETag: "1"
 
 {
   "specversion": "0.5",
@@ -1806,7 +1788,8 @@ Where:
   definitions are to be updated as part of the request. See [Updating the
   Registry Model](#updating-the-registry-model) for more information.
   If present, the Registry's model MUST be updated prior to any entities being
-  updated. A value of `null` MUST generate an error.
+  updated. A value of `null` MUST generate an error
+  ([invalid_data](#invalid_data)).
 
 A successful response MUST include the same content that an HTTP `GET`
 on the Registry would return, and be of the form:
@@ -1814,7 +1797,6 @@ on the Registry would return, and be of the form:
 ```yaml
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
-ETag: "UINTEGER"
 
 {
   "specversion": "STRING",
@@ -1857,7 +1839,6 @@ Content-Type: application/json; charset=utf-8
 ```yaml
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
-ETag: "2"
 
 {
   "specversion": "0.5",
@@ -1945,9 +1926,9 @@ The following defines the specification-defined capabilities:
 - Type: Boolean
 - Description: Indicates whether the server will enforce the `compatibility`
   value defined by the owning Resource. When set to `true` the server MUST
-  generate an error as a result of any attempt to create/update a Resource
-  (or its Versions) that would result in those entities violating the stated
-  compatibility rules.
+  generate an error ([compatibility_violation](#compatibility_violation))
+  as a result of any attempt to create/update a Resource (or its Versions)
+  that would result in those entities violating the stated compatibility rules.
 
   This includes the server rejecting requests to update the `compatibility`
   attribute's value if any of the Resource's Versions would violate the
@@ -2076,8 +2057,9 @@ Where:
   in the case of `PUT`, and the full representation of just the modified
   capabilities in the case of `PATCH`.
 - Any change to the configuration of the server that is not supported MUST
-  result in an error and no changes applied. Likewise, any unknown
-  capability keys specified MUST generate an error.
+  result in an error ([capability_error](#capability_error)) and no changes
+  applied. Likewise, any unknown capability keys specified MUST generate an
+  error ([capability_error](#capability_error)).
 
 A successful response MUST include a full representation of all of the
 capabilities of the Registry and be of the form:
@@ -2102,9 +2084,9 @@ Registry's capabilities then the changes MUST appear in that serialization.
 
 For any capability that is an array of strings, a value of `"*"` MAY be used to
 to indicate that the server MUST replace `"*"` with the full set of items that
-are available. An error MUST be generated if `"*"` appears with any other value
-in the list. `"*"` MUST NOT appear in the serialization in any server's
-response.
+are available. An error ([capability_error](#capability_error)) MUST be
+generated if `"*"` appears with any other value in the list. `"*"` MUST NOT
+appear in the serialization in any server's response.
 
 Regardless of the mechanism used to update the capabilities, the Registry's
 `epoch` value MUST be incremented.
@@ -2193,10 +2175,10 @@ The enum of values allows for some special cases:
   in the value string.
 
 A request to update a capability with a value that is compliant with the
-output of the `/capabilities?offered` MAY still generate an error if the server
-determines it can not support the request. For example, due to authorization
-concerns or the value, while syntactically valid, isn't allow in certain
-situations.
+output of the `/capabilities?offered` MAY still generate an error
+([capability_error](#capability_error)) if the server determines it can not
+support the request. For example, due to authorization concerns or the value,
+while syntactically valid, isn't allow in certain situations.
 
 For clarity, even in cases where there is no variability allowed with certain
 capabilities they SHOULD still be listed in both the `/capabilities` API
@@ -2249,8 +2231,9 @@ from the model.
 
 Registries MAY support extension attributes to the model language (meaning,
 new attributes within the model definitions themselves), but only if
-the server supports them. Servers MUST generate an error if a model definition
-includes unknown model language attributes.
+the server supports them. Servers MUST generate an error
+([model_error](#model_error)) if a model definition includes unknown model
+language attributes.
 
 Once a Registry has been created, changes to the model MAY be supported by
 server implementations. This specification makes no statement as to what types
@@ -2260,16 +2243,15 @@ of changes are allowed beyond the following requirements:
   Registry MUST adhere to the current model prior to completing any request.
 
 Any request to update the model that does not adhere to those requirements
-MUST generate an error.
+MUST generate an error ([model_compliance_error](#model_compliance_error)).
 
 How the server guarantees that all entities in the Registry are compliant with
 the model is an implementation detail. For example, while it is
 NOT RECOMMENDED, it is valid for an implementation to modify (or even delete)
-existing entities to ensure model compliance. However, it is RECOMMENDED that
-the model update requests generate an error if existing entities are not
-compliant. This means that servers MUST validate all entities are compliant
-with the model prior to completing the model update, and generate an error if
-they are not.
+existing entities to ensure model compliance. Instead, it is RECOMMENDED that
+the model update requests generate an error
+([model_compliance_error](#model_compliance_error)) if existing entities are
+not compliant.
 
 Additionally, is it STRONGLY RECOMMENDED that model updates be limited to
 backwards compatible changes.
@@ -2357,7 +2339,7 @@ Regardless of how the model is retrieved, the overall format is as follows:
 The following describes the attributes of Registry model:
 - `labels` <span id="model.labels"></span>
   - Type: Map of string-string.
-  - OPTIONAL
+  - OPTIONAL.
   - A set of name/value pairs that allows for additional metadata about the
     Registry to be stored without changing the schema of the model.
   - If present, MUST be a map of zero or more name/value string pairs.
@@ -2367,12 +2349,12 @@ The following describes the attributes of Registry model:
   - Values MAY be empty strings.
   - The following labels are defined for convenience and MAY also be used
     as labels for Groups or Resource model types:
-    - Name: `modelversion`
+    - Name: `modelversion`<br>
       Value: The version of the model. For many specifications it's a
       combination of major and minor version numbers, e.g. `1.2`.
       This label will most likely only appear as a label on the model itself,
       not on Groups or Resource model definitions.
-    - Name: `compatiblewith`
+    - Name: `compatiblewith`<br>
       Value: An absolute URL to the model specification that this model is
       compatible with. This specification does not mandate any runtime
       validation of this claim.
@@ -2380,7 +2362,7 @@ The following describes the attributes of Registry model:
 
 - `attributes` <span id="model.attributes"></span>
   - Type: Map where each attribute's name MUST match the key of the map.
-  - OPTIONAL
+  - OPTIONAL.
   - The set of attributes defined at the indicated level of the Registry. This
     includes extensions and specification-defined/modified attributes.
   - REQUIRED at specification-defined locations, otherwise OPTIONAL for
@@ -2398,8 +2380,8 @@ The following describes the attributes of Registry model:
   - The name of the attribute. MUST be the same as the key used in the owning
     `attributes` attribute. A value of `*` indicates support for undefined
     extension names. Absence of a `*` attribute indicates lack of support for
-    undefined extensions and an error MUST be generated if one is present in
-    a request.
+    undefined extensions and an error ([unknown_attribute](#unknown_attribute))
+    MUST be generated if one is present in a request.
 
     Often `*` is used with a `type` of `any` to allow for any undefined
     extension name of any supported data type. By default, the model
@@ -2427,7 +2409,7 @@ The following describes the attributes of Registry model:
 
 - `attributes."STRING".target` <span id="model.target"></span>
   - Type: STRING.
-  - OPTIONAL
+  - OPTIONAL.
   - The type of entity that this attribute points to when `type` is set to
     `url-reference`, `uri-reference` or `xid`. `target` MUST NOT be used
     for any other type of attribute. The value of this model attribute MUST be
@@ -2464,7 +2446,7 @@ The following describes the attributes of Registry model:
     characters that can be used for the object's top-level attribute names.
     Any attempt to define a top-level attribute for this object that does
     not adhere to the characters defined by the character set name MUST
-    generate an error.
+    generate an error ([invalid_character](#invalid_character)).
   - Per the [Attributes and Extensions](#attributes-and-extensions) section,
     attribute names are normally limited to just the set of characters that
     ensure they can reliably be used in cases such as code variable names
@@ -2488,7 +2470,7 @@ The following describes the attributes of Registry model:
   - When not specified, the default value is `strict`.
   - Implementations MAY define additional character sets, however, an attempt
     to define a model that uses an unknown character set name MUST generate an
-    error.
+    error ([model_error](#model_error)).
 
 - `attributes."STRING".description`
   - Type: String.
@@ -2512,7 +2494,8 @@ The following describes the attributes of Registry model:
   - OPTIONAL.
   - Indicates whether the attribute restricts its values to just the array of
     values specified in `enum` or not. A value of `true` means that any
-    values used that is not part of the `enum` set MUST generate an error.
+    values used that is not part of the `enum` set MUST generate an error
+    ([invalid_data](#invalid_data)).
     This attribute has no impact when `enum` is absent or an empty array.
   - When not specified, the default value MUST be `true`.
 
@@ -2546,12 +2529,12 @@ The following describes the attributes of Registry model:
 
 - `attributes."STRING".required`
   - Type: Boolean
-  - OPTIONAL
+  - OPTIONAL.
   - Indicates whether this attribute is REQUIRED to have a non-null value.
     This specification does not mandate how this attribute's value is populated
     (i.e. by a client, the server or via a default value), just that by the
     end of processing any request it MUST have a non-null value, and generate
-    an error if not.
+    an error ([invalid_data](#invalid_data)) if not.
   - This also implies that this attribute MUST be serialized in any response
     from the server - with the exception of the optimizations specified for
     document view.
@@ -2576,7 +2559,7 @@ The following describes the attributes of Registry model:
 
 - `attributes."STRING".attributes`
   - Type: Object, see `attributes` above.
-  - OPTIONAL
+  - OPTIONAL.
   - This contains the list of attributes defined as part of a nested resource.
   - MAY be present when the owning attribute's `type` is `object`, otherwise it
     MUST NOT be present. It MAY be absent or an empty list if there are no
@@ -2657,11 +2640,11 @@ The following describes the attributes of Registry model:
 
 - `groups.labels`
   - See [`labels`]((#model.labels) above.
-  - OPTIONAL
+  - OPTIONAL.
 
 - `groups.attributes`
   - See [`attributes`](#model.attributes) above.
-  - OPTIONAL
+  - OPTIONAL.
 
 - `groups.resources`
   - Type: Map where the key MUST be the plural name (`groups.resources.plural`)
@@ -2806,8 +2789,8 @@ The following describes the attributes of Registry model:
     for the format being used to serialize the Resource's metadata. For example,
     when using JSON, this means escaping all non-printable characters.
 
-    Specifying an unknown (or unsupported) value MUST generate an error during
-    the update of the xRegistry model.
+    Specifying an unknown (or unsupported) value MUST generate an error
+    ([model_error](#model_error)) during the update of the xRegistry model.
 
     By default, the following
     [RFC9110](https://datatracker.ietf.org/doc/html/rfc9110#media.type)
@@ -2827,19 +2810,19 @@ The following describes the attributes of Registry model:
 
 - `groups.resources.labels`
   - See [`attributes`](#model.attributes) above.
-  - OPTIONAL
+  - OPTIONAL.
 
 - `groups.resources.attributes`
   - See [`attributes`](#model.attributes) above and
     [`metaattributes`](#model.metaattributes) below.
-  - OPTIONAL
+  - OPTIONAL.
   - The list of attributes associated with each Version of the Resource.
   - The list of `groups.resources.attributes` names MUST NOT overlap with the
     list of `groups.resource.metaattributes` names.
 
 - `groups.resources.metaattributes` <span id="model.metaattributes"></span>
   - See [`attributes`](#model.attributes) above.
-  - OPTIONAL
+  - OPTIONAL.
   - The list of attributes associated with the Resource, not its Versions,
     and will appear in the `meta` sub-object of the Resource.
   - The list of `groups.resources.attributes` names MUST NOT overlap with the
@@ -2893,8 +2876,8 @@ Where:
   then the server MAY choose any schema version of the specified schema format.
   However, it is RECOMMENDED that the newest supported version be used.
 
-If the specified schema format is not supported then an HTTP `400 Bad Request`
-error MUST be generated.
+If the specified schema format is not supported then an error
+([invalid_data](#invalid_data)) MUST be generated.
 
 When the `schema` is `xRegistry-json/0.5` then the response MUST be of the
 form:
@@ -3511,7 +3494,6 @@ A successful response MUST be of the form:
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 Link: <URL>;rel=next;count=UINTEGER ?
-ETag: "UINTEGER"
 
 {
   "KEY": {                                     # GROUPid
@@ -3711,7 +3693,6 @@ A successful response MUST be of the form:
 ```yaml
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
-ETag: "UINTEGER"
 
 {
   "GROUPid": "STRING",
@@ -3744,7 +3725,6 @@ GET /endpoints/ep1
 ```yaml
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
-ETag: "1"
 
 {
   "GROUPid": "ep1",
@@ -4013,10 +3993,10 @@ and the following Resource level attributes:
   - MUST be a read-only attribute.
   - When not specified, the default value MUST be `false`.
   - If present, it MUST be a case sensitive `true` or `false`.
-  - A request to update a read-only Resource MUST generate an error unless
-    the `?noreadonly` query parameter was used, in which case the error MUST
-    be silently ignored. See [Registry APIs](#registry-apis) for more
-    information.
+  - A request to update a read-only Resource MUST generate an error
+    ([readonly](#readonly)) unless the `?noreadonly` query parameter was used,
+    in which case the error MUST be silently ignored. See
+    [Registry APIs](#registry-apis) for more information.
 
 ##### `compatibility` Attribute
 - Type: String (with resource-specified enumeration of possible values)
@@ -4039,7 +4019,8 @@ and the following Resource level attributes:
   implementations of this specification are REQUIRED to perform the proper
   compatibility checks to ensure that all Versions of a Resource adhere to the
   rules defined by the current value of this attribute. This includes
-  generating an error in response to requests to add/delete/modify Versions or
+  generating an error ([compatibility_violation](#compatibility_violation))
+  in response to requests to add/delete/modify Versions or
   update this attribute in such a way as to make the existing Versions
   incompatible due to the new value.
 
@@ -4089,7 +4070,7 @@ and the following Resource level attributes:
 
   If the Resource's `hasdocument` aspect is set to `true`, then the Version URL
   path MUST include the `$details` suffix, unless `?doc` is enabled and
-  the Version is included in the output, then `$details` is omitted.
+  the Version is included in the output, then `$details` MUST be omitted.
 
 - API View Constraints:
   - REQUIRED.
@@ -4148,9 +4129,10 @@ and the following Resource level attributes:
       - A `null` or absent `defaultversionsticky` in the request MUST result in
         the same semantics as it being set to `false`.
       - A `defaultversionid` referencing a non-existing Version MUST generate
-        an error.
+        an error ([unknown_id](#unknown_id)).
       - If `defaultversionsticky` is `false` and `defaultversionid` does not
-        reference the newest Version then an error MUST be generated, as this
+        reference the newest Version then an error
+        ([invalid_data](#invalid_data)) MUST be generated, as this
         would result in an inconsistent state.
       - For clarity, if the net result of the processing is that the sticky
         feature is turned off, then the `defaultversionid` MUST reference the
@@ -4633,12 +4615,12 @@ summarized as:
 - Creates or updates one or more Resources.
 
 **`PUT   /GROUPS/gID/RESOURCES/rID[$details]`**<br>
-**`PATCH /GROUPS/gID/RESOURCES/rID$details`**
+**`PATCH /GROUPS/gID/RESOURCES/rID[$details]`**
 
 - Creates a new Resource, or update the default Version of a Resource.
 
 **`POST /GROUPS/gID/RESOURCES/rID[$details]`**<br>
-**`PATCH /GROUPS/gID/RESOURCES/rID$details`**
+**`PATCH /GROUPS/gID/RESOURCES/rID[$details]`**
 
 - Creates or updates a single Version of a Resource.
 
@@ -4653,7 +4635,7 @@ summarized as:
 - Creates or updates one or more Versions of a Resource.
 
 **`PUT   /GROUPS/gID/RESOURCES/rID/versions/vID[$details]`**<br>
-**`PATCH /GROUPS/gID/RESOURCES/rID/versions/vID$details`**
+**`PATCH /GROUPS/gID/RESOURCES/rID/versions/vID[$details]`**
 
 - Creates or updates a single Version of a Resource.
 
@@ -4763,7 +4745,7 @@ Link: <https://example.com/endpoints/ep1/messages&page=2>;rel=next;count=100
   "msg1": {
     "messageid": "msg1",
     "versionid": "1.0",
-    "self": "https://example.com/endpoints/ep1/messages/msg1$details",
+    "self": "https://example.com/endpoints/ep1/messages/msg1",
     "xid": "/endpoints/ep1/messages/msg1",
     "epoch": 1,
     "name": "Blob Created",
@@ -4829,7 +4811,7 @@ Where:
 - This API MUST update the `meta` sub-object of the specified Resource.
 - As with all update operations, if the incoming request includes an `epoch`
   value that does not match the existing `meta` `epoch` value then an
-  error MUST be generated.
+  error ([mismatched_epoch](#mismatched_epoch)) MUST be generated.
 
 `POST  /GROUPS/gID/RESOURCES/rID/versions[?setdefaultversionid=vID]`<br>
 `PATCH /GROUPS/gID/RESOURCES/rID/versions[?setdefaultversionid=vID]`
@@ -4846,7 +4828,8 @@ Where:
   - If there is more than one Version created, then use of the
     `?setdefaultversionid` query parameter is RECOMMENDED.
   - There MUST be at least one Version specified in the HTTP body. In other
-    words, an empty collection MUST generate an error since creating a Resource
+    words, an empty collection MUST generate an error
+    ([missing_versions](#missing_versions)) since creating a Resource
     with no Versions would immediate delete that Resource.
 
 See [Default Version of a Resource](#default-version-of-a-resource) for more
@@ -4962,18 +4945,18 @@ Where:
 - If the Resource's `hasdocument` model attribute has a value of `false` then
   the following rules apply:
   - Only the first form (serialization as a JSON Object) MUST be used.
-  - Use of the `$details` suffix on the request URL is OPTIONAL and has no
-    impact on processing beyond resulting in any URLs in the response being
-    appended with `$details` if they reference this Resource (or its
+  - Use of the `$details` suffix on the request URL is OPTIONAL, and if used
+    the Resource/Version `self` URL MUST NOT include `$details`.
     Versions).
   - Any request that includes the xRegistry HTTP headers MUST generate an
-    error.
+    error ([extra_xregistry_headers](#extra_xregistry_headers)).
   - An update request with an empty HTTP body MUST be interpreted as a request
     to delete all xRegistry mutable attributes - in essence, resetting the
     entity back to its default state.
 - If the `versionid` attribute is present but it does not match the existing
   "default" Version's `versionid` (after any necessary processing of the
-  `defaultversionid` attribute), then an error MUST be generated. Also see
+  `defaultversionid` attribute), then an error
+  ([mismatched_id](#mismatched_id)) MUST be generated. Also see
   [Default Version of a Resource](#default-version-of-a-resource).
 
   If the `versionid` attribute is present while creating a new Resource, but
@@ -5062,7 +5045,6 @@ Update default Version of a Resource as xRegistry metadata:
 ```yaml
 PUT /endpoints/ep1/messages/msg1$details
 Content-Type: application/json; charset=utf-8
-ETag: "1"
 
 {
   "epoch": 1,
@@ -5079,12 +5061,11 @@ ETag: "1"
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1.0
-ETag: "2"
 
 {
   "messageid": "msg1",
   "versionid": "1.0",
-  "self": "https://example.com/endpoints/ep1/messages/msg1$details",
+  "self": "https://example.com/endpoints/ep1/messages/msg1",
   "xid": "/endpoints/ep1/messages/msg1",
   "epoch": 2,
   "name": "Blob Created",
@@ -5234,7 +5215,7 @@ HTTP `GET` with `$details` appended to its URL path MAY be used.
 The request MUST be of the form:
 
 ```yaml
-GET /GROUPS/gID/RESOURCES/rID$details
+GET /GROUPS/gID/RESOURCES/rID[$details]
 ```
 
 A successful response MUST be of the form:
@@ -5243,7 +5224,6 @@ A successful response MUST be of the form:
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 Content-Location: URL ?
-ETag: "UINTEGER"
 
 {
   "RESOURCEid": "STRING",
@@ -5288,10 +5268,12 @@ ETag: "UINTEGER"
 ```
 
 Where:
+- The use of the `$details` suffix is REQUIRED when the Resource's
+  `hasdocument` aspect is `true`.
 - `RESOURCEid` MUST be the Resource's `SINGULARid`, not the `versionid` of
   the default Version.
-- `self` is a URL to the Resource (with `$details`), not to the default
-  Version of the Resource.
+- `self` is a URL to the Resource (with `$details` suffix if `hasdocument`
+  is `true`), not to the default Version of the Resource.
 - `shortself`, if present, MUST be an alternative URL for `self`.
 - `xid` is a relative URI to the Resource (without `$details`), not to the
   default Version of the Resource.
@@ -5312,12 +5294,11 @@ GET /endpoints/ep1/messages/msg1$details
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1.0
-ETag: "1"
 
 {
   "messageid": "msg1",
   "versionid": "1.0",
-  "self": "https://example.com/endpoints/ep1/messages/msg1$details,
+  "self": "https://example.com/endpoints/ep1/messages/msg1,
   "xid": "/endpoints/ep1/messages/msg1,
   "epoch": 1,
   "name": "Blob Created",
@@ -5618,13 +5599,15 @@ Where:
   then including that value in the query parameter is not possible. In those
   cases a value of `request` MAY be used as a way to reference the Version
   being processed in the current request, and if the request creates more than
-  one Version then an error MUST be generated.
+  one Version then an error ([too_many_versions](#too_many_versions)) MUST be
+  generated.
 - If a non-`null` and non-`request` `vID` does not reference an existing
   Version of the Resource, after all Version processing is completed, then an
-  HTTP `400 Bad Request` error MUST be generated.
+  error ([unknown_id](#unknown_id)) MUST be generated.
 
 Any use of this query parameter on a Resource that has the
-`setdefaultversionsticky` aspect set to `false` MUST generate an error.
+`setdefaultversionsticky` aspect set to `false` MUST generate an error
+([bad_flag](#bad_flag)).
 
 Updating a Resource's `defaultversionid`, regardless of the mechanism used to
 do so, MUST adhere to the following rules:
@@ -5702,7 +5685,7 @@ Link: <https://example.com/endpoints/ep1/messages/msg1/versions&page=2>;rel=next
   "1.0": {
     "messageid": "msg1",
     "versionid": "1.0",
-    "self": "https://example.com/endpoints/ep1/messages/msg1$details",
+    "self": "https://example.com/endpoints/ep1/messages/msg1",
     "xid": "/endpoints/ep1/messages/msg1",
     "epoch": 1,
     "name": "Blob Created",
@@ -5816,12 +5799,13 @@ Content-Disposition: msg1
 #### Retrieving a Version as Metadata
 
 To retrieve a particular Version's metadata, an HTTP `GET` with `$details`
-appended to its `RESOURCEid` MAY be used.
+appended to its `RESOURCEid` MAY be used. Note that in cases where the
+Resource's `hasdocument` is `false` then the `$details` suffix is OPTIONAL.
 
 The request MUST be of the form:
 
 ```yaml
-GET /GROUPS/gID/RESOURCES/rID/versions/vID$details
+GET /GROUPS/gID/RESOURCES/rID/versions/vID[$details]
 ```
 
 A successful response MUST be of the form:
@@ -5829,7 +5813,6 @@ A successful response MUST be of the form:
 ```yaml
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
-ETag: "UINTEGER"
 
 {
   "RESOURCEid": "STRING",
@@ -5870,12 +5853,11 @@ GET /endpoints/ep1/messages/msg1/versions/1.0$details
 ```yaml
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
-ETag: "2"
 
 {
   "messageid": "msg1",
   "versionid": "1.0",
-  "self": "https://example.com/endpoints/ep1/messages/msg1/versions/1.0$details",
+  "self": "https://example.com/endpoints/ep1/messages/msg1/versions/1.0",
   "xid": "/endpoints/ep1/messages/msg1/versions/1.0",
   "epoch": 2,
   "name": "Blob Created",
@@ -5941,11 +5923,10 @@ flags:
 Implementations of this specification SHOULD support all 3 flags.
 
 Note: If the Registry can not return all expected data in one response because
-it is too large then it MUST generate an HTTP `406 Not Acceptable` error and
-SHOULD include an error message in the HTTP body indicating which attributes
-are too large to be sent in one message. In those cases, the client will need
-to query the individual inlinable attributes in isolation so the Registry can
-leverage [pagination](../pagination/spec.md) of the response.
+it is too large then it MUST generate an error ([too_large](#too_large)). In
+those cases, the client will need to query the individual inlinable attributes
+in isolation so the Registry can leverage
+[pagination](../pagination/spec.md) of the response.
 
 #### Inline
 
@@ -6045,7 +6026,7 @@ When specifying a collection to be inlined, it MUST be specified using the
 plural name for the collection in its defined case.
 
 A request to inline an unknown, or non-inlinable, attribute MUST generate an
-error.
+error ([invalid_data](#invalid_data)).
 
 #### Filter
 
@@ -6101,7 +6082,7 @@ Where:
   `['my.name']`. For example, `prop1.my.name.prop2` would be specified as
   `prop1['my.name'].prop2` if `my.name` is the name of one attribute.
 - `PATH` MUST only consist of valid `GROUPS`, `RESOURCES` or `versions`,
-  otherwise an error MUST be generated.
+  otherwise an error ([invalid_data](#invalid_data)) MUST be generated.
 - `ATTRIBUTE` MUST be the attribute in the entity to be examined.
 - Complex attributes (e.g. `labels`) MUST use dot (`.`) to reference nested
   attributes. For example: `labels.stage=dev` for a filter.
@@ -6316,9 +6297,9 @@ Resource and not the Resource's "document".
 
 If `?doc` is used on a request directed to a Resource's `versions`
 collection, or to one of its Versions, but the Resource is defined as an
-`xref` to another Resource, then the server MUST generate a
-`400 Bad Request` error and SHOULD indicate that using `?doc` on this
-part of the hierarchy is not valid - due to it not technically existing
+`xref` to another Resource, then the server MUST generate an error
+([cannot_doc_xref](#cannot_doc_xref)) and SHOULD indicate that using `?doc`
+on this part of the hierarchy is not valid - due to it not technically existing
 in document view.
 
 ### HTTP Header Values
@@ -6377,8 +6358,9 @@ but decoding MUST accept lowercase values.
 
 When performing percent-decoding, values that have been unnecessarily
 percent-encoded MUST be accepted, but encoded byte sequences which are
-invalid in UTF-8 MUST generate an error. (For example, "%C0%A0" is an overlong
-encoding of U+0020, and MUST be rejected.)
+invalid in UTF-8 MUST generate an error
+([header_decoding_error](#header_decoding_error)). For example, "%C0%A0" is an
+overlong encoding of U+0020, and would be rejected.
 
 Example: a header value of "Euro &#x20AC; &#x1F600;" SHOULD be encoded as
 follows:
@@ -6446,59 +6428,277 @@ In the following list of errors, the `Code`, `Type` and `Instance` values MUST
 be as specified. The other field values are recommendations and MAY be modified
 as appropriate, including being specified in a language other than English.
 
-#### Invalid Data Type
+<!-- start-err-def -->
 
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#invalid-data-type`
-* Code: `405 Bad Request`
-* Instance: URL to the entity being processed
-* Title: `A value of an incorrect data-type was specified`
-* Data: ... The invalid data ...
-* Detail: ... Information specific to the processing details ...
+#### api_not_found
 
-#### Mismatched IDs
-
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#mismatched-ids`
-* Code: `400 Bad Request`
-* Instance: URL to the entity being processed
-* Title: `The specified ID value ({invalid id}) needs to be "{expected id}"`
-* Data: {the invalid ID value}
-* Detail: {information specific to the processing details}
-
-#### Mismatched Epoch
-
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#mismatched-epoch`
-* Code: `400 Bad Request`
-* Instance: URL to the entity being processed
-* Title: `The specified epoch value ({invalid epoch}) does not match its current value ({current epoch})`
-* Data: {the invalid epoch value}
-* Detail: {information specific to the processing details}
-
-#### Mismatched ETag
-
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#mismatched-etag`
-* Code: `412 Precondition Failed`
-* Instance: URL to the entity being processed
-* Title: `The specified If-Match value ({invalid value}) does not match the current epoch value ({current epoch})`
-* Data: {the invalid If-Match value}
-* Detail: {information specific to the processing details}
-
-#### API Not Found
-
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#api-not-found`
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#api_not_found`
 * Code: `404 Not Found`
 * Instance: Request URL
 * Title: `The specified path ({invalid path}) is not supported`
 * Data: {the unsupported path}
 * Detail: {information specific to the processing details}
 
-#### Method Not Allowed
+#### bad_flag
 
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#method-not-allowed`
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#bad_flag`
+* Code: `400 Bad Request`
+* Instance: Request URL
+* Title: `The specified query parameter ({query parameter}) is not allowed in this context`
+* Data:  {query parameter name and value}
+* Detail: {information specific to the processing details}
+
+#### bad_request
+
+This error is purposely generic and can be used when there isn't a more
+condition-specific error that would be more appropriate. Implementations
+SHOULD attempt to use a more specific error when possible.
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#bad_request`
+* Code: `400 Bad Request`
+* Instance: Request URL
+* Title: `The request can not be processed as provided`
+* Data: {Short description of the problematic data or reason}
+* Detail: {information specific to the processing details}
+
+#### cannot_doc_xref
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#cannot_doc_xref`
+* Code: `400 Bad Request`
+* Instance: URL to the Resource being retrieved
+* Title: `Retrieving the document view of an xref'd Resource's Versions is not possible`
+* Data:  {the Resource's URL}
+* Detail: {information specific to the processing details}
+
+#### capability_error
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#capability_error`
+* Code: `400 Bad Request`
+* Instance: URL to the xRegistry server
+* Title: `There was an error in the capabilities provided`
+* Data:  {capability JSON snippet that caused the issue}
+* Detail: {information specific to the processing details}
+
+#### compatibility_violation
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#compatibility_violation`
+* Code: `400 Bad Request`
+* Instance: URL to the Version being processed that cause the violation
+* Title: `The request would cause one or more Versions of this Resource to violate the Resource's compatibility rules ({compatibility attribute value})`
+* Data:  {list of "Versionid" values that would be in violation}
+* Detail: {information specific to the processing details}
+
+#### data_retrieval_error
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#data_retrieval_error`
+* Code: `500 Internal Server Error`
+* Instance: Request URL
+* Title: `The server was unable to retrieve all of the requested data`
+* Data: {Short description of the problematic data or reason}
+* Detail: {information specific to the processing details}
+
+#### details_required
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#details_required`
+* Code: `400 Bad Request`
+* Instance: URL to the entity being processed
+* Title: `$details suffixed is needed when using PATCH for this Resource`
+* Data:  n/a
+* Detail: {information specific to the processing details}
+
+#### extra_xregistry_headers
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#extra_xregistry_headers`
+* Code: `400 Bad Request`
+* Instance: URL to the entity being processed
+* Title: `xRegistry HTTP headers are not allowed on this request`
+* Data:  {list of xRegistry HTTP header names}
+* Detail: {information specific to the processing details}
+
+#### header_decoding_error
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#header_decoding_error`
+* Code: `400 Bad Request`
+* Instance: Request URL
+* Title: `The value ("{header value}") of the HTTP "{header name}" header can not be decoded`
+* Data:  {the header value}
+* Detail: {information specific to the processing details}
+
+#### invalid_character
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#invalid_character`
+* Code: `400 Bad Request`
+* Instance: URL to the entity being processed
+* Title: `An invalid character ({the character}) was specified an attribute's name ({full attribute name})`
+* Data:  {invalid character}
+* Detail: {information specific to the processing details}
+
+#### invalid_data
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#invalid_data`
+* Code: `400 Bad Request`
+* Instance: URL to the entity being processed
+* Title: `The data provided for "{attribute/parameter name}" is invalid`
+* Data:  {invalid data}
+* Detail: {information specific to the processing details}
+
+#### invalid_data_type
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#invalid_data_type`
+* Code: `405 Bad Request`
+* Instance: URL to the entity being processed
+* Title: `A value of an incorrect data-type was specified`
+* Data: ... The invalid data ...
+* Detail: ... Information specific to the processing details ...
+
+#### method_not_allowed
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#method_not_allowed`
 * Code: `405 Method Not Allowed`
 * Instance: Request URL
-* Title: `The specified HTTP method ({invalid method}) is not supported`
+* Title: `The specified HTTP method ({invalid method}) is not supported for: {request URL}`
 * Data: {the unsupported HTTP method}
 * Detail: {information specific to the processing details}
+
+#### mismatched_epoch
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#mismatched_epoch`
+* Code: `400 Bad Request`
+* Instance: URL to the entity being processed
+* Title: `The specified epoch value ({invalid epoch}) does not match its current value ({current epoch})`
+* Data: {the invalid epoch value}
+* Detail: {information specific to the processing details}
+
+#### mismatched_id
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#mismatched_id`
+* Code: `400 Bad Request`
+* Instance: URL to the entity being processed
+* Title: `The specified {singular type name} ID value ({invalid id}) needs to be "{expected id}"`
+* Data: {the invalid ID value}
+* Detail: {information specific to the processing details}
+
+#### misplaced_epoch
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#misplaced_epoch`
+* Code: `400 Bad Request`
+* Instance: URL to the entity being processed
+* Title: `The specified "epoch" value needs to be within a "meta" sub-object`
+* Data:  n/a
+* Detail: {information specific to the processing details}
+
+#### missing_versions
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#missing_versions`
+* Code: `400 Bad Request`
+* Instance: URL to the entity being processed
+* Title: `At least one Version needs to be included in the request`
+* Data:  {URL to entity being processed}
+* Detail: {information specific to the processing details}
+
+#### model_compliance_error
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#model_compliance_error`
+* Code: `400 Bad Request`
+* Instance: URL to the xRegistry server
+* Title: `The model provided would cause one or more entities in the registry to become non-compliant`
+* Data:  {list of XIDs of non-compliant entities}
+* Detail: {information specific to the processing details}
+
+#### model_error
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#model_error`
+* Code: `400 Bad Request`
+* Instance: URL to the xRegistry server
+* Title: `There was an error in the model definition provided`
+* Data:  {model JSON snippet that caused the issue}
+* Detail: {information specific to the processing details}
+
+#### not_found
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#not_found`
+* Code: `404 Not Found`
+* Instance: URL to the entity being processed
+* Title: `The specified entity can not be found`
+* Data:  {URL to the entity requested}
+* Detail: {information specific to the processing details}
+
+#### readonly
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#readonly`
+* Code: `400 Bad Request`
+* Instance: URL to the entity being processed
+* Title: `Updating a read-only entity ({XID of entity}) is not allowed`
+* Data:  {URL to entity being processed}
+* Detail: {information specific to the processing details}
+
+#### required_attribute_missing
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#required_attribute_missing`
+* Code: `400 Bad Request`
+* Instance: URL to the entity being processed
+* Title: `One or more mandatory attributes are missing`
+* Data:  {list of mandatory attributes}
+* Detail: {information specific to the processing details}
+
+#### server_error
+
+This error MAY be used when it appears that the incoming request was valid but
+something unexpected happened in the server that caused an error condition.
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#server_error`
+* Code: `500 Internal Server Error`
+* Instance: Request URL
+* Title: `An unexpected error occurred, please try again later`
+* Data:  n/a
+* Detail: {information specific to the processing details}
+
+#### too_large
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#too_large`
+* Code: `406 Not Acceptable`
+* Instance: Request URL
+* Title: `The size of the response is too large to return in a single response`
+* Data:  {the names of the fields/attributes that are too large}
+* Detail: {information specific to the processing details}
+
+#### too_many_versions
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#too_many_versions`
+* Code: `400 Bad Request`
+* Instance: URL to the entity being processed
+* Title: `The request is only allowed to have one Version specified`
+* Data:  {the URL to the entity being processed}
+* Detail: {information specific to the processing details}
+
+#### unknown_attribute
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#unknown_attribute`
+* Code: `400 Bad Request`
+* Instance: URL to the entity being processed
+* Title: `An unknown attribute ({attribute name}) was specified`
+* Data:  {unknown attribute name}
+* Detail: {information specific to the processing details}
+
+#### unknown_id
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#unknown_id`
+* Code: `400 Bad Request`
+* Instance: URL to the entity being processed
+* Title: `The "{singular name of the entity type}" with the ID "{the unknown ID}" can not be found`
+* Data:  {URL to entity being processed}
+* Detail: {information specific to the processing details}
+
+#### unsupported_specversion
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#unsupported_specversion`
+* Code: `400 Bad Request`
+* Instance: The request URL
+* Title: `The specified "specversion" value is not supported`
+* Data:  n/a
+* Detail: {information specific to the processing details}
+
+<!-- end-err-def -->
 
 ---
 
