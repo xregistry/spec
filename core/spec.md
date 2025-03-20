@@ -296,8 +296,8 @@ OPTIONAL for clients to use, but servers MUST be prepared for them to appear
 in incoming requests and MUST support them since "support" simply means
 persisting them in the backing datastore. However, as with all attributes, if
 accepting the attribute would result in a bad state (such as exceeding a size
-limit, or results in a security issue), then the server MAY choose to reject
-the request.
+limit, or results in a security issue), then the server MAY choose to generate
+an error.
 
 In the pseudo JSON format snippets `?` means the preceding item is OPTIONAL,
 `*` means the preceding item MAY appear zero or more times, and `+` means the
@@ -624,8 +624,8 @@ The definition of each attribute is defined below:
     presence within the serialization of the entity is OPTIONAL. However, if
     present, it MUST be the same as any other specification of the `SINGULARid`
     outside of the entity, and it MUST be the same as the entity's existing
-    `SINGULARid` if one exists, otherwise an HTTP `400 Bad Request` error MUST
-    be generated.
+    `SINGULARid` if one exists, otherwise an error
+    ([Mismatched IDs](#mismatched-ids)]) MUST be generated.
   - MUST be immutable.
 
 - Examples:
@@ -767,9 +767,10 @@ of the existing entity. Then the existing entity would be deleted.
   it MUST be silently ignored by the server.
 
   During an update operation, if this attribute is present in the request then
-  an error MUST be generated if the request includes a non-null value that
-  differs from the existing value. A value of `null` MUST be treated the same
-  as a request with no `epoch` attribute at all.
+  an error ([Mismatched Epoch](#mismatched-epoch)]) MUST be generated if the
+  request includes a non-null value that differs from the existing value. A
+  value of `null` MUST be treated the same as a request with no `epoch`
+  attribute at all.
 
   The semantics of `epoch` are the same as the semantics of the
   [HTTP ETag](https://datatracker.ietf.org/doc/html/rfc9110#section-8.8.3)
@@ -785,13 +786,13 @@ of the existing entity. Then the existing entity would be deleted.
     HTTP headers, the `xRegistry-epoch` header MUST NOT be present since the
     `ETag` header MUST already be present with the value.
   - When a request includes an HTTP `If-Match` header, then its value MUST
-    match the existing entity's `epoch` value. And if not, a
-    `412 Precondition Failed` error MUST be generated. Note, that `*` MUST
-    match all possible `epoch` value, but will fail if the entity does not
-    already exist (per the HTTP specification).
+    match the existing entity's `epoch` value. And if not, an error
+    ([Mismatched ETag](#mismatched-etag)]) MUST be generated. Note, that
+    `*` MUST match all possible `epoch` values, but will fail if the entity
+    does not already exist (per the HTTP specification).
   - The `If-Match` verification MUST be done in addition to the `epoch`
     checking specified above. In other words, a present but non-matching value
-    in either location MUST generate an error.
+    in either location MUST generate an error, per the above error conditions.
 
   If an entity has a nested xRegistry collection, its `epoch` value MUST
   be updated each time an entity in that collection is added or removed.
@@ -974,10 +975,10 @@ least the "read" (e.g. HTTP `GET`) operations. Implementations MAY choose to
 incorporate authentication and/or authorization mechanisms for the APIs.
 
 If an OPTIONAL HTTP path is not supported by an implementation, then any
-use of that API MUST generate a `404 Not Found` error.
+use of that API MUST generate an error ([api-not-found](#api-not-found)]).
 
-If an HTTP method is not supported for a supported HTTP path then a
-`405 Method Not Allowed` error MUST be generated.
+If an HTTP method is not supported for a supported HTTP path then an error
+([Method Not Allowed](#method-not-allowed)]) MUST be generated.
 
 Implementations MAY support extension APIs however the following rules MUST
 apply:
@@ -1944,8 +1945,9 @@ The following defines the specification-defined capabilities:
 - Type: Boolean
 - Description: Indicates whether the server will enforce the `compatibility`
   value defined by the owning Resource. When set to `true` the server MUST
-  reject all attempts to create/update a Resource (or its Versions) that would
-  result in those entities violating the stated compatibility rules.
+  generate an error as a result of any attempt to create/update a Resource
+  (or its Versions) that would result in those entities violating the stated
+  compatibility rules.
 
   This includes the server rejecting requests to update the `compatibility`
   attribute's value if any of the Resource's Versions would violate the
@@ -2191,7 +2193,7 @@ The enum of values allows for some special cases:
   in the value string.
 
 A request to update a capability with a value that is compliant with the
-output of the `/capabilities?offered` MAY still be rejected if the server
+output of the `/capabilities?offered` MAY still generate an error if the server
 determines it can not support the request. For example, due to authorization
 concerns or the value, while syntactically valid, isn't allow in certain
 situations.
@@ -2247,8 +2249,8 @@ from the model.
 
 Registries MAY support extension attributes to the model language (meaning,
 new attributes within the model definitions themselves), but only if
-the server supports them. Servers MUST reject model definitions that include
-unknown model language attributes.
+the server supports them. Servers MUST generate an error if a model definition
+includes unknown model language attributes.
 
 Once a Registry has been created, changes to the model MAY be supported by
 server implementations. This specification makes no statement as to what types
@@ -2264,10 +2266,10 @@ How the server guarantees that all entities in the Registry are compliant with
 the model is an implementation detail. For example, while it is
 NOT RECOMMENDED, it is valid for an implementation to modify (or even delete)
 existing entities to ensure model compliance. However, it is RECOMMENDED that
-the model update requests be rejected if existing entities are not compliant.
-This means that servers MUST validate all entities are compliant with the
-model prior to completing the model update, and reject the request if they are
-not.
+the model update requests generate an error if existing entities are not
+compliant. This means that servers MUST validate all entities are compliant
+with the model prior to completing the model update, and generate an error if
+they are not.
 
 Additionally, is it STRONGLY RECOMMENDED that model updates be limited to
 backwards compatible changes.
@@ -2639,7 +2641,8 @@ The following describes the attributes of Registry model:
   - Type: String.
   - REQUIRED.
   - The singular name of a Group type e.g. `endpoint` (`GROUP`).
-  - MUST be unique across all Group types in the Registry.
+  - MUST be unique across all Group types (plural and singular names) in the
+    Registry.
   - MUST be non-empty and MUST be a valid attribute name with the exception
     that it MUST NOT exceed 58 characters (not 63).
 
@@ -2647,7 +2650,8 @@ The following describes the attributes of Registry model:
   - Type: String.
   - REQUIRED.
   - The plural name of the Group type e.g. `endpoints` (`GROUPS`).
-  - MUST be unique across all Group types in the Registry.
+  - MUST be unique across all Group types (plural and singular names) in the
+    Registry.
   - MUST be non-empty and MUST be a valid attribute name with the exception
     that it MUST NOT exceed 58 characters (not 63).
 
@@ -2671,7 +2675,8 @@ The following describes the attributes of Registry model:
   - The singular name of the Resource type e.g. `message` (`RESOURCE`).
   - MUST be non-empty and MUST be a valid attribute name with the exception
     that it MUST NOT exceed 58 characters (not 63).
-  - MUST be unique within the scope of its owning Group type.
+  - MUST be unique across all Resources (plural and singular names) within the
+    scope of its owning Group type.
 
 - `groups.resources.plural`
   - Type: String.
@@ -2679,7 +2684,8 @@ The following describes the attributes of Registry model:
   - The plural name of the Resource type e.g. `messages` (`RESOURCES`).
   - MUST be non-empty and MUST be a valid attribute name with the exception
     that it MUST NOT exceed 58 characters (not 63).
-  - MUST be unique within the scope of its owning Group type.
+  - MUST be unique across all Resources (plural and singular names) within the
+    scope of its owning Group type.
 
 - `groups.resources.maxversions`
   - Type: Unsigned Integer.
@@ -4032,9 +4038,10 @@ and the following Resource level attributes:
   If the `enforcecompatibility` capability is set to `true` then
   implementations of this specification are REQUIRED to perform the proper
   compatibility checks to ensure that all Versions of a Resource adhere to the
-  rules defined by the current value of this attribute. This includes rejecting
-  requests to add/delete/modify Versions or update this attribute in such a
-  way as to make the existing Versions incompatible due to the new value.
+  rules defined by the current value of this attribute. This includes
+  generating an error in response to requests to add/delete/modify Versions or
+  update this attribute in such a way as to make the existing Versions
+  incompatible due to the new value.
 
   Note that, like all attributes, if a default value is defined as part of the
   model, then this attribute MUST be populated with that value if no value
@@ -5577,7 +5584,7 @@ might be done:
    the Version with the highest alphabetical `versionid` value using case
    insensitive compares MUST be chosen. For example, if there are 3 Versions
    with `versionid` values of `v10`, `z1` and `V2`, then ordering of the
-   Versions from oldest to newest would be: `v10`, `V2`, `z1.
+   Versions from oldest to newest would be: `v10`, `V2`, `z1`.
 
 1. Client explicitly chooses the "default". In this option, a client has
    explicitly chosen which Version is the "default" and it will not change
@@ -6370,7 +6377,7 @@ but decoding MUST accept lowercase values.
 
 When performing percent-decoding, values that have been unnecessarily
 percent-encoded MUST be accepted, but encoded byte sequences which are
-invalid in UTF-8 MUST be rejected. (For example, "%C0%A0" is an overlong
+invalid in UTF-8 MUST generate an error. (For example, "%C0%A0" is an overlong
 encoding of U+0020, and MUST be rejected.)
 
 Example: a header value of "Euro &#x20AC; &#x1F600;" SHOULD be encoded as
@@ -6441,12 +6448,59 @@ as appropriate, including being specified in a language other than English.
 
 #### Invalid Data Type
 
-* Type: `https://xregistry.io/errors/invalid-data-type`
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#invalid-data-type`
 * Code: `405 Bad Request`
 * Instance: URL to the entity being processed
 * Title: `A value of an incorrect data-type was specified`
 * Data: ... The invalid data ...
 * Detail: ... Information specific to the processing details ...
+
+#### Mismatched IDs
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#mismatched-ids`
+* Code: `400 Bad Request`
+* Instance: URL to the entity being processed
+* Title: `The specified ID value ({invalid id}) needs to be "{expected id}"`
+* Data: {the invalid ID value}
+* Detail: {information specific to the processing details}
+
+#### Mismatched Epoch
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#mismatched-epoch`
+* Code: `400 Bad Request`
+* Instance: URL to the entity being processed
+* Title: `The specified epoch value ({invalid epoch}) does not match its current value ({current epoch})`
+* Data: {the invalid epoch value}
+* Detail: {information specific to the processing details}
+
+#### Mismatched ETag
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#mismatched-etag`
+* Code: `412 Precondition Failed`
+* Instance: URL to the entity being processed
+* Title: `The specified If-Match value ({invalid value}) does not match the current epoch value ({current epoch})`
+* Data: {the invalid If-Match value}
+* Detail: {information specific to the processing details}
+
+#### API Not Found
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#api-not-found`
+* Code: `404 Not Found`
+* Instance: Request URL
+* Title: `The specified path ({invalid path}) is not supported`
+* Data: {the unsupported path}
+* Detail: {information specific to the processing details}
+
+#### Method Not Allowed
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#method-not-allowed`
+* Code: `405 Method Not Allowed`
+* Instance: Request URL
+* Title: `The specified HTTP method ({invalid method}) is not supported`
+* Data: {the unsupported HTTP method}
+* Detail: {information specific to the processing details}
+
+---
 
 [rfc7230-section-3]: https://tools.ietf.org/html/rfc7230#section-3
 [rfc3986-section-2-1]: https://tools.ietf.org/html/rfc3986#section-2.1
