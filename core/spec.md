@@ -5612,6 +5612,11 @@ as defined below:
   of any Version that points to the deleted Version to point to itself,
   making it a new root.
 
+  If a create operation asks the server to choose the `vID` when creating a
+  root Version, the `versionid` is not yet known and therefore cannot be
+  assigned a value. In those cases a value of `request` MAY be used as a way
+  to reference the Version being processed in the current request.
+
 - Constraints: the `ancestor` attribute MUST NOT be set to a value that
   creates circular references between Versions. For example, an operation that
   makes Version A's ancestor B, and Version B's ancestor A, MUST generate an
