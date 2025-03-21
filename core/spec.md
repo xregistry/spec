@@ -270,6 +270,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
               "labels": { "STRING": "STRING" * }, ?
               "createdat": "TIMESTAMP",
               "modifiedat": "TIMESTAMP",
+              "ancestor": "STRING",                    # Ancestor's versionid
               "contenttype": "STRING", ?
 
               "RESOURCEurl": "URL", ?                  # If not local
@@ -4415,7 +4416,7 @@ this form:
   # These are inherited from the default Version
   "epoch": UINTEGER,
   "name": "STRING", ?
-  "isdefault" true,
+  "isdefault": true,
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
@@ -4937,6 +4938,7 @@ in the request MUST adhere to the following:
   "labels": { "STRING": "STRING" * }, ?
   "createdat": "TIMESTAMP", ?
   "modifiedat": "TIMESTAMP", ?
+  "ancestor": "STRING",
   "contenttype": "STRING", ?
 
   "RESOURCEurl": "URL", ?                  # If not local
@@ -5424,12 +5426,12 @@ When serialized as a JSON object, the Version entity adheres to this form:
   "labels": { "STRING": "STRING" * }, ?
   "createdat": "TIMESTAMP",
   "modifiedat": "TIMESTAMP",
+  "ancestor": "STRING",
   "contenttype": "STRING", ?
 
   "RESOURCEurl": "URL", ?                  # If not local
   "RESOURCE": ... Resource document ..., ? # If inlined & JSON
-  "RESOURCEbase64": "STRING", ?            # If inlined & ~JSON
-  "ancestor": "STRING"
+  "RESOURCEbase64": "STRING" ?             # If inlined & ~JSON
 }
 ```
 
@@ -5460,6 +5462,8 @@ Versions include the following
   OPTIONAL in requests.
 - [`modifiedat`](#modifiedat-attribute) - REQUIRED in API and document views.
   OPTIONAL in requests.
+- [`ancestor`](#ancestor-attribute) - REQUIRED in API and document views.
+  OPTIONAL in requests.
 - [`contenttype`](#contenttype-attribute) - OPTIONAL.
 
 and the following Version level attributes:
@@ -5469,8 +5473,6 @@ and the following Version level attributes:
 - [`RESOURCEurl`](#resourceurl-attribute) - OPTIONAL.
 - [`RESOURCE`](#resource-attribute) - OPTIONAL.
 - [`RESOURCEbase64`](#resourcebase64-attribute) - OPTIONAL.
-- [`ancestor`](#ancestor-attribute) - REQUIRED in API and document views.
-  OPTIONAL in requests.
 
 as defined below:
 
@@ -5511,6 +5513,43 @@ as defined below:
 - Examples:
   - `true`
   - `false`
+
+##### `ancestor` Attribute
+- Type: String
+- Description: The `versionid` of this Version's ancestor.
+
+  The `ancestor` attribute MUST be set to the `versionid` of this Version's
+  ancestor (parent). If this Version is a root of an ancestor hierarchy tree
+  (i.e. it has no parent) then it MUST be set to its own `versionid` value.
+
+  When creating a Version without explicitly setting the `ancestor`
+  attribute, the server MUST set the `ancestor` to the most recent Version's
+  `versionid` attribute, based on the `createdat` attribute. If multiple
+  exist, the lowest Version will be determined alphabetically. If no
+  Versions exist, the `ancestor` attribute MUST be set to the `versionid` of the
+  Version being created, making it a root.
+
+  If a write operation contains multiple Versions with the `ancestor` attribute
+  omitted, the server MUST order all of those Versions based on the `createdat`
+  attribute and then alphabetically (lowest first). The first Version will have
+  the most recent Version's `versionid` as its `ancestor` as clarified above.
+
+  When deleting a Version, the server MUST update the `ancestor` attribute
+  of any Version that points to the deleted Version to point to itself,
+  making it a new root.
+
+  If a create operation asks the server to choose the `versionid` when
+  creating a root Version, the `versionid` is not yet known and therefore
+  cannot be assigned the value in the `ancestor` attribute. In those cases a
+  value of `request` MAY be used as a way to reference the Version being
+  processed in the current request.
+
+- Constraints: the `ancestor` attribute MUST NOT be set to a value that
+  creates circular references between Versions. For example, an operation that
+  makes Version A's ancestor B, and Version B's ancestor A, MUST generate an
+  error.
+  Any attempt to set an `ancestor` attribute to a non-existing `versionid`
+  MUST generate an error.
 
 ##### `contenttype` Attribute
 - Type: String
@@ -5589,43 +5628,6 @@ as defined below:
   - MUST NOT be present if `RESOURCE` is also present.
   - MUST NOT be present if the Resource's `hasdocument` model attribute is
     set to `false.
-
-##### `ancestor` Attribute
-- Type: String
-- Description: The `versionid` of this Version's ancestor.
-
-  The `ancestor` attribute MUST be set to the `versionid` of this Version's
-  ancestor (parent). If this Version is a root of an ancestor hierarchy tree
-  (i.e. it has no parent) then it MUST be set to its own `versionid` value.
-
-  When creating a Version without explicitly setting the `ancestor`
-  attribute, the server MUST set the `ancestor` to the most recent Version's
-  `versionid` attribute, based on the `createdat` attribute. If multiple
-  exist, the lowest Version will be determined alphabetically. If no
-  Versions exist, the `ancestor` attribute MUST be set to the `versionid` of the
-  Version being created, making it a root.
-
-  If a write operation contains multiple Versions with the `ancestor` attribute
-  omitted, the server MUST order all of those Versions based on the `createdat`
-  attribute and then alphabetically (lowest first). The first Version will have
-  the most recent Version's `versionid` as its `ancestor` as clarified above.
-
-  When deleting a Version, the server MUST update the `ancestor` attribute
-  of any Version that points to the deleted Version to point to itself,
-  making it a new root.
-
-  If a create operation asks the server to choose the `versionid` when
-  creating a root Version, the `versionid` is not yet known and therefore
-  cannot be assigned the value in the `ancestor` attribute. In those cases a
-  value of `request` MAY be used as a way to reference the Version being
-  processed in the current request.
-
-- Constraints: the `ancestor` attribute MUST NOT be set to a value that
-  creates circular references between Versions. For example, an operation that
-  makes Version A's ancestor B, and Version B's ancestor A, MUST generate an
-  error.
-  Any attempt to set an `ancestor` attribute to a non-existing `versionid`
-  MUST generate an error.
 
 #### Version IDs
 
@@ -5753,6 +5755,7 @@ Link: <URL>;rel=next;count=UINTEGER ?
     "labels": { "STRING": "STRING" * }, ?
     "createdat": "TIMESTAMP",
     "modifiedat": "TIMESTAMP",
+    "ancestor": "STRING",
     "contenttype": "STRING", ?
 
     "RESOURCEurl": "URL", ?                  # If not local
@@ -5926,6 +5929,7 @@ ETag: "UINTEGER"
   "labels": { "STRING": "STRING" * }, ?
   "createdat": "TIMESTAMP",
   "modifiedat": "TIMESTAMP",
+  "ancestor": "STRING",
   "contenttype": "STRING", ?
 
   "RESOURCEurl": "URL", ?                  # If not local
