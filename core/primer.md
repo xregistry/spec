@@ -680,38 +680,37 @@ against the new model, not just a subset of the entity's attributes.
 The [`ancestor` attribute](spec.md#ancestor-attribute) is used to build a
 hierarchy of Versions to facilitate compatibility checking when the
 [`compatibility` attribute](spec.md#compatibility-attribute) is set.
-Generally speaking, implementations are not expected to allow users to
-explicitly create multiple roots for a single Version. However, the
-specification does not mandate this as there may be cases where it is useful
-to allow for multiple roots. In some cases it may even be unavoidable, for
-example when the `maxversions` attribute (See `groups.resources.maxversions`
-under [Resource Model](spec.md#registry-model)) is set to a value that forces
-pruning of the Version tree. In such cases, when deleting the oldest version,
-this could result in a new root being created when there are multiple
-decedents of the deleted Version.
+There are cases in which it's desirable to create multiple roots. In some
+cases it may even be unavoidable, for example when the `maxversions`
+attribute (See `groups.resources.maxversions` under [Resource Model](spec.
+md#registry-model)) is set to a value that forces pruning of the Version
+tree. In such cases, when deleting the oldest Version, this could result in
+a new root being created when there are multiple decedents of the deleted
+Version.
 
-# Creating versions with `singleversionroot` and a `maxversions` limit
+# Pruning Versions with `singleversionroot` enabled
 
-When the `groups.resources.maxversions` attribute of the [Resource
-Model](spec.md#registry-model) is set to a specified value for a Resource, the
-server will prune versions when attempting to create a new version that would
-exceed this value. However, there may be cases in which the creation of new
-versions may be blocked, due to server being unable to prune versions.
-This may occur when the `groups.resources.singleversionroot` attribute of
-the [Resource Model](spec.md#registry-model) is set to `true`.
+There are cases in which the server will need to prune Versions. For
+example, this can happen when attempting to create a new Version that would
+exceed the value set on the `groups.resources.maxversions` attribute of the
+[Resource Model](spec.md#registry-model), or when adjusting this attribute's
+value that is smaller than the number of existing versions. In such
+scenarios, the server may be unable to prune versions, when the `groups.
+resources.singleversionroot` attribute of the [Resource Model](spec.
+md#registry-model) is set to `true`.
 
-Consider a scenario in which 3 versions exist: v1 is the root (and therefore
-has its `ancestor` attribute set to its `versionid`), and v2 and v3 both have
+Consider a scenario in which 3 Versions exist: v1 is the root (and therefore
+has its `ancestor` attribute set to v1), and v2 and v3 both have
 their `ancestor` attribute set to v1. In addition, the `groups.resources.
-maxversions` is set to 3. When creating a new version, the server will find
-the oldest version (v1) and attempt to prune it. However, deleting v1 would
+maxversions` is set to 3. When creating a new Version, the server will find
+the oldest Version (v1) and attempt to prune it. However, deleting v1 would
 mean that v2 and v3 would become roots, as both of them would need to point
 to themselves. This is exactly the behavior that the
 `groups.resources.singleversionroot` attribute prevents when set to `true`.
-Therefore, the server is unable to prune versions and will block the
-creation of a new version. To resolve this, the user will have to manually
-delete v2 or v3 to allow the server to prune the oldest version (v1) before
-creating a new version.
+Therefore, the server is unable to prune Versions and will block the
+creation of a new Version. To resolve this, the user will have to manually
+delete v2 or v3 to allow the server to prune the oldest Version (v1) before
+creating a new Version.
 
 # What's the oldest Version of a Resource?
 
