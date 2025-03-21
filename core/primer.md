@@ -720,7 +720,7 @@ The oldest Version of a Resource isn't necessarily the one with the oldest
 over the `createdat` attribute. This is because the ancestor tree more
 accurately describes an ordered lineage of the Versions than timestamps.
 
-# What does the `enforcecompatibility` attribute guarantee?
+# What does the `compatibilityauthority` attribute convey?
 
 The [`compatibility` attribute](spec.md#compatibility-attribute) is a
 statement made by the authority managing the registry about the
