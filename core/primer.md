@@ -682,7 +682,7 @@ hierarchy of Versions to facilitate compatibility checking when the
 [`compatibility` attribute](spec.md#compatibility-attribute) is set. There
 are cases in which it's desirable to create multiple roots. In some
 cases it may even be unavoidable, for example when the `maxversions`
-attribute (See `groups.resources.maxversions` under
+attribute (see `groups.resources.maxversions` under
 [Resource Model](spec.md#registry-model)) is set to a value that forces
 pruning of the Version tree. In such cases, when deleting the oldest Version,
 this could result in a new root being created when there are multiple
@@ -699,18 +699,18 @@ example, this can happen when attempting to create a new Version that would
 exceed the value set on the `groups.resources.maxversions` attribute of the
 [Resource Model](spec.md#registry-model), or when adjusting this attribute's
 value that is smaller than the number of existing Versions. In such
-scenarios, the server may be unable to prune Versions, when the `groups.
-resources.singleversionroot` attribute of the
+scenarios, the server may be unable to prune Versions, when the
+`groups.resources.singleversionroot` attribute of the
 [Resource Model](spec.md#registry-model) is set to `true` and the request
 must be rejected.
 
 Consider a scenario in which 3 Versions exist: v1 is the root (and therefore
 has its `ancestor` attribute set to v1), and v2 and v3 both have
-their `ancestor` attribute set to v1. In addition, the `groups.resources.
-maxversions` is set to 3. When creating a new Version, the server will find
-the oldest Version (v1) and attempt to prune it. However, deleting v1 would
-mean that v2 and v3 would become roots, as both of them would need to point
-to themselves. This is exactly the behavior that the
+their `ancestor` attribute set to v1. In addition, the
+`groups.resources.maxversions` is set to 3. When creating a new Version, the
+server will find the oldest Version (v1) and attempt to prune it. However,
+deleting v1 would mean that v2 and v3 would become roots, as both of them
+would need to point to themselves. This is exactly the behavior that the
 `groups.resources.singleversionroot` attribute prevents when set to `true`.
 Therefore, the server is unable to prune Versions and will block the
 creation of a new Version. To resolve this, the user will have to manually
@@ -728,8 +728,8 @@ accurately describes an ordered lineage of the Versions than timestamps.
 
 The [`compatibility` attribute](spec.md#compatibility-attribute) is a
 statement made by the authority managing the registry about the
-compatibility guarantees of the Resource. The authority is expected to
-guarantee the configured `compatibility`. The
+compatibility guarantees between Versions of the Resource. The authority is
+expected to guarantee the configured `compatibility`. The
 [`compatibilityauthority` attribute](spec.md#compatibilityauthority-attribute)
 represents who the enforcing authority is. Any requests to set the authority
 to the server when the server cannot perform compatibility checking will be
