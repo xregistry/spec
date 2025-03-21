@@ -5,11 +5,11 @@
 	"messagegroups": {
 		"WindGenerator.Events": {
 			"description": "Events for wind generator operations",
-			"protocol": "Kafka",
+			"protocol": "KAFKA",
 			"messages": {
 				"WindGenerator.PowerOutputUpdate": {
 					"description": "Event for wind generator power output update",
-					"protocol": "Kafka",
+					"protocol": "KAFKA",
 					"protocoloptions": {
 						"headers": {
                             "action": {
@@ -23,7 +23,7 @@
 				},
 				"WindGenerator.StatusChange": {
 					"description": "Event for wind generator status change",
-					"protocol": "Kafka",
+					"protocol": "KAFKA",
 					"protocoloptions": {
                         "headers": {
                             "action": {
