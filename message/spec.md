@@ -40,12 +40,12 @@ this form:
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": {
-    "modelversion": "1.0", ?
-    "compatiblewith": "https://github.com/xregistry/spec/blob/main/message/spec.md", ?
-    "STRING": "STRING" *
+      "STRING": "STRING" *
   }, ?
   "createdat": "TIMESTAMP",
   "modifiedat": "TIMESTAMP",
+  "modelversion": "1.0", ?
+  "compatiblewith": "https://raw.githubusercontent.com/xregistry/spec/refs/heads/main/message/model.json", ?
 
   "model": { ... }, ?
 
@@ -188,8 +188,8 @@ All message definitions MUST defined inside message groups.
 The formal xRegistry extension model of the Message Definitions Registry
 resides in the [model.json](model.json) file.
 
-By importing and keeping the `compatiblewith` label, interoperability on the
-CNCF defined endpoint model is stated.
+By importing and keeping the `compatiblewith` label and its value,
+interoperability on the CNCF defined endpoint model is stated.
 
 ### Message Definition Groups
 

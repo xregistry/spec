@@ -3,6 +3,8 @@
     "messagegroups": {
       "singular": "messagegroup",
       "plural": "messagegroups",
+      "modelversion": "1.0",
+      "compatiblewith": "https://raw.githubusercontent.com/xregistry/spec/refs/heads/main/message/model.json",
       "attributes": {
         "envelope": {
           "name": "envelope",

@@ -3,6 +3,8 @@
     "endpoints": {
       "singular": "endpoint",
       "plural": "endpoints",
+      "modelversion": "1.0",
+      "compatiblewith": "https://raw.githubusercontent.com/xregistry/spec/refs/heads/main/endpoint/model.json",
       "attributes": {
         "usage": {
           "name": "usage",

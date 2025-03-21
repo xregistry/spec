@@ -35,12 +35,12 @@ this form:
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": {
-    "modelversion": "1.0", ?
-    "compatiblewith": "https://github.com/xregistry/spec/blob/main/endpoint/spec.md", ?
-    "STRING": "STRING" *
+      "STRING": "STRING" *
   }, ?
   "createdat": "TIMESTAMP",
   "modifiedat": "TIMESTAMP",
+  "modelversion": "1.0", ?
+  "compatiblewith": "https://raw.githubusercontent.com/xregistry/spec/refs/heads/main/endpoint/model.json", ?
 
   "model": { ... }, ?
 
@@ -200,8 +200,8 @@ the Endpoint Registry are likewise `messages` as defined in the
 
 The resource model for endpoints can be found in [model.json](model.json).
 
-By importing and keeping the `compatiblewith` label, interoperability on the
-CNCF defined endpoint model is stated.
+By importing and keeping the `compatiblewith` label and its value,
+interoperability on the CNCF defined endpoint model is stated.
 
 ### Endpoints
 

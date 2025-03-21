@@ -3,14 +3,14 @@
     "schemagroups": {
       "singular": "schemagroup",
       "plural": "schemagroups",
-
+      "modelversion": "1.0",
+      "compatiblewith": "https://raw.githubusercontent.com/xregistry/spec/refs/heads/main/schema/model.json",
       "attributes": {
         "*": {
           "name": "*",
           "type": "any"
         }
       },
-
       "resources": {
         "schemas": {
           "singular": "schema",
