@@ -674,3 +674,85 @@ in the entity in order to be model compliant.
 
 Likewise, implementations of the server must validate the entire entity
 against the new model, not just a subset of the entity's attributes.
+
+# Multi-root ancestor hierarchies
+
+The [`ancestor` attribute](spec.md#ancestor-attribute) is used to build a
+hierarchy of Versions to facilitate compatibility checking when the
+[`compatibility` attribute](spec.md#compatibility-attribute) is set. There
+are cases in which it's desirable to create multiple roots. In some
+cases it may even be unavoidable, for example when the `maxversions`
+attribute (see `groups.resources.maxversions` under
+[Resource Model](spec.md#registry-model)) is set to a value that forces
+pruning of the Version tree. In such cases, when deleting the oldest Version,
+this could result in a new root being created when there are multiple
+decedents of the deleted Version.
+
+To signal that a Version represents a root of a hierarchy, the `ancestor`
+attribute has its value set to the Version's `versionid` attribute. This
+makes the ancestor explicit, and the possible ambiguity of using another
+value such as null which, based on the scenario, could mean "no ancestor" or
+"default to the latest".
+
+# Pruning Versions with `singleversionroot` enabled
+
+There are cases in which the server will need to prune Versions. For
+example, this can happen when attempting to create a new Version that would
+exceed the value set on the `groups.resources.maxversions` attribute of the
+[Resource Model](spec.md#registry-model), or when adjusting this attribute's
+value that is smaller than the number of existing Versions. In such
+scenarios, the server may be unable to prune Versions, when the
+`groups.resources.singleversionroot` attribute of the
+[Resource Model](spec.md#registry-model) is set to `true` and the request
+must be rejected.
+
+Consider a scenario in which 3 Versions exist: v1 is the root (and therefore
+has its `ancestor` attribute set to v1), and v2 and v3 both have
+their `ancestor` attribute set to v1. In addition, the
+`groups.resources.maxversions` is set to 3. When creating a new Version, the
+server will find the oldest Version (v1) and attempt to prune it. However,
+deleting v1 would mean that v2 and v3 would become roots, as both of them
+would need to point to themselves. This is exactly the behavior that the
+`groups.resources.singleversionroot` attribute prevents when set to `true`.
+Therefore, the server is unable to prune Versions and will block the
+creation of a new Version. To resolve this, the user will have to manually
+delete v2 or v3 to allow the server to prune the oldest Version (v1) before
+creating a new Version.
+
+# What's the oldest/newest Version of a Resource?
+
+The oldest Version of a Resource isn't necessarily the one with the oldest
+`createdat` timestamp, because the `ancestor` attribute takes precedence
+over the `createdat` attribute. This is because the ancestor tree more
+accurately describes an ordered lineage of the Versions than timestamps. In
+the case multiple Versions exist with the same `createdat` timestamp, those
+Versions are sorted in a ascending alphabetical order, and the first is the
+oldest Version.
+
+The newest Version of a Resource is selected by searching in the opposite
+direction: first identifying all leaves of the hierarchy (i.e. all Versions
+that are not used as ancestors for any other Versions), and then finding the
+one with the newest `createdat` timestamp. In the case that multiple
+Versions exist with the same `createdat` timestamp, those Versions are
+sorted in an descending alphabetical order, and the first is the newest
+Version.
+
+# What does the `compatibilityauthority` attribute convey?
+
+The [`compatibility` attribute](spec.md#compatibility-attribute) is a
+statement made by the authority managing the registry about the
+compatibility guarantees between Versions of the Resource. The authority is
+expected to guarantee the configured `compatibility`. The
+[`compatibilityauthority` attribute](spec.md#compatibilityauthority-attribute)
+represents who the enforcing authority is. Any requests to set the authority
+to the server when the server cannot perform compatibility checking will be
+refused. In cases where the hosting service isn't backed by an xRegistry
+implementation (e.g. blob-store), it is recommended that
+`compatibilityauthority` is set to `external` to accurately reflect the
+situation. However, there may be cases where it is appropriate to set it to
+`server`. For example, if the file-server based xRegistry is an alternative
+mechanism to retrieve data from another xRegistry service that did validate
+the data (i.e. it was exported to the file-server), and there's a desire to
+not expose this implementation/deployment choice to the end-user. In other
+words, the use of the file-server as a caching service should be transparent
+to their users.

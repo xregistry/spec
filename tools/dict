@@ -30,6 +30,7 @@ cncf
 collectionscount
 collectionsurl
 commonattributes
+compatibilityauthority
 compatiblewith
 config
 configendpoints
@@ -63,7 +64,6 @@ emoji
 endpointid
 endpointscount
 endpointsurl
-enforcecompatibility
 enum
 envelopemetadata
 envelopeoptions
@@ -205,6 +205,7 @@ sharedschema
 shortself
 shorturl
 siblingattributes
+singleversionroot
 singularid
 someattribute
 someattributes
