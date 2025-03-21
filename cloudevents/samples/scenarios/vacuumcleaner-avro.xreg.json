@@ -1,0 +1,426 @@
+{
+    "$schema": "https://cloudevents.io/schemas/registry",
+    "specversion": "0.5-wip",
+    "id": "urn:uuid:6e8bc430-9c3a-11d9-9669-0800200c9a66",
+    "messagegroups": {
+        "Fabrikam.RoboVac": {
+            "envelope": "CloudEvents/1.0",
+            "description": "Operational events for a Fabrikam robotic vacuum",
+            "messages": {
+                "Fabrikam.RoboVac.StartedCleaning": {
+                    "description": "Event for when the vacuum starts a cleaning session",
+                    "envelope": "CloudEvents/1.0",
+                    "envelopemetadata": {
+                        "id": {
+                            "required": true
+                        },
+                        "type": {
+                            "value": "Fabrikam.RoboVac.StartedCleaning",
+                            "description": "Event raised when the vacuum begins cleaning",
+                            "required": true
+                        },
+                        "source": {
+                            "type": "uritemplate",
+                            "description": "tenant and device identifier",
+                            "value": "{tenantid}/{deviceid}",
+                            "required": true
+                        },
+                        "subject": {
+                            "type": "string",
+                            "description": "identifier of the cleaning session"
+                        },
+                        "time": {
+                            "required": true
+                        }
+                    },
+                    "dataschemaformat": "Avro/1.11",
+                    "dataschemauri": "#/schemagroups/Fabrikam.RoboVac/schemas/Fabrikam.RoboVac.StartedCleaningEventData"
+                },
+                "Fabrikam.RoboVac.StoppedCleaning": {
+                    "description": "Event for when the vacuum stops a cleaning session",
+                    "envelope": "CloudEvents/1.0",
+                    "envelopemetadata": {
+                        "id": {
+                            "required": true
+                        },
+                        "type": {
+                            "value": "Fabrikam.RoboVac.StoppedCleaning",
+                            "description": "Event raised when the vacuum stops cleaning"
+                        },
+                        "source": {
+                            "type": "uritemplate",
+                            "description": "source of the event",
+                            "value": "{tenantid}/{deviceid}"
+                        },
+                        "subject": {
+                            "type": "string",
+                            "description": "identifier of the cleaning session"
+                        },
+                        "time": {
+                            "required": true
+                        }
+                    },
+                    "dataschemaformat": "Avro/1.11",
+                    "dataschemauri": "#/schemagroups/Fabrikam.RoboVac/schemas/Fabrikam.RoboVac.StoppedCleaningEventData"
+                },
+                "Fabrikam.RoboVac.Docked": {
+                    "description": "Event for when the vacuum returns to its docking station",
+                    "envelope": "CloudEvents/1.0",
+                    "envelopemetadata": {
+                        "id": {
+                            "required": true
+                        },
+                        "type": {
+                            "value": "Fabrikam.RoboVac.Docked",
+                            "description": "Event raised when the vacuum docks for charging or storage"
+                        },
+                        "source": {
+                            "type": "uritemplate",
+                            "description": "source of the event",
+                            "value": "{tenantid}/{deviceid}"
+                        },
+                        "subject": {
+                            "type": "string",
+                            "description": "identifier of the cleaning session"
+                        },
+                        "time": {
+                            "required": true
+                        }
+                    },
+                    "dataschemaformat": "Avro/1.11",
+                    "dataschemauri": "#/schemagroups/Fabrikam.RoboVac/schemas/Fabrikam.RoboVac.DockedEventData"
+                },
+                "Fabrikam.RoboVac.ErrorOccurred": {
+                    "description": "Event for when an error occurs during the vacuum's operation",
+                    "envelope": "CloudEvents/1.0",
+                    "envelopemetadata": {
+                        "id": {
+                            "required": true
+                        },
+                        "type": {
+                            "value": "Fabrikam.RoboVac.ErrorOccurred",
+                            "description": "Event raised when an error is detected in the vacuum's operation"
+                        },
+                        "source": {
+                            "type": "uritemplate",
+                            "description": "source of the event",
+                            "value": "{tenantid}/{deviceid}"
+                        },
+                        "subject": {
+                            "type": "string",
+                            "description": "identifier of the cleaning session"
+                        },
+                        "time": {
+                            "required": true
+                        }
+                    },
+                    "dataschemaformat": "Avro/1.11",
+                    "dataschemauri": "#/schemagroups/Fabrikam.RoboVac/schemas/Fabrikam.RoboVac.ErrorOccurredEventData"
+                },
+                "Fabrikam.RoboVac.Condition": {
+                    "description": "Event for when the vacuum reports its current condition",
+                    "envelope": "CloudEvents/1.0",
+                    "envelopemetadata": {
+                        "id": {
+                            "required": true
+                        },
+                        "type": {
+                            "value": "Fabrikam.RoboVac.Condition",
+                            "description": "Event raised when the vacuum reports its current condition"
+                        },
+                        "source": {
+                            "type": "uritemplate",
+                            "description": "source of the event",
+                            "value": "{tenantid}/{deviceid}"
+                        },
+                        "subject": {
+                            "type": "string",
+                            "description": "identifier of the cleaning session"
+                        },
+                        "time": {
+                            "required": true
+                        }
+                    },
+                    "dataschemaformat": "Avro/1.11",
+                    "dataschemauri": "#/schemagroups/Fabrikam.RoboVac/schemas/Fabrikam.RoboVac.ConditionEventData"
+                }
+            }
+        }
+    },
+    "schemagroups": {
+        "Fabrikam.RoboVac": {
+            "schemas": {
+                "Fabrikam.RoboVac.StartedCleaningEventData": {
+                    "format": "Avro/1.11",
+                    "versions": {
+                        "1": {
+                            "format": "Avro/1.11",
+                            "schema": {
+                                "type": "record",
+                                "name": "StartedCleaningEventData",
+                                "namespace": "Fabrikam.RoboVac",
+                                "doc": "Data schema for starting a cleaning session",
+                                "fields": [
+                                    {
+                                        "name": "tenantid",
+                                        "doc": "Tenant identifier",
+                                        "type": "string"
+                                    },
+                                    {
+                                        "name": "deviceid",
+                                        "doc": "Device identifier",
+                                        "type": "string"
+                                    },
+                                    {
+                                        "name": "startTime",
+                                        "doc": "Timestamp when the cleaning started",
+                                        "type": "string"
+                                    },
+                                    {
+                                        "name": "cleaningMode",
+                                        "doc": "The cleaning mode used",
+                                        "type": {
+                                            "type": "enum",
+                                            "name": "CleaningMode",
+                                            "symbols": [
+                                                "Quick",
+                                                "Normal",
+                                                "Deep"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "Fabrikam.RoboVac.StoppedCleaningEventData": {
+                    "format": "Avro/1.11",
+                    "versions": {
+                        "1": {
+                            "format": "Avro/1.11",
+                            "schema": {
+                                "type": "record",
+                                "name": "StoppedCleaningEventData",
+                                "namespace": "Fabrikam.RoboVac",
+                                "doc": "Data schema for stopping a cleaning session",
+                                "fields": [
+                                    {
+                                        "name": "tenantid",
+                                        "doc": "Tenant identifier",
+                                        "type": "string"
+                                    },
+                                    {
+                                        "name": "deviceid",
+                                        "doc": "Device identifier",
+                                        "type": "string"
+                                    },
+                                    {
+                                        "name": "stopTime",
+                                        "doc": "Timestamp when the cleaning stopped",
+                                        "type": "string"
+                                    },
+                                    {
+                                        "name": "cleaningResult",
+                                        "doc": "Result of the cleaning session",
+                                        "type": {
+                                            "type": "enum",
+                                            "name": "CleaningResult",
+                                            "symbols": [
+                                                "Success",
+                                                "Cancelled",
+                                                "Error"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "Fabrikam.RoboVac.DockedEventData": {
+                    "format": "Avro/1.11",
+                    "versions": {
+                        "1": {
+                            "format": "Avro/1.11",
+                            "schema": {
+                                "type": "record",
+                                "name": "DockedEventData",
+                                "namespace": "Fabrikam.RoboVac",
+                                "doc": "Data schema for docking event",
+                                "fields": [
+                                    {
+                                        "name": "tenantid",
+                                        "doc": "Tenant identifier",
+                                        "type": "string"
+                                    },
+                                    {
+                                        "name": "deviceid",
+                                        "doc": "Device identifier",
+                                        "type": "string"
+                                    },
+                                    {
+                                        "name": "dockTime",
+                                        "doc": "Timestamp when the vacuum docked",
+                                        "type": "string"
+                                    },
+                                    {
+                                        "name": "batteryLevel",
+                                        "doc": "Current battery level in percent",
+                                        "type": "float"
+                                    },
+                                    {
+                                        "name": "dockingReason",
+                                        "doc": "Reason for docking",
+                                        "type": {
+                                            "type": "enum",
+                                            "name": "DockingReason",
+                                            "symbols": [
+                                                "LowBattery",
+                                                "CleaningComplete",
+                                                "UserRequest"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "Fabrikam.RoboVac.ErrorOccurredEventData": {
+                    "format": "Avro/1.11",
+                    "versions": {
+                        "1": {
+                            "format": "Avro/1.11",
+                            "schema": {
+                                "type": "record",
+                                "name": "ErrorOccurredEventData",
+                                "namespace": "Fabrikam.RoboVac",
+                                "doc": "Data schema for an error occurrence event",
+                                "fields": [
+                                    {
+                                        "name": "tenantid",
+                                        "doc": "Tenant identifier",
+                                        "type": "string"
+                                    },
+                                    {
+                                        "name": "deviceid",
+                                        "doc": "Device identifier",
+                                        "type": "string"
+                                    },
+                                    {
+                                        "name": "errorTime",
+                                        "doc": "Timestamp when the error occurred",
+                                        "type": "string"
+                                    },
+                                    {
+                                        "name": "errorCode",
+                                        "doc": "Code identifying the error",
+                                        "type": {
+                                            "type": "enum",
+                                            "name": "ErrorCode",
+                                            "symbols": [
+                                                "BatteryLow",
+                                                "Stuck",
+                                                "Overheating",
+                                                "WheelError",
+                                                "BrushError",
+                                                "DustbinFull",
+                                                "Other"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "errorDescription",
+                                        "doc": "Description of the error",
+                                        "type": "string"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "Fabrikam.RoboVac.ConditionEventData": {
+                    "format": "Avro/1.11",
+                    "versions": {
+                        "1": {
+                            "format": "Avro/1.11",
+                            "schema": {
+                                "type": "record",
+                                "name": "ConditionEventData",
+                                "namespace": "Fabrikam.RoboVac",
+                                "doc": "Data schema for reporting the vacuum's condition",
+                                "fields": [
+                                    {
+                                        "name": "tenantid",
+                                        "doc": "Tenant identifier",
+                                        "type": "string"
+                                    },
+                                    {
+                                        "name": "deviceid",
+                                        "doc": "Device identifier",
+                                        "type": "string"
+                                    },
+                                    {
+                                        "name": "reportTime",
+                                        "doc": "Timestamp when the report was generated",
+                                        "type": "string"
+                                    },
+                                    {
+                                        "name": "batteryLevel",
+                                        "doc": "Current battery level in percent",
+                                        "type": "float"
+                                    },
+                                    {
+                                        "name": "cleaningMode",
+                                        "doc": "Current cleaning mode",
+                                        "type": {
+                                            "type": "enum",
+                                            "name": "CleaningMode",
+                                            "symbols": [
+                                                "Quick",
+                                                "Normal",
+                                                "Deep"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "status",
+                                        "doc": "Current status",
+                                        "type": {
+                                            "type": "enum",
+                                            "name": "Status",
+                                            "symbols": [
+                                                "Idle",
+                                                "Cleaning",
+                                                "Docked",
+                                                "Error"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "error",
+                                        "doc": "Error code if an error is detected",
+                                        "type": "string"
+                                    },
+                                    {
+                                        "name": "positionDistance",
+                                        "doc": "Distance from the docking station in meters",
+                                        "unit": "m",
+                                        "type": "float"
+                                    },
+                                    {
+                                        "name": "positionAngle",
+                                        "doc": "Angle from the docking station in radians",
+                                        "unit": "rad",
+                                        "type": "float"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
