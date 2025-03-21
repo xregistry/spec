@@ -4071,7 +4071,7 @@ and the following Resource level attributes:
     enforced across all existing Versions. If that's not the case, the
     server MUST generate an error.
 
-#### `compatibilityauthority`
+#### `compatibilityauthority` Attribute
 - Name: `compatibilityauthority`
 - Type: Boolean
 - Description: Indicates the authority that enforces the `compatibility`

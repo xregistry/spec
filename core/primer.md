@@ -690,6 +690,29 @@ pruning of the Version tree. In such cases, when deleting the oldest version,
 this could result in a new root being created when there are multiple
 decedents of the deleted Version.
 
+# Creating versions with `singleversionroot` and a `maxversions` limit
+
+When the `groups.resources.maxversions` attribute of the [Resource
+Model](spec.md#registry-model) is set to a specified value for a Resource, the
+server will prune versions when attempting to create a new version that would
+exceed this value. However, there may be cases in which the creation of new
+versions may be blocked, due to server being unable to prune versions.
+This may occur when the `groups.resources.singleversionroot` attribute of
+the [Resource Model](spec.md#registry-model) is set to `true`.
+
+Consider a scenario in which 3 versions exist: v1 is the root (and therefore
+has its `ancestor` attribute set to its `versionid`), and v2 and v2 both have
+their `ancestor` attribute set to v1. In addition, the `groups.resources.
+maxversions` is set to 3. When creating a new version, the server will find
+the oldest version (v1) and attempt to prune it. However, deleting v1 would
+mean that v2 and v3 would become roots, as both of them would need to point
+to themselves. This is exactly the behavior that the
+`groups.resources.singleversionroot` attribute prevents when set to `true`.
+Therefore, the server is unable to prune versions and will block the
+creation of a new version. To resolve this, the user will have to manually
+delete v2 or v3 to allow the server to prune the oldest version (v1) before
+creating a new version.
+
 # What's the oldest Version of a Resource?
 
 The oldest Version of a Resource isn't necessarily the one with the oldest
@@ -699,14 +722,16 @@ accurately describes an ordered lineage of the Versions than timestamps.
 
 # What does the `enforcecompatibility` attribute guarantee?
 
-The `compatibility` attribute is a statement made by the authority managing the
-registry about the compatibility guarantees of the Resource. The authority
-is expected to guarantee the configured `compatibility`. The
-`compatibilityauthority` attribute represents who the enforcing authority is.
-Any requests to set the authority to the server when the server cannot
-perform compatibility checking will be refused. However, in cases where the
-registry is hosted on a file-server or blob storage, there is no real server
-that has the ability to validate such requests. In such cases, the
-`compatibilityauthority` attribute could be set to `server` while the server
-has no ability to enforce compatibility. It's recommended that, in such
-cases, the `compatibilityauthority` attribute is set to `external`.
+The [`compatibility` attribute](spec.md#compatibility-attribute) is a
+statement made by the authority managing the registry about the
+compatibility guarantees of the Resource. The authority is expected to
+guarantee the configured `compatibility`. The
+[`compatibilityauthority` attribute](spec.md#compatibilityauthority-attribute)
+represents who the enforcing authority is. Any requests to set the authority
+to the server when the server cannot perform compatibility checking will be
+refused. However, in cases where the registry is hosted on a file-server or
+blob storage, there is no real server that has the ability to validate such
+requests. In such cases, the `compatibilityauthority` attribute could be set
+to `server` while the server has no ability to enforce compatibility. It's
+recommended that, in such cases, the `compatibilityauthority` attribute is
+set to `external`.
