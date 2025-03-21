@@ -11,13 +11,7 @@
                     {
                         "url": "mqtt://mqttbroker1.example.com:1883"
                     }
-                ],
-                "qos": {
-                    "value": 1
-                },
-                "retain": {
-                    "value": false
-                }
+                ]
             },
             "messagegroups": [
                 "#/messagegroups/WaterBoiler.Events"
@@ -32,10 +26,7 @@
                     {
                         "url": "mqtt://mqttbroker1.example.com:1883"
                     }
-                ],
-                "qos": {
-                    "value": 1
-                }
+                ]
             },
             "messagegroups": [
                 "#/messagegroups/WaterBoiler.Events"
@@ -51,9 +42,9 @@
                     "description": "Event for water boiler temperature update",
                     "protocol": "MQTT/5.0",
                     "protocoloptions": {
-                        "topic-name": {
-                            "value": "waterboiler/{boilerId}/temperature"
-                        }
+                        "topic_name": "waterboiler/{boilerId}/temperature",
+                        "qos": 1,
+                        "retain": false
                     },
                     "dataschemaformat": "JSONSchema/Draft-07",
                     "dataschemauri": "#/schemagroups/WaterBoiler/schemas/WaterBoiler.TemperatureUpdateEventData"
@@ -62,9 +53,9 @@
                     "description": "Event for water boiler status change",
                     "protocol": "MQTT/5.0",
                     "protocoloptions": {
-                        "topic-name": {
-                            "value": "waterboiler/{boilerId}/status"
-                        }
+                        "topic_name": "waterboiler/{boilerId}/status",
+                        "qos": 1,
+                        "retain": false
                     },
                     "dataschemaformat": "JSONSchema/Draft-07",
                     "dataschemauri": "#/schemagroups/WaterBoiler/schemas/WaterBoiler.StatusChangeEventData"
