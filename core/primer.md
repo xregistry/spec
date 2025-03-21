@@ -675,18 +675,22 @@ in the entity in order to be model compliant.
 Likewise, implementations of the server must validate the entire entity
 against the new model, not just a subset of the entity's attributes.
 
-# Why are `ancestor` attributes that point to themselves allowed?
+# Multi-root ancestor hierarchies
 
 The [`ancestor` attribute](spec.md#ancestor-attribute) is used to build a
 hierarchy of Versions to facilitate compatibility checking when the
-[`compatibility` attribute](spec.md#compatibility-attribute) is set.
-There are cases in which it's desirable to create multiple roots. In some
+[`compatibility` attribute](spec.md#compatibility-attribute) is set. There
+are cases in which it's desirable to create multiple roots. In some
 cases it may even be unavoidable, for example when the `maxversions`
-attribute (See `groups.resources.maxversions` under [Resource Model](spec.
-md#registry-model)) is set to a value that forces pruning of the Version
-tree. In such cases, when deleting the oldest Version, this could result in
-a new root being created when there are multiple decedents of the deleted
-Version.
+attribute (See `groups.resources.maxversions` under
+[Resource Model](spec.md#registry-model)) is set to a value that forces
+pruning of the Version tree. In such cases, when deleting the oldest Version,
+this could result in a new root being created when there are multiple
+decedents of the deleted Version.
+
+To signal that a Version represents a root of a hierarchy, the `ancestor`
+attribute has its value set to the Version's `versionid` attribute. This
+makes the ancestor explicit, and avoids ambiguity.
 
 # Pruning Versions with `singleversionroot` enabled
 
@@ -694,10 +698,11 @@ There are cases in which the server will need to prune Versions. For
 example, this can happen when attempting to create a new Version that would
 exceed the value set on the `groups.resources.maxversions` attribute of the
 [Resource Model](spec.md#registry-model), or when adjusting this attribute's
-value that is smaller than the number of existing versions. In such
-scenarios, the server may be unable to prune versions, when the `groups.
-resources.singleversionroot` attribute of the [Resource Model](spec.
-md#registry-model) is set to `true` and the request must be rejected.
+value that is smaller than the number of existing Versions. In such
+scenarios, the server may be unable to prune Versions, when the `groups.
+resources.singleversionroot` attribute of the
+[Resource Model](spec.md#registry-model) is set to `true` and the request
+must be rejected.
 
 Consider a scenario in which 3 Versions exist: v1 is the root (and therefore
 has its `ancestor` attribute set to v1), and v2 and v3 both have
