@@ -1,0 +1,199 @@
+{
+    "$schema": "https://cloudevents.io/schemas/registry",
+    "specversion": "0.5-wip",
+    "id": "urn:uuid:6e8bc430-9c3a-11d9-9669-0800200c9a66",
+    "messagegroups": {
+        "Fabrikam.SmartOven": {
+            "envelope": "CloudEvents/1.0",
+            "description": "State change events for a Fabrikam smart oven",
+            "messages": {
+                "Fabrikam.SmartOven.TurnedOn": {
+                    "description": "Event for when the oven is turned on with settings",
+                    "envelope": "CloudEvents/1.0",
+                    "envelopemetadata": {
+                        "id": {
+                            "required": true
+                        },
+                        "type": {
+                            "value": "Fabrikam.SmartOven.TurnedOn",
+                            "description": "Event raised when the oven is turned on"
+                        },
+                        "source": {
+                            "type": "uritemplate",
+                            "description": "source of the event",
+                            "value": "{tenantid}/{deviceid}"
+                        },
+                        "subject": {
+                            "type": "string",
+                            "description": "subject of the event"
+                        },
+                        "time": {
+                            "required": true
+                        }
+                    },
+                    "dataschemaformat": "XMLSchema/1.1",
+                    "dataschemauri": "#/schemagroups/Fabrikam.SmartOven/schemas/Fabrikam.SmartOven.TurnedOnEventData"
+                },
+                "Fabrikam.SmartOven.TurnedOff": {
+                    "description": "Event for when the oven is turned off",
+                    "envelope": "CloudEvents/1.0",
+                    "envelopemetadata": {
+                        "id": {
+                            "required": true
+                        },
+                        "type": {
+                            "value": "Fabrikam.SmartOven.TurnedOff",
+                            "description": "Event raised when the oven is turned off"
+                        },
+                        "source": {
+                            "type": "uritemplate",
+                            "description": "source of the event",
+                            "value": "{tenantid}/{deviceid}"
+                        },
+                        "subject": {
+                            "type": "string",
+                            "description": "subject of the event"
+                        },
+                        "time": {
+                            "required": true
+                        }
+                    },
+                    "dataschemaformat": "XMLSchema/1.1",
+                    "dataschemauri": "#/schemagroups/Fabrikam.SmartOven/schemas/Fabrikam.SmartOven.TurnedOffEventData"
+                },
+                "Fabrikam.SmartOven.TimerSet": {
+                    "description": "Event for when a timer is set on the oven",
+                    "envelope": "CloudEvents/1.0",
+                    "envelopemetadata": {
+                        "id": {
+                            "required": true
+                        },
+                        "type": {
+                            "value": "Fabrikam.SmartOven.TimerSet",
+                            "description": "Event raised when a timer is set"
+                        },
+                        "source": {
+                            "type": "uritemplate",
+                            "description": "source of the event",
+                            "value": "{tenantid}/{deviceid}"
+                        },
+                        "subject": {
+                            "type": "string",
+                            "description": "subject of the event"
+                        },
+                        "time": {
+                            "required": true
+                        }
+                    },
+                    "dataschemaformat": "XMLSchema/1.1",
+                    "dataschemauri": "#/schemagroups/Fabrikam.SmartOven/schemas/Fabrikam.SmartOven.TimerSetEventData"
+                },
+                "Fabrikam.SmartOven.TimerCompleted": {
+                    "description": "Event for when a timer completes",
+                    "envelope": "CloudEvents/1.0",
+                    "envelopemetadata": {
+                        "id": {
+                            "required": true
+                        },
+                        "type": {
+                            "value": "Fabrikam.SmartOven.TimerCompleted",
+                            "description": "Event raised when a timer completes"
+                        },
+                        "source": {
+                            "type": "uritemplate",
+                            "description": "source of the event",
+                            "value": "{tenantid}/{deviceid}"
+                        },
+                        "subject": {
+                            "type": "string",
+                            "description": "subject of the event"
+                        },
+                        "time": {
+                            "required": true
+                        }
+                    },
+                    "dataschemaformat": "XMLSchema/1.1",
+                    "dataschemauri": "#/schemagroups/Fabrikam.SmartOven/schemas/Fabrikam.SmartOven.TimerCompletedEventData"
+                },
+                "Fabrikam.SmartOven.PreheatingFinished": {
+                    "description": "Event for when preheating is finished",
+                    "envelope": "CloudEvents/1.0",
+                    "envelopemetadata": {
+                        "id": {
+                            "required": true
+                        },
+                        "type": {
+                            "value": "Fabrikam.SmartOven.PreheatingFinished",
+                            "description": "Event raised when preheating is finished"
+                        },
+                        "source": {
+                            "type": "uritemplate",
+                            "description": "source of the event",
+                            "value": "{tenantid}/{deviceid}"
+                        },
+                        "subject": {
+                            "type": "string",
+                            "description": "subject of the event"
+                        },
+                        "time": {
+                            "required": true
+                        }
+                    },
+                    "dataschemaformat": "XMLSchema/1.1",
+                    "dataschemauri": "#/schemagroups/Fabrikam.SmartOven/schemas/Fabrikam.SmartOven.PreheatingFinishedEventData"
+                }
+            }
+        }
+    },
+    "schemagroups": {
+        "Fabrikam.SmartOven": {
+            "schemas": {
+                "Fabrikam.SmartOven.TurnedOnEventData": {
+                    "format": "XMLSchema/1.1",
+                    "versions": {
+                        "1": {
+                            "format": "XMLSchema/1.1",
+                            "schema": "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:vc=\"http://www.w3.org/2007/XMLSchema-versioning\" vc:minVersion=\"1.1\">\n  <xs:element name=\"TurnedOnEventData\">\n    <xs:complexType>\n      <xs:sequence>\n        <xs:element name=\"tenantid\" type=\"xs:string\"/>\n        <xs:element name=\"deviceid\" type=\"xs:string\"/>\n        <xs:element name=\"temperatureF\" type=\"xs:int\"/>\n        <xs:element name=\"temperatureC\" type=\"xs:int\"/>\n        <xs:element name=\"mode\">\n          <xs:simpleType>\n            <xs:restriction base=\"xs:string\">\n              <xs:enumeration value=\"Microwave\"/>\n              <xs:enumeration value=\"TopHeat\"/>\n              <xs:enumeration value=\"BottomHeat\"/>\n              <xs:enumeration value=\"TopBottomHeat\"/>\n              <xs:enumeration value=\"Convection\"/>\n            </xs:restriction>\n          </xs:simpleType>\n        </xs:element>\n      </xs:sequence>\n    </xs:complexType>\n  </xs:element>\n</xs:schema>"
+                        }
+                    }
+                },
+                "Fabrikam.SmartOven.TurnedOffEventData": {
+                    "format": "XMLSchema/1.1",
+                    "versions": {
+                        "1": {
+                            "format": "XMLSchema/1.1",
+                            "schema": "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:vc=\"http://www.w3.org/2007/XMLSchema-versioning\" vc:minVersion=\"1.1\">\n  <xs:element name=\"TurnedOffEventData\">\n    <xs:complexType>\n      <xs:sequence>\n        <xs:element name=\"tenantid\" type=\"xs:string\"/>\n        <xs:element name=\"deviceid\" type=\"xs:string\"/>\n      </xs:sequence>\n    </xs:complexType>\n  </xs:element>\n</xs:schema>"
+                        }
+                    }
+                },
+                "Fabrikam.SmartOven.TimerSetEventData": {
+                    "format": "XMLSchema/1.1",
+                    "versions": {
+                        "1": {
+                            "format": "XMLSchema/1.1",
+                            "schema": "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:vc=\"http://www.w3.org/2007/XMLSchema-versioning\" vc:minVersion=\"1.1\">\n  <xs:element name=\"TimerSetEventData\">\n    <xs:complexType>\n      <xs:sequence>\n        <xs:element name=\"tenantid\" type=\"xs:string\"/>\n        <xs:element name=\"deviceid\" type=\"xs:string\"/>\n        <xs:element name=\"timerType\">\n          <xs:simpleType>\n            <xs:restriction base=\"xs:string\">\n              <xs:enumeration value=\"Standard\"/>\n              <xs:enumeration value=\"Smart\"/>\n            </xs:restriction>\n          </xs:simpleType>\n        </xs:element>\n        <xs:element name=\"duration\" type=\"xs:int\"/>\n      </xs:sequence>\n    </xs:complexType>\n  </xs:element>\n</xs:schema>"
+                        }
+                    }
+                },
+                "Fabrikam.SmartOven.TimerCompletedEventData": {
+                    "format": "XMLSchema/1.1",
+                    "versions": {
+                        "1": {
+                            "format": "XMLSchema/1.1",
+                            "schema": "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:vc=\"http://www.w3.org/2007/XMLSchema-versioning\" vc:minVersion=\"1.1\">\n  <xs:element name=\"TimerCompletedEventData\">\n    <xs:complexType>\n      <xs:sequence>\n        <xs:element name=\"tenantid\" type=\"xs:string\"/>\n        <xs:element name=\"deviceid\" type=\"xs:string\"/>\n        <xs:element name=\"duration\" type=\"xs:int\"/>\n      </xs:sequence>\n    </xs:complexType>\n  </xs:element>\n</xs:schema>"
+                        }
+                    }
+                },
+                "Fabrikam.SmartOven.PreheatingFinishedEventData": {
+                    "format": "XMLSchema/1.1",
+                    "versions": {
+                        "1": {
+                            "format": "XMLSchema/1.1",
+                            "schema": "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:vc=\"http://www.w3.org/2007/XMLSchema-versioning\" vc:minVersion=\"1.1\">\n  <xs:element name=\"PreheatingFinishedEventData\">\n    <xs:complexType>\n      <xs:sequence>\n        <xs:element name=\"tenantid\" type=\"xs:string\"/>\n        <xs:element name=\"deviceid\" type=\"xs:string\"/>\n        <xs:element name=\"temperatureF\" type=\"xs:int\"/>\n        <xs:element name=\"temperatureC\" type=\"xs:int\"/>\n      </xs:sequence>\n    </xs:complexType>\n  </xs:element>\n</xs:schema>"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
