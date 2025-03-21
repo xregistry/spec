@@ -247,7 +247,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "modifiedat": "TIMESTAMP",             # Resource's
             "readonly": BOOLEAN,                   # Default=false
             "compatibility": "STRING",             # Default=none
-            "enforcecompatibility": BOOLEAN,       # Default=false
+            "compatibilityauthority": "STRING",    # Default=external
 
             "defaultversionid": "STRING",
             "defaultversionurl": "URL",
@@ -3946,7 +3946,7 @@ Resource attribute MUST adhere to the following:
     "modifiedat": "TIMESTAMP",             # Resource's
     "readonly": BOOLEAN,                   # Default=false
     "compatibility": "STRING",             # Default=none
-    "enforcecompatibility": BOOLEAN,       # Default=false
+    "compatibilityauthority": "STRING",    # Default=external
 
     "defaultversionid": "STRING",
     "defaultversionurl": "URL",
@@ -4035,7 +4035,7 @@ and the following Resource level attributes:
   Implementations MUST include `none` as one of the possible values and when
   set to `none` then compatibility checking MUST NOT be performed.
 
-  If the `enforcecompatibility` attribute is set to `true` then
+  If the `compatibilityauthority` attribute is set to `server` then
   implementations of this specification are REQUIRED to perform the proper
   compatibility checks to ensure that all Versions of a Resource adhere to the
   rules defined by the current value of this attribute.
@@ -4071,12 +4071,18 @@ and the following Resource level attributes:
     enforced across all existing Versions. If that's not the case, the
     server MUST generate an error.
 
-#### `enforcecompatibility`
-- Name: `enforcecompatibility`
+#### `compatibilityauthority`
+- Name: `compatibilityauthority`
 - Type: Boolean
-- Description: Indicates a request to the server to enforce the `compatibility`
+- Description: Indicates the authority that enforces the `compatibility`
   value defined by the owning Resource.
-  When set to `true`:
+
+  This specification defines the following enumeration values. Implementations
+  MAY choose to extend this list.
+  - `external` - The compatibility is enforced by an external authority.
+  - `server` - The compatibility is enforced by the server.
+
+  When set to `server`:
   1. The server MUST reject the request if the server cannot enforce the
      compatibility for the data to be validated for the Resource's Versions.
   1. The server MUST reject all attempts to create/update a Resource (or its
@@ -4086,12 +4092,13 @@ and the following Resource level attributes:
      attribute value if any of the Resource's Versions would violate the
      compatibility rules.
 
-  A value of `false` indicates that the server MUST NOT perform any
-  compatibility checking.
+  A value of `external` indicates that the server MUST NOT perform any
+  compatibility checking and that the compatibility checking is performed by
+  an external authority.
 
-  Attempts to change this value from `false` to `true` MUST result in
-  the validation of existing Versions.
-- When not specified, the default value MUST be `false`.
+  Attempts to change this value to `server` MUST result in the validation of
+  existing Versions.
+- When not specified, the default value MUST be `external`.
 
 ##### `defaultversionid` Attribute
 - Type: String
@@ -4431,7 +4438,7 @@ this form:
     "modifiedat": "TIMESTAMP",             # Resource's
     "readonly": BOOLEAN,                   # Default=false
     "compatibility": "STRING",             # Default=none
-    "enforcecompatibility": BOOLEAN,       # Default=false
+    "compatibilityauthority": "STRING",    # Default=external
 
     "defaultversionid": "STRING",
     "defaultversionurl": "URL",
@@ -4561,7 +4568,7 @@ then the resulting serialization of the source Resource would be:
     "modifiedat": "2024-01-01-T12:01:00",
     "readonly": false,
     "compatibility": "none",
-    "enforcecompatibility": false
+    "compatibilityauthority": "external",
   },
   "versionscount": 1,
   "versionsurl": "http://example.com/schemagroups/group1/schemas/mySchema/versions"
@@ -4759,7 +4766,7 @@ Link: <URL>;rel=next;count=UINTEGER ?
       "modifiedat": "TIMESTAMP",             # Resource's
       "readonly": BOOLEAN,                   # Default=false
       "compatibility": "STRING",             # Default=none
-      "enforcecompatibility": BOOLEAN,       # Default=false
+      "compatibilityauthority": "STRING",    # Default=external
 
       "defaultversionid": "STRING",
       "defaultversionurl": "URL",
@@ -4946,7 +4953,7 @@ in the request MUST adhere to the following:
     "modifiedat": "TIMESTAMP",
     "readonly": BOOLEAN,
     "compatibility": "STRING",
-    "enforcecompatibility": BOOLEAN,
+    "compatibilityauthority": "STRING",
 
     "defaultversionid": "STRING",
     "defaultversionurl": "URL",
@@ -5307,7 +5314,7 @@ ETag: "UINTEGER"
     "modifiedat": "TIMESTAMP",
     "readonly": BOOLEAN,
     "compatibility": "STRING",
-    "enforcecompatibility": BOOLEAN,
+    "compatibilityauthority": "STRING",
 
     "defaultversionid": "STRING",
     "defaultversionurl": "URL",
@@ -6362,7 +6369,7 @@ the following:
     "modifiedat": "TIMESTAMP",
     "readonly": BOOLEAN,
     "compatibility": "STRING",
-    "enforcecompatibility": BOOLEAN,
+    "compatibilityauthority": "STRING",
 
     "defaultversionid": "STRING",
     "defaultversionurl": "URL"

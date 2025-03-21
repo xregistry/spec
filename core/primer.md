@@ -702,12 +702,11 @@ accurately describes an ordered lineage of the Versions than timestamps.
 The `compatibility` attribute is a statement made by the authority managing the
 registry about the compatibility guarantees of the Resource. The authority
 is expected to guarantee the configured `compatibility`. The
-`enforcecompatibility` attribute represents a request to the server to
-enforce the compatibility when it is set to `true`. Any requests to enforce
-the compatibility when the server cannot perform compatibility checking will
-be refused. However, in cases where the registry is hosted on a file-server
-or blob storage, there is no real server that has the ability to validate
-such requests. In such cases, the `enforcecompatibility` attribute could be
-set to `true` while the server has no ability to enforce compatibility.
-It's recommended that, in such cases, the `enforcecompatibility` attribute
-is set to `false`, but there's no way to enforce it.
+`compatibilityauthority` attribute represents who the enforcing authority is.
+Any requests to set the authority to the server when the server cannot
+perform compatibility checking will be refused. However, in cases where the
+registry is hosted on a file-server or blob storage, there is no real server
+that has the ability to validate such requests. In such cases, the
+`compatibilityauthority` attribute could be set to `server` while the server
+has no ability to enforce compatibility. It's recommended that, in such
+cases, the `compatibilityauthority` attribute is set to `external`.
