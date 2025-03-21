@@ -229,7 +229,7 @@
             "readonly": {
               "name": "readonly",
               "type": "boolean",
-              "readonly": true
+              "readonly": true,
               "serverrequired": true,
               "default": false
             },
@@ -237,9 +237,16 @@
               "name": "compatibility",
               "type": "string",
               "enum": [ "none", "backward", "backward_transitive", "forward",
-                        "forward_transitive", "full", "full_transitive" ]
+                        "forward_transitive", "full", "full_transitive" ],
               "serverrequired": true,
               "default": "none"
+            },
+            "compatibilityauthority": {
+              "name": "compatibilityauthority",
+              "type": "string",
+              "enum": [ "external", "server" ],
+              "serverrequired": true,
+              "default": "external"
             },
             "defaultversionid": {
               "name": "defaultversionid",
@@ -250,7 +257,7 @@
               "name": "defaultversionurl",
               "type": "url",
               "readonly": true,
-              "serverrequired": true,
+              "serverrequired": true
             }
             "defaultversionsticky": {
               "name": "defaultversionsticky",
