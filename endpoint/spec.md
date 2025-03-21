@@ -385,7 +385,6 @@ The following attributes are defined for Endpoints:
     or on the syntax of the `VERSION` value
 - Examples:
   - `CloudEvents/1.0`
-  - `MQTT`
 
 ### `envelopeoptions`
 
@@ -430,18 +429,13 @@ This specification defines the following envelope options for the indicated
   protocol specification's usage of versions.
 
   The predefined protocol names are:
-  - "HTTP/1.1", "HTTP/2", "HTTP/3" - Use the *lowest* HTTP version
-    that the endpoints supports; that is commonly "HTTP/1.1". The default
-    version is "HTTP/1.1" and MAY be shortened to "HTTP".
+  - "HTTP" - Used for HTTP/1.1, HTTP/2, HTTP/3.
   - "AMQP/1.0" - Use the [AMQP 1.0][AMQP 1.0] protocol. MAY be shortened to
     "AMQP". AMQP draft versions before 1.0 (e.g. 0.9) are *not* AMQP.
   - "MQTT/3.1.1", "MQTT/5.0" - Use the MQTT [3.1.1][MQTT 3.1.1] or [5.0][MQTT
     5.0] protocol. The shorthand "MQTT" maps to "MQTT/5.0".
-  - "NATS/1.0.0" - Use the [NATS][NATS] protocol. MAY be shortened to "NATS",
-  - Which assumes usage of the latest NATS clients.
-  - "KAFKA/3.5" - Use the [Apache Kafka][Apache Kafka] protocol. MAY be
-    shortened to "KAFKA", which assumes usage of the latest Apache Kafka
-    clients.
+  - "NATS" - Use the [NATS][NATS] protocol.
+  - "KAFKA" - Use the [Apache Kafka][Apache Kafka] protocol.
 
   All messages inside an Endpoint MUST use this same protocol
 - Constraints:
@@ -453,7 +447,7 @@ This specification defines the following envelope options for the indicated
 - Examples:
   - `MQTT/3.1.1`
   - `AMQP/1.0`
-  - `Kafka/0.11`
+  - `KAFKA`
 
 #### `protocoloptions`
 
@@ -464,39 +458,6 @@ This specification defines the following envelope options for the indicated
 
 - Constraints:
   - OPTIONAL
-
-#### `protocoloptions.protocol`
-
-- Type: String
-- Description: The transport or application protocol used by the endpoint. This
-  specification defines a set of common protocol names that MUST be used for
-  respective protocol endpoints, but implementations MAY define and use
-  additional protocol names.
-
-  Predefined protocols are referred to by name and version as
-  `{NAME}/{VERSION}`. When the version is not specified, the default version of
-  the protocol is assumed. The version number format is determined by the
-  protocol specification's usage of versions.
-
-  The predefined protocol names are:
-  - "HTTP/1.1", "HTTP/2", "HTTP/3" - Use the *lowest* HTTP version
-    that the endpoints supports; that is commonly "HTTP/1.1". The default
-    version is "HTTP/1.1" and MAY be shortened to "HTTP".
-  - "AMQP/1.0" - Use the [AMQP 1.0][AMQP 1.0] protocol. MAY be shortened to
-    "AMQP". AMQP draft versions before 1.0 (e.g. 0.9) are *not* AMQP.
-  - "MQTT/3.1.1", "MQTT/5.0" - Use the MQTT [3.1.1][MQTT 3.1.1] or [5.0][MQTT
-    5.0] protocol. The shorthand "MQTT" maps to "MQTT/5.0".
-  - "NATS/1.0.0" - Use the [NATS][NATS] protocol. MAY be shortened to "NATS",
-  - Which assumes usage of the latest NATS clients.
-  - "KAFKA/3.5" - Use the [Apache Kafka][Apache Kafka] protocol. MAY be
-    shortened to "KAFKA", which assumes usage of the latest Apache Kafka
-    clients.
-
-  An example for an extension protocol identifier might be "BunnyMQ/0.9.1".
-
-- Constraints:
-  - REQUIRED
-  - MUST be a non-empty string.
 
 #### `protocoloptions.endpoints`
 
