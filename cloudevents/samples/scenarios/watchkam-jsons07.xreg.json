@@ -1,0 +1,246 @@
+{
+    "$schema": "https://cloudevents.io/schemas/registry",
+    "specversion": "0.5-wip",
+    "id": "urn:uuid:6e8bc430-9c3a-11d9-9669-0800200c9a66",
+    "messagegroups": {
+        "Fabrikam.Watchkam": {
+            "envelope": "CloudEvents/1.0",
+            "description": "State change events for a Fabrikam security camera",
+            "messages": {
+                "Fabrikam.Watchkam.MotionDetected": {
+                    "description": "Event for when motion is detected",
+                    "envelope": "CloudEvents/1.0",
+                    "envelopemetadata": {
+                        "id": {
+                            "required": true
+                        },
+                        "type": {
+                            "value": "Fabrikam.Watchkam.MotionDetected",
+                            "description": "Event raised when motion is detected"
+                        },
+                        "source": {
+                            "type": "uritemplate",
+                            "description": "source of the event",
+                            "value": "{tenantid}/{deviceid}"
+                        },
+                        "subject": {
+                            "type": "string",
+                            "description": "motion identifier"
+                        },
+                        "time": {
+                            "required": true
+                        }
+                    },
+                    "protocol": "Kafka",
+                    "protocoloptions": {
+                        "headers": {
+                            "action": {
+                                "value": "motiondetected"
+                            },
+                            "deviceId": {
+                                "type": "uritemplate",
+                                "value": "{deviceid}"
+                            }
+                        }
+                    },
+                    "dataschemaformat": "JSONSchema/Draft-07",
+                    "dataschemauri": "#/schemagroups/Fabrikam.Watchkam/schemas/Fabrikam.Watchkam.MotionDetectedEventData"
+                },
+                "Fabrikam.Watchkam.MotionEnded": {
+                    "description": "Event for when detected motion has ended",
+                    "envelope": "CloudEvents/1.0",
+                    "envelopemetadata": {
+                        "id": {
+                            "required": true
+                        },
+                        "type": {
+                            "value": "Fabrikam.Watchkam.MotionEnded",
+                            "description": "Event raised when detected motion has ended"
+                        },
+                        "source": {
+                            "type": "uritemplate",
+                            "description": "source of the event",
+                            "value": "{deviceid}"
+                        },
+                        "subject": {
+                            "type": "string",
+                            "description": "motion identifier"
+                        },
+                        "time": {
+                            "required": true
+                        }
+                    },
+                    "protocol": "Kafka",
+                    "protocoloptions": {
+                        "headers": {
+                            "action": {
+                                "value": "motionended"
+                            },
+                            "deviceId": {
+                                "type": "uritemplate",
+                                "value": "{deviceid}"
+                            }
+                        }
+                    },
+                    "dataschemaformat": "JSONSchema/Draft-07",
+                    "dataschemauri": "#/schemagroups/Fabrikam.Watchkam/schemas/Fabrikam.Watchkam.MotionEndedEventData"
+                }
+            }
+        }
+    },
+    "schemagroups": {
+        "Fabrikam.Watchkam": {
+            "schemas": {
+                "Fabrikam.Watchkam.MotionDetectedEventData": {
+                    "format": "JSONSchema/Draft-07",
+                    "versions": {
+                        "1": {
+                            "format": "JSONSchema/Draft-07",
+                            "schema": {
+                                "$schema": "http://json-schema.org/draft-07/schema#",
+                                "title": "MotionDetectedEventData",
+                                "description": "Data schema for motion detection event",
+                                "type": "object",
+                                "properties": {
+                                    "tenantid": {
+                                        "type": "string",
+                                        "description": "Tenant identifier"
+                                    },
+                                    "deviceid": {
+                                        "type": "string",
+                                        "description": "Device identifier"
+                                    },
+                                    "motionid": {
+                                        "type": "string",
+                                        "description": "Motion identifier"
+                                    },
+                                    "location": {
+                                        "type": "string",
+                                        "description": "Location of detected motion"
+                                    },
+                                    "time": {
+                                        "type": "integer",
+                                        "description": "Time of detected motion"
+                                    },
+                                    "imageUrl": {
+                                        "type": "string",
+                                        "description": "URL of the image captured during motion"
+                                    }
+                                },
+                                "required": [
+                                    "tenantid",
+                                    "deviceid",
+                                    "motionid",
+                                    "location",
+                                    "time",
+                                    "imageUrl"
+                                ]
+                            }
+                        },
+                        "2": {
+                            "format": "JSONSchema/Draft-07",
+                            "schema": {
+                                "$schema": "http://json-schema.org/draft-07/schema#",
+                                "title": "MotionDetectedEventData",
+                                "description": "Data schema for motion detection event",
+                                "type": "object",
+                                "properties": {
+                                    "tenantid": {
+                                        "type": "string",
+                                        "description": "Tenant identifier"
+                                    },
+                                    "deviceid": {
+                                        "type": "string",
+                                        "description": "Device identifier"
+                                    },
+                                    "motionid": {
+                                        "type": "string",
+                                        "description": "Motion identifier"
+                                    },
+                                    "location": {
+                                        "type": "string",
+                                        "description": "Location of detected motion"
+                                    },
+                                    "time": {
+                                        "type": "integer",
+                                        "description": "Time of detected motion"
+                                    },
+                                    "imageUrl": {
+                                        "type": "string",
+                                        "description": "URL of the image captured during motion"
+                                    },
+                                    "motionType": {
+                                        "type": "string",
+                                        "description": "Type of motion detected"
+                                    }
+                                },
+                                "required": [
+                                    "tenantid",
+                                    "deviceid",
+                                    "motionid",
+                                    "location",
+                                    "time",
+                                    "imageUrl",
+                                    "motionType"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "Fabrikam.Watchkam.MotionEndedEventData": {
+                    "format": "JSONSchema/Draft-07",
+                    "versions": {
+                        "1": {
+                            "format": "JSONSchema/Draft-07",
+                            "schema": {
+                                "$schema": "http://json-schema.org/draft-07/schema#",
+                                "title": "MotionEndedEventData",
+                                "description": "Data schema for motion end event",
+                                "type": "object",
+                                "properties": {
+                                    "tenantid": {
+                                        "type": "string",
+                                        "description": "Tenant identifier"
+                                    },
+                                    "deviceid": {
+                                        "type": "string",
+                                        "description": "Device identifier"
+                                    },
+                                    "motionid": {
+                                        "type": "string",
+                                        "description": "Motion identifier"
+                                    },
+                                    "location": {
+                                        "type": "string",
+                                        "description": "Location of detected motion"
+                                    },
+                                    "startTime": {
+                                        "type": "integer",
+                                        "description": "Time when the motion started"
+                                    },
+                                    "endTime": {
+                                        "type": "integer",
+                                        "description": "Time when the motion ended"
+                                    },
+                                    "imageUrl": {
+                                        "type": "string",
+                                        "description": "URL of the image captured during motion"
+                                    }
+                                },
+                                "required": [
+                                    "tenantid",
+                                    "deviceid",
+                                    "motionid",
+                                    "location",
+                                    "startTime",
+                                    "endTime",
+                                    "imageUrl"
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
