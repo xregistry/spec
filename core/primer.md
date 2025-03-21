@@ -697,7 +697,7 @@ exceed the value set on the `groups.resources.maxversions` attribute of the
 value that is smaller than the number of existing versions. In such
 scenarios, the server may be unable to prune versions, when the `groups.
 resources.singleversionroot` attribute of the [Resource Model](spec.
-md#registry-model) is set to `true`.
+md#registry-model) is set to `true` and the request must be rejected.
 
 Consider a scenario in which 3 Versions exist: v1 is the root (and therefore
 has its `ancestor` attribute set to v1), and v2 and v3 both have
@@ -728,9 +728,13 @@ guarantee the configured `compatibility`. The
 [`compatibilityauthority` attribute](spec.md#compatibilityauthority-attribute)
 represents who the enforcing authority is. Any requests to set the authority
 to the server when the server cannot perform compatibility checking will be
-refused. However, in cases where the registry is hosted on a file-server or
-blob storage, there is no real server that has the ability to validate such
-requests. In such cases, the `compatibilityauthority` attribute could be set
-to `server` while the server has no ability to enforce compatibility. It's
-recommended that, in such cases, the `compatibilityauthority` attribute is
-set to `external`.
+refused. In cases where the hosting service isn't backed by an xRegistry
+implementation (e.g. blob-store), it is recommended that
+`compatibilityauthority` is set to `external` to accurately reflect the
+situation. However, there may be cases where it is appropriate to set it to
+`server`. For example, if the file-server based xRegistry is an alternative
+mechanism to retrieve data from another xRegistry service that did validate
+the data (i.e. it was exported to the file-server), and there's a desire to
+not expose this implementation/deployment choice to the end-user. In other
+words, the use of the file-server as a caching service should be transparent
+to their users.
