@@ -701,7 +701,7 @@ This may occur when the `groups.resources.singleversionroot` attribute of
 the [Resource Model](spec.md#registry-model) is set to `true`.
 
 Consider a scenario in which 3 versions exist: v1 is the root (and therefore
-has its `ancestor` attribute set to its `versionid`), and v2 and v2 both have
+has its `ancestor` attribute set to its `versionid`), and v2 and v3 both have
 their `ancestor` attribute set to v1. In addition, the `groups.resources.
 maxversions` is set to 3. When creating a new version, the server will find
 the oldest version (v1) and attempt to prune it. However, deleting v1 would
