@@ -1,4 +1,4 @@
-# Message Definitions Registry Service - Version 0.5-wip
+# Message Definitions Registry Service - Version 1.0 RC1 
 
 ## Abstract
 
@@ -19,12 +19,13 @@ xRegistry document format and API [specification](../core/spec.md).
 
 This specification defines a message and event catalog extension to the
 xRegistry document format and API [specification](../core/spec.md). The purpose
-of the catalog is to provide a machine-readable description of message and event
+of the catalog is to provide a machine-readable definitions for message and event
 envelopes and logical grouping of related messages and events.
 
 Managing the description of the payloads of those messages and events is not in
 scope, but delegated to the [schema registry extension](../schema/spec.md) for
-xRegistry.
+xRegistry. Schemas are linked to messages and event declarations by a URI
+reference.
 
 For easy reference, the JSON serialization of a Message Registry adheres to
 this form:
@@ -168,6 +169,21 @@ of messages as well as to **events** as a special form of messages.
 
 The definition of [message][message] from the CloudEvents specification applies.
 
+#### Envelopes and Protocols
+
+An **envelope** is a transport protocol-independent message metadata convention.
+The [CNCF CloudEvents][CloudEvents] specification is an example of a message
+envelope and is the only envelope explicitly defined in this specification. 
+
+A similar transport protocol-independent message metadata convention is, for
+example, the [W3C SOAP 1.2 envelope][SOAP] for which support could be added by
+an extension.
+
+This specification uses **protocol** to refer to a transport protocol-specific
+message metadata convention. When a known protocol is explicitly specified for a
+message definition, the "protocoloptions" section MAY contain constraints for
+the protocol-specific metadata.
+
 ## Message Definitions Registry
 
 The Message Definitions Registry (or "Message Catalog") is a registry of
@@ -176,12 +192,37 @@ describe constraints for the metadata of messages and events, for instance the
 concrete values and patterns for the `type`, `source`, and `subject` attributes
 of a CloudEvent.
 
+Message definitions can be used in various contexts. A code generator for 
+message producers can be informed, which properties or headers have to be set, 
+and which which data types, values, or patterns are expected to produce a
+conformant message. A message consumer can use the definitions to validate
+incoming messages and to extract the metadata for routing or processing.
+
 A message group is a collection of message definitions that are related to
 each other in some application-specific way. For instance, a message group
 can be used to group all events raised by a particular application module or by
 a particular role of an application protocol exchange pattern.
 
 All message definitions MUST defined inside message groups.
+
+A message processor for a messaging or eventing channel can use a message group
+and its contained message definitions to match incoming messages to the declared
+message definitions and determine whether an incoming message is conformant to
+the expected metadata constraints. If a conformant message has been identified,
+the processor might then use the linked schema to handle the message body. This
+is especially useful in scenarios where the message itself does not contain a
+schema hint or even content type information as it is the case, for instance, in
+MQTT 3.1.1.
+
+Whether a message is conformant to a message definition is determined by the
+message processor and its implementation specifici rules. Conformance rules are
+out of the scope of this specification.
+
+The [Endpoint Registry](../endpoint/spec.md) is a related registry that leans on
+this concept and allows associating one or more message definition groups with
+an endpoint, thus effectively defining a contract for the endpoint. An "endpoint"
+as defined in that specification is also a message definition group in itself,
+with the message definitions following the rules of this specification.
 
 ## Message Definition Registry Model
 
@@ -226,12 +267,15 @@ addition to the basic [attributes](../core/spec.md#attributes-and-extensions):
 - Constraints:
   - At least one of `envelopemetadata` and `protocol` MUST be specified.
   - If present, MUST be a non-empty string
-  - If present, MUST follow the naming convention `{NAME}/{VERSION}`, whereby `{NAME}` is
-    the name of the protocol and `{VERSION}` is the version of protocol.
+  - If present, MUST follow the naming convention `{NAME}` or
+    `{NAME}/{VERSION}`, whereby `{NAME}` is the name of the protocol and
+    `{VERSION}` is the version of protocol. The version is REQUIRED if multiple,
+    mutually incompatible versions of the protocol exist and protocol options
+    differ between versions.
 - Examples:
   - `MQTT/3.1.1`
   - `AMQP/1.0`
-  - `Kafka/0.11`
+  - `KAFKA`
 
 ### Message Definitions
 
@@ -626,7 +670,8 @@ The following rules apply to the attribute declarations:
 - The `dataschema` attribute's `value` is inferred from the
   [`dataschemauri`](#dataschemauri) attribute or
   [`dataschema`](#dataschema) attribute of the message definition if
-  absent.
+  absent. If present, the value MUST match the `dataschemauri` attribute of the
+  message definition.
 - The `type` of the property definition defaults to the CloudEvents type
   definition for the attribute, if any. The `type` of an attribute MAY be
   modified be to further constrained. For instance, the `source` type
@@ -761,7 +806,7 @@ The following example defines a message that is sent over HTTP/1.1:
 
 ```yaml
 {
-  "protocol": "HTTP/1.1",
+  "protocol": "HTTP",
   "protocoloptions": {
     "headers": [
       {
@@ -791,8 +836,6 @@ The "AMQP/1.0" protocol is used to define messages that are sent over an
 
 The [`protocoloptions`](#protocoloptions) object MAY contain several
 properties, each of which corresponds to a section of the AMQP 1.0 Message:
-
-TODO: - vs _ for prop names in the table below
 
 | Property                 | Type | Description                                                                     |
 | ------------------------ | ---- | ------------------------------------------------------------------------------- |
@@ -827,14 +870,14 @@ definition:
         "value": "https://{host}/{queue}"
       },
       "subject": {
-        "value": "MyMessageType"
+        "value": "MyMessageType",
         "required": true
       },
       "content-type": {
         "value": "application/json"
       },
       "content-encoding": {
-        "value": "utf-8"
+        "value": "gzip"
       }
     },
     "application-properties": {
@@ -848,13 +891,13 @@ definition:
 
 ##### `properties` (AMQP 1.0)
 
-The `properties` property is an object that contains the properties of the
+The `properties` property is an object that contains the fixed properties of the
 AMQP 1.0 [Message Properties][AMQP 1.0 Message Properties] section. The
 following properties are defined, with type constraints:
 
 | Property               | Type          | Description                                                                      |
 | ---------------------- | ------------- | -------------------------------------------------------------------------------- |
-| `message-id`           | `string`      | uniquely identifies a message within the message system                          |
+| `message-id`           | `*`           | uniquely identifies a message within the message system                          |
 | `user-id`              | `binary`      | identity of the user responsible for producing the message                       |
 | `to`                   | `uritemplate` | address of the node to send the message to                                       |
 | `subject`              | `string`      | message subject                                                                  |
@@ -867,17 +910,22 @@ following properties are defined, with type constraints:
 | `group-sequence`       | `integer`     | position of this message within its group                                        |
 | `reply-to-group-id`    | `uritemplate` | group-id to which the receiver of this message ought to send replies to          |
 
+The `message-id` permits the types `ulong`, `uuid`, `binary`, `string`, and
+`uritemplate`. A `value` constraint for `message-id` property SHOULD NOT be defined in
+the message definition except for the case where the message-id is a `uritemplate`.
+
 ##### `application-properties` (AMQP 1.0)
 
-The `application-properties` property is an object that contains the custom
-properties of the AMQP 1.0 [Application Properties][AMQP 1.0 Application Properties] section.
+The `application-properties` property is a map that contains the custom
+properties of the AMQP 1.0 [Application Properties][AMQP 1.0 Application
+Properties] section.
 
 The names of the properties MUST be of type `symbol` and MUST be unique.
 The values of the properties MAY be of any permitted type.
 
 ##### `message-annotations` (AMQP 1.0)
 
-The `message-annotations` property is an object that contains the custom
+The `message-annotations` property is a map that contains the custom
 properties of the AMQP 1.0 [Message Annotations][AMQP 1.0 Message Annotations]
 section.
 
@@ -886,7 +934,7 @@ The values of the properties MAY be of any permitted type.
 
 ##### `delivery-annotations` (AMQP 1.0)
 
-The `delivery-annotations` property is an object that contains the custom
+The `delivery-annotations` property is a map that contains the custom
 properties of the AMQP 1.0
 [Delivery Annotations][AMQP 1.0 Delivery Annotations] section.
 
@@ -909,8 +957,8 @@ following properties are defined, with type constraints:
 
 ###### `footer` (AMQP 1.0)
 
-The `footer` property is an object that contains the custom properties of the
-AMQP 1.0 [Message Footer][AMQP 1.0 Message Footer] section.
+The `footer` property is a map that contains the custom properties of the AMQP
+1.0 [Message Footer][AMQP 1.0 Message Footer] section.
 
 The names of the properties MUST be of type `symbol` and MUST be unique.
 The values of the properties MAY be of any permitted type.
@@ -932,20 +980,20 @@ indicate whether the property is supported for the respective MQTT version.
 | ------------------------- | ------------- | ---------- | -------- | -------------------------------- |
 | `qos`                     | `integer`     | yes        | yes      | Quality of Service level         |
 | `retain`                  | `boolean`     | yes        | yes      | Retain flag                      |
-| `topic-name`              | `string`      | yes        | yes      | Topic name                       |
-| `payload-format`          | `integer`     | no         | yes      | Payload format indicator         |
-| `message-expiry-interval` | `integer`     | no         | yes      | Message expiry interval          |
-| `response-topic`          | `uritemplate` | no         | yes      | Response topic                   |
-| `correlation-data`        | `binary`      | no         | yes      | Correlation data                 |
-| `content-type`            | `symbol`      | no         | yes      | MIME content type of the payload |
-| `user-properties`         | Array         | no         | yes      | User properties                  |
+| `topic_name`              | `string`      | yes        | yes      | Topic name                       |
+| `payload_format`          | `integer`     | no         | yes      | Payload format indicator         |
+| `message_expiry_interval` | `integer`     | no         | yes      | Message expiry interval          |
+| `response_topic`          | `uritemplate` | no         | yes      | Response topic                   |
+| `correlation_data`        | `binary`      | no         | yes      | Correlation data                 |
+| `content_type`            | `symbol`      | no         | yes      | MIME content type of the payload |
+| `user_properties`         | Array         | no         | yes      | User properties                  |
 
 Like HTTP, the MQTT allows for multiple user properties with the same name,
-so the `user-properties` property is an array of objects, each of which
+so the `user_properties` property is an array of objects, each of which
 contains a single property name and value.
 
 The values of all `string`, `symbol`, and `uritemplate`-typed properties and
-user-properties MAY contain placeholders using the [RFC6570][RFC6570] Level 1
+user properties MAY contain placeholders using the [RFC6570][RFC6570] Level 1
 URI Template syntax. When the same placeholder is used in multiple properties,
 the value of the placeholder is assumed to be identical.
 
@@ -957,32 +1005,23 @@ QoS 1 delivery, with a topic name of "mytopic", and a user property of
 {
   "protocol": "MQTT/5.0",
   "protocoloptions": {
-    "qos": {
-      "value": 1
-    },
-    "retain": {
-      "value": false
-    },
-    "topic-name": {
-      "value": "mytopic"
-    },
-    "user-properties": [
-      { "my-application-property": {
-            "value": "my-application-property-value"
-          }
+    "qos": 1,
+    "retain":  false,
+    "topic_name": "mytopic",
+    "user_properties": [
+      { 
+        "name": "My Application Property",
+        "value": "Value 1"
       }
     ]
   }
 }
 ```
 
-### "Kafka" protocol
+### "KAFKA" protocol
 
-The "Kafka" protocol is used to define messages that are sent over [Apache
-Kafka][Apache Kafka] connections. The version number reflects the last version
-in which the record structure was changed in the Apache Kafka project, not the
-current version. If the version number is omitted, the latest version is
-assumed.
+The "KAFKA" protocol is used to define messages that are sent using the [Apache
+Kafka][Apache Kafka] RPC protocol.
 
 The [`protocoloptions`](#protocoloptions) object contains the common elements
 of the Kafka [producer][Apache Kafka producer] and
@@ -994,10 +1033,17 @@ The following properties are defined:
 | Property    | Type      | Description                                                                         |
 | ----------- | --------- | ----------------------------------------------------------------------------------- |
 | `topic`     | `string`  | The topic the record will be appended to                                            |
-| `partition` | `integer` | The partition to which the record ought be sent                                     |
-| `key`       | `binary`  | The key that will be included in the record                                         |
+| `partition` | `integer` | The partition to which the record is to be sent or has been received from           |
+| `key`       | `string`  | The key that is associated with the record, UTF-8 encoded                           |
+| `key_base64`| `binary`  | The key that is associated with the record as a base64 encoded string               |
 | `headers`   | Map       | A map of headers to set on the record                                               |
-| `timestamp` | `integer` | The timestamp of the record; if 0 (default), the producer will assign the timestamp |
+
+The `key` and `key_base64` properties are mutually exclusive and MUST NOT be
+present at the same time. 
+
+The `partition` property is included because there are cases where applications
+use partitions explicitly for addressing and routing messages within the scope
+of a topic.
 
 The values of all `string`, `symbol`, `uritemplate`-typed properties
 and headers MAY contain placeholders using the [RFC6570][RFC6570] Level 1 URI
@@ -1010,16 +1056,44 @@ Example:
 {
   "protocol": "Kafka",
   "protocoloptions": {
-    "topic": {
-      "value": "mytopic"
-    },
-    "key": {
-      "value": "thisdevice"
-    }
+    "topic": "mytopic",
+    "key": "thisdevice"
   }
 }
-
 ```
+
+### "NATS" protocol
+
+The "NATS" protocol is used to define messages that are sent using the [NATS][NATS] protocol.
+
+The [`protocoloptions`](#protocoloptions) object contains the available elements
+of the NATS message for the `HPUB` operation.
+
+The following properties are defined:
+
+| Property    | Type      | Description                                                                         |
+| ----------- | --------- | ----------------------------------------------------------------------------------- |
+| `subject`   | `uritemplate`  | The subject the message will be published to                                   |
+| `reply-to`  | `uritemplate`  | The subject the receiver shall reply to                                        |
+| `headers`   | Array     | A list of headers to set on the message                                             |
+
+The values of all `string`, `symbol`, `uritemplate`-typed properties
+and headers MAY contain placeholders using the [RFC6570][RFC6570] Level 1 URI
+Template syntax. When the same placeholder is used in multiple properties, the
+value of the placeholder is assumed to be identical.
+
+Example:
+
+```yaml
+{
+  "protocol": "NATS",
+  "protocoloptions": {
+    "subject": "mytopic",
+    "reply-to": "replytopic"
+  }
+}
+``` 
+
 
 [JSON Pointer]: https://www.rfc-editor.org/rfc/rfc6901
 [CloudEvents Types]: https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/spec.md#type-system
@@ -1043,3 +1117,4 @@ Example:
 [RFC6570]: https://www.rfc-editor.org/rfc/rfc6570
 [rfc3339]: https://tools.ietf.org/html/rfc3339
 [message]: https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#message
+[SOAP]: https://www.w3.org/TR/soap12-part1/
