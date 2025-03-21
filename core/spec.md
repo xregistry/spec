@@ -2683,9 +2683,9 @@ The following describes the attributes of Registry model:
     1. If many exist, find the lowest Version according to alphabetical order
        of the `versionid` attribute
     Once the single oldest Version is determined, delete it.
-    An exception to this pruning rule is if `maxversions` value is one (`1`)
-    then the newest Version of the Resource MUST always be the "default" and
-    the `setdefaultversionsticky` aspect MUST be `false`.
+    A special case for the pruning rules is that if `maxversions` is set to
+    one (1), then the "default" Version is not skipped, which means it will be
+    deleted and the new Version will become "default".
 
 - `groups.resources.setversionid`
   - Type: Boolean (`true` or `false`, case sensitive).
@@ -4040,7 +4040,7 @@ and the following Resource level attributes:
   compatibility checks to ensure that all Versions of a Resource adhere to the
   rules defined by the current value of this attribute.
   For `compatibility` strategies that require understanding the sequence in
-  which versions need to be compatible, the server MUST use the [`ancestor`]
+  which Versions need to be compatible, the server MUST use the [`ancestor`]
   (#ancestor-attribute) to determine the sequence of Versions. For Versions
   that have the `ancestor` value set to its `versionid` attribute,
   compatibility cannot be enforced.
@@ -4073,7 +4073,7 @@ and the following Resource level attributes:
 
 #### `compatibilityauthority` Attribute
 - Name: `compatibilityauthority`
-- Type: Boolean
+- Type: String
 - Description: Indicates the authority that enforces the `compatibility`
   value defined by the owning Resource.
 
@@ -4082,9 +4082,11 @@ and the following Resource level attributes:
   - `external` - The compatibility is enforced by an external authority.
   - `server` - The compatibility is enforced by the server.
 
+  The server MUST reject any attempt to set the `compatibilityauthority`
+  attribute to `server` if the server cannot enforce the compatibility for
+  the Resource's Versions.
+
   When set to `server`:
-  1. The server MUST reject the request if the server cannot enforce the
-     compatibility for the data to be validated for the Resource's Versions.
   1. The server MUST reject all attempts to create/update a Resource (or its
      Versions) that would result in those entities violating the stated
      compatibility statement.
@@ -4568,7 +4570,7 @@ then the resulting serialization of the source Resource would be:
     "modifiedat": "2024-01-01-T12:01:00",
     "readonly": false,
     "compatibility": "none",
-    "compatibilityauthority": "external",
+    "compatibilityauthority": "external"
   },
   "versionscount": 1,
   "versionsurl": "http://example.com/schemagroups/group1/schemas/mySchema/versions"
@@ -5592,9 +5594,9 @@ as defined below:
 - Type: String
 - Description: The `versionid` of this Version's ancestor.
 
-  The `ancestor` attribute MUST be set to any existing Version's `versionid`,
-  or to the `versionid` of the Version itself, to indicate that this Version
-  has no `ancestor`.
+  The `ancestor` attribute MUST be set to the `versionid` of this Version's
+  ancestor (parent). If this Version is a root of an ancestor hierarchy tree
+  (i.e. it has no parent) then it MUST be set to its own `versionid` value.
 
   When creating a Version without explicitly setting the `ancestor`
   attribute, the server MUST set the `ancestor` to the most recent Version's
@@ -5604,18 +5606,19 @@ as defined below:
   Version being created, making it a root.
 
   If a write operation contains multiple Versions with the `ancestor` attribute
-  omitted, the server MUST order all Versions based on the `createdat`
-  attribute and then alphabetically. The first Version will have the most
-  recent Version's `versionid` as its `ancestor` as clarified above.
+  omitted, the server MUST order all of those Versions based on the `createdat`
+  attribute and then alphabetically (lowest first). The first Version will have
+  the most recent Version's `versionid` as its `ancestor` as clarified above.
 
   When deleting a Version, the server MUST update the `ancestor` attribute
   of any Version that points to the deleted Version to point to itself,
   making it a new root.
 
-  If a create operation asks the server to choose the `vID` when creating a
-  root Version, the `versionid` is not yet known and therefore cannot be
-  assigned a value. In those cases a value of `request` MAY be used as a way
-  to reference the Version being processed in the current request.
+  If a create operation asks the server to choose the `versionid` when
+  creating a root Version, the `versionid` is not yet known and therefore
+  cannot be assigned the value in the `ancestor` attribute. In those cases a
+  value of `request` MAY be used as a way to reference the Version being
+  processed in the current request.
 
 - Constraints: the `ancestor` attribute MUST NOT be set to a value that
   creates circular references between Versions. For example, an operation that
