@@ -1,7 +1,4 @@
 {
-	"$schema": "https://cloudevents.io/schemas/registry",
-	"specversion": "0.5-wip",
-	"id": "urn:uuid:NEW-UUID-WINDGENERATOR",
 	"messagegroups": {
 		"WindGenerator.Events": {
 			"description": "Events for wind generator operations",
