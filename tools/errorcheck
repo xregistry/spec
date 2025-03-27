@@ -4,30 +4,45 @@
 
 set -e
 
-PATTERN="Error Processing"
+START_PATTERN="start-err-def"
+END_PATTERN="end-err-def"
 
 for f in $* ; do
   echo "> $f"
 
-  grep "$PATTERN" $f > /dev/null || \
-    (echo "Can't find '$PATTERN' in '$f'" ; exit 1)
+  # Make IFS a dummay char so we save the newlines
+  IFS="!" lines=$(sed -r -n "/$START_PATTERN/,/$END_PATTERN/p" $f | \
+    sed -n 's/#### //p')
 
-  first="UNUSED ERRORS:\n"
+  [[ "$lines" == "" ]] && echo "Can't find any errors" && exit 1
 
-  lines=$(sed -r -n "/### $PATTERN/,/\[rfc/p" $f | sed -n 's/#### //p')
   readarray -t err_array <<< "$lines"
   rc=0
+  first="UNUSED ERRORS:\n"
+
   for err in "${err_array[@]}"; do
     ref=$(echo "$err" | tr '[:upper:]' '[:lower:]' | sed "s/ /-/g")
-    if grep "(#$ref)" $f > /dev/null ; then
-	  continue
-	fi
+    grep "(#$ref)" $f > /dev/null && continue
+
+	# special case this one
+	[[ "$ref" == "server_error" ]] && continue
+
 	echo -ne $first
 	first=""
-	echo "$err (#$ref)"
+	echo "- $err"
 	rc=1
   done
-  [[ "$rc" != "0" ]] && exit 1
+
+  # make sure the errors are alphabetized
+  diff=$(IFS="!" diff <(echo "$lines") <(echo "$lines" | sort) || true)
+  if [[ "$diff" != "" ]] ; then
+     [[ "$rc" != "0" ]] && echo
+     echo "ALPHABETIZE THESE:"
+     echo "$diff" | grep "> " | sed "s/> /- /"
+	 rc=1
+  fi
+
+  [[ "$rc" != "0" ]] && exit $rc
 
 done
 
