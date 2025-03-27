@@ -172,6 +172,8 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       "STRING": {                       # Key=plural name, e.g. "endpoints"
         "plural": "STRING",             # e.g. "endpoints"
         "singular": "STRING",           # e.g. "endpoint"
+        "modelversion": "STRING", ?     # Version of the group model
+        "compatiblewith": "URI", ?      # Statement of compatibility with model spec
         "labels": { "STRING": "STRING" * }, ?
         "attributes": { ... }, ?        # Group level attributes/extensions
 
@@ -184,6 +186,8 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "setdefaultversionsticky": BOOLEAN, ? # sticky settable? Default=true
             "hasdocument": BOOLEAN, ?     # Has separate document. Default=true
             "typemap": MAP, ?             # contenttype mappings
+            "modelversion": "STRING", ?   # Version of the resource model
+            "compatiblewith": "URI", ?    # Statement of compatibility with model spec
             "labels": { "STRING": "STRING" * }, ?
             "attributes": { ... }, ?      # Version attributes/extensions
             "metaattributes": { ... } ?   # Resource attributes/extensions
@@ -2314,6 +2318,8 @@ Regardless of how the model is retrieved, the overall format is as follows:
     "STRING": {                        # Key=plural name, e.g. "endpoints"
       "plural": "STRING",              # e.g. "endpoints"
       "singular": "STRING",            # e.g. "endpoint"
+      "modelversion": "STRING", ?      # Version of the group model
+      "compatiblewith": "URI", ?       # Statement of compatibility with model spec
       "labels": { "STRING": "STRING" * }, ?
       "attributes": { ... }, ?         # See "attributes" above
 
@@ -2326,6 +2332,8 @@ Regardless of how the model is retrieved, the overall format is as follows:
           "setdefaultversionsticky": BOOLEAN, ? # sticky settable? Default=true
           "hasdocument": BOOLEAN, ?     # Has separate document. Default=true
           "typemap": MAP, ?             # contenttype mappings
+          "modelversion": "STRING", ?   # Version of the resource model
+          "compatiblewith": "URI"`, ?   # Statement of compatibility with model spec
           "labels": { "STRING": "STRING" * }, ?
           "attributes": { ... }, ?      # Version attributes/extensions
           "metaattributes": { ... } ?   # Resource attributes/extensions
@@ -2337,6 +2345,24 @@ Regardless of how the model is retrieved, the overall format is as follows:
 ```
 
 The following describes the attributes of Registry model:
+
+- `modelversion` <span id="model.modelversion"></span>
+  - Type: String.
+  - OPTIONAL.
+  - The version of the local model of a group or resource.
+  - It is common to use a combination of major and minor version numbers.
+  - Example: `1.2`
+
+- `compatiblewith` <span id="model.compatiblewith"></span>
+  - Type: URI.
+  - OPTIONAL.
+  - References / represents an xRegistry model definition that
+    the current model is compatible with. This is meant to express
+    interoperability between models in different xRegistries via using a
+    shared compatible model.
+  - Does not imply runtime validation of the claim.
+  - Example: `https://raw.githubusercontent.com/xregistry/spec/refs/heads/main/schema/model.json`
+
 - `labels` <span id="model.labels"></span>
   - Type: Map of string-string.
   - OPTIONAL.
@@ -2347,17 +2373,6 @@ The following describes the attributes of Registry model:
     information.
   - Keys MUST be non-empty strings.
   - Values MAY be empty strings.
-  - The following labels are defined for convenience and MAY also be used
-    as labels for Groups or Resource model types:
-    - Name: `modelversion`<br>
-      Value: The version of the model. For many specifications it's a
-      combination of major and minor version numbers, e.g. `1.2`.
-      This label will most likely only appear as a label on the model itself,
-      not on Groups or Resource model definitions.
-    - Name: `compatiblewith`<br>
-      Value: An absolute URL to the model specification that this model is
-      compatible with. This specification does not mandate any runtime
-      validation of this claim.
   - Model authors MAY define additional labels.
 
 - `attributes` <span id="model.attributes"></span>
@@ -3039,6 +3054,8 @@ Content-Type: application/json; charset=utf-8
     "STRING": {
       "plural": "STRING",
       "singular": "STRING",
+      "modelversion": "STRING", ?
+      "compatiblewith": "URI", ?
       "labels": { "STRING": "STRING" * }, ?
       "attributes": { ... }, ?               # See "attributes" above
 
@@ -3051,6 +3068,8 @@ Content-Type: application/json; charset=utf-8
           "setdefaultversionsticky": BOOLEAN, ?
           "hasdocument": BOOLEAN, ?
           "typemap": MAP, ?
+          "modelversion": "STRING", ?
+          "compatiblewith": "URI", ?
           "labels": { "STRING": "STRING" * }, ?
           "attributes": { ... }, ?           # Version attributes/extensions
           "metaattributes": { ... } ?        # Resource attributes/extensions
@@ -3108,6 +3127,8 @@ Content-Type: application/json; charset=utf-8
     "STRING": {
       "plural": "STRING",
       "singular": "STRING",
+      "modelversion": "STRING", ?
+      "compatiblewith": "URI", ?
       "labels": { "STRING": "STRING" * }, ?
       "attributes": { ... }, ?
 
@@ -3120,6 +3141,8 @@ Content-Type: application/json; charset=utf-8
           "setdefaultversionsticky": BOOLEAN, ?
           "hasdocument": BOOLEAN, ?
           "typemap": MAP, ?
+          "modelversion": "STRING", ?
+          "compatiblewith": "URI", ?
           "labels": { "STRING": "STRING" * }, ?
           "attributes": { ... }, ?
           "metaattributes": { ... } ?

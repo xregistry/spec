@@ -3,6 +3,8 @@
     "schemagroups": {
       "singular": "schemagroup",
       "plural": "schemagroups",
+      "modelversion": "0.5",
+      "compatiblewith": "https://raw.githubusercontent.com/xregistry/spec/refs/heads/main/schema/model.json",
 
       "attributes": {
         "*": {
@@ -15,6 +17,8 @@
         "schemas": {
           "singular": "schema",
           "plural": "schemas",
+          "modelversion": "0.5",
+          "compatiblewith": "https://raw.githubusercontent.com/xregistry/spec/refs/heads/main/schema/model.json",
 
           "attributes": {
             "format": {
