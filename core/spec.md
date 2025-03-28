@@ -5526,8 +5526,8 @@ as defined below:
 - Description: The `versionid` of this Version's ancestor.
 
   The `ancestor` attribute MUST be set to the `versionid` of this Version's
-  ancestor (parent). If this Version is a root of an ancestor hierarchy tree
-  (i.e. it has no parent) then it MUST be set to its own `versionid` value.
+  ancestor If this Version is a root of an ancestor hierarchy tree then it
+  MUST be set to its own `versionid` value.
 
   When creating a Version without explicitly setting the `ancestor`
   attribute, the server MUST set the `ancestor` to the most recent Version's
