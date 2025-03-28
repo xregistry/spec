@@ -4759,6 +4759,7 @@ Link: <URL>;rel=next;count=UINTEGER ?
     "labels": { "STRING": "STRING" * }, ?
     "createdat": "TIMESTAMP",
     "modifiedat": "TIMESTAMP",
+    "ancestor": "STRING",
     "contenttype": "STRING", ?
 
     "RESOURCEurl": "URL", ?                  # If not local
@@ -5251,6 +5252,7 @@ xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING *
 xRegistry-createdat: TIME
 xRegistry-modifiedat: TIME
+xRegistry-ancestor: STRING
 xRegistry-RESOURCEurl: URL ?    # If Resource is not in body
 xRegistry-metaurl: URL
 xRegistry-versionsurl: URL
@@ -5302,7 +5304,7 @@ Content-Location: URL ?
   "self": "URL",                           # URL to Resource, not default Ver
   "shortself": "URL", ?
   "xid": "XID",                            # Relative URI to Resource
-  "epoch": UINTEGER,
+  "epoch": UINTEGER,                       # Start of Default Ver attribs
   "name": "STRING", ?
   "description": "STRING", ?
   "documentation": "URL", ?
