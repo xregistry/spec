@@ -403,6 +403,7 @@ Versions for a schema named `com.example.telemetrydata`:
           "schemaid": "com.example.telemetrydata",
           "versionid": "3",
           "description": "device telemetry event data",
+          "ancestor": "2",
           "format": "Protobuf/3",
           # other xRegistry default Version attributes excluded for brevity
 
@@ -415,8 +416,8 @@ Versions for a schema named `com.example.telemetrydata`:
             "1": {
               "schemaid": "com.example.telemetrydata",
               "versionid": "1",
-              "ancestor": "1",
               "description": "device telemetry event data",
+              "ancestor": "1",
               "format": "Protobuf/3",
               # other xRegistry Version-level attributes excluded for brevity
 
@@ -425,8 +426,8 @@ Versions for a schema named `com.example.telemetrydata`:
             "2": {
               "schemaid": "com.example.telemetrydata",
               "versionid": "2",
-              "ancestor": "1",
               "description": "device telemetry event data",
+              "ancestor": "1",
               "format": "Protobuf/3",
               # other xRegistry Version-level attributes excluded for brevity
 
@@ -435,8 +436,8 @@ Versions for a schema named `com.example.telemetrydata`:
             "3": {
               "schemaid": "com.example.telemetrydata",
               "versionid": "3",
-              "ancestor": "2",
               "description": "device telemetry event data",
+              "ancestor": "2",
               "format": "Protobuf/3",
               # other xRegistry Version-level attributes excluded for brevity
 

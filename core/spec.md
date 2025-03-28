@@ -4550,6 +4550,7 @@ So, if the target Resource (`sharedSchema`) is defined as:
   "isdefault": true,
   "createdat": "2024-01-01-T12:00:00",
   "modifiedat": "2024-01-01-T12:01:00",
+  "ancestor": "v1",
 
   "metaurl": "http://example.com/schemagroups/group2/schemas/sharedSchema/meta",
   "versionscount": 1,
@@ -4569,6 +4570,7 @@ then the resulting serialization of the source Resource would be:
   "isdefault": true,
   "createdat": "2024-01-01-T12:00:00",
   "modifiedat": "2024-01-01-T12:01:00",
+  "ancestor": "v1",
 
   "metaurl": "http://example.com/schemagroups/group1/schemas/mySchema/meta",
   "meta": {
@@ -4820,6 +4822,7 @@ Link: <https://example.com/endpoints/ep1/messages&page=2>;rel=next;count=100
     "isdefault": true,
     "createdat": "2024-04-30T12:00:00Z",
     "modifiedat": "2024-04-30T12:00:01Z",
+    "ancestor": "1.0",
 
     "metaurl": "https://example.com/endpoints/ep1/messages/msg1/meta",
     "versionsurl": "https://example.com/endpoints/ep1/messages/msg1/versions",
@@ -5311,6 +5314,7 @@ Content-Location: URL ?
   "labels": { "STRING": "STRING" * }, ?
   "createdat": "TIMESTAMP",
   "modifiedat": "TIMESTAMP",
+  "ancestor": "STRING",
   "contenttype": "STRING", ?
 
   "RESOURCEurl": "URL", ?                  # If not local
@@ -5379,6 +5383,7 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1.0
   "isdefault": true,
   "createdat": "2024-04-30T12:00:00Z",
   "modifiedat": "2024-04-30T12:00:01Z",
+  "ancestor": "1.0",
 
   "metaurl": "https://example.com/endpoints/ep1/messages/msg1/meta",
   "versionsurl": "https://example.com/endpoints/ep1/messages/msg1/versions",
@@ -5558,15 +5563,16 @@ as defined below:
   If a create operation asks the server to choose the `versionid` when
   creating a root Version, the `versionid` is not yet known and therefore
   cannot be assigned the value in the `ancestor` attribute. In those cases a
-  value of `request` MAY be used as a way to reference the Version being
+  value of `request` MUST be used as a way to reference the Version being
   processed in the current request.
 
-- Constraints: the `ancestor` attribute MUST NOT be set to a value that
-  creates circular references between Versions. For example, an operation that
-  makes Version A's ancestor B, and Version B's ancestor A, MUST generate an
-  error ([ancestor_circular_reference](#ancestor_circular_reference)).
-  Any attempt to set an `ancestor` attribute to a non-existing `versionid`
-  MUST generate an error ([invalid_data](#invalid_data)).
+- Constraints:
+  - The `ancestor` attribute MUST NOT be set to a value that
+    creates circular references between Versions. For example, an operation that
+    makes Version A's ancestor B, and Version B's ancestor A, MUST generate an
+    error ([ancestor_circular_reference](#ancestor_circular_reference)).
+  - Any attempt to set an `ancestor` attribute to a non-existing `versionid`
+    MUST generate an error ([invalid_data](#invalid_data)).
 
 ##### `contenttype` Attribute
 - Type: String
@@ -5912,8 +5918,8 @@ xRegistry-xid: /endpoints/ep1/messages/msg1/versions/1.0
 xRegistry-epoch: 2
 xRegistry-name: Blob Created
 xRegistry-isdefault: true
-xRegistry-createdat: TIME
-xRegistry-modifiedat: TIME
+xRegistry-createdat: TIMESTAMP
+xRegistry-modifiedat: TIMESTAMP
 xRegistry-ancestor: 1.0
 Content-Disposition: msg1
 
@@ -6564,8 +6570,8 @@ as appropriate, including being specified in a language other than English.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#ancestor_circular_reference`
 * Code: `400 Bad Request`
-* Instance: The request URL
-* Title: `The assigned "ancestor" value ("{ancestor_value}") creates a circular reference`
+* Instance: URL to the Version being processed
+* Title: `The assigned "ancestor" value ({ancestor_value}) creates a circular reference`
 * Data:  n/a
 * Detail: {information specific to the processing details}
 
@@ -6757,7 +6763,7 @@ SHOULD attempt to use a more specific error when possible.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#multiple_roots`
 * Code: `400 Bad Request`
-* Instance: The request URL
+* Instance: URL to the Resource being processed
 * Title: `The operation would result in multiple root Versions which is not allowed by this Registry`
 * Data:  n/a
 * Detail: {information specific to the processing details}

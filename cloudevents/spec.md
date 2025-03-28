@@ -143,6 +143,7 @@ schema for its payload.
           "description": "device telemetry event",
           "createdat": "2024-04-30T12:00:00Z",
           "modifiedat": "2024-04-31T12:00:00Z",
+          "ancestor": "1.0",
 
           "format": "CloudEvents/1.0",
           "metadata": {
@@ -167,7 +168,7 @@ schema for its payload.
           },
 
           "dataschemaformat": "Protobuf/3.0",
-          "dataschema": "syntax = \"proto3\"; message Metrics { float metric = 1; } }"
+          "dataschema": "syntax = \"proto3\"; message Metrics { float metric = 1; } }",
           "datacontenttype": "Protobuf/3.0",
 
           "metaurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/meta",
@@ -219,7 +220,7 @@ scenarios:
         }
       },
 
-      "messagegroups": [ "#/messagegroups/com.example.telemetryEvents" ]
+      "messagegroups": [ "#/messagegroups/com.example.telemetryEvents" ],
 
       "messagesurl": "https://example.com/endpoints/com.example.telemetry/messages",
       "messagescount": 0
@@ -250,6 +251,7 @@ scenarios:
           "description": "device telemetry event",
           "createdat": "2024-04-30T12:00:00Z",
           "modifiedat": "2024-04-31T12:00:00Z",
+          "ancestor": "1.0",
 
           "format": "CloudEvents/1.0",
           "metadata": {
@@ -274,7 +276,7 @@ scenarios:
           },
 
           "dataschemaformat": "Protobuf/3.0",
-          "dataschemauri": "#/schemagroups/com.example.telemetry/schema/com.example.telemetrydata/versions/1.0"
+          "dataschemauri": "#/schemagroups/com.example.telemetry/schema/com.example.telemetrydata/versions/1.0",
           "datacontenttype": "Protobuf/3.0",
 
           "metaurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/meta",
@@ -307,9 +309,10 @@ scenarios:
           "description": "device telemetry event data",
           "createdat": "2024-04-30T12:00:00Z",
           "modifiedat": "2024-04-31T12:00:00Z",
+          "ancestor": "1.0",
 
           "format": "Protobuf/3.0",
-          "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; }"
+          "schema": "syntax = \"proto3\"; message Metrics { float metric = 1;}",
 
           "metaurl": "https://example.com/schemagroups/com.example.telemetry/schemas/meta",
           "versionscount": 1,
