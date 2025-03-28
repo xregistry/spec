@@ -4032,6 +4032,9 @@ and the following Resource level attributes:
   indicate that all Versions of a Resource are backwards compatible with the
   next oldest Version, as determined by their `ancestor` attributes.
 
+  This specification makes no statement as to which parts of the data are
+  examined for compatibility (e.g. xRegistry metadata, domain-specific
+  document, etc.). This SHOULD be defined by the `compatibility` values.
   The exact meaning of what each `compatibility` value means might vary based
   on the data model of the Resource, therefore this specification only defines
   a very high-level abstract meaning for each to ensure some degree of
