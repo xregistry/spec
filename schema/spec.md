@@ -73,6 +73,7 @@ this form:
           "labels": { "STRING": "STRING" * }, ?
           "createdat": "TIMESTAMP",
           "modifiedat": "TIMESTAMP",
+          "ancestor": "STRING",
 
           "deprecated": {
             "effective": "TIMESTAMP", ?
@@ -405,7 +406,7 @@ Versions for a schema named `com.example.telemetrydata`:
           "format": "Protobuf/3",
           # other xRegistry default Version attributes excluded for brevity
 
-          "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; string description = 3; } }"
+          "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; string description = 3; } }",
 
           "metaurl": "http://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/meta",
           "versionsurl": "http://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions",
