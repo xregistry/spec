@@ -82,6 +82,7 @@ this form:
           "labels": { "STRING": "STRING" * }, ?
           "createdat": "TIMESTAMP",
           "modifiedat": "TIMESTAMP",
+          "ancestor": "STRING",
 
           "deprecated": {
             "effective": "TIMESTAMP", ?

@@ -73,6 +73,7 @@ this form:
           "labels": { "STRING": "STRING" * }, ?
           "createdat": "TIMESTAMP",
           "modifiedat": "TIMESTAMP",
+          "ancestor": "STRING",
 
           "deprecated": {
             "effective": "TIMESTAMP", ?
@@ -402,10 +403,11 @@ Versions for a schema named `com.example.telemetrydata`:
           "schemaid": "com.example.telemetrydata",
           "versionid": "3",
           "description": "device telemetry event data",
+          "ancestor": "2",
           "format": "Protobuf/3",
           # other xRegistry default Version attributes excluded for brevity
 
-          "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; string description = 3; } }"
+          "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; string description = 3; } }",
 
           "metaurl": "http://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/meta",
           "versionsurl": "http://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions",
@@ -415,6 +417,7 @@ Versions for a schema named `com.example.telemetrydata`:
               "schemaid": "com.example.telemetrydata",
               "versionid": "1",
               "description": "device telemetry event data",
+              "ancestor": "1",
               "format": "Protobuf/3",
               # other xRegistry Version-level attributes excluded for brevity
 
@@ -424,6 +427,7 @@ Versions for a schema named `com.example.telemetrydata`:
               "schemaid": "com.example.telemetrydata",
               "versionid": "2",
               "description": "device telemetry event data",
+              "ancestor": "1",
               "format": "Protobuf/3",
               # other xRegistry Version-level attributes excluded for brevity
 
@@ -433,6 +437,7 @@ Versions for a schema named `com.example.telemetrydata`:
               "schemaid": "com.example.telemetrydata",
               "versionid": "3",
               "description": "device telemetry event data",
+              "ancestor": "2",
               "format": "Protobuf/3",
               # other xRegistry Version-level attributes excluded for brevity
 
