@@ -2742,7 +2742,8 @@ The following describes the attributes of Registry model:
     - When not specified, the default value MUST be `false`.
     - A value of `true` indicates that only one Version of the Resource can
       be a root. This is useful to avoid creating multiple roots. When this
-      attribute is set to `true`, the server MUST generate an error if any
+      attribute is set to `true`, the server MUST generate an error
+      ([multiple_roots](#multiple_roots)) if any
       request results in a state where more than one Version of a Resource
       is a root of an ancestor tree.
 
@@ -5558,7 +5559,7 @@ as defined below:
 - Constraints: the `ancestor` attribute MUST NOT be set to a value that
   creates circular references between Versions. For example, an operation that
   makes Version A's ancestor B, and Version B's ancestor A, MUST generate an
-  error.
+  error ([ancestor_circular_reference](#ancestor_circular_reference)).
   Any attempt to set an `ancestor` attribute to a non-existing `versionid`
   MUST generate an error ([invalid_data](#invalid_data)).
 
@@ -6554,6 +6555,15 @@ as appropriate, including being specified in a language other than English.
 
 <!-- start-err-def -->
 
+#### ancestor_circular_reference
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#ancestor_circular_reference`
+* Code: `400 Bad Request`
+* Instance: The request URL
+* Title: `The assigned "ancestor" value ("{ancestor_value}") creates a circular reference`
+* Data:  n/a
+* Detail: {information specific to the processing details}
+
 #### api_not_found
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#api_not_found`
@@ -6725,7 +6735,7 @@ SHOULD attempt to use a more specific error when possible.
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#model_compliance_error`
 * Code: `400 Bad Request`
 * Instance: URL to the xRegistry server
-* Title: `The model provided would cause one or more entities in the registry to become non-compliant`
+* Title: `The model provided would cause one or more entities in the Registry to become non-compliant`
 * Data:  {list of XIDs of non-compliant entities}
 * Detail: {information specific to the processing details}
 
@@ -6736,6 +6746,15 @@ SHOULD attempt to use a more specific error when possible.
 * Instance: URL to the xRegistry server
 * Title: `There was an error in the model definition provided`
 * Data:  {model JSON snippet that caused the issue}
+* Detail: {information specific to the processing details}
+
+#### multiple_roots
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#multiple_roots`
+* Code: `400 Bad Request`
+* Instance: The request URL
+* Title: `The operation would result in multiple root Versions which is not allowed by this Registry`
+* Data:  n/a
 * Detail: {information specific to the processing details}
 
 #### not_found
