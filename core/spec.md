@@ -171,6 +171,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       "STRING": {                       # Key=plural name, e.g. "endpoints"
         "plural": "STRING",             # e.g. "endpoints"
         "singular": "STRING",           # e.g. "endpoint"
+        "description": "STRING", ?
         "modelversion": "STRING", ?     # Version of the group model
         "compatiblewith": "URI", ?      # Statement of compatibility with model spec
         "labels": { "STRING": "STRING" * }, ?
@@ -180,6 +181,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
           "STRING": {                   # Key=plural name, e.g. "messages"
             "plural": "STRING",         # e.g. "messages"
             "singular": "STRING",       # e.g. "message"
+            "description": "STRING", ?
             "maxversions": UINTEGER, ?  # Num Vers(>=0). Default=0, 0=unlimited
             "setversionid": BOOLEAN, ?  # vid settable? Default=true
             "setdefaultversionsticky": BOOLEAN, ? # sticky settable? Default=true
@@ -252,7 +254,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "modifiedat": "TIMESTAMP",             # Resource's
             "readonly": BOOLEAN,                   # Default=false
             "compatibility": "STRING",             # Default=none
-            "compatibilityauthority": "STRING",    # Default=external
+            "compatibilityauthority": "STRING", ?  # Default=external
 
             "defaultversionid": "STRING",
             "defaultversionurl": "URL",
@@ -570,10 +572,6 @@ attributes. However they MUST adhere to the following rules:
     name at that level in the model.
   - Be permitted due to the presence of an `any` type for one of its parent
     attribute definitions.
-- They MUST NOT change the semantics of the Registry - they MUST only be
-  additional metadata to be persisted in the Registry since servers MUST
-  persist all valid extensions.
-  TODO is this really ok?
 - They MUST NOT conflict with the name of an attribute defined by this
   specification, including the `RESOURCE*` and `COLLECTION*` attributes that
   are implicitly defined. Note that if a Resource type has the `hasdocument`
@@ -2295,6 +2293,7 @@ Regardless of how the model is retrieved, the overall format is as follows:
     "STRING": {                        # Key=plural name, e.g. "endpoints"
       "plural": "STRING",              # e.g. "endpoints"
       "singular": "STRING",            # e.g. "endpoint"
+      "description": "STRING", ?
       "modelversion": "STRING", ?      # Version of the group model
       "compatiblewith": "URI", ?       # Statement of compatibility with model spec
       "labels": { "STRING": "STRING" * }, ?
@@ -2304,6 +2303,7 @@ Regardless of how the model is retrieved, the overall format is as follows:
         "STRING": {                    # Key=plural name, e.g. "messages"
           "plural": "STRING",          # e.g. "messages"
           "singular": "STRING",        # e.g. "message"
+          "description": "STRING", ?
           "maxversions": UINTEGER, ?   # Num Vers(>=0). Default=0, 0=unlimited
           "setversionid": BOOLEAN, ?   # vid settable? Default=true
           "setdefaultversionsticky": BOOLEAN, ? # sticky settable? Default=true
@@ -2524,13 +2524,14 @@ The following describes the attributes of Registry model:
   - Type: Boolean
   - OPTIONAL.
   - Indicates whether this attribute is REQUIRED to have a non-null value.
-    This specification does not mandate how this attribute's value is populated
-    (i.e. by a client, the server or via a default value), just that by the
-    end of processing any request it MUST have a non-null value, and generate
-    an error ([invalid_data](#invalid_data)) if not.
-  - This also implies that this attribute MUST be serialized in any response
-    from the server - with the exception of the optimizations specified for
-    document view.
+  - When set to `true`, this specification does not mandate how this
+    attribute's value is populated (i.e. by a client, the server or via a
+    default value), just that by the end of processing any request it MUST
+    have a non-null value, and generate an error
+    ([invalid_data](#invalid_data)) if not.
+  - A `true` value also implies that this attribute MUST be serialized in any
+    response from the server - with the exception of the optimizations
+    specified for document view.
   - When not specified the default value MUST be `false`.
   - When the attribute name is `*` then `required` MUST NOT be set to `true`.
 
@@ -2548,7 +2549,8 @@ The following describes the attributes of Registry model:
     semantic meaning a being absent or set to `null`.
   - When a default value is specified, this attribute MUST be serialized in
     responses from servers as part of its owning entity, even if it is set to
-    its default value.
+    its default value. Note that this means the attribute is implicitly
+    REQUIRED.
 
 - `attributes."STRING".attributes`
   - Type: Object, see `attributes` above.
@@ -2932,6 +2934,9 @@ Content-Type: application/json; charset=utf-8
     "STRING": {
       "plural": "STRING",
       "singular": "STRING",
+      "description": "STRING", ?
+      "modelversion": "STRING", ?
+      "compatiblewith": "URI", ?
       "labels": { "STRING": "STRING" * }, ?
       "attributes": { ... }, ?
 
@@ -2939,12 +2944,15 @@ Content-Type: application/json; charset=utf-8
         "STRING": {
           "plural": "STRING",
           "singular": "STRING",
+          "description": "STRING", ?
           "maxversions": UINTEGER, ?
           "setversionid": BOOLEAN, ?
           "setdefaultversionsticky": BOOLEAN, ?
           "hasdocument": BOOLEAN, ?
           "singleversionroot": BOOLEAN, ?
           "typemap": MAP, ?
+          "modelversion": "STRING", ?
+          "compatiblewith": "URI", ?
           "labels": { "STRING": "STRING" * }, ?
           "attributes": { ... }, ?
           "metaattributes": { ... } ?
@@ -3055,6 +3063,7 @@ Content-Type: application/json; charset=utf-8
     "STRING": {
       "plural": "STRING",
       "singular": "STRING",
+      "description": "STRING", ?
       "modelversion": "STRING", ?
       "compatiblewith": "URI", ?
       "labels": { "STRING": "STRING" * }, ?
@@ -3064,6 +3073,7 @@ Content-Type: application/json; charset=utf-8
         "STRING": {
           "plural": "STRING",
           "singular": "STRING",
+          "description": "STRING", ?
           "maxversions": UINTEGER, ?
           "setversionid": BOOLEAN, ?
           "setdefaultversionsticky": BOOLEAN, ?
@@ -3129,6 +3139,7 @@ Content-Type: application/json; charset=utf-8
     "STRING": {
       "plural": "STRING",
       "singular": "STRING",
+      "description": "STRING", ?
       "modelversion": "STRING", ?
       "compatiblewith": "URI", ?
       "labels": { "STRING": "STRING" * }, ?
@@ -3138,6 +3149,7 @@ Content-Type: application/json; charset=utf-8
         "STRING": {
           "plural": "STRING",
           "singular": "STRING",
+          "description": "STRING", ?
           "maxversions": UINTEGER, ?
           "setversionid": BOOLEAN, ?
           "setdefaultversionsticky": BOOLEAN, ?
@@ -3590,15 +3602,41 @@ and that there are total of 100 items in this collection.
 
 #### Creating or Updating Groups
 
-Creating or updating Groups via HTTP MAY be done by using the HTTP `PUT`
-or `POST` methods:
-- `PUT   /GROUPS/gID`
-- `PATCH /GROUPS/gID`
-- `PATCH /GROUPS`
-- `POST  /GROUPS`
+Creating or updating Groups via HTTP MAY be done by using the HTTP `PUT`,
+`PATCH` or `POST` methods:
+- `PUT   /GROUPS/gID`       # Create/update a single Group
+- `PATCH /GROUPS/gID`       # Create/update a single Group
+- `PATCH /GROUPS`           # Create/update multiple Groups of type GROUPS
+- `POST  /GROUPS`           # Create/update multiple Groups of type GROUPS
 
-The overall processing of these two APIs is defined in the [Creating or
-Updating Entities](#creating-or-updating-entities) section.
+The processing of the above APIs is defined in the [Creating or Updating
+Entities](#creating-or-updating-entities) section.
+
+- `POST  /`                 # Create/update multiple Groups of varying types
+
+This API is very similar to the `POST /GROUPS` above except that the HTTP
+body MUST be a map of Group types as shown below:
+
+```yaml
+{
+  "endpoints": {
+    "endpoint1": { ... Group endpoint1's xRegistry metadata ... }
+    "endpoint2": { ... Group endpoint2's xRegistry metadata ... }
+  },
+  "schemagroups": {
+    "schemagroup1": { ... Group schemagroup1's xRegistry metadata ... },
+    "schemagroup2": { ... Group schemagroup2's xRegistry metadata ... }
+  }
+}
+```
+
+Notice the format is almost the same as what a `PUT /` would look like if the
+request wanted to update the Registry's attributes and define a set of Groups,
+but without the Registry's attributes. This allows for an update of the
+specified Groups without modifying the Registry's attributes.
+
+The response in this case MUST be a map of the Group types with just the
+Groups that were processed as part of the request.
 
 Each individual Group definition MUST adhere to the following:
 
@@ -3952,7 +3990,7 @@ Resource attribute MUST adhere to the following:
     "modifiedat": "TIMESTAMP",             # Resource's
     "readonly": BOOLEAN,                   # Default=false
     "compatibility": "STRING",             # Default=none
-    "compatibilityauthority": "STRING",    # Default=external
+    "compatibilityauthority": "STRING", ?  # Default=external
 
     "defaultversionid": "STRING",
     "defaultversionurl": "URL",
@@ -4107,7 +4145,13 @@ and the following Resource level attributes:
 
   Attempts to change this value to `server` MUST result in the validation of
   existing Versions.
-- When not specified, the default value MUST be `external`.
+
+- Constraints:
+  - MUST be present when `compatibility` is not `none`.
+  - MUST NOT be present when `compatibility` is `none`.
+  - When not specified, and `compatibility` is not `none`, the default value
+    MUST be `external`.
+  - If present, MUST be non-empty.
 
 ##### `defaultversionid` Attribute
 - Type: String
@@ -4130,9 +4174,8 @@ and the following Resource level attributes:
 - Type: URL
 - Description: a URL to the default Version of the Resource.
 
-  If the Resource's `hasdocument` aspect is set to `true`, then the Version URL
-  path MUST include the `$details` suffix, unless `?doc` is enabled and
-  the Version is included in the output, then `$details` MUST be omitted.
+  This URL MUST NOT include the `$detail` suffix even if the Resource's
+  `hasdocument` aspect is set to `true`.
 
 - API View Constraints:
   - REQUIRED.
@@ -4450,7 +4493,7 @@ this form:
     "modifiedat": "TIMESTAMP",             # Resource's
     "readonly": BOOLEAN,                   # Default=false
     "compatibility": "STRING",             # Default=none
-    "compatibilityauthority": "STRING",    # Default=external
+    "compatibilityauthority": "STRING", ?  # Default=external
 
     "defaultversionid": "STRING",
     "defaultversionurl": "URL",
@@ -4581,8 +4624,7 @@ then the resulting serialization of the source Resource would be:
     "createdat": "2024-01-01-T12:00:00",
     "modifiedat": "2024-01-01-T12:01:00",
     "readonly": false,
-    "compatibility": "none",
-    "compatibilityauthority": "external"
+    "compatibility": "none"
   },
   "versionscount": 1,
   "versionsurl": "http://example.com/schemagroups/group1/schemas/mySchema/versions"
@@ -4676,6 +4718,10 @@ and `xref` attributes.
 
 For convenience, the Resource and Version create, update and delete APIs can be
 summarized as:
+
+***`POST /GROUPS/gID`***
+
+- Creates or update one or more collection of Resource types.
 
 **`POST /GROUPS/gID/RESOURCES`**<br>
 **`PATCH /GROUPS/gID/RESOURCES`**
@@ -4781,7 +4827,7 @@ Link: <URL>;rel=next;count=UINTEGER ?
       "modifiedat": "TIMESTAMP",             # Resource's
       "readonly": BOOLEAN,                   # Default=false
       "compatibility": "STRING",             # Default=none
-      "compatibilityauthority": "STRING",    # Default=external
+      "compatibilityauthority": "STRING", ?  # Default=external
 
       "defaultversionid": "STRING",
       "defaultversionurl": "URL",
@@ -4840,6 +4886,38 @@ called out.
 Creating and updating of Resources via HTTP MAY be done using the HTTP `POST`,
 `PUT` or `PATCH` methods as described below:
 
+`POST /GROUPS/gID`
+
+Where:
+- This API MUST create or update one or more Resources, of varying Resource
+  types, within the specified Group.
+- The HTTP body MUST contain a map of Resource types, where the value of each
+  map entry is a map of Resources of that type to be created or updated,
+  serialized as xRegistry metadata.
+
+For example:
+
+```yaml
+{
+  "schemas": {
+    "schema1": { ... Resource schema1's xRegistry metadata ... },
+    "schema2": { ... Resource schema1's xRegistry metadata ... }
+  },
+  "messages": {
+    "message1": { ... Resource message1's xRegistry metadata ... },
+    "message2": { ... Resource message2's xRegistry metadata ... }
+  }
+}
+```
+
+Notice the format is almost the same as what a `PUT /GROUPS/gID` would look
+like if the request wanted to update the Group's attributes and define a set
+of Resources, but without the Group's attributes. This allows for an update of
+the specified Resources without modifying the Group's attributes.
+
+The response in this case MUST be a map of the Resource types with just the
+Resources that were processed as part of the request.
+
 `POST  /GROUPS/gID/RESOURCES`<br>
 `PATCH /GROUPS/gID/RESOURCES`
 
@@ -4863,7 +4941,7 @@ Where:
 `PATCH /GROUPS/gID/RESOURCES/rID[$details][?setdefaultversionid=vID]`
 
 Where:
-- This API MUST create, or update, a single new Version of the specified
+- This API MUST create, or update, a single Version of the specified
   Resource.
 - When the Resource has the `hasdocument` aspect set to `true`:
   - If `$details` is present in the URL, then the HTTP body MUST be an
@@ -4932,7 +5010,7 @@ for the implicit creation of all parent entities specified in the PATH. And
 each entity not already present with the specified `SINGULARid` MUST be
 created with that value. Note: if any of those entities have REQUIRED
 attributes then they can not be implicitly created, and would need to be
-created manually.
+created directly.
 
 When specified as an xRegistry JSON object, each individual Resource or Version
 in the request MUST adhere to the following:
@@ -4941,12 +5019,8 @@ in the request MUST adhere to the following:
 {
   "RESOURCEid": "STRING", ?
   "versionid": "STRING", ?
-  "self": "URL",
-  "shortself": "URL", ?
-  "xid": "XID",
   "epoch": UINTEGER,
-  "name": "STRING", ?                      # Version level attributes
-  "isdefault": BOOLEAN,
+  "name": "STRING", ?                      # Version-level attributes
   "description": "STRING", ?
   "documentation": "URL", ?
   "labels": { "STRING": "STRING" * }, ?
@@ -4959,26 +5033,18 @@ in the request MUST adhere to the following:
   "RESOURCE": ... Resource document ..., ? # If inlined & JSON
   "RESOURCEbase64": "STRING", ?            # If inlined & ~JSON
 
-  "metaurl": "STRING",                     # Resource level attributes
-  "meta": {
-    "RESOURCEid": "STRING",
-    "self": "URL",
-    "shortself": "URL", ?
-    "xid": "XID",
+  "meta": {                                # Resource-only attributes
+    "RESOURCEid": "STRING", ?
     "xref": "URL", ?
-    "epoch": UINTEGER,
-    "createdat": "TIMESTAMP",
-    "modifiedat": "TIMESTAMP",
-    "readonly": BOOLEAN,
-    "compatibility": "STRING",
-    "compatibilityauthority": "STRING",
+    "epoch": UINTEGER, ?
+    "createdat": "TIMESTAMP", ?
+    "modifiedat": "TIMESTAMP", ?
+    "compatibility": "STRING", ?
+    "compatibilityauthority": "STRING", ?
 
     "defaultversionid": "STRING",
-    "defaultversionurl": "URL",
     "defaultversionsticky": BOOLEAN
-  }
-  "versionsurl": "URL",
-  "versionscount": UINTEGER,
+  }, ?
   "versions": { Versions collection } ?
 }
 ```
@@ -4992,11 +5058,8 @@ adhere to the following:
 Content-Type: STRING ?
 xRegistry-RESOURCEid: STRING ?
 xRegistry-versionid: STRING ?
-xRegistry-self: URL
-xRegistry-xid: URI
 xRegistry-epoch: UINTEGER ?
 xRegistry-name: STRING ?
-xRegistry-isdefault: BOOLEAN ?
 xRegistry-description: STRING ?
 xRegistry-documentation: URL ?
 xRegistry-labels-KEY: STRING *
@@ -5004,9 +5067,6 @@ xRegistry-createdat: TIMESTAMP ?
 xRegistry-modifiedat: TIMESTAMP ?
 xRegistry-ancestor: STRING ?
 xRegistry-RESOURCEurl: URL ?
-xRegistry-metaurl: BOOLEAN ?               # For Resources
-xRegistry-versionsurl: URL ?               # For Resources
-xRegistry-versionscount: UINTEGER ?        # For Resources
 
 ... entity document ... ?
 ```
@@ -5333,7 +5393,7 @@ Content-Location: URL ?
     "modifiedat": "TIMESTAMP",
     "readonly": BOOLEAN,
     "compatibility": "STRING",
-    "compatibilityauthority": "STRING",
+    "compatibilityauthority": "STRING", ?
 
     "defaultversionid": "STRING",
     "defaultversionurl": "URL",
@@ -5567,6 +5627,7 @@ as defined below:
   processed in the current request.
 
 - Constraints:
+  - REQUIRED.
   - The `ancestor` attribute MUST NOT be set to a value that
     creates circular references between Versions. For example, an operation that
     makes Version A's ancestor B, and Version B's ancestor A, MUST generate an
@@ -5894,7 +5955,7 @@ xRegistry-modifiedat: TIME
 xRegistry-ancestor: STRING
 xRegistry-RESOURCEurl: URL
 Location: URL
-Content-Disposition: STRING     TODO: yes or let redirect do it?
+Content-Disposition: STRING
 ```
 
 Where:
@@ -6412,7 +6473,7 @@ the following:
     "ancestor": "STRING",
     "readonly": BOOLEAN,
     "compatibility": "STRING",
-    "compatibilityauthority": "STRING",
+    "compatibilityauthority": "STRING", ?
 
     "defaultversionid": "STRING",
     "defaultversionurl": "URL"
