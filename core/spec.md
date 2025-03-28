@@ -5906,6 +5906,8 @@ xRegistry-xid: /endpoints/ep1/messages/msg1/versions/1.0
 xRegistry-epoch: 2
 xRegistry-name: Blob Created
 xRegistry-isdefault: true
+xRegistry-createdat: TIME
+xRegistry-modifiedat: TIME
 xRegistry-ancestor: 1.0
 Content-Disposition: msg1
 
