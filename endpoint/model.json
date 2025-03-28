@@ -16,7 +16,7 @@
             "producer"
           ],
           "strict": true,
-          "required": true
+          "required": false
         },
         "channel": {
           "name": "channel",
@@ -69,7 +69,10 @@
                     "mode": {
                       "name": "mode",
                       "type": "string",
-                      "enum": [ "binary", "structured" ]
+                      "enum": [
+                        "binary",
+                        "structured"
+                      ]
                     },
                     "format": {
                       "name": "format",
@@ -89,7 +92,6 @@
           "name": "protocol",
           "type": "string",
           "description": "Endpoint protocol identifier. If set, all definitions MUST use this protocol value",
-
           "ifvalues": {
             "AMQP/1.0": {
               "siblingattributes": {
@@ -109,8 +111,8 @@
                           "url": {
                             "name": "url",
                             "type": "url",
-                            "description": "Network accessible location",
-                            "required": true
+                            "description": "AMQP Adressing URL",
+                            "required": false
                           },
                           "*": {
                             "name": "*",
@@ -130,7 +132,7 @@
                             "name": "type",
                             "type": "string",
                             "description": "The authentication/authorization type. OAuth2, Plain, APIKey, and X509Cert are well-defined",
-                            "required": true
+                            "required": false
                           },
                           "resourceuri": {
                             "name": "resourceuri",
@@ -161,20 +163,20 @@
                       "name": "deployed",
                       "type": "boolean",
                       "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint",
-                      "required": true,
+                      "required": false,
                       "default": false
                     },
-
                     "node": {
                       "name": "node",
                       "type": "string",
-                      "description": "The AMQP node name. Commonly the name of a queue or a topic"
+                      "description": "The AMQP node name. Commonly the name of a queue or a topic. Corresponds to the 'address' in source or target of the attach frame.",
+                      "required": false
                     },
                     "durable": {
                       "name": "durable",
                       "type": "boolean",
                       "description": "The AMQP durable flag. Whether the node is durable or transient",
-                      "required": true,
+                      "required": false,
                       "default": false
                     },
                     "link-properties": {
@@ -201,8 +203,24 @@
                         "copy"
                       ],
                       "description": "The AMQP distribution mode for receivers. Can be 'move' or 'copy'.  A value of 'move' indicates an exclusive lock on the message. A value of 'copy' indicates a non-exclusive lock on the message",
-                      "required": true,
+                      "required": false,
                       "default": "move"
+                    },
+                    "connection-capabilities": {
+                      "name": "capabilities",
+                      "type": "array",
+                      "description": "The AMQP capabilities to use with the endpoint",
+                      "item": {
+                        "type": "string"
+                      }
+                    },
+                    "node-capabilities": {
+                      "name": "node-capabilities",
+                      "type": "array",
+                      "description": "The AMQP node capabilities to use with the endpoint",
+                      "item": {
+                        "type": "string"
+                      }
                     },
                     "*": {
                       "name": "*",
@@ -227,10 +245,10 @@
                         "type": "object",
                         "attributes": {
                           "uri": {
-                            "name": "uri",
-                            "type": "uri",
-                            "description": "Network accessible location",
-                            "required": true
+                            "name": "url",
+                            "type": "url",
+                            "description": "MQTT URI (mqtt, mqtts, or ws scheme)",
+                            "required": false
                           },
                           "*": {
                             "name": "*",
@@ -250,7 +268,7 @@
                             "name": "type",
                             "type": "string",
                             "description": "The authentication/authorization type. OAuth2, Plain, APIKey, and X509Cert are well-defined",
-                            "required": true
+                            "required": false
                           },
                           "resourceurl": {
                             "name": "resourceurl",
@@ -281,45 +299,52 @@
                       "name": "deployed",
                       "type": "boolean",
                       "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint",
-                      "required": true,
+                      "required": false,
                       "default": false
                     },
-
                     "topic": {
                       "name": "topic",
                       "type": "string",
-                      "description": "The MQTT topic path"
+                      "description": "The MQTT topic path that is used for communication with the endpoint unless overridden by the message",
+                      "required": false
                     },
                     "qos": {
                       "name": "qos",
                       "type": "uinteger",
                       "description": "The MQTT QoS level. May be 0, 1, or 2",
-                      "required": true,
-                      "default": 0
+                      "required": false,
+                      "default": 0,
+                      "enum": [
+                        0,
+                        1,
+                        2
+                      ]
                     },
                     "retain": {
                       "name": "retain",
                       "type": "boolean",
                       "description": "The MQTT retain flag to use for publishers on ths endpoint",
-                      "required": true,
+                      "required": false,
                       "default": false
                     },
                     "cleansession": {
                       "name": "cleansession",
                       "type": "boolean",
                       "description": "The MQTT clean session flag to use for publishers on this endpoint",
-                      "required": true,
+                      "required": false,
                       "default": true
                     },
                     "willtopic": {
                       "name": "willtopic",
                       "type": "string",
-                      "description": "The MQTT will topic to configure for publishers on this endpoint"
+                      "description": "The MQTT will topic to configure for publishers on this endpoint",
+                      "required": false
                     },
                     "willmessage": {
                       "name": "willmessage",
-                      "type": "string",
-                      "description": "The MQTT will message definition to configure for publishers on this endpoint"
+                      "type": "xid",
+                      "description": "The MQTT will message definition to configure for publishers on this endpoint. This MUST be a reference to a message definition",
+                      "required": false
                     },
                     "*": {
                       "name": "*",
@@ -346,8 +371,8 @@
                           "uri": {
                             "name": "uri",
                             "type": "uri",
-                            "description": "Network accessible location",
-                            "required": true
+                            "description": "MQTT URI (mqtt, mqtts, or ws scheme)",
+                            "required": false
                           },
                           "*": {
                             "name": "*",
@@ -367,7 +392,7 @@
                             "name": "type",
                             "type": "string",
                             "description": "The authentication/authorization type. OAuth2, Plain, APIKey, and X509Cert are well-defined",
-                            "required": true
+                            "required": false
                           },
                           "resourceurl": {
                             "name": "resourceurl",
@@ -398,45 +423,52 @@
                       "name": "deployed",
                       "type": "boolean",
                       "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint",
-                      "required": true,
+                      "required": false,
                       "default": false
                     },
-
                     "topic": {
                       "name": "topic",
                       "type": "string",
-                      "description": "MQTT topic path"
+                      "description": "MQTT topic path that is used for communication with the endpoint unless overridden by the message",
+                      "required": false
                     },
                     "qos": {
                       "name": "qos",
                       "type": "uinteger",
                       "description": "The MQTT QoS level. May be 0, 1, or 2",
-                      "required": true,
-                      "default": 0
+                      "required": false,
+                      "default": 0,
+                      "enum": [
+                        0,
+                        1,
+                        2
+                      ]
                     },
                     "retain": {
                       "name": "retain",
                       "type": "boolean",
                       "description": "The MQTT retain flag to use for publishers on ths endpoint",
-                      "required": true,
+                      "required": false,
                       "default": false
                     },
                     "cleansession": {
                       "name": "cleansession",
                       "type": "boolean",
                       "description": "The MQTT clean session flag to use for publishers on this endpoint",
-                      "required": true,
+                      "required": false,
                       "default": true
                     },
                     "willtopic": {
                       "name": "willtopic",
                       "type": "string",
-                      "description": "The MQTT will topic to configure for publishers on this endpoint"
+                      "description": "The MQTT will topic to configure for publishers on this endpoint",
+                      "required": false
                     },
                     "willmessage": {
                       "name": "willmessage",
-                      "type": "string",
-                      "description": "The MQTT will message definition to configure for publishers on this endpoint"
+                      "type": "xid",
+                      "description": "The MQTT will message definition to configure for publishers on this endpoint. This MUST be a reference to a message definition",
+                      "required": false
                     },
                     "*": {
                       "name": "*",
@@ -463,8 +495,8 @@
                           "uri": {
                             "name": "uri",
                             "type": "uri",
-                            "description": "Network accessible location",
-                            "required": true
+                            "description": "HTTP URI",
+                            "required": false
                           },
                           "*": {
                             "name": "*",
@@ -484,7 +516,7 @@
                             "name": "type",
                             "type": "string",
                             "description": "The authentication/authorization type. OAuth2, Plain, APIKey, and X509Cert are well-defined",
-                            "required": true
+                            "required": false
                           },
                           "resourceurl": {
                             "name": "resourceurl",
@@ -515,15 +547,14 @@
                       "name": "deployed",
                       "type": "boolean",
                       "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint",
-                      "required": true,
+                      "required": false,
                       "default": false
                     },
-
                     "method": {
                       "name": "method",
                       "type": "string",
                       "description": "The HTTP method name",
-                      "required": true,
+                      "required": false,
                       "default": "POST"
                     },
                     "headers": {
@@ -543,7 +574,7 @@
                             "name": "value",
                             "type": "string",
                             "description": "HTTP header value",
-                            "required": true
+                            "required": false
                           }
                         }
                       }
@@ -577,12 +608,29 @@
                       "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URI just identifies a network host or links directly to a resource managed by the network host is protocol specific",
                       "item": {
                         "type": "object",
+                        "namecharset": "extended",
                         "attributes": {
-                          "uri": {
-                            "name": "uri",
-                            "type": "uri",
-                            "description": "Network accessible location",
-                            "required": true
+                          "bootstrap.servers": {
+                            "name": "bootstrap.servers",
+                            "type": "array",
+                            "description": "The Kafka bootstrap servers",
+                            "item": {
+                              "type": "string"
+                            }
+                          },
+                          "security.protocol": {
+                            "name": "security.protocol",
+                            "type": "string",
+                            "description": "The Kafka security protocol",
+                            "required": false,
+                            "default": "PLAINTEXT"
+                          },
+                          "sasl.mechanism": {
+                            "name": "sasl.mechanism",
+                            "type": "string",
+                            "description": "The Kafka SASL mechanism",
+                            "required": false,
+                            "default": "PLAIN"
                           },
                           "*": {
                             "name": "*",
@@ -602,7 +650,7 @@
                             "name": "type",
                             "type": "string",
                             "description": "The authentication/authorization type. OAuth2, Plain, APIKey, and X509Cert are well-defined",
-                            "required": true
+                            "required": false
                           },
                           "resourceurl": {
                             "name": "resourceurl",
@@ -633,21 +681,20 @@
                       "name": "deployed",
                       "type": "boolean",
                       "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint",
-                      "required": true,
+                      "required": false,
                       "default": false
                     },
-
                     "topic": {
                       "name": "topic",
                       "type": "string",
                       "description": "Apache Kafka topic name",
-                      "required": true
+                      "required": false
                     },
                     "acks": {
                       "name": "acks",
                       "type": "integer",
                       "description": "The Apache Kafka acks setting to use. If no acks setting is specified, the default is -1",
-                      "required": true,
+                      "required": false,
                       "default": 1
                     },
                     "key": {
@@ -672,6 +719,20 @@
                       "item": {
                         "type": "string"
                       }
+                    },
+                    "keyserializer": {
+                      "name": "keyserializer",
+                      "type": "string",
+                      "description": "The Kafka key serializer",
+                      "required": false,
+                      "default": "org.apache.kafka.common.serialization.StringSerializer"
+                    },
+                    "valueserializer": {
+                      "name": "valueserializer",
+                      "type": "string",
+                      "description": "The Kafka value serializer",
+                      "required": false,
+                      "default": "org.apache.kafka.common.serialization.StringSerializer"
                     },
                     "*": {
                       "name": "*",
@@ -698,8 +759,8 @@
                           "uri": {
                             "name": "uri",
                             "type": "uri",
-                            "description": "Network accessible location",
-                            "required": true
+                            "description": "NATS URI",
+                            "required": false
                           },
                           "*": {
                             "name": "*",
@@ -719,7 +780,7 @@
                             "name": "type",
                             "type": "string",
                             "description": "The authentication/authorization type. OAuth2, Plain, APIKey, and X509Cert are well-defined",
-                            "required": true
+                            "required": false
                           },
                           "resourceurl": {
                             "name": "resourceurl",
@@ -750,15 +811,14 @@
                       "name": "deployed",
                       "type": "boolean",
                       "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint",
-                      "required": true,
+                      "required": false,
                       "default": false
                     },
-
                     "subject": {
                       "name": "subject",
                       "type": "string",
                       "description": "The NATS subject",
-                      "required": true
+                      "required": false
                     },
                     "*": {
                       "name": "*",
@@ -770,12 +830,11 @@
             }
           }
         },
-
         "messagegroups": {
           "name": "messagegroups",
           "type": "array",
           "description": "The message groups that are supported by this endpoint",
-          "item" : {
+          "item": {
             "type": "uri"
           }
         },
