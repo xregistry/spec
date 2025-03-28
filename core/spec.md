@@ -4073,7 +4073,8 @@ and the following Resource level attributes:
   - If the `compatibilityauthority` attribute is set to `server`, when
     changing the `compatibility` attribute, the server MUST validate whether
     the new `compatibility` value can be enforced across all existing
-    Versions. If that's not the case, the server MUST generate an error.
+    Versions. If that's not the case, the server MUST generate an error
+    ([compatibility_violation](#compatibility_violation)).
 
 #### `compatibilityauthority` Attribute
 - Name: `compatibilityauthority`
@@ -4086,13 +4087,15 @@ and the following Resource level attributes:
   - `external` - The compatibility is enforced by an external authority.
   - `server` - The compatibility is enforced by the server.
 
-  The server MUST reject any attempt to set the `compatibilityauthority`
-  attribute to `server` if the server cannot enforce the compatibility for
-  the Resource's Versions.
+  The server MUST generate an error
+  ([compatibility_violation](#compatibility_violation)) following any
+  attempt to set the `compatibilityauthority` attribute to `server` if the
+  server cannot enforce the compatibility for the Resource's Versions.
 
-  When set to `server`, the server MUST reject all attempts to create/update a
-  Resource (or its Versions) that would result in those entities violating
-  the stated compatibility statement.
+  When set to `server`, the server MUST generate an error
+  ([compatibility_violation](#compatibility_violation)) following any
+  attempt to create/update a Resource (or its Versions) that would result in
+  those entities violating the stated compatibility statement.
 
   A value of `external` indicates that the server MUST NOT perform any
   compatibility checking and that the compatibility checking is performed by
@@ -5557,7 +5560,7 @@ as defined below:
   makes Version A's ancestor B, and Version B's ancestor A, MUST generate an
   error.
   Any attempt to set an `ancestor` attribute to a non-existing `versionid`
-  MUST generate an error.
+  MUST generate an error ([invalid_data](#invalid_data)).
 
 ##### `contenttype` Attribute
 - Type: String
