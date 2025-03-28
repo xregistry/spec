@@ -2,19 +2,15 @@
 
 ## Abstract
 
-TODO
+The CloudEvents Registry is a universal catalog and discovery metadata format
+as well as a metadata service API for messaging and eventing schemas,
+metaschemas, and messaging and eventing endpoints.
 
 ## Table of Contents
 
-- [Overview](#overview)
 - [Notations and Terminology](#notations-and-terminology)
   - [Notational Conventions](#notational-conventions)
-  - [Terminology](#terminology)
 - [CloudEvents Registry](#cloudevents-registry)
-
-## Overview
-
-TODO
 
 ## Notations and Terminology
 
@@ -39,14 +35,6 @@ and `+` means the preceding attribute MUST appear at least once. The presence
 of the `#` character means the remaining portion of the line is a comment.
 Whitespace characters in the JSON snippets are used for readability and are
 not normative.
-
-### Terminology
-
-This specification defines the following terms:
-
-#### ???
-
-TODO
 
 ## CloudEvents Registry
 
