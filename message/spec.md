@@ -792,8 +792,6 @@ The "AMQP/1.0" protocol is used to define messages that are sent over an
 The [`protocoloptions`](#protocoloptions) object MAY contain several
 properties, each of which corresponds to a section of the AMQP 1.0 Message:
 
-TODO: - vs _ for prop names in the table below
-
 | Property                 | Type | Description                                                                     |
 | ------------------------ | ---- | ------------------------------------------------------------------------------- |
 | `properties`             | Map  | The AMQP 1.0 [Message Properties][AMQP 1.0 Message Properties] section.         |
