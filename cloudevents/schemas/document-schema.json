@@ -253,7 +253,7 @@
                     },
                     "datacontenttype": {
                       "type": "object",
-                      "description": "The content type of the data attribute value. ",
+                      "description": "CloudEvents datacontenttype https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#datacontenttype.",
                       "properties": {
                         "description": {
                           "type": "string"
