@@ -473,22 +473,22 @@ This specification defines the following envelope options for the indicated
   - Each object key MUST contain a `uri` attribute with a valid, absolute
     URI (URL)
 - Examples:
-  - `[ {"url": "https://example.com" } ]`
+  - `[ {"uri": "https://example.com" } ]`
   - ```
     [
-      { "url": "tcp://example.com" },
-      { "url": "wss://example.com" }
+      { "uri": "tcp://example.com" },
+      { "uri": "wss://example.com" }
     ]
     ```
   - ```
     [
       {
-        "url": "tcp://example.com",
+        "uri": "tcp://example.com",
         "priority": 1,
         "status": "down"
       },
       {
-        "url": "wss://example.com",
+        "uri": "wss://example.com",
         "priority": 2,
         "status": "up"
       }
