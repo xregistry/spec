@@ -9,14 +9,12 @@
         "envelope": {
           "name": "envelope",
           "type": "string",
-          "description": "Envelope format identifier that defines the common metadata information for the message. All definitions in this group share this envelope format. Mixed-envelope-format groups are not permitted. Predefined envelope formats are 'None' and 'CloudEvents/1.0'",
-          "default": "None"
+          "description": "Envelope format identifier that defines the common metadata information for the message. All definitions in this group share this envelope format. Mixed-envelope-format groups are not permitted. The predefined envelope format is 'CloudEvents/1.0'",
         },
         "protocol": {
           "name": "protocol",
           "type": "string",
-          "description": "Protocol identifier that defines the transport message protocol. All definitions in this group share this protocol type. Mixed-protocol groups are not permitted. Predefined protocol formats are 'None', 'AMQP/1.0', 'MQTT/3.1.1', 'MQTT/5.0', 'KAFKA', 'HTTP', and 'NATS'",
-          "default": "None"
+          "description": "Protocol identifier that defines the transport message protocol. All definitions in this group share this protocol type. Mixed-protocol groups are not permitted. Predefined protocol formats are 'AMQP/1.0', 'MQTT/3.1.1', 'MQTT/5.0', 'KAFKA', 'HTTP', and 'NATS'",
         },
         "*": {
           "name": "*",
@@ -42,9 +40,8 @@
             "envelope": {
               "name": "envelope",
               "type": "string",
-              "description": "Message envelope format identifier. This attribute MUST be the same as the 'envelope' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups. Predefined envelope formats are 'None' and 'CloudEvents/1.0'",
+              "description": "Message envelope format identifier. This attribute MUST be the same as the 'envelope' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups. The predefined envelope format is 'CloudEvents/1.0'",
               "ifvalues": {
-                "None": {},
                 "CloudEvents/1.0": {
                   "siblingattributes": {
                     "envelopemetadata": {
@@ -362,7 +359,6 @@
               "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
               "type": "string",
               "ifvalues": {
-                "None": {},
                 "AMQP/1.0": {
                   "siblingattributes": {
                     "protocoloptions": {
