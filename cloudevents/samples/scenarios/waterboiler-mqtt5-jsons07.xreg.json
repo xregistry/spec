@@ -9,7 +9,7 @@
             "protocoloptions": {
                 "endpoints": [
                     {
-                        "url": "mqtt://mqttbroker1.example.com:1883"
+                        "uri": "mqtt://mqttbroker1.example.com:1883"
                     }
                 ]
             },
@@ -24,7 +24,7 @@
             "protocoloptions": {
                 "endpoints": [
                     {
-                        "url": "mqtt://mqttbroker1.example.com:1883"
+                        "uri": "mqtt://mqttbroker1.example.com:1883"
                     }
                 ]
             },

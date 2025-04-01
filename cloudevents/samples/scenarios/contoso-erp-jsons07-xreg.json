@@ -174,7 +174,7 @@
                             "description": "The event type for a reservation placed"
                         },
                         "time": {
-                            "type": "datetime",
+                            "type": "timestamp",
                             "required": true,
                             "description": "Timestamp when the reservation was placed"
                         },
@@ -210,7 +210,7 @@
                             "description": "The event type for a reservation cancellation"
                         },
                         "time": {
-                            "type": "datetime",
+                            "type": "timestamp",
                             "required": true,
                             "description": "Timestamp when the reservation was cancelled"
                         },
@@ -246,7 +246,7 @@
                             "description": "The event type for a reservation refund"
                         },
                         "time": {
-                            "type": "datetime",
+                            "type": "timestamp",
                             "required": true,
                             "description": "Timestamp when the reservation was refunded"
                         },
@@ -288,7 +288,7 @@
                             "description": "The event type for a payment received"
                         },
                         "time": {
-                            "type": "datetime",
+                            "type": "timestamp",
                             "required": true,
                             "description": "Timestamp when the payment was received"
                         },
@@ -330,7 +330,7 @@
                             "description": "The event type for a shipment accepted"
                         },
                         "time": {
-                            "type": "datetime",
+                            "type": "timestamp",
                             "required": true,
                             "description": "Timestamp when the shipment was accepted"
                         },
@@ -366,7 +366,7 @@
                             "description": "The event type for a shipment rejected"
                         },
                         "time": {
-                            "type": "datetime",
+                            "type": "timestamp",
                             "required": true,
                             "description": "Timestamp when the shipment was rejected"
                         },
@@ -402,7 +402,7 @@
                             "description": "The event type for a return requested"
                         },
                         "time": {
-                            "type": "datetime",
+                            "type": "timestamp",
                             "required": true,
                             "description": "Timestamp when the return was requested"
                         },
@@ -444,7 +444,7 @@
                             "required": true
                         },
                         "time": {
-                            "type": "datetime",
+                            "type": "timestamp",
                             "required": true,
                             "description": "Timestamp when the inventory was updated"
                         },
@@ -486,7 +486,7 @@
                             "description": "The event type for a product added"
                         },
                         "time": {
-                            "type": "datetime",
+                            "type": "timestamp",
                             "required": true,
                             "description": "Timestamp when the product was added"
                         },
@@ -522,7 +522,7 @@
                             "description": "The event type for a product deleted"
                         },
                         "time": {
-                            "type": "datetime",
+                            "type": "timestamp",
                             "required": true,
                             "description": "Timestamp when the product was deleted"
                         },
@@ -558,7 +558,7 @@
                             "description": "The event type for a product updated"
                         },
                         "time": {
-                            "type": "datetime",
+                            "type": "timestamp",
                             "required": true,
                             "description": "Timestamp when the product was updated"
                         },
@@ -600,7 +600,7 @@
                             "description": "The event type for an employee added"
                         },
                         "time": {
-                            "type": "datetime",
+                            "type": "timestamp",
                             "required": true,
                             "description": "Timestamp when the employee was added"
                         },
@@ -636,7 +636,7 @@
                             "description": "The event type for an employee deleted"
                         },
                         "time": {
-                            "type": "datetime",
+                            "type": "timestamp",
                             "required": true,
                             "description": "Timestamp when the employee was deleted"
                         },
@@ -672,7 +672,7 @@
                             "description": "The event type for an employee updated"
                         },
                         "time": {
-                            "type": "datetime",
+                            "type": "timestamp",
                             "required": true,
                             "description": "Timestamp when the employee was updated"
                         },
@@ -714,7 +714,7 @@
                             "description": "The event type for a purchase order created"
                         },
                         "time": {
-                            "type": "datetime",
+                            "type": "timestamp",
                             "required": true,
                             "description": "Timestamp when the purchase order was created"
                         },
@@ -750,7 +750,7 @@
                             "description": "The event type for a purchase order updated"
                         },
                         "time": {
-                            "type": "datetime",
+                            "type": "timestamp",
                             "required": true,
                             "description": "Timestamp when the purchase order was updated"
                         },
@@ -786,7 +786,7 @@
                             "description": "The event type for a purchase order deleted"
                         },
                         "time": {
-                            "type": "datetime",
+                            "type": "timestamp",
                             "required": true,
                             "description": "Timestamp when the purchase order was deleted"
                         },
