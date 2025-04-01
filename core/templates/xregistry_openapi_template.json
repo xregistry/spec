@@ -3,7 +3,7 @@
     "info": {
         "title": "xRegistry API",
         "description": "xRegistry API. See spec sections (e.g. 'Registry Capabilities', 'Retrieving the Registry Model', 'Doc', etc.) for details.",
-        "version": "1.0-RC1"
+        "version": "1.0-rc1"
     },
     "servers": [],
     "security": [
@@ -287,7 +287,7 @@
                     {
                         "in": "query",
                         "name": "schema",
-                        "description": "The model schema format (e.g. xRegistry-json/1.0-RC1).",
+                        "description": "The model schema format (e.g. xRegistry-json/1.0-rc1).",
                         "required": false,
                         "schema": { "type": "string" }
                     },
@@ -1749,9 +1749,9 @@
                         "type": "array",
                         "items": {
                             "type": "string",
-                            "description": "A schema document format name, e.g. 'jsonSchema/2020-12' or 'xRegistry-json/1.0-RC1'."
+                            "description": "A schema document format name, e.g. 'jsonSchema/2020-12' or 'xRegistry-json/1.0-rc1'."
                         },
-                        "default": ["xRegistry-json/1.0-RC1"],
+                        "default": ["xRegistry-json/1.0-rc1"],
                         "description": "List of schema formats supported by the server."
                     },
                     "shortself": {
@@ -1765,7 +1765,7 @@
                             "type": "string",
                             "description": "A supported xRegistry specification version."
                         },
-                        "default": ["1.0-RC1"],
+                        "default": ["1.0-rc1"],
                         "description": "List of xRegistry specification versions supported by the server."
                     },
                     "sticky": {

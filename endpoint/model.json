@@ -3,7 +3,7 @@
     "endpoints": {
       "singular": "endpoint",
       "plural": "endpoints",
-      "modelversion": "0.5",
+      "modelversion": "1.0-rc1",
       "compatiblewith": "https://raw.githubusercontent.com/xregistry/spec/refs/heads/main/endpoint/model.json",
       "attributes": {
         "usage": {

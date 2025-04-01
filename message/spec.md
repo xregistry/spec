@@ -1,4 +1,4 @@
-# Message Definitions Registry Service - Version 1.0 RC1
+# Message Definitions Registry Service - Version 1.0-rc1
 
 ## Abstract
 
