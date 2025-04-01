@@ -466,7 +466,6 @@ This specification defines the following envelope options for the indicated
   - OPTIONAL
 
 #### `protocoloptions.protocol`
-TODO merge this into the previous 'protocol' section
 
 - Type: String
 - Description: The transport or application protocol used by the endpoint. This
