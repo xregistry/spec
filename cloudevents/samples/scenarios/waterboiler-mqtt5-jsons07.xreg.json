@@ -1,0 +1,138 @@
+{
+    "$schema": "https://cloudevents.io/schemas/registry",
+    "specversion": "0.5-wip",
+    "endpoints": {
+        "WaterBoiler.Producer": {
+            "usage": "producer",
+            "description": "Producer endpoint for water boiler commands",
+            "protocol": "MQTT/5.0",
+            "protocoloptions": {
+                "endpoints": [
+                    {
+                        "uri": "mqtt://mqttbroker1.example.com:1883"
+                    }
+                ]
+            },
+            "messagegroups": [
+                "#/messagegroups/WaterBoiler.Events"
+            ]
+        },
+        "WaterBoiler.Consumer": {
+            "usage": "consumer",
+            "description": "Consumer endpoint for water boiler events",
+            "protocol": "MQTT/5.0",
+            "protocoloptions": {
+                "endpoints": [
+                    {
+                        "uri": "mqtt://mqttbroker1.example.com:1883"
+                    }
+                ]
+            },
+            "messagegroups": [
+                "#/messagegroups/WaterBoiler.Events"
+            ]
+        }
+    },
+    "messagegroups": {
+        "WaterBoiler.Events": {
+            "description": "Events for water boiler operations",
+            "protocol": "MQTT/5.0",
+            "messages": {
+                "WaterBoiler.TemperatureUpdate": {
+                    "description": "Event for water boiler temperature update",
+                    "protocol": "MQTT/5.0",
+                    "protocoloptions": {
+                        "topic_name": "waterboiler/{boilerId}/temperature",
+                        "qos": 1,
+                        "retain": false
+                    },
+                    "dataschemaformat": "JSONSchema/Draft-07",
+                    "dataschemauri": "#/schemagroups/WaterBoiler/schemas/WaterBoiler.TemperatureUpdateEventData"
+                },
+                "WaterBoiler.StatusChange": {
+                    "description": "Event for water boiler status change",
+                    "protocol": "MQTT/5.0",
+                    "protocoloptions": {
+                        "topic_name": "waterboiler/{boilerId}/status",
+                        "qos": 1,
+                        "retain": false
+                    },
+                    "dataschemaformat": "JSONSchema/Draft-07",
+                    "dataschemauri": "#/schemagroups/WaterBoiler/schemas/WaterBoiler.StatusChangeEventData"
+                }
+            }
+        }
+    },
+    "schemagroups": {
+        "WaterBoiler": {
+            "schemas": {
+                "WaterBoiler.TemperatureUpdateEventData": {
+                    "format": "JSONSchema/Draft-07",
+                    "versions": {
+                        "1": {
+                            "format": "JSONSchema/Draft-07",
+                            "schema": {
+                                "$schema": "http://json-schema.org/draft-07/schema#",
+                                "title": "TemperatureUpdateEventData",
+                                "description": "Data schema for water boiler temperature update event",
+                                "type": "object",
+                                "properties": {
+                                    "boilerId": {
+                                        "type": "string",
+                                        "description": "Identifier of the water boiler"
+                                    },
+                                    "temperature": {
+                                        "type": "number",
+                                        "description": "Current temperature reading in Celsius"
+                                    },
+                                    "timestamp": {
+                                        "type": "integer",
+                                        "description": "Event timestamp"
+                                    }
+                                },
+                                "required": [
+                                    "boilerId",
+                                    "temperature",
+                                    "timestamp"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "WaterBoiler.StatusChangeEventData": {
+                    "format": "JSONSchema/Draft-07",
+                    "versions": {
+                        "1": {
+                            "format": "JSONSchema/Draft-07",
+                            "schema": {
+                                "$schema": "http://json-schema.org/draft-07/schema#",
+                                "title": "StatusChangeEventData",
+                                "description": "Data schema for water boiler status change event",
+                                "type": "object",
+                                "properties": {
+                                    "boilerId": {
+                                        "type": "string",
+                                        "description": "Identifier of the water boiler"
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "description": "New status of the water boiler (e.g., on/off)"
+                                    },
+                                    "timestamp": {
+                                        "type": "integer",
+                                        "description": "Event timestamp"
+                                    }
+                                },
+                                "required": [
+                                    "boilerId",
+                                    "status",
+                                    "timestamp"
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
