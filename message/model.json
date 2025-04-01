@@ -1247,7 +1247,7 @@
                           "description": "The NATS subject",
                           "type": "uritemplate"
                         },
-                        "reply-to": {
+                        "reply": {
                           "name": "reply",
                           "description": "The NATS reply subject",
                           "type": "uritemplate"

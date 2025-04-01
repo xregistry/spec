@@ -32,15 +32,15 @@ with a lowercase `x`, even when the first word in a sentence.
 |                               |                                 Latest Release                                  |                                      Working Draft                                       |
 | :---------------------------- | :-----------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------: |
 | **Core xRegistry Specification:**    |
-| xRegistry                     | n/a | [WIP](core/spec.md) |
+| xRegistry                     | [v1.0-rc1](https://github.com/xregistry/spec/tree/main/core/spec.md) | [WIP](core/spec.md) |
 |                               |
 | **Domain Specific Specifications:**  |
-| Endpoint Registry             | n/a | [WIP](endpoint/spec.md)                         |
-| Message Definitions Registry  | n/a | [WIP](message/spec.md)                         |
-| Schema Registry               | n/a | [WIP](schema/spec.md)                         |
+| Endpoint Registry             | [v1.0-rc1](https://github.com/xregistry/spec/tree/main/endpoint/spec.md) | [WIP](endpoint/spec.md)                         |
+| Message Definitions Registry  | [v1.0-rc1](https://github.com/xregistry/spec/tree/main/message/spec.md) | [WIP](message/spec.md)                         |
+| Schema Registry               | [v1.0-rc1](https://github.com/xregistry/spec/tree/main/schema/spec.md) | [WIP](schema/spec.md)                         |
 |                               |
 | **Additional Documentation:** |
-| xRegistry Primer              | n/a | [WIP](core/primer.md)                          |
+| xRegistry Primer              | [v1.0-rc1](https://github.com/xregistry/spec/tree/main/core/primer.md) | [WIP](core/primer.md)                          |
 | Pagination Specification      | n/a | [WIP](pagination/spec.md)                          |
 
 Additional release related information:
