@@ -111,7 +111,7 @@
                           "url": {
                             "name": "url",
                             "type": "url",
-                            "description": "AMQP Adressing URL",
+                            "description": "AMQP Addressing URL",
                             "required": false
                           },
                           "*": {
@@ -207,7 +207,7 @@
                       "default": "move"
                     },
                     "connection-capabilities": {
-                      "name": "capabilities",
+                      "name": "connection-capabilities",
                       "type": "array",
                       "description": "The AMQP capabilities to use with the endpoint",
                       "item": {
@@ -245,8 +245,8 @@
                         "type": "object",
                         "attributes": {
                           "uri": {
-                            "name": "url",
-                            "type": "url",
+                            "name": "uri",
+                            "type": "uri",
                             "description": "MQTT URI (mqtt, mqtts, or ws scheme)",
                             "required": false
                           },
