@@ -60,7 +60,8 @@ avro_type_mapping = {
     "binary": {"type": "bytes"},
     "timestamp": {"type": {"type":"int", "logicalType": "timestamp-millis"}},
     "any": avro_generic_record,
-    "var": avro_generic_record
+    "var": avro_generic_record,
+    "xid": {"type": "string"}
 }
 
 json_type_mapping = {
@@ -69,6 +70,7 @@ json_type_mapping = {
     "map": {"type": "object"},
     "uri": {"type": "string", "format": "uri"},
     "url": {"type": "string", "format": "uri"},
+    "xid": {"type": "string", "format": "uri"},
     "datetime": {"type": "string", "format": "date-time"},
     "integer": {"type": "integer"},
     "uinteger": {"type": "integer", "minimum": 0},
