@@ -34,7 +34,7 @@ avro_generic_record = {
               "double",
               "bytes",
               "string",
-              avro_generic_record_name 
+              avro_generic_record_name
             ]
           },
           avro_generic_record_name
@@ -59,7 +59,8 @@ avro_type_mapping = {
     "uritemplate": {"type": "string"},
     "binary": {"type": "bytes"},
     "timestamp": {"type": {"type":"int", "logicalType": "timestamp-millis"}},
-    "any": avro_generic_record
+    "any": avro_generic_record,
+    "var": avro_generic_record
 }
 
 json_type_mapping = {
@@ -76,7 +77,8 @@ json_type_mapping = {
     "uritemplate": {"type": "string", "format": "uri-template"},
     "binary": {"type": "string", "format": "base64"},
     "timestamp": {"type": "string", "format": "date-time"},
-    "any": {"type": "object"}
+    "any": {"type": "object"},
+    "var": {"type": "object"}
 }
 
 json_common_attributes = {
@@ -134,10 +136,10 @@ def generate_openapi(model_definition):
     def replace_refs(schema_fragment: dict, expression: str, reference: str):
         for k,v in schema_fragment.items():
             if k == "$ref":
-                if v == expression:
-                    schema_fragment[k] = reference
+                if expression in v:
+                    schema_fragment[k] = v.replace(expression, reference)
             if isinstance(v, dict):
-                replace_refs(v, expression, reference)        
+                replace_refs(v, expression, reference)
             elif isinstance(v, list):
                 for item in v:
                     if isinstance(item, dict):
@@ -149,7 +151,7 @@ def generate_openapi(model_definition):
                 if v.find(expression) != -1:
                     schema_fragment[k] = v.replace(expression, reference)
             if isinstance(v, dict):
-                replace_ops(v, expression, reference)        
+                replace_ops(v, expression, reference)
             elif isinstance(v, list):
                 for item in v:
                     if isinstance(item, dict):
@@ -163,7 +165,7 @@ def generate_openapi(model_definition):
         # merge JSON schema with template
         for schema_name, schema in json_schema["components"]["schemas"].items():
             openapi["components"]["schemas"][schema_name] = schema
-        # do the fixups 
+        # do the fixups
 
         path = "/"
         root_template = openapi["paths"][path]
@@ -185,7 +187,7 @@ def generate_openapi(model_definition):
             replace_refs(group_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{group['singular']}")
             replace_ops(group_template_copy, "{%-groupNameSingular-%}", f"{pascal(group['singular'])}")
             openapi["paths"][f"/{group['plural']}/{{groupid}}"] = group_template_copy
-        
+
         openapi["paths"].pop(path)
         path = "/{%-groupNamePlural-%}/{groupid}/{%-resourceNamePlural-%}"
         resource_template = openapi["paths"][path]
@@ -194,9 +196,33 @@ def generate_openapi(model_definition):
                 resource = resolve_resource(group, resource)
                 resource_template_copy = copy.deepcopy(resource_template)
                 replace_refs(resource_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{resource['singular']}")
-                replace_refs(resource_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{group['singular']}")        
-                replace_ops(resource_template_copy, "{%-resourceNamePlural-%}", f"{pascal(group['singular'])}{pascal(resource['plural'])}")    
+                replace_refs(resource_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{group['singular']}")
+                replace_ops(resource_template_copy, "{%-resourceNamePlural-%}", f"{pascal(group['singular'])}{pascal(resource['plural'])}")
                 openapi["paths"][f"/{group['plural']}/{{groupid}}/{resource['plural']}"]= resource_template_copy
+
+        openapi["paths"].pop(path)
+        path = "/{%-groupNamePlural-%}/{groupid}/{%-resourceNamePlural-%}/{resourceid}/meta"
+        meta_template = openapi["paths"][path]
+        for _, group in model_definition.get("groups", {}).items():
+            for _, resource in group.get("resources", {}).items():
+                resource = resolve_resource(group, resource)
+                meta_template_copy = copy.deepcopy(meta_template)
+                replace_refs(meta_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{resource['singular']}")
+                replace_refs(meta_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{group['singular']}")
+                replace_ops(meta_template_copy, "{%-resourceNameSingular-%}", f"{pascal(group['singular'])}{pascal(resource['singular'])}")
+                openapi["paths"][f"/{group['plural']}/{{groupid}}/{resource['plural']}/{{resourceid}}/meta"]= meta_template_copy
+
+        openapi["paths"].pop(path)
+        path = "/{%-groupNamePlural-%}/{groupid}/{%-resourceNamePlural-%}/{resourceid}$details"
+        details_template = openapi["paths"][path]
+        for _, group in model_definition.get("groups", {}).items():
+            for _, resource in group.get("resources", {}).items():
+                resource = resolve_resource(group, resource)
+                details_template_copy = copy.deepcopy(details_template)
+                replace_refs(details_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{resource['singular']}")
+                replace_refs(details_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{group['singular']}")
+                replace_ops(details_template_copy, "{%-resourceNameSingular-%}", f"{pascal(group['singular'])}{pascal(resource['singular'])}")
+                openapi["paths"][f"/{group['plural']}/{{groupid}}/{resource['plural']}/{{resourceid}}$details"]= details_template_copy
 
         openapi["paths"].pop(path)
         path = "/{%-groupNamePlural-%}/{groupid}/{%-resourceNamePlural-%}/{resourceid}"
@@ -235,6 +261,30 @@ def generate_openapi(model_definition):
                 openapi["paths"][f"/{group['plural']}/{{groupid}}/{resource['plural']}/{{resourceid}}/versions/{{versionid}}"]= versionid_template_copy
 
         openapi["paths"].pop(path)
+
+        registry_entity_schema = openapi["components"]["schemas"]["RegistryEntity"]
+        for _, group in model_definition.get("groups", {}).items():
+            group_plural = group["plural"]
+            group_singular = group["singular"]
+            registry_entity_schema["properties"][f"{group_plural}url"] = {
+            "type": "string",
+            "format": "uri",
+            "description": f"The URL for retrieving the {group_plural} (e.g. endpointsurl)."
+            }
+            registry_entity_schema["properties"][f"{group_plural}count"] = {
+            "type": "integer",
+            "minimum": 0,
+            "description": f"The count of {group_plural} in the registry."
+            }
+            registry_entity_schema["properties"][group_plural] = {
+            "type": "object",
+            "description": f"A map of {group_plural} in the registry, keyed by {group_singular} identifier. Present only if inlined.",
+            "additionalProperties": {
+                "$ref": f"#/components/schemas/{group_singular}"
+            },
+            "nullable": True
+            }
+
         return openapi
     except:
         print(f"Error opening template file {template_file_name}")
@@ -252,7 +302,7 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
     Returns:
         dict: The generated JSON schema.
     """
-    
+
     def handle_item(resource_schema, type, item):
         if type == "object":
             resource_schema["type"] = "object"
@@ -273,7 +323,7 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
                     del attr_schema["description"]
                 resource_schema["additionalProperties"] = attr_schema
                 if item["type"] == "object" or item["type"] == "map" or item["type"] == "array":
-                    if "item" in item: 
+                    if "item" in item:
                         handle_item(resource_schema["additionalProperties"], item["type"], item["item"])
         elif type == "array":
             resource_schema["type"] = "array"
@@ -292,10 +342,10 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
                     del attr_schema["description"]
                 resource_schema["items"] = attr_schema
                 if item["type"] == "object" or item["type"] == "map" or item["type"] == "array":
-                    if "item" in item: 
+                    if "item" in item:
                         handle_item(resource_schema["items"], item["type"], item["item"])
-        
-        
+
+
 
     def handle_attributes(resource_schema, attributes):
         """
@@ -311,12 +361,12 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
                     handle_attributes(attr_schema, attr_props["attributes"])
             else:
                 attr_schema = copy.deepcopy(json_type_mapping[attr_props["type"]])
-                        
+
             if "description" in attr_props:
                 attr_schema["description"] = attr_props["description"]
             if "description" in attr_schema and attr_schema["description"] == "":
-                del attr_schema["description"]                
-                            
+                del attr_schema["description"]
+
             if attr_props["type"] == "object" or attr_props["type"] == "map" or attr_props["type"] == "array":
                 if "item" in attr_props:
                     handle_item(attr_schema, attr_props["type"], attr_props["item"])
@@ -325,11 +375,11 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
                 if "required" not in resource_schema:
                     resource_schema["required"] = []
                 resource_schema["required"].append(attr_name)
-                            
+
             if "ifvalues" in attr_props:
                 if attr_name == "*":
                     raise Exception("Can't use wild card attribute name with ifvalues")
-                
+
                 if for_openapi:
                     resource_schema["discriminator"] = {
                         "propertyName": attr_name,
@@ -344,8 +394,8 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
                 one_of = []
                 for condition_value, condition_props in attr_props["ifvalues"].items():
                     # create an identifier from condition_value, turning all spaces and special characters in to underscore
-                    condition_schema_identifier = attr_name + "_" + "".join([c if c.isalnum() else "_" for c in condition_value])   
-                    # for openapi, add a reference to this schema in the discriminator mapping         
+                    condition_schema_identifier = attr_name + "_" + "".join([c if c.isalnum() else "_" for c in condition_value])
+                    # for openapi, add a reference to this schema in the discriminator mapping
                     if for_openapi:
                         resource_schema["discriminator"]["mapping"][condition_value] = f"#/components/schemas/{condition_schema_identifier}"
 
@@ -376,7 +426,7 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
                         schema_definitions[condition_schema_identifier] = copy.deepcopy(conditional_schema)
                     else:
                         one_of.append(copy.deepcopy(conditional_schema))
-                if len(one_of) > 0: 
+                if len(one_of) > 0:
                     if "oneOf" in resource_schema:
                         resource_schema["allOf"] = [{"oneOf" : resource_schema.pop("oneOf")}]
                         resource_schema["allOf"].append({"oneOf": one_of})
@@ -399,7 +449,7 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
     schema_group_names = []
     for k in model_definition.get("groups", {}).keys():
         schema_group_names.append(k.lower())
-    
+
     if for_openapi:
         reference_prefix = "#/components/schemas/"
         schema = {
@@ -423,27 +473,27 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
             "definitions": {}
         }
         document_properties = schema["properties"]
-        schema_definitions = schema["definitions"]    
-    
-    
+        schema_definitions = schema["definitions"]
+
+
     for _, group in model_definition.get("groups", {}).items():
         groups_name = group["plural"]
         group_name = group["singular"]
         groups_schema = {
             "type": "object",
             "additionalProperties": {"$ref": f"{reference_prefix}{group_name}"}
-        }        
+        }
 
         document_properties[groups_name] = groups_schema
         resource_collection_properties = {}
-        
+
         for _, resource in group.get("resources", {}).items():
-            resource = resolve_resource(group, resource)            
+            resource = resolve_resource(group, resource)
             resource_name = resource["singular"]
             props = {}
             props[resource_name+"id"] = {"type": "string", "description": f"ID of the {resource_name} object"}
             props.update(copy.deepcopy(json_common_attributes))
-            
+
             if resource.get("hasdocument", True):
                 resource_schema = {
                     "type": "object",
@@ -451,14 +501,14 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
                     "oneOf": [
                         {
                             "properties": {
-                                resource_name : { 
-                                    "description": f"Embedded {resource_name} object",                                                          
-                                    "oneOf": [{"type": "object"},{"type": "string"}] 
+                                resource_name : {
+                                    "description": f"Embedded {resource_name} object",
+                                    "oneOf": [{"type": "object"},{"type": "string"}]
                                 }
                             },
                             "required": [resource_name]
                         },
-                        {   
+                        {
                             "properties": {
                                 resource_name+"base64" : {
                                     "description": f"Embedded {resource_name} object as binary data",
@@ -479,7 +529,7 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
                             "required": [resource_name+"url"]
                         }
                     ]
-                }                        
+                }
             else:
                 resource_schema = {
                     "type": "object",
@@ -494,7 +544,7 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
                 props.update(copy.deepcopy(resource_version_schema["properties"]))
                 resource_version_schema["properties"] = props
                 handle_attributes(resource_version_schema, attributes)
-                
+
                 resource_schema["oneOf"] = [
                         {
                             "properties": {
@@ -515,7 +565,7 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
                             "required": ["versions"]
                         }
                     ]
-                
+
                 schema_definitions[f"{resource_name}Version"] = resource_version_schema
             else:
                 handle_attributes(resource_schema, attributes)
@@ -527,7 +577,7 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
                         "$ref": f"{reference_prefix}{resource_name}",
                     }
                 }
-            
+
         props = {}
         props[group_name+"id"] = {"type": "string", "description": f"ID of the {group_name} object"}
         props.update(copy.deepcopy(json_common_attributes))
@@ -575,8 +625,8 @@ def generate_avro_schema(model_definition) -> dict:
             if "type" in item:
                 item_schema = copy.deepcopy(avro_type_mapping[item["type"]])
                 if item["type"] == "object" or item["type"] == "map" or item["type"] == "array":
-                    if "item" in item: 
-                        handle_item(item_schema, item["type"], item["item"], name+"Item", prefix)                
+                    if "item" in item:
+                        handle_item(item_schema, item["type"], item["item"], name+"Item", prefix)
                 resource_schema["type"]["values"] = item_schema["type"]
             else:
                 raise Exception("Map item must have a type specified")
@@ -585,7 +635,7 @@ def generate_avro_schema(model_definition) -> dict:
             if "type" in item:
                 item_schema = copy.deepcopy(avro_type_mapping[item["type"]])
                 if item["type"] == "object" or item["type"] == "map" or item["type"] == "array":
-                    if "item" in item: 
+                    if "item" in item:
                         handle_item(item_schema, item["type"], item["item"], name, prefix)
                         resource_schema["type"]["items"] = item_schema["type"]
                 else:
@@ -599,13 +649,13 @@ def generate_avro_schema(model_definition) -> dict:
         for attr_name, attr_props in attributes.items():
             pascal_attr_name=pascal(attr_name)
             # attribute schema is based on the type mapping
-            attr_schema = copy.deepcopy(avro_type_mapping[attr_props["type"]])            
+            attr_schema = copy.deepcopy(avro_type_mapping[attr_props["type"]])
             if attr_name != "*":
                 attr_schema["name"] = type_prefix+pascal_attr_name+"Type"
             # add the description, if any, as a doc attribute
             if "description" in attr_props:
                 attr_schema["doc"] = attr_props["description"]
-            
+
             if attr_props["type"] == "object" or attr_props["type"] == "map" or attr_props["type"] == "array":
                 if "item" in attr_props:
                     handle_item(attr_schema, attr_props["type"], attr_props["item"], pascal_attr_name, type_prefix)
@@ -622,14 +672,14 @@ def generate_avro_schema(model_definition) -> dict:
             if "ifvalues" in attr_props:
                 if attr_name == "*":
                     raise Exception("Can't use wild card attribute name with ifvalues")
-          
+
                 if pascal_attr_name in resource_schema["fields"]:
                     resource_schema["fields"].pop(pascal_attr_name)
 
                 union = []
                 for condition_value, condition_props in attr_props["ifvalues"].items():
                     # create an identifier from condition_value, turning all spaces and special characters in to underscore
-                    condition_schema_identifier = pascal_attr_name + pascal("".join([c if c.isalnum() else "_" for c in condition_value]))   
+                    condition_schema_identifier = pascal_attr_name + pascal("".join([c if c.isalnum() else "_" for c in condition_value]))
                     conditional_schema = {
                                 "type": "record",
                                 "name": type_prefix+condition_schema_identifier+"Type",
@@ -637,7 +687,7 @@ def generate_avro_schema(model_definition) -> dict:
                             }
                     handle_attributes(conditional_schema,  condition_props.get("siblingattributes", {}), condition_schema_identifier)
                     union.append(conditional_schema)
-                if len(union) > 0: 
+                if len(union) > 0:
                     field_schema = {
                             "name": camel(pascal_attr_name),
                              "type":  union
@@ -662,11 +712,11 @@ def generate_avro_schema(model_definition) -> dict:
                     resource_schema["fields"].append(field_schema)
                 else:
                     attr_schema["name"] = camel(pascal_attr_name)
-                    # if the attribute is not required, union the type with null    
+                    # if the attribute is not required, union the type with null
                     #if not "required" in attr_props or attr_props["required"] == False:
                     #    attr_schema = ["null", attr_schema]
                     resource_schema["fields"].append(attr_schema)
-            
+
 
 
     ## body of the core function starts here
@@ -682,9 +732,9 @@ def generate_avro_schema(model_definition) -> dict:
         groups_name = group["plural"]
         group_name = group["singular"]
         resource_collection_fields = []
-        
+
         for _, resource in group.get("resources", {}).items():
-            resource = resolve_resource(group, resource)            
+            resource = resolve_resource(group, resource)
             resource_name = resource["singular"]
             if resource_name in record_types:
                 resource_collection_fields.append({
@@ -710,9 +760,9 @@ def generate_avro_schema(model_definition) -> dict:
                     handle_attributes(resource_version_schema, attributes)
                     resource_version_schema["name"] = pascal(resource_name)+"VersionType"
                     resource_schema["fields"].append(
-                        { 
-                            "name": "versions", 
-                            "type": [ 
+                        {
+                            "name": "versions",
+                            "type": [
                                 {
                                     "type": "map",
                                     "values": resource_version_schema
@@ -743,7 +793,7 @@ def generate_avro_schema(model_definition) -> dict:
                         "values": resource_schema
                     }
                 })
-           
+
         props = copy.deepcopy(avro_common_attributes)
         props.insert(0, {"name" : group_name+"id", "type": "string", "description": f"ID of the {group_name} object"})
         group_schema = {
@@ -761,7 +811,7 @@ def generate_avro_schema(model_definition) -> dict:
                 "type": "map",
                 "values": group_schema
             }
-        }        
+        }
         document_properties.append(groups_schema)
 
     return document_type
@@ -785,7 +835,7 @@ def resolve_resource(group, resource):
             else:
                 file_uri = file_uri.replace('/', os.sep)
                 path = os.path.join(os.path.dirname(base_uri), file_uri)
-                        # it is a file path, load the file 
+                        # it is a file path, load the file
                 with open(path) as file:
                     resource_object = json.load(file)
             if json_pointer:
@@ -810,7 +860,7 @@ model_definition = {
 
 def resolve_imports(basedir, node):
     """ recursively resolve all $includes in the model definition """
-    
+
     if isinstance(node, dict):
         if "$include" in node:
             obj_ref = ''
@@ -820,7 +870,7 @@ def resolve_imports(basedir, node):
                 fr = file_ref.split("#")
                 file_ref = fr[0]
                 obj_ref = fr[1]
-            file_ref = file_ref.replace('/', os.sep)            
+            file_ref = file_ref.replace('/', os.sep)
             import_file = os.path.join(basedir, file_ref)
             with open(import_file) as file:
                 import_definition = json.load(file)
@@ -834,8 +884,8 @@ def resolve_imports(basedir, node):
     elif isinstance(node, list):
         for i, item in enumerate(node):
             node[i] = resolve_imports(basedir, item)
-    return node    
-    
+    return node
+
 
 # read model definition from file ../schema/model.json
 # make the path relative to this script file, irrespective of working directory
@@ -877,8 +927,8 @@ def main():
                 json.dump(avro_schema, of, indent=2)
         else:
             print(json.dumps(avro_schema, indent=2))
-    elif (args.type == 'openapi'):  
-        openapi = generate_openapi(model_definition)   
+    elif (args.type == 'openapi'):
+        openapi = generate_openapi(model_definition)
         if args.output:
             with open(args.output, 'w') as of:
                 json.dump(openapi, of, indent=2)
