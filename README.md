@@ -27,7 +27,7 @@ Working Group (such as the weekly meetings).
 The name `xRegistry` (standing for extensible registry) is meant to be written
 with a lowercase `x`, even when the first word in a sentence.
 
-## xRegistry Documents
+## xRegistry Artifacts
 
 |                               |                                 Latest Release                                  |                                      Working Draft                                       |
 | :---------------------------- | :-----------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------: |
@@ -42,6 +42,9 @@ with a lowercase `x`, even when the first word in a sentence.
 | **Additional Documentation:** |
 | xRegistry Primer              | [v1.0-rc1](https://github.com/xregistry/spec/tree/main/core/primer.md) | [WIP](core/primer.md)                          |
 | Pagination Specification      | n/a | [WIP](pagination/spec.md)                          |
+|                               |
+| **Even More:** |
+| Server Reference Implementation | [server repo](https://github.com/xregistry/server) |
 
 Additional release related information:
   [Historical releases and changelogs](docs/RELEASES.md)
