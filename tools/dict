@@ -78,8 +78,10 @@ gotchas
 groupid
 groupscount
 groupsurl
+gzip
 hasdoc
 hasdocument
+hpub
 html
 http
 https
@@ -175,6 +177,7 @@ rawdata
 readonly
 redis
 registryid
+replytopic
 repos
 resourceid
 resourcescount
@@ -184,6 +187,7 @@ resourceurl
 resultset
 rfc
 rid
+rpc
 schemagroup
 schemagroupid
 schemagroups
@@ -228,6 +232,7 @@ ttl
 typemap
 uint
 uinteger
+ulong
 unescaping
 unicode
 updateable
