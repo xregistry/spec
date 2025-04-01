@@ -270,8 +270,8 @@
                           }
                         },
                         "datacontenttype": {
-                          "name": "CloudEvents datacontenttype https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#datacontenttype.",
-                          "description": "The content type of the data attribute value. ",
+                          "name": "datacontenttype",
+                          "description": "CloudEvents datacontenttype https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#datacontenttype.",
                           "type": "object",
                           "attributes": {
                             "description": {
@@ -1240,6 +1240,7 @@
                       "name": "protocoloptions",
                       "description": "NATS message metadata constraints",
                       "type": "object",
+                      "namecharset": "extended",
                       "attributes": {
                         "subject": {
                           "name": "subject",
