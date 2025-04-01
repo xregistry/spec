@@ -5359,9 +5359,6 @@
             }
           }
         },
-        "required": [
-          "usage"
-        ],
         "discriminator": {
           "propertyName": "protocol",
           "mapping": {

@@ -1155,9 +1155,6 @@
           }
         }
       },
-      "required": [
-        "usage"
-      ],
       "allOf": [
         {
           "oneOf": [
@@ -1213,12 +1210,9 @@
                           "url": {
                             "type": "string",
                             "format": "uri",
-                            "description": "Network accessible location"
+                            "description": "AMQP Addressing URL"
                           }
-                        },
-                        "required": [
-                          "url"
-                        ]
+                        }
                       }
                     },
                     "authorization": {
@@ -1248,10 +1242,7 @@
                               "type": "string"
                             }
                           }
-                        },
-                        "required": [
-                          "type"
-                        ]
+                        }
                       }
                     },
                     "deployed": {
@@ -1260,7 +1251,7 @@
                     },
                     "node": {
                       "type": "string",
-                      "description": "The AMQP node name. Commonly the name of a queue or a topic"
+                      "description": "The AMQP node name. Commonly the name of a queue or a topic. Corresponds to the 'address' in source or target of the attach frame."
                     },
                     "durable": {
                       "type": "boolean",
@@ -1283,13 +1274,22 @@
                     "distribution-mode": {
                       "type": "string",
                       "description": "The AMQP distribution mode for receivers. Can be 'move' or 'copy'.  A value of 'move' indicates an exclusive lock on the message. A value of 'copy' indicates a non-exclusive lock on the message"
+                    },
+                    "connection-capabilities": {
+                      "type": "array",
+                      "description": "The AMQP capabilities to use with the endpoint",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "node-capabilities": {
+                      "type": "array",
+                      "description": "The AMQP node capabilities to use with the endpoint",
+                      "items": {
+                        "type": "string"
+                      }
                     }
-                  },
-                  "required": [
-                    "deployed",
-                    "durable",
-                    "distribution-mode"
-                  ]
+                  }
                 }
               },
               "required": [
@@ -1318,12 +1318,9 @@
                           "uri": {
                             "type": "string",
                             "format": "uri",
-                            "description": "Network accessible location"
+                            "description": "MQTT URI (mqtt, mqtts, or ws scheme)"
                           }
-                        },
-                        "required": [
-                          "uri"
-                        ]
+                        }
                       }
                     },
                     "authorization": {
@@ -1353,10 +1350,7 @@
                               "type": "string"
                             }
                           }
-                        },
-                        "required": [
-                          "type"
-                        ]
+                        }
                       }
                     },
                     "deployed": {
@@ -1365,7 +1359,7 @@
                     },
                     "topic": {
                       "type": "string",
-                      "description": "The MQTT topic path"
+                      "description": "The MQTT topic path that is used for communication with the endpoint unless overridden by the message"
                     },
                     "qos": {
                       "type": "integer",
@@ -1386,15 +1380,10 @@
                     },
                     "willmessage": {
                       "type": "string",
-                      "description": "The MQTT will message definition to configure for publishers on this endpoint"
+                      "format": "uri",
+                      "description": "The MQTT will message definition to configure for publishers on this endpoint. This MUST be a reference to a message definition"
                     }
-                  },
-                  "required": [
-                    "deployed",
-                    "qos",
-                    "retain",
-                    "cleansession"
-                  ]
+                  }
                 }
               },
               "required": [
@@ -1423,12 +1412,9 @@
                           "uri": {
                             "type": "string",
                             "format": "uri",
-                            "description": "Network accessible location"
+                            "description": "MQTT URI (mqtt, mqtts, or ws scheme)"
                           }
-                        },
-                        "required": [
-                          "uri"
-                        ]
+                        }
                       }
                     },
                     "authorization": {
@@ -1458,10 +1444,7 @@
                               "type": "string"
                             }
                           }
-                        },
-                        "required": [
-                          "type"
-                        ]
+                        }
                       }
                     },
                     "deployed": {
@@ -1470,7 +1453,7 @@
                     },
                     "topic": {
                       "type": "string",
-                      "description": "MQTT topic path"
+                      "description": "MQTT topic path that is used for communication with the endpoint unless overridden by the message"
                     },
                     "qos": {
                       "type": "integer",
@@ -1491,15 +1474,10 @@
                     },
                     "willmessage": {
                       "type": "string",
-                      "description": "The MQTT will message definition to configure for publishers on this endpoint"
+                      "format": "uri",
+                      "description": "The MQTT will message definition to configure for publishers on this endpoint. This MUST be a reference to a message definition"
                     }
-                  },
-                  "required": [
-                    "deployed",
-                    "qos",
-                    "retain",
-                    "cleansession"
-                  ]
+                  }
                 }
               },
               "required": [
@@ -1528,12 +1506,9 @@
                           "uri": {
                             "type": "string",
                             "format": "uri",
-                            "description": "Network accessible location"
+                            "description": "HTTP URI"
                           }
-                        },
-                        "required": [
-                          "uri"
-                        ]
+                        }
                       }
                     },
                     "authorization": {
@@ -1563,10 +1538,7 @@
                               "type": "string"
                             }
                           }
-                        },
-                        "required": [
-                          "type"
-                        ]
+                        }
                       }
                     },
                     "deployed": {
@@ -1593,8 +1565,7 @@
                           }
                         },
                         "required": [
-                          "name",
-                          "value"
+                          "name"
                         ]
                       }
                     },
@@ -1605,11 +1576,7 @@
                         "type": "string"
                       }
                     }
-                  },
-                  "required": [
-                    "deployed",
-                    "method"
-                  ]
+                  }
                 }
               },
               "required": [
@@ -1635,15 +1602,22 @@
                       "items": {
                         "type": "object",
                         "properties": {
-                          "uri": {
+                          "bootstrap.servers": {
+                            "type": "array",
+                            "description": "The Kafka bootstrap servers",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "security.protocol": {
                             "type": "string",
-                            "format": "uri",
-                            "description": "Network accessible location"
+                            "description": "The Kafka security protocol"
+                          },
+                          "sasl.mechanism": {
+                            "type": "string",
+                            "description": "The Kafka SASL mechanism"
                           }
-                        },
-                        "required": [
-                          "uri"
-                        ]
+                        }
                       }
                     },
                     "authorization": {
@@ -1673,10 +1647,7 @@
                               "type": "string"
                             }
                           }
-                        },
-                        "required": [
-                          "type"
-                        ]
+                        }
                       }
                     },
                     "deployed": {
@@ -1709,13 +1680,16 @@
                       "additionalProperties": {
                         "type": "string"
                       }
+                    },
+                    "keyserializer": {
+                      "type": "string",
+                      "description": "The Kafka key serializer"
+                    },
+                    "valueserializer": {
+                      "type": "string",
+                      "description": "The Kafka value serializer"
                     }
-                  },
-                  "required": [
-                    "deployed",
-                    "topic",
-                    "acks"
-                  ]
+                  }
                 }
               },
               "required": [
@@ -1744,12 +1718,9 @@
                           "uri": {
                             "type": "string",
                             "format": "uri",
-                            "description": "Network accessible location"
+                            "description": "NATS URI"
                           }
-                        },
-                        "required": [
-                          "uri"
-                        ]
+                        }
                       }
                     },
                     "authorization": {
@@ -1779,10 +1750,7 @@
                               "type": "string"
                             }
                           }
-                        },
-                        "required": [
-                          "type"
-                        ]
+                        }
                       }
                     },
                     "deployed": {
@@ -1793,11 +1761,7 @@
                       "type": "string",
                       "description": "The NATS subject"
                     }
-                  },
-                  "required": [
-                    "deployed",
-                    "subject"
-                  ]
+                  }
                 }
               },
               "required": [
