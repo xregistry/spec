@@ -313,11 +313,6 @@
                       "type": [
                         {
                           "type": "record",
-                          "name": "EnvelopeNoneType",
-                          "fields": []
-                        },
-                        {
-                          "type": "record",
                           "name": "EnvelopeCloudevents10Type",
                           "fields": [
                             {
@@ -359,7 +354,7 @@
                                 ]
                               },
                               "name": "envelopemetadata",
-                              "doc": "CloudEvents metadata constraints"
+                              "doc": "CloudEvents attribute declarations, adding constraints to the CloudEvents envelope not yet covered by the CloudEvents spec https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md"
                             },
                             {
                               "type": "GenericRecord",
@@ -369,16 +364,11 @@
                           ]
                         }
                       ],
-                      "doc": "Message envelope format identifier. This attribute MUST be the same as the 'envelope' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups"
+                      "doc": "Message envelope format identifier. This attribute MUST be the same as the 'envelope' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups. The predefined envelope format is 'CloudEvents/1.0'"
                     },
                     {
                       "name": "protocol",
                       "type": [
-                        {
-                          "type": "record",
-                          "name": "ProtocolNoneType",
-                          "fields": []
-                        },
                         {
                           "type": "record",
                           "name": "ProtocolAmqp10Type",
@@ -419,7 +409,7 @@
                             {
                               "type": "GenericRecord",
                               "name": "protocoloptions",
-                              "doc": "The Apache Kafka message metadata constraints"
+                              "doc": "Apache Kafka message metadata constraints"
                             }
                           ]
                         },
@@ -431,6 +421,17 @@
                               "type": "GenericRecord",
                               "name": "protocoloptions",
                               "doc": "The HTTP message metadata constraints"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "record",
+                          "name": "ProtocolNATSType",
+                          "fields": [
+                            {
+                              "type": "GenericRecord",
+                              "name": "protocoloptions",
+                              "doc": "NATS message metadata constraints"
                             }
                           ]
                         }
@@ -483,7 +484,7 @@
                     {
                       "type": "string",
                       "name": "dataschemauri",
-                      "doc": "The URI of the schema for the message payload, equivalent to the 'schemaurl' attribute of the schema registry"
+                      "doc": "The URI of the schema for the message payload, equivalent to the 'schemauri' attribute of the schema registry"
                     },
                     {
                       "type": "string",
@@ -589,12 +590,12 @@
             {
               "type": "string",
               "name": "envelope",
-              "doc": "Envelope format identifier that defines the common metadata information for the message. All definitions in this group share this envelope format. Mixed-envelope-format groups are not permitted"
+              "doc": "Envelope format identifier that defines the common metadata information for the message. All definitions in this group share this envelope format. Mixed-envelope-format groups are not permitted. The predefined envelope format is CloudEvents/1.0"
             },
             {
               "type": "string",
               "name": "protocol",
-              "doc": "Protocol identifier that defines the transport message protocol. All definitions in this group share this protocol type. Mixed-protocol groups are not permitted"
+              "doc": "Protocol identifier that defines the transport message protocol. All definitions in this group share this protocol type. Mixed-protocol groups are not permitted. Predefined protocol formats are 'AMQP/1.0', 'MQTT/3.1.1', 'MQTT/5.0', 'KAFKA', 'HTTP', and 'NATS'"
             },
             {
               "name": "Extensions",
@@ -603,7 +604,8 @@
                 "name": "ExtensionsType",
                 "default": {},
                 "values": "record"
-              }
+              },
+              "doc": "Any other attribute that is common to all definitions in this group"
             },
             {
               "name": "messages",
