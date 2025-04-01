@@ -1080,7 +1080,7 @@ The following properties are defined:
 | Property    | Type      | Description                                                                         |
 | ----------- | --------- | ----------------------------------------------------------------------------------- |
 | `subject`   | `uritemplate`  | The subject the message will be published to                                   |
-| `reply-to`  | `uritemplate`  | The subject the receiver shall reply to                                        |
+| `reply-to`  | `uritemplate`  | The subject the receiver ought to reply to                                        |
 | `headers`   | Array     | A list of headers to set on the message                                             |
 
 The values of all `string`, `symbol`, `uritemplate`-typed properties
