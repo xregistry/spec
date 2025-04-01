@@ -1,4 +1,4 @@
-# Message Definitions Registry Service - Version 1.0 RC1 
+# Message Definitions Registry Service - Version 1.0 RC1
 
 ## Abstract
 
@@ -107,7 +107,7 @@ this form:
           }, ?
           "envelopeoptions": {
             "STRING": JSON-VALUE *
-          },
+          }, ?
 
           "protocol": "STRING", ?              # e.g. HTTP/1.1
           "protocoloptions": { ... }, ?
@@ -138,7 +138,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
 interpreted as described in [RFC 2119](https://tools.ietf.org/html/rfc2119).
 
 For clarity, OPTIONAL attributes (specification-defined and extensions) are
-OPTIONAL for clients to use, but the servers' responsibility will vary.
+OPTIONAL for clients to use, but the servers' responsibility will anyy.
 Server-unknown extension attributes MUST be silently stored in the backing
 datastore. Specification-defined, and server-known extension, attributes MUST
 generate an error if corresponding feature is not supported or enabled.
@@ -173,7 +173,7 @@ The definition of [message][message] from the CloudEvents specification applies.
 
 An **envelope** is a transport protocol-independent message metadata convention.
 The [CNCF CloudEvents][CloudEvents] specification is an example of a message
-envelope and is the only envelope explicitly defined in this specification. 
+envelope and is the only envelope explicitly defined in this specification.
 
 A similar transport protocol-independent message metadata convention is, for
 example, the [W3C SOAP 1.2 envelope][SOAP] for which support could be added by
@@ -192,22 +192,22 @@ describe constraints for the metadata of messages and events, for instance the
 concrete values and patterns for the `type`, `source`, and `subject` attributes
 of a CloudEvent.
 
-Message definitions can be used in various contexts. A code generator for 
-message producers can be informed, which properties or headers have to be set, 
-and which which data types, values, or patterns are expected to produce a
-conformant message. A message consumer can use the definitions to validate
-incoming messages and to extract the metadata for routing or processing.
+Message definitions can be used in anyious contexts. A code generator for
+message producers can be informed, which properties or headers have to be set,
+and which data types, values, or patterns are expected to produce a conformant
+message. A message consumer can use the definitions to validate incoming
+messages and to extract the metadata for routing or processing.
 
 A message group is a collection of message definitions that are related to
 each other in some application-specific way. For instance, a message group
 can be used to group all events raised by a particular application module or by
 a particular role of an application protocol exchange pattern.
 
-All message definitions MUST defined inside message groups.
+All message definitions MUST be defined inside message groups.
 
 A message processor for a messaging or eventing channel can use a message group
 and its contained message definitions to match incoming messages to the declared
-message definitions and determine whether an incoming message is conformant to
+message definitions and determine whether an incoming message conforms to
 the expected metadata constraints. If a conformant message has been identified,
 the processor might then use the linked schema to handle the message body. This
 is especially useful in scenarios where the message itself does not contain a
@@ -215,7 +215,7 @@ schema hint or even content type information as it is the case, for instance, in
 MQTT 3.1.1.
 
 Whether a message is conformant to a message definition is determined by the
-message processor and its implementation specifici rules. Conformance rules are
+message processor and its implementation-specific rules. Conformance rules are
 out of the scope of this specification.
 
 The [Endpoint Registry](../endpoint/spec.md) is a related registry that leans on
@@ -234,8 +234,9 @@ resides in the [model.json](model.json) file.
 The Group (GROUP) name is `messagegroups`. The type of a group is
 `messagegroup`.
 
-The following attributes are defined for the `messagegroup` object in
-addition to the basic [attributes](../core/spec.md#attributes-and-extensions):
+The following attributes are defined for the `messagegroup` object in addition
+to the xRegistry-defined core
+[attributes](../core/spec.md#attributes-and-extensions):
 
 #### `envelope` (Message Group)
 
@@ -325,7 +326,7 @@ the core xRegistry Resource
     the deprecation of the message. This specification does not mandate any
     particular format or information, however some possibilities include:
     reasons for the deprecation or additional information about likely
-    alternative message. The URL MUST support an HTTP GET request.
+    alternative messages. The URL MUST support an HTTP GET request.
 
   Note that an implementation is not mandated to use this attribute in
   advance of removing an message, but is it RECOMMENDED that they do so.
@@ -346,9 +347,9 @@ the core xRegistry Resource
 - Description: if present, the URL points to a message definition that is the
   base for this message definition. By following the URL, the base message
   can be retrieved and extended with the properties of this message. This is
-  useful for defining variants of messages that only differ in minor aspects to
+  useful for defining anyiants of messages that only differ in minor aspects to
   avoid repetition, or messages that only have a `envelope` with associated
-  `envelopemetadata` to be bound to various protocols.
+  `envelopemetadata` to be bound to anyious protocols.
 - Constraints:
   - OPTIONAL
   - If present, MUST be a valid URI-reference
@@ -489,7 +490,7 @@ specification.
 
 #### `datacontenttype`
 
-- Type: Type: `String` per [RFC 2046](https://tools.ietf.org/html/rfc2046)
+- Type: `String` per [RFC 2046](https://tools.ietf.org/html/rfc2046)
 - Description: Content type of the message payload. This attribute MAY be
   duplicative with some other metadata within the message definition. For
   example, in the case of using CloudEvents, the `envelopemetadata` attribute
@@ -577,8 +578,8 @@ headers/properties/attributes constraints:
 If the `type` property has the value `uritemplate`, `value` MAY contain
 placeholders. As defined in [RFC6570][RFC6570] (Level 1), the placeholders MUST
 be enclosed in curly braces (`{` and `}`) and MUST be a valid `symbol`.
-Placeholders that are used multiple times in the same message definition are
-assumed to represent identical values.
+Placeholders that are used multiple times in the same message definition MUST to
+represent identical values.
 
 When validating a message property against this value, the placeholders act as
 wildcards. For example, the value `{foo}/bar` would match the value `abc/bar` or
@@ -599,10 +600,11 @@ current timestamp when creating a message.
 - Description: The type of the property. This is used to constrain the value of
   the property.
 - Constraints:
-  - OPTIONAL. Default value MUST be "string".
+  - OPTIONAL.
+  - Default value MUST be "string".
   - The valid types are those defined in the [CloudEvents][CloudEvents Types]
     core specification, with some additions:
-    - `var`: Any type of value, including `null`.
+    - `any`: Any type of value, including `null`.
     - `boolean`: CloudEvents "Boolean" type.
     - `string`: CloudEvents "String" type.
     - `symbol`: A `string` that is restricted to alphanumerical characters and
@@ -733,9 +735,9 @@ The following example declares a CloudEvent with a JSON payload. The attribute
 spite of such a declaration being absent here, the `type` of the `type`
 attribute is `string` and the attribute is `required` even though the
 declarations are absent. The `time` attribute is made `required` contrary to the
-CloudEvents base specification. The implied `datacontenttype` is
-`application/json` and the implied `dataschema` is
-`https://example.com/schemas/com.example.myevent.json`:
+CloudEvents base specification. The implied CloudEvents `datacontenttype`
+attribute value is `application/json` and the implied CloudEvents `dataschema`
+attribute value is `https://example.com/schemas/com.example.myevent.json`:
 
 ```yaml
 {
@@ -780,8 +782,8 @@ properties:
 | `headers` | Array         | The HTTP headers. See below. |
 | `query`   | Map           | The HTTP query parameters.   |
 | `path`    | `uritemplate` | The HTTP path.               |
-| `method`  | `string`      | The http method              |
-| `status`  | `string`      | The http status code         |
+| `method`  | `string`      | The HTTP method              |
+| `status`  | `string`      | The HTTP status code         |
 
 HTTP allows for multiple headers with the same name. The `headers` property is
 therefore an array of objects with `name` and `value` properties. The `name`
@@ -912,7 +914,7 @@ following properties are defined, with type constraints:
 
 The `message-id` permits the types `ulong`, `uuid`, `binary`, `string`, and
 `uritemplate`. A `value` constraint for `message-id` property SHOULD NOT be defined in
-the message definition except for the case where the message-id is a `uritemplate`.
+the message definition except for the case where the `message-id` is a `uritemplate`.
 
 ##### `application-properties` (AMQP 1.0)
 
@@ -1009,7 +1011,7 @@ QoS 1 delivery, with a topic name of "mytopic", and a user property of
     "retain":  false,
     "topic_name": "mytopic",
     "user_properties": [
-      { 
+      {
         "name": "My Application Property",
         "value": "Value 1"
       }
@@ -1039,7 +1041,7 @@ The following properties are defined:
 | `headers`   | Map       | A map of headers to set on the record                                               |
 
 The `key` and `key_base64` properties are mutually exclusive and MUST NOT be
-present at the same time. 
+present at the same time.
 
 The `partition` property is included because there are cases where applications
 use partitions explicitly for addressing and routing messages within the scope
@@ -1092,7 +1094,7 @@ Example:
     "reply-to": "replytopic"
   }
 }
-``` 
+```
 
 
 [JSON Pointer]: https://www.rfc-editor.org/rfc/rfc6901

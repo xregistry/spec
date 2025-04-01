@@ -5,21 +5,18 @@
       "plural": "messagegroups",
       "modelversion": "1.0-RC1",
       "compatiblewith": "https://raw.githubusercontent.com/xregistry/spec/refs/heads/main/message/model.json",
-      "description": "A group of message definitions that are semantically related, such as a set of messages that are part of the same event flow or that share a common protocol or envelope format. One or both of the envelope and protocol definitions must be set to a value other than `None`.",
       "attributes": {
         "envelope": {
           "name": "envelope",
           "type": "string",
           "description": "Envelope format identifier that defines the common metadata information for the message. All definitions in this group share this envelope format. Mixed-envelope-format groups are not permitted. Predefined envelope formats are 'None' and 'CloudEvents/1.0'",
-          "default": "None",
-          "required": false
+          "default": "None"
         },
         "protocol": {
           "name": "protocol",
           "type": "string",
           "description": "Protocol identifier that defines the transport message protocol. All definitions in this group share this protocol type. Mixed-protocol groups are not permitted. Predefined protocol formats are 'None', 'AMQP/1.0', 'MQTT/3.1.1', 'MQTT/5.0', 'KAFKA', 'HTTP', and 'NATS'",
-          "default": "None",
-          "required": false
+          "default": "None"
         },
         "*": {
           "name": "*",
@@ -62,16 +59,14 @@
                           "attributes": {
                             "description": {
                               "name": "description",
-                              "type": "string",
-                              "required": false
+                              "type": "string"
                             },
                             "type": {
                               "name": "type",
                               "type": "string",
                               "enum": [
                                 "string"
-                              ],
-                              "required": false
+                              ]
                             },
                             "value": {
                               "name": "value",
@@ -79,8 +74,7 @@
                               "type": "string",
                               "enum": [
                                 "1.0"
-                              ],
-                              "required": false
+                              ]
                             },
                             "required": {
                               "name": "required",
@@ -89,8 +83,7 @@
                               "default": true,
                               "enum": [
                                 true
-                              ],
-                              "required": false
+                              ]
                             }
                           }
                         },
@@ -101,8 +94,7 @@
                           "attributes": {
                             "description": {
                               "name": "description",
-                              "type": "string",
-                              "required": false
+                              "type": "string"
                             },
                             "type": {
                               "name": "type",
@@ -111,8 +103,7 @@
                               "enum": [
                                 "uritemplate",
                                 "string"
-                              ],
-                              "required": false
+                              ]
                             },
                             "value": {
                               "name": "value",
@@ -126,8 +117,7 @@
                               "default": true,
                               "enum": [
                                 true
-                              ],
-                              "required": false
+                              ]
                             }
                           }
                         },
@@ -138,20 +128,17 @@
                           "attributes": {
                             "description": {
                               "name": "description",
-                              "type": "string",
-                              "required": false
+                              "type": "string"
                             },
                             "type": {
                               "name": "type",
                               "type": "string",
-                              "default": "string",
-                              "required": false
+                              "default": "string"
                             },
                             "value": {
                               "name": "value",
                               "description": "CloudEvents type value constraint",
-                              "type": "string",
-                              "required": false
+                              "type": "string"
                             },
                             "required": {
                               "name": "required",
@@ -160,8 +147,7 @@
                               "default": true,
                               "enum": [
                                 true
-                              ],
-                              "required": false
+                              ]
                             }
                           }
                         },
@@ -172,8 +158,7 @@
                           "attributes": {
                             "description": {
                               "name": "description",
-                              "type": "string",
-                              "required": false
+                              "type": "string"
                             },
                             "type": {
                               "name": "type",
@@ -182,8 +167,7 @@
                               "enum": [
                                 "uritemplate",
                                 "string"
-                              ],
-                              "required": false
+                              ]
                             },
                             "value": {
                               "name": "value",
@@ -209,8 +193,7 @@
                           "attributes": {
                             "description": {
                               "name": "description",
-                              "type": "string",
-                              "required": false
+                              "type": "string"
                             },
                             "type": {
                               "name": "type",
@@ -219,8 +202,7 @@
                               "enum": [
                                 "uritemplate",
                                 "string"
-                              ],
-                              "required": false
+                              ]
                             },
                             "value": {
                               "name": "value",
@@ -231,8 +213,7 @@
                               "name": "required",
                               "description": "CloudEvents subject required",
                               "type": "boolean",
-                              "default": false,
-                              "required": false
+                              "default": false
                             }
                           }
                         },
@@ -243,8 +224,7 @@
                           "attributes": {
                             "description": {
                               "name": "description",
-                              "type": "string",
-                              "required": false
+                              "type": "string"
                             },
                             "type": {
                               "name": "type",
@@ -252,8 +232,7 @@
                               "default": "timestamp",
                               "enum": [
                                 "timestamp"
-                              ],
-                              "required": false
+                              ]
                             },
                             "value": {
                               "name": "value",
@@ -263,8 +242,7 @@
                             "required": {
                               "name": "required",
                               "type": "boolean",
-                              "default": false,
-                              "required": false
+                              "default": false
                             }
                           }
                         },
@@ -280,8 +258,7 @@
                             "type": {
                               "name": "type",
                               "type": "string",
-                              "default": "uritemplate",
-                              "required": false
+                              "default": "uritemplate"
                             },
                             "value": {
                               "name": "value",
@@ -291,8 +268,7 @@
                             "required": {
                               "name": "required",
                               "type": "boolean",
-                              "default": false,
-                              "required": false
+                              "default": false
                             }
                           }
                         },
@@ -308,8 +284,7 @@
                             "type": {
                               "name": "type",
                               "type": "string",
-                              "default": "string",
-                              "required": false
+                              "default": "string"
                             },
                             "value": {
                               "name": "value",
@@ -319,8 +294,7 @@
                             "required": {
                               "name": "required",
                               "type": "boolean",
-                              "default": false,
-                              "required": false
+                              "default": false
                             }
                           }
                         },
@@ -337,8 +311,7 @@
                               "name": "type",
                               "description": "The value type",
                               "type": "string",
-                              "default": "string",
-                              "required": false
+                              "default": "string"
                             },
                             "value": {
                               "name": "value",
@@ -349,8 +322,7 @@
                               "name": "required",
                               "description": "Whether the extension is required",
                               "type": "boolean",
-                              "default": false,
-                              "required": false
+                              "default": false
                             }
                           }
                         }
@@ -412,14 +384,12 @@
                               "attributes": {
                                 "description": {
                                   "name": "description",
-                                  "type": "string",
-                                  "required": false
+                                  "type": "string"
                                 },
                                 "type": {
                                   "name": "type",
                                   "description": "AMQP properties.message-id type constraint. The type values refer to the AMQP type model` and the defined message-id types",
                                   "type": "string",
-                                  "required": false,
                                   "enum": [
                                     "ulong",
                                     "uuid",
@@ -431,14 +401,12 @@
                                 "value": {
                                   "name": "value",
                                   "description": "AMQP properties.message-id value constraint. ",
-                                  "type": "string",
-                                  "required": false
+                                  "type": "string"
                                 },
                                 "required": {
                                   "name": "required",
                                   "description": "AMQP properties.message-id required",
                                   "type": "boolean",
-                                  "required": false,
                                   "default": false
                                 }
                               }
@@ -450,8 +418,7 @@
                               "attributes": {
                                 "description": {
                                   "name": "description",
-                                  "type": "string",
-                                  "required": false
+                                  "type": "string"
                                 },
                                 "type": {
                                   "name": "type",
@@ -462,20 +429,17 @@
                                     "binary",
                                     "string",
                                     "uritemplate"
-                                  ],
-                                  "required": false
+                                  ]
                                 },
                                 "value": {
                                   "name": "value",
                                   "description": "AMQP properties.user-id value constraint",
-                                  "type": "string",
-                                  "required": false
+                                  "type": "string"
                                 },
                                 "required": {
                                   "name": "required",
                                   "description": "AMQP properties.user-id required",
                                   "type": "boolean",
-                                  "required": false,
                                   "default": false
                                 }
                               }
@@ -487,8 +451,7 @@
                               "attributes": {
                                 "description": {
                                   "name": "description",
-                                  "type": "string",
-                                  "required": false
+                                  "type": "string"
                                 },
                                 "type": {
                                   "name": "type",
@@ -498,20 +461,17 @@
                                   "enum": [
                                     "string",
                                     "uritemplate"
-                                  ],
-                                  "required": false
+                                  ]
                                 },
                                 "value": {
                                   "name": "value",
                                   "description": "AMQP properties.to value constraint",
-                                  "type": "string",
-                                  "required": false
+                                  "type": "string"
                                 },
                                 "required": {
                                   "name": "required",
                                   "description": "AMQP properties.to required",
                                   "type": "boolean",
-                                  "required": false,
                                   "default": false
                                 }
                               }
@@ -523,8 +483,7 @@
                               "attributes": {
                                 "description": {
                                   "name": "description",
-                                  "type": "string",
-                                  "required": false
+                                  "type": "string"
                                 },
                                 "type": {
                                   "name": "type",
@@ -533,14 +492,12 @@
                                   "enum" : [
                                     "string",
                                     "uritemplate"
-                                  ],
-                                  "required": false
+                                  ]
                                 },
                                 "value": {
                                   "name": "value",
                                   "description": "AMQP properties.subject value constraint",
-                                  "type": "string",
-                                  "required": false
+                                  "type": "string"
                                 },
                                 "required": {
                                   "name": "required",
@@ -558,8 +515,7 @@
                               "attributes": {
                                 "description": {
                                   "name": "description",
-                                  "type": "string",
-                                  "required": false
+                                  "type": "string"
                                 },
                                 "type": {
                                   "name": "type",
@@ -569,20 +525,17 @@
                                   "enum": [
                                     "string",
                                     "uritemplate"
-                                  ],
-                                  "required": false
+                                  ]
                                 },
                                 "value": {
                                   "name": "value",
                                   "description": "AMQP properties.reply-to value constraint",
-                                  "type": "string",
-                                  "required": false
+                                  "type": "string"
                                 },
                                 "required": {
                                   "name": "required",
                                   "description": "AMQP properties.reply-to required",
                                   "type": "boolean",
-                                  "required": false,
                                   "default": false
                                 }
                               }
@@ -594,8 +547,7 @@
                               "attributes": {
                                 "description": {
                                   "name": "description",
-                                  "type": "string",
-                                  "required": false
+                                  "type": "string"
                                 },
                                 "type": {
                                   "name": "type",
@@ -606,20 +558,17 @@
                                     "binary",
                                     "string",
                                     "uritemplate"
-                                  ],
-                                  "required": false
+                                  ]
                                 },
                                 "value": {
                                   "name": "value",
                                   "description": "AMQP correlation-id value constraint",
-                                  "type": "string",
-                                  "required": false
+                                  "type": "string"
                                 },
                                 "required": {
                                   "name": "required",
                                   "description": "AMQP correlation-id required",
                                   "type": "boolean",
-                                  "required": false,
                                   "default": false
                                 }
                               }
@@ -631,8 +580,7 @@
                               "attributes": {
                                 "description": {
                                   "name": "description",
-                                  "type": "string",
-                                  "required": false
+                                  "type": "string"
                                 },
                                 "type": {
                                   "name": "type",
@@ -642,20 +590,17 @@
                                   "enum": [
                                     "string",
                                     "uritemplate"
-                                  ],
-                                  "required": false
+                                  ]
                                 },
                                 "value": {
                                   "name": "value",
                                   "description": "AMQP properties.content-type value constraint",
-                                  "type": "string",
-                                  "required": false
+                                  "type": "string"
                                 },
                                 "required": {
                                   "name": "required",
                                   "description": "AMQP properties.content-type required",
                                   "type": "boolean",
-                                  "required": false,
                                   "default": false
                                 }
                               }
@@ -674,20 +619,17 @@
                                   "description": "AMQP properties.content-encoding value type",
                                   "type": "string",
                                   "default": "string",
-                                  "enum" : ["string"],
-                                  "required": false
+                                  "enum" : ["string"]
                                 },
                                 "value": {
                                   "name": "value",
                                   "description": "AMQP properties.content-encoding value constraint",
-                                  "type": "string",
-                                  "required": false
+                                  "type": "string"
                                 },
                                 "required": {
                                   "name": "required",
                                   "description": "AMQP properties.content-encoding required",
                                   "type": "boolean",
-                                  "required": false,
                                   "default": false
                                 }
                               }
@@ -699,8 +641,7 @@
                               "attributes": {
                                 "description": {
                                   "name": "description",
-                                  "type": "string",
-                                  "required": false
+                                  "type": "string"
                                 },
                                 "type": {
                                   "name": "type",
@@ -709,20 +650,17 @@
                                   "default": "timestamp",
                                   "enum": [
                                     "timestamp"
-                                  ],
-                                  "required": false
+                                  ]
                                 },
                                 "value": {
                                   "name": "value",
                                   "description": "AMQP properties.absolute-expiry-time value constraint",
-                                  "type": "string",
-                                  "required": false
+                                  "type": "string"
                                 },
                                 "required": {
                                   "name": "required",
                                   "description": "AMQP properties.absolute-expiry-time required",
                                   "type": "boolean",
-                                  "required": false,
                                   "default": false
                                 }
                               }
@@ -734,8 +672,7 @@
                               "attributes": {
                                 "description": {
                                   "name": "description",
-                                  "type": "string",
-                                  "required": false
+                                  "type": "string"
                                 },
                                 "type": {
                                   "name": "type",
@@ -744,20 +681,17 @@
                                   "default": "timestamp",
                                   "enum": [
                                     "timestamp"
-                                  ],
-                                  "required": false
+                                  ]
                                 },
                                 "value": {
                                   "name": "value",
                                   "description": "AMQP properties.creation-time value constraint",
-                                  "type": "string",
-                                  "required": false
+                                  "type": "string"
                                 },
                                 "required": {
                                   "name": "required",
                                   "description": "AMQP properties.creation-time required",
                                   "type": "boolean",
-                                  "required": false,
                                   "default": false
                                 }
                               }
@@ -769,8 +703,7 @@
                               "attributes": {
                                 "description": {
                                   "name": "description",
-                                  "type": "string",
-                                  "required": false
+                                  "type": "string"
                                 },
                                 "type": {
                                   "name": "type",
@@ -785,14 +718,12 @@
                                 "value": {
                                   "name": "value",
                                   "description": "AMQP properties.group-id value constraint",
-                                  "type": "string",
-                                  "required": false
+                                  "type": "string"
                                 },
                                 "required": {
                                   "name": "required",
                                   "description": "AMQP properties.group-id required",
                                   "type": "boolean",
-                                  "required": false,
                                   "default": false
                                 }
                               }
@@ -804,8 +735,7 @@
                               "attributes": {
                                 "description": {
                                   "name": "description",
-                                  "type": "string",
-                                  "required": false
+                                  "type": "string"
                                 },
                                 "type": {
                                   "name": "type",
@@ -814,20 +744,17 @@
                                   "enum": [
                                     "integer"
                                   ],
-                                  "default": "integer",
-                                  "required": false
+                                  "default": "integer"
                                 },
                                 "value": {
                                   "name": "value",
                                   "description": "AMQP group-sequence value constraint",
-                                  "type": "string",
-                                  "required": false
+                                  "type": "string"
                                 },
                                 "required": {
                                   "name": "required",
                                   "description": "AMQP group-sequence required",
                                   "type": "boolean",
-                                  "required": false,
                                   "default": false
                                 }
                               }
@@ -839,8 +766,7 @@
                               "attributes": {
                                 "description": {
                                   "name": "description",
-                                  "type": "string",
-                                  "required": false
+                                  "type": "string"
                                 },
                                 "type": {
                                   "name": "type",
@@ -850,20 +776,17 @@
                                     "string",
                                     "uritemplate"
                                   ],
-                                  "default": "string",
-                                  "required": false
+                                  "default": "string"
                                 },
                                 "value": {
                                   "name": "value",
                                   "description": "AMQP properties.reply-to-group-id value constraint",
-                                  "type": "string",
-                                  "required": false
+                                  "type": "string"
                                 },
                                 "required": {
                                   "name": "required",
                                   "description": "AMQP properties.reply-to-group-id required",
                                   "type": "boolean",
-                                  "required": false,
                                   "default": false
                                 }
                               }
@@ -879,8 +802,7 @@
                             "attributes": {
                               "description": {
                                 "name": "description",
-                                "type": "string",
-                                "required": false
+                                "type": "string"
                               },
                               "type": {
                                 "name": "type",
@@ -893,20 +815,17 @@
                                   "number",
                                   "boolean"
                                 ],
-                                "default": "string",
-                                "required": false
+                                "default": "string"
                               },
                               "value": {
                                 "name": "value",
                                 "description": "Application property value",
-                                "type": "string",
-                                "required": false
+                                "type": "string"
                               },
                               "required": {
                                 "name": "required",
                                 "description": "Application property required",
                                 "type": "boolean",
-                                "required": false,
                                 "default": false
                               }
                             }
@@ -921,8 +840,7 @@
                             "attributes": {
                               "description": {
                                 "name": "description",
-                                "type": "string",
-                                "required": false
+                                "type": "string"
                               },
                               "type": {
                                 "name": "type",
@@ -935,20 +853,17 @@
                                   "number",
                                   "boolean"
                                 ],
-                                "default": "string",
-                                "required": false
+                                "default": "string"
                               },
                               "value": {
                                 "name": "value",
                                 "description": "Annotation value constraint",
-                                "type": "string",
-                                "required": false
+                                "type": "string"
                               },
                               "required": {
                                 "name": "required",
                                 "description": "Annotation required",
                                 "type": "boolean",
-                                "required": false,
                                 "default": false
                               }
                             }
@@ -963,8 +878,7 @@
                             "attributes": {
                               "description": {
                                 "name": "description",
-                                "type": "string",
-                                "required": false
+                                "type": "string"
                               },
                               "type": {
                                 "name": "type",
@@ -977,20 +891,17 @@
                                   "number",
                                   "boolean"
                                 ],
-                                "default": "string",
-                                "required": false
+                                "default": "string"
                               },
                               "value": {
                                 "name": "value",
                                 "description": "Annotation value constraint",
-                                "type": "string",
-                                "required": false
+                                "type": "string"
                               },
                               "required": {
                                 "name": "required",
                                 "description": "Annotation required",
                                 "type": "boolean",
-                                "required": false,
                                 "default": false
                               }
                             }
@@ -999,41 +910,37 @@
                         "header": {
                           "name": "header",
                           "type": "object",
+                          "namecharset": "extended",
                           "description": "AMQP header section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-header",
                           "attributes": {
                             "durable": {
                               "name": "durable",
                               "description": "AMQP durable flag",
                               "type": "boolean",
-                              "default": false,
-                              "required": false
+                              "default": false
                             },
                             "priority": {
                               "name": "priority",
                               "description": "AMQP priority",
                               "type": "integer",
-                              "default": 4,
-                              "required": false
+                              "default": 4
                             },
                             "ttl": {
                               "name": "ttl",
                               "description": "AMQP time-to-live (milliseconds)",
-                              "type": "number",
-                              "required": false
+                              "type": "number"
                             },
                             "first-acquirer": {
                               "name": "first-acquirer",
                               "description": "AMQP first-acquirer flag",
                               "type": "boolean",
-                              "default": false,
-                              "required": false
+                              "default": false
                             },
                             "delivery-count": {
                               "name": "delivery-count",
                               "description": "AMQP delivery-count",
                               "type": "integer",
-                              "default": 0,
-                              "required": false
+                              "default": 0
                             }
                           }
                         },
@@ -1046,8 +953,7 @@
                             "attributes": {
                               "description": {
                                 "name": "description",
-                                "type": "string",
-                                "required": false
+                                "type": "string"
                               },
                               "type": {
                                 "name": "type",
@@ -1060,20 +966,17 @@
                                   "number",
                                   "boolean"
                                 ],
-                                "default": "string",
-                                "required": false
+                                "default": "string"
                               },
                               "value": {
                                 "name": "value",
                                 "description": "Footer value constraint",
-                                "type": "string",
-                                "required": false
+                                "type": "string"
                               },
                               "required": {
                                 "name": "required",
                                 "description": "Footer required",
                                 "type": "boolean",
-                                "required": false,
                                 "default": false
                               }
                             }
@@ -1094,20 +997,17 @@
                         "qos": {
                           "name": "qos",
                           "description": "MQTT QoS level",
-                          "type": "integer",
-                          "required": false
+                          "type": "integer"
                         },
                         "retain": {
                           "name": "retain",
                           "description": "MQTT retain flag",
-                          "type": "boolean",
-                          "required": false
+                          "type": "boolean"
                         },
                         "topic_name": {
                           "name": "topic_name",
                           "description": "MQTT topic name",
-                          "type": "uritemplate",
-                          "required": false
+                          "type": "uritemplate"
                         }
                       }
                     }
@@ -1123,20 +1023,17 @@
                         "qos": {
                           "name": "qos",
                           "description": "MQTT QoS level",
-                          "type": "integer",
-                          "required": false
+                          "type": "integer"
                         },
                         "retain": {
                           "name": "retain",
                           "description": "MQTT retain flag",
-                          "type": "boolean",
-                          "required": false
+                          "type": "boolean"
                         },
                         "topic_name": {
                           "name": "topic_name",
                           "description": "MQTT topic name",
-                          "type": "uritemplate",
-                          "required": false
+                          "type": "uritemplate"
                         },
                         "payload_format_indicator": {
                           "name": "payload_format_indicator",
@@ -1145,32 +1042,27 @@
                           "enum": [
                             0,
                             1
-                          ],
-                          "required": false
+                          ]
                         },
                         "message_expiry_interval": {
                           "name": "message_expiry_interval",
                           "description": "MQTT message expiry interval",
-                          "type": "integer",
-                          "required": false
+                          "type": "integer"
                         },
                         "response_topic": {
                           "name": "response_topic",
                           "description": "MQTT response topic",
-                          "type": "uritemplate",
-                          "required": false
+                          "type": "uritemplate"
                         },
                         "correlation_data": {
                           "name": "correlation_data",
                           "description": "MQTT correlation data",
-                          "type": "uritemplate",
-                          "required": false
+                          "type": "uritemplate"
                         },
                         "content_type": {
                           "name": "content_type",
                           "description": "MQTT content type",
-                          "type": "uritemplate",
-                          "required": false
+                          "type": "uritemplate"
                         },
                         "user_properties": {
                           "name": "user_properties",
@@ -1187,14 +1079,12 @@
                               },
                               "description": {
                                 "name": "description",
-                                "type": "string",
-                                "required": false
+                                "type": "string"
                               },
                               "value": {
                                 "name": "value",
                                 "description": "MQTT user property value constraint",
-                                "type": "string",
-                                "required": false
+                                "type": "string"
                               }
                             }
                           }
@@ -1213,26 +1103,22 @@
                         "topic": {
                           "name": "topic",
                           "description": "The Apache Kafka topic",
-                          "type": "uritemplate",
-                          "required": false
+                          "type": "uritemplate"
                         },
                         "partition": {
                           "name": "partition",
                           "description": "The Apache Kafka partition",
-                          "type": "integer",
-                          "required": false
+                          "type": "integer"
                         },
                         "key": {
                           "name": "key",
                           "description": "The Apache Kafka key as a UTF-8 uri template. Mutually exclusive with 'key_base64'",
-                          "type": "uritemplate",
-                          "required": false
+                          "type": "uritemplate"
                         },
                         "key_base64": {
                           "name": "key_base64",
                           "description": "Binary Apache Kafka key as a base64 encoded string. Mutually exclusive with 'key'",
-                          "type": "string",
-                          "required": false
+                          "type": "string"
                         },
                         "headers": {
                           "name": "headers",
@@ -1249,20 +1135,17 @@
                               },
                               "description": {
                                 "name": "description",
-                                "type": "string",
-                                "required": false
+                                "type": "string"
                               },
                               "value": {
                                 "name": "value",
                                 "description": "Kafka header value constraint",
-                                "type": "string",
-                                "required": false
+                                "type": "string"
                               },
                               "required": {
                                 "name": "required",
                                 "description": "Kafka header required",
                                 "type": "boolean",
-                                "required": false,
                                 "default": false
                               }
                             }
@@ -1294,20 +1177,17 @@
                               },
                               "description": {
                                 "name": "description",
-                                "type": "string",
-                                "required": false
+                                "type": "string"
                               },
                               "value": {
                                 "name": "value",
                                 "description": "The HTTP header value",
-                                "type": "string",
-                                "required": false
+                                "type": "string"
                               },
                               "required": {
                                 "name": "required",
                                 "description": "The HTTP header required",
                                 "type": "boolean",
-                                "required": false,
                                 "default": false
                               }
                             }
@@ -1328,20 +1208,17 @@
                               },
                               "description": {
                                 "name": "description",
-                                "type": "string",
-                                "required": false
+                                "type": "string"
                               },
                               "value": {
                                 "name": "value",
                                 "description": "The HTTP query parameter value",
-                                "type": "string",
-                                "required": false
+                                "type": "string"
                               },
                               "required": {
                                 "name": "required",
                                 "description": "The HTTP query parameter required",
                                 "type": "boolean",
-                                "required": false,
                                 "default": false
                               }
                             }
@@ -1350,14 +1227,12 @@
                         "path": {
                           "name": "path",
                           "description": "The HTTP path as a uri template",
-                          "type": "uritemplate",
-                          "required": false
+                          "type": "uritemplate"
                         },
                         "method": {
                           "name": "method",
                           "description": "The HTTP method",
-                          "type": "string",
-                          "required": false
+                          "type": "string"
                         }
                       }
                     }
@@ -1373,14 +1248,12 @@
                         "subject": {
                           "name": "subject",
                           "description": "The NATS subject",
-                          "type": "uritemplate",
-                          "required": false
+                          "type": "uritemplate"
                         },
                         "reply-to": {
                           "name": "reply",
                           "description": "The NATS reply subject",
-                          "type": "uritemplate",
-                          "required": false
+                          "type": "uritemplate"
                         },
                         "headers" : {
                           "name": "headers",
@@ -1407,7 +1280,6 @@
                                 "name": "required",
                                 "description": "The NATS header required",
                                 "type": "boolean",
-                                "required": false,
                                 "default": false
                               }
                             }
