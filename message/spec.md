@@ -35,6 +35,7 @@ this form:
   "specversion": "STRING",
   "registryid": "STRING",
   "self": "URL",
+  "shortself": "URL",
   "xid": "XID",
   "epoch": UINTEGER,
   "name": "STRING", ?
@@ -54,6 +55,7 @@ this form:
     "KEY": {                                    # messagegroupid
       "messagegroupid": "STRING",               # xRegistry core attributes
       "self": "URL",
+      "shortself": "URL",
       "xid": "XID",
       # Start of default Version's attributes
       "epoch": UINTEGER,
@@ -74,6 +76,7 @@ this form:
           "messageid": "STRING",               # xRegistry core attributes
           "versionid": "STRING",
           "self": "URL",
+          "shortself": "URL",
           "xid": "XID",
           # Start of default Version's attributes
           "epoch": UINTEGER,
@@ -192,7 +195,7 @@ describe constraints for the metadata of messages and events, for instance the
 concrete values and patterns for the `type`, `source`, and `subject` attributes
 of a CloudEvent.
 
-Message definitions can be used in anyious contexts. A code generator for
+Message definitions can be used in various contexts. A code generator for
 message producers can be informed, which properties or headers have to be set,
 and which data types, values, or patterns are expected to produce a conformant
 message. A message consumer can use the definitions to validate incoming
@@ -347,9 +350,11 @@ the core xRegistry Resource
 - Description: if present, the URL points to a message definition that is the
   base for this message definition. By following the URL, the base message
   can be retrieved and extended with the properties of this message. This is
-  useful for defining anyiants of messages that only differ in minor aspects to
+  useful for defining variants of messages that only differ in minor aspects to
   avoid repetition, or messages that only have a `envelope` with associated
-  `envelopemetadata` to be bound to anyious protocols.
+  `envelopemetadata` to be bound to various protocols.
+  Attributes defined in this message fully override the attributes of the base
+  message.
 - Constraints:
   - OPTIONAL
   - If present, MUST be a valid URI-reference
@@ -438,7 +443,7 @@ specification.
   but all protocols use a common schema model for the
   constraints defined for their metadata headers, properties or attributes.
 - Constraints:
-  - REQUIRED
+  - REQUIRED if `protocol` is specified.
 - Examples:
   - See [Message protocols](#message-protocols)
 
@@ -548,6 +553,14 @@ defined by the message `protocol` rules apply.
 The following properties are common to all messages with
 headers/properties/attributes constraints:
 
+##### `description`
+
+- Type: String
+- Description: A human-readable description of the property.
+- Constraints:
+  - OPTIONAL.
+  - If present, MUST be a non-empty string.
+
 ##### `required`
 
 - Type: Boolean
@@ -557,13 +570,37 @@ headers/properties/attributes constraints:
   - OPTIONAL. Defaults MUST be `false`.
   - If present, MUST be a boolean value.
 
-##### `description`
+##### `specurl`
+
+- Type: URI-reference
+- Description: Contains a relative or absolute URI that points to the
+  human-readable specification of the property.
+- Constraints:
+  - OPTIONAL
+
+##### `type`
 
 - Type: String
-- Description: A human-readable description of the property.
+- Description: The type of the property. This is used to constrain the value of
+  the property.
 - Constraints:
   - OPTIONAL.
-  - If present, MUST be a non-empty string.
+  - Default value MUST be "string".
+  - The valid types are those defined in the [CloudEvents][CloudEvents Types]
+    core specification, with some additions:
+    - `any`: Any type of value, including `null`.
+    - `boolean`: CloudEvents "Boolean" type.
+    - `string`: CloudEvents "String" type.
+    - `symbol`: A `string` that is restricted to alphanumerical characters and
+      underscores.
+    - `binary`: CloudEvents "Binary" type.
+    - `timestamp`: CloudEvents "Timestamp" type (RFC3339 DateTime)
+    - `duration`: RFC3339 Duration
+    - `uritemplate`: [RFC6570][RFC6570] Level 1 URI Template
+    - `uri`: CloudEvents "URI" type (RFC3986 URI)
+    - `urireference`: CloudEvents "URI-reference" type (RFC3986 URI-reference)
+    - `number`: IEEE754 Double
+    - `integer`: CloudEvents "Integer" type (RFC 7159, Section 6)
 
 ##### `value`
 
@@ -593,38 +630,6 @@ message.
 If the `type` property has the value `timestamp` and the `value` property is
 set to a value of `01-01-0000T00:00:00Z`, the value MUST be replaced with the
 current timestamp when creating a message.
-
-##### `type`
-
-- Type: String
-- Description: The type of the property. This is used to constrain the value of
-  the property.
-- Constraints:
-  - OPTIONAL.
-  - Default value MUST be "string".
-  - The valid types are those defined in the [CloudEvents][CloudEvents Types]
-    core specification, with some additions:
-    - `any`: Any type of value, including `null`.
-    - `boolean`: CloudEvents "Boolean" type.
-    - `string`: CloudEvents "String" type.
-    - `symbol`: A `string` that is restricted to alphanumerical characters and
-      underscores.
-    - `binary`: CloudEvents "Binary" type.
-    - `timestamp`: CloudEvents "Timestamp" type (RFC3339 DateTime)
-    - `duration`: RFC3339 Duration
-    - `uritemplate`: [RFC6570][RFC6570] Level 1 URI Template
-    - `uri`: CloudEvents "URI" type (RFC3986 URI)
-    - `urireference`: CloudEvents "URI-reference" type (RFC3986 URI-reference)
-    - `number`: IEEE754 Double
-    - `integer`: CloudEvents "Integer" type (RFC 7159, Section 6)
-
-##### `specurl`
-
-- Type: URI-reference
-- Description: Contains a relative or absolute URI that points to the
-  human-readable specification of the property.
-- Constraints:
-  - OPTIONAL
 
 #### Metadata Envelopes
 
@@ -658,8 +663,8 @@ The following rules apply to the attribute declarations:
 
 - All attribute declarations are OPTIONAL. Requirements for absent
   definitions are implied by the CloudEvents specification.
-- The `specversion` attribute is implied by the message envelope and is NOT
-  REQUIRED. If present, it MUST be declared with a `string` type and set to the
+- The `specversion` attribute is implied by the message envelope and is
+  OPTIONAL. If present, it MUST be declared with a `string` type and set to the
   value "1.0".
 - The `type`, `id`, and `source` attributes implicitly have the `required` flag
   set to `true` and MUST NOT be declared as `required: false`.
@@ -724,8 +729,7 @@ a message (see the [model file](model.json) for the complete definition):
   },
   "*": {
     "value": ANY, ?
-    "type": "TYPE", ?
-    "required": BOOLEAN ?
+    "type": "TYPE"
   }
 }
 ```
@@ -899,7 +903,7 @@ following properties are defined, with type constraints:
 
 | Property               | Type          | Description                                                                      |
 | ---------------------- | ------------- | -------------------------------------------------------------------------------- |
-| `message-id`           | `*`           | uniquely identifies a message within the message system                          |
+| `message-id`           | (see note below) | uniquely identifies a message within the message system                          |
 | `user-id`              | `binary`      | identity of the user responsible for producing the message                       |
 | `to`                   | `uritemplate` | address of the node to send the message to                                       |
 | `subject`              | `string`      | message subject                                                                  |
