@@ -3,7 +3,7 @@
   "info": {
     "title": "xRegistry API",
     "description": "xRegistry API. See spec sections (e.g. 'Registry Capabilities', 'Retrieving the Registry Model', 'Doc', etc.) for details.",
-    "version": "1.0-RC1"
+    "version": "1.0-rc1"
   },
   "servers": [],
   "security": [
@@ -301,7 +301,7 @@
           {
             "in": "query",
             "name": "schema",
-            "description": "The model schema format (e.g. xRegistry-json/1.0-RC1).",
+            "description": "The model schema format (e.g. xRegistry-json/1.0-rc1).",
             "required": false,
             "schema": {
               "type": "string"
@@ -1615,7 +1615,7 @@
         "schema": {
           "type": "string"
         },
-        "description": "Comma\u00e2\u20ac\u2018separated list of nested paths to inline (e.g. endpoints, endpoints.messages). See spec: Inline."
+        "description": "Comma\u2011separated list of nested paths to inline (e.g. endpoints, endpoints.messages). See spec: Inline."
       },
       "filter": {
         "name": "filter",
@@ -1642,58 +1642,58 @@
     },
     "headers": {
       "resource-id": {
-        "description": "The resource identifier. MUST be percent\u00e2\u20ac\u2018encoded per xRegistry specifications (i.e. all non\u00e2\u20ac\u2018printable ASCII characters, spaces, quotes, and percent signs must be encoded).",
+        "description": "The resource identifier. MUST be percent\u2011encoded per xRegistry specifications (i.e. all non\u2011printable ASCII characters, spaces, quotes, and percent signs must be encoded).",
         "schema": {
           "type": "string"
         }
       },
       "resource-version": {
-        "description": "The resource version identifier. MUST be percent\u00e2\u20ac\u2018encoded per xRegistry specifications.",
+        "description": "The resource version identifier. MUST be percent\u2011encoded per xRegistry specifications.",
         "schema": {
           "type": "string"
         }
       },
       "resource-name": {
-        "description": "The resource name. MUST be percent\u00e2\u20ac\u2018encoded per xRegistry specifications.",
+        "description": "The resource name. MUST be percent\u2011encoded per xRegistry specifications.",
         "schema": {
           "type": "string"
         }
       },
       "resource-self": {
-        "description": "The self URL of the resource. MUST be percent\u00e2\u20ac\u2018encoded per xRegistry specifications.",
+        "description": "The self URL of the resource. MUST be percent\u2011encoded per xRegistry specifications.",
         "schema": {
           "type": "string",
           "format": "uri"
         }
       },
       "resource-description": {
-        "description": "The resource description. MUST be percent\u00e2\u20ac\u2018encoded per xRegistry specifications.",
+        "description": "The resource description. MUST be percent\u2011encoded per xRegistry specifications.",
         "schema": {
           "type": "string"
         }
       },
       "resource-documentation": {
-        "description": "The resource documentation URL. MUST be percent\u00e2\u20ac\u2018encoded per xRegistry specifications.",
+        "description": "The resource documentation URL. MUST be percent\u2011encoded per xRegistry specifications.",
         "schema": {
           "type": "string",
           "format": "uri"
         }
       },
       "resource-labels": {
-        "description": "Serialized resource labels. MUST be percent\u00e2\u20ac\u2018encoded per xRegistry specifications.",
+        "description": "Serialized resource labels. MUST be percent\u2011encoded per xRegistry specifications.",
         "schema": {
           "type": "string"
         }
       },
       "resource-createdat": {
-        "description": "The resource creation timestamp. MUST be percent\u00e2\u20ac\u2018encoded per xRegistry specifications.",
+        "description": "The resource creation timestamp. MUST be percent\u2011encoded per xRegistry specifications.",
         "schema": {
           "type": "string",
           "format": "date-time"
         }
       },
       "resource-modifiedat": {
-        "description": "The resource modification timestamp. MUST be percent\u00e2\u20ac\u2018encoded per xRegistry specifications.",
+        "description": "The resource modification timestamp. MUST be percent\u2011encoded per xRegistry specifications.",
         "schema": {
           "type": "string",
           "format": "date-time"
@@ -1773,11 +1773,11 @@
           },
           "title": {
             "type": "string",
-            "description": "A short, human\u00e2\u20ac\u2018readable summary of the problem type."
+            "description": "A short, human\u2011readable summary of the problem type."
           },
           "detail": {
             "type": "string",
-            "description": "A human\u00e2\u20ac\u2018readable explanation specific to this occurrence of the problem."
+            "description": "A human\u2011readable explanation specific to this occurrence of the problem."
           }
         }
       },
@@ -1817,10 +1817,10 @@
             "type": "array",
             "items": {
               "type": "string",
-              "description": "A schema document format name, e.g. 'jsonSchema/2020-12' or 'xRegistry-json/1.0-RC1'."
+              "description": "A schema document format name, e.g. 'jsonSchema/2020-12' or 'xRegistry-json/1.0-rc1'."
             },
             "default": [
-              "xRegistry-json/1.0-RC1"
+              "xRegistry-json/1.0-rc1"
             ],
             "description": "List of schema formats supported by the server."
           },
@@ -1836,7 +1836,7 @@
               "description": "A supported xRegistry specification version."
             },
             "default": [
-              "1.0-RC1"
+              "1.0-rc1"
             ],
             "description": "List of xRegistry specification versions supported by the server."
           },

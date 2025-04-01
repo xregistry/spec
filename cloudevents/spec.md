@@ -1,4 +1,4 @@
-# CloudEvents Registry Service - Version 0.5-wip
+# CloudEvents Registry Service - Version 1.0-rc1
 
 ## Abstract
 
@@ -86,7 +86,7 @@ schema for its payload.
 ```yaml
 {
   "$schema": "https://cloudevents.io/schemas/registry",
-  "specversion": "0.5-wip",
+  "specversion": "1.0-rc1",
   "registryid": "Example Registry",
   "self": "http://example.com",
   "xid": "/",
@@ -176,7 +176,7 @@ scenarios:
 ```yaml
 {
   "$schema": "https://cloudevents.io/schemas/registry",
-  "specversion": "0.5-wip",
+  "specversion": "1.0-rc1",
   "registryid": "Example Registry",
   "self": "http://example.com",
   "xid": "/",
@@ -319,7 +319,7 @@ group with a deep link to the respective object in the service:
 ```yaml
 {
   "$schema": "https://cloudevents.io/schemas/registry",
-  "specversion": "0.5-wip",
+  "specversion": "1.0-rc1",
   "registryid": "Example Registry",
 
   "endpointsurl": "https://example.com/endpoints",
@@ -354,7 +354,7 @@ link will first reference the file and then the object within the file, using
 ```yaml
 {
   "$schema": "https://cloudevents.io/schemas/registry",
-  "specversion": "0.5-wip",
+  "specversion": "1.0-rc1",
   "registryid": "Example Registry",
 
   "endpointsurl": "https://example.com/endpoints",
@@ -424,7 +424,7 @@ embedded or referenced. Any of the three sub-registries MAY be omitted.
 ```yaml
 {
   "$schema": "https://cloudevents.io/schemas/registry",
-  "specversion": "0.5-wip",
+  "specversion": "1.0-rc1",
   "registryid": "STRING",
 
   "endpointsurl": "URL",

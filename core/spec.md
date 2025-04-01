@@ -1,4 +1,4 @@
-# xRegistry Service - Version 0.5-wip
+# xRegistry Service - Version 1.0-rc1
 
 ## Abstract
 
@@ -127,9 +127,9 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       "capabilities",? "entities",? "model",? "STRING"*
     ], ?
     "pagination": BOOLEAN, ?
-    "schemas": [ "xRegistry-json/0.5", "STRING" * ], ?
+    "schemas": [ "xRegistry-json/1.0-rc1", "STRING" * ], ?
     "shortself": BOOLEAN, ?
-    "specversions": [ "0.5", "STRING"* ], ?
+    "specversions": [ "1.0-rc1", "STRING"* ], ?
     "sticky": BOOLEAN, ?
 
     "STRING": ... *                     # Extension capabilities
@@ -1662,7 +1662,7 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "specversion": "0.5",
+  "specversion": "1.0-rc1",
   "registryid": "myRegistry",
   "self": "https://example.com/",
   "xid": "/",
@@ -1690,7 +1690,7 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "specversion": "0.5",
+  "specversion": "1.0-rc1",
   "registryid": "myRegistry",
   "self": "https://example.com/",
   "xid": "/",
@@ -1847,7 +1847,7 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "specversion": "0.5",
+  "specversion": "1.0-rc1",
   "registryid": "myRegistry",
   "self": "https://example.com/",
   "xid": "/",
@@ -1970,11 +1970,11 @@ The following defines the specification-defined capabilities:
   serializing the model. Each value MUST be a schema document format name
   (e.g. `jsonSchema/2020-12`), and SHOULD be of the form `NAME[/VERSION]`.
   All implementations of this specification MUST support
-  `xRegistry-json/0.5` (the JSON serialization as defined by this
+  `xRegistry-json/1.0-rc1` (the JSON serialization as defined by this
   specification).
 - The values MUST be case-insensitive.
-- A value of `xRegistry-json/0.5` MUST be included in the list.
-- When not specified, the default value MUST be `xRegistry-json/0.5`.
+- A value of `xRegistry-json/1.0-rc1` MUST be included in the list.
+- When not specified, the default value MUST be `xRegistry-json/1.0-rc1`.
 
 #### `shortself`
 - Name: `shortself`
@@ -1988,9 +1988,9 @@ The following defines the specification-defined capabilities:
 - Name: `specversions`
 - Type: Array of strings
 - Description: List of xRegistry specification versions supported.
-- Supported values include: `0.5`.
-- A value of `0.5` MUST be included in the list.
-- When not specified, the default value MUST be `0.5`.
+- Supported values include: `1.0-rc1`.
+- A value of `1.0-rc1` MUST be included in the list.
+- When not specified, the default value MUST be `1.0-rc1`.
 
 #### `sticky`
 - Name: `sticky`
@@ -2132,7 +2132,7 @@ GET /capabilities?offered
   },
   "schemas": {
     "type": "string",
-    "enum": [ "xRegistry-json/0.5" ]
+    "enum": [ "xRegistry-json/1.0-rc1" ]
   },
   "shortself": {
     "type": "boolean",
@@ -2140,7 +2140,7 @@ GET /capabilities?offered
   },
   "specversions": {
     "type": "string",
-    "enum": [ "xRegistry-json/0.5" ]
+    "enum": [ "xRegistry-json/1.0-rc1" ]
   },
   "sticky": {
     "type": "boolean",
@@ -2874,9 +2874,9 @@ GET /model[?schema=NAME[/VERSION]]
 Where:
 - When specified, the `?schema` query parameter MUST be one of the valid
   `schema` capabilities values (case-insensitive).
-- When not specified, the default value MUST be `xRegistry-json/0.5`.
+- When not specified, the default value MUST be `xRegistry-json/1.0-rc1`.
 
-Implementations of this specification MUST support `xRegistry-json/0.5`.
+Implementations of this specification MUST support `xRegistry-json/1.0-rc1`.
 
 A successful response MUST be of the form:
 
@@ -2897,7 +2897,7 @@ Where:
 If the specified schema format is not supported then an error
 ([invalid_data](#invalid_data)) MUST be generated.
 
-When the `schema` is `xRegistry-json/0.5` then the response MUST be of the
+When the `schema` is `xRegistry-json/1.0-rc1` then the response MUST be of the
 form:
 
 ```yaml

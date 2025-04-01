@@ -3,7 +3,7 @@
     "messagegroups": {
       "singular": "messagegroup",
       "plural": "messagegroups",
-      "modelversion": "1.0-RC1",
+      "modelversion": "1.0-rc1",
       "compatiblewith": "https://raw.githubusercontent.com/xregistry/spec/refs/heads/main/message/model.json",
       "attributes": {
         "envelope": {
@@ -29,7 +29,7 @@
           "maxversions": 1,
           "setdefaultversionsticky": false,
           "hasdocument": false,
-          "modelversion": "0.5",
+          "modelversion": "1.0-rc1",
           "compatiblewith": "https://raw.githubusercontent.com/xregistry/spec/refs/heads/main/message/model.json",
           "attributes": {
             "basemessageurl": {
