@@ -157,7 +157,7 @@ the [Avrotize VS Code Extension](https://github.com/clemensv/avrotize).
 
 CloudEvents serve as a mechanism to aid in the delivery of events from a
 producer to a consumer, which is applicable independently of the protocol (MQTT,
-HTTP, Kafka, and AMQP) or encoding (JSON, XML, SOAP, Avro, etc). xRegistry
+HTTP, Kafka, and AMQP) or encoding (JSON, XML, SOAP, Avro, etc.). xRegistry
 further builds upon this by providing a specification to define resources that
 correlate specific events to endpoints, providing versioning information and
 more extensive metadata.
@@ -214,7 +214,7 @@ Cases](#possible-use-cases) for examples outside the eventing world.
   NATS, HTTP..) and schema languages (JSON Schema, Avro Schema, Protobuf..)
   – not just CloudEvents.
 - **Simplicity:** Allow simple use cases that do not need versioning of
-  resources or a full blown schema registry on the server.
+  resources or a full-blown schema registry on the server.
 
 ### Non-Goals
 
@@ -352,7 +352,7 @@ had to be made to take into account where these names might appear.
 Some of the challenges:
 
 - attribute and key name might appear as HTTP headers, which are
-  case insensitive. On the surface this would mean that simply not allowing
+  case-insensitive. On the surface this would mean that simply not allowing
   more than one name of different cases would suffice. However, in the case
   of the name being part of a open-ended extension (e.g. allowable due to a
   `*` defined attribute), the server has no way of knowing its proper case.
@@ -376,7 +376,7 @@ simply avoid the problem (and hopefully increase interoperability) by just
 limiting the allowable characters.
 
 Note though, map key names allow more characters than well-define object
-attribute names because map key names are not usually mapped to well defined
+attribute names because map key names are not usually mapped to well-defined
 variable or structure property names - they're usually just stored as
 "strings" a map data structure.
 
@@ -401,7 +401,7 @@ variable or structure property names - they're usually just stored as
   So GET resource?meta or GET group?inline both ask for metadata
 - xRegistry- headers: first "-" separates xRegistry from attribute name,
   next "-" separates attribute name from key, any subsequent "-" is part
-  of the key name. E.g xRegistry-labels-abc-def:xxx => labels["abc-def"]=xxx
+  of the key name. E.g. xRegistry-labels-abc-def:xxx => labels["abc-def"]=xxx
 - impact of "\*required" flags at multiple levels
 - why we don't use underscore in our property names, tho legal to do so
   - not all http proxies (e.g. nginx) pass them along by default
@@ -561,7 +561,7 @@ sensitivity rules in the specification.
 
 - Groups and Resources must be lower case.
   The plural version of the Group and Resource type names can appear in URLs
-  (which is case sensitive). Additionally, the plural variant can also appear
+  (which is case-sensitive). Additionally, the plural variant can also appear
   in attribute names (e.g. COLLECTION attributes), and as discussed above,
   attributes must be lower case.
 
@@ -571,22 +571,22 @@ sensitivity rules in the specification.
   For these reasons, both the plural and singular names of Group and Resource
   types must be defined as lower case.
 
-- IDs are case sensitive and case insensitive.
+- IDs are case-sensitive and case-insensitive.
   Entity identifiers (`id`s), never appear as attribute or HTTP header
-  names. Meaning, they never appear in case insensitive locations, so they
+  names. Meaning, they never appear in case-insensitive locations, so they
   do not have the same constraints that attributes, Groups or Resources do.
   For this reason, IDs are not restricted to using just lower case letters.
   This then also means that when there is a "look-up" done by an ID, it must
-  be done in a case sensitive way.
+  be done in a case-sensitive way.
 
   However, there is another aspect of IDs that needs to be taken into account:
-  the human factor. Despite them being case sensitive, if the specification
+  the human factor. Despite them being case-sensitive, if the specification
   allowed for two entities at the same location in the data model to exist
   where they had the same IDs except for their case, it could make things very
-  error prone for users and leave them with a bad user experience.
+  error-prone for users and leave them with a bad user experience.
 
-  For this reason, while the processing of IDs is treated as case sensitive
-  values, the specification requires that IDs must be case insensitive unique
+  For this reason, while the processing of IDs is treated as case-sensitive
+  values, the specification requires that IDs must be case-insensitive unique
   within the scope of its parent entity.
 
   While it may have been more consistent to just require IDs to be lower case
@@ -595,9 +595,9 @@ sensitivity rules in the specification.
   users as unique identifiers (almost as a "name"), allowing mixed case can
   provider a better user experience.
 
-  Additionally, treating them in a case insensitive way could lead to
+  Additionally, treating them in a case-insensitive way could lead to
   inconsistencies and frustration for users. If a user purposely used a certain
-  casing pattern, but then someone else use a different pattern for the same
+  casing pattern, but then someone else uses a different pattern for the same
   entity, it is possible that one of those users would end up seeing an
   unexpected casing and could be confused or believe there was an error.
 
@@ -609,7 +609,7 @@ sensitivity rules in the specification.
 Attribute names and key names are limited to 63 characters, so why are
 Group and Resource names limited to only 58? Because when they appear as
 Collection attributes and we append `url` or `count` to them they still have
-to fit within the 63 character limit, and so we need to take into account
+to fit within the 63-character limit, and so we need to take into account
 the length of the word `count`.
 
 # Why must Group type and Resource type names be valid attribute names?
@@ -652,7 +652,7 @@ URLs without the client (or developer) having control to prevent it. It might
 be client-side tooling or intermediaries (e.g. proxies) that might modify
 the URL - for example to add tracking or end-to-end tracing information.
 
-To avoid these clients not being able interact with an xRegistry deployment,
+To avoid these clients not being able to interact with an xRegistry deployment,
 the authors chose to have the server ignore unknown query parameters. It is
 worth noting that the specification says they SHOULD be ignored, not that they
 MUST be ignored. So there is room for an implementation to be very picky if

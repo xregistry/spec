@@ -96,7 +96,7 @@
         },
         "isdefault": {
           "name": "isdefault",
-          "type": "boolean"
+          "type": "boolean",
           "serverrequired": true,
           "default": false
         },
@@ -258,7 +258,7 @@
               "type": "url",
               "readonly": true,
               "serverrequired": true
-            }
+            },
             "defaultversionsticky": {
               "name": "defaultversionsticky",
               "type": "boolean",

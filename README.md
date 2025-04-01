@@ -7,21 +7,21 @@
 [![OpenSSF Best Practices](https://bestpractices.coreinfrastructure.org/projects/7295/badge)](https://bestpractices.coreinfrastructure.org/projects/7295)
 
 The xRegistry project (short for "extensible registry") defines an abstract
-model for how to manage metadata about resources and provide a REST-based
+model for how to manage metadata about resources and provides a REST-based
 interface for creating, modifying, deleting and discovering of those resources.
 The project includes a "core" specification that defines the basic model and
-APIs of a Registry and a set of domain specific specifications that extend that
+APIs of a Registry and a set of domain-specific specifications that extend that
 core for particular use cases. By leveraging the same "core" model/APIs,
 generic tooling and common patterns of Registry access can be developed which
 help create an interoperable (and standard) interface.
 
-It is expected that that further specifications will be developed, both as
-part of the xRegistry project as well as outside of the project, that will
-leverage this framework for additional purposes.
+It is expected that further specifications will be developed, both as part
+of the xRegistry project and outside, that will leverage this framework for
+additional purposes.
 
 xRegistry was first developed under the [CloudEvents](https://cloudevents.io)
 project, and in April 2023 it was split into its own project but continues
-so share many organizational resources with the CloudEvents and CNCF Serverless
+to share many organizational resources with the CloudEvents and CNCF Serverless
 Working Group (such as the weekly meetings).
 
 The name `xRegistry` (standing for extensible registry) is meant to be written
@@ -70,7 +70,7 @@ native ecosystem by making our systems interoperable with xRegistry.
 ### Security Concerns
 
 If there is a security concern with one of the specifications in this
-repository please [open an issue](https://github.com/xregistry/spec/issues).
+repository, please [open an issue](https://github.com/xregistry/spec/issues).
 
 ### Communications
 
@@ -102,7 +102,7 @@ The working group also meets
 to develop xRegistry specifically. For those meetings, please see the
 [xRegistry Meeting Notes](https://docs.google.com/document/d/1YtBnjAyNdMLhAFYiq4yTrHcWpFjW-FWcV9neCTL6XRs/edit?usp=sharing).
 
-Recording from our calls are available
+Recordings from our calls are available
 [here](https://www.youtube.com/playlist?list=PLO-qzjSpLN1BEyKjOVX_nMg7ziHXUYwec), and
 older ones are
 [here](https://www.youtube.com/playlist?list=PLj6h78yzYM2Ph7YoBIgsZNW_RGJvNlFOt).
