@@ -1,0 +1,34 @@
+{
+  "name": "Document Store Sample",
+  "dirs": {
+    "forms": {
+      "files": {
+        "1040": {
+          "versionid": "v0",
+          "contenttype": "text/plain",
+          "file": "This is form 1040"
+        },
+        "1090": {
+          "versions": {
+            "v1": {
+              "contenttype": "text/plain",
+              "file": "This is form 1090"
+            },
+            "v2": {
+               "contenttype": "text/plain",
+              "file": "This is form 1090 - see me shine!"
+            }
+          }
+        }
+      }
+    },
+    "proposals": {
+      "files": {
+        "new-home-Jones": {
+          "contenttype": "text/plain",
+          "filebase64": "SG9tZSBwbGFucyBmb3IgdGhlIEpvbmVzJwo="
+        }
+      }
+    }
+  }
+}

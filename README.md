@@ -45,6 +45,7 @@ with a lowercase `x`, even when the first word in a sentence.
 |                               |
 | **Even More:** |
 | Server Reference Implementation | [server repo](https://github.com/xregistry/server) |
+| [Samples](core/samples/README.md) | |
 
 Additional release related information:
   [Historical releases and changelogs](docs/RELEASES.md)
