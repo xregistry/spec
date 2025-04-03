@@ -1,0 +1,37 @@
+{
+  "name": "Document Store Sample",
+  "docs": {
+    "newContract": {
+      "formats": {
+        "pdf": {
+          "contenttype": "application/pdf",
+          "format": "This is form 1040 in pdf - not really pdf though"
+        },
+        "ms-word": {
+          "versions": {
+            "v1": {
+              "contenttype": "application/ms-word",
+              "formatbase64": "YW4gb2xkIG1zLXdvcmQgZG9jCg=="
+            },
+            "v2": {
+              "contenttype": "application/ms-word",
+              "formatbase64": "c29tZSBtcy13b3JkIGRvYwo="
+            }
+          }
+        }
+      }
+    },
+    "amendContract": {
+      "formats": {
+        "text": {
+            "contenttype": "text/plain",
+            "format": "Please amend Joe's contract such that..."
+        },
+        "html": {
+            "contenttype": "text/html",
+            "format": "<html><body>Please amend Joe's contract such that...</body></html>"
+        }
+      }
+    }
+  }
+}

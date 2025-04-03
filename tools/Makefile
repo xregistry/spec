@@ -8,11 +8,12 @@ verify: text links
 text: spellcheck tabcheck errorcheck
 
 spellcheck:
-	tools/spellcheck */spec.md core/primer.md
+	tools/spellcheck */spec.md core/primer.md */README.md \
+		docs/share/README.md */samples/README.md */samples/*/README.md
 	@echo
 
 tabcheck:
-	tools/tabcheck */*.md  */*.json
+	tools/tabcheck `find . -name "*.md" -o -name "*.json"`
 	@echo
 
 errorcheck:
