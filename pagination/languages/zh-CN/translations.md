@@ -1,4 +1,4 @@
-# Translation list of the pagination spec 
+# Translation list of the pagination spec
 
 | Documents   |   Status     |  Last edited |    Version |
 | :---------  | :---------: | :---------   | :---------: |
