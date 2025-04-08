@@ -4,7 +4,7 @@
       "singular": "schemagroup",
       "plural": "schemagroups",
       "modelversion": "1.0-rc1",
-      "compatiblewith": "https://raw.githubusercontent.com/xregistry/spec/refs/heads/main/schema/model.json",
+      "compatiblewith": "https://xregistry.io/xreg/domains/schema/specs/model.json",
 
       "attributes": {
         "*": {
@@ -18,7 +18,7 @@
           "singular": "schema",
           "plural": "schemas",
           "modelversion": "1.0-rc1",
-          "compatiblewith": "https://raw.githubusercontent.com/xregistry/spec/refs/heads/main/schema/model.json",
+          "compatiblewith": "https://xregistry.io/xreg/domains/schema/specs/model.json",
 
           "attributes": {
             "format": {

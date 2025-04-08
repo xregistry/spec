@@ -2535,6 +2535,7 @@ The following describes the attributes of Registry model:
     specified for document view.
   - When not specified the default value MUST be `false`.
   - When the attribute name is `*` then `required` MUST NOT be set to `true`.
+  - MUST NOT be `false` if a default value (`default`) is defined.
 
 - `attributes."STRING".default`
   - Type: MUST be a non-`null` value of the type specified by the
@@ -2550,8 +2551,8 @@ The following describes the attributes of Registry model:
     semantic meaning a being absent or set to `null`.
   - When a default value is specified, this attribute MUST be serialized in
     responses from servers as part of its owning entity, even if it is set to
-    its default value. Note that this means the attribute is implicitly
-    REQUIRED.
+    its default value. This means that any attribute that has a default value
+    defined MUST also have its `required` aspect set to `true`.
 
 - `attributes."STRING".attributes`
   - Type: Object, see `attributes` above.
@@ -5643,11 +5644,16 @@ as defined below:
 - Constraints:
   - REQUIRED.
   - The `ancestor` attribute MUST NOT be set to a value that
-    creates circular references between Versions. For example, an operation that
-    makes Version A's ancestor B, and Version B's ancestor A, MUST generate an
-    error ([ancestor_circular_reference](#ancestor_circular_reference)).
+    creates circular references between Versions and it is STRONGLY RECOMMENDED
+    that the server generate an error
+    ([ancestor_circular_reference](#ancestor_circular_reference)) if a request
+    attempts to do so. For example, an operation that makes Version A's
+    ancestor B, and Version B's ancestor A, would generate an error.
   - Any attempt to set an `ancestor` attribute to a non-existing `versionid`
     MUST generate an error ([invalid_data](#invalid_data)).
+  - For clarity, any modification to the `ancestor` attribute MUST result in
+    the owning Version's `epoch` and `modifiedat` attributes be updated
+    appropriately.
 
 ##### `contenttype` Attribute
 - Type: String
