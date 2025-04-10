@@ -4,7 +4,7 @@
       "singular": "endpoint",
       "plural": "endpoints",
       "modelversion": "1.0-rc1",
-      "compatiblewith": "https://raw.githubusercontent.com/xregistry/spec/refs/heads/main/endpoint/model.json",
+      "compatiblewith": "https://xregistry.io/xreg/domains/endpoint/specs/model.json",
       "attributes": {
         "usage": {
           "name": "usage",
@@ -163,7 +163,7 @@
                       "name": "deployed",
                       "type": "boolean",
                       "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint",
-                      "required": false,
+                      "required": true,
                       "default": false
                     },
                     "node": {
@@ -176,7 +176,7 @@
                       "name": "durable",
                       "type": "boolean",
                       "description": "The AMQP durable flag. Whether the node is durable or transient",
-                      "required": false,
+                      "required": true,
                       "default": false
                     },
                     "link-properties": {
@@ -203,7 +203,7 @@
                         "copy"
                       ],
                       "description": "The AMQP distribution mode for receivers. Can be 'move' or 'copy'.  A value of 'move' indicates an exclusive lock on the message. A value of 'copy' indicates a non-exclusive lock on the message",
-                      "required": false,
+                      "required": true,
                       "default": "move"
                     },
                     "connection-capabilities": {
@@ -299,7 +299,7 @@
                       "name": "deployed",
                       "type": "boolean",
                       "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint",
-                      "required": false,
+                      "required": true,
                       "default": false
                     },
                     "topic": {
@@ -312,7 +312,7 @@
                       "name": "qos",
                       "type": "uinteger",
                       "description": "The MQTT QoS level. May be 0, 1, or 2",
-                      "required": false,
+                      "required": true,
                       "default": 0,
                       "enum": [
                         0,
@@ -324,14 +324,14 @@
                       "name": "retain",
                       "type": "boolean",
                       "description": "The MQTT retain flag to use for publishers on ths endpoint",
-                      "required": false,
+                      "required": true,
                       "default": false
                     },
                     "cleansession": {
                       "name": "cleansession",
                       "type": "boolean",
                       "description": "The MQTT clean session flag to use for publishers on this endpoint",
-                      "required": false,
+                      "required": true,
                       "default": true
                     },
                     "willtopic": {
@@ -423,7 +423,7 @@
                       "name": "deployed",
                       "type": "boolean",
                       "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint",
-                      "required": false,
+                      "required": true,
                       "default": false
                     },
                     "topic": {
@@ -436,7 +436,7 @@
                       "name": "qos",
                       "type": "uinteger",
                       "description": "The MQTT QoS level. May be 0, 1, or 2",
-                      "required": false,
+                      "required": true,
                       "default": 0,
                       "enum": [
                         0,
@@ -448,14 +448,14 @@
                       "name": "retain",
                       "type": "boolean",
                       "description": "The MQTT retain flag to use for publishers on ths endpoint",
-                      "required": false,
+                      "required": true,
                       "default": false
                     },
                     "cleansession": {
                       "name": "cleansession",
                       "type": "boolean",
                       "description": "The MQTT clean session flag to use for publishers on this endpoint",
-                      "required": false,
+                      "required": true,
                       "default": true
                     },
                     "willtopic": {
@@ -547,14 +547,14 @@
                       "name": "deployed",
                       "type": "boolean",
                       "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint",
-                      "required": false,
+                      "required": true,
                       "default": false
                     },
                     "method": {
                       "name": "method",
                       "type": "string",
                       "description": "The HTTP method name",
-                      "required": false,
+                      "required": true,
                       "default": "POST"
                     },
                     "headers": {
@@ -622,14 +622,14 @@
                             "name": "security.protocol",
                             "type": "string",
                             "description": "The Kafka security protocol",
-                            "required": false,
+                            "required": true,
                             "default": "PLAINTEXT"
                           },
                           "sasl.mechanism": {
                             "name": "sasl.mechanism",
                             "type": "string",
                             "description": "The Kafka SASL mechanism",
-                            "required": false,
+                            "required": true,
                             "default": "PLAIN"
                           },
                           "*": {
@@ -681,7 +681,7 @@
                       "name": "deployed",
                       "type": "boolean",
                       "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint",
-                      "required": false,
+                      "required": true,
                       "default": false
                     },
                     "topic": {
@@ -694,7 +694,7 @@
                       "name": "acks",
                       "type": "integer",
                       "description": "The Apache Kafka acks setting to use. If no acks setting is specified, the default is -1",
-                      "required": false,
+                      "required": true,
                       "default": 1
                     },
                     "key": {
@@ -724,14 +724,14 @@
                       "name": "keyserializer",
                       "type": "string",
                       "description": "The Kafka key serializer",
-                      "required": false,
+                      "required": true,
                       "default": "org.apache.kafka.common.serialization.StringSerializer"
                     },
                     "valueserializer": {
                       "name": "valueserializer",
                       "type": "string",
                       "description": "The Kafka value serializer",
-                      "required": false,
+                      "required": true,
                       "default": "org.apache.kafka.common.serialization.StringSerializer"
                     },
                     "*": {
@@ -811,7 +811,7 @@
                       "name": "deployed",
                       "type": "boolean",
                       "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint",
-                      "required": false,
+                      "required": true,
                       "default": false
                     },
                     "subject": {

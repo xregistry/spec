@@ -38,6 +38,7 @@ connectionproperties
 consumergroup
 consumerrecord
 contenttype
+contoso
 createdat
 createdby
 crlf
@@ -59,6 +60,7 @@ definitionscount
 definitionsurl
 deploymentid
 deviceid
+dirs
 distributionmode
 emoji
 endpointid
@@ -67,8 +69,10 @@ endpointsurl
 enum
 envelopemetadata
 envelopeoptions
+erp
 etag
 eventing
+files
 filesystem
 gid
 github
@@ -91,6 +95,7 @@ ietf
 ifvalues
 img
 impl
+inkjet
 inlinable
 inlined
 inlines
@@ -104,6 +109,7 @@ jsonpath
 jsonschema
 keyname
 lifecycle
+lightbulb
 linkproperties
 maxmaxversions
 maxversions
@@ -164,6 +170,7 @@ noepoch
 noreadonly
 oauth
 openapi
+pdf
 placeholders
 png
 pov
@@ -212,6 +219,7 @@ shorturl
 siblingattributes
 singleversionroot
 singularid
+smartoven
 someattribute
 someattributes
 specurl
@@ -251,6 +259,7 @@ username
 utc
 utf
 uuid
+vacuumcleaner
 validator
 vasters
 versioned
@@ -259,11 +268,14 @@ versioning
 versionscount
 versionsurl
 vid
+watchkam
+waterboiler
 webhook
 websockets
 wildcards
 willmessage
 willtopic
+windgenerator
 wip
 wss
 www

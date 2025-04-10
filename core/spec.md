@@ -1572,7 +1572,7 @@ and the following Registry level attributes:
 - Constraints:
   - REQUIRED.
   - MUST be a read-only attribute.
-  - If present, MUST be non-empty.
+  - MUST be non-empty.
 
 - Examples:
   - `1.0`
@@ -1593,7 +1593,7 @@ and the following Registry level attributes:
 
 - Constraints:
   - REQUIRED.
-  - If present, it MUST include all nested Group Collection types in the
+  - It MUST include all nested Group Collection types in the
     Registry, even if some of the collections are empty.
 
 #### Retrieving the Registry
@@ -2535,6 +2535,7 @@ The following describes the attributes of Registry model:
     specified for document view.
   - When not specified the default value MUST be `false`.
   - When the attribute name is `*` then `required` MUST NOT be set to `true`.
+  - MUST NOT be `false` if a default value (`default`) is defined.
 
 - `attributes."STRING".default`
   - Type: MUST be a non-`null` value of the type specified by the
@@ -2550,8 +2551,8 @@ The following describes the attributes of Registry model:
     semantic meaning a being absent or set to `null`.
   - When a default value is specified, this attribute MUST be serialized in
     responses from servers as part of its owning entity, even if it is set to
-    its default value. Note that this means the attribute is implicitly
-    REQUIRED.
+    its default value. This means that any attribute that has a default value
+    defined MUST also have its `required` aspect set to `true`.
 
 - `attributes."STRING".attributes`
   - Type: Object, see `attributes` above.
@@ -2616,16 +2617,13 @@ The following describes the attributes of Registry model:
   - REQUIRED if there are any Group types defined for the Registry.
   - The set of Group types supported by the Registry.
 
-- `groups.singular`
+- `groups."STRING"`
   - Type: String.
   - REQUIRED.
-  - The singular name of a Group type e.g. `endpoint` (`GROUP`).
-  - MUST be unique across all Group types (plural and singular names) in the
-    Registry.
-  - MUST be non-empty and MUST be a valid attribute name with the exception
-    that it MUST NOT exceed 58 characters (not 63).
+  - The name of the Group being defined. See `groups."STRING".plural`
+    for more information.
 
-- `groups.plural`
+- `groups."STRING".plural`
   - Type: String.
   - REQUIRED.
   - The plural name of the Group type e.g. `endpoints` (`GROUPS`).
@@ -2634,30 +2632,36 @@ The following describes the attributes of Registry model:
   - MUST be non-empty and MUST be a valid attribute name with the exception
     that it MUST NOT exceed 58 characters (not 63).
 
-- `groups.labels`
+- `groups."STRING".singular`
+  - Type: String.
+  - REQUIRED.
+  - The singular name of a Group type e.g. `endpoint` (`GROUP`).
+  - MUST be unique across all Group types (plural and singular names) in the
+    Registry.
+  - MUST be non-empty and MUST be a valid attribute name with the exception
+    that it MUST NOT exceed 58 characters (not 63).
+
+- `groups."STRING".labels`
   - See [`labels`]((#model.labels) above.
   - OPTIONAL.
 
-- `groups.attributes`
+- `groups."STRING".attributes`
   - See [`attributes`](#model.attributes) above.
   - OPTIONAL.
 
-- `groups.resources`
+- `groups."STRING".resources`
   - Type: Map where the key MUST be the plural name (`groups.resources.plural`)
     of the Resource type (`RESOURCES`).
   - REQUIRED if there are any Resource types defined for the Group type.
   - The set of Resource types defined for the Group type.
 
-- `groups.resources.singular`
+- `groups."STRING"`.resources."STRING"`
   - Type: String.
   - REQUIRED.
-  - The singular name of the Resource type e.g. `message` (`RESOURCE`).
-  - MUST be non-empty and MUST be a valid attribute name with the exception
-    that it MUST NOT exceed 58 characters (not 63).
-  - MUST be unique across all Resources (plural and singular names) within the
-    scope of its owning Group type.
+  - The name of the Resource being defined. See
+    `groups."STRING".resources."STRING".plural` for more information.
 
-- `groups.resources.plural`
+- `groups."STRING".resources."STRING".plural`
   - Type: String.
   - REQUIRED.
   - The plural name of the Resource type e.g. `messages` (`RESOURCES`).
@@ -2666,7 +2670,16 @@ The following describes the attributes of Registry model:
   - MUST be unique across all Resources (plural and singular names) within the
     scope of its owning Group type.
 
-- `groups.resources.maxversions`
+- `groups."STRING".resources."STRING".singular`
+  - Type: String.
+  - REQUIRED.
+  - The singular name of the Resource type e.g. `message` (`RESOURCE`).
+  - MUST be non-empty and MUST be a valid attribute name with the exception
+    that it MUST NOT exceed 58 characters (not 63).
+  - MUST be unique across all Resources (plural and singular names) within the
+    scope of its owning Group type.
+
+- `groups."STRING".resources."STRING".maxversions`
   - Type: Unsigned Integer.
   - OPTIONAL.
   - Number of Versions that will be stored in the Registry for this Resource
@@ -2684,13 +2697,14 @@ The following describes the attributes of Registry model:
        `versionid`).
     1. If many exist, find the Version with the oldest `createdat` date.
     1. If many exist, select the first Version sorting all Versions in
-       ascending alphabetical order based on the `versionid` attribute.
+       ascending case-insensitive alphabetical order based on the `versionid`
+       attribute.
     Once the single oldest Version is determined, delete it.
     A special case for the pruning rules is that if `maxversions` is set to
     one (1), then the "default" Version is not skipped, which means it will be
     deleted and the new Version will become "default".
 
-- `groups.resources.setversionid`
+- `groups."STRING".resources."STRING".setversionid`
   - Type: Boolean (`true` or `false`, case-sensitive).
   - OPTIONAL.
   - Indicates whether support for client-side setting of a Version's
@@ -2701,7 +2715,7 @@ The following describes the attributes of Registry model:
   - A value of `false` indicates that the server MUST choose an appropriate
     `versionid` value during creation of the Version.
 
-- `groups.resources.setdefaultversionsticky`
+- `groups."STRING".resources."STRING".setdefaultversionsticky`
   - Type: Boolean (`true` or `false`, case-sensitive).
   - OPTIONAL.
   - Indicates whether support for client-side selection of the "default"
@@ -2716,7 +2730,7 @@ The following describes the attributes of Registry model:
     default Version.
   - This attribute MUST NOT be `true` if `maxversions` is one (`1`).
 
-- `groups.resources.hasdocument`
+- `groups."STRING".resources."STRING".hasdocument`
   - Type: Boolean (`true` or `false`, case-sensitive).
   - OPTIONAL.
   - Indicates whether or not Resources of this type can have a document
@@ -2735,7 +2749,7 @@ The following describes the attributes of Registry model:
   - A value of `true` indicates that Resource of this type supports a separate
     document to be associated with it.
 
-- `groups.resources.singleversionroot`
+- `groups."STRING".resources."STRING".singleversionroot`
     - Type: Boolean (`true` or `false`, case-sensitive).
     - OPTIONAL.
     - Indicates whether Resources of this type can have multiple Versions
@@ -2750,7 +2764,7 @@ The following describes the attributes of Registry model:
       request results in a state where more than one Version of a Resource
       is a root of an ancestor tree.
 
-- `groups.resources.typemap`
+- `groups."STRING".resources."STRING".typemap`
   - Type: Map where the keys and values MUST be non-empty strings. The key
     MAY include at most one `*` to act as a wildcard to mean zero or more
     instance of any character at that position in the string - similar to a
@@ -2826,11 +2840,11 @@ The following describes the attributes of Registry model:
     }
     ```
 
-- `groups.resources.labels`
+- `groups."STRING".resources."STRING".labels`
   - See [`attributes`](#model.attributes) above.
   - OPTIONAL.
 
-- `groups.resources.attributes`
+- `groups."STRING".resources."STRING".attributes`
   - See [`attributes`](#model.attributes) above and
     [`metaattributes`](#model.metaattributes) below.
   - OPTIONAL.
@@ -2838,7 +2852,8 @@ The following describes the attributes of Registry model:
   - The list of `groups.resources.attributes` names MUST NOT overlap with the
     list of `groups.resource.metaattributes` names.
 
-- `groups.resources.metaattributes` <span id="model.metaattributes"></span>
+- `groups."STRING".resources."STRING".metaattributes`
+  <span id="model.metaattributes"></span>
   - See [`attributes`](#model.attributes) above.
   - OPTIONAL.
   - The list of attributes associated with the Resource, not its Versions,
@@ -3514,8 +3529,8 @@ and the following Group level attributes:
 
 - Constraints:
   - REQUIRED.
-  - If present in a response, it MUST include all nested Resource Collection
-    types of the owning Group, even if some of the collections are empty.
+  - It MUST include all nested Resource Collection types of the owning Group,
+    even if some of the collections are empty.
 
 #### Retrieving a Group Collection
 
@@ -4058,7 +4073,7 @@ and the following Resource level attributes:
   - REQUIRED.
   - MUST be a read-only attribute.
   - When not specified, the default value MUST be `false`.
-  - If present, it MUST be a case-sensitive `true` or `false`.
+  - It MUST be a case-sensitive `true` or `false`.
   - A request to update a read-only Resource MUST generate an error
     ([readonly](#readonly)) unless the `?noreadonly` query parameter was used,
     in which case the error MUST be silently ignored. See
@@ -4109,8 +4124,7 @@ and the following Resource level attributes:
 
 - Constraints:
   - REQUIRED.
-  - If present, it MUST be a case-sensitive value from the model-defined
-    enumeration range.
+  - It MUST be a case-sensitive value from the model-defined enumeration range.
   - When not specified, the default value MUST be `none`.
   - The enumeration range MUST include `none` as a valid value.
   - If the `compatibilityauthority` attribute is set to `server`, when
@@ -5609,7 +5623,8 @@ as defined below:
      Versions.
   1. If many exist, find the Version with the most recent `createdat` date.
   1. If many exist, select the first Version sorting all Versions in
-     descending alphabetical order based on the `versionid` attribute.
+     descending case-insensitive alphabetical order based on the `versionid`
+     attribute.
 
   If a write operation contains multiple Versions with the `ancestor` attribute
   omitted, the server MUST order all of those Versions based on the `createdat`
@@ -5629,11 +5644,16 @@ as defined below:
 - Constraints:
   - REQUIRED.
   - The `ancestor` attribute MUST NOT be set to a value that
-    creates circular references between Versions. For example, an operation that
-    makes Version A's ancestor B, and Version B's ancestor A, MUST generate an
-    error ([ancestor_circular_reference](#ancestor_circular_reference)).
+    creates circular references between Versions and it is STRONGLY RECOMMENDED
+    that the server generate an error
+    ([ancestor_circular_reference](#ancestor_circular_reference)) if a request
+    attempts to do so. For example, an operation that makes Version A's
+    ancestor B, and Version B's ancestor A, would generate an error.
   - Any attempt to set an `ancestor` attribute to a non-existing `versionid`
     MUST generate an error ([invalid_data](#invalid_data)).
+  - For clarity, any modification to the `ancestor` attribute MUST result in
+    the owning Version's `epoch` and `modifiedat` attributes be updated
+    appropriately.
 
 ##### `contenttype` Attribute
 - Type: String

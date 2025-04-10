@@ -756,3 +756,60 @@ the data (i.e. it was exported to the file-server), and there's a desire to
 not expose this implementation/deployment choice to the end-user. In other
 words, the use of the file-server as a caching service should be transparent
 to their users.
+
+# Detecting circular references between Versions
+
+The specification mentions that the Version's `ancestor` attribute should not
+be set in such a way as to cause a circular dependency list between Versions.
+However, when talking about the server generating an error in such conditions
+it says it is "STRONGLY RECOMMENDED" that an error is generated, not that it
+"MUST" be generated. This is not meant to be used by implementations as a way
+to avoid doing the check in general. However, it is recognized that there
+might be situations (such as when the number of Versions is very large) that
+performing this check upon every change could become a performance concern.
+
+Rather than mandating a potentially burdensome requirement on implementations,
+the specification allows for this check to be skipped if there is no
+reasonable way to do it. However, if an implementation chooses not to perform
+the check then it becomes incumbent upon them to ensure that there are no
+negative ramifications. For example, when performing backwards compatibility
+checking, they may need to add extra logic to ensure they don't go caught in
+an infinite loop. Additionally, implementations should also document that they
+do not enforce this check to set the proper expectation levels for their users.
+
+# Optional required fields in requests
+
+One of the design principles of the specification was to try to make each
+object be fully self-describing, within reason. For example, this is why when
+objects appear within maps the map key is often replicated within the object
+itself. For example, when looking at a Versions collection it might look like
+this:
+
+```yaml
+"version": {
+  "v1": {
+    "versionid": "v1",
+    ...
+  },
+  "v2": {
+    "versionid": "v2",
+    ...
+  }
+}
+```
+
+Notice that the key is duplicated as the `versionid` in each case.
+
+However, when those attributes are defined as "required", that does not
+necessarily mean that they are required to appear on all requests if the
+server can determine the proper value via some other means, such as the owning
+map key, or if the request URL includes the information.
+
+From specification perspective, all that's required is that after any
+operation all required fields have valid values. Whether it is provided by
+the client or calculated/inferred by the server is an implementation detail.
+
+This accommodation only applies to incoming messages. All server generated
+messages (aside from when special flags, like the `?doc` flag, is enabled)
+must include all required attributes, even if they are duplicated elsewhere
+in the message.
