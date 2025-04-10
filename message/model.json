@@ -2,7 +2,6 @@
   "groups": {
     "messagegroups": {
       "singular": "messagegroup",
-      "plural": "messagegroups",
       "modelversion": "1.0-rc1",
       "compatiblewith": "https://xregistry.io/xreg/domains/message/specs/model.json",
       "attributes": {
@@ -25,7 +24,6 @@
       "resources": {
         "messages": {
           "singular": "message",
-          "plural": "messages",
           "maxversions": 1,
           "setdefaultversionsticky": false,
           "hasdocument": false,

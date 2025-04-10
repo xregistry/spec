@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Look samples or our models being too verbose
+
+set -e
+
+badPatterns=(
+  "required.*false"
+  "hasdoc.*true"
+  "plural"
+)
+
+for f in $* ; do
+  echo "> " $f
+  for pattern in "${badPatterns[@]}" ; do
+    if ( grep "$pattern" "$f" > /dev/null ); then
+	  echo Found "'$pattern'" in $f
+	  rc=1
+	fi
+  done
+done
+
+exit $rc 

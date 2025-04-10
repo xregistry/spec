@@ -478,7 +478,8 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
         schema_definitions = schema["definitions"]
 
 
-    for _, group in model_definition.get("groups", {}).items():
+    for key, group in model_definition.get("groups", {}).items():
+        if "plural" not in group: group["plural"] = key
         groups_name = group["plural"]
         group_name = group["singular"]
         groups_schema = {
@@ -489,7 +490,8 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
         document_properties[groups_name] = groups_schema
         resource_collection_properties = {}
 
-        for _, resource in group.get("resources", {}).items():
+        for rKey, resource in group.get("resources", {}).items():
+            if "plural" not in resource: resource["plural"] = rKey
             resource = resolve_resource(group, resource)
             resource_name = resource["singular"]
             props = {}
@@ -730,12 +732,14 @@ def generate_avro_schema(model_definition) -> dict:
     }
     document_properties = document_type["fields"]
 
-    for _, group in model_definition.get("groups", {}).items():
+    for key, group in model_definition.get("groups", {}).items():
+        if "plural" not in group: group["plural"] = key
         groups_name = group["plural"]
         group_name = group["singular"]
         resource_collection_fields = []
 
-        for _, resource in group.get("resources", {}).items():
+        for rKey, resource in group.get("resources", {}).items():
+            if "plural" not in resource: resource["plural"] = rKey
             resource = resolve_resource(group, resource)
             resource_name = resource["singular"]
             if resource_name in record_types:

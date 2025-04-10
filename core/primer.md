@@ -813,3 +813,18 @@ This accommodation only applies to incoming messages. All server generated
 messages (aside from when special flags, like the `?doc` flag, is enabled)
 must include all required attributes, even if they are duplicated elsewhere
 in the message.
+
+# Deprecation of entities in an xRegistry
+
+The core specification defines a `deprecated` attribute that may appear
+under a Resource's `meta` sub-object. This attribute was added to the Resource
+itself rather than to the Version because it was determined that the most
+likely usage of this feature is to express the intent to deprecate the entire
+Resource rather than just one Version (or subset of Versions). This is not say
+that the use of this feature might not be useful at the Version-level or even
+at the Group-level. However, for those cases, custom models may define
+an extension at the appropriate location in the model to meet their needs.
+When doing so it is recommended to use the same attribute definition as
+defined in the core specification for consistency. It is worth noting that
+the Endpoint [specification](../endpoint/spec.md) does exactly this to
+indicate when an Endpoint (i.e. a Group) is deprecated.

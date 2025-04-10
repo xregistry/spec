@@ -304,7 +304,6 @@
                             },
                             "subject": {
                                 "type": "string",
-                                "required": false,
                                 "description": "The subject of the event"
                             }
                         }
