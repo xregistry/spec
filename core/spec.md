@@ -4103,8 +4103,8 @@ and the following Resource level attributes:
   compatibility checks to ensure that all Versions of a Resource adhere to the
   rules defined by the current value of this attribute.
   For `compatibility` strategies that require understanding the sequence in
-  which Versions need to be compatible, the server MUST use the [`ancestor`]
-  (#ancestor-attribute) to determine the sequence of Versions.
+  which Versions need to be compatible, the server MUST use the
+  [`ancestor`](#ancestor-attribute) to determine the sequence of Versions.
 
   Note that, like all attributes, if a default value is defined as part of the
   model, then this attribute MUST be populated with that value if no value
@@ -5628,8 +5628,9 @@ as defined below:
 
   If a write operation contains multiple Versions with the `ancestor` attribute
   omitted, the server MUST order all of those Versions based on the `createdat`
-  attribute and then alphabetically (ascending). The first Version will have
-  the most recent Version's `versionid` as its `ancestor` as clarified above.
+  attribute and then alphabetically (ascending) based on the `versionid`. The
+  first Version will have the most recent Version's `versionid` as its
+  `ancestor` as clarified above.
 
   When deleting a Version, the server MUST update the `ancestor` attribute
   of any Version that points to the deleted Version to point to itself,
