@@ -2,7 +2,6 @@
   "groups": {
     "schemagroups": {
       "singular": "schemagroup",
-      "plural": "schemagroups",
       "modelversion": "1.0-rc1",
       "compatiblewith": "https://xregistry.io/xreg/domains/schema/specs/model.json",
 
@@ -16,7 +15,6 @@
       "resources": {
         "schemas": {
           "singular": "schema",
-          "plural": "schemas",
           "modelversion": "1.0-rc1",
           "compatiblewith": "https://xregistry.io/xreg/domains/schema/specs/model.json",
 
@@ -37,7 +35,7 @@
               "type": "boolean",
               "description": "Verify compliance with specified schema 'format'",
               "required": true,
-              "default": true
+              "default": false
             }
           }
         }

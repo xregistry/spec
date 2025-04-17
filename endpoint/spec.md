@@ -310,52 +310,8 @@ The following attributes are defined for Endpoints:
 
 ### `deprecated`
 
-- Type: Object containing the following properties:
-  - `effective`<br>
-    An OPTIONAL property indicating the time when the Endpoint entered, or will
-    enter, a deprecated state. The date MAY be in the past or future. If this
-    property is not present the Endpoint is already in a deprecated state.
-    When specified, this MUST be an [RFC3339][rfc3339] timestamp.
-
-  - `removal`<br>
-    An OPTIONAL property indicating the time when the Endpoint MAY be removed.
-    The Endpoint MUST NOT be removed before this time. If this property is not
-    present then client can not make any assumption as to when the Endpoint
-    might be removed. Note: as with most properties, this property is mutable.
-    When specified, this MUST be an [RFC3339][rfc3339] timestamp and MUST NOT
-    be sooner than the `effective` time.
-
-  - `alternative`<br>
-    An OPTIONAL property specifying the URL to an alternative Endpoint the
-    client can consider as a replacement for this Endpoint. There is no
-    guarantee that the referenced Endpoint is an exact replacement, rather the
-    client is expected to investigate the Endpoint to determine if it is
-    appropriate.
-
-  - `docs`<br>
-    An OPTIONAL property specifying the URL to additional information about
-    the deprecation of the Endpoint. This specification does not mandate any
-    particular format or information, however some possibilities include:
-    reasons for the deprecation or additional information about likely
-    alternative Endpoints. The URL MUST support an HTTP GET request.
-
-- Description: This specification makes no statement as to whether any
-  existing secondary resources (such as subscriptions) will still be valid and
-  usable after the Endpoint is removed. However, it is expected that new
-  requests to create a secondary resource will likely be rejected.
-
-  Note that an implementation is not mandated to use this attribute in
-  advance of removing an Endpoint, but is it RECOMMENDED that they do so.
-- Constraints:
-  - OPTIONAL
-- Examples:
-  - `"deprecated": {}`
-  - ```
-    "deprecated": {
-      "removal": "2030-12-19T00:00:00-00:00",
-      "alternative": "https://example.com/endpoints/123"
-    }
-    ```
+See the [deprecated](../core/spec.md#deprecated) attribute in the core
+[xRegistry](../core/spec.md#deprecated) specification.
 
 ### `envelope`
 
@@ -587,7 +543,7 @@ Example:
 ```yaml
 {
   "protocol": "HTTP/1.1",
-  "options": {
+  "protocoloptions": {
     "method": "POST"
   },
   "messagegroups": [
@@ -608,7 +564,7 @@ Example:
 ```yaml
 {
   "protocol": "HTTP/1.1",
-  "options": {
+  "protocoloptions": {
     "method": "POST"
   },
 
@@ -688,7 +644,7 @@ Example:
 ```yaml
 {
   "protocol": "HTTP/1.1",
-  "options": {
+  "protocoloptions": {
     "method": "POST",
     "headers": [
       {

@@ -232,7 +232,6 @@ definitionGroups:
               description: The source of the event
             subject:
               type: string
-              required: false
               description: The subject of the event
         schemaurl: "#/schemagroups/Contoso.CRM.Events/schemas/customerContactAddedEventData"
 schemagroups:
