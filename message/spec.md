@@ -111,6 +111,7 @@ this form:
           "dataschemaformat": "STRING", ?
           "dataschema": ANY, ?
           "dataschemauri": "URI", ?
+          "dataschemaxid": "XID", ?
           "datacontenttype": "STRING", ?
           # End of default Version's attributes
 
@@ -441,6 +442,16 @@ specification.
   - OPTIONAL.
   - Mutually exclusive with the `dataschema` attribute.
   - If present, `dataschemaformat` MUST be present.
+
+#### `dataschemaxid`
+
+- Type: XID
+- Description: Contains the `xid` of the xRegistry `schema` Resource entity
+  associated with the `dataschemauri` referenced schema document. Note that
+  this means the entity MUST be located within the same Registry.
+- Constraints:
+  - OPTIONAL.
+  - If present, `dataschemauri` MUST be present.
 
 #### `datacontenttype`
 

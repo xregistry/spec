@@ -1,11 +1,9 @@
-all: verify makeschema
+all: docker
 	@git diff --name-status --exit-code */schemas > /dev/null 2>&1 || \
 		( echo "schema files have been updated, make sure you commit them" ; \
 		  exit 1 )
 
-verify: text models links
-
-text: spellcheck tabcheck errorcheck samplescheck
+verify: spellcheck tabcheck errorcheck samplescheck links
 
 spellcheck:
 	tools/spellcheck */spec.md core/primer.md */README.md \
@@ -55,6 +53,6 @@ deps:
 test_tools: deps
 	@pytest tools/
 
-docker:
+docker: models
 	@docker run -ti -v $(PWD):/tmp/spec -w /tmp/spec python:3.11 \
-	    make -f tools/Makefile
+	    make -f tools/Makefile verify makeschema

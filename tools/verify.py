@@ -55,11 +55,11 @@ _PHRASES_THAT_MUST_BE_CAPITALIZED_PATTERN = re.compile(
     # and ignore `required` cases (attribute name is `required`)
     # and ignore .required cases (attribute name is "required")
     r'(?<![.`"_])REQUIRED(?![`"_])|'
-    r"(?<!mar)SHALL(\s+NOT)?|"  # ignore the word "marshall"
+    r"(?<!`)\bSHALL(\s+NOT)?\b|"  # ignore the word "marshall"
     r"(?<!`)SHOULD(\s+NOT)?|"
     r"(?<!`)RECOMMENDED|"
-    r"(?<![`A-Z])MAY(?![A-Z])|"
-    r"(?<![`A-Z])OPTIONAL(?![A-Z])"  # ignore the word "optionally"
+    r"(?<!`)\bMAY\b|"
+    r"(?<!`)\bOPTIONAL\b"  # ignore the word "optionally"
     r")",
     flags=re.IGNORECASE,  # we want to catch all the words that were not capitalized
 )

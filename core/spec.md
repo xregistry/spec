@@ -118,6 +118,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   "modifiedat": "TIMESTAMP",
 
   "capabilities": {                     # Supported capabilities/options
+    "apis": [ "/capabilities", "/export", "/model" ],
     "flags": [                          # Query parameters
       "collections",? "doc",? "epoch",? "filter",? "inline",?
       "nodefaultversionid",? "nodefaultversionsticky",? "noepoch",?
@@ -143,7 +144,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       "STRING": {                       # Attribute name (case-sensitive)
         "name": "STRING",               # Same as attribute's key
         "type": "TYPE",                 # string, decimal, array, object, ...
-        "target": "STRING", ?           # If "type" is "xid"
+        "target": "STRING", ?           # If "type" is "xid" or "url"
         "namecharset": "STRING", ?      # If "type" is "object"
         "description": "STRING", ?
         "enum": [ VALUE * ], ?          # Array of scalar values of type "TYPE"
@@ -495,6 +496,7 @@ be one of the following data types:
   the [`target` model attribute](#model.target) for more information.
 - `string` - sequence of Unicode characters.
 - `timestamp` - an [RFC3339](https://tools.ietf.org/html/rfc3339) timestamp.
+  Use of a `time-zone` notation is RECOMMENDED.
 - `uinteger` - unsigned integer.
 - `uri` - a URI as defined in [RFC 3986](https://tools.ietf.org/html/rfc3986).
    Note that it can be absolute or relative.
@@ -674,6 +676,7 @@ of the existing entity. Then the existing entity would be deleted.
 
 - API View Constraints:
   - REQUIRED.
+  - MUST be immutable.
   - MUST be a non-empty absolute URL based on the URL of the Registry.
   - When serializing Resources or Versions, if the `hasdocument` aspect is set
     to `true`, then this URL MUST include the `$details` suffix to its
@@ -683,6 +686,7 @@ of the existing entity. Then the existing entity would be deleted.
 
 - Document View Constraints:
   - REQUIRED.
+  - MUST be immutable.
   - MUST be a relative URL of the form `#JSON-POINTER` where the `JSON-POINTER`
     locates this entity within the current document. See [Doc Flag](#doc-flag)
     for more information.
@@ -791,6 +795,7 @@ of the existing entity. Then the existing entity would be deleted.
 
 - Constraints:
   - REQUIRED.
+  - MUST be a read-only attribute.
   - MUST be an unsigned integer equal to or greater than zero.
   - MUST increase in value each time the entity is updated.
 
@@ -1907,6 +1912,7 @@ be of the form:
 
 ```
 {
+  "apis": [ "STRING" * ], ?
   "flags": [ "STRING" * ], ?
   "mutable": [ "STRING" * ], ?
   "pagination": BOOLEAN, ?
@@ -1940,6 +1946,32 @@ Absence, presence, or configuration values of a feature in the map MAY vary
 based on the authorization level of the client making the request.
 
 The following defines the specification-defined capabilities:
+
+#### `apis`
+- Name: `apis`
+- Type: Array of strings
+- Description: The list of APIs (beyond the APIs for the data model) that
+  are supported for read (`HTTP GET`) operations. This list is meant to allow
+  for clients/tooling to easily discover which of the APIs, that are not
+  related to the data model, are supported. Whether any of the APIs listed
+  below are supported for write operations can be discovered via the
+  `mutable` capability.
+- Note that it is allowable for the data that is available via more than one
+  mechanism to not be available via all mechanisms. For example, it is
+  possible for an implementation to support `GET /model` but not
+  `GET /?inline=model`.
+- Defined values:
+  - `/capabilities`
+  - `/export`
+  - `/model`
+- Values MUST start with `/`.
+- When not specified, the default value MUST be an empty list and no APIs
+  beyond ones for the data model are supported.
+- Implementations MAY define their own values but they MUST NOT conflict with
+  specification-defined APIs, Registry-level attributes or Group collection
+  attribute names.
+- It is STRONGLY RECOMMENDED that implementations support at least
+  `/capabilities` and `/model`.
 
 #### `flags`
 - Name: `flags`
@@ -2135,6 +2167,10 @@ For example:
 GET /capabilities?offered
 
 {
+  "apis": {
+    "type": "string",
+    "enum": [ "/capabilities", "/export", "/model" ]
+  },
   "flags": {
     "type": "string",
     "enum": [ "collections", "doc", "epoch", "filter", "inline",
@@ -2279,7 +2315,7 @@ Regardless of how the model is retrieved, the overall format is as follows:
     "STRING": {                        # Attribute name
       "name": "STRING",                # Same as attribute's key
       "type": "TYPE",                  # boolean, string, array, object, ...
-      "target": "STRING", ?            # If "type" is "xid"
+      "target": "STRING", ?            # If "type" is "xid" or "url"
       "namecharset": "STRING", ?       # If "type" is "object"
       "description": "STRING",
       "enum": [ VALUE * ], ?           # Array of values of type "TYPE"
@@ -2568,6 +2604,11 @@ The following describes the attributes of Registry model:
     responses from servers as part of its owning entity, even if it is set to
     its default value. This means that any attribute that has a default value
     defined MUST also have its `required` aspect set to `true`.
+  - If the default value of an attribute changes over time, all existing
+    instances of that attribute MUST retain their current values and not
+    be automatically changed to the new default value. In other words, a new
+    default value MUST only apply to new, or subsequent updates of existing,
+    instances of the attribute.
 
 - `attributes."STRING".attributes`
   - Type: Object, see `attributes` above.
@@ -2923,6 +2964,16 @@ Where:
 - When a `VERSION` is not specified as part of the `?schema` query parameter
   then the server MAY choose any schema version of the specified schema format.
   However, it is RECOMMENDED that the newest supported version be used.
+- The model MUST include the definition of all top-level attributes, whether
+  they are defined by the user or this specification. This includes
+  `capabilities`, `model`,`RESOURCE` attributes, `meta`, `metaurl` and
+  `COLLECTION` attributes. This means that as model updates are made, the
+  model MUST change to align with the new set of Groups, Resources and their
+  definition (e.g. `RESOURCE` attributes would (dis)appear based on the
+  value of the `hasdocument` aspect). While the top-level attributes MUST
+  appear, their definitions MAY be shallow - meaning, as an example, `model`
+  itself can be defined as just `object` with just one attribute (`*`) of
+  type "any".
 
 If the specified schema format is not supported then an error
 ([invalid_data](#invalid_data)) MUST be generated.
@@ -4069,7 +4120,7 @@ The Resource level attributes include the following
 and the following Resource level attributes:
 
 ##### `xref` Attribute
-- Type: Relative URI (xid).
+- Type: XID
 - Description: indicates that this Resource is a reference to another Resource
   within the same Registry. See [Cross Referencing
   Resources](#cross-referencing-resources) for more information.
@@ -4223,7 +4274,7 @@ and the following Resource level attributes:
   - `"deprecated": {}`
   - ```
     "deprecated": {
-      "removal": "2030-12-19T00:00:00",
+      "removal": "2030-12-19T00:00:00Z",
       "alternative": "https://example.com/entities-v2/myentity"
     }
     ```
@@ -4268,7 +4319,8 @@ and the following Resource level attributes:
     MUST be an absolute URL per the API view constraints listed above.
 
 - Examples:
-  - `https://example.com/endpoints/ep1/messages/msg1/versions/1.0`
+  - `https://example.com/endpoints/ep1/messages/msg1/versions/1.0` (API View)
+  - `#/endpoints/ep1/messages/msg1/versions/1.0` (Document View)
 
 ##### `defaultversionsticky` Attribute
 - Type: Boolean
@@ -4321,6 +4373,32 @@ and the following Resource level attributes:
 - Examples:
   - `true`, `false`
 
+##### `metaurl` Attribute
+- Type: URL
+- Description: a server generated URL to the Resource's `meta` sub-object.
+
+  When specified, it MUST appear as an attribute of the Resource as a sibling
+  to the Resource's default Version attributes.
+
+- API View Constraints:
+  - REQUIRED.
+  - MUST be an absolute URL to the Resource's `meta` sub-object.
+  - MUST be a read-only attribute.
+  - MUST be immutable.
+
+- Document View Constraints:
+  - REQUIRED.
+  - If the `meta` sub-object is inlined in the document then this attribute
+    MUST be a relative URL of the form `#JSON-POINTER` where the `JSON-POINTER`
+    locates the `meta` sub-object within the current document. See
+    [Doc Flag](#doc-flag) for more information.
+  - If the `meta` sub-object is not inlined in the document then this attribute
+    MUST be an absolute URL per the API view constraints listed above.
+
+- Examples:
+  - `https://example.com/endpoints/ep1/messages/msg1/meta` (API view)
+  - `#/endpoints/ep1/messages/msg1/meta` (Document view)
+
 ##### `meta` Attribute/Sub-Object
 - Type: Object
 - Description: an object that contains most of the Resource level attributes.
@@ -4335,7 +4413,7 @@ and the following Resource level attributes:
   to the Resource's default Version attributes.
 
 - API View Constraints:
-  - REQUIRED.
+  - REQUIRED when requested by the client.
   - MUST NOT appear unless requested by the client.
 
 - Document View Constraints:
@@ -4351,33 +4429,10 @@ choice, or use `PATCH` instead and only include the `meta` sub-object.
 During a write operation, the absence of the `meta` attribute indicates that
 no changes are to be made to the `meta` sub-object.
 
-##### `metaurl` Attribute
-- Type: URL
-- Description: a server generated URL to the Resource's `meta` sub-object.
-
-  When specified, it MUST appear as an attribute of the Resource as a sibling
-  to the Resource's default Version attributes.
-
-- API View Constraints:
-  - REQUIRED.
-  - MUST be an absolute URL to the Resource's `meta` sub-object.
-  - MUST be a read-only attribute.
-
-- Document View Constraints:
-  - REQUIRED.
-  - If the `meta` sub-object is inlined in the document then this attribute
-    MUST be a relative URL of the form `#JSON-POINTER` where the `JSON-POINTER`
-    locates the `meta` sub-object within the current document. See
-    [Doc Flag](#doc-flag) for more information.
-  - If the `meta` sub-object is not inlined in the document then this attribute
-    MUST be an absolute URL per the API view constraints listed above.
-
-- Examples:
-  - `https://example.com/endpoints/ep1/messages/msg1/meta`
-
 ##### `versions` Collection
 - Type: [Registry Collection](#registry-collections)
-- Description: A map of Versions of the Resource.
+- Description: The set of xRegistry Collection attributes related to the
+  Versions of the Resource.
 
   Note that Resources MUST have at least one Version.
 
@@ -4667,8 +4722,8 @@ So, if the target Resource (`sharedSchema`) is defined as:
   "xid": "/schemagroups/group2/schemas/sharedSchema",
   "epoch": 2,
   "isdefault": true,
-  "createdat": "2024-01-01-T12:00:00",
-  "modifiedat": "2024-01-01-T12:01:00",
+  "createdat": "2024-01-01-T12:00:00Z",
+  "modifiedat": "2024-01-01-T12:01:00Z",
   "ancestor": "v1",
 
   "metaurl": "http://example.com/schemagroups/group2/schemas/sharedSchema/meta",
@@ -4687,8 +4742,8 @@ then the resulting serialization of the source Resource would be:
   "xid": "/schemagroups/group1/schemas/mySchema",
   "epoch": 2,
   "isdefault": true,
-  "createdat": "2024-01-01-T12:00:00",
-  "modifiedat": "2024-01-01-T12:01:00",
+  "createdat": "2024-01-01-T12:00:00Z",
+  "modifiedat": "2024-01-01-T12:01:00Z",
   "ancestor": "v1",
 
   "metaurl": "http://example.com/schemagroups/group1/schemas/mySchema/meta",
@@ -4697,8 +4752,8 @@ then the resulting serialization of the source Resource would be:
     "self": "http://example.com/schemagroups/group1/schemas/mySchema/meta",
     "xid": "/schemagroups/group1/schemas/mySchema/meta",
     "xref": "/schemagroups/group2/schemas/sharedSchema",
-    "createdat": "2024-01-01-T12:00:00",
-    "modifiedat": "2024-01-01-T12:01:00",
+    "createdat": "2024-01-01-T12:00:00Z",
+    "modifiedat": "2024-01-01-T12:01:00Z",
     "readonly": false,
     "compatibility": "none"
   },

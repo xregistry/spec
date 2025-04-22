@@ -46,6 +46,7 @@ datacontenttype
 dataschema
 dataschemaformat
 dataschemauri
+dataschemaxid
 datastore
 datatracker
 datetime
