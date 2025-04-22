@@ -34,7 +34,6 @@
               "name": "validation",
               "type": "boolean",
               "description": "Verify compliance with specified schema 'format'",
-              "required": true,
               "default": false
             }
           }

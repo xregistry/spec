@@ -75,7 +75,6 @@
                               "name": "required",
                               "type": "boolean",
                               "description": "CloudEvents specversion is always required",
-                              "required": true,
                               "default": true,
                               "enum": [
                                 true
@@ -95,7 +94,6 @@
                             "type": {
                               "name": "type",
                               "type": "string",
-                              "required": true,
                               "default": "string",
                               "enum": [
                                 "uritemplate",
@@ -111,7 +109,6 @@
                               "name": "required",
                               "type": "boolean",
                               "description": "CloudEvents id is always required",
-                              "required": true,
                               "default": true,
                               "enum": [
                                 true
@@ -131,7 +128,6 @@
                             "type": {
                               "name": "type",
                               "type": "string",
-                              "required": true,
                               "default": "string"
                             },
                             "value": {
@@ -143,7 +139,6 @@
                               "name": "required",
                               "type": "boolean",
                               "description": "CloudEvents type is always required",
-                              "required": true,
                               "default": true,
                               "enum": [
                                 true
@@ -163,7 +158,6 @@
                             "type": {
                               "name": "type",
                               "type": "string",
-                              "required": true,
                               "default": "uritemplate",
                               "enum": [
                                 "uritemplate",
@@ -182,7 +176,6 @@
                               "enum": [
                                 true
                               ],
-                              "required": true,
                               "default": true
                             }
                           }
@@ -199,7 +192,6 @@
                             "type": {
                               "name": "type",
                               "type": "string",
-                              "required": true,
                               "default": "uritemplate",
                               "enum": [
                                 "uritemplate",
@@ -215,7 +207,6 @@
                               "name": "required",
                               "description": "CloudEvents subject required",
                               "type": "boolean",
-                              "required": true,
                               "default": false
                             }
                           }
@@ -232,7 +223,6 @@
                             "type": {
                               "name": "type",
                               "type": "string",
-                              "required": true,
                               "default": "timestamp",
                               "enum": [
                                 "timestamp"
@@ -246,7 +236,6 @@
                             "required": {
                               "name": "required",
                               "type": "boolean",
-                              "required": true,
                               "default": false
                             }
                           }
@@ -263,7 +252,6 @@
                             "type": {
                               "name": "type",
                               "type": "string",
-                              "required": true,
                               "default": "uritemplate"
                             },
                             "value": {
@@ -274,7 +262,6 @@
                             "required": {
                               "name": "required",
                               "type": "boolean",
-                              "required": true,
                               "default": false
                             }
                           }
@@ -291,7 +278,6 @@
                             "type": {
                               "name": "type",
                               "type": "string",
-                              "required": true,
                               "default": "string"
                             },
                             "value": {
@@ -302,7 +288,6 @@
                             "required": {
                               "name": "required",
                               "type": "boolean",
-                              "required": true,
                               "default": false
                             }
                           }
@@ -320,7 +305,6 @@
                               "name": "type",
                               "description": "The value type",
                               "type": "string",
-                              "required": true,
                               "default": "string"
                             },
                             "value": {
@@ -332,7 +316,6 @@
                               "name": "required",
                               "description": "Whether the extension is required",
                               "type": "boolean",
-                              "required": true,
                               "default": false
                             }
                           }
@@ -417,7 +400,6 @@
                                   "name": "required",
                                   "description": "AMQP properties.message-id required",
                                   "type": "boolean",
-                                  "required": true,
                                   "default": false
                                 }
                               }
@@ -435,7 +417,6 @@
                                   "name": "type",
                                   "description": "AMQP properties.user-id value type",
                                   "type": "string",
-                                  "required": true,
                                   "default": "string",
                                   "enum": [
                                     "binary",
@@ -452,7 +433,6 @@
                                   "name": "required",
                                   "description": "AMQP properties.user-id required",
                                   "type": "boolean",
-                                  "required": true,
                                   "default": false
                                 }
                               }
@@ -470,7 +450,6 @@
                                   "name": "type",
                                   "description": "AMQP properties.to value type",
                                   "type": "string",
-                                  "required": true,
                                   "default": "uritemplate",
                                   "enum": [
                                     "string",
@@ -486,7 +465,6 @@
                                   "name": "required",
                                   "description": "AMQP properties.to required",
                                   "type": "boolean",
-                                  "required": true,
                                   "default": false
                                 }
                               }
@@ -518,7 +496,6 @@
                                   "name": "required",
                                   "description": "AMQP properties.subject required",
                                   "type": "boolean",
-                                  "required": true,
                                   "default": true
                                 }
                               }
@@ -536,7 +513,6 @@
                                   "name": "type",
                                   "description": "AMQP properties.reply-to value type",
                                   "type": "string",
-                                  "required": true,
                                   "default": "uritemplate",
                                   "enum": [
                                     "string",
@@ -552,7 +528,6 @@
                                   "name": "required",
                                   "description": "AMQP properties.reply-to required",
                                   "type": "boolean",
-                                  "required": true,
                                   "default": false
                                 }
                               }
@@ -570,7 +545,6 @@
                                   "name": "type",
                                   "description": "AMQP correlation-id value type",
                                   "type": "string",
-                                  "required": true,
                                   "default": "string",
                                   "enum": [
                                     "binary",
@@ -587,7 +561,6 @@
                                   "name": "required",
                                   "description": "AMQP correlation-id required",
                                   "type": "boolean",
-                                  "required": true,
                                   "default": false
                                 }
                               }
@@ -605,7 +578,6 @@
                                   "name": "type",
                                   "description": "AMQP properties.content-type value type",
                                   "type": "string",
-                                  "required": true,
                                   "default": "string",
                                   "enum": [
                                     "string",
@@ -621,7 +593,6 @@
                                   "name": "required",
                                   "description": "AMQP properties.content-type required",
                                   "type": "boolean",
-                                  "required": true,
                                   "default": false
                                 }
                               }
@@ -639,7 +610,6 @@
                                   "name": "type",
                                   "description": "AMQP properties.content-encoding value type",
                                   "type": "string",
-                                  "required": true,
                                   "default": "string",
                                   "enum" : ["string"]
                                 },
@@ -652,7 +622,6 @@
                                   "name": "required",
                                   "description": "AMQP properties.content-encoding required",
                                   "type": "boolean",
-                                  "required": true,
                                   "default": false
                                 }
                               }
@@ -670,7 +639,6 @@
                                   "name": "type",
                                   "description": "AMQP properties.absolute-expiry-time value type",
                                   "type": "string",
-                                  "required": true,
                                   "default": "timestamp",
                                   "enum": [
                                     "timestamp"
@@ -685,7 +653,6 @@
                                   "name": "required",
                                   "description": "AMQP properties.absolute-expiry-time required",
                                   "type": "boolean",
-                                  "required": true,
                                   "default": false
                                 }
                               }
@@ -703,7 +670,6 @@
                                   "name": "type",
                                   "description": "AMQP properties.creation-time value type",
                                   "type": "string",
-                                  "required": true,
                                   "default": "timestamp",
                                   "enum": [
                                     "timestamp"
@@ -718,7 +684,6 @@
                                   "name": "required",
                                   "description": "AMQP properties.creation-time required",
                                   "type": "boolean",
-                                  "required": true,
                                   "default": false
                                 }
                               }
@@ -736,7 +701,6 @@
                                   "name": "type",
                                   "description": "AMQP properties.group-id value type",
                                   "type": "string",
-                                  "required": true,
                                   "default": "string",
                                   "enum": [
                                     "string",
@@ -752,7 +716,6 @@
                                   "name": "required",
                                   "description": "AMQP properties.group-id required",
                                   "type": "boolean",
-                                  "required": true,
                                   "default": false
                                 }
                               }
@@ -773,7 +736,6 @@
                                   "enum": [
                                     "integer"
                                   ],
-                                  "required": true,
                                   "default": "integer"
                                 },
                                 "value": {
@@ -785,7 +747,6 @@
                                   "name": "required",
                                   "description": "AMQP group-sequence required",
                                   "type": "boolean",
-                                  "required": true,
                                   "default": false
                                 }
                               }
@@ -807,7 +768,6 @@
                                     "string",
                                     "uritemplate"
                                   ],
-                                  "required": true,
                                   "default": "string"
                                 },
                                 "value": {
@@ -819,7 +779,6 @@
                                   "name": "required",
                                   "description": "AMQP properties.reply-to-group-id required",
                                   "type": "boolean",
-                                  "required": true,
                                   "default": false
                                 }
                               }
@@ -848,7 +807,6 @@
                                   "number",
                                   "boolean"
                                 ],
-                                "required": true,
                                 "default": "string"
                               },
                               "value": {
@@ -860,7 +818,6 @@
                                 "name": "required",
                                 "description": "Application property required",
                                 "type": "boolean",
-                                "required": true,
                                 "default": false
                               }
                             }
@@ -888,7 +845,6 @@
                                   "number",
                                   "boolean"
                                 ],
-                                "required": true,
                                 "default": "string"
                               },
                               "value": {
@@ -900,7 +856,6 @@
                                 "name": "required",
                                 "description": "Annotation required",
                                 "type": "boolean",
-                                "required": true,
                                 "default": false
                               }
                             }
@@ -928,7 +883,6 @@
                                   "number",
                                   "boolean"
                                 ],
-                                "required": true,
                                 "default": "string"
                               },
                               "value": {
@@ -940,7 +894,6 @@
                                 "name": "required",
                                 "description": "Annotation required",
                                 "type": "boolean",
-                                "required": true,
                                 "default": false
                               }
                             }
@@ -956,14 +909,12 @@
                               "name": "durable",
                               "description": "AMQP durable flag",
                               "type": "boolean",
-                              "required": true,
                               "default": false
                             },
                             "priority": {
                               "name": "priority",
                               "description": "AMQP priority",
                               "type": "integer",
-                              "required": true,
                               "default": 4
                             },
                             "ttl": {
@@ -975,14 +926,12 @@
                               "name": "first-acquirer",
                               "description": "AMQP first-acquirer flag",
                               "type": "boolean",
-                              "required": true,
                               "default": false
                             },
                             "delivery-count": {
                               "name": "delivery-count",
                               "description": "AMQP delivery-count",
                               "type": "integer",
-                              "required": true,
                               "default": 0
                             }
                           }
@@ -1009,7 +958,6 @@
                                   "number",
                                   "boolean"
                                 ],
-                                "required": true,
                                 "default": "string"
                               },
                               "value": {
@@ -1021,7 +969,6 @@
                                 "name": "required",
                                 "description": "Footer required",
                                 "type": "boolean",
-                                "required": true,
                                 "default": false
                               }
                             }
@@ -1191,7 +1138,6 @@
                                 "name": "required",
                                 "description": "Kafka header required",
                                 "type": "boolean",
-                                "required": true,
                                 "default": false
                               }
                             }
@@ -1234,7 +1180,6 @@
                                 "name": "required",
                                 "description": "The HTTP header required",
                                 "type": "boolean",
-                                "required": true,
                                 "default": false
                               }
                             }
@@ -1266,7 +1211,6 @@
                                 "name": "required",
                                 "description": "The HTTP query parameter required",
                                 "type": "boolean",
-                                "required": true,
                                 "default": false
                               }
                             }
@@ -1329,7 +1273,6 @@
                                 "name": "required",
                                 "description": "The NATS header required",
                                 "type": "boolean",
-                                "required": true,
                                 "default": false
                               }
                             }
