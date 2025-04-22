@@ -118,6 +118,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   "modifiedat": "TIMESTAMP",
 
   "capabilities": {                     # Supported capabilities/options
+    "apis": [ "/capabilities", "/export", "/model" ],
     "flags": [                          # Query parameters
       "collections",? "doc",? "epoch",? "filter",? "inline",?
       "nodefaultversionid",? "nodefaultversionsticky",? "noepoch",?
@@ -1907,6 +1908,7 @@ be of the form:
 
 ```
 {
+  "apis": [ "STRING" ],
   "flags": [ "STRING" * ], ?
   "mutable": [ "STRING" * ], ?
   "pagination": BOOLEAN, ?
@@ -1940,6 +1942,32 @@ Absence, presence, or configuration values of a feature in the map MAY vary
 based on the authorization level of the client making the request.
 
 The following defines the specification-defined capabilities:
+
+#### `apis`
+- Name: `apis`
+- Type: Array of strings
+- Description: The list of APIs (beyond the APIs for the data model) that
+  are supported for read (`HTTP GET`) operations. This list is meant to allow
+  for clients/tooling to easily discover which of the APIs, that are not
+  related to the data model, are supported. Whether any of the APIs listed
+  below are supported for write operations can be discovered via the
+  `mutable` capability.
+- Note that it is allowable for the data that is available via more than one
+  mechanism to not be available via all mechanisms. For example, it is
+  possible for an implementation to support `GET /model` but not
+  `GET /?inline=model`.
+- Defined values:
+  - `/capabilities`
+  - `/export`
+  - `/model`
+- Values MUST start with `/`.
+- When not specified, the default value MUST be an empty list and no APIs
+  beyond ones for data model are supported.
+- Implementations MAY define their own values but they MUST NOT conflict with
+  specification defined APIs, Registry-level attributes or Group collection
+  attribute names.
+- It is STRONGLY RECOMMENDED that implementations support at least
+  `/capabilities` and `/model`.
 
 #### `flags`
 - Name: `flags`
@@ -2135,6 +2163,10 @@ For example:
 GET /capabilities?offered
 
 {
+  "apis": {
+    "type": "string",
+    "enum": [ "/capabilities", "/export", "/model" ]
+  },
   "flags": {
     "type": "string",
     "enum": [ "collections", "doc", "epoch", "filter", "inline",
@@ -2568,6 +2600,11 @@ The following describes the attributes of Registry model:
     responses from servers as part of its owning entity, even if it is set to
     its default value. This means that any attribute that has a default value
     defined MUST also have its `required` aspect set to `true`.
+  - If the default value of an attribute changes over time, all existing
+    instances of that attribute MUST retain their current values and not
+    be automatically changed to the new default value. In other words, a new
+    default value MUST only apply to new, or subsequent updates of existing,
+    instances of the attribute.
 
 - `attributes."STRING".attributes`
   - Type: Object, see `attributes` above.
@@ -4223,7 +4260,7 @@ and the following Resource level attributes:
   - `"deprecated": {}`
   - ```
     "deprecated": {
-      "removal": "2030-12-19T00:00:00",
+      "removal": "2030-12-19T00:00:00Z",
       "alternative": "https://example.com/entities-v2/myentity"
     }
     ```
@@ -4667,8 +4704,8 @@ So, if the target Resource (`sharedSchema`) is defined as:
   "xid": "/schemagroups/group2/schemas/sharedSchema",
   "epoch": 2,
   "isdefault": true,
-  "createdat": "2024-01-01-T12:00:00",
-  "modifiedat": "2024-01-01-T12:01:00",
+  "createdat": "2024-01-01-T12:00:00Z",
+  "modifiedat": "2024-01-01-T12:01:00Z",
   "ancestor": "v1",
 
   "metaurl": "http://example.com/schemagroups/group2/schemas/sharedSchema/meta",
@@ -4687,8 +4724,8 @@ then the resulting serialization of the source Resource would be:
   "xid": "/schemagroups/group1/schemas/mySchema",
   "epoch": 2,
   "isdefault": true,
-  "createdat": "2024-01-01-T12:00:00",
-  "modifiedat": "2024-01-01-T12:01:00",
+  "createdat": "2024-01-01-T12:00:00Z",
+  "modifiedat": "2024-01-01-T12:01:00Z",
   "ancestor": "v1",
 
   "metaurl": "http://example.com/schemagroups/group1/schemas/mySchema/meta",
@@ -4697,8 +4734,8 @@ then the resulting serialization of the source Resource would be:
     "self": "http://example.com/schemagroups/group1/schemas/mySchema/meta",
     "xid": "/schemagroups/group1/schemas/mySchema/meta",
     "xref": "/schemagroups/group2/schemas/sharedSchema",
-    "createdat": "2024-01-01-T12:00:00",
-    "modifiedat": "2024-01-01-T12:01:00",
+    "createdat": "2024-01-01-T12:00:00Z",
+    "modifiedat": "2024-01-01-T12:01:00Z",
     "readonly": false,
     "compatibility": "none"
   },
