@@ -3,7 +3,7 @@ all: verify makeschema
 		( echo "schema files have been updated, make sure you commit them" ; \
 		  exit 1 )
 
-verify: text links
+verify: text models links
 
 text: spellcheck tabcheck errorcheck samplescheck
 
@@ -26,6 +26,11 @@ samplescheck:
 
 links: test_tools
 	@python tools/verify.py .
+	@echo
+
+models:
+	docker run -v $$PWD:/tmp/xreg --entrypoint /bin/sh \
+		ghcr.io/xregistry/xr -c "/xr model verify /tmp/xreg/*/model.json -v"
 	@echo
 
 makeschema:
