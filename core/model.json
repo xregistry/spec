@@ -53,12 +53,14 @@
     "createdat": {
       "name": "createdat",
       "type": "timestamp",
-      "readonly": true
+      "readonly": true,
+      "required": true
     },
     "modifiedat": {
       "name": "modifiedat",
       "type": "timestamp",
-      "readonly": true
+      "readonly": true,
+      "required": true
     }
   }
 }
