@@ -429,6 +429,17 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
                     else:
                         one_of.append(copy.deepcopy(conditional_schema))
                 if len(one_of) > 0:
+                    one_of.append({
+                        "anyOf": [
+                            { "not": { "required": [attr_name] } },
+                            {
+                                "properties": {
+                                    attr_name: { "not": { "enum": list(attr_props["ifvalues"].keys()) } }
+                                },
+                                "required": [attr_name]
+                            }
+                        ]
+                    })
                     if "oneOf" in resource_schema:
                         resource_schema["allOf"] = [{"oneOf" : resource_schema.pop("oneOf")}]
                         resource_schema["allOf"].append({"oneOf": one_of})
