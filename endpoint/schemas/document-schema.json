@@ -115,10 +115,7 @@
                           "type": "boolean",
                           "description": "CloudEvents specversion is always required"
                         }
-                      },
-                      "required": [
-                        "required"
-                      ]
+                      }
                     },
                     "id": {
                       "type": "object",
@@ -138,11 +135,7 @@
                           "type": "boolean",
                           "description": "CloudEvents id is always required"
                         }
-                      },
-                      "required": [
-                        "type",
-                        "required"
-                      ]
+                      }
                     },
                     "type": {
                       "type": "object",
@@ -162,11 +155,7 @@
                           "type": "boolean",
                           "description": "CloudEvents type is always required"
                         }
-                      },
-                      "required": [
-                        "type",
-                        "required"
-                      ]
+                      }
                     },
                     "source": {
                       "type": "object",
@@ -186,11 +175,7 @@
                           "type": "boolean",
                           "description": "CloudEvents source is always required"
                         }
-                      },
-                      "required": [
-                        "type",
-                        "required"
-                      ]
+                      }
                     },
                     "subject": {
                       "type": "object",
@@ -210,11 +195,7 @@
                           "type": "boolean",
                           "description": "CloudEvents subject required"
                         }
-                      },
-                      "required": [
-                        "type",
-                        "required"
-                      ]
+                      }
                     },
                     "time": {
                       "type": "object",
@@ -233,11 +214,7 @@
                         "required": {
                           "type": "boolean"
                         }
-                      },
-                      "required": [
-                        "type",
-                        "required"
-                      ]
+                      }
                     },
                     "dataschema": {
                       "type": "object",
@@ -257,11 +234,7 @@
                         "required": {
                           "type": "boolean"
                         }
-                      },
-                      "required": [
-                        "type",
-                        "required"
-                      ]
+                      }
                     },
                     "datacontenttype": {
                       "type": "object",
@@ -280,11 +253,7 @@
                         "required": {
                           "type": "boolean"
                         }
-                      },
-                      "required": [
-                        "type",
-                        "required"
-                      ]
+                      }
                     }
                   },
                   "additionalProperties": {
@@ -306,11 +275,7 @@
                         "type": "boolean",
                         "description": "Whether the extension is required"
                       }
-                    },
-                    "required": [
-                      "type",
-                      "required"
-                    ]
+                    }
                   }
                 },
                 "envelopeoptions": {
@@ -372,10 +337,7 @@
                               "type": "boolean",
                               "description": "AMQP properties.message-id required"
                             }
-                          },
-                          "required": [
-                            "required"
-                          ]
+                          }
                         },
                         "user-id": {
                           "type": "object",
@@ -396,11 +358,7 @@
                               "type": "boolean",
                               "description": "AMQP properties.user-id required"
                             }
-                          },
-                          "required": [
-                            "type",
-                            "required"
-                          ]
+                          }
                         },
                         "to": {
                           "type": "object",
@@ -421,11 +379,7 @@
                               "type": "boolean",
                               "description": "AMQP properties.to required"
                             }
-                          },
-                          "required": [
-                            "type",
-                            "required"
-                          ]
+                          }
                         },
                         "subject": {
                           "type": "object",
@@ -446,10 +400,7 @@
                               "type": "boolean",
                               "description": "AMQP properties.subject required"
                             }
-                          },
-                          "required": [
-                            "required"
-                          ]
+                          }
                         },
                         "reply-to": {
                           "type": "object",
@@ -470,11 +421,7 @@
                               "type": "boolean",
                               "description": "AMQP properties.reply-to required"
                             }
-                          },
-                          "required": [
-                            "type",
-                            "required"
-                          ]
+                          }
                         },
                         "correlation-id": {
                           "type": "object",
@@ -495,11 +442,7 @@
                               "type": "boolean",
                               "description": "AMQP correlation-id required"
                             }
-                          },
-                          "required": [
-                            "type",
-                            "required"
-                          ]
+                          }
                         },
                         "content-type": {
                           "type": "object",
@@ -520,11 +463,7 @@
                               "type": "boolean",
                               "description": "AMQP properties.content-type required"
                             }
-                          },
-                          "required": [
-                            "type",
-                            "required"
-                          ]
+                          }
                         },
                         "content-encoding": {
                           "type": "object",
@@ -545,11 +484,7 @@
                               "type": "boolean",
                               "description": "AMQP properties.content-encoding required"
                             }
-                          },
-                          "required": [
-                            "type",
-                            "required"
-                          ]
+                          }
                         },
                         "absolute-expiry-time": {
                           "type": "object",
@@ -570,11 +505,7 @@
                               "type": "boolean",
                               "description": "AMQP properties.absolute-expiry-time required"
                             }
-                          },
-                          "required": [
-                            "type",
-                            "required"
-                          ]
+                          }
                         },
                         "creation-time": {
                           "type": "object",
@@ -595,11 +526,7 @@
                               "type": "boolean",
                               "description": "AMQP properties.creation-time required"
                             }
-                          },
-                          "required": [
-                            "type",
-                            "required"
-                          ]
+                          }
                         },
                         "group-id": {
                           "type": "object",
@@ -620,11 +547,7 @@
                               "type": "boolean",
                               "description": "AMQP properties.group-id required"
                             }
-                          },
-                          "required": [
-                            "type",
-                            "required"
-                          ]
+                          }
                         },
                         "group-sequence": {
                           "type": "object",
@@ -645,11 +568,7 @@
                               "type": "boolean",
                               "description": "AMQP group-sequence required"
                             }
-                          },
-                          "required": [
-                            "type",
-                            "required"
-                          ]
+                          }
                         },
                         "reply-to-group-id": {
                           "type": "object",
@@ -670,11 +589,7 @@
                               "type": "boolean",
                               "description": "AMQP properties.reply-to-group-id required"
                             }
-                          },
-                          "required": [
-                            "type",
-                            "required"
-                          ]
+                          }
                         }
                       }
                     },
@@ -699,11 +614,7 @@
                             "type": "boolean",
                             "description": "Application property required"
                           }
-                        },
-                        "required": [
-                          "type",
-                          "required"
-                        ]
+                        }
                       }
                     },
                     "message-annotations": {
@@ -727,11 +638,7 @@
                             "type": "boolean",
                             "description": "Annotation required"
                           }
-                        },
-                        "required": [
-                          "type",
-                          "required"
-                        ]
+                        }
                       }
                     },
                     "delivery-annotations": {
@@ -755,11 +662,7 @@
                             "type": "boolean",
                             "description": "Annotation required"
                           }
-                        },
-                        "required": [
-                          "type",
-                          "required"
-                        ]
+                        }
                       }
                     },
                     "header": {
@@ -786,13 +689,7 @@
                           "type": "integer",
                           "description": "AMQP delivery-count"
                         }
-                      },
-                      "required": [
-                        "durable",
-                        "priority",
-                        "first-acquirer",
-                        "delivery-count"
-                      ]
+                      }
                     },
                     "footer": {
                       "type": "object",
@@ -815,11 +712,7 @@
                             "type": "boolean",
                             "description": "Footer required"
                           }
-                        },
-                        "required": [
-                          "type",
-                          "required"
-                        ]
+                        }
                       }
                     }
                   }
@@ -995,8 +888,7 @@
                           }
                         },
                         "required": [
-                          "name",
-                          "required"
+                          "name"
                         ]
                       }
                     }
@@ -1043,8 +935,7 @@
                           }
                         },
                         "required": [
-                          "name",
-                          "required"
+                          "name"
                         ]
                       }
                     },
@@ -1071,8 +962,7 @@
                           }
                         },
                         "required": [
-                          "name",
-                          "required"
+                          "name"
                         ]
                       }
                     },
@@ -1136,10 +1026,7 @@
                             "type": "boolean",
                             "description": "The NATS header required"
                           }
-                        },
-                        "required": [
-                          "required"
-                        ]
+                        }
                       }
                     }
                   }
@@ -1384,12 +1271,7 @@
                         "type": "string"
                       }
                     }
-                  },
-                  "required": [
-                    "deployed",
-                    "durable",
-                    "distribution-mode"
-                  ]
+                  }
                 }
               },
               "required": [
@@ -1483,13 +1365,7 @@
                       "format": "uri",
                       "description": "The MQTT will message definition to configure for publishers on this endpoint. This MUST be a reference to a message definition"
                     }
-                  },
-                  "required": [
-                    "deployed",
-                    "qos",
-                    "retain",
-                    "cleansession"
-                  ]
+                  }
                 }
               },
               "required": [
@@ -1583,13 +1459,7 @@
                       "format": "uri",
                       "description": "The MQTT will message definition to configure for publishers on this endpoint. This MUST be a reference to a message definition"
                     }
-                  },
-                  "required": [
-                    "deployed",
-                    "qos",
-                    "retain",
-                    "cleansession"
-                  ]
+                  }
                 }
               },
               "required": [
@@ -1688,11 +1558,7 @@
                         "type": "string"
                       }
                     }
-                  },
-                  "required": [
-                    "deployed",
-                    "method"
-                  ]
+                  }
                 }
               },
               "required": [
@@ -1733,11 +1599,7 @@
                             "type": "string",
                             "description": "The Kafka SASL mechanism"
                           }
-                        },
-                        "required": [
-                          "security.protocol",
-                          "sasl.mechanism"
-                        ]
+                        }
                       }
                     },
                     "authorization": {
@@ -1809,13 +1671,7 @@
                       "type": "string",
                       "description": "The Kafka value serializer"
                     }
-                  },
-                  "required": [
-                    "deployed",
-                    "acks",
-                    "keyserializer",
-                    "valueserializer"
-                  ]
+                  }
                 }
               },
               "required": [
@@ -1887,10 +1743,7 @@
                       "type": "string",
                       "description": "The NATS subject"
                     }
-                  },
-                  "required": [
-                    "deployed"
-                  ]
+                  }
                 }
               },
               "required": [

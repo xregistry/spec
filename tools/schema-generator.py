@@ -373,7 +373,7 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
                 if "item" in attr_props:
                     handle_item(attr_schema, attr_props["type"], attr_props["item"])
 
-            if "required" in attr_props and attr_props["required"] == True:
+            if "required" in attr_props and attr_props["required"] == True and not "default" in attr_props:
                 if "required" not in resource_schema:
                     resource_schema["required"] = []
                 resource_schema["required"].append(attr_name)
