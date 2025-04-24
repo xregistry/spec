@@ -1,66 +1,78 @@
 {
   "attributes": {
     "specversion": {
-      "name": "specversion",
       "type": "string",
       "readonly": true,
-      "immutable": true,
       "required": true,
       "default": "1.0-rc1"
     },
     "registryid": {
-      "name": "registryid",
       "type": "string",
       "immutable": true,
+      "readonly": true,
       "required": true
     },
     "self": {
-      "name": "self",
       "type": "url",
+      "immutable": true,
       "readonly": true,
       "required": true
     },
+    "shortself": {
+      "type": "url",
+      "immutable": true,
+      "readonly": true
+    },
     "xid": {
-      "name": "xid",
       "type": "xid",
       "readonly": true,
+      "immutable": true,
       "required": true
     },
     "epoch": {
-      "name": "epoch",
       "type": "uinteger",
+      "readonly": true,
       "required": true
     },
     "name": {
-      "name": "name",
       "type": "string"
     },
     "description": {
-      "name": "description",
       "type": "string"
     },
     "documentation": {
-      "name": "documentation",
       "type": "url"
     },
     "labels": {
-      "name": "labels",
       "type": "map",
       "item": {
         "type": "string"
       }
     },
     "createdat": {
-      "name": "createdat",
       "type": "timestamp",
-      "readonly": true,
       "required": true
     },
     "modifiedat": {
-      "name": "modifiedat",
       "type": "timestamp",
-      "readonly": true,
       "required": true
+    },
+
+    "capabilities": {
+      "type": "object",
+      "attributes": {
+        "*": {
+          "type": "any"
+        }
+      }
+    },
+    "model": {
+      "type": "object",
+      "attributes": {
+        "*": {
+          "type": "any"
+        }
+      }
     }
   }
 }

@@ -39,6 +39,13 @@ def test_text_issues():
                 Optionally
                 - each
                 "required"
+				marshall
+				marshalled
+				optionally
+				dismay
+				maybe
+				`required`
+				.required
                 """
         )
     ) == {
