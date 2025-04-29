@@ -209,6 +209,7 @@ schemasurl
 schemauri
 schemaurl
 schemaversion
+semver
 serverless
 serverrequired
 setdefaultversionid
@@ -266,6 +267,8 @@ vasters
 versioned
 versionid
 versioning
+versionmode
+versionmodes
 versionscount
 versionsurl
 vid
