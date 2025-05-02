@@ -112,7 +112,7 @@ this form:
         "retain": BOOLEAN, ?                           # Default: false
         "cleansession": BOOLEAN, ?                     # Default: true
         "willtopic": "STRING", ?
-        "willmessage": "STRING" ?
+        "willmessage": "XID" ?
 
         # "MQTT/5.0" protocol options
         "topic": "STRING", ?
@@ -120,7 +120,7 @@ this form:
         "retain": BOOLEAN, ?                           # Default: false
         "cleansession": BOOLEAN, ?                     # Default: true
         "willtopic": "STRING", ?
-        "willmessage": "STRING" ?
+        "willmessage": "XID" ?
 
         # "KAFKA" protocol options
         "topic": "STRING", ?
@@ -134,7 +134,7 @@ this form:
         "subject": "STRING" ?
       }, ?
 
-      "messagegroups": [ URI * ], ?
+      "messagegroups": [ XID * ], ?
       # End of default Version's attributes
 
       "messagesurl": "URL", ?
@@ -534,7 +534,7 @@ This specification defines the following envelope options for the indicated
 
 #### `messagegroups`
 
-The `messagegroups` attribute is an array of URI-references to message
+The `messagegroups` attribute is an array of XID-references to message
 definition groups. The `messagegroups` attribute is used to reference
 message definition groups that are not inlined in the endpoint definition.
 
@@ -547,7 +547,7 @@ Example:
     "method": "POST"
   },
   "messagegroups": [
-    "https://example.com/registry/messagegroups/mygroup"
+    "/messagegroups/mygroup"
   ]
 }
 ```
@@ -741,9 +741,9 @@ The following options are defined for MQTT endpoints.
   - The value MUST be a non-empty string.
   - The value MAY contain placeholders using the [RFC6570][RFC6570] Level 1
     URI Template syntax.
-- `willmessage`: This is URI and/or JSON Pointer that refers to the MQTT
-  `willmessage` to use for the endpoint.
-  - The value MUST be a non-empty string.
+- `willmessage`: This is XID that refers to the MQTT `willmessage` to use for
+  the endpoint.
+  - The value MUST be a non-empty XID.
   - It MUST point to a valid
   [´message´](../message/spec.md#message-definitions) that MUST either
   use the ["CloudEvents/1.0"](../message/spec.md#cloudevents10) or
@@ -762,7 +762,7 @@ Example:
     "retain": false,
     "cleansession": false,
     "willtopic": "mytopic",
-    "willmessage": "#/messagegroups/mygroup/messages/mywillmessage"
+    "willmessage": "/messagegroups/mygroup/messages/mywillmessage"
   }
 }
 ```

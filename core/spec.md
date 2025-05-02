@@ -494,6 +494,7 @@ be one of the following data types:
   place of `url` so that the Registry can do "type checking" to ensure the
   value references the correct type of Registry entity. See the definition of
   the [`target` model attribute](#model.target) for more information.
+  Its value MUST start with a `/`.
 - `string` - sequence of Unicode characters.
 - `timestamp` - an [RFC3339](https://tools.ietf.org/html/rfc3339) timestamp.
   Use of a `time-zone` notation is RECOMMENDED.
