@@ -98,7 +98,7 @@ The following 3 diagrams show (from left to right):<br>
 <img src="./xregbasicmodel.png"
  height="300">&nbsp;&nbsp;&nbsp;<img
  src="./xregfullmodel.png" height="300">&nbsp;&nbsp;&nbsp;<img
- src="./sample.png" height="300">
+ src="./xregsample.png" height="300">
 
 For easy reference, the JSON serialization of a Registry adheres to this form:
 
@@ -157,6 +157,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
         "attributes": { ... }, ?        # If "type" above is object
         "item": {                       # If "type" above is map,array
           "type": "TYPE", ?             # map value type, or array type
+          "target": "STRING", ?         # If this item "type" is xid/url
           "namecharset": "STRING", ?    # If this item "type" is object
           "attributes": { ... }, ?      # If this item "type" is object
           "item": { ... } ?             # If this item "type" is map,array
@@ -194,8 +195,9 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "modelversion": "STRING", ?   # Version of the resource model
             "compatiblewith": "URI", ?    # Statement of compatibility with model spec
             "labels": { "STRING": "STRING" * }, ?
-            "attributes": { ... }, ?      # Version attributes/extensions
-            "metaattributes": { ... } ?   # Resource attributes/extensions
+            "attributes": { ... }, ?          # Version attributes/extensions
+            "resourceattributes": { ... }, ?  # Resource attributes/extensions
+            "metaattributes": { ... } ?       # Meta attributes/extensions
           } *
         } ?
       } *
@@ -2291,9 +2293,10 @@ backwards compatible changes.
 Implementations MAY choose to limit the types of changes made to the model,
 or not support model updates at all.
 
-The xRegistry schema for an empty Registry can be found [here](./model.json),
-while a schema for a sample xRegistry (with Groups and Resources) can be
-found [here](./sample-model.json).
+The xRegistry schema (model definition) used to create a sample xRegistry can
+be found [here](./sample-model.json), while the resulting "full" model (with
+all of the system defined aspects added) can be found
+[here](./sample-model-full.json).
 
 The Registry model can be retrieved two ways:
 
@@ -2329,6 +2332,7 @@ Regardless of how the model is retrieved, the overall format is as follows:
       "attributes": { ... }, ?         # If "type" above is object
       "item": {                        # If "type" above is map,array
         "type": "TYPE", ?              # map value type, or array type
+        "target": "STRING", ?          # If this item "type" is xid/url
         "namecharset": "STRING", ?     # If this item "type" is object
         "attributes": { ... }, ?       # If this item "type" is object
         "item": { ... } ?              # If this item "type" is map,array
@@ -2366,8 +2370,9 @@ Regardless of how the model is retrieved, the overall format is as follows:
           "modelversion": "STRING", ?   # Version of the resource model
           "compatiblewith": "URI"`, ?   # Statement of compatibility with model spec
           "labels": { "STRING": "STRING" * }, ?
-          "attributes": { ... }, ?      # Version attributes/extensions
-          "metaattributes": { ... } ?   # Resource attributes/extensions
+          "attributes": { ... }, ?          # Version attributes/extensions
+          "resourceattributes": { ... }, ?  # Resource attributes/extensions
+          "metaattributes": { ... } ?       # Meta attributes/extensions
         } *
       } ?
     } *
@@ -2630,6 +2635,12 @@ The following describes the attributes of Registry model:
   - Type: TYPE.
   - REQUIRED.
   - The "TYPE" of this nested resource.
+
+- `attributes."STRING".item.target`
+  - Type: STRING.
+  - OPTIONAL, and MUST only be used when `item.type` is `url-reference`,
+    `uri-reference` or `xid`.
+  - See [`attributes."STRING".target`](#model.target) above.
 
 - `attributes."STRING".item.namecharset`
   - See [`namecharset`](#model.namecharset) above.
@@ -2902,21 +2913,71 @@ The following describes the attributes of Registry model:
   - OPTIONAL.
 
 - `groups."STRING".resources."STRING".attributes`
-  - See [`attributes`](#model.attributes) above and
+  - See [`attributes`](#model.attributes) above,
+    as well as [`resourceattributes`](#model.resourceattributes) and
     [`metaattributes`](#model.metaattributes) below.
   - OPTIONAL.
   - The list of attributes associated with each Version of the Resource.
-  - The list of `groups.resources.attributes` names MUST NOT overlap with the
-    list of `groups.resource.metaattributes` names.
+  - Extension attribute names at this level MUST NOT overlap with extension
+    attributes defined at the `groups.resources.resourceattributes` level.
+    The only duplicate names allowed are specification defined attributes
+    such as `self` and `xid`, and the Version-specific values MUST be
+    overridden by the Resource-level values when serialized.
+
+- `groups."STRING".resources."STRING".resourceattributes`
+  <span id="model.resourceattributes"></span>
+  - See [`attributes`](#model.attributes) above.
+  - OPTIONAL.
+  - The list of attributes associated with the Resource, not its Versions,
+    that will appear in the Resource itself (as siblings to the "default"
+    Version attributes).
+  - These attributes are typically reserved for system-managed attributes
+    such as `metaurl`. User-defined attributes would normally appear on the
+    Versions, and as such will appear in the model under the
+    `groups.resources.attributes` list.
+  - Extension attribute names at this level MUST NOT overlap with extension
+    attributes defined at the `groups.resources.attributes` level.
+    The only duplicate names allowed are specification defined attributes
+    such as `self` and `xid`, and the Version-specific values MUST be
+    overridden by the Resource-level values when serialized.
 
 - `groups."STRING".resources."STRING".metaattributes`
   <span id="model.metaattributes"></span>
   - See [`attributes`](#model.attributes) above.
   - OPTIONAL.
   - The list of attributes associated with the Resource, not its Versions,
-    and will appear in the `meta` sub-object of the Resource.
-  - The list of `groups.resources.attributes` names MUST NOT overlap with the
-    list of `groups.resource.metaattributes` names.
+    that will appear in the `meta` sub-object of the Resource.
+
+Clarifying the  usage of the `attributes`, `resourceattributes` and
+`metaattributes`:
+- The serialization of the Resource is meant to be (almost) interchangeable
+  with the serialization of a Version of that Resource. This will allow users
+  to process either entity without needing to know if they were provided the
+  Resource itself or a specific Version in most cases.
+- To enable this, most of the Resource-specific data (e.g. its
+  `defaultversionid`), is serialized under the `meta` sub-object. This avoids
+  potential name conflicts between Version and Resource-level attributes, as
+  well as avoiding making the serialization of the Resource too verbose/noisy.
+- However, there are some Resource-level attributes, that if placed in the
+  `meta` sub-object, would appear to be misplaced. For example, the `versions`
+  collection attributes could be confusing to users since `meta` is not
+  the direct parent/owner of the "versions" collection, the Resource is.
+  Especially when considering the URL path to the "versions" collection would
+  not have `/meta/` in it.
+  in it.
+- Additionally, some common attributes (e.g. `self`) need to appear on both
+  Resources as well as Versions but the values need to be different in each
+  case. This is why the same attribute names can appear both the
+  `resourceattributes` and `attributes` lists, but only specification defined
+  attributes are allowed to have this naming conflict. Extensions are not, as
+  that could lead to confusion for users.
+- Finally, in the vast majority of cases it is expected that models will only
+  need to define Version-level attributes, leaving the more advanced uses of
+  Resource and Meta-level attributes to default to the specification-defined
+  sets. For this reason, the Version-level attributes use a list called
+  `attributes` in order to make user creation of the model easier, leaving
+  the edge cases of Resource or Meta-level extension attributes to use more
+  verbosely named lists.
 
 #### Retrieving the Registry Model
 
@@ -2933,8 +2994,7 @@ Resource types.
 
 For the sake of brevity, this specification doesn't include the full definition
 of the specification-defined attributes as part of the snippets of output.
-However, the full model definition of the Registry level attributes can be
-found in [model.json](model.json), and the Group and Resource level attributes
+However, an example a full model definition of a sample Registry can be
 can be found in this sample [sample-model.json](sample-model.json).
 
 The request MUST be of the form:
@@ -3038,6 +3098,7 @@ Content-Type: application/json; charset=utf-8
           "compatiblewith": "URI", ?
           "labels": { "STRING": "STRING" * }, ?
           "attributes": { ... }, ?
+          "resourceattributes": { ... }, ?
           "metaattributes": { ... } ?
         } *
       } ?
@@ -3167,7 +3228,8 @@ Content-Type: application/json; charset=utf-8
           "compatiblewith": "URI", ?
           "labels": { "STRING": "STRING" * }, ?
           "attributes": { ... }, ?           # Version attributes/extensions
-          "metaattributes": { ... } ?        # Resource attributes/extensions
+          "resourceattributes": { ... }, ?   # Resource attributes/extensions
+          "metaattributes": { ... } ?        # Meta attributes/extensions
         } *
       } ?
     } *
@@ -3243,6 +3305,7 @@ Content-Type: application/json; charset=utf-8
           "compatiblewith": "URI", ?
           "labels": { "STRING": "STRING" * }, ?
           "attributes": { ... }, ?
+          "resourceattributes": { ... }, ?
           "metaattributes": { ... } ?
         } *
       } ?
