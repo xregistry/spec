@@ -817,7 +817,8 @@
           "type": "array",
           "description": "The message groups that are supported by this endpoint",
           "item": {
-            "type": "xid"
+            "type": "xid",
+            "target": "/messagegroups/messages"
           }
         },
         "*": {

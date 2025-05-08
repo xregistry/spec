@@ -188,6 +188,7 @@ redis
 registryid
 replytopic
 repos
+resourceattributes
 resourceid
 resourcescount
 resourcesurl
@@ -291,6 +292,7 @@ xregbasicmodel
 xregfullmodel
 xregistries
 xregistry
+xregsample
 xsd
 xy
 yaml
