@@ -12,31 +12,32 @@ automation and tooling.
 - [Notations and Terminology](#notations-and-terminology)
   - [Notational Conventions](#notational-conventions)
   - [Terminology](#terminology)
+- [Registry Design](#registry-design)
 - [Registry Attributes and APIs](#registry-attributes-and-apis)
   - [Implementation Customizations](#implementation-customizations)
   - [Attributes and Extensions](#attributes-and-extensions)
   - [Registry APIs](#registry-apis)
     - [Registry Collections](#registry-collections)
     - [Entity Processing Rules](#entity-processing-rules)
-  - [Registry Entity](#registry-entity)
+  - [Registry Root APIs](#registry-root-apis)
     - [Retrieving the Registry](#retrieving-the-registry)
     - [Updating the Registry Entity](#updating-the-registry-entity)
   - [Registry Capabilities](#registry-capabilities)
   - [Registry Model](#registry-model)
     - [Retrieving the Registry Model](#retrieving-the-registry-model)
     - [Updating the Registry Model](#updating-the-registry-model)
-  - [Groups](#groups)
+  - [Groups APIs](#groups-apis)
     - [Retrieving a Group Collection](#retrieving-a-group-collection)
     - [Creating or Updating Groups](#creating-or-updating-groups)
     - [Retrieving a Group](#retrieving-a-group)
     - [Deleting Groups](#deleting-groups)
-  - [Resources](#resources)
+  - [Resources APIs](#resources-apis)
     - [Retrieving a Resource Collection](#retrieving-a-resource-collection)
     - [Creating or Updating Resources and
        Versions](#creating-or-updating-resources-and-versions)
     - [Retrieving a Resource](#retrieving-a-resource)
     - [Deleting Resources](#deleting-resources)
-  - [Versions](#versions)
+  - [Versions APIs](#versions-apis)
     - [Retrieving all Versions](#retrieving-all-versions)
     - [Creating or Updating Versions](#creating-or-updating-versions)
     - [Retrieving a Version](#retrieving-a-version)
@@ -69,24 +70,17 @@ other protocols will likely be added in the future. When that happens, this
 specification will be restructured to have clean separation between a
 protocol-agnostic core and protocol-specific requirements.
 
-A Registry consists of two main types of entities: Groups and Resources.
+A Registry consists of two main types of entities: Resources and Groups.
 
-Groups, as the name implies, is a mechanism by which related Resources are
-arranged together under a single collection - the Group. The reason for the
-grouping is not defined by this specification, so the owners of the Registry
-can choose to define (or enforce) any pattern they wish. In this sense, a
-Group is similar to a "directory" on a filesystem.
-
-Resources represent the main data of interest for the Registry. In the
-filesystem analogy, these would be the "files". All Resources exist under a
-single Group and, similar to Groups, have a set of Registry metadata.
-However, unlike a Group which only has Registry metadata, each Resource can
-also have a "document" associated with it. For example, a "schema" Resource
-might have a "schema document" as its "document". This specification places no
-restriction on the type of content stored in the Resource's document.
+Resources typically represent the main data of interest for users of the
+Registry, while Groups, as the name implies, is a mechanism by which related
+Resources are arranged together under a single collection.
 
 This specification defines a set of common metadata that can appear on both
-Groups and Resources, and allows for domain-specific extensions to be added.
+Resources and Groups, and allows for domain-specific extensions to be added.
+
+See the [Registry Design](#registry-design) section for a more complete
+discussion of the xRegistry concepts.
 
 The following 3 diagrams show (from left to right):<br>
 1 - The core concepts of the Registry in its most abstract form.<br>
@@ -134,6 +128,8 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
     "shortself": BOOLEAN, ?
     "specversions": [ "1.0-rc1", "STRING"* ], ?
     "sticky": BOOLEAN, ?
+    "versionmodes": [ "manual", "createdat",? "modifiedat",? "semver",
+      "STRING"* ],
 
     "STRING": ... *                     # Extension capabilities
   }, ?
@@ -239,7 +235,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
           "labels": { "STRING": "STRING" * }, ?
           "createdat": "TIMESTAMP",
           "modifiedat": "TIMESTAMP",
-          "ancestor": "STRING",
+          "ancestor": "STRING",                    # Ancestor's versionid
           "contenttype": "STRING, ?                # Add default Ver extensions
 
           "RESOURCEurl": "URL", ?                  # If not local
@@ -371,20 +367,145 @@ information about each data type):
 
 This specification defines the following terms:
 
-#### Group
+- **Group**
 
-An entity that acts as a collection of related Resources.
+Groups, as the name implies, is a mechanism by which related Resources are
+arranged together under a single collection - the Group. The reason for the
+grouping is not defined by this specification, so the owners of the Registry
+can choose to define (or enforce) any pattern they wish. In this sense, a
+Group is similar to a "directory" on a filesystem.
 
-#### Registry
+An additional common use for Groups, aside from the contained Resources being
+related, is for access control. Managing access control on individual
+Resources, while possible, might be cumbersome, so moving it up to the Group
+could be a more manageable, and user-friendly, implementation choice.
+
+- **Registry**
 
 An implementation of this specification. Typically, the implementation would
 include model-specific Groups, Resources and extension attributes.
 
-#### Resource
+- **Resource**
 
-A Resource is typically the main entity that is stored within a Registry
-Service. A Resource MUST exist within the scope of a Group and it MAY be
-versioned.
+Resources represent the main data of interest for the Registry. In the
+filesystem analogy, these would be the "files". All Resources exist under a
+single Group and, similar to Groups, have a set of Registry metadata.
+However, unlike a Group which only has Registry metadata, each Resource can
+also have a "document" associated with it. For example, a "schema" Resource
+might have a "schema document" as its "document". This specification places no
+restriction on the type of content stored in the Resource's document.
+Additionally, Resources (unlike Groups) MAY be versioned.
+
+- **Version**
+
+A Version is an instance of a Resource that represents a particular state of
+the Resource. Each Version of a Resource has its own set of xRegistry metadata
+and possibly a domain-specific document associated with it. Each Resource MUST
+have at least one Version associated with it. If versioning is not important
+for the use case in which the Resource is used, the default Version can be
+evolved without creating new ones.
+
+This specification places no requirements on the lifecycle of Versions.
+Implementations, or users of the Registry, determine when new Versions are
+created, as opposed to updating existing Versions, and how many Versions are
+allowed per Resource type.
+
+## Registry Design
+
+As discussed in the [Overview](#overview) section, an xRegistry consists of
+two main entities related to the data being managed: Groups and Resources.
+However, there are other concepts that make up the overall design and this
+section will cover them all in more detail.
+
+**Registry**
+An xRegistry instance, or a "Registry", can be thought of as a single rooted
+tree of entities as shown in the "xRegistry Core Spec" diagram in the
+[Overview](#overview) section. At the root is the Registry entity itself.
+This entity is meant to serve a few key purposes:
+
+  - High-level metadata about the Registry itself, such as its creation and
+    modified timestamps, name, link to additional documentation, etc.
+  - The set of [capabilities](#registry-capabilities) (features) that are
+    supported. For example, does this Registry support filtering of query
+    results?
+  - The domain-specific ["model"](#registry-model) that defines the types of
+    entities being managed by the Registry. For example, the model might
+    define a Group called `schemagroups` that has `schemas` as the Resources
+    within those Groups.
+
+**Groups**
+Traversing down the tree structure, below the Registry entity, there will be
+a set of Groups for the entities managed by the Registry. Each Group is meant
+to be a logical grouping of related Resources, much like a directory acts as
+a grouping of "files". Groups, like the Registry entity, does have similar
+high-level metadata that can be set and can have domain-specific extension
+attributes defined.
+
+As hinted at with the "directory" analogy, a common use for Groups will be
+for them to be light-weight collections without much additional semantics
+associated with them. However, this is not a requirement. Because Groups
+allow for user-defined extension attributes to be defined, Groups might be
+quite rich with respect to managing domain-specific data. See the
+[Endpoint](../endpoint/spec.md) as an example.
+
+**Resources**
+Below, or within, each Group can be a set of Resources. Typically, Resources
+are the main pieces of data managed by the Registry. Like the Registry
+and Group entities, that have a set of xRegistry defined "common" metadata
+that can be set, and user-defined extension attributes can be defined.
+However, Resources also support the concept of a domain-specific "document"
+that can be associated with it. This document can be stored within the
+Registry itself (like another attribute on the Resource), or stored external
+to the Registry and a URL to the document will be stored within the xRegistry
+metadata. This allows for the definition of the model to support cases where
+domain-specific data needs to be managed, and exposed, as xRegistry metadata
+or the data needs to be completely separate from the Registry's metadata.
+
+Typically, the domain-specific document will be used when a pre-existing
+document definition already exists and an xRegistry is being used as the
+mechanism to expose those documents in a consistent and interoperable way.
+For example, the [Schema Registry](../schema/spec.md) only has a few
+xRegistry Resource extension attributes defined because most of the data of
+interest will be in the Schema Documents associated with the Resources.
+
+**Versions**
+While "Resources" are presented as the most significant entities within
+a Registry, technically Resources themselves are very light-weight entities
+and are there to act as a grouping mechanism for another entity: Versions.
+
+Often, as Resources change over time, it is desirable to maintain a
+historical set of instances (e.g. "versions") of those Resources so they
+can be referenced and accessed as independent (but related) pieces of
+data. Each Version of a Resource will have its own set of xRegistry
+metadata and instance of the domain-specific "document".
+
+However, while each Version is independently accessible, the Resource itself
+has the concept of a "default Version" for which the Resource will act as
+a proxy (or alias). Meaning, accessing the Resource (or its document) will
+actually be accessing one of its Versions. This allows for end-users to
+not be concerned with keeping track of which Version is the "default" one as
+Versions are added or removed. This is sometimes configured to be the "latest"
+Version, however, xRegistry does not mandate that the "default" Version be
+the "latest".
+
+While not a requirement, the collection of Versions within a Resource
+typically form a directed graph with respect to how they are related.
+Meaning, a Version is usually "derived" from another Version known as its
+"ancestor". For example, "version 2" might have "version 1" as its
+"ancestor". By default, xRegistry assumes that each new Version will have
+the current "newest" Version as its ancestor, but this is configurable.
+See the [Version Mode](#model.versionmode) section for more information.
+
+**Next Steps**
+In summary, the xRegistry design itself is relatively simple and consists
+of 4 main concepts to form a tree of entities. However, with these, along
+with the extensibility of the xRegistry metadata model, a wide range of
+metadata can be categorized, managed, and exposed, in a consistent way, thus
+allowing for a dynamically discoverable, yet interoperable, programmatic access
+to what might otherwise be domain-specific set of APIs.
+
+The following sections will define the technical details of those xRegistry
+entities and the APIs for access them.
 
 ## Registry Attributes and APIs
 
@@ -899,9 +1020,6 @@ of the existing entity. Then the existing entity would be deleted.
     as the new value.
   - When absent in a write operation request, any existing value MUST remain
     unchanged, or if not already set, set to the current date/time
-  - For Versions, if this attribute is updated such that the owning Version
-    becomes the "newest" Version and the Resource's `defaultversionsticky`
-    attribute is `false`, then this Version MUST become the "default" Version.
   - During the processing of a single request, all entities that have their
     `createdat` or `modifiedat` attributes set to the current date/time due
     to the processing rules above, MUST use the same value in all cases.
@@ -1532,7 +1650,7 @@ HTTP body.
 
 ---
 
-### Registry Entity
+### Registry Root APIs
 
 The Registry entity represents the root of a Registry and is the main
 entry-point for traversal and discovery.
@@ -1923,6 +2041,7 @@ be of the form:
   "shortself": BOOLEAN, ?
   "specversions": [ "STRING" ], ?
   "sticky": BOOLEAN, ?
+  "versionmodes": [ "STRING" ], ?
 
   "STRING": ... capability configuration ... *   // Extension capabilities
 }
@@ -2199,7 +2318,8 @@ GET /capabilities?offered
   "sticky": {
     "type": "boolean",
     "enum": [ true ]
-  }
+  },
+  "versionmodes": [ "manual" ]
 }
 ```
 
@@ -2365,6 +2485,7 @@ Regardless of how the model is retrieved, the overall format is as follows:
           "setversionid": BOOLEAN, ?   # vid settable? Default=true
           "setdefaultversionsticky": BOOLEAN, ? # sticky settable? Default=true
           "hasdocument": BOOLEAN, ?     # Has separate document. Default=true
+          "versionmode": "STRING", ?    # 'ancestor' processing algorithm
           "singleversionroot": BOOLEAN, ? # enforce single root. Default=false
           "typemap": MAP, ?             # contenttype mappings
           "modelversion": "STRING", ?   # Version of the resource model
@@ -2758,15 +2879,9 @@ The following describes the attributes of Registry model:
     it is valid for an implementation to only support one (`1`) Version when
     `maxversions` is set to `0`.
   - When the limit is exceeded, implementations MUST prune Versions by
-    deleting the oldest Version first, skipping the
-    Version marked as "default". The strategy for finding the oldest Version
-    to delete is as follows:
-    1. Find all Versions that are roots (i.e. `ancestor` is the same as its
-       `versionid`).
-    1. If many exist, find the Version with the oldest `createdat` date.
-    1. If many exist, select the first Version sorting all Versions in
-       ascending case-insensitive alphabetical order based on the `versionid`
-       attribute.
+    deleting the oldest Version first (based on the Resource's
+    [`versionmode`](#model.versionmode) algorithm), skipping the
+    Version marked as "default".
     Once the single oldest Version is determined, delete it.
     A special case for the pruning rules is that if `maxversions` is set to
     one (1), then the "default" Version is not skipped, which means it will be
@@ -2814,8 +2929,100 @@ The following describes the attributes of Registry model:
     have a non-empty document, and an HTTP `GET` to the Resource MAY return an
     empty HTTP body.
   - When not specified, the default value MUST be `true`.
+  - Implementations MUST support at least `manual`.
   - A value of `true` indicates that Resource of this type supports a separate
     document to be associated with it.
+
+- `groups."STRING".resources."STRING".versionmode` <span id="model.versionmode"></span>
+    - Type: String
+    - OPTIONAL.
+    - Indicates the algorithm that MUST be used when determining how Versions
+      are managed with respect to aspects such as:
+      - Which Version is the "latest"?
+      - Which Version is the "oldest"?
+      - How a Version's `ancestor` attribute will be populated when not
+        provided during a create or when its current ancestor is deleted.
+    - Implementations MAY defined additional algorithms and MAY defined
+      additional aspects that they control as long as those aspects do not
+      conflict with specification defined semantics.
+    - Regardless of the algorithm used, implementations MUST ensure that
+      the `ancestor` attribute of all Versions of a Resource accurately
+      represent the relationship of the Versions prior to the completion of
+      any operation. For example, when the `createdat` algorithm is used and
+      the `createdat` timestamp of a Version is modified, this might cause a
+      reordering of the Versions and the `ancestor` attributes might need to
+      be changed accordingly. Similarly, the `defaultversionid` of the
+      Resource might change if its `defaultversionsticky` attribute is `false`.
+    - When not specified the default value MUST be `manual`.
+    - This specification defines the following `versionmode` algorithms:
+      - `manual`
+        - Latest Version: MUST be determined by finding all Versions that are
+          not referenced as an `ancestor` of another Version, then
+          finding the one with the newest `createdat` timestamp. If there is
+          more than one, then the one with the highest alphabetically
+          case-insensitive `versionid` value MUST be chosen.
+        - Oldest Version: MUST be determined by finding all root Versions (ones
+          that have an `ancestor` value that points to itself), then finding
+          the one with the oldest `createdat` timestamp. If there is more than
+          one, then the one with the lowest alphabetically case-insensitive
+          `versionid` MUST be chosen.
+        - Ancestor Processing: typically provided by clients. During a "create"
+          operation, all Versions that do not have an `ancestor` value
+          provided MUST be sorted/processed by `versionid` (in case-insensitive
+          ascending order) and the `ancestor` value of each MUST be set to the
+          current "latest version" per the above semantics. Note that as
+          each new Version is created, it MUST become the "latest". If there
+          is no existing Version then the new Version becomes a root and its
+          `ancestor` value MUST be its `versionid` attribute value.
+        - Invalid Ancestor: if a Version's `ancestor` value is no longer
+          valid (i.e. the ancestor Version was deleted), then this Version
+          MUST become a root, and it's `ancestor` value MUST is its `versionid`
+          attribute value.
+
+      - `createdat`
+        - Latest Version: MUST be determined by finding the Version with the
+          newest `createdat` timestamp. If there is more than one, then the
+          one with the highest alphabetically case-insensitive `versionid`
+          value MUST be chosen.
+        - Oldest Version: MUST be determined by finding the Version with the
+          oldest `createdat` timestamp. If there is more than one, then the
+          one with the lowest alphabetically case-insensitive `versionid`
+          value MUST be chosen. Note that this MUST also be the one and only
+          "root" Version.
+        - Ancestor Processing: The `ancestor` value of each Version MUST be
+          determined via examination of the `createdat` timestamp of each
+          Version and the Versions sorted in ascending order, where the first
+          one will be the "root" (oldest) Version and its `ancestor` value
+          MUST be its `versionid`. If there is more than one Version with the
+          same `createdat` timestamp then those MUST be ordered in ascending
+          case-insensitive ordered based on their `versionid` values.
+        - Invalid Ancestor: When a Version is deleted then the "ancestor
+          processing" logic is as stated above MUST be applied.
+        - When this `versionmode` is used, the `singleversionroot` aspect
+          MUST be set to `true`.
+
+      - `modifiedat`
+        - This is the same as the `createdat` algorithm except that the
+          `modifiedat` attribute of each Version MUST be used instead of the
+          `createdat` attribute.
+
+      - `semver`
+        - Latest Version: MUST be the Version with the highest `versionid`
+          value per the [Semantic Versioning](https://semver.org/)
+          specification's "precedence" ordering rules.
+        - Oldest Version: MUST be the Version with the lowest `versionid`
+          value per the [Semantic Versioning](https://semver.org/)
+          specification's "precedence" ordering rules. Note that this MUST also
+          be the one and only "root" Version.
+        - Ancestor Processing: The `ancestor` value of each Version MUST either
+          be its `versionid` value (if it it the oldest Version), or the
+          `versionid` of the next oldest Version per the
+          [Semantic Versioning](https://semver.org/) specification's
+          "precedence" ordering rules.
+        - Invalid Ancestor: When a Version is deleted then the "ancestor
+          processing" logic is as stated above MUST be applied.
+        - When this `versionmode` is used, the `singleversionroot` aspect
+          MUST be set to `true`.
 
 - `groups."STRING".resources."STRING".singleversionroot`
     - Type: Boolean (`true` or `false`, case-sensitive).
@@ -2831,6 +3038,8 @@ The following describes the attributes of Registry model:
       ([multiple_roots](#multiple_roots)) if any
       request results in a state where more than one Version of a Resource
       is a root of an ancestor tree.
+    - Note that if the Resource's `versionmode` value might influence
+      the permissible values of this aspect.
 
 - `groups."STRING".resources."STRING".typemap`
   - Type: Map where the keys and values MUST be non-empty strings. The key
@@ -3597,7 +3806,7 @@ specified MUST override the default value defined above.
 
 ---
 
-### Groups
+### Groups APIs
 
 Groups represent entities that typically act as a collection mechanism for
 related Resources. However, it is worth noting that Groups do not have to have
@@ -3962,7 +4171,7 @@ section.
 
 ---
 
-### Resources
+### Resources APIs
 
 Resources typically represent the main entity that the Registry is managing.
 Each Resource is associated with a Group to aid in their discovery and to show
@@ -3985,7 +4194,7 @@ The Resource entity serves three purposes:
     operations directed at the URL of the Resource will act upon that Version,
     not the Resource itself. See
     [Default Version of a Resource](#default-version-of-a-resource) and
-    [Versions](#versions) for more details.<br>
+    [Versions](#versions-apis) for more details.<br>
 3 - It has a set of attributes for Resource level metadata - data that is not
     specific to one Version of the Resource but instead applies to the
     Resource in general. These attributes appear under a `meta`
@@ -4390,10 +4599,11 @@ and the following Resource level attributes:
 - Type: Boolean
 - Description: indicates whether or not the "default" Version has been
   explicitly set or whether the "default" Version is always the newest one
-  based on the `createdat` timestamp. A value of `true` means that it has been
-  explicitly set and the value of `defaultversionid` MUST NOT automatically
-  change if Versions are added or removed. A value of `false` means the default
-  Version MUST be the newest Version based on `createdat` timestamps.
+  (based on the Resource's [`versionmode`](#model.versionmode) algorithm).
+  A value of `true` means that it has been explicitly set and the value of
+  `defaultversionid` MUST NOT automatically change if Versions are added or
+  removed. A value of `false` means the default Version MUST be the newest
+  Version.
 
   When set to `true`, if the default Version is deleted, then without any
   indication of which Version is to become the new default Version, the
@@ -5476,7 +5686,7 @@ GET /GROUPS/gID/RESOURCES/rID
 
 This MUST retrieve the default Version of a Resource. Note that `rID` will be
 the `SINGULARid` of the Resource and not the `versionid` of the underlying
-Version (see [Resources](#resources)).
+Version (see [Resources API](#resources-apis)).
 
 A successful response MUST either be:
 - `200 OK` with the Resource document in the HTTP body.
@@ -5663,7 +5873,7 @@ Deleting a Resource MUST delete all Versions within the Resource.
 
 ---
 
-### Versions
+### Versions APIs
 
 Versions represent historical instances of a Resource. When a Resource is
 updated, there are two actions that might take place. First, the update can
@@ -5793,31 +6003,11 @@ as defined below:
 - Description: The `versionid` of this Version's ancestor.
 
   The `ancestor` attribute MUST be set to the `versionid` of this Version's
-  ancestor If this Version is a root of an ancestor hierarchy tree then it
+  ancestor. If this Version is a root of an ancestor hierarchy tree then it
   MUST be set to its own `versionid` value.
 
-  When creating a Version without explicitly setting the `ancestor`
-  attribute, the server MUST set the `ancestor` to the most recent Version's
-  `versionid` attribute. If no Versions exist, the `ancestor` attribute MUST
-  be set to the `versionid` of the Version being created, making it a root.
-  If there are existing Versions, the strategy for finding the most recent
-  Version is as follows:
-  1. Find all Versions that are not referenced as an `ancestor` in other
-     Versions.
-  1. If many exist, find the Version with the most recent `createdat` date.
-  1. If many exist, select the first Version sorting all Versions in
-     descending case-insensitive alphabetical order based on the `versionid`
-     attribute.
-
-  If a write operation contains multiple Versions with the `ancestor` attribute
-  omitted, or set to a value of `null`, the server MUST order all of those
-  Versions based on the `createdat` attribute and then alphabetically
-  (ascending) based on the `versionid`. The first Version will have the most
-  recent Version's `versionid` as its `ancestor` as clarified above.
-
-  When deleting a Version, the server MUST update the `ancestor` attribute
-  of any Version that points to the deleted Version to point to itself,
-  making it a new root.
+  See the Resource's [`versionmode`](#model.versionmode) model aspect for
+  more information on how this attribute value can be populated.
 
   If a create operation asks the server to choose the `versionid` when
   creating a root Version, the `versionid` is not yet known and therefore
@@ -5951,13 +6141,9 @@ As Versions of a Resource are added or removed, there needs to be a mechanism
 by which the "default" one is determined. There are two options for how this
 might be done:
 
-1. Newest = Default. The newest Version created (based on `createdat` timestamp)
-   is always the "default" Version. This is the default choice. If more than
-   one Version has the same "newest" `createdat` timestamp, then the choice
-   the Version with the highest alphabetical `versionid` value using
-   case-insensitive compares MUST be chosen. For example, if there are 3
-   Versions with `versionid` values of `v10`, `z1` and `V2`, then ordering
-   of the Versions from oldest to newest would be: `v10`, `V2`, `z1`.
+1. Newest = Default. The newest Version (based on the Resource's
+   [`versionmode`](#model.versionmode) algorithm) MUST be the "default"
+   Version. This is the default choice.
 
 1. Client explicitly chooses the "default". In this option, a client has
    explicitly chosen which Version is the "default" and it will not change
