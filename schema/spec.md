@@ -146,8 +146,11 @@ Versions of a single **schema** MUST adhere to the rules defined by the
 `compatibility` attribute. Any breaking change MUST result in a new **schema**
 being created.
 
-In "semantic Versioning" terms, you can think of a **schema** as a "major
-version" and the **schema Versions** as "minor versions".
+In "Semantic Versioning" terms, you can think of a **schema** as a "major
+version" and the **schema Versions** as "minor versions", although the
+semantics are, of course, quite different (e.g. a minor version in Semantic
+Versioning does not allow removing public properties, whereas in a schema with
+backward compatibility, deleting a field is allowed).
 
 ## Schema Registry Model
 
@@ -317,6 +320,9 @@ the core xRegistry Resource
   For many schema registry use cases this attribute is important for schema
   validation purposes, and as such implementations can choose to modify the
   model to make this attribute mandatory.
+
+  Managers of the xRegistry instance can set a default value for this
+  attribute, making it a required attribute.
 - Constraints:
   - If present, MUST be a non-empty string
   - MUST follow the naming convention `{NAME}/{VERSION}`, whereby `{NAME}` is
@@ -324,6 +330,9 @@ the core xRegistry Resource
     format in the format defined by the schema format itself.
   - MUST be a Version level attribute defined within the `attributes` section
     of the model.
+  - MUST be present if the `compatibility`-attribute is set to a value other
+    than `None` and when the `compatibilityauthority`-attribute is set to
+    `server`, to enable validation of the schema document.
 - Examples:
   - `JsonSchema/draft-07`
   - `Protobuf/3`
