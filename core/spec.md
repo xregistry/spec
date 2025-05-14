@@ -25,7 +25,7 @@ automation and tooling.
   - [Registry Capabilities](#registry-capabilities)
   - [Registry Model](#registry-model)
     - [Retrieving the Registry Model](#retrieving-the-registry-model)
-    - [Updating the Registry Model](#updating-the-registry-model)
+    - [Creating or Updating the Registry Model](#creating-or-updating-the-registry-model)
   - [Groups APIs](#groups-apis)
     - [Retrieving a Group Collection](#retrieving-a-group-collection)
     - [Creating or Updating Groups](#creating-or-updating-groups)
@@ -134,13 +134,13 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
     "STRING": ... *                     # Extension capabilities
   }, ?
 
-  "model": {                            # Only if inlined
+  "model": {                            # Full model. Only if inlined
     "labels": { "STRING": "STRING" * }, ?
     "attributes": {                     # Registry level attributes/extensions
       "STRING": {                       # Attribute name (case-sensitive)
         "name": "STRING",               # Same as attribute's key
         "type": "TYPE",                 # string, decimal, array, object, ...
-        "target": "STRING", ?           # If "type" is "xid" or "url"
+        "target": "XIDTYPE", ?          # If "type" is "xid" or "url"
         "namecharset": "STRING", ?      # If "type" is "object"
         "description": "STRING", ?
         "enum": [ VALUE * ], ?          # Array of scalar values of type "TYPE"
@@ -153,7 +153,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
         "attributes": { ... }, ?        # If "type" above is object
         "item": {                       # If "type" above is map,array
           "type": "TYPE", ?             # map value type, or array type
-          "target": "STRING", ?         # If this item "type" is xid/url
+          "target": "XIDTYPE", ?        # If this item "type" is xid/url
           "namecharset": "STRING", ?    # If this item "type" is object
           "attributes": { ... }, ?      # If this item "type" is object
           "item": { ... } ?             # If this item "type" is map,array
@@ -166,6 +166,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
         } ?
       } *
     },
+    "modelsource": { ... }, ?
 
     "groups": {
       "STRING": {                       # Key=plural name, e.g. "endpoints"
@@ -176,6 +177,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
         "compatiblewith": "URI", ?      # Statement of compatibility with model spec
         "labels": { "STRING": "STRING" * }, ?
         "attributes": { ... }, ?        # Group level attributes/extensions
+        "ximportresources": [ "XIDTYPE", * ], ?   # Include these Resources
 
         "resources": {
           "STRING": {                   # Key=plural name, e.g. "messages"
@@ -199,6 +201,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       } *
     } ?
   }, ?
+  "modelsource": { ... }, ?                        # Input model, if inlined
 
   # Repeat for each Group type
   "GROUPSurl": "URL",                              # e.g. "endpointsurl"
@@ -360,6 +363,7 @@ information about each data type):
 - `URLABSOLUTE`
 - `URLRELATIVE`
 - `XID`
+- `XIDTYPE`
 - `TYPE` - one of the allowable data type names (MUST be in lower case) listed
   in [Attributes and Extensions](#attributes-and-extensions)
 
@@ -618,6 +622,11 @@ be one of the following data types:
   value references the correct type of Registry entity. See the definition of
   the [`target` model attribute](#model.target) for more information.
   Its value MUST start with a `/`.
+- `xidtype` - MUST be a `URL` reference to an xRegistry model type. The
+   reference MUST point to one of: the Registry itself (`/`), a Group type
+   (`/GROUPS`), a Resource type (`/GROUPS/RESOURCE`) or Version type for a
+   Resource (`/GROUPS/RESOURCES/versions`). Its value MUST reference a
+   defined/valid type in the Registry.
 - `string` - sequence of Unicode characters.
 - `timestamp` - an [RFC3339](https://tools.ietf.org/html/rfc3339) timestamp.
   Use of a `time-zone` notation is RECOMMENDED.
@@ -652,7 +661,7 @@ The root path of a Registry service MAY be at the root of a host or have a
 
 The "scalar" data types are: `boolean`, `decimal`, `integer`, `string`,
 `timestamp`, `uinteger`, `uri`, `uriabsolute`, `urirelative`, `uritemplate`,
-`url`, `urlabsolute`, `urlrelative`, `xid`.
+`url`, `urlabsolute`, `urlrelative`, `xid`, `xidtype`.
 Note that `any` is not a "scalar" type as its runtime value could be a complex
 type such as `object`.
 
@@ -1071,7 +1080,8 @@ This specification defines the following API patterns:
 ```yaml
 /                                               # Access the Registry
 /capabilities                                   # Access available features
-/model                                          # Access the model definitions
+/model                                          # Access full model definitions
+/modelsource                                    # Access model customizations
 /export                                         # Retrieve Registry as a doc
 /GROUPS                                         # Access a Group Type
 /GROUPS/gID                                     # Access a Group
@@ -1674,6 +1684,7 @@ The serialization of the Registry entity adheres to this form:
 
   "capabilities": { Registry capabilities }, ?   # Only if inlined
   "model": { Registry model }, ?                 # Only if inlined
+  "modelsource": { Registry model }, ?           # Only if inlined
 
   # Repeat for each Group type
   "GROUPSurl": "URL",                            # e.g. "endpointsurl"
@@ -1706,9 +1717,9 @@ The Registry entity includes the following
 and the following Registry level attributes:
 
 ##### `specversion` Attribute
-- Type: String
+- Type: String.
 - Description: The version of this specification that the serialization
-  adheres to
+  adheres to.
 
 - Constraints:
   - REQUIRED.
@@ -1719,13 +1730,41 @@ and the following Registry level attributes:
   - `1.0`
 
 ##### `model` Attribute
-- Type: Registry Model
-- Description: A description of the features, extension attributes, Groups and
-  Resources supported by this Registry. See [Registry Model](#registry-model)
+- Type: Registry Model.
+- Description: A full description of the features, Groups, Resources and
+  attributes (specification defined and extensions) supported by this
+  Registry. See [Registry Model](#registry-model).
+
+  This view of the model is useful for tooling that needs a complete view of
+  what will be part of any message exchange with the server.
 
 - Constraints:
   - MUST NOT be included in API and document views unless requested.
   - MUST be included in API and document views if requested.
+  - MUST be a read-only attribute.
+
+##### `modelsource` Attribute
+- Type: Registry Model
+- Description: A description of the "model" definition that was used to create
+  this Registry. Unlike `model`, which includes all aspects of the model, this
+  is mean to represent just the customizations, or extensions, to the base
+  xRegistry model as defined this specification. This allows for users to
+  view (and edit) just the custom aspects of the model without the "noise" of
+  the specification defined parts being added.
+
+  If the implementation supports modifying the model, then this attribute,
+  or the `/modelsource` API are the mechanisms by which it MAY be done.
+
+  The serialization of this attribute MUST be semantically equivalent to
+  what was used to create the model, but it is NOT REQUIRED to be syntactically
+  equivalent. In other words, it might be "pretty-printed", but it MUST NOT
+  include additional aspects even if those are defined/mandated by the
+  specification.
+
+- Constraints:
+  - MUST NOT be included in API and document views unless requested.
+  - MUST be included in API and document views if requested.
+  - MAY be mutable based on the capabilities of the implementation.
 
 ##### `GROUPS` Collections
 - Type: Set of [Registry Collections](#registry-collections)
@@ -1781,6 +1820,7 @@ Content-Type: application/json; charset=utf-8
 
   "capabilities": { Registry capabilities }, ?   # Only if inlined
   "model": { Registry model }, ?                 # Only if inlined
+  "modelsource": { Registry model }, ?           # Only if inlined
 
   # Repeat for each Group type
   "GROUPSurl": "URL",                 # e.g. "endpointsurl"
@@ -1921,7 +1961,7 @@ If-Match: "UINTEGER|*" ?
   "createdat": "TIMESTAMP", ?
   "modifiedat": "TIMESTAMP", ?
 
-  "model": { Registry model }, ?
+  "modelsource": { Registry model }, ?
 
   # Repeat for each Group type
   "GROUPS": { GROUPS collection } ?
@@ -1931,9 +1971,10 @@ If-Match: "UINTEGER|*" ?
 Where:
 - The HTTP body MUST contain the full JSON representation of the Registry
   entity's mutable attributes.
-- The request MAY include the `'model` attribute if the Registry model
-  definitions are to be updated as part of the request. See [Updating the
-  Registry Model](#updating-the-registry-model) for more information.
+- The request MAY include the `'modelsource` attribute if the Registry model
+  definitions are to be updated as part of the request. See [Creating or
+  Updating the Registry Model](#creating-or-updating-the-registry-model) for
+  more information.
   If present, the Registry's model MUST be updated prior to any entities being
   updated. A value of `null` MUST generate an error
   ([invalid_data](#invalid_data)).
@@ -1965,7 +2006,7 @@ Content-Type: application/json; charset=utf-8
 }
 ```
 
-Note that the response MUST NOT include the `model` attribute, nor any
+Note that the response MUST NOT include the `model*` attributes, nor any
 inlined GROUPS collections.
 
 **Examples:**
@@ -2086,6 +2127,7 @@ The following defines the specification-defined capabilities:
   - `/capabilities`
   - `/export`
   - `/model`
+  - `/modelsource`
 - Values MUST start with `/`.
 - When not specified, the default value MUST be an empty list and no APIs
   beyond ones for the data model are supported.
@@ -2116,12 +2158,12 @@ The following defines the specification-defined capabilities:
 - Type: Array of strings
 - Description: The list of items in the Registry that can be edited by the
   client. `entities` refers to Groups, Resources, Versions and the Registry
-  itself. `model` refers to the ability to modify the Registry model.
+  itself. `modelsource` refers to the ability to modify the Registry model.
   `capabilities` refers to the ability to modify (and configure) the
   server. Presence in this list does not guarantee that a client can edit
   all items of that type. For example, some Resources might still be read-only
   even if the client has the ability to edit Resources in general.
-- Supported values: `capabilities`, `entities`, `model`.
+- Supported values: `capabilities`, `entities`, `modelsource`.
 - When not specified, the default value MUST be an empty list and the Registry
   is read-only.
 
@@ -2247,7 +2289,7 @@ Regardless of the mechanism used to update the capabilities, the Registry's
 In order for a client to discover the list of available values for each
 capability, an HTTP `GET` MAY be sent to the `/capabilities` API with the
 `?offered` query parameter and the response MUST adhere to the following
-(which borrows many of the same structure from the `/model` API):
+(which borrows much of the same structure from the model definition language):
 
 ```yaml
 GET /capabilities?offered
@@ -2291,7 +2333,7 @@ GET /capabilities?offered
 {
   "apis": {
     "type": "string",
-    "enum": [ "/capabilities", "/export", "/model" ]
+    "enum": [ "/capabilities", "/export", "/model", /"modelsource" ]
   },
   "flags": {
     "type": "string",
@@ -2356,81 +2398,15 @@ in the `/capabilities?offered` output (assuming both APIs are supported).
 
 ### Registry Model
 
-The Registry model defines the Groups, Resources, extension attributes and
-changes to specification-defined attributes. This information is
-intended to be used by tooling that does not have knowledge of the structure of
-the Registry in advance and therefore will need to dynamically discover it.
+The Registry model defines the Groups, Resources, attributes and changes to
+specification-defined attributes that define what a Registry instance supports.
+This information is intended to be used by tooling that does not have
+knowledge of the structure of the Registry in advance and therefore will need
+to dynamically discover it.
 
-To enable support for a wide range of use cases, but to also ensure
-interoperability across implementations, the following rules have been defined
-with respect to how models are defined or updated:
-- Changes to specification-defined attributes MAY be included in the model but
-  MUST NOT change them such that they become incompatible with the
-  specification. For example, changes to further constrain the allowable values
-  of an attribute is typically allowed, but changing its `type` from `string`
-  to `int` is not.
-- Specification-defined attributes that are `required` MUST NOT have this
-  aspect changed to `false`.
-- Specification-defined attributes that are `readonly` MUST NOT have this
-  aspect changed to `false`.
-
-Any specification attributes not included in a request to define, or update,
-a model MUST be included in the resulting model. In other words, the
-Registry's model consists of the specification-defined attributes overlaid
-with the attributes that are explicitly-defined as part of a model
-create/update request.
-
-Note: there is no mechanism defined to delete specification-defined attributes
-from the model.
-
-Registries MAY support extension attributes to the model language (meaning,
-new attributes within the model definitions themselves), but only if
-the server supports them. Servers MUST generate an error
-([model_error](#model_error)) if a model definition includes unknown model
-language attributes.
-
-Once a Registry has been created, changes to the model MAY be supported by
-server implementations. This specification makes no statement as to what types
-of changes are allowed beyond the following requirements:
-- Any model changes MUST result in a specification compliant model definition.
-- Servers MUST ensure that the representation of all entities within the
-  Registry MUST adhere to the current model prior to completing any request.
-
-Any request to update the model that does not adhere to those requirements
-MUST generate an error ([model_compliance_error](#model_compliance_error)).
-
-How the server guarantees that all entities in the Registry are compliant with
-the model is an implementation detail. For example, while it is
-NOT RECOMMENDED, it is valid for an implementation to modify (or even delete)
-existing entities to ensure model compliance. Instead, it is RECOMMENDED that
-the model update requests generate an error
-([model_compliance_error](#model_compliance_error)) if existing entities are
-not compliant.
-
-Additionally, is it STRONGLY RECOMMENDED that model updates be limited to
-backwards compatible changes.
-
-Implementations MAY choose to limit the types of changes made to the model,
-or not support model updates at all.
-
-The xRegistry schema (model definition) used to create a sample xRegistry can
-be found [here](./sample-model.json), while the resulting "full" model (with
-all of the system defined aspects added) can be found
-[here](./sample-model-full.json).
-
-The Registry model can be retrieved two ways:
-
-1. as a stand-alone entity via an HTTP `GET` to the `/model` API. This is
-   useful when management of the Registry's model is needed independent of the
-   entities within the Registry.  See [Retrieving the Registry
-   Model](#retrieving-the-registry-model) for more information.
-2. as part of the Registry contents by requesting the `model` attribute be
-   inlined. This is useful when it is desirable to view the entire Registry as
-   a single document - such as an "export" type of scenario. See the
-   [Retrieving the Registry](#retrieving-the-registry) section for more
-   information on this option.
-
-Regardless of how the model is retrieved, the overall format is as follows:
+The following sections will go into the details of how to create, retrieve
+and edit the model of a Registry, but the overall format of a model definition
+is as follows:
 
 ```yaml
 {
@@ -2439,7 +2415,7 @@ Regardless of how the model is retrieved, the overall format is as follows:
     "STRING": {                        # Attribute name
       "name": "STRING",                # Same as attribute's key
       "type": "TYPE",                  # boolean, string, array, object, ...
-      "target": "STRING", ?            # If "type" is "xid" or "url"
+      "target": "XIDTYPE", ?           # If "type" is "xid" or "url"
       "namecharset": "STRING", ?       # If "type" is "object"
       "description": "STRING",
       "enum": [ VALUE * ], ?           # Array of values of type "TYPE"
@@ -2452,7 +2428,7 @@ Regardless of how the model is retrieved, the overall format is as follows:
       "attributes": { ... }, ?         # If "type" above is object
       "item": {                        # If "type" above is map,array
         "type": "TYPE", ?              # map value type, or array type
-        "target": "STRING", ?          # If this item "type" is xid/url
+        "target": "XIDTYPE", ?         # If this item "type" is xid/url
         "namecharset": "STRING", ?     # If this item "type" is object
         "attributes": { ... }, ?       # If this item "type" is object
         "item": { ... } ?              # If this item "type" is map,array
@@ -2475,6 +2451,7 @@ Regardless of how the model is retrieved, the overall format is as follows:
       "compatiblewith": "URI", ?       # Statement of compatibility with model spec
       "labels": { "STRING": "STRING" * }, ?
       "attributes": { ... }, ?         # See "attributes" above
+      "ximportresources": [ "XIDTYPE", * ], ?   # Include these Resources
 
       "resources": {
         "STRING": {                    # Key=plural name, e.g. "messages"
@@ -2591,9 +2568,9 @@ The following describes the attributes of Registry model:
     - `/GROUPS/RESOURCES` - a plural Resource type name. An entity attribute
       of this type/target MUST reference an instance of this Resource type,
       not a specific Version of the Resource.
-    - `/GROUPS/RESOURCES[/versions]` - a Version or Resource type name. An
-      entity attribute of this type/target MUST reference either an instance
-      of this Resource type or an instance of a Version of this Resource type.
+    - `/GROUPS/RESOURCES[/versions]`. An entity attribute of this type/target
+      MUST reference either an instance of this Resource type or an instance
+      of a Version of this Resource type.
     - `/GROUPS/RESOURCES/versions` - a Version of a Resource type. An entity
       attribute of this type/target MUST reference an instance of a Version
       of this Resource type, not the Resource itself.
@@ -2604,11 +2581,11 @@ The following describes the attributes of Registry model:
   - A URI/URL-reference entity attribute MAY include `target` as part of its
     definition. If so, then any runtime value that is a relative URI/URL
     (begins with `/`) MUST be an `xid` and MUST adhere to the `target` entity
-    type specified. Absolute URIs/URLs are not constrained by the presence of
-    a `target` value.
+    type specified, if specified. Absolute URIs/URLs are not constrained by
+    the presence of a `target` value.
   - To keep the model, and processing simple, the value MUST NOT reference a
-    type that uses `ximport` to reference another model entity definition. In
-    other words, `target` is not transitive.
+    type that uses `ximportresources` to reference another Resource model
+    entity definition. In other words, `target` is not transitive.
   - Example: `/endpoints/messages`
 
 - `attributes."STRING".namecharset` <span id="model.namecharset"></span>
@@ -3190,36 +3167,68 @@ Clarifying the  usage of the `attributes`, `resourceattributes` and
 
 #### Retrieving the Registry Model
 
-To retrieve the Registry Model as a stand-alone entity, an HTTP `GET` MAY be
-used.
+The Registry model is available in two forms:
+- The full "model" with all possible aspects of the model defined.
+- The "modelsource" form represents just the model aspects specified when
+  the model was defined.
+
+The full "model" view can be thought of as a full schema definition of what the
+messages exchanges with the server might look like. As such, it includes
+the Groups, Resources, model-specific attributes, extension attributes,
+specification defined attributes and overrides to those specification defined
+attributes.
+
+The "modelsource" view of the model is just what was provided by the user when
+the model was defined, or last edited. It is expected that this view of the
+model is much smaller than the full model and only includes
+domain-specific information. While specification defined attributes MAY appear
+in this document, they are NOT RECOMMENDED since the server will automatically
+add them and so users do not need to concern themselves with those details.
+
+The modelsource document is always a semantic subset of the full model
+document.
+
+To retrieve either of the model views as a stand-alone entity, an HTTP `GET`
+MAY be used. In the case of retrieving the full model, the result MUST include
+the full Registry model - meaning all specification-defined attributes,
+extension attributes, Group types, and Resource types.
 
 Registries MAY support exposing the model in a variety of well-defined schema
 formats. The `schemas` capabilities attribute MUST expose the set of schema
 formats available.
 
-The resulting schema document MUST include the full Registry model - meaning
-all specification-defined attributes, extension attributes, Group types, and
-Resource types.
-
 For the sake of brevity, this specification doesn't include the full definition
 of the specification-defined attributes as part of the snippets of output.
 However, an example a full model definition of a sample Registry can be
-can be found in this sample [sample-model.json](sample-model.json).
+can be found in this sample [sample-model-full.json](sample-model-full.json).
 
-The request MUST be of the form:
+The full model MAY be retrieved via:
+- `GET /model[?schema=NAME[/VERSION]]`
+- `GET /?inline=model`
 
-```yaml
-GET /model[?schema=NAME[/VERSION]]
-```
+Where a successful response MUST include the full model definition, adhering
+to the model format specified above.
 
-Where:
+The modelsource MAY be retrieved via:
+- `GET /modelsource[?schema=NAME[/VERSION]]`
+- `GET /?inline=modelsource`
+
+Where a successful response MUST include the model definition last used when
+updating the model, adhering to the model format specified above.
+
+Additionally:
 - When specified, the `?schema` query parameter MUST be one of the valid
   `schema` capabilities values (case-insensitive).
 - When not specified, the default value MUST be `xRegistry-json/1.0-rc1`.
+- The `/model` API  and `model` attribute MUST be a read-only.
+- The `/modelsource` API  and `modelsource` attribute MAY be used to retrieve
+  the model specification last used to update the model.
 
-Implementations of this specification MUST support `xRegistry-json/1.0-rc1`.
+Implementations of this specification MUST support a schema value of
+`xRegistry-json/1.0-rc1`, if they support the `schema` flag.
 
-A successful response MUST be of the form:
+In the case of using the `/model` and `/modelsource` APIs, the response MUST
+adhere to:
 
 ```yaml
 HTTP/1.1 200 OK
@@ -3234,8 +3243,8 @@ Where:
 - When a `VERSION` is not specified as part of the `?schema` query parameter
   then the server MAY choose any schema version of the specified schema format.
   However, it is RECOMMENDED that the newest supported version be used.
-- The model MUST include the definition of all top-level attributes, whether
-  they are defined by the user or this specification. This includes
+- The full model MUST include the definition of all top-level attributes,
+  whether they are defined by the user or this specification. This includes
   `capabilities`, `model`,`RESOURCE` attributes, `meta`, `metaurl` and
   `COLLECTION` attributes. This means that as model updates are made, the
   model MUST change to align with the new set of Groups, Resources and their
@@ -3261,7 +3270,7 @@ Content-Type: application/json; charset=utf-8
     "STRING": {
       "name": "STRING",
       "type": "TYPE",
-      "target": "STRING", ?
+      "target": "XIDTYPE", ?
       "namecharset": "STRING", ?
       "description": "STRING", ?
       "enum": [ VALUE * ], ?
@@ -3291,6 +3300,7 @@ Content-Type: application/json; charset=utf-8
       "compatiblewith": "URI", ?
       "labels": { "STRING": "STRING" * }, ?
       "attributes": { ... }, ?
+      "ximportresources": [ "XIDTYPE", * ], ?
 
       "resources": {
         "STRING": {
@@ -3368,201 +3378,40 @@ Content-Type: application/json; charset=utf-8
 }
 ```
 
-#### Updating the Registry Model
+#### Creating or Updating the Registry Model
 
-To update the Registry model, the new full representation of the model
-MAY be included on an HTTP `PUT` to the Registry Entity in the `model`
-attribute, or a `PUT` MAY be done to the `/model` API. Note that `PATCH`
-is not supported via the `/model` API.
+The create, or update, the model a Registry, the new model definition MAY
+be provided to the server via one of two mechanisms:
+- The `PUT /modelsource` API.
+- The `modelsource` attribute MAY be included on a `PUT /` API request.
 
-While the remainder of this section is presented within the scope of the
-`/model` API, the processing rules of the model definition MUST also apply
-when it is updated via the `model` attribute on the Registry entity.
+The input JSON object in both cases MUST align with the pseudo JSON format
+of the model as specific above. It MAY include as much of the full model
+as the user would like to specify, but as stated previously, it is RECOMMENDED
+that it only include the domain-specific aspects needed to be added to the
+specification defined features. This will keep the input small and more easily
+managed if updates are ever needed to be made.
 
-The request MUST be of the form:
+The response of a successful `PUT /modelsource` MUST be the same as the result
+of a `GET /modelsource` API call.
 
-```yaml
-PUT /model
-Content-Type: application/json; charset=utf-8
-
-{
-  "labels": { "STRING": "STRING" * }, ?
-  "attributes": {
-    "STRING": {
-      "name": "STRING",
-      "type": "TYPE",
-      "target": "STRING", ?
-      "namecharset": "STRING", ?
-      "description": "STRING", ?
-      "enum": [ VALUE * ], ?
-      "strict": BOOLEAN, ?
-      "readonly": BOOLEAN, ?
-      "immutable": BOOLEAN, ?
-      "required": BOOLEAN, ?
-      "default": VALUE, ?
-
-      "attributes": { ... }, ?               # For nested object
-      "item": { ... }, ?                     # For nested map, array
-
-      "ifvalues": {
-        "VALUE": {
-          "siblingattributes": { ... }
-        } *
-      } ?
-    } *
-  },
-
-  "groups": {
-    "STRING": {
-      "plural": "STRING",
-      "singular": "STRING",
-      "description": "STRING", ?
-      "modelversion": "STRING", ?
-      "compatiblewith": "URI", ?
-      "labels": { "STRING": "STRING" * }, ?
-      "attributes": { ... }, ?               # See "attributes" above
-
-      "resources": {
-        "STRING": {
-          "plural": "STRING",
-          "singular": "STRING",
-          "description": "STRING", ?
-          "maxversions": UINTEGER, ?
-          "setversionid": BOOLEAN, ?
-          "setdefaultversionsticky": BOOLEAN, ?
-          "hasdocument": BOOLEAN, ?
-          "singleversionroot": BOOLEAN, ?
-          "typemap": MAP, ?
-          "modelversion": "STRING", ?
-          "compatiblewith": "URI", ?
-          "labels": { "STRING": "STRING" * }, ?
-          "attributes": { ... }, ?           # Version attributes/extensions
-          "resourceattributes": { ... }, ?   # Resource attributes/extensions
-          "metaattributes": { ... } ?        # Meta attributes/extensions
-        } *
-      } ?
-    } *
-  } ?
-}
-```
-
-Where:
-- The HTTP body MUST contain all of the attributes, Groups and Resources that
-  the client wishes to define.
-- Specification-defined attributes not included in the request MUST be added
-  by the server with their default definitions.
-
-See [Registry Model](#registry-model) for more details about the list of
-allowable changes to a model.
-
-A successful response MUST include a full representation of the Registry model
-and be of the form:
+The following sample model definition defines one Group type (`dirs`) that
+contains one Resource type (`files`), which also has one attribute called
+`owner` (a string):
 
 ```yaml
-HTTP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
-
-{
-  "labels": { "STRING": "STRING" * }, ?
-  "attributes": {
-    "STRING": {
-      "name": "STRING",
-      "type": "TYPE",
-      "target": "STRING", ?
-      "namecharset": "STRING", ?
-      "description": "STRING", ?
-      "enum": [ VALUE * ], ?
-      "strict": BOOLEAN, ?
-      "readonly": BOOLEAN, ?
-      "immutable": BOOLEAN, ?
-      "required": BOOLEAN, ?
-      "default": VALUE, ?
-
-      "attributes": { ... }, ?
-      "item": { ... }, ?
-
-      "ifvalues": {
-        "VALUE": {
-          "siblingattributes": { ... }
-        } *
-      } ?
-    } *
-  },
-
+"modelsource": {
   "groups": {
-    "STRING": {
-      "plural": "STRING",
-      "singular": "STRING",
-      "description": "STRING", ?
-      "modelversion": "STRING", ?
-      "compatiblewith": "URI", ?
-      "labels": { "STRING": "STRING" * }, ?
-      "attributes": { ... }, ?
-
+    "dirs": {
+      "singular": "dir",
       "resources": {
-        "STRING": {
-          "plural": "STRING",
-          "singular": "STRING",
-          "description": "STRING", ?
-          "maxversions": UINTEGER, ?
-          "setversionid": BOOLEAN, ?
-          "setdefaultversionsticky": BOOLEAN, ?
-          "hasdocument": BOOLEAN, ?
-          "singleversionroot": BOOLEAN, ?
-          "typemap": MAP, ?
-          "modelversion": "STRING", ?
-          "compatiblewith": "URI", ?
-          "labels": { "STRING": "STRING" * }, ?
-          "attributes": { ... }, ?
-          "resourceattributes": { ... }, ?
-          "metaattributes": { ... } ?
-        } *
-      } ?
-    } *
-  } ?
-}
-```
-
-**Examples:**
-
-Update a Registry's model to add a new Group type:
-
-```yaml
-PUT /model
-Content-Type: application/json; charset=utf-8
-
-{
-  "groups": {
-    "endpoints": {
-      "plural": "endpoints",
-      "singular": "endpoint",
-      "attributes": {
-        "shared": {
-          "name": "shared",
-          "type": "boolean"
-        }
-      },
-
-      "resources": {
-        "messages": {
-          "plural": "messages",
-          "singular": "message",
+        "files": {
+          "singular": "file"
           "attributes": {
-            "*": {
-              type: "any"
+            "owner": {
+              "type": "string"
             }
           }
-        }
-      }
-    },
-    "schemagroups": {
-      "plural": "schemagroups",
-      "singular": "schemagroup",
-
-      "resources": {
-        "schemas": {
-          "plural": "schemas",
-          "singular": "schema"
         }
       }
     }
@@ -3570,68 +3419,77 @@ Content-Type: application/json; charset=utf-8
 }
 ```
 
-```yaml
-HTTP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
+To enable support for a wide range of use cases, but to also ensure
+interoperability across implementations, the following rules have been defined
+with respect to how models are defined or updated:
+- Changes to specification-defined attributes MAY be included in the model but
+  MUST NOT change them such that they become incompatible with the
+  specification. For example, changes to further constrain the allowable values
+  of an attribute is typically allowed, but changing its `type` from `string`
+  to `int` is not.
+- Specification-defined attributes that are `required` MUST NOT have this
+  aspect changed to `false`.
+- Specification-defined attributes that are `readonly` MUST NOT have this
+  aspect changed to `false`.
 
-{
-  "attributes": {
-    ... xRegistry spec-defined attributes excluded for brevity ...
-  },
-  "groups": {
-    "endpoints" {
-      "plural": "endpoints",
-      "singular": "endpoint",
-      "attributes": {
-        ... xRegistry spec-defined attributes excluded for brevity ...
-        "shared": {
-          "name": "shared",
-          "type": "boolean"
-        }
-      },
+Any specification attributes not included in a request to define, or update,
+a model MUST be included in the resulting full model. In other words, the full
+Registry's model consists of the specification-defined attributes overlaid
+with the attributes that are explicitly-defined as part of a "modelsource"
+update request.
 
-      "resources": {
-        "messages": {
-          "plural": "messages",
-          "singular": "message",
-          ... xRegistry spec-defined attributes excluded for brevity ...
-          "attributes": {
-            "*": {
-              type: "any"
-            }
-          }
-          "maxversions": 1
-        }
-      }
-    },
-    "schemagroups": {
-      "plural": "schemagroups",
-      "singular": "schemagroup",
+Note: there is no mechanism defined to delete specification-defined attributes
+from the model.
 
-      "resources": {
-        "schemas": {
-          "plural": "schemas",
-          "singular": "schema"
-          ... xRegistry spec-defined attributes excluded for brevity ...
-        }
-      }
-    }
-  }
-}
-```
+Registries MAY support extension attributes to the model language (meaning,
+new attributes within the model definitions themselves), but only if
+the server supports them. Servers MUST generate an error
+([model_error](#model_error)) if a model definition includes unknown model
+language attributes.
+
+Once a Registry has been created, changes to the model MAY be supported by
+server implementations. This specification makes no statement as to what types
+of changes are allowed beyond the following requirements:
+- Any model changes MUST result in a specification compliant model definition.
+- Servers MUST ensure that the representation of all entities within the
+  Registry MUST adhere to the current model prior to completing any request.
+
+Any request to update the model that does not adhere to those requirements
+MUST generate an error ([model_compliance_error](#model_compliance_error)).
+
+How the server guarantees that all entities in the Registry are compliant with
+the model is an implementation detail. For example, while it is
+NOT RECOMMENDED, it is valid for an implementation to modify (or even delete)
+existing entities to ensure model compliance. Instead, it is RECOMMENDED that
+the model update requests generate an error
+([model_compliance_error](#model_compliance_error)) if existing entities are
+not compliant.
+
+Additionally, is it STRONGLY RECOMMENDED that model updates be limited to
+backwards compatible changes.
+
+Implementations MAY choose to limit the types of changes made to the model,
+or not support model updates at all.
+
+The xRegistry schema (model definition) used to create a sample xRegistry can
+be found [here](./sample-model.json), while the resulting "full" model (with
+all of the system defined aspects added) can be found
+[here](./sample-model-full.json).
 
 ##### Reuse of Resource Definitions
 
 When a Resource type definition is to be shared between Groups, rather than
-creating a duplicate Resource definition, the `ximport` mechanism MAY be used
-instead. When defining the Resources of a Group, a special Resource "plural"
-name MAY be used to reference other Resource definitions from within the same
-Registry. For example, the following abbreviated model definition defines
+creating a duplicate Resource definition, the `ximportresources` mechanism MAY
+be used instead. The `ximportresources` attribute on a Group definition
+allows for a list of XIDTYPE references to other Resource types that are to be
+included within this Group.
+
+For example, the following abbreviated model definition defines
 one Resource type (`messages`) under the `messagegroups` Group, that is
 also used by the `endpoints` Group.
 
 ```yaml
-"model": {
+"modelsource": {
   "groups": {
     "messagegroups": {
       "plural": "messagegroups",
@@ -3646,33 +3504,27 @@ also used by the `endpoints` Group.
     "endpoints": {
       "plural": "endpoints",
       "singular": "endpoint",
-      "resources": {
-        "ximport": [ "messagegroups/messages" ]
-      }
+      "ximportresources": [ "/messagegroups/messages" ]
     }
   }
 }
 ```
 
-The format of the `ximport` specification is:
+The format of the `ximportresources` specification is:
 
 ```yaml
-"ximport": [ "GROUPS/RESOURCES", * ]
+"ximportresources": [ "XIDTYPE", * ]
 ```
 
 where:
-- Each array value MUST be a reference to another GROUPS/RESOURCES plural
-combination defined within the same Registry. It MUST NOT reference the
-same Group under which the `ximport` resides.
+- Each array value MUST be an XIDTYPE reference to another Group/Resource
+  combination defined within the same Registry. It MUST NOT reference the
+  same Group under which the `ximportresources` resides.
 - An empty array MAY be specified, implying no Resources are imported.
 
-Since the `resources` attribute is a map, use of the `ximport` feature MUST
-only be used once per Group definition.
-
-Additional locally defined Resources MAY be defined within a Group that uses
-the `ximport` feature, however, Resource `plural` and `singular` values
-MUST be unique across all imported and locally defined Resources. Locally
-defined Resources MUST NOT use `ximport` as a `plural` or `singular` name.
+Locally defined Resources MAY be defined within a Group that uses the
+`ximportresources` feature, however, Resource `plural` and `singular` values
+MUST be unique across all imported and locally defined Resources.
 
 See [Cross Referencing Resources](#cross-referencing-resources) for more
 additional information.
@@ -4846,8 +4698,8 @@ Appending `$details` to a Resource or Version's URL path modifies the
 serialization of the entity such that rather than the HTTP body containing
 the entity's domain-specific "document" and the xRegistry metadata being
 in HTTP headers, all of them are instead within the HTTP body as one JSON
-object. If the entity's "document" is included within the object then it'll
-appear under a `RESOURCE*` attribute (as discussed above).
+object. If the entity's "document" is included within the object then it
+appears under a `RESOURCE*` attribute (as discussed above).
 
 The advantage of this format is that the HTTP body will contain all of the
 xRegistry metadata and not just the scalar values - as is the case when they
@@ -5105,10 +4957,9 @@ done.
 
 Both the source and target Resources MUST be of the same Resource model type,
 simply having similar Resource type definitions is not sufficient. This
-implies that use of the `ximport` feature in the model to reference a
-Resource type from another Group type definition MUST be used if the same
-Resource type is to exist in different Group types. See
-[`ximport`](#reuse-of-resource-definitions) for more information.
+implies that use of the `ximportresources` feature in the model to reference a
+Resource type from another Group type definition MUST be used.  See
+[`ximportresources`](#reuse-of-resource-definitions) for more information.
 
 An `xref` value that points to a non-existing Resource, either because
 it was deleted or never existed, is not an error and is not a condition
@@ -6678,7 +6529,12 @@ The format of `EXPRESSION` is one of:
 [PATH.]ATTRIBUTE
 [PATH.]ATTRIBUTE=null
 [PATH.]ATTRIBUTE=[VALUE]
-[PATH.]ATTRIBUTE!=[VALUE]
+[PATH.]ATTRIBUTE<VALUE
+[PATH.]ATTRIBUTE<=VALUE
+[PATH.]ATTRIBUTE>VALUE
+[PATH.]ATTRIBUTE>=VALUE
+[PATH.]ATTRIBUTE!=VALUE
+[PATH.]ATTRIBUTE<>VALUE
 ```
 
 Where:
@@ -6710,7 +6566,7 @@ Where:
       `ATTRIBUTE` with this `VALUE` MUST be included in the response.
     - When `VALUE` is absent then the implied `VALUE` is an empty string and
       the matching MUST be done as specified in the previous bullet.
-  - `!=` operator:
+  - `!=`, `<>` operators:
     - When `VALUE` is `null` then it MUST have the same semantics as
      `?filter=ATTRIBUTE` as specified above (present with any non-`null`
      value).
@@ -6718,21 +6574,31 @@ Where:
       `ATTRIBUTE` and `VALUE` MUST be included in the response. This MUST be
       semantically equivalent to `NOT(ATTRIBUTE=VALUE)`, and this also means
       that if `ATTRIBUTE` is missing then that attribute will match the filter.
+  - `<`, `<=`, `>`, `>=` operators:
+    - `VALUE` MUST NOT be `null`.
+    - Only entities with the specified `ATTRIBUTE` and `VALUE` that matches
+      the comparison operator's semantics MUST be included in the response.
+    - `<` refers to "less than".
+    - `<=` refers to "less than or equal to".
+    - `>` refers to "greater than".
+    - `>=` refers to "greater than or equal to".
+    - Wildcards (`*`) (see below) MUST NOT be present in the `VALUE`.
+    - MUST only be used on numeric or string attribute types.
 
-When comparing an `ATTRIBUTE` to the specified `VALUE` the following rules
-MUST apply for an entity to be considered a match of the filter expression:
-- For boolean attributes, its value MUST be an exact case-sensitive match
-  (`true` or `false`).
-- For numeric attributes, it MUST be an exact match.
-- For string attributes, it MUST be an exact match (case-insensitive) when no
-  wildcard (`*`) character appears in the `VALUE`. The presence of a wildcard
-  indicates that any number of characters can appear at that location in the
-  `VALUE`. The wildcard MAY be escaped via the use of a backslash (`\\`)
-  character (e.g. `abc\*def`) to mean that the `*` is to be interpreted as
-  a normal character and not as a wildcard. Note that a `VALUE` of `*` MUST
-  be equivalent to checking for the existence of the attribute, with any
-  value (even an empty string). In other words, the filter will only fail if
-  the attribute has no value at all.
+When comparing an `ATTRIBUTE` to the specified `VALUE`, the type of the
+attribute impacts how the comparisons are done:
+- For boolean attributes, a successful `=` comparison MUST be an exact
+  case-sensitive match (`true` or `false`).
+- For numeric attributes, standard numeric comparisons rules apply.
+- For string attributes, the strings MUST be compared in a case-insensitive
+  manner. `VALUE` MAY include one or more wildcard (`*`) characters. The
+  presence of a wildcard indicates that any number of characters can appear at
+  that location in the `VALUE`. The wildcard MAY be escaped via the use of a
+  backslash (`\\`) character (e.g. `abc\*def`) to mean that the `*` is to be
+  interpreted as a normal character and not as a wildcard. Note that a `VALUE`
+  of `*` MUST be equivalent to checking for the existence of the attribute,
+  with any value (even an empty string). In other words, the filter will only
+  fail if the attribute has no value at all.
 
 If the request references an entity (not a collection), and the `EXPRESSION`
 references an attribute in that entity (i.e. there is no `PATH`), then if the
@@ -6831,6 +6697,7 @@ The `?inline` query parameter on a request indicates that the response
 MUST include the contents of all specified inlinable attributes. Inlinable
 attributes include:
 - The `model` attribute on the Registry entity.
+- The `modelsource` attribute on the Registry entity.
 - The `capabilities` attribute on the Registry entity.
 - All [Registry Collection](#registry-collections) types - e.g. `GROUPS`,
   `RESOURCES` and `versions`.
@@ -6880,13 +6747,13 @@ There MAY be multiple `PATH`s specified, either as comma separated values on
 a single `?inline` query parameter or via multiple `?inline` query parameters.
 
 The `*` value MAY be used to indicate that all nested inlinable attributes
-at that level in the hierarchy (and below) MUST be inlined - except `model`
-and `capabilities` at the root of the Registry. These two are excluded since
-the data associated with them are configuration related. To include their data
-the request MUST include `PATH` values of `model` or `capabilities`. Use of
-`*` MUST only be used as the last part of the `PATH` (in its entirety). For
-example, `foo*` and `*.foo` are not valid `PATH` values, but `*` and
-`endpoints.*` are.
+at that level in the hierarchy (and below) MUST be inlined - except `model`,
+`modelsource` and `capabilities` at the root of the Registry. These three are
+excluded since the data associated with them are configuration related. To
+include their data the request MUST include `PATH` values of `model`,
+`modelsource` or `capabilities`. Use of `*` MUST only be used as the last part
+of the `PATH` (in its entirety). For example, `foo*` and `*.foo` are not
+valid `PATH` values, but `*` and `endpoints.*` are.
 
 An `?inline` query parameter without any value MAY be supported and if so it
 MUST have the same semantic meaning as `?inline=*`.

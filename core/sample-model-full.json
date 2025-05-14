@@ -88,6 +88,15 @@
         }
       }
     },
+    "modelsource": {
+      "name": "modelsource",
+      "type": "object",
+      "attributes": {
+        "*": {
+          "type": "any"
+        }
+      }
+    },
 
     "dirsurl": {
       "name": "dirsurl",

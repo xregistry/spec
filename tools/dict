@@ -129,10 +129,10 @@ metaschemas
 metaurl
 microsoft
 middleware
+modelsource
 modelversion
 modifiedat
 modifiedby
-monotomically
 mqtt
 mqtts
 myattr
@@ -287,6 +287,8 @@ www
 xhtml
 xid
 xids
+xidtype
+ximportresources
 xml
 xmlschema
 xpath
