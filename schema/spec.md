@@ -329,8 +329,8 @@ the core xRegistry Resource
     format in the format defined by the schema format itself.
   - MUST be a Version level attribute defined within the `attributes` section
     of the model.
-  - MUST be present if the `compatibility`-attribute is set to a value other
-    than `None` and when the `compatibilityauthority`-attribute is set to
+  - MUST be present if the `compatibility` attribute is set to a value other
+    than `None` and when the `compatibilityauthority` attribute is set to
     `server`, to enable validation of the schema document.
 - Examples:
   - `JsonSchema/draft-07`

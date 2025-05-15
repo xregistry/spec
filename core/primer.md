@@ -829,13 +829,13 @@ defined in the core specification for consistency. It is worth noting that
 the Endpoint [specification](../endpoint/spec.md) does exactly this to
 indicate when an Endpoint (i.e. a Group) is deprecated.
 
-## The `format`-attribute in the Schema spec
+## The `format` attribute in the Schema spec
 
-The `format`-attribute in the Schema spec is required when the
-`compatibility`-attribute is set to a value other than `None`. This may
+The `format` attribute in the Schema spec is required when the
+`compatibility` attribute is set to a value other than `none`. This may
 appear to be overly restrictive, especially if your Registry implementation
 only supports a single format. The reason for making this field required, is
 to ease interoperability of registries through export-import functionality.
 That means that when exporting a Schema Registry that only supports a single
-format, the `format`-attribute will already be set, avoiding issues when
+format, the `format` attribute will already be set, avoiding issues when
 importing this Registry into a server that may support multiple formats.
