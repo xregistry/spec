@@ -296,6 +296,31 @@
               "required": [
                 "envelope"
               ]
+            },
+            {
+              "anyOf": [
+                {
+                  "not": {
+                    "required": [
+                      "envelope"
+                    ]
+                  }
+                },
+                {
+                  "properties": {
+                    "envelope": {
+                      "not": {
+                        "enum": [
+                          "CloudEvents/1.0"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "envelope"
+                  ]
+                }
+              ]
             }
           ]
         },
@@ -1034,6 +1059,36 @@
               },
               "required": [
                 "protocol"
+              ]
+            },
+            {
+              "anyOf": [
+                {
+                  "not": {
+                    "required": [
+                      "protocol"
+                    ]
+                  }
+                },
+                {
+                  "properties": {
+                    "protocol": {
+                      "not": {
+                        "enum": [
+                          "AMQP/1.0",
+                          "MQTT/3.1.1",
+                          "MQTT/5.0",
+                          "KAFKA",
+                          "HTTP",
+                          "NATS"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "protocol"
+                  ]
+                }
               ]
             }
           ]
