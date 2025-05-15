@@ -146,11 +146,10 @@ Versions of a single **schema** MUST adhere to the rules defined by the
 `compatibility` attribute. Any breaking change MUST result in a new **schema**
 being created.
 
-In "Semantic Versioning" terms, you can think of a **schema** as a "major
-version" and the **schema Versions** as "minor versions", although the
-semantics are, of course, quite different (e.g. a minor version in Semantic
-Versioning does not allow removing public properties, whereas in a schema with
-backward compatibility, deleting a field is allowed).
+In terms of versioning, you can think of a **schema** as a collection of
+versions that are compatible according to the selected `compatibility` mode.
+When that compatibility is broken across versions, a completely new **schema**
+MUST be created, to indicate the breaking change.
 
 ## Schema Registry Model
 
