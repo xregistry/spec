@@ -73,6 +73,14 @@
           "type": "any"
         }
       }
+    },
+    "modelsource": {
+      "type": "object",
+      "attributes": {
+        "*": {
+          "type": "any"
+        }
+      }
     }
   }
 }

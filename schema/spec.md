@@ -110,7 +110,7 @@ For clarity, OPTIONAL attributes (specification-defined and extensions) are
 OPTIONAL for clients to use, but the servers' responsibility will vary.
 Server-unknown extension attributes MUST be silently stored in the backing
 datastore. Specification-defined, and server-known extension, attributes MUST
-generate an error if corresponding feature is not supported or enabled.
+generate an error if the corresponding feature is not supported or enabled.
 However, as with all attributes, if accepting the attribute would result in a
 bad state (such as exceeding a size limit, or results in a security issue),
 then the server MAY choose to reject the request.
@@ -269,7 +269,7 @@ algorithm for generating new `versionid` values and for determining which is
 the latest Version. See [Version IDs](../core/spec.md#version-ids) for more
 information, but in summary it means:
 - `versionid`s are unsigned integers starting with `1`
-- They monotomically increase by `1` with each new Version
+- They monotonically increase by `1` with each new Version
 - The latest is the Version with the lexically largest `versionid` value after
   all `versionid`s have been left-padded with spaces to the same length
 
@@ -291,13 +291,13 @@ the core xRegistry Resource
   indicates that the server MUST reject any request that would cause any
   Version of this Resource to be invalid per the rules as defined by the
   `format` specification. Note, this includes a request to set this attribute
-  to `true`. This means that before validation can be enabled all existing
+  to `true`. This means that before validation can be enabled, all existing
   Versions of the Resource MUST be compliant.
 
   A value of `false` indicates that the server MUST NOT do any validation.
 
   If `format` is not specified, or if the value is not known by the server
-  (but it an allowable value), then the server MUST NOT perform any validation.
+  (but is an allowable value), then the server MUST NOT perform any validation.
 - Constraints:
   - OPTIONAL
   - When not specified, the default value MUST be `false`.
