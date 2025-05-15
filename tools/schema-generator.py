@@ -161,7 +161,7 @@ def generate_openapi(model_definition):
 
     try:
         template_file_name = os.path.join(os.path.dirname(__file__), '..', 'core', 'templates', 'xregistry_openapi_template.json')
-        with open(template_file_name) as file:
+        with open(template_file_name, encoding='utf-8') as file:
             openapi = json.load(file)
         json_schema = generate_json_schema(model_definition, True)
         # merge JSON schema with template
@@ -201,6 +201,15 @@ def generate_openapi(model_definition):
                 replace_refs(resource_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{group['singular']}")
                 replace_ops(resource_template_copy, "{%-resourceNamePlural-%}", f"{pascal(group['singular'])}{pascal(resource['plural'])}")
                 openapi["paths"][f"/{group['plural']}/{{groupid}}/{resource['plural']}"]= resource_template_copy
+            for ximportresources_xid in group.get("ximportresources", []):
+                xid_group_plural, xid_resource_plural = ximportresources_xid.split("/")[1:]
+                xid_resource_singular = model_definition["groups"][xid_group_plural]["resources"][xid_resource_plural]["singular"]
+                xid_group_singular = model_definition["groups"][xid_group_plural]["singular"]
+                resource_template_copy = copy.deepcopy(resource_template)
+                replace_refs(resource_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{xid_resource_singular}")
+                replace_refs(resource_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{xid_group_singular}")
+                replace_ops(resource_template_copy, "{%-resourceNamePlural-%}", f"{pascal(group['singular'])}{pascal(xid_resource_plural)}")
+                openapi["paths"][f"/{group['plural']}/{{groupid}}/{xid_resource_plural}"]= resource_template_copy
 
         openapi["paths"].pop(path)
         path = "/{%-groupNamePlural-%}/{groupid}/{%-resourceNamePlural-%}/{resourceid}/meta"
@@ -213,6 +222,15 @@ def generate_openapi(model_definition):
                 replace_refs(meta_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{group['singular']}")
                 replace_ops(meta_template_copy, "{%-resourceNameSingular-%}", f"{pascal(group['singular'])}{pascal(resource['singular'])}")
                 openapi["paths"][f"/{group['plural']}/{{groupid}}/{resource['plural']}/{{resourceid}}/meta"]= meta_template_copy
+            for ximportresources_xid in group.get("ximportresources", []):
+                xid_group_plural, xid_resource_plural = ximportresources_xid.split("/")[1:]
+                xid_resource_singular = model_definition["groups"][xid_group_plural]["resources"][xid_resource_plural]["singular"]
+                xid_group_singular = model_definition["groups"][xid_group_plural]["singular"]
+                meta_template_copy = copy.deepcopy(meta_template)
+                replace_refs(meta_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{xid_resource_singular}")
+                replace_refs(meta_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{xid_group_singular}")
+                replace_ops(meta_template_copy, "{%-resourceNameSingular-%}", f"{pascal(group['singular'])}{pascal(xid_resource_plural)}")
+                openapi["paths"][f"/{group['plural']}/{{groupid}}/{xid_resource_plural}/meta"]= meta_template_copy
 
         openapi["paths"].pop(path)
         path = "/{%-groupNamePlural-%}/{groupid}/{%-resourceNamePlural-%}/{resourceid}$details"
@@ -225,6 +243,15 @@ def generate_openapi(model_definition):
                 replace_refs(details_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{group['singular']}")
                 replace_ops(details_template_copy, "{%-resourceNameSingular-%}", f"{pascal(group['singular'])}{pascal(resource['singular'])}")
                 openapi["paths"][f"/{group['plural']}/{{groupid}}/{resource['plural']}/{{resourceid}}$details"]= details_template_copy
+            for ximportresources_xid in group.get("ximportresources", []):
+                xid_group_plural, xid_resource_plural = ximportresources_xid.split("/")[1:]
+                xid_resource_singular = model_definition["groups"][xid_group_plural]["resources"][xid_resource_plural]["singular"]
+                xid_group_singular = model_definition["groups"][xid_group_plural]["singular"]
+                details_template_copy = copy.deepcopy(details_template)
+                replace_refs(details_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{xid_resource_singular}")
+                replace_refs(details_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{xid_group_singular}")
+                replace_ops(details_template_copy, "{%-resourceNameSingular-%}", f"{pascal(group['singular'])}{pascal(xid_resource_plural)}")
+                openapi["paths"][f"/{group['plural']}/{{groupid}}/{xid_resource_plural}$details"]= details_template_copy
 
         openapi["paths"].pop(path)
         path = "/{%-groupNamePlural-%}/{groupid}/{%-resourceNamePlural-%}/{resourceid}"
@@ -237,6 +264,15 @@ def generate_openapi(model_definition):
                 replace_refs(resourceid_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{group['singular']}")
                 replace_ops(resourceid_template_copy, "{%-resourceNameSingular-%}", f"{pascal(group['singular'])}{pascal(resource['singular'])}")
                 openapi["paths"][f"/{group['plural']}/{{groupid}}/{resource['plural']}/{{resourceid}}"]= resourceid_template_copy
+            for ximportresources_xid in group.get("ximportresources", []):
+                xid_group_plural, xid_resource_plural = ximportresources_xid.split("/")[1:]
+                xid_resource_singular = model_definition["groups"][xid_group_plural]["resources"][xid_resource_plural]["singular"]
+                xid_group_singular = model_definition["groups"][xid_group_plural]["singular"]
+                resourceid_template_copy = copy.deepcopy(resourceid_template)
+                replace_refs(resourceid_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{xid_resource_singular}")
+                replace_refs(resourceid_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{xid_group_singular}")
+                replace_ops(resourceid_template_copy, "{%-resourceNameSingular-%}", f"{pascal(group['singular'])}{pascal(xid_resource_plural)}")
+                openapi["paths"][f"/{group['plural']}/{{groupid}}/{xid_resource_plural}/{{resourceid}}"]= resourceid_template_copy
 
         openapi["paths"].pop(path)
         path = "/{%-groupNamePlural-%}/{groupid}/{%-resourceNamePlural-%}/{resourceid}/versions"
@@ -249,6 +285,15 @@ def generate_openapi(model_definition):
                 replace_refs(versions_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{group['singular']}")
                 replace_ops(versions_template_copy, "{%-resourceNameSingular-%}", f"{pascal(group['singular'])}{pascal(resource['singular'])}")
                 openapi["paths"][f"/{group['plural']}/{{groupid}}/{resource['plural']}/{{resourceid}}/versions"]= versions_template_copy
+            for ximportresources_xid in group.get("ximportresources", []):
+                xid_group_plural, xid_resource_plural = ximportresources_xid.split("/")[1:]
+                xid_resource_singular = model_definition["groups"][xid_group_plural]["resources"][xid_resource_plural]["singular"]
+                xid_group_singular = model_definition["groups"][xid_group_plural]["singular"]
+                versions_template_copy = copy.deepcopy(versions_template)
+                replace_refs(versions_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{xid_resource_singular}")
+                replace_refs(versions_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{xid_group_singular}")
+                replace_ops(versions_template_copy, "{%-resourceNameSingular-%}", f"{pascal(group['singular'])}{pascal(xid_resource_plural)}")
+                openapi["paths"][f"/{group['plural']}/{{groupid}}/{xid_resource_plural}/versions"]= versions_template_copy
 
         openapi["paths"].pop(path)
         path = "/{%-groupNamePlural-%}/{groupid}/{%-resourceNamePlural-%}/{resourceid}/versions/{versionid}"
@@ -261,6 +306,15 @@ def generate_openapi(model_definition):
                 replace_refs(versionid_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{group['singular']}")
                 replace_ops(versionid_template_copy, "{%-resourceNameSingular-%}", f"{pascal(group['singular'])}{pascal(resource['singular'])}")
                 openapi["paths"][f"/{group['plural']}/{{groupid}}/{resource['plural']}/{{resourceid}}/versions/{{versionid}}"]= versionid_template_copy
+            for ximportresources_xid in group.get("ximportresources", []):
+                xid_group_plural, xid_resource_plural = ximportresources_xid.split("/")[1:]
+                xid_resource_singular = model_definition["groups"][xid_group_plural]["resources"][xid_resource_plural]["singular"]
+                xid_group_singular = model_definition["groups"][xid_group_plural]["singular"]
+                versionid_template_copy = copy.deepcopy(versionid_template)
+                replace_refs(versionid_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{xid_resource_singular}")
+                replace_refs(versionid_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{xid_group_singular}")
+                replace_ops(versionid_template_copy, "{%-resourceNameSingular-%}", f"{pascal(group['singular'])}{pascal(xid_resource_plural)}")
+                openapi["paths"][f"/{group['plural']}/{{groupid}}/{xid_resource_plural}/versions/{{versionid}}"]= versionid_template_copy
 
         openapi["paths"].pop(path)
 
@@ -581,6 +635,16 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
                         "$ref": f"{reference_prefix}{resource_name}",
                     }
                 }
+            
+        for ximportresources_xid in group.get("ximportresources", []):
+            xid_group_plural, xid_resource_plural = ximportresources_xid.split("/")[1:]
+            xid_resource_singular = model_definition["groups"][xid_group_plural]["resources"][xid_resource_plural]["singular"]
+            resource_collection_properties[xid_resource_plural] = {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": f"{reference_prefix}{xid_resource_singular}",
+                    }
+                }
 
         props = {}
         props[group_name+"id"] = {"type": "string", "description": f"ID of the {group_name} object"}
@@ -799,6 +863,17 @@ def generate_avro_schema(model_definition) -> dict:
                         "values": resource_schema
                     }
                 })
+                
+        for ximportresources_xid in group.get("ximportresources", []):
+            xid_group_plural, xid_resource_plural = ximportresources_xid.split("/")[1:]
+            xid_resource_singular = model_definition["groups"][xid_group_plural]["resources"][xid_resource_plural]["singular"]
+            resource_collection_fields.append({
+                    "name": camel(xid_resource_plural),
+                    "type" :{
+                        "type": "map",
+                        "values": pascal(xid_resource_singular)+"Type"
+                    }
+                })
 
         props = copy.deepcopy(avro_common_attributes)
         props.insert(0, {"name" : group_name+"id", "type": "string", "description": f"ID of the {group_name} object"})
@@ -842,7 +917,7 @@ def resolve_resource(group, resource):
                 file_uri = file_uri.replace('/', os.sep)
                 path = os.path.join(os.path.dirname(base_uri), file_uri)
                         # it is a file path, load the file
-                with open(path) as file:
+                with open(path, encoding='utf-8') as file:
                     resource_object = json.load(file)
             if json_pointer:
                 resource = resolve_pointer(resource_object, json_pointer)
@@ -865,7 +940,11 @@ model_definition = {
 
 
 def resolve_imports(basedir, node):
-    """ recursively resolve all $includes in the model definition """
+    """ 
+    recursively resolve all $includes in the model definition. 
+    This code handles two cases. The legacy case where the $include is
+    relative file path (URL) 
+    """
 
     if isinstance(node, dict):
         if "$include" in node:
@@ -878,7 +957,7 @@ def resolve_imports(basedir, node):
                 obj_ref = fr[1]
             file_ref = file_ref.replace('/', os.sep)
             import_file = os.path.join(basedir, file_ref)
-            with open(import_file) as file:
+            with open(import_file, encoding='utf-8') as file:
                 import_definition = json.load(file)
             del node["$include"]
             if obj_ref:
@@ -907,7 +986,7 @@ def main():
     json_schema = None
     model_definition = { "groups": {} }
     for input_file in args.input_files:
-        with open(input_file) as file:
+        with open(input_file, encoding='utf-8') as file:
             print(f"> {input_file} as '{args.type}'")
             input_definition = json.load(file)
             input_definition = resolve_imports(os.path.dirname(input_file), input_definition)
@@ -922,7 +1001,7 @@ def main():
     if (args.type == 'json-schema'):
         json_schema = generate_json_schema(model_definition)
         if args.output:
-            with open(args.output, 'w') as of:
+            with open(args.output, 'w', encoding='utf-8') as of:
                 json.dump(json_schema, of, indent=2)
         else:
             print(json.dumps(json_schema, indent=2))
