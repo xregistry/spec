@@ -1555,7 +1555,7 @@
                 "required": false,
                 "allowEmptyValue": true,
                 "schema": { "type": "string" },
-                "description": "Comma‑separated list of nested paths to inline (e.g. endpoints, endpoints.messages). See spec: Inline."
+                "description": "Comma-separated list of nested paths to inline (e.g. endpoints, endpoints.messages). See spec: Inline."
             },
             "filter": {
                 "name": "filter",
@@ -1578,58 +1578,58 @@
         },
         "headers": {
             "resource-id": {
-                "description": "The resource identifier. MUST be percent‑encoded per xRegistry specifications (i.e. all non‑printable ASCII characters, spaces, quotes, and percent signs must be encoded).",
+                "description": "The resource identifier. MUST be percent-encoded per xRegistry specifications (i.e. all non-printable ASCII characters, spaces, quotes, and percent signs must be encoded).",
                 "schema": {
                     "type": "string"
                 }
             },
             "resource-version": {
-                "description": "The resource version identifier. MUST be percent‑encoded per xRegistry specifications.",
+                "description": "The resource version identifier. MUST be percent-encoded per xRegistry specifications.",
                 "schema": {
                     "type": "string"
                 }
             },
             "resource-name": {
-                "description": "The resource name. MUST be percent‑encoded per xRegistry specifications.",
+                "description": "The resource name. MUST be percent-encoded per xRegistry specifications.",
                 "schema": {
                     "type": "string"
                 }
             },
             "resource-self": {
-                "description": "The self URL of the resource. MUST be percent‑encoded per xRegistry specifications.",
+                "description": "The self URL of the resource. MUST be percent-encoded per xRegistry specifications.",
                 "schema": {
                     "type": "string",
                     "format": "uri"
                 }
             },
             "resource-description": {
-                "description": "The resource description. MUST be percent‑encoded per xRegistry specifications.",
+                "description": "The resource description. MUST be percent-encoded per xRegistry specifications.",
                 "schema": {
                     "type": "string"
                 }
             },
             "resource-documentation": {
-                "description": "The resource documentation URL. MUST be percent‑encoded per xRegistry specifications.",
+                "description": "The resource documentation URL. MUST be percent-encoded per xRegistry specifications.",
                 "schema": {
                     "type": "string",
                     "format": "uri"
                 }
             },
             "resource-labels": {
-                "description": "Serialized resource labels. MUST be percent‑encoded per xRegistry specifications.",
+                "description": "Serialized resource labels. MUST be percent-encoded per xRegistry specifications.",
                 "schema": {
                     "type": "string"
                 }
             },
             "resource-createdat": {
-                "description": "The resource creation timestamp. MUST be percent‑encoded per xRegistry specifications.",
+                "description": "The resource creation timestamp. MUST be percent-encoded per xRegistry specifications.",
                 "schema": {
                     "type": "string",
                     "format": "date-time"
                 }
             },
             "resource-modifiedat": {
-                "description": "The resource modification timestamp. MUST be percent‑encoded per xRegistry specifications.",
+                "description": "The resource modification timestamp. MUST be percent-encoded per xRegistry specifications.",
                 "schema": {
                     "type": "string",
                     "format": "date-time"
@@ -1705,11 +1705,11 @@
                     },
                     "title": {
                         "type": "string",
-                        "description": "A short, human‑readable summary of the problem type."
+                        "description": "A short, human-readable summary of the problem type."
                     },
                     "detail": {
                         "type": "string",
-                        "description": "A human‑readable explanation specific to this occurrence of the problem."
+                        "description": "A human-readable explanation specific to this occurrence of the problem."
                     }
                 }
             },

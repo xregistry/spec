@@ -1299,7 +1299,7 @@
         }
       }
     },
-    "/endpoints/{groupid}/messages/{resourceid}/meta": {
+    "/endpoints/{groupid}/messages/meta": {
       "parameters": [
         {
           "$ref": "#/components/parameters/groupid"
@@ -1331,7 +1331,7 @@
         }
       ],
       "get": {
-        "operationId": "getEndpointMessageMeta",
+        "operationId": "getEndpointMessagesMeta",
         "tags": [
           "ResourceMeta"
         ],
@@ -1362,7 +1362,7 @@
         }
       },
       "put": {
-        "operationId": "putEndpointMessageMeta",
+        "operationId": "putEndpointMessagesMeta",
         "tags": [
           "ResourceMeta"
         ],
@@ -1403,7 +1403,7 @@
         }
       },
       "patch": {
-        "operationId": "patchEndpointMessageMeta",
+        "operationId": "patchEndpointMessagesMeta",
         "tags": [
           "ResourceMeta"
         ],
@@ -1642,7 +1642,7 @@
         }
       }
     },
-    "/endpoints/{groupid}/messages/{resourceid}$details": {
+    "/endpoints/{groupid}/messages$details": {
       "parameters": [
         {
           "$ref": "#/components/parameters/groupid"
@@ -1664,7 +1664,7 @@
         }
       ],
       "get": {
-        "operationId": "getEndpointMessageDetails",
+        "operationId": "getEndpointMessagesDetails",
         "tags": [
           "Resource"
         ],
@@ -2208,7 +2208,7 @@
         }
       ],
       "get": {
-        "operationId": "getEndpointMessage",
+        "operationId": "getEndpointMessages",
         "tags": [
           "Resource"
         ],
@@ -2281,7 +2281,7 @@
         }
       },
       "put": {
-        "operationId": "putEndpointMessage",
+        "operationId": "putEndpointMessages",
         "tags": [
           "Resource"
         ],
@@ -2357,7 +2357,7 @@
       "post": {
         "summary": "Post new resource version",
         "description": "Creates a new version of the resource. If the resource does not exist, it is created at version 1; if it exists, the new version is created (default version may be updated using setdefaultversionid). (See spec: Creating or Updating Resources and Versions, Default Version of a Resource)",
-        "operationId": "postEndpointMessage",
+        "operationId": "postEndpointMessages",
         "tags": [
           "Resource"
         ],
@@ -2475,7 +2475,7 @@
       "delete": {
         "summary": "Delete resource",
         "description": "Deletes the resource and all of its versions. Requires the current epoch. (See spec: Deleting Resources)",
-        "operationId": "deleteEndpointMessage",
+        "operationId": "deleteEndpointMessages",
         "tags": [
           "Resource"
         ],
@@ -3046,7 +3046,7 @@
         }
       }
     },
-    "/endpoints/{groupid}/messages/{resourceid}/versions": {
+    "/endpoints/{groupid}/messages/versions": {
       "parameters": [
         {
           "$ref": "#/components/parameters/groupid"
@@ -3068,7 +3068,7 @@
         }
       ],
       "get": {
-        "operationId": "getEndpointMessageVersionsAll",
+        "operationId": "getEndpointMessagesVersionsAll",
         "tags": [
           "ResourceVersionCollection"
         ],
@@ -3119,7 +3119,7 @@
         }
       },
       "post": {
-        "operationId": "postEndpointMessageVersions",
+        "operationId": "postEndpointMessagesVersions",
         "tags": [
           "ResourceVersion"
         ],
@@ -3449,7 +3449,7 @@
         }
       }
     },
-    "/endpoints/{groupid}/messages/{resourceid}/versions/{versionid}": {
+    "/endpoints/{groupid}/messages/versions/{versionid}": {
       "parameters": [
         {
           "$ref": "#/components/parameters/groupid"
@@ -3484,7 +3484,7 @@
         }
       ],
       "get": {
-        "operationId": "getEndpointMessageVersion",
+        "operationId": "getEndpointMessagesVersion",
         "tags": [
           "ResourceVersion"
         ],
@@ -3521,7 +3521,7 @@
         }
       },
       "delete": {
-        "operationId": "deleteEndpointMessageVersion",
+        "operationId": "deleteEndpointMessagesVersion",
         "tags": [
           "ResourceVersion"
         ],
@@ -3753,7 +3753,7 @@
         "schema": {
           "type": "string"
         },
-        "description": "Comma\u2011separated list of nested paths to inline (e.g. endpoints, endpoints.messages). See spec: Inline."
+        "description": "Comma-separated list of nested paths to inline (e.g. endpoints, endpoints.messages). See spec: Inline."
       },
       "filter": {
         "name": "filter",
@@ -3780,58 +3780,58 @@
     },
     "headers": {
       "resource-id": {
-        "description": "The resource identifier. MUST be percent\u2011encoded per xRegistry specifications (i.e. all non\u2011printable ASCII characters, spaces, quotes, and percent signs must be encoded).",
+        "description": "The resource identifier. MUST be percent-encoded per xRegistry specifications (i.e. all non-printable ASCII characters, spaces, quotes, and percent signs must be encoded).",
         "schema": {
           "type": "string"
         }
       },
       "resource-version": {
-        "description": "The resource version identifier. MUST be percent\u2011encoded per xRegistry specifications.",
+        "description": "The resource version identifier. MUST be percent-encoded per xRegistry specifications.",
         "schema": {
           "type": "string"
         }
       },
       "resource-name": {
-        "description": "The resource name. MUST be percent\u2011encoded per xRegistry specifications.",
+        "description": "The resource name. MUST be percent-encoded per xRegistry specifications.",
         "schema": {
           "type": "string"
         }
       },
       "resource-self": {
-        "description": "The self URL of the resource. MUST be percent\u2011encoded per xRegistry specifications.",
+        "description": "The self URL of the resource. MUST be percent-encoded per xRegistry specifications.",
         "schema": {
           "type": "string",
           "format": "uri"
         }
       },
       "resource-description": {
-        "description": "The resource description. MUST be percent\u2011encoded per xRegistry specifications.",
+        "description": "The resource description. MUST be percent-encoded per xRegistry specifications.",
         "schema": {
           "type": "string"
         }
       },
       "resource-documentation": {
-        "description": "The resource documentation URL. MUST be percent\u2011encoded per xRegistry specifications.",
+        "description": "The resource documentation URL. MUST be percent-encoded per xRegistry specifications.",
         "schema": {
           "type": "string",
           "format": "uri"
         }
       },
       "resource-labels": {
-        "description": "Serialized resource labels. MUST be percent\u2011encoded per xRegistry specifications.",
+        "description": "Serialized resource labels. MUST be percent-encoded per xRegistry specifications.",
         "schema": {
           "type": "string"
         }
       },
       "resource-createdat": {
-        "description": "The resource creation timestamp. MUST be percent\u2011encoded per xRegistry specifications.",
+        "description": "The resource creation timestamp. MUST be percent-encoded per xRegistry specifications.",
         "schema": {
           "type": "string",
           "format": "date-time"
         }
       },
       "resource-modifiedat": {
-        "description": "The resource modification timestamp. MUST be percent\u2011encoded per xRegistry specifications.",
+        "description": "The resource modification timestamp. MUST be percent-encoded per xRegistry specifications.",
         "schema": {
           "type": "string",
           "format": "date-time"
@@ -3911,11 +3911,11 @@
           },
           "title": {
             "type": "string",
-            "description": "A short, human\u2011readable summary of the problem type."
+            "description": "A short, human-readable summary of the problem type."
           },
           "detail": {
             "type": "string",
-            "description": "A human\u2011readable explanation specific to this occurrence of the problem."
+            "description": "A human-readable explanation specific to this occurrence of the problem."
           }
         }
       },

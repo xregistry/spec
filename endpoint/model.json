@@ -826,11 +826,7 @@
           "type": "any"
         }
       },
-      "resources": {
-        "messages": {
-          "$include": "../message/model.json#/groups/messagegroups/resources/messages"
-        }
-      }
+      "ximportresources": [ "/messagegroups/messages" ]
     }
   }
 }
