@@ -321,7 +321,7 @@ the core xRegistry Resource
   model to make this attribute mandatory.
 
   Managers of the xRegistry instance can set a default value for this
-  attribute, making it a required attribute.
+  attribute, making it a REQUIRED attribute.
 - Constraints:
   - If present, MUST be a non-empty string
   - MUST follow the naming convention `{NAME}/{VERSION}`, whereby `{NAME}` is
