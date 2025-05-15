@@ -1,17 +1,17 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "http://xregistry.io/schema/endpoints-messagegroups-schemagroups",
+  "$id": "http://xregistry.io/schema/messagegroups-endpoints-schemagroups",
   "properties": {
-    "endpoints": {
-      "type": "object",
-      "additionalProperties": {
-        "$ref": "#/definitions/endpoint"
-      }
-    },
     "messagegroups": {
       "type": "object",
       "additionalProperties": {
         "$ref": "#/definitions/messagegroup"
+      }
+    },
+    "endpoints": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/endpoint"
       }
     },
     "schemagroups": {
@@ -1052,6 +1052,70 @@
         }
       ]
     },
+    "messagegroup": {
+      "type": "object",
+      "properties": {
+        "messagegroupid": {
+          "type": "string",
+          "description": "ID of the messagegroup object"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the object"
+        },
+        "epoch": {
+          "type": "integer",
+          "description": "Epoch time of the object creation"
+        },
+        "self": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL of the object"
+        },
+        "xid": {
+          "type": "string",
+          "format": "xid",
+          "description": "Relative URL of the object"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the object"
+        },
+        "documentation": {
+          "type": "string",
+          "format": "uri",
+          "description": "URI of the documentation of the object"
+        },
+        "labels": {
+          "type": "object",
+          "description": "Labels for the object"
+        },
+        "createdat": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Time of the object creation"
+        },
+        "modifiedat": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Time of the object modification"
+        },
+        "envelope": {
+          "type": "string",
+          "description": "Envelope format identifier that defines the common metadata information for the message. All definitions in this group share this envelope format. Mixed-envelope-format groups are not permitted. The predefined envelope format is CloudEvents/1.0"
+        },
+        "protocol": {
+          "type": "string",
+          "description": "Protocol identifier that defines the transport message protocol. All definitions in this group share this protocol type. Mixed-protocol groups are not permitted. Predefined protocol formats are 'AMQP/1.0', 'MQTT/3.1.1', 'MQTT/5.0', 'KAFKA', 'HTTP', and 'NATS'"
+        },
+        "messages": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/message"
+          }
+        }
+      }
+    },
     "endpoint": {
       "type": "object",
       "properties": {
@@ -1106,11 +1170,11 @@
         },
         "channel": {
           "type": "string",
-          "description": "tbd"
+          "description": "The name of the channel"
         },
         "deprecated": {
           "type": "object",
-          "description": "tbd",
+          "description": "Indicates whether the endpoint is deprecated",
           "properties": {
             "effective": {
               "type": "string",
@@ -1765,70 +1829,6 @@
           ]
         }
       ]
-    },
-    "messagegroup": {
-      "type": "object",
-      "properties": {
-        "messagegroupid": {
-          "type": "string",
-          "description": "ID of the messagegroup object"
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the object"
-        },
-        "epoch": {
-          "type": "integer",
-          "description": "Epoch time of the object creation"
-        },
-        "self": {
-          "type": "string",
-          "format": "uri",
-          "description": "URL of the object"
-        },
-        "xid": {
-          "type": "string",
-          "format": "xid",
-          "description": "Relative URL of the object"
-        },
-        "description": {
-          "type": "string",
-          "description": "Description of the object"
-        },
-        "documentation": {
-          "type": "string",
-          "format": "uri",
-          "description": "URI of the documentation of the object"
-        },
-        "labels": {
-          "type": "object",
-          "description": "Labels for the object"
-        },
-        "createdat": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Time of the object creation"
-        },
-        "modifiedat": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Time of the object modification"
-        },
-        "envelope": {
-          "type": "string",
-          "description": "Envelope format identifier that defines the common metadata information for the message. All definitions in this group share this envelope format. Mixed-envelope-format groups are not permitted. The predefined envelope format is CloudEvents/1.0"
-        },
-        "protocol": {
-          "type": "string",
-          "description": "Protocol identifier that defines the transport message protocol. All definitions in this group share this protocol type. Mixed-protocol groups are not permitted. Predefined protocol formats are 'AMQP/1.0', 'MQTT/3.1.1', 'MQTT/5.0', 'KAFKA', 'HTTP', and 'NATS'"
-        },
-        "messages": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/message"
-          }
-        }
-      }
     },
     "schemaVersion": {
       "type": "object",

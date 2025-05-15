@@ -1,5 +1,8 @@
 {
   "groups": {
+    "messagegroups": {
+      "$include": "../message/model.json#/groups/messagegroups"
+    },
     "endpoints": {
       "singular": "endpoint",
       "modelversion": "1.0-rc1",
@@ -19,12 +22,12 @@
         "channel": {
           "name": "channel",
           "type": "string",
-          "description": "tbd"
+          "description": "The name of the channel"
         },
         "deprecated": {
           "name": "deprecated",
           "type": "object",
-          "description": "tbd",
+          "description": "Indicates whether the endpoint is deprecated",
           "attributes": {
             "effective": {
               "name": "effective",
@@ -334,6 +337,7 @@
                     "willmessage": {
                       "name": "willmessage",
                       "type": "xid",
+                      "target": "/messagegroups/messages",
                       "description": "The MQTT will message definition to configure for publishers on this endpoint. This MUST be a reference to a message definition"
                     },
                     "*": {
@@ -453,6 +457,7 @@
                     "willmessage": {
                       "name": "willmessage",
                       "type": "xid",
+                      "target": "/messagegroups/messages",
                       "description": "The MQTT will message definition to configure for publishers on this endpoint. This MUST be a reference to a message definition"
                     },
                     "*": {
@@ -812,7 +817,8 @@
           "type": "array",
           "description": "The message groups that are supported by this endpoint",
           "item": {
-            "type": "uri"
+            "type": "xid",
+            "target": "/messagegroups/messages"
           }
         },
         "*": {
@@ -820,11 +826,7 @@
           "type": "any"
         }
       },
-      "resources": {
-        "messages": {
-          "$include": "../message/model.json#/groups/messagegroups/resources/messages"
-        }
-      }
+      "ximportresources": [ "/messagegroups/messages" ]
     }
   }
 }
