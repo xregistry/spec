@@ -32,93 +32,93 @@ this form:
 
 ```yaml
 {
-  "specversion": "STRING",
-  "registryid": "STRING",
-  "self": "URL",
-  "shortself": "URL",
-  "xid": "XID",
-  "epoch": UINTEGER,
-  "name": "STRING", ?
-  "description": "STRING", ?
-  "documentation": "URL", ?
+  "specversion": "<STRING>",
+  "registryid": "<STRING>",
+  "self": "<URL>",
+  "shortself": "<URL>",
+  "xid": "<XID>",
+  "epoch": <UINTEGER>,
+  "name": "<STRING>", ?
+  "description": "<STRING>", ?
+  "documentation": "<URL>", ?
   "labels": {
-    "STRING": "STRING" *
+    "<STRING>": "<STRING>" *
   }, ?
-  "createdat": "TIMESTAMP",
-  "modifiedat": "TIMESTAMP",
+  "createdat": "<TIMESTAMP>",
+  "modifiedat": "<TIMESTAMP>",
 
   "model": { ... }, ?
 
-  "messagegroupsurl": "URL",
-  "messagegroupscount": UINTEGER,
+  "messagegroupsurl": "<URL>",
+  "messagegroupscount": <UINTEGER>,
   "messagegroups": {
-    "KEY": {                                    # messagegroupid
-      "messagegroupid": "STRING",               # xRegistry core attributes
-      "self": "URL",
-      "shortself": "URL",
-      "xid": "XID",
+    "<KEY>": {                                    # messagegroupid
+      "messagegroupid": "<STRING>",             # xRegistry core attributes
+      "self": "<URL>",
+      "shortself": "<URL>",
+      "xid": "<XID>",
       # Start of default Version's attributes
-      "epoch": UINTEGER,
-      "name": "STRING", ?
-      "description": "STRING", ?
-      "documentation": "URL", ?
-      "labels": { "STRING": "STRING" * }, ?
-      "createdat": "TIMESTAMP",
-      "modifiedat": "TIMESTAMP",
+      "epoch": <UINTEGER>,
+      "name": "<STRING>", ?
+      "description": "<STRING>", ?
+      "documentation": "<URL>", ?
+      "labels": { "<STRING>": "<STRING>" * }, ?
+      "createdat": "<TIMESTAMP>",
+      "modifiedat": "<TIMESTAMP>",
 
-      "envelope": "STRING", ?                  # e.g. CloudEvents/1.0
-      "protocol": "STRING", ?                  # e.g. HTTP/1.1
+      "envelope": "<STRING>", ?                 # e.g. CloudEvents/1.0
+      "protocol": "<STRING>", ?                 # e.g. HTTP/1.1
 
-      "messagesurl": "URL",
-      "messagescount": UINTEGER,
+      "messagesurl": "<URL>",
+      "messagescount": <UINTEGER>,
       "messages" : {
-        "KEY": {                               # messageid
-          "messageid": "STRING",               # xRegistry core attributes
-          "versionid": "STRING",
-          "self": "URL",
-          "shortself": "URL",
-          "xid": "XID",
+        "<KEY>": {                              # messageid
+          "messageid": "<STRING>",              # xRegistry core attributes
+          "versionid": "<STRING>",
+          "self": "<URL>",
+          "shortself": "<URL>",
+          "xid": "<XID>",
           # Start of default Version's attributes
-          "epoch": UINTEGER,
-          "name": "STRING", ?
-          "description": "STRING", ?
-          "documentation": "URL", ?
-          "labels": { "STRING": "STRING" * }, ?
-          "createdat": "TIMESTAMP",
-          "modifiedat": "TIMESTAMP",
-          "ancestor": "STRING",
+          "epoch": <UINTEGER>,
+          "name": "<STRING>", ?
+          "description": "<STRING>", ?
+          "documentation": "<URL>", ?
+          "labels": { "<STRING>": "<STRING>" * }, ?
+          "createdat": "<TIMESTAMP>",
+          "modifiedat": "<TIMESTAMP>",
+          "ancestor": "<STRING>",
 
-          "basemessageurl": "URL", ?           # Message being extended
+          "basemessageurl": "<URL>", ?         # Message being extended
 
-          "envelope": "STRING", ?              # e.g. CloudEvents/1.0
+          "envelope": "<STRING>", ?            # e.g. CloudEvents/1.0
           "envelopemetadata": {
-            "STRING": JSON-VALUE *
+            "<STRING>": <JSON-VALUE> *
 
             # CloudEvents/1.0 "envelope" the "envelopemetadata" is of the form:
-            "STRING": {
-              "type": "TYPE", ?
-              "value": ANY, ?
-              "required": BOOLEAN              # Default=false
+            "<STRING>": {
+              "type": "<TYPE>", ?
+              "value": <ANY>, ?
+              "required": <BOOLEAN>            # Default=false
             } *
           }, ?
           "envelopeoptions": {
-            "STRING": JSON-VALUE *
+            "<STRING>": <JSON-VALUE> *
           }, ?
 
-          "protocol": "STRING", ?              # e.g. HTTP/1.1
+          "protocol": "<STRING>", ?            # e.g. HTTP/1.1
           "protocoloptions": { ... }, ?
 
-          "dataschemaformat": "STRING", ?
-          "dataschema": ANY, ?
-          "dataschemauri": "URI", ?
-          "dataschemaxid": "XID", ?
-          "datacontenttype": "STRING", ?
+          "dataschemaformat": "<STRING>", ?
+          "dataschema": <ANY>, ?
+          "dataschemauri": "<URI>", ?
+          "dataschemaxid": "<XID>", ?
+          "datacontenttype": "<STRING>", ?
           # End of default Version's attributes
 
-          "metaurl": "URL",
+          "metaurl": "<URL>",
           "meta": { ... }, ?
-          "versionsurl": "URL",
-          "versionscount": UINTEGER,
+          "versionsurl": "<URL>",
+          "versionscount": <UINTEGER>,
           "versions": { ... } ?
       } ?
     } *
@@ -228,7 +228,7 @@ resides in the [model.json](model.json) file.
 
 ### Message Definition Groups
 
-The Group (GROUP) name is `messagegroups`. The type of a group is
+The Group (`<GROUP>`) name is `messagegroups`. The type of a group is
 `messagegroup`.
 
 The following attributes are defined for the `messagegroup` object in addition
@@ -240,15 +240,15 @@ to the xRegistry-defined core
 - Type: String
 - Description: Identifies the common, transport protocol independent message
   metadata format. Message metadata envelopes are referenced by name and version
-  as `{NAME}/{VERSION}`. This specification defines a set of common
+  as `<NAME>/<VERSION>`. This specification defines a set of common
   [metadata envelope names](#metadata-envelopes) that MUST be used for the given
   envelopes, but applications MAY define extensions for other envelopes on their
   own. All definitions inside a group MUST use this same envelope.
 - Constraints:
   - At least one of `envelopemetadata` and `protocol` MUST be specified.
   - If present, MUST be a non-empty string
-  - If present, MUST follow the naming convention `{NAME}/{VERSION}`, whereby
-    `{NAME}` is the name of the metadata envelope and `{VERSION}` is the
+  - If present, MUST follow the naming convention `<NAME>/<VERSION>`, whereby
+    `<NAME>` is the name of the metadata envelope and `<VERSION>` is the
     version of the metadata envelope.
 - Examples:
   - `CloudEvents/1.0`
@@ -257,7 +257,7 @@ to the xRegistry-defined core
 
 - Type: String
 - Description: Identifies a transport protocol to be used for this Message.
-  Protocols are referenced by name and version as `{NAME}/{VERSION}`. This
+  Protocols are referenced by name and version as `<NAME>/<VERSION>`. This
   specification defines a set of common [message protocol
   names](#message-protocols) that MUST be used for the given protocols, but
   applications MAY define extensions for other protocols on their own. All
@@ -265,9 +265,9 @@ to the xRegistry-defined core
 - Constraints:
   - At least one of `envelopemetadata` and `protocol` MUST be specified.
   - If present, MUST be a non-empty string
-  - If present, MUST follow the naming convention `{NAME}` or
-    `{NAME}/{VERSION}`, whereby `{NAME}` is the name of the protocol and
-    `{VERSION}` is the version of protocol. The version is REQUIRED if multiple,
+  - If present, MUST follow the naming convention `<NAME>` or
+    `<NAME>/<VERSION>`, whereby `<NAME>` is the name of the protocol and
+    `<VERSION>` is the version of protocol. The version is REQUIRED if multiple,
     mutually incompatible versions of the protocol exist and protocol options
     differ between versions.
 - Examples:
@@ -277,7 +277,7 @@ to the xRegistry-defined core
 
 ### Message Definitions
 
-The resource (RESOURCE) collection name inside `messagegroup` is
+The resource (`<RESOURCE>`) collection name inside `messagegroup` is
 `messages`. The resource name is `message`.
 
 Different from schemas, message definitions do not contain a
@@ -406,8 +406,8 @@ specification.
 - Constraints:
   - OPTIONAL
   - If present, MUST be a non-empty string
-  - If present, MUST follow the naming convention `{NAME}/{VERSION}`, whereby
-    `{NAME}` is the name of the schema format and `{VERSION}` is the version of
+  - If present, MUST follow the naming convention `<NAME>/<VERSION>`, whereby
+    `<NAME>` is the name of the schema format and `<VERSION>` is the version of
     the schema format in the format defined by the schema format itself.
 - Examples:
   - 'JSONSchema/draft-07'
@@ -557,7 +557,7 @@ headers/properties/attributes constraints:
     - `timestamp`: CloudEvents "Timestamp" type (RFC3339 DateTime)
     - `duration`: RFC3339 Duration
     - `uritemplate`: [RFC6570][RFC6570] Level 1 URI Template
-    - `uri`: CloudEvents "URI" type (RFC3986 URI)
+    - `uri`: CloudEvents URI type (RFC3986 URI)
     - `urireference`: CloudEvents "URI-reference" type (RFC3986 URI-reference)
     - `number`: IEEE754 Double
     - `integer`: CloudEvents "Integer" type (RFC 7159, Section 6)
@@ -664,32 +664,32 @@ a message (see the [model file](model.json) for the complete definition):
     "type": "string"
   },
   "id": {
-    "value": "STRING", ?
+    "value": "<STRING>", ?
     "type": "string", ?
   },
   "type": {
-    "value": "STRING", ?
+    "value": "<STRING>", ?
     "type": "string", ?
   },
   "source": {
-    "value": "STRING", ?
+    "value": "<STRING>", ?
     "type": "string", ?
   },
   "subject": {
-    "value": "STRING", ?
+    "value": "<STRING>", ?
     "type": "string" ?
   },
   "time": {
-    "value": "TIME", ?
+    "value": "<TIMESTAMP>", ?
     "type": "timestamp" ?
   },
   "dataschema": {
-    "value": "URITEMPLATE", ?
+    "value": "<URITEMPLATE>", ?
     "type": "uritemplate" ?
   },
   "*": {
-    "value": ANY, ?
-    "type": "TYPE"
+    "value": <ANY>, ?
+    "type": "<TYPE>"
   }
 }
 ```

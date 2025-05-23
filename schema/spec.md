@@ -26,70 +26,70 @@ this form:
 
 ```yaml
 {
-  "specversion": "STRING",                         # xRegistry core attributes
-  "registryid": "STRING",
-  "self": "URL",
-  "xid": "XID",
-  "epoch": UINTEGER,
-  "name": "STRING", ?
-  "description": "STRING", ?
-  "documentation": "URL", ?
+  "specversion": "<STRING>",                         # xRegistry core attributes
+  "registryid": "<STRING>",
+  "self": "<URL>",
+  "xid": "<XID>",
+  "epoch": <UINTEGER>,
+  "name": "<STRING>", ?
+  "description": "<STRING>", ?
+  "documentation": "<URL>", ?
   "labels": {
-    "STRING": "STRING" *
+    "<STRING>": "<STRING>" *
   }, ?
-  "createdat": "TIMESTAMP",
-  "modifiedat": "TIMESTAMP",
+  "createdat": "<TIMESTAMP>",
+  "modifiedat": "<TIMESTAMP>",
 
   "model": { ... }, ?
 
-  "schemagroupsurl": "URL",                        # SchemaGroups collection
-  "schemagroupscount": UINTEGER,
+  "schemagroupsurl": "<URL>",                      # SchemaGroups collection
+  "schemagroupscount": <UINTEGER>,
   "schemagroups": {
     "KEY": {                                       # schemagroupid
-      "schemagroupid": "STRING",                   # xRegistry core attributes
-      "self": "URL",
-      "xid": "XID",
-      "epoch": UINTEGER,
-      "name": "STRING", ?
-      "description": "STRING", ?
-      "documentation": "URL", ?
-      "labels": { "STRING": "STRING" * }, ?
-      "createdat": "TIMESTAMP",
-      "modifiedat": "TIMESTAMP",
+      "schemagroupid": "<STRING>",                 # xRegistry core attributes
+      "self": "<URL>",
+      "xid": "<XID>",
+      "epoch": <UINTEGER>,
+      "name": "<STRING>", ?
+      "description": "<STRING>", ?
+      "documentation": "<URL>", ?
+      "labels": { "<STRING>": "<STRING>" * }, ?
+      "createdat": "<TIMESTAMP>",
+      "modifiedat": "<TIMESTAMP>",
 
-      "schemasurl": "URL",                         # Schemas collection
-      "schemascount": UINTEGER,
+      "schemasurl": "<URL>",                       # Schemas collection
+      "schemascount": <UINTEGER>,
       "schemas": {
         "KEY": {                                   # schemaid
-          "schemaid": "STRING",                    # xRegistry core attributes
-          "versionid": "STRING",
-          "self": "URL",
-          "xid": "XID",
+          "schemaid": "<STRING>",                  # xRegistry core attributes
+          "versionid": "<STRING>",
+          "self": "<URL>",
+          "xid": "<XID>",
           #  Start of default Version's attributes
-          "epoch": UINTEGER,
-          "name": "STRING", ?                      # Version level attrs
-          "description": "STRING", ?
-          "documentation": "URL", ?
-          "labels": { "STRING": "STRING" * }, ?
-          "createdat": "TIMESTAMP",
-          "modifiedat": "TIMESTAMP",
-          "ancestor": "STRING",
+          "epoch": <UINTEGER>,
+          "name": "<STRING>", ?                    # Version level attrs
+          "description": "<STRING>", ?
+          "documentation": "<URL>", ?
+          "labels": { "<STRING>": "<STRING>" * }, ?
+          "createdat": "<TIMESTAMP>",
+          "modifiedat": "<TIMESTAMP>",
+          "ancestor": "<STRING>",
 
-          "format": "STRING", ?
+          "format": "<STRING>", ?
 
-          "schemaurl": "URL", ?
-          "schema": ANY ?
-          "schemabase64": "STRING", ?
+          "schemaurl": "<URL>", ?
+          "schema": <ANY> ?
+          "schemabase64": "<STRING>", ?
           #  End of default Version's attributes
 
-          "metaurl": "URL",                    # Resource level attrs
+          "metaurl": "<URL>",                      # Resource level attrs
           "meta": {
             ... core spec metadata attributes ...
-            "validation": BOOLEAN ?
+            "validation": <BOOLEAN> ?
           }, ?
 
-          "versionsurl": "URL",
-          "versionscount": UINTEGER,
+          "versionsurl": "<URL>",
+          "versionscount": <UINTEGER>,
           "versions": { ... } ?
         } *
       } ?
@@ -213,8 +213,8 @@ from there.
 
 ### Schema Groups
 
-The group (GROUP) name for the Schema Registry is `schemagroups`. The group does
-not have any specific extension attributes.
+The group (`<GROUP>`) name for the Schema Registry is `schemagroups`. The
+group does not have any specific extension attributes.
 
 A schema group is a collection of schemas that are related to each other in some
 application-defined way. A schema group does not impose any restrictions on the
@@ -247,10 +247,10 @@ containing 5 schemas.
 
 ### Schema Resources
 
-The resources (RESOURCE) collection inside of schema groups is named `schemas`.
-The type of the resource is `schema`. Any single `schema` is a container for
-one or more `Versions`, which hold the concrete schema documents or schema
-document references.
+The resources (`<RESOURCE>`) collection inside of schema groups is named
+`schemas`. The type of the resource is `schema`. Any single `schema` is a
+container for one or more `Versions`, which hold the concrete schema
+documents or schema document references.
 
 All Versions of a schema MUST adhere to the semantic rules of the schema's
 `compatibility` attribute. This specification defines "compatibility" for
@@ -311,7 +311,7 @@ the core xRegistry Resource
 - Type: String
 - Description: Identifies the schema format. In absence of formal media-type
   definitions for several important schema formats, we define a convention here
-  to reference schema formats by name and version as `{NAME}/{VERSION}`. This
+  to reference schema formats by name and version as `<NAME>/<VERSION>`. This
   specification defines a set of common [schema format names](#schema-formats)
   that MUST be used for the given formats, but applications MAY define
   extensions for other formats on their own.
@@ -324,8 +324,8 @@ the core xRegistry Resource
   attribute, making it a REQUIRED attribute.
 - Constraints:
   - If present, MUST be a non-empty string
-  - MUST follow the naming convention `{NAME}/{VERSION}`, whereby `{NAME}` is
-    the name of the schema format and `{VERSION}` is the Version of the schema
+  - MUST follow the naming convention `<NAME>/<VERSION>`, whereby `<NAME>` is
+    the name of the schema format and `<VERSION>` is the Version of the schema
     format in the format defined by the schema format itself.
   - MUST be a Version level attribute defined within the `attributes` section
     of the model.

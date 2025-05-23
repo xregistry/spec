@@ -416,8 +416,8 @@ variable or structure property names - they're usually just stored as
 
 The "delete" operation typically has two variants:
 
-- DELETE .../ID[?setdefaultversionid=vID]
-- DELETE .../COLLECTION[?setdefaultversionid=vID]
+- `DELETE .../<ID>[?setdefaultversionid=VID]`
+- `DELETE .../<COLLECTION>[?setdefaultversionid=VID]`
 
 where the first will delete a single entity, and the second can be used to
 delete multiple entities. In the second case there are a couple of design
@@ -433,12 +433,12 @@ points worth noting:
   or never existed at all, then rather than generating an error (e.g. a `404`),
   the server will ignore this condition and continue processing the list.
   This is because the net result will be what the user is asking for.
-  Note, that this is different from `DELETE ../ID` case where if the
+  Note, that this is different from `DELETE ../<ID>` case where if the
   referenced entity can not be found then a `404` must be generated.
 - when the `?setdefaultversionid` query parameter is specified (when
   deleting Version) then it will be applied after all requested items have
   been deleted successfully. It can be used even if the current "default"
-  Version isn't being deleted. Note that a `404` in the `DELETE .../ID` case
+  Version isn't being deleted. Note that a `404` in the `DELETE .../<ID>` case
   is an error and no changes to the "default" Version will occur.
 
 ### Detection of Referenced Resources
@@ -562,11 +562,11 @@ sensitivity rules in the specification.
 - Groups and Resources must be lower case.
   The plural version of the Group and Resource type names can appear in URLs
   (which is case-sensitive). Additionally, the plural variant can also appear
-  in attribute names (e.g. COLLECTION attributes), and as discussed above,
+  in attribute names (e.g. `<COLLECTION>*` attributes), and as discussed above,
   attributes must be lower case.
 
   The singular version of the Group and Resource type names, can also appear
-  in the RESOURCE attributes, which (again) means they must be lower case.
+  in the `<RESOURCE>*` attributes, which (again) means they must be lower case.
 
   For these reasons, both the plural and singular names of Group and Resource
   types must be defined as lower case.
@@ -615,7 +615,7 @@ the length of the word `count`.
 # Why must Group type and Resource type names be valid attribute names?
 
 Since Group type and Resource type names will appear as attribute names (e.g.
-`GROUPScount` and `RESOURCEurl`), the character set (and length) of their
+`<GROUPS>count` and `<RESOURCE>url`), the character set (and length) of their
 names need to be restricted in the same way as a attribute names.
 
 # Choosing unique Group and Resource names
