@@ -117,7 +117,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       "collections",? "doc",? "epoch",? "filter",? "inline",?
       "nodefaultversionid",? "nodefaultversionsticky",? "noepoch",?
       "noreadonly",?  "offered",? "schema",? "setdefaultversionid",?
-      "specversion",?
+      "sort",? "specversion",?
       "STRING" *
     ],
     "mutable": [                        # What is mutable in the Registry
@@ -760,6 +760,7 @@ The definition of each attribute is defined below:
 
 - Constraints:
   - REQUIRED.
+  - MUST be immutable.
   - MUST be a non-empty string consisting of [RFC3986 `unreserved`
     characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3)
     (ALPHA / DIGIT / `-` / `.` / `_` / `~`) and `@`, MUST start with
@@ -775,7 +776,6 @@ The definition of each attribute is defined below:
     outside of the entity, and it MUST be the same as the entity's existing
     `SINGULARid` if one exists, otherwise an error
     ([mismatched_id](#mismatched_id)) MUST be generated.
-  - MUST be immutable.
 
 - Examples:
   - `a183e0a9-abf8-4763-99bc-e6b7fcc9544b`
@@ -857,12 +857,12 @@ of the existing entity. Then the existing entity would be deleted.
 
 - Constraints:
   - REQUIRED if the `shortself` capability is enabled.
+  - MUST be immutable for the lifetime of the entity.
   - MUST NOT appear in responses if the `shortself` capability is disabled.
   - MUST be unique across all entities in the Registry.
   - MUST be a non-empty absolute URL referencing the same entity as the `self`
     URL, either directly or indirectly via an HTTP redirect.
   - MUST be a read-only attribute.
-  - MUST be immutable for the lifetime of the entity.
 
 - Examples:
   - `https://tinyurl.com/xreg123` redirects to
@@ -889,11 +889,11 @@ of the existing entity. Then the existing entity would be deleted.
 
 - Constraints:
   - REQUIRED.
+  - MUST be immutable.
   - MUST be a non-empty relative URL to the current entity.
   - MUST be of the form: `/[GROUPS/gID[/RESOURCES/rID[/meta | /versions/vID]]]`.
   - MUST start with the `/` character.
   - MUST be a read-only attribute.
-  - MUST be immutable.
 
 - Examples:
   - `/endpoints/ep1`
@@ -2792,6 +2792,7 @@ The following describes the attributes of Registry model:
 - `groups."STRING".plural`
   - Type: String.
   - REQUIRED.
+  - MUST be immutable.
   - The plural name of the Group type e.g. `endpoints` (`GROUPS`).
   - MUST be unique across all Group types (plural and singular names) in the
     Registry.
@@ -2801,6 +2802,7 @@ The following describes the attributes of Registry model:
 - `groups."STRING".singular`
   - Type: String.
   - REQUIRED.
+  - MUST be immutable.
   - The singular name of a Group type e.g. `endpoint` (`GROUP`).
   - MUST be unique across all Group types (plural and singular names) in the
     Registry.
@@ -2830,6 +2832,7 @@ The following describes the attributes of Registry model:
 - `groups."STRING".resources."STRING".plural`
   - Type: String.
   - REQUIRED.
+  - MUST be immutable.
   - The plural name of the Resource type e.g. `messages` (`RESOURCES`).
   - MUST be non-empty and MUST be a valid attribute name with the exception
     that it MUST NOT exceed 58 characters (not 63).
@@ -2839,6 +2842,7 @@ The following describes the attributes of Registry model:
 - `groups."STRING".resources."STRING".singular`
   - Type: String.
   - REQUIRED.
+  - MUST be immutable.
   - The singular name of the Resource type e.g. `message` (`RESOURCE`).
   - MUST be non-empty and MUST be a valid attribute name with the exception
     that it MUST NOT exceed 58 characters (not 63).
@@ -3464,6 +3468,13 @@ existing entities to ensure model compliance. Instead, it is RECOMMENDED that
 the model update requests generate an error
 ([model_compliance_error](#model_compliance_error)) if existing entities are
 not compliant.
+
+For the purposes of validating that the existing entities in the Registry are
+compliant with the model, the mechanisms used to define the model (e.g.
+`$include` vs `ximportresources` vs defined locally) MUST NOT impact that
+analysis. In other words, model updates that have no semantic changes but
+rather switch between one of those 3 mechanisms MUST NOT invalidate any
+existing entities in the Registry.
 
 Additionally, is it STRONGLY RECOMMENDED that model updates be limited to
 backwards compatible changes.
@@ -4508,9 +4519,9 @@ and the following Resource level attributes:
 
 - API View Constraints:
   - REQUIRED.
+  - MUST be immutable.
   - MUST be an absolute URL to the Resource's `meta` sub-object.
   - MUST be a read-only attribute.
-  - MUST be immutable.
 
 - Document View Constraints:
   - REQUIRED.
@@ -6358,6 +6369,7 @@ flags:
 - [`?doc`](#doc-flag)
 - [`?filter`](#filter-flag)
 - [`?inline`](#inline-flag)
+- [`?sort`](#sort-flag)
 
 Implementations of this specification SHOULD support all 3 flags.
 
@@ -6370,7 +6382,7 @@ in isolation so the Registry can leverage
 #### Collections Flag
 
 The `?collections` query parameter (flag) MAY be used on requests directed
-to the Registry itself or to Group instance to indicate that the response
+to the Registry itself or to Group instances to indicate that the response
 message MUST NOT include any attributes from the top-level entity (Registry
 or Group), but instead MUST include only all of the nested Collection maps
 that are defined at that level. Specifying it on a request directed to
@@ -6788,6 +6800,53 @@ plural name for the collection in its defined case.
 A request to inline an unknown, or non-inlinable, attribute MUST generate an
 error ([invalid_data](#invalid_data)).
 
+#### Sort Flag
+
+When a request is directed at a collection of Groups, Resources or Versions,
+the `?sort` query parameter (flag) MAY be used to indicate the order in which
+the entities of that collection are to be returned (i.e. sorted).
+
+The format of the `?sort` query parameter is:
+
+```yaml
+?sort=ATTRIBUTE[=asc|desc]
+```
+
+Where:
+- `ATTRIBUTE` MUST be the name of one of the attributes defined in
+  collection's entities, using the same dot (`.`) notation specified for the
+  `?inline` flag to specify an attribute within an object. The attribute MUST
+  only reference an attribute within the top-level collection, it MUST NOT
+  attempt to traverse into a nested xRegistry collection even if that nested
+  collection is inlined.
+- An OPTIONAL "sort order" (`asc` for ascending, `desc` for descending) MAY
+  be specified to indicate whether the first entity in the returned collection
+  MUST be the "lowest" values (`asc`) or whether it MUST be the "highest"
+  value (`desc`). When not specified, the default value MUST be `asc`.
+
+If a server supports sorting and the attribute specified is valid, but the
+the server is unable to support sorting over it, then an error
+([unsupported_sort_attribute](#unsupported_sort_attribute)) MUST be generated.
+If the specified attribute is not valid then an error
+([invalid_sort_attribute](#invalid_sort_attribute)) MUST be generated.
+
+When [pagination](../pagination/spec.md) is used to return the results, but
+the `?sort` flag is not specified, then the server MUST sort the results on the
+entities' `SINGULARid` value in ascending order.
+
+Sorting of strings MUST be done in a case-insensitive way.
+
+Entities that do not have a value for the specified attribute MUST be treated
+the same as if they had the "lowest" possible value for that attribute. If
+more than one entity shares the same attribute value then the `SINGULARid`
+MUST be used as a secondary sorting key, using the same `asc`/`desc` value
+specified for the primary sorting key.
+
+Some examples:
+- `GET /endpoints?sort=name`          # Sort (asc) on 'name', then 'endpointid'
+- `GET /endpoints/e1/messages?sort=messageid=desc` # Sort (desc) on 'messageid'
+- `GET /endpoints?sort=labels.stage`  # Sort (asc) on `labels.stage` then `endpointid`
+
 ### HTTP Header Values
 
 Some attributes can contain arbitrary UTF-8 string content,
@@ -7040,10 +7099,19 @@ SHOULD attempt to use a more specific error when possible.
 #### invalid_data_type
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#invalid_data_type`
-* Code: `405 Bad Request`
+* Code: `400 Bad Request`
 * Instance: URL to the entity being processed
 * Title: `A value of an incorrect data-type was specified`
 * Data: ... The invalid data ...
+* Detail: ... Information specific to the processing details ...
+
+#### invalid_sort_attribute
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#invalid_sort_attribute`
+* Code: `400 Bad Request`
+* Instance: URL to the entity being processed
+* Title: `The specified "sort" attribute is not valid`
+* Data: {the invalid attribute}
 * Detail: ... Information specific to the processing details ...
 
 #### method_not_allowed
@@ -7191,6 +7259,15 @@ something unexpected happened in the server that caused an error condition.
 * Instance: URL to the entity being processed
 * Title: `The "{singular name of the entity type}" with the ID "{the unknown ID}" can not be found`
 * Data: {URL to entity being processed}
+* Detail: {information specific to the processing details}
+
+#### unsupported_sort_attribute
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#unsupported_sort_attribute`
+* Code: `400 Bad Request`
+* Instance: The request URL
+* Title: `Sorting on the specified attribute is not supported`
+* Data:  n/a
 * Detail: {information specific to the processing details}
 
 #### unsupported_specversion
