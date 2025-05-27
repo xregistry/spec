@@ -766,7 +766,7 @@ The definition of each attribute is defined below:
   - MUST be immutable.
   - MUST be a non-empty string consisting of [RFC3986 `unreserved`
     characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3)
-    (ALPHA / DIGIT / `-` / `.` / `_` / `~`) and `@`, MUST start with
+    (ALPHA / DIGIT / `-` / `.` / `_` / `~`), `:` and `@`, MUST start with
     ALPHA, DIGIT or `_` and MUST be between 1 and 128 characters in length.
   - MUST be case-insensitive unique within the scope of the entity's parent.
   - This attribute MUST be treated as case-sensitive for look-up purposes.
