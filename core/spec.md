@@ -634,7 +634,9 @@ be one of the following data types:
    defined/valid type in the Registry.
 - `string` - sequence of Unicode characters.
 - `timestamp` - an [RFC3339](https://tools.ietf.org/html/rfc3339) timestamp.
-  Use of a `time-zone` notation is RECOMMENDED.
+  Use of a `time-zone` notation is RECOMMENDED. All timestamps returned by
+  a server MUST be normalized to UTC to allow for easy (and consistent)
+  comparisons.
 - `uinteger` - unsigned integer.
 - `uri` - a URI as defined in [RFC 3986](https://tools.ietf.org/html/rfc3986).
    Note that it can be absolute or relative.
@@ -6610,20 +6612,28 @@ Where:
     - Wildcards (`*`) (see below) MUST NOT be present in the `<VALUE>`.
     - MUST only be used on numeric or string attribute types.
 
-When comparing an `<ATTRIBUTE>` to the specified `<VALUE>`, the type of the
-attribute impacts how the comparisons are done:
-- For boolean attributes, a successful `=` comparison MUST be an exact
-  case-sensitive match (`true` or `false`).
-- For numeric attributes, standard numeric comparisons rules apply.
-- For string attributes, the strings MUST be compared in a case-insensitive
-  manner. `<VALUE>` MAY include one or more wildcard (`*`) characters. The
-  presence of a wildcard indicates that any number of characters can appear at
-  that location in the `<VALUE>`. The wildcard MAY be escaped via the use of a
-  backslash (`\\`) character (e.g. `abc\*def`) to mean that the `*` is to be
-  interpreted as a normal character and not as a wildcard. Note that a
-  `<VALUE>` of `*` MUST be equivalent to checking for the existence of the
-  attribute, with any value (even an empty string). In other words, the filter
-  will only fail if the attribute has no value at all.
+For comparing an `<ATTRIBUTE>` to the specified `<VALUE>`, and for purposes
+of sorting (see the [`?sort`](#sort-flag) flag), the type of the attribute
+impacts how the comparisons are done:
+- For boolean attributes, comparisons MUST be an exact case-sensitive match
+  (`true` or `false`). For relative comparisons, `false` is less than `true`.
+- For numeric attributes, standard numeric comparisons rules apply. Note that
+  numerics MUST NOT be treated as strings for comparison.
+- For string attributes, the following rules apply:
+  - The strings MUST be compared in a case-insensitive manner.
+  - `<VALUE>` MAY include one or more wildcard (`*`) characters but only when
+    the comparison operator is `=`, `!=` or `<>`. The presence of a wildcard
+    indicates that any number of characters can appear at that location in the
+    `<VALUE>`. The wildcard MAY be escaped via the use of a backslash (`\\`)
+    character (e.g. `abc\*def`) to mean that the `*` is to be
+    interpreted as a normal character and not as a wildcard. Note that a
+    `<VALUE>` of `*` MUST be equivalent to checking for the existence of the
+    attribute, with any value (even an empty string). In other words, the filter
+    will only fail if the attribute has no value at all.
+  - It is STRONGLY RECOMMENDED to use Unicode collation based on en-US.
+- For timestamp attributes, normal string comparison rules apply after
+  the values have been normalized to UTC.
+- For URI/URL variants, normal string comparison rules apply.
 
 If the request references an entity (not a collection), and the `<EXPRESSION>`
 references an attribute in that entity (i.e. there is no `<PATH>`), then if the
@@ -6848,7 +6858,8 @@ When [pagination](../pagination/spec.md) is used to return the results, but
 the `?sort` flag is not specified, then the server MUST sort the results on the
 entities' `<SINGULAR>id` value in ascending order.
 
-Sorting of strings MUST be done in a case-insensitive way.
+See the [inline Flag](#inline-flag) section for how the various data types
+are compared for sorting purposes.
 
 Entities that do not have a value for the specified attribute MUST be treated
 the same as if they had the "lowest" possible value for that attribute. If
