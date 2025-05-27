@@ -201,8 +201,8 @@ The resource model for endpoints can be found in [model.json](model.json).
 
 ### Endpoints
 
-Endpoints are a Group type with a plural name (`<GROUPS>`) of `endpoints`, and a
-singular name (`<GROUP>`) of `endpoint`.
+Endpoints are a Group type with a plural name (`<GROUPS>`) of `endpoints`, and
+a singular name (`<GROUP>`) of `endpoint`.
 
 The following attributes are defined for Endpoints:
 
@@ -222,8 +222,8 @@ The following attributes are defined for Endpoints:
   the relationship of a client with that intermediary.
 
   In a direct-delivery scenario where the originator of messages connects
-  directly to the target (e.g. a "WebHook" call), the target endpoint implements
-  the accepting end of the `producer` relationship.
+  directly to the target (e.g. a "WebHook" call), the target endpoint
+  implements the accepting end of the `producer` relationship.
 
   Some of these perspectives are mentioned below for illustration, but not
   formally defined or reflected in the metadata model. Perspectives depend on
@@ -470,9 +470,10 @@ This specification defines the following envelope options for the indicated
 - Description: The type of the authorization configuration. The value SHOULD be
   one of the following:
   - OAuth2: OAuth 2.0 authorization is used.
-  - Plain: The client uses username with a plaintext password for authentication
-    and authorization.
-  - X509Cert: The client uses client certificate authentication and authorization.
+  - Plain: The client uses username with a plaintext password for
+    authentication and authorization.
+  - X509Cert: The client uses client certificate authentication and
+    authorization.
   - APIKey: The client uses an API key for authentication and authorization.
 
 - Constraints:
@@ -493,8 +494,8 @@ This specification defines the following envelope options for the indicated
 
 - Type: URI
 - Description: The URI of the authorization authority from which the
-  authorization is requested. The format of the URI depends on the authorization
-  type.
+  authorization is requested. The format of the URI depends on the
+  authorization type.
 
 - Constraints:
   - OPTIONAL
@@ -630,7 +631,8 @@ The following options are defined for HTTP:
 - `headers`: An array of HTTP headers to use for the endpoint. HTTP allows for
   duplicate headers. The objects in the array have the following attributes:
   - `name`: The name of the HTTP header. The value MUST be a non-empty string.
-  - `value`: The value of the HTTP header. The value MUST be a non-empty string.
+  - `value`: The value of the HTTP header. The value MUST be a non-empty
+    string.
 - `query`: A map of HTTP query parameters to use for the endpoint. The value
   MUST be a map of non-empty strings to non-empty strings.
 
@@ -687,8 +689,8 @@ The following options are defined for AMQP endpoints.
 
 The values of all `linkproperties` and `connection-properties` MAY contain
 placeholders using the [RFC6570][RFC6570] Level 1 URI Template syntax. When the
-same placeholder is used in multiple properties, the value of the placeholder is
-assumed to be identical.
+same placeholder is used in multiple properties, the value of the placeholder
+is assumed to be identical.
 
 Example:
 
@@ -747,7 +749,8 @@ The following options are defined for MQTT endpoints.
   - It MUST point to a valid
   [´message´](../message/spec.md#message-definitions) that MUST either
   use the ["CloudEvents/1.0"](../message/spec.md#cloudevents10) or
-  ["MQTT/3.1.1." or "MQTT/5.0"](../message/spec.md#mqtt311-and-mqtt50-protocols)
+  ["MQTT/3.1.1." or
+  "MQTT/5.0"](../message/spec.md#mqtt311-and-mqtt50-protocols)
   [`envelope`](../message/spec.md#envelope).
 
 Example:
@@ -771,7 +774,7 @@ Example:
 
 The [endpoint URIs](#protocoloptionsendpoints) for "Kafka" endpoints MUST be
 valid Kafka bootstrap server addresses. The scheme follows Kafka configuration
-usage, e.g.  `SSL://<HOST>:<PORT>` or `PLAINTEXT://<HOST>:<PORT>`.
+usage, e.g. `SSL://<HOST>:<PORT>` or `PLAINTEXT://<HOST>:<PORT>`.
 
 The following options are defined for Kafka endpoints.
 

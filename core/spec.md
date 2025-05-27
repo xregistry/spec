@@ -25,7 +25,8 @@ automation and tooling.
   - [Registry Capabilities](#registry-capabilities)
   - [Registry Model](#registry-model)
     - [Retrieving the Registry Model](#retrieving-the-registry-model)
-    - [Creating or Updating the Registry Model](#creating-or-updating-the-registry-model)
+    - [Creating or Updating the
+      Registry Model](#creating-or-updating-the-registry-model)
   - [Groups APIs](#groups-apis)
     - [Retrieving a Group Collection](#retrieving-a-group-collection)
     - [Creating or Updating Groups](#creating-or-updating-groups)
@@ -143,7 +144,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
         "target": "<XIDTYPE>", ?        # If "type" is "xid" or "url"
         "namecharset": "<STRING>", ?    # If "type" is "object"
         "description": "<STRING>", ?
-        "enum": [ <VALUE> * ], ?        # Array of scalar values of type "<TYPE>"
+        "enum": [ <VALUE> * ], ?        # Array of scalars of type "<TYPE>"
         "strict": <BOOLEAN>, ?          # Just "enum" values? Default=true
         "readonly": <BOOLEAN>, ?        # From client's POV. Default=false
         "immutable": <BOOLEAN>, ?       # Once set, can't change. Default=false
@@ -184,7 +185,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "plural": "<STRING>",         # e.g. "messages"
             "singular": "<STRING>",       # e.g. "message"
             "description": "<STRING>", ?
-            "maxversions": <UINTEGER>, ?  # Num Vers(>=0). Default=0, 0=unlimited
+            "maxversions": <UINTEGER>, ?  # Num Vers(>=0). Default=0(unlimited)
             "setversionid": <BOOLEAN>, ?  # vid settable? Default=true
             "setdefaultversionsticky": <BOOLEAN>, ? # sticky settable? Default=true
             "hasdocument": <BOOLEAN>, ?   # Has separate document. Default=true
@@ -334,12 +335,12 @@ When HTTP query parameters are discussed, they are presented as `?<NAME>` where
 `<NAME>` is the name of the query parameter.
 
 Use of `<GROUP>` and `<RESOURCE>` are meant to represent the singular
-name of a Group and Resource type being used. While `<GROUPS>` and `<RESOURCES>`
-are the plural name of those respective types. Use of `<SINGULAR>`
-represents the singular name of the entity being referenced. For example,
-for a "schema document" Resource type where its plural name is defined as
-`schemas` and its singular name is defined as `schema`, the `<SINGULAR>`
-value would be `schema`.
+name of a Group and Resource type being used. While `<GROUPS>` and
+`<RESOURCES>` are the plural name of those respective types. Use of
+`<SINGULAR>` represents the singular name of the entity being referenced. For
+example, for a "schema document" Resource type where its plural name is
+defined as `schemas` and its singular name is defined as `schema`, the
+`<SINGULAR>` value would be `schema`.
 
 Additionally, the following acronyms are defined:
 - `<GID>` is the `<SINGULAR>id` of a Group.
@@ -616,7 +617,8 @@ be one of the following data types:
     within the scope of this map.
   - See [Serializing Resource Documents](#serializing-resource-documents)
     for more information about serializing maps as HTTP headers.
-- `object` - a nested entity made up of a set of attributes of these data types.
+- `object` - a nested entity made up of a set of attributes of these data
+  types.
 - `xid` - MUST be a URL (xid) reference to another entity defined within
   the Registry. The actual entity attribute value MAY reference a non-existing
   entity (i.e. dangling pointer), but the syntax MUST reference a
@@ -627,8 +629,8 @@ be one of the following data types:
   Its value MUST start with a `/`.
 - `xidtype` - MUST be a URL reference to an xRegistry model type. The
    reference MUST point to one of: the Registry itself (`/`), a Group type
-   (`/<GROUPS>`), a Resource type (`/<GROUPS>/<RESOURCE>`) or Version type for a
-   Resource (`/<GROUPS>/<RESOURCES>/versions`). Its value MUST reference a
+   (`/<GROUPS>`), a Resource type (`/<GROUPS>/<RESOURCE>`) or Version type for
+   a Resource (`/<GROUPS>/<RESOURCES>/versions`). Its value MUST reference a
    defined/valid type in the Registry.
 - `string` - sequence of Unicode characters.
 - `timestamp` - an [RFC3339](https://tools.ietf.org/html/rfc3339) timestamp.
@@ -719,10 +721,11 @@ attributes. However, they MUST adhere to the following rules:
   - Be permitted due to the presence of an `any` type for one of its parent
     attribute definitions.
 - They MUST NOT conflict with the name of an attribute defined by this
-  specification, including the `<RESOURCE>*` and `<COLLECTION>*` attributes that
-  are implicitly defined. Note that if a Resource type has the `hasdocument`
-  attribute set the `false` then this rule does not apply for the `<RESOURCE>*`
-  attributes as those attributes are not used for that Resource type.
+  specification, including the `<RESOURCE>*` and `<COLLECTION>*` attributes
+  that are implicitly defined. Note that if a Resource type has the
+  `hasdocument` attribute set the `false` then this rule does not apply for
+  the `<RESOURCE>*` attributes as those attributes are not used for that
+  Resource type.
 - It is RECOMMENDED that extension attributes on different entities do not
   use the same name unless they have the exact same semantic meaning.
 - It is STRONGLY RECOMMENDED that they be named in such a way as to avoid
@@ -1051,7 +1054,7 @@ of the existing entity. Then the existing entity would be deleted.
     representing the time when the entity was last updated.
   - This specification places no restrictions on the value of this attribute,
     nor on its value relative to its `createdat` value or the current
-    date/time.  Implementations MAY choose restrict its values if necessary.
+    date/time. Implementations MAY choose restrict its values if necessary.
   - Any update operation (even one that does not change any attribute, such as
     a `PATCH` with no attributes provided), MUST update this attribute. This
     then acts like a `touch` type of operation.
@@ -1090,9 +1093,9 @@ This specification defines the following API patterns:
 /<GROUPS>                                        # Access a Group Type
 /<GROUPS>/<GID>                                  # Access a Group
 /<GROUPS>/<GID>/<RESOURCES>                      # Access a Resource Type
-/<GROUPS>/<GID>/<RESOURCES>/<RID>                # Default Version of a Resource
+/<GROUPS>/<GID>/<RESOURCES>/<RID>                # Default Version of Resource
 /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions       # Versions of a Resource
-/<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID> # Access Version of a Resource
+/<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID> # Access Version of Resource
 ```
 
 While these APIs are shown to be at the root path of a host,
@@ -1212,11 +1215,11 @@ filename.
 
 ---
 
-The remainder of this specification mainly focuses on the successful interaction
-patterns of the APIs. For example, most examples will show an HTTP "200 OK"
-as the response. Each implementation MAY choose to return a more appropriate
-response based on the specific situation. For example, in the case of an
-authentication error the server could return `401 Unauthorized`.
+The remainder of this specification mainly focuses on the successful
+interaction patterns of the APIs. For example, most examples will show an
+HTTP "200 OK" as the response. Each implementation MAY choose to return a more
+appropriate response based on the specific situation. For example, in the case
+of an authentication error the server could return `401 Unauthorized`.
 
 The following sections define the APIs in more detail.
 
@@ -1433,8 +1436,8 @@ The `PUT` variant MUST adhere to the following:
 
 The `POST` variant MUST adhere to the following:
   - The HTTP body MUST contain a JSON map where the key MUST be the
-    `<SINGULAR>id` of each entity in the map. Note, that in the case of a map of
-    Versions, the `versionid` is used instead.
+    `<SINGULAR>id` of each entity in the map. Note, that in the case of a map
+    of Versions, the `versionid` is used instead.
   - Each value in the map MUST be the full serialization of the entity to be
     either added or updated. Note that `POST` does not support deleting
     entities from a collection, so a separate delete operation might be needed
@@ -1464,8 +1467,8 @@ semantics defined above with the following exceptions:
 The `PATCH` variant when directed at an xRegistry collection, MUST adhere to
 the following:
   - The HTTP body MUST contain a JSON map where the key MUST be the
-    `<SINGULAR>id` of each entity in the map. Note, that in the case of a map of
-    Versions, the `versionid` is used instead.
+    `<SINGULAR>id` of each entity in the map. Note, that in the case of a map
+    of Versions, the `versionid` is used instead.
   - Each value in the map MUST contain just the attributes that are to be
     updated for that entity. See `PATCH` semantics when directed as a single
     entity above.
@@ -1632,7 +1635,7 @@ Where:
   `DELETE` request of Resources that only has `epoch` at a top-level attribute,
   but not as a `meta` attribute, MUST generate an error
   ([misplaced_epoch](#misplaced_epoch)) as it is likely that the client is
-  using the Resource's default Version `epoch` value by mistake.  A top-level
+  using the Resource's default Version `epoch` value by mistake. A top-level
   `epoch` in the presence of a `meta` `epoch` MUST be ignored.
 - If the entity's unique identifier is present in the object, then it MUST
   match its corresponding `<KEY>` value.
@@ -2225,13 +2228,14 @@ even if they are set to their default values or have empty lists.
 #### Updating the Capabilities of a Server
 
 If supported, updates to the server's capabilities MAY be done via an HTTP
-`PUT`, or `PATCH`, to the `/capabilities` API, or by updating the `capabilities`
-attribute on the root of the Registry. As with other APIs, a `PUT` MUST be
-interpreted as a request to update the entire set of capabilities and any
-missing capability MUST be interpreted as a request to reset it to its default
-value. If a `PATCH` is used then each capability included MUST be fully
-specified, and fully replaced by the incoming value. In other words, `PATCH`
-is done at a capability level not any deeper within the JSON structure.
+`PUT`, or `PATCH`, to the `/capabilities` API, or by updating the
+`capabilities` attribute on the root of the Registry. As with other APIs, a
+`PUT` MUST be interpreted as a request to update the entire set of
+capabilities and any missing capability MUST be interpreted as a request to
+reset it to its default value. If a `PATCH` is used then each capability
+included MUST be fully specified, and fully replaced by the incoming value. In
+other words, `PATCH` is done at a capability level not any deeper within the
+JSON structure.
 
 The request to the `/capabilities` API MUST be of the form:
 
@@ -2314,8 +2318,8 @@ GET /capabilities?offered
 
 Where:
 - `<STRING>` MUST be the capability name.
-- `<TYPE>` MUST be one of `boolean`, `string`, `integer`, `decimal`, `uinteger`,
-  `array` as defined in [Attributes and
+- `<TYPE>` MUST be one of `boolean`, `string`, `integer`, `decimal`,
+  `uinteger`, `array` as defined in [Attributes and
   Extensions](#attributes-and-extensions).
 - When `"type"` is `array`, `"item.type"` MUST be one of `boolean`, `string`,
   `integer`, `decimal`, `uinteger`, otherwise `"item"` MUST be absent.
@@ -2422,7 +2426,7 @@ is as follows:
       "target": "<XIDTYPE>", ?         # If "type" is "xid" or "url"
       "namecharset": "<STRING>", ?     # If "type" is "object"
       "description": "<STRING>",
-      "enum": [ <VALUE> * ], ?         # Array of values of type "<TYPE>"
+      "enum": [ <VALUE> * ], ?         # Array of scalars of type "<TYPE>"
       "strict": <BOOLEAN>, ?           # Just "enum" values or not. Default=true
       "readonly": <BOOLEAN>, ?         # From client's POV. Default=false
       "immutable": <BOOLEAN>, ?        # Once set, can't change. Default=false
@@ -2569,9 +2573,9 @@ The following describes the attributes of Registry model:
     a "xid template" of one of the following forms:
     - `/<GROUPS>` - a plural Group type name. An entity attribute of this
       type/target MUST reference an instance of this Group type.
-    - `/<GROUPS>/<RESOURCES>` - a plural Resource type name. An entity attribute
-      of this type/target MUST reference an instance of this Resource type,
-      not a specific Version of the Resource.
+    - `/<GROUPS>/<RESOURCES>` - a plural Resource type name. An entity
+      attribute of this type/target MUST reference an instance of this
+      Resource type, not a specific Version of the Resource.
     - `/<GROUPS>/<RESOURCES>[/versions]`. An entity attribute of this
       type/target MUST reference either an instance of this Resource type or
       an instance of a Version of this Resource type.
@@ -3080,8 +3084,8 @@ The following describes the attributes of Registry model:
 
     A value of `string` indicates that the Resource's document is to be treated
     as a string and serialized using the default string serialization rules
-    for the format being used to serialize the Resource's metadata. For example,
-    when using JSON, this means escaping all non-printable characters.
+    for the format being used to serialize the Resource's metadata. For
+    example, when using JSON, this means escaping all non-printable characters.
 
     Specifying an unknown (or unsupported) value MUST generate an error
     ([model_error](#model_error)) during the update of the xRegistry model.
@@ -3496,8 +3500,8 @@ all of the system defined aspects added) can be found
 When a Resource type definition is to be shared between Groups, rather than
 creating a duplicate Resource definition, the `ximportresources` mechanism MAY
 be used instead. The `ximportresources` attribute on a Group definition
-allows for a list of <XIDTYPE> references to other Resource types that are to be
-included within this Group.
+allows for a list of <XIDTYPE> references to other Resource types that are to
+be included within this Group.
 
 For example, the following abbreviated model definition defines
 one Resource type (`messages`) under the `messagegroups` Group, that is
@@ -4144,7 +4148,8 @@ becomes available via a set of `<RESOURCE>*` attributes within that metadata:
   [Registry Model](#registry-model) for more information. If a Resource has
   a matching `contenttype` but the contents of the Resource's document do not
   successfully parse (e.g. it's `application/json` but the JSON is invalid),
-  then `<RESOURCE>` MUST NOT be used and `<RESOURCE>base64` MUST be used instead.
+  then `<RESOURCE>` MUST NOT be used and `<RESOURCE>base64` MUST be used
+  instead.
 
 - `<RESOURCE>base64`: this attribute MUST be used when the contents of the
   Resource's are stored within the Registry but `<RESOURCE>` can not be used.
@@ -4157,8 +4162,8 @@ becomes available via a set of `<RESOURCE>*` attributes within that metadata:
 When accessing a Resource's metadata with `$details`, often it is to
 view or update the xRegistry metadata and not the document, as such, including
 the potentially large amount of data from the Resource's document in request
-and response messages could be cumbersome. To address this, the `<RESOURCE>` and
-`<RESOURCE>base64` attributes do not appear by default as part of the
+and response messages could be cumbersome. To address this, the `<RESOURCE>`
+and `<RESOURCE>base64` attributes do not appear by default as part of the
 serialization of the Resource. Rather, they MUST only appear in responses when
 the [`?inline=<RESOURCE>`](#inline-flag) query parameter is used. Likewise, in
 requests, these attributes are OPTIONAL and would only need to be used when a
@@ -4665,7 +4670,7 @@ xRegistry-<RESOURCE>id: <STRING>           # ID of Resource, not default Version
 xRegistry-versionid: <STRING>              # ID of the default Version
 xRegistry-self: <URL>                      # Resource URL, not default Version
 xRegistry-xid: <URI>                       # Relative Resource URI
-xRegistry-epoch: <UINTEGER>                 # Start default Version's attributes
+xRegistry-epoch: <UINTEGER>                # Start default Version's attributes
 xRegistry-name: <STRING> ?
 xRegistry-isdefault: true
 xRegistry-description: <STRING> ?
@@ -4730,11 +4735,11 @@ this form:
 
 ```yaml
 {
-  "<RESOURCE>id": "<STRING>",                # ID of Resource, not default Version
-  "versionid": "<STRING>",                   # ID of default Version
-  "self": "<URL>",                           # URL of Resource,not default Version
+  "<RESOURCE>id": "<STRING>",              # ID of Resource, not default Version
+  "versionid": "<STRING>",                 # ID of default Version
+  "self": "<URL>",                         # URL of Resource,not default Version
   "shortself": "<URL>", ?
-  "xid": "<XID>",                            # Relative URI of Resource
+  "xid": "<XID>",                          # Relative URI of Resource
   # These are inherited from the default Version
   "epoch": <UINTEGER>,
   "name": "<STRING>", ?
@@ -4907,7 +4912,8 @@ Note:
 - Any attributes referencing the source MUST use the source's metadata. In
   this respect, users of this serialization would never know that this is a
   cross-referenced Resource except for the presence of the `xref` attribute.
-  For example, its `<RESOURCE>id` MUST be the source's `id` and not the target's.
+  For example, its `<RESOURCE>id` MUST be the source's `id` and not the
+  target's.
 - The `xref` attribute MUST appear within the `meta` sub-object so a client
   can easily determine that this Resource is a cross-referenced Resource, and
   it provides a reference to the targeted Resource.
@@ -4923,7 +4929,7 @@ the target Resource's attributes (or nested entities), a write operation MUST
 be done on the appropriate target Resource entity directly. Write
 operations on the source MAY be done, however, the changes are limited to
 converting it from a "cross-reference" Resource back into a "normal"
-Resource.  See the following for more information:
+Resource. See the following for more information:
 
 When converting a "normal" Resource into a cross-reference Resource (adding
 an `xref` value), or creating a new Resource that will be a cross-reference
@@ -4973,7 +4979,7 @@ done.
 Both the source and target Resources MUST be of the same Resource model type,
 simply having similar Resource type definitions is not sufficient. This
 implies that use of the `ximportresources` feature in the model to reference a
-Resource type from another Group type definition MUST be used.  See
+Resource type from another Group type definition MUST be used. See
 [`ximportresources`](#reuse-of-resource-definitions) for more information.
 
 An `xref` value that points to a non-existing Resource, either because
@@ -5377,8 +5383,8 @@ Where:
 
 - When the xRegistry metadata is serialized as a JSON object, the processing
   of the 3 `<RESOURCE>` attributes MUST follow these rules:
-  - At most, only one of the 3 attributes MAY be present in the request, and the
-    presence of any one of them MUST delete the other 2 attributes.
+  - At most, only one of the 3 attributes MAY be present in the request, and
+    the presence of any one of them MUST delete the other 2 attributes.
   - If the entity already exists and has a document (not a `<RESOURCE>url`),
     then absence of all 3 attributes MUST leave all 3 unchanged.
   - An explicit value of `null` for any of the 3 attributes MUST delete all
@@ -5658,7 +5664,7 @@ Content-Location: <URL> ?
     "<RESOURCE>id": "<STRING>", ?
     "self": "<URL>",                         # URL to "meta" sub-object
     "shortself": "<URL>", ?
-    "xid": "<XID>",                          # Relative URI to "meta" sub-object
+    "xid": "<XID>",                          # XID of "meta" sub-object
     "xref": "<XID>", ?
     "epoch": <UINTEGER>,
     "createdat": "<TIMESTAMP>",
@@ -5979,9 +5985,9 @@ as defined below:
 
 If a server does not support client-side specification of the `versionid` of a
 new Version (see the `setversionid` attribute in the [Registry
-Model](#registry-model)), or if a client chooses to not specify the `versionid`,
-then the server MUST assign new Version an `versionid` that is unique within
-the scope of its owning Resource.
+Model](#registry-model)), or if a client chooses to not specify the
+`versionid`, then the server MUST assign new Version an `versionid` that is
+unique within the scope of its owning Resource.
 
 Servers MAY have their own algorithm for the creation of new Version
 `versionid` values, but the default algorithm is as follows:
@@ -6573,23 +6579,26 @@ Where:
 - The operators are processed as follows:
   - No operator:
     - When no operator is specified then the response MUST include
-      all entities that have the `<ATTRIBUTE>` present with any non-`null` value.
+      all entities that have the `<ATTRIBUTE>` present with any non-`null`
+      value.
   - `=` operator:
     - When `<VALUE>` is `null` then only entities without the specified
       `<ATTRIBUTE>` MUST be included in the response.
-    - When a non-`null` `<VALUE>` is specified then `<VALUE>` MUST be the desired
-      value of the attribute being examined. Only entities whose specified
-      `<ATTRIBUTE>` with this `<VALUE>` MUST be included in the response.
-    - When `<VALUE>` is absent then the implied `<VALUE>` is an empty string and
-      the matching MUST be done as specified in the previous bullet.
+    - When a non-`null` `<VALUE>` is specified then `<VALUE>` MUST be the
+      desired value of the attribute being examined. Only entities whose
+      specified `<ATTRIBUTE>` with this `<VALUE>` MUST be included in the
+      response.
+    - When `<VALUE>` is absent then the implied `<VALUE>` is an empty string
+      and the matching MUST be done as specified in the previous bullet.
   - `!=`, `<>` operators:
     - When `<VALUE>` is `null` then it MUST have the same semantics as
      `?filter=<ATTRIBUTE>` as specified above (present with any non-`null`
      value).
     - When `<VALUE>` is non-`null` then only entities without the specified
-      `<ATTRIBUTE>` and `<VALUE>` MUST be included in the response. This MUST be
-      semantically equivalent to `NOT(<ATTRIBUTE>=<VALUE>)`, and this also means
-      that if `<ATTRIBUTE>` is missing then that attribute will match the filter.
+      `<ATTRIBUTE>` and `<VALUE>` MUST be included in the response. This MUST
+      be semantically equivalent to `NOT(<ATTRIBUTE>=<VALUE>)`, and this also
+      means that if `<ATTRIBUTE>` is missing then that attribute will match
+      the filter.
   - `<`, `<=`, `>`, `>=` operators:
     - `<VALUE>` MUST NOT be `null`.
     - Only entities with the specified `<ATTRIBUTE>` and `<VALUE>` that matches
@@ -6611,10 +6620,10 @@ attribute impacts how the comparisons are done:
   presence of a wildcard indicates that any number of characters can appear at
   that location in the `<VALUE>`. The wildcard MAY be escaped via the use of a
   backslash (`\\`) character (e.g. `abc\*def`) to mean that the `*` is to be
-  interpreted as a normal character and not as a wildcard. Note that a `<VALUE>`
-  of `*` MUST be equivalent to checking for the existence of the attribute,
-  with any value (even an empty string). In other words, the filter will only
-  fail if the attribute has no value at all.
+  interpreted as a normal character and not as a wildcard. Note that a
+  `<VALUE>` of `*` MUST be equivalent to checking for the existence of the
+  attribute, with any value (even an empty string). In other words, the filter
+  will only fail if the attribute has no value at all.
 
 If the request references an entity (not a collection), and the `<EXPRESSION>`
 references an attribute in that entity (i.e. there is no `<PATH>`), then if the
@@ -6705,9 +6714,9 @@ that subtree is not changed by that search criteria.
 
 #### Inline Flag
 
-The `?inline` query parameter (flag) MAY be used on requests to indicate whether
-nested collections/objects, or certain (potentially large) attributes, are to
-be included in the response message.
+The `?inline` query parameter (flag) MAY be used on requests to indicate
+whether nested collections/objects, or certain (potentially large) attributes,
+are to be included in the response message.
 
 The `?inline` query parameter on a request indicates that the response
 MUST include the contents of all specified inlinable attributes. Inlinable
@@ -6774,9 +6783,10 @@ valid `<PATH>` values, but `*` and `endpoints.*` are.
 An `?inline` query parameter without any value MAY be supported and if so it
 MUST have the same semantic meaning as `?inline=*`.
 
-The specific value of `<PATH>` will vary based on where the request is directed.
-For example, a request to the root of the Registry MUST start with a `<GROUPS>`
-name, while a request directed at a Group would start with a `<RESOURCES>` name.
+The specific value of `<PATH>` will vary based on where the request is
+directed. For example, a request to the root of the Registry MUST start with a
+`<GROUPS>` name, while a request directed at a Group would start with a
+`<RESOURCES>` name.
 
 For example, given a Registry with a model that has `endpoints` as a Group and
 `messages` as a Resource within `endpoints`, the table below shows some

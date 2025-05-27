@@ -2,9 +2,9 @@
 
 ## Abstract
 
-This specification defines a Schema Registry extension to the xRegistry document
-format and API [specification](../core/spec.md). A Schema Registry allows for
-the storage, management and discovery of schema documents.
+This specification defines a Schema Registry extension to the xRegistry
+document format and API [specification](../core/spec.md). A Schema Registry
+allows for the storage, management and discovery of schema documents.
 
 ## Table of Contents
 
@@ -18,15 +18,15 @@ the storage, management and discovery of schema documents.
 
 ## Overview
 
-This specification defines a Schema Registry extension to the xRegistry document
-format and API [specification](../core/spec.md).
+This specification defines a Schema Registry extension to the xRegistry
+document format and API [specification](../core/spec.md).
 
 For easy reference, the JSON serialization of a Schema Registry adheres to
 this form:
 
 ```yaml
 {
-  "specversion": "<STRING>",                         # xRegistry core attributes
+  "specversion": "<STRING>",                       # xRegistry core attributes
   "registryid": "<STRING>",
   "self": "<URL>",
   "xid": "<XID>",
@@ -130,10 +130,10 @@ This specification defines the following terms:
 
 A schema, in the sense of this specification, defines the structure of the
 body/payload of a serialized message, but also of a structured data element
-stored on disk or elsewhere. In self-describing serialization formats like JSON,
-XML, BSON, or MessagePack, schemas primarily help with validating whether a
-message body conforms with a set of rules defined in the schema and with
-generating code that can produce or consume the defined structure. For
+stored on disk or elsewhere. In self-describing serialization formats like
+JSON, XML, BSON, or MessagePack, schemas primarily help with validating
+whether a message body conforms with a set of rules defined in the schema and
+with generating code that can produce or consume the defined structure. For
 schema-dependent serialization formats like Protobuf or Apache Avro, a schema
 is needed to decode the structured data from its serialized, binary form.
 
@@ -158,9 +158,9 @@ The formal xRegistry extension model of the Schema Registry resides in the
 
 #### Schema Group
 
-A schema group is a container for schemas that are related to each other in some
-application-defined way. This specification does not impose any restrictions on
-what schemas can be contained in a schema group.
+A schema group is a container for schemas that are related to each other in
+some application-defined way. This specification does not impose any
+restrictions on what schemas can be contained in a schema group.
 
 ## Schema Registry
 
@@ -216,10 +216,10 @@ from there.
 The group (`<GROUP>`) name for the Schema Registry is `schemagroups`. The
 group does not have any specific extension attributes.
 
-A schema group is a collection of schemas that are related to each other in some
-application-defined way. A schema group does not impose any restrictions on the
-contained schemas, meaning that a schema group MAY contain schemas of different
-formats. Every schema MUST reside inside a schema group.
+A schema group is a collection of schemas that are related to each other in
+some application-defined way. A schema group does not impose any restrictions
+on the contained schemas, meaning that a schema group MAY contain schemas of
+different formats. Every schema MUST reside inside a schema group.
 
 Example:
 
@@ -482,8 +482,8 @@ The [`format`](#format) identifier for Apache Avro Schema is
 Apache Avro Schema release that is used to define the schema.
 
 When the `format` attribute is set to `Avro`, the `schema` attribute of the
-schema Resource is a JSON object representing an Avro schema document conformant
-with the declared version.
+schema Resource is a JSON object representing an Avro schema document
+conformant with the declared version.
 
 Examples:
 
@@ -502,8 +502,8 @@ Examples:
 `https://example.com/avro/telemetry.avsc`, the URI fragment `#TelemetryEvent`
 references the record declaration of the `TelemetryEvent` record.
 - If the Avro schema document is a local Schema Registry reference like
-`#/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata`, in the
-which the reference is already in the form of a URI fragment, the suffix is
+`#/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata`, in
+the which the reference is already in the form of a URI fragment, the suffix is
 appended separated with a colon, for instance
 `.../com.example.telemetrydata:TelemetryEvent`.
 
