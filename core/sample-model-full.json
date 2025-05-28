@@ -82,6 +82,7 @@
     "model": {
       "name": "model",
       "type": "object",
+      "readonly": true,
       "attributes": {
         "*": {
           "type": "any"
