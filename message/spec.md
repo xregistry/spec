@@ -19,8 +19,8 @@ xRegistry document format and API [specification](../core/spec.md).
 
 This specification defines a message and event catalog extension to the
 xRegistry document format and API [specification](../core/spec.md). The purpose
-of the catalog is to provide a machine-readable definitions for message and event
-envelopes and logical grouping of related messages and events.
+of the catalog is to provide a machine-readable definitions for message and
+event envelopes and logical grouping of related messages and events.
 
 Managing the description of the payloads of those messages and events is not in
 scope, but delegated to the [schema registry extension](../schema/spec.md) for
@@ -32,93 +32,93 @@ this form:
 
 ```yaml
 {
-  "specversion": "STRING",
-  "registryid": "STRING",
-  "self": "URL",
-  "shortself": "URL",
-  "xid": "XID",
-  "epoch": UINTEGER,
-  "name": "STRING", ?
-  "description": "STRING", ?
-  "documentation": "URL", ?
+  "specversion": "<STRING>",
+  "registryid": "<STRING>",
+  "self": "<URL>",
+  "shortself": "<URL>",
+  "xid": "<XID>",
+  "epoch": <UINTEGER>,
+  "name": "<STRING>", ?
+  "description": "<STRING>", ?
+  "documentation": "<URL>", ?
   "labels": {
-    "STRING": "STRING" *
+    "<STRING>": "<STRING>" *
   }, ?
-  "createdat": "TIMESTAMP",
-  "modifiedat": "TIMESTAMP",
+  "createdat": "<TIMESTAMP>",
+  "modifiedat": "<TIMESTAMP>",
 
   "model": { ... }, ?
 
-  "messagegroupsurl": "URL",
-  "messagegroupscount": UINTEGER,
+  "messagegroupsurl": "<URL>",
+  "messagegroupscount": <UINTEGER>,
   "messagegroups": {
-    "KEY": {                                    # messagegroupid
-      "messagegroupid": "STRING",               # xRegistry core attributes
-      "self": "URL",
-      "shortself": "URL",
-      "xid": "XID",
+    "<KEY>": {                                    # messagegroupid
+      "messagegroupid": "<STRING>",             # xRegistry core attributes
+      "self": "<URL>",
+      "shortself": "<URL>",
+      "xid": "<XID>",
       # Start of default Version's attributes
-      "epoch": UINTEGER,
-      "name": "STRING", ?
-      "description": "STRING", ?
-      "documentation": "URL", ?
-      "labels": { "STRING": "STRING" * }, ?
-      "createdat": "TIMESTAMP",
-      "modifiedat": "TIMESTAMP",
+      "epoch": <UINTEGER>,
+      "name": "<STRING>", ?
+      "description": "<STRING>", ?
+      "documentation": "<URL>", ?
+      "labels": { "<STRING>": "<STRING>" * }, ?
+      "createdat": "<TIMESTAMP>",
+      "modifiedat": "<TIMESTAMP>",
 
-      "envelope": "STRING", ?                  # e.g. CloudEvents/1.0
-      "protocol": "STRING", ?                  # e.g. HTTP/1.1
+      "envelope": "<STRING>", ?                 # e.g. CloudEvents/1.0
+      "protocol": "<STRING>", ?                 # e.g. HTTP/1.1
 
-      "messagesurl": "URL",
-      "messagescount": UINTEGER,
+      "messagesurl": "<URL>",
+      "messagescount": <UINTEGER>,
       "messages" : {
-        "KEY": {                               # messageid
-          "messageid": "STRING",               # xRegistry core attributes
-          "versionid": "STRING",
-          "self": "URL",
-          "shortself": "URL",
-          "xid": "XID",
+        "<KEY>": {                              # messageid
+          "messageid": "<STRING>",              # xRegistry core attributes
+          "versionid": "<STRING>",
+          "self": "<URL>",
+          "shortself": "<URL>",
+          "xid": "<XID>",
           # Start of default Version's attributes
-          "epoch": UINTEGER,
-          "name": "STRING", ?
-          "description": "STRING", ?
-          "documentation": "URL", ?
-          "labels": { "STRING": "STRING" * }, ?
-          "createdat": "TIMESTAMP",
-          "modifiedat": "TIMESTAMP",
-          "ancestor": "STRING",
+          "epoch": <UINTEGER>,
+          "name": "<STRING>", ?
+          "description": "<STRING>", ?
+          "documentation": "<URL>", ?
+          "labels": { "<STRING>": "<STRING>" * }, ?
+          "createdat": "<TIMESTAMP>",
+          "modifiedat": "<TIMESTAMP>",
+          "ancestor": "<STRING>",
 
-          "basemessageurl": "URL", ?           # Message being extended
+          "basemessageurl": "<URL>", ?         # Message being extended
 
-          "envelope": "STRING", ?              # e.g. CloudEvents/1.0
+          "envelope": "<STRING>", ?            # e.g. CloudEvents/1.0
           "envelopemetadata": {
-            "STRING": JSON-VALUE *
+            "<STRING>": <JSON-VALUE> *
 
             # CloudEvents/1.0 "envelope" the "envelopemetadata" is of the form:
-            "STRING": {
-              "type": "TYPE", ?
-              "value": ANY, ?
-              "required": BOOLEAN              # Default=false
+            "<STRING>": {
+              "type": "<TYPE>", ?
+              "value": <ANY>, ?
+              "required": <BOOLEAN>            # Default=false
             } *
           }, ?
           "envelopeoptions": {
-            "STRING": JSON-VALUE *
+            "<STRING>": <JSON-VALUE> *
           }, ?
 
-          "protocol": "STRING", ?              # e.g. HTTP/1.1
+          "protocol": "<STRING>", ?            # e.g. HTTP/1.1
           "protocoloptions": { ... }, ?
 
-          "dataschemaformat": "STRING", ?
-          "dataschema": ANY, ?
-          "dataschemauri": "URI", ?
-          "dataschemaxid": "XID", ?
-          "datacontenttype": "STRING", ?
+          "dataschemaformat": "<STRING>", ?
+          "dataschema": <ANY>, ?
+          "dataschemauri": "<URI>", ?
+          "dataschemaxid": "<XID>", ?
+          "datacontenttype": "<STRING>", ?
           # End of default Version's attributes
 
-          "metaurl": "URL",
+          "metaurl": "<URL>",
           "meta": { ... }, ?
-          "versionsurl": "URL",
-          "versionscount": UINTEGER,
+          "versionsurl": "<URL>",
+          "versionscount": <UINTEGER>,
           "versions": { ... } ?
       } ?
     } *
@@ -164,22 +164,24 @@ carries further information useful for identification, routing, and dispatch.
 In this specification, **message** is an umbrella term that refers to all kinds
 of messages as well as to **events** as a special form of messages.
 
-The definition of [message][message] from the CloudEvents specification applies.
+The definition of [message][message] from the CloudEvents specification
+applies.
 
 #### Envelopes and Protocols
 
-An **envelope** is a transport protocol-independent message metadata convention.
-The [CNCF CloudEvents][CloudEvents] specification is an example of a message
-envelope and is the only envelope explicitly defined in this specification.
+An **envelope** is a transport protocol-independent message metadata
+convention. The [CNCF CloudEvents][CloudEvents] specification is an example of
+a message envelope and is the only envelope explicitly defined in this
+specification.
 
 A similar transport protocol-independent message metadata convention is, for
 example, the [W3C SOAP 1.2 envelope][SOAP] for which support could be added by
 an extension.
 
 This specification uses **protocol** to refer to a transport protocol-specific
-message metadata convention. When a known protocol is explicitly specified for a
-message definition, the "protocoloptions" section MAY contain constraints for
-the protocol-specific metadata.
+message metadata convention. When a known protocol is explicitly specified for
+a message definition, the "protocoloptions" section MAY contain constraints
+for the protocol-specific metadata.
 
 ## Message Definitions Registry
 
@@ -203,23 +205,24 @@ a particular role of an application protocol exchange pattern.
 All message definitions MUST be defined inside message groups.
 
 A message processor for a messaging or eventing channel can use a message group
-and its contained message definitions to match incoming messages to the declared
-message definitions and determine whether an incoming message conforms to
-the expected metadata constraints. If a conformant message has been identified,
-the processor might then use the linked schema to handle the message body. This
-is especially useful in scenarios where the message itself does not contain a
-schema hint or even content type information as it is the case, for instance, in
-MQTT 3.1.1.
+and its contained message definitions to match incoming messages to the
+declared message definitions and determine whether an incoming message
+conforms to the expected metadata constraints. If a conformant message has
+been identified, the processor might then use the linked schema to handle the
+message body. This is especially useful in scenarios where the message itself
+does not contain a schema hint or even content type information as it is the
+case, for instance, in MQTT 3.1.1.
 
 Whether a message is conformant to a message definition is determined by the
 message processor and its implementation-specific rules. Conformance rules are
 out of the scope of this specification.
 
-The [Endpoint Registry](../endpoint/spec.md) is a related registry that leans on
-this concept and allows associating one or more message definition groups with
-an endpoint, thus effectively defining a contract for the endpoint. An "endpoint"
-as defined in that specification is also a message definition group in itself,
-with the message definitions following the rules of this specification.
+The [Endpoint Registry](../endpoint/spec.md) is a related registry that leans
+on this concept and allows associating one or more message definition groups
+with an endpoint, thus effectively defining a contract for the endpoint. An
+"endpoint" as defined in that specification is also a message definition group
+in itself, with the message definitions following the rules of this
+specification.
 
 ## Message Definition Registry Model
 
@@ -228,7 +231,7 @@ resides in the [model.json](model.json) file.
 
 ### Message Definition Groups
 
-The Group (GROUP) name is `messagegroups`. The type of a group is
+The Group (`<GROUP>`) name is `messagegroups`. The type of a group is
 `messagegroup`.
 
 The following attributes are defined for the `messagegroup` object in addition
@@ -239,16 +242,16 @@ to the xRegistry-defined core
 
 - Type: String
 - Description: Identifies the common, transport protocol independent message
-  metadata format. Message metadata envelopes are referenced by name and version
-  as `{NAME}/{VERSION}`. This specification defines a set of common
-  [metadata envelope names](#metadata-envelopes) that MUST be used for the given
-  envelopes, but applications MAY define extensions for other envelopes on their
-  own. All definitions inside a group MUST use this same envelope.
+  metadata format. Message metadata envelopes are referenced by name and
+  version as `<NAME>/<VERSION>`. This specification defines a set of common
+  [metadata envelope names](#metadata-envelopes) that MUST be used for the
+  given envelopes, but applications MAY define extensions for other envelopes
+  on their own. All definitions inside a group MUST use this same envelope.
 - Constraints:
   - At least one of `envelopemetadata` and `protocol` MUST be specified.
   - If present, MUST be a non-empty string
-  - If present, MUST follow the naming convention `{NAME}/{VERSION}`, whereby
-    `{NAME}` is the name of the metadata envelope and `{VERSION}` is the
+  - If present, MUST follow the naming convention `<NAME>/<VERSION>`, whereby
+    `<NAME>` is the name of the metadata envelope and `<VERSION>` is the
     version of the metadata envelope.
 - Examples:
   - `CloudEvents/1.0`
@@ -257,7 +260,7 @@ to the xRegistry-defined core
 
 - Type: String
 - Description: Identifies a transport protocol to be used for this Message.
-  Protocols are referenced by name and version as `{NAME}/{VERSION}`. This
+  Protocols are referenced by name and version as `<NAME>/<VERSION>`. This
   specification defines a set of common [message protocol
   names](#message-protocols) that MUST be used for the given protocols, but
   applications MAY define extensions for other protocols on their own. All
@@ -265,11 +268,11 @@ to the xRegistry-defined core
 - Constraints:
   - At least one of `envelopemetadata` and `protocol` MUST be specified.
   - If present, MUST be a non-empty string
-  - If present, MUST follow the naming convention `{NAME}` or
-    `{NAME}/{VERSION}`, whereby `{NAME}` is the name of the protocol and
-    `{VERSION}` is the version of protocol. The version is REQUIRED if multiple,
-    mutually incompatible versions of the protocol exist and protocol options
-    differ between versions.
+  - If present, MUST follow the naming convention `<NAME>` or
+    `<NAME>/<VERSION>`, whereby `<NAME>` is the name of the protocol and
+    `<VERSION>` is the version of protocol. The version is REQUIRED if
+    multiple, mutually incompatible versions of the protocol exist and
+    protocol options differ between versions.
 - Examples:
   - `MQTT/3.1.1`
   - `AMQP/1.0`
@@ -277,7 +280,7 @@ to the xRegistry-defined core
 
 ### Message Definitions
 
-The resource (RESOURCE) collection name inside `messagegroup` is
+The resource (`<RESOURCE>`) collection name inside `messagegroup` is
 `messages`. The resource name is `message`.
 
 Different from schemas, message definitions do not contain a
@@ -366,8 +369,8 @@ Illustrating example:
 #### `envelopemetadata`
 
 - Type: Object
-- Description: Describes the metadata constraints for messages of this type. The
-  content of this property is defined by the message envelope, but all
+- Description: Describes the metadata constraints for messages of this type.
+  The content of this property is defined by the message envelope, but all
   envelopes use a common schema for the constraints defined for their
   metadata headers, properties or attributes.
 - Constraints:
@@ -406,8 +409,8 @@ specification.
 - Constraints:
   - OPTIONAL
   - If present, MUST be a non-empty string
-  - If present, MUST follow the naming convention `{NAME}/{VERSION}`, whereby
-    `{NAME}` is the name of the schema format and `{VERSION}` is the version of
+  - If present, MUST follow the naming convention `<NAME>/<VERSION>`, whereby
+    `<NAME>` is the name of the schema format and `<VERSION>` is the version of
     the schema format in the format defined by the schema format itself.
 - Examples:
   - 'JSONSchema/draft-07'
@@ -480,7 +483,8 @@ specification.
   - If present, MUST adhere to the format specified in
     [RFC 2046](https://tools.ietf.org/html/rfc2046)
 - For Media Type examples see
-  [IANA Media Types](http://www.iana.org/assignments/media-types/media-types.xhtml)
+  [IANA Media
+  Types](http://www.iana.org/assignments/media-types/media-types.xhtml)
 
 ### Metadata Envelopes and Message Protocols
 
@@ -557,7 +561,7 @@ headers/properties/attributes constraints:
     - `timestamp`: CloudEvents "Timestamp" type (RFC3339 DateTime)
     - `duration`: RFC3339 Duration
     - `uritemplate`: [RFC6570][RFC6570] Level 1 URI Template
-    - `uri`: CloudEvents "URI" type (RFC3986 URI)
+    - `uri`: CloudEvents URI type (RFC3986 URI)
     - `urireference`: CloudEvents "URI-reference" type (RFC3986 URI-reference)
     - `number`: IEEE754 Double
     - `integer`: CloudEvents "Integer" type (RFC 7159, Section 6)
@@ -565,9 +569,9 @@ headers/properties/attributes constraints:
 ##### `value`
 
 - Type: Any
-- Description: The value of the property. With a few exceptions, see below, this
-  is the value that MUST be literally present in the message for the message to
-  be considered conformant with this metaschema.
+- Description: The value of the property. With a few exceptions, see below,
+  this is the value that MUST be literally present in the message for the
+  message to be considered conformant with this metaschema.
 - Constraints:
   - OPTIONAL.
   - If present, MUST be a valid value for the property.
@@ -575,12 +579,12 @@ headers/properties/attributes constraints:
 If the `type` property has the value `uritemplate`, `value` MAY contain
 placeholders. As defined in [RFC6570][RFC6570] (Level 1), the placeholders MUST
 be enclosed in curly braces (`{` and `}`) and MUST be a valid `symbol`.
-Placeholders that are used multiple times in the same message definition MUST to
-represent identical values.
+Placeholders that are used multiple times in the same message definition MUST
+to represent identical values.
 
 When validating a message property against this value, the placeholders act as
-wildcards. For example, the value `{foo}/bar` would match the value `abc/bar` or
-`xyz/bar`.
+wildcards. For example, the value `{foo}/bar` would match the value `abc/bar`
+or `xyz/bar`.
 
 When creating a message based on a metaschema with such a value, the
 placeholders MUST be replaced with valid values. For example, the value
@@ -649,8 +653,8 @@ The following rules apply to the attribute declarations:
 
 The values of all `string` and `uritemplate`-typed attributes MAY contain
 placeholders using the [RFC6570][RFC6570] Level 1 URI Template syntax. When the
-same placeholder is used in multiple properties, the value of the placeholder is
-assumed to be identical.
+same placeholder is used in multiple properties, the value of the placeholder
+is assumed to be identical.
 
 The following shows the format of a CloudEvents "envelopemetadata" section for
 a message (see the [model file](model.json) for the complete definition):
@@ -664,32 +668,32 @@ a message (see the [model file](model.json) for the complete definition):
     "type": "string"
   },
   "id": {
-    "value": "STRING", ?
+    "value": "<STRING>", ?
     "type": "string", ?
   },
   "type": {
-    "value": "STRING", ?
+    "value": "<STRING>", ?
     "type": "string", ?
   },
   "source": {
-    "value": "STRING", ?
+    "value": "<STRING>", ?
     "type": "string", ?
   },
   "subject": {
-    "value": "STRING", ?
+    "value": "<STRING>", ?
     "type": "string" ?
   },
   "time": {
-    "value": "TIME", ?
+    "value": "<TIMESTAMP>", ?
     "type": "timestamp" ?
   },
   "dataschema": {
-    "value": "URITEMPLATE", ?
+    "value": "<URITEMPLATE>", ?
     "type": "uritemplate" ?
   },
   "*": {
-    "value": ANY, ?
-    "type": "TYPE"
+    "value": <ANY>, ?
+    "type": "<TYPE>"
   }
 }
 ```
@@ -698,8 +702,8 @@ The following example declares a CloudEvent with a JSON payload. The attribute
 `id` is REQUIRED in the declared event per the CloudEvents specification in
 spite of such a declaration being absent here, the `type` of the `type`
 attribute is `string` and the attribute is `required` even though the
-declarations are absent. The `time` attribute is made `required` contrary to the
-CloudEvents base specification. The implied CloudEvents `datacontenttype`
+declarations are absent. The `time` attribute is made `required` contrary to
+the CloudEvents base specification. The implied CloudEvents `datacontenttype`
 attribute value is `application/json` and the implied CloudEvents `dataschema`
 attribute value is `https://example.com/schemas/com.example.myevent.json`:
 
@@ -743,9 +747,9 @@ properties:
 
 | Property  | Type          | Description                  |
 | --------- | ------------- | ---------------------------- |
-| `headers` | Array         | The HTTP headers. See below. |
-| `query`   | Map           | The HTTP query parameters.   |
-| `path`    | `uritemplate` | The HTTP path.               |
+| `headers` | Array         | The HTTP headers. See below  |
+| `query`   | Map           | The HTTP query parameters    |
+| `path`    | `uritemplate` | The HTTP path                |
 | `method`  | `string`      | The HTTP method              |
 | `status`  | `string`      | The HTTP status code         |
 
@@ -764,9 +768,9 @@ code. The `status` and `method` properties are mutually exclusive and
 MUST NOT be present at the same time.
 
 The values of all `string` and `uritemplate`-typed properties and headers and
-query elements MAY contain placeholders using the [RFC6570][RFC6570] Level 1 URI
-Template syntax. When the same placeholder is used in multiple properties, the
-value of the placeholder is assumed to be identical.
+query elements MAY contain placeholders using the [RFC6570][RFC6570] Level 1
+URI Template syntax. When the same placeholder is used in multiple properties,
+the value of the placeholder is assumed to be identical.
 
 The following example defines a message that is sent over HTTP/1.1:
 
@@ -805,12 +809,12 @@ properties, each of which corresponds to a section of the AMQP 1.0 Message:
 
 | Property                 | Type | Description                                                                     |
 | ------------------------ | ---- | ------------------------------------------------------------------------------- |
-| `properties`             | Map  | The AMQP 1.0 [Message Properties][AMQP 1.0 Message Properties] section.         |
+| `properties`             | Map  | The AMQP 1.0 [Message Properties][AMQP 1.0 Message Properties] section          |
 | `application-properties` | Map  | The AMQP 1.0 [Application Properties][AMQP 1.0 Application Properties] section. |
-| `message-annotations`    | Map  | The AMQP 1.0 [Message Annotations][AMQP 1.0 Message Annotations] section.       |
-| `delivery-annotations`   | Map  | The AMQP 1.0 [Delivery Annotations][AMQP 1.0 Delivery Annotations] section.     |
-| `header`                 | Map  | The AMQP 1.0 [Message Header][AMQP 1.0 Message Header] section.                 |
-| `footer`                 | Map  | The AMQP 1.0 [Message Footer][AMQP 1.0 Message Footer] section.                 |
+| `message-annotations`    | Map  | The AMQP 1.0 [Message Annotations][AMQP 1.0 Message Annotations] section        |
+| `delivery-annotations`   | Map  | The AMQP 1.0 [Delivery Annotations][AMQP 1.0 Delivery Annotations] section      |
+| `header`                 | Map  | The AMQP 1.0 [Message Header][AMQP 1.0 Message Header] section                  |
+| `footer`                 | Map  | The AMQP 1.0 [Message Footer][AMQP 1.0 Message Footer] section                  |
 
 As in AMQP, all sections and properties are OPTIONAL.
 
@@ -857,8 +861,8 @@ definition:
 
 ##### `properties` (AMQP 1.0)
 
-The `properties` property is an object that contains the fixed properties of the
-AMQP 1.0 [Message Properties][AMQP 1.0 Message Properties] section. The
+The `properties` property is an object that contains the fixed properties of
+the AMQP 1.0 [Message Properties][AMQP 1.0 Message Properties] section. The
 following properties are defined, with type constraints:
 
 | Property               | Type          | Description                                                                      |
@@ -877,8 +881,9 @@ following properties are defined, with type constraints:
 | `reply-to-group-id`    | `uritemplate` | group-id to which the receiver of this message ought to send replies to          |
 
 The `message-id` permits the types `ulong`, `uuid`, `binary`, `string`, and
-`uritemplate`. A `value` constraint for `message-id` property SHOULD NOT be defined in
-the message definition except for the case where the `message-id` is a `uritemplate`.
+`uritemplate`. A `value` constraint for `message-id` property SHOULD NOT be
+defined in the message definition except for the case where the `message-id`
+is a `uritemplate`.
 
 ##### `application-properties` (AMQP 1.0)
 
@@ -1030,10 +1035,11 @@ Example:
 
 ### "NATS" protocol
 
-The "NATS" protocol is used to define messages that are sent using the [NATS][NATS] protocol.
+The "NATS" protocol is used to define messages that are sent using the
+[NATS][NATS] protocol.
 
-The [`protocoloptions`](#protocoloptions) object contains the available elements
-of the NATS message for the `HPUB` operation.
+The [`protocoloptions`](#protocoloptions) object contains the available
+elements of the NATS message for the `HPUB` operation.
 
 The following properties are defined:
 

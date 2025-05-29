@@ -4070,6 +4070,11 @@
             "description": "Registry model definitions (only if inlined).",
             "nullable": true
           },
+          "modelsource": {
+            "type": "object",
+            "description": "User provided Registry model definitions (only if inlined).",
+            "nullable": true
+          },
           "messagegroupsurl": {
             "type": "string",
             "format": "uri",

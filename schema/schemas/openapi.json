@@ -1932,6 +1932,11 @@
             "description": "Registry model definitions (only if inlined).",
             "nullable": true
           },
+          "modelsource": {
+            "type": "object",
+            "description": "User provided Registry model definitions (only if inlined).",
+            "nullable": true
+          },
           "schemagroupsurl": {
             "type": "string",
             "format": "uri",

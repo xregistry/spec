@@ -26,121 +26,121 @@ this form:
 
 ```yaml
 {
-  "specversion": "STRING",
-  "registryid": "STRING",
-  "self": "URL",
-  "xid": "XID",
-  "epoch": UINTEGER,
-  "name": "STRING", ?
-  "description": "STRING", ?
-  "documentation": "URL", ?
+  "specversion": "<STRING>",
+  "registryid": "<STRING>",
+  "self": "<URL>",
+  "xid": "<XID>",
+  "epoch": <UINTEGER>,
+  "name": "<STRING>", ?
+  "description": "<STRING>", ?
+  "documentation": "<URL>", ?
   "labels": {
-    "STRING": "STRING" *
+    "<STRING>": "<STRING>" *
   }, ?
-  "createdat": "TIMESTAMP",
-  "modifiedat": "TIMESTAMP",
+  "createdat": "<TIMESTAMP>",
+  "modifiedat": "<TIMESTAMP>",
 
   "model": { ... }, ?
 
-  "endpointsurl": "URL",
-  "endpointscount": UINTEGER,
+  "endpointsurl": "<URL>",
+  "endpointscount": <UINTEGER>,
   "endpoints": {
-    "KEY": {
-      "endpointid": "STRING",                   # xRegistry core attributes
-      "self": "URL",
-      "xid": "XID",
-      "epoch": UINTEGER,
-      "name": "STRING", ?
-      "description": "STRING", ?
-      "documentation": "URL", ?
-      "labels": { "STRING": "STRING" * }, ?
-      "createdat": "TIMESTAMP",
-      "modifiedat": "TIMESTAMP",
+    "<KEY": {
+      "endpointid": "<STRING>",                   # xRegistry core attributes
+      "self": "<URL>",
+      "xid": "<XID>",
+      "epoch": <UINTEGER>,
+      "name": "<STRING>", ?
+      "description": "<STRING>", ?
+      "documentation": "<URL>", ?
+      "labels": { "<STRING>": "<STRING>" * }, ?
+      "createdat": "<TIMESTAMP>",
+      "modifiedat": "<TIMESTAMP>",
 
       # Start of default Version's attributes
-      "usage": "STRING",                        # subscriber, consumer, producer
-      "channel": "STRING", ?
+      "usage": "<STRING>",                        # subscriber, consumer, producer
+      "channel": "<STRING>", ?
       "deprecated": {
-        "effective": "TIMESTAMP", ?
-        "removal": "TIMESTAMP", ?
-        "alternative": "URL", ?
-        "docs": "URL"?
+        "effective": "<TIMESTAMP>", ?
+        "removal": "<TIMESTAMP>", ?
+        "alternative": "<URL>", ?
+        "docs": "<URL>"?
       }, ?
 
-      "envelope": "STRING", ?                   # e.g. CloudEvents/1.0
+      "envelope": "<STRING>", ?                   # e.g. CloudEvents/1.0
       "envelopeoptions": {
-        "STRING": JSON-VALUE *
+        "<STRING>": <JSON-VALUE> *
 
         # CloudEvents/1.0 options
-        "mode": "STRING", ?                     # binary, structured
-        "format": "STRING" ?                    # e.g. application/json
+        "mode": "<STRING>", ?                     # binary, structured
+        "format": "<STRING>" ?                    # e.g. application/json
       },
 
-      "protocol": "STRING", ?                   # e.g. HTTP/1.1
+      "protocol": "<STRING>", ?                   # e.g. HTTP/1.1
       "protocoloptions": {
-        "STRING": JSON-VALUE *
+        "<STRING>": <JSON-VALUE> *
 
         # Common protocol options
         "endpoints": [
           {
-            "url": "URL"                        # plus endpoint extensions
+            "url": "<URL>"                        # plus endpoint extensions
           } *
         ], ?
         "authorization": {
-          "type": "STRING", ?
+          "type": "<STRING>", ?
           "resourceuri": "URI", ?
           "authorityuri": "URI", ?
-          "grant_types": [ "STRING" * ] ?
+          "grant_types": [ "<STRING>" * ] ?
         }, ?
-        "deployed": BOOLEAN, ?
+        "deployed": <BOOLEAN>, ?
 
         # "HTTP" protocol options
-        "method": "STRING", ?                          # Default: POST
-        "headers": [ { "name": "STRING", "value": "STRING" } * ], ?
-        "query": { "STRING": "STRING" * } ?
+        "method": "<STRING>", ?                          # Default: POST
+        "headers": [ { "name": "<STRING>", "value": "<STRING>" } * ], ?
+        "query": { "<STRING>": "<STRING>" * } ?
 
         # "AMQP/1.0" protocol options
-        "node": "STRING", ?
-        "durable": BOOLEAN, ?                          # Default: false
-        "linkproperties": { "STRING": "STRING" * }, ?
-        "connectionproperties": { "STRING": "STRING" * }, ?
+        "node": "<STRING>", ?
+        "durable": <BOOLEAN>, ?                          # Default: false
+        "linkproperties": { "<STRING>": "<STRING>" * }, ?
+        "connectionproperties": { "<STRING>": "<STRING>" * }, ?
         "distributionmode": "move" | "copy" ?          # Default: move
 
         # "MQTT/3.1.1" protocol options
-        "topic": "STRING", ?
-        "qos": UINTEGER, ?                             # Default: 0
-        "retain": BOOLEAN, ?                           # Default: false
-        "cleansession": BOOLEAN, ?                     # Default: true
-        "willtopic": "STRING", ?
-        "willmessage": "XID" ?
+        "topic": "<STRING>", ?
+        "qos": <UINTEGER>, ?                             # Default: 0
+        "retain": <BOOLEAN>, ?                           # Default: false
+        "cleansession": <BOOLEAN>, ?                     # Default: true
+        "willtopic": "<STRING>", ?
+        "willmessage": "<XID>" ?
 
         # "MQTT/5.0" protocol options
-        "topic": "STRING", ?
-        "qos": UINTEGER, ?                             # Default: 0
-        "retain": BOOLEAN, ?                           # Default: false
-        "cleansession": BOOLEAN, ?                     # Default: true
-        "willtopic": "STRING", ?
-        "willmessage": "XID" ?
+        "topic": "<STRING>", ?
+        "qos": <UINTEGER>, ?                             # Default: 0
+        "retain": <BOOLEAN>, ?                           # Default: false
+        "cleansession": <BOOLEAN>, ?                     # Default: true
+        "willtopic": "<STRING>", ?
+        "willmessage": "<XID>" ?
 
         # "KAFKA" protocol options
-        "topic": "STRING", ?
-        "acks": INTEGER, ?                             # Default: 1
-        "key": "STRING", ?
-        "partition": INTEGER, ?
-        "consumergroup": "STRING", ?
-        "headers": { "STRING": "STRING" * } ?
+        "topic": "<STRING>", ?
+        "acks": <INTEGER>, ?                             # Default: 1
+        "key": "<STRING>", ?
+        "partition": <INTEGER>, ?
+        "consumergroup": "<STRING>", ?
+        "headers": { "<STRING>": "<STRING>" * } ?
 
         # "NATS" protocol options
-        "subject": "STRING" ?
+        "subject": "<STRING>" ?
       }, ?
 
       "messagegroups": [ XID * ], ?
       # End of default Version's attributes
 
-      "messagesurl": "URL", ?
-      "messagescount": UINTEGER, ?
+      "messagesurl": "<URL>", ?
+      "messagescount": <UINTEGER>, ?
       "messages": {
-        "KEY": {                                # messageid
+        "<KEY": {                                # messageid
           # See Message Definition spec for details
         } *
       } ?
@@ -201,8 +201,8 @@ The resource model for endpoints can be found in [model.json](model.json).
 
 ### Endpoints
 
-Endpoints are a Group type with a plural name (`GROUPS`) of `endpoints`, and a
-singular name (`GROUP`) of `endpoint`.
+Endpoints are a Group type with a plural name (`<GROUPS>`) of `endpoints`, and
+a singular name (`<GROUP>`) of `endpoint`.
 
 The following attributes are defined for Endpoints:
 
@@ -222,8 +222,8 @@ The following attributes are defined for Endpoints:
   the relationship of a client with that intermediary.
 
   In a direct-delivery scenario where the originator of messages connects
-  directly to the target (e.g. a "WebHook" call), the target endpoint implements
-  the accepting end of the `producer` relationship.
+  directly to the target (e.g. a "WebHook" call), the target endpoint
+  implements the accepting end of the `producer` relationship.
 
   Some of these perspectives are mentioned below for illustration, but not
   formally defined or reflected in the metadata model. Perspectives depend on
@@ -323,13 +323,13 @@ See the [deprecated](../core/spec.md#deprecated) attribute in the core
   the Resource at all
 - Constraints:
   - At least one of `envelope` and `protocol` MUST be specified
-  - MUST be a non-empty string of the form `SPEC[/VERSION]`,
-    where `SPEC` is the non-empty string name of the specification that
-    defines the Resource. An OPTIONAL `VERSION` value SHOULD be included if
+  - MUST be a non-empty string of the form `<SPEC>[/<VERSION>]`,
+    where `<SPEC>` is the non-empty string name of the specification that
+    defines the Resource. An OPTIONAL `<VERSION>` value SHOULD be included if
     there are multiple versions of the specification available
   - For comparison purposes, this attribute MUST be considered case sensitive
-  - If a `VERSION` is specified at the Group level, all Resources within that
-    Group MUST have a `VERSION` value that is at least as precise as its
+  - If a `<VERSION>` is specified at the Group level, all Resources within that
+    Group MUST have a `<VERSION>` value that is at least as precise as its
     Group, and MUST NOT expand it. For example, if a Group had a
     `envelope` value of `myspec`, then Resources within that Group can have
     `envelope` values of `myspec` or `myspec/1.0`. However, if a Group has a
@@ -337,8 +337,8 @@ See the [deprecated](../core/spec.md#deprecated) attribute in the core
     `myspec/2.0` or just `myspec`. Additionally, if a Group does not have
     a `envelope` attribute then there are no constraints on its Resources
     `envelope` attributes
-  - This specification places no restriction on the case of the `SPEC` value
-    or on the syntax of the `VERSION` value
+  - This specification places no restriction on the case of the `<SPEC>` value
+    or on the syntax of the `<VERSION>` value
 - Examples:
   - `CloudEvents/1.0`
 
@@ -380,7 +380,7 @@ This specification defines the following envelope options for the indicated
   An example for an extension protocol identifier might be "BunnyMQ/0.9.1".
 
   Predefined protocols SHOULD be referred to by name and version as
-  `{NAME}/{VERSION}`. If the version is not specified, the default version of
+  `<NAME>/<VERSION>`. If the version is not specified, the default version of
   the protocol is assumed. The version number format is determined by the
   protocol specification's usage of versions.
 
@@ -397,8 +397,8 @@ This specification defines the following envelope options for the indicated
 - Constraints:
   - At least one of `envelope` and `protocol` MUST be specified
   - MUST be a non-empty string
-  - SHOULD follow the naming convention `{NAME}/{VERSION}`,
-    whereby `{NAME}` is the name of the protocol and `{VERSION}` is the
+  - SHOULD follow the naming convention `<NAME>/<VERSION>`,
+    whereby `<NAME>` is the name of the protocol and `<VERSION>` is the
     version of protocol.
 - Examples:
   - `MQTT/3.1.1`
@@ -470,9 +470,10 @@ This specification defines the following envelope options for the indicated
 - Description: The type of the authorization configuration. The value SHOULD be
   one of the following:
   - OAuth2: OAuth 2.0 authorization is used.
-  - Plain: The client uses username with a plaintext password for authentication
-    and authorization.
-  - X509Cert: The client uses client certificate authentication and authorization.
+  - Plain: The client uses username with a plaintext password for
+    authentication and authorization.
+  - X509Cert: The client uses client certificate authentication and
+    authorization.
   - APIKey: The client uses an API key for authentication and authorization.
 
 - Constraints:
@@ -493,8 +494,8 @@ This specification defines the following envelope options for the indicated
 
 - Type: URI
 - Description: The URI of the authorization authority from which the
-  authorization is requested. The format of the URI depends on the authorization
-  type.
+  authorization is requested. The format of the URI depends on the
+  authorization type.
 
 - Constraints:
   - OPTIONAL
@@ -630,7 +631,8 @@ The following options are defined for HTTP:
 - `headers`: An array of HTTP headers to use for the endpoint. HTTP allows for
   duplicate headers. The objects in the array have the following attributes:
   - `name`: The name of the HTTP header. The value MUST be a non-empty string.
-  - `value`: The value of the HTTP header. The value MUST be a non-empty string.
+  - `value`: The value of the HTTP header. The value MUST be a non-empty
+    string.
 - `query`: A map of HTTP query parameters to use for the endpoint. The value
   MUST be a map of non-empty strings to non-empty strings.
 
@@ -687,8 +689,8 @@ The following options are defined for AMQP endpoints.
 
 The values of all `linkproperties` and `connection-properties` MAY contain
 placeholders using the [RFC6570][RFC6570] Level 1 URI Template syntax. When the
-same placeholder is used in multiple properties, the value of the placeholder is
-assumed to be identical.
+same placeholder is used in multiple properties, the value of the placeholder
+is assumed to be identical.
 
 Example:
 
@@ -747,7 +749,8 @@ The following options are defined for MQTT endpoints.
   - It MUST point to a valid
   [´message´](../message/spec.md#message-definitions) that MUST either
   use the ["CloudEvents/1.0"](../message/spec.md#cloudevents10) or
-  ["MQTT/3.1.1." or "MQTT/5.0"](../message/spec.md#mqtt311-and-mqtt50-protocols)
+  ["MQTT/3.1.1." or
+  "MQTT/5.0"](../message/spec.md#mqtt311-and-mqtt50-protocols)
   [`envelope`](../message/spec.md#envelope).
 
 Example:
@@ -771,7 +774,7 @@ Example:
 
 The [endpoint URIs](#protocoloptionsendpoints) for "Kafka" endpoints MUST be
 valid Kafka bootstrap server addresses. The scheme follows Kafka configuration
-usage, e.g.  `SSL://{host}:{port}` or `PLAINTEXT://{host}:{port}`.
+usage, e.g. `SSL://<HOST>:<PORT>` or `PLAINTEXT://<HOST>:<PORT>`.
 
 The following options are defined for Kafka endpoints.
 
@@ -815,7 +818,7 @@ Example:
 
 The [endpoint URIs](#protocoloptionsendpoints) for "NATS" endpoints MUST be
 valid NATS URIs. The scheme MUST be "nats" or "tls" or "ws" and the URI MUST
-include a port number, e.g. `nats://{host}:{port}` or `tls://{host}:{port}`.
+include a port number, e.g. `nats://<HOST>:<PORT>` or `tls://<HOST>:<PORT>`.
 
 The following options are defined for NATS endpoints.
 
