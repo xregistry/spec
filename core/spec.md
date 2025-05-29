@@ -1740,12 +1740,16 @@ and the following Registry level attributes:
 
 ##### `model` Attribute
 - Type: Registry Model.
-- Description: A full description of the features, Groups, Resources and
-  attributes (specification defined and extensions) supported by this
-  Registry. See [Registry Model](#registry-model).
+- Description: A full description of the Groups, Resources and attributes
+  (specification defined and extensions) as defined by the current model
+  associated with this Registry. See [Registry Model](#registry-model).
 
   This view of the model is useful for tooling that needs a complete view of
   what will be part of any message exchange with the server.
+
+  Note that any ["include"](#includes-in-the-xregistry-model-data) directives
+  that were included in the model definition MUST NOT be present in this
+  view of the model.
 
 - Constraints:
   - MUST NOT be included in API and document views unless requested.
@@ -3602,12 +3606,21 @@ include directive:
   [JSON Pointer](https://datatracker.ietf.org/doc/html/rfc6901) specification.
 
 When the directives are used in a request to update the model, the server MUST
-resolve all includes prior to processing the request and MUST return the
-expanded model in response to the request for the model. The includes MUST NOT
-be processed again at a later time. A request to re-evaluate the includes can
-be done via a subsequent model update operation. Note, this means that when
-the model is subsequently retrieved (e.g. via an HTTP `GET`) the include
-directives MUST NOT be in the response.
+resolve all includes prior to updating the model. The original (source)
+model definition, with any "include" directives, MUST be available via
+the `modelsource` attribute and the expanded model (after the resolution of
+any includes, and after all specification defined attribute have been added)
+MUST be available via the `model` attribute. The directives MUST only be
+processed once. In order to have them re-evaluated, a subsequent model
+update request (with those directive) MUST be sent via the `modelsource`
+attribute.
+
+When there is tooling used outside of the server, e.g. in an xRegistry
+client, if that tooling resolves the "include" directives prior to sending
+the model to the server, then the directives will not appear in the
+`modelsource` view of the the model. Ideally, tooling SHOULD allow users
+to choose whether the resolution of the directives are done locally or by
+the server.
 
 **Examples:**
 
@@ -6631,9 +6644,9 @@ impacts how the comparisons are done:
     attribute, with any value (even an empty string). In other words, the filter
     will only fail if the attribute has no value at all.
   - It is STRONGLY RECOMMENDED to use Unicode collation based on en-US.
-- For timestamp attributes, normal string comparison rules apply after
-  the values have been normalized to UTC.
-- For URI/URL variants, normal string comparison rules apply.
+- For timestamp attributes, after the values have been normalized to UTC,
+  these follow the same rules as "strings" above.
+- For URI/URL variants, these follow the same rules as "strings" above.
 
 If the request references an entity (not a collection), and the `<EXPRESSION>`
 references an attribute in that entity (i.e. there is no `<PATH>`), then if the
