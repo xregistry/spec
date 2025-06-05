@@ -1,5 +1,4 @@
 {
-    "specversion": "1.0-rc1",
     "messagegroups": {
         "Fabrikam.InkJetPrinter": {
             "envelope": "CloudEvents/1.0",
@@ -30,7 +29,7 @@
                         }
                     },
                     "dataschemaformat": "Protobuf/3",
-                    "dataschemauri": "#/schemagroups/Fabrikam.InkJetPrinter/schemas/Fabrikam.InkJetPrinter.PrintJobStartedEventData"
+                    "dataschemauri": "/schemagroups/Fabrikam.InkJetPrinter/schemas/Fabrikam.InkJetPrinter.PrintJobStartedEventData"
                 },
                 "Fabrikam.InkJetPrinter.PrintJobCompleted": {
                     "description": "Event for when a print job is completed",
@@ -57,7 +56,7 @@
                         }
                     },
                     "dataschemaformat": "Protobuf/3",
-                    "dataschemauri": "#/schemagroups/Fabrikam.InkJetPrinter/schemas/Fabrikam.InkJetPrinter.PrintJobCompletedEventData"
+                    "dataschemauri": "/schemagroups/Fabrikam.InkJetPrinter/schemas/Fabrikam.InkJetPrinter.PrintJobCompletedEventData"
                 },
                 "Fabrikam.InkJetPrinter.InkLow": {
                     "description": "Event for when ink levels are low",
@@ -84,7 +83,7 @@
                         }
                     },
                     "dataschemaformat": "Protobuf/3",
-                    "dataschemauri": "#/schemagroups/Fabrikam.InkJetPrinter/schemas/Fabrikam.InkJetPrinter.InkLowEventData"
+                    "dataschemauri": "/schemagroups/Fabrikam.InkJetPrinter/schemas/Fabrikam.InkJetPrinter.InkLowEventData"
                 },
                 "Fabrikam.InkJetPrinter.PaperJam": {
                     "description": "Event for when a paper jam occurs",
@@ -111,7 +110,7 @@
                         }
                     },
                     "dataschemaformat": "Protobuf/3",
-                    "dataschemauri": "#/schemagroups/Fabrikam.InkJetPrinter/schemas/Fabrikam.InkJetPrinter.PaperJamEventData"
+                    "dataschemauri": "/schemagroups/Fabrikam.InkJetPrinter/schemas/Fabrikam.InkJetPrinter.PaperJamEventData"
                 },
                 "Fabrikam.InkJetPrinter.MaintenanceRequired": {
                     "description": "Event for when the printer requires maintenance",
@@ -138,7 +137,7 @@
                         }
                     },
                     "dataschemaformat": "Protobuf/3",
-                    "dataschemauri": "#/schemagroups/Fabrikam.InkJetPrinter/schemas/Fabrikam.InkJetPrinter.MaintenanceRequiredEventData"
+                    "dataschemauri": "/schemagroups/Fabrikam.InkJetPrinter/schemas/Fabrikam.InkJetPrinter.MaintenanceRequiredEventData"
                 }
             }
         }

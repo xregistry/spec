@@ -1,7 +1,4 @@
 {
-  "$schema": "https://cloudevents.io/schemas/registry",
-  "specversion": "1.0-rc1",
-  "id": "urn:uuid:NEW-UUID-WINDGENERATOR",
   "messagegroups": {
     "WindGenerator.Events": {
       "description": "Events for wind generator operations",
@@ -13,13 +10,14 @@
           "protocoloptions": {
             "headers": {
               "action": {
+                "name": "action",
                 "value": "powerOutput"
               }
             },
             "key": "{generatorId}"
           },
           "dataschemaformat": "Avro/1.11",
-          "dataschemauri": "#/schemagroups/WindGenerator/schemas/WindGenerator.PowerOutputUpdateEventData"
+          "dataschemauri": "/schemagroups/WindGenerator/schemas/WindGenerator.PowerOutputUpdateEventData"
         },
         "WindGenerator.StatusChange": {
           "description": "Event for wind generator status change",
@@ -27,13 +25,14 @@
           "protocoloptions": {
             "headers": {
               "action": {
+                "name": "action",
                 "value": "statusChange"
               }
             },
             "key": "{generatorId}"
           },
           "dataschemaformat": "Avro/1.11",
-          "dataschemauri": "#/schemagroups/WindGenerator/schemas/WindGenerator.StatusChangeEventData"
+          "dataschemauri": "/schemagroups/WindGenerator/schemas/WindGenerator.StatusChangeEventData"
         }
       }
     }

@@ -1,7 +1,4 @@
 {
-    "$schema": "https://cloudevents.io/schemas/registry",
-    "specversion": "1.0-rc1",
-    "id": "urn:uuid:6e8bc430-9c3a-11d9-9669-0800200c9a66",
     "messagegroups": {
         "Fabrikam.Watchkam": {
             "envelope": "CloudEvents/1.0",
@@ -31,20 +28,21 @@
                             "required": true
                         }
                     },
-                    "protocol": "Kafka",
+                    "protocol": "KAFKA",
                     "protocoloptions": {
                         "headers": {
                             "action": {
+                                "name": "action",
                                 "value": "motiondetected"
                             },
-                            "deviceId": {
-                                "type": "uritemplate",
+                            "deviceid": {
+                                "name": "deviceid",
                                 "value": "{deviceid}"
                             }
                         }
                     },
                     "dataschemaformat": "JSONSchema/Draft-07",
-                    "dataschemauri": "#/schemagroups/Fabrikam.Watchkam/schemas/Fabrikam.Watchkam.MotionDetectedEventData"
+                    "dataschemauri": "/schemagroups/Fabrikam.Watchkam/schemas/Fabrikam.Watchkam.MotionDetectedEventData"
                 },
                 "Fabrikam.Watchkam.MotionEnded": {
                     "description": "Event for when detected motion has ended",
@@ -70,20 +68,21 @@
                             "required": true
                         }
                     },
-                    "protocol": "Kafka",
+                    "protocol": "KAFKA",
                     "protocoloptions": {
                         "headers": {
                             "action": {
+                                "name": "action",
                                 "value": "motionended"
                             },
-                            "deviceId": {
-                                "type": "uritemplate",
+                            "deviceid": {
+                                "name": "deviceid",
                                 "value": "{deviceid}"
                             }
                         }
                     },
                     "dataschemaformat": "JSONSchema/Draft-07",
-                    "dataschemauri": "#/schemagroups/Fabrikam.Watchkam/schemas/Fabrikam.Watchkam.MotionEndedEventData"
+                    "dataschemauri": "/schemagroups/Fabrikam.Watchkam/schemas/Fabrikam.Watchkam.MotionEndedEventData"
                 }
             }
         }
