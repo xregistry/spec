@@ -60,6 +60,33 @@ context of event-driven systems. The following subsections provide a more
 specific overview of how xRegistry can be used to address common challenges in
 the event-driven space.
 
+### Why build something new?
+
+There are numerous metadata registries available today. Several schema
+registries exist. There are standards for container image registries, package
+registries, and API registries. When this effort was started, there was no
+registry for the particular use case of managing metadata about events and their
+endpoints. The CloudEvents project had already defined a schema registry API to
+complement the `dataschema` attribute of CloudEvents, which the team sought to
+extend.
+
+As the project evolved, it became clear that the specification needed to be more
+generic to accommodate a wider range of use cases, which is why the xRegistry
+specification was created. The result is a symmetric API and document format
+that can be used to manage and discover the full metadata graph of a system,
+given models that declare the respective resource types.
+
+Existing registry standards like OCI, Maven, or NPM can indeed be projected into
+the xRegistry resource model shape, allowing for a consistent way to manage
+metadata about these resources and, most importantly, to enable
+cross-referencing between these diverse resources. A container image contains an
+application made available as a package that exposes an endpoint that can accept
+events whose payloads have particular schemas. The xRegistry model allows all
+these resources and their relationships to be expressed in a single model, and
+it can yet leave the authoritative management of the individual resources to
+the respective registries as those can be proxied with an xRegistry API or
+import/exported into an xRegistry representation.
+
 ### Discovery
 
 One of the pain points of event-driven systems is the need to create and
