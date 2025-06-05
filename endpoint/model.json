@@ -1,4 +1,5 @@
 {
+  "$schema": "https://xregistry.io/xregistryspecs/core-v1/schemas/model.schema.json",
   "groups": {
     "messagegroups": {
       "$include": "../message/model.json#/groups/messagegroups"
