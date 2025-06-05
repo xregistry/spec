@@ -347,13 +347,14 @@ def generate_openapi(model_definition):
         raise
 
 
-def generate_json_schema(model_definition, for_openapi=False) -> dict:
+def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> dict:
     """
     Generate a JSON schema for the given model definition.
 
     Args:
         model_definition (dict): The model definition to generate the schema for.
         for_openapi (bool, optional): Whether the schema is being generated for OpenAPI. Defaults to False.
+        schema_id (str, optional): The URI to use for the schema's $id. Defaults to ''.
 
     Returns:
         dict: The generated JSON schema.
@@ -535,7 +536,7 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
         reference_prefix = "#/definitions/"
         schema = {
             "$schema": "http://json-schema.org/draft-07/schema#",
-            "$id": "http://xregistry.io/schema/"+"-".join(schema_group_names),
+            "$id": schema_id if schema_id else "http://xregistry.io/schema/"+"-".join(schema_group_names),
             "properties": {},
             "definitions": {}
         }
@@ -646,7 +647,7 @@ def generate_json_schema(model_definition, for_openapi=False) -> dict:
                         "$ref": f"{reference_prefix}{resource_name}",
                     }
                 }
-            
+
         for ximportresources_xid in group.get("ximportresources", []):
             xid_group_plural, xid_resource_plural = ximportresources_xid.split("/")[1:]
             xid_resource_singular = model_definition["groups"][xid_group_plural]["resources"][xid_resource_plural]["singular"]
@@ -874,7 +875,7 @@ def generate_avro_schema(model_definition) -> dict:
                         "values": resource_schema
                     }
                 })
-                
+
         for ximportresources_xid in group.get("ximportresources", []):
             xid_group_plural, xid_resource_plural = ximportresources_xid.split("/")[1:]
             xid_resource_singular = model_definition["groups"][xid_group_plural]["resources"][xid_resource_plural]["singular"]
@@ -951,10 +952,10 @@ model_definition = {
 
 
 def resolve_imports(basedir, node):
-    """ 
-    recursively resolve all $includes in the model definition. 
+    """
+    recursively resolve all $includes in the model definition.
     This code handles two cases. The legacy case where the $include is
-    relative file path (URL) 
+    relative file path (URL)
     """
 
     if isinstance(node, dict):
@@ -990,6 +991,7 @@ def main():
     parser = argparse.ArgumentParser(description='Generate JSON schema from model definition')
     parser.add_argument('--type', type=str, help='type of document to generate', choices=['json-schema', 'avro-schema', 'openapi'], default='json-schema')
     parser.add_argument('--output', type=str, help='Path for output file', default='', required=False)
+    parser.add_argument('--schema-id', type=str, help='URI for the $id field in the schema', default='', required=False)
     parser.add_argument('input_files', type=str, help='Path to input files', nargs='+')
 
     args = parser.parse_args()
@@ -1008,9 +1010,8 @@ def main():
                     group_definition["$source"] = os.path.join(os.getcwd(),file_name)
                     if group_name not in model_definition["groups"]:
                         model_definition["groups"][group_name] = group_definition
-
     if (args.type == 'json-schema'):
-        json_schema = generate_json_schema(model_definition)
+        json_schema = generate_json_schema(model_definition, schema_id=args.schema_id)
         if args.output:
             with open(args.output, 'w', encoding='utf-8') as of:
                 json.dump(json_schema, of, indent=2)
