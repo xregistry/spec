@@ -2,15 +2,47 @@
 
 ## Abstract
 
-The CloudEvents Registry is a universal catalog and discovery metadata format
+The "CloudEvents Registry" is a universal catalog and discovery metadata format
 as well as a metadata service API for messaging and eventing schemas,
 metaschemas, and messaging and eventing endpoints.
 
 ## Table of Contents
 
-- [Notations and Terminology](#notations-and-terminology)
-  - [Notational Conventions](#notational-conventions)
-- [CloudEvents Registry](#cloudevents-registry)
+- [CloudEvents Registry Service - Version 1.0-rc1](#cloudevents-registry-service---version-10-rc1)
+  - [Abstract](#abstract)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+  - [Notations and Terminology](#notations-and-terminology)
+    - [Notational Conventions](#notational-conventions)
+  - [CloudEvents Registry](#cloudevents-registry)
+    - [File format](#file-format)
+  - [References](#references)
+
+
+## Overview
+
+The "CloudEvents Registry" is a universal catalog and discovery metadata format
+as well as a metadata service API for messaging and eventing schemas,
+metaschemas, and messaging and eventing endpoints.
+
+The registry is a composite xRegistry model that composes the [Schema
+Registry](../schema/spec.md), the [Message Definitions Registry](../message/spec.md), and the [Endpoint
+Registry](../endpoint/spec.md) into a single, unified metadata model that can
+be used to describe messaging and eventing endpoints, their messages, and the
+schemas of the messages' payloads in a single metadata document or an API.
+
+As such, this specification leans on all those specifications for its definitions and
+shows how they can be used together in a single metadata model.
+
+The name "CloudEvents Registry" is used to indicate that the registry is
+primarily motivated by the development of CloudEvents-based event flows, but
+the registry is not limited to CloudEvents. It can be used to describe any
+asynchronous messaging or eventing endpoint and its messages, including
+endpoints that do not use CloudEvents at all. The [Message
+Formats](../message/spec.md#metadata-envelopes-and-message-protocols) section
+therefore not only describes the attribute meta-schema for CloudEvents, but
+also meta-schemas for the native message envelopes of MQTT, AMQP, and other
+messaging protocols.
 
 ## Notations and Terminology
 
@@ -83,7 +115,7 @@ The following is an exemplary, compact definition of an MQTT 5.0 consumer
 endpoint with a single, embedded message definition using an embedded Protobuf
 3 schema for its payload.
 
-```yaml
+```json
 {
   "$schema": "https://cloudevents.io/schemas/registry",
   "specversion": "1.0-rc1",
@@ -111,10 +143,10 @@ endpoint with a single, embedded message definition using an embedded Protobuf
       "config": {
         "protocol": "MQTT/5.0",
         "endpoints": [
-            { "uri": "mqtt://mqtt.example.com:1883" }
+          { "uri": "mqtt://mqtt.example.com:1883" }
         ],
         "options": {
-            "topic": "{deviceid}/telemetry"
+          "topic": "{deviceid}/telemetry"
         }
       },
 
@@ -156,8 +188,8 @@ endpoint with a single, embedded message definition using an embedded Protobuf
           },
 
           "dataschemaformat": "Protobuf/3.0",
-          "dataschema": "syntax = \"proto3\"; message Metrics { float metric = 1; } }",
-          "datacontenttype": "Protobuf/3.0",
+          "dataschema": "syntax = \"proto3\"; message Metrics { float metric = 1; }",
+          "datacontenttype": "application/x-protobuf",
 
           "metaurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/meta",
           "versionsurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/versions",
@@ -173,7 +205,7 @@ The same metadata can be expressed by spreading the metadata across the message
 definition and schema registries, which makes the definitions reusable for
 other scenarios:
 
-```yaml
+```json
 {
   "$schema": "https://cloudevents.io/schemas/registry",
   "specversion": "1.0-rc1",
@@ -219,7 +251,7 @@ other scenarios:
   "messagegroupscount": 1,
   "messagegroups": {
     "com.example.telemetryEvents": {
-      "messageid": "com.example.telemetryEvents",
+      "messagegroupid": "com.example.telemetryEvents",
       "self": "https://example.com/messagegroups/com.example.telemetryEvents",
       "xid": "/messagegroups/com.example.telemetryEvents",
       "epoch": 3,
@@ -264,8 +296,8 @@ other scenarios:
           },
 
           "dataschemaformat": "Protobuf/3.0",
-          "dataschemauri": "#/schemagroups/com.example.telemetry/schema/com.example.telemetrydata/versions/1.0",
-          "datacontenttype": "Protobuf/3.0",
+          "dataschemaurl": "#/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions/1.0",
+          "datacontenttype": "application/x-protobuf",
 
           "metaurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/meta",
           "versionsurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/versions",
@@ -275,6 +307,7 @@ other scenarios:
     }
   },
 
+  "schemagroupsurl": "https://example.com/schemagroups",
   "schemagroupscount": 1,
   "schemagroups": {
     "com.example.telemetry": {
@@ -285,13 +318,14 @@ other scenarios:
       "createdat": "2024-04-30T12:00:00Z",
       "modifiedat": "2024-04-31T12:00:00Z",
 
+      "schemasurl": "https://example.com/schemagroups/com.example.telemetry/schemas",
       "schemascount": 1,
       "schemas": {
         "com.example.telemetrydata": {
           "schemaid": "com.example.telemetrydata",
           "versionid": "1.0",
-          "self": "https://example.com/schemagroups/com.example.telemetry/schemas",
-          "xid": "/schemagroups/com.example.telemetry/schemas",
+          "self": "https://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata",
+          "xid": "/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata",
           "epoch": 5,
           "isdefault": true,
           "description": "device telemetry event data",
@@ -302,9 +336,9 @@ other scenarios:
           "format": "Protobuf/3.0",
           "schema": "syntax = \"proto3\"; message Metrics { float metric = 1;}",
 
-          "metaurl": "https://example.com/schemagroups/com.example.telemetry/schemas/meta",
+          "metaurl": "https://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/meta",
           "versionscount": 1,
-          "versionsurl": "https://example.com/schemagroups/com.example.telemetry/schemas/versions"
+          "versionsurl": "https://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions"
         }
       }
     }
@@ -316,7 +350,7 @@ If we assume the message definitions and schemas to reside at an API endpoint,
 an endpoint definition might just reference the associated message definition
 group with a deep link to the respective object in the service:
 
-```yaml
+```json
 {
   "$schema": "https://cloudevents.io/schemas/registry",
   "specversion": "1.0-rc1",
@@ -375,7 +409,7 @@ link will first reference the file and then the object within the file, using
         # ... details ...
       },
 
-      "messagegroups": [ "https://rawdata.repos.example.com/myorg/myproject/main/example.telemetryEvents.cereg#/definitiongroups/com.example.telemetryEvents" ]
+      "messagegroups": [ "https://rawdata.repos.example.com/myorg/myproject/main/example.telemetryEvents.cereg#/messagegroups/com.example.telemetryEvents" ]
     }
   }
 }
@@ -433,9 +467,9 @@ embedded or referenced. Any of the three sub-registries MAY be omitted.
   "endpointscount": INT,
   "endpoints": { ... },
 
-  "definitiongroupsurl": "URL",
-  "definitiongroupscount": INT,
-  "definitiongroups": { ... },
+  "messagegroupsurl": "URL",
+  "messagegroupscount": INT,
+  "messagegroups": { ... },
 
   "schemagroupsurl": "URL",
   "schemagroupscount": INT,
@@ -451,4 +485,3 @@ significant.
 
 
 [JSON Pointer]: https://www.rfc-editor.org/rfc/rfc6901
-[CloudEvents]: https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md
