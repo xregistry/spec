@@ -28,7 +28,7 @@
                         }
                     },
                     "dataschemaformat": "Avro/1.11",
-                    "dataschemauri": "#/schemagroups/Fabrikam.Lumen/schemas/Fabrikam.Lumen.TurnedOnEventData"
+                    "dataschemauri": "/schemagroups/Fabrikam.Lumen/schemas/Fabrikam.Lumen.TurnedOnEventData"
                 },
                 "Fabrikam.Lumen.TurnedOff": {
                     "description": "Event for when the bulb is turned off",
@@ -54,7 +54,7 @@
                         }
                     },
                     "dataschemaformat": "Avro/1.11",
-                    "dataschemauri": "#/schemagroups/Fabrikam.Lumen/schemas/Fabrikam.Lumen.TurnedOffEventData"
+                    "dataschemauri": "/schemagroups/Fabrikam.Lumen/schemas/Fabrikam.Lumen.TurnedOffEventData"
                 },
                 "Fabrikam.Lumen.BrightnessChanged": {
                     "description": "Event for when the bulb's brightness changes",
@@ -77,7 +77,7 @@
                         }
                     },
                     "dataschemaformat": "Avro/1.11",
-                    "dataschemauri": "#/schemagroups/Fabrikam.Lumen/schemas/Fabrikam.Lumen.BrightnessChangedEventData"
+                    "dataschemauri": "/schemagroups/Fabrikam.Lumen/schemas/Fabrikam.Lumen.BrightnessChangedEventData"
                 },
                 "Fabrikam.Lumen.ColorChanged": {
                     "description": "Event for when the bulb's color changes",
@@ -103,7 +103,7 @@
                         }
                     },
                     "dataschemaformat": "Avro/1.11",
-                    "dataschemauri": "#/schemagroups/Fabrikam.Lumen/schemas/Fabrikam.Lumen.ColorChangedEventData"
+                    "dataschemauri": "/schemagroups/Fabrikam.Lumen/schemas/Fabrikam.Lumen.ColorChangedEventData"
                 }
             }
         }
