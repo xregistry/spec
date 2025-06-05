@@ -1,6 +1,4 @@
 {
-    "$schema": "https://cloudevents.io/schemas/registry",
-    "specversion": "1.0-rc1",
     "endpoints": {
         "WaterBoiler.Producer": {
             "usage": "producer",
@@ -14,7 +12,7 @@
                 ]
             },
             "messagegroups": [
-                "#/messagegroups/WaterBoiler.Events"
+                "/messagegroups/WaterBoiler.Events"
             ]
         },
         "WaterBoiler.Consumer": {
@@ -29,7 +27,7 @@
                 ]
             },
             "messagegroups": [
-                "#/messagegroups/WaterBoiler.Events"
+                "/messagegroups/WaterBoiler.Events"
             ]
         }
     },
@@ -47,7 +45,7 @@
                         "retain": false
                     },
                     "dataschemaformat": "JSONSchema/Draft-07",
-                    "dataschemauri": "#/schemagroups/WaterBoiler/schemas/WaterBoiler.TemperatureUpdateEventData"
+                    "dataschemauri": "/schemagroups/WaterBoiler/schemas/WaterBoiler.TemperatureUpdateEventData"
                 },
                 "WaterBoiler.StatusChange": {
                     "description": "Event for water boiler status change",
@@ -58,7 +56,7 @@
                         "retain": false
                     },
                     "dataschemaformat": "JSONSchema/Draft-07",
-                    "dataschemauri": "#/schemagroups/WaterBoiler/schemas/WaterBoiler.StatusChangeEventData"
+                    "dataschemauri": "/schemagroups/WaterBoiler/schemas/WaterBoiler.StatusChangeEventData"
                 }
             }
         }
