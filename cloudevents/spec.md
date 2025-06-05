@@ -21,28 +21,30 @@ metaschemas, and messaging and eventing endpoints.
 
 ## Overview
 
-The "CloudEvents Registry" is a universal catalog and discovery metadata format
+The "CloudEvents Registry" is a universal catalog and discovery metadata format,
 as well as a metadata service API for messaging and eventing schemas,
 metaschemas, and messaging and eventing endpoints.
 
-The registry is a composite xRegistry model that composes the [Schema
-Registry](../schema/spec.md), the [Message Definitions Registry](../message/spec.md), and the [Endpoint
-Registry](../endpoint/spec.md) into a single, unified metadata model that can
-be used to describe messaging and eventing endpoints, their messages, and the
-schemas of the messages' payloads in a single metadata document or an API.
+The registry is a composite xRegistry model that combines the [Schema
+Registry](../schema/spec.md), the [Message Definitions
+Registry](../message/spec.md), and the [Endpoint Registry](../endpoint/spec.md)
+into a single, unified metadata model. This model can be used to describe
+messaging and eventing endpoints, their messages, and the schemas of the
+messages' payloads in a single metadata document or via an API.
 
-As such, this specification leans on all those specifications for its definitions and
-shows how they can be used together in a single metadata model.
+As such, this specification builds upon all those specifications for its
+definitions and demonstrates how they can be used together in a single metadata
+model.
 
-The name "CloudEvents Registry" is used to indicate that the registry is
-primarily motivated by the development of CloudEvents-based event flows, but
-the registry is not limited to CloudEvents. It can be used to describe any
-asynchronous messaging or eventing endpoint and its messages, including
-endpoints that do not use CloudEvents at all. The [Message
+The name "CloudEvents Registry" indicates that the registry is primarily
+motivated by the development of CloudEvents-based event flows, but it is not
+limited to CloudEvents. It can be used to describe any asynchronous messaging or
+eventing endpoint and its messages, including endpoints that do not use
+CloudEvents at all. The [Message
 Formats](../message/spec.md#metadata-envelopes-and-message-protocols) section
-therefore not only describes the attribute meta-schema for CloudEvents, but
-also meta-schemas for the native message envelopes of MQTT, AMQP, and other
-messaging protocols.
+therefore describes not only the attribute meta-schema for CloudEvents, but also
+meta-schemas for the native message envelopes of MQTT, AMQP, and other messaging
+protocols.
 
 ## Notations and Terminology
 
