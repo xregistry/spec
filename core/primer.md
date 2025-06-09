@@ -839,3 +839,18 @@ to ease interoperability of registries through export-import functionality.
 That means that when exporting a Schema Registry that only supports a single
 format, the `format` attribute will already be set, avoiding issues when
 importing this Registry into a server that may support multiple formats.
+
+## Problematic characters in attributes
+
+Certain attributes might be used for purposes outside of the scope of the
+xRegistry specification. For example, the `name` or ID-values might be used
+as a file name. While some care was taken to limit the allowable characters
+in some of these cases to the most common uses, not every possible use
+could be taken into account. Therefore, in situations where a value's allowable
+character set might be problematic (e.g. colon (`:`) in a file name on
+Windows), the tooling being used is expected to deal with any potential
+problems that might arise. For example, it may choose to convert or escape
+problematic characters. The specification makes no statement as to how
+these situations are handled, or even if they're supported. In other words,
+tooling might reject such cases, or force uses to use non-problematic
+characters.

@@ -1483,9 +1483,9 @@ The processing of each individual entity follows the same set of rules:
   be interpreted as a request to create a new entity with that value.
 - See the definition of each attribute for the rules governing how it is
   processed.
-- All attributes present MUST be a full representation of its value. This means
-  any complex attributes (e.g. object, maps), MUST be fully replaced by the
-  incoming value.
+- Unless otherwise noted, all non-xRegistry collection attributes present MUST
+  be a full representation of their values. This means any complex attributes
+  (e.g. objects, maps), MUST be fully replaced by the incoming value.
 - A request to update, or delete, a read-only attribute MUST be silently
   ignored. However, a request that includes a `<SINGULAR>id` MUST be compared
   with the entity's current value and if it differs then an error
@@ -1974,6 +1974,7 @@ If-Match: "<UINTEGER>|*" ?
   "createdat": "<TIMESTAMP>", ?
   "modifiedat": "<TIMESTAMP>", ?
 
+  "capabilities": { Registry capabilities }, ?
   "modelsource": { Registry model }, ?
 
   # Repeat for each Group type
@@ -1991,6 +1992,12 @@ Where:
   If present, the Registry's model MUST be updated prior to any entities being
   updated. A value of `null` MUST generate an error
   ([invalid_data](#invalid_data)).
+- For consistency with the `/capabilities` and `/modelsource` APIs, when
+  `PATCH /` is used the `modelsource` attribute (if specified) MUST be a
+  complete replacement representation of the model. In the case of the
+  `capabilities` attribute however, it is a "patch" operation and only the
+  top-level capabilities specified in the request MUST be updated. And each
+  capability present MUST be specified in its entirety.
 
 A successful response MUST include the same content that an HTTP `GET`
 on the Registry would return, and be of the form:
@@ -6631,22 +6638,28 @@ impacts how the comparisons are done:
 - For boolean attributes, comparisons MUST be an exact case-sensitive match
   (`true` or `false`). For relative comparisons, `false` is less than `true`.
 - For numeric attributes, standard numeric comparisons rules apply. Note that
-  numerics MUST NOT be treated as strings for comparison.
+  numerics MUST NOT be treated as strings for comparison. For floating point
+  values, `NaN` (not a number) values MUST be treated as the lowest possible
+  floating point number.
 - For string attributes, the following rules apply:
   - The strings MUST be compared in a case-insensitive manner.
-  - `<VALUE>` MAY include one or more wildcard (`*`) characters but only when
-    the comparison operator is `=`, `!=` or `<>`. The presence of a wildcard
-    indicates that any number of characters can appear at that location in the
-    `<VALUE>`. The wildcard MAY be escaped via the use of a backslash (`\\`)
-    character (e.g. `abc\*def`) to mean that the `*` is to be
-    interpreted as a normal character and not as a wildcard. Note that a
-    `<VALUE>` of `*` MUST be equivalent to checking for the existence of the
-    attribute, with any value (even an empty string). In other words, the filter
-    will only fail if the attribute has no value at all.
   - It is STRONGLY RECOMMENDED to use Unicode collation based on en-US.
+  - See the next paragraph for information about use of wildcards.
 - For timestamp attributes, after the values have been normalized to UTC,
   these follow the same rules as "strings" above.
 - For URI/URL variants, these follow the same rules as "strings" above.
+
+Additionally, wildcards (`*`) MAY be used in string `<VALUE>`s with the
+following constraints:
+- They MUST only be used when the comparison operator is `=`, `!=` or `<>`.
+- The presence of a wildcard indicates that any number of characters MAY
+  appear at that location in the `<VALUE>`.
+- The wildcard MAY be escaped via the use of a backslash (`\\`) character
+  (e.g. `abc\*def`) to mean that the `*` is to be interpreted as a normal
+  character and not as a wildcard.
+- A `<VALUE>` of `*` MUST be equivalent to checking for the existence of the
+  attribute, with any value (even an empty string). In other words, the filter
+  will only fail if the attribute has no value at all.
 
 If the request references an entity (not a collection), and the `<EXPRESSION>`
 references an attribute in that entity (i.e. there is no `<PATH>`), then if the
