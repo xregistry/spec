@@ -298,7 +298,7 @@ other scenarios:
           },
 
           "dataschemaformat": "Protobuf/3.0",
-          "dataschemaurl": "#/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions/1.0",
+          "dataschemauri": "#/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions/1.0",
           "datacontenttype": "application/x-protobuf",
 
           "metaurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/meta",
