@@ -232,6 +232,7 @@ specversions
 src
 ssl
 stringified
+svg
 tcp
 telemetrydata
 telemetryevent

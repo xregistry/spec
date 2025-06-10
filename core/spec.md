@@ -108,6 +108,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   "name": "<STRING>", ?
   "description": "<STRING>", ?
   "documentation": "<URL>", ?
+  "icon": "<URL>", ?
   "labels": { "<STRING>": "<STRING>" * }, ?
   "createdat": "<TIMESTAMP>",
   "modifiedat": "<TIMESTAMP>",
@@ -136,6 +137,8 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   }, ?
 
   "model": {                            # Full model. Only if inlined
+    "description": "<STRING>", ?
+    "icon": "<URL>", ?
     "labels": { "<STRING>": "<STRING>" * }, ?
     "attributes": {                     # Registry level attributes/extensions
       "<STRING>": {                     # Attribute name (case-sensitive)
@@ -167,16 +170,16 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
         } ?
       } *
     },
-    "modelsource": { ... }, ?
 
     "groups": {
       "<STRING>": {                       # Key=plural name, e.g. "endpoints"
         "plural": "<STRING>",             # e.g. "endpoints"
         "singular": "<STRING>",           # e.g. "endpoint"
         "description": "<STRING>", ?
+        "icon": "<URL>", ?
+        "labels": { "<STRING>": "<STRING>" * }, ?
         "modelversion": "<STRING>", ?     # Version of the group model
         "compatiblewith": "<URI>", ?      # Statement of compatibility with model spec
-        "labels": { "<STRING>": "<STRING>" * }, ?
         "attributes": { ... }, ?        # Group level attributes/extensions
         "ximportresources": [ "<XIDTYPE>", * ], ?   # Include these Resources
 
@@ -185,15 +188,17 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "plural": "<STRING>",         # e.g. "messages"
             "singular": "<STRING>",       # e.g. "message"
             "description": "<STRING>", ?
+            "icon": "<URL>", ?
+            "labels": { "<STRING>": "<STRING>" * }, ?
+            "modelversion": "<STRING>", ? # Version of the resource model
+            "compatiblewith": "<URI>", ?  # Statement of compatibility with model spec
             "maxversions": <UINTEGER>, ?  # Num Vers(>=0). Default=0(unlimited)
             "setversionid": <BOOLEAN>, ?  # vid settable? Default=true
             "setdefaultversionsticky": <BOOLEAN>, ? # sticky settable? Default=true
             "hasdocument": <BOOLEAN>, ?   # Has separate document. Default=true
+            "versionmode": "<STRING>", ?  # 'ancestor' processing algorithm
             "singleversionroot": <BOOLEAN>, ? # Default=false"
             "typemap": <MAP>, ?           # contenttype mappings
-            "modelversion": "<STRING>", ? # Version of the resource model
-            "compatiblewith": "<URI>", ?  # Statement of compatibility with model spec
-            "labels": { "<STRING>": "<STRING>" * }, ?
             "attributes": { ... }, ?          # Version attributes/extensions
             "resourceattributes": { ... }, ?  # Resource attributes/extensions
             "metaattributes": { ... } ?       # Meta attributes/extensions
@@ -217,6 +222,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       "name": "<STRING>", ?
       "description": "<STRING>", ?
       "documentation": "<URL>", ?
+      "icon": "<URL>", ?
       "labels": { "<STRING>": "<STRING>" * }, ?
       "createdat": "<TIMESTAMP>",
       "modifiedat": "<TIMESTAMP>",
@@ -236,6 +242,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
           "isdefault": true,
           "description": "<STRING>", ?
           "documentation": "<URL>", ?
+          "icon": "<URL>", ?
           "labels": { "<STRING>": "<STRING>" * }, ?
           "createdat": "<TIMESTAMP>",
           "modifiedat": "<TIMESTAMP>",
@@ -285,6 +292,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
               "isdefault": <BOOLEAN>,              # Default=false
               "description": "<STRING>", ?
               "documentation": "<URL>", ?
+              "icon": "<URL>", ?
               "labels": { "<STRING>": "<STRING>" * }, ?
               "createdat": "<TIMESTAMP>",
               "modifiedat": "<TIMESTAMP>",
@@ -751,6 +759,7 @@ form:
 - `"name": "<STRING>"`
 - `"description": "<STRING>"`
 - `"documentation": "<URL>"`
+- `"icon": "<URL>"`
 - `"labels": { "<STRING>": "<STRING>" * }`
 - `"createdat": "<TIMESTAMP>"`
 - `"modifiedat": "<TIMESTAMP>"`
@@ -996,6 +1005,20 @@ of the existing entity. Then the existing entity would be deleted.
 
 - Examples:
   - `https://example.com/docs/myQueue`
+
+##### `icon` Attribute
+
+- Type: URL
+- Description: A URL to a graphical icon for the owning entity.
+
+- Constraints:
+  - OPTIONAL.
+  - If present, MUST be a non-empty URL.
+  - MUST support an HTTP(s) `GET` to this URL.
+  - STRONGLY RECOMMENDED that the icon be in SVG or PNG format and square.
+
+- Examples:
+  - `https://example.com/myRegistry.svg`
 
 ##### `labels` Attribute
 
@@ -1687,6 +1710,7 @@ The serialization of the Registry entity adheres to this form:
   "name": "<STRING>", ?
   "description": "<STRING>", ?
   "documentation": "<URL>", ?
+  "icon": "<URL>", ?
   "labels": { "<STRING>": "<STRING>" * }, ?
   "createdat": "<TIMESTAMP>",
   "modifiedat": "<TIMESTAMP>",
@@ -1717,6 +1741,7 @@ The Registry entity includes the following
 - [`name`](#name-attribute) - OPTIONAL.
 - [`description`](#description-attribute) - OPTIONAL.
 - [`documentation`](#documentation-attribute) - OPTIONAL.
+- [`icon`](#icon-attribute) - OPTIONAL.
 - [`labels`](#labels-attribute) - OPTIONAL.
 - [`createdat`](#createdat-attribute) - REQUIRED in API and document views.
   OPTIONAL in requests.
@@ -1827,6 +1852,7 @@ Content-Type: application/json; charset=utf-8
   "name": "<STRING>", ?
   "description": "<STRING>", ?
   "documentation": "<URL>", ?
+  "icon": "<URL>", ?
   "labels": { "<STRING>": "<STRING>" * }, ?
   "createdat": "<TIMESTAMP>",
   "modifiedat": "<TIMESTAMP>",
@@ -1970,6 +1996,7 @@ If-Match: "<UINTEGER>|*" ?
   "name": "<STRING>", ?
   "description": "<STRING>", ?
   "documentation": "<URL>", ?
+  "icon": "<URL>", ?
   "labels": { "<STRING>": "<STRING>" * }, ?
   "createdat": "<TIMESTAMP>", ?
   "modifiedat": "<TIMESTAMP>", ?
@@ -2016,6 +2043,7 @@ Content-Type: application/json; charset=utf-8
   "name": "<STRING>", ?
   "description": "<STRING>", ?
   "documentation": "<URL>", ?
+  "icon": "<URL>", ?
   "labels": { "<STRING>": "<STRING>" * }, ?
   "createdat": "<TIMESTAMP>",
   "modifiedat": "<TIMESTAMP>",
@@ -2431,6 +2459,8 @@ is as follows:
 
 ```yaml
 {
+  "description": "<STRING>", ?
+  "icon": "<URL>", ?
   "labels": { "<STRING>": "<STRING>" * }, ?
   "attributes": {                      # Registry level extensions
     "<STRING>": {                      # Attribute name
@@ -2468,9 +2498,10 @@ is as follows:
       "plural": "<STRING>",            # e.g. "endpoints"
       "singular": "<STRING>",          # e.g. "endpoint"
       "description": "<STRING>", ?
+      "icon": "<URL>", ?
+      "labels": { "<STRING>": "<STRING>" * }, ?
       "modelversion": "<STRING>", ?    # Version of the group model
       "compatiblewith": "<URI>", ?     # Statement of compatibility with model spec
-      "labels": { "<STRING>": "<STRING>" * }, ?
       "attributes": { ... }, ?         # See "attributes" above
       "ximportresources": [ "<XIDTYPE>", * ], ?   # Include these Resources
 
@@ -2479,6 +2510,10 @@ is as follows:
           "plural": "<STRING>",        # e.g. "messages"
           "singular": "<STRING>",      # e.g. "message"
           "description": "<STRING>", ?
+          "icon": "<URL>", ?
+          "labels": { "<STRING>": "<STRING>" * }, ?
+          "modelversion": "<STRING>", ?  # Version of the resource model
+          "compatiblewith": "<URI>"`, ?  # Statement of compatibility with model spec
           "maxversions": <UINTEGER>, ? # Num Vers(>=0). Default=0, 0=unlimited
           "setversionid": <BOOLEAN>, ? # vid settable? Default=true
           "setdefaultversionsticky": <BOOLEAN>, ? # sticky settable? Default=true
@@ -2486,9 +2521,6 @@ is as follows:
           "versionmode": "<STRING>", ?   # 'ancestor' processing algorithm
           "singleversionroot": <BOOLEAN>, ? # enforce single root. Default=false
           "typemap": <MAP>, ?            # contenttype mappings
-          "modelversion": "<STRING>", ?  # Version of the resource model
-          "compatiblewith": "<URI>"`, ?  # Statement of compatibility with model spec
-          "labels": { "<STRING>": "<STRING>" * }, ?
           "attributes": { ... }, ?          # Version attributes/extensions
           "resourceattributes": { ... }, ?  # Resource attributes/extensions
           "metaattributes": { ... } ?       # Meta attributes/extensions
@@ -2501,22 +2533,16 @@ is as follows:
 
 The following describes the attributes of Registry model:
 
-- `modelversion` <span id="model.modelversion"></span>
+- `description` <span id="model.description"></span>
   - Type: String.
-  - OPTIONAL.
-  - The version of the local model of a group or resource.
-  - It is common to use a combination of major and minor version numbers.
-  - Example: `1.2`
+  - OPTIONAL
+  - A human-readable description of the model.
 
-- `compatiblewith` <span id="model.compatiblewith"></span>
-  - Type: URI.
-  - OPTIONAL.
-  - References / represents an xRegistry model definition that
-    the current model is compatible with. This is meant to express
-    interoperability between models in different xRegistries via using a
-    shared compatible model.
-  - Does not imply runtime validation of the claim.
-  - Example: `https://raw.githubusercontent.com/xregistry/spec/refs/heads/main/schema/model.json`
+- `icon` <span id="model.icon"></span>
+  - Type: URL.
+  - OPTIONAL
+  - A URL to the icon for the model.
+  - See [`icon`](#icon-attribute) for more information.
 
 - `labels` <span id="model.labels"></span>
   - Type: Map of string-string.
@@ -2528,7 +2554,6 @@ The following describes the attributes of Registry model:
     information.
   - Keys MUST be non-empty strings.
   - Values MAY be empty strings.
-  - Model authors MAY define additional labels.
 
 - `attributes` <span id="model.attributes"></span>
   - Type: Map where each attribute's name MUST match the key of the map.
@@ -2830,13 +2855,46 @@ The following describes the attributes of Registry model:
   - MUST be non-empty and MUST be a valid attribute name with the exception
     that it MUST NOT exceed 58 characters (not 63).
 
+- `groups."<STRING>".description`
+  - Type: String.
+  - OPTIONAL
+  - A human-readable description of the Group type.
+
+- `groups."<STRING>".icon`
+  - Type: URL.
+  - OPTIONAL
+  - A URL to the icon for the Group type.
+  - See [`icon`](#icon-attribute) for more information.
+
 - `groups."<STRING>".labels`
   - See [`labels`]((#model.labels) above.
   - OPTIONAL.
 
+- `groups."<STRING>".modelversion` <span id="model.modelversion"></span>
+  - Type: String.
+  - OPTIONAL.
+  - The version of the model of the Group type.
+  - It is common to use a combination of major and minor version numbers.
+  - Example: `1.2`
+
+- `compatiblewith` <span id="model.compatiblewith"></span>
+  - Type: URI.
+  - OPTIONAL.
+  - References / represents an xRegistry model definition that
+    the Group type is compatible with. This is meant to express
+    interoperability between models in different xRegistries via using a
+    shared compatible model.
+  - Does not imply runtime validation of the claim.
+  - Example: `https://raw.githubusercontent.com/xregistry/spec/refs/heads/main/schema/model.json`
+
 - `groups."<STRING>".attributes`
   - See [`attributes`](#model.attributes) above.
   - OPTIONAL.
+
+- `groups."<STRING>".ximportresources`
+  - OPTIONAL.
+  - See [Reuse of Resource Definitions](#reuse-of-resource-definitions) for
+    more information.
 
 - `groups."<STRING>".resources`
   - Type: Map where the key MUST be the plural name (`groups.resources.plural`)
@@ -2869,6 +2927,38 @@ The following describes the attributes of Registry model:
     that it MUST NOT exceed 58 characters (not 63).
   - MUST be unique across all Resources (plural and singular names) within the
     scope of its owning Group type.
+
+- `groups."<STRING>".resources."<STRING>".description`
+  - Type: String.
+  - OPTIONAL
+  - A human-readable description of the Resource type.
+
+- `groups."<STRING>".resources."<STRING>".icon`
+  - Type: URL.
+  - OPTIONAL
+  - A URL to the icon for the Resource type.
+  - See [`icon`](#icon-attribute) for more information.
+
+- `groups."<STRING>".resources."<STRING>".labels`
+  - See [`attributes`](#model.attributes) above.
+  - OPTIONAL.
+
+- `groups."<STRING>".resources."<STRING>".modelversion` <span id="groups.modelversion"></span>
+  - Type: String.
+  - OPTIONAL.
+  - The version of the model of the Resource type.
+  - It is common to use a combination of major and minor version numbers.
+  - Example: `1.2`
+
+- `groups."<STRING>".resources."<STRING>".compatiblewith` <span id="groups.compatiblewith"></span>
+  - Type: URI.
+  - OPTIONAL.
+  - References / represents an xRegistry model definition that
+    the Resource type is compatible with. This is meant to express
+    interoperability between models in different xRegistries via using a
+    shared compatible model.
+  - Does not imply runtime validation of the claim.
+  - Example: `https://raw.githubusercontent.com/xregistry/spec/refs/heads/main/schema/model.json`
 
 - `groups."<STRING>".resources."<STRING>".maxversions`
   - Type: Unsigned Integer.
@@ -3119,10 +3209,6 @@ The following describes the attributes of Registry model:
     }
     ```
 
-- `groups."<STRING>".resources."<STRING>".labels`
-  - See [`attributes`](#model.attributes) above.
-  - OPTIONAL.
-
 - `groups."<STRING>".resources."<STRING>".attributes`
   - See [`attributes`](#model.attributes) above,
     as well as [`resourceattributes`](#model.resourceattributes) and
@@ -3321,9 +3407,10 @@ Content-Type: application/json; charset=utf-8
       "plural": "<STRING>",
       "singular": "<STRING>",
       "description": "<STRING>", ?
+      "icon": "<URL>", ?
+      "labels": { "<STRING>": "<STRING>" * }, ?
       "modelversion": "<STRING>", ?
       "compatiblewith": "<URI>", ?
-      "labels": { "<STRING>": "<STRING>" * }, ?
       "attributes": { ... }, ?
       "ximportresources": [ "<XIDTYPE>", * ], ?
 
@@ -3332,15 +3419,17 @@ Content-Type: application/json; charset=utf-8
           "plural": "<STRING>",
           "singular": "<STRING>",
           "description": "<STRING>", ?
+          "icon": "<URL>", ?
+          "labels": { "<STRING>": "<STRING>" * }, ?
+          "modelversion": "<STRING>", ?
+          "compatiblewith": "<URI>", ?
           "maxversions": <UINTEGER>, ?
           "setversionid": <BOOLEAN>, ?
           "setdefaultversionsticky": <BOOLEAN>, ?
           "hasdocument": <BOOLEAN>, ?
+          "versionmode": "<STRING>", ?
           "singleversionroot": <BOOLEAN>, ?
           "typemap": <MAP>, ?
-          "modelversion": "<STRING>", ?
-          "compatiblewith": "<URI>", ?
-          "labels": { "<STRING>": "<STRING>" * }, ?
           "attributes": { ... }, ?
           "resourceattributes": { ... }, ?
           "metaattributes": { ... } ?
@@ -3720,6 +3809,7 @@ The serialization of a Group entity adheres to this form:
   "name": "<STRING>", ?
   "description": "<STRING>", ?
   "documentation": "<URL>", ?
+  "icon": "<URL>", ?
   "labels": { "<STRING>": "<STRING>" * }, ?
   "createdat": "<TIMESTAMP>",
   "modifiedat": "<TIMESTAMP>",
@@ -3746,6 +3836,7 @@ Groups include the following
 - [`name`](#name-attribute) - OPTIONAL.
 - [`description`](#description-attribute) - OPTIONAL.
 - [`documentation`](#documentation-attribute) - OPTIONAL.
+- [`icon`](#icon-attribute) - OPTIONAL.
 - [`labels`](#labels-attribute) - OPTIONAL.
 - [`createdat`](#createdat-attribute) - REQUIRED in API and document views.
   OPTIONAL in requests.
@@ -3791,6 +3882,7 @@ Link: <URL>;rel=next;count=<UINTEGER> ?
     "name": "<STRING>", ?
     "description": "<STRING>", ?
     "documentation": "<URL>", ?
+    "icon": "<URL>", ?
     "labels": { "<STRING>": "<STRING>" * }, ?
     "createdat": "<TIMESTAMP>",
     "modifiedat": "<TIMESTAMP>",
@@ -3898,6 +3990,7 @@ Each individual Group definition MUST adhere to the following:
   "name": "<STRING>", ?
   "description": "<STRING>", ?
   "documentation": "<URL>", ?
+  "icon": "<URL>", ?
   "labels": { "<STRING>": "<STRING>" * }, ?
   "createdat": "<TIMESTAMP>", ?
   "modifiedat": "<TIMESTAMP>", ?
@@ -3921,6 +4014,7 @@ Each individual Group in a successful response MUST adhere to the following:
   "name": "<STRING>", ?
   "description": "<STRING>", ?
   "documentation": "<URL>", ?
+  "icon": "<URL>", ?
   "labels": { "<STRING>": "<STRING>" * }, ?
   "createdat": "<TIMESTAMP>",
   "modifiedat": "<TIMESTAMP>",
@@ -4015,6 +4109,7 @@ Content-Type: application/json; charset=utf-8
   "name": "<STRING>", ?
   "description": "<STRING>", ?
   "documentation": "<URL>", ?
+  "icon": "<URL>", ?
   "labels": { "<STRING>": "<STRING>" * }, ?
   "createdat": "<TIMESTAMP>",
   "modifiedat": "<TIMESTAMP>",
@@ -4697,6 +4792,7 @@ xRegistry-name: <STRING> ?
 xRegistry-isdefault: true
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
+xRegistry-icon: <URL> ?
 xRegistry-labels-<KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
@@ -4768,6 +4864,7 @@ this form:
   "isdefault": true,
   "description": "<STRING>", ?
   "documentation": "<URL>", ?
+  "icon": "<URL>", ?
   "labels": { "<STRING>": "<STRING>" * }, ?
   "createdat": "<TIMESTAMP>",
   "modifiedat": "<TIMESTAMP>",
@@ -5103,6 +5200,7 @@ Link: <URL>;rel=next;count=<UINTEGER> ?
     "isdefault": true,
     "description": "<STRING>", ?
     "documentation": "<URL>", ?
+    "icon": "<URL>", ?
     "labels": { "<STRING>": "<STRING>" * }, ?
     "createdat": "<TIMESTAMP>",
     "modifiedat": "<TIMESTAMP>",
@@ -5323,6 +5421,7 @@ in the request MUST adhere to the following:
   "name": "<STRING>", ?                      # Version-level attributes
   "description": "<STRING>", ?
   "documentation": "<URL>", ?
+  "icon": "<URL>", ?
   "labels": { "<STRING>": "<STRING>" * }, ?
   "createdat": "<TIMESTAMP>", ?
   "modifiedat": "<TIMESTAMP>", ?
@@ -5363,6 +5462,7 @@ xRegistry-epoch: <UINTEGER> ?
 xRegistry-name: <STRING> ?
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
+xRegistry-icon: <URL> ?
 xRegistry-labels-<KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP> ?
 xRegistry-modifiedat: <TIMESTAMP> ?
@@ -5612,6 +5712,7 @@ xRegistry-epoch: <UINTEGER>
 xRegistry-name: <STRING> ?
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
+xRegistry-icon: <URL> ?
 xRegistry-labels-<KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
@@ -5671,6 +5772,7 @@ Content-Location: <URL> ?
   "name": "<STRING>", ?
   "description": "<STRING>", ?
   "documentation": "<URL>", ?
+  "icon": "<URL>", ?
   "labels": { "<STRING>": "<STRING>" * }, ?
   "createdat": "<TIMESTAMP>",
   "modifiedat": "<TIMESTAMP>",
@@ -5801,6 +5903,7 @@ When serialized as a JSON object, the Version entity adheres to this form:
   "isdefault": <BOOLEAN>,
   "description": "<STRING>", ?
   "documentation": "<URL>", ?
+  "icon": "<URL>", ?
   "labels": { "<STRING>": "<STRING>" * }, ?
   "createdat": "<TIMESTAMP>",
   "modifiedat": "<TIMESTAMP>",
@@ -5835,6 +5938,7 @@ Versions include the following
 - [`name`](#name-attribute) - OPTIONAL.
 - [`description`](#description-attribute) - OPTIONAL.
 - [`documentation`](#documentation-attribute) - OPTIONAL.
+- [`icon`](#icon-attribute) - OPTIONAL.
 - [`labels`](#labels-attribute) - OPTIONAL.
 - [`createdat`](#createdat-attribute) - REQUIRED in API and document views.
   OPTIONAL in requests.
@@ -6124,6 +6228,7 @@ Link: <URL>;rel=next;count=<UINTEGER> ?
     "isdefault": <BOOLEAN>,
     "description": "<STRING>", ?
     "documentation": "<URL>", ?
+    "icon": "<URL>", ?
     "labels": { "<STRING>": "<STRING>" * }, ?
     "createdat": "<TIMESTAMP>",
     "modifiedat": "<TIMESTAMP>",
@@ -6203,6 +6308,7 @@ xRegistry-name: <STRING> ?
 xRegistry-isdefault: <BOOLEAN> ?
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
+xRegistry-icon: <URL> ?
 xRegistry-labels-<KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
@@ -6235,6 +6341,7 @@ xRegistry-name: <STRING> ?
 xRegistry-isdefault: <BOOLEAN> ?
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
+xRegistry-icon: <URL> ?
 xRegistry-labels-<KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
@@ -6304,6 +6411,7 @@ Content-Type: application/json; charset=utf-8
   "isdefault": <BOOLEAN>,
   "description": "<STRING>", ?
   "documentation": "<URL>", ?
+  "icon": "<URL>", ?
   "labels": { "<STRING>": "<STRING>" * }, ?
   "createdat": "<TIMESTAMP>",
   "modifiedat": "<TIMESTAMP>",
