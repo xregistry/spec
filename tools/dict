@@ -9,6 +9,9 @@ asc
 asyncapi
 attribs
 attributename
+attributesstringitem
+attributesstringnamecharset
+attributesstringtarget
 attrs
 authorityuri
 avro
@@ -83,6 +86,9 @@ gmt
 gotchas
 groupid
 groupscount
+groupsstringresourcesstringmetaattributes
+groupsstringresourcesstringresourceattributes
+groupsstringresourcesstringversionmode
 groupsurl
 gzip
 hasdoc

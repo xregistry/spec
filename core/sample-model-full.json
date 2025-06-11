@@ -488,8 +488,8 @@
                   "name": "alternative",
                   "type": "url"
                 },
-                "docs": {
-                  "name": "docs",
+                "documentation": {
+                  "name": "documentation",
                   "type": "url"
                 },
                 "*": {

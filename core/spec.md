@@ -138,6 +138,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
 
   "model": {                            # Full model. Only if inlined
     "description": "<STRING>", ?
+    "documentation": "<URL>", ?
     "icon": "<URL>", ?
     "labels": { "<STRING>": "<STRING>" * }, ?
     "attributes": {                     # Registry level attributes/extensions
@@ -176,6 +177,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
         "plural": "<STRING>",             # e.g. "endpoints"
         "singular": "<STRING>",           # e.g. "endpoint"
         "description": "<STRING>", ?
+        "documentation": "<URL>", ?
         "icon": "<URL>", ?
         "labels": { "<STRING>": "<STRING>" * }, ?
         "modelversion": "<STRING>", ?     # Version of the group model
@@ -188,6 +190,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "plural": "<STRING>",         # e.g. "messages"
             "singular": "<STRING>",       # e.g. "message"
             "description": "<STRING>", ?
+            "documentation": "<URL>", ?
             "icon": "<URL>", ?
             "labels": { "<STRING>": "<STRING>" * }, ?
             "modelversion": "<STRING>", ? # Version of the resource model
@@ -271,7 +274,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
               "effective": "<TIMESTAMP>", ?
               "removal": "<TIMESTAMP>", ?
               "alternative": "<URL>", ?
-              "docs": "<URL>"?
+              "documentation": "<URL>"?
             }, ?
 
             "defaultversionid": "<STRING>",
@@ -510,7 +513,8 @@ Meaning, a Version is usually "derived" from another Version known as its
 "ancestor". For example, "version 2" might have "version 1" as its
 "ancestor". By default, xRegistry assumes that each new Version will have
 the current "newest" Version as its ancestor, but this is configurable.
-See the [Version Mode](#model.versionmode) section for more information.
+See the [Version Mode](#--model-groupsstringresourcesstringversionmode) section
+for more information.
 
 **Next Steps**
 In summary, the xRegistry design itself is relatively simple and consists
@@ -633,8 +637,8 @@ be one of the following data types:
   defined/valid type in the Registry. This type of attribute is used in
   place of `url` so that the Registry can do "type checking" to ensure the
   value references the correct type of Registry entity. See the definition of
-  the [`target` model attribute](#model.target) for more information.
-  Its value MUST start with a `/`.
+  the [`target` model attribute](#--model-attributesstringtarget) for more
+  information.  Its value MUST start with a `/`.
 - `xidtype` - MUST be a URL reference to an xRegistry model type. The
    reference MUST point to one of: the Registry itself (`/`), a Group type
    (`/<GROUPS>`), a Resource type (`/<GROUPS>/<RESOURCE>`) or Version type for
@@ -766,7 +770,7 @@ form:
 
 The definition of each attribute is defined below:
 
-##### `<SINGULAR>id` (`id`) Attribute <span id="singularid-attribute"></span>
+##### `<SINGULAR>id` (`id`) Attribute
 
 - Type: String
 - Description: An immutable unique identifier of the Registry, Group, Resource
@@ -902,7 +906,7 @@ of the existing entity. Then the existing entity would be deleted.
   the `self` URL, which might be ambiguous at times. The `xid` value is also
   meant to be used as a `xref` value (see [Cross Referencing
   Resources](#cross-referencing-resources), or as the value for attributes of
-  type `xid` (see [`target` model attribute](#model.target)).
+  type `xid` (see [`target` model attribute](#--model-attributesstringtarget)).
 
 - Constraints:
   - REQUIRED.
@@ -1728,7 +1732,7 @@ The serialization of the Registry entity adheres to this form:
 
 The Registry entity includes the following
 [common attributes](#common-attributes):
-- [`registryid`](#singularid-attribute) - REQUIRED in API and document
+- [`registryid`](#singularid-id-attribute) - REQUIRED in API and document
   views. OPTIONAL in requests.
 - [`self`](#self-attribute) - REQUIRED in API and document views. OPTIONAL
   in requests.
@@ -2460,6 +2464,7 @@ is as follows:
 ```yaml
 {
   "description": "<STRING>", ?
+  "documentation": "<URL>", ?
   "icon": "<URL>", ?
   "labels": { "<STRING>": "<STRING>" * }, ?
   "attributes": {                      # Registry level extensions
@@ -2498,6 +2503,7 @@ is as follows:
       "plural": "<STRING>",            # e.g. "endpoints"
       "singular": "<STRING>",          # e.g. "endpoint"
       "description": "<STRING>", ?
+      "documentation": "<URL>", ?
       "icon": "<URL>", ?
       "labels": { "<STRING>": "<STRING>" * }, ?
       "modelversion": "<STRING>", ?    # Version of the group model
@@ -2510,6 +2516,7 @@ is as follows:
           "plural": "<STRING>",        # e.g. "messages"
           "singular": "<STRING>",      # e.g. "message"
           "description": "<STRING>", ?
+          "documentation": "<URL>", ?
           "icon": "<URL>", ?
           "labels": { "<STRING>": "<STRING>" * }, ?
           "modelversion": "<STRING>", ?  # Version of the resource model
@@ -2533,18 +2540,18 @@ is as follows:
 
 The following describes the attributes of Registry model:
 
-- `description` <span id="model.description"></span>
+##### - Model: `description`
   - Type: String.
   - OPTIONAL
   - A human-readable description of the model.
 
-- `icon` <span id="model.icon"></span>
+##### - Model: `icon`
   - Type: URL.
   - OPTIONAL
   - A URL to the icon for the model.
   - See [`icon`](#icon-attribute) for more information.
 
-- `labels` <span id="model.labels"></span>
+##### - Model: `labels`
   - Type: Map of string-string.
   - OPTIONAL.
   - A set of name/value pairs that allows for additional metadata about the
@@ -2555,7 +2562,7 @@ The following describes the attributes of Registry model:
   - Keys MUST be non-empty strings.
   - Values MAY be empty strings.
 
-- `attributes` <span id="model.attributes"></span>
+##### - Model: `attributes`
   - Type: Map where each attribute's name MUST match the key of the map.
   - OPTIONAL.
   - The set of attributes defined at the indicated level of the Registry. This
@@ -2563,13 +2570,13 @@ The following describes the attributes of Registry model:
   - REQUIRED at specification-defined locations, otherwise OPTIONAL for
     extensions Objects.
 
-- `attributes."<STRING>"`
+##### - Model: `attributes."<STRING>"`
   - Type: String.
   - REQUIRED.
   - The name of the attribute being defined. See `attributes."<STRING>".name`
     for more information.
 
-- `attributes."<STRING>".name`
+##### - Model: `attributes."<STRING>".name`
   - Type: String.
   - REQUIRED.
   - The name of the attribute. MUST be the same as the key used in the owning
@@ -2595,14 +2602,14 @@ The following describes the attributes of Registry model:
     level extension MUST NOT use a name that conflicts with its Resource level
     attribute names.
 
-- `attributes."<STRING>".type`
+##### - Model: `attributes."<STRING>".type`
   - Type: <TYPE>.
   - REQUIRED.
   - The "<TYPE>" of the attribute being defined. MUST be one of the data types
     (in lower case) defined in [Attributes and
     Extensions](#attributes-and-extensions).
 
-- `attributes."<STRING>".target` <span id="model.target"></span>
+##### - Model: `attributes."<STRING>".target`
   - Type: <STRING>.
   - OPTIONAL.
   - The type of entity that this attribute points to when `type` is set to
@@ -2634,7 +2641,7 @@ The following describes the attributes of Registry model:
     entity definition. In other words, `target` is not transitive.
   - Example: `/endpoints/messages`
 
-- `attributes."<STRING>".namecharset` <span id="model.namecharset"></span>
+##### - Model: `attributes."<STRING>".namecharset`
   - Type: String.
   - OPTIONAL, and MUST only be used when `type` is `object`.
   - Specifies the name of the character set that defines the allowable
@@ -2667,12 +2674,12 @@ The following describes the attributes of Registry model:
     to define a model that uses an unknown character set name MUST generate an
     error ([model_error](#model_error)).
 
-- `attributes."<STRING>".description`
+##### - Model: `attributes."<STRING>".description`
   - Type: String.
   - OPTIONAL.
   - A human-readable description of the attribute.
 
-- `attributes."<STRING>".enum`
+##### - Model: `attributes."<STRING>".enum`
   - Type: Array of values of type `attributes."<STRING>".type`..
   - OPTIONAL.
   - A list of possible values for this attribute. Each item in the array MUST
@@ -2684,7 +2691,7 @@ The following describes the attributes of Registry model:
     suggested set of values and the attribute is NOT REQUIRED to use one of
     them.
 
-- `attributes."<STRING>".strict`
+##### - Model: `attributes."<STRING>".strict`
   - Type: Boolean.
   - OPTIONAL.
   - Indicates whether the attribute restricts its values to just the array of
@@ -2694,7 +2701,7 @@ The following describes the attributes of Registry model:
     This attribute has no impact when `enum` is absent or an empty array.
   - When not specified, the default value MUST be `true`.
 
-- `attributes."<STRING>".readonly`
+##### - Model: `attributes."<STRING>".readonly`
   - Type: Boolean.
   - OPTIONAL.
   - Indicates whether this attribute is modifiable by a client. During
@@ -2708,7 +2715,7 @@ The following describes the attributes of Registry model:
   - When not specified, the default value MUST be `false`.
   - When the attribute name is `*` then `readonly` MUST NOT be set to `true`.
 
-- `attributes."<STRING>".immutable`
+##### - Model: `attributes."<STRING>".immutable`
   - Type: Boolean.
   - OPTIONAL.
   - Indicates whether this attribute's value can be changed once it is set.
@@ -2722,7 +2729,7 @@ The following describes the attributes of Registry model:
 
   - When not specified, the default value MUST be `false`.
 
-- `attributes."<STRING>".required`
+##### - Model: `attributes."<STRING>".required`
   - Type: Boolean
   - OPTIONAL.
   - Indicates whether this attribute is REQUIRED to have a non-null value.
@@ -2738,7 +2745,7 @@ The following describes the attributes of Registry model:
   - When the attribute name is `*` then `required` MUST NOT be set to `true`.
   - MUST NOT be `false` if a default value (`default`) is defined.
 
-- `attributes."<STRING>".default`
+##### - Model: `attributes."<STRING>".default`
   - Type: MUST be a non-`null` value of the type specified by the
     `attributes."<STRING>".type` model attribute and MUST only be used for
     scalar types.
@@ -2760,7 +2767,7 @@ The following describes the attributes of Registry model:
     default value MUST only apply to new, or subsequent updates of existing,
     instances of the attribute.
 
-- `attributes."<STRING>".attributes`
+##### - Model: `attributes."<STRING>".attributes`
   - Type: Object, see `attributes` above.
   - OPTIONAL.
   - This contains the list of attributes defined as part of a nested resource.
@@ -2768,37 +2775,37 @@ The following describes the attributes of Registry model:
     MUST NOT be present. It MAY be absent or an empty list if there are no
     defined attributes for the nested `object`.
 
-- `attributes."<STRING>".item` <span id="model.attributes.item"></span>
+##### - Model: `attributes."<STRING>".item`
   - Type: Object.
   - REQUIRED when owning attribute's `type` is `map` or `array`.
   - Defines the nested resource that this attribute references. This
     attribute MUST only be used when the owning attribute's `type` value is
     `map` or `array`.
 
-- `attributes."<STRING>".item.type`
+##### - Model: `attributes."<STRING>".item.type`
   - Type: <TYPE>.
   - REQUIRED.
   - The "<TYPE>" of this nested resource.
 
-- `attributes."<STRING>".item.target`
+##### - Model: `attributes."<STRING>".item.target`
   - Type: <STRING>.
   - OPTIONAL, and MUST only be used when `item.type` is `url-reference`,
     `uri-reference` or `xid`.
-  - See [`attributes."<STRING>".target`](#model.target) above.
+  - See [`attributes."<STRING>".target`](#--model-attributesstringtarget) above.
 
-- `attributes."<STRING>".item.namecharset`
-  - See [`namecharset`](#model.namecharset) above.
+##### - Model: `attributes."<STRING>".item.namecharset`
+  - See [`namecharset`](#--model-attributesstringnamecharset) above.
   - OPTIONAL, and MUST only be used when `item.type` is `object`.
 
-- `attributes."<STRING>".item.attributes`
-  - See [`attributes`](#model.attributes) above.
+##### - Model: `attributes."<STRING>".item.attributes`
+  - See [`attributes`](#--model-attributes) above.
   - OPTIONAL, and MUST ONLY be used when `item.type` is `object`.
 
-- `attributes."<STRING>".item.item`
-  - See [`attributes."<STRING>".item`](#model.attributes.item) above.
+##### - Model: `attributes."<STRING>".item.item`
+  - See [`attributes."<STRING>".item`](#--model-attributesstringitem) above.
   - REQUIRED when `item.type` is `map` or `array`.
 
-- `attributes."<STRING>".ifvalues`
+##### - Model: `attributes."<STRING>".ifvalues`
   - Type: Map where each value of the attribute is the key of the map.
   - OPTIONAL.
   - This map can be used to conditionally include additional
@@ -2823,19 +2830,19 @@ The following describes the attributes of Registry model:
   - `ifvalues` `siblingattributes` MAY include additional `ifvalues`
     definitions.
 
-- `groups`
+##### - Model: `groups`
   - Type: Map where the key MUST be the plural name (`groups.plural`) of the
     Group type (`<GROUPS>`).
   - REQUIRED if there are any Group types defined for the Registry.
   - The set of Group types supported by the Registry.
 
-- `groups."<STRING>"`
+##### - Model: `groups."<STRING>"`
   - Type: String.
   - REQUIRED.
   - The name of the Group being defined. See `groups."<STRING>".plural`
     for more information.
 
-- `groups."<STRING>".plural`
+##### - Model: `groups."<STRING>".plural`
   - Type: String.
   - REQUIRED.
   - MUST be immutable.
@@ -2845,7 +2852,7 @@ The following describes the attributes of Registry model:
   - MUST be non-empty and MUST be a valid attribute name with the exception
     that it MUST NOT exceed 58 characters (not 63).
 
-- `groups."<STRING>".singular`
+##### - Model: `groups."<STRING>".singular`
   - Type: String.
   - REQUIRED.
   - MUST be immutable.
@@ -2855,29 +2862,29 @@ The following describes the attributes of Registry model:
   - MUST be non-empty and MUST be a valid attribute name with the exception
     that it MUST NOT exceed 58 characters (not 63).
 
-- `groups."<STRING>".description`
+##### - Model: `groups."<STRING>".description`
   - Type: String.
   - OPTIONAL
   - A human-readable description of the Group type.
 
-- `groups."<STRING>".icon`
+##### - Model: `groups."<STRING>".icon`
   - Type: URL.
   - OPTIONAL
   - A URL to the icon for the Group type.
   - See [`icon`](#icon-attribute) for more information.
 
-- `groups."<STRING>".labels`
-  - See [`labels`]((#model.labels) above.
+##### - Model: `groups."<STRING>".labels`
+  - See [`labels`]((#--model-labels) above.
   - OPTIONAL.
 
-- `groups."<STRING>".modelversion` <span id="model.modelversion"></span>
+##### - Model: `groups."<STRING>".modelversion`
   - Type: String.
   - OPTIONAL.
   - The version of the model of the Group type.
   - It is common to use a combination of major and minor version numbers.
   - Example: `1.2`
 
-- `compatiblewith` <span id="model.compatiblewith"></span>
+##### - Model: `compatiblewith`
   - Type: URI.
   - OPTIONAL.
   - References / represents an xRegistry model definition that
@@ -2887,28 +2894,28 @@ The following describes the attributes of Registry model:
   - Does not imply runtime validation of the claim.
   - Example: `https://raw.githubusercontent.com/xregistry/spec/refs/heads/main/schema/model.json`
 
-- `groups."<STRING>".attributes`
-  - See [`attributes`](#model.attributes) above.
+##### - Model: `groups."<STRING>".attributes`
+  - See [`attributes`](#--model-attributes) above.
   - OPTIONAL.
 
-- `groups."<STRING>".ximportresources`
+##### - Model: `groups."<STRING>".ximportresources`
   - OPTIONAL.
   - See [Reuse of Resource Definitions](#reuse-of-resource-definitions) for
     more information.
 
-- `groups."<STRING>".resources`
+##### - Model: `groups."<STRING>".resources`
   - Type: Map where the key MUST be the plural name (`groups.resources.plural`)
     of the Resource type (`<RESOURCES>`).
   - REQUIRED if there are any Resource types defined for the Group type.
   - The set of Resource types defined for the Group type.
 
-- `groups."<STRING>"`.resources."<STRING>"`
+##### - Model: `groups."<STRING>"`.resources."<STRING>"`
   - Type: String.
   - REQUIRED.
   - The name of the Resource being defined. See
     `groups."<STRING>".resources."<STRING>".plural` for more information.
 
-- `groups."<STRING>".resources."<STRING>".plural`
+##### - Model: `groups."<STRING>".resources."<STRING>".plural`
   - Type: String.
   - REQUIRED.
   - MUST be immutable.
@@ -2918,7 +2925,7 @@ The following describes the attributes of Registry model:
   - MUST be unique across all Resources (plural and singular names) within the
     scope of its owning Group type.
 
-- `groups."<STRING>".resources."<STRING>".singular`
+##### - Model: `groups."<STRING>".resources."<STRING>".singular`
   - Type: String.
   - REQUIRED.
   - MUST be immutable.
@@ -2928,29 +2935,29 @@ The following describes the attributes of Registry model:
   - MUST be unique across all Resources (plural and singular names) within the
     scope of its owning Group type.
 
-- `groups."<STRING>".resources."<STRING>".description`
+##### - Model: `groups."<STRING>".resources."<STRING>".description`
   - Type: String.
   - OPTIONAL
   - A human-readable description of the Resource type.
 
-- `groups."<STRING>".resources."<STRING>".icon`
+##### - Model: `groups."<STRING>".resources."<STRING>".icon`
   - Type: URL.
   - OPTIONAL
   - A URL to the icon for the Resource type.
   - See [`icon`](#icon-attribute) for more information.
 
-- `groups."<STRING>".resources."<STRING>".labels`
-  - See [`attributes`](#model.attributes) above.
+##### - Model: `groups."<STRING>".resources."<STRING>".labels`
+  - See [`attributes`](#--model-attributes) above.
   - OPTIONAL.
 
-- `groups."<STRING>".resources."<STRING>".modelversion` <span id="groups.modelversion"></span>
+##### - Model: `groups."<STRING>".resources."<STRING>".modelversion`
   - Type: String.
   - OPTIONAL.
   - The version of the model of the Resource type.
   - It is common to use a combination of major and minor version numbers.
   - Example: `1.2`
 
-- `groups."<STRING>".resources."<STRING>".compatiblewith` <span id="groups.compatiblewith"></span>
+##### - Model: `groups."<STRING>".resources."<STRING>".compatiblewith`
   - Type: URI.
   - OPTIONAL.
   - References / represents an xRegistry model definition that
@@ -2960,7 +2967,7 @@ The following describes the attributes of Registry model:
   - Does not imply runtime validation of the claim.
   - Example: `https://raw.githubusercontent.com/xregistry/spec/refs/heads/main/schema/model.json`
 
-- `groups."<STRING>".resources."<STRING>".maxversions`
+##### - Model: `groups."<STRING>".resources."<STRING>".maxversions`
   - Type: Unsigned Integer.
   - OPTIONAL.
   - Number of Versions that will be stored in the Registry for this Resource
@@ -2972,14 +2979,14 @@ The following describes the attributes of Registry model:
     `maxversions` is set to `0`.
   - When the limit is exceeded, implementations MUST prune Versions by
     deleting the oldest Version first (based on the Resource's
-    [`versionmode`](#model.versionmode) algorithm), skipping the
-    Version marked as "default".
+    [`versionmode`](#--model-groupsstringresourcesstringversionmode)
+    algorithm), skipping the Version marked as "default".
     Once the single oldest Version is determined, delete it.
     A special case for the pruning rules is that if `maxversions` is set to
     one (1), then the "default" Version is not skipped, which means it will be
     deleted and the new Version will become "default".
 
-- `groups."<STRING>".resources."<STRING>".setversionid`
+##### - Model: `groups."<STRING>".resources."<STRING>".setversionid`
   - Type: Boolean (`true` or `false`, case-sensitive).
   - OPTIONAL.
   - Indicates whether support for client-side setting of a Version's
@@ -2990,7 +2997,7 @@ The following describes the attributes of Registry model:
   - A value of `false` indicates that the server MUST choose an appropriate
     `versionid` value during creation of the Version.
 
-- `groups."<STRING>".resources."<STRING>".setdefaultversionsticky`
+##### - Model: `groups."<STRING>".resources."<STRING>".setdefaultversionsticky`
   - Type: Boolean (`true` or `false`, case-sensitive).
   - OPTIONAL.
   - Indicates whether support for client-side selection of the "default"
@@ -3005,7 +3012,7 @@ The following describes the attributes of Registry model:
     default Version.
   - This attribute MUST NOT be `true` if `maxversions` is one (`1`).
 
-- `groups."<STRING>".resources."<STRING>".hasdocument`
+##### - Model: `groups."<STRING>".resources."<STRING>".hasdocument`
   - Type: Boolean (`true` or `false`, case-sensitive).
   - OPTIONAL.
   - Indicates whether or not Resources of this type can have a document
@@ -3025,7 +3032,7 @@ The following describes the attributes of Registry model:
   - A value of `true` indicates that Resource of this type supports a separate
     document to be associated with it.
 
-- `groups."<STRING>".resources."<STRING>".versionmode` <span id="model.versionmode"></span>
+##### - Model: `groups."<STRING>".resources."<STRING>".versionmode`
     - Type: String
     - OPTIONAL.
     - Indicates the algorithm that MUST be used when determining how Versions
@@ -3116,7 +3123,7 @@ The following describes the attributes of Registry model:
         - When this `versionmode` is used, the `singleversionroot` aspect
           MUST be set to `true`.
 
-- `groups."<STRING>".resources."<STRING>".singleversionroot`
+##### - Model: `groups."<STRING>".resources."<STRING>".singleversionroot`
     - Type: Boolean (`true` or `false`, case-sensitive).
     - OPTIONAL.
     - Indicates whether Resources of this type can have multiple Versions
@@ -3133,7 +3140,7 @@ The following describes the attributes of Registry model:
     - Note that if the Resource's `versionmode` value might influence
       the permissible values of this aspect.
 
-- `groups."<STRING>".resources."<STRING>".typemap`
+##### - Model: `groups."<STRING>".resources."<STRING>".typemap`
   - Type: Map where the keys and values MUST be non-empty strings. The key
     MAY include at most one `*` to act as a wildcard to mean zero or more
     instance of any character at that position in the string - similar to a
@@ -3209,10 +3216,12 @@ The following describes the attributes of Registry model:
     }
     ```
 
-- `groups."<STRING>".resources."<STRING>".attributes`
-  - See [`attributes`](#model.attributes) above,
-    as well as [`resourceattributes`](#model.resourceattributes) and
-    [`metaattributes`](#model.metaattributes) below.
+##### - Model: `groups."<STRING>".resources."<STRING>".attributes`
+  - See [`attributes`](#--model-attributes) above,
+    as well as
+    [`resourceattributes`](#--model-groupsstringresourcesstringresourceattributes)
+    and [`metaattributes`](#--model-groupsstringresourcesstringmetaattributes)
+    below.
   - OPTIONAL.
   - The list of attributes associated with each Version of the Resource.
   - Extension attribute names at this level MUST NOT overlap with extension
@@ -3221,9 +3230,8 @@ The following describes the attributes of Registry model:
     such as `self` and `xid`, and the Version-specific values MUST be
     overridden by the Resource-level values when serialized.
 
-- `groups."<STRING>".resources."<STRING>".resourceattributes`
-  <span id="model.resourceattributes"></span>
-  - See [`attributes`](#model.attributes) above.
+##### - Model: `groups."<STRING>".resources."<STRING>".resourceattributes`
+  - See [`attributes`](#--model-attributes) above.
   - OPTIONAL.
   - The list of attributes associated with the Resource, not its Versions,
     that will appear in the Resource itself (as siblings to the "default"
@@ -3238,9 +3246,8 @@ The following describes the attributes of Registry model:
     such as `self` and `xid`, and the Version-specific values MUST be
     overridden by the Resource-level values when serialized.
 
-- `groups."<STRING>".resources."<STRING>".metaattributes`
-  <span id="model.metaattributes"></span>
-  - See [`attributes`](#model.attributes) above.
+##### - Model: `groups."<STRING>".resources."<STRING>".metaattributes`
+  - See [`attributes`](#--model-attributes) above.
   - OPTIONAL.
   - The list of attributes associated with the Resource, not its Versions,
     that will appear in the `meta` sub-object of the Resource.
@@ -3407,6 +3414,7 @@ Content-Type: application/json; charset=utf-8
       "plural": "<STRING>",
       "singular": "<STRING>",
       "description": "<STRING>", ?
+      "documentation": "<URL>", ?
       "icon": "<URL>", ?
       "labels": { "<STRING>": "<STRING>" * }, ?
       "modelversion": "<STRING>", ?
@@ -3419,6 +3427,7 @@ Content-Type: application/json; charset=utf-8
           "plural": "<STRING>",
           "singular": "<STRING>",
           "description": "<STRING>", ?
+          "documentation": "<URL>", ?
           "icon": "<URL>", ?
           "labels": { "<STRING>": "<STRING>" * }, ?
           "modelversion": "<STRING>", ?
@@ -3823,7 +3832,7 @@ The serialization of a Group entity adheres to this form:
 
 Groups include the following
 [common attributes](#common-attributes):
-- [`<GROUP>id`](#singularid-attribute) - REQUIRED in API and document views.
+- [`<GROUP>id`](#singularid-id-attribute) - REQUIRED in API and document views.
   OPTIONAL in requests.
 - [`self`](#self-attribute) - REQUIRED in API and document views. OPTIONAL in
   requests.
@@ -4370,7 +4379,7 @@ not complex data types.
 
 The Resource level attributes include the following
 [common attributes](#common-attributes):
-- [`<RESOURCE>id`](#singularid-attribute) - REQUIRED in API and document
+- [`<RESOURCE>id`](#singularid-id-attribute) - REQUIRED in API and document
   views. OPTIONAL in requests.
 - [`self`](#self-attribute) - REQUIRED in API and document view. OPTIONAL in
   requests.
@@ -4588,7 +4597,8 @@ and the following Resource level attributes:
 - Type: Boolean
 - Description: indicates whether or not the "default" Version has been
   explicitly set or whether the "default" Version is always the newest one
-  (based on the Resource's [`versionmode`](#model.versionmode) algorithm).
+  (based on the Resource's
+  [`versionmode`](#--model-groupsstringresourcesstringversionmode) algorithm).
   A value of `true` means that it has been explicitly set and the value of
   `defaultversionid` MUST NOT automatically change if Versions are added or
   removed. A value of `false` means the default Version MUST be the newest
@@ -5921,7 +5931,7 @@ attributes.
 
 Versions include the following
 [common attributes](#common-attributes):
-- [`<RESOURCE>id`](#singularid-attribute) - REQUIRED in API and document
+- [`<RESOURCE>id`](#singularid-id-attribute) - REQUIRED in API and document
   views. OPTIONAL in requests.
 - MUST be the `<RESOURCE>id` of the owning Resource.
 - [`versionid`](#versionid-attribute) - REQUIRED in API and document views.
@@ -5964,7 +5974,7 @@ as defined below:
 - Description: An immutable unique identifier of the Version.
 
 - Constraints:
-  - See [<SINGULAR>id](#singularid-attribute).
+  - See [<SINGULAR>id](#singularid-id-attribute).
   - MUST NOT use a value of `null` or `request` due to these being reserved
     for use by the `?setdefaultversionid` feature.
 
@@ -6004,8 +6014,9 @@ as defined below:
   ancestor. If this Version is a root of an ancestor hierarchy tree then it
   MUST be set to its own `versionid` value.
 
-  See the Resource's [`versionmode`](#model.versionmode) model aspect for
-  more information on how this attribute value can be populated.
+  See the Resource's
+  [`versionmode`](#--model-groupsstringresourcesstringversionmode) model
+  aspect for more information on how this attribute value can be populated.
 
   If a create operation asks the server to choose the `versionid` when
   creating a root Version, the `versionid` is not yet known and therefore
@@ -6052,7 +6063,7 @@ as defined below:
 - Examples:
   - `application/json`
 
-##### `<RESOURCE>url` Attribute <span id="resourceurl-attribute"></span>
+##### `<RESOURCE>url` Attribute
 - Type: URI
 - Description: if the Resources document is stored outside of the
   current Registry, then this attribute MUST contain a URL to the
@@ -6071,7 +6082,7 @@ as defined below:
   - MUST NOT be present if the Resource's `hasdocument` model attribute is
     set to `false`.
 
-##### `<RESOURCE>` Attribute <span id="resource-attribute"></span
+##### `<RESOURCE>` Attribute
 - Type: Resource Document
 - Description: This attribute is a serialization of the corresponding
   Resource document's contents. If the document bytes "as is" allow for them to
@@ -6089,7 +6100,7 @@ as defined below:
   - MUST NOT be present if the Resource's `hasdocument` model attribute is
     set to `false.
 
-##### `<RESOURCE>base64` Attribute <span id="resourcebase64-attribute"></span>
+##### `<RESOURCE>base64` Attribute
 - Type: String
 - Description: This attribute is a base64 serialization of the corresponding
   Resource document's contents. If the Resource document (which is stored as
@@ -6140,8 +6151,8 @@ by which the "default" one is determined. There are two options for how this
 might be done:
 
 1. Newest = Default. The newest Version (based on the Resource's
-   [`versionmode`](#model.versionmode) algorithm) MUST be the "default"
-   Version. This is the default choice.
+   [`versionmode`](#--model-groupsstringresourcesstringversionmode) algorithm)
+   MUST be the "default" Version. This is the default choice.
 
 1. Client explicitly chooses the "default". In this option, a client has
    explicitly chosen which Version is the "default" and it will not change
