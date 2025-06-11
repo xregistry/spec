@@ -854,3 +854,67 @@ problematic characters. The specification makes no statement as to how
 these situations are handled, or even if they're supported. In other words,
 tooling might reject such cases, or force uses to use non-problematic
 characters.
+
+## Why do Resources have 3 levels of data?
+
+Resource attributes are split into 3 categories:
+
+- Resource level
+- Resource Meta level
+- Resource Version level
+
+which corresponds to the structure of the Resource object. In other words the
+Resource, serialized in JSON, appears like this:
+
+```yaml
+{
+  "<RESOURCE>id": ...,
+  # Resource level attributes appear here
+  # Additionally the "default" Version's attributes would appear here
+
+  "meta": {
+    "<RESOURCE>id": ...,
+    # Resource meta level attributes appear here
+  }
+
+  "versions": {
+    "<KEY>": {
+      "<RESOURCE>id": ...,
+      "versionid": ...
+      # Resource Version level attributes appear here
+    }
+  }
+}
+```
+
+"Resource level" attributes consist of two types:
+1 - Attributes that makes sense when the Resource is viewed as an alias for
+    the default Version of that Resource. So this would include all of the
+    default Version's attributes with the exception that any URLs referencing
+    the Version (e.g. `self`) would point to the Resource instead.
+2 - Attributes to help in the navigation of the Resource structure. This
+    includes the "meta" sub-object, the "metaurl" and the "versions"
+    collection related attributes.
+
+This allows for clients to interact with the Resource and the Resource's
+default Version almost interchangeably. Most notable difference are the extra
+attributes from group 2 above.
+
+"Resource Meta" level attributes are attributes that are global, and apply
+to the Resource itself and potentially to all Versions of the Resource.
+Such as the creation date of the Resource, or whether the Resource and its
+Versions are read-only. Ideally, these would be present at the Resource level
+but to avoid potential collisions with Version attributes, it was moved into
+the "meta" sub-object. Additionally, it's expected that the "meta" level
+attribute are not normally the most significant data of the Resource - that
+would be the Version attributes - and they will probably not be examined or
+changed nearly as often as the Version attributes.
+
+"Resource Version" level attributes, as the name implies, are attributes
+that can change on a per-Version basis. These are expected to be the main
+reason for the Resource to exist.
+
+The choice of when an attribute appears in the "meta" sub-object versus in the
+Version should be driven by whether the use cases being supported by the
+Resource type definition requires that attribute to be consistent across all
+Versions or have a Version-specific value.
