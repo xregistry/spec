@@ -43,6 +43,9 @@
     "documentation": {
       "type": "url"
     },
+    "icon": {
+      "type": "url"
+    },
     "labels": {
       "type": "map",
       "item": {

@@ -299,11 +299,13 @@ def _render_markdown_to_html(markdown_text: str) -> HtmlText:
         )
     )
 
+def remove_angles_in_headers(text):
+    return '\n'.join(line.replace('<', '').replace('>', '') if line.strip().startswith('#') else line for line in text.split('\n'))
 
 @lru_cache
 def read_html_text(path: Path) -> HtmlText:
     if path.name.endswith(".md"):
-        return _render_markdown_to_html(_read_text(path))
+        return _render_markdown_to_html(remove_angles_in_headers(_read_text(path)))
     else:
         return HtmlText(_read_text(path))  # assuming given file is already html
 
