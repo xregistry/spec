@@ -139,7 +139,6 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   "model": {                            # Full model. Only if inlined
     "description": "<STRING>", ?
     "documentation": "<URL>", ?
-    "icon": "<URL>", ?
     "labels": { "<STRING>": "<STRING>" * }, ?
     "attributes": {                     # Registry level attributes/extensions
       "<STRING>": {                     # Attribute name (case-sensitive)
@@ -201,7 +200,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "hasdocument": <BOOLEAN>, ?   # Has separate document. Default=true
             "versionmode": "<STRING>", ?  # 'ancestor' processing algorithm
             "singleversionroot": <BOOLEAN>, ? # Default=false"
-            "typemap": <MAP>, ?           # contenttype mappings
+            "typemap": <MAP>, ?               # contenttype mappings
             "attributes": { ... }, ?          # Version attributes/extensions
             "resourceattributes": { ... }, ?  # Resource attributes/extensions
             "metaattributes": { ... } ?       # Meta attributes/extensions
@@ -2465,7 +2464,6 @@ is as follows:
 {
   "description": "<STRING>", ?
   "documentation": "<URL>", ?
-  "icon": "<URL>", ?
   "labels": { "<STRING>": "<STRING>" * }, ?
   "attributes": {                      # Registry level extensions
     "<STRING>": {                      # Attribute name
@@ -2544,12 +2542,6 @@ The following describes the attributes of Registry model:
   - Type: String.
   - OPTIONAL
   - A human-readable description of the model.
-
-##### - Model: `icon`
-  - Type: URL.
-  - OPTIONAL
-  - A URL to the icon for the model.
-  - See [`icon`](#icon-attribute) for more information.
 
 ##### - Model: `labels`
   - Type: Map of string-string.
@@ -3033,112 +3025,112 @@ The following describes the attributes of Registry model:
     document to be associated with it.
 
 ##### - Model: `groups."<STRING>".resources."<STRING>".versionmode`
-    - Type: String
-    - OPTIONAL.
-    - Indicates the algorithm that MUST be used when determining how Versions
-      are managed with respect to aspects such as:
-      - Which Version is the "latest"?
-      - Which Version is the "oldest"?
-      - How a Version's `ancestor` attribute will be populated when not
-        provided during a create or when its current ancestor is deleted.
-    - Implementations MAY defined additional algorithms and MAY defined
-      additional aspects that they control as long as those aspects do not
-      conflict with specification defined semantics.
-    - Regardless of the algorithm used, implementations MUST ensure that
-      the `ancestor` attribute of all Versions of a Resource accurately
-      represent the relationship of the Versions prior to the completion of
-      any operation. For example, when the `createdat` algorithm is used and
-      the `createdat` timestamp of a Version is modified, this might cause a
-      reordering of the Versions and the `ancestor` attributes might need to
-      be changed accordingly. Similarly, the `defaultversionid` of the
-      Resource might change if its `defaultversionsticky` attribute is `false`.
-    - When not specified the default value MUST be `manual`.
-    - This specification defines the following `versionmode` algorithms:
-      - `manual`
-        - Latest Version: MUST be determined by finding all Versions that are
-          not referenced as an `ancestor` of another Version, then
-          finding the one with the newest `createdat` timestamp. If there is
-          more than one, then the one with the highest alphabetically
-          case-insensitive `versionid` value MUST be chosen.
-        - Oldest Version: MUST be determined by finding all root Versions (ones
-          that have an `ancestor` value that points to itself), then finding
-          the one with the oldest `createdat` timestamp. If there is more than
-          one, then the one with the lowest alphabetically case-insensitive
-          `versionid` MUST be chosen.
-        - Ancestor Processing: typically provided by clients. During a "create"
-          operation, all Versions that do not have an `ancestor` value
-          provided MUST be sorted/processed by `versionid` (in case-insensitive
-          ascending order) and the `ancestor` value of each MUST be set to the
-          current "latest version" per the above semantics. Note that as
-          each new Version is created, it MUST become the "latest". If there
-          is no existing Version then the new Version becomes a root and its
-          `ancestor` value MUST be its `versionid` attribute value.
-        - Invalid Ancestor: if a Version's `ancestor` value is no longer
-          valid (i.e. the ancestor Version was deleted), then this Version
-          MUST become a root, and it's `ancestor` value MUST is its `versionid`
-          attribute value.
+  - Type: String
+  - OPTIONAL.
+  - Indicates the algorithm that MUST be used when determining how Versions
+    are managed with respect to aspects such as:
+    - Which Version is the "latest"?
+    - Which Version is the "oldest"?
+    - How a Version's `ancestor` attribute will be populated when not
+      provided during a create or when its current ancestor is deleted.
+  - Implementations MAY defined additional algorithms and MAY defined
+    additional aspects that they control as long as those aspects do not
+    conflict with specification defined semantics.
+  - Regardless of the algorithm used, implementations MUST ensure that
+    the `ancestor` attribute of all Versions of a Resource accurately
+    represent the relationship of the Versions prior to the completion of
+    any operation. For example, when the `createdat` algorithm is used and
+    the `createdat` timestamp of a Version is modified, this might cause a
+    reordering of the Versions and the `ancestor` attributes might need to
+    be changed accordingly. Similarly, the `defaultversionid` of the
+    Resource might change if its `defaultversionsticky` attribute is `false`.
+  - When not specified the default value MUST be `manual`.
+  - This specification defines the following `versionmode` algorithms:
+    - `manual`
+      - Latest Version: MUST be determined by finding all Versions that are
+        not referenced as an `ancestor` of another Version, then
+        finding the one with the newest `createdat` timestamp. If there is
+        more than one, then the one with the highest alphabetically
+        case-insensitive `versionid` value MUST be chosen.
+      - Oldest Version: MUST be determined by finding all root Versions (ones
+        that have an `ancestor` value that points to itself), then finding
+        the one with the oldest `createdat` timestamp. If there is more than
+        one, then the one with the lowest alphabetically case-insensitive
+        `versionid` MUST be chosen.
+      - Ancestor Processing: typically provided by clients. During a "create"
+        operation, all Versions that do not have an `ancestor` value
+        provided MUST be sorted/processed by `versionid` (in case-insensitive
+        ascending order) and the `ancestor` value of each MUST be set to the
+        current "latest version" per the above semantics. Note that as
+        each new Version is created, it MUST become the "latest". If there
+        is no existing Version then the new Version becomes a root and its
+        `ancestor` value MUST be its `versionid` attribute value.
+      - Invalid Ancestor: if a Version's `ancestor` value is no longer
+        valid (i.e. the ancestor Version was deleted), then this Version
+        MUST become a root, and it's `ancestor` value MUST is its `versionid`
+        attribute value.
 
-      - `createdat`
-        - Latest Version: MUST be determined by finding the Version with the
-          newest `createdat` timestamp. If there is more than one, then the
-          one with the highest alphabetically case-insensitive `versionid`
-          value MUST be chosen.
-        - Oldest Version: MUST be determined by finding the Version with the
-          oldest `createdat` timestamp. If there is more than one, then the
-          one with the lowest alphabetically case-insensitive `versionid`
-          value MUST be chosen. Note that this MUST also be the one and only
-          "root" Version.
-        - Ancestor Processing: The `ancestor` value of each Version MUST be
-          determined via examination of the `createdat` timestamp of each
-          Version and the Versions sorted in ascending order, where the first
-          one will be the "root" (oldest) Version and its `ancestor` value
-          MUST be its `versionid`. If there is more than one Version with the
-          same `createdat` timestamp then those MUST be ordered in ascending
-          case-insensitive ordered based on their `versionid` values.
-        - Invalid Ancestor: When a Version is deleted then the "ancestor
-          processing" logic is as stated above MUST be applied.
-        - When this `versionmode` is used, the `singleversionroot` aspect
-          MUST be set to `true`.
+    - `createdat`
+      - Latest Version: MUST be determined by finding the Version with the
+        newest `createdat` timestamp. If there is more than one, then the
+        one with the highest alphabetically case-insensitive `versionid`
+        value MUST be chosen.
+      - Oldest Version: MUST be determined by finding the Version with the
+        oldest `createdat` timestamp. If there is more than one, then the
+        one with the lowest alphabetically case-insensitive `versionid`
+        value MUST be chosen. Note that this MUST also be the one and only
+        "root" Version.
+      - Ancestor Processing: The `ancestor` value of each Version MUST be
+        determined via examination of the `createdat` timestamp of each
+        Version and the Versions sorted in ascending order, where the first
+        one will be the "root" (oldest) Version and its `ancestor` value
+        MUST be its `versionid`. If there is more than one Version with the
+        same `createdat` timestamp then those MUST be ordered in ascending
+        case-insensitive ordered based on their `versionid` values.
+      - Invalid Ancestor: When a Version is deleted then the "ancestor
+        processing" logic is as stated above MUST be applied.
+      - When this `versionmode` is used, the `singleversionroot` aspect
+        MUST be set to `true`.
 
-      - `modifiedat`
-        - This is the same as the `createdat` algorithm except that the
-          `modifiedat` attribute of each Version MUST be used instead of the
-          `createdat` attribute.
+    - `modifiedat`
+      - This is the same as the `createdat` algorithm except that the
+        `modifiedat` attribute of each Version MUST be used instead of the
+        `createdat` attribute.
 
-      - `semver`
-        - Latest Version: MUST be the Version with the highest `versionid`
-          value per the [Semantic Versioning](https://semver.org/)
-          specification's "precedence" ordering rules.
-        - Oldest Version: MUST be the Version with the lowest `versionid`
-          value per the [Semantic Versioning](https://semver.org/)
-          specification's "precedence" ordering rules. Note that this MUST also
-          be the one and only "root" Version.
-        - Ancestor Processing: The `ancestor` value of each Version MUST either
-          be its `versionid` value (if it it the oldest Version), or the
-          `versionid` of the next oldest Version per the
-          [Semantic Versioning](https://semver.org/) specification's
-          "precedence" ordering rules.
-        - Invalid Ancestor: When a Version is deleted then the "ancestor
-          processing" logic is as stated above MUST be applied.
-        - When this `versionmode` is used, the `singleversionroot` aspect
-          MUST be set to `true`.
+    - `semver`
+      - Latest Version: MUST be the Version with the highest `versionid`
+        value per the [Semantic Versioning](https://semver.org/)
+        specification's "precedence" ordering rules.
+      - Oldest Version: MUST be the Version with the lowest `versionid`
+        value per the [Semantic Versioning](https://semver.org/)
+        specification's "precedence" ordering rules. Note that this MUST also
+        be the one and only "root" Version.
+      - Ancestor Processing: The `ancestor` value of each Version MUST either
+        be its `versionid` value (if it it the oldest Version), or the
+        `versionid` of the next oldest Version per the
+        [Semantic Versioning](https://semver.org/) specification's
+        "precedence" ordering rules.
+      - Invalid Ancestor: When a Version is deleted then the "ancestor
+        processing" logic is as stated above MUST be applied.
+      - When this `versionmode` is used, the `singleversionroot` aspect
+        MUST be set to `true`.
 
 ##### - Model: `groups."<STRING>".resources."<STRING>".singleversionroot`
-    - Type: Boolean (`true` or `false`, case-sensitive).
-    - OPTIONAL.
-    - Indicates whether Resources of this type can have multiple Versions
-      that represent roots of an ancestor tree, as indicated by the
-      Version's `ancestor` attribute value being the same as its `versionid`
-      attribute.
-    - When not specified, the default value MUST be `false`.
-    - A value of `true` indicates that only one Version of the Resource can
-      be a root. This is useful to avoid creating multiple roots. When this
-      attribute is set to `true`, the server MUST generate an error
-      ([multiple_roots](#multiple_roots)) if any
-      request results in a state where more than one Version of a Resource
-      is a root of an ancestor tree.
-    - Note that if the Resource's `versionmode` value might influence
-      the permissible values of this aspect.
+  - Type: Boolean (`true` or `false`, case-sensitive).
+  - OPTIONAL.
+  - Indicates whether Resources of this type can have multiple Versions
+    that represent roots of an ancestor tree, as indicated by the
+    Version's `ancestor` attribute value being the same as its `versionid`
+    attribute.
+  - When not specified, the default value MUST be `false`.
+  - A value of `true` indicates that only one Version of the Resource can
+    be a root. This is useful to avoid creating multiple roots. When this
+    attribute is set to `true`, the server MUST generate an error
+    ([multiple_roots](#multiple_roots)) if any
+    request results in a state where more than one Version of a Resource
+    is a root of an ancestor tree.
+  - Note that if the Resource's `versionmode` value might influence
+    the permissible values of this aspect.
 
 ##### - Model: `groups."<STRING>".resources."<STRING>".typemap`
   - Type: Map where the keys and values MUST be non-empty strings. The key
@@ -3236,15 +3228,16 @@ The following describes the attributes of Registry model:
   - The list of attributes associated with the Resource, not its Versions,
     that will appear in the Resource itself (as siblings to the "default"
     Version attributes).
-  - These attributes are typically reserved for system-managed attributes
-    such as `metaurl`. User-defined attributes would normally appear on the
-    Versions, and as such will appear in the model under the
-    `groups.resources.attributes` list.
-  - Extension attribute names at this level MUST NOT overlap with extension
-    attributes defined at the `groups.resources.attributes` level.
-    The only duplicate names allowed are specification defined attributes
-    such as `self` and `xid`, and the Version-specific values MUST be
-    overridden by the Resource-level values when serialized.
+  - These attributes are reserved for system-managed attributes, such as
+    `metaurl`, that exist to help in the navigation of the entities. Users
+    MUST NOT define additional attributes for this list. Extension
+    resource-level attribute would appear in the `metaattributes` list, while
+    version-level extensions would appear in the `attributes` list.
+  - While it is NOT RECOMMENDED, implementations MAY add additional attributes
+    to this list if they are necessary to help with model traversal. Otherwise
+    the other 2 attribute lists SHOULD be used. The goal is to make the
+    Resource entity look at much like the "default" Version as possible,
+    adding new attributes at the resource-level violates that goal.
 
 ##### - Model: `groups."<STRING>".resources."<STRING>".metaattributes`
   - See [`attributes`](#--model-attributes) above.
@@ -6757,9 +6750,7 @@ impacts how the comparisons are done:
 - For boolean attributes, comparisons MUST be an exact case-sensitive match
   (`true` or `false`). For relative comparisons, `false` is less than `true`.
 - For numeric attributes, standard numeric comparisons rules apply. Note that
-  numerics MUST NOT be treated as strings for comparison. For floating point
-  values, `NaN` (not a number) values MUST be treated as the lowest possible
-  floating point number.
+  numerics MUST NOT be treated as strings for comparison.
 - For string attributes, the following rules apply:
   - The strings MUST be compared in a case-insensitive manner.
   - It is STRONGLY RECOMMENDED to use Unicode collation based on en-US.
@@ -6767,6 +6758,8 @@ impacts how the comparisons are done:
 - For timestamp attributes, after the values have been normalized to UTC,
   these follow the same rules as "strings" above.
 - For URI/URL variants, these follow the same rules as "strings" above.
+
+See the [`?sort`](#sort-flag) section for more details concerning sorting.
 
 Additionally, wildcards (`*`) MAY be used in string `<VALUE>`s with the
 following constraints:
@@ -6982,29 +6975,33 @@ The format of the `?sort` query parameter is:
 ```
 
 Where:
-- `<ATTRIBUTE>` MUST be the name of one of the attributes defined in
-  collection's entities, using the same dot (`.`) notation specified for the
-  `?inline` flag to specify an attribute within an object. The attribute MUST
-  only reference an attribute within the top-level collection, it MUST NOT
-  attempt to traverse into a nested xRegistry collection even if that nested
-  collection is inlined.
+- `<ATTRIBUTE>` MUST be the JSONPath to one of the attributes defined in
+  collection's entities that will be the primary sort key for the results.
+  The attribute MUST only reference an attribute within the top-level
+  collection, it MUST NOT attempt to traverse into a nested xRegistry
+  collection even if that nested collection is inlined.
 - An OPTIONAL "sort order" (`asc` for ascending, `desc` for descending) MAY
   be specified to indicate whether the first entity in the returned collection
   MUST be the "lowest" values (`asc`) or whether it MUST be the "highest"
   value (`desc`). When not specified, the default value MUST be `asc`.
 
-If a server supports sorting and the attribute specified is valid, but the
-the server is unable to support sorting over it, then an error
-([unsupported_sort_attribute](#unsupported_sort_attribute)) MUST be generated.
-If the specified attribute is not valid then an error
-([invalid_sort_attribute](#invalid_sort_attribute)) MUST be generated.
+If the specified attribute is not found within the entities being sorted then
+implementations SHOULD treat that entity's sort-key value as `NULL`.
 
 When [pagination](../pagination/spec.md) is used to return the results, but
 the `?sort` flag is not specified, then the server MUST sort the results on the
 entities' `<SINGULAR>id` value in ascending order.
 
-See the [inline Flag](#inline-flag) section for how the various data types
-are compared for sorting purposes.
+Sorting MUST be done using the data type comparison rules as specified in the
+[filter Flag](#filter-flag) section. However, there are certain situations
+that might introduce ambiguity between implementations. For example, not all
+persistent stores support `NaNs` (Not-a-Number values), or if the data type of
+an attribute changes on a per-instance basis then consistent sorting across
+implementations on that attribute might be challenging. While interoperability
+is critical, requiring consistency in these edge cases could be excessively
+burdensome for implementations. To that end, this specification does not
+mandate the exact ordering in these situations, aside from the requirement
+that an implementation MUST sort the result the same way each time.
 
 Entities that do not have a value for the specified attribute MUST be treated
 the same as if they had the "lowest" possible value for that attribute. If
@@ -7275,15 +7272,6 @@ SHOULD attempt to use a more specific error when possible.
 * Data: <THE INVALID DATA>
 * Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
 
-#### invalid_sort_attribute
-
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#invalid_sort_attribute`
-* Code: `400 Bad Request`
-* Instance: <URL TO THE ENTITY BEING PROCESSED>
-* Title: `The specified "sort" attribute is not valid`
-* Data: <THE INVALID ATTRIBUTE>
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
-
 #### method_not_allowed
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#method_not_allowed`
@@ -7429,15 +7417,6 @@ something unexpected happened in the server that caused an error condition.
 * Instance: <URL TO THE ENTITY BEING PROCESSED>
 * Title: `The "<SINGULAR NAME OF THE ENTITY TYPE>" with the ID "<THE UNKNOWN ID>" can not be found`
 * Data: <URL TO ENTITY BEING PROCESSED>
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
-
-#### unsupported_sort_attribute
-
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#unsupported_sort_attribute`
-* Code: `400 Bad Request`
-* Instance: <THE REQUEST URL>
-* Title: `Sorting on the specified attribute is not supported`
-* Data:  n/a
 * Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
 
 #### unsupported_specversion
