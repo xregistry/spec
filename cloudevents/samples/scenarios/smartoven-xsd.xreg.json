@@ -1,7 +1,4 @@
 {
-    "$schema": "https://cloudevents.io/schemas/registry",
-    "specversion": "1.0-rc1",
-    "id": "urn:uuid:6e8bc430-9c3a-11d9-9669-0800200c9a66",
     "messagegroups": {
         "Fabrikam.SmartOven": {
             "envelope": "CloudEvents/1.0",
@@ -32,7 +29,7 @@
                         }
                     },
                     "dataschemaformat": "XMLSchema/1.1",
-                    "dataschemauri": "#/schemagroups/Fabrikam.SmartOven/schemas/Fabrikam.SmartOven.TurnedOnEventData"
+                    "dataschemauri": "/schemagroups/Fabrikam.SmartOven/schemas/Fabrikam.SmartOven.TurnedOnEventData"
                 },
                 "Fabrikam.SmartOven.TurnedOff": {
                     "description": "Event for when the oven is turned off",
@@ -59,7 +56,7 @@
                         }
                     },
                     "dataschemaformat": "XMLSchema/1.1",
-                    "dataschemauri": "#/schemagroups/Fabrikam.SmartOven/schemas/Fabrikam.SmartOven.TurnedOffEventData"
+                    "dataschemauri": "/schemagroups/Fabrikam.SmartOven/schemas/Fabrikam.SmartOven.TurnedOffEventData"
                 },
                 "Fabrikam.SmartOven.TimerSet": {
                     "description": "Event for when a timer is set on the oven",
@@ -86,7 +83,7 @@
                         }
                     },
                     "dataschemaformat": "XMLSchema/1.1",
-                    "dataschemauri": "#/schemagroups/Fabrikam.SmartOven/schemas/Fabrikam.SmartOven.TimerSetEventData"
+                    "dataschemauri": "/schemagroups/Fabrikam.SmartOven/schemas/Fabrikam.SmartOven.TimerSetEventData"
                 },
                 "Fabrikam.SmartOven.TimerCompleted": {
                     "description": "Event for when a timer completes",
@@ -113,7 +110,7 @@
                         }
                     },
                     "dataschemaformat": "XMLSchema/1.1",
-                    "dataschemauri": "#/schemagroups/Fabrikam.SmartOven/schemas/Fabrikam.SmartOven.TimerCompletedEventData"
+                    "dataschemauri": "/schemagroups/Fabrikam.SmartOven/schemas/Fabrikam.SmartOven.TimerCompletedEventData"
                 },
                 "Fabrikam.SmartOven.PreheatingFinished": {
                     "description": "Event for when preheating is finished",
@@ -140,7 +137,7 @@
                         }
                     },
                     "dataschemaformat": "XMLSchema/1.1",
-                    "dataschemauri": "#/schemagroups/Fabrikam.SmartOven/schemas/Fabrikam.SmartOven.PreheatingFinishedEventData"
+                    "dataschemauri": "/schemagroups/Fabrikam.SmartOven/schemas/Fabrikam.SmartOven.PreheatingFinishedEventData"
                 }
             }
         }

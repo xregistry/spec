@@ -11,13 +11,13 @@
             ],
             "protocol": "HTTP",
             "messagegroups": [
-                "#/messagegroups/Contoso.ERP.ReservationEvents",
-                "#/messagegroups/Contoso.ERP.PaymentEvents",
-                "#/messagegroups/Contoso.ERP.ShippingEvents",
-                "#/messagegroups/Contoso.ERP.InventoryEvents",
-                "#/messagegroups/Contoso.ERP.ProductEvents",
-                "#/messagegroups/Contoso.ERP.EmployeeEvents",
-                "#/messagegroups/Contoso.ERP.PurchasingEvents"
+                "/messagegroups/Contoso.ERP.ReservationEvents",
+                "/messagegroups/Contoso.ERP.PaymentEvents",
+                "/messagegroups/Contoso.ERP.ShippingEvents",
+                "/messagegroups/Contoso.ERP.InventoryEvents",
+                "/messagegroups/Contoso.ERP.ProductEvents",
+                "/messagegroups/Contoso.ERP.EmployeeEvents",
+                "/messagegroups/Contoso.ERP.PurchasingEvents"
             ],
             "envelope": "CloudEvents/1.0"
         },
@@ -32,13 +32,13 @@
                 }
             ],
             "messagegroups": [
-                "#/messagegroups/Contoso.ERP.ReservationEvents",
-                "#/messagegroups/Contoso.ERP.PaymentEvents",
-                "#/messagegroups/Contoso.ERP.ShippingEvents",
-                "#/messagegroups/Contoso.ERP.InventoryEvents",
-                "#/messagegroups/Contoso.ERP.ProductEvents",
-                "#/messagegroups/Contoso.ERP.EmployeeEvents",
-                "#/messagegroups/Contoso.ERP.PurchasingEvents"
+                "/messagegroups/Contoso.ERP.ReservationEvents",
+                "/messagegroups/Contoso.ERP.PaymentEvents",
+                "/messagegroups/Contoso.ERP.ShippingEvents",
+                "/messagegroups/Contoso.ERP.InventoryEvents",
+                "/messagegroups/Contoso.ERP.ProductEvents",
+                "/messagegroups/Contoso.ERP.EmployeeEvents",
+                "/messagegroups/Contoso.ERP.PurchasingEvents"
             ],
             "envelope": "CloudEvents/1.0"
         },
@@ -61,13 +61,13 @@
                 "distribution_mode": "copy"
             },
             "messagegroups": [
-                "#/messagegroups/Contoso.ERP.ReservationEvents",
-                "#/messagegroups/Contoso.ERP.PaymentEvents",
-                "#/messagegroups/Contoso.ERP.ShippingEvents",
-                "#/messagegroups/Contoso.ERP.InventoryEvents",
-                "#/messagegroups/Contoso.ERP.ProductEvents",
-                "#/messagegroups/Contoso.ERP.EmployeeEvents",
-                "#/messagegroups/Contoso.ERP.PurchasingEvents"
+                "/messagegroups/Contoso.ERP.ReservationEvents",
+                "/messagegroups/Contoso.ERP.PaymentEvents",
+                "/messagegroups/Contoso.ERP.ShippingEvents",
+                "/messagegroups/Contoso.ERP.InventoryEvents",
+                "/messagegroups/Contoso.ERP.ProductEvents",
+                "/messagegroups/Contoso.ERP.EmployeeEvents",
+                "/messagegroups/Contoso.ERP.PurchasingEvents"
             ],
             "envelope": "CloudEvents/1.0"
         },
@@ -90,13 +90,13 @@
                 }
             ],
             "messagegroups": [
-                "#/messagegroups/Contoso.ERP.ReservationEvents",
-                "#/messagegroups/Contoso.ERP.PaymentEvents",
-                "#/messagegroups/Contoso.ERP.ShippingEvents",
-                "#/messagegroups/Contoso.ERP.InventoryEvents",
-                "#/messagegroups/Contoso.ERP.ProductEvents",
-                "#/messagegroups/Contoso.ERP.EmployeeEvents",
-                "#/messagegroups/Contoso.ERP.PurchasingEvents"
+                "/messagegroups/Contoso.ERP.ReservationEvents",
+                "/messagegroups/Contoso.ERP.PaymentEvents",
+                "/messagegroups/Contoso.ERP.ShippingEvents",
+                "/messagegroups/Contoso.ERP.InventoryEvents",
+                "/messagegroups/Contoso.ERP.ProductEvents",
+                "/messagegroups/Contoso.ERP.EmployeeEvents",
+                "/messagegroups/Contoso.ERP.PurchasingEvents"
             ],
             "envelope": "CloudEvents/1.0"
         },
@@ -116,13 +116,13 @@
                 "partition": 0
             },
             "messagegroups": [
-                "#/messagegroups/Contoso.ERP.ReservationEvents",
-                "#/messagegroups/Contoso.ERP.PaymentEvents",
-                "#/messagegroups/Contoso.ERP.ShippingEvents",
-                "#/messagegroups/Contoso.ERP.InventoryEvents",
-                "#/messagegroups/Contoso.ERP.ProductEvents",
-                "#/messagegroups/Contoso.ERP.EmployeeEvents",
-                "#/messagegroups/Contoso.ERP.PurchasingEvents"
+                "/messagegroups/Contoso.ERP.ReservationEvents",
+                "/messagegroups/Contoso.ERP.PaymentEvents",
+                "/messagegroups/Contoso.ERP.ShippingEvents",
+                "/messagegroups/Contoso.ERP.InventoryEvents",
+                "/messagegroups/Contoso.ERP.ProductEvents",
+                "/messagegroups/Contoso.ERP.EmployeeEvents",
+                "/messagegroups/Contoso.ERP.PurchasingEvents"
             ],
             "envelope": "CloudEvents/1.0"
         },
@@ -142,13 +142,13 @@
                 "consumergroup": "mygroup"
             },
             "messagegroups": [
-                "#/messagegroups/Contoso.ERP.ReservationEvents",
-                "#/messagegroups/Contoso.ERP.PaymentEvents",
-                "#/messagegroups/Contoso.ERP.ShippingEvents",
-                "#/messagegroups/Contoso.ERP.InventoryEvents",
-                "#/messagegroups/Contoso.ERP.ProductEvents",
-                "#/messagegroups/Contoso.ERP.EmployeeEvents",
-                "#/messagegroups/Contoso.ERP.PurchasingEvents"
+                "/messagegroups/Contoso.ERP.ReservationEvents",
+                "/messagegroups/Contoso.ERP.PaymentEvents",
+                "/messagegroups/Contoso.ERP.ShippingEvents",
+                "/messagegroups/Contoso.ERP.InventoryEvents",
+                "/messagegroups/Contoso.ERP.ProductEvents",
+                "/messagegroups/Contoso.ERP.EmployeeEvents",
+                "/messagegroups/Contoso.ERP.PurchasingEvents"
             ],
             "envelope": "CloudEvents/1.0"
         }
@@ -192,7 +192,7 @@
                         }
                     },
                     "dataschemaformat": "JSONSchema/Draft-07",
-                    "dataschemauri": "#/schemagroups/Contoso.ERP/schemas/Contoso.ERP.OrderData"
+                    "dataschemauri": "/schemagroups/Contoso.ERP/schemas/Contoso.ERP.OrderData"
                 },
                 "Contoso.ERP.ReservationCancelled": {
                     "description": "A reservation has been cancelled",
@@ -228,7 +228,7 @@
                         }
                     },
                     "dataschemaformat": "JSONSchema/Draft-07",
-                    "dataschemauri": "#/schemagroups/Contoso.ERP/schemas/Contoso.ERP.CancellationData"
+                    "dataschemauri": "/schemagroups/Contoso.ERP/schemas/Contoso.ERP.CancellationData"
                 },
                 "Contoso.ERP.ReservationRefunded": {
                     "description": "A reservation has been refunded",
@@ -264,7 +264,7 @@
                         }
                     },
                     "dataschemaformat": "JSONSchema/Draft-07",
-                    "dataschemauri": "#/schemagroups/Contoso.ERP/schemas/Contoso.ERP.RefundData"
+                    "dataschemauri": "/schemagroups/Contoso.ERP/schemas/Contoso.ERP.RefundData"
                 }
             }
         },
@@ -306,7 +306,7 @@
                         }
                     },
                     "dataschemaformat": "JSONSchema/Draft-07",
-                    "dataschemauri": "#/schemagroups/Contoso.ERP/schemas/Contoso.ERP.PaymentData"
+                    "dataschemauri": "/schemagroups/Contoso.ERP/schemas/Contoso.ERP.PaymentData"
                 }
             }
         },
@@ -348,7 +348,7 @@
                         }
                     },
                     "dataschemaformat": "JSONSchema/Draft-07",
-                    "dataschemauri": "#/schemagroups/Contoso.ERP/schemas/Contoso.ERP.ShipmentData"
+                    "dataschemauri": "/schemagroups/Contoso.ERP/schemas/Contoso.ERP.ShipmentData"
                 },
                 "Contoso.ERP.ShipmentRejected": {
                     "description": "A shipment has been rejected",
@@ -384,7 +384,7 @@
                         }
                     },
                     "dataschemaformat": "JSONSchema/Draft-07",
-                    "dataschemauri": "#/schemagroups/Contoso.ERP/schemas/Contoso.ERP.ShipmentData"
+                    "dataschemauri": "/schemagroups/Contoso.ERP/schemas/Contoso.ERP.ShipmentData"
                 },
                 "Contoso.ERP.ReturnRequested": {
                     "description": "A return has been requested",
@@ -420,7 +420,7 @@
                         }
                     },
                     "dataschemaformat": "JSONSchema/Draft-07",
-                    "dataschemauri": "#/schemagroups/Contoso.ERP/schemas/Contoso.ERP.ReturnData"
+                    "dataschemauri": "/schemagroups/Contoso.ERP/schemas/Contoso.ERP.ReturnData"
                 }
             }
         },
@@ -462,7 +462,7 @@
                         }
                     },
                     "dataschemaformat": "JSONSchema/Draft-07",
-                    "dataschemauri": "#/schemagroups/Contoso.ERP/schemas/Contoso.ERP.InventoryData"
+                    "dataschemauri": "/schemagroups/Contoso.ERP/schemas/Contoso.ERP.InventoryData"
                 }
             }
         },
@@ -504,7 +504,7 @@
                         }
                     },
                     "dataschemaformat": "JSONSchema/Draft-07",
-                    "dataschemauri": "#/schemagroups/Contoso.ERP/schemas/Contoso.ERP.ProductData"
+                    "dataschemauri": "/schemagroups/Contoso.ERP/schemas/Contoso.ERP.ProductData"
                 },
                 "Contoso.ERP.ProductDeleted": {
                     "description": "A product has been deleted",
@@ -540,7 +540,7 @@
                         }
                     },
                     "dataschemaformat": "JSONSchema/Draft-07",
-                    "dataschemauri": "#/schemagroups/Contoso.ERP/schemas/Contoso.ERP.ProductDeletionData"
+                    "dataschemauri": "/schemagroups/Contoso.ERP/schemas/Contoso.ERP.ProductDeletionData"
                 },
                 "Contoso.ERP.ProductUpdated": {
                     "description": "A product has been updated",
@@ -576,7 +576,7 @@
                         }
                     },
                     "dataschemaformat": "JSONSchema/Draft-07",
-                    "dataschemauri": "#/schemagroups/Contoso.ERP/schemas/Contoso.ERP.ProductUpdatedData"
+                    "dataschemauri": "/schemagroups/Contoso.ERP/schemas/Contoso.ERP.ProductUpdatedData"
                 }
             }
         },
@@ -618,7 +618,7 @@
                         }
                     },
                     "dataschemaformat": "JSONSchema/Draft-07",
-                    "dataschemauri": "#/schemagroups/Contoso.ERP/schemas/Contoso.ERP.EmployeeData"
+                    "dataschemauri": "/schemagroups/Contoso.ERP/schemas/Contoso.ERP.EmployeeData"
                 },
                 "Contoso.ERP.EmployeeDeleted": {
                     "envelope": "CloudEvents/1.0",
@@ -654,7 +654,7 @@
                         }
                     },
                     "dataschemaformat": "JSONSchema/Draft-07",
-                    "dataschemauri": "#/schemagroups/Contoso.ERP/schemas/Contoso.ERP.EmployeeDeletionData"
+                    "dataschemauri": "/schemagroups/Contoso.ERP/schemas/Contoso.ERP.EmployeeDeletionData"
                 },
                 "Contoso.ERP.EmployeeUpdated": {
                     "envelope": "CloudEvents/1.0",
@@ -690,7 +690,7 @@
                         }
                     },
                     "dataschemaformat": "JSONSchema/Draft-07",
-                    "dataschemauri": "#/schemagroups/Contoso.ERP/schemas/Contoso.ERP.EmployeeUpdatedData"
+                    "dataschemauri": "/schemagroups/Contoso.ERP/schemas/Contoso.ERP.EmployeeUpdatedData"
                 }
             }
         },
@@ -732,7 +732,7 @@
                         }
                     },
                     "dataschemaformat": "JSONSchema/Draft-07",
-                    "dataschemauri": "#/schemagroups/Contoso.ERP/schemas/Contoso.ERP.PurchaseOrderData"
+                    "dataschemauri": "/schemagroups/Contoso.ERP/schemas/Contoso.ERP.PurchaseOrderData"
                 },
                 "Contoso.ERP.PurchaseOrderUpdated": {
                     "envelope": "CloudEvents/1.0",
@@ -768,7 +768,7 @@
                         }
                     },
                     "dataschemaformat": "JSONSchema/Draft-07",
-                    "dataschemauri": "#/schemagroups/Contoso.ERP/schemas/Contoso.ERP.PurchaseOrderUpdatedData"
+                    "dataschemauri": "/schemagroups/Contoso.ERP/schemas/Contoso.ERP.PurchaseOrderUpdatedData"
                 },
                 "Contoso.ERP.PurchaseOrderDeleted": {
                     "envelope": "CloudEvents/1.0",
@@ -804,7 +804,7 @@
                         }
                     },
                     "dataschemaformat": "JSONSchema/Draft-07",
-                    "dataschemauri": "#/schemagroups/Contoso.ERP/schemas/Contoso.ERP.PurchaseOrderDeletionData"
+                    "dataschemauri": "/schemagroups/Contoso.ERP/schemas/Contoso.ERP.PurchaseOrderDeletionData"
                 }
             }
         }
