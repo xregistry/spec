@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "http://xregistry.io/schema/schemagroups",
+  "$id": "https://xregistry.io/xreg/xregistryspecs/schema-v1/schemas/document-schema.json",
   "properties": {
     "schemagroups": {
       "type": "object",
