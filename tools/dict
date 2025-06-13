@@ -176,7 +176,9 @@ nodefaultversionid
 nodefaultversionsticky
 noepoch
 noreadonly
+npm
 oauth
+oci
 openapi
 pdf
 placeholders
