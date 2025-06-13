@@ -1,0 +1,435 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "https://xregistry.io/xregistryspecs/core-v1/schemas/model.schema.json",
+  "title": "xRegistry Core Model Schema",
+  "description": "JSON Schema defining the structure of an xRegistry model",
+  "type": "object",
+  "properties": {
+    "labels": {
+      "$ref": "#/definitions/Labels"
+    },
+    "attributes": {
+      "$ref": "#/definitions/AttributeDefinitions",
+      "description": "Registry level extensions"
+    },
+    "groups": {
+      "type": "object",
+      "description": "Collection of group definitions",
+      "patternProperties": {
+        "^\\$includes$": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "^[a-z][a-z0-9_]*$": {
+          "$ref": "#/definitions/GroupDefinition"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true,
+  "definitions": {
+    "GroupDefinition": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "$include": { "type": "string" }
+          },
+          "required": ["$include"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["singular"],
+          "properties": {
+            "singular": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "maxLength": 58,
+              "description": "Singular name of the group type"
+            },
+            "plural": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "maxLength": 58,
+              "description": "Plural name of the group type"
+            },
+            "description": {
+              "type": "string",
+              "description": "Human-readable description of the group type"
+            },
+            "modelversion": {
+              "type": "string",
+              "description": "Version of the group model"
+            },
+            "compatiblewith": {
+              "type": "string",
+              "format": "uri",
+              "description": "Statement of compatibility with model spec"
+            },
+            "labels": {
+              "$ref": "#/definitions/Labels"
+            },
+            "attributes": {
+              "$ref": "#/definitions/AttributeDefinitions",
+              "description": "Custom attributes for this group type"
+            },
+            "ximportresources": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^/[a-z][a-z0-9_]*/[a-z][a-z0-9_]*$"
+              },
+              "description": "Include these Resources"
+            },
+            "resources": {
+              "type": "object",
+              "description": "Resource types within this group",
+              "patternProperties": {
+                "^[a-z][a-z0-9_]*$": {
+                  "$ref": "#/definitions/ResourceDefinition"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "ResourceDefinition": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "$include": { "type": "string" }
+          },
+          "required": ["$include"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["singular"],
+          "properties": {
+            "singular": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "maxLength": 58,
+              "description": "Singular name of the resource type"
+            },
+            "plural": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "maxLength": 58,
+              "description": "Plural name of the resource type"
+            },
+            "description": {
+              "type": "string",
+              "description": "Human-readable description of the resource type"
+            },
+            "maxversions": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "description": "Number of Versions that will be stored (0=unlimited)"
+            },
+            "setversionid": {
+              "type": "boolean",
+              "default": true,
+              "description": "Whether client-side setting of versionid is supported"
+            },
+            "setdefaultversionsticky": {
+              "type": "boolean",
+              "default": true,
+              "description": "Whether client-side selection of default Version is supported"
+            },
+            "hasdocument": {
+              "type": "boolean",
+              "default": true,
+              "description": "Whether resources of this type have associated documents"
+            },
+            "versionmode": {
+              "type": "string",
+              "enum": ["manual", "createdat", "modifiedat", "semver"],
+              "default": "manual",
+              "description": "Algorithm for Version management"
+            },
+            "singleversionroot": {
+              "type": "boolean",
+              "default": false,
+              "description": "Whether to enforce single root Version"
+            },
+            "typemap": {
+              "type": "object",
+              "patternProperties": {
+                "^.+$": {
+                  "type": "string",
+                  "enum": ["binary", "json", "string"]
+                }
+              },
+              "additionalProperties": false,
+              "description": "Content type mappings"
+            },
+            "modelversion": {
+              "type": "string",
+              "description": "Version of the resource model"
+            },
+            "compatiblewith": {
+              "type": "string",
+              "format": "uri",
+              "description": "Statement of compatibility with model spec"
+            },
+            "labels": {
+              "$ref": "#/definitions/Labels"
+            },
+            "attributes": {
+              "$ref": "#/definitions/AttributeDefinitions",
+              "description": "Version attributes/extensions"
+            },
+            "resourceattributes": {
+              "$ref": "#/definitions/AttributeDefinitions",
+              "description": "Resource attributes/extensions"
+            },
+            "metaattributes": {
+              "$ref": "#/definitions/AttributeDefinitions",
+              "description": "Meta attributes/extensions"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "AttributeDefinitions": {
+      "type": "object",
+      "properties": {
+        "*": {
+          "$ref": "#/definitions/WildcardAttributeDefinition"
+        }
+      },
+      "patternProperties": {
+        "^[a-z][a-z0-9_]*$": {
+          "$ref": "#/definitions/AttributeDefinition",
+          "description": "Strict character set: lowercase alphanumeric and underscore, must start with letter"
+        },
+        "^[a-z0-9][a-z0-9_:.\\-]*$": {
+          "$ref": "#/definitions/AttributeDefinition",
+          "description": "Extended character set: includes colon, dash, underscore, and dot for objects with namecharset=extended"
+        }
+      },
+      "additionalProperties": false
+    },
+    "WildcardAttributeDefinition": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "name": {
+          "const": "*",
+          "description": "Name of wildcard attribute (must be '*')"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "boolean", "string", "integer", "uinteger", "decimal",
+            "uri", "url", "uri-reference", "url-reference",
+            "timestamp", "uritemplate", "binary", "xid",
+            "array", "map", "object", "any"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "readonly": {
+          "enum": [false, null],
+          "description": "Wildcard: not modifiable"
+        },
+        "required": {
+          "enum": [false, null],
+          "description": "Wildcard: not required"
+        },
+        "ifvalues": {
+          "not": {},
+          "description": "Wildcard: no conditional attributes"
+        }
+      },
+      "additionalProperties": true
+    },
+    "AttributeDefinition": {
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "Shorthand: just the type name"
+        },
+        {
+          "$ref": "#/definitions/FullAttributeDefinition"
+        }
+      ]
+    },
+    "FullAttributeDefinition": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_:.\\-]*$",
+          "description": "Name of the attribute (must match the key). Supports both strict ([a-z][a-z0-9_]*) and extended ([a-z0-9][a-z0-9_:.-]*) character sets as defined in the xRegistry spec sections on Attributes and Extensions."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "boolean", "string", "integer", "uinteger", "decimal",
+            "uri", "url", "uri-reference", "url-reference",
+            "timestamp", "uritemplate", "binary", "xid",
+            "array", "map", "object", "any"
+          ],
+          "description": "Data type of the attribute"
+        },
+        "target": {
+          "type": "string",
+          "pattern": "^/[a-z][a-z0-9_]*(/[a-z][a-z0-9_]*(\\[/versions\\]|/versions)?)?$",
+          "description": "Target entity type for xid/url-reference/uri-reference types. Uses strict character set as defined in the xRegistry spec."
+        },
+        "namecharset": {
+          "type": "string",
+          "enum": ["strict", "extended"],
+          "default": "strict",
+          "description": "Character set for object attribute names. 'strict' allows [a-z0-9_] starting with letter; 'extended' allows [a-z0-9_:.-] starting with alphanumeric. See xRegistry spec section on Registry Model namecharset."
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of the attribute"
+        },
+        "enum": {
+          "type": "array",
+          "description": "Allowed values for scalar attributes"
+        },
+        "strict": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to restrict values to enum only"
+        },
+        "readonly": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether this attribute is modifiable by clients"
+        },
+        "immutable": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether this attribute can change once set"
+        },
+        "required": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether this attribute must have a non-null value"
+        },
+        "default": {
+          "description": "Default value for scalar attributes"
+        },
+        "attributes": {
+          "$ref": "#/definitions/AttributeDefinitions",
+          "description": "Nested attributes for object types"
+        },
+        "item": {
+          "$ref": "#/definitions/ItemDefinition",
+          "description": "Item definition for array/map types"
+        },
+        "ifvalues": {
+          "type": "object",
+          "patternProperties": {
+            "^[^\\^].*$": {
+              "type": "object",
+              "properties": {
+                "siblingattributes": {
+                  "$ref": "#/definitions/AttributeDefinitions"
+                }
+              },
+              "required": ["siblingattributes"]
+            }
+          },
+          "additionalProperties": false,
+          "description": "Conditional attributes based on values"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": { "enum": ["array", "map"] }
+            }
+          },
+          "then": {
+            "required": ["item"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "default": { "not": { "type": "null" } }
+            },
+            "required": ["default"]
+          },
+          "then": {
+            "properties": {
+              "required": { "const": true }
+            }
+          }
+        }
+      ]
+    },
+    "ItemDefinition": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "boolean", "string", "integer", "uinteger", "decimal",
+            "uri", "url", "uri-reference", "url-reference",
+            "timestamp", "uritemplate", "binary", "xid",
+            "array", "map", "object", "any"
+          ]
+        },
+        "target": {
+          "type": "string",
+          "pattern": "^/[a-z]([a-z0-9]*[a-z0-9])?(/[a-z]([a-z0-9]*[a-z0-9])?(\\[/versions\\]|/versions)?)?$"
+        },
+        "namecharset": {
+          "type": "string",
+          "enum": ["strict", "extended"],
+          "default": "strict"
+        },
+        "attributes": {
+          "$ref": "#/definitions/AttributeDefinitions"
+        },
+        "item": {
+          "$ref": "#/definitions/ItemDefinition"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": { "enum": ["array", "map"] }
+            }
+          },
+          "then": {
+            "required": ["item"]
+          }
+        }
+      ]
+    },
+    "Labels": {
+      "type": "object",
+      "patternProperties": {
+        "^.+$": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Key-value pairs for labeling"
+    }
+  }
+}
