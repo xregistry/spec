@@ -422,6 +422,7 @@ def _title_issues(path: ExistingPath) -> Iterable[Issue]:
 
 
 async def _file_issues(path: ExistingPath, settings: Settings) -> Sequence[TaggedIssue]:
+    # print(f"> {path}")
     return _tag_issues(
         list(await _html_issues(path, settings))
         + list(_plain_text_issues(_read_text(path)))

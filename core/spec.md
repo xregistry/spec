@@ -201,7 +201,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "hasdocument": <BOOLEAN>, ?   # Has separate document. Default=true
             "versionmode": "<STRING>", ?  # 'ancestor' processing algorithm
             "singleversionroot": <BOOLEAN>, ? # Default=false"
-            "typemap": <MAP>, ?           # contenttype mappings
+            "typemap": <MAP>, ?               # contenttype mappings
             "attributes": { ... }, ?          # Version attributes/extensions
             "resourceattributes": { ... }, ?  # Resource attributes/extensions
             "metaattributes": { ... } ?       # Meta attributes/extensions
