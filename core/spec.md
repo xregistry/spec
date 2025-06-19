@@ -1,4 +1,4 @@
-# xRegistry Service - Version 1.0-rc1
+# xRegistry Service - Version 1.0-rc2
 
 ## Abstract
 
@@ -126,9 +126,9 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       "capabilities",? "entities",? "model",? "<STRING>"*
     ], ?
     "pagination": <BOOLEAN>, ?
-    "schemas": [ "xRegistry-json/1.0-rc1", "<STRING>" * ], ?
+    "schemas": [ "xRegistry-json/1.0-rc2", "<STRING>" * ], ?
     "shortself": <BOOLEAN>, ?
-    "specversions": [ "1.0-rc1", "<STRING>"* ], ?
+    "specversions": [ "1.0-rc2", "<STRING>"* ], ?
     "sticky": <BOOLEAN>, ?
     "versionmodes": [ "manual", "createdat",? "modifiedat",? "semver",
       "<STRING>"* ],
@@ -1885,7 +1885,7 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "specversion": "1.0-rc1",
+  "specversion": "1.0-rc2",
   "registryid": "myRegistry",
   "self": "https://example.com/",
   "xid": "/",
@@ -1913,7 +1913,7 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "specversion": "1.0-rc1",
+  "specversion": "1.0-rc2",
   "registryid": "myRegistry",
   "self": "https://example.com/",
   "xid": "/",
@@ -2080,7 +2080,7 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "specversion": "1.0-rc1",
+  "specversion": "1.0-rc2",
   "registryid": "myRegistry",
   "self": "https://example.com/",
   "xid": "/",
@@ -2232,11 +2232,11 @@ The following defines the specification-defined capabilities:
   serializing the model. Each value MUST be a schema document format name
   (e.g. `jsonSchema/2020-12`), and SHOULD be of the form `<NAME>[/<VERSION>]`.
   All implementations of this specification MUST support
-  `xRegistry-json/1.0-rc1` (the JSON serialization as defined by this
+  `xRegistry-json/1.0-rc2` (the JSON serialization as defined by this
   specification).
 - The values MUST be case-insensitive.
-- A value of `xRegistry-json/1.0-rc1` MUST be included in the list.
-- When not specified, the default value MUST be `xRegistry-json/1.0-rc1`.
+- A value of `xRegistry-json/1.0-rc2` MUST be included in the list.
+- When not specified, the default value MUST be `xRegistry-json/1.0-rc2`.
 
 #### `shortself`
 - Name: `shortself`
@@ -2250,9 +2250,9 @@ The following defines the specification-defined capabilities:
 - Name: `specversions`
 - Type: Array of strings
 - Description: List of xRegistry specification versions supported.
-- Supported values include: `1.0-rc1`.
-- A value of `1.0-rc1` MUST be included in the list.
-- When not specified, the default value MUST be `1.0-rc1`.
+- Supported values include: `1.0-rc2`.
+- A value of `1.0-rc2` MUST be included in the list.
+- When not specified, the default value MUST be `1.0-rc2`.
 
 #### `sticky`
 - Name: `sticky`
@@ -2399,7 +2399,7 @@ GET /capabilities?offered
   },
   "schemas": {
     "type": "string",
-    "enum": [ "xRegistry-json/1.0-rc1" ]
+    "enum": [ "xRegistry-json/1.0-rc2" ]
   },
   "shortself": {
     "type": "boolean",
@@ -2407,7 +2407,7 @@ GET /capabilities?offered
   },
   "specversions": {
     "type": "string",
-    "enum": [ "xRegistry-json/1.0-rc1" ]
+    "enum": [ "xRegistry-json/1.0-rc2" ]
   },
   "sticky": {
     "type": "boolean",
@@ -3330,13 +3330,13 @@ updating the model, adhering to the model format specified above.
 Additionally:
 - When specified, the `?schema` query parameter MUST be one of the valid
   `schema` capabilities values (case-insensitive).
-- When not specified, the default value MUST be `xRegistry-json/1.0-rc1`.
+- When not specified, the default value MUST be `xRegistry-json/1.0-rc2`.
 - The `/model` API  and `model` attribute MUST be a read-only.
 - The `/modelsource` API  and `modelsource` attribute MAY be used to retrieve
   the model specification last used to update the model.
 
 Implementations of this specification MUST support a schema value of
-`xRegistry-json/1.0-rc1`, if they support the `schema` flag.
+`xRegistry-json/1.0-rc2`, if they support the `schema` flag.
 
 In the case of using the `/model` and `/modelsource` APIs, the response MUST
 adhere to:
@@ -3368,7 +3368,7 @@ Where:
 If the specified schema format is not supported then an error
 ([invalid_data](#invalid_data)) MUST be generated.
 
-When the `schema` is `xRegistry-json/1.0-rc1` then the response MUST be of the
+When the `schema` is `xRegistry-json/1.0-rc2` then the response MUST be of the
 form:
 
 ```yaml

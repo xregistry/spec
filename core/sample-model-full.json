@@ -5,7 +5,7 @@
       "type": "string",
       "readonly": true,
       "required": true,
-      "default": "1.0-rc1"
+      "default": "1.0-rc2"
     },
     "registryid": {
       "name": "registryid",

@@ -32,15 +32,15 @@ with a lowercase `x`, even when the first word in a sentence.
 |                               |                                 Latest Release                                  |                                      Working Draft                                       |
 | :---------------------------- | :-----------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------: |
 | **Core xRegistry Specification:**    |
-| xRegistry                     | [v1.0-rc1](https://github.com/xregistry/spec/blob/v1.0-rc1/core/spec.md) | [WIP](core/spec.md) |
+| xRegistry                     | [v1.0-rc2](https://github.com/xregistry/spec/blob/v1.0-rc2/core/spec.md) | [WIP](core/spec.md) |
 |                               |
 | **Domain Specific Specifications:**  |
-| Endpoint Registry             | [v1.0-rc1](https://github.com/xregistry/spec/blob/v1.0-rc1/endpoint/spec.md) | [WIP](endpoint/spec.md)                         |
-| Message Definitions Registry  | [v1.0-rc1](https://github.com/xregistry/spec/blob/v1.0-rc1/message/spec.md) | [WIP](message/spec.md)                         |
-| Schema Registry               | [v1.0-rc1](https://github.com/xregistry/spec/blob/v1.0-rc1/schema/spec.md) | [WIP](schema/spec.md)                         |
+| Endpoint Registry             | [v1.0-rc2](https://github.com/xregistry/spec/blob/v1.0-rc2/endpoint/spec.md) | [WIP](endpoint/spec.md)                         |
+| Message Definitions Registry  | [v1.0-rc2](https://github.com/xregistry/spec/blob/v1.0-rc2/message/spec.md) | [WIP](message/spec.md)                         |
+| Schema Registry               | [v1.0-rc2](https://github.com/xregistry/spec/blob/v1.0-rc2/schema/spec.md) | [WIP](schema/spec.md)                         |
 |                               |
 | **Additional Documentation:** |
-| xRegistry Primer              | [v1.0-rc1](https://github.com/xregistry/spec/blob/v1.0-rc1/core/primer.md) | [WIP](core/primer.md)                          |
+| xRegistry Primer              | [v1.0-rc2](https://github.com/xregistry/spec/blob/v1.0-rc2/core/primer.md) | [WIP](core/primer.md)                          |
 | Pagination Specification      | n/a | [WIP](pagination/spec.md)                          |
 |                               |
 | **Even More:** |

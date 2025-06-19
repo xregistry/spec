@@ -1,6 +1,6 @@
 {
   "$schema": "https://cloudevents.io/schemas/registry",
-  "specversion": "1.0-rc1",
+  "specversion": "1.0-rc2",
   "schemagroups": {
     "schemastore_org.json": {
       "schemas": {
@@ -4082,11 +4082,11 @@
             }
           }
         },
-        "project-1.0.0-rc1": {
+        "project-1.0.0-rc2": {
           "versions": {
             "1.0.0": {
-              "schemauri": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/project-1.0.0-rc1.json",
-              "description": "Schema for project-1.0.0-rc1.json",
+              "schemauri": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/project-1.0.0-rc2.json",
+              "description": "Schema for project-1.0.0-rc2.json",
               "format": "JSONSchema/Draft-04"
             }
           }
