@@ -107,7 +107,7 @@ def build_registry(groups):
     """
     registry = {
         "$schema": "https://cloudevents.io/schemas/registry",
-        "specversion": "1.0-rc1",
+        "specversion": "1.0-rc2",
         "schemagroups": {
             "schemastore_org.json": {
                 "schemas": {}
