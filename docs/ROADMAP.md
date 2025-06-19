@@ -21,12 +21,17 @@ _Release Candidate 1_ - 2025/04/01
   completed
 * Ready for implementation testing and thorough review of the spec
 
-_Release Candidate 2_ – WIP – 2025/06/01
+_Release Candidate 2_ – 2025/06/19
 
 * Tested with at least one implementation
 * All specs ([core](../core/spec.md), [CloudEvents](../cloudevents/spec.md),
   [Endpoint](../endpoint/spec.md), [Messages](../message/spec.md) and
   [Schema](../schema/spec.md)) reviewed for completeness
+
+_Release Candidate 3_ – WIP – 2025/07/08
+
+* Complete all actions from reviews
+* Announce final pre-1.0 version for review
 
 _Version 1.0_ – WIP – 2025/08/01
 
