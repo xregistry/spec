@@ -44,7 +44,7 @@ with a lowercase `x`, even when the first word in a sentence.
 | Pagination Specification      | n/a | [WIP](pagination/spec.md)                          |
 |                               |
 | **Even More:** |
-| Server Reference Implementation | [server repo](https://github.com/xregistry/server) |
+| Server & CLI Reference Implementation | [server repo](https://github.com/xregistry/server) |
 | [Samples](core/samples/README.md) | |
 
 Additional release related information:

@@ -24,7 +24,7 @@ event envelopes and logical grouping of related messages and events.
 
 Managing the description of the payloads of those messages and events is not in
 scope, but delegated to the [schema registry extension](../schema/spec.md) for
-xRegistry. Schemas are linked to messages and event declarations by a URI
+xRegistry. Schemas are linked to messages and event declarations through a URI
 reference.
 
 For easy reference, the JSON serialization of a Message Registry adheres to
@@ -159,7 +159,8 @@ This specification defines the following terms:
 A **message** is a transport wrapper around a **message body** (interchangeably
 referred to as payload) that is decorated with **metadata**. The metadata
 describes the message body without an intermediary having to inspect it and
-carries further information useful for identification, routing, and dispatch.
+carries further information useful for identification, routing, and
+dispatching.
 
 In this specification, **message** is an umbrella term that refers to all kinds
 of messages as well as to **events** as a special form of messages.
@@ -241,7 +242,7 @@ to the xRegistry-defined core
 #### `envelope` (Message Group)
 
 - Type: String
-- Description: Identifies the common, transport protocol independent message
+- Description: Identifies the common, transport protocol-independent message
   metadata format. Message metadata envelopes are referenced by name and
   version as `<NAME>/<VERSION>`. This specification defines a set of common
   [metadata envelope names](#metadata-envelopes) that MUST be used for the
@@ -249,7 +250,7 @@ to the xRegistry-defined core
   on their own. All definitions inside a group MUST use this same envelope.
 - Constraints:
   - At least one of `envelopemetadata` and `protocol` MUST be specified.
-  - If present, MUST be a non-empty string
+  - If present, MUST be a non-empty string.
   - If present, MUST follow the naming convention `<NAME>/<VERSION>`, whereby
     `<NAME>` is the name of the metadata envelope and `<VERSION>` is the
     version of the metadata envelope.
@@ -267,7 +268,7 @@ to the xRegistry-defined core
   messages inside a group MUST use this same protocol.
 - Constraints:
   - At least one of `envelopemetadata` and `protocol` MUST be specified.
-  - If present, MUST be a non-empty string
+  - If present, MUST be a non-empty string.
   - If present, MUST follow the naming convention `<NAME>` or
     `<NAME>/<VERSION>`, whereby `<NAME>` is the name of the protocol and
     `<VERSION>` is the version of protocol. The version is REQUIRED if
@@ -287,7 +288,7 @@ Different from schemas, message definitions do not contain a
 version history. If the metadata of two messages differs, they are considered
 different messages.
 
-When [CloudEvents](https://cloudevents.io) is being used for a particular
+When [CloudEvents](https://cloudevents.io) is used for a particular
 message, it is RECOMMENDED that the message's `messageid` attribute be the
 same as the [CloudEvents `type`
 attribute](https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#type). Doing so makes for easier management of the meta-model by correlating
@@ -309,8 +310,8 @@ the core xRegistry Resource
   Attributes defined in this message fully override the attributes of the base
   message.
 - Constraints:
-  - OPTIONAL
-  - If present, MUST be a valid URI-reference
+  - OPTIONAL.
+  - If present, MUST be a valid URI-reference.
   - If present, MUST point to a resource of type `message` using JSON Pointer
     [RFC6901][JSON Pointer] notation.
 
@@ -407,8 +408,8 @@ specification.
   equivalent to the schema ['format'](../schema/spec.md#format)
   attribute.
 - Constraints:
-  - OPTIONAL
-  - If present, MUST be a non-empty string
+  - OPTIONAL.
+  - If present, MUST be a non-empty string.
   - If present, MUST follow the naming convention `<NAME>/<VERSION>`, whereby
     `<NAME>` is the name of the schema format and `<VERSION>` is the version of
     the schema format in the format defined by the schema format itself.
@@ -531,7 +532,8 @@ headers/properties/attributes constraints:
 - Description: Indicates whether the property is REQUIRED to be present in a
   message of this type.
 - Constraints:
-  - OPTIONAL. Defaults MUST be `false`.
+  - OPTIONAL.
+  - Default value MUST be `false`.
   - If present, MUST be a boolean value.
 
 ##### `specurl`
@@ -540,7 +542,7 @@ headers/properties/attributes constraints:
 - Description: Contains a relative or absolute URI that points to the
   human-readable specification of the property.
 - Constraints:
-  - OPTIONAL
+  - OPTIONAL.
 
 ##### `type`
 
@@ -559,12 +561,12 @@ headers/properties/attributes constraints:
       underscores.
     - `binary`: CloudEvents "Binary" type.
     - `timestamp`: CloudEvents "Timestamp" type (RFC3339 DateTime)
-    - `duration`: RFC3339 Duration
-    - `uritemplate`: [RFC6570][RFC6570] Level 1 URI Template
-    - `uri`: CloudEvents URI type (RFC3986 URI)
-    - `urireference`: CloudEvents "URI-reference" type (RFC3986 URI-reference)
-    - `number`: IEEE754 Double
-    - `integer`: CloudEvents "Integer" type (RFC 7159, Section 6)
+    - `duration`: RFC3339 Duration.
+    - `uritemplate`: [RFC6570][RFC6570] Level 1 URI Template.
+    - `uri`: CloudEvents URI type (RFC3986 URI).
+    - `urireference`: CloudEvents "URI-reference" type (RFC3986 URI-reference).
+    - `number`: IEEE754 Double.
+    - `integer`: CloudEvents "Integer" type (RFC 7159, Section 6).
 
 ##### `value`
 

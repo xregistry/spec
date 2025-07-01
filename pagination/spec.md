@@ -40,8 +40,8 @@ modify those values.
   If this attribute is not specified, then the server MAY choose to send back
   as many, or as little, records per response message.
 - Constraints:
-  - OPTIONAL
-  - MUST be an unsigned 64-bit integer with a value greater than 0
+  - OPTIONAL.
+  - MUST be an unsigned 64-bit integer with a value greater than 0.
 - Examples:
   - `100`
 
@@ -73,9 +73,9 @@ this specification.
   specification and the results from the server are undefined.
 - Constraints:
   - MUST NOT be present if there are no more records for the `rel` type of
-    relationship
+    relationship.
   - MUST be present if there are more records for the `rel` type of
-    relationship
+    relationship.
   - MUST be a URI-Reference as defined in RFC...
 - Examples:
   - `http://example.com/people?offset=3&limit=100`
@@ -92,18 +92,18 @@ this specification.
   This specification uses the following values as defined by section 6.2.2
   in RFC598:
   - `next` - indicates the next set of records in the sequence of records
-    being returned
+    being returned.
   - `prev` - indicates the previous set of records in the sequence of records
-    being returned
+    being returned.
   - `first` - indicates the first set of records in the sequence of records
-    being returned
+    being returned.
   - `last` - indicates the last set of records in the sequence of records
-    being returned
+    being returned.
   Unless otherwise constrained by a specification leveraging this
   specification, additional values MAY be defined.
 - Constraints:
-  - REQUIRED if the `link` attribute is present
-  - MUST be a string as defined by `relation-types` in RFC5988
+  - REQUIRED if the `link` attribute is present.
+  - MUST be a string as defined by `relation-types` in RFC5988.
 
 #### expires
 
@@ -115,7 +115,7 @@ this specification.
   is not expected to change very often and therefore the server will
   typically not need to save any state related to this client's requests.
 - Constraints:
-  - OPTIONAL
+  - OPTIONAL.
 
 #### count
 
@@ -124,10 +124,10 @@ this specification.
   the `link`. Note, this is not the number of records in any one message, but
   instead it is the aggregate count of records across all messages in the set.
 - Constraints:
-  - STRONG RECOMMENDED
-  - MUST be an unsigned integer
+  - STRONGLY RECOMMENDED.
+  - MUST be an unsigned integer.
   - MUST be consistent across all `link` attributes and messages for a
-    particular set of records
+    particular set of records.
 
 ## HTTP Binding
 
@@ -153,24 +153,24 @@ http://example.com/people?limit=100
 ### Response for a record set
 
 Each successful response from the server will adhere to the following:
-- MUST respond with an HTTP 200
-- MUST include zero or more records
+- MUST respond with an HTTP 200.
+- MUST include zero or more records.
 - If the response refers to the start of the set of records, then the `prev`
-  Link MUST NOT be included in the response
+  Link MUST NOT be included in the response.
 - If the response does not include the start of the set of records, then the
-  `prev` Link MAY be included in the response
-- The response MAY include the `first` Link in any response
+  `prev` Link MAY be included in the response.
+- The response MAY include the `first` Link in any response.
 - If  `limit` attribute was specified as part of the flow, the response MUST
-  NOT include more records than what the `limit` attribute has indicated
+  NOT include more records than what the `limit` attribute has indicated.
 - If the response refers to the end of the set of records, then the `next`
-  Link MUST NOT be included in the response
+  Link MUST NOT be included in the response.
 - If the response does not refer to the end of the set of records, then the
-  `next` Link MUST be included in the response
-- The response MAY include the `last` Link in any response
+  `next` Link MUST be included in the response.
+- The response MAY include the `last` Link in any response.
 - The response MAY include the `expires` attribute in any response as an
   HTTP "Expires" header. If present, it MUST adhere to the format specified in
-  [RFC 3339](https://tools.ietf.org/html/rfc7234#section-5.3)
-- It is STRONG RECOMMENDED that all responses include the `count` attribute
+  [RFC 3339](https://tools.ietf.org/html/rfc7234#section-5.3).
+- It is STRONGLY RECOMMENDED that all responses include the `count` attribute.
 
 Additionally, Links MUST appear in the HTTP response as HTTP headers using
 the format described in RFC5988.

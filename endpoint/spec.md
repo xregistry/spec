@@ -237,8 +237,8 @@ The following attributes are defined for Endpoints:
     API][CloudEvents Subscriptions API].
 
     Some perspectives that might exist on a subscriber endpoint:
-    - Application from which messages originate
-    - Application which accepts messages from the delivery agent
+    - Application from which messages originate.
+    - Application which accepts messages from the delivery agent.
     - Application which manages subscriptions for delivery of messages to the
       target application. This might be a message broker subscription manager.
 
@@ -249,12 +249,12 @@ The following attributes are defined for Endpoints:
       this might be a message broker topic or a queue.
     - Proxy or other intermediary which solicits messages from the source and
       forwards them to the target endpoint.
-    - Application which consumes messages
+    - Application which consumes messages.
 
   - `producer`: The endpoint offers messages being produced (pushed) to it.
 
     Some perspectives might exist on a producer endpoint:
-    - Application from which messages originate
+    - Application from which messages originate.
     - Reverse proxy or other intermediary which accepts messages from the
       originator and forwards them to the target endpoint.
     - Application which accepts messages. This might be a message broker topic
@@ -267,7 +267,7 @@ The following attributes are defined for Endpoints:
   pre-/post-processing, etc.
 
 - Constraints:
-  - REQUIRED
+  - REQUIRED.
   - MUST be one of "subscriber", "consumer", or "producer".
 
 ### `channel`
@@ -303,8 +303,8 @@ The following attributes are defined for Endpoints:
   When this property has no value it MUST either be serialized as an empty
   string or excluded from the serialization entirely.
 - Constraints:
-  - OPTIONAL
-  - When specified, the value MUST be a non-empty string
+  - OPTIONAL.
+  - When specified, the value MUST be a non-empty string.
 - Examples:
   - `queue1`
 
@@ -318,27 +318,27 @@ See the [deprecated](../core/spec.md#deprecated) attribute in the core
 - Type: String
 - Description: The name of the specification that defines the Resource
   stored in the registry. Often it is difficult to unambiguously determine
-  what a Resource is via simple inspect of its serialization. This attribute
+  what a Resource is by simply inspecting its serialization. This attribute
   provides a mechanism by which it can be determined without examination of
-  the Resource at all
+  the Resource at all.
 - Constraints:
-  - At least one of `envelope` and `protocol` MUST be specified
+  - At least one of `envelope` and `protocol` MUST be specified.
   - MUST be a non-empty string of the form `<SPEC>[/<VERSION>]`,
     where `<SPEC>` is the non-empty string name of the specification that
     defines the Resource. An OPTIONAL `<VERSION>` value SHOULD be included if
-    there are multiple versions of the specification available
-  - For comparison purposes, this attribute MUST be considered case sensitive
+    there are multiple versions of the specification available.
+  - For comparison purposes, this attribute MUST be considered case-sensitive.
   - If a `<VERSION>` is specified at the Group level, all Resources within that
     Group MUST have a `<VERSION>` value that is at least as precise as its
     Group, and MUST NOT expand it. For example, if a Group had a
     `envelope` value of `myspec`, then Resources within that Group can have
     `envelope` values of `myspec` or `myspec/1.0`. However, if a Group has a
-    value of `myspec/1.0` it would be invalid for a Resource to have a value of
-    `myspec/2.0` or just `myspec`. Additionally, if a Group does not have
+    value of `myspec/1.0`, it would be invalid for a Resource to have a value
+    of `myspec/2.0` or just `myspec`. Additionally, if a Group does not have
     a `envelope` attribute then there are no constraints on its Resources
-    `envelope` attributes
+    `envelope` attributes.
   - This specification places no restriction on the case of the `<SPEC>` value
-    or on the syntax of the `<VERSION>` value
+    or on the syntax of the `<VERSION>` value.
 - Examples:
   - `CloudEvents/1.0`
 
@@ -346,10 +346,10 @@ See the [deprecated](../core/spec.md#deprecated) attribute in the core
 
 - Type: Map
 - Description: Configuration details of the endpoint with respect to the
-  envelope format use to transmit the messages.
+  envelope format used to transmit the messages.
 
 - Constraints:
-  - OPTIONAL
+  - OPTIONAL.
 - Examples:
   - For an endpoint using an `envelope` value of `CloudEvents/1.0`:
     `{ "mode": "binary", "format": "application/json" }`
@@ -359,8 +359,7 @@ This specification defines the following envelope options for the indicated
 
 #### `CloudEvents/1.0`
 
-- `mode` : indicates whether the CloudEvent generated will use `binary` or
-  `structured`
+- `mode` : indicates whether the CloudEvent will use `binary` or `structured`
   (mode)[https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#message].
   When specified, its value MUST be one of: `binary` or `structured`. When not
   specified, the endpoint is indicating that either mode is acceptable.
@@ -393,10 +392,10 @@ This specification defines the following envelope options for the indicated
   - "NATS" - Use the [NATS][NATS] protocol.
   - "KAFKA" - Use the [Apache Kafka][Apache Kafka] protocol.
 
-  All messages inside an Endpoint MUST use this same protocol
+  All messages inside an Endpoint MUST use this same protocol.
 - Constraints:
-  - At least one of `envelope` and `protocol` MUST be specified
-  - MUST be a non-empty string
+  - At least one of `envelope` and `protocol` MUST be specified.
+  - MUST be a non-empty string.
   - SHOULD follow the naming convention `<NAME>/<VERSION>`,
     whereby `<NAME>` is the name of the protocol and `<VERSION>` is the
     version of protocol.
@@ -413,21 +412,21 @@ This specification defines the following envelope options for the indicated
   configuration. In this case, the endpoint is considered to be "abstract".
 
 - Constraints:
-  - OPTIONAL
+  - OPTIONAL.
 
 #### `protocoloptions.endpoints`
 
 - Type: Array of Objects
 - Description: An array of objects map where each object contains a `uri`
-  attribute with the the network address to which clients can communicate with
+  attribute with the network address to which clients can communicate with
   the endpoint. The object MAY contain extension attributes that can be used
   by clients to determine which URI to use, or to configure access to the
   specific URI. Whether the URI identifies a network host or links directly to
   a resource managed by the network host is protocol specific.
 - Constraints:
-  - OPTIONAL
+  - OPTIONAL.
   - Each object key MUST contain a `uri` attribute with a valid, absolute
-    URI (URL)
+    URI (URL).
 - Examples:
   - `[ {"uri": "https://example.com" } ]`
   - ```
@@ -460,9 +459,9 @@ This specification defines the following envelope options for the indicated
   defined. Additional, endpoint-specific configuration keys MAY be added.
 
 - Constraints:
-  - OPTIONAL
-  - MUST only be used for authorization configuration
-  - MUST NOT be used for credential configuration
+  - OPTIONAL.
+  - MUST only be used for authorization configuration.
+  - MUST NOT be used for credential configuration.
 
 #### `protocoloptions.authorization.type`
 
@@ -477,8 +476,8 @@ This specification defines the following envelope options for the indicated
   - APIKey: The client uses an API key for authentication and authorization.
 
 - Constraints:
-  - OPTIONAL
-  - MUST be a non-empty string if used
+  - OPTIONAL.
+  - MUST be a non-empty string if used.
 
 #### `protocoloptions.authorization.resourceuri`
 
@@ -487,8 +486,8 @@ This specification defines the following envelope options for the indicated
   requested. The format of the URI depends on the authorization type.
 
 - Constraints:
-  - OPTIONAL
-  - MUST be a non-empty URI if used
+  - OPTIONAL.
+  - MUST be a non-empty URI if used.
 
 #### `protocoloptions.authorization.authorityuri`
 
@@ -498,8 +497,8 @@ This specification defines the following envelope options for the indicated
   authorization type.
 
 - Constraints:
-  - OPTIONAL
-  - MUST be a non-empty URI if used
+  - OPTIONAL.
+  - MUST be a non-empty URI if used.
 
 #### `protocoloptions.authorization.grant_types`
 
@@ -508,8 +507,8 @@ This specification defines the following envelope options for the indicated
   list of strings.
 
 - Constraints:
-  - OPTIONAL
-  - MUST be a non-empty array if used
+  - OPTIONAL.
+  - MUST be a non-empty array if used.
 
 #### `protocoloptions.deployed`
 
@@ -528,7 +527,7 @@ This specification defines the following envelope options for the indicated
   configuration options are protocol specific and described in the
   [protocol options](#protocol-options) section below.
 - Constraints:
-  - OPTIONAL
+  - OPTIONAL.
   - When specified, MUST be a map of non-empty strings to `ANY` type values.
   - If `protocoloptions.protocol` is a well-known protocol, the options MUST be
     compliant with the [protocol's options](#protocol-options).
@@ -593,8 +592,8 @@ CloudEvent's `type` attribute), it is STRONGLY RECOMMENDED that the
 `messageid` values of the message definitions for an Endpoint match that
 unique identifier and therefore be unique across all messages within the
 `messages` collection and the messages referenced by the `messagegroups`
-attribute. This will allow for an easily "lookup" from an incoming runtime
-message to it's related message definition.
+attribute. This will allow for an easy "lookup" from an incoming runtime
+message to its related message definition.
 
 However, there are times when this is not possible. For example, take the case
 where an Endpoint might have the same semantic message defined twice, once for
@@ -605,13 +604,13 @@ definition's `messageid` values might not match the runtime message's `type`
 value. In those cases, finding the appropriate message definition will need to
 be done via examination of some other metadata - such as the message's
 `envelopemetadata.type` value along with its `envelopeoptions.format` value.
-These details are of scope for this specification to define and are left as
+These details are out of scope for this specification to define and are left as
 an implementation detail.
 
 Implementations MAY choose to generate an error if it detects duplicate
 `messageid` values across the `messages` collection message definitions and
 the `messagegroups` referenced message definitions, if that is the desired
-constraints for their users.
+constraint for their users.
 
 #### Protocol Options
 
@@ -626,7 +625,7 @@ valid HTTP URIs using the "http" or "https" scheme.
 The following options are defined for HTTP:
 
 - `method`: The HTTP method to use for the endpoint.
-  - When not specified the default value MUST be `POST`.
+  - When not specified, the default value MUST be `POST`.
   - The value MUST be a valid HTTP method name.
 - `headers`: An array of HTTP headers to use for the endpoint. HTTP allows for
   duplicate headers. The objects in the array have the following attributes:
@@ -743,7 +742,7 @@ The following options are defined for MQTT endpoints.
   - The value MUST be a non-empty string.
   - The value MAY contain placeholders using the [RFC6570][RFC6570] Level 1
     URI Template syntax.
-- `willmessage`: This is XID that refers to the MQTT `willmessage` to use for
+- `willmessage`: This is an XID that refers to the MQTT `willmessage` to use for
   the endpoint.
   - The value MUST be a non-empty XID.
   - It MUST point to a valid

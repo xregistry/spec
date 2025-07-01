@@ -301,7 +301,7 @@ the core xRegistry Resource
   If `format` is not specified, or if the value is not known by the server
   (but is an allowable value), then the server MUST NOT perform any validation.
 - Constraints:
-  - OPTIONAL
+  - OPTIONAL.
   - When not specified, the default value MUST be `false`.
   - MUST be a Resource level attribute defined within the `metaattributes`
     section of the model.
@@ -323,7 +323,8 @@ the core xRegistry Resource
   Managers of the xRegistry instance can set a default value for this
   attribute, making it a REQUIRED attribute.
 - Constraints:
-  - If present, MUST be a non-empty string
+  - OPTIONAL.
+  - If present, MUST be a non-empty string.
   - MUST follow the naming convention `<NAME>/<VERSION>`, whereby `<NAME>` is
     the name of the schema format and `<VERSION>` is the Version of the schema
     format in the format defined by the schema format itself.
