@@ -719,7 +719,7 @@ To signal that a Version represents a root of a hierarchy, the `ancestor`
 attribute has its value set to the Version's `versionid` attribute. This
 makes the ancestor explicit, and the possible ambiguity of using another
 value such as null which, based on the scenario, could mean "no ancestor" or
-"default to the latest".
+"default to the newest".
 
 # Pruning Versions with `singleversionroot` enabled
 
