@@ -407,7 +407,7 @@ attributes.
 - **Resource**
 
 Resources, typically, represent the main data of interest for the Registry. In
-the filesystem analogy, these would be the "files". Each Resources exist under
+the filesystem analogy, these would be the "files". Each Resource exist under
 a single Group and, similar to Groups, have a set of Registry metadata.
 However, unlike a Group, which only has Registry metadata, each Resource can
 also have a "document" associated with it. For example, a "schema" Resource
