@@ -50,6 +50,7 @@ automation and tooling.
     - [Inline Flag](#inline-flag)
   - [HTTP Header Values](#http-header-values)
   - [Error Processing](#error-processing)
+  - [Events](#events)
 
 ## Overview
 
@@ -7452,6 +7453,12 @@ something unexpected happened in the server that caused an error condition.
 <!-- end-err-def -->
 
 ---
+
+### Events
+
+xRegistry defines a set of events that SHOULD be generated when changes are
+made to the entities within a Registry. See the [xRegistry Events](./events.md)
+specification for more information.
 
 [rfc7230-section-3]: https://tools.ietf.org/html/rfc7230#section-3
 [rfc3986-section-2-1]: https://tools.ietf.org/html/rfc3986#section-2.1
