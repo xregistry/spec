@@ -318,7 +318,7 @@ See the [deprecated](../core/spec.md#deprecated) attribute in the core
 - Type: String
 - Description: The name of the specification that defines the Resource
   stored in the registry. Often it is difficult to unambiguously determine
-  what a Resource is by simply inspecting its serialization. This attribute
+  what a Resource is by simply inspecting its serialized form. This attribute
   provides a mechanism by which it can be determined without examination of
   the Resource at all.
 - Constraints:

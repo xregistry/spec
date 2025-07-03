@@ -140,7 +140,7 @@ pseudo JSON form:
     "description": "<STRING>", ?
     "documentation": "<URL>", ?
     "labels": { "<STRING>": "<STRING>" * }, ?
-    "attributes": {                     # Registry-level attributes/extensions
+    "attributes": {                     # Registry level attributes/extensions
       "<STRING>": {                     # Attribute name (case-sensitive)
         "name": "<STRING>",             # Same as attribute's key
         "type": "<TYPE>",                 # string, decimal, array, object, ...
@@ -181,7 +181,7 @@ pseudo JSON form:
         "labels": { "<STRING>": "<STRING>" * }, ?
         "modelversion": "<STRING>", ?     # Version of the group model
         "compatiblewith": "<URI>", ?      # Statement of compatibility with model spec
-        "attributes": { ... }, ?        # Group-level attributes/extensions
+        "attributes": { ... }, ?        # Group level attributes/extensions
         "ximportresources": [ "<XIDTYPE>", * ], ?   # Include these Resources
 
         "resources": {
@@ -255,7 +255,7 @@ pseudo JSON form:
           "<RESOURCE>": ... Resource document ..., ? # If local & inlined & JSON
           "<RESOURCE>base64": "<STRING>", ?        # If local & inlined & ~JSON
                                                    # End of default Ver attrs
-          # Resource-level helper attributes
+          # Resource level helper attributes
           "metaurl": "<URL>",
           "meta": {                                # Only if inlined
             "<RESOURCE>id": "<STRING>",
@@ -339,7 +339,7 @@ the JSON snippets are used for readability and are not normative.
 Use of `<...>` the notation indicates a substitutable value where that is
 meant to be replaced with a runtime situational-specific value as defined by
 the word/phrase in the angled brackets. For example `<NAME>` would be expected
-to be replaced by the "name" of the item discussed.
+to be replaced by the "name" of the item being discussed.
 
 When HTTP query parameters are discussed, they are presented as `?<NAME>` where
 `<NAME>` is the name of the query parameter.
@@ -407,7 +407,7 @@ attributes.
 - **Resource**
 
 Resources, typically, represent the main data of interest for the Registry. In
-the filesystem analogy, these would be the "files". All Resources exist under
+the filesystem analogy, these would be the "files". Each Resources exist under
 a single Group and, similar to Groups, have a set of Registry metadata.
 However, unlike a Group, which only has Registry metadata, each Resource can
 also have a "document" associated with it. For example, a "schema" Resource
@@ -439,7 +439,7 @@ allowed per Resource type.
 ## Registry Design
 
 As discussed in the [Overview](#overview) section, an xRegistry consists of
-two main entities related to the data managed: Groups and Resources.
+two main entities related to the data being managed: Groups and Resources.
 However, there are other concepts that make up the overall design and this
 section will cover them all in more detail.
 
@@ -460,12 +460,12 @@ This entity is meant to serve a few key purposes:
     within those Groups.
 
 **Groups**
-Traversing down the tree structure, below the Registry entity, there can be
-a set of Groups for the entities managed by the Registry. Each Group is meant
-to be a logical grouping of related Resources, much like a directory acts as
-a grouping of "files". Groups, like the Registry entity, does have similar
-high-level metadata that can be set and can have domain-specific extension
-attributes defined.
+Traversing down the tree structure, below the Registry entity, there will be
+a (potentially empty) set of Groups for the entities managed by the Registry.
+Each Group is meant to be a logical grouping of related Resources, much like a
+directory acts as a grouping of "files". Groups, like the Registry entity,
+does have similar high-level metadata that can be set and can have
+domain-specific extension attributes defined.
 
 It's worth noting that a Registry is not mandated to have any Groups. It is
 permissible to have a Registry with just its top-level metadata, if that's all
@@ -479,10 +479,10 @@ quite rich with respect to managing domain-specific data. See the
 [Endpoint](../endpoint/spec.md) as an example.
 
 **Resources**
-Below, or within, each Group can be a set of Resources. Typically, Resources
-are the main pieces of data managed by the Registry. Like the Registry
-and Group entities that have a set of xRegistry defined "common" metadata
-that can be set, and user-defined extension attributes can be defined.
+Below, or within, each Group will be a (potentially empty) set of Resources.
+Typically, Resources are the main pieces of data managed by the Registry. Like
+the Registry and Group entities that have a set of xRegistry defined "common"
+metadata that can be set, and user-defined extension attributes can be defined.
 However, Resources also support the concept of a domain-specific "document"
 that can be associated with it. This document can be stored within the
 Registry itself (like another attribute on the Resource), or stored external
@@ -817,8 +817,8 @@ The definition of each attribute is defined below:
 While `<SINGULAR>id` can be something like a UUID, when possible, it is
 RECOMMENDED that it be something human friendly as these values will often
 appear in user-facing situations such as URLs or as command-line parameters.
-In cases where [`name`](#name-attribute) is absent, it might be used as
-the display name.
+In cases where [`name`](#name-attribute) is absent, the `<SINGULAR>id` might
+be used as the display name.
 
 Note, since `<SINGULAR>id` is immutable, in order to change its value, a new
 entity would need to be created with the new `<SINGULAR>id` that is a deep-copy
@@ -855,7 +855,7 @@ of the existing entity. Then the existing entity would be deleted.
   - MUST be a relative URL of the form `#JSON-POINTER` where the `JSON-POINTER`
     locates this entity within the current document. See [Doc Flag](#doc-flag)
     for more information.
-  - This URL MUST NOT include `$details` suffix after its `<SINGULAR>id`.
+  - This URL MUST NOT include the `$details` suffix after its `<SINGULAR>id`.
 
 - Examples:
   - `https://example.com/registry/endpoints/ep1` (API View)
@@ -909,7 +909,7 @@ of the existing entity. Then the existing entity would be deleted.
   relative URL from the root of the Registry. This value MUST be the same as
   the <PATH> portion of its `self` URL, after the Registry's base URL, without
   any `$` suffix (e.g. `$details`). Unlike some other relative URIs, `xid`
-  values MUST NOT be shortened based on the incoming request's URL, `xid`s
+  values MUST NOT be shortened based on the incoming request's URL; `xid`s
   are always relative to the root path of the Registry.
 
   This attribute is provided as a convenience for users who need a reference
@@ -1080,7 +1080,7 @@ of the existing entity. Then the existing entity would be deleted.
     unchanged, or if not already set, set to the current date/time.
   - During the processing of a single request, all entities that have their
     `createdat` or `modifiedat` attributes set to the current date/time MUST
-    MUST use the same value in all cases.
+    use the same value in all cases.
 
 - Examples:
   - `2030-12-19T06:00:00Z`
@@ -1159,7 +1159,7 @@ If an HTTP method is not supported for a supported HTTP path, then an error
 Implementations MAY support extension APIs, however, the following rules MUST
 apply:
 - New HTTP paths that extend non-root paths MUST NOT be defined.
-- New root HTTP paths MAY be defined as long as they do not use Registry-level
+- New root HTTP paths MAY be defined as long as they do not use Registry level
   HTTP paths or attribute names. This includes extension and Groups collection
   attribute names.
 - Additional HTTP methods for specification-defined HTTP paths MUST NOT be
@@ -1305,8 +1305,8 @@ Where:
 - The key of each entity in the collection MUST be unique within the scope of
   the collection.
 - The specifics of whether each `<COLLECTION>*` attribute is REQUIRED or
-  OPTIONAL will be based on whether the document- or API-view is being
-  used - see the next section.
+  OPTIONAL will be based on whether the document- or API-view is used - see
+  the next section.
 
 When the `<COLLECTION>` attribute is expected to be present in the
 serialization, but the number of entities in the collection is zero, it MUST
@@ -1770,7 +1770,7 @@ The Registry entity includes the following
 - [`modifiedat`](#modifiedat-attribute) - REQUIRED in API and document views.
   OPTIONAL in requests.
 
-and the following Registry-level attributes:
+and the following Registry level attributes:
 
 ##### `specversion` Attribute
 - Type: String.
@@ -2202,7 +2202,7 @@ The following defines the specification-defined capabilities:
 - When not specified, the default value MUST be an empty list and no APIs
   beyond those for the data model are supported.
 - Implementations MAY define their own values but they MUST NOT conflict with
-  specification-defined APIs, Registry-level attributes or Group collection
+  specification-defined APIs, Registry level attributes or Group collection
   attribute names.
 - It is STRONGLY RECOMMENDED that implementations support at least
   `/capabilities` and `/model`.
@@ -2338,7 +2338,7 @@ Content-Type: application/json; charset=utf-8
 ```
 
 Updates via the `capabilities` attribute follows the same attribute
-update semantics as the other Registry-level attributes. Note that using
+update semantics as the other Registry level attributes. Note that using
 an HTTP `PATCH` to update the Registry's attributes MAY include the
 `capabilities` attribute, however, it MUST be processed with the `PATCH`
 semantics as well.
@@ -2484,7 +2484,7 @@ is as follows:
   "description": "<STRING>", ?
   "documentation": "<URL>", ?
   "labels": { "<STRING>": "<STRING>" * }, ?
-  "attributes": {                      # Registry-level extensions
+  "attributes": {                      # Registry level extensions
     "<STRING>": {                      # Attribute name
       "name": "<STRING>",              # Same as attribute's key
       "type": "<TYPE>",                # boolean, string, array, object, ...
@@ -2610,13 +2610,13 @@ The following describes the attributes of Registry model:
     specification-defined attribute, sub-object attribute or
     collection-related attribute names defined at the same level in the
     hierarchy. For Resource/Version attributes, this applies for both
-    levels - e.g. a Version-level extension MUST NOT use a name that conflicts
-    with its Resource-level attribute names.
+    levels - e.g. a Version level extension MUST NOT use a name that conflicts
+    with its Resource level attribute names.
 
 ##### - Model: `attributes."<STRING>".type`
   - Type: <TYPE>.
   - REQUIRED.
-  - The "<TYPE>" of the attribute defined. MUST be one of the data types
+  - The "<TYPE>" of the attribute being defined. MUST be one of the data types
     (in lower case) defined in [Attributes and
     Extensions](#attributes-and-extensions).
 
@@ -3240,7 +3240,7 @@ The following describes the attributes of Registry model:
     attributes defined at the `groups.resources.resourceattributes` level.
     The only duplicate names allowed are specification-defined attributes
     such as `self` and `xid`, and the Version-specific values MUST be
-    overridden by the Resource-level values when serialized.
+    overridden by the Resource level values when serialized.
 
 ##### - Model: `groups."<STRING>".resources."<STRING>".resourceattributes`
   - See [`attributes`](#--model-attributes) above.
@@ -3251,13 +3251,13 @@ The following describes the attributes of Registry model:
   - These attributes are reserved for system-managed attributes, such as
     `metaurl`, that exist to help in the navigation of the entities. Users
     MUST NOT define additional attributes for this list. Extension
-    resource-level attributes would appear in the `metaattributes` list, while
-    version-level extensions would appear in the `attributes` list.
+    Resource level attributes would appear in the `metaattributes` list, while
+    Version level extensions would appear in the `attributes` list.
   - While it is NOT RECOMMENDED, implementations MAY add additional attributes
     to this list if they are necessary to help with model traversal. Otherwise
     the other 2 attribute lists SHOULD be used. The goal is to make the
     Resource entity look at much like the "default" Version as possible,
-    adding new attributes at the resource-level violates that goal.
+    adding new attributes at the Resource level violates that goal.
 
 ##### - Model: `groups."<STRING>".resources."<STRING>".metaattributes`
   - See [`attributes`](#--model-attributes) above.
@@ -3273,9 +3273,9 @@ Clarifying the  usage of the `attributes`, `resourceattributes` and
   Resource itself or a specific Version in most cases.
 - To enable this, most of the Resource-specific data (e.g. its
   `defaultversionid`), is serialized under the `meta` sub-object. This avoids
-  potential name conflicts between Version and Resource-level attributes, as
+  potential name conflicts between Version and Resource level attributes, as
   well as avoiding making the serialization of the Resource too verbose/noisy.
-- However, there are some Resource-level attributes, that if placed in the
+- However, there are some Resource level attributes, that if placed in the
   `meta` sub-object, would appear to be misplaced. For example, the `versions`
   collection attributes could be confusing to users since `meta` is not
   the direct parent/owner of the "versions" collection, the Resource is.
@@ -3288,11 +3288,11 @@ Clarifying the  usage of the `attributes`, `resourceattributes` and
   attributes are allowed to have this naming conflict. Extensions are not, as
   that could lead to confusion for users.
 - Finally, in the vast majority of cases it is expected that models will only
-  need to define Version-level attributes, leaving the more advanced uses of
-  Resource and Meta-level attributes to default to the specification-defined
-  sets. For this reason, the Version-level attributes use a list called
+  need to define Version level attributes, leaving the more advanced uses of
+  Resource and Meta level attributes to default to the specification-defined
+  sets. For this reason, the Version level attributes use a list called
   `attributes` in order to make user creation of the model easier, leaving
-  the edge cases of Resource or Meta-level extension attributes to use more
+  the edge cases of Resource or Meta level extension attributes to use more
   verbosely named lists.
 
 #### Retrieving the Registry Model
@@ -3864,7 +3864,7 @@ Groups include the following
 - [`modifiedat`](#modifiedat-attribute) - REQUIRED in API and document views.
   OPTIONAL in requests.
 
-and the following Group-level attributes:
+and the following Group level attributes:
 
 ##### `<RESOURCES>` Collections
 - Type: Set of [Registry Collections](#registry-collections).
@@ -4195,7 +4195,7 @@ and the second layer is its `versions` collection - the version history of
 the Resource.
 
 The Resource entity serves three purposes:
-1 - It represents the collection for the historical Versions of the data
+1 - It represents the collection for the historical Versions of the data being
     managed. This is true even if the Resource type is defined to not use
     versioning, meaning the number of Versions allowed is just one. The
     Versions will appear as a nested entity under the `versions` attribute.<br>
@@ -4204,10 +4204,10 @@ The Resource entity serves three purposes:
     not the Resource itself. See
     [Default Version of a Resource](#default-version-of-a-resource) and
     [Versions](#versions-apis) for more details.<br>
-3 - It has a set of attributes for Resource-level metadata - data that is not
+3 - It has a set of attributes for Resource level metadata - data that is not
     specific to one Version of the Resource but instead applies to the
     Resource in general. These attributes appear under a `meta`
-    attribute/sub-object so as to keep them separate from any Version-level
+    attribute/sub-object so as to keep them separate from any Version level
     attributes. Note that these attributes do not appear on the Versions.
 
 The URL of a Resource can be thought of as an alias for the "default"
@@ -4255,7 +4255,7 @@ interest, the request URLs MUST have `$details` appended to them. In these
 cases, the HTTP body of the requests and responses MUST have a JSON
 serialization of the entity's xRegistry metadata, and the separate document
 MAY appear as an attribute within that metadata based on the specific
-operation done.
+operation.
 
 For example:
 
@@ -4372,7 +4372,7 @@ Note that the `meta` and `versions` attributes MUST only appear when
 requested by the client - for example, via the `?inline` flag.
 
 When the Resource is serialized with its domain-specific document in the
-HTTP body, then Resource-level attributes SHOULD appear as HTTP headers and
+HTTP body, then Resource level attributes SHOULD appear as HTTP headers and
 adhere to the following:
 
 ```yaml
@@ -4389,7 +4389,7 @@ xRegistry-versionscount: <UINTEGER>
 Notice the `meta` and `versions` attributes are not included since they are
 not complex data types.
 
-The Resource-level attributes include the following
+The Resource level attributes include the following
 [common attributes](#common-attributes):
 - [`<RESOURCE>id`](#singularid-id-attribute) - REQUIRED in API and document
   views. OPTIONAL in requests.
@@ -4400,7 +4400,7 @@ The Resource-level attributes include the following
 - [`xid`](#xid-attribute) - REQUIRED in API and document views. OPTIONAL in
   requests.
 
-and the following Resource-level attributes:
+and the following Resource level attributes:
 
 ##### `xref` Attribute
 - Type: XID
@@ -4686,7 +4686,7 @@ and the following Resource-level attributes:
 
 ##### `meta` Attribute/Sub-Object
 - Type: Object
-- Description: an object that contains most of the Resource-level attributes.
+- Description: an object that contains most of the Resource level attributes.
 
   The `meta` sub-object is an entity in its own right, meaning it supports the
   `GET`, `PUT` and `PATCH` APIs as described for all entities within the
@@ -4820,7 +4820,7 @@ xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
 xRegistry-ancestor: <STRING>
 xRegistry-<RESOURCE>url: <URL> ?           # End of default Version attributes
-xRegistry-metaurl: <URL>                   # Resource-level attributes
+xRegistry-metaurl: <URL>                   # Resource level attributes
 xRegistry-versionsurl: <URL>
 xRegistry-versionscount: <UINTEGER>
 Location: <URL>
@@ -4846,7 +4846,7 @@ Where:
   the desired filename to use if the HTTP body were to be written to a file.
 
 Version serialization will look similar, but the set of xRegistry HTTP headers
-will be slightly different (to exclude Resource-level attributes). See the
+will be slightly different (to exclude Resource level attributes). See the
 next sections for more information.
 
 Scalar default Version extension attributes MUST also appear as
@@ -4897,7 +4897,7 @@ this form:
   "<RESOURCE>": ... Resource document ..., ? # If inlined & JSON
   "<RESOURCE>base64": "<STRING>", ?          # If inlined & ~JSON
 
-  # Resource-level helper attributes
+  # Resource level helper attributes
   "metaurl": "<URL>",
   "meta": {                                  # If inlined
     "<RESOURCE>id": "<STRING>",
@@ -4924,7 +4924,7 @@ this form:
 ```
 
 The serialization of a Version will look similar except the `meta` and
-`versions` related Resource-level attributes MUST NOT be present. More on this
+`versions` related Resource level attributes MUST NOT be present. More on this
 in the next sections.
 
 #### Cross Referencing Resources
@@ -5090,7 +5090,7 @@ When converting a cross-reference Resource back into a "normal" Resource, the
 following MUST be adhered to:
 - The request MUST delete the `xref` attribute or set it to `null`.
 - A default Version of the Resource MUST be created.
-- Any attributes specified at the Resource-level MUST be interpreted as a
+- Any attributes specified at the Resource level MUST be interpreted as a
   request to set the default Version attributes. Absence of any attributes
   MUST result in a default Version being created with all attributes set
   to their default values. Note that normal Resource update semantics apply.
@@ -5233,7 +5233,7 @@ Link: <URL>;rel=next;count=<UINTEGER> ?
     "<RESOURCE>": ... Resource document ..., ?  # If inlined & JSON
     "<RESOURCE>base64": "<STRING>", ?           # If inlined & ~JSON
 
-    # Resource-level helper attributes
+    # Resource level helper attributes
     "metaurl": "<URL>",
     "meta": {                                   # If inlined
       "<RESOURCE>id": "<STRING>",               # Resource ID
@@ -5440,7 +5440,7 @@ in the request MUST adhere to the following:
   "<RESOURCE>id": "<STRING>", ?
   "versionid": "<STRING>", ?
   "epoch": <UINTEGER>,
-  "name": "<STRING>", ?                      # Version-level attributes
+  "name": "<STRING>", ?                      # Version level attributes
   "description": "<STRING>", ?
   "documentation": "<URL>", ?
   "icon": "<URL>", ?
@@ -5970,7 +5970,7 @@ Versions include the following
   OPTIONAL in requests.
 - [`contenttype`](#contenttype-attribute) - OPTIONAL.
 
-and the following Version-level attributes:
+and the following Version level attributes:
 
 - [`isdefault`](#isdefault-attribute) - REQUIRED in API and document views
   when `true`, OPTIONAL when `false`. OPTIONAL in requests.
@@ -6564,7 +6564,7 @@ This feature is meant to be used when the Collections of the Registry, or
 Group, are of interest but not the top-level metadata. For example, this could
 be used to export one or more Group types from a Registry where the resulting
 JSON document is then used to import them into another Registry. If the
-Registry-level attributes were present in the output then they would need to
+Registry level attributes were present in the output then they would need to
 be removed prior to the import, otherwise they would override the target
 Registry's values.
 
@@ -7167,7 +7167,7 @@ as appropriate, including being specified in a language other than English.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#ancestor_circular_reference`
 * Code: `400 Bad Request`
-* Instance: <URL TO THE VERSION PROCESSED>
+* Instance: <URL TO THE VERSION BEING PROCESSED>
 * Title: `The assigned "ancestor" value (<ANCESTOR VALUE>) creates a circular reference`
 * Data:  n/a
 * Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
