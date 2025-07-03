@@ -18,8 +18,9 @@ This specification defines the events that an xRegistry server MAY generate.
 As updates are made to entities within an xRegistry instance, events SHOULD
 be generated to notify interested parties of those changes. This specification
 defines the metadata associated with each event as
-[CloudEvent][https://cloudevents.io) metadata. Whether CloudEvents are used in
-the generation/serialization of the events is OPTIONAL, but it is RECOMENDED.
+[CloudEvent][https://cloudevents.io) context attributes. Whether CloudEvents
+are used in the generation/serialization of the events is OPTIONAL, but it is
+RECOMENDED.
 
 This specification does not mandate the mechanisms by which events are sent
 to consumers, nor does it mandate how consumers register interest in receiving
@@ -71,8 +72,8 @@ the Registry data.
 
 A single interaction with the Registry MAY result in multiple events, however,
 within the scope of one interaction (see
-[`xregcorrelationid`](#xregcorrelationid-context-attribute)) the following
-constraints apply:
+[`xregcorrelationid`](#xregcorrelationid-extension-context-attribute)) the
+following constraints apply:
 - Only one of `created`, `updated` or `deleted` event MUST be generated per
   `subject`.
 - If the interaction involved more than one of those actions, then the single
@@ -84,13 +85,14 @@ constraints apply:
 The following sections specify the metadata defined for xRegistry events.
 Implementations MAY define additional metadata.
 
-### CloudEvent [`type`](https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#type) Context Attribute
+### CloudEvent [`type`](https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#type) Core Context Attribute
 
 The type of action taken on the entity. The value MUST be of the form:
     `io.xregistry.<ENTITY>.<ACTION>`
 where:
-- `<ENTITY>` is the type of xRegistry entity that was acted upon. It MUST
-  be one of:
+- `<ENTITY>` is the type of xRegistry entity
+  ([`subject`](#cloudevent-subject-core-context-attribute)) that was acted
+  upon. It MUST be one of:
   - `registry`
   - `model`
   - `modelsource`
@@ -108,26 +110,27 @@ where:
   Not all `<ACTION>` values are applicable to all entities. See the
   [Entity Events](#entity-events) section for more information.
 
-This metadata MUST be present in each event.
+This context attribute MUST be present in each event.
 
-### CloudEvent [`source`](https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#source-1) Context Attribute
+### CloudEvent [`source`](https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#source-1) Core Context Attribute
 
 The xRegistry in which the entity exists. The value MUST be an absolute URL
 to the root of the xRegistry instance.
 
-This metadata MUST be present in each event.
+This context attribute MUST be present in each event.
 
-### CloudEvent [`subject`](https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#subject) Context Attribute
+### CloudEvent [`subject`](https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#subject) Core Context Attribute
 
 The `xid` of the entity acted upon. While this attribute is OPTIONAL in the
 CloudEvents specification, it is REQUIRED to be present in an xRegistry event.
 
 Note: constructing a URL by appending the `subject` value to the `source`
-value MUST result in an absolute URL to the entity.
+value MUST result in an absolute URL to the entity (assuming any trailing `/`
+on `source` is removed since XIDs always start with `/`).
 
-This metadata MUST be present in each event.
+This context attribute MUST be present in each event.
 
-### CloudEvent [`time`](https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#time) Context Attribute
+### CloudEvent [`time`](https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#time) Core Context Attribute
 
 The time of when the interaction occurred. This value MUST be the same for
 all events generated within the same interaction.
@@ -138,9 +141,10 @@ used SHOULD match the current date/time used by the Registry during the
 processing of the interaction. Typically, this will be the `modifiedat` value
 assigned to the entities being processed.
 
-This metadata is NOT REQUIRED to be present in the event, but is RECOMMENDED.
+This context attribute is NOT REQUIRED to be present in the event, but is
+RECOMMENDED.
 
-### `xregcorrelationid` Context Attribute
+### `xregcorrelationid` Extension Context Attribute
 
 A value that uniquely identifies the interaction in which one or more events
 occured. This value has the following constraints:
@@ -163,7 +167,8 @@ xRegistry-xregcorrelationid: <STRING>
 This allows for clients to identify which events were generated as a result of
 each request-response operation.
 
-This metadata is NOT REQUIRED to be present in the event, but is RECOMMENDED.
+This context attribute is NOT REQUIRED to be present in the event, but is
+RECOMMENDED.
 
 ### CloudEvent [`data`](https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#event-data)
 
@@ -199,12 +204,14 @@ interaction, per the rules previously stated, only one `updated` event
 will be generated. This means the attribute names of all impacted attributes
 MUST be merged into one `changed` list.
 
-While `changed` is OPTIONAL, it is RECOMMENDED to be present due to its
-usefulness for consumers. However, if exposure of this information would be
-inappropriate for some scenarios then it MAY be excluded. For example, for
-privacy/security reasons.
+While `changed` is OPTIONAL, it is RECOMMENDED to be present on event where
+it is permitted due to its usefulness for consumers. However, if exposure of
+this information would be inappropriate for some scenarios then it MAY be
+excluded. For example, for privacy/security reasons.
 
-Implementations MAY define additional attributes as siblings to `changed`.
+While this specification only shows `data` being present when `changed` is
+permitted, implementations MAY define their own metadata to be included
+in the `data` of a CloudEvent.
 
 This metadata (`data`) is NOT REQUIRED to be present in the event, but is
 RECOMMENDED.
@@ -218,11 +225,11 @@ value.
 
 - Action: `updated`
   - MUST be generated when a Registry's attribute is updated, where each
-    modified attribute MUST be included in `changed`.
+    modified attribute MUST be included in `changed`, if present.
 
-  - MUST be generated when a Group is created or deleted, where `changed`
-    includes (at least) `epoch`, `modifiedat`, `<GROUPS>` and `<GROUPS>count`
-    attributes names.
+  - MUST be generated when a Group is created or deleted, where `changed`, if
+    present, includes (at least) `epoch`, `modifiedat`, `<GROUPS>` and
+    `<GROUPS>count` attributes names.
 
     While the `<GROUPS>` attribute is present in `changed` due to the child
     collection changing, in order to see which specific Groups were impacted
@@ -230,7 +237,7 @@ value.
     would need to be examined.
 
   - MUST be generated when `model`, `modelsource` or `capabilities` are
-    updated and the appropriate attribute MUST appear in `changed`.
+    updated and the appropriate attribute MUST appear in `changed`, if present.
 
 The `io.xregistry.registry.created` and `io.xregistry.registry.updated` events
 are not defined as part of this specification as those operations are not
@@ -246,8 +253,8 @@ performs those operations will define those events, if needed.
 
   - MUST NOT include a `changed` list.
 
-  - A `io.xregistry.registry.upated` event will also be generated where the
-    `model` attribute will be included in `changed`.
+  - A `io.xregistry.registry.updated` event will also be generated where the
+    `model` attribute will be included in `changed`, if present.
 
 Often `io.xregistry.model.updated` and `io.xregistry.modelsource.updated`
 will be generated at the same time since model updates are most likely done
@@ -263,8 +270,8 @@ to watch for `io.xregistry.model.update` events, not
 
   - MUST NOT include a `changed` list.
 
-  - A `io.xregistry.registry.upated` event will also be generated where the
-    `modelsource` attribute will be included in `changed`.
+  - A `io.xregistry.registry.updated` event will also be generated where the
+    `modelsource` attribute will be included in `changed`, if present.
 
 Often `io.xregistry.model.updated` and `io.xregistry.modelsource.updated`
 will be generated at the same time since model updates are most likely done
@@ -278,25 +285,26 @@ events.
 
 - Action: `updated`
   - MUST be generated when a Registry's capabilities are updated, where
-    the top-level capability names are included in `changed`.
+    the top-level capability names are included in `changed`, if present.
 
-  - A `io.xregistry.registry.upated` event will also be generated where the
-    `capabilities` attribute will be included in `changed`.
+  - A `io.xregistry.registry.updated` event will also be generated where the
+    `capabilities` attribute will be included in `changed`, if present.
 
 ### `group` Events
 
 - Action: `created`
   - MUST be generated when a new Group is created.
 
-  - A `io.xregistry.registry.upated` event will also be generated where the
-    `<GROUPS>` and `<GROUPS>count` attributes will be included in `changed`.
+  - A `io.xregistry.registry.updated` event will also be generated where the
+    `<GROUPS>` and `<GROUPS>count` attributes will be included in `changed`,
+    if present.
 
 - Action: `updated`
   - MUST be generated when a Group's attribute is updated, where each modified
-    attribute MUST be included in `changed`.
+    attribute MUST be included in `changed`, if present.
 
-  - MUST be generated when a Resource is created or deleted, where `changed`
-    includes (at least) `epoch`, `modifiedat`, `<RESOURCES>` and
+  - MUST be generated when a Resource is created or deleted, where `changed`,
+    if present, includes (at least) `epoch`, `modifiedat`, `<RESOURCES>` and
     `<RESOURCES>count` attributes names.
 
     While the `<RESOURCES>` attribute is present due to the child
@@ -307,39 +315,42 @@ events.
 - Action: `deleted`
   - MUST be generated when a Group is deleted.
 
-  - A `io.xregistry.registry.upated` event will also be generated where the
-   `<GROUPS>` and `<GROUPS>count` attributes will be included in `changed`.
+  - A `io.xregistry.registry.updated` event will also be generated where the
+   `<GROUPS>` and `<GROUPS>count` attributes will be included in `changed`, if
+   present.
 
 ### `resource` Events
 
 - Action: `created`
   - MUST be generated when a new Resource is created, where each modified
-    attribute MUST be included in `changed`.
+    attribute MUST be included in `changed`, if present.
 
   - At least one `io.xregistry.version.created` event will also be
     generated since at least one Version will also be created.
 
-  - A `io.xregistry.registry.upated` event will also be generated where the
+  - A `io.xregistry.registry.updated` event will also be generated where the
     `<RESOURCES>` and `<RESOURCES>count` attributes will be included in
-    `changed`.
+    `changed`, if present.
 
 - Action: `updated`
   - MUST be generated when a Resource's (default Version) attribute is updated,
-    where each modified attribute MUST be included in `changed`.
+    where each modified attribute MUST be included in `changed`, if present.
 
   - MUST be generated when a Resource's `meta` attribute is updated, where
-    `changed` includes (at least) the changed top-level `meta` attributes
-    names prefixed with `meta.`. For example, `meta.defaultversionid`.
+    `changed`, if present, includes (at least) the changed top-level `meta`
+    attributes names prefixed with `meta.`. For example,
+    `meta.defaultversionid`.
 
     This includes any updates to the `deprecated` sub-object, even
     though a `io.xregistry.resource.deprecation` event is also generated. And
-    in that situation just `meta.deprecrated` would be included in `changed`.
-    To see which specific top-level `deprecated` attributes were changed, the
-    `io.xregistry.resource.deprecation` event would need to be examined.
+    in that situation just `meta.deprecrated` would be included in `changed`,
+    if present. To see which specific top-level `deprecated` attributes were
+    changed, the `io.xregistry.resource.deprecation` event would need to be
+    examined.
 
-  - MUST be generated when a Version is created or deleted, where `changed`
-    includes (at least) `meta.epoch`, `meta.modifiedat`, `version>` and
-    `versioncount` attributes names.
+  - MUST be generated when a Version is created or deleted, where `changed`,
+    if present, includes (at least) `meta.epoch`, `meta.modifiedat`,
+    `version` and `versioncount` attributes names.
 
     While the `version` attribute is present due to the child
     collection changing, in order to see which specific Versions were impacted
@@ -353,12 +364,12 @@ events.
 
 - Action: `deprecation`
   - MUST be generated when a Resource's `meta.deprecated` sub-object is set,
-    deleted or any of its attributes updated, where "changed" includes the
-    list of top-level attribute names from the `deprecated` sub-object that
-    were modified.
+    deleted or any of its attributes updated, where "changed", if present,
+    includes the list of top-level attribute names from the `deprecated`
+    sub-object that were modified.
 
-  - A `io.xregistry.resource.upated` event will also be generated where the
-    `deprecated` attribute will be included in `changed`.
+  - A `io.xregistry.resource.updated` event will also be generated where the
+    `deprecated` attribute will be included in `changed`, if present.
 
 - Action: `deleted`
   - MUST be generated when a Resource is deleted.
@@ -368,7 +379,7 @@ events.
 
   - A `io.xregistry.registry.updated` event will also be generated where the
     `<RESOURCES>` and `<RESOURCES>count` attributes will be included in
-    `changed`.
+    `changed`, if present.
 
 ### `version` Events
 
@@ -376,17 +387,19 @@ events.
   - MUST be generated when a new Version is created.
 
   - A `io.xregistry.resource.updated` event will also be generated where the
-    `versions` and `versionscount` attributes will be included in `changed`.
+    `versions` and `versionscount` attributes will be included in `changed`, if
+    present.
 
 - Action: `updated`
   - MUST be generated when a Version attribute is updated, where each modified
-    attribute MUST be included in `changed`.
+    attribute MUST be included in `changed`, if present.
 
 - Action: `deleted`
   - MUST be generated when a Version is deleted.
 
   - A `io.xregistry.resource.updated` event will also be generated where the
-    `versions` and `versionscount` attributes will be included in `changed`.
+    `versions` and `versionscount` attributes will be included in `changed`, if
+    present.
 
 ## Sample xRegistry Interactions
 
@@ -471,7 +484,7 @@ the following model definition:
       `meta.deprecated`
   - `io.xregistry.resource.deprecation`
     - Subject: `/dirs/d1/files/f1`
-    - Changed: `<DEPRECATED_ATTRIBUTES_CHANGED_IF_ANY>`
+    - Changed: `<DEPRECATED-ATTRIBUTES-CHANGED-IF-ANY>`
 
 ### Import an entire Registry
 
@@ -484,7 +497,7 @@ the following model definition:
   - `io.xregistry.registry.updated`
     - Subject: `/`
     - Changed: `epoch`, `modifiedat`, `model`, `modelsource`, `capabilities`,
-      `<GROUPS>`, `<GROUPS>count`, `<OTHER_REGISTRY_ATTRIBUTES>`
+      `<GROUPS>`, `<GROUPS>count`, `<OTHER-REGISTRY-ATTRIBUTES>`
   - `io.xregistry.model.updated`
     - Subject: `/model`
   - `io.xregistry.modelsource.updated`
@@ -509,7 +522,7 @@ the following model definition:
     - Subject: `/dirs/d1/files/f1`
     - Changed: `meta.defaultversionid`, `meta.epoch`, `meta.modifiedat`,
       `versions`, `versionscount`,
-      `<ALL_OLD_AND_NEW_DEFAULT_VERSION_ATTRIBUTES>`,
+      `<ALL-OLD-AND-NEW-DEFAULT-VERSION-ATTRIBUTES>`,
   - `io.xregistry.version.created`
     - Subject: `/dirs/d1/files/f1/versions/v2`
 
@@ -536,7 +549,7 @@ the following model definition:
   - `io.xregistry.resource.updated`
     - Subject: `/dirs/d1/files/f1`
     - Changed: `meta.defaultversionid`, `meta.epoch`, `meta.modifiedat`,
-       `<ALL_OLD_AND_NEW_DEFAULT_VERSION_ATTRIBUTES>`
+       `<ALL-OLD-AND-NEW-DEFAULT-VERSION-ATTRIBUTES>`
 
   Note the no `io.xregistry.version.updated` event is generated.
 
@@ -576,7 +589,7 @@ the following model definition:
     - Subject: `/dirs/d1/files/f1`
     - Changed: `meta.defaultversionid`, `meta.epoch`, `meta.modifiedat`,
        `versions`, `versionscount`,
-       `<ALL_OLD_AND_NEW_DEFAULT_VERSION_ATTRIBUTES>`,
+       `<ALL-OLD-AND-NEW-DEFAULT-VERSION-ATTRIBUTES>`,
   - `io.xregistry.version.created`
     - Subject: `/dirs/d1/files/f1/version/v2`
 
