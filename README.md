@@ -5,6 +5,7 @@
 
 [![CLOMonitor](https://img.shields.io/endpoint?url=https://clomonitor.io/api/projects/cncf/cloudevents/badge)](https://clomonitor.io/projects/cncf/cloudevents)
 [![OpenSSF Best Practices](https://bestpractices.coreinfrastructure.org/projects/7295/badge)](https://bestpractices.coreinfrastructure.org/projects/7295)
+[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B162%2Fspec.svg?type=small)](https://app.fossa.com/projects/custom%2B162%2Fspec?ref=badge_small)
 
 The xRegistry project (short for "extensible registry") defines an abstract
 model for how to manage metadata about resources and provides a REST-based

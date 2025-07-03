@@ -1,0 +1,19 @@
+name: License Checks
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+    branches:
+      - master
+
+jobs:
+  fossa:
+    runs-on: ubuntu-latest
+    container:
+      image: duglin/fossa-cli
+      env:
+        FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
+      options: -v ${{ github.workspace }}:/spec -w /spec
+    steps:
+      - run: fossa analyze
