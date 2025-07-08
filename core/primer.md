@@ -631,13 +631,13 @@ sensitivity rules in the specification.
   All of these concerns are avoided by requiring IDs to be stored and compared
   in case insensitively.
 
-# Why the 58 character limit on Group and Resource names?
+# Why the non-63 character limit on some Group and Resource names?
 
-Attribute names and key names are limited to 63 characters, so why are
-Group and Resource names limited to only 58? Because when they appear as
-Collection attributes and we append `url` or `count` to them they still have
-to fit within the 63-character limit, and so we need to take into account
-the length of the word `count`.
+Attribute names and key names are limited to 63 characters, so why are some
+Group and Resource names limited to less? Because when they appear as part of
+attribute names and they can be append with phrase like `url`, `count`
+or `base64`, and they still have to fit within the 63-character limit, and so
+we need to take into account the length of those phrases.
 
 # Why must Group type and Resource type names be valid attribute names?
 

@@ -86,6 +86,8 @@ gmt
 gotchas
 groupid
 groupscount
+groupsstringcompatiblewith
+groupsstringmodelversion
 groupsstringresourcesstringmetaattributes
 groupsstringresourcesstringresourceattributes
 groupsstringresourcesstringversionmode
@@ -308,6 +310,7 @@ xregbasicmodel
 xregfullmodel
 xregistries
 xregistry
+xregistryspecs
 xregsample
 xsd
 xy

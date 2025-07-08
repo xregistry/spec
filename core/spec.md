@@ -181,7 +181,7 @@ pseudo JSON form:
         "icon": "<URL>", ?
         "labels": { "<STRING>": "<STRING>" * }, ?
         "modelversion": "<STRING>", ?     # Version of the group model
-        "compatiblewith": "<URI>", ?      # Statement of compatibility with model spec
+        "compatiblewith": "<URI>", ?      # Statement of compatibility
         "attributes": { ... }, ?        # Group level attributes/extensions
         "ximportresources": [ "<XIDTYPE>", * ], ?   # Include these Resources
 
@@ -194,7 +194,7 @@ pseudo JSON form:
             "icon": "<URL>", ?
             "labels": { "<STRING>": "<STRING>" * }, ?
             "modelversion": "<STRING>", ? # Version of the resource model
-            "compatiblewith": "<URI>", ?  # Statement of compatibility with model spec
+            "compatiblewith": "<URI>", ?  # Statement of compatibility
             "maxversions": <UINTEGER>, ?  # Num Vers(>=0). Default=0(unlimited)
             "setversionid": <BOOLEAN>, ?  # vid settable? Default=true
             "setdefaultversionsticky": <BOOLEAN>, ? # sticky settable? Default=true
@@ -701,7 +701,7 @@ following rules:
 - Their names MUST be between 1 and 63 characters in length.
 - Their names MUST only contain lowercase alphanumeric characters or an
   underscore (`[a-z0-9_]`) and MUST NOT start with a digit (`[0-9]`).
-- For <STRING> attributes, an empty string is a valid value and MUST NOT be
+- For string attributes, an empty string is a valid value and MUST NOT be
   treated the same as an attribute with no value (or absence of the attribute).
 - For scalar attributes, the string serialization of the attribute name and
   its value MUST NOT exceed 4096 bytes. This is to ensure that it can appear
@@ -908,7 +908,7 @@ of the existing entity. Then the existing entity would be deleted.
   Unlike `<SINGULAR>id`, which is unique within the scope of its parent, `xid`
   MUST be unique across the entire Registry, and as such is defined to be a
   relative URL from the root of the Registry. This value MUST be the same as
-  the <PATH> portion of its `self` URL, after the Registry's base URL, without
+  the `<PATH>` portion of its `self` URL, after the Registry's base URL, without
   any `$` suffix (e.g. `$details`). Unlike some other relative URIs, `xid`
   values MUST NOT be shortened based on the incoming request's URL; `xid`s
   are always relative to the root path of the Registry.
@@ -1101,8 +1101,6 @@ of the existing entity. Then the existing entity would be deleted.
   - Any update operation (even one that does not change any attribute, such as
     a `PATCH` with no attributes provided), MUST update this attribute. This
     then acts like a `touch` type of operation.
-  - Upon creation of a new entity, this attribute MUST match the `createdat`
-    attribute's value.
   - Updates to an existing entity in an xRegistry collection MUST NOT cause an
     update to its parent entity's `modifiedat` value. However, adding or
     removing an entity from a nested xRegistry collection MUST update the
@@ -1512,21 +1510,20 @@ semantics defined above with the following exceptions:
     operations, any missing REQUIRED attributes MUST generate an error
     ([required_attribute_missing](#required_attribute_missing)).
 
-The `PATCH` variant when directed at an xRegistry collection, MUST adhere to
+The `PATCH`, variant when directed at an xRegistry collection, MUST adhere to
 the following:
   - The HTTP body MUST contain a JSON map where the key MUST be the
     `<SINGULAR>id` of each entity in the map. Note, that in the case of a map
     of Versions, the `versionid` is used instead.
   - Each value in the map MUST contain just the attributes that are to be
-    updated for that entity. See `PATCH` semantics when directed as a single
-    entity above.
+    updated for that entity.
   - The processing of each individual entity in the map MUST follow the same
     rules as defined for `PATCH` of a single entity above.
 
 The processing of each individual entity follows the same set of rules:
 - If an entity with the specified `<SINGULAR>id` already exists then it MUST be
   interpreted as a request to update the existing entity. Otherwise, it MUST
-  be interpreted as a request to create a new entity with that value.
+  be interpreted as a request to create a new entity with that `<SINGULAR>id`.
 - See the definition of each attribute for the rules governing how it is
   processed.
 - Unless otherwise noted, all non-xRegistry collection attributes present MUST
@@ -1540,8 +1537,8 @@ The processing of each individual entity follows the same set of rules:
   to prevent accidentally updating the wrong entity.
 - A request to update a mutable attribute with an invalid value MUST generate
   an error ([invalid_data](#invalid_data)) (this includes deleting a
-  mandatory mutable attribute).
-- Any Registry collection attributes MUST be processed per the rules specified
+  mandatory mutable attribute that has no default value defined).
+- Registry collection attributes MUST be processed per the rules specified
   in the [Updating Nested Registry
   Collections](#updating-nested-registry-collections) section.
 - Any error during the processing of an entity, or its nested entities, MUST
@@ -1552,8 +1549,7 @@ A successful response MUST return the same response as a `GET` to the entity
 following exceptions:
 - In the `POST` case, or a `PATCH` directed to an xRegistry collection, the
   result MUST contain only the entities processed,
-  not the entire Registry collection, nor any entities deleted as a result
-  of processing the request.
+  not the entire Registry collection.
 - In the `PUT` or `PATCH` cases that are directed to a single entity, for a
   newly created entity, the HTTP status MUST be `201 Created`, and it MUST
   include an HTTP `Location` header with a URL to the newly created entity.
@@ -1670,22 +1666,20 @@ Where:
 - If the request body is empty (no map), then all entities in the collection
   MUST be deleted.
 - If the request body is not empty, then it MUST be a map containing zero or
-  more entries where the key of each entry is each entity's unique
-  identifier - which is the `<SINGULAR>id` of the entity.
+  more entries where the key of each entry is the `<SINGULAR>id` of the entity.
 - When an `epoch` value is specified for an entity then the server MUST check
   to ensure that the value matches the entity's current `epoch` value and if it
   differs then an error ([mismatched_epoch](#mismatched_epoch)) MUST be
   generated.
 - When deleting Resources, since the `epoch` attribute is located under the
   `meta` sub-object (and not as a top-level entity attribute), if included
-  in the `DELETE` request, it MUST appear under a `meta` sub-object. Any
-  additional `epoch` at the top-level MUST be silently ignored. Additionally,
-  `DELETE` request of Resources that only has `epoch` at a top-level attribute,
-  but not as a `meta` attribute, MUST generate an error
+  in the `DELETE` request, it MUST appear under a `meta` sub-object.
+  Additionally, `DELETE` requests of Resources that only have `epoch` as a
+  top-level attribute, but not as a `meta` attribute, MUST generate an error
   ([misplaced_epoch](#misplaced_epoch)) as it is likely that the client is
   using the Resource's default Version `epoch` value by mistake. A top-level
-  `epoch` in the presence of a `meta` `epoch` MUST be ignored.
-- If the entity's unique identifier is present in the object, then it MUST
+  `epoch` in the presence of a `meta` `epoch` MUST be silently ignored.
+- If the entity's `<SINGULAR>id` is present in the object, then it MUST
   match its corresponding `<KEY>` value.
 - Any other entity attributes that are present in the request MUST be silently
   ignored, even if their values are invalid.
@@ -1710,8 +1704,7 @@ with an empty HTTP body, or:
 HTTP/1.1 200 OK
 ```
 
-if, as an extension, the server chooses to return additional data in the
-HTTP body.
+and the server MAY choose to return additional data in the HTTP body.
 
 ---
 
@@ -1759,7 +1752,7 @@ The Registry entity includes the following
   based on the `shortself` capability. OPTIONAL in requests.
 - [`xid`](#xid-attribute) - REQUIRED in API and document views. OPTIONAL in
   requests.
-- [`epoch`](#epoch-attribute) - REQUIRED in API and document view. OPTIONAL
+- [`epoch`](#epoch-attribute) - REQUIRED in API and document views. OPTIONAL
   in requests.
 - [`name`](#name-attribute) - OPTIONAL.
 - [`description`](#description-attribute) - OPTIONAL.
@@ -1775,7 +1768,7 @@ and the following Registry level attributes:
 
 ##### `specversion` Attribute
 - Type: String.
-- Description: The version of this specification that the serialization
+- Description: The version of this specification that the document
   adheres to.
 
 - Constraints:
@@ -1806,10 +1799,10 @@ and the following Registry level attributes:
 
 ##### `modelsource` Attribute
 - Type: Registry Model
-- Description: A description of the "model" definition that was used to create
-  this Registry. Unlike `model`, which includes all aspects of the model, this
-  is meant to represent just the customizations, or extensions, to the base
-  xRegistry model as defined this specification. This allows for users to
+- Description: The "model" definition that was last used to define this
+  Registry's model. Unlike `model`, which includes all aspects of the model,
+  this is meant to represent just the customizations, or extensions, to the
+  base xRegistry model as defined this specification. This allows for users to
   view (and edit) just the custom aspects of the model without the "noise" of
   the specification-defined parts.
 
@@ -2011,7 +2004,6 @@ PUT /
 or
 PATCH /
 Content-Type: application/json; charset=utf-8
-If-Match: "<UINTEGER>|*" ?
 
 {
   "registryid": "<STRING>", ?
@@ -2027,14 +2019,14 @@ If-Match: "<UINTEGER>|*" ?
   "capabilities": { Registry capabilities }, ?
   "modelsource": { Registry model }, ?
 
-  # Repeat for each Group type
+  # Repeat for each Group type that has a Group to be updated
   "<GROUPS>": { Groups collection } ?
 }
 ```
 
 Where:
 - The HTTP body MUST contain the full JSON representation of the Registry
-  entity's mutable attributes.
+  entity's mutable attributes that are to be set, the rest will be deleted.
 - The request MAY include the `'modelsource` attribute if the Registry model
   definitions are to be updated as part of the request. See [Creating or
   Updating the Registry Model](#creating-or-updating-the-registry-model) for
@@ -2042,10 +2034,9 @@ Where:
   If present, the Registry's model MUST be updated prior to any entities being
   updated. A value of `null` MUST generate an error
   ([invalid_data](#invalid_data)).
-- For consistency with the `/capabilities` and `/modelsource` APIs, when
-  `PATCH /` is used, the `modelsource` attribute (if specified) MUST be a
-  complete replacement representation of the model. In the case of the
-  `capabilities` attribute however, it is a "patch" operation and only the
+- When `PATCH /` is used, the `modelsource` attribute (if specified) MUST be a
+  complete replacement representation of the model definition. In the case of
+  the `capabilities` attribute however, it is a "patch" operation and only the
   top-level capabilities specified in the request MUST be updated. Each
   capability present MUST be specified in its entirety.
 
@@ -2071,14 +2062,16 @@ Content-Type: application/json; charset=utf-8
   "createdat": "<TIMESTAMP>",
   "modifiedat": "<TIMESTAMP>",
 
+  "capabilities": { Registry capabilities }, ?   # Only if inlined
+  "model": { Registry model }, ?                 # Only if inlined
+  "modelsource": { Registry model }, ?           # Only if inlined
+
   # Repeat for each Group type
   "<GROUPS>url": "<URL>",
-  "<GROUPS>count": <UINTEGER>
+  "<GROUPS>count": <UINTEGER>,
+  "<GROUPS>": { Groups collection }              # Only if inlined
 }
 ```
-
-Note that the response MUST NOT include the `model*` attributes, nor any
-inlined Groups collections.
 
 **Examples:**
 
@@ -2132,7 +2125,7 @@ The "key" of the capabilities-map is the "name" of each feature, and the
 being a `<BOOLEAN>` value of `true` to indicate support for the feature.
 
 The capabilities-map MAY be retrieved via two mechanisms:
-- An HTTP `GET` request to the `/capabilities` API MUST be supported
+- An HTTP `GET` request to the `/capabilities` API SHOULD be supported
   by all compliant implementations. However, as with all defined APIs,
   security/access controls MAY be mandated.
 - The Registry `capabilities` attribute MAY be requested via the `?inline`
@@ -2160,15 +2153,15 @@ be of the form:
 ```
 
 Where:
-- `"<STRING>"` MUST be the name of the capability. This specification places
-  no restriction on the `"<STRING>"` value, other than it MUST be unique across
-  all capabilities and not be an empty string. It is RECOMMENDED that
-  extensions use some domain-specific name to avoid possible conflicts with
-  other extensions.
+- `"<STRING>"`, as a key, MUST be the name of the capability. This
+  specification places no restriction on the `"<STRING>"` value, other than it
+  MUST be unique across all capabilities and not be an empty string. It is
+  RECOMMENDED that extensions use some domain-specific name to avoid possible
+  conflicts with other extensions.
 
 All capability values, including extensions, MUST be defined as one of the
 following:
-- Numeric (one of: integer, unsigned integer, float)
+- Numeric (one of: integer, uinteger, decimal)
 - Boolean
 - String
 - Array of one of the above
@@ -2188,7 +2181,7 @@ The following defines the specification-defined capabilities:
   are supported for read (`HTTP GET`) operations. This list is meant to allow
   for clients/tooling to easily discover which of the APIs, that are not
   related to the data model, are supported. Whether any of the APIs listed
-  below are supported for write operations can be discovered via the
+  are supported for write operations can be discovered via the
   `mutable` capability.
 - Note that it is allowable for the data that is available via more than one
   mechanism to not be available via all mechanisms. For example, it is
@@ -2222,7 +2215,7 @@ The following defines the specification-defined capabilities:
   parameters are supported.
 - Examples:
   - `"flags": [ "filter", "inline" ]`    # Just these 2
-  - `"flags": [ "*" ]                    # All flags
+  - `"flags": [ "*" ]                    # All server-supported flags
 
 #### `mutable`
 - Name `mutable`
@@ -2234,7 +2227,10 @@ The following defines the specification-defined capabilities:
   server. Presence in this list does not guarantee that a client can edit
   all items of that type. For example, some Resources might still be read-only
   even if the client has the ability to edit Resources in general.
-- Supported values: `capabilities`, `entities`, `modelsource`.
+- Supported values:
+  - `capabilities`
+  - `entities`
+  - `modelsource`
 - When not specified, the default value MUST be an empty list and the Registry
   is read-only.
 
@@ -2270,7 +2266,8 @@ The following defines the specification-defined capabilities:
 - Name: `specversions`
 - Type: Array of strings
 - Description: List of xRegistry specification versions supported.
-- Supported values include: `1.0-rc2`.
+- Supported values include:
+  - `1.0-rc2`
 - A value of `1.0-rc2` MUST be included in the list.
 - When not specified, the default value MUST be `1.0-rc2`.
 
@@ -2297,22 +2294,15 @@ If supported, updates to the server's capabilities MAY be done via an HTTP
 `PUT` MUST be interpreted as a request to update the entire set of
 capabilities and any missing capability MUST be interpreted as a request to
 reset it to its default value. If a `PATCH` is used then each capability
-included MUST be fully specified, and fully replaced by the incoming value. In
-other words, `PATCH` is done at a capability level, not any deeper within the
-JSON structure.
+included MUST be fully specified, and only those specified in the request MUST
+be fully replaced by the incoming values. In other words, `PATCH` is done at a
+capability level, not any deeper within the JSON structure.
 
 The request to the `/capabilities` API MUST be of the form:
 
 ```yaml
 PUT /capabilities
-Content-Type: application/json; charset=utf-8
-
-{ ... Capabilities map ...  }
-```
-
 or
-
-```yaml
 PATCH /capabilities
 Content-Type: application/json; charset=utf-8
 
@@ -2321,7 +2311,7 @@ Content-Type: application/json; charset=utf-8
 
 Where:
 - The HTTP body MUST contain the full representation of all capabilities
-  in the case of `PUT`, and the full representation of just the modified
+  in the case of `PUT`, or the full representation of just the modified
   capabilities in the case of `PATCH`.
 - Any change to the configuration of the server that is not supported MUST
   result in an error ([capability_error](#capability_error)) and no changes
@@ -2341,8 +2331,8 @@ Content-Type: application/json; charset=utf-8
 Updates via the `capabilities` attribute follows the same attribute
 update semantics as the other Registry level attributes. Note that using
 an HTTP `PATCH` to update the Registry's attributes MAY include the
-`capabilities` attribute, however, it MUST be processed with the `PATCH`
-semantics as well.
+`capabilities` attribute, and, if present, it MUST be processed with the
+`PATCH` semantics as well.
 
 When processing a request to update the capabilities, the semantic
 change MUST NOT take effect until after the processing of the current
@@ -2393,7 +2383,8 @@ Where:
 - `"min"` and `"max"`, when specified, MUST match the same type as either
   `"type"` or `"item.type"` if `"item"` is `"array"`. These indicate the
   minimum or maximum (inclusive) value range of this capability. When not
-  specified, there is no stated lower (or upper) limit.
+  specified, there is no stated lower (or upper) limit. These MUST only be
+  used when "type" is a numeric type.
 - `"documentation"` provides a URL with additional information about the
   capability.
 
@@ -2466,7 +2457,7 @@ in the `/capabilities` output, and
   }
 ```
 
-in the `/capabilities?offered` output (assuming both APIs are supported).
+in the `/capabilities?offered` output (assuming the API and flag are supported).
 
 ### Registry Model
 
@@ -2477,8 +2468,9 @@ knowledge of the structure of the Registry in advance and therefore will need
 to dynamically discover it.
 
 The following sections will go into the details of how to create, retrieve
-and edit the model of a Registry, but the overall format of a model definition
-is as follows:
+and edit the model of a Registry.
+
+The overall format of a model definition is as follows:
 
 ```yaml
 {
@@ -2491,7 +2483,7 @@ is as follows:
       "type": "<TYPE>",                # boolean, string, array, object, ...
       "target": "<XIDTYPE>", ?         # If "type" is "xid" or "url"
       "namecharset": "<STRING>", ?     # If "type" is "object"
-      "description": "<STRING>",
+      "description": "<STRING>", ?
       "enum": [ <VALUE> * ], ?         # Array of scalars of type "<TYPE>"
       "strict": <BOOLEAN>, ?           # Just "enum" values or not. Default=true
       "readonly": <BOOLEAN>, ?         # From client's POV. Default=false
@@ -2525,7 +2517,7 @@ is as follows:
       "icon": "<URL>", ?
       "labels": { "<STRING>": "<STRING>" * }, ?
       "modelversion": "<STRING>", ?    # Version of the group model
-      "compatiblewith": "<URI>", ?     # Statement of compatibility with model spec
+      "compatiblewith": "<URI>", ?     # Statement of compatibility
       "attributes": { ... }, ?         # See "attributes" above
       "ximportresources": [ "<XIDTYPE>", * ], ?   # Include these Resources
 
@@ -2538,14 +2530,14 @@ is as follows:
           "icon": "<URL>", ?
           "labels": { "<STRING>": "<STRING>" * }, ?
           "modelversion": "<STRING>", ?  # Version of the resource model
-          "compatiblewith": "<URI>"`, ?  # Statement of compatibility with model spec
-          "maxversions": <UINTEGER>, ? # Num Vers(>=0). Default=0, 0=unlimited
-          "setversionid": <BOOLEAN>, ? # vid settable? Default=true
-          "setdefaultversionsticky": <BOOLEAN>, ? # sticky settable? Default=true
-          "hasdocument": <BOOLEAN>, ?    # Has separate document. Default=true
-          "versionmode": "<STRING>", ?   # 'ancestor' processing algorithm
+          "compatiblewith": "<URI>"`, ?  # Statement of compatibility
+          "maxversions": <UINTEGER>, ?   # Num Vers(>=0). Default=0, 0=unlimited
+          "setversionid": <BOOLEAN>, ?   # vid settable? Default=true
+          "setdefaultversionsticky": <BOOLEAN>, ? # sticky settable?Default=true
+          "hasdocument": <BOOLEAN>, ?       # Has separate document.Default=true
+          "versionmode": "<STRING>", ?      # 'ancestor' processing algorithm
           "singleversionroot": <BOOLEAN>, ? # enforce single root. Default=false
-          "typemap": <MAP>, ?            # contenttype mappings
+          "typemap": <MAP>, ?               # contenttype mappings
           "attributes": { ... }, ?          # Version attributes/extensions
           "resourceattributes": { ... }, ?  # Resource attributes/extensions
           "metaattributes": { ... } ?       # Meta attributes/extensions
@@ -2556,7 +2548,7 @@ is as follows:
 }
 ```
 
-The following describes the attributes of Registry model:
+The following describes the attributes of the Registry model:
 
 ##### - Model: `description`
   - Type: String.
@@ -2575,10 +2567,11 @@ The following describes the attributes of Registry model:
   - Values MAY be empty strings.
 
 ##### - Model: `attributes`
-  - Type: Map where each attribute's name MUST match the key of the map.
+  - Type: Map of attribute definitions where each attribute's name MUST match
+    the key of the map.
   - OPTIONAL.
-  - The set of attributes defined at the indicated level of the Registry. This
-    includes extensions and specification-defined/modified attributes.
+  - A set of zero or more attributes. This includes extensions and
+    specification-defined/modified attributes.
   - REQUIRED at specification-defined locations, otherwise OPTIONAL for
     extensions Objects.
 
@@ -2592,10 +2585,11 @@ The following describes the attributes of Registry model:
   - Type: String.
   - REQUIRED.
   - The name of the attribute. MUST be the same as the key used in the owning
-    `attributes` attribute. A value of `*` indicates support for undefined
+    `attributes` map. A value of `*` indicates support for undefined
     extension names. Absence of a `*` attribute indicates lack of support for
     undefined extensions and an error ([unknown_attribute](#unknown_attribute))
-    MUST be generated if one is present in a request.
+    MUST be generated if one is present in a request to update the Registry
+    attributes.
 
     Often `*` is used with a `type` of `any` to allow for any undefined
     extension name of any supported data type. By default, the model
@@ -2615,19 +2609,20 @@ The following describes the attributes of Registry model:
     with its Resource level attribute names.
 
 ##### - Model: `attributes."<STRING>".type`
-  - Type: <TYPE>.
+  - Type: `TYPE`.
   - REQUIRED.
-  - The "<TYPE>" of the attribute being defined. MUST be one of the data types
+  - The "TYPE" of the attribute being defined. MUST be one of the data types
     (in lower case) defined in [Attributes and
     Extensions](#attributes-and-extensions).
 
 ##### - Model: `attributes."<STRING>".target`
-  - Type: <STRING>.
+  - Type: String.
   - OPTIONAL.
   - The type of entity that this attribute points to when `type` is set to
     `url-reference`, `uri-reference` or `xid`. `target` MUST NOT be used
-    for any other type of attribute. The value of this model attribute MUST be
-    a "xid template" of one of the following forms:
+    for any other type of attribute.
+  - The value of this model attribute MUST be an "xid template" of one of the
+    following forms:
     - `/<GROUPS>` - a plural Group type name. An entity attribute of this
       type/target MUST reference an instance of this Group type.
     - `/<GROUPS>/<RESOURCES>` - a plural Resource type name. An entity
@@ -2635,7 +2630,9 @@ The following describes the attributes of Registry model:
       Resource type, not a specific Version of the Resource.
     - `/<GROUPS>/<RESOURCES>[/versions]`. An entity attribute of this
       type/target MUST reference either an instance of this Resource type or
-      an instance of a Version of this Resource type.
+      an instance of a Version of this Resource type. Note the `[/versions]`
+      portion of the `target` value is that exact string, including the
+      square brackets.
     - `/GROUPS/<RESOURCES>/versions` - a Version of a Resource type. An entity
       attribute of this type/target MUST reference an instance of a Version
       of this Resource type, not the Resource itself.
@@ -2755,7 +2752,8 @@ The following describes the attributes of Registry model:
     specified for document view.
   - When not specified the default value MUST be `false`.
   - When the attribute name is `*` then `required` MUST NOT be set to `true`.
-  - MUST NOT be `false` if a default value (`default`) is defined.
+  - MUST NOT be `false` if a default value (`attributes."<STRING>".default`)
+    is defined.
 
 ##### - Model: `attributes."<STRING>".default`
   - Type: MUST be a non-`null` value of the type specified by the
@@ -2783,7 +2781,7 @@ The following describes the attributes of Registry model:
 ##### - Model: `attributes."<STRING>".attributes`
   - Type: Object, see `attributes` above.
   - OPTIONAL.
-  - This contains the list of attributes defined as part of a nested resource.
+  - This contains the list of attributes defined as part of a nested entity.
   - MAY be present when the owning attribute's `type` is `object`, otherwise it
     MUST NOT be present. It MAY be absent or an empty list if there are no
     defined attributes for the nested `object`.
@@ -2791,17 +2789,17 @@ The following describes the attributes of Registry model:
 ##### - Model: `attributes."<STRING>".item`
   - Type: Object.
   - REQUIRED when owning attribute's `type` is `map` or `array`.
-  - Defines the nested resource that this attribute references. This
+  - Defines the nested entity that this attribute references. This
     attribute MUST only be used when the owning attribute's `type` value is
     `map` or `array`.
 
 ##### - Model: `attributes."<STRING>".item.type`
-  - Type: <TYPE>.
+  - Type: `TYPE`.
   - REQUIRED.
-  - The "<TYPE>" of this nested resource.
+  - The "TYPE" of this nested entity.
 
 ##### - Model: `attributes."<STRING>".item.target`
-  - Type: <STRING>.
+  - Type: String.
   - OPTIONAL, and MUST only be used when `item.type` is `url-reference`,
     `uri-reference` or `xid`.
   - See [`attributes."<STRING>".target`](#--model-attributesstringtarget) above.
@@ -2847,7 +2845,7 @@ The following describes the attributes of Registry model:
   - Type: Map where the key MUST be the plural name (`groups.plural`) of the
     Group type (`<GROUPS>`).
   - REQUIRED if there are any Group types defined for the Registry.
-  - The set of Group types supported by the Registry.
+  - A set of zero or more Group types supported by the Registry.
 
 ##### - Model: `groups."<STRING>"`
   - Type: String.
@@ -2872,8 +2870,8 @@ The following describes the attributes of Registry model:
   - The singular name of a Group type e.g. `endpoint` (`<GROUP>`).
   - MUST be unique across all Group types (plural and singular names) in the
     Registry.
-  - MUST be non-empty and MUST be a valid attribute name with the exception
-    that it MUST NOT exceed 58 characters (not 63).
+  - MUST be non-empty and MUST be a valid attribute name. For clarity, it
+    MUST NOT exceed 63 characters.
 
 ##### - Model: `groups."<STRING>".description`
   - Type: String.
@@ -2897,7 +2895,7 @@ The following describes the attributes of Registry model:
   - It is common to use a combination of major and minor version numbers.
   - Example: `1.2`
 
-##### - Model: `compatiblewith`
+##### - Model: `groups."<STRING>".compatiblewith`
   - Type: URI.
   - OPTIONAL.
   - References / represents an xRegistry model definition that
@@ -2905,7 +2903,7 @@ The following describes the attributes of Registry model:
     interoperability between models in different xRegistries via using a
     shared compatible model.
   - Does not imply runtime validation of the claim.
-  - Example: `https://raw.githubusercontent.com/xregistry/spec/refs/heads/main/schema/model.json`
+  - Example: `http://xregistry.io/xreg/xregistryspecs/schema-v1/docs/model.json`
 
 ##### - Model: `groups."<STRING>".attributes`
   - See [`attributes`](#--model-attributes) above.
@@ -2920,7 +2918,7 @@ The following describes the attributes of Registry model:
   - Type: Map where the key MUST be the plural name (`groups.resources.plural`)
     of the Resource type (`<RESOURCES>`).
   - REQUIRED if there are any Resource types defined for the Group type.
-  - The set of Resource types defined for the Group type.
+  - A set of zero or more Resource types defined for the Group type.
 
 ##### - Model: `groups."<STRING>"`.resources."<STRING>"`
   - Type: String.
@@ -2944,7 +2942,7 @@ The following describes the attributes of Registry model:
   - MUST be immutable.
   - The singular name of the Resource type e.g. `message` (`<RESOURCE>`).
   - MUST be non-empty and MUST be a valid attribute name with the exception
-    that it MUST NOT exceed 58 characters (not 63).
+    that it MUST NOT exceed 57 characters (not 63).
   - MUST be unique across all Resources (plural and singular names) within the
     scope of its owning Group type.
 
@@ -2964,21 +2962,12 @@ The following describes the attributes of Registry model:
   - OPTIONAL.
 
 ##### - Model: `groups."<STRING>".resources."<STRING>".modelversion`
-  - Type: String.
+  - See [`modelversion`](#--model-groupsstringmodelversion) above.
   - OPTIONAL.
-  - The version of the model of the Resource type.
-  - It is common to use a combination of major and minor version numbers.
-  - Example: `1.2`
 
 ##### - Model: `groups."<STRING>".resources."<STRING>".compatiblewith`
-  - Type: URI.
+  - See [`modelversion`](#--model-groupsstringcompatiblewith) above.
   - OPTIONAL.
-  - References / represents an xRegistry model definition that
-    the Resource type is compatible with. This is meant to express
-    interoperability between models in different xRegistries via using a
-    shared compatible model.
-  - Does not imply runtime validation of the claim.
-  - Example: `https://raw.githubusercontent.com/xregistry/spec/refs/heads/main/schema/model.json`
 
 ##### - Model: `groups."<STRING>".resources."<STRING>".maxversions`
   - Type: Unsigned Integer.
@@ -3009,6 +2998,9 @@ The following describes the attributes of Registry model:
     Version during its creation process.
   - A value of `false` indicates that the server MUST choose an appropriate
     `versionid` value during creation of the Version.
+  - During the creation of a new Version, if `setversionid` is `false` and
+    a `versionid` is provided then the server MUST generate an error
+    ([versionid_not_allowed](#versionid_not_allowed)).
 
 ##### - Model: `groups."<STRING>".resources."<STRING>".setdefaultversionsticky`
   - Type: Boolean (`true` or `false`, case-sensitive).
@@ -3023,6 +3015,9 @@ The following describes the attributes of Registry model:
     than the server always choosing the default Version.
   - A value of `false` indicates the server MUST choose which Version is the
     default Version.
+  - An attempt to set the `defaultversionid` attribute when this aspect is
+    `false` MUST generate an error
+    ([defaultversionid_not_allowed](#defaultversionid_not_allowed)).
   - This attribute MUST NOT be `true` if `maxversions` is one (`1`).
 
 ##### - Model: `groups."<STRING>".resources."<STRING>".hasdocument`
@@ -3031,17 +3026,16 @@ The following describes the attributes of Registry model:
   - Indicates whether or not Resources of this type can have a document
     associated with it. If `false` then the xRegistry metadata becomes "the
     document". Meaning, an HTTP `GET` to the Resource's URL will return the
-    xRegistry metadata in the HTTP body. The `xRegistry-` HTTP headers MUST
-    NOT be used for requests or response messages for these Resources.
-    Use of `$details` on the request URLs MAY be used to provide consistency
-    with the cases where this attribute is set to `true` - but the output
-    remains the same.
+    xRegistry metadata in the HTTP body. The `xRegistry-` HTTP headers,
+    representing the Resource metadata, MUST NOT be used for requests or
+    response messages for these Resources. Use of `$details` on the request
+    URLs MAY be used to provide consistency with the cases where this
+    attribute is set to `true` - but the output remains the same.
 
     A value of `true` does not mean that these Resources are guaranteed to
     have a non-empty document, and an HTTP `GET` to the Resource MAY return an
     empty HTTP body.
   - When not specified, the default value MUST be `true`.
-  - Implementations MUST support at least `manual`.
   - A value of `true` indicates that Resource of this type supports a separate
     document to be associated with it.
 
@@ -3053,7 +3047,7 @@ The following describes the attributes of Registry model:
     - Which Version is the "newest"?
     - Which Version is the "oldest"?
     - How a Version's `ancestor` attribute will be populated when not
-      provided during a create or when its current ancestor is deleted.
+      explicitly set by a client.
   - Implementations MAY defined additional algorithms and MAY defined
     additional aspects that they control, as long as those aspects do not
     conflict with specification-defined semantics.
@@ -3066,6 +3060,7 @@ The following describes the attributes of Registry model:
     be changed accordingly. Similarly, the `defaultversionid` of the
     Resource might change if its `defaultversionsticky` attribute is `false`.
   - When not specified, the default value MUST be `manual`.
+  - Implementations MUST support at least `manual`.
   - This specification defines the following `versionmode` algorithms:
     - `manual`
       - Newest Version: MUST be determined by finding all Versions that are
@@ -3624,8 +3619,8 @@ all of the system-defined aspects added) can be found
 When a Resource type definition is to be shared between Groups, rather than
 creating a duplicate Resource definition, the `ximportresources` mechanism MAY
 be used instead. The `ximportresources` attribute on a Group definition
-allows for a list of <XIDTYPE> references to other Resource types that are to
-be included within this Group.
+allows for a list of `<XIDTYPE>` references to other Resource types that are
+to be included within this Group.
 
 For example, the following abbreviated model definition defines
 one Resource type (`messages`) under the `messagegroups` Group, that is
@@ -3660,7 +3655,7 @@ The format of the `ximportresources` specification is:
 ```
 
 where:
-- Each array value MUST be an <XIDTYPE> reference to another Group/Resource
+- Each array value MUST be an `<XIDTYPE>` reference to another Group/Resource
   combination defined within the same Registry. It MUST NOT reference the
   same Group under which the `ximportresources` resides.
 - An empty array MAY be specified, implying no Resources are imported.
@@ -3968,8 +3963,8 @@ Creating or updating Groups via HTTP MAY be done by using the HTTP `PUT`,
 `PATCH` or `POST` methods:
 - `PUT   /<GROUPS>/<GID>`   # Create/update a single Group
 - `PATCH /<GROUPS>/<GID>`   # Create/update a single Group
-- `PATCH /<GROUPS>`         # Create/update multiple Groups of type <GROUPS>
-- `POST  /<GROUPS>`         # Create/update multiple Groups of type <GROUPS>
+- `PATCH /<GROUPS>`         # Create/update multiple Groups of type `<GROUPS>`
+- `POST  /<GROUPS>`         # Create/update multiple Groups of type `<GROUPS>`
 
 The processing of the above APIs is defined in the [Creating or Updating
 Entities](#creating-or-updating-entities) section.
@@ -4296,7 +4291,8 @@ becomes available via a set of `<RESOURCE>*` attributes within that metadata:
 
 - `<RESOURCE>url`: this attribute MUST be used when the Resource is stored
   external to the Registry and its value MUST be a URL that can be used to
-  retrieve its contents via an HTTP(s) `GET`.
+  retrieve its contents via an HTTP(s) `GET`. There is no requirement for the
+  server to validate this URL.
 
 When accessing a Resource's metadata with `$details`, often it is to
 view or update the xRegistry metadata and not the document, as such, including
@@ -4312,6 +4308,13 @@ if it has a value.
 
 Note that the serialization of a Resource MUST only use at most one of these 3
 attributes at a time.
+
+Client and server implementations MUST be prepared for either of these 3
+attribute to be used. In the case of `RESOURCE` or `RESOURCEbase64`,
+implementations can not assume that a previous use of one means that all
+subsequent messages of that entity will use the same attribute. For example,
+a client can use `RESOURCE` to populate the value, but the server is free
+to use `RESOURCEbase64` when returning the data.
 
 #### Resource Attributes
 
@@ -4394,7 +4397,7 @@ The Resource level attributes include the following
 [common attributes](#common-attributes):
 - [`<RESOURCE>id`](#singularid-id-attribute) - REQUIRED in API and document
   views. OPTIONAL in requests.
-- [`self`](#self-attribute) - REQUIRED in API and document view. OPTIONAL in
+- [`self`](#self-attribute) - REQUIRED in API and document views. OPTIONAL in
   requests.
 - [`shortself`](#shortself-attribute) - OPTIONAL in API and document views,
   based on the `shortself` capability. OPTIONAL in requests.
@@ -5427,7 +5430,7 @@ information about the `?setdefaultversionid` query parameter.
 ---
 
 To reduce the number of interactions needed, these APIs are designed to allow
-for the implicit creation of all parent entities specified in the <PATH>. And
+for the implicit creation of all parent entities specified in the `<PATH>`. And
 each entity not already present with the specified `<SINGULAR>id` MUST be
 created with that value. Note: if any of those entities have REQUIRED
 attributes, then they cannot be implicitly created, and would need to be
@@ -5441,7 +5444,7 @@ in the request MUST adhere to the following:
   "<RESOURCE>id": "<STRING>", ?
   "versionid": "<STRING>", ?
   "epoch": <UINTEGER>,
-  "name": "<STRING>", ?                      # Version level attributes
+  "name": "<STRING>", ?                        # Version level attributes
   "description": "<STRING>", ?
   "documentation": "<URL>", ?
   "icon": "<URL>", ?
@@ -5452,10 +5455,10 @@ in the request MUST adhere to the following:
   "contenttype": "<STRING>", ?
 
   "<RESOURCE>url": "<URL>", ?                  # If not local
-  "<RESOURCE>": ... Resource document ..., ? # If inlined & JSON
+  "<RESOURCE>": ... Resource document ..., ?   # If inlined & JSON
   "<RESOURCE>base64": "<STRING>", ?            # If inlined & ~JSON
 
-  "meta": {                                # Resource-only attributes
+  "meta": {                                    # Resource-only attributes
     "<RESOURCE>id": "<STRING>", ?
     "xref": "<XID>", ?
     "epoch": <UINTEGER>, ?
@@ -6962,7 +6965,7 @@ For example, given a Registry with a model that has `endpoints` as a Group and
 `messages` as a Resource within `endpoints`, the table below shows some
 `<PATH>` values and a description of the result:
 
-| HTTP `GET` Path | Example ?inline=<PATH> values | Comment |
+| HTTP `GET` Path | Example `?inline=<PATH>` values | Comment |
 | --- | --- | --- |
 | / | ?inline=endpoints | Inlines the `endpoints` collection, but just one level of it, not any nested inlinable attributes |
 | / | ?inline=endpoints.messages.versions | Inlines the `versions` collection of all messages. Note that this implicitly means the parent attributes (`messages` and `endpoints` would also be inlined - however any other `<GROUPS>` or `<RESOURCE>`s types would not be |
@@ -7168,28 +7171,28 @@ as appropriate, including being specified in a language other than English.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#ancestor_circular_reference`
 * Code: `400 Bad Request`
-* Instance: <URL TO THE VERSION BEING PROCESSED>
+* Instance: `<URL TO THE VERSION BEING PROCESSED>`
 * Title: `The assigned "ancestor" value (<ANCESTOR VALUE>) creates a circular reference`
 * Data:  n/a
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### api_not_found
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#api_not_found`
 * Code: `404 Not Found`
-* Instance: <REQUEST URL>
+* Instance: `<REQUEST URL>`
 * Title: `The specified path (<INVALID PATH>) is not supported`
-* Data: <INVALID PATH>
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
+* Data: `<INVALID PATH>`
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### bad_flag
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#bad_flag`
 * Code: `400 Bad Request`
-* Instance: <REQUEST URL>
+* Instance: `<REQUEST URL>`
 * Title: `The specified query parameter (<QUERY PARAMETER>) is not allowed in this context`
-* Data:  <QUERY PARAMETER NAME AND VALUE>
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
+* Data:  <QUERY PARAMETER NAME AND VALUE>`
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### bad_request
 
@@ -7199,199 +7202,208 @@ SHOULD attempt to use a more specific error when possible.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#bad_request`
 * Code: `400 Bad Request`
-* Instance: <REQUEST URL>
+* Instance: `<REQUEST URL>`
 * Title: `The request cannot be processed as provided`
-* Data: <SHORT DESCRIPTION OF THE PROBLEMATIC DATA OR REASON>
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
+* Data: `<SHORT DESCRIPTION OF THE PROBLEMATIC DATA OR REASON>`
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### cannot_doc_xref
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#cannot_doc_xref`
 * Code: `400 Bad Request`
-* Instance: <URL TO THE RESOURCE BEING RETRIEVED>
+* Instance: `<URL TO THE RESOURCE BEING RETRIEVED>`
 * Title: `Retrieving the document view of an xref'd Resource's Versions is not possible`
-* Data: <THE RESOURCE'S URL>
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
+* Data: `<THE RESOURCE'S URL>`
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### capability_error
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#capability_error`
 * Code: `400 Bad Request`
-* Instance: <URL TO THE XREGISTRY SERVER>
+* Instance: `<URL TO THE XREGISTRY SERVER>`
 * Title: `There was an error in the capabilities provided`
-* Data: <CAPABILITY JSON SNIPPET THAT CAUSED THE ISSUE>
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
+* Data: `<CAPABILITY JSON SNIPPET THAT CAUSED THE ISSUE>`
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### compatibility_violation
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#compatibility_violation`
 * Code: `400 Bad Request`
-* Instance: <URL TO THE VERSION THAT CAUSED THE VIOLATION>
+* Instance: `<URL TO THE VERSION THAT CAUSED THE VIOLATION>`
 * Title: `The request would cause one or more Versions of this Resource to violate the Resource's compatibility rules (<COMPATIBILITY ATTRIBUTE VALUE>)`
-* Data: <LIST OF "VERSIONID" VALUES THAT WOULD BE IN VIOLATION>
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
+* Data: `<LIST OF "VERSIONID" VALUES THAT WOULD BE IN VIOLATION>`
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### data_retrieval_error
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#data_retrieval_error`
 * Code: `500 Internal Server Error`
-* Instance: <REQUEST URL>
+* Instance: `<REQUEST URL>`
 * Title: `The server was unable to retrieve all of the requested data`
-* Data: <SHORT DESCRIPTION OF THE PROBLEMATIC DATA OR REASON>
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
+* Data: `<SHORT DESCRIPTION OF THE PROBLEMATIC DATA OR REASON>`
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
+
+#### defaultversionid_not_allowed
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#defaultversionid_not_allowed`
+* Code: `400 Bad Request`
+* Instance: `<URL TO THE RESOURCE BEING PROCESSED>`
+* Title: `"defaultversionid" is not allowed to be specified`
+* Data: `<DEFAULTVERSIONID SPECIFIED>`
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### details_required
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#details_required`
 * Code: `400 Bad Request`
-* Instance: <URL TO THE ENTITY BEING PROCESSED>
+* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `$details suffixed is needed when using PATCH for this Resource`
 * Data:  n/a
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### extra_xregistry_headers
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#extra_xregistry_headers`
 * Code: `400 Bad Request`
-* Instance: <URL TO THE ENTITY BEING PROCESSED>
+* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `xRegistry HTTP headers are not allowed on this request`
-* Data: <LIST OF XREGISTRY HTTP HEADER NAMES>
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
+* Data: `<LIST OF XREGISTRY HTTP HEADER NAMES>`
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### header_decoding_error
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#header_decoding_error`
 * Code: `400 Bad Request`
-* Instance: <REQUEST URL>
+* Instance: `<REQUEST URL>`
 * Title: `The value ("<HEADER VALUE>") of the HTTP "<HEADER NAME>" header cannot be decoded`
-* Data:  <HEADER VALUE>
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
+* Data:  <HEADER VALUE>`
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### invalid_character
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#invalid_character`
 * Code: `400 Bad Request`
-* Instance: <URL TO THE ENTITY BEING PROCESSED>
+* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `An invalid character (<THE CHARACTER>) was specified an attribute's name (<FULL ATTRIBUTE NAME>)`
-* Data:  <INVALID CHARACTER>
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
+* Data:  <INVALID CHARACTER>`
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### invalid_data
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#invalid_data`
 * Code: `400 Bad Request`
-* Instance: <URL TO THE ENTITY BEING PROCESSED>
+* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `The data provided for "<ATTRIBUTE/PARAMETER NAME>" is invalid`
-* Data:  <INVALID DATA>
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
+* Data:  <INVALID DATA>`
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### invalid_data_type
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#invalid_data_type`
 * Code: `400 Bad Request`
-* Instance: <URL TO THE ENTITY BEING PROCESSED>
+* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `A value of an incorrect data-type was specified`
-* Data: <THE INVALID DATA>
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
+* Data: `<THE INVALID DATA>`
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### method_not_allowed
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#method_not_allowed`
 * Code: `405 Method Not Allowed`
-* Instance: <REQUEST URL>
+* Instance: `<REQUEST URL>`
 * Title: `The specified HTTP method (<INVALID METHOD>) is not supported for: <REQUEST URL>`
-* Data: <THE UNSUPPORTED HTTP METHOD>
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
+* Data: `<THE UNSUPPORTED HTTP METHOD>`
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### mismatched_epoch
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#mismatched_epoch`
 * Code: `400 Bad Request`
-* Instance: <URL TO THE ENTITY BEING PROCESSED>
+* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `The specified epoch value (<INVALID EPOCH>) does not match its current value (<CURRENT EPOCH>)`
-* Data: <THE INVALID EPOCH VALUE>
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
+* Data: `<THE INVALID EPOCH VALUE>`
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### mismatched_id
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#mismatched_id`
 * Code: `400 Bad Request`
-* Instance: <URL TO THE ENTITY BEING PROCESSED>
+* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `The specified <SINGULAR TYPE NAME> ID value (<INVALID ID>) needs to be "<EXPECTED ID>"`
-* Data: <THE INVALID ID VALUE>
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
+* Data: `<THE INVALID ID VALUE>`
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### misplaced_epoch
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#misplaced_epoch`
 * Code: `400 Bad Request`
-* Instance: <URL TO THE ENTITY BEING PROCESSED>
+* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `The specified "epoch" value needs to be within a "meta" sub-object`
 * Data:  n/a
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### missing_versions
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#missing_versions`
 * Code: `400 Bad Request`
-* Instance: <URL TO THE ENTITY BEING PROCESSED>
+* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `At least one Version needs to be included in the request`
-* Data: <URL TO ENTITY BEING PROCESSED>
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
+* Data: `<URL TO ENTITY BEING PROCESSED>`
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### model_compliance_error
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#model_compliance_error`
 * Code: `400 Bad Request`
-* Instance: <URL TO THE XREGISTRY SERVER>
+* Instance: `<URL TO THE XREGISTRY SERVER>`
 * Title: `The model provided would cause one or more entities in the Registry to become non-compliant`
-* Data: <LIST OF XIDS OF NON-COMPLIANT ENTITIES>
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
+* Data: `<LIST OF XIDS OF NON-COMPLIANT ENTITIES>`
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### model_error
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#model_error`
 * Code: `400 Bad Request`
-* Instance: <URL TO THE XREGISTRY SERVER>
+* Instance: `<URL TO THE XREGISTRY SERVER>`
 * Title: `There was an error in the model definition provided`
-* Data: <MODEL JSON SNIPPET THAT CAUSED THE ISSUE>
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
+* Data: `<MODEL JSON SNIPPET THAT CAUSED THE ISSUE>`
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### multiple_roots
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#multiple_roots`
 * Code: `400 Bad Request`
-* Instance: <URL TO THE RESOURCE BEING PROCESSED>
+* Instance: `<URL TO THE RESOURCE BEING PROCESSED>`
 * Title: `The operation would result in multiple root Versions which is not allowed by this Registry`
 * Data:  n/a
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### not_found
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#not_found`
 * Code: `404 Not Found`
-* Instance: <URL TO THE ENTITY BEING PROCESSED>
+* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `The specified entity cannot be found`
-* Data: <URL TO THE ENTITY REQUESTED>
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
+* Data: `<URL TO THE ENTITY REQUESTED>`
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### readonly
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#readonly`
 * Code: `400 Bad Request`
-* Instance: <URL TO THE ENTITY BEING PROCESSED>
+* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `Updating a read-only entity (<XID OF ENTITY>) is not allowed`
-* Data: <URL TO ENTITY BEING PROCESSED<
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
+* Data: `<URL TO ENTITY BEING PROCESSED>`
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### required_attribute_missing
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#required_attribute_missing`
 * Code: `400 Bad Request`
-* Instance: <URL TO THE ENTITY BEING PROCESSED>
+* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `One or more mandatory attributes are missing`
-* Data: <LIST OF MANDATORY ATTRIBUTES>
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
+* Data: `<LIST OF MANDATORY ATTRIBUTES>`
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### server_error
 
@@ -7400,55 +7412,65 @@ something unexpected happened in the server that caused an error condition.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#server_error`
 * Code: `500 Internal Server Error`
-* Instance: <REQUEST URL>
+* Instance: `<REQUEST URL>`
 * Title: `An unexpected error occurred, please try again later`
 * Data:  n/a
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### too_large
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#too_large`
 * Code: `406 Not Acceptable`
-* Instance: <REQUEST URL>
+* Instance: `<REQUEST URL>`
 * Title: `The size of the response is too large to return in a single response`
-* Data: <THE NAMES OF THE FIELDS/ATTRIBUTES THAT ARE TOO LARGE>
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
+* Data: `<THE NAMES OF THE FIELDS/ATTRIBUTES THAT ARE TOO LARGE>`
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### too_many_versions
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#too_many_versions`
 * Code: `400 Bad Request`
-* Instance: <URL TO THE ENTITY BEING PROCESSED>
+* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `The request is only allowed to have one Version specified`
-* Data: <THE URL TO THE ENTITY BEING PROCESSED>
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
+* Data: `<THE URL TO THE ENTITY BEING PROCESSED>`
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### unknown_attribute
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#unknown_attribute`
 * Code: `400 Bad Request`
-* Instance: <URL TO THE ENTITY BEING PROCESSED>
+* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `An unknown attribute (<ATTRIBUTE NAME>) was specified`
-* Data:  <UNKNOWN ATTRIBUTE NAME>
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
+* Data: `<UNKNOWN ATTRIBUTE NAME>`
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### unknown_id
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#unknown_id`
 * Code: `400 Bad Request`
-* Instance: <URL TO THE ENTITY BEING PROCESSED>
+* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `The "<SINGULAR NAME OF THE ENTITY TYPE>" with the ID "<THE UNKNOWN ID>" cannot be found`
-* Data: <URL TO ENTITY BEING PROCESSED>
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
+* Data: `<URL TO ENTITY BEING PROCESSED>`
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### unsupported_specversion
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#unsupported_specversion`
 * Code: `400 Bad Request`
-* Instance: <THE REQUEST URL>
+* Instance: `<THE REQUEST URL>`
 * Title: `The specified "specversion" value is not supported`
-* Data:  n/a
-* Detail: <INFORMATION SPECIFIC TO THE PROCESSING DETAILS>
+* Data:  `<SPECVERSION SPECIFIED>`
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
+
+#### versionid_not_allowed
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#versionid_not_allowed`
+* Code: `400 Bad Request`
+* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
+* Title: `A "versionid" is not allowed to be specified`
+* Data:  `<VERSIONID SPECIFIED>`
+* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
+
 
 <!-- end-err-def -->
 
