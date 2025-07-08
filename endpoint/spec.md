@@ -58,7 +58,7 @@ this form:
       "modifiedat": "<TIMESTAMP>",
 
       # Start of default Version's attributes
-      "usage": "<STRING>",                        # subscriber, consumer, producer
+      "usage": [ "<STRING>" + ] ,                 # subscriber, consumer, producer
       "channel": "<STRING>", ?
       "deprecated": {
         "effective": "<TIMESTAMP>", ?
@@ -208,10 +208,10 @@ The following attributes are defined for Endpoints:
 
 #### `usage`
 
-- Type: String (Enum: `subscriber`, `consumer`, `producer`)
-- Description: The `usage` attribute is a string that indicates the intended
-  usage of the endpoint by communicating parties. In other words, the role
-  of a client talking with the endpoint.
+- Type: Array of String (Enum: `subscriber`, `consumer`, `producer`)
+- Description: The `usage` attribute is a set of strings that indicates the
+  intended usage of the endpoint by communicating parties. In other words, the
+  roles a client can act in when talking with the endpoint.
 
   Each of these parties will have a different perspective on an endpoint. For
   instance, a `producer` endpoint is seen as a "target" by the originator of
@@ -268,7 +268,11 @@ The following attributes are defined for Endpoints:
 
 - Constraints:
   - REQUIRED.
-  - MUST be one of "subscriber", "consumer", or "producer".
+  - MUST contain only the following possible values:
+    - "subscriber"
+    - "consumer"
+    - "producer"
+  - MUST be an array of at least one.
 
 ### `channel`
 
@@ -695,7 +699,7 @@ Example:
 
 ```yaml
 {
-  "usage": "producer",
+  "usage": [ "producer" ],
   "protocol": "AMQP/1.0",
   "protocoloptions": {
     "node": "myqueue",
@@ -756,7 +760,7 @@ Example:
 
 ```yaml
 {
-  "usage": "producer",
+  "usage": [ "producer" ],
   "protocol": "MQTT/5.0",
   "protocoloptions": {
     "topic": "mytopic",
@@ -803,7 +807,7 @@ Example:
 
 ```yaml
 {
-  "usage": "producer",
+  "usage": [ "producer" ],
   "protocol": "Kafka/2.0",
   "protocoloptions": {
     "topic": "mytopic",
@@ -829,7 +833,7 @@ Example:
 
 ```yaml
 {
-  "usage": "producer",
+  "usage": [ "producer" ],
   "protocol": "NATS/1.0.0",
   "protocoloptions": {
     "subject": "mysubject"

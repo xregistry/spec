@@ -27,8 +27,11 @@ links: test_tools
 	@echo
 
 models:
-	docker run -v $$PWD:/xreg -w /xreg --entrypoint /bin/sh \
-		ghcr.io/xregistry/xr -c "/xr model verify */model.json -v"
+	# Note this will use a local 'xr' if available so that local build/test
+	# of 'xr' can be done
+	(which xr && xr model verify */model.json -v) || \
+	(docker run -v $$PWD:/xreg -w /xreg --entrypoint /bin/sh \
+		ghcr.io/xregistry/xr -c "/xr model verify */model.json -v")
 	@echo
 
 makeschema:

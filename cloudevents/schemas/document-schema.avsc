@@ -484,7 +484,13 @@
               "doc": "Time of the object modification"
             },
             {
-              "type": "string",
+              "type": {
+                "type": "array",
+                "name": "UsageArrayType",
+                "items": {
+                  "type": "string"
+                }
+              },
               "name": "usage",
               "doc": "Client's expected usage of this endpoint"
             },
