@@ -2645,9 +2645,6 @@ The following describes the attributes of the Registry model:
     (begins with `/`) MUST be an `xid` and MUST adhere to the `target` entity
     type specified, if specified. Absolute URIs/URLs are not constrained by
     the presence of a `target` value.
-  - To keep the model, and processing simple, the value MUST NOT reference a
-    type that uses `ximportresources` to reference another Resource model
-    entity definition. In other words, `target` is not transitive.
   - Example: `/endpoints/messages`
 
 ##### - Model: `attributes."<STRING>".namecharset`
@@ -2681,7 +2678,10 @@ The following describes the attributes of the Registry model:
   - When not specified, the default value is `strict`.
   - Implementations MAY define additional character sets, however, an attempt
     to define a model that uses an unknown character set name MUST generate an
-    error ([model_error](#model_error)).
+    error ([model_error](#model_error)). There is currently no mechanism
+    defined by this specification to discover the list (or definition) of
+    additional `namecharset` values supported by an implementation.
+    Implementations SHOULD use their documentation to advertise this extension.
 
 ##### - Model: `attributes."<STRING>".description`
   - Type: String.
@@ -3659,6 +3659,9 @@ where:
   combination defined within the same Registry. It MUST NOT reference the
   same Group under which the `ximportresources` resides.
 - An empty array MAY be specified, implying no Resources are imported.
+- The use of `ximportresources` MAY be transitive as long as it does not
+  result in an circular import chain. In other words, an `ximportresources`
+  can reference a Resource that itself uses an `ximportresources`.
 
 Locally defined Resources MAY be defined within a Group that uses the
 `ximportresources` feature, however, Resource `plural` and `singular` values
@@ -4309,8 +4312,8 @@ if it has a value.
 Note that the serialization of a Resource MUST only use at most one of these 3
 attributes at a time.
 
-Client and server implementations MUST be prepared for either of these 3
-attribute to be used. In the case of `RESOURCE` or `RESOURCEbase64`,
+Client and server implementations MUST be prepared for any of these 3
+attributes to be used. In the case of `RESOURCE` or `RESOURCEbase64`,
 implementations can not assume that a previous use of one means that all
 subsequent messages of that entity will use the same attribute. For example,
 a client can use `RESOURCE` to populate the value, but the server is free
