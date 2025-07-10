@@ -11,14 +11,17 @@
       "attributes": {
         "usage": {
           "name": "usage",
-          "type": "string",
+          "type": "array",
           "description": "Client's expected usage of this endpoint",
           "enum": [
             "subscriber",
             "consumer",
             "producer"
           ],
-          "strict": true
+          "strict": true,
+          "item": {
+            "type": "string"
+          }
         },
         "channel": {
           "name": "channel",
