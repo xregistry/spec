@@ -165,7 +165,7 @@ pseudo JSON form:
         } ?
 
         "ifvalues": {                   # If "type" is scalar
-          "<VALUE>": {                  # Possible attribute value
+          "<STRING>": {                 # Possible attribute value
             "siblingattributes": { ... } # See "attributes" above
           } *
         } ?
@@ -381,6 +381,7 @@ information about each data type):
 - `<XIDTYPE>`
 - `<TYPE>` - one of the allowable data type names (MUST be in lower case)
   listed in [Attributes and Extensions](#attributes-and-extensions)
+- `<VALUE>` - an instance of one of the above data types
 
 ### Terminology
 
@@ -2501,7 +2502,7 @@ The overall format of a model definition is as follows:
       } ?
 
       "ifvalues": {                    # If "type" is scalar
-        "<VALUE>": {
+        "<STRING>": {
           "siblingattributes": { ... } # Siblings to this "attribute"
         } *
       } ?
@@ -2817,13 +2818,14 @@ The following describes the attributes of the Registry model:
   - REQUIRED when `item.type` is `map` or `array`.
 
 ##### - Model: `attributes."<STRING>".ifvalues`
-  - Type: Map where each value of the attribute is the key of the map.
+  - Type: Map where potential runtime values of the attribute are the keys of
+    the map.
   - OPTIONAL.
   - This map can be used to conditionally include additional
     attribute definitions based on the runtime value of the current attribute.
     If the string serialization of the runtime value of this attribute matches
-    the `ifvalues` `"<VALUE>"` (case-sensitive), then the `siblingattributes`
-    MUST be included in the model as siblings to this attribute.
+    the `ifvalues` key (case-sensitive), then the `siblingattributes` MUST be
+    included in the model as siblings to this attribute.
 
     If `enum` is not empty and `strict` is `true` then this map MUST NOT
     contain any value that is not specified in the `enum` array.
@@ -2835,9 +2837,9 @@ The following describes the attributes of the Registry model:
     level of the entity. If multiple `ifvalues` sections, at the same entity
     level, are active at the same time then there MUST NOT be duplicate
     `ifvalues` attributes names between those `ifvalues` sections.
-  - `ifvalues` `"<VALUE>"` MUST NOT be an empty string.
-  - `ifvalues` `"<VALUE>"` MUST NOT start with the `^` (caret) character as its
-    presence at the beginning of `"<VALUE>"` is reserved for future use.
+  - `ifvalues` `"<STRING>"` MUST NOT be an empty string.
+  - `ifvalues` `"<STRING>"` MUST NOT start with the `^` (caret) character as
+    its presence at the beginning of `"<STRING>"` is reserved for future use.
   - `ifvalues` `siblingattributes` MAY include additional `ifvalues`
     definitions.
 
@@ -2903,7 +2905,7 @@ The following describes the attributes of the Registry model:
     interoperability between models in different xRegistries via using a
     shared compatible model.
   - Does not imply runtime validation of the claim.
-  - Example: `http://xregistry.io/xreg/xregistryspecs/schema-v1/docs/model.json`
+  - Example: `https://xregistry.io/xreg/xregistryspecs/schema-v1/docs/model.json`
 
 ##### - Model: `groups."<STRING>".attributes`
   - See [`attributes`](#--model-attributes) above.
@@ -3190,14 +3192,14 @@ The following describes the attributes of the Registry model:
     A value of `binary` indicates that the Resource's document is to be treated
     as an array of bytes and serialized under the `<RESOURCE>base64` attribute,
     even if the `contenttype` is of the same type of the xRegistry metadata
-    (e.g. `application/json`). This is useful when it is desireable to not
+    (e.g. `application/json`). This is useful when it is desirable to not
     have the server potentially modify the document (e.g. "pretty-print" it).
 
     A value of `json` indicates that the Resource's document is JSON and MUST
     be serialized under the `<RESOURCE>` attribute if it is valid JSON. Note
     that if there is a syntax error in the JSON then the server MUST treat the
     document as `binary` to avoid sending invalid JSON to the client. The
-    server MAY choose to modify the formating of the document (e.g. to
+    server MAY choose to modify the formatting of the document (e.g. to
     "pretty-print" it).
 
     A value of `string` indicates that the Resource's document is to be treated
@@ -3253,7 +3255,7 @@ The following describes the attributes of the Registry model:
     to this list if they are necessary to help with model traversal. Otherwise
     the other 2 attribute lists SHOULD be used. The goal is to make the
     Resource entity look at much like the "default" Version as possible,
-    adding new attributes at the Resource level violates that goal.
+    adding additional attributes at the Resource level violates that goal.
 
 ##### - Model: `groups."<STRING>".resources."<STRING>".metaattributes`
   - See [`attributes`](#--model-attributes) above.
@@ -3295,7 +3297,7 @@ Clarifying the  usage of the `attributes`, `resourceattributes` and
 
 The Registry model is available in two forms:
 - The full "model" with all possible aspects of the model defined.
-- The "modelsource" form represents just the model aspects specified as when
+- The "modelsource" form represents just the model aspects as specified when
   the model was defined or last updated.
 
 The full "model" view can be thought of as a full schema definition of what the
@@ -3330,14 +3332,14 @@ can be found in this sample [sample-model-full.json](sample-model-full.json).
 
 The full model MAY be retrieved via:
 - `GET /model[?schema=<NAME>[/<VERSION>]]`
-- `GET /?inline=model`
+- `GET /?inline=model`                      # as part of Registry entity
 
 Where a successful response MUST include the full model definition, adhering
 to the model format specified above.
 
 The modelsource MAY be retrieved via:
 - `GET /modelsource[?schema=<NAME>[/<VERSION>]]`
-- `GET /?inline=modelsource`
+- `GET /?inline=modelsource`                # as part of Registry entity
 
 Where a successful response MUST include the model definition last used when
 updating the model, adhering to the model format specified above.
@@ -3345,7 +3347,7 @@ updating the model, adhering to the model format specified above.
 Additionally:
 - When specified, the `?schema` query parameter MUST be one of the valid
   `schema` capabilities values (case-insensitive).
-- When not specified, the default value MUST be `xRegistry-json/1.0-rc2`.
+- When not specified, the default value MUST be `xRegistry-json`.
 - The `/model` API  and `model` attribute MUST be a read-only.
 - The `/modelsource` API  and `modelsource` attribute MAY be used to retrieve
   the model specification last used to update the model.
@@ -3410,7 +3412,7 @@ Content-Type: application/json; charset=utf-8
       "item": { ... }, ?
 
       "ifvalues": {
-        "<VALUE>": {
+        "<STRING>": {
           "siblingattributes": { ... }
         } *
       } ?
@@ -3460,8 +3462,7 @@ Content-Type: application/json; charset=utf-8
 **Examples:**
 
 Retrieve a Registry model that has one extension attribute on the
-`endpoints` Group, and supports returning the schema of the Registry
-as JSON Schema:
+`endpoints` Group, and allow any extension on Resource Versions:
 
 ```yaml
 GET /model
@@ -3479,6 +3480,7 @@ Content-Type: application/json; charset=utf-8
     "endpoints": {
       "plural": "endpoints",
       "singular": "endpoint",
+      ... xRegistry spec-defined aspects excluded for brevity ...
       "attributes": {
         ... xRegistry spec-defined attributes excluded for brevity ...
         "shared": {
@@ -3491,13 +3493,8 @@ Content-Type: application/json; charset=utf-8
         "messages": {
           "plural": "messages",
           "singular": "message",
-            ... xRegistry spec-defined attributes excluded for brevity ...
-            "*": {
-              type: "any"
-            }
-          },
-          "metaattributes": {
-            ... xRegistry spec-defined attributes excluded for brevity ...
+          "attributes": {
+           ... xRegistry spec-defined attributes excluded for brevity ...
             "*": {
               type: "any"
             }
@@ -3659,9 +3656,10 @@ where:
   combination defined within the same Registry. It MUST NOT reference the
   same Group under which the `ximportresources` resides.
 - An empty array MAY be specified, implying no Resources are imported.
-- The use of `ximportresources` MAY be transitive as long as it does not
-  result in an circular import chain. In other words, an `ximportresources`
-  can reference a Resource that itself uses an `ximportresources`.
+- The definition of a Group MAY include an `ximportresources` directive
+  that references a Resource from another Group that itself is defined
+  via an `ximportresources`. However, transitive definitions of Resources
+  MUST NOT result in a circular import chain.
 
 Locally defined Resources MAY be defined within a Group that uses the
 `ximportresources` feature, however, Resource `plural` and `singular` values

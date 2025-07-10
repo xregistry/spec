@@ -635,7 +635,7 @@ sensitivity rules in the specification.
 
 Attribute names and key names are limited to 63 characters, so why are some
 Group and Resource names limited to less? Because when they appear as part of
-attribute names and they can be append with phrase like `url`, `count`
+attribute names and they can be append with phrases like `url`, `count`
 or `base64`, and they still have to fit within the 63-character limit, and so
 we need to take into account the length of those phrases.
 
