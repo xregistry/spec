@@ -16,3 +16,7 @@ respond to events.
 - [GOVERNANCE.md](GOVERNANCE.md):
   The rules we following for managing the overall project, and in particular
   the specifications.
+
+## Misc info of interest - mainly for project managers
+
+- [FOSSA License Scanning Tool](https://app.fossa.com/projects?title=xreg)

@@ -3494,7 +3494,7 @@ Content-Type: application/json; charset=utf-8
           "plural": "messages",
           "singular": "message",
           "attributes": {
-           ... xRegistry spec-defined attributes excluded for brevity ...
+            ... xRegistry spec-defined attributes excluded for brevity ...
             "*": {
               type: "any"
             }
