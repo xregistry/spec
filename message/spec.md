@@ -88,7 +88,7 @@ this form:
           "modifiedat": "<TIMESTAMP>",
           "ancestor": "<STRING>",
 
-          "basemessageurl": "<URL>", ?         # Message being extended
+          "basemessage": "<URL>", ?            # Message being extended
 
           "envelope": "<STRING>", ?            # e.g. CloudEvents/1.0
           "envelopemetadata": {
@@ -298,11 +298,11 @@ The following extensions are defined for the `message` Resource in addition to
 the core xRegistry Resource
 [attributes](../core/spec.md#attributes-and-extensions):
 
-#### `basemessageurl`
+#### `basemessage`
 
-- Type: URI-reference
-- Description: if present, the URL points to a message definition that is the
-  base for this message definition. By following the URL, the base message
+- Type: XID
+- Description: if present, the XID points to a message definition that is the
+  base for this message definition. By following the XID, the base message
   can be retrieved and extended with the properties of this message. This is
   useful for defining variants of messages that only differ in minor aspects to
   avoid repetition, or messages that only have a `envelope` with associated
@@ -311,9 +311,9 @@ the core xRegistry Resource
   message.
 - Constraints:
   - OPTIONAL.
-  - If present, MUST be a valid URI-reference.
-  - If present, MUST point to a resource of type `message` using JSON Pointer
-    [RFC6901][JSON Pointer] notation.
+  - If present, MUST be the `xid` of a Resource of type `message` as defined
+    by this specification.
+  - It is permissible that the target Resource not exist.
 
 #### `envelope`
 
@@ -1069,7 +1069,6 @@ Example:
 ```
 
 
-[JSON Pointer]: https://www.rfc-editor.org/rfc/rfc6901
 [CloudEvents Types]: https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/spec.md#type-system
 [AMQP 1.0]: https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-overview-v1.0-os.html
 [AMQP 1.0 Message Format]: http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#section-message-format
