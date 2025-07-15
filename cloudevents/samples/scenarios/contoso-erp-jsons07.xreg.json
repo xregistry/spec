@@ -2,7 +2,7 @@
     "endpoints": {
         "Contoso.ERP.Http": {
             "description": "HTTP producer endpoint for Contoso ERP eventing",
-            "usage": "producer",
+            "usage": [ "producer" ],
             "deployed": false,
             "endpoints": [
                 {
@@ -23,7 +23,7 @@
         },
         "Contoso.ERP.HttpSubscriber": {
             "description": "HTTP subscriber endpoint for Contoso ERP eventing",
-            "usage": "subscriber",
+            "usage": [ "subscriber"] ,
             "protocol": "HTTP",
             "deployed": false,
             "endpoints": [
@@ -45,7 +45,7 @@
         "Contoso.ERP.QueueConsumer": {
             "description": "AMQP consumer endpoint for Contoso ERP eventing via queue",
             "channel": "myqueue",
-            "usage": "consumer",
+            "usage": [ "consumer" ],
             "protocol": "AMQP/1.0",
             "deployed": false,
             "endpoints": [
@@ -74,7 +74,7 @@
         "Contoso.ERP.QueueProducer": {
             "description": "AMQP producer endpoint for Contoso ERP eventing via queue",
             "channel": "myqueue",
-            "usage": "producer",
+            "usage": [ "producer" ],
             "protocol": "AMQP/1.0",
             "protocoloptions": {
                 "node": "queue",
@@ -103,7 +103,7 @@
         "Contoso.ERP.KafkaProducer": {
             "description": "Kafka producer endpoint for Contoso ERP eventing",
             "channel": "mytopic",
-            "usage": "producer",
+            "usage": [ "producer" ],
             "protocol": "KAFKA",
             "deployed": false,
             "endpoints": [
@@ -129,7 +129,7 @@
         "Contoso.ERP.KafkaConsumer": {
             "description": "Kafka consumer endpoint for Contoso ERP eventing",
             "channel": "mytopic",
-            "usage": "consumer",
+            "usage": [ "consumer" ],
             "protocol": "KAFKA",
             "deployed": false,
             "endpoints": [

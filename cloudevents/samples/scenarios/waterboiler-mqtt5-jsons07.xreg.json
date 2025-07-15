@@ -1,7 +1,7 @@
 {
     "endpoints": {
         "WaterBoiler.Producer": {
-            "usage": "producer",
+            "usage": [ "producer" ],
             "description": "Producer endpoint for water boiler commands",
             "protocol": "MQTT/5.0",
             "protocoloptions": {
@@ -16,7 +16,7 @@
             ]
         },
         "WaterBoiler.Consumer": {
-            "usage": "consumer",
+            "usage": [ "consumer" ],
             "description": "Consumer endpoint for water boiler events",
             "protocol": "MQTT/5.0",
             "protocoloptions": {
