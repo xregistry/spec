@@ -117,10 +117,10 @@ pseudo JSON form:
   "capabilities": {                     # Supported capabilities/options
     "apis": [ "/capabilities", "/export", "/model" ],
     "flags": [                          # Query parameters
-      "collections",? "doc",? "epoch",? "filter",? "inline",?
-      "nodefaultversionid",? "nodefaultversionsticky",? "noepoch",?
-      "noreadonly",?  "offered",? "schema",? "setdefaultversionid",?
-      "sort",? "specversion",?
+      "collections",? "doc",? "epoch",? "filter",?
+      "ignoredefaultversionid",? "ignoredefaultversionsticky",? "ignoreepoch",?
+      "ignorereadonly",?  "inline", ? "offered",? "schema",?
+      "setdefaultversionid",?  "sort",? "specversion",?
       "<STRING>" *
     ],
     "mutable": [                        # What is mutable in the Registry
@@ -799,7 +799,8 @@ The definition of each attribute is defined below:
     characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3)
     (ALPHA / DIGIT / `-` / `.` / `_` / `~`), `:` and `@`, MUST start with
     ALPHA, DIGIT or `_` and MUST be between 1 and 128 characters in length.
-  - MUST be case-insensitive unique within the scope of the entity's parent.
+  - MUST be case-insensitive and unique within the scope of the entity's
+    parent.
   - This attribute MUST be treated as case-sensitive for look-up purposes.
     This means that an HTTP request to an entity with the wrong case for its
     `<SINGULAR>id` MUST be treated as "not found".
@@ -1213,14 +1214,15 @@ to be applied during the update - for example, they might not want the
 the data to remove the potentially problematic attributes, the following
 query parameters MAY be included on write operations to control certain
 aspects of the processing:
-- `?noepoch` - presence of this query parameter indicates that any `epoch`
+- `?ignoreepoch` - presence of this query parameter indicates that any `epoch`
   attribute included in the request MUST be ignored.
-- `?nodefaultversionid` - presence of this query parameter indicates that any
-  `defaultversionid` attribute included in the request MUST be ignored.
-- `?nodefaultversionsticky` - presence of this query parameter indicates that
-  any `defaultversionsticky` attribute included in the request MUST be ignored.
-- `?noreadonly` - presence of this query parameter indicates that any attempt
-  to update a read-only Resource MUST be silently ignored.
+- `?ignoredefaultversionid` - presence of this query parameter indicates that
+  any `defaultversionid` attribute included in the request MUST be ignored.
+- `?ignoredefaultversionsticky` - presence of this query parameter indicates
+  that any `defaultversionsticky` attribute included in the request MUST be
+  ignored.
+- `?ignorereadonly` - presence of this query parameter indicates that any
+  attempt to update a read-only Resource MUST be silently ignored.
 
 Any JSON xRegistry metadata message that represents a single entity (i.e. not
 a map) MAY include a top-level "$schema" attribute that points to a JSON Schema
@@ -1353,8 +1355,8 @@ In API view:
 - `<COLLECTION>count` is STRONGLY RECOMMENDED for responses even if
   there are no entities in the collection. This requirement is not mandated
   to allow for cases where calculating the exact count is too costly.
-- `<COLLECTION>url` and `<COLLECTION>count` are OPTIONAL for requests and MUST
-   be silently ignored by the server if present.
+- `<COLLECTION>url` and `<COLLECTION>count` are OPTIONAL in requests and MUST
+  be silently ignored by the server if present.
 - `<COLLECTION>` is conditional in responses based on the values in the
   [Inline Flag](#inline-flag). If a collection is part of the flag's value then
   `<COLLECTION>` MUST be present in the response even if it is empty
@@ -1747,12 +1749,12 @@ The Registry entity includes the following
 [common attributes](#common-attributes):
 - [`registryid`](#singularid-id-attribute) - REQUIRED in API and document
   views. OPTIONAL in requests.
-- [`self`](#self-attribute) - REQUIRED in API and document views. OPTIONAL
-  in requests.
+- [`self`](#self-attribute) - REQUIRED in API and document views.
+  OPTIONAL/ignored in requests.
 - [`shortself`](#shortself-attribute) - OPTIONAL in API and document views,
-  based on the `shortself` capability. OPTIONAL in requests.
-- [`xid`](#xid-attribute) - REQUIRED in API and document views. OPTIONAL in
-  requests.
+  based on the `shortself` capability. OPTIONAL/ignored in requests.
+- [`xid`](#xid-attribute) - REQUIRED in API and document views.
+  OPTIONAL/ignored in requests.
 - [`epoch`](#epoch-attribute) - REQUIRED in API and document views. OPTIONAL
   in requests.
 - [`name`](#name-attribute) - OPTIONAL.
@@ -1852,6 +1854,17 @@ The following query parameter SHOULD be supported by servers:
   server, not just the root of the Registry. When not specified, the default
   value MUST be the newest version of this specification supported by the
   server.
+
+  When comparing `specversion` strings, the server MUST silently ignore the
+  "patch" version number and only consider the "major.minor" version numbers.
+  This is because any "patch" version updates will only contain clarifications
+  and ought not require any code changes for server implementations. Therefore,
+  all patch versions of the same "major.minor" version MUST be forwards and
+  backwards compatible.
+
+  However, due to the potential for semantics changes of versions with suffix
+  values (e.g. `v2.0.0-rc1`), the suffix value MUST be part of the
+  `specversion` comparison checking.
 
 A successful response MUST be of the form:
 
@@ -2209,9 +2222,9 @@ The following defines the specification-defined capabilities:
   map indicates no support for that flag, and if included in a request,
   it SHOULD be silently ignored by servers.
 - Defined values:
-    `collections`, `doc`, `epoch`, `filter`, `inline`, `nodefaultversionid`,
-    `nodefaultversionsticky`, `noepoch`, `noreadonly`, `offered`, `schema`,
-    `setdefaultversionid`, `specversion`.
+    `collections`, `doc`, `epoch`, `filter`, `ignoredefaultversionid`,
+    `ignoredefaultversionsticky`, `ignoreepoch`, `ignorereadonly`, `inline`,
+    `offered`, `schema`, `setdefaultversionid`, `specversion`.
 - When not specified, the default value MUST be an empty list and no query
   parameters are supported.
 - Examples:
@@ -2401,9 +2414,10 @@ GET /capabilities?offered
   },
   "flags": {
     "type": "string",
-    "enum": [ "collections", "doc", "epoch", "filter", "inline",
-      "nodefaultversionid", "nodefaultversionsticky", "noepoch", "noreadonly",
-      "offered", "schema", "setdefaultversionid", "sort", "specversion" ]
+    "enum": [ "collections", "doc", "epoch", "filter",
+      "ignoredefaultversionid", "ignoredefaultversionsticky", "ignoreepoch",
+      "ignorereadonly", "inline", "offered", "schema", "setdefaultversionid",
+      "sort", "specversion" ]
   },
   "pagination": {
     "type": "boolean",
@@ -3142,13 +3156,14 @@ The following describes the attributes of the Registry model:
     attribute.
   - When not specified, the default value MUST be `false`.
   - A value of `true` indicates that only one Version of the Resource can
-    be a root. This is useful to avoid creating multiple roots. When this
-    attribute is set to `true`, the server MUST generate an error
-    ([multiple_roots](#multiple_roots)) if any
-    request results in a state where more than one Version of a Resource
-    is a root of an ancestor tree.
+    be a root, and the server MUST generate an error
+    ([multiple_roots](#multiple_roots)) if any request results in a state
+    where more than one Version of a Resource is a root of an ancestor tree.
   - Note that if the Resource's `versionmode` value might influence
     the permissible values of this aspect.
+  - See the
+    [`singleversionroot` Policy Enforcement](primer.md#singleversionroot-policy-enforcement)
+    section of the Primer for more information.
 
 ##### - Model: `groups."<STRING>".resources."<STRING>".typemap`
   - Type: Map where the keys and values MUST be non-empty strings. The key
@@ -3494,7 +3509,7 @@ Content-Type: application/json; charset=utf-8
           "plural": "messages",
           "singular": "message",
           "attributes": {
-           ... xRegistry spec-defined attributes excluded for brevity ...
+            ... xRegistry spec-defined attributes excluded for brevity ...
             "*": {
               type: "any"
             }
@@ -3580,7 +3595,8 @@ server implementations. This specification makes no statement as to what types
 of changes are allowed beyond the following requirements:
 - Any model changes MUST result in a specification compliant model definition.
 - Servers MUST ensure that the representation of all entities within the
-  Registry MUST adhere to the current model prior to completing any request.
+  Registry adhere to the current model prior to completing the model update
+  request.
 
 Any request to update the model that does not adhere to those requirements
 MUST generate an error ([model_compliance_error](#model_compliance_error)).
@@ -3627,17 +3643,14 @@ also used by the `endpoints` Group.
 "modelsource": {
   "groups": {
     "messagegroups": {
-      "plural": "messagegroups",
       "singular": "messagegroup",
       "resources": {
         "messages": {
-          "plural": "messages",
           "singular": "message"
         }
       }
     },
     "endpoints": {
-      "plural": "endpoints",
       "singular": "endpoint",
       "ximportresources": [ "/messagegroups/messages" ]
     }
@@ -3753,7 +3766,6 @@ from an external Group named `group1` in another xRegistry.
   }
   "groups": {
     "mygroups": {
-      "plural": "mygroups",
       "singular": "mygroup",
       "attributes": {
         "attr1": {
@@ -3791,8 +3803,8 @@ and the second include target might look like:
 ### Exporting
 
 The `/export` API MUST be an alias for
-`GET /?doc&inline=*,model,capabilities". If supported, it MUST only
-support the `GET` HTTP method. This API was created:
+`GET /?doc&inline=*,capabilities,modelsource". If supported, it MUST NOT
+support any HTTP update methods. This API was created:
 - As a shorthand convenience syntax for clients that need to download the
   entire Registry as a single document. For example, to then be used in an
   "import" type of operation for another Registry, or for tooling that
@@ -3843,12 +3855,12 @@ Groups include the following
 [common attributes](#common-attributes):
 - [`<GROUP>id`](#singularid-id-attribute) - REQUIRED in API and document views.
   OPTIONAL in requests.
-- [`self`](#self-attribute) - REQUIRED in API and document views. OPTIONAL in
-  requests.
+- [`self`](#self-attribute) - REQUIRED in API and document views.
+  OPTIONAL/ignored in requests.
 - [`shortself`](#shortself-attribute) - OPTIONAL in API and document views,
-  based on the `shortself` capability. OPTIONAL in requests.
-- [`xid`](#xid-attribute) - REQUIRED in API and document views. OPTIONAL in
-  requests.
+  based on the `shortself` capability. OPTIONAL/ignored in requests.
+- [`xid`](#xid-attribute) - REQUIRED in API and document views.
+  OPTIONAL/ignored in requests.
 - [`epoch`](#epoch-attribute) - REQUIRED in API and document views. OPTIONAL in
   requests.
 - [`name`](#name-attribute) - OPTIONAL.
@@ -3915,7 +3927,7 @@ Link: <URL>;rel=next;count=<UINTEGER> ?
 
 **Examples:**
 
-Retrieve all entities in the `endpoints` Group:
+Retrieve all entities in the `endpoints` Group collection:
 
 ```yaml
 GET /endpoints
@@ -3973,7 +3985,7 @@ Entities](#creating-or-updating-entities) section.
 - `POST  /`                 # Create/update multiple Groups of varying types
 
 This API is very similar to the `POST /<GROUPS>` above, except that the HTTP
-body MUST be a map of Group types as shown below:
+body MUST be a map of Group types as shown in the example below:
 
 ```yaml
 {
@@ -3996,7 +4008,8 @@ specified Groups without modifying the Registry's attributes.
 The response in this case MUST be a map of the Group types with just the
 Groups that were processed as part of the request.
 
-Each individual Group definition MUST adhere to the following:
+For all of the above APIs, each individual Group definition in a request
+MUST adhere to the following:
 
 ```yaml
 {
@@ -4014,8 +4027,6 @@ Each individual Group definition MUST adhere to the following:
   "modifiedat": "<TIMESTAMP>", ?
 
   # Repeat for each Resource type in the Group
-  "<RESOURCES>url": "<URL>",                     # e.g. "messagesurl"
-  "<RESOURCES>count": <UINTEGER>,                # e.g. "messagescount"
   "<RESOURCES>": { Resources collection } ?
 }
 ```
@@ -4039,7 +4050,8 @@ Each individual Group in a successful response MUST adhere to the following:
 
   # Repeat for each Resource type in the Group
   "<RESOURCES>url": "<URL>",                    # e.g. "messagesurl"
-  "<RESOURCES>count": <UINTEGER>                # e.g. "messagescount"
+  "<RESOURCES>count": <UINTEGER>,               # e.g. "messagescount"
+  "<RESOURCES>": { Resource collection }?       # If inlined
 }
 ```
 
@@ -4152,7 +4164,7 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "<GROUP>id": "ep1",
+  "endpointid": "ep1",
   "self": "https://example.com/endpoints/ep1",
   "xid": "/endpoints/ep1",
   "epoch": 1,
@@ -4196,7 +4208,7 @@ The Resource entity serves three purposes:
     managed. This is true even if the Resource type is defined to not use
     versioning, meaning the number of Versions allowed is just one. The
     Versions will appear as a nested entity under the `versions` attribute.<br>
-2 - It is an alias for the "default" Version of the Resource. Most
+2 - It acts as an alias for the "default" Version of the Resource. Most
     operations directed at the URL of the Resource will act upon that Version,
     not the Resource itself. See
     [Default Version of a Resource](#default-version-of-a-resource) and
@@ -4225,15 +4237,15 @@ However, there a few exceptions:
 
 The remainder of this section discusses the processing rules for Resources
 and Versions. While it mainly uses the term "Resource" for ease of reading, in
-most cases it can be assumed that the same applies for "Versions". When this
-is not the case, it will be explicitly called out.
+most cases it can be assumed that the same processing applies for "Versions".
+When this is not the case, it will be explicitly called out.
 
 #### Resource Metadata vs Resource Document
 
 Unlike Groups, which consist entirely of xRegistry managed metadata, Resources
 typically have their own domain-specific data and document format that needs
 to be kept distinct from the xRegistry Resource metadata. As discussed
-previously, the model definition for Resource has a `hasdocument` attribute
+previously, the model definition for Resources has a `hasdocument` attribute
 indicating whether a Resource type defines its own separate document or not.
 
 This specification does not define any requirements for the contents of this
@@ -4287,11 +4299,11 @@ becomes available via a set of `<RESOURCE>*` attributes within that metadata:
   instead.
 
 - `<RESOURCE>base64`: this attribute MUST be used when the contents of the
-  Resource's are stored within the Registry but `<RESOURCE>` cannot be used.
+  Resource are stored within the Registry but `<RESOURCE>` cannot be used.
   The Resource's document is base64 encoded and serialized as a string.
 
 - `<RESOURCE>url`: this attribute MUST be used when the Resource is stored
-  external to the Registry and its value MUST be a URL that can be used to
+  external to the Registry. Its value MUST be a URL that can be used to
   retrieve its contents via an HTTP(s) `GET`. There is no requirement for the
   server to validate this URL.
 
@@ -4348,7 +4360,7 @@ Resource attribute MUST adhere to the following:
   "xid": "<XID>",                            # Relative URI to Resource
   # Default Version attributes appear here
 
-  "metaurl": "<URL>",
+  "metaurl": "<URL>",                        # Same as "meta.self" below
   "meta": {                                  # Only if inlined
     "<RESOURCE>id": "<STRING>",
     "self": "<URL>",                         # Absolute Meta URL, not Version
@@ -4364,7 +4376,7 @@ Resource attribute MUST adhere to the following:
     "deprecated": { ... }, ?
 
     "defaultversionid": "<STRING>",
-    "defaultversionurl": "<URL>",
+    "defaultversionurl": "<URL>",            # Absolute URL to default Version
     "defaultversionsticky": <BOOLEAN>        # Default=false
   }, ?
   "versionsurl": "<URL>",
@@ -4398,12 +4410,12 @@ The Resource level attributes include the following
 [common attributes](#common-attributes):
 - [`<RESOURCE>id`](#singularid-id-attribute) - REQUIRED in API and document
   views. OPTIONAL in requests.
-- [`self`](#self-attribute) - REQUIRED in API and document views. OPTIONAL in
-  requests.
+- [`self`](#self-attribute) - REQUIRED in API and document views.
+  OPTIONAL/ignored in requests.
 - [`shortself`](#shortself-attribute) - OPTIONAL in API and document views,
-  based on the `shortself` capability. OPTIONAL in requests.
-- [`xid`](#xid-attribute) - REQUIRED in API and document views. OPTIONAL in
-  requests.
+  based on the `shortself` capability. OPTIONAL/ignored in requests.
+- [`xid`](#xid-attribute) - REQUIRED in API and document views.
+  OPTIONAL/ignored in requests.
 
 and the following Resource level attributes:
 
@@ -4430,12 +4442,12 @@ and the following Resource level attributes:
   - When not specified, the default value MUST be `false`.
   - It MUST be a case-sensitive `true` or `false`.
   - A request to update a read-only Resource MUST generate an error
-    ([readonly](#readonly)) unless the `?noreadonly` query parameter was used,
-    in which case the error MUST be silently ignored. See
+    ([readonly](#readonly)) unless the `?ignorereadonly` query parameter was
+    used, in which case the error MUST be silently ignored. See
     [Registry APIs](#registry-apis) for more information.
 
 ##### `compatibility` Attribute
-- Type: String (with resource-specified enumeration of possible values)
+- Type: String (with Resource-specified enumeration of possible values)
 - Description: States that Versions of this Resource adhere to a certain
   compatibility rule. For example, a "backward" compatibility value would
   indicate that all Versions of a Resource are backwards compatible with the
@@ -4552,7 +4564,7 @@ and the following Resource level attributes:
     the deprecation of the Resource. This specification does not mandate any
     particular format or information, however some possibilities include:
     reasons for the deprecation or additional information about likely
-    alternative Resources. The URL MUST support an HTTP GET request.
+    alternative Resources. The URL MUST support an HTTP(s) GET request.
 
   Note that an implementation is not mandated to use this attribute in
   advance of removing a Resource, but is it RECOMMENDED that they do so.
@@ -4613,13 +4625,14 @@ and the following Resource level attributes:
 ##### `defaultversionsticky` Attribute
 - Type: Boolean
 - Description: indicates whether or not the "default" Version has been
-  explicitly set or whether the "default" Version is always the newest one
-  (based on the Resource's
+  explicitly set or whether the "default" Version is defaulting to the newest
+  one (based on the Resource's
   [`versionmode`](#--model-groupsstringresourcesstringversionmode) algorithm).
   A value of `true` means that it has been explicitly set and the value of
   `defaultversionid` MUST NOT automatically change if Versions are added or
   removed. A value of `false` means the default Version MUST be the newest
-  Version.
+  Version, as defined by the Resource's
+  [`versionmode`](#--model-groupsstringresourcesstringversionmode) algorithm.
 
   When set to `true`, if the default Version is deleted, then without any
   indication of which Version is to become the new default Version, the
@@ -4702,12 +4715,9 @@ and the following Resource level attributes:
   When specified, it MUST appear as an attribute of the Resource as a sibling
   to the Resource's default Version attributes.
 
-- API View Constraints:
+- Constraints:
   - REQUIRED when requested by the client.
   - MUST NOT appear unless requested by the client.
-
-- Document View Constraints:
-  - REQUIRED.
 
 Note: doing a `PUT` to a Resource, or a `POST` to an xRegistry Collection, as
 a mechanism to update the `meta` sub-object MUST include the Resource
@@ -4752,9 +4762,9 @@ message's body:
 - As its underlying domain-specific document.
 - As its xRegistry metadata.
 
-Which variant is used is controlled by the use of `$details` on the URL path.
-The following sections go into more details about these two serialization
-options.
+Which variant is used is most often controlled by the use of `$details` on
+the URL path. The following sections go into more details about these two
+serialization options.
 
 ##### Serializing Resource Documents
 
@@ -4828,7 +4838,7 @@ xRegistry-<RESOURCE>url: <URL> ?           # End of default Version attributes
 xRegistry-metaurl: <URL>                   # Resource level attributes
 xRegistry-versionsurl: <URL>
 xRegistry-versionscount: <UINTEGER>
-Location: <URL>
+Location: <URL> ?
 Content-Location: <URL> ?
 Content-Disposition: <STRING> ?
 
@@ -4852,7 +4862,7 @@ Where:
 
 Version serialization will look similar, but the set of xRegistry HTTP headers
 will be slightly different (to exclude Resource level attributes). See the
-next sections for more information.
+"[Retrieving a Version](#retrieving-a-version)" section for more information.
 
 Scalar default Version extension attributes MUST also appear as
 `xRegistry-` HTTP headers.
@@ -4864,7 +4874,8 @@ serialization of the entity such that, rather than the HTTP body containing
 the entity's domain-specific "document" and the xRegistry metadata being
 in HTTP headers, all of them are instead within the HTTP body as one JSON
 object. If the entity's "document" is included within the object then it
-appears under a `<RESOURCE>*` attribute (as discussed above).
+appears under a `<RESOURCE>*` attribute (as discussed
+[above](#resource-metadata-vs-resource-document)).
 
 The advantage of this format is that the HTTP body will contain all of the
 xRegistry metadata and not just the scalar values - as is the case when they
@@ -4916,7 +4927,7 @@ this form:
     "readonly": <BOOLEAN>,                   # Default=false
     "compatibility": "<STRING>",             # Default=none
     "compatibilityauthority": "<STRING>", ?  # Default=external
-    "deprecated": { ... },
+    "deprecated": { ... }, ?
 
     "defaultversionid": "<STRING>",
     "defaultversionurl": "<URL>",
@@ -4946,51 +4957,11 @@ The second, and better, option is to create a cross-reference from one
 by setting the `xref` attribute on the source Resource to be the `xid`
 of the target Resource.
 
-The `xref` attribute is defined in the model as:
+For example: a `schema` Resource instance defined via:
 
 ```yaml
-"xref": {
-  "name": "xref",
-  "type": "xid",
-  "target": "/<GROUPS>/<RESOURCES>"
-}
-```
+PUT /schemagroups/group1/schemas/mySchema$details
 
-where `/<GROUPS>/<RESOURCES>` will be the actual Group and Resource plural
-names of this Resource.
-
-Looking at a specific example, a Group/Resource model definition of:
-
-```yaml
-{
-  "groups" : {
-    "schemagroups": {
-      "plural": "schemagroups",
-      "singular": "schemagroup",
-
-      "resources": {
-        "plural": "schemas",
-        "singular": "schema",
-        "attributes": {
-          "xref": {
-            "name": "xref",
-            "type": "xid",
-            "target": "/schemagroups/schemas"
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-Means that `schemas` can be cross-referenced to other `/schemagroups/schema`
-Resources. Notice that `target` is a `xid` template to itself.
-
-For example: a `schema` Resource instance defined as (HTTP body of
-`PUT /schemagroups/group1/schemas/mySchema$details`):
-
-```yaml
 {
   "schemaid": "mySchema",
   "meta": {
@@ -5078,7 +5049,7 @@ converting it from a "cross-reference" Resource back into a "normal"
 Resource. See the following for more information:
 
 When converting a "normal" Resource into a cross-reference Resource (adding
-an `xref` value), or creating a new Resource that will be a cross-reference
+an `xref` value), or creating/updating a Resource that is a cross-reference
 Resource, the following MUST be adhered to:
 - The request MUST include an `xref` attribute with a value that is
   the `xid` of the target Resource.
@@ -5086,8 +5057,9 @@ Resource, the following MUST be adhered to:
   Resource) on the Resource or `meta` sub-object.
 - The request MAY include `epoch` within `meta` (to do an `epoch` validation
   check) only if the Resource already exists.
-- The request MUST NOT include any other attributes or nested collections.
-  This includes default Version attributes within the Resource serialization.
+- The request MUST NOT include nested collections or any other attributes
+  (for the Resource or its "meta" sub-object). This includes default Version
+  attributes within the Resource serialization.
 - If the Resource already exists, then any Versions associated with the
   Resource MUST be deleted.
 
@@ -5099,13 +5071,14 @@ following MUST be adhered to:
   request to set the default Version attributes. Absence of any attributes
   MUST result in a default Version being created with all attributes set
   to their default values. Note that normal Resource update semantics apply.
-- When not specified in the request, the Resource's `createdat` value MUST be
-  reset to the timestamp of when this source Resource was originally created.
-- When not specified in the request, the Resource's `modifiedat` value MUST be
-  set to "now".
-- The Resource's `epoch` value (in `meta`) MUST be greater than the original
+- When not specified in the request, the Resource's `meta.createdat` value
+  MUST be reset to the timestamp of when this source Resource was originally
+  created.
+- When not specified in the request, the Resource's `meta.modifiedat` value
+  MUST be set to "now".
+- The Resource's `meta.epoch` value MUST be greater than the original
   Resource's previously known value (if any) and greater than the target
-  Resource's `epoch` value. In pseudocode this is:
+  Resource's `meta.epoch` value. In pseudocode this is:
     `epoch = max(original_Epoch, target_Resource_Epoch) + 1`.
   This will ensure that the Resource's `epoch` value will never decrease as a
   result of this operation. Note that going from a "normal" Resource to a
@@ -5142,7 +5115,7 @@ and `xref` attributes.
 For convenience, the Resource and Version create, update and delete APIs can be
 summarized as:
 
-***`POST /<GROUPS>/<GID>`***
+**`POST /<GROUPS>/<GID>`**
 
 - Creates or updates one or more collection of Resource types.
 
@@ -5562,7 +5535,7 @@ and a new Version was created, then a successful response MUST include a
 `Content-Location` HTTP header to the newly created Version entity, and if
 present, it MUST be the same as the Version's `self` attribute.
 
-Note that the response MUST NOT include any inlinable attributes (such as
+Note that the response MUST NOT include any inlineable attributes (such as
 `<RESOURCE>`, `<RESOURCE>base64` or nested objects/collections).
 
 **Examples:**
@@ -5954,11 +5927,13 @@ Versions include the following
 - [`versionid`](#versionid-attribute) - REQUIRED in API and document views.
   OPTIONAL in requests.
 - [`self`](#self-attribute) - REQUIRED in API and document views.
-  OPTIONAL in requests. MUST be a URL to this Version, not the owning Resource.
+  OPTIONAL/ignored in requests. MUST be a URL to this Version, not the owning
+  Resource.
 - [`shortself`](#shortself-attribute) - OPTIONAL in API and document view,
-  based on the `shortself` capability. OPTIONAL in requests.
-- [`xid`](#xid-attribute) - REQUIRED in API and document views. OPTIONAL
-  in requests. MUST be the `xid` of this Version, not the owning Resource.
+  based on the `shortself` capability. OPTIONAL/ignored in requests.
+- [`xid`](#xid-attribute) - REQUIRED in API and document views.
+  OPTIONAL/ignored in requests. MUST be the `xid` of this Version, not the
+  owning Resource.
 - [`epoch`](#epoch-attribute) - REQUIRED in API and document views. OPTIONAL
   in requests. MUST be the `epoch` value of this Version, not the owning
   Resource.
@@ -6545,7 +6520,7 @@ Implementations of this specification SHOULD support all 3 flags.
 
 Note: If the Registry cannot return all expected data in one response because
 it is too large then it MUST generate an error ([too_large](#too_large)). In
-those cases, the client will need to query the individual inlinable attributes
+those cases, the client will need to query the individual inlineable attributes
 in isolation so the Registry can leverage
 [pagination](../pagination/spec.md) of the response.
 
@@ -6893,7 +6868,7 @@ whether nested collections/objects, or certain (potentially large) attributes,
 are to be included in the response message.
 
 The `?inline` query parameter on a request indicates that the response
-MUST include the contents of all specified inlinable attributes. Inlinable
+MUST include the contents of all specified inlineable attributes. Inlineable
 attributes include:
 - The `model` attribute on the Registry entity.
 - The `modelsource` attribute on the Registry entity.
@@ -6908,7 +6883,7 @@ separate attributes, they are technically two separate "views" of the same
 underlying data. As such, the usage of each will be based on the content type
 of the Resource, specifying `<RESOURCE>` in the `?inline` query parameter MUST
 be interpreted as a request for the appropriate attribute. In other words,
-`<RESOURCE>base64` is not a valid inlinable attribute name.
+`<RESOURCE>base64` is not a valid inlineable attribute name.
 
 Use of this feature is useful for cases where the contents of the Registry are
 to be represented as a single (self-contained) document.
@@ -6929,7 +6904,7 @@ The format of the `?inline` query parameter is:
 ?inline[=<PATH>[,...]]
 ```
 
-Where `<PATH>` is a string indicating which inlinable attributes to show in
+Where `<PATH>` is a string indicating which inlineable attributes to show in
 the response. References to nested attributes are represented using a
 dot (`.`) notation where the xRegistry collection names along the hierarchy
 are concatenated. For example: `endpoints.messages.versions` will inline all
@@ -6945,7 +6920,7 @@ escaping mechanism MUST be used: `['my.name']`. For example,
 There MAY be multiple `<PATH>`s specified, either as comma separated values on
 a single `?inline` query parameter or via multiple `?inline` query parameters.
 
-The `*` value MAY be used to indicate that all nested inlinable attributes
+The `*` value MAY be used to indicate that all nested inlineable attributes
 at that level in the hierarchy (and below) MUST be inlined - except `model`,
 `modelsource` and `capabilities` at the root of the Registry. These three are
 excluded since the data associated with them are configuration related. To
@@ -6968,7 +6943,7 @@ For example, given a Registry with a model that has `endpoints` as a Group and
 
 | HTTP `GET` Path | Example `?inline=<PATH>` values | Comment |
 | --- | --- | --- |
-| / | ?inline=endpoints | Inlines the `endpoints` collection, but just one level of it, not any nested inlinable attributes |
+| / | ?inline=endpoints | Inlines the `endpoints` collection, but just one level of it, not any nested inlineable attributes |
 | / | ?inline=endpoints.messages.versions | Inlines the `versions` collection of all messages. Note that this implicitly means the parent attributes (`messages` and `endpoints` would also be inlined - however any other `<GROUPS>` or `<RESOURCE>`s types would not be |
 | /endpoints | ?inline=messages | Inlines just `messages` and not any nested attributes. Note we don't need to specify the parent `<GROUP>` since the URL already included it |
 | /endpoints/ep1 | ?inline=messages.versions | Similar to the previous `endpoints.messages.version` example |
@@ -6985,7 +6960,7 @@ child appears, not all collections in the parent.
 When specifying a collection to be inlined, it MUST be specified using the
 plural name for the collection in its defined case.
 
-A request to inline an unknown, or non-inlinable, attribute MUST generate an
+A request to inline an unknown, or non-inlineable, attribute MUST generate an
 error ([invalid_data](#invalid_data)).
 
 #### Sort Flag

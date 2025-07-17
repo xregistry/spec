@@ -383,9 +383,10 @@ This specification defines the following envelope options for the indicated
   An example for an extension protocol identifier might be "BunnyMQ/0.9.1".
 
   Predefined protocols SHOULD be referred to by name and version as
-  `<NAME>/<VERSION>`. If the version is not specified, the default version of
-  the protocol is assumed. The version number format is determined by the
-  protocol specification's usage of versions.
+  `<NAME>/<VERSION>`. The version number format is determined by the protocol
+  specification's usage of versions. If the version is not specified, the
+  default version of the protocol is assumed. For AMQP and MQTT, see the list
+  below. For others, refer to the protocol specifications.
 
   The predefined protocol names are:
   - "HTTP" - Used for HTTP/1.1, HTTP/2, HTTP/3.

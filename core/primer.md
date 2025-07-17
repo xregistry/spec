@@ -631,13 +631,16 @@ sensitivity rules in the specification.
   All of these concerns are avoided by requiring IDs to be stored and compared
   in case insensitively.
 
-# Why the non-63 character limit on some Group and Resource names?
+# Why the lower character limit on some Group and Resource names?
 
 Attribute names and key names are limited to 63 characters, so why are some
 Group and Resource names limited to less? Because when they appear as part of
 attribute names and they can be append with phrases like `url`, `count`
 or `base64`, and they still have to fit within the 63-character limit, and so
 we need to take into account the length of those phrases.
+
+Note that Resource names are limited to 57 characters because they may be
+appended with `base64`, if their `hasdocument` model aspect is `true`.
 
 # Why must Group type and Resource type names be valid attribute names?
 
@@ -720,6 +723,39 @@ attribute has its value set to the Version's `versionid` attribute. This
 makes the ancestor explicit, and the possible ambiguity of using another
 value such as null which, based on the scenario, could mean "no ancestor" or
 "default to the newest".
+
+# `singleversionroot` Policy Enforcement
+
+Related to the previous discussions concerning the `ancestor` attribute,
+the [Resource Model](spec.md#registry-model) `singleversionroot` attribute
+controls whether a Resource is allowed to have more than one "root" Version,
+or whether all Versions of that Resource must be a descendant of the same
+"root" Version.
+
+Whether `singleversionroot` is `true` or `false` will depend on the use case
+in which the Registry is being used. Some examples that might help pick the
+most appropriate value include:
+
+- If each major version of a Resource is a significant change, such that to
+  that domain's users it could be considered an entirely new Resource (e.g.
+  a non-backwards compatible change has been made), then setting
+  `singleversionroot` to `true` and using a different xRegistry Resource for
+  each major version might be appropriate. Note that this then implies that all
+  Versions under each Resources will likely be compatible, and some
+  environments have such a policy requirement.
+
+- However, if a new Resource for each major version introduces a concern about
+  the proliferation of Resources, and a domain's users are comfortable if
+  checking the Versions string for each Version of a Resource as a hint to the
+  compatibility of the Versions, then setting `singleversionroot` to `false`
+  might be appropriate. Additionally, a value of `false` might make sense if
+  the version string is "just another attribute" of the Version and the
+  Resource is acting more like a "collection" of Versions rather than an
+  enforcer of a semantic versioning policy.
+
+These examples are not meant to be complete. The flexibility of the
+specification allows for model authors to choose the most appropriate value
+for their needs.
 
 # Pruning Versions with `singleversionroot` enabled
 
@@ -945,3 +981,24 @@ The choice of when an attribute appears in the "meta" sub-object versus in the
 Version should be driven by whether the use cases being supported by the
 Resource type definition requires that attribute to be consistent across all
 Versions or have a Version-specific value.
+
+## Why are some (conditional) read-only attributes not ignored?
+
+Attributes that are always defined as "read-only" normally have semantics such
+that attempts to update them are silently ignored. This is especially useful
+for attributes that might change over time so that clients do not need to
+either ensure they have the latest value, or remove them from an update
+request.
+
+However, there are times when trying to update a read-only attribute must
+generate an error. This will happen when the attribute might be read-only based
+on the configuration of the owning entity, in which case it is important for
+clients to know that updating this particular instance of this
+"sometimes read-only" attribute failed. So, while it may seem inconsistent,
+the risk of clients assuming a non-error response meant the request was fully
+adhere to was considered more important.
+
+For example, if a Resource is defined with the `setdefaultversionsticky`
+aspect set to `false` then the `meta.defaultversionid` attribute of instances
+of that Resource becomes "read-only". And any attempt to update it will result
+in an error being generated.

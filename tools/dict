@@ -19,7 +19,7 @@ avrotize
 avsc
 aws
 backend
-basemessageurl
+basemessage
 bson
 bunnymq
 cereg
@@ -103,10 +103,14 @@ hxregistry
 iana
 ietf
 ifvalues
+ignoredefaultversionid
+ignoredefaultversionsticky
+ignoreepoch
+ignorereadonly
 img
 impl
 inkjet
-inlinable
+inlineable
 inlined
 inlines
 inlining
@@ -175,10 +179,6 @@ nans
 nats
 nbsp
 nginx
-nodefaultversionid
-nodefaultversionsticky
-noepoch
-noreadonly
 npm
 oauth
 oci
