@@ -1002,3 +1002,15 @@ For example, if a Resource is defined with the `setdefaultversionsticky`
 aspect set to `false` then the `meta.defaultversionid` attribute of instances
 of that Resource becomes "read-only". And any attempt to update it will result
 in an error being generated.
+
+## Why isn't `PUT` idempotent?
+
+As stated in the [core](spec.md) specification, the `PUT` operations are
+almost idempotent, per the HTTP specification. For the most part, multiple
+similar `PUT` requests will have the same effect as a single one, with the
+exception that `epoch` and `modifiedat` will be updated each time. This is
+due to the desire to avoid having server implementations perform a "diff" type
+of check on all attributes to determine if anything changed, and then only
+"bumping" those attributes' values if there was a change. This could be an
+expensive or ambiguous check to perform, so it was determined it would be best
+to avoid it all together.
