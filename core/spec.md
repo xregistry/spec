@@ -44,6 +44,7 @@ automation and tooling.
     - [Retrieving a Version](#retrieving-a-version)
     - [Deleting Versions](#deleting-versions)
   - [Configuring Responses](#configuring-responses)
+    - [Binary Flag](#binary-flag)
     - [Collections Flag](#collections-flag)
     - [Doc Flag](#doc-flag)
     - [Filter Flag](#filter-flag)
@@ -630,7 +631,7 @@ be one of the following data types:
      the serialization of an array that is syntactically valid for the
      format being used, but not semantically valid per the xRegistry model
      definition MUST NOT be accepted and MUST generate an error
-     ([invalid_data_type](#invalid_data_type)).
+     ([invalid_data](#invalid_data)).
 - `boolean` - case-sensitive `true` or `false`.
 - `decimal` - number (integer or floating point).
 - `integer` - signed integer.
@@ -5743,7 +5744,7 @@ xRegistry-versionsurl: <URL>
 xRegistry-versionscount: <UINTEGER>
 Location: <URL> ?                 # If Resource is not in body
 Content-Location: <URL> ?
-Content-Disposition: <STRING>
+Content-Disposition: <STRING> ?
 
 ... Resource document ...         # If <RESOURCE>url is not set
 ```
@@ -6402,8 +6403,8 @@ xRegistry-xid: /endpoints/ep1/messages/msg1/versions/1.0
 xRegistry-epoch: 2
 xRegistry-name: Blob Created
 xRegistry-isdefault: true
-xRegistry-createdat: <TIMESTAMP>
-xRegistry-modifiedat: <TIMESTAMP>
+xRegistry-createdat: 2024-04-30T12:00:00Z
+xRegistry-modifiedat: 2024-04-30T12:00:01Z
 xRegistry-ancestor: 1.0
 Content-Disposition: msg1
 
@@ -6513,7 +6514,7 @@ with an empty HTTP body, or:
 HTTP/1.1 200 OK
 ```
 
-If, as an extension, the server chooses to return additional data in the
+If, as an extension, the server MAY choose to return additional data in the
 HTTP body.
 
 **Examples:**
@@ -6533,21 +6534,28 @@ HTTP/1.1 204 No Content
 ### Configuring Responses
 
 Any request MAY include a set of query parameters (flags) to control how the
-response is to be generated. The following sections will define the following
+response is to be generated. The following sections defines the following
 flags:
+- [`?binary`](#binary-flag)
 - [`?collections`](#collections-flag)
 - [`?doc`](#doc-flag)
 - [`?filter`](#filter-flag)
 - [`?inline`](#inline-flag)
 - [`?sort`](#sort-flag)
 
-Implementations of this specification SHOULD support all 3 flags.
+Implementations of this specification SHOULD support all flags, if support for
+query parameters is possible..
 
-Note: If the Registry cannot return all expected data in one response because
-it is too large then it MUST generate an error ([too_large](#too_large)). In
-those cases, the client will need to query the individual inlineable attributes
-in isolation so the Registry can leverage
-[pagination](../pagination/spec.md) of the response.
+#### Binary Flag
+
+The `?binary` query parameter (flag) MAY be used on requests to indicate that
+the server MUST use the `<RESOURCE>base64` attribute instead of the
+`<RESOURCE>` attribute when serializing any Resource's domain document in the
+response message. Note, the presence of this flag does not change when the
+document is inlined, just how it is serialized if it is inlined.
+
+This flag is intended for cases where the client wishes to avoid the server
+modifying the bytes of the document in any way - such as "pretty printing" it.
 
 #### Collections Flag
 
@@ -6559,7 +6567,7 @@ that are defined at that level. Specifying it on a request directed to
 some other part of the Registry MUST generate an error ([bad_flag](#bad_flag)).
 Use of this flag MUST implicitly turn on inlining - `?inline=*`.
 
-Servers MAY choose include, or exclude, the sibling `<COLLECTION>url` and
+Servers MAY choose to include, or exclude, the sibling `<COLLECTION>url` and
 `<COLLECTION>count` attributes for those top-level collections.
 
 Note that this feature only applies to the root entity of the response and not
@@ -6588,6 +6596,7 @@ the following:
 - Convert the following attributes into relative URLs if, and only if, the
   entities that they reference are included in the response output:
   `self`, `<COLLECTION>url`, `metaurl`, `defaultversionurl`.
+- Serialize Resources and Versions as if `$details` was provided.
 
 All of the relative URLs mentioned in the last bullet MUST begin with `#`
 and be followed by a
@@ -6693,7 +6702,7 @@ Where:
 - All `<EXPRESSION>` values within the scope of one `?filter` query parameter
   MUST be evaluated as a logical `AND` and any matching entities MUST satisfy
   all of the specified expressions within that `?filter` query parameter.
-- The `?filter` query parameter can appear multiple times and if so MUST
+- The `?filter` query parameter MAY appear multiple times and if so MUST
   be evaluated as a logical `OR` with the other `?filter` query parameters that
   appear and the response MUST include all entities that match any of the
   individual `?filter` query parameters.
@@ -6711,12 +6720,12 @@ The format of `<EXPRESSION>` is one of:
 [<PATH>.]<ATTRIBUTE>
 [<PATH>.]<ATTRIBUTE>=null
 [<PATH>.]<ATTRIBUTE>=[<VALUE>]
-[<PATH>.]<ATTRIBUTE>< <VALUE>
+[<PATH>.]<ATTRIBUTE><<VALUE>
 [<PATH>.]<ATTRIBUTE><=<VALUE>
-[<PATH>.]<ATTRIBUTE>> <VALUE>
+[<PATH>.]<ATTRIBUTE>><VALUE>
 [<PATH>.]<ATTRIBUTE>>=<VALUE>
 [<PATH>.]<ATTRIBUTE>!=<VALUE>
-[<PATH>.]<ATTRIBUTE><> <VALUE>
+[<PATH>.]<ATTRIBUTE><><VALUE>
 ```
 
 Where:
@@ -6731,7 +6740,8 @@ Where:
   otherwise an error ([invalid_data](#invalid_data)) MUST be generated.
 - `<ATTRIBUTE>` MUST be the attribute in the entity to be examined.
 - Complex attributes (e.g. `labels`) MUST use dot (`.`) to reference nested
-  attributes. For example: `labels.stage=dev` for a filter.
+  attributes. For example: `labels.stage=dev`.
+- A non-`null` `<VALUE>` MUST only be used when referencing scalar attributes.
 - A reference to a nonexistent attribute SHOULD NOT generate an error and
   SHOULD be treated the same as a non-matching situation. For example,
   `?filter=myobj.myattr=5` would not match if: `myobj` is missing, `myattr` is
@@ -6768,7 +6778,6 @@ Where:
     - `>` refers to "greater than".
     - `>=` refers to "greater than or equal to".
     - Wildcards (`*`) (see below) MUST NOT be present in the `<VALUE>`.
-    - MUST only be used on numeric or string attribute types.
 
 For comparing an `<ATTRIBUTE>` to the specified `<VALUE>`, and for purposes
 of sorting (see the [`?sort`](#sort-flag) flag), the type of the attribute
@@ -6815,7 +6824,7 @@ other words, a `404 Not Found` would be generated in the HTTP protocol case.
 | / | `?filter=description=no-match` | Returns a 404 if the Registry's `description` doesn't equal `no-match` |
 | / | `?filter=endpoints.messages.meta.readonly=true` | Only messages that are `readonly` |
 
-Specifying a filter does not imply inlining. However, inlining can be used at
+Specifying a filter does not imply inlining. Inlining MAY be used at
 the same time but MUST NOT result in additional entities being included in
 the results unless they are children of a matching leaf entity.
 
@@ -6906,8 +6915,8 @@ attributes include:
 While the `<RESOURCE>` and `<RESOURCE>base64` attributes are defined as two
 separate attributes, they are technically two separate "views" of the same
 underlying data. As such, the usage of each will be based on the content type
-of the Resource, specifying `<RESOURCE>` in the `?inline` query parameter MUST
-be interpreted as a request for the appropriate attribute. In other words,
+of the Resource, and specifying `<RESOURCE>` in the `?inline` query parameter
+MUST be interpreted as a request for the appropriate attribute. In other words,
 `<RESOURCE>base64` is not a valid inlineable attribute name.
 
 Use of this feature is useful for cases where the contents of the Registry are
@@ -6916,7 +6925,7 @@ to be represented as a single (self-contained) document.
 Some examples:
 - `GET /?inline=model`                 # Just 'model'
 - `GET /?inline=model,endpoints`       # Model and one level under `endpoints`
-- `GET /?inline=*`                     # Everything except 'model'
+- `GET /?inline=*`                     # Everything except 'model','modelsource','capabilities'
 - `GET /?inline=model,*`               # Everything, including 'model'
 - `GET /?inline=endpoints.messages`    # One level below 'endpoints.messages'
 - `GET /?inline=endpoints.*`           # Everything below 'endpoints'
@@ -6969,12 +6978,12 @@ For example, given a Registry with a model that has `endpoints` as a Group and
 | HTTP `GET` Path | Example `?inline=<PATH>` values | Comment |
 | --- | --- | --- |
 | / | ?inline=endpoints | Inlines the `endpoints` collection, but just one level of it, not any nested inlineable attributes |
-| / | ?inline=endpoints.messages.versions | Inlines the `versions` collection of all messages. Note that this implicitly means the parent attributes (`messages` and `endpoints` would also be inlined - however any other `<GROUPS>` or `<RESOURCE>`s types would not be |
+| / | ?inline=endpoints.messages.versions | Inlines the `versions` collection of all messages. Note that this implicitly means the parent entities (`messages` and `endpoints` would also be inlined - however any other `<GROUPS>` or `<RESOURCE>`s types would not be |
 | /endpoints | ?inline=messages | Inlines just `messages` and not any nested attributes. Note we don't need to specify the parent `<GROUP>` since the URL already included it |
 | /endpoints/ep1 | ?inline=messages.versions | Similar to the previous `endpoints.messages.version` example |
-| /endpoints/ep1 | ?inline=messages.message | Inline the Resource itself |
+| /endpoints/ep1 | ?inline=messages.message | Inline the Resource document |
 | /endpoints/ep1 | ?inline=endpoints | Invalid, already in `endpoints` and there is no `<RESOURCE>` called `endpoints` |
-| / | ?inline=endpoints.messages.meta | Inlines the `meta` attributes/sub-object of each `message` returned. |
+| / | ?inline=endpoints.messages.meta | Inlines the `meta` sub-object of each `message` returned. |
 | / | ?inline=endpoints.* | Inlines everything for all `endpoints`. |
 
 Note that asking for an attribute to be inlined will implicitly cause all of
@@ -6987,6 +6996,12 @@ plural name for the collection in its defined case.
 
 A request to inline an unknown, or non-inlineable, attribute MUST generate an
 error ([invalid_data](#invalid_data)).
+
+Note: If the Registry cannot return all expected data in one response because
+it is too large then it MUST generate an error ([too_large](#too_large)). In
+those cases, the client will need to query the individual inlineable attributes
+in isolation so the Registry can leverage
+[pagination](../pagination/spec.md) of the response.
 
 #### Sort Flag
 
@@ -7003,7 +7018,7 @@ The format of the `?sort` query parameter is:
 Where:
 - `<ATTRIBUTE>` MUST be the JSONPath to one of the attributes defined in
   collection's entities that will be the primary sort key for the results.
-  The attribute MUST only reference an attribute within the top-level
+  The attribute MUST only reference a scalar attribute within the top-level
   collection, it MUST NOT attempt to traverse into a nested xRegistry
   collection even if that nested collection is inlined.
 - An OPTIONAL "sort order" (`asc` for ascending, `desc` for descending) MAY
@@ -7016,7 +7031,9 @@ implementations SHOULD treat that entity's sort-key value as `NULL`.
 
 When [pagination](../pagination/spec.md) is used to return the results, but
 the `?sort` flag is not specified, then the server MUST sort the results on the
-entities' `<SINGULAR>id` value in ascending order.
+entities' `<SINGULAR>id` value in ascending order. When pagination is not used,
+it is RECOMMENDED that servers still sort the results by `<SINGULAR>id` (asc)
+for consistency.
 
 Sorting MUST be done using the data type comparison rules as specified in the
 [filter Flag](#filter-flag) section. However, there are certain situations
@@ -7038,7 +7055,7 @@ specified for the primary sorting key.
 Some examples:
 - `GET /endpoints?sort=name`          # Sort (asc) on 'name', then 'endpointid'
 - `GET /endpoints/e1/messages?sort=messageid=desc` # Sort (desc) on 'messageid'
-- `GET /endpoints?sort=labels.stage`  # Sort (asc) on `labels.stage` then `endpointid`
+- `GET /endpoints?sort=labels.stage`  # Sort (asc) on `labels.stage`, then `endpointid`
 
 ### HTTP Header Values
 
@@ -7130,7 +7147,7 @@ a more appropriate one (or a custom one).
 When an error is transmitted back to clients, it SHOULD adhere to the format
 specified in this section - which references the [Problem Details for HTTP
 APIs](https://datatracker.ietf.org/doc/html/rfc9457) specification, and when
-used MUST be of the following form:
+used, MUST be of the following form:
 
 ```yaml
 HTTP/1.1 <CODE>
@@ -7150,8 +7167,8 @@ Where:
 - "type" is a URI to the error definition.
 - "instance" is a URL to the entity being processed when the error occurred.
 - "title" is a human-readable summary of the error.
-- "detail" is human-readable detailed information about the error. Typically
-  will include suggestions for how to fix the error.
+- "detail" is additional information about the error. Typically will include
+  suggestions for how to fix the error.
 
 `<CODE>`, `"type"`, `"instance"` and `title` fields are REQUIRED. All other
 fields are OPTIONAL unless overwise stated as part of the error definition. Any
@@ -7174,8 +7191,6 @@ as appropriate, including being specified in a language other than English.
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE VERSION BEING PROCESSED>`
 * Title: `The assigned "ancestor" value (<ANCESTOR VALUE>) creates a circular reference`
-* Data:  n/a
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### api_not_found
 
@@ -7183,8 +7198,6 @@ as appropriate, including being specified in a language other than English.
 * Code: `404 Not Found`
 * Instance: `<REQUEST URL>`
 * Title: `The specified path (<INVALID PATH>) is not supported`
-* Data: `<INVALID PATH>`
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### bad_flag
 
@@ -7192,8 +7205,6 @@ as appropriate, including being specified in a language other than English.
 * Code: `400 Bad Request`
 * Instance: `<REQUEST URL>`
 * Title: `The specified query parameter (<QUERY PARAMETER>) is not allowed in this context`
-* Data:  <QUERY PARAMETER NAME AND VALUE>`
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### bad_request
 
@@ -7205,8 +7216,6 @@ SHOULD attempt to use a more specific error when possible.
 * Code: `400 Bad Request`
 * Instance: `<REQUEST URL>`
 * Title: `The request cannot be processed as provided`
-* Data: `<SHORT DESCRIPTION OF THE PROBLEMATIC DATA OR REASON>`
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### cannot_doc_xref
 
@@ -7214,8 +7223,6 @@ SHOULD attempt to use a more specific error when possible.
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE RESOURCE BEING RETRIEVED>`
 * Title: `Retrieving the document view of an xref'd Resource's Versions is not possible`
-* Data: `<THE RESOURCE'S URL>`
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### capability_error
 
@@ -7223,8 +7230,6 @@ SHOULD attempt to use a more specific error when possible.
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE XREGISTRY SERVER>`
 * Title: `There was an error in the capabilities provided`
-* Data: `<CAPABILITY JSON SNIPPET THAT CAUSED THE ISSUE>`
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### compatibility_violation
 
@@ -7232,8 +7237,7 @@ SHOULD attempt to use a more specific error when possible.
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE VERSION THAT CAUSED THE VIOLATION>`
 * Title: `The request would cause one or more Versions of this Resource to violate the Resource's compatibility rules (<COMPATIBILITY ATTRIBUTE VALUE>)`
-* Data: `<LIST OF "VERSIONID" VALUES THAT WOULD BE IN VIOLATION>`
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
+* Detail: `<LIST OF versionid VALUE THAT WOULD BE IN VIOLATION>`
 
 #### data_retrieval_error
 
@@ -7241,8 +7245,6 @@ SHOULD attempt to use a more specific error when possible.
 * Code: `500 Internal Server Error`
 * Instance: `<REQUEST URL>`
 * Title: `The server was unable to retrieve all of the requested data`
-* Data: `<SHORT DESCRIPTION OF THE PROBLEMATIC DATA OR REASON>`
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### defaultversionid_not_allowed
 
@@ -7250,8 +7252,6 @@ SHOULD attempt to use a more specific error when possible.
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE RESOURCE BEING PROCESSED>`
 * Title: `"defaultversionid" is not allowed to be specified`
-* Data: `<DEFAULTVERSIONID SPECIFIED>`
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### details_required
 
@@ -7259,8 +7259,6 @@ SHOULD attempt to use a more specific error when possible.
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `$details suffixed is needed when using PATCH for this Resource`
-* Data:  n/a
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### extra_xregistry_headers
 
@@ -7268,8 +7266,7 @@ SHOULD attempt to use a more specific error when possible.
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `xRegistry HTTP headers are not allowed on this request`
-* Data: `<LIST OF XREGISTRY HTTP HEADER NAMES>`
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
+* Detail: `<LIST OF HEADERS>`
 
 #### header_decoding_error
 
@@ -7277,17 +7274,13 @@ SHOULD attempt to use a more specific error when possible.
 * Code: `400 Bad Request`
 * Instance: `<REQUEST URL>`
 * Title: `The value ("<HEADER VALUE>") of the HTTP "<HEADER NAME>" header cannot be decoded`
-* Data:  <HEADER VALUE>`
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### invalid_character
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#invalid_character`
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE ENTITY BEING PROCESSED>`
-* Title: `An invalid character (<THE CHARACTER>) was specified an attribute's name (<FULL ATTRIBUTE NAME>)`
-* Data:  <INVALID CHARACTER>`
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
+* Title: `An invalid character (<THE CHARACTER>) was specified in an attribute's name (<FULL ATTRIBUTE NAME>)`
 
 #### invalid_data
 
@@ -7295,17 +7288,7 @@ SHOULD attempt to use a more specific error when possible.
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `The data provided for "<ATTRIBUTE/PARAMETER NAME>" is invalid`
-* Data:  <INVALID DATA>`
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
-
-#### invalid_data_type
-
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#invalid_data_type`
-* Code: `400 Bad Request`
-* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
-* Title: `A value of an incorrect data-type was specified`
-* Data: `<THE INVALID DATA>`
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
+* Detail: `<THE INVALID DATA>`
 
 #### method_not_allowed
 
@@ -7313,8 +7296,6 @@ SHOULD attempt to use a more specific error when possible.
 * Code: `405 Method Not Allowed`
 * Instance: `<REQUEST URL>`
 * Title: `The specified HTTP method (<INVALID METHOD>) is not supported for: <REQUEST URL>`
-* Data: `<THE UNSUPPORTED HTTP METHOD>`
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### mismatched_epoch
 
@@ -7322,8 +7303,6 @@ SHOULD attempt to use a more specific error when possible.
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `The specified epoch value (<INVALID EPOCH>) does not match its current value (<CURRENT EPOCH>)`
-* Data: `<THE INVALID EPOCH VALUE>`
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### mismatched_id
 
@@ -7331,8 +7310,6 @@ SHOULD attempt to use a more specific error when possible.
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `The specified <SINGULAR TYPE NAME> ID value (<INVALID ID>) needs to be "<EXPECTED ID>"`
-* Data: `<THE INVALID ID VALUE>`
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### misplaced_epoch
 
@@ -7340,8 +7317,6 @@ SHOULD attempt to use a more specific error when possible.
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `The specified "epoch" value needs to be within a "meta" sub-object`
-* Data:  n/a
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### missing_versions
 
@@ -7349,8 +7324,6 @@ SHOULD attempt to use a more specific error when possible.
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `At least one Version needs to be included in the request`
-* Data: `<URL TO ENTITY BEING PROCESSED>`
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### model_compliance_error
 
@@ -7358,26 +7331,22 @@ SHOULD attempt to use a more specific error when possible.
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE XREGISTRY SERVER>`
 * Title: `The model provided would cause one or more entities in the Registry to become non-compliant`
-* Data: `<LIST OF XIDS OF NON-COMPLIANT ENTITIES>`
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
+* Detail: `<LIST OF NON_COMPLIANT XIDs>`
 
 #### model_error
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#model_error`
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE XREGISTRY SERVER>`
-* Title: `There was an error in the model definition provided`
-* Data: `<MODEL JSON SNIPPET THAT CAUSED THE ISSUE>`
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
+* Title: `There was an error in the model definition provided at <JSON PATH TO ERROR>`
+* Detail: `<PROBLEMATIC JSON SNIPPET>`
 
 #### multiple_roots
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#multiple_roots`
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE RESOURCE BEING PROCESSED>`
-* Title: `The operation would result in multiple root Versions which is not allowed by this Registry`
-* Data:  n/a
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
+* Title: `The operation would result in multiple root Versions which is not allowed by this Resource type`
 
 #### not_found
 
@@ -7385,8 +7354,6 @@ SHOULD attempt to use a more specific error when possible.
 * Code: `404 Not Found`
 * Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `The specified entity cannot be found`
-* Data: `<URL TO THE ENTITY REQUESTED>`
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### readonly
 
@@ -7394,8 +7361,6 @@ SHOULD attempt to use a more specific error when possible.
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `Updating a read-only entity (<XID OF ENTITY>) is not allowed`
-* Data: `<URL TO ENTITY BEING PROCESSED>`
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### required_attribute_missing
 
@@ -7403,8 +7368,7 @@ SHOULD attempt to use a more specific error when possible.
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `One or more mandatory attributes are missing`
-* Data: `<LIST OF MANDATORY ATTRIBUTES>`
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
+* Detail: `<LIST OF MANDATORY ATTRIBUTES>`
 
 #### server_error
 
@@ -7415,8 +7379,6 @@ something unexpected happened in the server that caused an error condition.
 * Code: `500 Internal Server Error`
 * Instance: `<REQUEST URL>`
 * Title: `An unexpected error occurred, please try again later`
-* Data:  n/a
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### too_large
 
@@ -7424,8 +7386,7 @@ something unexpected happened in the server that caused an error condition.
 * Code: `406 Not Acceptable`
 * Instance: `<REQUEST URL>`
 * Title: `The size of the response is too large to return in a single response`
-* Data: `<THE NAMES OF THE FIELDS/ATTRIBUTES THAT ARE TOO LARGE>`
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
+* Detail: `<THE NAMES OF THE FIELDS THAT ARE TOO LARGE>`
 
 #### too_many_versions
 
@@ -7433,8 +7394,6 @@ something unexpected happened in the server that caused an error condition.
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `The request is only allowed to have one Version specified`
-* Data: `<THE URL TO THE ENTITY BEING PROCESSED>`
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### unknown_attribute
 
@@ -7442,26 +7401,20 @@ something unexpected happened in the server that caused an error condition.
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `An unknown attribute (<ATTRIBUTE NAME>) was specified`
-* Data: `<UNKNOWN ATTRIBUTE NAME>`
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
 
 #### unknown_id
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#unknown_id`
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE ENTITY BEING PROCESSED>`
-* Title: `The "<SINGULAR NAME OF THE ENTITY TYPE>" with the ID "<THE UNKNOWN ID>" cannot be found`
-* Data: `<URL TO ENTITY BEING PROCESSED>`
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
+* Title: `The "<SINGULAR NAME OF THE ENTITY TYPE>" with the ID "<UNKNOWN ID>" cannot be found`
 
 #### unsupported_specversion
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#unsupported_specversion`
 * Code: `400 Bad Request`
 * Instance: `<THE REQUEST URL>`
-* Title: `The specified "specversion" value is not supported`
-* Data:  `<SPECVERSION SPECIFIED>`
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
+* Title: `The specified "specversion" value (<SPECVERSION SPECIFIED>) is not supported`
 
 #### versionid_not_allowed
 
@@ -7469,8 +7422,7 @@ something unexpected happened in the server that caused an error condition.
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `A "versionid" is not allowed to be specified`
-* Data:  `<VERSIONID SPECIFIED>`
-* Detail: `<INFORMATION SPECIFIC TO THE PROCESSING DETAILS>`
+* Detail: `<versionid SPECIFIED>`
 
 
 <!-- end-err-def -->
