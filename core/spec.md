@@ -16,7 +16,7 @@ automation and tooling.
 - [Registry Attributes and APIs](#registry-attributes-and-apis)
   - [Implementation Customizations](#implementation-customizations)
   - [Attributes and Extensions](#attributes-and-extensions)
-  - [Registry APIs](#registry-apis)
+  - [Registry HTTP APIs](#registry-http-apis)
     - [Registry Collections](#registry-collections)
     - [Entity Processing Rules](#entity-processing-rules)
   - [Registry Root APIs](#registry-root-apis)
@@ -1123,7 +1123,7 @@ of the existing entity. Then the existing entity would be deleted.
 
 ---
 
-### Registry APIs
+### Registry HTTP APIs
 
 This specification defines the following API patterns:
 
@@ -1169,7 +1169,10 @@ apply:
 For example, a new API with an HTTP path of `/my-api` is allowed, but APIs with
 `/model/my-api` or `/name` HTTP paths are not.
 
-This specification attempts to follow a standard REST/HTTP processing model.
+This specification leans on the
+[RFC9110 HTTP Semantics model](https://www.rfc-editor.org/rfc/rfc9110.html)
+with the
+[RFC5789 PATCH extension](https://www.rfc-editor.org/rfc/rfc5789.html).
 The following key aspects are called out to help understand the overall
 pattern of the APIs:
 - A `PUT` or `POST` operation is a full replacement of the entities
@@ -4416,7 +4419,7 @@ and the following Resource-level attributes:
   - A request to update a read-only Resource MUST generate an error
     ([readonly](#readonly)) unless the `?ignorereadonly` query parameter was
     used, in which case the error MUST be silently ignored. See
-    [Registry APIs](#registry-apis) for more information.
+    [Registry HTTP APIs](#registry-http-apis) for more information.
 
 ##### `compatibility` Attribute
 - Type: String (with Resource-specified enumeration of possible values)
