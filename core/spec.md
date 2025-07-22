@@ -120,7 +120,7 @@ pseudo JSON form:
     "flags": [                          # Query parameters
       "collections",? "doc",? "epoch",? "filter",?
       "ignoredefaultversionid",? "ignoredefaultversionsticky",? "ignoreepoch",?
-      "ignorereadonly",?  "inline", ? "offered",? "schema",?
+      "ignorereadonly",?  "inline", ? "offered",?
       "setdefaultversionid",?  "sort",? "specversion",?
       "<STRING>" *
     ],
@@ -128,7 +128,6 @@ pseudo JSON form:
       "capabilities",? "entities",? "model",? "<STRING>"*
     ], ?
     "pagination": <BOOLEAN>, ?
-    "schemas": [ "xRegistry-json/1.0-rc2", "<STRING>" * ], ?
     "shortself": <BOOLEAN>, ?
     "specversions": [ "1.0-rc2", "<STRING>"* ], ?
     "stickyversions": <BOOLEAN>, ?
@@ -2165,7 +2164,6 @@ be of the form:
   "flags": [ "<STRING>" * ], ?
   "mutable": [ "<STRING>" * ], ?
   "pagination": <BOOLEAN>, ?
-  "schemas": [ "<STRING>" * ], ?
   "shortself": <BOOLEAN>, ?
   "specversions": [ "<STRING>" ], ?
   "stickyversions": <BOOLEAN>, ?
@@ -2233,7 +2231,7 @@ The following defines the specification-defined capabilities:
 - Defined values:
     `collections`, `doc`, `epoch`, `filter`, `ignoredefaultversionid`,
     `ignoredefaultversionsticky`, `ignoreepoch`, `ignorereadonly`, `inline`,
-    `offered`, `schema`, `setdefaultversionid`, `specversion`.
+    `offered`, `setdefaultversionid`, `specversion`.
 - When not specified, the default value MUST be an empty list and no query
   parameters are supported.
 - Examples:
@@ -2263,19 +2261,6 @@ The following defines the specification-defined capabilities:
 - Description: Indicates whether the server supports the use of the
   [pagination](../pagination/spec.md) specification (value of `true`).
 - When not specified, the default value MUST be `false`.
-
-#### `schemas`
-- Name: `schemas`
-- Type: Array of Strings
-- Description: The list of schema formats supported by the server when
-  serializing the model. Each value MUST be a schema document format name
-  (e.g. `jsonSchema/2020-12`), and SHOULD be of the form `<NAME>[/<VERSION>]`.
-  All implementations of this specification MUST support
-  `xRegistry-json/1.0-rc2` (the JSON serialization as defined by this
-  specification).
-- The values MUST be case-insensitive.
-- A value of `xRegistry-json/1.0-rc2` MUST be included in the list.
-- When not specified, the default value MUST be `xRegistry-json/1.0-rc2`.
 
 #### `shortself`
 - Name: `shortself`
@@ -2425,16 +2410,12 @@ GET /capabilities?offered
     "type": "string",
     "enum": [ "collections", "doc", "epoch", "filter",
       "ignoredefaultversionid", "ignoredefaultversionsticky", "ignoreepoch",
-      "ignorereadonly", "inline", "offered", "schema", "setdefaultversionid",
+      "ignorereadonly", "inline", "offered", "setdefaultversionid",
       "sort", "specversion" ]
   },
   "pagination": {
     "type": "boolean",
     "enum": [ false, true ]
-  },
-  "schemas": {
-    "type": "string",
-    "enum": [ "xRegistry-json/1.0-rc2" ]
   },
   "shortself": {
     "type": "boolean",
@@ -2442,7 +2423,7 @@ GET /capabilities?offered
   },
   "specversions": {
     "type": "string",
-    "enum": [ "xRegistry-json/1.0-rc2" ]
+    "enum": [ "1.0-rc2" ]
   },
   "stickyversions": {
     "type": "boolean",
@@ -3345,39 +3326,29 @@ MAY be used. In the case of retrieving the full model, the result MUST include
 the full Registry model - meaning all specification-defined attributes,
 extension attributes, Group types, and Resource types.
 
-Registries MAY support exposing the model in a variety of well-defined schema
-formats. The `schemas` capabilities attribute MUST expose the set of schema
-formats available.
-
 For the sake of brevity, this specification doesn't include the full definition
 of the specification-defined attributes as part of the snippets of output.
 However, an example of a full model definition of a sample Registry can be
 can be found in this sample [sample-model-full.json](sample-model-full.json).
 
 The full model MAY be retrieved via:
-- `GET /model[?schema=<NAME>[/<VERSION>]]`
+- `GET /model`
 - `GET /?inline=model`                      # as part of Registry entity
 
 Where a successful response MUST include the full model definition, adhering
 to the model format specified above.
 
 The modelsource MAY be retrieved via:
-- `GET /modelsource[?schema=<NAME>[/<VERSION>]]`
+- `GET /modelsource`
 - `GET /?inline=modelsource`                # as part of Registry entity
 
 Where a successful response MUST include the model definition last used when
-updating the model, adhering to the model format specified above.
+updating the model.
 
 Additionally:
-- When specified, the `?schema` query parameter MUST be one of the valid
-  `schema` capabilities values (case-insensitive).
-- When not specified, the default value MUST be `xRegistry-json`.
 - The `/model` API  and `model` attribute MUST be a read-only.
 - The `/modelsource` API  and `modelsource` attribute MAY be used to retrieve
   the model specification last used to update the model.
-
-Implementations of this specification MUST support a schema value of
-`xRegistry-json/1.0-rc2`, if they support the `schema` flag.
 
 In the case of using the `/model` and `/modelsource` APIs, the response MUST
 adhere to:
@@ -3386,15 +3357,11 @@ adhere to:
 HTTP/1.1 200 OK
 Content-Type: ...
 
-... xRegistry model in a schema-specific format ...
+... xRegistry model ...
 ```
 
 Where:
-- The HTTP body MUST be a schema representation of the Registry model
-  in the format requested by the `?schema` query parameter.
-- When a `<VERSION>` is not specified as part of the `?schema` query parameter
-  then the server MAY choose any schema version of the specified schema format.
-  However, it is RECOMMENDED that the newest supported version be used.
+- The HTTP body MUST be representation of the Registry model.
 - The full model MUST include the definition of all top-level attributes,
   whether they are defined by the user or this specification. This includes
   `capabilities`, `model`,`<RESOURCE>` attributes, `meta`, `metaurl` and
@@ -3406,11 +3373,7 @@ Where:
   itself can be defined as just `object` with just one attribute (`*`) of
   type "any".
 
-If the specified schema format is not supported then an error
-([invalid_data](#invalid_data)) MUST be generated.
-
-When the `schema` is `xRegistry-json/1.0-rc2` then the response MUST be of the
-form:
+The response MUST be of the form:
 
 ```yaml
 HTTP/1.1 200 OK
