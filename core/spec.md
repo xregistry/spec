@@ -131,7 +131,7 @@ pseudo JSON form:
     "schemas": [ "xRegistry-json/1.0-rc2", "<STRING>" * ], ?
     "shortself": <BOOLEAN>, ?
     "specversions": [ "1.0-rc2", "<STRING>"* ], ?
-    "sticky": <BOOLEAN>, ?
+    "stickyversions": <BOOLEAN>, ?
     "versionmodes": [ "manual", "createdat",? "modifiedat",? "semver",
       "<STRING>"* ],
 
@@ -2168,7 +2168,7 @@ be of the form:
   "schemas": [ "<STRING>" * ], ?
   "shortself": <BOOLEAN>, ?
   "specversions": [ "<STRING>" ], ?
-  "sticky": <BOOLEAN>, ?
+  "stickyversions": <BOOLEAN>, ?
   "versionmodes": [ "<STRING>" ], ?
 
   "<STRING>": ... capability configuration ... *   // Extension capabilities
@@ -2294,8 +2294,8 @@ The following defines the specification-defined capabilities:
 - A value of `1.0-rc2` MUST be included in the list.
 - When not specified, the default value MUST be `1.0-rc2`.
 
-#### `sticky`
-- Name: `sticky`
+#### `stickyversions`
+- Name: `stickyversions`
 - Type: Boolean
 - Description: Indicates whether the server supports clients choosing which
   Version of a Resource is to be the "default" Version. In other words, this
@@ -2444,7 +2444,7 @@ GET /capabilities?offered
     "type": "string",
     "enum": [ "xRegistry-json/1.0-rc2" ]
   },
-  "sticky": {
+  "stickyversions": {
     "type": "boolean",
     "enum": [ true ]
   },

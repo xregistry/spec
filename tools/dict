@@ -242,6 +242,7 @@ specversion
 specversions
 src
 ssl
+stickyversions
 stringified
 svg
 tcp
