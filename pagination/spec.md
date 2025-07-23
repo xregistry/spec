@@ -11,7 +11,7 @@ to return in one response.
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
 "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be
-interpreted as described in [RFC 2119](https://tools.ietf.org/html/rfc2119).
+interpreted as described in [RFC2119](https://tools.ietf.org/html/rfc2119).
 
 ## Client Request
 
@@ -24,8 +24,8 @@ fit within one response message.
 
 The follow list of attributes MAY be included in a client's request for
 a set of records from a server. The client MUST only specify these on
-the initial request for set. If the results can not fit within one
-message then these attributes MUST NOT be added to subsequent requests
+the initial request for the set. If the results can not fit within one
+response then these attributes MUST NOT be added to subsequent requests
 by the client. Note, the server MAY include these attributes within
 the URI-reference returned in a response message, but the client MUST NOT
 modify those values.
@@ -47,8 +47,8 @@ modify those values.
 
 ## Server Response
 
-When a server returns a set of records, it MAY include additional attributes
-to help the client retrieve the next set of records.
+When a server returns a subset of records, it MAY include additional attributes
+to help the client retrieve the next subset of records.
 
 ### Server Attributes
 
@@ -58,14 +58,14 @@ a client's request for a set of records.
 Note: in the examples listed below, the use of certain query parameters
 in the response messages from the server, such as `offset` and `limit`,
 are an implementation detail of the server. How the server encodes the
-information it needs to retrieve a certain set of records is not mandated by
+information it needs to retrieve a certain subset of records is not mandated by
 this specification.
 
 #### link
 
 - Type: `URI-Reference`
-- Description: A URI-Reference to another set of records. The relationship
-  of the next set, to the current set, MUST be specified by the `rel`
+- Description: A URI-Reference to another subset of records. The relationship
+  of the next subset, to the current subset, MUST be specified by the `rel`
   attribute. This value is meant to be treated as an opaque value by the
   client. If a client uses this value in a subsequent request then it
   MUST use it as it was provided by the server. Any attempt to modify its
@@ -76,7 +76,8 @@ this specification.
     relationship.
   - MUST be present if there are more records for the `rel` type of
     relationship.
-  - MUST be a URI-Reference as defined in RFC...
+  - MUST be a URI-Reference as defined in
+    [RFC3986](https://tools.ietf.org/html/rfc3986).
 - Examples:
   - `http://example.com/people?offset=3&limit=100`
   - `http://example.com/people?id=1234`
@@ -86,29 +87,30 @@ this specification.
 
 - Type: `String`
 - Description: A string representing the relationship between the records
-  available via the `link` URI-Reference and the current set of records.
+  available via the `link` URI-Reference and the current subset of records.
   This attribute adheres to the Relation Type as defined in section 5.3
-  of RFC5988.
+  of [RFC5988](https://tools.ietf.org/html/rfc5988).
   This specification uses the following values as defined by section 6.2.2
-  in RFC598:
-  - `next` - indicates the next set of records in the sequence of records
+  in [RFC5988](https://tools.ietf.org/html/rfc5988):
+  - `next` - indicates the next subset of records in the sequence of records
     being returned.
-  - `prev` - indicates the previous set of records in the sequence of records
+  - `prev` - indicates the previous subset of records in the sequence of
+    records being returned.
+  - `first` - indicates the first subset of records in the sequence of records
     being returned.
-  - `first` - indicates the first set of records in the sequence of records
-    being returned.
-  - `last` - indicates the last set of records in the sequence of records
+  - `last` - indicates the last subset of records in the sequence of records
     being returned.
   Unless otherwise constrained by a specification leveraging this
   specification, additional values MAY be defined.
 - Constraints:
   - REQUIRED if the `link` attribute is present.
-  - MUST be a string as defined by `relation-types` in RFC5988.
+  - MUST be a string as defined by `relation-types` in
+   [RFC5988](https://tools.ietf.org/html/rfc5988).
 
 #### expires
 
 - Type: `Timestamp`
-- Description: Indicates when the set of records referenced by the
+- Description: Indicates when the complete set of records referenced by the
   `link` will no longer be available. When not specified, the availability
   of the data is undefined by this specification. However, it is RECOMMENDED
   that this attribute only be excluded when the data being iterated over
@@ -120,9 +122,10 @@ this specification.
 #### count
 
 - Type: `Unsigned 64-bit Integer`
-- Description: Indicates the total number of records in the set referenced by
-  the `link`. Note, this is not the number of records in any one message, but
-  instead it is the aggregate count of records across all messages in the set.
+- Description: Indicates the total number of records in the complete set
+  referenced by the `link`. Note, this is not the number of records in any one
+  message, but instead it is the aggregate count of records across all
+  messages in the set.
 - Constraints:
   - STRONGLY RECOMMENDED.
   - MUST be an unsigned integer.
@@ -152,7 +155,7 @@ http://example.com/people?limit=100
 
 ### Response for a record set
 
-Each successful response from the server will adhere to the following:
+Each successful response from the server MUST adhere to the following:
 - MUST respond with an HTTP 200.
 - MUST include zero or more records.
 - If the response refers to the start of the set of records, then the `prev`
@@ -169,11 +172,11 @@ Each successful response from the server will adhere to the following:
 - The response MAY include the `last` Link in any response.
 - The response MAY include the `expires` attribute in any response as an
   HTTP "Expires" header. If present, it MUST adhere to the format specified in
-  [RFC 3339](https://tools.ietf.org/html/rfc7234#section-5.3).
+  [RFC3339](https://tools.ietf.org/html/rfc7234#section-5.3).
 - It is STRONGLY RECOMMENDED that all responses include the `count` attribute.
 
 Additionally, Links MUST appear in the HTTP response as HTTP headers using
-the format described in RFC5988.
+the format described in [RFC5988](https://tools.ietf.org/html/rfc5988).
 
 Example 1:
 ```
@@ -198,7 +201,7 @@ Link: <http://example.com?id=0>;rel=prev;count=3000
 Once the record set retrieval has started, the client MAY use the Links
 returned from the server to iterate through the full set of records.
 Typically, the client will use the `next` Link from each response to retrieve
-the next set of records until a response is returned without a `next` Link -
+the next subset of records until a response is returned without a `next` Link -
 indicating that it has reached the end.
 
 However, if other Links are provided by the server, then the client MAY
