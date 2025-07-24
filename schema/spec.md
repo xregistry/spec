@@ -65,6 +65,7 @@ this form:
           "versionid": "<STRING>",
           "self": "<URL>",
           "xid": "<XID>",
+
           #  Start of default Version's attributes
           "epoch": <UINTEGER>,
           "name": "<STRING>", ?                    # Version level attrs
@@ -75,7 +76,7 @@ this form:
           "modifiedat": "<TIMESTAMP>",
           "ancestor": "<STRING>",
 
-          "format": "<STRING>", ?
+          "format": "<STRING>", ?                  # schema extension attr
 
           "schemaurl": "<URL>", ?
           "schema": <ANY> ?
@@ -85,7 +86,7 @@ this form:
           "metaurl": "<URL>",                      # Resource level attrs
           "meta": {
             ... core spec metadata attributes ...
-            "validation": <BOOLEAN> ?
+            "validation": <BOOLEAN> ?              # schema extension attr
           }, ?
 
           "versionsurl": "<URL>",
@@ -144,7 +145,7 @@ more concrete schema Version documents. Per the definition of the
 [`compatibility`](../core/spec.md#compatibility-attribute) attribute, all
 Versions of a single **schema** MUST adhere to the rules defined by the
 `compatibility` attribute. Any breaking change MUST result in a new **schema**
-being created.
+Resource being created.
 
 In terms of versioning, you can think of a **schema** as a collection of
 versions that are compatible according to the selected `compatibility` mode.
@@ -158,9 +159,9 @@ The formal xRegistry extension model of the Schema Registry resides in the
 
 #### Schema Group
 
-A schema group is a container for schemas that are related to each other in
+A schema Group is a container for schemas that are related to each other in
 some application-defined way. This specification does not impose any
-restrictions on what schemas can be contained in a schema group.
+restrictions on what schemas can be contained in a schema Group.
 
 ## Schema Registry
 
@@ -213,17 +214,17 @@ from there.
 
 ### Schema Groups
 
-The group (`<GROUP>`) name for the Schema Registry is `schemagroups`. The
-group does not have any specific extension attributes.
+The Group (`<GROUP>`) name for the Schema Registry is `schemagroups`. The
+Group does not have any specific extension attributes.
 
-A schema group is a collection of schemas that are related to each other in
-some application-defined way. A schema group does not impose any restrictions
-on the contained schemas, meaning that a schema group MAY contain schemas of
-different formats. Every schema MUST reside inside a schema group.
+A schema Group is a collection of schemas that are related to each other in
+some application-defined way. A schema Group does not impose any restrictions
+on the contained schemas, meaning that a schema Group MAY contain schemas of
+different formats. Every schema MUST reside inside a schema Group.
 
 Example:
 
-The follow abbreviated Schema Registry's contents shows a single schema group
+The follow abbreviated Schema Registry's contents shows a single schema Group
 containing 5 schemas.
 
 ```yaml
@@ -236,7 +237,7 @@ containing 5 schemas.
   "schemagroups": {
     "com.example.schemas": {
       "schemagroupid": "com.example.schemas",
-      # Other xRegistry group-level attributes excluded for brevity
+      # Other xRegistry Group-level attributes excluded for brevity
 
       "schemasurl": "https://example.com/schemagroups/com.example.schemas/schemas",
       "schemascount": 5
@@ -247,8 +248,8 @@ containing 5 schemas.
 
 ### Schema Resources
 
-The resources (`<RESOURCE>`) collection inside of schema groups is named
-`schemas`. The type of the resource is `schema`. Any single `schema` is a
+The Resources (`<RESOURCE>`) collection inside of schema Groups is named
+`schemas`. The type of the Resource is `schema`. Any single `schema` is a
 container for one or more `Versions`, which hold the concrete schema
 documents or schema document references.
 
@@ -360,6 +361,7 @@ Versions for a schema named `com.example.telemetrydata`:
         "com.example.telemetrydata": {
           "schemaid": "com.example.telemetrydata",
           "versionid": "3",
+          "isdefault": true,
           "description": "device telemetry event data",
           "ancestor": "2",
           "format": "Protobuf/3",
@@ -374,6 +376,7 @@ Versions for a schema named `com.example.telemetrydata`:
             "1": {
               "schemaid": "com.example.telemetrydata",
               "versionid": "1",
+              "isdefault": false,
               "description": "device telemetry event data",
               "ancestor": "1",
               "format": "Protobuf/3",
@@ -384,6 +387,7 @@ Versions for a schema named `com.example.telemetrydata`:
             "2": {
               "schemaid": "com.example.telemetrydata",
               "versionid": "2",
+              "isdefault": false,
               "description": "device telemetry event data",
               "ancestor": "1",
               "format": "Protobuf/3",
@@ -394,6 +398,7 @@ Versions for a schema named `com.example.telemetrydata`:
             "3": {
               "schemaid": "com.example.telemetrydata",
               "versionid": "3",
+              "isdefault": true,
               "description": "device telemetry event data",
               "ancestor": "2",
               "format": "Protobuf/3",
@@ -425,9 +430,9 @@ conformant with the declared version.
 
 A URI-reference, like
 [`schemauri`](../message/spec.md#dataschemauri) that points
-to a JSON Schema document MAY use a JSON pointer expression to deep link into
-the schema document to reference a particular type definition. Otherwise the
-top-level object definition of the schema is used.
+to a JSON Schema document MAY use a [JSON pointer][JSON pointer]  expression
+to deep link into the schema document to reference a particular type
+definition. Otherwise the top-level object definition of the schema is used.
 
 The version of the JSON Schema format is the version of the JSON
 Schema specification that is used to define the schema. The version of the JSON
@@ -541,23 +546,3 @@ Examples:
   `.../com.example.telemetrydata:TelemetryEvent`.
 
 [JSON Pointer]: https://www.rfc-editor.org/rfc/rfc6901
-[CloudEvents Types]: https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/spec.md#type-system
-[AMQP 1.0]: https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-overview-v1.0-os.html
-[AMQP 1.0 Message Format]: http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#section-message-format
-[AMQP 1.0 Message Properties]: http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-properties
-[AMQP 1.0 Application Properties]: http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-application-properties
-[AMQP 1.0 Message Annotations]: http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-message-annotations
-[AMQP 1.0 Delivery Annotations]: http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-delivery-annotations
-[AMQP 1.0 Message Header]: http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-header
-[AMQP 1.0 Message Footer]: http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-footer
-[MQTT 5.0]: https://docs.oasis-open.org/mqtt/mqtt/v5.0/mqtt-v5.0.html
-[MQTT 3.1.1]: https://docs.oasis-open.org/mqtt/mqtt/v3.1.1/mqtt-v3.1.1.html
-[CloudEvents]: https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md
-[CloudEvents Subscriptions API]: https://github.com/cloudevents/spec/blob/main/subscriptions/spec.md
-[NATS]: https://docs.nats.io/reference/reference-protocols/nats-protocol
-[Apache Kafka]: https://kafka.apache.org/protocol
-[Apache Kafka producer]: https://kafka.apache.org/31/javadoc/org/apache/kafka/clients/producer/ProducerRecord.html
-[Apache Kafka consumer]: https://kafka.apache.org/31/javadoc/org/apache/kafka/clients/consumer/ConsumerRecord.html
-[HTTP Message Format]: https://www.rfc-editor.org/rfc/rfc9110#section-6
-[RFC6570]: https://www.rfc-editor.org/rfc/rfc6570
-[rfc3339]: https://tools.ietf.org/html/rfc3339
