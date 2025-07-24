@@ -57,7 +57,6 @@ this form:
       "createdat": "<TIMESTAMP>",
       "modifiedat": "<TIMESTAMP>",
 
-      # Start of default Version's attributes
       "usage": [ "<STRING>" + ] ,                 # subscriber, consumer, producer
       "channel": "<STRING>", ?
       "deprecated": {
@@ -67,6 +66,7 @@ this form:
         "docs": "<URL>"?
       }, ?
 
+      # Start of Endpoint extension attributes
       "envelope": "<STRING>", ?                   # e.g. CloudEvents/1.0
       "envelopeoptions": {
         "<STRING>": <JSON-VALUE> *
@@ -135,7 +135,7 @@ this form:
       }, ?
 
       "messagegroups": [ XID * ], ?
-      # End of default Version's attributes
+      # End of Endpoint extensions
 
       "messagesurl": "<URL>", ?
       "messagescount": <UINTEGER>, ?

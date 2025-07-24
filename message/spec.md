@@ -20,7 +20,7 @@ xRegistry document format and API [specification](../core/spec.md).
 This specification defines a message and event catalog extension to the
 xRegistry document format and API [specification](../core/spec.md). The purpose
 of the catalog is to provide a machine-readable definitions for message and
-event envelopes and logical grouping of related messages and events.
+event envelopes, and logical grouping of related messages and events.
 
 Managing the description of the payloads of those messages and events is not in
 scope, but delegated to the [schema registry extension](../schema/spec.md) for
@@ -35,7 +35,7 @@ this form:
   "specversion": "<STRING>",
   "registryid": "<STRING>",
   "self": "<URL>",
-  "shortself": "<URL>",
+  "shortself": "<URL>", ?
   "xid": "<XID>",
   "epoch": <UINTEGER>,
   "name": "<STRING>", ?
@@ -47,17 +47,18 @@ this form:
   "createdat": "<TIMESTAMP>",
   "modifiedat": "<TIMESTAMP>",
 
+  "capabilities": { ... }, ?
   "model": { ... }, ?
+  "modelsource": { ... }, ?
 
   "messagegroupsurl": "<URL>",
   "messagegroupscount": <UINTEGER>,
   "messagegroups": {
-    "<KEY>": {                                    # messagegroupid
+    "<KEY>": {                                  # messagegroupid
       "messagegroupid": "<STRING>",             # xRegistry core attributes
       "self": "<URL>",
-      "shortself": "<URL>",
+      "shortself": "<URL>", ?
       "xid": "<XID>",
-      # Start of default Version's attributes
       "epoch": <UINTEGER>,
       "name": "<STRING>", ?
       "description": "<STRING>", ?
@@ -66,6 +67,7 @@ this form:
       "createdat": "<TIMESTAMP>",
       "modifiedat": "<TIMESTAMP>",
 
+      # MessageGroup extension attributes
       "envelope": "<STRING>", ?                 # e.g. CloudEvents/1.0
       "protocol": "<STRING>", ?                 # e.g. HTTP/1.1
 
@@ -76,8 +78,9 @@ this form:
           "messageid": "<STRING>",              # xRegistry core attributes
           "versionid": "<STRING>",
           "self": "<URL>",
-          "shortself": "<URL>",
+          "shortself": "<URL>", ?
           "xid": "<XID>",
+
           # Start of default Version's attributes
           "epoch": <UINTEGER>,
           "name": "<STRING>", ?
@@ -88,6 +91,7 @@ this form:
           "modifiedat": "<TIMESTAMP>",
           "ancestor": "<STRING>",
 
+          # Start of Message extension attributes
           "basemessage": "<URL>", ?            # Message being extended
 
           "envelope": "<STRING>", ?            # e.g. CloudEvents/1.0
@@ -96,7 +100,7 @@ this form:
 
             # CloudEvents/1.0 "envelope" the "envelopemetadata" is of the form:
             "<STRING>": {
-              "type": "<TYPE>", ?
+              "type": "<TYPE>",                # Default=string
               "value": <ANY>, ?
               "required": <BOOLEAN>            # Default=false
             } *
@@ -113,7 +117,7 @@ this form:
           "dataschemauri": "<URI>", ?
           "dataschemaxid": "<XID>", ?
           "datacontenttype": "<STRING>", ?
-          # End of default Version's attributes
+          # End of Message extensions and default Version's attributes
 
           "metaurl": "<URL>",
           "meta": { ... }, ?
@@ -193,7 +197,7 @@ concrete values and patterns for the `type`, `source`, and `subject` attributes
 of a CloudEvent.
 
 Message definitions can be used in various contexts. A code generator for
-message producers can be informed, which properties or headers have to be set,
+message producers can be informed which properties or headers have to be set,
 and which data types, values, or patterns are expected to produce a conformant
 message. A message consumer can use the definitions to validate incoming
 messages and to extract the metadata for routing or processing.
@@ -281,8 +285,8 @@ to the xRegistry-defined core
 
 ### Message Definitions
 
-The resource (`<RESOURCE>`) collection name inside `messagegroup` is
-`messages`. The resource name is `message`.
+The Resource (`<RESOURCE>`) collection name inside `messagegroup` is
+`messages`. The Resource name is `message`.
 
 Different from schemas, message definitions do not contain a
 version history. If the metadata of two messages differs, they are considered
@@ -291,7 +295,8 @@ different messages.
 When [CloudEvents](https://cloudevents.io) is used for a particular
 message, it is RECOMMENDED that the message's `messageid` attribute be the
 same as the [CloudEvents `type`
-attribute](https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#type). Doing so makes for easier management of the meta-model by correlating
+attribute](https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#type).
+Doing so makes for easier management of the meta-model by correlating
 the look-up value (id) of messages with their related events.
 
 The following extensions are defined for the `message` Resource in addition to
@@ -328,7 +333,6 @@ embedded or referenced.
 Illustrating example:
 
 ```yaml
-
 "messagegroupsurl": "...",
 "messagegroupscount": 2,
 "messagegroups": {
@@ -671,19 +675,19 @@ a message (see the [model file](model.json) for the complete definition):
   },
   "id": {
     "value": "<STRING>", ?
-    "type": "string", ?
+    "type": "string"
   },
   "type": {
     "value": "<STRING>", ?
-    "type": "string", ?
+    "type": "string"
   },
   "source": {
     "value": "<STRING>", ?
-    "type": "string", ?
+    "type": "string"
   },
   "subject": {
     "value": "<STRING>", ?
-    "type": "string" ?
+    "type": "string"
   },
   "time": {
     "value": "<TIMESTAMP>", ?

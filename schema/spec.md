@@ -65,6 +65,7 @@ this form:
           "versionid": "<STRING>",
           "self": "<URL>",
           "xid": "<XID>",
+
           #  Start of default Version's attributes
           "epoch": <UINTEGER>,
           "name": "<STRING>", ?                    # Version level attrs
