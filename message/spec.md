@@ -236,8 +236,8 @@ resides in the [model.json](model.json) file.
 
 ### Message Definition Groups
 
-The Group (`<GROUP>`) name is `messagegroups`. The type of a group is
-`messagegroup`.
+The Group plural name (`<GROUPS.`) is `messagegroups`, and the Group singular
+name (`<GROUP>`) is `messagegroup`.
 
 The following attributes are defined for the `messagegroup` object in addition
 to the xRegistry-defined core
@@ -285,8 +285,8 @@ to the xRegistry-defined core
 
 ### Message Definitions
 
-The Resource (`<RESOURCE>`) collection name inside `messagegroup` is
-`messages`. The Resource name is `message`.
+The Resource plural name (`<RESOURCES>`) is `messages`, and the Resource
+singular name (`<RESOURCE>`) is `message`.
 
 Different from schemas, message definitions do not contain a
 version history. If the metadata of two messages differs, they are considered
@@ -1072,7 +1072,6 @@ Example:
 }
 ```
 
-
 [CloudEvents Types]: https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/spec.md#type-system
 [AMQP 1.0]: https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-overview-v1.0-os.html
 [AMQP 1.0 Message Format]: http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#section-message-format
@@ -1085,7 +1084,6 @@ Example:
 [MQTT 5.0]: https://docs.oasis-open.org/mqtt/mqtt/v5.0/mqtt-v5.0.html
 [MQTT 3.1.1]: https://docs.oasis-open.org/mqtt/mqtt/v3.1.1/mqtt-v3.1.1.html
 [CloudEvents]: https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md
-[CloudEvents Subscriptions API]: https://github.com/cloudevents/spec/blob/main/subscriptions/spec.md
 [NATS]: https://docs.nats.io/reference/reference-protocols/nats-protocol
 [Apache Kafka]: https://kafka.apache.org/protocol
 [Apache Kafka producer]: https://kafka.apache.org/31/javadoc/org/apache/kafka/clients/producer/ProducerRecord.html

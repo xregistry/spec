@@ -12,7 +12,7 @@ allows for the storage, management and discovery of schema documents.
 - [Notations and Terminology](#notations-and-terminology)
   - [Notational Conventions](#notational-conventions)
   - [Terminology](#terminology)
-- [Schema Registry](#schema-registry)
+- [Schema Registry](#schema-registry-model)
   - [Schema Groups](#schema-groups)
   - [Schema Resources](#schema-resources)
 
@@ -154,73 +154,24 @@ MUST be created, to indicate the breaking change.
 
 ## Schema Registry Model
 
-The formal xRegistry extension model of the Schema Registry resides in the
-[model.json](model.json) file.
+The formal xRegistry extension model of the Schema Registry
+resides in the [model.json](model.json) file.
 
-#### Schema Group
+#### Schema Groups
 
 A schema Group is a container for schemas that are related to each other in
 some application-defined way. This specification does not impose any
 restrictions on what schemas can be contained in a schema Group.
 
-## Schema Registry
+The Group plural name (`<GROUPS.`) is `schemagroups`, and the Group singular
+name (`<GROUP>`) is `schemagroup`.
 
-The Schema Registry is a metadata store for organizing schemas and schema
-Versions of any kind; it is a document store.
-
-The xRegistry API extension model of the Schema Registry, which is defined in
-detail below, is as follows:
-
-```yaml
-{
-  "groups": [
-    {
-      "singular": "schemagroup",
-      "plural": "schemagroups",
-
-      "resources": [
-        {
-          "singular": "schema",
-          "plural": "schemas",
-          "versions": 0,
-
-          "attributes": {
-            "format": {
-              "name": "format",
-              "type": "string",
-              "description": "Schema format identifier for this schema version"
-            }
-          },
-          "metaattributes": {
-            "validation": {
-              "name": "validation",
-              "type": "boolean",
-              "description": "Verify compliance with specified 'format'"
-            }
-          }
-        }
-      ]
-    }
-  ]
-}
-```
-
-Implementations of this specification MAY include additional extension
-attributes, including the `*` attribute of type `any`.
-
-Since the Schema Registry is an application of the xRegistry specification, all
-attributes for Groups, Resources, and Resource Version objects are inherited
-from there.
-
-### Schema Groups
-
-The Group (`<GROUP>`) name for the Schema Registry is `schemagroups`. The
-Group does not have any specific extension attributes.
+The Group does not have any specific extension attributes.
 
 A schema Group is a collection of schemas that are related to each other in
 some application-defined way. A schema Group does not impose any restrictions
 on the contained schemas, meaning that a schema Group MAY contain schemas of
-different formats. Every schema MUST reside inside a schema Group.
+different formats. Every schema Resource MUST reside inside a schema Group.
 
 Example:
 
@@ -248,10 +199,11 @@ containing 5 schemas.
 
 ### Schema Resources
 
-The Resources (`<RESOURCE>`) collection inside of schema Groups is named
-`schemas`. The type of the Resource is `schema`. Any single `schema` is a
-container for one or more `Versions`, which hold the concrete schema
-documents or schema document references.
+The Resource plural name (`<RESOURCES>`) is `schemas`, and the Resource
+singular name (`<RESOURCE>`) is `schema`.
+
+Any single `schema` is a container for one or more `Versions`, which hold the
+concrete schema documents or schema document references.
 
 All Versions of a schema MUST adhere to the semantic rules of the schema's
 `compatibility` attribute. This specification defines "compatibility" for
@@ -304,8 +256,6 @@ the core xRegistry Resource
 - Constraints:
   - OPTIONAL.
   - When not specified, the default value MUST be `false`.
-  - MUST be a Resource level attribute defined within the `metaattributes`
-    section of the model.
 
 #### `format`
 
@@ -321,6 +271,9 @@ the core xRegistry Resource
   validation purposes, and as such implementations can choose to modify the
   model to make this attribute mandatory.
 
+  It is RECOMMENDED that the same schema format `<NAME>` be used for all
+  Versions of a schema Resource.
+
   Managers of the xRegistry instance can set a default value for this
   attribute, making it a REQUIRED attribute.
 - Constraints:
@@ -329,8 +282,6 @@ the core xRegistry Resource
   - MUST follow the naming convention `<NAME>/<VERSION>`, whereby `<NAME>` is
     the name of the schema format and `<VERSION>` is the Version of the schema
     format in the format defined by the schema format itself.
-  - MUST be a Version level attribute defined within the `attributes` section
-    of the model.
   - MUST be present if the `compatibility` attribute is set to a value other
     than `None` and when the `compatibilityauthority` attribute is set to
     `server`, to enable validation of the schema document.
@@ -428,11 +379,11 @@ When the `format` attribute is set to `JsonSchema`, the `schema` attribute of
 the schema Resource is a JSON object representing a JSON Schema document
 conformant with the declared version.
 
-A URI-reference, like
-[`schemauri`](../message/spec.md#dataschemauri) that points
-to a JSON Schema document MAY use a [JSON pointer][JSON pointer]  expression
-to deep link into the schema document to reference a particular type
-definition. Otherwise the top-level object definition of the schema is used.
+When a URI-reference, like [`schemauri`](../message/spec.md#dataschemauri),
+points to a JSON Schema document it MAY use a [JSON pointer][JSON pointer]
+expression to deep link into the schema document to reference a particular
+type definition. Otherwise the top-level object definition of the schema is
+used.
 
 The version of the JSON Schema format is the version of the JSON
 Schema specification that is used to define the schema. The version of the JSON
@@ -465,11 +416,11 @@ When the `format` attribute is set to `XSD`, the `schema` attribute of
 schema Resource is a string containing an XML Schema document conformant with
 the declared version.
 
-A URI-reference, like
-[`schemauri`](../message/spec.md#dataschemauri) that points
-to a XSD Schema document MAY use an XPath expression to deep link into the
-schema document to reference a particular type definition. Otherwise the root
-element definition of the schema is used.
+When a URI-reference, like [`schemauri`](../message/spec.md#dataschemauri),
+points to a JSON Schema document it MAY use an XPath
+expression to deep link into the schema document to reference a particular
+type definition. Otherwise the top-level object definition of the schema is
+used.
 
 The identifiers for the following XML Schema versions:
 
@@ -496,17 +447,19 @@ Examples:
 - `Avro/1.8.2` is the identifier for the Apache Avro release 1.8.2.
 - `Avro/1.11.0` is the identifier for the Apache Avro release 1.11.0
 
-A URI-reference, like
-[`schemauri`](../message/spec.md#dataschemauri) that points
-to an Avro Schema document MUST reference an Avro record declaration contained
-in the schema document using a URI fragment suffix `[:]{record-name}`. The ':'
-character is used as a separator when the URI already contains a fragment.
+When a URI-reference, like [`schemauri`](../message/spec.md#dataschemauri),
+points to a JSON Schema document it MAY use a URI fragment suffix
+`[:]{record-name}` to deep link into the schema document to reference a
+particular type definition. Otherwise the top-level object definition of the
+schema is used. The ':' character is used as a separator when the URI already
+contains a fragment.
 
 Examples:
 
 - If the Avro schema document is referenced using the URI
-`https://example.com/avro/telemetry.avsc`, the URI fragment `#TelemetryEvent`
-references the record declaration of the `TelemetryEvent` record.
+`https://example.com/avro/telemetry.avsc#TelemetryEvent`, the URI fragment
+`#TelemetryEvent` references the record declaration of the `TelemetryEvent`
+record.
 - If the Avro schema document is a local Schema Registry reference like
 `#/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata`, in
 the which the reference is already in the form of a URI fragment, the suffix is
