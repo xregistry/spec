@@ -1524,7 +1524,7 @@ semantics defined above with the following exceptions:
     operations, any missing REQUIRED attributes MUST generate an error
     ([required_attribute_missing](#required_attribute_missing)).
 
-The `PATCH`, variant when directed at an xRegistry collection, MUST adhere to
+The `PATCH` variant when directed at an xRegistry collection, MUST adhere to
 the following:
   - The HTTP body MUST contain a JSON map where the key MUST be the
     `<SINGULAR>id` of each entity in the map. Note, that in the case of a map

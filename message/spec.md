@@ -24,8 +24,8 @@ event envelopes, and logical grouping of related messages and events.
 
 Managing the description of the payloads of those messages and events is not in
 scope, but delegated to the [schema registry extension](../schema/spec.md) for
-xRegistry. Schemas are linked to messages and event declarations through a URI
-reference.
+xRegistry. Schemas are linked from messages and event declarations through a
+URI reference.
 
 For easy reference, the JSON serialization of a Message Registry adheres to
 this form:
@@ -183,14 +183,15 @@ A similar transport protocol-independent message metadata convention is, for
 example, the [W3C SOAP 1.2 envelope][SOAP] for which support could be added by
 an extension.
 
-This specification uses **protocol** to refer to a transport protocol-specific
-message metadata convention. When a known protocol is explicitly specified for
-a message definition, the "protocoloptions" section MAY contain constraints
-for the protocol-specific metadata.
+This specification uses **protocol** as a selector into the protocol-specific
+message metadata that is defined under the `protocol.ifvalues` section of the
+model. When a known protocol is explicitly specified for a message definition,
+the "protocoloptions" section MAY contain constraints for the
+protocol-specific metadata.
 
 ## Message Definitions Registry
 
-The Message Definitions Registry (or "Message Catalog") is a registry of
+The Message Definitions Registry (or "Message Registry") is a collection of
 metadata definitions for messages and events. The entries in the registry
 describe constraints for the metadata of messages and events, for instance the
 concrete values and patterns for the `type`, `source`, and `subject` attributes
@@ -236,8 +237,8 @@ resides in the [model.json](model.json) file.
 
 ### Message Definition Groups
 
-The Group (`<GROUP>`) name is `messagegroups`. The type of a group is
-`messagegroup`.
+The Group plural name (`<GROUPS.`) is `messagegroups`, and the Group singular
+name (`<GROUP>`) is `messagegroup`.
 
 The following attributes are defined for the `messagegroup` object in addition
 to the xRegistry-defined core
@@ -251,9 +252,9 @@ to the xRegistry-defined core
   version as `<NAME>/<VERSION>`. This specification defines a set of common
   [metadata envelope names](#metadata-envelopes) that MUST be used for the
   given envelopes, but applications MAY define extensions for other envelopes
-  on their own. All definitions inside a group MUST use this same envelope.
+  on their own. All messages inside a group MUST use this same envelope.
 - Constraints:
-  - At least one of `envelopemetadata` and `protocol` MUST be specified.
+  - At least one of `envelope` or `protocol` MUST be specified.
   - If present, MUST be a non-empty string.
   - If present, MUST follow the naming convention `<NAME>/<VERSION>`, whereby
     `<NAME>` is the name of the metadata envelope and `<VERSION>` is the
@@ -271,7 +272,7 @@ to the xRegistry-defined core
   applications MAY define extensions for other protocols on their own. All
   messages inside a group MUST use this same protocol.
 - Constraints:
-  - At least one of `envelopemetadata` and `protocol` MUST be specified.
+  - At least one of `envelope` or `protocol` MUST be specified.
   - If present, MUST be a non-empty string.
   - If present, MUST follow the naming convention `<NAME>` or
     `<NAME>/<VERSION>`, whereby `<NAME>` is the name of the protocol and
@@ -285,8 +286,8 @@ to the xRegistry-defined core
 
 ### Message Definitions
 
-The Resource (`<RESOURCE>`) collection name inside `messagegroup` is
-`messages`. The Resource name is `message`.
+The Resource plural name (`<RESOURCES>`) is `messages`, and the Resource
+singular name (`<RESOURCE>`) is `message`.
 
 Different from schemas, message definitions do not contain a
 version history. If the metadata of two messages differs, they are considered
@@ -309,10 +310,11 @@ the core xRegistry Resource
 - Description: if present, the XID points to a message definition that is the
   base for this message definition. By following the XID, the base message
   can be retrieved and extended with the properties of this message. This is
-  useful for defining variants of messages that only differ in minor aspects to
-  avoid repetition, or messages that only have a `envelope` with associated
-  `envelopemetadata` to be bound to various protocols.
+  useful for defining variants of messages that only differ in minor additive
+  aspects to avoid repetition, or messages that only have a `envelope` with
+  associated `envelopemetadata` to be bound to various protocols.
   Attributes defined in this message fully override the attributes of the base
+  message, and there is no mechanism to delete attributes from the base
   message.
 - Constraints:
   - OPTIONAL.
@@ -1072,7 +1074,6 @@ Example:
 }
 ```
 
-
 [CloudEvents Types]: https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/spec.md#type-system
 [AMQP 1.0]: https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-overview-v1.0-os.html
 [AMQP 1.0 Message Format]: http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#section-message-format
@@ -1085,7 +1086,6 @@ Example:
 [MQTT 5.0]: https://docs.oasis-open.org/mqtt/mqtt/v5.0/mqtt-v5.0.html
 [MQTT 3.1.1]: https://docs.oasis-open.org/mqtt/mqtt/v3.1.1/mqtt-v3.1.1.html
 [CloudEvents]: https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md
-[CloudEvents Subscriptions API]: https://github.com/cloudevents/spec/blob/main/subscriptions/spec.md
 [NATS]: https://docs.nats.io/reference/reference-protocols/nats-protocol
 [Apache Kafka]: https://kafka.apache.org/protocol
 [Apache Kafka producer]: https://kafka.apache.org/31/javadoc/org/apache/kafka/clients/producer/ProducerRecord.html
