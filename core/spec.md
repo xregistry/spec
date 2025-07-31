@@ -986,7 +986,7 @@ of the existing entity. Then the existing entity would be deleted.
   properties MUST be processed (and likely persisted) such that the server can
   distinguish a `null` attribute from a "missing" attribute to ensure that a
   `null` attribute will delete any matching inherited attribute, while a
-  `missing` attribute will not.
+  "missing" attribute will not.
 
   If the `xbase` attribute is deleted from an entity, being able to distinguish
   between `null` and "missing" is no longer needed and those attributes will

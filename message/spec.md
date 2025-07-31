@@ -186,7 +186,7 @@ an extension.
 This specification uses **protocol** as a selector into the protocol-specific
 message metadata that is defined under the `protocol.ifvalues` section of the
 model. When a known protocol is explicitly specified for a message definition,
-the "protocoloptions" section MAY contain constraints for the
+the `protocoloptions` section MAY contain constraints for the
 protocol-specific metadata.
 
 ## Message Definitions Registry
