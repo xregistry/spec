@@ -615,6 +615,16 @@ to be met while maintaining the interoperability goals of the specification.
 Implementations are encouraged to contact the xRegistry community if it is
 unclear if certain customizations would violate the specification.
 
+Implementations MAY (but are NOT REQUIRED) to validate cross-entity
+constraints that might be violated due to changes in a referenced entity.
+For example, [Endpoint's `envelope`](../endpoint/spec.md#envelope) attribute
+mandates that all Messages in that Endpoint use that same `envelope` value.
+One of those Messages might have a `basemessage` value that points to a
+ Message that breaks that rule. For a variety of reasons (e.g. authorization
+ constraints), server implementations might not be able to verify this
+ constraint. Likewise, the same situation might occur via the use of `xref`.
+Clients need to be aware of these possibilities.
+
 ### Attributes and Extensions
 
 Unless otherwise noted, all attributes and extensions MUST be mutable and MUST
@@ -654,9 +664,10 @@ be one of the following data types:
   information.  Its value MUST start with a `/`.
 - `xidtype` - MUST be a URL reference to an xRegistry model type. The
    reference MUST point to one of: the Registry itself (`/`), a Group type
-   (`/<GROUPS>`), a Resource type (`/<GROUPS>/<RESOURCE>`) or Version type for
+   (`/<GROUPS>`), a Resource type (`/<GROUPS>/<RESOURCES>`) or Version type for
    a Resource (`/<GROUPS>/<RESOURCES>/versions`). Its value MUST reference a
-   defined/valid type in the Registry.
+   defined/valid type in the Registry. It MUST use the plural name of the
+   referenced type, if it is a Group, Resource or Version.
 - `string` - sequence of Unicode characters.
 - `timestamp` - an [RFC3339](https://tools.ietf.org/html/rfc3339) timestamp.
   Use of a `time-zone` notation is RECOMMENDED. All timestamps returned by

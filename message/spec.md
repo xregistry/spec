@@ -186,7 +186,7 @@ an extension.
 This specification uses **protocol** as a selector into the protocol-specific
 message metadata that is defined under the `protocol.ifvalues` section of the
 model. When a known protocol is explicitly specified for a message definition,
-the "protocoloptions" section MAY contain constraints for the
+the `protocoloptions` section MAY contain constraints for the
 protocol-specific metadata.
 
 ## Message Definitions Registry
@@ -237,7 +237,7 @@ resides in the [model.json](model.json) file.
 
 ### Message Definition Groups
 
-The Group plural name (`<GROUPS.`) is `messagegroups`, and the Group singular
+The Group plural name (`<GROUPS>`) is `messagegroups`, and the Group singular
 name (`<GROUP>`) is `messagegroup`.
 
 The following attributes are defined for the `messagegroup` object in addition
@@ -247,14 +247,13 @@ to the xRegistry-defined core
 #### `envelope` (Message Group)
 
 - Type: String
-- Description: Identifies the common, transport protocol-independent message
+- Description: Identifies a common, transport protocol-independent message
   metadata format. Message metadata envelopes are referenced by name and
   version as `<NAME>/<VERSION>`. This specification defines a set of common
   [metadata envelope names](#metadata-envelopes) that MUST be used for the
   given envelopes, but applications MAY define extensions for other envelopes
   on their own. All messages inside a group MUST use this same envelope.
 - Constraints:
-  - At least one of `envelope` or `protocol` MUST be specified.
   - If present, MUST be a non-empty string.
   - If present, MUST follow the naming convention `<NAME>/<VERSION>`, whereby
     `<NAME>` is the name of the metadata envelope and `<VERSION>` is the
@@ -265,14 +264,13 @@ to the xRegistry-defined core
 #### `protocol` (Message Group)
 
 - Type: String
-- Description: Identifies a transport protocol to be used for this Message.
+- Description: Identifies a transport protocol to be bound to for this Message.
   Protocols are referenced by name and version as `<NAME>/<VERSION>`. This
   specification defines a set of common [message protocol
   names](#message-protocols) that MUST be used for the given protocols, but
   applications MAY define extensions for other protocols on their own. All
   messages inside a group MUST use this same protocol.
 - Constraints:
-  - At least one of `envelope` or `protocol` MUST be specified.
   - If present, MUST be a non-empty string.
   - If present, MUST follow the naming convention `<NAME>` or
     `<NAME>/<VERSION>`, whereby `<NAME>` is the name of the protocol and
@@ -311,16 +309,32 @@ the core xRegistry Resource
   base for this message definition. By following the XID, the base message
   can be retrieved and extended with the properties of this message. This is
   useful for defining variants of messages that only differ in minor additive
-  aspects to avoid repetition, or messages that only have a `envelope` with
-  associated `envelopemetadata` to be bound to various protocols.
-  Attributes defined in this message fully override the attributes of the base
-  message, and there is no mechanism to delete attributes from the base
-  message.
+  aspects to avoid repetition. For example, messages that only have a
+  `envelope` with associated `envelopemetadata` to be bound to various
+  protocols.
+
+  Referenced messages MAY themselves have a `basemessage` value, however,
+  the chain of messages MUST NOT be recursive.
+
+  The processing that a client SHOULD take to materialize the message is
+  to follow the `basemessage` attributes to the end of the chain of messages,
+  get that message's attributes, and then walk back up the chain performing a
+  "merge" operation of the next message's attributes. Note in the case of an
+  inherited attribute being a complex type (e.g. map, object), and the
+  overlaying attribute is scalar, then the entire inherited attribute (and
+  nested values) are replace by that scalar value.
+
+  If the referenced message can not be found then an error MUST NOT be
+  generated.
+
 - Constraints:
   - OPTIONAL.
-  - If present, MUST be the `xid` of a Resource of type `message` as defined
-    by this specification.
-  - It is permissible that the target Resource not exist.
+  - If present, MUST be the `xid` of a Resource, or Version, of type `message`
+    as defined by this specification.
+
+- Examples:
+  - `/messagegroups/group1/messages/msg1`
+  - `/messagegroups/group1/messages/msg1/versions/v1.0`
 
 #### `envelope`
 
@@ -377,7 +391,7 @@ Illustrating example:
 
 - Type: Object
 - Description: Describes the metadata constraints for messages of this type.
-  The content of this property is defined by the message envelope, but all
+  The content of this property is defined by the message `envelope`, but all
   envelopes use a common schema for the constraints defined for their
   metadata headers, properties or attributes.
 - Constraints:
@@ -429,8 +443,7 @@ specification.
 - Type: Any
 - Description: Contains the inline schema for the message payload. The schema
   format is identified by the `dataschemaformat` attribute. Equivalent to the
-  schemaversion
-  ['schema'](../schema/spec.md#schema) attribute
+  ['schema'](../schema/spec.md#schema) attribute.
 - Constraints:
   - OPTIONAL.
   - Mutually exclusive with the `dataschemauri` attribute.
@@ -461,7 +474,9 @@ specification.
   this means the entity MUST be located within the same Registry.
 - Constraints:
   - OPTIONAL.
-  - If present, `dataschemauri` MUST be present.
+  - If `dataschemauri` is also present then its value MUST be the `self`
+    URL of the entity referenced by this attribute.
+
 
 #### `datacontenttype`
 
@@ -488,10 +503,9 @@ specification.
 - Constraints:
   - OPTIONAL
   - If present, MUST adhere to the format specified in
-    [RFC 2046](https://tools.ietf.org/html/rfc2046)
-- For Media Type examples see
-  [IANA Media
-  Types](http://www.iana.org/assignments/media-types/media-types.xhtml)
+    [RFC 2046](https://tools.ietf.org/html/rfc2046). For Media Type examples
+    see [IANA Media
+    Types](http://www.iana.org/assignments/media-types/media-types.xhtml)
 
 ### Metadata Envelopes and Message Protocols
 
@@ -500,7 +514,7 @@ directly supported by this specification.
 
 Metadata envelopes lean on a protocol-neutral metadata definition like
 CloudEvents. Message protocols lean on a message model definition of a specific
-protocol like AMQP or MQTT or Kafka.
+protocol like AMQP, MQTT or Kafka.
 
 A message can use either a metadata `envelope`, a message `protocol`, or both.
 
@@ -511,10 +525,10 @@ protocols for which CloudEvents bindings exist, and using the respective
 protocol binding rules.
 
 If a message uses both a metadata `envelope` and a message `protocol`, the
-message binding rules apply over the metadata envelope rules. For instance, if
-a message definition uses the "CloudEvents/1.0" envelope and an "AMQP/1.0"
-protocol, then the implicit protocol bindings of the "CloudEvents/1.0" envelope
-are overridden by the "AMQP/1.0" protocol rules.
+message binding rules takes precedence over the metadata envelope rules. For
+instance, if a message definition uses the "CloudEvents/1.0" envelope and an
+"AMQP/1.0" protocol, then the implicit protocol bindings of the
+"CloudEvents/1.0" envelope are overridden by the "AMQP/1.0" protocol rules.
 
 If a message uses only a message `protocol`, only the metadata constraints
 defined by the message `protocol` rules apply.
@@ -540,7 +554,6 @@ headers/properties/attributes constraints:
 - Constraints:
   - OPTIONAL.
   - Default value MUST be `false`.
-  - If present, MUST be a boolean value.
 
 ##### `specurl`
 
@@ -561,25 +574,25 @@ headers/properties/attributes constraints:
   - The valid types are those defined in the [CloudEvents][CloudEvents Types]
     core specification, with some additions:
     - `any`: Any type of value, including `null`.
+    - `binary`: CloudEvents "Binary" type.
     - `boolean`: CloudEvents "Boolean" type.
+    - `duration`: RFC3339 Duration.
+    - `integer`: CloudEvents "Integer" type (RFC 7159, Section 6).
+    - `number`: IEEE754 Double.
     - `string`: CloudEvents "String" type.
     - `symbol`: A `string` that is restricted to alphanumerical characters and
       underscores.
-    - `binary`: CloudEvents "Binary" type.
     - `timestamp`: CloudEvents "Timestamp" type (RFC3339 DateTime)
-    - `duration`: RFC3339 Duration.
-    - `uritemplate`: [RFC6570][RFC6570] Level 1 URI Template.
     - `uri`: CloudEvents URI type (RFC3986 URI).
     - `urireference`: CloudEvents "URI-reference" type (RFC3986 URI-reference).
-    - `number`: IEEE754 Double.
-    - `integer`: CloudEvents "Integer" type (RFC 7159, Section 6).
+    - `uritemplate`: [RFC6570][RFC6570] Level 1 URI Template.
 
 ##### `value`
 
 - Type: Any
 - Description: The value of the property. With a few exceptions, see below,
   this is the value that MUST be literally present in the message for the
-  message to be considered conformant with this metaschema.
+  message to be considered conformant with the message definition.
 - Constraints:
   - OPTIONAL.
   - If present, MUST be a valid value for the property.
@@ -734,7 +747,7 @@ attribute value is `https://example.com/schemas/com.example.myevent.json`:
     },
   },
   "dataschemaformat": "JsonSchema/draft-07",
-  "dataschemauri": "https://example.com/schemas/com.example.myevent.json",
+  "dataschemauri": "https://example.com/schemas/com.example.myevent.json"
 }
 ```
 
@@ -751,7 +764,7 @@ connection. The protocol is based on the
 HTTP.
 
 The [`protocoloptions`](#protocoloptions) object MAY contain several
-properties:
+properties as defined below:
 
 | Property  | Type          | Description                  |
 | --------- | ------------- | ---------------------------- |
@@ -813,7 +826,8 @@ The "AMQP/1.0" protocol is used to define messages that are sent over an
 [AMQP 1.0 Message Format][AMQP 1.0 Message Format].
 
 The [`protocoloptions`](#protocoloptions) object MAY contain several
-properties, each of which corresponds to a section of the AMQP 1.0 Message:
+properties, each of which corresponds to a section of the AMQP 1.0 Message,
+as defined below:
 
 | Property                 | Type | Description                                                                     |
 | ------------------------ | ---- | ------------------------------------------------------------------------------- |
@@ -899,8 +913,9 @@ The `application-properties` property is a map that contains the custom
 properties of the AMQP 1.0 [Application Properties][AMQP 1.0 Application
 Properties] section.
 
-The names of the properties MUST be of type `symbol` and MUST be unique.
-The values of the properties MAY be of any permitted type.
+The names of the properties MUST be of type `symbol` and MUST be unique within
+the scope of the map. The values of the properties MAY be of any permitted
+type.
 
 ##### `message-annotations` (AMQP 1.0)
 
@@ -908,8 +923,9 @@ The `message-annotations` property is a map that contains the custom
 properties of the AMQP 1.0 [Message Annotations][AMQP 1.0 Message Annotations]
 section.
 
-The names of the properties MUST be of type `symbol` and MUST be unique.
-The values of the properties MAY be of any permitted type.
+The names of the properties MUST be of type `symbol` and MUST be unique within
+the scope of the map. The values of the properties MAY be of any permitted
+type.
 
 ##### `delivery-annotations` (AMQP 1.0)
 
@@ -917,8 +933,9 @@ The `delivery-annotations` property is a map that contains the custom
 properties of the AMQP 1.0
 [Delivery Annotations][AMQP 1.0 Delivery Annotations] section.
 
-The names of the properties MUST be of type `symbol` and MUST be unique.
-The values of the properties MAY be of any permitted type.
+The names of the properties MUST be of type `symbol` and MUST be unique within
+the scope of the map. The values of the properties MAY be of any permitted
+type.
 
 ###### `header` (AMQP 1.0)
 
@@ -939,8 +956,9 @@ following properties are defined, with type constraints:
 The `footer` property is a map that contains the custom properties of the AMQP
 1.0 [Message Footer][AMQP 1.0 Message Footer] section.
 
-The names of the properties MUST be of type `symbol` and MUST be unique.
-The values of the properties MAY be of any permitted type.
+The names of the properties MUST be of type `symbol` and MUST be unique within
+the scope of the map. The values of the properties MAY be of any permitted
+type.
 
 ##### "MQTT/3.1.1" and "MQTT/5.0" protocols
 

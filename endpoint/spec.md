@@ -45,7 +45,7 @@ this form:
   "endpointsurl": "<URL>",
   "endpointscount": <UINTEGER>,
   "endpoints": {
-    "<KEY": {
+    "<KEY>": {
       "endpointid": "<STRING>",                   # xRegistry core attributes
       "self": "<URL>",
       "xid": "<XID>",
@@ -140,7 +140,7 @@ this form:
       "messagesurl": "<URL>", ?
       "messagescount": <UINTEGER>, ?
       "messages": {
-        "<KEY": {                                # messageid
+        "<KEY>": {                                # messageid
           # See Message Definition spec for details
         } *
       } ?
@@ -190,7 +190,7 @@ concrete network endpoints to which messages can be produced, from which
 messages can be consumed, or which makes messages available via subscription
 and delivery to a consumer-designated endpoint.
 
-As discussed in [CloudEvents Registry overview](../cloudevents/spec.md),
+As discussed in the [CloudEvents Registry overview](../cloudevents/spec.md),
 endpoints are supersets of
 [message definition groups](../message/spec.md#message-definition-groups) and
 MAY contain inlined messages. Therefore, the Resources in the meta-model for
@@ -202,7 +202,7 @@ resides in the [model.json](model.json) file.
 
 ### Endpoints Groups
 
-The Group plural name (`<GROUPS.`) is `endpoints`, and the Group singular
+The Group plural name (`<GROUPS>`) is `endpoints`, and the Group singular
 name (`<GROUP>`) is `endpoint`.
 
 The following attributes are defined for the `endpoint` object in addition
@@ -307,8 +307,6 @@ to the xRegistry-defined core
   comparison algorithm of two `channel` values might need to be more
   complicated than a "string compare" in those cases.
 
-  When this property has no value it MUST either be serialized as an empty
-  string or excluded from the serialization entirely.
 - Constraints:
   - OPTIONAL.
   - When specified, the value MUST be a non-empty string.
@@ -329,7 +327,6 @@ See the [deprecated](../core/spec.md#deprecated) attribute in the core
   provides a mechanism by which it can be determined without examination of
   the Resource at all.
 - Constraints:
-  - At least one of `envelope` and `protocol` MUST be specified.
   - MUST be a non-empty string of the form `<SPEC>[/<VERSION>]`,
     where `<SPEC>` is the non-empty string name of the specification that
     defines the Resource. An OPTIONAL `<VERSION>` value SHOULD be included if
@@ -368,8 +365,9 @@ This specification defines the following envelope options for the indicated
 
 - `mode` : indicates whether the CloudEvent will use `binary` or `structured`
   (mode)[https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#message].
-  When specified, its value MUST be one of: `binary` or `structured`. When not
-  specified, the endpoint is indicating that either mode is acceptable.
+  When specified, its value MUST be one of: `binary` or `structured`, case
+  sensitive. When not specified, the endpoint is indicating that either mode
+  is acceptable.
 - `format` : indicates the format of the CloudEvent when sent in `structured`
   mode. This attribute MUST NOT be specified when `mode` is `binary`. The value
   used MUST match the expected content type of the message (e.g. for HTTP the
@@ -402,7 +400,6 @@ This specification defines the following envelope options for the indicated
 
   All messages inside an Endpoint MUST use this same protocol.
 - Constraints:
-  - At least one of `envelope` and `protocol` MUST be specified.
   - MUST be a non-empty string.
   - SHOULD follow the naming convention `<NAME>/<VERSION>`,
     whereby `<NAME>` is the name of the protocol and `<VERSION>` is the
@@ -433,8 +430,7 @@ This specification defines the following envelope options for the indicated
   a resource managed by the network host is protocol specific.
 - Constraints:
   - OPTIONAL.
-  - Each object key MUST contain a `uri` attribute with a valid, absolute
-    URI (URL).
+  - Each object MUST contain a `uri` attribute with a valid, absolute URI (URL).
 - Examples:
   - `[ {"uri": "https://example.com" } ]`
   - ```
@@ -526,6 +522,7 @@ This specification defines the following envelope options for the indicated
   the liveness of the endpoint.
 - Constraints:
   - OPTIONAL.
+  - If present, MUST be either `true` or `false`, case-sensitive.
   - When not specified, the default value is MUST be `false`.
 
 ##### `protocoloptions.options`
