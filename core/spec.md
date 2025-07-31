@@ -221,6 +221,7 @@ pseudo JSON form:
       "self": "<URL>",
       "shortself": "<URL>", ?
       "xid": "<XID>",
+      "xbase": "<XID>",
       "epoch": <UINTEGER>,
       "name": "<STRING>", ?
       "description": "<STRING>", ?
@@ -240,7 +241,8 @@ pseudo JSON form:
           "self": "<URL>",                         # Resource URL, not Version
           "shortself": "<URL>", ?
           "xid": "<XID>",                          # Resource XID, not Version
-          "epoch": <UINTEGER>,                     # Start of default Ver attrs
+          "xbase": "<XID>",                        # Start of default Ver attrs
+          "epoch": <UINTEGER>,
           "name": "<STRING>", ?
           "isdefault": true,
           "description": "<STRING>", ?
@@ -290,6 +292,7 @@ pseudo JSON form:
               "self": "<URL>",                     # Version URL
               "shortself": "<URL>", ?
               "xid": "<XID>",
+              "xbase": "<XID>",
               "epoch": <UINTEGER>,                 # Version's epoch
               "name": "<STRING>", ?
               "isdefault": <BOOLEAN>,              # Default=false
@@ -654,9 +657,10 @@ be one of the following data types:
   information.  Its value MUST start with a `/`.
 - `xidtype` - MUST be a URL reference to an xRegistry model type. The
    reference MUST point to one of: the Registry itself (`/`), a Group type
-   (`/<GROUPS>`), a Resource type (`/<GROUPS>/<RESOURCE>`) or Version type for
+   (`/<GROUPS>`), a Resource type (`/<GROUPS>/<RESOURCES>`) or Version type for
    a Resource (`/<GROUPS>/<RESOURCES>/versions`). Its value MUST reference a
-   defined/valid type in the Registry.
+   defined/valid type in the Registry. It MUST use the plural name of the
+   referenced type, if it is a Group, Resource or Version.
 - `string` - sequence of Unicode characters.
 - `timestamp` - an [RFC3339](https://tools.ietf.org/html/rfc3339) timestamp.
   Use of a `time-zone` notation is RECOMMENDED. All timestamps returned by
@@ -772,6 +776,7 @@ form:
 - `"self": "<URL>"`
 - `"shortself": "<URL>"`
 - `"xid": "<XID>"`
+- `"xbase": "<XID>"`
 - `"epoch": <UINTEGER>`
 - `"name": "<STRING>"`
 - `"description": "<STRING>"`
@@ -933,6 +938,80 @@ of the existing entity. Then the existing entity would be deleted.
 
 - Examples:
   - `/endpoints/ep1`
+
+##### `xbase` Attribute
+
+- Type: XID
+- Description: This attribute is used to have the current entity "inherit" or
+  "extend" another entity. This is most useful when a shared common definition
+  is needed across multiple instances, and only a small set of custom changes
+  are needed.
+
+  The `xbase` attribute MAY only be used on Group, Resource or Version
+  instances and MUST reference an entity of the same model type as the
+  current entity.
+
+  The semantics of "inheriting" is defined as follows:
+  - Starting with an entity that has `xbase` defined, follow its value to
+    the referenced entity. Repeat as necessary until the end of the `xbase`
+    chain of entities is reached. Note that the chain MUST NOT be recursive.
+  - Using the "deepest" entity's attributes as a starting point, walk back up
+    the chain merging the next entity's attributes over the current set. Note
+    that an attribute with a value of `null`, or a scalar value, MUST overlay
+    the deeper entity's value, including any nested attributes. For example,
+    `"a": 123` would replace all of `"a": { "b": c" }`, assuming it is
+    model-legal for "a" to support varying types.
+
+  If a referenced entity can not be found then an error MUST NOT be generated
+  and only the locally defined attributes would be visible.
+
+  Note that referencing a Resource MUST expose the default Version's
+  attributes, and as the referenced Resource's `defaultversionid` changes the
+  inherited attributes visible from the current entity MUST automatically
+  be updated.
+
+  Implementations MAY (but are NOT REQUIRED) to validate cross-entity
+  constraints that might be violated due to changes in a referenced entity.
+  For example, [Endpoint's `envelope`](../endpoint/spec.md#envelope) attribute
+  mandates that all Messages in that Endpoint use that same `envelope` value.
+  One of those Messages might have an `xbase` to a Message that breaks that
+  rule. For a variety of reasons (e.g. authorization constraints), server
+  implementations might not be able to verify this constraint. Clients need
+  to be aware of this possibility.
+
+  Normally, write operations with attributes set to `null` are treated as a
+  request to delete those attributes from the current entity. As a result they
+  will likely not appear in the persistent store, and would not appear in the
+  serialization of that entity. However, when `xbase` is defined these `null`
+  properties MUST be processed (and likely persisted) such that the server can
+  distinguish a `null` attribute from a "missing" attribute to ensure that a
+  `null` attribute will delete any matching inherited attribute, while a
+  "missing" attribute will not.
+
+  If the `xbase` attribute is deleted from an entity, being able to distinguish
+  between `null` and "missing" is no longer needed and those attributes will
+  likely be deleted from the persistent store.
+
+  When an entity has `xbase` defined, it MUST be present in all serializations
+  of that entity. When the entity is serialized in "document view", only the
+  locally defined attributes (including any `null` attributes) MUST appear;
+  inherited ones MUST NOT. In non-document view serializations, `null`
+  attributes MUST NOT appear in the serialization.
+
+  Note that clients need to take care when updating an entity that uses `xbase`
+  since any update will only update the current entity and not the referenced
+  one. So, a user who is not aware of `xbase` being set might inadvertantly
+  locally define all attributes if they use `PUT` instead of `PATCH` and
+  negate the value of `xbase` being set.
+
+- Constraints:
+  - If present, MUST reference an entity of the same model type as the
+    current entity.
+  - MUST only be used on Groups, Resources or Versions.
+
+- Examples:
+  - `/messagegroups/group1`
+  - `/messagegroups/group1/messages/msg`
 
 ##### `epoch` Attribute
 
@@ -1524,7 +1603,7 @@ semantics defined above with the following exceptions:
     operations, any missing REQUIRED attributes MUST generate an error
     ([required_attribute_missing](#required_attribute_missing)).
 
-The `PATCH`, variant when directed at an xRegistry collection, MUST adhere to
+The `PATCH` variant when directed at an xRegistry collection, MUST adhere to
 the following:
   - The HTTP body MUST contain a JSON map where the key MUST be the
     `<SINGULAR>id` of each entity in the map. Note, that in the case of a map
@@ -3836,6 +3915,7 @@ Groups include the following
   based on the `shortself` capability. OPTIONAL/ignored in requests.
 - [`xid`](#xid-attribute) - REQUIRED in API and document views.
   OPTIONAL/ignored in requests.
+- [`xbase`](#xbase-attribute) - OPTIONAL.
 - [`epoch`](#epoch-attribute) - REQUIRED in API and document views. OPTIONAL in
   requests.
 - [`name`](#name-attribute) - OPTIONAL.
@@ -5926,6 +6006,7 @@ Versions include the following [common attributes](#common-attributes):
 - [`xid`](#xid-attribute) - REQUIRED in API and document views.
   OPTIONAL/ignored in requests. MUST be the `xid` of this Version, not the
   owning Resource.
+- [`xbase`](#xbase-attribute) - OPTIONAL.
 - [`epoch`](#epoch-attribute) - REQUIRED in API and document views. OPTIONAL
   in requests. MUST be the `epoch` value of this Version, not the owning
   Resource.
