@@ -66,6 +66,7 @@ this form:
       "labels": { "<STRING>": "<STRING>" * }, ?
       "createdat": "<TIMESTAMP>",
       "modifiedat": "<TIMESTAMP>",
+      "deprecated": { ... }, ?
 
       # MessageGroup extension attributes
       "envelope": "<STRING>", ?                 # e.g. CloudEvents/1.0
@@ -254,7 +255,7 @@ to the xRegistry-defined core
   given envelopes, but applications MAY define extensions for other envelopes
   on their own. All messages inside a group MUST use this same envelope.
 - Constraints:
-  - If present, MUST be a non-empty string.
+  - If present, MUST be a non-empty case-insensitive string.
   - If present, MUST follow the naming convention `<NAME>/<VERSION>`, whereby
     `<NAME>` is the name of the metadata envelope and `<VERSION>` is the
     version of the metadata envelope.
@@ -271,7 +272,7 @@ to the xRegistry-defined core
   applications MAY define extensions for other protocols on their own. All
   messages inside a group MUST use this same protocol.
 - Constraints:
-  - If present, MUST be a non-empty string.
+  - If present, MUST be a non-empty case-insensitive string.
   - If present, MUST follow the naming convention `<NAME>` or
     `<NAME>/<VERSION>`, whereby `<NAME>` is the name of the protocol and
     `<VERSION>` is the version of protocol. The version is REQUIRED if
@@ -322,7 +323,7 @@ the core xRegistry Resource
   "merge" operation of the next message's attributes. Note in the case of an
   inherited attribute being a complex type (e.g. map, object), and the
   overlaying attribute is scalar, then the entire inherited attribute (and
-  nested values) are replace by that scalar value.
+  nested values) are replaced by that scalar value.
 
   If the referenced message can not be found then an error MUST NOT be
   generated.
@@ -401,8 +402,12 @@ Illustrating example:
 
 #### `envelopeoptions`
 
-See [`envelopeoptions`](../endpoint/spec.md#envelopeoptions) in the Endpoint
-specification.
+- Type: Map
+- Description: Configuration details of the Message with respect to the
+  envelope format used to format the messages. See
+  [Metadata Envelopes](#metadata-envelopes) for more details.
+- Constraints:
+  - OPTIONAL.
 
 #### `protocol`
 
@@ -429,7 +434,7 @@ specification.
   attribute.
 - Constraints:
   - OPTIONAL.
-  - If present, MUST be a non-empty string.
+  - If present, MUST be a non-empty case-insensitive string.
   - If present, MUST follow the naming convention `<NAME>/<VERSION>`, whereby
     `<NAME>` is the name of the schema format and `<VERSION>` is the version of
     the schema format in the format defined by the schema format itself.

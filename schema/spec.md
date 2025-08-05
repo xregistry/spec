@@ -56,6 +56,7 @@ this form:
       "labels": { "<STRING>": "<STRING>" * }, ?
       "createdat": "<TIMESTAMP>",
       "modifiedat": "<TIMESTAMP>",
+      "deprecated": { ... }, ?
 
       "schemasurl": "<URL>",                       # Schemas collection
       "schemascount": <UINTEGER>,
@@ -278,7 +279,7 @@ the core xRegistry Resource
   attribute, making it a REQUIRED attribute.
 - Constraints:
   - OPTIONAL.
-  - If present, MUST be a non-empty string.
+  - If present, MUST be a non-empty case-insensitive string.
   - MUST follow the naming convention `<NAME>/<VERSION>`, whereby `<NAME>` is
     the name of the schema format and `<VERSION>` is the Version of the schema
     format in the format defined by the schema format itself.

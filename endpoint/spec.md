@@ -56,15 +56,10 @@ this form:
       "labels": { "<STRING>": "<STRING>" * }, ?
       "createdat": "<TIMESTAMP>",
       "modifiedat": "<TIMESTAMP>",
+      "deprecated": { ... }, ?
 
       "usage": [ "<STRING>" + ] ,                 # subscriber, consumer, producer
       "channel": "<STRING>", ?
-      "deprecated": {
-        "effective": "<TIMESTAMP>", ?
-        "removal": "<TIMESTAMP>", ?
-        "alternative": "<URL>", ?
-        "docs": "<URL>"?
-      }, ?
 
       # Start of Endpoint extension attributes
       "envelope": "<STRING>", ?                   # e.g. CloudEvents/1.0
@@ -313,11 +308,6 @@ to the xRegistry-defined core
 - Examples:
   - `queue1`
 
-#### `deprecated`
-
-See the [deprecated](../core/spec.md#deprecated) attribute in the core
-[xRegistry](../core/spec.md#deprecated) specification.
-
 #### `envelope`
 
 - Type: String
@@ -327,11 +317,11 @@ See the [deprecated](../core/spec.md#deprecated) attribute in the core
   provides a mechanism by which it can be determined without examination of
   the Resource at all.
 - Constraints:
-  - MUST be a non-empty string of the form `<SPEC>[/<VERSION>]`,
+  - MUST be a non-empty case-insensitive string of the form
+    `<SPEC>[/<VERSION>]`,
     where `<SPEC>` is the non-empty string name of the specification that
     defines the Resource. An OPTIONAL `<VERSION>` value SHOULD be included if
     there are multiple versions of the specification available.
-  - For comparison purposes, this attribute MUST be considered case-sensitive.
   - If a `<VERSION>` is specified at the Group level, all Resources within that
     Group MUST have a `<VERSION>` value that is at least as precise as its
     Group, and MUST NOT expand it. For example, if a Group had a
@@ -341,8 +331,8 @@ See the [deprecated](../core/spec.md#deprecated) attribute in the core
     of `myspec/2.0` or just `myspec`. Additionally, if a Group does not have
     a `envelope` attribute then there are no constraints on its Resources
     `envelope` attributes.
-  - This specification places no restriction on the case of the `<SPEC>` value
-    or on the syntax of the `<VERSION>` value.
+  - This specification places no restriction on the syntax of the
+    `<VERSION>` value.
 - Examples:
   - `CloudEvents/1.0`
 
@@ -400,7 +390,7 @@ This specification defines the following envelope options for the indicated
 
   All messages inside an Endpoint MUST use this same protocol.
 - Constraints:
-  - MUST be a non-empty string.
+  - MUST be a non-empty case-insensitive string.
   - SHOULD follow the naming convention `<NAME>/<VERSION>`,
     whereby `<NAME>` is the name of the protocol and `<VERSION>` is the
     version of protocol.
