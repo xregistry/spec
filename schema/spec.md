@@ -3,23 +3,212 @@
 ## Abstract
 
 This specification defines a Schema Registry extension to the xRegistry
-document format and API [specification](../core/spec.md). A Schema Registry
+document format and API [specification][xRegistry Core]. A Schema Registry
 allows for the storage, management and discovery of schema documents.
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Notations and Terminology](#notations-and-terminology)
-  - [Notational Conventions](#notational-conventions)
-  - [Terminology](#terminology)
-- [Schema Registry](#schema-registry-model)
-  - [Schema Groups](#schema-groups)
-  - [Schema Resources](#schema-resources)
+- [Schema Registry Service - Version 1.0-rc2](#schema-registry-service---version-10-rc2)
+  - [Abstract](#abstract)
+  - [Table of Contents](#table-of-contents)
+  - [1. Overview](#1-overview)
+    - [1.1. Schemas](#11-schemas)
+    - [1.2. Schema References](#12-schema-references)
+    - [1.3. Versioning](#13-versioning)
+    - [1.4. Document Store](#14-document-store)
+  - [2. Notations and Terminology](#2-notations-and-terminology)
+    - [2.1. Notational Conventions](#21-notational-conventions)
+    - [2.2. Terminology](#22-terminology)
+      - [2.2.1. Schema](#221-schema)
+    - [2.3. Schema Group](#23-schema-group)
+  - [3. Schema Registry Model](#3-schema-registry-model)
+  - [4. Schema Registry](#4-schema-registry)
+    - [4.1. Schema Groups](#41-schema-groups)
+    - [4.2. Schema Resources](#42-schema-resources)
+      - [4.2.1. `validation`](#421-validation)
+      - [4.2.2. `format`](#422-format)
+    - [4.3. Schema Formats](#43-schema-formats)
+      - [4.3.1. JSON Schema](#431-json-schema)
+      - [4.3.2. XML Schema](#432-xml-schema)
+      - [4.3.3. Apache Avro Schema](#433-apache-avro-schema)
+      - [4.3.4. Protobuf Schema](#434-protobuf-schema)
+    - [5. Security Considerations](#5-security-considerations)
 
-## Overview
+## 1. Overview
 
-This specification defines a Schema Registry extension to the xRegistry
-document format and API [specification](../core/spec.md).
+A schema registry provides a respository for managing serialization and
+validation and data type definitions schemas as they are commonly used in
+distributed systems. Common schema formats include JSON Schema, JSON
+Structure, Apache Avro Schema, Google Protobuf Schema, and XML Schema.
+
+### 1.1. Schemas
+
+Schema registries are generally used to share such schemas amongst multiple
+parties.
+
+When schemas are used to drive the serialization and encoding of data, like in
+the cases of Apache Avro or Google Protobuf, the deserialization of structured
+data from its encoded form requires the schema to be available to the
+deserializer. The compactness of these serialization formats is achieved by
+externalizing type information into a schema document. The registry allows for a
+publisher of data to publish the schema document and pass a reference to it, and
+for a consumer of data to retrieve the schema document and use it to decode the
+data.
+
+Formats like XML and JSON do not require a schema to decode the data, but
+schemas are still very useful to establish a common understanding of the data
+structures that are exchanged, provide a foundation for code generation, allow
+for validation of the data, and provide an anchor for documentation and semantic
+information, like scientific units for numeric values, that goes beyond simple
+labels and data types. Generally, it is a best practice for data structures that
+are exchanged in a distributed systems ought to be described by a schema, even
+if the data serialization model does not require one.
+
+### 1.2. Schema References
+
+In the [CloudEvents][CloudEvents dataschema] specification, the `dataschema`
+attribute holds a URI and is specifically thought to reference a schema document
+residing in a registry. For example, a CloudEvent with a `dataschema` attribute
+pointing to a schema version in a schema registry might look like this, using
+the schema version's [`self`][xRegistry self] URL as the value of the `dataschema` attribute:
+
+```json
+{
+    "specversion": "1.0",
+    "id": "1234-5678-9012",
+    "type": "com.example.event",
+    "source": "https://example.com/source",
+    "dataschema": "https://example.com/registry/schemagroups/com.example.schemas/schemas/com.example.event/versions/1.0",
+    "datacontenttype": "application/vnd.google.protobuf",
+    "data_base64": "...base64-encoded-data..."
+}
+```
+
+Since this URL might be a bit long, the xRegistry core specification allows for
+an implementation to provide an alternative, shorter, self-referencing URL that
+points to the same schema version, via the [`shortself`][xRegistry shortself]
+attribute. The specification is not prescriptive about the format of the shorter
+URL, but it might follow common URL-shorneter practices. With that, the above
+example might look like this:
+
+```json
+{
+    "specversion": "1.0",
+    "id": "1234-5678-9012",
+    "type": "com.example.event",
+    "source": "https://example.com/source",
+    "dataschema": "https://example.com/$267shU79S",
+    "datacontenttype": "application/vnd.google.protobuf",
+    "data_base64": "...base64-encoded-data..."
+}
+```
+
+### 1.3. Versioning
+
+When schemas are used in a system, they typically evolve over time. Data
+structures are extended or modified, with parts added or deprecated or even
+removed. Some of these changes are compatible with existing data, while others
+are not.
+
+Serialization generally occurs based on a specific schema version that the data
+publisher uses. Multiple versions of publishers may exist in the same system,
+using different schema versions, which is a common occurrence in systems that
+perform live updates. Once data has been published, data serialized based on
+several different versions may exist in a system, in queues, in databases, or in
+files.
+
+The schema registry therefore allows managing multiple versions of schemas,
+declare their lineage, and state the compatibility policy. The compatibility
+policy is used to determine whether a schema change is compatible with existing
+data, and MAY be enforced by implementations of the schema registry. For this,
+this specification leans on the [xRegistry Core][xRegistry Core] specification
+that already defines these versioning mechanisms for any kind of resource.
+
+### 1.4. Document Store
+
+The schema registry is a document store and therefore also has the
+[`hasdocument`][xRegistry hasdocument] attribute defined in the xRegistry Core
+attribute (implicitly) defined as `true` for the `schema` Resource.
+
+What this means is that the schema registry immediately yields a document with
+the stored content-type when the a client issues a GET request to the
+[`self`][xRegistry self] URL of a schema Version. The associated metadata is
+returned in the HTTP headers. The [default version][xRegistry default-version]
+of the schema Version is returned when the client issues a GET request to the
+[`self`][xRegistry self] URL of the `schema` Resource.
+
+This allows to provide external parties with a link that they can use without
+needing to know any details about xRegistry.
+
+Storing a new schema is similarly straightforward for clients that do not know
+xRegistry specifics, by simply using a POST against [`self`][xRegistry self] URL
+of the `schema` Resource in the simplest case.
+
+To access the metadata of the `schema` or the schema version as a JSON document,
+the client can append a `$details`suffix to the URL, like
+`https://example.com/schemagroups/com.example.schemas/schemas/com.example.event/versions/1.0$details`
+or
+`https://example.com/schemagroups/com.example.schemas/schemas/com.example.event$details`.
+
+Beyopnd this, the [xRegistry Core][xRegistry Core] specification provides rich
+filtering and export/import capabilities, which can be used to retrieve schema
+documents in bulk, or to export/import schemas and schema versions in a
+structured way. The [xRegistry pagination][xRegistry pagination] mechanism can be used to
+retrieve large sets of schemas or schema versions in a paginated manner.
+
+## 2. Notations and Terminology
+
+### 2.1. Notational Conventions
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
+"SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be
+interpreted as described in [RFC 2119](https://tools.ietf.org/html/rfc2119).
+
+For clarity, OPTIONAL attributes (specification-defined and extensions) are
+OPTIONAL for clients to use, but the servers' responsibility will vary.
+Server-unknown extension attributes MUST be silently stored in the backing
+datastore. Specification-defined, and server-known extension, attributes MUST
+generate an error if the corresponding feature is not supported or enabled.
+However, as with all attributes, if accepting the attribute would result in a
+bad state (such as exceeding a size limit, or results in a security issue),
+then the server MAY choose to reject the request.
+
+In the pseudo JSON format snippets `?` means the preceding attribute is
+OPTIONAL, `*` means the preceding attribute MAY appear zero or more times,
+and `+` means the preceding attribute MUST appear at least once. The presence
+of the `#` character means the remaining portion of the line is a comment.
+Whitespace characters in the JSON snippets are used for readability and are
+not normative.
+
+### 2.2. Terminology
+
+This specification defines the following terms:
+
+#### 2.2.1. Schema
+
+We use the term **schema** (or schema Resource) in this specification as a
+logical grouping of **schema Versions**. A **schema Version** is a concrete
+document. The **schema** Resource is a semantic umbrella formed around one or
+more concrete schema Version documents. Per the definition of the
+[`compatibility`][xRegistry compatibility] attribute, all Versions of a single
+**schema** MUST adhere to the rules defined by the `compatibility` attribute.
+Any breaking change MUST result in a new **schema** Resource being created.
+
+In terms of versioning, you can think of a **schema** as a collection of
+versions that are compatible according to the selected `compatibility` mode.
+When that compatibility is broken across versions, a completely new **schema**
+MUST be created, to indicate the breaking change.
+
+### 2.3. Schema Group
+
+A Schema Group is a container for schemas that are related to each other in
+some application-defined way. This specification does not impose any
+restrictions on what schemas can be contained in a Schema Group.
+
+## 3. Schema Registry Model
+
+The authoritative xRegistry extension model of the Schema Registry resides in
+the [model.json](model.json) file.
 
 For easy reference, the JSON serialization of a Schema Registry adheres to
 this form:
@@ -100,83 +289,33 @@ this form:
 }
 ```
 
-## Notations and Terminology
+## 4. Schema Registry
 
-### Notational Conventions
+The Schema Registry is a metadata store for organizing schemas and schema
+Versions of any kind; it is a document store.
 
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
-"SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be
-interpreted as described in [RFC 2119](https://tools.ietf.org/html/rfc2119).
+Implementations of this specification MAY include additional extension
+attributes, including the `*` attribute of type `any`.
 
-For clarity, OPTIONAL attributes (specification-defined and extensions) are
-OPTIONAL for clients to use, but the servers' responsibility will vary.
-Server-unknown extension attributes MUST be silently stored in the backing
-datastore. Specification-defined, and server-known extension, attributes MUST
-generate an error if the corresponding feature is not supported or enabled.
-However, as with all attributes, if accepting the attribute would result in a
-bad state (such as exceeding a size limit, or results in a security issue),
-then the server MAY choose to reject the request.
+Since the Schema Registry is an application of the xRegistry specification, all
+attributes for Groups, Resources, and Resource Version objects are inherited
+from there.
 
-In the pseudo JSON format snippets `?` means the preceding attribute is
-OPTIONAL, `*` means the preceding attribute MAY appear zero or more times,
-and `+` means the preceding attribute MUST appear at least once. The presence
-of the `#` character means the remaining portion of the line is a comment.
-Whitespace characters in the JSON snippets are used for readability and are
-not normative.
+### 4.1. Schema Groups
 
-### Terminology
+The Group (`<GROUP>`) name for the Schema Registry is `schemagroups`. The
+Schema Group does not have any specific extension attributes.
 
-This specification defines the following terms:
+A schema group is a collection of schemas that are related to each other in
+some application-defined way. A Schema Group does not impose any restrictions
+on the contained schemas, meaning that a Schema Group MAY contain schemas of
+different formats.
 
-#### Schema
-
-A schema, in the sense of this specification, defines the structure of the
-body/payload of a serialized message, but also of a structured data element
-stored on disk or elsewhere. In self-describing serialization formats like
-JSON, XML, BSON, or MessagePack, schemas primarily help with validating
-whether a message body conforms with a set of rules defined in the schema and
-with generating code that can produce or consume the defined structure. For
-schema-dependent serialization formats like Protobuf or Apache Avro, a schema
-is needed to decode the structured data from its serialized, binary form.
-
-We use the term **schema** (or schema Resource) in this specification as a
-logical grouping of **schema Versions**. A **schema Version** is a concrete
-document. The **schema** Resource is a semantic umbrella formed around one or
-more concrete schema Version documents. Per the definition of the
-[`compatibility`](../core/spec.md#compatibility-attribute) attribute, all
-Versions of a single **schema** MUST adhere to the rules defined by the
-`compatibility` attribute. Any breaking change MUST result in a new **schema**
-Resource being created.
-
-In terms of versioning, you can think of a **schema** as a collection of
-versions that are compatible according to the selected `compatibility` mode.
-When that compatibility is broken across versions, a completely new **schema**
-MUST be created, to indicate the breaking change.
-
-## Schema Registry Model
-
-The formal xRegistry extension model of the Schema Registry
-resides in the [model.json](model.json) file.
-
-#### Schema Groups
-
-A schema Group is a container for schemas that are related to each other in
-some application-defined way. This specification does not impose any
-restrictions on what schemas can be contained in a schema Group.
-
-The Group plural name (`<GROUPS.`) is `schemagroups`, and the Group singular
-name (`<GROUP>`) is `schemagroup`.
-
-The Group does not have any specific extension attributes.
-
-A schema Group is a collection of schemas that are related to each other in
-some application-defined way. A schema Group does not impose any restrictions
-on the contained schemas, meaning that a schema Group MAY contain schemas of
-different formats. Every schema Resource MUST reside inside a schema Group.
+Every schema MUST reside inside a Schema Group.
 
 Example:
 
-The follow abbreviated Schema Registry's contents shows a single schema Group
+The follow abbreviated Schema Registry's contents shows a single Schema Group
 containing 5 schemas.
 
 ```yaml
@@ -198,18 +337,20 @@ containing 5 schemas.
 }
 ```
 
-### Schema Resources
+### 4.2. Schema Resources
 
-The Resource plural name (`<RESOURCES>`) is `schemas`, and the Resource
-singular name (`<RESOURCE>`) is `schema`.
+The Resources (`<RESOURCE>`) collection inside of Schema Groups is named
+`schemas`. The type of the Resource is `schema`. Any single `schema` is a
+container for one or more `versions`, which hold the concrete schema
+documents or schema document references.
 
-Any single `schema` is a container for one or more `Versions`, which hold the
-concrete schema documents or schema document references.
+All Versions of a Schema MUST adhere to the semantic rules of the schema's
+[`compatibility`][xRegistry compatibility] attribute.
 
-All Versions of a schema MUST adhere to the semantic rules of the schema's
-`compatibility` attribute. This specification defines "compatibility" for
-schemas as follows; version B of a schema is said to be compatible with
-version A of a schema if all of the following are true:
+This specification defines "compatibility" for schemas as follows; version B of
+a schema is said to be compatible with version A of a schema if all of the
+following are true:
+
 - Any document that adheres to the rules specified by schema A also adheres to
   rules specified by schema B.
 - Any processing rules defined for schema A also apply for schema B.
@@ -217,13 +358,14 @@ version A of a schema if all of the following are true:
   A, do not conflict with the processing rules for schema A.
 
 Implementations of this specification MAY choose to support any of the
-[`compatibility`](../core/spec.md#compatibility-attribute) values defined in
-the core xRegistry specification.
+[`compatibility`][xRegistry compatibility] values defined in the core xRegistry
+specification.
 
 Implementations of this specification SHOULD use the xRegistry default
 algorithm for generating new `versionid` values and for determining which is
-the latest Version. See [Version IDs](../core/spec.md#version-ids) for more
+the latest Version. See [Version IDs][xRegistry version-ids] for more
 information, but in summary it means:
+
 - `versionid`s are unsigned integers starting with `1`
 - They monotonically increase by `1` with each new Version
 - The latest is the Version with the lexically largest `versionid` value after
@@ -235,11 +377,17 @@ major version identifier in the `schemaid`, like `"com.example.event.v1"` or
 schemas can be more easily identified by users and developers. The schema
 `versionid` then functions as the semantic minor version identifier.
 
-The following extensions are defined for the `schema` Resource in addition to
-the core xRegistry Resource
-[attributes](../core/spec.md#attributes-and-extensions):
+Version lineage is defined by the [`ancestor`][xRegistry ancestor] attribute,
+which is a `versionid` of the Version that this Version is based on. The `ancestor`
+attribute permits multiple version branches to exist, and allows for
+implementations to determine the Version lineage. See the
+[`ancestor`][xRegistry ancestor] attribute in the core xRegistry specification
+for more information.
 
-#### `validation`
+The following extensions are defined for the `schema` Resource in addition to
+the core xRegistry Resource [attributes][xRegistry attributes-and-extensions]:
+
+#### 4.2.1. `validation`
 
 - Type: Boolean
 - Description: Indicates whether or not the server will validate the Resource's
@@ -258,13 +406,13 @@ the core xRegistry Resource
   - OPTIONAL.
   - When not specified, the default value MUST be `false`.
 
-#### `format`
+#### 4.2.2. `format`
 
 - Type: String
 - Description: Identifies the schema format. In absence of formal media-type
   definitions for several important schema formats, we define a convention here
   to reference schema formats by name and version as `<NAME>/<VERSION>`. This
-  specification defines a set of common [schema format names](#schema-formats)
+  specification defines a set of common [schema format names](#43-schema-formats)
   that MUST be used for the given formats, but applications MAY define
   extensions for other formats on their own.
 
@@ -366,15 +514,15 @@ Versions for a schema named `com.example.telemetrydata`:
 }
 ```
 
-### Schema Formats
+### 4.3. Schema Formats
 
 This section defines a set of common schema `format` values that MUST be used
 for the given formats, but applications MAY define extensions for other
 formats on their own.
 
-#### JSON Schema
+#### 4.3.1. JSON Schema
 
-The [`format`](#format) identifier for JSON Schema is `JsonSchema`.
+The [`format`](#422-format) identifier for JSON Schema is `JsonSchema`.
 
 When the `format` attribute is set to `JsonSchema`, the `schema` attribute of
 the schema Resource is a JSON object representing a JSON Schema document
@@ -407,9 +555,9 @@ which follows the exact convention as defined for JSON schema and expecting an
 eventually released version 1.0 of the JSON Schema specification using a plain
 version number.
 
-#### XML Schema
+#### 4.3.2. XML Schema
 
-The [`format`](#format) identifier for XML Schema is `XSD`. The
+The [`format`](#422-format) identifier for XML Schema is `XSD`. The
 version of the XML Schema format is the version of the W3C XML Schema
 specification that is used to define the schema.
 
@@ -433,9 +581,9 @@ are defined as follows:
 - `XSD/1.0`
 - `XSD/1.1`
 
-#### Apache Avro Schema
+#### 4.3.3. Apache Avro Schema
 
-The [`format`](#format) identifier for Apache Avro Schema is
+The [`format`](#422-format) identifier for Apache Avro Schema is
 `Avro`. The version of the Apache Avro Schema format is the version of the
 Apache Avro Schema release that is used to define the schema.
 
@@ -467,9 +615,9 @@ the which the reference is already in the form of a URI fragment, the suffix is
 appended separated with a colon, for instance
 `.../com.example.telemetrydata:TelemetryEvent`.
 
-#### Protobuf Schema
+#### 4.3.4. Protobuf Schema
 
-The [`format`](#format) identifier for Protobuf Schema is
+The [`format`](#422-format) identifier for Protobuf Schema is
 `Protobuf`. The version of the Protobuf Schema format is the version of the
 Protobuf syntax that is used to define the schema.
 
@@ -499,4 +647,35 @@ Examples:
   is appended separated with a colon, for instance
   `.../com.example.telemetrydata:TelemetryEvent`.
 
+### 5. Security Considerations
+
+Like [xRegistry Core][xRegistry Core] specification, this specification does not
+explicitly address authentication or authorization levels of users, nor how to
+securely protect the APIs.
+
+It is expected that any implementation of this specification will use
+authentication and authorization mechanisms that are appropriate for the
+application domain and the deployment environment. This may include, but is not
+limited to, OAuth 2.0, OpenID Connect, API keys, or other mechanisms
+appropriate for the use case.
+
+For authorization, the `schemagroup` concept provides a natural authorization
+boundary, where users can be granted access to specific schema groups, and
+therefore to the schemas contained within those groups. The `schema` Resource
+itself can be used to further restrict access to specific schema Versions
+within a schema, allowing for fine-grained access control.
+
+---
+
 [JSON Pointer]: https://www.rfc-editor.org/rfc/rfc6901
+[CloudEvents dataschema]: https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#dataschema
+[xRegistry Core]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html
+[xRegistry self]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#self-attribute
+[xRegistry shortself]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#shortself-attribute
+[xRegistry compatibility]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#compatibility-attribute
+[xRegistry version-ids]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#version-ids
+[xRegistry attributes-and-extensions]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#attributes-and-extensions
+[xRegistry ancestor]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#ancestor-attribute
+[xRegistry hasdocument]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#--model-groupsstringresourcesstringhasdocument
+[xRegistry default-version]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#registry-design
+[xRegistry pagination]: https://xregistry.io/xreg/xregistryspecs/pagination-v1/docs/spec.html
