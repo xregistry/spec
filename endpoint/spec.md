@@ -12,8 +12,8 @@ document format and API [specification](../core/spec.md).
 - [Notations and Terminology](#notations-and-terminology)
   - [Notational Conventions](#notational-conventions)
   - [Terminology](#terminology)
-- [Endpoint Registry](#endpoint-registry)
-  - [Endpoints](#endpoints)
+- [Endpoint Registry](#endpoint-registry-model)
+  - [Endpoints](#endpoints-groups)
 
 ## Overview
 
@@ -45,7 +45,7 @@ this form:
   "endpointsurl": "<URL>",
   "endpointscount": <UINTEGER>,
   "endpoints": {
-    "<KEY": {
+    "<KEY>": {
       "endpointid": "<STRING>",                   # xRegistry core attributes
       "self": "<URL>",
       "xid": "<XID>",
@@ -56,15 +56,10 @@ this form:
       "labels": { "<STRING>": "<STRING>" * }, ?
       "createdat": "<TIMESTAMP>",
       "modifiedat": "<TIMESTAMP>",
+      "deprecated": { ... }, ?
 
       "usage": [ "<STRING>" + ] ,                 # subscriber, consumer, producer
       "channel": "<STRING>", ?
-      "deprecated": {
-        "effective": "<TIMESTAMP>", ?
-        "removal": "<TIMESTAMP>", ?
-        "alternative": "<URL>", ?
-        "docs": "<URL>"?
-      }, ?
 
       # Start of Endpoint extension attributes
       "envelope": "<STRING>", ?                   # e.g. CloudEvents/1.0
@@ -140,7 +135,7 @@ this form:
       "messagesurl": "<URL>", ?
       "messagescount": <UINTEGER>, ?
       "messages": {
-        "<KEY": {                                # messageid
+        "<KEY>": {                                # messageid
           # See Message Definition spec for details
         } *
       } ?
@@ -183,28 +178,31 @@ An "endpoint" is a logical or physical network location to which messages can
 be produced, from which messages can be consumed, or which makes messages
 available via subscription for delivery to a consumer-designated endpoint.
 
-## Endpoint Registry
+## Endpoint Registry Model
 
 The Endpoint Registry is a registry of metadata definitions for abstract and
 concrete network endpoints to which messages can be produced, from which
 messages can be consumed, or which makes messages available via subscription
 and delivery to a consumer-designated endpoint.
 
-As discussed in [CloudEvents Registry overview](../cloudevents/spec.md),
+As discussed in the [CloudEvents Registry overview](../cloudevents/spec.md),
 endpoints are supersets of
 [message definition groups](../message/spec.md#message-definition-groups) and
 MAY contain inlined messages. Therefore, the Resources in the meta-model for
 the Endpoint Registry are likewise `messages` as defined in the
 [message catalog specification](../message/spec.md).
 
-The resource model for endpoints can be found in [model.json](model.json).
+The formal xRegistry extension model of the Endpoints Registry
+resides in the [model.json](model.json) file.
 
-### Endpoints
+### Endpoints Groups
 
-Endpoints are a Group type with a plural name (`<GROUPS>`) of `endpoints`, and
-a singular name (`<GROUP>`) of `endpoint`.
+The Group plural name (`<GROUPS>`) is `endpoints`, and the Group singular
+name (`<GROUP>`) is `endpoint`.
 
-The following attributes are defined for Endpoints:
+The following attributes are defined for the `endpoint` object in addition
+to the xRegistry-defined core
+[attributes](../core/spec.md#attributes-and-extensions):
 
 #### `usage`
 
@@ -274,7 +272,7 @@ The following attributes are defined for Endpoints:
     - "producer"
   - MUST be an array of at least one.
 
-### `channel`
+#### `channel`
 
 - Type: String
 - Description: A string that can be used to correlate Endpoints. Any Endpoints
@@ -304,20 +302,13 @@ The following attributes are defined for Endpoints:
   comparison algorithm of two `channel` values might need to be more
   complicated than a "string compare" in those cases.
 
-  When this property has no value it MUST either be serialized as an empty
-  string or excluded from the serialization entirely.
 - Constraints:
   - OPTIONAL.
   - When specified, the value MUST be a non-empty string.
 - Examples:
   - `queue1`
 
-### `deprecated`
-
-See the [deprecated](../core/spec.md#deprecated) attribute in the core
-[xRegistry](../core/spec.md#deprecated) specification.
-
-### `envelope`
+#### `envelope`
 
 - Type: String
 - Description: The name of the specification that defines the Resource
@@ -326,12 +317,11 @@ See the [deprecated](../core/spec.md#deprecated) attribute in the core
   provides a mechanism by which it can be determined without examination of
   the Resource at all.
 - Constraints:
-  - At least one of `envelope` and `protocol` MUST be specified.
-  - MUST be a non-empty string of the form `<SPEC>[/<VERSION>]`,
+  - MUST be a non-empty case-insensitive string of the form
+    `<SPEC>[/<VERSION>]`,
     where `<SPEC>` is the non-empty string name of the specification that
     defines the Resource. An OPTIONAL `<VERSION>` value SHOULD be included if
     there are multiple versions of the specification available.
-  - For comparison purposes, this attribute MUST be considered case-sensitive.
   - If a `<VERSION>` is specified at the Group level, all Resources within that
     Group MUST have a `<VERSION>` value that is at least as precise as its
     Group, and MUST NOT expand it. For example, if a Group had a
@@ -341,12 +331,12 @@ See the [deprecated](../core/spec.md#deprecated) attribute in the core
     of `myspec/2.0` or just `myspec`. Additionally, if a Group does not have
     a `envelope` attribute then there are no constraints on its Resources
     `envelope` attributes.
-  - This specification places no restriction on the case of the `<SPEC>` value
-    or on the syntax of the `<VERSION>` value.
+  - This specification places no restriction on the syntax of the
+    `<VERSION>` value.
 - Examples:
   - `CloudEvents/1.0`
 
-### `envelopeoptions`
+#### `envelopeoptions`
 
 - Type: Map
 - Description: Configuration details of the endpoint with respect to the
@@ -361,18 +351,19 @@ See the [deprecated](../core/spec.md#deprecated) attribute in the core
 This specification defines the following envelope options for the indicated
 `envelope` values:
 
-#### `CloudEvents/1.0`
+##### `CloudEvents/1.0`
 
 - `mode` : indicates whether the CloudEvent will use `binary` or `structured`
   (mode)[https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#message].
-  When specified, its value MUST be one of: `binary` or `structured`. When not
-  specified, the endpoint is indicating that either mode is acceptable.
+  When specified, its value MUST be one of: `binary` or `structured`, case
+  sensitive. When not specified, the endpoint is indicating that either mode
+  is acceptable.
 - `format` : indicates the format of the CloudEvent when sent in `structured`
   mode. This attribute MUST NOT be specified when `mode` is `binary`. The value
   used MUST match the expected content type of the message (e.g. for HTTP the
   `Content-Type` header value).
 
-### `protocol`
+#### `protocol`
 
 - Type: String
 - Description: The transport or application protocol used by the endpoint. This
@@ -399,8 +390,7 @@ This specification defines the following envelope options for the indicated
 
   All messages inside an Endpoint MUST use this same protocol.
 - Constraints:
-  - At least one of `envelope` and `protocol` MUST be specified.
-  - MUST be a non-empty string.
+  - MUST be a non-empty case-insensitive string.
   - SHOULD follow the naming convention `<NAME>/<VERSION>`,
     whereby `<NAME>` is the name of the protocol and `<VERSION>` is the
     version of protocol.
@@ -419,7 +409,7 @@ This specification defines the following envelope options for the indicated
 - Constraints:
   - OPTIONAL.
 
-#### `protocoloptions.endpoints`
+##### `protocoloptions.endpoints`
 
 - Type: Array of Objects
 - Description: An array of objects map where each object contains a `uri`
@@ -430,8 +420,7 @@ This specification defines the following envelope options for the indicated
   a resource managed by the network host is protocol specific.
 - Constraints:
   - OPTIONAL.
-  - Each object key MUST contain a `uri` attribute with a valid, absolute
-    URI (URL).
+  - Each object MUST contain a `uri` attribute with a valid, absolute URI (URL).
 - Examples:
   - `[ {"uri": "https://example.com" } ]`
   - ```
@@ -455,7 +444,7 @@ This specification defines the following envelope options for the indicated
     ]
     ```
 
-#### `protocoloptions.authorization`
+##### `protocoloptions.authorization`
 
 - Type: Map
 - Description: OPTIONAL authorization configuration details of the endpoint.
@@ -468,7 +457,7 @@ This specification defines the following envelope options for the indicated
   - MUST only be used for authorization configuration.
   - MUST NOT be used for credential configuration.
 
-#### `protocoloptions.authorization.type`
+###### `protocoloptions.authorization.type`
 
 - Type: String
 - Description: The type of the authorization configuration. The value SHOULD be
@@ -484,7 +473,7 @@ This specification defines the following envelope options for the indicated
   - OPTIONAL.
   - MUST be a non-empty string if used.
 
-#### `protocoloptions.authorization.resourceuri`
+###### `protocoloptions.authorization.resourceuri`
 
 - Type: URI
 - Description: The URI of the resource for which the authorization is
@@ -494,7 +483,7 @@ This specification defines the following envelope options for the indicated
   - OPTIONAL.
   - MUST be a non-empty URI if used.
 
-#### `protocoloptions.authorization.authorityuri`
+###### `protocoloptions.authorization.authorityuri`
 
 - Type: URI
 - Description: The URI of the authorization authority from which the
@@ -505,7 +494,7 @@ This specification defines the following envelope options for the indicated
   - OPTIONAL.
   - MUST be a non-empty URI if used.
 
-#### `protocoloptions.authorization.grant_types`
+###### `protocoloptions.authorization.grant_types`
 
 - Type: Array of Strings
 - Description: The supported authorization grant types. The value SHOULD be a
@@ -515,7 +504,7 @@ This specification defines the following envelope options for the indicated
   - OPTIONAL.
   - MUST be a non-empty array if used.
 
-#### `protocoloptions.deployed`
+##### `protocoloptions.deployed`
 
 - Type: Boolean
 - Description: If `true`, the endpoint metadata represents a public, live
@@ -523,9 +512,10 @@ This specification defines the following envelope options for the indicated
   the liveness of the endpoint.
 - Constraints:
   - OPTIONAL.
+  - If present, MUST be either `true` or `false`, case-sensitive.
   - When not specified, the default value is MUST be `false`.
 
-#### `protocoloptions.options`
+##### `protocoloptions.options`
 
 - Type: Map
 - Description: Additional configuration options for the endpoint. The
@@ -665,7 +655,7 @@ Example:
 }
 ```
 
-#### AMQP options
+##### AMQP options
 
 The [endpoint URIs](#protocoloptionsendpoints) for "AMQP" endpoints MUST be
 valid AMQP URIs using the "amqp" or "amqps" scheme. If the path portion of the
@@ -716,7 +706,7 @@ Example:
 }
 ```
 
-#### MQTT options
+##### MQTT options
 
 The [endpoint URIs](#protocoloptionsendpoints) for "MQTT" endpoints MUST be
 valid MQTT URIs using the (informal) "mqtt" or "mqtts" scheme. If the path
@@ -774,7 +764,7 @@ Example:
 }
 ```
 
-#### KAFKA options
+##### KAFKA options
 
 The [endpoint URIs](#protocoloptionsendpoints) for "Kafka" endpoints MUST be
 valid Kafka bootstrap server addresses. The scheme follows Kafka configuration
@@ -818,7 +808,7 @@ Example:
 }
 ```
 
-#### NATS options
+##### NATS options
 
 The [endpoint URIs](#protocoloptionsendpoints) for "NATS" endpoints MUST be
 valid NATS URIs. The scheme MUST be "nats" or "tls" or "ws" and the URI MUST
@@ -841,8 +831,6 @@ Example:
   }
 }
 ```
-
-## References
 
 [JSON Pointer]: https://www.rfc-editor.org/rfc/rfc6901
 [CloudEvents Types]: https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/spec.md#type-system

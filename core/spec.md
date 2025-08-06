@@ -229,6 +229,12 @@ pseudo JSON form:
       "labels": { "<STRING>": "<STRING>" * }, ?
       "createdat": "<TIMESTAMP>",
       "modifiedat": "<TIMESTAMP>",
+      "deprecated": {
+        "effective": "<TIMESTAMP>", ?
+        "removal": "<TIMESTAMP>", ?
+        "alternative": "<URL>", ?
+        "documentation": "<URL>"?
+      }, ?
 
       # Repeat for each Resource type in the Group
       "<RESOURCES>url": "<URL>",                   # e.g. "messagesurl"
@@ -615,6 +621,16 @@ to be met while maintaining the interoperability goals of the specification.
 Implementations are encouraged to contact the xRegistry community if it is
 unclear if certain customizations would violate the specification.
 
+Implementations MAY (but are NOT REQUIRED) to validate cross-entity
+constraints that might be violated due to changes in a referenced entity.
+For example, [Endpoint's `envelope`](../endpoint/spec.md#envelope) attribute
+mandates that all Messages in that Endpoint use that same `envelope` value.
+One of those Messages might have a `basemessage` value that points to a
+Message that breaks that rule. For a variety of reasons (e.g. authorization
+constraints), server implementations might not be able to verify this
+constraint. Likewise, the same situation might occur via the use of `xref`.
+Clients need to be aware of these possibilities.
+
 ### Attributes and Extensions
 
 Unless otherwise noted, all attributes and extensions MUST be mutable and MUST
@@ -654,9 +670,10 @@ be one of the following data types:
   information.  Its value MUST start with a `/`.
 - `xidtype` - MUST be a URL reference to an xRegistry model type. The
    reference MUST point to one of: the Registry itself (`/`), a Group type
-   (`/<GROUPS>`), a Resource type (`/<GROUPS>/<RESOURCE>`) or Version type for
+   (`/<GROUPS>`), a Resource type (`/<GROUPS>/<RESOURCES>`) or Version type for
    a Resource (`/<GROUPS>/<RESOURCES>/versions`). Its value MUST reference a
-   defined/valid type in the Registry.
+   defined/valid type in the Registry. It MUST use the plural name of the
+   referenced type, if it is a Group, Resource or Version.
 - `string` - sequence of Unicode characters.
 - `timestamp` - an [RFC3339](https://tools.ietf.org/html/rfc3339) timestamp.
   Use of a `time-zone` notation is RECOMMENDED. All timestamps returned by
@@ -780,6 +797,7 @@ form:
 - `"labels": { "<STRING>": "<STRING>" * }`
 - `"createdat": "<TIMESTAMP>"`
 - `"modifiedat": "<TIMESTAMP>"`
+- `"deprecated": "<OBJECT>"`
 
 The definition of each attribute is defined below:
 
@@ -1120,6 +1138,55 @@ of the existing entity. Then the existing entity would be deleted.
 
 - Examples:
   - `2030-12-19T06:00:00Z`
+
+#### `deprecated` Attribute
+
+- Type: Object containing the following properties:
+  - `effective`<br>
+    An OPTIONAL property indicating the time when the entity entered, or will
+    enter, a deprecated state. The date MAY be in the past or future. If this
+    property is not present the entity is already in a deprecated state.
+    If present, this MUST be an [RFC3339][rfc3339] timestamp.
+
+  - `removal`<br>
+    An OPTIONAL property indicating the time when the entity MAY be removed.
+    The entity MUST NOT be removed before this time. If this property is not
+    present, the client cannot make any assumptions as to when the entity
+    might be removed. Note: as with most properties, this property is mutable.
+    If present, this MUST be an [RFC3339][rfc3339] timestamp and MUST NOT be
+    sooner than the `effective` time if present.
+
+  - `alternative`<br>
+    An OPTIONAL property specifying the URL to an alternative entity the
+    client can consider as a replacement for this entity. There is no
+    guarantee that the referenced entity is an exact replacement, rather the
+    client is expected to investigate the entity to determine if it is
+    appropriate.
+
+  - `docs`<br>
+    An OPTIONAL property specifying the URL to additional information about
+    the deprecation of the entity. This specification does not mandate any
+    particular format or information, however some possibilities include:
+    reasons for the deprecation or additional information about likely
+    alternative entities. The URL MUST support an HTTP(s) GET request.
+
+  Note that an implementation is not mandated to use this attribute in
+  advance of removing an entity, but is it RECOMMENDED that they do so.
+
+  This attribute can appear on Groups and Resources, however, this
+  specification makes no statement as to the relationship, or validity, of the
+  values of each with respect to how they might impact each other.
+
+- Constraints:
+  - OPTIONAL
+- Examples:
+  - `"deprecated": {}`
+  - ```
+    "deprecated": {
+      "removal": "2030-12-19T00:00:00Z",
+      "alternative": "https://example.com/entities-v2/myentity"
+    }
+    ```
 
 ---
 
@@ -1524,7 +1591,7 @@ semantics defined above with the following exceptions:
     operations, any missing REQUIRED attributes MUST generate an error
     ([required_attribute_missing](#required_attribute_missing)).
 
-The `PATCH`, variant when directed at an xRegistry collection, MUST adhere to
+The `PATCH` variant when directed at an xRegistry collection, MUST adhere to
 the following:
   - The HTTP body MUST contain a JSON map where the key MUST be the
     `<SINGULAR>id` of each entity in the map. Note, that in the case of a map
@@ -2834,6 +2901,12 @@ The following describes the attributes of the Registry model:
     the `ifvalues` key (case-sensitive), then the `siblingattributes` MUST be
     included in the model as siblings to this attribute.
 
+    While the properties of a map will automatically prevent two entries
+    with the same value, they will not prevent two entries that only differ
+    in case. Therefore, during a model update, servers MUST ensure that no
+    two entries are the same irrespective of case, otherwise an
+    error ([model_error](#model_error)) MUST be generated.
+
     If `enum` is not empty and `strict` is `true` then this map MUST NOT
     contain any value that is not specified in the `enum` array.
 
@@ -3818,6 +3891,12 @@ The serialization of a Group entity adheres to this form:
   "labels": { "<STRING>": "<STRING>" * }, ?
   "createdat": "<TIMESTAMP>",
   "modifiedat": "<TIMESTAMP>",
+  "deprecated": {
+    "effective": "<TIMESTAMP>", ?
+    "removal": "<TIMESTAMP>", ?
+    "alternative": "<URL>", ?
+    "documentation": "<URL>"?
+  }, ?
 
   # Repeat for each Resource type in the Group
   "<RESOURCES>url": "<URL>",                  # e.g. "messagesurl"
@@ -3847,6 +3926,7 @@ Groups include the following
   OPTIONAL in requests.
 - [`modifiedat`](#modifiedat-attribute) - REQUIRED in API and document views.
   OPTIONAL in requests.
+- [`deprecated`](#deprecated-attribute) - OPTIONAL.
 
 and the following Group-level attributes:
 
@@ -3891,6 +3971,7 @@ Link: <URL>;rel=next;count=<UINTEGER> ?
     "labels": { "<STRING>": "<STRING>" * }, ?
     "createdat": "<TIMESTAMP>",
     "modifiedat": "<TIMESTAMP>",
+    "deprecated": { ... }, ?
 
     # Repeat for each Resource type in the Group
     "<RESOURCES>url": "<URL>",                  # e.g. "messagesurl"
@@ -4000,6 +4081,7 @@ MUST adhere to the following:
   "labels": { "<STRING>": "<STRING>" * }, ?
   "createdat": "<TIMESTAMP>", ?
   "modifiedat": "<TIMESTAMP>", ?
+  "deprecated": { ... }, ?
 
   # Repeat for each Resource type in the Group
   "<RESOURCES>": { Resources collection } ?
@@ -4022,6 +4104,7 @@ Each individual Group in a successful response MUST adhere to the following:
   "labels": { "<STRING>": "<STRING>" * }, ?
   "createdat": "<TIMESTAMP>",
   "modifiedat": "<TIMESTAMP>",
+  "deprecated": { ... }, ?
 
   # Repeat for each Resource type in the Group
   "<RESOURCES>url": "<URL>",                    # e.g. "messagesurl"
@@ -4118,6 +4201,7 @@ Content-Type: application/json; charset=utf-8
   "labels": { "<STRING>": "<STRING>" * }, ?
   "createdat": "<TIMESTAMP>",
   "modifiedat": "<TIMESTAMP>",
+  "deprecated": { ... }, ?
 
   # Repeat for each Resource type in the Group
   "<RESOURCES>url": "<URL>",                   # e.g. "messagesurl"
@@ -4391,6 +4475,7 @@ The Resource-level attributes include the following
   based on the `shortself` capability. OPTIONAL/ignored in requests.
 - [`xid`](#xid-attribute) - REQUIRED in API and document views.
   OPTIONAL/ignored in requests.
+- [`deprecated`](#deprecated-attribute) - OPTIONAL.
 
 and the following Resource-level attributes:
 
@@ -4509,50 +4594,6 @@ and the following Resource-level attributes:
   - When not specified, and `compatibility` is not `none`, the default value
     MUST be `external`.
   - If present, MUST be non-empty.
-
-#### `deprecated`
-
-- Type: Object containing the following properties:
-  - `effective`<br>
-    An OPTIONAL property indicating the time when the Resource entered, or will
-    enter, a deprecated state. The date MAY be in the past or future. If this
-    property is not present the Resource is already in a deprecated state.
-    If present, this MUST be an [RFC3339][rfc3339] timestamp.
-
-  - `removal`<br>
-    An OPTIONAL property indicating the time when the Resource MAY be removed.
-    The Resource MUST NOT be removed before this time. If this property is not
-    present, the client cannot make any assumptions as to when the Resource
-    might be removed. Note: as with most properties, this property is mutable.
-    If present, this MUST be an [RFC3339][rfc3339] timestamp and MUST NOT be
-    sooner than the `effective` time if present.
-
-  - `alternative`<br>
-    An OPTIONAL property specifying the URL to an alternative Resource the
-    client can consider as a replacement for this Resource. There is no
-    guarantee that the referenced Resource is an exact replacement, rather the
-    client is expected to investigate the Resource to determine if it is
-    appropriate.
-
-  - `docs`<br>
-    An OPTIONAL property specifying the URL to additional information about
-    the deprecation of the Resource. This specification does not mandate any
-    particular format or information, however some possibilities include:
-    reasons for the deprecation or additional information about likely
-    alternative Resources. The URL MUST support an HTTP(s) GET request.
-
-  Note that an implementation is not mandated to use this attribute in
-  advance of removing a Resource, but is it RECOMMENDED that they do so.
-- Constraints:
-  - OPTIONAL
-- Examples:
-  - `"deprecated": {}`
-  - ```
-    "deprecated": {
-      "removal": "2030-12-19T00:00:00Z",
-      "alternative": "https://example.com/entities-v2/myentity"
-    }
-    ```
 
 ##### `defaultversionid` Attribute
 - Type: String
@@ -5077,11 +5118,11 @@ Resource type from another Group type definition MUST be used. See
 [`ximportresources`](#reuse-of-resource-definitions) for more information.
 
 An `xref` value that points to a non-existing Resource, either because
-it was deleted or never existed, is not an error and is not a condition
-that a server is REQUIRED to detect. In these "dangling xref" situations, the
-serialization of the source Resource will not include any target Resource
-attributes or nested collections. Rather, it will only show the `<RESOURCE>id`
-and `xref` attributes.
+it was deleted, never existed or the current client does not have permission
+to see it, is not an error and is not a condition that a server is REQUIRED to
+detect. In these "dangling xref" situations, the serialization of the source
+Resource will not include any target Resource attributes or nested collections.
+Rather, it will only show the `<RESOURCE>id` and `xref` attributes.
 
 ---
 

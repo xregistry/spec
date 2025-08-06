@@ -312,6 +312,22 @@ events.
     the `io.xregistry.resource.created` and `io.xregistry.resource.deleted`
     events would need to be examined.
 
+    This includes any updates to the `deprecated` sub-object, even
+    though a `io.xregistry.group.deprecation` event is also generated. And
+    in that situation just `deprecrated` would be included in `changed`,
+    if present. To see which specific top-level `deprecated` attributes were
+    changed, the `io.xregistry.group.deprecation` event would need to be
+    examined.
+
+- Action: `deprecation`
+  - MUST be generated when a Group's `deprecated` sub-object is set,
+    deleted or any of its attributes updated, where "changed", if present,
+    includes the list of top-level attribute names from the `deprecated`
+    sub-object that were modified.
+
+  - A `io.xregistry.group.updated` event will also be generated where the
+    `deprecated` attribute will be included in `changed`, if present.
+
 - Action: `deleted`
   - MUST be generated when a Group is deleted.
 
