@@ -61,13 +61,13 @@ structures that are exchanged, provide a foundation for code generation, allow
 for validation of the data, and provide an anchor for documentation and semantic
 information, like scientific units for numeric values, that goes beyond simple
 labels and data types. Generally, it is a best practice for data structures that
-are exchanged in a distributed systems ought to be described by a schema, even
+are exchanged in a distributed system to be described by a schema, even
 if the data serialization model does not require one.
 
 ### 1.2. Schema References
 
 In the [CloudEvents][CloudEvents dataschema] specification, the `dataschema`
-attribute holds a URI and is specifically thought to reference a schema document
+attribute holds a URI and is specifically meant to reference a schema document
 residing in a registry. For example, a CloudEvent with a `dataschema` attribute
 pointing to a schema version in a schema registry might look like this, using
 the schema version's [`self`][xRegistry self] URL as the value of the `dataschema` attribute:
@@ -88,7 +88,7 @@ Since this URL might be a bit long, the xRegistry core specification allows for
 an implementation to provide an alternative, shorter, self-referencing URL that
 points to the same schema version, via the [`shortself`][xRegistry shortself]
 attribute. The specification is not prescriptive about the format of the shorter
-URL, but it might follow common URL-shorneter practices. With that, the above
+URL, but it might follow common URL-shortening practices. With that, the above
 example might look like this:
 
 ```json
@@ -122,7 +122,7 @@ declare their lineage, and state the compatibility policy. The compatibility
 policy is used to determine whether a schema change is compatible with existing
 data, and MAY be enforced by implementations of the schema registry. For this,
 this specification leans on the [xRegistry Core][xRegistry Core] specification
-that already defines these versioning mechanisms for any kind of resource.
+that already defines these versioning and compatibility mechanisms for any kind of resource.
 
 ### 1.4. Document Store
 
@@ -130,8 +130,8 @@ The schema registry is a document store and therefore also has the
 [`hasdocument`][xRegistry hasdocument] attribute defined in the xRegistry Core
 attribute (implicitly) defined as `true` for the `schema` Resource.
 
-What this means is that the schema registry immediately yields a document with
-the stored content-type when the a client issues a GET request to the
+This means that the schema registry immediately yields a document with
+the stored content-type when a client issues a GET request to the
 [`self`][xRegistry self] URL of a schema Version. The associated metadata is
 returned in the HTTP headers. The [default version][xRegistry default-version]
 of the schema Version is returned when the client issues a GET request to the
@@ -152,7 +152,7 @@ or
 
 Beyopnd this, the [xRegistry Core][xRegistry Core] specification provides rich
 filtering and export/import capabilities, which can be used to retrieve schema
-documents in bulk, or to export/import schemas and schema versions in a
+documents in bulk, or to export/import schemas and schema Versions in a
 structured way. The [xRegistry pagination][xRegistry pagination] mechanism can be used to
 retrieve large sets of schemas or schema versions in a paginated manner.
 
@@ -189,14 +189,16 @@ This specification defines the following terms:
 We use the term **schema** (or schema Resource) in this specification as a
 logical grouping of **schema Versions**. A **schema Version** is a concrete
 document. The **schema** Resource is a semantic umbrella formed around one or
-more concrete schema Version documents. Per the definition of the
+more concrete schema Version documents that represent iterations of the same logical schema.
+Per the definition of the
 [`compatibility`][xRegistry compatibility] attribute, all Versions of a single
 **schema** MUST adhere to the rules defined by the `compatibility` attribute.
 Any breaking change MUST result in a new **schema** Resource being created.
 
 In terms of versioning, you can think of a **schema** as a collection of
 versions that are compatible according to the selected `compatibility` mode.
-When that compatibility is broken across versions, a completely new **schema**
+MUST be created, to indicate the breaking change. The [`deprecated`](xRegistry deprecated)
+attribute may be used to indicate the appropriate new schema to use following a breaking change.
 MUST be created, to indicate the breaking change.
 
 ### 2.3. Schema Group
@@ -376,9 +378,9 @@ major version identifier in the `schemaid`, like `"com.example.event.v1"` or
 `"com.example.event.2024-02"`, so that incompatible, but historically related
 schemas can be more easily identified by users and developers. The schema
 `versionid` then functions as the semantic minor version identifier.
-
-Version lineage is defined by the [`ancestor`][xRegistry ancestor] attribute,
 which is a `versionid` of the Version that this Version is based on. The `ancestor`
+attribute permits multiple Versions to reference the same ancestor, and allows for
+implementations to determine the Version's ancestor. See the
 attribute permits multiple version branches to exist, and allows for
 implementations to determine the Version lineage. See the
 [`ancestor`][xRegistry ancestor] attribute in the core xRegistry specification
@@ -647,7 +649,7 @@ Examples:
   is appended separated with a colon, for instance
   `.../com.example.telemetrydata:TelemetryEvent`.
 
-### 5. Security Considerations
+Like the [xRegistry Core][xRegistry Core] specification, this specification does not
 
 Like [xRegistry Core][xRegistry Core] specification, this specification does not
 explicitly address authentication or authorization levels of users, nor how to
@@ -676,6 +678,7 @@ within a schema, allowing for fine-grained access control.
 [xRegistry version-ids]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#version-ids
 [xRegistry attributes-and-extensions]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#attributes-and-extensions
 [xRegistry ancestor]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#ancestor-attribute
-[xRegistry hasdocument]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#--model-groupsstringresourcesstringhasdocument
+[xRegistry pagination]: https://xregistry.io/xreg/xregistryspecs/pagination-v1/docs/spec.html
+[xRegistry deprecated]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#deprecated
 [xRegistry default-version]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#registry-design
 [xRegistry pagination]: https://xregistry.io/xreg/xregistryspecs/pagination-v1/docs/spec.html
