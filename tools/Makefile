@@ -6,7 +6,7 @@ all: docker
 verify: spellcheck tabcheck errorcheck samplescheck links
 
 spellcheck:
-	tools/spellcheck */spec.md core/primer.md */README.md \
+	tools/spellcheck */spec.md core/model.md core/primer.md */README.md \
 		docs/share/README.md */samples/README.md */samples/*/README.md
 	@echo
 
@@ -15,7 +15,7 @@ tabcheck:
 	@echo
 
 errorcheck:
-	tools/errorcheck core/spec.md
+	tools/errorcheck core/spec.md core/model.md
 	@echo
 
 samplescheck:

@@ -707,13 +707,13 @@ against the new model, not just a subset of the entity's attributes.
 
 # Multi-root ancestor hierarchies
 
-The [`ancestor` attribute](spec.md#ancestor-attribute) is used to build a
+The [`ancestor` attribute](./spec.md#ancestor-attribute) is used to build a
 hierarchy of Versions to facilitate compatibility checking when the
-[`compatibility` attribute](spec.md#compatibility-attribute) is set. There
+[`compatibility` attribute](./spec.md#compatibility-attribute) is set. There
 are cases in which it's desirable to create multiple roots. In some
 cases it may even be unavoidable, for example when the `maxversions`
 attribute (see `groups.resources.maxversions` under
-[Resource Model](spec.md#registry-model)) is set to a value that forces
+[Resource Model](./model.md#registry-model)) is set to a value that forces
 pruning of the Version tree. In such cases, when deleting the oldest Version,
 this could result in a new root being created when there are multiple
 decedents of the deleted Version.
@@ -727,7 +727,7 @@ value such as null which, based on the scenario, could mean "no ancestor" or
 # `singleversionroot` Policy Enforcement
 
 Related to the previous discussions concerning the `ancestor` attribute,
-the [Resource Model](spec.md#registry-model) `singleversionroot` attribute
+the [Resource Model](./model.md#registry-model) `singleversionroot` attribute
 controls whether a Resource is allowed to have more than one "root" Version,
 or whether all Versions of that Resource must be a descendant of the same
 "root" Version.
@@ -762,11 +762,11 @@ for their needs.
 There are cases in which the server will need to prune Versions. For
 example, this can happen when attempting to create a new Version that would
 exceed the value set on the `groups.resources.maxversions` attribute of the
-[Resource Model](spec.md#registry-model), or when adjusting this attribute's
+[Resource Model](./model.md#registry-model), or when adjusting this attribute's
 value that is smaller than the number of existing Versions. In such
 scenarios, the server may be unable to prune Versions, when the
 `groups.resources.singleversionroot` attribute of the
-[Resource Model](spec.md#registry-model) is set to `true` and the request
+[Resource Model](./model.md#registry-model) is set to `true` and the request
 must be rejected.
 
 Consider a scenario in which 3 Versions exist: v1 is the root (and therefore
@@ -802,11 +802,11 @@ Version.
 
 # What does the `compatibilityauthority` attribute convey?
 
-The [`compatibility` attribute](spec.md#compatibility-attribute) is a
+The [`compatibility` attribute](./spec.md#compatibility-attribute) is a
 statement made by the authority managing the registry about the
 compatibility guarantees between Versions of the Resource. The authority is
 expected to guarantee the configured `compatibility`. The
-[`compatibilityauthority` attribute](spec.md#compatibilityauthority-attribute)
+[`compatibilityauthority` attribute](./spec.md#compatibilityauthority-attribute)
 represents who the enforcing authority is. Any requests to set the authority
 to the server when the server cannot perform compatibility checking will be
 refused. In cases where the hosting service isn't backed by an xRegistry
@@ -1005,7 +1005,7 @@ in an error being generated.
 
 ## Why isn't `PUT` idempotent?
 
-As stated in the [core](spec.md) specification, the `PUT` operations are
+As stated in the [core](./spec.md) specification, the `PUT` operations are
 almost idempotent, per the HTTP specification. For the most part, multiple
 similar `PUT` requests will have the same effect as a single one, with the
 exception that `epoch` and `modifiedat` will be updated each time. This is

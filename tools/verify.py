@@ -213,7 +213,7 @@ def _local_path_uri_issues(uri: Uri, current_path: Path) -> Sequence[Issue]:
         case [relative_path]:
             path = current_path.parent / relative_path
         case _:
-            return [Issue("Invalid local path uri")]
+            return [Issue("Invalid local path uri: " + uri)]
 
     if not path.exists():
         return [_missing_file_issue(path)]
