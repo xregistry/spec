@@ -139,8 +139,10 @@ A possible application of the latter are Endpoint definitions that define
 endpoint patterns as they are common for applications of the MQTT protocol.
 For instance, the [Eclipse Sparkplug](https://sparkplug.eclipse.org/) protocol
 is a convention that defines endpoint roles and messages and schemas for MQTT,
-and the [example](link) that accompanies this specification illustrates how
-Registry Endpoints can model the convention in formal terms.
+and the
+[SparkPlugB](../cloudevents/samples/scenarios/mqtt-sparkplugB.xreg.json)
+example that illustrates how Registry Endpoints can model the convention in
+formal terms.
 
 ## Notations and Terminology
 
