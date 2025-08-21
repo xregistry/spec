@@ -3,8 +3,10 @@
 ## Abstract
 
 This specification defines an endpoint registry extension to the xRegistry
-document format and API [specification](../core/spec.md).
-
+document format and API [specification](../core/spec.md). An endpoint registry
+allows for publishing and discovery of asynchronous event sources, sinks, and
+subscription points in the scope of a system, along with important
+configuration parameters.
 
 ## Table of Contents
 
@@ -20,6 +22,178 @@ document format and API [specification](../core/spec.md).
 This specification defines a registry of metadata definitions for abstract and
 concrete network endpoints to which messages can be produced, from which
 messages can be consumed, or which make messages available for subscriptions.
+
+The metadata model defined in this specification is specifically focused on
+describing unidirectional endpoints for asynchronous information flows like
+discrete events, event streams, queueing, and publish/subscribe patterns.
+
+Endpoint information is provided through the registry for discovery of
+endpoints, dynamic configuration of clients, and code generation.
+
+The model allows for a loose correlation of endpoints through a `channel`
+concept, to designate, for instance, the input and output ends of a queue, but
+it intentionally avoids being specific about the shape of messaging and
+eventing entities. The correlation of endpoints for the purposes of realizing
+specific message exchange patterns like request/response or scatter/gather is
+also intentionally out of scope for this metadata model, because modeling such
+correlation contracts with sufficient depth is a whole additional definition
+layer above what this model aims to achieve.
+
+The goal of this endpoint metadata model is to provide metadata structure to
+asynchronous topics and streams and queues in a way that is similar to how
+table and column definitions provide structure to databases. Database schemas
+structure data that you have. Endpoint definitions with their referenced or
+embedded message definitions with referenced or embedded schema definitions
+structure data that you will yet receive.
+
+Continuing that analogy, the endpoint scope corresponds to the database, the
+message groups are schema scopes, and the message definitions correspond to
+tables. The schema associated with a message definition determines the column
+layout of the table. As event streams often end up landing in databases for
+long-term archival and analysis, this structural alignment is very helpful.
+
+### Endpoints
+
+In a distributed system, the networked input sinks and output sources of an
+application, or an application infrastructure component like an event broker,
+are commonly called “endpoints”. Those endpoints serve as communication
+conduits to make information available to the application, or for the
+application to make information available to others.
+
+In this specification we distinguish three distinct `usage` roles for
+endpoints:
+
+- `producer`: A producer endpoint is made available by a consumer or
+  intermediary (like an application or a queue) to a producer, so that the
+  producer can send events/messages to the endpoint. Those events/messages
+  MUST conform to the declared constraints. If the endpoint is associated with
+  at least one message group, only messages/events that match one of the
+  declared message definitions can be sent. If the message definition
+  references a data schema, the message payload MUST match that schema.
+
+- `consumer`: A consumer endpoint is made available by a producer or
+  intermediary for a consumer to retrieve messages/events from. Examples for
+  these are queues or consumer groups on streams, but also peer-to-peer
+  endpoints exposed by applications.
+
+- `subscriber`: A subscriber endpoint is made available to consumers for the
+  purpose of setting up their own consumer endpoint. The
+  [CloudEvents Subscriptions API](https://github.com/cloudevents/spec/blob/main/subscriptions/spec.md)
+  specification enumerates the subscription mechanisms intended for these
+  endpoints. As subscription mechanisms can vary substantially across products
+  that implement the same protocol, it is RECOMMENDED to use the `label`
+  mechanism to identify the specific product that provides the endpoint.
+
+Each endpoint definition defines a `protocol` selector by which the specific
+network application protocol is chosen to communicate with the endpoint. If a
+networked entity supports multiple protocols, each protocol endpoint MUST be
+declared separately, even if those are multiplexed over the same port. For
+instance, if you have an MQTT broker that can dynamically select between
+MQTT 3.1.1 and MQTT 5.0, those endpoints are to be declared separately as
+the capabilities differ substantially.
+
+The `protocol` selector value determines which `protocoloptions` become
+available to define for the endpoint. The protocol-specific options are
+enumerated and explained in [protocol options](#protocol-options).
+
+Each endpoint MAY also define an `envelope` selector which allows for defining
+particular `envelopeoptions` at the endpoint level. For CloudEvents, this
+permits definition the serialization mode (binary or structured) and the event
+format for structured mode.
+
+### Message Groups
+
+The Endpoint is an xRegistry group-level construct that is conceptually an
+extension of the [message definition group](../message/spec.md), meaning there
+are no “groups of endpoints”. An endpoint MAY contain directly embedded
+message definitions. In the simplest case, an endpoint MAY embed its message
+definitions locally which in turn MAY embed their data schema definitions
+locally, all in one compact construct.
+
+More commonly, Endpoints will reference one or more
+[message definition groups](../message/spec.md) that are defined externally in
+a message registry, and which have the advantage of being shareable across
+multiple Endpoints.
+
+For describing a message broker queue, the best approach is to define a
+message group that defines the messages that are be allowed to flow on the
+queue and for that message group to then be referenced from the `producer` and
+the `consumer` endpoints of the queue, whereby both of those endpoints share
+the same `channel` identifier.
+
+In the endpoint context, message groups have a function similar to interfaces
+in programming languages. They define related sets of messages that can be
+associated with an endpoint all at once.
+
+### Scenarios
+
+Endpoint definitions can be abstract or concrete, distinguished by the
+`deployed` flag. If the `deployed` flag is set to `true`, one can expect the
+endpoint to be reachable on the network with the given parameters, assuming
+the client is within the same network scope. If the flag is set to `false`,
+the endpoint definition is to be treated like a template where configuration
+elements like the endpoint URI will have to be supplied by external
+configuration for the client to become functional.
+
+A possible application of the latter are Endpoint definitions that define
+endpoint patterns as they are common for applications of the MQTT protocol.
+For instance, the [Eclipse Sparkplug](https://sparkplug.eclipse.org/) protocol
+is a convention that defines endpoint roles and messages and schemas for MQTT,
+and the
+[SparkPlugB](../cloudevents/samples/scenarios/mqtt-sparkplugB.xreg.json)
+example that illustrates how Registry Endpoints can model the convention in
+formal terms.
+
+## Notations and Terminology
+
+### Notational Conventions
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
+"SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be
+interpreted as described in [RFC 2119](https://tools.ietf.org/html/rfc2119).
+
+For clarity, OPTIONAL attributes (specification-defined and extensions) are
+OPTIONAL for clients to use, but the servers' responsibility will vary.
+Server-unknown extension attributes MUST be silently stored in the backing
+datastore. Specification-defined, and server-known extension, attributes MUST
+generate an error if corresponding feature is not supported or enabled.
+However, as with all attributes, if accepting the attribute would result in a
+bad state (such as exceeding a size limit, or results in a security issue),
+then the server MAY choose to reject the request.
+
+In the pseudo JSON format snippets `?` means the preceding attribute is
+OPTIONAL, `*` means the preceding attribute MAY appear zero or more times,
+and `+` means the preceding attribute MUST appear at least once. The presence
+of the `#` character means the remaining portion of the line is a comment.
+Whitespace characters in the JSON snippets are used for readability and are
+not normative.
+
+### Terminology
+
+This specification defines the following terms:
+
+### Endpoint
+
+An "endpoint" is a logical or physical network location to which messages can
+be produced, from which messages can be consumed, or which makes messages
+available via subscription for delivery to a consumer-designated endpoint.
+
+## Endpoint Registry Model
+
+The Endpoint Registry is a registry of metadata definitions for abstract and
+concrete network endpoints to which messages can be produced, from which
+messages can be consumed, or which makes messages available via subscription
+and delivery to a consumer-designated endpoint.
+
+As discussed in the [CloudEvents Registry overview](../cloudevents/spec.md),
+endpoints are supersets of
+[message definition groups](../message/spec.md#message-definition-groups) and
+MAY contain inlined messages. Therefore, the Resources in the meta-model for
+the Endpoint Registry are likewise `messages` as defined in the
+[message catalog specification](../message/spec.md).
+
+The formal xRegistry extension model of the Endpoints Registry
+resides in the [model.json](model.json) file.
 
 For easy reference, the JSON serialization of an Endpoint Registry adheres to
 this form:
@@ -143,57 +317,6 @@ this form:
   } ?
 }
 ```
-
-## Notations and Terminology
-
-### Notational Conventions
-
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
-"SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be
-interpreted as described in [RFC 2119](https://tools.ietf.org/html/rfc2119).
-
-For clarity, OPTIONAL attributes (specification-defined and extensions) are
-OPTIONAL for clients to use, but the servers' responsibility will vary.
-Server-unknown extension attributes MUST be silently stored in the backing
-datastore. Specification-defined, and server-known extension, attributes MUST
-generate an error if corresponding feature is not supported or enabled.
-However, as with all attributes, if accepting the attribute would result in a
-bad state (such as exceeding a size limit, or results in a security issue),
-then the server MAY choose to reject the request.
-
-In the pseudo JSON format snippets `?` means the preceding attribute is
-OPTIONAL, `*` means the preceding attribute MAY appear zero or more times,
-and `+` means the preceding attribute MUST appear at least once. The presence
-of the `#` character means the remaining portion of the line is a comment.
-Whitespace characters in the JSON snippets are used for readability and are
-not normative.
-
-### Terminology
-
-This specification defines the following terms:
-
-### Endpoint
-
-An "endpoint" is a logical or physical network location to which messages can
-be produced, from which messages can be consumed, or which makes messages
-available via subscription for delivery to a consumer-designated endpoint.
-
-## Endpoint Registry Model
-
-The Endpoint Registry is a registry of metadata definitions for abstract and
-concrete network endpoints to which messages can be produced, from which
-messages can be consumed, or which makes messages available via subscription
-and delivery to a consumer-designated endpoint.
-
-As discussed in the [CloudEvents Registry overview](../cloudevents/spec.md),
-endpoints are supersets of
-[message definition groups](../message/spec.md#message-definition-groups) and
-MAY contain inlined messages. Therefore, the Resources in the meta-model for
-the Endpoint Registry are likewise `messages` as defined in the
-[message catalog specification](../message/spec.md).
-
-The formal xRegistry extension model of the Endpoints Registry
-resides in the [model.json](model.json) file.
 
 ### Endpoints Groups
 
@@ -513,7 +636,7 @@ This specification defines the following envelope options for the indicated
 - Constraints:
   - OPTIONAL.
   - If present, MUST be either `true` or `false`, case-sensitive.
-  - When not specified, the default value is MUST be `false`.
+  - When not specified, the default value is MUST be `true`.
 
 ##### `protocoloptions.options`
 
