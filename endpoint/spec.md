@@ -60,7 +60,7 @@ are commonly called “endpoints”. Those endpoints serve as communication
 conduits to make information available to the application, or for the
 application to make information available to others.
 
-In this specification we distinguish three distinct `usage´ roles for
+In this specification we distinguish three distinct `usage` roles for
 endpoints:
 
 - `producer`: A producer endpoint is made available by a consumer or

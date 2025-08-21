@@ -141,7 +141,7 @@ The overall format of a model definition is as follows:
 
       "attributes": { ... }, ?         # If "type" above is object
       "item": {                        # If "type" above is map,array
-        "type": "<TYPE>", ?            # map value type, or array type
+        "type": "<TYPE>", ?            # Map value type, or array type
         "target": "<XIDTYPE>", ?       # If this item "type" is xid/url
         "namecharset": "<STRING>", ?   # If this item "type" is object
         "attributes": { ... }, ?       # If this item "type" is object
@@ -158,8 +158,8 @@ The overall format of a model definition is as follows:
 
   "groups": {
     "<STRING>": {                      # Key=plural name, e.g. "endpoints"
-      "plural": "<STRING>",            # e.g. "endpoints"
-      "singular": "<STRING>",          # e.g. "endpoint"
+      "plural": "<STRING>",            # E.g. "endpoints"
+      "singular": "<STRING>",          # E.g. "endpoint"
       "description": "<STRING>", ?
       "documentation": "<URL>", ?
       "icon": "<URL>", ?
@@ -171,8 +171,8 @@ The overall format of a model definition is as follows:
 
       "resources": {
         "<STRING>": {                  # Key=plural name, e.g. "messages"
-          "plural": "<STRING>",        # e.g. "messages"
-          "singular": "<STRING>",      # e.g. "message"
+          "plural": "<STRING>",        # E.g. "messages"
+          "singular": "<STRING>",      # E.g. "message"
           "description": "<STRING>", ?
           "documentation": "<URL>", ?
           "icon": "<URL>", ?
@@ -181,11 +181,11 @@ The overall format of a model definition is as follows:
           "compatiblewith": "<URI>"`, ?  # Statement of compatibility
           "maxversions": <UINTEGER>, ?   # Num Vers(>=0). Default=0, 0=unlimited
           "setversionid": <BOOLEAN>, ?   # vid settable? Default=true
-          "setdefaultversionsticky": <BOOLEAN>, ? # sticky settable?Default=true
-          "hasdocument": <BOOLEAN>, ?       # Has separate document.Default=true
+          "setdefaultversionsticky": <BOOLEAN>, ? # Sticky settable? Default=true
+          "hasdocument": <BOOLEAN>, ?       # Has separate document. Default=true
           "versionmode": "<STRING>", ?      # 'ancestor' processing algorithm
-          "singleversionroot": <BOOLEAN>, ? # enforce single root. Default=false
-          "typemap": <MAP>, ?               # contenttype mappings
+          "singleversionroot": <BOOLEAN>, ? # Enforce single root. Default=false
+          "typemap": <MAP>, ?               # Contenttype mappings
           "attributes": { ... }, ?          # Version attributes/extensions
           "resourceattributes": { ... }, ?  # Resource attributes/extensions
           "metaattributes": { ... } ?       # Meta attributes/extensions
@@ -988,14 +988,14 @@ can be found in this sample [sample-model-full.json](sample-model-full.json).
 
 The full model MAY be retrieved via:
 - `GET /model`
-- `GET /?inline=model`                      # as part of Registry entity
+- `GET /?inline=model`                      # As part of Registry entity
 
 Where a successful response MUST include the full model definition, adhering
 to the model format specified above.
 
 The modelsource MAY be retrieved via:
 - `GET /modelsource`
-- `GET /?inline=modelsource`                # as part of Registry entity
+- `GET /?inline=modelsource`                # As part of Registry entity
 
 Where a successful response MUST include the model definition last used when
 updating the model.
