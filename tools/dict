@@ -25,6 +25,7 @@ bson
 bunnymq
 cereg
 charset
+checkedin
 cleansession
 clemens
 clemensv
@@ -194,6 +195,7 @@ protocoloptions
 protocoloptionsendpoints
 pseudocode
 ptr
+pubsub
 qos
 rawdata
 readonly
