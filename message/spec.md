@@ -3,29 +3,261 @@
 ## Abstract
 
 This specification defines a message and event catalog extension to the
-xRegistry document format and API [specification](../core/spec.md).
+xRegistry document format and API [specification](../core/spec.md). The
+message definitions registry service (or “message catalog”) allows for
+declaring the metadata (headers, properties, attributes) of messages and/or
+events and their relationships to schemas, and for grouping those declarations
+such that they can be associated with endpoints. With the help of this
+metadata, users can provide constraints for messaging channels, declaring
+precisely which messages or events are permitted to be sent or can be expected
+to be received, and how these messages can be distinguished.
 
 ## Table of Contents
 
 - [Overview](#overview)
+- [Message Definitions](#message-definitions)
+- [Message Metadata](#message-metadata)
+- [Reusing Message Definitions](#reusing-message-definitions)
 - [Notations and Terminology](#notations-and-terminology)
   - [Notational Conventions](#notational-conventions)
   - [Terminology](#terminology)
-- [Message Definitions Registry](#message-definitions-registry)
+- [Message Definitions Registry Model](#message-definition-registry-model)
   - [Message Definition Groups](#message-definition-groups)
   - [Message Definitions](#message-definitions)
+  - [Metadata Envelopes and Message Protocols](#metadata-envelopes-and-message-protocols)
 
 ## Overview
 
-This specification defines a message and event catalog extension to the
-xRegistry document format and API [specification](../core/spec.md). The purpose
-of the catalog is to provide a machine-readable definitions for message and
-event envelopes, and logical grouping of related messages and events.
+The goal of this message metadata model, in conjunction with the [endpoint
+model](../endpoint/spec.md), is to provide metadata structure to asynchronous
+topics, streams and queues in a way that is similar to how table and column
+definitions provide structure to databases. Database schemas structure data
+that you have. Endpoint definitions with their referenced, or embedded message
+definitions, with referenced, or embedded, schema definitions structure data
+that will be transmitted.
+
+Continuing that analogy, the endpoint scope corresponds to the database, the
+message groups are schema scopes, and the message definitions correspond to
+tables. The schema associated with a message definition determines the column
+layout of the table. As event streams often end up landing in databases for
+long-term archival and analysis, this structural alignment is very helpful.
 
 Managing the description of the payloads of those messages and events is not in
 scope, but delegated to the [schema registry extension](../schema/spec.md) for
 xRegistry. Schemas are linked from messages and event declarations through a
-URI reference.
+URI Reference.
+
+## Message Definitions
+
+A Message Definition (“message”) describes constraints for the metadata of a
+message or event. It declares, for instance, the concrete values or
+permissible value patterns for the `type`, `source`, and `subject` attributes
+of a CloudEvent.
+
+A message definition has two key purposes:
+
+1 - A message definition is a template. When an application needs to raise an
+    event, the message definition declares precisely, which attributes,
+    headers or properties need to be set on the event envelope or on the
+    protocol message, and which constant values are to be set, or which type of
+    pattern constraints apply. Such templates can be evaluated by tools and
+    code generators, which can then create an interface or event factory for
+    the application programmer that minimizes opportunities to introduce
+    mapping errors.
+
+2 - A message definition is a filter condition. When an application needs to
+    demultiplex an incoming stream, messages, or events that come through the
+    same channel, it can use a collection of message definitions as a set of
+    candidate messages that are expected and can be handled. The metadata of
+    the incoming events or messages is tested against the declarations of the
+    candidate definitions, attribute by attribute, yielding none, one, or more
+    matches for the incoming message. If there is no match, the incoming
+    message is unexpected and will likely be sidelined. If there is one match,
+    the message can be passed on to the application. If there are multiple
+    matches, the message might be evaluated further by matching the body
+    content against the associated data schema.
+
+For message and event producers, the template aspect is the primary concern.
+Following the declared rules, including validating the payload against the
+associated schema, ensures that all consumers receive messages with the
+expected content.
+
+For message and event consumers, the filter aspect is the primary concern.
+Consumer applications and frameworks can rely on the declared message metadata
+to demultiplex and dispatch messages and events to handlers and they can
+sideline non-conformant messages, for instance into dead-letter queues.
+
+## Message Metadata
+
+Any message definition covers up to three aspects:
+
+1 - Envelope: An “envelope” is a transport independent metadata convention that
+    lets a producer convey the context of an event or message to consumers or
+    intermediaries (like publish/subscribe routers) without them having to
+    understand the particular payload format or having to read the payload. The
+    only predefined envelope model in this specification is CNCF CloudEvents
+    1.0. Once the “envelope” selector is set, constraints for the attributes
+    of the CloudEvents envelope can be defined in the “envelopeoptions”.
+
+2 - Protocol: The “protocol” selector picks a specific application protocol to
+    which the given message is bound. If a protocol is chosen, constraints for
+    the protocol-specific message model can be defined in “protocoloptions”.
+    For instance, if you choose the “MQTT/5.0” protocol, you can constrain the
+    topic path to which this message can be sent and/or the quality-of-service
+    QoS level that is to be used. This specification covers the full metadata
+    set of the application protocols AMQP/1.0, MQTT/3.1.1, MQTT/5.0, Kafka,
+    NATS, and HTTP.
+
+3 - Payload: The “dataschema*” and “datacontenttype” attributes declare the
+    content type of the payload and a schema that can be used to construct,
+    validate, decode and/or encode the payload. The “dataschemaformat”
+    declaration selects the kind of schema (e.g. XML Schema, Protobuf, Avro or
+    others) that is embedded at or referenced by the chosen “dataschema*”
+    attribute.
+
+A message definition MAY contain any combination of envelope, protocol, and
+payload declarations. A payload-only declaration can be useful if messages are
+sent through varying protocols without a fixed envelope model and are
+distinguished by content-type (including parameters) or even only through
+whether payload schema definitions match an incoming message.
+
+While attributes (or properties or headers; depending on protocol nomenclature)
+can be defined in the `envelopeoptions` and `protocoloptions`, the general
+pattern used in this model is that the attribute can have a name, a
+description, a type and a value. Setting a value makes that value constant for
+all instances of that message, which is useful for discriminators like AMQP’s
+subject property or CloudEvents’ type attribute.
+
+The “uritemplate” type permits the values to have embedded placeholders (Level
+1 URI templates), which turns the values into templates for publishers where
+the application inserts context information into designated places. For
+consumers, the templates act as pattern matching filters and to extract
+context values into named variables.
+
+## Reusing Message Definitions
+
+In complex event-driven enterprise applications it might be desirable to reuse
+common definitions across different applications. There might also be a need
+to route the same set of CloudEvents through a specific protocol route, like
+MQTT, where it would be useful to provide protocol-specific hints in addition
+to the CloudEvents declaration like requiring a specific topic path pattern
+for the event type.
+
+The `basemessage` attribute, an xid-typed reference to another message
+definition, enables such reuse scenarios. Any message definition MAY refer to
+another message definition as its base, which effects a copy of the base
+message’s definitions into the message that defines it. The mechanism is
+transitive, which means that `basemessage` relationships MUST be resolved
+recursively as long as they do not result in circular references.
+
+All aspects of the collected base message are “shadowed” by the definitions of
+the message that references it. If the base message defines an “envelope” but
+no “protocol”, the new definition can add the aforementioned MQTT aspects with
+a new “protocol” selector and corresponding options.
+
+The `xref` attribute from xRegistry Core allows aliasing of message definitions
+across message groups, which will be further discussed in the next section.
+
+## Message Groups
+
+All message definitions MUST be contained in a group. A message group can be
+formed for many reasons. At a minimum, the group will be an access control
+boundary in many implementations of this specification even though none is
+mandated.
+
+In many cases, message groups will be a logical boundary around a set of
+related events that are commonly routed through the channel. A (primitive) air
+travel luggage handling system might have “checkedin”, “loaded”, “unloaded”,
+and “delivered” events related to items it moves. If those are reported to
+external parties through the same channels, it likely makes sense to group
+them.
+
+A benefit of message groups is that they are very similar to “interfaces” in
+common programming languages. When a message group is associated with a
+channel, like a queue, the messages contained in the group form the permitted
+and expected message set. The association becomes a contract.
+
+This association is formalized in the [Endpoint Registry](../endpoint/spec.md),
+a related registry that allows associating one or more message definition
+groups with an endpoint, thus effectively defining a contract for the endpoint.
+An "endpoint" as defined in that specification is also a message definition
+group in itself, with the message definitions following the rules of this
+specification.
+
+When message definitions are to be recombined into different groups, the
+original message definitions can be referenced instead of copied. For
+instance, a pubsub topic might take 4 messages as input but a filtering
+subscription might only yield 1 of those messages as output. In this case, one
+would create a distinct message group for the subscription and “xref” the
+message definition from the input group (sample to follow in the merged doc).
+
+Similarly, one could create a new message group to be associated with an MQTT
+endpoint if the messages annotate CloudEvent definitions with MQTT protocol
+options using the “basemessage” mechanism. (sample also to follow)
+
+## Notations and Terminology
+
+### Notational Conventions
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
+"SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be
+interpreted as described in [RFC 2119](https://tools.ietf.org/html/rfc2119).
+
+For clarity, OPTIONAL attributes (specification-defined and extensions) are
+OPTIONAL for clients to use, but the servers' responsibility will vary.
+Server-unknown extension attributes MUST be silently stored in the backing
+datastore. Specification-defined, and server-known extension, attributes MUST
+generate an error if corresponding feature is not supported or enabled.
+However, as with all attributes, if accepting the attribute would result in a
+bad state (such as exceeding a size limit, or results in a security issue),
+then the server MAY choose to reject the request.
+
+In the pseudo JSON format snippets `?` means the preceding attribute is
+OPTIONAL, `*` means the preceding attribute MAY appear zero or more times,
+and `+` means the preceding attribute MUST appear at least once. The presence
+of the `#` character means the remaining portion of the line is a comment.
+Whitespace characters in the JSON snippets are used for readability and are
+not normative.
+
+### Terminology
+
+This specification defines the following terms:
+
+#### Message and Event
+
+A **message** is a transport wrapper around a **message body** (interchangeably
+referred to as payload) that is decorated with **metadata**. The metadata
+describes the message body without an intermediary having to inspect it and
+carries further information useful for identification, routing, and
+dispatching.
+
+In this specification, **message** is an umbrella term that refers to all kinds
+of messages as well as to **events** as a special form of messages.
+
+The definition of [message][message] from the CloudEvents specification
+applies.
+
+#### Envelopes and Protocols
+
+An **envelope** is a transport protocol-independent message metadata
+convention. The [CNCF CloudEvents][CloudEvents] specification is an example of
+a message envelope and is the only envelope explicitly defined in this
+specification.
+
+A similar transport protocol-independent message metadata convention is, for
+example, the [W3C SOAP 1.2 envelope][SOAP] for which support could be added by
+an extension.
+
+This specification uses **protocol** as a selector into the protocol-specific
+message metadata that is defined under the `protocol.ifvalues` section of the
+model. When a known protocol is explicitly specified for a message definition,
+the `protocoloptions` section MAY contain constraints for the
+protocol-specific metadata.
+
+## Message Definition Registry Model
+
+The formal xRegistry extension model of the Message Definitions Registry
+resides in the [model.json](model.json) file.
 
 For easy reference, the JSON serialization of a Message Registry adheres to
 this form:
@@ -131,111 +363,6 @@ this form:
 }
 ```
 
-## Notations and Terminology
-
-### Notational Conventions
-
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
-"SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be
-interpreted as described in [RFC 2119](https://tools.ietf.org/html/rfc2119).
-
-For clarity, OPTIONAL attributes (specification-defined and extensions) are
-OPTIONAL for clients to use, but the servers' responsibility will vary.
-Server-unknown extension attributes MUST be silently stored in the backing
-datastore. Specification-defined, and server-known extension, attributes MUST
-generate an error if corresponding feature is not supported or enabled.
-However, as with all attributes, if accepting the attribute would result in a
-bad state (such as exceeding a size limit, or results in a security issue),
-then the server MAY choose to reject the request.
-
-In the pseudo JSON format snippets `?` means the preceding attribute is
-OPTIONAL, `*` means the preceding attribute MAY appear zero or more times,
-and `+` means the preceding attribute MUST appear at least once. The presence
-of the `#` character means the remaining portion of the line is a comment.
-Whitespace characters in the JSON snippets are used for readability and are
-not normative.
-
-### Terminology
-
-This specification defines the following terms:
-
-#### Message and Event
-
-A **message** is a transport wrapper around a **message body** (interchangeably
-referred to as payload) that is decorated with **metadata**. The metadata
-describes the message body without an intermediary having to inspect it and
-carries further information useful for identification, routing, and
-dispatching.
-
-In this specification, **message** is an umbrella term that refers to all kinds
-of messages as well as to **events** as a special form of messages.
-
-The definition of [message][message] from the CloudEvents specification
-applies.
-
-#### Envelopes and Protocols
-
-An **envelope** is a transport protocol-independent message metadata
-convention. The [CNCF CloudEvents][CloudEvents] specification is an example of
-a message envelope and is the only envelope explicitly defined in this
-specification.
-
-A similar transport protocol-independent message metadata convention is, for
-example, the [W3C SOAP 1.2 envelope][SOAP] for which support could be added by
-an extension.
-
-This specification uses **protocol** as a selector into the protocol-specific
-message metadata that is defined under the `protocol.ifvalues` section of the
-model. When a known protocol is explicitly specified for a message definition,
-the `protocoloptions` section MAY contain constraints for the
-protocol-specific metadata.
-
-## Message Definitions Registry
-
-The Message Definitions Registry (or "Message Registry") is a collection of
-metadata definitions for messages and events. The entries in the registry
-describe constraints for the metadata of messages and events, for instance the
-concrete values and patterns for the `type`, `source`, and `subject` attributes
-of a CloudEvent.
-
-Message definitions can be used in various contexts. A code generator for
-message producers can be informed which properties or headers have to be set,
-and which data types, values, or patterns are expected to produce a conformant
-message. A message consumer can use the definitions to validate incoming
-messages and to extract the metadata for routing or processing.
-
-A message group is a collection of message definitions that are related to
-each other in some application-specific way. For instance, a message group
-can be used to group all events raised by a particular application module or by
-a particular role of an application protocol exchange pattern.
-
-All message definitions MUST be defined inside message groups.
-
-A message processor for a messaging or eventing channel can use a message group
-and its contained message definitions to match incoming messages to the
-declared message definitions and determine whether an incoming message
-conforms to the expected metadata constraints. If a conformant message has
-been identified, the processor might then use the linked schema to handle the
-message body. This is especially useful in scenarios where the message itself
-does not contain a schema hint or even content type information as it is the
-case, for instance, in MQTT 3.1.1.
-
-Whether a message is conformant to a message definition is determined by the
-message processor and its implementation-specific rules. Conformance rules are
-out of the scope of this specification.
-
-The [Endpoint Registry](../endpoint/spec.md) is a related registry that leans
-on this concept and allows associating one or more message definition groups
-with an endpoint, thus effectively defining a contract for the endpoint. An
-"endpoint" as defined in that specification is also a message definition group
-in itself, with the message definitions following the rules of this
-specification.
-
-## Message Definition Registry Model
-
-The formal xRegistry extension model of the Message Definitions Registry
-resides in the [model.json](model.json) file.
-
 ### Message Definition Groups
 
 The Group plural name (`<GROUPS>`) is `messagegroups`, and the Group singular
@@ -323,10 +450,13 @@ the core xRegistry Resource
   "merge" operation of the next message's attributes. Note in the case of an
   inherited attribute being a complex type (e.g. map, object), and the
   overlaying attribute is scalar, then the entire inherited attribute (and
-  nested values) are replaced by that scalar value.
+  nested values) are replaced by that scalar value. For complex types, the
+  merge is "deep", meaning each level of the complex type is merged
+  appropriately rather than it being a complete replacement of the entire
+  complex type.
 
   If the referenced message can not be found then an error MUST NOT be
-  generated.
+  generated, dangling references are permitted.
 
 - Constraints:
   - OPTIONAL.
@@ -538,10 +668,10 @@ instance, if a message definition uses the "CloudEvents/1.0" envelope and an
 If a message uses only a message `protocol`, only the metadata constraints
 defined by the message `protocol` rules apply.
 
-#### Common properties
+#### Property Definitions
 
-The following properties are common to all messages with
-headers/properties/attributes constraints:
+The following attributes are used to define the properties associated with
+the headers, properties or attributes defined for message:
 
 ##### `description`
 
@@ -1020,7 +1150,7 @@ QoS 1 delivery, with a topic name of "mytopic", and a user property of
 }
 ```
 
-### "KAFKA" protocol
+##### "KAFKA" protocol
 
 The "KAFKA" protocol is used to define messages that are sent using the [Apache
 Kafka][Apache Kafka] RPC protocol.
@@ -1064,7 +1194,7 @@ Example:
 }
 ```
 
-### "NATS" protocol
+##### "NATS" protocol
 
 The "NATS" protocol is used to define messages that are sent using the
 [NATS][NATS] protocol.
