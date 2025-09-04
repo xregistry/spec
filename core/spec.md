@@ -2,9 +2,11 @@
 
 ## Abstract
 
-A Registry Service exposes Resources and their metadata, for the purpose
-of enabling discovery of those Resources for either end-user consumption or
-automation and tooling.
+This specification defines an extensible model for managing metadata
+registries. The metadata artifacts can be for any purpose, such as schemas
+or message definitions, and the registry provides both "document" and "API"
+projections of the data to enable their discovery for end-user consumption
+or automation and tooling usage.
 
 ## Table of Contents
 
@@ -13,7 +15,10 @@ automation and tooling.
   - [Notational Conventions](#notational-conventions)
   - [Terminology](#terminology)
 - [Registry Design](#registry-design)
-- [Registry Attributes and APIs](#registry-attributes-and-apis)
+  - [Registry Entity](#registry-entity)
+  - [Group Entity](#group-entity)
+  - [Resource and Version Entities](#resource-and-version-entities)
+- [Registry Model and APIs](#registry-model-and-apis)
   - [Implementation Customizations](#implementation-customizations)
   - [Attributes and Extensions](#attributes-and-extensions)
   - [Registry HTTP APIs](#registry-http-apis)
@@ -23,18 +28,18 @@ automation and tooling.
     - [Retrieving the Registry](#retrieving-the-registry)
     - [Updating the Registry Entity](#updating-the-registry-entity)
   - [Registry Capabilities](#registry-capabilities)
-  - [Groups APIs](#groups-apis)
+  - [Group APIs](#group-apis)
     - [Retrieving a Group Collection](#retrieving-a-group-collection)
     - [Creating or Updating Groups](#creating-or-updating-groups)
     - [Retrieving a Group](#retrieving-a-group)
     - [Deleting Groups](#deleting-groups)
-  - [Resources APIs](#resources-apis)
+  - [Resource APIs](#resource-apis)
     - [Retrieving a Resource Collection](#retrieving-a-resource-collection)
     - [Creating or Updating Resources and
        Versions](#creating-or-updating-resources-and-versions)
     - [Retrieving a Resource](#retrieving-a-resource)
     - [Deleting Resources](#deleting-resources)
-  - [Versions APIs](#versions-apis)
+  - [Version APIs](#version-apis)
     - [Retrieving all Versions](#retrieving-all-versions)
     - [Creating or Updating Versions](#creating-or-updating-versions)
     - [Retrieving a Version](#retrieving-a-version)
@@ -51,31 +56,20 @@ automation and tooling.
 
 ## Overview
 
-A Registry Service is one that manages metadata about Resources. At its core,
-the management of an individual Resource is simply a REST-based interface for
-creating, modifying, and deleting the Resource. However, many Resource models
-share a common pattern of grouping Resources and can optionally support
-versioning of those Resources. This specification aims to provide a common
-interaction pattern for these types of services with the goal of providing an
-interoperable framework that will enable common tooling and automation.
+A Registry consists of two main types of entities: Resources and Groups of
+such Resources.
 
-This document is meant to be a framework from which additional specifications
-can be defined that expose model-specific Resources and metadata.
-
-As of today, this specification only specifies an HTTP-based interaction model.
-This is not meant to imply that other protocols cannot be supported, and
-other protocols will likely be added in the future. When that happens, this
-specification will be restructured to have clean separation between a
-protocol-agnostic core and protocol-specific requirements.
-
-A Registry consists of two main types of entities: Resources and Groups.
-
-Resources typically represent the main data of interest for users of the
-Registry, while Groups, as the name implies, is a mechanism by which related
-Resources are arranged together under a single collection.
+Resources typically represent the main data of interest in the Registry, while
+Groups, as the name implies, allow related Resources to be arranged together
+under a single collection. Resources can, optionally, also be versioned if
+needed.
 
 This specification defines a set of common metadata that can appear on both
 Resources and Groups, and allows for domain-specific extensions to be added.
+Additionally, this specification defines a common interaction pattern to
+manage, view and discover the entities in the Registry with the goal of
+providing an interoperable framework that will enable common tooling and
+automation.
 
 See the [Registry Design](#registry-design) section for a more complete
 discussion of the xRegistry concepts.
@@ -92,8 +86,246 @@ The following 3 diagrams show (from left to right):<br>
  src="./xregfullmodel.png" height="300">&nbsp;&nbsp;&nbsp;<img
  src="./xregsample.png" height="300">
 
-For easy reference, the JSON serialization of a Registry adheres to this
-pseudo JSON form:
+The Registry, while exposed as a REST API "service", is also intended to
+support exporting its data as a "document" that can then be used independently
+from the service. For example, the document can be checked into a code
+repository or used as input for tooling. To enable a seamless transition
+between the "document" and "API" views of the data, the specification ensures
+a consistent mapping between the two:
+<img src="./xregurlmapping.png">
+
+This document is meant to be a framework from which additional specifications
+can be defined that expose model-specific Resources and metadata. See the
+[Endpoint](../endpoint/spec.md) and [Schema](../schema/spec.md) extension
+specifications as examples.
+
+## Notations and Terminology
+
+### Notational Conventions
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
+"SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be
+interpreted as described in [RFC 2119](https://tools.ietf.org/html/rfc2119).
+
+For clarity, OPTIONAL attributes (specification-defined and extensions) are
+OPTIONAL for clients to use, but the servers' responsibility will vary.
+Server-unknown extension attributes MUST be silently stored in the backing
+datastore. Specification-defined, and server-known extension attributes, MUST
+generate an error if the corresponding feature is not supported or enabled.
+However, as with all attributes, if accepting the attribute results in a
+bad state (such as exceeding a size limit, or results in a security issue),
+then the server MAY choose to reject the request.
+
+In the pseudo JSON format snippets `?` means the preceding item is OPTIONAL,
+`*` means the preceding item MAY appear zero or more times, and `+` means the
+preceding item MUST appear at least once. The presence of the `#` character
+means the remaining portion of the line is a comment. Whitespace characters in
+the JSON snippets are used for readability and are not normative.
+
+Use of `<...>` the notation indicates a substitutable value where that is
+meant to be replaced with a runtime situational-specific value as defined by
+the word/phrase in the angled brackets. For example `<NAME>` would be expected
+to be replaced by the "name" of the item being discussed.
+
+When HTTP query parameters are discussed, they are presented as `?<NAME>` where
+`<NAME>` is the name of the query parameter.
+
+Use of `<GROUP>` and `<RESOURCE>` are meant to represent the singular
+name of a Group and Resource type used, while `<GROUPS>` and
+`<RESOURCES>` are the plural name of those respective types. Use of
+`<SINGULAR>` represents the singular name of the entity referenced. For
+example, for a "schema document" Resource type where its plural name is
+defined as `schemas` and its singular name is defined as `schema`, the
+`<SINGULAR>` value would be `schema`.
+
+Additionally, the following acronyms are defined:
+- `<GID>` is the `<SINGULAR>id` of a Group.
+- `<RID>` is the `<SINGULAR>id` of a Resource.
+- `<VID>` is the `versionid` of a Version of a Resource.
+
+The following are used to denote an instance of one of the associated data
+types (see [Attributes and Extensions](#attributes-and-extensions) for more
+information about each data type):
+- `<ARRAY>`
+- `<BOOLEAN>`
+- `<DECIMAL>`
+- `<INTEGER>`
+- `<MAP>`
+- `<OBJECT>`
+- `<STRING>`
+- `<TIMESTAMP>`
+- `<UINTEGER>`
+- `<URI>`
+- `<URIABSOLUTE>`
+- `<URIRELATIVE>`
+- `<URITEMPLATE>`
+- `<URL>`
+- `<URLABSOLUTE>`
+- `<URLRELATIVE>`
+- `<XID>`
+- `<XIDTYPE>`
+- `<TYPE>` - one of the allowable data type names (MUST be in lower case)
+  listed in [Attributes and Extensions](#attributes-and-extensions)
+- `<VALUE>` - an instance of one of the above data types
+
+### Terminology
+
+This specification defines the following terms:
+
+#### Group
+
+Groups, as the name implies, allow related Resources to be arranged together
+under a single collection - the Group. The reason for the grouping is not
+defined by this specification, so the owners of the Registry MAY choose to
+define (or enforce) any pattern they wish. In this sense, a Group is similar
+to a "directory" on a filesystem.
+
+An additional common use for Groups is for access control. Managing access
+control on individual Resources, while possible, might be cumbersome, so
+moving it up to the Group could be a more manageable, and user-friendly,
+implementation choice.
+
+#### Registry
+
+A server-side implementation of this specification. Typically, the
+implementation would include model-specific Groups, Resources and extension
+attributes.
+
+There is also a "Registry" entity which acts as the root of a Registry, under
+which all Groups will reside. The Registry entity itself has metadata
+associated with it.
+
+#### Resource
+
+Resources, typically, represent the main data of interest for the Registry. In
+the filesystem analogy, these would be the "files". Each Resource exist under
+a single Group and, similar to Groups, have a set of Registry metadata.
+However, unlike a Group, which only has Registry metadata, each Resource MAY
+also have a secondary domain-specific "document" associated with it. For
+example, a "schema" Resource might have a "schema document" as its "document".
+This specification places no restriction on the type of content stored in the
+Resource's document. Additionally, Resources (unlike Groups) MAY be versioned.
+
+#### Version
+
+A Version is an instance of a Resource that represents a particular state of
+the Resource. Each Version of a Resource has its own set of xRegistry metadata
+and possibly a domain-specific document associated with it. Each Resource MUST
+have at least one Version associated with it.
+
+Clients MAY interact with specific Versions or with the Resource itself, which
+is equivalent to interacting with the Resource's "default" Version. While in
+many cases the "default" Version will be the "newest" Version, this
+specification allows for the "default" Version to be explicitly chosen and
+unaffected as other Versions are added or removed.
+
+If versioning is not important for the use case in which the Resource is used,
+the default Version can be evolved without creating new ones.
+
+This specification places no requirements on the lifecycle of Versions.
+Implementations, or users of the Registry, determine when new Versions are
+created, as opposed to updating existing Versions, and how many Versions are
+allowed per Resource type.
+
+## Registry Design
+
+As discussed in the [Overview](#overview) section, an xRegistry consists of
+two main entities related to the data being managed: Groups and Resources.
+However, there are other concepts that make up the overall design and this
+section will cover them all in more detail.
+
+Each entity type defined within the Registry will have both a plural and
+singular "type name" associated with it. For example, a Schema Resource
+might have `schemas` as its "plural" type name and `schema` as its "singular"
+type name. This enables the appropriate name to be used based on the context
+in which it appears. In the Schema Resource example, `schemas` would be used
+when a collection of Schemas is referenced, such as in URLs (e.g.
+`.../schemas/myschema`), while `schema` would be used when a single Schema
+is referenced (e.g. as part of its ID name: `schemaid`).
+
+### Registry Entity
+
+An xRegistry instance, or a "Registry", can be thought of as a single rooted
+tree of entities as shown in the "xRegistry Core Spec" diagram in the
+[Overview](#overview) section. At the root is the Registry entity itself.
+This entity is meant to serve a few key purposes:
+
+  - Expose high-level metadata about the Registry itself, such as its creation
+    and modified timestamps, name, link to additional documentation, etc.
+  - The set of [capabilities](#registry-capabilities) (features) that are
+    supported. For example, does this Registry support filtering of query
+    results?
+  - The domain-specific ["model"](./model.md#registry-model) that defines the
+    types of entities being managed by the Registry. For example, the model
+    might define a Group called `schemagroups` that has `schemas` as the
+    Resources within those Groups.
+
+### Group Entity
+
+Below the Registry, Groups serve as logical collections of related Resources.
+Each Group exposes the same high-level metadata as the Registry and supports
+user-defined extensions attributes. In practice, Group often act as lightweight
+"directories" for Resources, but they can also encapsulate rich,
+domain-specific data via custom extensions (see [Endpoint](../endpoint/spec.md)
+as an example).
+
+### Resource and Version Entities
+
+A Resource entity in the Registry holds one of more Versions of metadata or a
+domain-specific document. If a Resource holds multiple Versions, those can be
+organized with compatibility policies and lineage. Each Resource always has a
+default Version corresponding to one of the available Versions that is
+returned when requesting the Resource content. All held Versions can be
+accessed through the Versions collection.
+
+#### Document Resources vs Metadata-Only Resources
+
+Each Version of a Resource MAY be defined to have a "domain-specific" document
+associated with it. These documents MAY be stored within the Version as an
+attribute, or MAY be stored external to the Version and a URL to its location
+will be stored within the Version instead. This model design choice is
+specified via the `hasdocument` aspect of the Resource's model definition.
+
+Typically, the domain-specific document will be used when a pre-existing
+document definition already exists and an xRegistry is used as the
+mechanism to expose those documents in a consistent and interoperable way.
+For example, the [Schema Registry](../schema/spec.md) only has a few
+xRegistry Resource extension attributes defined because most of the data of
+interest will be in the Schema documents associated with the Resources.
+
+See [Resource Metadata vs Resource
+Document](#resource-metadata-vs-resource-document) for more information.
+
+### No-Code Servers
+
+One of the goals of xRegistry is to be as broadly supported as possible.
+Requiring all xRegistry endpoints to support the full range of APIs defined
+in this specification might not be feasible in all cases. In particular, there
+might be cases where someone wishes to host a read-only xRegistry server to
+only expose their documents (and metadata) and therefore the write operations
+or advanced features (such as inlining or filtering) might not be needed.
+In those cases, simple file serving HTTP servers, such as blob stores, ought
+to be sufficient, and in those cases requiring support for query parameters
+and other advanced features (that could require code) might not always be
+possible.
+
+To support these simple (no-code) scenarios, this specification is written
+such that all of the APIs are OPTIONAL, and all of the query parameters are
+OPTIONAL (typically specified by saying that they `SHOULD` be supported).
+However, it is STRONGLY RECOMMENDED that full API servers support the query
+parameters when possible to enable a better user experience, and increase
+interoperability.
+
+Note that simple file servers SHOULD support exposing Resources where the HTTP
+body response contains the Resource's associated "document" as well as the
+case where the HTTP response body contains a JSON serialization of the
+Resource via the `$details` suffix on the URL path. This can be achieved by
+creating a secondary sibling file on disk with `$details` at the end of its
+filename.
+
+---
+
+For easy reference, the JSON serialization of a Registry adheres to this form:
 
 ```yaml
 {
@@ -316,222 +548,62 @@ pseudo JSON form:
 }
 ```
 
-## Notations and Terminology
+### Registry Views
 
-### Notational Conventions
+This specification is designed such that clients can choose how they want the
+data from a server to be returned. There are three main "views" that clients
+can choose from:
 
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
-"SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be
-interpreted as described in [RFC 2119](https://tools.ietf.org/html/rfc2119).
+- Single Document View
 
-For clarity, OPTIONAL attributes (specification-defined and extensions) are
-OPTIONAL for clients to use, but the servers' responsibility will vary.
-Server-unknown extension attributes MUST be silently stored in the backing
-datastore. Specification-defined, and server-known extension attributes, MUST
-generate an error if the corresponding feature is not supported or enabled.
-However, as with all attributes, if accepting the attribute results in a
-bad state (such as exceeding a size limit, or results in a security issue),
-then the server MAY choose to reject the request.
+  In this view, clients are retrieving all (or part) of the Registry hierarchy
+  as a single document. In this case, nested (or child) entities are "inlined"
+  into the retrieved document such that the need for secondary interactions
+  with the server is reduced.
 
-In the pseudo JSON format snippets `?` means the preceding item is OPTIONAL,
-`*` means the preceding item MAY appear zero or more times, and `+` means the
-preceding item MUST appear at least once. The presence of the `#` character
-means the remaining portion of the line is a comment. Whitespace characters in
-the JSON snippets are used for readability and are not normative.
+  This is often used for cases where the documents are to be stored in some
+  document storage system (e.g. Github), or as input into local tooling that
+  expects all of the relevant data to be stored locally on disk.
 
-Use of `<...>` the notation indicates a substitutable value where that is
-meant to be replaced with a runtime situational-specific value as defined by
-the word/phrase in the angled brackets. For example `<NAME>` would be expected
-to be replaced by the "name" of the item being discussed.
+  See the [Exporting](#exporting) section for one way to generate this view.
 
-When HTTP query parameters are discussed, they are presented as `?<NAME>` where
-`<NAME>` is the name of the query parameter.
+- API View
 
-Use of `<GROUP>` and `<RESOURCE>` are meant to represent the singular
-name of a Group and Resource type used, while `<GROUPS>` and
-`<RESOURCES>` are the plural name of those respective types. Use of
-`<SINGULAR>` represents the singular name of the entity referenced. For
-example, for a "schema document" Resource type where its plural name is
-defined as `schemas` and its singular name is defined as `schema`, the
-`<SINGULAR>` value would be `schema`.
+  In this view, it is assumed that the client is interested in an interactive
+  discovery and retrieval of the Registry data. Most often clients will "walk"
+  the hierarchy of entities by following the references (links) provided
+  within the serialization of each entity to find the data of interest. As
+  such, in this view, each entity is, by default, retrieved from the server
+  via independent "read" operations.
 
-Additionally, the following acronyms are defined:
-- `<GID>` is the `<SINGULAR>id` of a Group.
-- `<RID>` is the `<SINGULAR>id` of a Resource.
-- `<VID>` is the `versionid` of a Version of a Resource.
+  The [Registry HTTP APIs](#registry-http-apis) without the use of the
+  [Configuring Responses](#configuring-responses) flags, such as the `?doc`
+  flag, is an example of how to generate this view.
 
-The following are used to denote an instance of one of the associated data
-types (see [Attributes and Extensions](#attributes-and-extensions) for more
-information about each data type):
-- `<ARRAY>`
-- `<BOOLEAN>`
-- `<DECIMAL>`
-- `<INTEGER>`
-- `<MAP>`
-- `<OBJECT>`
-- `<STRING>`
-- `<TIMESTAMP>`
-- `<UINTEGER>`
-- `<URI>`
-- `<URIABSOLUTE>`
-- `<URIRELATIVE>`
-- `<URITEMPLATE>`
-- `<URL>`
-- `<URLABSOLUTE>`
-- `<URLRELATIVE>`
-- `<XID>`
-- `<XIDTYPE>`
-- `<TYPE>` - one of the allowable data type names (MUST be in lower case)
-  listed in [Attributes and Extensions](#attributes-and-extensions)
-- `<VALUE>` - an instance of one of the above data types
+- Multiple Document View
 
-### Terminology
+  This is a variant of the "API view". In situations where the data within the
+  Registry is to be stored as independent files either on disk or in some
+  other object storage system, the client might want to avoid the duplication
+  of information that, by default, a server might generate. For example, they
+  might not want the default Version's metadata to be visible in the owning
+  Resource's serialization.
 
-This specification defines the following terms:
+  The [Registry HTTP APIs](#registry-http-apis) with the use of the
+  [Configuring Responses](#configuring-responses) flags, such as the `?doc`
+  flag, is an example of how to generate this view.
 
-#### Group
+  Documents generated in this view are often stored locally such that they can
+  be managed independently for use in tooling or stored in some source-code
+  control system (e.g. Github) to minimize the number of conflicting edits
+  between users in a very fluid environment.
 
-Groups, as the name implies, is a mechanism by which related Resources are
-arranged together under a single collection - the Group. The reason for the
-grouping is not defined by this specification, so the owners of the Registry
-can choose to define (or enforce) any pattern they wish. In this sense, a
-Group is similar to a "directory" on a filesystem.
+This specification provides the mechanisms to allow for users to choose the
+best "view" for their needs. Regardless of the view, the design allows for
+the retrieved data to then be used as input into an xRegistry server.
 
-An additional common use for Groups, aside from the contained Resources being
-related, is for access control. Managing access control on individual
-Resources, while possible, might be cumbersome, so moving it up to the Group
-could be a more manageable, and user-friendly, implementation choice.
+---
 
-#### Registry
-
-A server-side implementation of this specification. Typically, the
-implementation would include model-specific Groups, Resources and extension
-attributes.
-
-#### Resource
-
-Resources, typically, represent the main data of interest for the Registry. In
-the filesystem analogy, these would be the "files". Each Resource exist under
-a single Group and, similar to Groups, have a set of Registry metadata.
-However, unlike a Group, which only has Registry metadata, each Resource can
-also have a "document" associated with it. For example, a "schema" Resource
-might have a "schema document" as its "document". This specification places no
-restriction on the type of content stored in the Resource's document.
-Additionally, Resources (unlike Groups) MAY be versioned.
-
-#### Version
-
-A Version is an instance of a Resource that represents a particular state of
-the Resource. Each Version of a Resource has its own set of xRegistry metadata
-and possibly a domain-specific document associated with it. Each Resource MUST
-have at least one Version associated with it.
-
-Clients MAY interact with specific Versions or with the Resource itself, which
-is equivalent to interacting with the Resource's "default" Version. While in
-many cases the "default" Version will be the "newest" Version, this
-specification allows for the "default" Version to be explicitly chosen and
-unaffected as other Versions are added or removed.
-
-If versioning is not important for the use case in which the Resource is used,
-the default Version can be evolved without creating new ones.
-
-This specification places no requirements on the lifecycle of Versions.
-Implementations, or users of the Registry, determine when new Versions are
-created, as opposed to updating existing Versions, and how many Versions are
-allowed per Resource type.
-
-## Registry Design
-
-As discussed in the [Overview](#overview) section, an xRegistry consists of
-two main entities related to the data being managed: Groups and Resources.
-However, there are other concepts that make up the overall design and this
-section will cover them all in more detail.
-
-**Registry**
-An xRegistry instance, or a "Registry", can be thought of as a single rooted
-tree of entities as shown in the "xRegistry Core Spec" diagram in the
-[Overview](#overview) section. At the root is the Registry entity itself.
-This entity is meant to serve a few key purposes:
-
-  - Expose high-level metadata about the Registry itself, such as its creation
-    and modified timestamps, name, link to additional documentation, etc.
-  - The set of [capabilities](#registry-capabilities) (features) that are
-    supported. For example, does this Registry support filtering of query
-    results?
-  - The domain-specific ["model"](./model.md#registry-model) that defines the
-    types of entities being managed by the Registry. For example, the model
-    might define a Group called `schemagroups` that has `schemas` as the
-    Resources within those Groups.
-
-**Groups**
-Traversing down the tree structure, below the Registry entity, there will be
-a (potentially empty) set of Groups for the entities managed by the Registry.
-Each Group is meant to be a logical grouping of related Resources, much like a
-directory acts as a grouping of "files". Groups, like the Registry entity,
-does have similar high-level metadata that can be set and can have
-domain-specific extension attributes defined.
-
-It's worth noting that a Registry is not mandated to have any Groups. It is
-permissible to have a Registry with just its top-level metadata, if that's all
-that's needed for a particular use case.
-
-As hinted at with the "directory" analogy, a common use for Groups will be
-for them to be light-weight collections without much additional semantics
-associated with them. However, this is not a requirement. Because Groups
-allow for user-defined extension attributes to be defined, Groups might be
-quite rich with respect to managing domain-specific data. See the
-[Endpoint](../endpoint/spec.md) as an example.
-
-**Resources**
-Below, or within, each Group will be a (potentially empty) set of Resources.
-Typically, Resources are the main pieces of data managed by the Registry. Like
-the Registry and Group entities that have a set of xRegistry defined "common"
-metadata that can be set, and user-defined extension attributes can be defined.
-However, Resources also support the concept of a domain-specific "document"
-that can be associated with it. This document can be stored within the
-Registry itself (like another attribute on the Resource), or stored external
-to the Registry and a URL to the document will be stored within the xRegistry
-metadata. This allows for the definition of the model to support cases where
-domain-specific data needs to be managed, and exposed, as xRegistry metadata
-or the data needs to be completely separate from the Registry's metadata.
-
-Typically, the domain-specific document will be used when a pre-existing
-document definition already exists and an xRegistry is used as the
-mechanism to expose those documents in a consistent and interoperable way.
-For example, the [Schema Registry](../schema/spec.md) only has a few
-xRegistry Resource extension attributes defined because most of the data of
-interest will be in the Schema Documents associated with the Resources.
-
-**Versions**
-While "Resources" are presented as the most significant entities within
-a Registry, technically Resources themselves are very light-weight entities
-and are there to act as a grouping mechanism for another entity: Versions.
-
-Often, as Resources change over time, it is desirable to maintain a
-historical set of instances (i.e. "versions") of those Resources so they
-can be referenced and accessed as independent (but related) pieces of
-data. Each Version of a Resource will have its own set of xRegistry
-metadata and instance of the domain-specific "document".
-
-However, while each Version is independently accessible, the Resource itself
-has the concept of a "default Version" for which the Resource will act as
-a proxy (or alias). Meaning, accessing the Resource (or its document) will
-actually access one of its Versions. This allows end-users to
-not be concerned with keeping track of which Version is the "default" one as
-Versions are added or removed. This is sometimes configured to be the "newest"
-Version, however, xRegistry does not mandate that the "default" Version always
-be the "newest".
-
-While not a requirement, the collection of Versions within a Resource
-typically form a directed graph with respect to how they are related.
-Meaning, a Version is usually "derived" from another Version known as its
-"ancestor". For example, "version 2" might have "version 1" as its
-"ancestor". By default, xRegistry assumes that each new Version will have
-the current "newest" Version as its ancestor, but this is configurable.
-See the [Version Mode](./model.md#groupsstringresourcesstringversionmode)
-section for more information.
-
-**Next Steps**
 In summary, the xRegistry design itself is relatively simple and consists
 of 4 main concepts to form a tree of entities. However, with these, along
 with the extensibility of the xRegistry metadata model, a wide range of
@@ -542,9 +614,9 @@ to what might otherwise be a domain-specific set of APIs.
 The following sections will define the technical details of those xRegistry
 entities and the APIs to access them.
 
-## Registry Attributes and APIs
+## Registry Model and APIs
 
-This section defines common Registry metadata attributes and APIs. It is an
+This section defines common Registry metadata model and its API. It is an
 explicit goal for this specification that metadata can be created and managed
 in files in a file system, for instance in a Git repository, and also managed
 in a Registry service that implements the API described here.
@@ -555,11 +627,13 @@ module's source code. When the module is ready to be deployed into a concrete
 system, the metadata about the events will be registered in a Registry service
 along with the endpoints where those events can be subscribed to or consumed
 from, and which allows discovery of the endpoints and all related metadata by
-other systems at runtime.
+other systems at runtime. See the [Registry View](#registry-views) section for
+additional information.
 
-Therefore, the hierarchical structure of the Registry model is defined in such
-a way that it can be represented in a single file, including but not limited
-to JSON, or via the entity graph of a REST API.
+Therefore, the hierarchical structure of the
+[Registry Model](./model.md#registry-model) is defined in such a way that it
+can be represented in one or more files, including but not limited to JSON, or
+via the entity graph of a REST API.
 
 In the remainder of this specification, in particular when defining the
 attributes of the Registry entities, the terms "document view" or "API view"
@@ -569,8 +643,8 @@ exchange. The most notable differences are that in document view:
 
 - References (e.g. URLs) between entities within responses will use relative
   references rather than absolute ones. This is an indication to tooling that
-  the entity in question can be found within the current document and does not
-  need an additional HTTP `GET` to retrieve it.
+  the entity in question can be found locally and does not need an additional
+  HTTP `GET` to retrieve it.
 - Duplicate data will be removed. In particular, Resources will not include
   attributes from the "default" Version as part of their serialization. This is
   done with the assumption the nested `versions` collection will most likely
@@ -598,12 +672,12 @@ be added for a live instance of a service; as often times these aspects are
 very specific to the environment in which the service is running. For example,
 this specification does not address authentication or authorization levels of
 users, nor how to securely protect the APIs (aside from the implied use of
-`https`), clients or servers from attacks. Implementations of this
+`https`), clients or servers, from attacks. Implementations of this
 specification are expected to add these various features as needed.
 
 Additionally, implementations MAY choose to customize the data and behavior on
-a per-user basis as needed. For example, the following customizations might be
-implemented:
+a per-user basis as needed. For example, the following non-exhaustive list of
+customizations might be implemented:
 - User-specific capabilities - e.g. admin users might see more features than
   a non-admin user.
 - User-specific attribute aspects - e.g. admin users might be able to
@@ -629,6 +703,8 @@ Clients need to be aware of these possibilities.
 
 ### Attributes and Extensions
 
+#### Data Types
+
 Unless otherwise noted, all attributes and extensions MUST be mutable and MUST
 be one of the following data types:
 - `any` - an attribute of this type is one whose type is not known in advance
@@ -640,9 +716,9 @@ be one of the following data types:
      these cases, while it is valid for the serialization being used, it is
      not valid for xRegistry since `null` is not a valid `integer`. Meaning,
      the serialization of an array that is syntactically valid for the
-     format being used, but not semantically valid per the xRegistry model
-     definition MUST NOT be accepted and MUST generate an error
-     ([invalid_data](#invalid_data)).
+     format being used, but not semantically valid per the
+     [xRegistry model](./model.md#registry-model) definition MUST NOT be
+     accepted and MUST generate an error ([invalid_data](#invalid_data)).
 - `boolean` - case-sensitive `true` or `false`.
 - `decimal` - number (integer or floating point).
 - `integer` - signed integer.
@@ -656,20 +732,6 @@ be one of the following data types:
     for more information about serializing maps as HTTP headers.
 - `object` - a nested entity made up of a set of attributes of these data
   types.
-- `xid` - MUST be a URL (xid) reference to another entity defined within
-  the Registry. The actual entity attribute value MAY reference a non-existing
-  entity (i.e. dangling pointer), but the syntax MUST reference a
-  defined/valid type in the Registry. This type of attribute is used in
-  place of `url` so that the Registry can do "type checking" to ensure the
-  value references the correct type of Registry entity. See the definition of
-  the [`target` model attribute](./model.md#attributesstringtarget) for more
-  information.  Its value MUST start with a `/`.
-- `xidtype` - MUST be a URL reference to an xRegistry model type. The
-   reference MUST point to one of: the Registry itself (`/`), a Group type
-   (`/<GROUPS>`), a Resource type (`/<GROUPS>/<RESOURCES>`) or Version type for
-   a Resource (`/<GROUPS>/<RESOURCES>/versions`). Its value MUST reference a
-   defined/valid type in the Registry. It MUST use the plural name of the
-   referenced type, if it is a Group, Resource or Version.
 - `string` - sequence of Unicode characters.
 - `timestamp` - an [RFC3339](https://tools.ietf.org/html/rfc3339) timestamp.
   Use of a `time-zone` notation is RECOMMENDED. All timestamps returned by
@@ -693,6 +755,21 @@ be one of the following data types:
   4.2](https://datatracker.ietf.org/doc/html/rfc3986#section-4.2) with the
   added "URL" constraints mentioned in [RFC 3986 Section
   1.1.3](https://datatracker.ietf.org/doc/html/rfc3986#section-1.1.3).
+- `xid` - MUST be a URL (xid) reference to another entity defined within
+  the Registry. The actual entity attribute value MAY reference a non-existing
+  entity (i.e. be a dangling pointer), but the syntax MUST reference a
+  defined/valid type in the Registry. This type of attribute is used in
+  place of `url` so that the Registry can do "type checking" to ensure the
+  value references the correct type of Registry entity. See the definition of
+  the [`target` model attribute](./model.md#attributesstringtarget) for more
+  information.  Its value MUST start with a `/`.
+- `xidtype` - MUST be a URL reference to an
+   [xRegistry model](./model.md#registry-model) type. The reference MUST point
+   to one of: the Registry itself (`/`), a Group type (`/<GROUPS>`), a
+   Resource type (`/<GROUPS>/<RESOURCES>`) or Version type for a Resource
+   (`/<GROUPS>/<RESOURCES>/versions`). Its value MUST reference a
+   defined/valid type in the Registry. It MUST use the plural names of the
+   referenced types, if it is a Group, Resource or Version.
 
 The 6 variants of URI/URL are provided to allow for strict type adherence
 when needed. However, for attributes that are simply "pointers" that might
@@ -709,6 +786,8 @@ The "scalar" data types are: `boolean`, `decimal`, `integer`, `string`,
 `url`, `urlabsolute`, `urlrelative`, `xid`, `xidtype`.
 Note that `any` is not a "scalar" type as its runtime value could be a complex
 type such as `object`.
+
+#### Attributes
 
 All attributes (specification-defined and extensions) MUST adhere to the
 following rules:
@@ -750,11 +829,14 @@ following rules:
   request) rather than to leave the attribute untouched (absent in the
   request), such as when `PATCH` is used.
 
+#### Extensions
+
 Implementations of this specification MAY define additional (extension)
 attributes. However, they MUST adhere to the following rules:
 
-- All attributes MUST conform to the model definition of the Registry. This
-  means that they MUST satisfy at least one of the following:
+- All extension attributes that appear in the serialization of an entity MUST
+  conform to the model definition of the Registry. This means that they MUST
+  satisfy at least one of the following:
   - Be explicitly defined (by name) as part of the model.
   - Be permitted due to the presence of the `*` (undefined) extension attribute
     name at that level in the model.
@@ -763,7 +845,7 @@ attributes. However, they MUST adhere to the following rules:
 - They MUST NOT conflict with the name of an attribute defined by this
   specification, including the `<RESOURCE>*` and `<COLLECTION>*` attributes
   that are implicitly defined. Note that if a Resource type has the
-  `hasdocument` attribute set the `false` then this rule does not apply for
+  `hasdocument` aspect set the `false` then this rule does not apply for
   the `<RESOURCE>*` attributes as those attributes are not used for that
   Resource type.
 - It is RECOMMENDED that extension attributes on different entities do not
@@ -776,8 +858,8 @@ attributes. However, they MUST adhere to the following rules:
 #### Common Attributes
 
 The following attributes are used by one or more entities defined by this
-specification. They are defined here once rather than repeating them
-throughout the specification.
+specification. They are defined here once rather than repeating them throughout
+the specification.
 
 For easy reference, the JSON serialization of these attributes adheres to this
 form:
@@ -1306,33 +1388,6 @@ ignored by receivers of these messages. There is no requirement for
 implementations of this specification to persist these values, to include them
 in responses or to use this information.
 
-#### No-Code Servers
-
-One of the goals of xRegistry is to be as broadly supported as possible.
-Requiring all xRegistry endpoints to support the full range of APIs defined
-in this specification might not be feasible in all cases. In particular, there
-might be cases where someone wishes to host a read-only xRegistry server to
-only expose their documents (and metadata) and therefore the write operations
-or advanced features (such as inlining or filtering) might not be needed.
-In those cases, simple file serving HTTP servers, such as blob stores, ought
-to be sufficient, and in those cases requiring support for query parameters
-and other advanced features (that could require code) might not always be
-possible.
-
-To support these simple (no-code) scenarios, this specification is written
-such that all of the APIs are OPTIONAL, and all of the query parameters are
-OPTIONAL (typically specified by saying that they `SHOULD` be supported).
-However, it is STRONGLY RECOMMENDED that full API servers support the query
-parameters when possible to enable a better user experience, and increase
-interoperability.
-
-Note that simple file servers SHOULD support exposing Resources where the HTTP
-body response contains the Resource's associated "document" as well as the
-case where the HTTP response body contains a JSON serialization of the
-Resource via the `$details` suffix on the URL path. This can be achieved by
-creating a secondary sibling file on disk with `$details` at the end of its
-filename.
-
 ---
 
 The remainder of this specification mainly focuses on the successful
@@ -1642,8 +1697,8 @@ an error MUST be generated and the entire operation MUST be undone.
 
 ##### Retrieving a Registry Collection
 
-To retrieve a Registry collection, an HTTP `GET` MAY be used. The request
-MUST be of the form:
+A server MAY support retrieving a Registry collection via HTTP `GET`.  The
+request MUST be of the form:
 
 ```yaml
 GET <PATH-TO-COLLECTION>
@@ -1666,8 +1721,8 @@ Link: <URL>;rel=next;count=<UINTEGER> ?
 
 ##### Retrieving an Entity from a Registry Collection
 
-To retrieve an entity, an HTTP `GET` MAY be used. The request MUST be of the
-form:
+A server MAY support retrieving an entity via an HTTP `GET`. The request MUST
+be of the form:
 
 ```yaml
 GET <PATH-TO-COLLECTION>/<ID-OF-ENTITY>
@@ -1689,8 +1744,8 @@ Content-Type: application/json; charset=utf-8
 
 There are two ways to delete entities from a Registry collection:
 
-1. to delete a single entity, an HTTP `DELETE` MAY be used. The request MUST
-be of the form:
+1. to delete a single entity, a server MAY support an HTTP `DELETE` request
+directed to the entity. The request MUST be of the form:
 
 ```yaml
 DELETE <PATH-TO-COLLECTION>/<ID-OF-ENTITY>[?epoch=<UINTEGER>]
@@ -1711,8 +1766,9 @@ The following query parameter SHOULD be supported by servers:
   and if it differs then an error ([mismatched_epoch](#mismatched_epoch)) MUST
   be generated.
 
-2. to delete multiple entities within a Registry collection, the request MUST
-be in one of two forms:
+2. to delete multiple entities within a Registry collection, a server MAY
+support an HTTP `DELETE` request directed to the collection and the request
+MUST be in one of two forms:
 
 For non-Resource entities:
 ```yaml
@@ -1857,8 +1913,24 @@ and the following Registry-level attributes:
 - Examples:
   - `1.0`
 
+##### `capabilities` Attribute
+- Type: [Registry Capabilities](#registry-capabilities)
+- Description: The set of capabilities (features) supported by the Registry.
+  See [Registry Capabilities](#registry-capabilities) for more information.
+
+  During a write operation:
+  - The absence of this attribute MUST result in no changes to the capabilities
+    of the Registry.
+  - An explicit value of `null` for this attribute MUST result in resetting the
+    capabilities to the server's default values.
+
+- Constraints:
+  - MUST NOT be included in API and document views unless requested.
+  - MUST be included in API and document views if requested.
+  - MAY be mutable based on the capabilities of the implementation.
+
 ##### `model` Attribute
-- Type: Registry Model.
+- Type: [Registry Model](./model.md#registry-model).
 - Description: A full description of the Groups, Resources and attributes
   (specification-defined and extensions) as defined by the current model
   associated with this Registry. See
@@ -1877,16 +1949,16 @@ and the following Registry-level attributes:
   - MUST be a read-only attribute.
 
 ##### `modelsource` Attribute
-- Type: Registry Model
+- Type: [Registry Model](./model.md#registry-model).
 - Description: The "model" definition that was last used to define this
   Registry's model. Unlike `model`, which includes all aspects of the model,
   this is meant to represent just the customizations, or extensions, to the
-  base xRegistry model as defined this specification. This allows for users to
-  view (and edit) just the custom aspects of the model without the "noise" of
-  the specification-defined parts.
+  base [xRegistry model](./model.md#registry-model) as defined this
+  specification. This allows for users to view (and edit) just the custom
+  aspects of the model without the "noise" of the specification-defined parts.
 
   If the implementation supports modifying the model, then this attribute,
-  or the `/modelsource` API are the mechanisms by which it MAY be done.
+  or the `/modelsource` API, are the mechanisms by which it MAY be done.
 
   The serialization of this attribute MUST be semantically equivalent to
   what was used to create the model, but it is NOT REQUIRED to be syntactically
@@ -1911,8 +1983,8 @@ and the following Registry-level attributes:
 
 #### Retrieving the Registry
 
-To retrieve the Registry, its metadata attributes, and Groups, an HTTP `GET`
-MAY be used.
+A server MAY support retrieving the Registry entity, its metadata attributes,
+and its Groups via an HTTP `GET`.
 
 The request MUST be of the form:
 
@@ -2085,8 +2157,7 @@ Content-Type: application/json; charset=utf-8
 
 #### Updating the Registry Entity
 
-To update the Registry entity, an HTTP `PUT` or `PATCH` MAY be used.
-
+A server MAY support updating the Registry entity via an HTTP `PUT` or `PATCH`.
 The request MUST be of the form:
 
 ```yaml
@@ -2115,11 +2186,12 @@ Content-Type: application/json; charset=utf-8
 ```
 
 Where:
-- The HTTP body MUST contain the full JSON representation of the Registry
+- With the exception of the `capabilities` and `modelsource` attributes, the
+  HTTP body MUST contain the full JSON representation of the Registry
   entity's mutable attributes that are to be set, the rest will be deleted.
-- The request MAY include the `'modelsource` attribute if the Registry model
-  definitions are to be updated as part of the request. See [Creating or
-  Updating the Registry
+- The request MAY include the `modelsource` attribute if the
+  [Registry model](./model.md#registry-model) definitions are to be updated as
+  part of the request. See [Creating or Updating the Registry
   Model](./model.md#creating-or-updating-the-registry-model) for more
   information.
   If present, the Registry's model MUST be updated prior to any entities being
@@ -2207,7 +2279,7 @@ Content-Type: application/json; charset=utf-8
 ### Registry Capabilities
 
 In order to programmatically discover which capabilities are supported by an
-implementation, servers MUST support exposing this information via a
+implementation, servers SHOULD support exposing this information via a
 "capabilities" map that lists each supported feature along with any related
 configuration detail that will help in successful usage of that feature.
 
@@ -2256,11 +2328,11 @@ following:
 - String
 - Array of one of the above
 
-The absence of a capability in the capability map is an indication that the
-feature is not supported. All supported extensions MUST be included in the list.
-
-Absence, presence, or configuration values of a feature in the map MAY vary
-based on the authorization level of the client making the request.
+When serializing their supported capabilities, servers MUST include all
+capabilities (including extensions) since the absence of a capability indicates
+lack of support for that feature. However, absence, presence, or configuration
+values of a feature in the map MAY vary based on the authorization level of
+the client making the request.
 
 The following defines the specification-defined capabilities:
 
@@ -2305,22 +2377,19 @@ The following defines the specification-defined capabilities:
   parameters are supported.
 - Examples:
   - `"flags": [ "filter", "inline" ]`    # Just these 2
-  - `"flags": [ "*" ]                    # All server-supported flags
+  - `"flags": [ "*" ]                    # All supported flags, for update only
 
 #### `mutable`
 - Name `mutable`
 - Type: Array of strings
 - Description: The list of items in the Registry that can be edited by the
-  client. `entities` refers to Groups, Resources, Versions and the Registry
-  itself. `modelsource` refers to the ability to modify the Registry model.
-  `capabilities` refers to the ability to modify (and configure) the
-  server. Presence in this list does not guarantee that a client can edit
+  client. Presence in this list does not guarantee that a client can edit
   all items of that type. For example, some Resources might still be read-only
   even if the client has the ability to edit Resources in general.
 - Supported values:
-  - `capabilities`
-  - `entities`
-  - `modelsource`
+  - `capabilities` (ability to configure the server's features)
+  - `entities` (Groups, Resources, Versions and the Registry entity itself)
+  - `modelsource` (the [Registry model](./model.md#registry-model))
 - When not specified, the default value MUST be an empty list and the Registry
   is read-only.
 
@@ -2551,7 +2620,7 @@ specified MUST override the default value defined above.
 
 ---
 
-### Groups APIs
+### Group APIs
 
 Groups represent entities that typically act as a collection mechanism for
 related Resources. However, it is worth noting that Groups do not have to have
@@ -2627,9 +2696,8 @@ and the following Group-level attributes:
 
 #### Retrieving a Group Collection
 
-To retrieve a Group collection, an HTTP `GET` MAY be used.
-
-The request MUST be of the form:
+A server MAY support retrieving a Group collection via an HTTP `GET`. The
+request MUST be of the form:
 
 ```yaml
 GET /<GROUPS>
@@ -2859,9 +2927,8 @@ Content-Type: application/json; charset=utf-8
 
 #### Retrieving a Group
 
-To retrieve a Group, an HTTP `GET` MAY be used.
-
-The request MUST be of the form:
+A server MAY support retrieving a Group via an HTTP `GET`. The request MUST be
+of the form:
 
 ```yaml
 GET /<GROUPS>/<GID>
@@ -2923,7 +2990,7 @@ Content-Type: application/json; charset=utf-8
 
 #### Deleting Groups
 
-To delete one or more Groups, an HTTP `DELETE` MAY be used:
+A server MAY support deleting one or more Groups via an HTTP `DELETE`:
 - `DELETE /<GROUPS>/<GID>[?epoch=<UINTEGER>]`
 - `DELETE /<GROUPS>`
 
@@ -2933,7 +3000,7 @@ section.
 
 ---
 
-### Resources APIs
+### Resource APIs
 
 Resources typically represent the main entity that the Registry is managing.
 Each Resource is associated with a Group to aid in their discovery and to show
@@ -2956,7 +3023,7 @@ The Resource entity serves three purposes:
     operations directed at the URL of the Resource will act upon that Version,
     not the Resource itself. See
     [Default Version of a Resource](#default-version-of-a-resource) and
-    [Versions](#versions-apis) for more details.<br>
+    [Versions](#version-apis) for more details.<br>
 3 - It has a set of attributes for Resource-level metadata - data that is not
     specific to one Version of the Resource but instead applies to the
     Resource in general. These attributes appear under a `meta`
@@ -2987,9 +3054,9 @@ When this is not the case, it will be explicitly called out.
 #### Resource Metadata vs Resource Document
 
 Unlike Groups, which consist entirely of xRegistry managed metadata, Resources
-typically have their own domain-specific data and document format that needs
+often have their own domain-specific data and document format that needs
 to be kept distinct from the xRegistry Resource metadata. As discussed
-previously, the model definition for Resources has a `hasdocument` attribute
+previously, the model definition for Resources has a `hasdocument` aspect
 indicating whether a Resource type defines its own separate document or not.
 
 This specification does not define any requirements for the contents of this
@@ -3148,7 +3215,13 @@ xRegistry-versionscount: <UINTEGER>
 ```
 
 Notice the `meta` and `versions` attributes are not included since they are
-not complex data types.
+complex data types.
+
+Note: HTTP header values can be empty strings but some client-side tooling
+might make it challenging to produce them. For example, `curl` requires
+the header to be specified as `-Hmyheader;` - notice the semicolon(`;`) is
+used instead of colon(`:`). So, this might be something to consider when
+choosing to use attributes, or labels, that can be empty strings.
 
 The Resource-level attributes include the following
 [common attributes](#common-attributes):
@@ -3875,9 +3948,8 @@ The following sections go into more detail about each API.
 
 #### Retrieving a Resource Collection
 
-To retrieve all Resources in a Resource Collection, an HTTP `GET` MAY be used.
-
-The request MUST be of the form:
+A server MAY support retrieving all Resources in a Resource Collection via an
+HTTP `GET`. The request MUST be of the form:
 
 ```yaml
 GET /<GROUPS>/<GID>/<RESOURCES>
@@ -4188,7 +4260,7 @@ Where:
   `<RESOURCE>url` attribute is present with a non-null value, the HTTP body
   MUST be empty. If the `<RESOURCE>url` attribute is absent, then the contents
   of the HTTP body (even if empty) are to be used as the entity's document.
-- If the Resource's `hasdocument` model attribute has a value of `false` then
+- If the Resource's `hasdocument` model aspect has a value of `false` then
   the following rules apply:
   - Only the first form (serialization as a JSON Object) MUST be used.
   - Use of the `$details` suffix on the request URL is OPTIONAL, and if used
@@ -4383,9 +4455,8 @@ entirety.
 
 #### Retrieving a Resource
 
-To retrieve a Resource, an HTTP `GET` MAY be used.
-
-The request MUST be of the form:
+A server MAY support retrieving a Resource via an HTTP `GET`. The request MUST
+be of the form:
 
 ```yaml
 GET /<GROUPS>/<GID>/<RESOURCES>/<RID>
@@ -4393,7 +4464,7 @@ GET /<GROUPS>/<GID>/<RESOURCES>/<RID>
 
 This MUST retrieve the default Version of a Resource. Note that `<RID>` will be
 the `<SINGULAR>id` of the Resource and not the `versionid` of the underlying
-Version (see [Resources API](#resources-apis)).
+Version (see [Resource APIs](#resource-apis)).
 
 A successful response MUST either be:
 - `200 OK` with the Resource document in the HTTP body.
@@ -4403,10 +4474,10 @@ A successful response MUST either be:
 
 In both cases the Resource's default Version attributes, along with the
 `meta` and `versions` related scalar attributes, MUST be serialized as HTTP
-`xRegistry-` headers when the Resource's `hasdocument` model attribute has a
+`xRegistry-` headers when the Resource's `hasdocument` model aspect has a
 value of `true`.
 
-Note that if the Resource's `hasdocument` model attribute has a value of
+Note that if the Resource's `hasdocument` model aspect has a value of
 `false` then the "Resource document" will be the xRegistry metadata for the
 default Version - same as in the [Retrieving a Resource as
 Metadata](#retrieving-a-resource-as-metadata) section but without the explicit
@@ -4459,12 +4530,12 @@ Where:
 
 #### Retrieving a Resource as Metadata
 
-When a Resource has the `hasdocument` model attribute set to `true`, to
+When a Resource has the `hasdocument` model aspect set to `true`, to
 retrieve a Resource's metadata (Resource attributes) as a JSON object, an
 HTTP `GET` with `$details` appended to its URL path MAY be used.
 
 When `$details` is present but the Resource does not have the `hasdocument`
-model attribute set to `true`, the server MUST process the request as if
+model aspect set to `true`, the server MUST process the request as if
 `$details` is not present. This allows for consistent access to the Resource
 metadata without the need to check each Resource type's model definition.
 
@@ -4576,8 +4647,8 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1
 
 #### Deleting Resources
 
-To delete one or more Resources, and all of their Versions, an HTTP `DELETE`
-MAY be used:
+A server MAY support deleting one or more Resources, and all of their Versions,
+via an HTTP `DELETE`:
 - `DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>[?epoch=<UINTEGER>]`
 - `DELETE /<GROUPS>/<GID>/<RESOURCES>`
 
@@ -4589,7 +4660,7 @@ Deleting a Resource MUST delete all Versions within the Resource.
 
 ---
 
-### Versions APIs
+### Version APIs
 
 Versions represent historical instances of a Resource. When a Resource is
 updated, there are two actions that might take place. First, the update can
@@ -4790,7 +4861,7 @@ as defined below:
     Registry.
   - If the document is stored in a network-accessible endpoint then the
     referenced URL MUST support an HTTP(s) `GET` to retrieve the contents.
-  - MUST NOT be present if the Resource's `hasdocument` model attribute is
+  - MUST NOT be present if the Resource's `hasdocument` model aspect is
     set to `false`.
 
 ##### `<RESOURCE>` Attribute
@@ -4808,7 +4879,7 @@ as defined below:
   - MUST only be used if the Resource document (bytes) is in the same
     format as the Registry Resource entity.
   - MUST NOT be present if `<RESOURCE>base64` is also present.
-  - MUST NOT be present if the Resource's `hasdocument` model attribute is
+  - MUST NOT be present if the Resource's `hasdocument` model aspect is
     set to `false.
 
 ##### `<RESOURCE>base64` Attribute
@@ -4826,7 +4897,7 @@ as defined below:
     then either `<RESOURCE>` or `<RESOURCE>base64` MUST be present.
   - MUST be a base64 encoded string of the Resource's document.
   - MUST NOT be present if `<RESOURCE>` is also present.
-  - MUST NOT be present if the Resource's `hasdocument` model attribute is
+  - MUST NOT be present if the Resource's `hasdocument` model aspect is
     set to `false.
 
 #### Version IDs
@@ -4925,8 +4996,7 @@ do so, MUST adhere to the following rules:
 
 #### Retrieving all Versions
 
-To retrieve all Versions of a Resource, an HTTP `GET` MAY be used.
-
+A server MAY support retrieving all Versions of a Resource via an HTTP `GET`.
 The request MUST be of the form:
 
 ```yaml
@@ -5006,9 +5076,8 @@ Versions](#creating-or-updating-resources-and-versions).
 
 #### Retrieving a Version
 
-To retrieve a particular Version of a Resource, an HTTP `GET` MAY be used.
-
-The request MUST be of the form:
+A server MAY support retrieving a particular Version of a Resource via an HTTP
+`GET`. The request MUST be of the form:
 
 ```yaml
 GET /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>
@@ -5108,10 +5177,9 @@ Content-Disposition: msg1
 
 #### Retrieving a Version as Metadata
 
-To retrieve a particular Version's metadata, an HTTP `GET` with `$details`
-appended to its `<RESOURCE>id` MAY be used. Note that in cases where the
-Resource's `hasdocument` is `false` then the `$details` suffix is OPTIONAL.
-
+A server MAY support retrieving a particular Version's metadata via an HTTP
+`GET` with `$details` appended to its `<RESOURCE>id`. Note that in cases where
+the Resource's `hasdocument` is `false` then the `$details` suffix is OPTIONAL.
 The request MUST be of the form:
 
 ```yaml
@@ -5182,7 +5250,8 @@ Content-Type: application/json; charset=utf-8
 
 #### Deleting Versions
 
-To delete one or more Versions of a Resource, an HTTP `DELETE` MAY be used:
+A server MAY support deleting one or more Versions of a Resource via an HTTP
+`DELETE`:
 - `DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/vid[?epoch=<UINTEGER>&setdefaultversionid=<VID>]`
 - `DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions[?setdefaultversionid=<VID>]`
 
