@@ -97,6 +97,7 @@ groupsurl
 gzip
 hasdoc
 hasdocument
+hmyheader
 hpub
 html
 http
@@ -302,6 +303,7 @@ windgenerator
 wip
 wss
 www
+x
 xhtml
 xid
 xids
@@ -317,6 +319,7 @@ xregistries
 xregistry
 xregistryspecs
 xregsample
+xregurlmapping
 xsd
 xy
 yaml

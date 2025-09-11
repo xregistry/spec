@@ -739,7 +739,7 @@ The following describes the attributes of the Registry model:
       `ancestor` value MUST be its `versionid` attribute value.
     - Invalid Ancestor: if a Version's `ancestor` value is no longer
       valid (i.e. the ancestor Version was deleted), then this Version
-      MUST become a root, and it's `ancestor` value MUST is its `versionid`
+      MUST become a root, and its `ancestor` value MUST is its `versionid`
       attribute value.
 
   - `createdat`
