@@ -427,7 +427,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   "capabilities": {                     # Supported capabilities/options
     "apis": [ "/capabilities", "/export", "/model" ],
     "flags": [                          # Query parameters
-      "binary", "collections",? "doc",? "epoch",? "filter",?
+      "binary",? "collections",? "doc",? "epoch",? "filter",?
       "ignoredefaultversionid",? "ignoredefaultversionsticky",? "ignoreepoch",?
       "ignorereadonly",?  "inline", ? "setdefaultversionid",?  "sort",?
       "specversion",?
