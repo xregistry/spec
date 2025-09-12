@@ -79,6 +79,7 @@ envelopeoptions
 erp
 etag
 eventing
+fabrikam
 files
 filesystem
 gid
@@ -113,6 +114,7 @@ ignorereadonly
 img
 impl
 inkjet
+inkjetprinter
 inlineable
 inlined
 inlines
@@ -213,6 +215,7 @@ resourceurl
 resultset
 rfc
 rid
+robovac
 rpc
 schemagroup
 schemagroupid
@@ -241,6 +244,7 @@ singularid
 smartoven
 someattribute
 someattributes
+sourceregistry
 sparkplugb
 specurl
 specversion
@@ -250,6 +254,7 @@ ssl
 stickyversions
 stringified
 svg
+targetregistry
 tcp
 telemetrydata
 telemetryevent

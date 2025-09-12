@@ -15,7 +15,7 @@ tabcheck:
 	@echo
 
 errorcheck:
-	tools/errorcheck core/spec.md core/model.md
+	tools/errorcheck core/spec.md core/model.md core/http.md
 	@echo
 
 samplescheck:

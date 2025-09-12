@@ -9,7 +9,8 @@ set -e
 for f in $* ; do
   echo "> $f"
 
-  sed "s/\([a-zA-Z0-9]\+\)/\n\1\n/gI" < $f | \
+  # assume "#..." are fragment pointers so ignore all words after the #
+  sed "s/\(#\?[a-zA-Z0-9]\+\)/\n\1\n/gI" < $f | \
     tr '[:upper:]' '[:lower:]' | \
     sort -iu | \
     grep "^[a-z]" | \
