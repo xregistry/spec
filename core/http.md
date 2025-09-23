@@ -55,6 +55,7 @@ model and semantics that apply to all protocols.
     - [`GET /<GROUPS>/<GID>/<RESOURCES>/<RID>/meta`](#get-groupsgidresourcesridmeta)
     - [`PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>/meta`](#patch-groupsgidresourcesridmeta)
     - [`PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/meta`](#put-groupsgidresourcesridmeta)
+    - [`DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/meta`](#delete-groupsgidresourcesridmeta)
   - [Version Entity](#version-entity)
     - [`GET /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`](#get-groupsgidresourcesridversions)
     - [`PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`](#patch-groupsgidresourcesridversions)
@@ -221,19 +222,9 @@ from a Registry, and then do an update operation to a Registry with that data.
 Depending on the use case, they might not want some of the retrieved data
 to be applied during the update - for example, they might not want the
 `epoch` validation checking to occur. Rather than forcing the user to edit
-the data to remove the potentially problematic attributes, the following
-query parameters MAY be included on write operations to control certain
-aspects of the processing:
-TODO MOVE THESE INTO THE OPTIONS SECTION - leave hrefs here
-- `?ignoreepoch` - presence of this query parameter indicates that any `epoch`
-  attribute included in the request MUST be ignored.
-- `?ignoredefaultversionid` - presence of this query parameter indicates that
-  any `defaultversionid` attribute included in the request MUST be ignored.
-- `?ignoredefaultversionsticky` - presence of this query parameter indicates
-  that any `defaultversionsticky` attribute included in the request MUST be
-  ignored.
-- `?ignorereadonly` - presence of this query parameter indicates that any
-  attempt to update a read-only Resource MUST be silently ignored.
+the data to remove the potentially problematic attributes, a client MAY use
+one of the `ignore*` [flags](#flags--query-parameters) to ignore some of
+the data in the incoming request.
 
 ### JSON `$schema` keyword
 
@@ -281,13 +272,14 @@ This defines the general rules for how to update entities.
 
 Creating or updating entities MAY be done using HTTP `PUT`, `PATCH` or `POST`
 methods:
-- `PUT    <PATH-TO-ENTITY>[?<OPTIONS>`]          # Process a single entity
-- `PATCH  <PATH-TO-ENTITY>[?<OPTIONS>`]          # Process a single entity
-- `POST   <PATH-TO-ENTITY>[?<OPTIONS>`]          # Process a set of entities
-- `PATCH  <PATH-TO-COLLECTION>[?<OPTIONS>`]      # Process a set of entities
-- `POST   <PATH-TO-COLLECTION>[?<OPTIONS>`]      # Process a set of entities
+- `PUT    <PATH-TO-ENTITY>                     # Process a single entity
+- `PATCH  <PATH-TO-ENTITY>                     # Process a single entity
+- `POST   <PATH-TO-ENTITY>                     # Process a set of entities
+- `PATCH  <PATH-TO-COLLECTION>                 # Process a set of entities
+- `POST   <PATH-TO-COLLECTION>                 # Process a set of entities
 
-Based on the entity being processed, the `<OPTIONS>` available will vary.
+See the [`Flags`](#flags--query-parameters) section for the list of
+flags/query parameters that MAY be used for each API.
 
 The `PUT` variant MUST adhere to the following:
   - The URL MUST be of the form: `<PATH-TO-ENTITY>`.
@@ -427,51 +419,65 @@ Otherwise an HTTP `200 OK` without an HTTP `Location` header MUST be returned.
 Note that the response MUST be generated applying the semantics of any
 query parameters specified on the request URL (e.g. `?inline`).
 
-#### HTTP Specific Attribute Serialization And Processing Rules
+#### HTTP-Specific Attribute Processing Rules
 
 ##### `self` Attribute
 
-TODO `self` attribute MUST have `$details` appended to it when
-`hasdocument` is `true`.
-  - When serializing Resources or Versions, if the `hasdocument` aspect is set
-    to `true`, then this URL MUST include the `$details` suffix to its
-    `<SINGULAR>id` if it is serialized in the HTTP body response. If the aspect
-    is set to `false`, then this URL's `<SINGULAR>id` MUST NOT include it,
-even if the URL used in a request message did include it.
+In addition to the core specification's definition of
+[`self`](./spec.md#self-attribute), the following HTTP-specific rules apply:
+
+- When serializing Resources and Versions, if the Resource's
+  [`hasdocument`](./model.md#groupsstringresourcesstringhasdocument) aspect
+  is set to `true`, then this URL MUST include the `$details` suffix appended
+  to its `<SINGULAR>id` if it serialized in the the HTTP body response. If
+  the aspect is set to `false` then it MUST NOT include it. This rule applies
+  even if the URL used in a request message did include the suffix.
 
 ##### `labels` Attribute
 
-TODO serializing labels as http headers
-    - `"labels": { "owner": "John", "verified": "" }` when in the HTTP body
-    - `xRegistry-labels-owner: John` <br>
-        `xRegistry-labels-verified:`  when in HTTP headers
-    Note: HTTP header values can be empty strings but some client-side tooling
-    might make it challenging to produce them. For example, `curl` requires
-    the header to be specified as `-HxRegistry-labels-verified;` - notice the
-    semicolon(`;`) is used instead of colon(`:`). So, this might be something
-    to consider when choosing to use labels that can be empty strings.
+In addition to the core specification's definition of
+[`labels`](./spec.md#labels-attribute), the following HTTP-specific rules
+apply:
+
+- When `labels` is serialized as an HTTP header, see
+  [Serializing Resource Documents](#serializing-resource-documents), then
+  each map entry MUST appear as a separate HTTP header using a name of
+  `xRegistry-labels-<KEYNAME>`.
 
 ##### `contenttype` Attribute
-TODO
-- Serialized as Content-Type - see table in other part of spec
-  - On an update request when the xRegistry metadata appears in HTTP headers,
-    unlike other attributes that will remain unchanged when not specified,
-    this attribute MUST be erased if the incoming request does not include
-    the `Content-Type` HTTP header.
+
+In addition to the core specification's definition of
+[`contenttype`](./spec.md#contenttype-attribute), the following HTTP-specific
+rules apply:
+
+- When this attribute is serialized as an HTTP header, it MUST use the name
+  `Content-Type` and not `xRegistry-content-type`.
+- On an update request when the xRegistry metadata appears in HTTP headers,
+  unlike other attributes that will remain unchanged when not specified,
+  this attribute MUST be erased if the incoming request does not include
+  the `Content-Type` HTTP header.
 
 ##### `<RESOURCE>` Attribute
 
-TODO
+In addition to the core specification's definition of
+[`<RESOURCE>`](./spec.md#resource-attribute), the following HTTP-specific
+rules apply:
+
+- When a Resource or Version's attributees are serialized as HTTP headers,
+  this attribute MUST NOT be serialized as an HTTP header.
+
+##### `<RESOURCE>base64` Attribute
+
 - This attribute MUST NOT be present when the Resource/Version xRegistry
   metadata is serialized as HTTP headers.
+In addition to the core specification's definition of
+[`<RESOURCE>base64`](./spec.md#resourcebase64-attribute), the following
+HTTP-specific rules apply:
 
-##### `<RESOURCEbase64>` Attribute
+- When a Resource or Version's attributees are serialized as HTTP headers,
+  this attribute MUST NOT be serialized as an HTTP header.
 
-TODO
-- This attribute MUST NOT be present when the Resource/Version xRegistry
-  metadata is serialized as HTTP headers.
-
-##### xRegistry Collections
+#### Pagination
 
 Since xRegistry collections (i.e. the `<COLLECTION>` attribute) could be too
 large to retrieve in a single request, when retrieving a collection, the
@@ -483,161 +489,9 @@ pagination specification MUST only be used when the request is directed at a
 collection, not at its owning entity (such as the root of the Registry, or at
 an individual Group or Resource).
 
-In the remainder of the specification, the presence of the `Link` HTTP header
+In the remainder of this specification, the presence of the `Link` HTTP header
 indicates the use of the [pagination specification](../pagination/spec.md)
 MAY be used for that API.
-
-TODO KEEP VVV sections or just have the GET /<GROUPS> API type of sections?
-
-###### Retrieving a Registry Collection
-
-To retrieve a Registry collection, an HTTP `GET` MAY be used. The request
-MUST be of the form:
-
-```yaml
-GET <PATH-TO-COLLECTION>
-```
-
-A successful response MUST be of the form:
-
-```yaml
-HTTP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
-Link: <URL>;rel=next;count=<UINTEGER> ?
-
-{
-  "<KEY>": {                                         # <SINGULAR>id value
-    "<SINGULAR>id": "<STRING>",
-    ... remaining entity attributes ...
-  } *
-}
-```
-
-#### Retrieving an Entity from a Registry Collection
-
-To retrieve an entity, an HTTP `GET` MAY be used. The request MUST be of the
-form:
-
-```yaml
-GET <PATH-TO-COLLECTION>/<ID-OF-ENTITY>
-```
-
-A successful response MUST be of the form:
-
-```yaml
-HTTP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
-
-{
-  "<SINGULAR>id": "<STRING>",
-  ... remaining entity attributes ...
-}
-```
-
-#### Deleting Entities in a Registry Collection
-
-TODO Perhaps delete the previous sections and keep this one by moving it
-closer to the "creating or updating..." section?
-
-There are two ways to delete entities from a Registry collection:
-
-1. to delete a single entity, an HTTP `DELETE` MAY be used. The request MUST
-be of the form:
-
-```yaml
-DELETE <PATH-TO-COLLECTION>/<ID-OF-ENTITY>[?epoch=<UINTEGER>]
-```
-
-Where:
-- The request body SHOULD be empty.
-- If the entity cannot be found, then an error
-  ([not_found](./spec.md#not_found)) MUST be generated.
-- In the case of deleting Resources, a `DELETE` directed to the `meta`
-  sub-object is not supported and MUST generate an error
-  ([method_not_allowed](./spec.md#method_not_allowed)).
-
-The following query parameter SHOULD be supported by servers:
-- `epoch`<br>
-  The presence of this query parameter indicates that the server MUST check
-  to ensure that the `epoch` value matches the entity's current `epoch` value
-  and if it differs then an error
-  ([mismatched_epoch](./spec.md#mismatched_epoch)) MUST be generated.
-
-2. to delete multiple entities within a Registry collection, the request MUST
-be in one of two forms:
-
-For non-Resource entities:
-```yaml
-DELETE <PATH-TO-COLLECTION>
-
-{
-  "<KEY>": {                                          # <SINGULAR>id of entity
-    "epoch": <UINTEGER> ?
-  } *
-} ?
-```
-
-or
-
-For Resource entities (see below for more details):
-```yaml
-DELETE <PATH-TO-COLLECTION>
-
-{
-  "<KEY>": {                                          # <SINGULAR>id of entity
-    "meta": {
-      "epoch": <UINTEGER> ?
-    } ?
-  } *
-} ?
-```
-
-Where:
-- If the request body is empty (no map), then all entities in the collection
-  MUST be deleted.
-- If the request body is not empty, then it MUST be a map containing zero or
-  more entries where the key of each entry is the `<SINGULAR>id` of the entity.
-- When an `epoch` value is specified for an entity then the server MUST check
-  to ensure that the value matches the entity's current `epoch` value and if it
-  differs then an error ([mismatched_epoch](./spec.md#mismatched_epoch)) MUST
-  be generated.
-- When deleting Resources, since the `epoch` attribute is located under the
-  `meta` sub-object (and not as a top-level entity attribute), if included
-  in the `DELETE` request, it MUST appear under a `meta` sub-object.
-  Additionally, `DELETE` requests of Resources that only have `epoch` as a
-  top-level attribute, but not as a `meta` attribute, MUST generate an error
-  ([misplaced_epoch](./spec.md#misplaced_epoch)) as it is likely that the
-  client is using the Resource's default Version `epoch` value by mistake. A
-  top-level `epoch` in the presence of a `meta` `epoch` MUST be silently
-  ignored.
-TODO is misplace an http error?
-- If the entity's `<SINGULAR>id` is present in the object, then it MUST
-  match its corresponding `<KEY>` value.
-- Any other entity attributes that are present in the request MUST be silently
-  ignored, even if their values are invalid.
-- If one of the referenced entities cannot be found, then the server MUST
-  silently ignore this condition and not treat it as an error.
-
-Whether the request is to delete a single entity or multiple, deleting an
-entity MUST delete all children entities as well - meaning, any entities
-within any nested Registry collections.
-
-Any error MUST result in the entire request being rejected.
-
-A successful response MUST return either:
-
-```yaml
-HTTP/1.1 204 No Content
-```
-
-with an empty HTTP body, or:
-
-```yaml
-HTTP/1.1 200 OK
-```
-
-and the server MAY choose to return additional data in the HTTP body as an
-extension.
 
 ### Registry Entity
 
@@ -726,6 +580,7 @@ The request MUST be of the form:
 
 ```yaml
 PUT /
+Content-Type: application/json; charset=utf-8
 or
 PATCH /
 Content-Type: application/json; charset=utf-8
@@ -774,6 +629,10 @@ on the Registry would return, and be of the form:
 
 ```yaml
 HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+or
+HTTP/1.1 201 Created
+Location: <URL>
 Content-Type: application/json; charset=utf-8
 
 {
@@ -925,11 +784,26 @@ specified MUST override the default value defined above.
 A server SHOULD support this API to enable the discovery of the set of
 [capabilities](./spec.md#registry-capabilities)(features) it supports.
 
-A successful response MUST contain the serialization of the complete set of
-capabilities in the HTTP body.
-
 See [Registry Capabilities](./spec.md#registry-capabilities) for more
 information.
+
+The request MUST be of the form:
+
+```yaml
+GET /capabilities
+Content-Type: application/json; charset=utf-8
+
+{ ... capabilities map ...  }
+```
+
+A successful response MUST be of the form:
+
+```yaml
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{ ... capabilities map ... }
+```
 
 **Examples:**
 
@@ -963,9 +837,6 @@ Content-Type: application/json; charset=utf-8
 If a server supports clients updating its capabilities then it SHOULD support
 this API to enable the discovery of the set of valid
 [capabilities](./spec.md#registry-capabilities)(features) and values.
-
-A successful response MUST contain the serialization of the complete set of
-supported capabilities, and their definitions, in the HTTP body.
 
 See [Offered Capabilities](./spec.md#offered-capabilities) for more information.
 
@@ -1048,11 +919,12 @@ The request MUST be of the form:
 
 ```yaml
 PATCH /capabilities
+Content-Type: application/json; charset=utf-8
 or
 PUT /capabilities
 Content-Type: application/json; charset=utf-8
 
-{ ... Capabilities map ...  }
+{ ... capabilities map ...  }
 ```
 
 Where:
@@ -1072,7 +944,7 @@ capabilities of the Registry and be of the form:
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
-{ ... Capabilities map ... }
+{ ... capabilities map ... }
 ```
 
 Note: per the [Updating the Capabilities of a
@@ -1083,21 +955,95 @@ is completed, even though the response MUST show the requested changes.
 **Examples:**
 
 ```yaml
-TODO
+PATCH /capabilities
+
+{
+  "shortself": true
+}
+```
+
+```yaml
+{
+  "apis": [
+    "/capabilities", "/export", "/model", "/modelsource"
+  ],
+  "flags": [
+    "binary", "collections", "doc", "epoch", "filter", "ignoredefaultversionid",
+    "ignoredefaultversionsticky", "ignoreepoch", "ignorereadonly", "inline",
+    "setdefaultversionid", "sort", "specversion"
+  ],
+  "mutable": [ "capabilities", "entities", "model" ],
+  "pagination": false,
+  "shortself": true,
+  "specversions": [ "1.0-rc2" ],
+  "stickyversions": true
+}
 ```
 
 ### Registry Model
 
 #### `GET /model`
 
+A server MAY support clients retrieving its full
+[model definition](./model.md#registry-model) via an HTTP `GET` directed to
+the `model` stand-alone entity.
+
+See [Registry Model](./model.md#registry-model) for more information.
+
+The request MUST be of the form:
+
+```yaml
+GET /model
+```
+
+A successful response MUST be of the form:
+
+```yaml
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{ ... model definition ... }
+```
+
 #### `GET /modelsource`
+
+A server MAY support clients retrieving its client-provided
+[model definition](./model.md#registry-model) via an HTTP `GET` directed to
+the `model` stand-alone entity.
+
+See [Registry Model](./model.md#registry-model) for more information.
+
+The request MUST be of the form:
+
+```yaml
+GET /modelsource
+```
+
+A successful response MUST be of the form:
+
+```yaml
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{ ... model definition ... }
+```
 
 #### `PUT /modelsource`
 
-A server MAY support clients updating its model definition via an HTTP `PUT`
-directed to the modelsource stand-alone entity.
+A server MAY support clients updating its
+[model definition](./model.md#registry-model) via an HTTP `PUT` directed to
+the `modelsource` stand-alone entity.
 
-TODO
+See [Registry Model](./model.md#registry-model) for more information.
+
+The request MUST be of the form:
+
+```yaml
+PUT /modelsource
+Content-Type: application/json; charset=utf-8
+
+{ ... model definition ... }
+```
 
 ### Group Entity
 
@@ -1119,6 +1065,12 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 Link: <URL>;rel=next;count=<UINTEGER> ?
 
+{
+   "<KEY>": {                                      # <KEY> = <GROUP>id
+     ... Group entity ...
+  } *
+}
+OR  TODO
 {
   "<KEY>": {                                     # <GROUP>id
     "<GROUP>id": "<STRING>",
@@ -1191,11 +1143,40 @@ and that there are a total of 100 items in this collection.
 #### `PATCH /<GROUPS>`
 #### `POST /<GROUPS>`
 
-A server MAY support clients updating multiple Groups in a Group collection
-via an HTTP `PATCH` or `POST` directed to the owning Group entity.
+A server MAY support clients creating/updating multiple Groups in a Group
+collection via an HTTP `PATCH` or `POST` directed to the owning Group entity.
 
 The processing of these APIs is defined in the [Creating or Updating
 Entities](#creating-or-updating-entities) section.
+
+The request MUST be of the form:
+
+```yaml
+PATCH /<GROUPS>
+Content-Type: application/json; charset:utf-8
+or
+POST /<GROUPS>
+Content-Type: application/json; charset:utf-8
+
+{
+   "<KEY>": {                                      # <KEY> = <GROUP>id
+     ... Group entity ...
+  } *
+}
+```
+
+A successful response MUST be of the form:
+
+```yaml
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{
+   "<KEY>": {                                      # <KEY> = <GROUP>id
+     ... Group entity ...
+  } *
+}
+```
 
 **Examples:**
 
@@ -1236,9 +1217,29 @@ Content-Type: application/json; charset=utf-8
 A server MAY support clients deleting one or more Groups from a Group
 collection via an HTTP `DELETE` directed to the Group collection.
 
-The processing of this API is defined in the [Deleting Entities in a
-Registry Collection](#deleting-entities-in-a-registry-collection)
-section.
+The processing of this API is defined in the
+[Deleting Entities](./spec.md#deleting-entities) section of the
+[core specification](./spec.md).
+
+The request MUST be of the form:
+
+```yaml
+DELETE /<GROUPS>
+
+{
+   "<KEY>": {                            # <KEY> = <GROUP>id
+     "epoch": <UINTEGER> ?
+   } *
+} ?
+```
+
+A successful response MUST be of the form:
+
+```yaml
+HTTP/1.1 200 OK
+or
+HTTP/1.1 204 No Content
+```
 
 **Examples:**
 
@@ -1336,6 +1337,27 @@ via an HTTP `PATCH` or `POST` directed to the Group.
 The processing of these APIs is defined in the [Creating or Updating
 Entities](#creating-or-updating-entities) section.
 
+The request MUST be of the form:
+
+```yaml
+PATCH /<GROUPS>/<GID>
+Content-Type: application/json; charset=utf-8
+or
+PUT /<GROUPS>/GID>
+Content-Type: application/json; charset=utf-8
+
+{ ... Group entity ... }
+```
+
+The response MUST be of the form:
+
+```yaml
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{ ... Group entity ... }
+```
+
 **Examples:**
 
 Targeted request to create a specific Group by `<GROUP>id`:
@@ -1370,6 +1392,32 @@ Group.
 The processing of this API is defined in the [Creating or Updating
 Entities](#creating-or-updating-entities) section - see the discussion of the
 `POST <PATH-TO-ENTITY>` variant.
+
+The request MUST be of the form:
+
+```yaml
+POST /<GROUPS>/<GID>
+Content-Type: application/json; charset=utf-8
+
+{
+  "<RESOURCES>": {
+    "<KEY>": { ... Resource entity ... } *
+  } *
+}
+```
+
+The response MUST be of the form:
+
+```yaml
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{
+  "<RESOURCES>": {
+    "<KEY>": { ... Resource entity ... } *
+  } *
+}
+```
 
 **Examples:**
 
@@ -1410,9 +1458,23 @@ Content-Type: application/json; charset=utf-8
 A server MAY support clients deleting a Group via an HTTP `DELETE` directed to
 the Group entity.
 
-The processing of this API is defined in the [Deleting Entities in a
-Registry Collection](#deleting-entities-in-a-registry-collection)
-section.
+The processing of this API is defined in the
+[Deleting Entities](./spec.md#deleting-entities) section of the
+[core specification](./spec.md).
+
+The request MUST be of the form:
+
+```yaml
+DELETE /<GROUPS>/<GID>
+```
+
+A successful response MUST be of the form:
+
+```yaml
+HTTP/1.1 200 OK
+or
+HTTP/1.1 204 No Content
+```
 
 **Examples:**
 
@@ -1495,16 +1557,6 @@ is not to allow for servers to decide whether or not to do so, rather it is to
 allow for [No-Code Servers](#no-code-servers) servers than might not be
 able to control the HTTP response headers.
 
-Certain attributes do not follow this rule if a standard HTTP header name
-is defined for that semantic purpose. The following Resource attributes
-MUST use the specified HTTP header name:
-
-| Resource Attribute | HTTP Header Name |
-| ------------------ | ---------------- |
-| `contenttype`      | `Content-Type`   |
-
-TODO remove ^^ and just have http specific text for the attr?
-
 Top-level map attributes whose values are of scalar types MUST also appear as
 HTTP headers (each key having its own HTTP header) and in those cases the
 HTTP header names will be of the form: `xRegistry-<ATTRIBUTENAME>-<KEYNAME>`.
@@ -1512,6 +1564,11 @@ Note that map keys MAY contain the `-` character, so any `-` after the 2nd `-`
 is part of the key name. See
 [HTTP Header Values](#http-header-values) for additional information and
 [`labels`](#labels-attribute) for an example of one such attribute.
+
+Certain attributes do not follow this rule if a standard HTTP header name
+is defined for that semantic purpose. See the
+[HTTP-Specific Attribute Processing Rules](#http-specific-attribute-processing-rules)
+section for more information.
 
 Complex top-level attributes (e.g. arrays, objects, non-scalar maps) MUST NOT
 appear as HTTP headers.
@@ -1709,6 +1766,32 @@ The processing of this API is defined in the [Creating or Updating
 Entities](#creating-or-updating-entities) section - see the discussion of the
 `POST/PATCH <PATH-TO-COLLECTION>` variants.
 
+The request MUST be of the form:
+
+```yaml
+PATCH /<GROUPS>/<GID>/<RESOURCES>
+Content-Type: application/json; charset:utf-8
+or
+POST /<GROUPS>/<GID>/<RESOURCES>
+Content-Type: application/json; charset:utf-8
+
+{
+   "<KEY>": {                                      # <KEY> = <RESOURCE>id
+     ... Resource entity ...
+  } *
+}
+```
+
+A successful response MUST be of the form:
+
+```yaml
+200 OK
+{
+   "<KEY>": {                                      # <KEY> = <RESOURCE>id
+     ... RESOURCE entity ...
+  } *
+}
+```
 **Examples:**
 
 TODO
@@ -1719,9 +1802,29 @@ A server MAY support clients deleting one or more Resource within a specified
 Group via an HTTP `DELETE` directed to the owning Group's xRegistry Resource
 collection.
 
-The processing of this API is defined in the [Deleting Entities in a
-Registry Collection](#deleting-entities-in-a-registry-collection)
-section.
+The processing of this API is defined in the
+[Deleting Entities](./spec.md#deleting-entities) section of the
+[core specification](./spec.md).
+
+The request MUST be of the form:
+
+```yaml
+DELETE /<GROUPS>/<GID>/<RESOURCES>
+
+{
+   "<KEY>": {                            # <KEY> = <RESOURCE>id
+     "epoch": <UINTEGER> ?
+   } *
+} ?
+```
+
+A successful response MUST be of the form:
+
+```yaml
+HTTP/1.1 200 OK
+or
+HTTP/1.1 204 No Content
+```
 
 **Examples:**
 
@@ -1845,7 +1948,9 @@ In both cases the Resource's default Version attributes, along with the
 A successful response MUST be of the form:
 
 ```yaml
-HTTP/1.1 200 OK | 303 See Other
+HTTP/1.1 200 OK
+or
+HTTP/1.1 303 See Other
 Content-Type: <STRING> ?
 xRegistry-<RESOURCE>id: <STRING>
 xRegistry-versionid: <STRING>
@@ -1927,21 +2032,95 @@ A server MAY support clients creating, or updating, a Resource via an HTTP
 The processing of these APIs is defined in the [Creating or Updating
 Entities](#creating-or-updating-entities) section.
 
-The request MUST be of the form:
-
-```yaml
-PATCH | PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>[$details]
-TODO
-```
-
-Where the `$details` suffix controls whether the request is directed to the
+The `$details` suffix controls whether the request is directed to the
 Resource metadata or to the Resource domain-specific document. See
 [Resource Metadata vs Resource Document](#resource-metadata-vs-resource-document)
 for more information.
 
-When `$details` is used, or the Resource is not configured to have a
-domain-specific document, then a successful response MUST be:
-TODO
+When directed to the Resource metadata, the request MUST be of the form:
+
+```yaml
+PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>[$details]
+Content-Type: application/json; charset=utf-8
+or
+PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>[$details]
+Content-Type: application/json; charset=utf-8
+
+{ ... Resource entity ... }
+```
+
+The response MUST be of the form:
+
+```yaml
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+or
+HTTP/1.1 201 Created
+Location: <URL>
+Content-Type: application/json; charset=utf-8
+
+{ ... Resource entity ... }
+```
+
+When directed to the Resource's domain-specific document, the request MUST be
+of the form:
+
+```yaml
+PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>
+Content-Type: application/json; charset=utf-8
+
+Content-Type: <STRING> ?
+xRegistry-<RESOURCE>id: <STRING> ?
+xRegistry-versionid: <STRING> ?         # Version-level attributes
+xRegistry-epoch: <UINTEGER> ?
+xRegistry-name: <STRING> ?
+xRegistry-description: <STRING> ?
+xRegistry-documentation: <URL> ?
+xRegistry-icon: <URL> ?
+xRegistry-labels-<KEY>: <STRING> *
+xRegistry-createdat: <TIMESTAMP> ?
+xRegistry-modifiedat: <TIMESTAMP> ?
+xRegistry-ancestor: <STRING> ?
+xRegistry-<RESOURCE>url: <URL> ?
+DUG
+
+... domain-specific document ... ?
+```
+
+Note that `PATCH` for domain-specific documents are not supported.
+
+DUG
+A successful response MUST be of the form:
+
+```yaml
+HTTP/1.1 200 OK
+or
+HTTP/1.1 303 See Other
+Content-Type: <STRING> ?
+xRegistry-<RESOURCE>id: <STRING>
+xRegistry-versionid: <STRING>
+xRegistry-self: <URL>
+xRegistry-xid: <XID>
+xRegistry-epoch: <UINTEGER>
+xRegistry-name: <STRING> ?
+xRegistry-isdefault: true
+xRegistry-description: <STRING> ?
+xRegistry-documentation: <URL> ?
+xRegistry-icon: <URL> ?
+xRegistry-labels-<KEY>: <STRING> *
+xRegistry-createdat: <TIMESTAMP>
+xRegistry-modifiedat: <TIMESTAMP>
+xRegistry-ancestor: <STRING>
+xRegistry-<RESOURCE>url: <URL> ?       # If Resource is not in body
+xRegistry-metaurl: <URL>
+xRegistry-versionsurl: <URL>
+xRegistry-versionscount: <UINTEGER>
+Location: <URL> ?                      # If Resource is not in body
+Content-Location: <URL> ?
+Content-Disposition: <STRING> ?
+
+... Resource document ...              # If <RESOURCE>url is not set
+```
 
 **Examples:**
 
@@ -2059,9 +2238,23 @@ TODO
 A server MAY support clients deleting a Resource via an HTTP `DELETE` directed
 to the Resource entity.
 
-The processing of this API is defined in the [Deleting Entities in a
-Registry Collection](#deleting-entities-in-a-registry-collection)
-section.
+The processing of this API is defined in the
+[Deleting Entities](./spec.md#deleting-entities) section of the
+[core specification](./spec.md).
+
+The request MUST be of the form:
+
+```yaml
+DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>
+```
+
+A successful response MUST be of the form:
+
+```yaml
+HTTP/1.1 200 OK
+or
+HTTP/1.1 204 No Content
+```
 
 **Examples:**
 
@@ -2140,6 +2333,11 @@ Entities](#creating-or-updating-entities) section.
 **Examples:**
 
 TODO
+
+#### `DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/meta`
+
+A `DELETE` directed to the `meta` entity is not supported and MUST generate an
+error ([method_not_allowed](./spec.md#method_not_allowed)).
 
 ### Version Entity
 
@@ -2293,9 +2491,29 @@ A server MAY support clients deleting one or more Versions within a specified
 Resource via an HTTP `DELETE` directed to the owning Resource's xRegistry
 [`versions` collection](./spec.md#versions-collection).
 
-The processing of this API is defined in the [Deleting Entities in a
-Registry Collection](#deleting-entities-in-a-registry-collection)
-section.
+The processing of this API is defined in the
+[Deleting Entities](./spec.md#deleting-entities) section of the
+[core specification](./spec.md).
+
+The request MUST be of the form:
+
+```yaml
+DELETE /<GROUPS>/<GID>/<RESOURCES>/versions
+
+{
+   "<KEY>": {                            # <KEY> = versionid
+     "epoch": <UINTEGER> ?
+   } *
+} ?
+```
+
+A successful response MUST be of the form:
+
+```yaml
+HTTP/1.1 200 OK
+or
+HTTP/1.1 204 No Content
+```
 
 **Examples:**
 
@@ -2502,7 +2720,8 @@ Entities](#creating-or-updating-entities) section.
 The request MUST be of the form:
 
 ```yaml
-PATCH | PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>[$details]
+PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>[$details]
+PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>[$details]
 TODO
 ```
 
@@ -2524,9 +2743,23 @@ TODO - PATCH + doc is not supported
 A server MAY support clients deleting a Version of a Resource via an
  HTTP `DELETE` directed to the Version entity.
 
-The processing of this API is defined in the [Deleting Entities in a
-Registry Collection](#deleting-entities-in-a-registry-collection)
-section.
+The processing of this API is defined in the
+[Deleting Entities](./spec.md#deleting-entities) section of the
+[core specification](./spec.md).
+
+The request MUST be of the form:
+
+```yaml
+DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>
+```
+
+A successful response MUST be of the form:
+
+```yaml
+HTTP/1.1 200 OK
+or
+HTTP/1.1 204 No Content
+```
 
 **Examples:**
 

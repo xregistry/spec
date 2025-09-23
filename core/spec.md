@@ -32,22 +32,22 @@ or automation and tooling usage.
     - [Creating or Updating Resources and
        Versions](#creating-or-updating-resources-and-versions)
   - [Version Entity](#version-entity)
-  - [Flags](#flags)
-    - [Binary Flag](#binary-flag)
-    - [Collections Flag](#collections-flag)
-    - [Doc Flag](#doc-flag)
-    - [Epoch Flag](#epoch-flag)
-    - [Filter Flag](#filter-flag)
-    - [IgnoreDefaultVersionID Flag](#ignoredefaultversionid-flag)
-    - [IgnoreDefaultVersionSticky Flag](#ignoredefaultversionsticky-flag)
-    - [IgnoreEpoch Flag](#ignoreepoch-flag)
-    - [IgnoreReadOnly Flag](#ignorereadonly-flag)
-    - [Inline Flag](#inline-flag)
-    - [SetDefaultVersionID Flag](#setdefaultversionid-flag)
-    - [Sort Flag](#sort-flag)
-    - [SpecVersion Flag](#specversion-flag)
-  - [Error Processing](#error-processing)
-  - [Events](#events)
+- [Flags](#flags)
+  - [Binary Flag](#binary-flag)
+  - [Collections Flag](#collections-flag)
+  - [Doc Flag](#doc-flag)
+  - [Epoch Flag](#epoch-flag)
+  - [Filter Flag](#filter-flag)
+  - [IgnoreDefaultVersionID Flag](#ignoredefaultversionid-flag)
+  - [IgnoreDefaultVersionSticky Flag](#ignoredefaultversionsticky-flag)
+  - [IgnoreEpoch Flag](#ignoreepoch-flag)
+  - [IgnoreReadOnly Flag](#ignorereadonly-flag)
+  - [Inline Flag](#inline-flag)
+  - [SetDefaultVersionID Flag](#setdefaultversionid-flag)
+  - [Sort Flag](#sort-flag)
+  - [SpecVersion Flag](#specversion-flag)
+- [Error Processing](#error-processing)
+- [Events](#events)
 
 ## Overview
 
@@ -97,7 +97,7 @@ metadata. See the [Endpoint](../endpoint/spec.md) and
 Additionally, this specification defines the core model and semantics of
 xRegistry, while secondary specifications (such as
 [xRegistry HTTP Binding](./http.md)) will discuss how to expose them in a
-protocol specific way.
+protocol-specific way.
 
 ## Notations and Terminology
 
@@ -269,7 +269,9 @@ as an example).
 
 A Resource entity in the Registry holds one or more Versions of metadata, and
 optionally a domain-specific document. If a Resource holds multiple Versions,
-those can be organized with compatibility policies and lineage. Each Resource
+those can be organized with
+[compatibility policies](#compatibility-attribute) and[
+lineage](#ancestor-attribute). Each Resource
 always has a default Version corresponding to one of the available Versions
 that is indirectly accessed when interacting with the Resource. All held
 Versions can be accessed directly through the Versions collection.
@@ -302,12 +304,12 @@ can choose from:
 
 - Single Document View
 
-  In this view, clients are retrieving all (or part) of the Registry hierarchy
+  In this view, clients retrieving all (or part) of the Registry hierarchy
   as a single document. In this case, nested (or child) entities MAY be
   "inlined" into the retrieved document such that the need for secondary
   interactions with the server is reduced.
 
-  This is often used for cases where the documents are to be stored in some
+  This is often used for cases where the documents are stored in some
   document storage system (e.g. Github), or as input into local tooling that
   expects all of the relevant data to be stored locally on disk.
 
@@ -329,10 +331,10 @@ can choose from:
 
 - Multiple Document View
 
-  This is a variant of the "API view". In situations where the data within the
-  Registry is to be stored as independent files either on disk, or in some
-  other object storage system, the client might want to avoid the duplication
-  of information that, by default, a server might generate. For example, they
+  This is a variant of the "API view". In situations where the Registry data
+  is stored as independent files either on disk, or in some other object
+  storage system, the client might want to avoid the duplication of
+  information that, by default, a server might generate. For example, they
   might not want the default Version's metadata to be visible in the owning
   Resource's serialization.
 
@@ -379,7 +381,7 @@ server implementation without regard to what protocol might be used to
 interact with it.
 
 In general, all interactions with a server SHOULD be OPTIONAL and dictated by
-the specific needs of the environment which it is being used. However, it is
+the specific needs of the environment in which it is being used. However, it is
 STRONGLY RECOMMENDED that servers support the "read" operations, and in
 particular the ability to retrieve the "capabilities" and "model" such that
 tooling can then dynamically discover the remaining data within the Registry.
@@ -788,7 +790,7 @@ be one of the following data types:
   place of `url` so that the Registry can do "type checking" to ensure the
   value references the correct type of Registry entity. See the definition of
   the [`target` model attribute](./model.md#attributesstringtarget) for more
-  information.  Its value MUST start with a `/`.
+  information. Its value MUST start with a `/`.
 - `xidtype` - MUST be a URL reference to an
    [xRegistry model](./model.md#registry-model) type. The reference MUST point
    to one of: the Registry itself (`/`), a Group type (`/<GROUPS>`), a
@@ -1037,7 +1039,7 @@ of the existing entity. Then the existing entity would be deleted.
   - MUST NOT appear in responses if the `shortself` capability is disabled.
   - MUST be unique across all entities in the Registry.
   - MUST be a non-empty absolute URL referencing the same entity as the `self`
-    URL, either directly or indirectly via a protocol specific redirect.
+    URL, either directly or indirectly via a protocol-specific redirect.
   - MUST be a read-only attribute.
 
 - Examples:
@@ -1052,8 +1054,8 @@ of the existing entity. Then the existing entity would be deleted.
   MUST be unique across the entire Registry, and as such is defined to be a
   relative URL from the root of the Registry. This value MUST be the same as
   the `<PATH>` portion of its `self` URL, after the Registry's base URL,
-  without any protocol specific xRegistry suffix (e.g. `$details` in the HTTP
-  case).  Unlike some other relative URIs, `xid` values MUST NOT be shortened
+  without any protocol-specific xRegistry suffix (e.g. `$details` in the HTTP
+  case). Unlike some other relative URIs, `xid` values MUST NOT be shortened
   based on the incoming request's URL; `xid`s are always relative to the root
   path of the Registry.
 
@@ -1094,8 +1096,9 @@ of the existing entity. Then the existing entity would be deleted.
   During a create operation, if this attribute is present in the request, then
   it MUST be silently ignored by the server.
 
-  During an update operation, if this attribute is present in the request, then
-  an error ([mismatched_epoch](#mismatched_epoch)) MUST be generated if the
+  During an update, or delete, operation, if this attribute is present in the
+  request, then an error
+  ([mismatched_epoch](#mismatched_epoch)) MUST be generated if the
   request includes a non-null value that differs from the existing value.
   This allows for the detection of concurrent, but conflicting, updates to the
   same entity to be detected. A value of `null` MUST be treated the same as a
@@ -1332,7 +1335,7 @@ Where:
 - The term `<COLLECTION>` MUST be the plural name of the collection
   (e.g. `endpoints`, `versions`).
 - The `<COLLECTION>url` attribute MUST be a URL that can be used to retrieve
-  the `<COLLECTION>` map via a protocol specific query mechanism. This URL
+  the `<COLLECTION>` map via a protocol-specific query mechanism. This URL
   MAY including any necessary [filtering](#filter-flag) and MUST be a
   read-only attribute that MUST be silently ignored by a server during a write
   operation. This attribute MUST be an absolute URL except in document view
@@ -1838,7 +1841,7 @@ Registry's capabilities, then the changes MUST appear in that serialization.
 The above requirement is driven by the idea that modifying the capabilities
 of a server and modifying any entity data are typically two very distinct
 actions, and will not normally happen at the same time. However, if the
-situation does occur a consistent (interoperable) processing order needs to
+situation does occur, a consistent (interoperable) processing order needs to
 be defined.
 
 #### Offered Capabilities
@@ -2145,11 +2148,11 @@ and the following Resource-level attributes:
 
 - Document View Constraints:
   - REQUIRED.
-  - If the `meta` entity is inlined in the document then this attribute
+  - If the `meta` entity is inlined in the document, then this attribute
     MUST be a relative URL of the form `#JSON-POINTER` where the `JSON-POINTER`
     locates the `meta` entity within the current document. See
     [Doc Flag](#doc-flag) for more information.
-  - If the `meta` entity is not inlined in the document then this attribute
+  - If the `meta` entity is not inlined in the document, then this attribute
     MUST be an absolute URL per the API view constraints listed above.
 
 - Examples:
@@ -2163,7 +2166,7 @@ and the following Resource-level attributes:
   See [Meta Entity](#meta-entity) for more information.
 
   During a write operation, the absence of the `meta` attribute indicates that
-  no changes are to be made to the `meta` sub-object.
+  no changes are to be made to the `meta` entity.
 
 - Constraints:
   - MUST NOT be included in API and document views unless requested via the
@@ -2243,7 +2246,7 @@ Resources and Versions:
   is the `versionid` value).
 
 When the xRegistry metadata is serialized as a JSON object, the processing
-of the 3 Version `<RESOURCE>` attributes MUST follow these rules:
+of the 3 Version-level `<RESOURCE>*` attributes MUST follow these rules:
   - At most, only one of the 3 attributes MAY be present in the request, and
     the presence of any one of them MUST delete the other 2 attributes.
   - If the entity already exists and has a document (not a `<RESOURCE>url`),
@@ -2351,7 +2354,7 @@ Note:
   cross-referenced Resource except for the presence of the `xref` attribute.
   For example, its `<RESOURCE>id` MUST be the source's `id` and not the
   target's.
-- The `xref` attribute MUST appear within the `meta` sub-object so a client
+- The `xref` attribute MUST appear within the `meta` entity so a client
   can easily determine that this Resource is a cross-referenced Resource, and
   it provides a reference to the targeted Resource.
 - The `xref` XID MUST be the `xid` of the target Resource.
@@ -2374,11 +2377,11 @@ Resource, the following MUST be adhered to:
 - The request MUST include an `xref` attribute with a value that is
   the `xid` of the target Resource.
 - The request MAY include the `<RESOURCE>id` attribute (of the source
-  Resource) on the Resource or `meta` sub-object.
+  Resource) on the Resource or `meta` entity.
 - The request MAY include `epoch` within `meta` (to do an `epoch` validation
   check) only if the Resource already exists.
 - The request MUST NOT include nested collections or any other attributes
-  (for the Resource or its "meta" sub-object). This includes default Version
+  (for the Resource or its "meta" entity). This includes default Version
   attributes within the Resource serialization.
 - If the Resource already exists, as a "normal" Resource, then any Versions
   associated with the Resource MUST be deleted.
@@ -2431,7 +2434,7 @@ Rather, it will only show the `<RESOURCE>id` and `xref` attributes.
 
 ### Meta Entity
 
-The `meta` entity (Resource sub-object) contains most of the Resource-level
+The `meta` entity (within a Resource) contains most of the Resource-level
 attributes that are global to the Resource, and not Version-specific. It is
 an entity in its own right, meaning it supports the normal "read" and "write"
 operation targeted directly to it.
@@ -2454,7 +2457,7 @@ The serialization of the Meta entity MUST adhere to this form:
 ```yaml
 {
   "<RESOURCE>id": "<STRING>",               # Resource ID
-  "self": "<URL>",                          # URL to this "meta" sub-object
+  "self": "<URL>",                          # URL to this "meta" entity
   "shortself": "<URL>", ?
   "xid": "<XID>",                           # Relative URI to this "meta"
   "xref": "<XID>", ?                        # Ptr to linked Resource
@@ -2478,7 +2481,7 @@ attributes.
 The Meta entity includes the following
 [common attributes](#common-attributes):
 - [`<RESOURCE>id`](#singularid-id-attribute) - REQUIRED in API and document
-   views.  OPTIONAL in requests.
+   views. OPTIONAL in requests.
 - [`self`](#self-attribute) - REQUIRED in API and document views.
   OPTIONAL/ignored in requests. References the Meta entity, not the Resource.
 - [`shortself`](#shortself-attribute) - OPTIONAL in API and document views,
@@ -2652,7 +2655,7 @@ and the following Meta-level attributes:
 
 - Document View Constraints:
   - REQUIRED.
-  - If the default Version is inlined in the document then this attribute
+  - If the default Version is inlined in the document, then this attribute
     MUST be a relative URL of the form `#JSON-POINTER` where the `JSON-POINTER`
     locates the default Version within the current document. See
     [Doc Flag](#doc-flag) for more information.
@@ -3032,7 +3035,7 @@ a client MAY choose the "default" Version two ways:
 1. Via the Resource
    [ `defaultversionsticky`](#defaultversionsticky-attribute) and
    [ `defaultversionid`](#defaultversionid-attribute) attributes
-   in its `meta` sub-object.
+   in its `meta` entity.
 2. Via the
    [SetDefaultVersionID Flag](#setdefaultversionid-flag)that is available on
    certain APIs.
@@ -3050,10 +3053,97 @@ do so, MUST adhere to the following rules:
 - Choosing a new default Version for a Resource MUST NOT change any attributes
   in any Resource's Versions, for example, attributes such as `modifiedat`
   remain unchanged.
-- And for clarity, the Resource's `meta` sub-object's `epoch` and `modifiedat`
+- And for clarity, the Resource's `meta` entity's `epoch` and `modifiedat`
   attributes MUST be updated.
 
-### Flags
+### Deleting Entities
+
+Each protocol binding will define how to delete entities, and in most cases
+the operation will be straight-forward since the action will likely either
+be a "delete" operation directed to the entity in question, or in the case
+of deleting multiple entities, it will be directed to the owning collection
+along with a map of entity IDs to be deleted.
+
+When deleting multiple entities, the list of entities to delete MUST be
+specified as a map. There will be 3 possible ways in which the map will be
+serialized:
+
+1 - Deleting multiple entities (no `epoch` value checking)
+
+```yaml
+{
+  "<KEY>": {}                             # <SINGULAR>id of entity
+} ?
+```
+
+While this could have been represented as an array of IDs, for consistency
+with the next two variants, and with what a query for the list of entities
+in a collection will return, it's a map.
+
+2 - Deleting multiple non-Resource entities with `epoch` value checking
+
+```yaml
+{
+  "<KEY>": {                              # <SINGULAR>id of entity
+    "epoch": <UINTEGER> ?
+  } *
+} ?
+```
+
+Since each entity now has an `epoch` value associated with it, the server MUST
+perform `epoch` value checking and reject the entire request if any fail. This
+is similar to what an "update" operation would look like.
+
+3 - Deleting multiple Resource entities with `epoch` value checking
+
+```yaml
+{
+  "<KEY>": {                              # <SINGULAR>id of Resource
+    "meta": {
+      "epoch": <UINTEGER> ?
+    } ?
+  } *
+} ?
+```
+
+Since a Resource's `epoch` value is part of its `meta` entity, and not a
+top-level Resource attribute, for consistency with what the retrieval of
+a Resource would look like, the `epoch` value in this case MUST appear under
+a `meta` entity within the Resource. And the normal `epoch` value checking
+rules would apply.
+
+This special serialization rules for Resources was done because an `epoch`
+value that appears as a top-level attribute is likely done when a client
+mistakenly uses a Version's serialization rather than the owning Resource's.
+
+If an `epoch` value only appears at the top-level (and not within `meta`) then
+an error ([misplaced_epoch](./spec.md#misplaced_epoch)) MUST be generated.
+If `epoch` appears in both places then the top-level one MUST be silently
+ignored.
+
+---
+
+Regardless of type of "delete" being done, the following rules apply:
+
+- In the case of the "delete" being directed to a collection:
+  - A map with no entities MUST NOT delete any entities.
+  - Each key of the map MUST be the `<SINGULAR>id` of the entity to be deleted.
+  - If the request does not include a map, then all entities in the collection
+    MUST be deleted.
+  - If the entity's `<SINGULAR>id` is present in the request, then it MUST
+    match its corresponding `<KEY>` value, other a
+    [mismatched_id](#mismatched_id) MUST be generated.
+  - Any other entity attributes that appear in the request MUST be silently
+    ignored, even if their values are invalid.
+  - If one of the referenced entities cannot be found, then the server MUST
+    silently ignore this condition and not treat it as an error.
+- In the case of the "delete" being directed to a single entity:
+  - If the entity cannot be found, then an error
+    ([not_found](./spec.md#not_found)) MUST be generated.
+- Deleting an entity MUST delete all children entities as well.
+- Any error MUST result in the entire request being rejected.
+
+## Flags
 
 This specification allows for clients to configure server-side processing
 via the use of "flags" (configuration options) on requests. The allowable
@@ -3064,7 +3154,7 @@ how the response message will be generated.
 Implementations of this specification SHOULD support all
 specification-defined flags.
 
-The following sections define each flag and then the protocol specific
+The following sections define each flag and then the protocol-specific
 specifications will indicate how they are to be serialized on each request:
 
 - [`binary`](#binary-flag)
@@ -3081,7 +3171,7 @@ specifications will indicate how they are to be serialized on each request:
 - [`sort`](#sort-flag)
 - [`specversion`](#specversion-flag)
 
-#### Binary Flag
+### Binary Flag
 
 The `binary` flag MAY be used on requests to indicate that the server MUST use
 the `<RESOURCE>base64` attribute instead of the `<RESOURCE>` attribute when
@@ -3097,7 +3187,7 @@ of Resource and Version entities that have a domain-specific document.
 
 See: [`?binary` Flag](./http.md#binary-flag) for the HTTP usage.
 
-#### Collections Flag
+### Collections Flag
 
 The `collections` flag MAY be used on requests directed to the Registry itself
 or to Group instances to indicate that the response message MUST NOT include
@@ -3142,7 +3232,7 @@ POST http://targetRegistry.com/
 
 See: [`?collections` Flag](./http.md#collections-flag) for the HTTP usage.
 
-#### Doc Flag
+### Doc Flag
 
 The `doc` flag MAY be used to indicate that the response MUST use "document
 view" when serializing entities and MUST be modified to do the following:
@@ -3162,7 +3252,7 @@ and be followed by a
 entity within the response, e.g. `#/endpoints/e1`. This means that they are
 relative to the root of the document (response) generated, and not necessarily
 relative to the root of the Registry. Additionally, when those URLs are
-relative and reference a Resource or Version, any protocol specific
+relative and reference a Resource or Version, any protocol-specific
 modifications to the URLs (e.g. the HTTP `$details` suffix) MUST NOT be
 present despite the semantics of the suffix being applied (as noted below).
 
@@ -3220,9 +3310,9 @@ the following:
 }
 ```
 
-Note that the `meta` sub-object's attributes `epoch` through
+Note that the `meta` entity's attributes `epoch` through
 `defaultversionsticky` MUST be excluded if `xref` is set because those would
-appear as part of the target Resource's `meta` sub-object. Also notice
+appear as part of the target Resource's `meta` entity. Also notice
 the default Version's attributes do not appear.
 
 If this flag is used on a request directed to a Resource's `versions`
@@ -3234,7 +3324,7 @@ technically existing in document view.
 
 See: [`?doc` Flag](./http.md#doc-flag) for the HTTP usage.
 
-#### Epoch Flag
+### Epoch Flag
 
 The `epoch` flag MAY be used on any delete operation directed to a single
 entity if the protocol being used doesn't normally include the serialization
@@ -3245,7 +3335,7 @@ value for the purpose of the server's
 
 See: [`?epoch` Flag](./http.md#epoch-flag) for the HTTP usage.
 
-#### Filter Flag
+### Filter Flag
 
 The `filter` flag MAY be used to indicate that the response MUST include only
 those entities that match the specified filter criteria expressions. This
@@ -3454,7 +3544,7 @@ that subtree is not changed by that search criteria.
 
 See: [`?filter` Flag](./http.md#filter-flag) for the HTTP usage.
 
-#### IgnoreDefaultVersionID Flag
+### IgnoreDefaultVersionID Flag
 
 The `ignoredefaultversionid` flag MAY be used on any write operation to
 indicate that any `defaultversionid` attribute included in the request MUST
@@ -3468,7 +3558,7 @@ remove the `defaultversionid` attributes that might be in there.
 See: [`?ignoredefaultversionid` Flag](./http.md#ignoredefaultversionid-flag)
 for the HTTP usage.
 
-#### IgnoreDefaultVersionSticky Flag
+### IgnoreDefaultVersionSticky Flag
 
 The `ignoredefaultversionsticky` flag MAY be used on any write operation to
 indicate that any `defaultversionsticky` attribute included in the request
@@ -3483,7 +3573,7 @@ See:
 [`?ignoredefaultversionsticky` Flag](./http.md#ignoredefaultversionsticky-flag)
 for the HTTP usage.
 
-#### IgnoreEpoch Flag
+### IgnoreEpoch Flag
 
 The `ignoreepoch` flag MAY be used on any write operation to
 indicate that any `epoch` attribute included in the request
@@ -3496,7 +3586,7 @@ remove the `epoch` attributes that might be in there.
 
 See: [`?ignoreepoch` Flag](./http.md#ignoreepoch-flag) for the HTTP usage.
 
-#### IgnoreReadOnly Flag
+### IgnoreReadOnly Flag
 
 The `ignorereadonly` flag MAY be used on any write operation to
 indicate that any attempt to modify a read-only entity MUST be silently
@@ -3508,7 +3598,7 @@ remove the read-only entity.
 
 See: [`?ignorereadonly` Flag](./http.md#ignorereadonly-flag) for the HTTP usage.
 
-#### Inline Flag
+### Inline Flag
 
 The `inline` flag MAY be used on requests to indicate whether nested
 collections/objects, or certain (potentially large) attributes, are to be
@@ -3544,10 +3634,10 @@ Some examples using the [HTTP protocol binding](./http.md#inline-flag):
 - `GET /endpoints/ep1/?inline=messages.message`     # Just 'message'
 - `GET /endpoints/ep1/messages/msg1?inline=message` # Just 'message'
 
-The value of the `inline` flag is list of `<PATH>` values where is a string
-indicating which inlineable attribute to show in the response. References to
-nested attributes are represented using a dot (`.`) notation where the
-xRegistry collection names along the hierarchy are concatenated. For
+The value of the `inline` flag is a list of `<PATH>` values where each is a
+string indicating which inlineable attribute to show in the response.
+References to nested attributes are represented using a dot (`.`) notation
+where the xRegistry collection names along the hierarchy are concatenated. For
 example: `endpoints.messages.versions` will inline all Versions of Messages.
 Non-leaf parts of the `<PATH>` MUST only reference xRegistry collection names
 and not any specific entity IDs since `<PATH>` is meant to be an abstract
@@ -3590,7 +3680,7 @@ For example, given a Registry with a model that has `endpoints` as a Group and
 | /endpoints/ep1 | ?inline=messages.versions | Similar to the previous `endpoints.messages.version` example |
 | /endpoints/ep1 | ?inline=messages.message | Inline the Resource document |
 | /endpoints/ep1 | ?inline=endpoints | Invalid, already in `endpoints` and there is no `<RESOURCE>` called `endpoints` |
-| / | ?inline=endpoints.messages.meta | Inlines the `meta` sub-object of each `message` returned. |
+| / | ?inline=endpoints.messages.meta | Inlines the `meta` entity of each `message` returned. |
 | / | ?inline=endpoints.* | Inlines everything for all `endpoints`. |
 
 Note that asking for an attribute to be inlined will implicitly cause all of
@@ -3612,7 +3702,7 @@ type of feature to iteratively retrieve the entities.
 
 See: [`?inline` Flag](./http.md#inline-flag) for the HTTP usage.
 
-#### SetDefaultVersionID Flag
+### SetDefaultVersionID Flag
 
 The `setdefaultversionid` flag MAY be used on any write operation directed to
 a Resource or Version where a Version is created, delete or updated but
@@ -3647,7 +3737,7 @@ Any use of this flag on a Resource that has the
 See: [`?setdefaultversionid` Flag](./http.md#setdefaultversionid-flag) for
 the HTTP usage.
 
-#### Sort Flag
+### Sort Flag
 
 When a request is directed at a collection of Groups, Resources or Versions,
 the `Sort` flag MAY be used to indicate the order in which the entities of
@@ -3701,7 +3791,7 @@ Some examples using the [HTTP protocol binding](./http.md#sort-flag):
 
 See: [`?sort` Flag](./http.md#sort-flag) for the HTTP usage.
 
-#### SpecVersion Flag
+### SpecVersion Flag
 
 The SpecVersion flag MAY be used to indicate the xRegistry specification
 version that the response MUST adhere to. The parameter value of this flag
@@ -3725,7 +3815,7 @@ checking.
 
 See: [`?specversion` Flag](./http.md#specversion-flag) for the HTTP usage.
 
-### Error Processing
+## Error Processing
 
 If an error occurs during the processing of a request, even if the error was
 during the creation of the response (e.g. an invalid `inline` value was
@@ -3769,21 +3859,21 @@ The following list of protocol-independent errors are defined:
 
 <!-- start-err-def -->
 
-#### ancestor_circular_reference
+### ancestor_circular_reference
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#ancestor_circular_reference`
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE VERSION BEING PROCESSED>`
 * Title: `The assigned "ancestor" value (<ANCESTOR VALUE>) creates a circular reference`
 
-#### bad_flag
+### bad_flag
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#bad_flag`
 * Code: `400 Bad Request`
 * Instance: `<REQUEST URL>`
 * Title: `The specified query parameter (<QUERY PARAMETER>) is not allowed in this context`
 
-#### bad_request
+### bad_request
 
 This error is purposely generic and can be used when there isn't a more
 condition-specific error that would be more appropriate. Implementations
@@ -3794,21 +3884,21 @@ SHOULD attempt to use a more specific error when possible.
 * Instance: `<REQUEST URL>`
 * Title: `The request cannot be processed as provided`
 
-#### cannot_doc_xref
+### cannot_doc_xref
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#cannot_doc_xref`
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE RESOURCE BEING RETRIEVED>`
 * Title: `Retrieving the document view of an xref'd Resource's Versions is not possible`
 
-#### capability_error
+### capability_error
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#capability_error`
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE XREGISTRY SERVER>`
 * Title: `There was an error in the capabilities provided`
 
-#### compatibility_violation
+### compatibility_violation
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#compatibility_violation`
 * Code: `400 Bad Request`
@@ -3816,35 +3906,35 @@ SHOULD attempt to use a more specific error when possible.
 * Title: `The request would cause one or more Versions of this Resource to violate the Resource's compatibility rules (<COMPATIBILITY ATTRIBUTE VALUE>)`
 * Detail: `<LIST OF versionid VALUES THAT WOULD BE IN VIOLATION>`
 
-#### data_retrieval_error
+### data_retrieval_error
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#data_retrieval_error`
 * Code: `500 Internal Server Error`
 * Instance: `<REQUEST URL>`
 * Title: `The server was unable to retrieve all of the requested data`
 
-#### defaultversionid_not_allowed
+### defaultversionid_not_allowed
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#defaultversionid_not_allowed`
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE RESOURCE BEING PROCESSED>`
 * Title: `"defaultversionid" is not allowed to be specified`
 
-#### details_required
+### details_required
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#details_required`
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `$details suffixed is needed when using PATCH for this Resource`
 
-#### invalid_character
+### invalid_character
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#invalid_character`
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `An invalid character (<THE CHARACTER>) was specified in an attribute's name (<FULL ATTRIBUTE NAME>)`
 
-#### invalid_data
+### invalid_data
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#invalid_data`
 * Code: `400 Bad Request`
@@ -3852,42 +3942,42 @@ SHOULD attempt to use a more specific error when possible.
 * Title: `The data provided for "<ATTRIBUTE/PARAMETER NAME>" is invalid`
 * Detail: `<THE INVALID DATA>`
 
-#### method_not_allowed
+### method_not_allowed
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#method_not_allowed`
 * Code: `405 Method Not Allowed`
 * Instance: `<REQUEST URL>`
 * Title: `The specified HTTP method (<INVALID METHOD>) is not supported for: <REQUEST URL>`
 
-#### mismatched_epoch
+### mismatched_epoch
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#mismatched_epoch`
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `The specified epoch value (<INVALID EPOCH>) does not match its current value (<CURRENT EPOCH>)`
 
-#### mismatched_id
+### mismatched_id
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#mismatched_id`
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `The specified <SINGULAR TYPE NAME> ID value (<INVALID ID>) needs to be "<EXPECTED ID>"`
 
-#### misplaced_epoch
+### misplaced_epoch
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#misplaced_epoch`
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE ENTITY BEING PROCESSED>`
-* Title: `The specified "epoch" value needs to be within a "meta" sub-object`
+* Title: `The specified "epoch" value needs to be within a "meta" entity`
 
-#### missing_versions
+### missing_versions
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#missing_versions`
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `At least one Version needs to be included in the request`
 
-#### model_compliance_error
+### model_compliance_error
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#model_compliance_error`
 * Code: `400 Bad Request`
@@ -3895,7 +3985,7 @@ SHOULD attempt to use a more specific error when possible.
 * Title: `The model provided would cause one or more entities in the Registry to become non-compliant`
 * Detail: `<LIST OF NON-COMPLIANT XIDs>`
 
-#### model_error
+### model_error
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#model_error`
 * Code: `400 Bad Request`
@@ -3903,28 +3993,28 @@ SHOULD attempt to use a more specific error when possible.
 * Title: `There was an error in the model definition provided at <JSON PATH TO ERROR>`
 * Detail: `<PROBLEMATIC JSON SNIPPET>`
 
-#### multiple_roots
+### multiple_roots
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#multiple_roots`
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE RESOURCE BEING PROCESSED>`
 * Title: `The operation would result in multiple root Versions which is not allowed by this Resource type`
 
-#### not_found
+### not_found
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#not_found`
 * Code: `404 Not Found`
 * Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `The specified entity cannot be found`
 
-#### readonly
+### readonly
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#readonly`
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `Updating a read-only entity (<XID OF ENTITY>) is not allowed`
 
-#### required_attribute_missing
+### required_attribute_missing
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#required_attribute_missing`
 * Code: `400 Bad Request`
@@ -3932,7 +4022,7 @@ SHOULD attempt to use a more specific error when possible.
 * Title: `One or more mandatory attributes are missing`
 * Detail: `<LIST OF MANDATORY ATTRIBUTES>`
 
-#### server_error
+### server_error
 
 This error MAY be used when it appears that the incoming request was valid but
 something unexpected happened in the server that caused an error condition.
@@ -3942,7 +4032,7 @@ something unexpected happened in the server that caused an error condition.
 * Instance: `<REQUEST URL>`
 * Title: `An unexpected error occurred, please try again later`
 
-#### too_large
+### too_large
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#too_large`
 * Code: `406 Not Acceptable`
@@ -3950,35 +4040,35 @@ something unexpected happened in the server that caused an error condition.
 * Title: `The size of the response is too large to return in a single response`
 * Detail: `<THE NAMES OF THE FIELDS THAT ARE TOO LARGE>`
 
-#### too_many_versions
+### too_many_versions
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#too_many_versions`
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `The request is only allowed to have one Version specified`
 
-#### unknown_attribute
+### unknown_attribute
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#unknown_attribute`
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `An unknown attribute (<ATTRIBUTE NAME>) was specified`
 
-#### unknown_id
+### unknown_id
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#unknown_id`
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `The "<SINGULAR NAME OF THE ENTITY TYPE>" with the ID "<UNKNOWN ID>" cannot be found`
 
-#### unsupported_specversion
+### unsupported_specversion
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#unsupported_specversion`
 * Code: `400 Bad Request`
 * Instance: `<THE REQUEST URL>`
 * Title: `The specified "specversion" value (<SPECVERSION SPECIFIED>) is not supported`
 
-#### versionid_not_allowed
+### versionid_not_allowed
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#versionid_not_allowed`
 * Code: `400 Bad Request`
@@ -3991,7 +4081,7 @@ something unexpected happened in the server that caused an error condition.
 
 ---
 
-### Events
+## Events
 
 xRegistry defines a set of events that SHOULD be generated when changes are
 made to the entities within a Registry. See the [xRegistry Events](./events.md)

@@ -146,7 +146,7 @@ The overall format of a model definition is as follows:
         "namecharset": "<STRING>", ?   # If this item "type" is object
         "attributes": { ... }, ?       # If this item "type" is object
         "item": { ... } ?              # If this item "type" is map,array
-      } ?
+      }, ?
 
       "ifvalues": {                    # If "type" is scalar
         "<STRING>": {
