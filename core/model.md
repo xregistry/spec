@@ -102,6 +102,7 @@ for more information about each data type):
 This specification uses the following terms as defined in the
 [core xRegistry specification](./spec.md):
 
+- [Aspect](./spec.md#aspect)
 - [Group](./spec.md#group)
 - [Registry](./spec.md#registry)
 - [Resource](./spec.md#resource)

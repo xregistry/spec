@@ -9,7 +9,6 @@ asc
 asyncapi
 attr
 attribs
-attributename
 attributesstringitem
 attributesstringnamecharset
 attributesstringtarget
@@ -23,6 +22,7 @@ backend
 basemessage
 bson
 bunnymq
+capabilitiesoffered
 cereg
 charset
 checkedin
@@ -67,7 +67,10 @@ definitionscount
 definitionsurl
 deploymentid
 deviceid
+dirid
 dirs
+dirscount
+discount
 distributionmode
 emoji
 endpointid
@@ -81,6 +84,8 @@ etag
 eventing
 fabrikam
 files
+filescount
+filesurl
 filesystem
 gid
 github
@@ -89,6 +94,12 @@ gmt
 gotchas
 groupid
 groupscount
+groupsgid
+groupsgidresources
+groupsgidresourcesrid
+groupsgidresourcesridmeta
+groupsgidresourcesridversions
+groupsgidresourcesridversionsvid
 groupsstringcompatiblewith
 groupsstringmodelversion
 groupsstringresourcesstringmetaattributes
@@ -109,6 +120,7 @@ ietf
 ifvalues
 ignoredefaultversionid
 ignoredefaultversionsticky
+ignoreeopch
 ignoreepoch
 ignorereadonly
 img
@@ -126,10 +138,12 @@ javadoc
 json
 jsonpath
 jsonschema
+jul
 keyname
 lifecycle
 lightbulb
 linkproperties
+mapname
 maxmaxversions
 maxversions
 messagegroupid
@@ -319,6 +333,7 @@ xmlschema
 xpath
 xreg
 xregbasicmodel
+xregcorrelationid
 xregfullmodel
 xregistries
 xregistry

@@ -20,7 +20,7 @@ be generated to notify interested parties of those changes. This specification
 defines the metadata associated with each event as
 [CloudEvent][https://cloudevents.io) context attributes. Whether CloudEvents
 are used in the generation/serialization of the events is OPTIONAL, but it is
-RECOMENDED.
+RECOMMENDED.
 
 This specification does not mandate the mechanisms by which events are sent
 to consumers, nor does it mandate how consumers register interest in receiving
@@ -104,7 +104,7 @@ where:
 - `<ACTION>` is the operation performed on the entity. It MUST be one of:
   - `created`
   - `updated`
-  - `deprecration`
+  - `deprecation`
   - `deleted`
 
   Not all `<ACTION>` values are applicable to all entities. See the
@@ -147,7 +147,7 @@ RECOMMENDED.
 ### `xregcorrelationid` Extension Context Attribute
 
 A value that uniquely identifies the interaction in which one or more events
-occured. This value has the following constraints:
+occurred. This value has the following constraints:
 - MUST be a non-empty string.
 - MUST be case-insensitively unique within the scope of the Registry instance,
   for the lifetime of the Registry.
@@ -233,7 +233,7 @@ value.
 
     While the `<GROUPS>` attribute is present in `changed` due to the child
     collection changing, in order to see which specific Groups were impacted
-    the `ioxregistry.group.created` and `ioxregistry.group.deleted` events
+    the `io.xregistry.group.created` and `io.xregistry.group.deleted` events
     would need to be examined.
 
   - MUST be generated when `model`, `modelsource` or `capabilities` are
@@ -314,7 +314,7 @@ events.
 
     This includes any updates to the `deprecated` sub-object, even
     though a `io.xregistry.group.deprecation` event is also generated. And
-    in that situation just `deprecrated` would be included in `changed`,
+    in that situation just `deprecated` would be included in `changed`,
     if present. To see which specific top-level `deprecated` attributes were
     changed, the `io.xregistry.group.deprecation` event would need to be
     examined.
@@ -359,14 +359,14 @@ events.
 
     This includes any updates to the `deprecated` sub-object, even
     though a `io.xregistry.resource.deprecation` event is also generated. And
-    in that situation just `meta.deprecrated` would be included in `changed`,
+    in that situation just `meta.deprecated` would be included in `changed`,
     if present. To see which specific top-level `deprecated` attributes were
     changed, the `io.xregistry.resource.deprecation` event would need to be
     examined.
 
   - MUST be generated when a Version is created or deleted, where `changed`,
     if present, includes (at least) `meta.epoch`, `meta.modifiedat`,
-    `version` and `versioncount` attributes names.
+    `versions` and `versionscount` attributes names.
 
     While the `version` attribute is present due to the child
     collection changing, in order to see which specific Versions were impacted
@@ -560,7 +560,7 @@ the following model definition:
 - Current default Version is `v1`
 - Interaction:
   - `PATCH /dirs/d1/files/f1/meta`
-  - Body: `{ "defaultversinoid": "v2" }`
+  - Body: `{ "defaultversionid": "v2" }`
 - Events:
   - `io.xregistry.resource.updated`
     - Subject: `/dirs/d1/files/f1`

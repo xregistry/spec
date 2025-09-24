@@ -22,6 +22,9 @@ or automation and tooling usage.
   - [No-Code Servers](#design-no-code-servers)
   - [Protocol Bindings](#design-protocol-bindings)
   - [JSON Serialization](#design-json-serialization)
+  - [Data Retrieval Issues](#design-data-retrieval-issues)
+  - [Importing Data](#design-importing-data)
+  - [JSON `$schema` keyword](#design-json-schema-keyword)
 - [Registry Model](#registry-model)
   - [Implementation Customizations](#implementation-customizations)
   - [Attributes and Extensions](#attributes-and-extensions)
@@ -55,7 +58,7 @@ A Registry consists of two main types of entities: Resources and Groups of
 such Resources.
 
 Resources typically represent the main data of interest in the Registry, while
-Groups, as the name implies, allows related Resources to be arranged together
+Groups, as the name implies, allow related Resources to be arranged together
 under a single collection. Resources can, optionally, also be versioned if
 needed.
 
@@ -167,6 +170,14 @@ information about each data type):
 ### Terminology
 
 This specification defines the following terms:
+
+#### Aspect
+
+The term "attribute" can be used in many different contexts. In order to avoid
+any potential confusion, "attributes" that are part of an
+[xRegistry model](./model.md) definition are referred to as "aspects" as a
+way to indicate that they are also often mapped to "features" of the
+specification.
 
 #### Group
 
@@ -617,6 +628,41 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
 }
 ```
 
+### Design: Data Retrieval Issues
+
+In general, if a server is unable to retrieve all of the data intended to be
+sent in a response, then an error
+([data_retrieval_error](./spec.md#data_retrieval_error)) MUST be generated and
+the request rejected without any changes being made. However, it is permissible
+for a server to attempt some creative processing. For example, if while
+processing a query the server can only retrieve half of the entities to be
+returned at the current point in time, then it could return those with an
+indication of there being more (via use of a pagination type of specification).
+Then during the next query request it could return the remainder of the
+data - or an error if it is still not available to retrieve the data. Note
+that if an entity is to be sent, then it MUST be serialized in its entirety
+(all attributes, and requested child entities) or an error MUST be generated.
+
+### Design: Importing Data
+
+There might be situations where someone will do a query to retrieve data
+from a Registry, and then do an update operation to a Registry with that data.
+Depending on the use case, they might not want some of the retrieved data
+to be applied during the update. For example, they might not want the
+`epoch` validation checking to occur. Rather than forcing the user to edit
+the data to remove the potentially problematic attributes, a client MAY use
+one of the `ignore*` [flags](#flags) to ignore some of the data in the
+incoming request.
+
+### Design: JSON `$schema` keyword
+
+Any JSON xRegistry metadata message that represents a single entity (i.e. not
+a map) MAY include a top-level "$schema" attribute that points to a JSON Schema
+document that describes the message contents. These notations can be used or
+ignored by receivers of these messages. There is no requirement for
+implementations of this specification to persist these values, to include them
+in responses or to use this information.
+
 ---
 
 In summary, xRegistry is designed to be a tree of entities that, along with
@@ -627,18 +673,6 @@ domain-specific set of APIs.
 
 The following sections will define the technical details of those xRegistry
 entities.
-
-### Implicit Creation of Parent Entities
-
-To reduce the number of interactions needed when creating an entity, all
-nonexisting parent entities specified as part of `<PATH>` to the entity MUST
-be implicitly created. Each of those entities MUST be created with the
-`<SINGULAR>id` specified in the `<PATH>`. Note: if any of those entities have
-REQUIRED attributes, then they cannot be implicitly created, and would need to
-be created directly. This also means that the creation of the original entity
-would fail and generate an error
-([required_attribute_missing](#required_attribute_missing)) for the
-appropriate parent entity.
 
 ## Registry Model
 
@@ -3919,13 +3953,6 @@ SHOULD attempt to use a more specific error when possible.
 * Code: `400 Bad Request`
 * Instance: `<URL TO THE RESOURCE BEING PROCESSED>`
 * Title: `"defaultversionid" is not allowed to be specified`
-
-### details_required
-
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#details_required`
-* Code: `400 Bad Request`
-* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
-* Title: `$details suffixed is needed when using PATCH for this Resource`
 
 ### invalid_character
 
