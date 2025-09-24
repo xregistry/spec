@@ -203,18 +203,6 @@ exposing the serialization of the Resource's xRegistry metadata via the
 `$details` suffix on the URL path. This can be achieved by creating a
 secondary, sibling, file on disk with `$details` at the end of its filename.
 
-### Implicit Creation of Parent Entities
-
-To reduce the number of interactions needed when creating an entity, all
-nonexisting parent entities specified as part of `<PATH>` to the entity MUST
-be implicitly created. Each of those entities MUST be created with the
-appropriate `<SINGULAR>id` specified in the `<PATH>`. Note: if any of those
-entities have REQUIRED attributes, then they cannot be implicitly created, and
-would need to be created directly. This also means that the creation of the
-original entity would fail and generate an error
-([required_attribute_missing](./spec.md#required_attribute_missing)) for the
-appropriate parent entity.
-
 ## Registry HTTP APIs
 
 This section mainly focuses on the successful interaction patterns of the APIs.
@@ -1559,7 +1547,7 @@ xRegistry-self: <URL>                      # Version URL
 xRegistry-xid: <URI>                       # Relative Version URI
 xRegistry-epoch: <UINTEGER>
 xRegistry-name: <STRING> ?
-xRegistry-isdefault: true
+xRegistry-isdefault: <BOOLEAN>
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
@@ -1574,6 +1562,11 @@ Content-Disposition: <STRING> ?
 
 ... Version document excluded for brevity ... ?
 ```
+
+Where:
+- `Content-Disposition` SHOULD be present and if so, MUST be the `<RESOURCE>id`
+  value. This allows for HTTP tooling that is not aware of xRegistry to know
+  the desired filename to use if the HTTP body were to be written to a file.
 
 Scalar default Version extension attributes MUST also appear as
 `xRegistry-` HTTP headers.
@@ -1655,7 +1648,7 @@ A server MAY support clients creating/updating one or more
 [Group](./spec.md#group-entity)  via an HTTP `PATCH` or
 `POST` directed to the owning Group's `<RESOURCE>` collection URL.
 
-The processing of this API is defined in the [Creating or Updating
+The processing of these APIs is defined in the [Creating or Updating
 Entities](#creating-or-updating-entities) section - see the discussion of the
 `POST/PATCH <PATH-TO-COLLECTION>` variants.
 
@@ -1688,7 +1681,37 @@ HTTP/1.1 200 OK
 
 **Examples:**
 
-TODO
+```yaml
+POST /endpoints/ep1/messages
+Content-Type: application/json; charset=utf-8
+
+{
+  "msg1": {
+    "endpointid": "msg1",
+    ... remainder of msg1 definition excluded for brevity ...
+  },
+  "msg2": {
+    "endpointid": "msg2",
+    ... remainder of msg2 definition excluded for brevity ...
+  }
+}
+```
+
+```yaml
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{
+  "msg1": {
+    "endpointid": "msg1",
+    ... remainder of msg1 definition excluded for brevity ...
+  },
+  "msg2": {
+    "endpointid": "msg2",
+    ... remainder of msg2 definition excluded for brevity ...
+  }
+}
+```
 
 #### `DELETE /<GROUPS>/<GID>/<RESOURCES>`
 
@@ -1818,7 +1841,7 @@ xRegistry-<RESOURCE>url: <URL> ?       # If Resource is not in body
 xRegistry-metaurl: <URL>
 xRegistry-versionsurl: <URL>
 xRegistry-versionscount: <UINTEGER>
-Location: <URL> ?                      # If Resource is not in body
+Location: <URL> ?                      # If 303 is returned
 Content-Location: <URL> ?
 Content-Disposition: <STRING> ?
 
@@ -1953,12 +1976,17 @@ xRegistry-<RESOURCE>url: <URL> ?       # If Resource is not in body
 xRegistry-metaurl: <URL>
 xRegistry-versionsurl: <URL>
 xRegistry-versionscount: <UINTEGER>
-Location: <URL> ?                      # If Resource is not in body
+Location: <URL> ?                      # If 303 is returned
 Content-Location: <URL> ?
 Content-Disposition: <STRING> ?
 
 ... Resource document ...              # If <RESOURCE>url is not set
 ```
+
+Where:
+- `Content-Disposition` SHOULD be present and if so, MUST be the `<RESOURCE>id`
+  value. This allows for HTTP tooling that is not aware of xRegistry to know
+  the desired filename to use if the HTTP body were to be written to a file.
 
 **Examples:**
 
@@ -1969,9 +1997,7 @@ PUT /endpoints/ep1/messages/msg1
 Content-Type: application/json; charset=utf-8
 xRegistry-name: Blob Created
 
-{
-  # Definition of a "Blob Created" event (document) excluded for brevity
-}
+{ ... Definition of "Blob Created" event (document) excluded for brevity ... }
 ```
 
 ```yaml
@@ -1992,12 +2018,10 @@ Location: https://example.com/endpoints/ep1/messages/msg1
 Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1
 Content-Disposition: msg1
 
-{
-  # Definition of a "Blob Created" event (document) excluded for brevity
-}
+{ ... Definition of "Blob Created" event (document) excluded for brevity ... }
 ```
 
-Updates the default Version of a Resource as xRegistry metadata:
+Update the default Version of a Resource as xRegistry metadata:
 
 ```yaml
 PUT /endpoints/ep1/messages/msg1$details
@@ -2050,7 +2074,7 @@ A server MAY support clients creating, or updating, a
 Resource entity. This API is an alias for
 `POST /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`.
 
-The processing of these APIs is defined in the [Creating or Updating
+The processing of this API is defined in the [Creating or Updating
 Entities](#creating-or-updating-entities) section.
 
 The `$details` suffix controls whether the request is directed to the
@@ -2113,7 +2137,7 @@ xRegistry-self: <URL>
 xRegistry-xid: <XID>
 xRegistry-epoch: <UINTEGER>
 xRegistry-name: <STRING> ?
-xRegistry-isdefault: true
+xRegistry-isdefault: <BOOLEAN>
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
@@ -2122,12 +2146,17 @@ xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
 xRegistry-ancestor: <STRING>
 xRegistry-<RESOURCE>url: <URL> ?       # If Resource is not in body
-Location: <URL> ?                      # If Resource is not in body
+Location: <URL> ?                      # If 303 is returned
 Content-Location: <URL> ?
 Content-Disposition: <STRING> ?
 
 ... Version document excluded for brevity ...  # If <RESOURCE>url is not set
 ```
+
+Where:
+- `Content-Disposition` SHOULD be present and if so, MUST be the `<RESOURCE>id`
+  value. This allows for HTTP tooling that is not aware of xRegistry to know
+  the desired filename to use if the HTTP body were to be written to a file.
 
 **Examples:**
 
@@ -2138,9 +2167,7 @@ POST /endpoints/ep1/messages/msg1
 Content-Type: application/json; charset=utf-8
 xRegistry-name: Blob Created
 
-{
-  # Definition of a "Blob Created" event (document) excluded for brevity
-}
+{ ... Definition of "Blob Created" event (document) excluded for brevity ... }
 ```
 
 ```yaml
@@ -2158,12 +2185,10 @@ Location: https://example.com/endpoints/ep1/messages/msg1/versions/v2
 Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/2
 Content-Disposition: msg1
 
-{
-  # Definition of a "Blob Created" event (document) excluded for brevity
-}
+{ ... Definition of "Blob Created" event (document) excluded for brevity ... }
 ```
 
-Updates a Version of a Resource as xRegistry metadata:
+Update a Version of a Resource as xRegistry metadata:
 
 ```yaml
 POST /endpoints/ep1/messages/msg1$details
@@ -2255,8 +2280,8 @@ HTTP/1.1 204 No Content
 #### `GET /<GROUPS>/<GID>/<RESOURCES>/<RID>/meta`
 
 A server MAY support clients retrieving a
-[Resource's `meta` entity](./spec.md#meta-entity) via an HTTP `GET` directed
-to the Resource's `meta` entity.
+[Resource's Meta entity](./spec.md#meta-entity) via an HTTP `GET` directed
+to the Resource's Meta entity.
 
 The request MUST be of the form:
 
@@ -2275,28 +2300,95 @@ Content-Type: application/json; charset=utf-8
 
 **Examples:**
 
-TODO
+Retrieve a Resource's Meta entity:
+
+```yaml
+GET /endpoints/ep1/messages/msg1/meta
+```
+
+```yaml
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{
+  "messageid": "msg1",
+  "self": "https://example.com/endpoints/ep1/messages/msg1/meta",
+  "xid": "/endpoints/ep1/messages/msg1/meta",
+  "epoch": 2,
+  "createdat": "2024-04-30T12:00:00Z",
+  "modifiedat": "2024-04-30T12:00:01Z",
+  "compatibility": "none",
+  "defaultversionid": "v2.0",
+  "defaultversionurl": "https://example.com/endpoints/ep1/messages/msg1/versions/v2.0",
+  "defaultversionsticky": false
+}
+```
 
 #### `PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>/meta`
 #### `PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/meta`
 
 A server MAY support clients updating a
-[Resource's `meta` entity](./spec.md#meta-entity) via an HTTP `PATCH` or
-`PUT` directed to the Resource's `meta` entity.
+[Resource's Meta entity](./spec.md#meta-entity) via an HTTP `PATCH` or
+`PUT` directed to the Resource's Meta entity.
 
 The processing of these APIs is defined in the [Creating or Updating
 Entities](#creating-or-updating-entities) section.
 
-TODO
-DUG
+The request MUST be of the form:
+
+```yaml
+PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>/meta
+Content-Type: application/json; charset=utf-8
+or
+PUT /<GROUPS>/GID>/<RESOURCES>/<RID>/meta
+Content-Type: application/json; charset=utf-8
+
+{ ... Meta entity excluded for brevity ... }
+```
+
+The response MUST be of the form:
+
+```yaml
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{ ... Meta entity excluded for brevity ... }
+```
 
 **Examples:**
 
-TODO
+Update a Resource's `defaultversionid` attribute:
+
+```yaml
+PATCH /endpoints/ep1/messages/msg1/meta
+Content-Type: application/json; charset=utf-8
+
+{
+  "defaultversionid": "v2.0"
+}
+```
+
+```yaml
+HTTP/1.1 200 Created
+Content-Type: application/json; charset=utf-8
+
+{
+  "messageid": "msg1",
+  "self": "https://example.com/endpoints/ep1/messages/msg1/meta",
+  "xid": "/endpoints/ep1/messages/msg1/meta",
+  "epoch": 2,
+  "createdat": "2024-04-30T12:00:00Z",
+  "modifiedat": "2024-04-30T12:00:01Z",
+  "compatibility": "none",
+  "defaultversionid": "v2.0",
+  "defaultversionurl": "https://example.com/endpoints/ep1/messages/msg1/versions/v2.0",
+  "defaultversionsticky": false
+}
+```
 
 #### `DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/meta`
 
-A `DELETE` directed to the `meta` entity is not supported and MUST generate an
+A `DELETE` directed to the Meta entity is not supported and MUST generate an
 error ([method_not_allowed](./spec.md#method_not_allowed)).
 
 ### Version Entity
@@ -2304,9 +2396,9 @@ error ([method_not_allowed](./spec.md#method_not_allowed)).
 #### `GET /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`]
 
 A server MAY support clients retrieving the
-[`versions` collection](./spec.md#versions-collection) of a Resource via
-an HTTP `GET` directed to the owning Resource's xRegistry `version`
-collection URL.
+[`versions` collection](./spec.md#versions-collection) of a
+[Resource](./spec.md#resource-entity)  via an HTTP `GET` directed to the
+owning Resource's `versions` collection URL.
 
 The request MUST be of the form:
 
@@ -2323,33 +2415,10 @@ Link: <URL>;rel=next;count=<UINTEGER> ?
 
 {
   "<KEY>": {                                    # The versionid
-    "<RESOURCE>id": "<STRING>",                 # ID of Resource
-    "versionid": "<STRING>",
-    "self": "<URL>",
-    "shortself": "<URL>", ?
-    "xid": "<XID>",
-    "epoch": <UINTEGER>,
-    "name": "<STRING>", ?
-    "isdefault": <BOOLEAN>,
-    "description": "<STRING>", ?
-    "documentation": "<URL>", ?
-    "icon": "<URL>", ?
-    "labels": { "<STRING>": "<STRING>" * }, ?
-    "createdat": "<TIMESTAMP>",
-    "modifiedat": "<TIMESTAMP>",
-    "ancestor": "<STRING>",
-    "contenttype": "<STRING>", ?
-
-    "<RESOURCE>url": "<URL>", ?                 # If not local
-    "<RESOURCE>": ... Resource document ..., ?  # If inlined & JSON
-    "<RESOURCE>base64": "<STRING>" ?            # If inlined & ~JSON
+    ... Version entity excluded for brevity ...
   } *
 }
 ```
-
-here:
-- The key of each item in the map MUST be the `versionid` of the respective
-  Version.
 
 **Examples:**
 
@@ -2383,16 +2452,44 @@ Link: <https://example.com/endpoints/ep1/messages/msg1/versions&page=2>;rel=next
 #### `PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`]
 #### `POST /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`]
 
-A server MAY support clients creating/updating one or more Versions, of a
-Resource via an HTTP `PATCH` or `POST` directed to the owning Resource's
-xRegistry [`versions` collection](./spec.md#versions-collection).
+A server MAY support clients creating/updating one or more
+[Versions](./spec.md#version-entity), of a
+[Resource](./spec.md#resource-entity)  via an HTTP `PATCH` or `POST` directed
+to the owning Resource's
+[`versions` collection](./spec.md#versions-collection) URL.
 
-The processing of this API is defined in the [Creating or Updating
+The processing of these APIs is defined in the [Creating or Updating
 Entities](#creating-or-updating-entities) section - see the discussion of the
 `POST/PATCH <PATH-TO-COLLECTION>` variants.
 
-TODO request MUST adhere to the form...
-TODO successful response ...
+The request MUST be of the form:
+
+```yaml
+PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions
+Content-Type: application/json; charset:utf-8
+or
+POST /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions
+Content-Type: application/json; charset:utf-8
+
+{
+   "<KEY>": {                                      # <GROUP>id
+     ... Version entity excluded for brevity ...
+  } *
+}
+```
+
+The response MUST be of the form:
+
+```yaml
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{
+   "<KEY>": {                                      # <GROUP>id
+     ... Version entity excluded for brevity ...
+  } *
+}
+```
 
 **Examples:**
 
@@ -2424,19 +2521,19 @@ Content-Type: application/json; charset=utf-8
     "messageid": "msg1",
     "versionid": "1",
     "labels": { "customer": "abc" },
-    # Remainder of xRegistry metadata excluded for brevity
+    # Remainder of Version entity excluded for brevity
   },
   "2": {
     "messageid": "msg1",
     "versionid": "2",
     "labels": { "customer": "abc" },
-    # Remainder of xRegistry metadata excluded for brevity
+    # Remainder of Version entity excluded for brevity
   },
   "3": {
     "messageid": "msg1",
     "versionid": "3",
     "labels": { "customer": "abc" },
-    # Remainder of xRegistry metadata excluded for brevity
+    # Remainder of Version entity excluded for brevity
   }
 ]
 ```
@@ -2447,9 +2544,10 @@ entirety.
 
 #### `DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`]
 
-A server MAY support clients deleting one or more Versions within a specified
-Resource via an HTTP `DELETE` directed to the owning Resource's xRegistry
-[`versions` collection](./spec.md#versions-collection).
+A server MAY support clients deleting one or more
+[ Versions](./spec.md#version-entity) within a specified
+[Resource](./spec.md#resource-entity)  via an HTTP `DELETE` directed to the
+owning Resource's [`versions` collection](./spec.md#versions-collection) URL.
 
 The processing of this API is defined in the
 [Deleting Entities](./spec.md#deleting-entities) section of the
@@ -2461,7 +2559,7 @@ The request MUST be of the form:
 DELETE /<GROUPS>/<GID>/<RESOURCES>/versions
 
 {
-   "<KEY>": {                            # <KEY> = versionid
+   "<KEY>": {                            # versionid
      "epoch": <UINTEGER> ?
    } *
 } ?
@@ -2499,8 +2597,10 @@ delete, but no such check will happen for `v2.0`.
 
 #### `GET /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`]
 
-A server MAY support clients retrieving a Version of a Resource via an HTTP
-`GET` directed to the Version entity.
+A server MAY support clients retrieving a
+[ Version](./spec.md#version-entity) of a
+[ Resource](./spec.md#resource-entity) via an HTTP `GET` directed to the
+Version entity.
 
 The request MUST be of the form:
 
@@ -2523,34 +2623,9 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "<RESOURCE>id": "<STRING>",
-  "versionid": "<STRING>",
-  "self": "<URL>",
-  "shortself": "<URL>", ?
-  "xid": "<XID>",
-  "epoch": <UINTEGER>,
-  "name": "<STRING>", ?
-  "isdefault": <BOOLEAN>,
-  "description": "<STRING>", ?
-  "documentation": "<URL>", ?
-  "icon": "<URL>", ?
-  "labels": { "<STRING>": "<STRING>" * }, ?
-  "createdat": "<TIMESTAMP>",
-  "modifiedat": "<TIMESTAMP>",
-  "ancestor": "<STRING>",
-  "contenttype": "<STRING>", ?
-
-  "<RESOURCE>url": "<URL>", ?                # If not local
-  "<RESOURCE>": ... Resource document ..., ? # If inlined & JSON
-  "<RESOURCE>base64": "<STRING>" ?           # If inlined & ~JSON
+  ... Version entity excluded for brevity ...
 }
 ```
-
-Where:
-- `<RESOURCE>id` MUST be the `<SINGULAR>id` of the owning Resource.
-- `versionid` MUST be the `<SINGULAR>id` of the Version.
-- `self` MUST be a URL to the Version, not to the owning Resource.
-- `xid` MUST be a relative URI to the Version, not to the owning Resource.
 
 When `$details` is not used and the Resource is configured to have a
 domain-specific document, then a successful response MUST either return the
@@ -2562,6 +2637,8 @@ MUST be of the form:
 
 ```yaml
 HTTP/1.1 200 OK
+or
+HTTP/1.2 303 See Other
 Content-Type: <STRING> ?
 xRegistry-<RESOURCE>id: <STRING>
 xRegistry-versionid: <STRING>
@@ -2569,7 +2646,7 @@ xRegistry-self: <URL>
 xRegistry-xid: <XID>
 xRegistry-epoch: <UINTEGER>
 xRegistry-name: <STRING> ?
-xRegistry-isdefault: <BOOLEAN> ?
+xRegistry-isdefault: <BOOLEAN>
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
@@ -2577,46 +2654,17 @@ xRegistry-labels-<KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
 xRegistry-ancestor: <STRING>
+Location: <URL> ?                        # If 303 is returned
 Content-Disposition: <STRING> ?
 
-... Version document ...
+... Version document ...                 # If <RESOURCE>url is not set
 ```
 
 Where:
-- `<RESOURCE>id` MUST be the `<SINGULAR>id` of the owning Resource.
-- `versionid` MUST be the `<SINGULAR>id` of the Version.
-- `self` MUST be a URL to the Version, not to the owning Resource.
-- `xid` MUST be a relative URI to the Version, not to the owning Resource.
 - `Content-Disposition` SHOULD be present and if so, MUST be the `<RESOURCE>id`
   value. This allows for HTTP tooling that is not aware of xRegistry to know
   the desired filename to use if the HTTP body were to be written to a file.
-
-In the case of a redirect, the response MUST be of the form:
-
-```yaml
-HTTP/1.1 303 See Other
-Content-Type: <STRING> ?
-xRegistry-<RESOURCE>id: <STRING>
-xRegistry-versionid: <STRING>
-xRegistry-self: <URL>
-xRegistry-xid: <URI>
-xRegistry-epoch: <UINTEGER>
-xRegistry-name: <STRING> ?
-xRegistry-isdefault: <BOOLEAN> ?
-xRegistry-description: <STRING> ?
-xRegistry-documentation: <URL> ?
-xRegistry-icon: <URL> ?
-xRegistry-labels-<KEY>: <STRING> *
-xRegistry-createdat: <TIMESTAMP>
-xRegistry-modifiedat: <TIMESTAMP>
-xRegistry-ancestor: <STRING>
-xRegistry-<RESOURCE>url: <URL>
-Location: <URL>
-Content-Disposition: <STRING> ?
-```
-
-Where:
-- `Location` and `<RESOURCE>url` MUST have the same value.
+- `Location`, if present, and `<RESOURCE>url` MUST have the same value.
 
 **Examples:**
 
@@ -2663,45 +2711,179 @@ xRegistry-modifiedat: 2024-04-30T12:00:01Z
 xRegistry-ancestor: 1.0
 Content-Disposition: myschema
 
-{
-  # Contents of a schema doc excluded for brevity
-}
+{ ... Contents of a schema doc excluded for brevity ...  }
 ```
 
 #### `PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`]
 #### `PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`]
 
-A server MAY support clients creating or updating a Version of a Resource
-via an HTTP `PATCH` or `POST` directed to the Version.
+A server MAY support clients creating or updating a
+[Version](./spec.md#version-entity) of a
+[Resource](./spec.md#resource-entity) via an HTTP `PATCH` or `POST` directed
+to the Version.
 
 The processing of these APIs is defined in the [Creating or Updating
 Entities](#creating-or-updating-entities) section.
 
-The request MUST be of the form:
-
-```yaml
-PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>[$details]
-PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>[$details]
-TODO
-```
-
-Where the `$details` suffix controls whether the request is directed to the
-Version metadata or to the Version domain-specific document. See
+The `$details` suffix controls whether the request is directed to the
+Resource metadata or to the Resource domain-specific document. See
 [Resource Metadata vs Resource Document](#resource-metadata-vs-resource-document)
 for more information.
 
-When `$details` is used, or the Resource is not configured to have a
-domain-specific document, then a successful response MUST be:
-TODO
+When directed to the Version metadata, the request MUST be of the form:
 
-TODO - PATCH + doc is not supported
+```yaml
+```yaml
+PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>[$details]
+Content-Type: application/json; charset=utf-8
+or
+PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>[$details]
+Content-Type: application/json; charset=utf-8
+
+{ ... Version entity excluded for brevity ... }
+```
+
+The response MUST be of the form:
+
+```yaml
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{ ... Version entity excluded for brevity ... }
+```
+
+When directed to the Version's domain-specific document, the request MUST be
+of the form:
+
+```yaml
+PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>
+Content-Type: application/json; charset=utf-8
+
+Content-Type: <STRING> ?
+xRegistry-<RESOURCE>id: <STRING> ?
+xRegistry-versionid: <STRING> ?         # Version-level attributes
+xRegistry-epoch: <UINTEGER> ?
+xRegistry-name: <STRING> ?
+xRegistry-isdefault: <BOOLEAN>
+xRegistry-description: <STRING> ?
+xRegistry-documentation: <URL> ?
+xRegistry-icon: <URL> ?
+xRegistry-labels-<KEY>: <STRING> *
+xRegistry-createdat: <TIMESTAMP> ?
+xRegistry-modifiedat: <TIMESTAMP> ?
+xRegistry-ancestor: <STRING> ?
+xRegistry-<RESOURCE>url: <URL> ?
+
+... Version document excluded for brevity ... ?
+```
+
+Note that `PATCH` for Resources with domain-specific documents is not
+supported.
+
+A successful response MUST be of the form:
+
+```yaml
+HTTP/1.1 200 OK
+or
+HTTP/1.1 303 See Other
+Content-Type: <STRING> ?
+xRegistry-<RESOURCE>id: <STRING>
+xRegistry-versionid: <STRING>
+xRegistry-self: <URL>
+xRegistry-xid: <XID>
+xRegistry-epoch: <UINTEGER>
+xRegistry-name: <STRING> ?
+xRegistry-isdefault: <BOOLEAN>
+xRegistry-description: <STRING> ?
+xRegistry-documentation: <URL> ?
+xRegistry-icon: <URL> ?
+xRegistry-labels-<KEY>: <STRING> *
+xRegistry-createdat: <TIMESTAMP>
+xRegistry-modifiedat: <TIMESTAMP>
+xRegistry-ancestor: <STRING>
+xRegistry-<RESOURCE>url: <URL> ?       # If Resource is not in body
+Location: <URL> ?                      # If 303 is returned
+Content-Location: <URL> ?
+Content-Disposition: <STRING> ?
+
+... Version document ...               # If <RESOURCE>url is not set
+```
 
 **Examples:**
 
+Create a new Version:
+
+```yaml
+PUT /endpoints/ep1/messages/msg1/versions/v2.0
+Content-Type: application/json; charset=utf-8
+xRegistry-name: Blob Created v2
+
+{ ... Definition of "Blob Created" event (document) excluded for brevity ... }
+```
+
+```yaml
+HTTP/1.1 201 Created
+Content-Type: application/json; charset=utf-8
+xRegistry-messageid: msg1
+xRegistry-versionid: v2.0
+xRegistry-self: https://example.com/endpoints/ep1/messages/msg1/versions/v2.0
+xRegistry-xid: /endpoints/ep1/messages/msg1/versions/v2.0
+xRegistry-epoch: 1
+xRegistry-name: Blob Created v2
+xRegistry-isdefault: true
+xRegistry-ancestor: v1.0
+Location: https://example.com/endpoints/ep1/messages/msg1/versions/v2.0
+Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/v2.0
+Content-Disposition: msg1
+
+{ ... Definition of "Blob Created" event (document) excluded for brevity ... }
+```
+
+Update a Version of a Resource as metadata:
+
+```yaml
+PUT /endpoints/ep1/messages/msg1/versions/v2.0$details/
+Content-Type: application/json; charset=utf-8
+
+{
+  "name": "Blob Created v2",
+  "description": "a cool event",
+  "message": {
+    # Updated definition of a "Blob Created" event excluded for brevity
+  },
+}
+```
+
+```yaml
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/v2.0
+
+{
+  "messageid": "msg1",
+  "versionid": "1",
+  "self": "https://example.com/endpoints/ep1/messages/msg1/versions/v2.0",
+  "xid": "/endpoints/ep1/messages/msg1/versions/v2.0",
+  "epoch": 2,
+  "name": "Blob Created v2",
+  "isdefault": true,
+  "description": "a cool event",
+  "createdat": "2024-04-30T12:00:00Z",
+  "modifiedat": "2024-04-30T12:00:01Z",
+  "ancestor": "v1.0",
+
+  "message": {
+    # Updated definition of a "Blob Created" event excluded for brevity
+  },
+}
+```
+
 #### `DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`]
 
-A server MAY support clients deleting a Version of a Resource via an
- HTTP `DELETE` directed to the Version entity.
+A server MAY support clients deleting a
+[Version](./spec.md#version-entity) of a
+[Resource](./spec.md#resource-entity) via an HTTP `DELETE` directed to the
+Version entity.
 
 The processing of this API is defined in the
 [Deleting Entities](./spec.md#deleting-entities) section of the
@@ -3106,10 +3288,6 @@ The following list of HTTP protocol specific errors are defined:
 <!-- end-err-def -->
 
 ### ---
-
-TODO which errors are http specific - define them here and remove from core
-
-TODO define an HTTP mapping for the errors, remove the http-ness from core
 
 [rfc7230-section-3]: https://tools.ietf.org/html/rfc7230#section-3
 [rfc7230-section-3-2-6]: https://tools.ietf.org/html/rfc7230#section-3.2.6

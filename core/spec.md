@@ -25,6 +25,7 @@ or automation and tooling usage.
   - [Data Retrieval Issues](#design-data-retrieval-issues)
   - [Importing Data](#design-importing-data)
   - [JSON `$schema` keyword](#design-json-schema-keyword)
+  - [Implicit Creation of Parent Entities](#design-implicit-creation-of-parent-entities)
 - [Registry Model](#registry-model)
   - [Implementation Customizations](#implementation-customizations)
   - [Attributes and Extensions](#attributes-and-extensions)
@@ -662,6 +663,18 @@ document that describes the message contents. These notations can be used or
 ignored by receivers of these messages. There is no requirement for
 implementations of this specification to persist these values, to include them
 in responses or to use this information.
+
+### Design: Implicit Creation of Parent Entities
+
+To reduce the number of interactions needed when creating an entity, all
+nonexisting parent entities specified as part of `<PATH>` to the entity MUST
+be implicitly created. Each of those entities MUST be created with the
+appropriate `<SINGULAR>id` specified in the `<PATH>`. If any of those
+entities have REQUIRED attributes, then they cannot be implicitly created, and
+would need to be created directly. This also means that the creation of the
+original entity would fail and generate an error
+([required_attribute_missing](./spec.md#required_attribute_missing)) for the
+appropriate parent entity.
 
 ---
 
@@ -2375,7 +2388,10 @@ then the resulting serialization of the source Resource would be:
     "createdat": "2024-01-01-T12:00:00Z",
     "modifiedat": "2024-01-01-T12:01:00Z",
     "readonly": false,
-    "compatibility": "none"
+    "compatibility": "none",
+    "defaultversionid": "v1",
+    "defaultversionurl": "http://example.com/schemagroups/group1/schemas/mySchema/versions/v1",
+    "defaultversionsticky": false
   },
   "versionscount": 1,
   "versionsurl": "http://example.com/schemagroups/group1/schemas/mySchema/versions"
