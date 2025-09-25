@@ -26,6 +26,7 @@ or automation and tooling usage.
   - [Importing Data](#design-importing-data)
   - [JSON `$schema` keyword](#design-json-schema-keyword)
   - [Implicit Creation of Parent Entities](#design-implicit-creation-of-parent-entities)
+  - [Events](#design-events)
 - [Registry Model](#registry-model)
   - [Implementation Customizations](#implementation-customizations)
   - [Attributes and Extensions](#attributes-and-extensions)
@@ -51,7 +52,6 @@ or automation and tooling usage.
   - [Sort Flag](#sort-flag)
   - [SpecVersion Flag](#specversion-flag)
 - [Error Processing](#error-processing)
-- [Events](#events)
 
 ## Overview
 
@@ -675,6 +675,12 @@ would need to be created directly. This also means that the creation of the
 original entity would fail and generate an error
 ([required_attribute_missing](./spec.md#required_attribute_missing)) for the
 appropriate parent entity.
+
+### Design: Events
+
+xRegistry defines a set of events that SHOULD be generated when changes are
+made to the entities within a Registry. See the [xRegistry Events](./events.md)
+specification for more information.
 
 ---
 
@@ -4121,14 +4127,6 @@ something unexpected happened in the server that caused an error condition.
 
 
 <!-- end-err-def -->
-
----
-
-## Events
-
-xRegistry defines a set of events that SHOULD be generated when changes are
-made to the entities within a Registry. See the [xRegistry Events](./events.md)
-specification for more information.
 
 [rfc3986-section-2-1]: https://tools.ietf.org/html/rfc3986#section-2.1
 [rfc3339]: https://tools.ietf.org/html/rfc3339
