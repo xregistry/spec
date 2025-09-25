@@ -1014,3 +1014,12 @@ of check on all attributes to determine if anything changed, and then only
 "bumping" those attributes' values if there was a change. This could be an
 expensive or ambiguous check to perform, so it was determined it would be best
 to avoid it all together.
+
+## Defining Extensions
+
+When defining extensions for xRegistry, whether it is via a model definition
+or by extending the functionality of the specification itself (e.g. adding
+new APIs), care should be taken to limit the possibility of overlapping with
+any future xRegistry work. While it is impossible to predict the future, some
+steps can be taken to lessen the concern. For example, using domain, or
+company, specific terms when naming things.

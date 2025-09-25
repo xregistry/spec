@@ -153,10 +153,6 @@ Implementations MAY support extension APIs, however, the following rules apply:
 - New root HTTP paths MAY be defined as long as they do not use Registry-level
   HTTP paths or attribute names. This includes extension and Groups collection
   attribute names.
-- Additional HTTP methods for specification-defined HTTP paths MUST NOT be
-  defined.
-
-TODO is the last one too restrictive? Perhaps we SHOULD remain silent on it?
 
 For example, a new API with an HTTP path of `/my-api` is allowed, but APIs with
 `/model/my-api` or `/name` HTTP paths are not.
@@ -360,11 +356,10 @@ following exceptions:
   newly created entity, the HTTP status MUST be `201 Created`, and it MUST
   include an HTTP `Location` header with a URL to the newly created entity.
   Note that this URL MUST be the same as the `self` attribute of that entity.
-- In the `PUT` or `PATCH` cases directed at a single entity, and a new
-  Version was created, the response MUST include a `Content-Location` HTTP
-  header to the newly created Version entity, and it MUST be the same as the
-  Version's `self` attribute.
-TODO ^^ just pointing to Resource or Version? Not Registry or Group
+- In the `PUT` or `PATCH` cases directed at a single Resource or Version, and
+  a new Version was created, the response MUST include a `Content-Location`
+  HTTP header to the newly created Version entity, and it MUST be the same as
+  the Version's `self` attribute.
 - The responses MUST NOT include any inlineable attributes (such as
   `<RESOURCE>`, `<RESOURCE>base64` or nested objects/collections) unless
   requested.
@@ -1410,13 +1405,14 @@ HTTP/1.1 204 No Content
 
 In the core specification's
 [Resource Metadata vs Resource Document](./spec.md#resource-metadata-vs-resource-document)
-section, it explains how Resources might have a domain-specific document
-associated with them via the
-[`hasdocument` model aspect](./model.md#groupsstringresourcesstringhasdocument`).
-For HTTP, clients indicate which view of the Resource they want to interact
-with via the use of a `$details` suffix on the URL to the Resource. Presence
-of the `$details` suffix MUST be interpreted as a request to interact with
-the xRegistry metadata view of the Resource, while its absence MUST be
+section, it explains how Resources types might be defined to optionally have a
+domain-specific document associated with them via their
+[`hasdocument` model aspect](./model.md#groupsstringresourcesstringhasdocument`)
+being set to `true`. For HTTP, clients indicate whether they want to interact
+with the Resource's xRegistry metadata or the Resource's domain-specific
+document by the use of a `$details` suffix on the `<RESOURCE>id` in its URL.
+Presence of the `$details` suffix MUST be interpreted as a request to interact
+with the xRegistry metadata of the Resource, while its absence MUST be
 interpreted as a request to interact with the Resource's domain-specific
 document.
 
@@ -1442,6 +1438,11 @@ be treated the same as if it were absent and any URLs in server response
 messages referencing that Resource (e.g. `self`) MUST NOT include it.
 
 ##### Serializing Resource Domain-Specific Documents
+
+This section goes into more details concerning situations where a Resource
+type is defined to support domain-specific documents (i.e.
+[`hasdocument`](./model.md#groupsstringresourcesstringhasdocument)
+is set to `true`.
 
 When a Resource is serialized as its underlying domain-specific document,
 in other words `$details` is not appended to its URL path, the HTTP body of
