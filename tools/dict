@@ -9,7 +9,6 @@ asc
 asyncapi
 attr
 attribs
-attributename
 attributesstringitem
 attributesstringnamecharset
 attributesstringtarget
@@ -23,6 +22,7 @@ backend
 basemessage
 bson
 bunnymq
+capabilitiesoffered
 cereg
 charset
 checkedin
@@ -67,7 +67,10 @@ definitionscount
 definitionsurl
 deploymentid
 deviceid
+dirid
 dirs
+dirscount
+discount
 distributionmode
 emoji
 endpointid
@@ -79,7 +82,10 @@ envelopeoptions
 erp
 etag
 eventing
+fabrikam
 files
+filescount
+filesurl
 filesystem
 gid
 github
@@ -88,6 +94,12 @@ gmt
 gotchas
 groupid
 groupscount
+groupsgid
+groupsgidresources
+groupsgidresourcesrid
+groupsgidresourcesridmeta
+groupsgidresourcesridversions
+groupsgidresourcesridversionsvid
 groupsstringcompatiblewith
 groupsstringmodelversion
 groupsstringresourcesstringmetaattributes
@@ -108,11 +120,13 @@ ietf
 ifvalues
 ignoredefaultversionid
 ignoredefaultversionsticky
+ignoreeopch
 ignoreepoch
 ignorereadonly
 img
 impl
 inkjet
+inkjetprinter
 inlineable
 inlined
 inlines
@@ -124,10 +138,12 @@ javadoc
 json
 jsonpath
 jsonschema
+jul
 keyname
 lifecycle
 lightbulb
 linkproperties
+mapname
 maxmaxversions
 maxversions
 messagegroupid
@@ -213,6 +229,7 @@ resourceurl
 resultset
 rfc
 rid
+robovac
 rpc
 schemagroup
 schemagroupid
@@ -241,6 +258,7 @@ singularid
 smartoven
 someattribute
 someattributes
+sourceregistry
 sparkplugb
 specurl
 specversion
@@ -250,6 +268,7 @@ ssl
 stickyversions
 stringified
 svg
+targetregistry
 tcp
 telemetrydata
 telemetryevent
@@ -314,6 +333,7 @@ xmlschema
 xpath
 xreg
 xregbasicmodel
+xregcorrelationid
 xregfullmodel
 xregistries
 xregistry

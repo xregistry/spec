@@ -10,11 +10,11 @@ END_PATTERN="end-err-def"
 # This assumes the list of errors is in the first file name listed on the
 # cmd line. Then ALL files listed will be parsed to see which errors are used.
 
-echo "> Extracting error list from: $1"
+echo "> Extracting error list from: $*"
 echo "> Looking for errors usage in: $*"
 
 # Make IFS a dummay char so we save the newlines
-IFS="!" lines=$(sed -r -n "/$START_PATTERN/,/$END_PATTERN/p" $1 | \
+IFS="!" lines=$(sed -r -n "/$START_PATTERN/,/$END_PATTERN/p" $* | \
   sed -n 's/#### //p')
 
 [[ "$lines" == "" ]] && echo "Can't find any errors" && exit 1
@@ -25,7 +25,7 @@ first="UNUSED ERRORS:\n"
 
 for err in "${err_array[@]}"; do
   ref=$(echo "$err" | tr '[:upper:]' '[:lower:]' | sed "s/ /-/g")
-  grep -e "(#$ref)" -e "(\./spec\.md#$ref)" $* > /dev/null && continue
+  grep -e "(#$ref)" -e "(\./[a-z]*\.md#$ref)" $* > /dev/null && continue
 
   # special case this one
   [[ "$ref" == "server_error" ]] && continue
@@ -36,13 +36,25 @@ for err in "${err_array[@]}"; do
   rc=1
 done
 
-# make sure the errors are alphabetized
-diff=$(IFS="!" diff <(echo "$lines") <(echo "$lines" | sort) || true)
-if [[ "$diff" != "" ]] ; then
-  [[ "$rc" != "0" ]] && echo
-  echo "ALPHABETIZE THESE:"
-  echo "$diff" | grep "> " | sed "s/> /- /"
-  rc=1
-fi
+# make sure the errors are alphabetized - per file
+
+for file in $* ; do
+
+  echo "> Checking alphabetical order in: $file"
+
+  IFS="!" lines=$(sed -r -n "/$START_PATTERN/,/$END_PATTERN/p" $file | \
+    sed -n 's/#### //p')
+
+  [[ "$lines" == "" ]] && continue
+
+  diff=$(IFS="!" diff <(echo "$lines") <(echo "$lines" | sort) || true)
+  if [[ "$diff" != "" ]] ; then
+    [[ "$rc" != "0" ]] && echo
+    echo "ALPHABETIZE THESE (in $file):"
+    echo "$diff" | grep "> " | sed "s/> /- /"
+    rc=1
+  fi
+
+done
 
 exit $rc
