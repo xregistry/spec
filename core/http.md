@@ -22,7 +22,7 @@ model and semantics that apply to all protocols.
     - [`PUT /`](#put-)
     - [`POST /`](#post-)
     - [`GET /export`](#get-export)
-  - [Registry Capability](#registry-capability)
+  - [Registry Capabilities](#registry-capabilities)
     - [`GET /capabilities`](#get-capabilities)
     - [`GET /capabilitiesoffered`](#get-capabilitiesoffered)
     - [`PATCH /capabilities`](#patch-capabilities)
@@ -65,7 +65,7 @@ model and semantics that apply to all protocols.
     - [`PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`](#patch-groupsgidresourcesridversionsvid)
     - [`PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`](#put-groupsgidresourcesridversionsvid)
     - [`DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`](#delete-groupsgidresourcesridversionsvid)
-- [Flags / Query Parameters](#flags--query-parameters)
+- [Request Flags / Query Parameters](#request-flags--query-parameters)
   - [`?binary` Flag](#binary-flag)
   - [`?collections` Flag](#collections-flag)
   - [`?doc` Flag](#doc-flag)
@@ -73,7 +73,7 @@ model and semantics that apply to all protocols.
   - [`?filter` Flag](#filter-flag)
   - [`?ignoredefaultversionid` Flag](#ignoredefaultversionid-flag)
   - [`?ignoredefaultversionsticky` Flag](#ignoredefaultversionsticky-flag)
-  - [`?ignoreeopch` Flag](#ignoreepoch-flag)
+  - [`?ignoreepoch` Flag](#ignoreepoch-flag)
   - [`?ignorereadonly` Flag](#ignorereadonly-flag)
   - [`?inline` Flag](#inline-flag)
   - [`?setdefaultversionid` Flag](#setdefaultversionid-flag)
@@ -226,14 +226,14 @@ This defines the general rules for how to update entities.
 
 Creating or updating entities MAY be done using HTTP `PUT`, `PATCH` or `POST`
 methods:
-- `PUT    <PATH-TO-ENTITY>                     # Process a single entity
-- `PATCH  <PATH-TO-ENTITY>                     # Process a single entity
-- `POST   <PATH-TO-ENTITY>                     # Process a set of child entities
-- `PATCH  <PATH-TO-COLLECTION>                 # Process a set of entities
-- `POST   <PATH-TO-COLLECTION>                 # Process a set of entities
+- `PUT    <PATH-TO-ENTITY>                # Process a single entity`
+- `PATCH  <PATH-TO-ENTITY>                # Process a single entity`
+- `POST   <PATH-TO-ENTITY>                # Process a set of child entities`
+- `PATCH  <PATH-TO-COLLECTION>            # Process a set of entities`
+- `POST   <PATH-TO-COLLECTION>            # Process a set of entities`
 
-See the [`Flags`](#flags--query-parameters) section for the list of
-flags/query parameters that MAY be used for each API.
+See the [`Request Flags`](#request-flags--query-parameters) section for the
+list of flags/query parameters that MAY be used for each API.
 
 The `PUT` variant MUST adhere to the following:
   - The URL MUST be of the form: `<PATH-TO-ENTITY>`.
@@ -372,7 +372,7 @@ TODO ^^ just pointing to Resource or Version? Not Registry or Group
 Otherwise an HTTP `200 OK` without an HTTP `Location` header MUST be returned.
 
 Note that the response MUST be generated applying the semantics of any
-[flags](#flags--query-parameters) specified in the request
+[request flags](#request-flags--query-parameters) specified in the request
 URL (e.g. `?inline`).
 
 #### HTTP-Specific Attribute Processing Rules
@@ -687,7 +687,7 @@ Content-Type: application/json; charset=utf-8
 #### `GET /export`
 
 The `GET /export` API MUST be an alias for
-`GET /?doc&inline=*,capabilities,modelsource". If this path is supported,
+`GET /?doc&inline=*,capabilities,modelsource`. If this path is supported,
 it MUST NOT support any HTTP update methods. This API was created:
 - As a shorthand convenience syntax for clients that need to download the
   entire [Registry](./spec.md#registry-entity) as a single document. For
@@ -698,7 +698,7 @@ it MUST NOT support any HTTP update methods. This API was created:
   [No-Code Servers](./spec.md#design-no-code-servers)) to expose the entire
   Registry with a single (non-query parameterized) API call.
 
-[Flags](#flags--query-parameters) MAY be included on the request, if
+[Request Flags](#request-flags--query-parameters) MAY be included, if
 supported, and any [`?inline` flag](#inline-flag) specified MUST override the
 default value defined above.
 
@@ -719,7 +719,7 @@ Content-Type: application/json; charset=utf-8
 }
 ```
 
-### Registry Capability
+### Registry Capabilities
 
 #### `GET /capabilities`
 
@@ -2393,7 +2393,7 @@ error ([method_not_allowed](./spec.md#method_not_allowed)).
 
 ### Version Entity
 
-#### `GET /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`]
+#### `GET /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`
 
 A server MAY support clients retrieving the
 [`versions` collection](./spec.md#versions-collection) of a
@@ -2449,8 +2449,8 @@ Link: <https://example.com/endpoints/ep1/messages/msg1/versions&page=2>;rel=next
 }
 ```
 
-#### `PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`]
-#### `POST /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`]
+#### `PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`
+#### `POST /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`
 
 A server MAY support clients creating/updating one or more
 [Versions](./spec.md#version-entity), of a
@@ -2542,7 +2542,7 @@ Note that in this case, the new "label" replaces all existing labels, it is
 not a "merge" operation because all attributes need to be specified in their
 entirety.
 
-#### `DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`]
+#### `DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`
 
 A server MAY support clients deleting one or more
 [ Versions](./spec.md#version-entity) within a specified
@@ -2595,7 +2595,7 @@ HTTP/1.1 204 No Content
 Notice that the `epoch` value for `v1.0` will be verified prior to the
 delete, but no such check will happen for `v2.0`.
 
-#### `GET /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`]
+#### `GET /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`
 
 A server MAY support clients retrieving a
 [ Version](./spec.md#version-entity) of a
@@ -2714,12 +2714,12 @@ Content-Disposition: myschema
 { ... Contents of a schema doc excluded for brevity ...  }
 ```
 
-#### `PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`]
-#### `PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`]
+#### `PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`
+#### `PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`
 
 A server MAY support clients creating or updating a
 [Version](./spec.md#version-entity) of a
-[Resource](./spec.md#resource-entity) via an HTTP `PATCH` or `POST` directed
+[Resource](./spec.md#resource-entity) via an HTTP `PATCH` or `PUT` directed
 to the Version.
 
 The processing of these APIs is defined in the [Creating or Updating
@@ -2878,7 +2878,7 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/v2.0
 }
 ```
 
-#### `DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`]
+#### `DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`
 
 A server MAY support clients deleting a
 [Version](./spec.md#version-entity) of a
@@ -2925,12 +2925,12 @@ DELETE /endpoints/ep1/messages/msg1/versions?epoch=5
 HTTP/1.1 204 No Content
 ```
 
-## Flags / Query Parameters
+## Request Flags / Query Parameters
 
 The [core xRegistry specification](./spec.md) defines a set of
-[flags](./spec.md#flags) that MAY be used to control the processing of requests
-as well as influence how response messages are generated. Each flag is mapped
-to an HTTP query parameter, as defined in the following sections:
+[flags](./spec.md#request-flags) that MAY be used to control the processing of
+requests as well as influence how response messages are generated. Each flag
+is mapped to an HTTP query parameter, as defined in the following sections:
 
 - [`?binary` Flag](#binary-flag)
 - [`?collections` Flag](#collections-flag)
@@ -2939,7 +2939,7 @@ to an HTTP query parameter, as defined in the following sections:
 - [`?filter` Flag](#filter-flag)
 - [`?ignoredefaultversionid` Flag](#ignoredefaultversionid-flag)
 - [`?ignoredefaultversionsticky` Flag](#ignoredefaultversionsticky-flag)
-- [`?ignoreeopch` Flag](#ignoreepoch-flag)
+- [`?ignoreepoch` Flag](#ignoreepoch-flag)
 - [`?ignorereadonly` Flag](#ignorereadonly-flag)
 - [`?inline` Flag](#inline-flag)
 - [`?setdefaultversionid` Flag](#setdefaultversionid-flag)
@@ -2955,7 +2955,7 @@ domain-specific documents be serialized under its `<RESOURCE>base64`
 
 See [Binary Flag](./spec.md#binary-flag) for more information.
 
-This query parameter MUST be serialize as:
+This query parameter MUST be serialized as:
 
 ```yaml
 ?binary
@@ -2970,7 +2970,7 @@ attribute(s).
 
 See [Collections Flag](./spec.md#collections-flag) for more information.
 
-This query parameter MUST be serialize as:
+This query parameter MUST be serialized as:
 
 ```yaml
 ?collections
@@ -2983,7 +2983,7 @@ that response be modified such that duplicate metadata be excluded.
 
 See [Doc Flag](./spec.md#doc-flag) for more information.
 
-This query parameter MUST be serialize as:
+This query parameter MUST be serialized as:
 
 ```yaml
 ?doc
@@ -2997,7 +2997,7 @@ prior to deleting the entity.
 
 See [Epoch Flag](./spec.md#epoch-flag) for more information.
 
-This query parameter MUST be serialize as:
+This query parameter MUST be serialized as:
 
 ```yaml
 ?epoch=<UINTEGER>
@@ -3040,7 +3040,7 @@ the request MUST be ignored.
 See [IgnoreDefaultVersionID Flag](./spec.md#ignoredefaultversionid-flag) for
 more information.
 
-This query parameter MUST be serialize as:
+This query parameter MUST be serialized as:
 
 ```yaml
 ?ignoredefaultversionid
@@ -3056,7 +3056,7 @@ See
 [IgnoreDefaultVersionSticky Flag](./spec.md#ignoredefaultversionsticky-flag)
 for more information.
 
-This query parameter MUST be serialize as:
+This query parameter MUST be serialized as:
 
 ```yaml
 ?ignoredefaultversionsticky
@@ -3070,7 +3070,7 @@ the request MUST be ignored.
 
 See [IgnoreEpoch Flag](./spec.md#ignoreepoch-flag) for more information.
 
-This query parameter MUST be serialize as:
+This query parameter MUST be serialized as:
 
 ```yaml
 ?ignoreepoch
@@ -3084,7 +3084,7 @@ entity MUST NOT generate an error.
 
 See [IgnoreReadonly Flag](./spec.md#ignorereadonly-flag) for more information.
 
-This query parameter MUST be serialize as:
+This query parameter MUST be serialized as:
 
 ```yaml
 ?ignorereadonly
@@ -3145,7 +3145,7 @@ adhere to.
 
 See [SpecVersion Flag](./spec.md#specversion-flag) for more information.
 
-This query parameter MUST be serialize as:
+This query parameter MUST be serialized as:
 
 ```yaml
 ?specversion=<STRING>

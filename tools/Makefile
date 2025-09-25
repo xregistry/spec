@@ -3,7 +3,7 @@ all: docker
 		( echo "schema files have been updated, make sure you commit them" ; \
 		  exit 1 )
 
-verify: spellcheck tabcheck errorcheck samplescheck links
+verify: spellcheck tabcheck errorcheck samplescheck links ticks
 
 spellcheck:
 	tools/spellcheck */README.md */spec.md core/*.md \
@@ -13,6 +13,10 @@ spellcheck:
 tabcheck:
 	tools/tabcheck `find . -name "*.md" -o -name "*.json"`
 	@echo
+
+ticks:
+	@echo "Checking for uneven back-ticks"
+	@(! grep '^[^`]*`[^`]*$$' core/*.md)
 
 errorcheck:
 	tools/errorcheck core/spec.md core/model.md core/http.md

@@ -179,7 +179,7 @@ The overall format of a model definition is as follows:
           "icon": "<URL>", ?
           "labels": { "<STRING>": "<STRING>" * }, ?
           "modelversion": "<STRING>", ?  # Version of the resource model
-          "compatiblewith": "<URI>"`, ?  # Statement of compatibility
+          "compatiblewith": "<URI>", ?   # Statement of compatibility
           "maxversions": <UINTEGER>, ?   # Num Vers(>=0). Default=0, 0=unlimited
           "setversionid": <BOOLEAN>, ?   # vid settable? Default=true
           "setdefaultversionsticky": <BOOLEAN>, ? # Sticky settable? Default=true

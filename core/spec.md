@@ -36,7 +36,7 @@ or automation and tooling usage.
     - [Creating or Updating Resources and
        Versions](#creating-or-updating-resources-and-versions)
   - [Version Entity](#version-entity)
-- [Flags](#flags)
+- [Request Flags](#request-flags)
   - [Binary Flag](#binary-flag)
   - [Collections Flag](#collections-flag)
   - [Doc Flag](#doc-flag)
@@ -377,11 +377,11 @@ custom code) might not always be possible.
 
 To support these simple (no-code) scenarios, this specification (and the
 protocol binding specifications) are written such that the support for the
-various operations and features (e.g. [flags](#flags)) will typically be
-marked as OPTIONAL (often with a "SHOULD" RFC2119 key word). However, it is
-STRONGLY RECOMMENDED that full servers support as many of the operations
-and features/flags when possible to enable a better user experience, and
-increase interoperability.
+various operations and features (e.g. [request flags](#request-flags)) will
+typically be marked as OPTIONAL (often with a "SHOULD" RFC2119 key word).
+However, it is STRONGLY RECOMMENDED that full servers support as many of the
+operations and features/flags when possible to enable a better user
+experience, and increase interoperability.
 
 See the [HTTP Binding](./http.md#no-code-servers) for more details on how
 this might manifest itself for HTTP servers.
@@ -652,8 +652,8 @@ Depending on the use case, they might not want some of the retrieved data
 to be applied during the update. For example, they might not want the
 `epoch` validation checking to occur. Rather than forcing the user to edit
 the data to remove the potentially problematic attributes, a client MAY use
-one of the `ignore*` [flags](#flags) to ignore some of the data in the
-incoming request.
+one of the `ignore*` [request flags](#request-flags) to ignore some of the
+data in the incoming request.
 
 ### Design: JSON `$schema` keyword
 
@@ -1785,8 +1785,8 @@ The following defines the specification-defined capabilities:
 #### `flags`
 - Name: `flags`
 - Type: Array of strings
-- Description: The list of supported [Flags](#flags). Absence in the map
-  indicates no support for that flag.
+- Description: The list of supported [Request Flags](#request-flags). Absence
+  in the map indicates no support for that flag.
 - Defined values:
     `binary`, `collections`, `doc`, `epoch`, `filter`, `ignoredefaultversionid`,
     `ignoredefaultversionsticky`, `ignoreepoch`, `ignorereadonly`, `inline`,
@@ -1795,7 +1795,7 @@ The following defines the specification-defined capabilities:
   are supported.
 - Examples:
   - `"flags": [ "filter", "inline" ]`    # Just these 2
-  - `"flags": [ "*" ]                    # All supported flags, for update only
+  - `"flags": [ "*" ]`                   # All supported flags, for update only
 
 #### `mutable`
 - Name `mutable`
@@ -2412,7 +2412,7 @@ Note:
 From a consumption (read) perspective, aside from the presence of the `xref`
 attribute, the Resource appears to be a normal Resource that exists within
 `group1`. All of the specification-defined features (e.g. `inline`,
-`filter` flags) MAY be used when retrieving the Resource.
+`filter` request flags) MAY be used when retrieving the Resource.
 
 However, from a write perspective it is quite different. In order to update
 the target Resource's attributes (or nested entities), a write operation MUST
@@ -2858,7 +2858,7 @@ and the following Version-level attributes:
   - MUST be `<SINGULAR>id` of the Version.
   - REQUIRED in API and document views.
   - MUST NOT use a value of `null` or `request` due to these being reserved
-    for use by the [SetDefaultVersionID Flag](#setdefaultversionid-flag)` .
+    for use by the [SetDefaultVersionID Flag](#setdefaultversionid-flag).
 
 - Examples:
   - `1.0`
@@ -2990,7 +2990,7 @@ and the following Version-level attributes:
   - MUST NOT be present if `<RESOURCE>base64` is also present.
   - MUST NOT be present if the Resource's
     [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
-    is set to `false.
+    is set to `false`.
 
 #### `<RESOURCE>base64` Attribute
 - Type: String
@@ -3007,7 +3007,7 @@ and the following Version-level attributes:
   - MUST NOT be present if `<RESOURCE>` is also present.
   - MUST NOT be present if the Resource's
     [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
-    is set to `false.
+    is set to `false`.
 
 ---
 
@@ -3017,7 +3017,7 @@ the potentially large amount of data from the Version's document in request
 and response messages could be cumbersome. To address this, the `<RESOURCE>`
 and `<RESOURCE>base64` attributes do not appear by default as part of the
 serialization of the Version. Rather, they MUST only appear in responses when
-the [Inline Flag`](#inline-flag) is used. Likewise, in
+the [Inline Flag](#inline-flag) is used. Likewise, in
 requests, these attributes are OPTIONAL and would only need to be used when a
 change to the document's content is needed at the same time as updates to the
 Version's metadata. However, the `<RESOURCE>url` attribute MUST always appear
@@ -3193,7 +3193,7 @@ Regardless of type of "delete" being done, the following rules apply:
 - Deleting an entity MUST delete all children entities as well.
 - Any error MUST result in the entire request being rejected.
 
-## Flags
+## Request Flags
 
 This specification allows for clients to configure server-side processing
 via the use of "flags" (configuration options) on requests. The allowable
