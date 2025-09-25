@@ -2693,7 +2693,7 @@ and the following Meta-level attributes:
 - Description: a URL to the default Version of the Resource.
 
   Note that if the Resource's
-  [`hasdocument` aspect][./model.md#groupsstringresourcesstringhasdocument)
+  [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
   is set to `true`, then this URL MUST reference the xRegistry metadata view
   of the Version, not the domain-specific document view.
 
