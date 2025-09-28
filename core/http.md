@@ -66,19 +66,6 @@ model and semantics that apply to all protocols.
     - [`PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`](#put-groupsgidresourcesridversionsvid)
     - [`DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`](#delete-groupsgidresourcesridversionsvid)
 - [Request Flags / Query Parameters](#request-flags--query-parameters)
-  - [`?binary` Flag](#binary-flag)
-  - [`?collections` Flag](#collections-flag)
-  - [`?doc` Flag](#doc-flag)
-  - [`?epoch` Flag](#epoch-flag)
-  - [`?filter` Flag](#filter-flag)
-  - [`?ignoredefaultversionid` Flag](#ignoredefaultversionid-flag)
-  - [`?ignoredefaultversionsticky` Flag](#ignoredefaultversionsticky-flag)
-  - [`?ignoreepoch` Flag](#ignoreepoch-flag)
-  - [`?ignorereadonly` Flag](#ignorereadonly-flag)
-  - [`?inline` Flag](#inline-flag)
-  - [`?setdefaultversionid` Flag](#setdefaultversionid-flag)
-  - [`?sort` Flag](#sort-flag)
-  - [`?specversion` Flag](#specversion-flag)
 - [HTTP Header Values](#http-header-values)
 - [Error Processing](#error-processing)
 
@@ -688,7 +675,7 @@ it MUST NOT support any HTTP update methods. This API was created:
   entire [Registry](./spec.md#registry-entity) as a single document. For
   example, to then be used in an "import" type of operation for another
   Registry, or for tooling that does not need the duplication of information
-  that [`?doc`](#doc-flag) removes.
+  that [Doc Flag](./spec.md#doc-flag) removes.
 - To allow for servers that do not support query parameters (such as
   [No-Code Servers](./spec.md#design-no-code-servers)) to expose the entire
   Registry with a single (non-query parameterized) API call.
@@ -2929,80 +2916,20 @@ HTTP/1.1 204 No Content
 ## Request Flags / Query Parameters
 
 The [core xRegistry specification](./spec.md) defines a set of
-[flags](./spec.md#request-flags) that MAY be used to control the processing of
-requests as well as influence how response messages are generated. Each flag
-is mapped to an HTTP query parameter, as defined in the following sections:
+[request flags](./spec.md#request-flags) that MAY be used to control the
+processing of requests as well as influence how response messages are
+generated. Each flag is mapped to an HTTP query parameter per the following
+rules:
 
-- [`?binary` Flag](#binary-flag)
-- [`?collections` Flag](#collections-flag)
-- [`?doc` Flag](#doc-flag)
-- [`?epoch` Flag](#epoch-flag)
-- [`?filter` Flag](#filter-flag)
-- [`?ignoredefaultversionid` Flag](#ignoredefaultversionid-flag)
-- [`?ignoredefaultversionsticky` Flag](#ignoredefaultversionsticky-flag)
-- [`?ignoreepoch` Flag](#ignoreepoch-flag)
-- [`?ignorereadonly` Flag](#ignorereadonly-flag)
-- [`?inline` Flag](#inline-flag)
-- [`?setdefaultversionid` Flag](#setdefaultversionid-flag)
-- [`?sort` Flag](#sort-flag)
-- [`?specversion` Flag](#specversion-flag)
+- When the flag is a boolean type of flag then it MUST be serialized
+  as `?FLAG_NAME`, all lower case.
+- When the flag has a single value associated with it, then it MUST be
+  serialized as `?FLAG_NAME=VALUE`, where the `FLAG_NAME` MUST be all
+  lower case. The flag MUST NOT be specified more than once.
+- When the flag allows for multiple values, then each value MUST be
+  serialized as separate query parameters per the previous bullets.
 
-### `?binary` Flag
-
-A server MAY support the `?binary` flag/query parameter allowing clients to
-request that any Resources returned in the response always have its
-domain-specific documents be serialized under its `<RESOURCE>base64`
- attribute.
-
-See [Binary Flag](./spec.md#binary-flag) for more information.
-
-This query parameter MUST be serialized as:
-
-```yaml
-?binary
-```
-
-### `?collections` Flag
-
-A server MAY support the `?collections` query parameter allowing clients to
-request that the targeted entity (Registry or Group) returned in the response
-not include its attributes, rather just the nested xRegistry Collection map
-attribute(s).
-
-See [Collections Flag](./spec.md#collections-flag) for more information.
-
-This query parameter MUST be serialized as:
-
-```yaml
-?collections
-```
-
-### `?doc` Flag
-
-A server MAY support the `?doc` query parameter allowing clients to request
-that response be modified such that duplicate metadata be excluded.
-
-See [Doc Flag](./spec.md#doc-flag) for more information.
-
-This query parameter MUST be serialized as:
-
-```yaml
-?doc
-```
-
-### `?epoch` Flag
-
-A server MAY support the `?epoch` query parameter on HTTP `DELETE` operations
-to indicate the value that the targeted entity's `epoch` value MUST match
-prior to deleting the entity.
-
-See [Epoch Flag](./spec.md#epoch-flag) for more information.
-
-This query parameter MUST be serialized as:
-
-```yaml
-?epoch=<UINTEGER>
-```
+There are exceptions to these rules as specified by the following:
 
 ### `?filter` Flag
 
@@ -3032,65 +2959,6 @@ The abstract processing logic would be:
   sub-trees into one result set and remove any duplicates - adjusting any
   collection `url` and `count` values as needed.
 
-### `?ignoredefaultversionid` Flag
-
-A server MAY support the `?ignoredefaultversionid` query parameter on any
-write request to indicate that any `defaultversionid` attribute included in
-the request MUST be ignored.
-
-See [IgnoreDefaultVersionID Flag](./spec.md#ignoredefaultversionid-flag) for
-more information.
-
-This query parameter MUST be serialized as:
-
-```yaml
-?ignoredefaultversionid
-```
-
-### `?ignoredefaultversionsticky` Flag
-
-A server MAY support the `?ignoredefaultversionsticky` query parameter on any
-write request to indicate that any `defaultversionsticky` attribute included in
-the request MUST be ignored.
-
-See
-[IgnoreDefaultVersionSticky Flag](./spec.md#ignoredefaultversionsticky-flag)
-for more information.
-
-This query parameter MUST be serialized as:
-
-```yaml
-?ignoredefaultversionsticky
-```
-
-### `?ignoreepoch` Flag
-
-A server MAY support the `?ignoreepoch` query parameter on any
-write request to indicate that any `epoch` attribute included in
-the request MUST be ignored.
-
-See [IgnoreEpoch Flag](./spec.md#ignoreepoch-flag) for more information.
-
-This query parameter MUST be serialized as:
-
-```yaml
-?ignoreepoch
-```
-
-### `?ignorereadonly` Flag
-
-A server MAY support the `?ignorereadonly` query parameter on any
-write request to indicate that any attempt to update an existing read-only
-entity MUST NOT generate an error.
-
-See [IgnoreReadonly Flag](./spec.md#ignorereadonly-flag) for more information.
-
-This query parameter MUST be serialized as:
-
-```yaml
-?ignorereadonly
-```
-
 ### `?inline` Flag
 
 A server MAY support the `?inline` query parameter on any request to indicate
@@ -3111,20 +2979,6 @@ Where:
   `<PATH>` value or be a comma-separated list of `<PATH>` values.
 - The `?inline` query parameter MAY be specified more than once.
 
-### `?setdefaultversionid` Flag
-
-A server MAY support the `?setdefaultversionid` query parameter certain
-write requests to set the `defaultversionid` value of the Resource in question.
-
-See [SetDefaultVersionID Flag](./spec.md#setdefaultversionid-flag) for more
-information.
-
-This query parameter MUST be serialized as:
-
-```yaml
-?setdefaultversionid=<VID>
-```
-
 ### `?sort` Flag
 
 A server MAY support the `?sort` query parameter on any request directed to
@@ -3136,20 +2990,6 @@ This query parameter MUST be serialized as:
 
 ```yaml
 ?sort=<ATTRIBUTE>[=asc|desc]
-```
-
-### `?specversion` Flag
-
-A server MAY support the `?specversion` query parameter on any request to
-indicate the version of the xRegistry specification that the response MUST
-adhere to.
-
-See [SpecVersion Flag](./spec.md#specversion-flag) for more information.
-
-This query parameter MUST be serialized as:
-
-```yaml
-?specversion=<STRING>
 ```
 
 ## HTTP Header Values

@@ -337,9 +337,8 @@ can choose from:
   such, in this view, each entity is, by default, retrieved from the server
   via independent "read" operations.
 
-  The [Registry HTTP `GET` APIs](./http.md#registry-http-apis), without the
-  use of the [`?doc` flag/query parameter](./http.md#doc-flag), is an example
-  of how to generate this view.
+  A query without the use of the [Doc flag](#doc-flag), is an example of how
+  to generate this view.
 
 - Multiple Document View
 
@@ -355,9 +354,8 @@ can choose from:
   control system (e.g. Github) to minimize the number of conflicting edits
   between users in a very fluid environment.
 
-  The [Registry HTTP `GET` APIs](./http.md#registry-http-apis), with the use
-  of the [`?doc` flag/query parameter](./http.md#doc-flag), is an example of
-  how to generate this view.
+  A query with the use of the [Doc flag](#doc-flag), is an example of how to
+  generate this view.
 
 This specification provides the mechanisms to allow for users to choose the
 best "view" for their needs. Regardless of the view, the design allows for
@@ -3227,6 +3225,9 @@ specifications will indicate how they are to be serialized on each request:
 - [`sort`](#sort-flag)
 - [`specversion`](#specversion-flag)
 
+See: [Request Flags](./http.md#request-flags--query-parameters) in the
+[HTTP binding specification](./http.md) for the HTTP usage.
+
 ### Binary Flag
 
 The `binary` flag MAY be used on requests to indicate that the server MUST use
@@ -3240,8 +3241,6 @@ modifying the bytes of the document in any way - such as "pretty printing" it.
 
 This flag MAY be used on any request but will only influence the serialization
 of Resource and Version entities that have a domain-specific document.
-
-See: [`?binary` Flag](./http.md#binary-flag) for the HTTP usage.
 
 ### Collections Flag
 
@@ -3285,8 +3284,6 @@ and using it as input into:
 ```yaml
 POST http://targetRegistry.com/
 ```
-
-See: [`?collections` Flag](./http.md#collections-flag) for the HTTP usage.
 
 ### Doc Flag
 
@@ -3378,8 +3375,6 @@ collection, or to one of its Versions, but the Resource is defined as an
 flag on this part of the hierarchy is not valid - due to those entities not
 technically existing in document view.
 
-See: [`?doc` Flag](./http.md#doc-flag) for the HTTP usage.
-
 ### Epoch Flag
 
 The `epoch` flag MAY be used on any delete operation directed to a single
@@ -3388,8 +3383,6 @@ of the "to be deleted" entity in the request. In those cases, this flag is
 used to request that the entity's current `epoch` value matches this flag's
 value for the purpose of the server's
 [`epoch` conflict checking algorithm](#epoch-attribute).
-
-See: [`?epoch` Flag](./http.md#epoch-flag) for the HTTP usage.
 
 ### Filter Flag
 
@@ -3598,8 +3591,6 @@ Notice the first part of the filter expression (to the left of the "and"
 (`,`)) has no impact on the results because the list of resulting leaves in
 that subtree is not changed by that search criteria.
 
-See: [`?filter` Flag](./http.md#filter-flag) for the HTTP usage.
-
 ### IgnoreDefaultVersionID Flag
 
 The `ignoredefaultversionid` flag MAY be used on any write operation to
@@ -3610,9 +3601,6 @@ This flag is useful in cases where there is a desire to not change any
 existing Resource's `defaultversionid` values based on the data in the
 write operation request, and the incoming data is not easily modifiable to
 remove the `defaultversionid` attributes that might be in there.
-
-See: [`?ignoredefaultversionid` Flag](./http.md#ignoredefaultversionid-flag)
-for the HTTP usage.
 
 ### IgnoreDefaultVersionSticky Flag
 
@@ -3625,10 +3613,6 @@ existing Resource's `defaultversionsticky` values based on the data in the
 write operation request, and the incoming data is not easily modifiable to
 remove the `defaultversionsticky` attributes that might be in there.
 
-See:
-[`?ignoredefaultversionsticky` Flag](./http.md#ignoredefaultversionsticky-flag)
-for the HTTP usage.
-
 ### IgnoreEpoch Flag
 
 The `ignoreepoch` flag MAY be used on any write operation to
@@ -3640,8 +3624,6 @@ existing entity's `epoch` values based on the data in the
 write operation request, and the incoming data is not easily modifiable to
 remove the `epoch` attributes that might be in there.
 
-See: [`?ignoreepoch` Flag](./http.md#ignoreepoch-flag) for the HTTP usage.
-
 ### IgnoreReadOnly Flag
 
 The `ignorereadonly` flag MAY be used on any write operation to
@@ -3651,8 +3633,6 @@ ignored.
 This flag is useful in cases where detecting attempts to update read-only
 entity is not desired and the incoming data is not easily modifiable to
 remove the read-only entity.
-
-See: [`?ignorereadonly` Flag](./http.md#ignorereadonly-flag) for the HTTP usage.
 
 ### Inline Flag
 
@@ -3756,8 +3736,6 @@ those cases, the client will need to query the individual inlineable
 collection  attributes in isolation so the Registry can leverage a pagination
 type of feature to iteratively retrieve the entities.
 
-See: [`?inline` Flag](./http.md#inline-flag) for the HTTP usage.
-
 ### SetDefaultVersionID Flag
 
 The `setdefaultversionid` flag MAY be used on any write operation directed to
@@ -3789,9 +3767,6 @@ The following rules apply:
 Any use of this flag on a Resource that has the
 `setdefaultversionsticky` aspect set to `false` MUST generate an error
 ([bad_flag](#bad_flag)).
-
-See: [`?setdefaultversionid` Flag](./http.md#setdefaultversionid-flag) for
-the HTTP usage.
 
 ### Sort Flag
 
@@ -3845,8 +3820,6 @@ Some examples using the [HTTP protocol binding](./http.md#sort-flag):
 - `GET /endpoints/e1/messages?sort=messageid=desc` # Sort (desc) on 'messageid'
 - `GET /endpoints?sort=labels.stage`  # Sort (asc) on `labels.stage`, then `endpointid`
 
-See: [`?sort` Flag](./http.md#sort-flag) for the HTTP usage.
-
 ### SpecVersion Flag
 
 The SpecVersion flag MAY be used to indicate the xRegistry specification
@@ -3868,8 +3841,6 @@ backwards compatible.
 However, due to the potential for semantics changes of versions with suffix
 values (e.g. `v2.0.0-rc1`), the suffix value MUST be part of the comparison
 checking.
-
-See: [`?specversion` Flag](./http.md#specversion-flag) for the HTTP usage.
 
 ## Error Processing
 
