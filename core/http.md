@@ -926,6 +926,13 @@ Content-Type: application/json; charset=utf-8
 { ... Model definition excluded for brevity ... }
 ```
 
+To retrieve the model as part of the response to
+[retrieving](#get-) the
+[Registry entity](./spec.md#registry-entity), use the
+[Inline Flag](./spec.md#inline-flag) with a value of `model`.
+
+Note that the `/model` API is a read-only API.
+
 #### `GET /modelsource`
 
 A server MAY support clients retrieving the client-provided
@@ -947,6 +954,11 @@ Content-Type: application/json; charset=utf-8
 { ... Model definition excluded for brevity ... }
 ```
 
+To retrieve the `modelsource` as part of the response to
+[retrieving](#get-) the
+[Registry entity](./spec.md#registry-entity), use the
+[Inline Flag](./spec.md#inline-flag) with a value of `modelsource`.
+
 #### `PUT /modelsource`
 
 A server MAY support clients updating its
@@ -961,6 +973,10 @@ Content-Type: application/json; charset=utf-8
 
 { ... Model definition excluded for brevity ... }
 ```
+
+To update the `modelsource` as part of a request to update the
+[Registry entity](./spec.md#registry-entity), you can include the attribute
+as part of the [`PUT /`](#put-) request.
 
 ### Group Entity
 
