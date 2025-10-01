@@ -1857,7 +1857,7 @@ Implementations MAY support clients updating the capabilities of the server.
 If so, they SHOULD support it via updates to the Registry entity's
 `capabilities` attribute as well as updates via a stand-alone map independent
 of the the Registry entity (e.g.
-[`PUT /capabilities`](./http.md#put-capabilities) in the HTTP case).
+[`PUT /capabilities`](./http.md#patch-and-put-capabilities) in the HTTP case).
 
 The request to update the capabilities SHOULD include a serialization of the
 capability map as described above. Whether it includes the full set of

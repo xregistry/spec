@@ -18,52 +18,43 @@ model and semantics that apply to all protocols.
     - [Creating or Updating Entities](#creating-or-updating-entities)
   - [Registry Entity](#registry-entity)
     - [`GET /`](#get-)
-    - [`PATCH /`](#patch-)
-    - [`PUT /`](#put-)
+    - [`PATCH` and `PUT /`](#patch-and-put-)
     - [`POST /`](#post-)
     - [`GET /export`](#get-export)
   - [Registry Capabilities](#registry-capabilities)
     - [`GET /capabilities`](#get-capabilities)
     - [`GET /capabilitiesoffered`](#get-capabilitiesoffered)
-    - [`PATCH /capabilities`](#patch-capabilities)
-    - [`PUT /capabilities`](#put-capabilities)
+    - [`PATCH` and `PUT /capabilities`](#patch-and-put-capabilities)
   - [Registry Model](#registry-model)
     - [`GET /model`](#get-model)
     - [`GET /modelsource`](#get-modelsource)
     - [`PUT /modelsource`](#put-modelsource)
   - [Group Entity](#group-entity)
     - [`GET /<GROUPS>`](#get-groups)
-    - [`PATCH /<GROUPS>`](#patch-groups)
-    - [`POST /<GROUPS>`](#post-groups)
+    - [`PATCH` and `POST /<GROUPS>`](#patch-and-post-groups)
     - [`DELETE /<GROUPS>`](#delete-groups)
     - [`GET /<GROUPS>/<GID>`](#get-groupsgid)
-    - [`PATCH /<GROUPS>/<GID>`](#patch-groupsgid)
-    - [`PUT /<GROUPS>/<GID>`](#put-groupsgid)
+    - [`PATCH` and `PUT /<GROUPS>/<GID>`](#patch-and-put-groupsgid)
     - [`POST /<GROUPS>/<GID>`](#post-groupsgid)
     - [`DELETE /<GROUPS>/<GID>`](#delete-groupsgid)
   - [Resource Entity](#resource-entity)
     - [`GET /<GROUPS>/<GID>/<RESOURCES>`](#get-groupsgidresources)
-    - [`PATCH /<GROUPS>/<GID>/<RESOURCES>`](#patch-groupsgidresources)
-    - [`POST /<GROUPS>/<GID>/<RESOURCES>`](#post-groupsgidresources)
+    - [`PATCH` and `POST /<GROUPS>/<GID>/<RESOURCES>`](#patch-and-post-groupsgidresources)
     - [`DELETE /<GROUPS>/<GID>/<RESOURCES>`](#delete-groupsgidresources)
     - [`GET /<GROUPS>/<GID>/<RESOURCES>/<RID>`](#get-groupsgidresourcesrid)
-    - [`PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>`](#patch-groupsgidresourcesrid)
-    - [`PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>`](#put-groupsgidresourcesrid)
+    - [`PATCH` and `PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>`](#patch-and-put-groupsgidresourcesrid)
     - [`POST /<GROUPS>/<GID>/<RESOURCES>/<RID>`](#post-groupsgidresourcesrid)
     - [`DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>`](#delete-groupsgidresourcesrid)
   - [Meta Entity](#meta-entity)
     - [`GET /<GROUPS>/<GID>/<RESOURCES>/<RID>/meta`](#get-groupsgidresourcesridmeta)
-    - [`PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>/meta`](#patch-groupsgidresourcesridmeta)
-    - [`PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/meta`](#put-groupsgidresourcesridmeta)
+    - [`PATCH` and `PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/meta`](#patch-and-put-groupsgidresourcesridmeta)
     - [`DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/meta`](#delete-groupsgidresourcesridmeta)
   - [Version Entity](#version-entity)
     - [`GET /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`](#get-groupsgidresourcesridversions)
-    - [`PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`](#patch-groupsgidresourcesridversions)
-    - [`POST /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`](#post-groupsgidresourcesridversions)
+    - [`PATCH` and `POST /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`](#patch-and-post-groupsgidresourcesridversions)
     - [`DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`](#delete-groupsgidresourcesridversions)
     - [`GET /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`](#get-groupsgidresourcesridversionsvid)
-    - [`PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`](#patch-groupsgidresourcesridversionsvid)
-    - [`PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`](#put-groupsgidresourcesridversionsvid)
+    - [`PATCH` and `PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`](#patch-and-put-groupsgidresourcesridversionsvid)
     - [`DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`](#delete-groupsgidresourcesridversionsvid)
 - [Request Flags / Query Parameters](#request-flags--query-parameters)
 - [HTTP Header Values](#http-header-values)
@@ -489,8 +480,7 @@ Content-Type: application/json; charset=utf-8
 }
 ```
 
-#### `PATCH /`
-#### `PUT /`
+#### `PATCH` and `PUT /`
 
 A server MAY support clients updating the
 [Registry entity](./spec.md#registry-entity)  via an HTTP `PATCH` or `PUT`
@@ -587,7 +577,7 @@ Content-Type: application/json; charset=utf-8
 A server MAY support clients updating or creating multiple
 [Groups](./spec.md#group-entity) of varying types via an HTTP `POST` directed
 to the [Registry entity](./spec.md#registry-entity). This API is very similar
-to the [`POST /<GROUPS>`](#post-groups) API, except that the HTTP body
+to the [`POST /<GROUPS>`](#patch-and-post-groups) API, except that the HTTP body
 MUST be a map of Group types as shown below:
 
 The request MUST be of the form:
@@ -820,8 +810,7 @@ Content-Type: application/json; charset=utf-8
 }
 ```
 
-#### `PATCH /capabilities`
-#### `PUT /capabilities`
+#### `PATCH` and `PUT /capabilities`
 
 A server MAY support clients updating its supported
 [capabilities](./spec.md#registry-capabilities) (features)
@@ -976,7 +965,7 @@ Content-Type: application/json; charset=utf-8
 
 To update the `modelsource` as part of a request to update the
 [Registry entity](./spec.md#registry-entity), you can include the attribute
-as part of the [`PUT /`](#put-) request.
+as part of the [`PUT /`](#patch-and-put-) request.
 
 ### Group Entity
 
@@ -1051,8 +1040,7 @@ Notice that the `Link` HTTP header is present, indicating that there
 is a second page of results that can be retrieved via the specified URL,
 and that there are a total of 100 items in this collection.
 
-#### `PATCH /<GROUPS>`
-#### `POST /<GROUPS>`
+#### `PATCH` and `POST /<GROUPS>`
 
 A server MAY support clients creating/updating multiple
 [Groups](./spec.md#group-entity) in a Group collection via an HTTP `PATCH` or
@@ -1224,8 +1212,7 @@ Content-Type: application/json; charset=utf-8
 }
 ```
 
-#### `PATCH /<GROUPS>/<GID>`
-#### `PUT /<GROUPS>/<GID>`
+#### `PATCH` and `PUT /<GROUPS>/<GID>`
 
 A server MAY support clients creating or updating a
 [Group](./spec.md#group-entity) in a Group collection via an HTTP `PATCH` or
@@ -1645,8 +1632,7 @@ Link: <https://example.com/endpoints/ep1/messages&page=2>;rel=next;count=100
 }
 ```
 
-#### `PATCH /<GROUPS>/<GID>/<RESOURCES>`
-#### `POST /<GROUPS>/<GID>/<RESOURCES>`
+#### `PATCH` and `POST /<GROUPS>/<GID>/<RESOURCES>`
 
 A server MAY support clients creating/updating one or more
 [Resources](./spec.md#resource-entity) within a
@@ -1888,8 +1874,7 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1
 }
 ```
 
-#### `PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>`
-#### `PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>`
+#### `PATCH` and `PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>`
 
 A server MAY support clients creating, or updating, a
 [Resource](./spec.md#resource-entity) within a
@@ -2325,8 +2310,7 @@ Content-Type: application/json; charset=utf-8
 }
 ```
 
-#### `PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>/meta`
-#### `PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/meta`
+#### `PATCH` and `PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/meta`
 
 A server MAY support clients updating a
 [Resource's Meta entity](./spec.md#meta-entity) via an HTTP `PATCH` or
@@ -2450,8 +2434,7 @@ Link: <https://example.com/endpoints/ep1/messages/msg1/versions&page=2>;rel=next
 }
 ```
 
-#### `PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`
-#### `POST /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`
+#### `PATCH` and `POST /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`
 
 A server MAY support clients creating/updating one or more
 [Versions](./spec.md#version-entity), of a
@@ -2715,8 +2698,7 @@ Content-Disposition: myschema
 { ... Contents of a schema doc excluded for brevity ...  }
 ```
 
-#### `PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`
-#### `PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`
+#### `PATCH` and `PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`
 
 A server MAY support clients creating or updating a
 [Version](./spec.md#version-entity) of a
