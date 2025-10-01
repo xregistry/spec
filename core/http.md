@@ -240,7 +240,8 @@ semantics defined above with the following exceptions:
     leave it unchanged. However, modifying some other attribute (or some other
     server semantics) MAY modify it. A value of `null` MUST be interpreted as
     a request to delete the attribute.
-  - When processing a Resource or Version, that has its `hasdocument` model
+  - When processing a Resource or Version, whose Resource type has its
+    [`hasdocument`](./model.md#groupsstringresourcesstringhasdocument) model
     aspect set to `true`, the URL accessing the entity MUST include the
     `$details` suffix, and MUST generate an error
     ([details_required](#details_required)) in the absence of the
@@ -364,7 +365,7 @@ URL (e.g. `?inline`).
 In addition to the core specification's definition of
 [`self`](./spec.md#self-attribute), the following HTTP-specific rules apply:
 
-- When serializing Resources and Versions, if the Resource's
+- When serializing Resources and Versions, whose Resource type's
   [`hasdocument`](./model.md#groupsstringresourcesstringhasdocument) aspect
   is set to `true`, then this URL MUST include the `$details` suffix appended
   to its `<SINGULAR>id` if it serialized in the the HTTP body response. If
@@ -1392,7 +1393,7 @@ HTTP/1.1 204 No Content
 
 In the core specification's
 [Resource Metadata vs Resource Document](./spec.md#resource-metadata-vs-resource-document)
-section, it explains how Resources types might be defined to optionally have a
+section, it explains how Resource types might be defined to have a
 domain-specific document associated with them via their
 [`hasdocument` model aspect](./model.md#groupsstringresourcesstringhasdocument`)
 being set to `true`. For HTTP, clients indicate whether they want to interact
@@ -1418,7 +1419,7 @@ http://registry.example.com/schemagroups/mygroup/schemas/myschema
 references the (domain-specific) schema document associated with the
 `myschema` Resource.
 
-If a Resource does not support domain-specific documents (i.e.
+If a Resource type does not support domain-specific documents (i.e.
 [`hasdocument`](./model.md#groupsstringresourcesstringhasdocument)
 is set to `false`), then use of the `$details` suffix in a request URL MUST
 be treated the same as if it were absent and any URLs in server response
@@ -1434,18 +1435,17 @@ is set to `true`.
 When a Resource is serialized as its underlying domain-specific document,
 in other words `$details` is not appended to its URL path, the HTTP body of
 requests and responses MUST be the exact bytes of that document. If the
-document is empty, or there is no document, then the HTTP body MUST be empty
-(zero length).
+document is empty, then the HTTP body MUST be empty (zero length).
 
 In this serialization mode, it might be useful for clients to also interact
 with some of the Resource's xRegistry metadata. To support this, some of the
-Resource's xRegistry metadata MAY appear as HTTP headers in  messages.
+Resource's xRegistry metadata MAY appear as HTTP headers in messages.
 
 On responses, unless otherwise stated, all top-level scalar attributes of the
 Resource SHOULD appear as HTTP headers where the header name is the name of the
 attribute prefixed with `xRegistry-`. Note, the optionality of this requirement
 is not to allow for servers to decide whether or not to do so, rather it is to
-allow for [No-Code Servers](#no-code-servers) servers than might not be
+allow for [No-Code Servers](#no-code-servers) servers that might not be
 able to control the HTTP response headers.
 
 Top-level map attributes whose values are of scalar types SHOULD also appear as
@@ -1469,7 +1469,8 @@ these headers being REQUIRED, the client would only need to include those
 top-level attributes that they would like to change. But, including unchanged
 attributes MAY be done. Any attributes not included in request messages
 MUST be interpreted as a request to leave their values unchanged. Using a
-value of `null` (case-sensitive) indicates a request to delete that attribute.
+value of `null` (case-sensitive) MUST be processed as a request to delete that
+attribute.
 
 Any top-level map attributes that appear as HTTP headers MUST be included
 in their entirety and any missing keys MUST be interpreted as a request to
@@ -1772,7 +1773,7 @@ Resource metadata or to the Resource domain-specific document. See
 [Resource Metadata vs Resource Document](#resource-metadata-vs-resource-document)
 for more information.
 
-When `$details` is used, or the Resource is not configured to have a
+When `$details` is used, or the Resource type is not configured to have a
 domain-specific document, then a successful response MUST be:
 
 ```yaml
@@ -1786,21 +1787,17 @@ Content-Location: <URL> ?
 ```
 
 Where:
-- The use of the `$details` suffix is REQUIRED when the Resource's
-  `hasdocument` aspect is `true`.
-- `<RESOURCE>`, or `<RESOURCE>base64`, MUST only be included if requested via
-  use of the `?inline` feature and `<RESOURCE>url` is not set.
 - If `Content-Location` is present then it MUST be a URL to the Version of the
   Resource in the `versions` collection - same as `defaultversionurl`.
 
-When `$details` is not used and the Resource is configured to have a
+When `$details` is not used and the Resource type is configured to have a
 domain-specific document, then a successful response MUST be either:
 - `200 OK` with the Resource document in the HTTP body.
 - `303 See Other` with the location of the Resource's document being
   returned in the HTTP `Location` header if the Resource has a `<RESOURCE>url`
   value, and the HTTP body MUST be empty.
 
-In both cases the Resource's default Version attributes, along with the
+For either response, the Resource's default Version attributes, along with the
 `meta` and `versions` related scalar attributes, MUST be serialized as HTTP
 `xRegistry-` headers.
 

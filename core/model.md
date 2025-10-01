@@ -680,9 +680,9 @@ The following describes the attributes of the Registry model:
 ### `groups.<STRING>.resources.<STRING>.hasdocument`
 - Type: Boolean (`true` or `false`, case-sensitive).
 - OPTIONAL.
-- Indicates whether or not Resources of this type can have a document
-  associated with it. If `false` then the xRegistry metadata becomes "the
-  document". Meaning, an HTTP `GET` to the Resource's URL will return the
+- Indicates whether or not Resources of this type have a domains-specific
+  document associated with it. If `false` then the xRegistry metadata becomes
+  "the document". Meaning, an HTTP `GET` to the Resource's URL will return the
   xRegistry metadata in the HTTP body. The `xRegistry-` HTTP headers,
   representing the Resource metadata, MUST NOT be used for requests or
   response messages for these Resources. Use of `$details` on the request
@@ -693,8 +693,8 @@ The following describes the attributes of the Registry model:
   have a non-empty document, and an HTTP `GET` to the Resource MAY return an
   empty HTTP body.
 - When not specified, the default value MUST be `true`.
-- A value of `true` indicates that Resource of this type supports a separate
-  document to be associated with it.
+- A value of `true` indicates that Resources of this type MUST a separate
+  document to be associated with it, even if it's empty.
 
 ### `groups.<STRING>.resources.<STRING>.versionmode`
 - Type: String

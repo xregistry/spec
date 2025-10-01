@@ -296,7 +296,7 @@ attribute, or MAY be stored external to the Version and a URL to its location
 will be stored within the Version instead. This model design choice is
 specified via the
 [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
-of the Resource's model definition.
+of the Resource type's model definition.
 
 Typically, the domain-specific document will be used when a pre-existing
 document definition already exists and an xRegistry is used as the
@@ -1034,7 +1034,7 @@ of the existing entity. Then the existing entity would be deleted.
   - REQUIRED.
   - MUST be immutable.
   - MUST be a non-empty absolute URL based on the URL of the Registry.
-  - When serializing Resources or Versions, if the
+  - When serializing Resources or Versions, whose Resource type's
     [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
     is set to `true`, then (based on the protocol binding being used) this
     attribute might need to include some indicator that the xRegistry metadata
@@ -2240,7 +2240,7 @@ and the following Resource-level attributes:
 Unlike Groups, which consist entirely of xRegistry managed metadata, Resource
 Versions often have their own domain-specific data and document format that
 needs to be kept distinct from the Version metadata. As discussed previously,
-the model definition for Resources has a
+the model definition for Resource types has a
 [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
 indicating whether a Resource type defines its own separate document or not.
 
@@ -2300,15 +2300,16 @@ When the xRegistry metadata is serialized as a JSON object, the processing
 of the 3 Version-level `<RESOURCE>*` attributes MUST follow these rules:
   - At most, only one of the 3 attributes MAY be present in the request, and
     the presence of any one of them MUST delete the other 2 attributes.
-  - If the entity already exists and has a document (not a `<RESOURCE>url`),
+  - If the entity already exists and its `<RESOURCE>url` has no value,
     then absence of all 3 attributes MUST leave all 3 unchanged.
-  - An explicit value of `null` for any of the 3 attributes MUST delete all
-    3 attributes (and any associated data).
+  - An explicit value of `null` for any of the 3 attributes MUST result in
+    same net effect as defining the entity's domain-specific document to be
+    an empty document.
   - When `<RESOURCE>` is present, the server MAY choose to modify non-semantic
     significant characters. For example, to remove (or add) whitespace. In
     other words, there is no requirement for the server to persist the
     document in the exact byte-for-byte format in which it was provided. If
-    that is desired then `<RESOURCE>base64` MUST be used instead.
+    that is desired then clients MUST `<RESOURCE>base64` MUST be used instead.
   - On a non-patch type of write operation, when `<RESOURCE>` is present,
     if no `contenttype` value is provided then the server MUST set it to same
     type as the incoming request, e.g. `application/json`, even if the entity
@@ -2696,16 +2697,16 @@ and the following Meta-level attributes:
 - Type: URL
 - Description: a URL to the default Version of the Resource.
 
-  Note that if the Resource's
-  [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
-  is set to `true`, then this URL MUST reference the xRegistry metadata view
-  of the Version, not the domain-specific document view.
-
 - API View Constraints:
   - REQUIRED.
   - MUST be an absolute URL to the default Version of the Resource, and MUST
-    be the same as the Version's `self` attribute.
+    be the same as that Version's `self` attribute.
   - MUST be a read-only attribute.
+  - If the Resource type's
+    [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
+    is set to `true`, then this URL MUST reference the xRegistry metadata view
+    of the Version, not the domain-specific document view. In the HTTP
+    protocol case, this means using the `$details` suffix.
 
 - Document View Constraints:
   - REQUIRED.
@@ -2961,7 +2962,7 @@ and the following Version-level attributes:
   - If the document is stored in a network-accessible endpoint then the
     referenced URL MUST support a query to this URL to retrieve the contents.
     There is no requirement for the server to validate this URL.
-  - MUST NOT be present if the Resource's
+  - MUST NOT be present if the Resource type's
     [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
     is set to `false`.
 
@@ -2992,7 +2993,7 @@ and the following Version-level attributes:
   - MUST only be used if the Version's document (bytes) is in the same
     format as the serialization of the Version entity.
   - MUST NOT be present if `<RESOURCE>base64` is also present.
-  - MUST NOT be present if the Resource's
+  - MUST NOT be present if the Resource type's
     [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
     is set to `false`.
 
@@ -3007,9 +3008,11 @@ and the following Version-level attributes:
 - Constraints:
   - If the Version's document is to be serialized and it is not empty,
     then either `<RESOURCE>` or `<RESOURCE>base64` MUST be present.
+  - If the Version's document is to be serialized but it is empty,
+    then `<RESOURCE>base64` MUST be present with an empty string (`""`) value.
   - MUST be a base64 encoded string of the Version's document.
   - MUST NOT be present if `<RESOURCE>` is also present.
-  - MUST NOT be present if the Resource's
+  - MUST NOT be present if the Resource type's
     [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
     is set to `false`.
 
@@ -3021,11 +3024,11 @@ the potentially large amount of data from the Version's document in request
 and response messages could be cumbersome. To address this, the `<RESOURCE>`
 and `<RESOURCE>base64` attributes do not appear by default as part of the
 serialization of the Version. Rather, they MUST only appear in responses when
-the [Inline Flag](#inline-flag) is used. Likewise, in
-requests, these attributes are OPTIONAL and would only need to be used when a
-change to the document's content is needed at the same time as updates to the
-Version's metadata. However, the `<RESOURCE>url` attribute MUST always appear
-if it has a value, just like any other attribute.
+the [Inline Flag](#inline-flag), with a value of `<RESOURCE>`, is used.
+Likewise, in requests, these attributes are OPTIONAL and would only need to be
+used when a change to the document's content is needed at the same time as
+updates to the Version's metadata. However, the `<RESOURCE>url` attribute MUST
+always appear if it has a value, just like any other attribute.
 
 Note that the serialization of a Version MUST only use at most one of these 3
 attributes at a time.
