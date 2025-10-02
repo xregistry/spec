@@ -3,22 +3,26 @@
   "endpoints": {
     "Eclipse.SparkplugBv10EdgeNodeProducer": {
       "description": "This declaration is for the endpoint to which an Sparkplug B v1.0 edge node produces messages",
-      "usage": "producer",
+      "usage": [
+        "producer"
+      ],
       "protocol": "MQTT/3.1.1",
       "deployed": false,
       "endpoints": [],
       "protocoloptions": {
         "topic": "spBv1.0/{group_id}/{message_type}/{edge_node_id}",
-        "will-message": "#/messagegroups/Eclipse.SparkplugB.EdgeNode/definitions/NDEATH",
-        "will-topic": "spBv1.0/{group_id}/NDEATH/{edge_node_id}"
+        "willmessage": "/messagegroups/Eclipse.SparkplugB.EdgeNode/messages/NDEATH",
+        "willtopic": "spBv1.0/{group_id}/NDEATH/{edge_node_id}"
       },
       "messagegroups": [
-        "#/messagegroups/Eclipse.SparkplugB.EdgeNode"
+        "/messagegroups/Eclipse.SparkplugB.EdgeNode"
       ]
     },
     "Eclipse.SparkplugBv10EdgeNodeConsumer": {
       "description": "This declaration is for the endpoint from which an Sparkplug B v1.0 edge node consumes messages",
-      "usage": "consumer",
+      "usage": [
+        "consumer"
+      ],
       "protocol": "MQTT/3.1.1",
       "deployed": false,
       "endpoints": [],
@@ -26,24 +30,28 @@
         "topic": "spBv1.0/STATE/#,spBv1.0/{group_id}/NCMD/{edge_node_id},spBv1.0/{group_id}/DCMD/{edge_node_id}/#"
       },
       "messagegroups": [
-        "#/messagegroups/Eclipse.SparkplugB.EdgeNodeCommands",
-        "#/messagegroups/Eclipse.SparkplugB.HostApplicationState"
+        "/messagegroups/Eclipse.SparkplugB.EdgeNodeCommands",
+        "/messagegroups/Eclipse.SparkplugB.HostApplicationState"
       ]
     },
     "Eclipse.SparkplugBv10DeviceProducer": {
       "description": "This declaration is for the endpoint to which an Sparkplug B v1.0 device produces messages",
-      "usage": "producer",
+      "usage": [
+        "producer"
+      ],
       "protocol": "MQTT/3.1.1",
       "deployed": false,
       "endpoints": [],
       "protocoloptions": {},
       "messagegroups": [
-        "#/messagegroups/Eclipse.SparkplugB.Device"
+        "/messagegroups/Eclipse.SparkplugB.Device"
       ]
     },
     "Eclipse.SparkplugBv10DeviceConsumer": {
       "description": "This declaration is for the endpoint from which an Sparkplug B v1.0 device consumes messages",
-      "usage": "consumer",
+      "usage": [
+        "consumer"
+      ],
       "protocol": "MQTT/3.1.1",
       "deployed": false,
       "endpoints": [],
@@ -51,24 +59,26 @@
         "topic": "spBv1.0/{group_id}/DCMD/{edge_node_id}/{device_id}"
       },
       "messagegroups": [
-        "#/messagegroups/Eclipse.SparkplugB.DeviceCommands"
+        "/messagegroups/Eclipse.SparkplugB.DeviceCommands"
       ]
     },
     "Eclipse.SparkplugBv10HostApplicationProducer": {
       "description": "Sparkplug B v1.0 Producer Endpoint for Host Applications",
-      "usage": "producer",
+      "usage": [
+        "producer"
+      ],
       "protocol": "MQTT/3.1.1",
       "deployed": false,
       "endpoints": [],
       "protocoloptions": {
         "topic": "spBv1.0/STATE/{sparkplug_host_id}",
-        "will-message": "#/messagegroups/Eclipse.SparkplugB.HostApplication/definitions/STATE.Death",
-        "will-topic": "spBv1.0/STATE/{sparkplug_host_id}"
+        "willmessage": "/messagegroups/Eclipse.SparkplugB.HostApplication/messages/STATE.Death",
+        "willtopic": "spBv1.0/STATE/{sparkplug_host_id}"
       },
       "messagegroups": [
-        "#/messagegroups/Eclipse.SparkplugB.HostApplicationState",
-        "#/messagegroups/Eclipse.SparkplugB.DeviceCommands",
-        "#/messagegroups/Eclipse.SparkplugB.EdgeNodeCommands"
+        "/messagegroups/Eclipse.SparkplugB.HostApplicationState",
+        "/messagegroups/Eclipse.SparkplugB.DeviceCommands",
+        "/messagegroups/Eclipse.SparkplugB.EdgeNodeCommands"
       ]
     }
   },
@@ -81,41 +91,19 @@
           "description": "Birth certificate for Sparkplug Edge Nodes",
           "protocol": "MQTT/3.1.1",
           "protocoloptions": {
-            "properties": {
-              "topic": {
-                "type": "uritemplate",
-                "value": "spBv1.0/{group_id}/NBIRTH/{edge_node_id}"
-              },
-              "qos": {
-                "type": "integer",
-                "value": 0
-              },
-              "retain": {
-                "type": "boolean",
-                "value": false
-              }
-            }
+            "topic_name": "spBv1.0/{group_id}/NBIRTH/{edge_node_id}",
+            "qos": 0,
+            "retain": false
           },
-          "dataschemauri": "#/schemagroups/Sparkplug/schemas/SparkplugB.Protobuf/versions/v1.0:Payload"
+          "dataschemauri": "/schemagroups/Sparkplug/schemas/SparkplugB.Protobuf/versions/v1.0:Payload"
         },
         "NDATA": {
           "description": "Data payload for Sparkplug Edge Nodes",
           "protocol": "MQTT/3.1.1",
           "protocoloptions": {
-            "properties": {
-              "topic": {
-                "type": "uritemplate",
-                "value": "spBv1.0/{group_id}/NDATA/{edge_node_id}"
-              },
-              "qos": {
-                "type": "integer",
-                "value": 0
-              },
-              "retain": {
-                "type": "boolean",
-                "value": false
-              }
-            }
+            "topic_name": "spBv1.0/{group_id}/NDATA/{edge_node_id}",
+            "qos": 0,
+            "retain": false
           },
           "dataschemauri": "#/schemagroups/Sparkplug/schemas/SparkplugB.Protobuf/versions/v1.0:Payload"
         },
@@ -123,20 +111,9 @@
           "description": "Death certificate for Sparkplug Edge Nodes",
           "protocol": "MQTT/3.1.1",
           "protocoloptions": {
-            "properties": {
-              "topic": {
-                "type": "uritemplate",
-                "value": "spBv1.0/{group_id}/NDEATH/{edge_node_id}"
-              },
-              "qos": {
-                "type": "integer",
-                "value": 0
-              },
-              "retain": {
-                "type": "boolean",
-                "value": false
-              }
-            }
+            "topic_name": "spBv1.0/{group_id}/NDEATH/{edge_node_id}",
+            "qos": 0,
+            "retain": false
           },
           "dataschemauri": "#/schemagroups/Sparkplug/schemas/SparkplugB.Protobuf/versions/v1.0:Payload"
         }
@@ -150,20 +127,9 @@
           "description": "Birth certificate for Sparkplug Devices",
           "protocol": "MQTT/3.1.1",
           "protocoloptions": {
-            "properties": {
-              "topic": {
-                "type": "uritemplate",
-                "value": "spBv1.0/{group_id}/DBIRTH/{edge_node_id}/{device_id}"
-              },
-              "qos": {
-                "type": "integer",
-                "value": 0
-              },
-              "retain": {
-                "type": "boolean",
-                "value": false
-              }
-            }
+            "topic_name": "spBv1.0/{group_id}/DBIRTH/{edge_node_id}/{device_id}",
+            "qos": 0,
+            "retain": false
           },
           "dataschemauri": "#/schemagroups/Sparkplug/schemas/SparkplugB.Protobuf/versions/v1.0:Payload"
         },
@@ -171,20 +137,9 @@
           "description": "Death certificate for Sparkplug Devices",
           "protocol": "MQTT/3.1.1",
           "protocoloptions": {
-            "properties": {
-              "topic": {
-                "type": "uritemplate",
-                "value": "spBv1.0/{group_id}/DDEATH/{edge_node_id}/{device_id}"
-              },
-              "qos": {
-                "type": "integer",
-                "value": 0
-              },
-              "retain": {
-                "type": "boolean",
-                "value": false
-              }
-            }
+            "topic_name": "spBv1.0/{group_id}/DDEATH/{edge_node_id}/{device_id}",
+            "qos": 0,
+            "retain": false
           },
           "dataschemauri": "#/schemagroups/Sparkplug/schemas/SparkplugB.Protobuf/versions/v1.0:Payload"
         },
@@ -192,20 +147,9 @@
           "description": "Data payload for Sparkplug Devices",
           "protocol": "MQTT/3.1.1",
           "protocoloptions": {
-            "properties": {
-              "topic": {
-                "type": "uritemplate",
-                "value": "spBv1.0/{group_id}/DDATA/{edge_node_id}/{device_id}"
-              },
-              "qos": {
-                "type": "integer",
-                "value": 0
-              },
-              "retain": {
-                "type": "boolean",
-                "value": false
-              }
-            }
+            "topic_name": "spBv1.0/{group_id}/DDATA/{edge_node_id}/{device_id}",
+            "qos": 0,
+            "retain": false
           },
           "dataschemauri": "#/schemagroups/Sparkplug/schemas/SparkplugB.Protobuf/versions/v1.0:Payload"
         }
@@ -218,42 +162,20 @@
         "STATE.Death": {
           "protocol": "MQTT/3.1.1",
           "protocoloptions": {
-            "properties": {
-              "topic": {
-                "type": "uritemplate",
-                "value": "spBv1.0/STATE/{sparkplug_host_id}"
-              },
-              "qos": {
-                "type": "integer",
-                "value": 1
-              },
-              "retain": {
-                "type": "boolean",
-                "value": true
-              }
-            }
+            "topic_name": "spBv1.0/STATE/{sparkplug_host_id}",
+            "qos": 1,
+            "retain": true
           },
-          "dataschemauri": "#/schemagroups/Sparkplug/schemas/SparkplugB.JSON/versions/v1.0:definitions/STATEDeath"
+          "dataschemauri": "#/schemagroups/Sparkplug/schemas/SparkplugB.JSON/versions/v1.0:messages/STATEDeath"
         },
         "STATE.Birth": {
           "protocol": "MQTT/3.1.1",
           "protocoloptions": {
-            "properties": {
-              "topic": {
-                "type": "uritemplate",
-                "value": "spBv1.0/STATE/{sparkplug_host_id}"
-              },
-              "qos": {
-                "type": "integer",
-                "value": 1
-              },
-              "retain": {
-                "type": "boolean",
-                "value": true
-              }
-            }
+            "topic_name": "spBv1.0/STATE/{sparkplug_host_id}",
+            "qos": 1,
+            "retain": true
           },
-          "dataschemauri": "#/schemagroups/Sparkplug/schemas/SparkplugB.JSON/versions/v1.0:definitions/STATEBirth"
+          "dataschemauri": "#/schemagroups/Sparkplug/schemas/SparkplugB.JSON/versions/v1.0:messages/STATEBirth"
         }
       }
     },
@@ -264,20 +186,9 @@
         "NCMD": {
           "protocol": "MQTT/3.1.1",
           "protocoloptions": {
-            "properties": {
-              "topic": {
-                "type": "uritemplate",
-                "value": "spBv1.0/{group_id}/NCMD/{edge_node_id}"
-              },
-              "qos": {
-                "type": "integer",
-                "value": 0
-              },
-              "retain": {
-                "type": "boolean",
-                "value": false
-              }
-            }
+            "topic_name": "spBv1.0/{group_id}/NCMD/{edge_node_id}",
+            "qos": 0,
+            "retain": false
           },
           "dataschemauri": "#/schemagroups/Sparkplug/schemas/SparkplugB.Protobuf/versions/v1.0:Payload"
         }
@@ -290,20 +201,9 @@
         "DCMD": {
           "protocol": "MQTT/3.1.1",
           "protocoloptions": {
-            "properties": {
-              "topic": {
-                "type": "uritemplate",
-                "value": "spBv1.0/{group_id}/DCMD/{edge_node_id}/{device_id}"
-              },
-              "qos": {
-                "type": "integer",
-                "value": 0
-              },
-              "retain": {
-                "type": "boolean",
-                "value": false
-              }
-            }
+            "topic_name": "spBv1.0/{group_id}/DCMD/{edge_node_id}/{device_id}",
+            "qos": 0,
+            "retain": false
           },
           "dataschemauri": "#/schemagroups/Sparkplug/schemas/SparkplugB.Protobuf/versions/v1.0:Payload"
         }
@@ -314,7 +214,7 @@
     "Eclipse.Sparkplug": {
       "description": "Eclipse Sparkplug Schema Group",
       "schemas": {
-        "SparkplugB.JSON": {
+        "SparkplugB_JSON": {
           "description": "Eclipse Sparkplug B JSON Messages",
           "format": "JsonSchema/draft-07",
           "versions": {
@@ -349,7 +249,7 @@
                   "STATEDeath": {
                     "allOf": [
                       {
-                        "$ref": "#/definitions/STATE"
+                        "$ref": "#/messages/STATE"
                       },
                       {
                         "properties": {
@@ -365,7 +265,7 @@
                   "STATEBirth": {
                     "allOf": [
                       {
-                        "$ref": "#/definitions/STATE"
+                        "$ref": "#/messages/STATE"
                       },
                       {
                         "properties": {
@@ -381,16 +281,16 @@
                 }
               }
             }
-          },
-          "SparkplugB.Protobuf": {
-            "description": "Eclipse Sparkplug B Schema",
-            "format": "Protobuf/2.0",
-            "versions": {
-              "v1.0": {
-                "description": "Eclipse Sparkplug B Schema Version 1.0",
-                "format": "Protobuf/2.0",
-                "schemaurl": "https://raw.githubusercontent.com/Cirrus-Link/Sparkplug/master/sparkplug_b/sparkplug_b.proto"
-              }
+          }
+        },
+        "SparkplugB_Protobuf": {
+          "description": "Eclipse Sparkplug B Schema",
+          "format": "Protobuf/2.0",
+          "versions": {
+            "v1.0": {
+              "description": "Eclipse Sparkplug B Schema Version 1.0",
+              "format": "Protobuf/2.0",
+              "schemaurl": "https://raw.githubusercontent.com/Cirrus-Link/Sparkplug/master/sparkplug_b/sparkplug_b.proto"
             }
           }
         }
