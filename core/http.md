@@ -4,7 +4,7 @@
 
 This specification defines an HTTP protocol binding for the
 [xRegistry specification](./spec.md). This document will include just the
-HTTP specific details and semantics, leaving the
+HTTP-specific details and semantics, leaving the
 [core specification](./spec.md) to define the xRegistry generic processing
 model and semantics that apply to all protocols.
 
@@ -18,67 +18,45 @@ model and semantics that apply to all protocols.
     - [Creating or Updating Entities](#creating-or-updating-entities)
   - [Registry Entity](#registry-entity)
     - [`GET /`](#get-)
-    - [`PATCH /`](#patch-)
-    - [`PUT /`](#put-)
+    - [`PATCH` and `PUT /`](#patch-and-put-)
     - [`POST /`](#post-)
     - [`GET /export`](#get-export)
   - [Registry Capabilities](#registry-capabilities)
     - [`GET /capabilities`](#get-capabilities)
     - [`GET /capabilitiesoffered`](#get-capabilitiesoffered)
-    - [`PATCH /capabilities`](#patch-capabilities)
-    - [`PUT /capabilities`](#put-capabilities)
+    - [`PATCH` and `PUT /capabilities`](#patch-and-put-capabilities)
   - [Registry Model](#registry-model)
     - [`GET /model`](#get-model)
     - [`GET /modelsource`](#get-modelsource)
     - [`PUT /modelsource`](#put-modelsource)
   - [Group Entity](#group-entity)
     - [`GET /<GROUPS>`](#get-groups)
-    - [`PATCH /<GROUPS>`](#patch-groups)
-    - [`POST /<GROUPS>`](#post-groups)
+    - [`PATCH` and `POST /<GROUPS>`](#patch-and-post-groups)
     - [`DELETE /<GROUPS>`](#delete-groups)
     - [`GET /<GROUPS>/<GID>`](#get-groupsgid)
-    - [`PATCH /<GROUPS>/<GID>`](#patch-groupsgid)
-    - [`PUT /<GROUPS>/<GID>`](#put-groupsgid)
+    - [`PATCH` and `PUT /<GROUPS>/<GID>`](#patch-and-put-groupsgid)
     - [`POST /<GROUPS>/<GID>`](#post-groupsgid)
     - [`DELETE /<GROUPS>/<GID>`](#delete-groupsgid)
   - [Resource Entity](#resource-entity)
     - [`GET /<GROUPS>/<GID>/<RESOURCES>`](#get-groupsgidresources)
-    - [`PATCH /<GROUPS>/<GID>/<RESOURCES>`](#patch-groupsgidresources)
-    - [`POST /<GROUPS>/<GID>/<RESOURCES>`](#post-groupsgidresources)
+    - [`PATCH` and `POST /<GROUPS>/<GID>/<RESOURCES>`](#patch-and-post-groupsgidresources)
     - [`DELETE /<GROUPS>/<GID>/<RESOURCES>`](#delete-groupsgidresources)
     - [`GET /<GROUPS>/<GID>/<RESOURCES>/<RID>`](#get-groupsgidresourcesrid)
-    - [`PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>`](#patch-groupsgidresourcesrid)
-    - [`PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>`](#put-groupsgidresourcesrid)
+    - [`PATCH` and `PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>`](#patch-and-put-groupsgidresourcesrid)
     - [`POST /<GROUPS>/<GID>/<RESOURCES>/<RID>`](#post-groupsgidresourcesrid)
     - [`DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>`](#delete-groupsgidresourcesrid)
   - [Meta Entity](#meta-entity)
     - [`GET /<GROUPS>/<GID>/<RESOURCES>/<RID>/meta`](#get-groupsgidresourcesridmeta)
-    - [`PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>/meta`](#patch-groupsgidresourcesridmeta)
-    - [`PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/meta`](#put-groupsgidresourcesridmeta)
+    - [`PATCH` and `PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/meta`](#patch-and-put-groupsgidresourcesridmeta)
     - [`DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/meta`](#delete-groupsgidresourcesridmeta)
   - [Version Entity](#version-entity)
     - [`GET /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`](#get-groupsgidresourcesridversions)
-    - [`PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`](#patch-groupsgidresourcesridversions)
-    - [`POST /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`](#post-groupsgidresourcesridversions)
+    - [`PATCH` and `POST /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`](#patch-and-post-groupsgidresourcesridversions)
     - [`DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`](#delete-groupsgidresourcesridversions)
     - [`GET /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`](#get-groupsgidresourcesridversionsvid)
-    - [`PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`](#patch-groupsgidresourcesridversionsvid)
-    - [`PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`](#put-groupsgidresourcesridversionsvid)
+    - [`PATCH` and `PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`](#patch-and-put-groupsgidresourcesridversionsvid)
     - [`DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`](#delete-groupsgidresourcesridversionsvid)
 - [Request Flags / Query Parameters](#request-flags--query-parameters)
-  - [`?binary` Flag](#binary-flag)
-  - [`?collections` Flag](#collections-flag)
-  - [`?doc` Flag](#doc-flag)
-  - [`?epoch` Flag](#epoch-flag)
-  - [`?filter` Flag](#filter-flag)
-  - [`?ignoredefaultversionid` Flag](#ignoredefaultversionid-flag)
-  - [`?ignoredefaultversionsticky` Flag](#ignoredefaultversionsticky-flag)
-  - [`?ignoreepoch` Flag](#ignoreepoch-flag)
-  - [`?ignorereadonly` Flag](#ignorereadonly-flag)
-  - [`?inline` Flag](#inline-flag)
-  - [`?setdefaultversionid` Flag](#setdefaultversionid-flag)
-  - [`?sort` Flag](#sort-flag)
-  - [`?specversion` Flag](#specversion-flag)
 - [HTTP Header Values](#http-header-values)
 - [Error Processing](#error-processing)
 
@@ -153,10 +131,6 @@ Implementations MAY support extension APIs, however, the following rules apply:
 - New root HTTP paths MAY be defined as long as they do not use Registry-level
   HTTP paths or attribute names. This includes extension and Groups collection
   attribute names.
-- Additional HTTP methods for specification-defined HTTP paths MUST NOT be
-  defined.
-
-TODO is the last one too restrictive? Perhaps we SHOULD remain silent on it?
 
 For example, a new API with an HTTP path of `/my-api` is allowed, but APIs with
 `/model/my-api` or `/name` HTTP paths are not.
@@ -178,7 +152,7 @@ pattern of the APIs:
 - A `PATCH` operation MUST only modify the attributes explicitly mentioned
   in the request. Any attribute in the request with a value of `null` MUST be
   interpreted as a request to delete the attribute, and as with `PUT`/`POST`,
-  server managed attributes might have specialized processing.
+  server-managed attributes might have specialized processing.
 - `PUT` MUST NOT be targeted at xRegistry collections. A `POST` or `PATCH`
   MUST be used instead to add entities to the collection, and a
   `DELETE` MUST then be used to delete unwanted entities.
@@ -257,7 +231,8 @@ semantics defined above with the following exceptions:
     leave it unchanged. However, modifying some other attribute (or some other
     server semantics) MAY modify it. A value of `null` MUST be interpreted as
     a request to delete the attribute.
-  - When processing a Resource or Version, that has its `hasdocument` model
+  - When processing a Resource or Version, whose Resource type has its
+    [`hasdocument`](./model.md#groupsstringresourcesstringhasdocument) model
     aspect set to `true`, the URL accessing the entity MUST include the
     `$details` suffix, and MUST generate an error
     ([details_required](#details_required)) in the absence of the
@@ -360,11 +335,10 @@ following exceptions:
   newly created entity, the HTTP status MUST be `201 Created`, and it MUST
   include an HTTP `Location` header with a URL to the newly created entity.
   Note that this URL MUST be the same as the `self` attribute of that entity.
-- In the `PUT` or `PATCH` cases directed at a single entity, and a new
-  Version was created, the response MUST include a `Content-Location` HTTP
-  header to the newly created Version entity, and it MUST be the same as the
-  Version's `self` attribute.
-TODO ^^ just pointing to Resource or Version? Not Registry or Group
+- In the `PUT` or `PATCH` cases directed at a single Resource or Version, if
+  a new Version was created, the response MUST include a `Content-Location`
+  HTTP header to the newly created Version entity, and it MUST be the same as
+  the Version's `self` attribute.
 - The responses MUST NOT include any inlineable attributes (such as
   `<RESOURCE>`, `<RESOURCE>base64` or nested objects/collections) unless
   requested.
@@ -382,7 +356,7 @@ URL (e.g. `?inline`).
 In addition to the core specification's definition of
 [`self`](./spec.md#self-attribute), the following HTTP-specific rules apply:
 
-- When serializing Resources and Versions, if the Resource's
+- When serializing Resources and Versions, whose Resource type's
   [`hasdocument`](./model.md#groupsstringresourcesstringhasdocument) aspect
   is set to `true`, then this URL MUST include the `$details` suffix appended
   to its `<SINGULAR>id` if it serialized in the the HTTP body response. If
@@ -506,8 +480,7 @@ Content-Type: application/json; charset=utf-8
 }
 ```
 
-#### `PATCH /`
-#### `PUT /`
+#### `PATCH` and `PUT /`
 
 A server MAY support clients updating the
 [Registry entity](./spec.md#registry-entity)  via an HTTP `PATCH` or `PUT`
@@ -604,7 +577,7 @@ Content-Type: application/json; charset=utf-8
 A server MAY support clients updating or creating multiple
 [Groups](./spec.md#group-entity) of varying types via an HTTP `POST` directed
 to the [Registry entity](./spec.md#registry-entity). This API is very similar
-to the [`POST /<GROUPS>`](#post-groups) API, except that the HTTP body
+to the [`POST /<GROUPS>`](#patch-and-post-groups) API, except that the HTTP body
 MUST be a map of Group types as shown below:
 
 The request MUST be of the form:
@@ -693,7 +666,7 @@ it MUST NOT support any HTTP update methods. This API was created:
   entire [Registry](./spec.md#registry-entity) as a single document. For
   example, to then be used in an "import" type of operation for another
   Registry, or for tooling that does not need the duplication of information
-  that [`?doc`](#doc-flag) removes.
+  that [Doc Flag](./spec.md#doc-flag) removes.
 - To allow for servers that do not support query parameters (such as
   [No-Code Servers](./spec.md#design-no-code-servers)) to expose the entire
   Registry with a single (non-query parameterized) API call.
@@ -837,8 +810,7 @@ Content-Type: application/json; charset=utf-8
 }
 ```
 
-#### `PATCH /capabilities`
-#### `PUT /capabilities`
+#### `PATCH` and `PUT /capabilities`
 
 A server MAY support clients updating its supported
 [capabilities](./spec.md#registry-capabilities) (features)
@@ -943,6 +915,13 @@ Content-Type: application/json; charset=utf-8
 { ... Model definition excluded for brevity ... }
 ```
 
+To retrieve the model as part of the response to
+[retrieving](#get-) the
+[Registry entity](./spec.md#registry-entity), use the
+[Inline Flag](./spec.md#inline-flag) with a value of `model`.
+
+Note that the `/model` API is a read-only API.
+
 #### `GET /modelsource`
 
 A server MAY support clients retrieving the client-provided
@@ -964,6 +943,11 @@ Content-Type: application/json; charset=utf-8
 { ... Model definition excluded for brevity ... }
 ```
 
+To retrieve the `modelsource` as part of the response to
+[retrieving](#get-) the
+[Registry entity](./spec.md#registry-entity), use the
+[Inline Flag](./spec.md#inline-flag) with a value of `modelsource`.
+
 #### `PUT /modelsource`
 
 A server MAY support clients updating its
@@ -978,6 +962,10 @@ Content-Type: application/json; charset=utf-8
 
 { ... Model definition excluded for brevity ... }
 ```
+
+To update the `modelsource` as part of a request to update the
+[Registry entity](./spec.md#registry-entity), you can include the attribute
+as part of the [`PUT /`](#patch-and-put-) request.
 
 ### Group Entity
 
@@ -1052,8 +1040,7 @@ Notice that the `Link` HTTP header is present, indicating that there
 is a second page of results that can be retrieved via the specified URL,
 and that there are a total of 100 items in this collection.
 
-#### `PATCH /<GROUPS>`
-#### `POST /<GROUPS>`
+#### `PATCH` and `POST /<GROUPS>`
 
 A server MAY support clients creating/updating multiple
 [Groups](./spec.md#group-entity) in a Group collection via an HTTP `PATCH` or
@@ -1225,8 +1212,7 @@ Content-Type: application/json; charset=utf-8
 }
 ```
 
-#### `PATCH /<GROUPS>/<GID>`
-#### `PUT /<GROUPS>/<GID>`
+#### `PATCH` and `PUT /<GROUPS>/<GID>`
 
 A server MAY support clients creating or updating a
 [Group](./spec.md#group-entity) in a Group collection via an HTTP `PATCH` or
@@ -1410,13 +1396,14 @@ HTTP/1.1 204 No Content
 
 In the core specification's
 [Resource Metadata vs Resource Document](./spec.md#resource-metadata-vs-resource-document)
-section, it explains how Resources might have a domain-specific document
-associated with them via the
-[`hasdocument` model aspect](./model.md#groupsstringresourcesstringhasdocument`).
-For HTTP, clients indicate which view of the Resource they want to interact
-with via the use of a `$details` suffix on the URL to the Resource. Presence
-of the `$details` suffix MUST be interpreted as a request to interact with
-the xRegistry metadata view of the Resource, while its absence MUST be
+section, it explains how Resource types might be defined to have a
+domain-specific document associated with them via their
+[`hasdocument` model aspect](./model.md#groupsstringresourcesstringhasdocument`)
+being set to `true`. For HTTP, clients indicate whether they want to interact
+with the Resource's xRegistry metadata or the Resource's domain-specific
+document by the use of a `$details` suffix on the `<RESOURCE>id` in its URL.
+Presence of the `$details` suffix MUST be interpreted as a request to interact
+with the xRegistry metadata of the Resource, while its absence MUST be
 interpreted as a request to interact with the Resource's domain-specific
 document.
 
@@ -1435,7 +1422,7 @@ http://registry.example.com/schemagroups/mygroup/schemas/myschema
 references the (domain-specific) schema document associated with the
 `myschema` Resource.
 
-If a Resource does not support domain-specific documents (i.e.
+If a Resource type does not support domain-specific documents (i.e.
 [`hasdocument`](./model.md#groupsstringresourcesstringhasdocument)
 is set to `false`), then use of the `$details` suffix in a request URL MUST
 be treated the same as if it were absent and any URLs in server response
@@ -1443,21 +1430,25 @@ messages referencing that Resource (e.g. `self`) MUST NOT include it.
 
 ##### Serializing Resource Domain-Specific Documents
 
+This section goes into more details concerning situations where a Resource
+type is defined to support domain-specific documents (i.e.
+[`hasdocument`](./model.md#groupsstringresourcesstringhasdocument)
+is set to `true`.
+
 When a Resource is serialized as its underlying domain-specific document,
 in other words `$details` is not appended to its URL path, the HTTP body of
 requests and responses MUST be the exact bytes of that document. If the
-document is empty, or there is no document, then the HTTP body MUST be empty
-(zero length).
+document is empty, then the HTTP body MUST be empty (zero length).
 
 In this serialization mode, it might be useful for clients to also interact
 with some of the Resource's xRegistry metadata. To support this, some of the
-Resource's xRegistry metadata MAY appear as HTTP headers in  messages.
+Resource's xRegistry metadata MAY appear as HTTP headers in messages.
 
 On responses, unless otherwise stated, all top-level scalar attributes of the
 Resource SHOULD appear as HTTP headers where the header name is the name of the
 attribute prefixed with `xRegistry-`. Note, the optionality of this requirement
 is not to allow for servers to decide whether or not to do so, rather it is to
-allow for [No-Code Servers](#no-code-servers) servers than might not be
+allow for [No-Code Servers](#no-code-servers) servers that might not be
 able to control the HTTP response headers.
 
 Top-level map attributes whose values are of scalar types SHOULD also appear as
@@ -1481,7 +1472,8 @@ these headers being REQUIRED, the client would only need to include those
 top-level attributes that they would like to change. But, including unchanged
 attributes MAY be done. Any attributes not included in request messages
 MUST be interpreted as a request to leave their values unchanged. Using a
-value of `null` (case-sensitive) indicates a request to delete that attribute.
+value of `null` (case-sensitive) MUST be processed as a request to delete that
+attribute.
 
 Any top-level map attributes that appear as HTTP headers MUST be included
 in their entirety and any missing keys MUST be interpreted as a request to
@@ -1640,8 +1632,7 @@ Link: <https://example.com/endpoints/ep1/messages&page=2>;rel=next;count=100
 }
 ```
 
-#### `PATCH /<GROUPS>/<GID>/<RESOURCES>`
-#### `POST /<GROUPS>/<GID>/<RESOURCES>`
+#### `PATCH` and `POST /<GROUPS>/<GID>/<RESOURCES>`
 
 A server MAY support clients creating/updating one or more
 [Resources](./spec.md#resource-entity) within a
@@ -1784,7 +1775,7 @@ Resource metadata or to the Resource domain-specific document. See
 [Resource Metadata vs Resource Document](#resource-metadata-vs-resource-document)
 for more information.
 
-When `$details` is used, or the Resource is not configured to have a
+When `$details` is used, or the Resource type is not configured to have a
 domain-specific document, then a successful response MUST be:
 
 ```yaml
@@ -1798,21 +1789,17 @@ Content-Location: <URL> ?
 ```
 
 Where:
-- The use of the `$details` suffix is REQUIRED when the Resource's
-  `hasdocument` aspect is `true`.
-- `<RESOURCE>`, or `<RESOURCE>base64`, MUST only be included if requested via
-  use of the `?inline` feature and `<RESOURCE>url` is not set.
 - If `Content-Location` is present then it MUST be a URL to the Version of the
   Resource in the `versions` collection - same as `defaultversionurl`.
 
-When `$details` is not used and the Resource is configured to have a
+When `$details` is not used and the Resource type is configured to have a
 domain-specific document, then a successful response MUST be either:
 - `200 OK` with the Resource document in the HTTP body.
 - `303 See Other` with the location of the Resource's document being
   returned in the HTTP `Location` header if the Resource has a `<RESOURCE>url`
   value, and the HTTP body MUST be empty.
 
-In both cases the Resource's default Version attributes, along with the
+For either response, the Resource's default Version attributes, along with the
 `meta` and `versions` related scalar attributes, MUST be serialized as HTTP
 `xRegistry-` headers.
 
@@ -1887,8 +1874,7 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1
 }
 ```
 
-#### `PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>`
-#### `PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>`
+#### `PATCH` and `PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>`
 
 A server MAY support clients creating, or updating, a
 [Resource](./spec.md#resource-entity) within a
@@ -2324,8 +2310,7 @@ Content-Type: application/json; charset=utf-8
 }
 ```
 
-#### `PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>/meta`
-#### `PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/meta`
+#### `PATCH` and `PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/meta`
 
 A server MAY support clients updating a
 [Resource's Meta entity](./spec.md#meta-entity) via an HTTP `PATCH` or
@@ -2449,8 +2434,7 @@ Link: <https://example.com/endpoints/ep1/messages/msg1/versions&page=2>;rel=next
 }
 ```
 
-#### `PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`
-#### `POST /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`
+#### `PATCH` and `POST /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`
 
 A server MAY support clients creating/updating one or more
 [Versions](./spec.md#version-entity), of a
@@ -2714,8 +2698,7 @@ Content-Disposition: myschema
 { ... Contents of a schema doc excluded for brevity ...  }
 ```
 
-#### `PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`
-#### `PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`
+#### `PATCH` and `PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`
 
 A server MAY support clients creating or updating a
 [Version](./spec.md#version-entity) of a
@@ -2928,80 +2911,20 @@ HTTP/1.1 204 No Content
 ## Request Flags / Query Parameters
 
 The [core xRegistry specification](./spec.md) defines a set of
-[flags](./spec.md#request-flags) that MAY be used to control the processing of
-requests as well as influence how response messages are generated. Each flag
-is mapped to an HTTP query parameter, as defined in the following sections:
+[request flags](./spec.md#request-flags) that MAY be used to control the
+processing of requests as well as influence how response messages are
+generated. Each flag is mapped to an HTTP query parameter per the following
+rules:
 
-- [`?binary` Flag](#binary-flag)
-- [`?collections` Flag](#collections-flag)
-- [`?doc` Flag](#doc-flag)
-- [`?epoch` Flag](#epoch-flag)
-- [`?filter` Flag](#filter-flag)
-- [`?ignoredefaultversionid` Flag](#ignoredefaultversionid-flag)
-- [`?ignoredefaultversionsticky` Flag](#ignoredefaultversionsticky-flag)
-- [`?ignoreepoch` Flag](#ignoreepoch-flag)
-- [`?ignorereadonly` Flag](#ignorereadonly-flag)
-- [`?inline` Flag](#inline-flag)
-- [`?setdefaultversionid` Flag](#setdefaultversionid-flag)
-- [`?sort` Flag](#sort-flag)
-- [`?specversion` Flag](#specversion-flag)
+- When the flag is a boolean type of flag then it MUST be serialized
+  as `?FLAG_NAME`, all lower case.
+- When the flag has a single value associated with it, then it MUST be
+  serialized as `?FLAG_NAME=VALUE`, where the `FLAG_NAME` MUST be all
+  lower case. The flag MUST NOT be specified more than once.
+- When the flag allows for multiple values, then each value MUST be
+  serialized as a separate query parameter per the previous bullets.
 
-### `?binary` Flag
-
-A server MAY support the `?binary` flag/query parameter allowing clients to
-request that any Resources returned in the response always have its
-domain-specific documents be serialized under its `<RESOURCE>base64`
- attribute.
-
-See [Binary Flag](./spec.md#binary-flag) for more information.
-
-This query parameter MUST be serialized as:
-
-```yaml
-?binary
-```
-
-### `?collections` Flag
-
-A server MAY support the `?collections` query parameter allowing clients to
-request that the targeted entity (Registry or Group) returned in the response
-not include its attributes, rather just the nested xRegistry Collection map
-attribute(s).
-
-See [Collections Flag](./spec.md#collections-flag) for more information.
-
-This query parameter MUST be serialized as:
-
-```yaml
-?collections
-```
-
-### `?doc` Flag
-
-A server MAY support the `?doc` query parameter allowing clients to request
-that response be modified such that duplicate metadata be excluded.
-
-See [Doc Flag](./spec.md#doc-flag) for more information.
-
-This query parameter MUST be serialized as:
-
-```yaml
-?doc
-```
-
-### `?epoch` Flag
-
-A server MAY support the `?epoch` query parameter on HTTP `DELETE` operations
-to indicate the value that the targeted entity's `epoch` value MUST match
-prior to deleting the entity.
-
-See [Epoch Flag](./spec.md#epoch-flag) for more information.
-
-This query parameter MUST be serialized as:
-
-```yaml
-?epoch=<UINTEGER>
-```
+There are exceptions to these rules as specified by the following:
 
 ### `?filter` Flag
 
@@ -3031,65 +2954,6 @@ The abstract processing logic would be:
   sub-trees into one result set and remove any duplicates - adjusting any
   collection `url` and `count` values as needed.
 
-### `?ignoredefaultversionid` Flag
-
-A server MAY support the `?ignoredefaultversionid` query parameter on any
-write request to indicate that any `defaultversionid` attribute included in
-the request MUST be ignored.
-
-See [IgnoreDefaultVersionID Flag](./spec.md#ignoredefaultversionid-flag) for
-more information.
-
-This query parameter MUST be serialized as:
-
-```yaml
-?ignoredefaultversionid
-```
-
-### `?ignoredefaultversionsticky` Flag
-
-A server MAY support the `?ignoredefaultversionsticky` query parameter on any
-write request to indicate that any `defaultversionsticky` attribute included in
-the request MUST be ignored.
-
-See
-[IgnoreDefaultVersionSticky Flag](./spec.md#ignoredefaultversionsticky-flag)
-for more information.
-
-This query parameter MUST be serialized as:
-
-```yaml
-?ignoredefaultversionsticky
-```
-
-### `?ignoreepoch` Flag
-
-A server MAY support the `?ignoreepoch` query parameter on any
-write request to indicate that any `epoch` attribute included in
-the request MUST be ignored.
-
-See [IgnoreEpoch Flag](./spec.md#ignoreepoch-flag) for more information.
-
-This query parameter MUST be serialized as:
-
-```yaml
-?ignoreepoch
-```
-
-### `?ignorereadonly` Flag
-
-A server MAY support the `?ignorereadonly` query parameter on any
-write request to indicate that any attempt to update an existing read-only
-entity MUST NOT generate an error.
-
-See [IgnoreReadonly Flag](./spec.md#ignorereadonly-flag) for more information.
-
-This query parameter MUST be serialized as:
-
-```yaml
-?ignorereadonly
-```
-
 ### `?inline` Flag
 
 A server MAY support the `?inline` query parameter on any request to indicate
@@ -3110,20 +2974,6 @@ Where:
   `<PATH>` value or be a comma-separated list of `<PATH>` values.
 - The `?inline` query parameter MAY be specified more than once.
 
-### `?setdefaultversionid` Flag
-
-A server MAY support the `?setdefaultversionid` query parameter certain
-write requests to set the `defaultversionid` value of the Resource in question.
-
-See [SetDefaultVersionID Flag](./spec.md#setdefaultversionid-flag) for more
-information.
-
-This query parameter MUST be serialized as:
-
-```yaml
-?setdefaultversionid=<VID>
-```
-
 ### `?sort` Flag
 
 A server MAY support the `?sort` query parameter on any request directed to
@@ -3135,20 +2985,6 @@ This query parameter MUST be serialized as:
 
 ```yaml
 ?sort=<ATTRIBUTE>[=asc|desc]
-```
-
-### `?specversion` Flag
-
-A server MAY support the `?specversion` query parameter on any request to
-indicate the version of the xRegistry specification that the response MUST
-adhere to.
-
-See [SpecVersion Flag](./spec.md#specversion-flag) for more information.
-
-This query parameter MUST be serialized as:
-
-```yaml
-?specversion=<STRING>
 ```
 
 ## HTTP Header Values

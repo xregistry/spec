@@ -296,7 +296,7 @@ attribute, or MAY be stored external to the Version and a URL to its location
 will be stored within the Version instead. This model design choice is
 specified via the
 [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
-of the Resource's model definition.
+of the Resource type's model definition.
 
 Typically, the domain-specific document will be used when a pre-existing
 document definition already exists and an xRegistry is used as the
@@ -337,9 +337,8 @@ can choose from:
   such, in this view, each entity is, by default, retrieved from the server
   via independent "read" operations.
 
-  The [Registry HTTP `GET` APIs](./http.md#registry-http-apis), without the
-  use of the [`?doc` flag/query parameter](./http.md#doc-flag), is an example
-  of how to generate this view.
+  A query without the use of the [Doc flag](#doc-flag), is an example of how
+  to generate this view.
 
 - Multiple Document View
 
@@ -355,9 +354,8 @@ can choose from:
   control system (e.g. Github) to minimize the number of conflicting edits
   between users in a very fluid environment.
 
-  The [Registry HTTP `GET` APIs](./http.md#registry-http-apis), with the use
-  of the [`?doc` flag/query parameter](./http.md#doc-flag), is an example of
-  how to generate this view.
+  A query with the use of the [Doc flag](#doc-flag), is an example of how to
+  generate this view.
 
 This specification provides the mechanisms to allow for users to choose the
 best "view" for their needs. Regardless of the view, the design allows for
@@ -1036,7 +1034,7 @@ of the existing entity. Then the existing entity would be deleted.
   - REQUIRED.
   - MUST be immutable.
   - MUST be a non-empty absolute URL based on the URL of the Registry.
-  - When serializing Resources or Versions, if the
+  - When serializing Resources or Versions, whose Resource type's
     [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
     is set to `true`, then (based on the protocol binding being used) this
     attribute might need to include some indicator that the xRegistry metadata
@@ -1859,7 +1857,7 @@ Implementations MAY support clients updating the capabilities of the server.
 If so, they SHOULD support it via updates to the Registry entity's
 `capabilities` attribute as well as updates via a stand-alone map independent
 of the the Registry entity (e.g.
-[`PUT /capabilities`](./http.md#put-capabilities) in the HTTP case).
+[`PUT /capabilities`](./http.md#patch-and-put-capabilities) in the HTTP case).
 
 The request to update the capabilities SHOULD include a serialization of the
 capability map as described above. Whether it includes the full set of
@@ -2242,7 +2240,7 @@ and the following Resource-level attributes:
 Unlike Groups, which consist entirely of xRegistry managed metadata, Resource
 Versions often have their own domain-specific data and document format that
 needs to be kept distinct from the Version metadata. As discussed previously,
-the model definition for Resources has a
+the model definition for Resource types has a
 [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
 indicating whether a Resource type defines its own separate document or not.
 
@@ -2302,15 +2300,16 @@ When the xRegistry metadata is serialized as a JSON object, the processing
 of the 3 Version-level `<RESOURCE>*` attributes MUST follow these rules:
   - At most, only one of the 3 attributes MAY be present in the request, and
     the presence of any one of them MUST delete the other 2 attributes.
-  - If the entity already exists and has a document (not a `<RESOURCE>url`),
+  - If the entity already exists and its `<RESOURCE>url` has no value,
     then absence of all 3 attributes MUST leave all 3 unchanged.
-  - An explicit value of `null` for any of the 3 attributes MUST delete all
-    3 attributes (and any associated data).
+  - An explicit value of `null` for any of the 3 attributes MUST result in
+    same net effect as defining the entity's domain-specific document to be
+    an empty document.
   - When `<RESOURCE>` is present, the server MAY choose to modify non-semantic
     significant characters. For example, to remove (or add) whitespace. In
     other words, there is no requirement for the server to persist the
     document in the exact byte-for-byte format in which it was provided. If
-    that is desired then `<RESOURCE>base64` MUST be used instead.
+    that is desired then clients MUST use `<RESOURCE>base64` instead.
   - On a non-patch type of write operation, when `<RESOURCE>` is present,
     if no `contenttype` value is provided then the server MUST set it to same
     type as the incoming request, e.g. `application/json`, even if the entity
@@ -2698,16 +2697,16 @@ and the following Meta-level attributes:
 - Type: URL
 - Description: a URL to the default Version of the Resource.
 
-  Note that if the Resource's
-  [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
-  is set to `true`, then this URL MUST reference the xRegistry metadata view
-  of the Version, not the domain-specific document view.
-
 - API View Constraints:
   - REQUIRED.
   - MUST be an absolute URL to the default Version of the Resource, and MUST
-    be the same as the Version's `self` attribute.
+    be the same as that Version's `self` attribute.
   - MUST be a read-only attribute.
+  - If the Resource type's
+    [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
+    is set to `true`, then this URL MUST reference the xRegistry metadata view
+    of the Version, not the domain-specific document view. In the HTTP
+    protocol case, this means using the `$details` suffix.
 
 - Document View Constraints:
   - REQUIRED.
@@ -2963,7 +2962,7 @@ and the following Version-level attributes:
   - If the document is stored in a network-accessible endpoint then the
     referenced URL MUST support a query to this URL to retrieve the contents.
     There is no requirement for the server to validate this URL.
-  - MUST NOT be present if the Resource's
+  - MUST NOT be present if the Resource type's
     [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
     is set to `false`.
 
@@ -2994,7 +2993,7 @@ and the following Version-level attributes:
   - MUST only be used if the Version's document (bytes) is in the same
     format as the serialization of the Version entity.
   - MUST NOT be present if `<RESOURCE>base64` is also present.
-  - MUST NOT be present if the Resource's
+  - MUST NOT be present if the Resource type's
     [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
     is set to `false`.
 
@@ -3009,9 +3008,11 @@ and the following Version-level attributes:
 - Constraints:
   - If the Version's document is to be serialized and it is not empty,
     then either `<RESOURCE>` or `<RESOURCE>base64` MUST be present.
+  - If the Version's document is to be serialized but it is empty,
+    then `<RESOURCE>base64` MUST be present with an empty string (`""`) value.
   - MUST be a base64 encoded string of the Version's document.
   - MUST NOT be present if `<RESOURCE>` is also present.
-  - MUST NOT be present if the Resource's
+  - MUST NOT be present if the Resource type's
     [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
     is set to `false`.
 
@@ -3023,11 +3024,11 @@ the potentially large amount of data from the Version's document in request
 and response messages could be cumbersome. To address this, the `<RESOURCE>`
 and `<RESOURCE>base64` attributes do not appear by default as part of the
 serialization of the Version. Rather, they MUST only appear in responses when
-the [Inline Flag](#inline-flag) is used. Likewise, in
-requests, these attributes are OPTIONAL and would only need to be used when a
-change to the document's content is needed at the same time as updates to the
-Version's metadata. However, the `<RESOURCE>url` attribute MUST always appear
-if it has a value, just like any other attribute.
+the [Inline Flag](#inline-flag), with a value of `<RESOURCE>`, is used.
+Likewise, in requests, these attributes are OPTIONAL and would only need to be
+used when a change to the document's content is needed at the same time as
+updates to the Version's metadata. However, the `<RESOURCE>url` attribute MUST
+always appear if it has a value, just like any other attribute.
 
 Note that the serialization of a Version MUST only use at most one of these 3
 attributes at a time.
@@ -3227,6 +3228,9 @@ specifications will indicate how they are to be serialized on each request:
 - [`sort`](#sort-flag)
 - [`specversion`](#specversion-flag)
 
+See: [Request Flags](./http.md#request-flags--query-parameters) in the
+[HTTP binding specification](./http.md) for the HTTP usage.
+
 ### Binary Flag
 
 The `binary` flag MAY be used on requests to indicate that the server MUST use
@@ -3240,8 +3244,6 @@ modifying the bytes of the document in any way - such as "pretty printing" it.
 
 This flag MAY be used on any request but will only influence the serialization
 of Resource and Version entities that have a domain-specific document.
-
-See: [`?binary` Flag](./http.md#binary-flag) for the HTTP usage.
 
 ### Collections Flag
 
@@ -3285,8 +3287,6 @@ and using it as input into:
 ```yaml
 POST http://targetRegistry.com/
 ```
-
-See: [`?collections` Flag](./http.md#collections-flag) for the HTTP usage.
 
 ### Doc Flag
 
@@ -3378,8 +3378,6 @@ collection, or to one of its Versions, but the Resource is defined as an
 flag on this part of the hierarchy is not valid - due to those entities not
 technically existing in document view.
 
-See: [`?doc` Flag](./http.md#doc-flag) for the HTTP usage.
-
 ### Epoch Flag
 
 The `epoch` flag MAY be used on any delete operation directed to a single
@@ -3388,8 +3386,6 @@ of the "to be deleted" entity in the request. In those cases, this flag is
 used to request that the entity's current `epoch` value matches this flag's
 value for the purpose of the server's
 [`epoch` conflict checking algorithm](#epoch-attribute).
-
-See: [`?epoch` Flag](./http.md#epoch-flag) for the HTTP usage.
 
 ### Filter Flag
 
@@ -3598,8 +3594,6 @@ Notice the first part of the filter expression (to the left of the "and"
 (`,`)) has no impact on the results because the list of resulting leaves in
 that subtree is not changed by that search criteria.
 
-See: [`?filter` Flag](./http.md#filter-flag) for the HTTP usage.
-
 ### IgnoreDefaultVersionID Flag
 
 The `ignoredefaultversionid` flag MAY be used on any write operation to
@@ -3610,9 +3604,6 @@ This flag is useful in cases where there is a desire to not change any
 existing Resource's `defaultversionid` values based on the data in the
 write operation request, and the incoming data is not easily modifiable to
 remove the `defaultversionid` attributes that might be in there.
-
-See: [`?ignoredefaultversionid` Flag](./http.md#ignoredefaultversionid-flag)
-for the HTTP usage.
 
 ### IgnoreDefaultVersionSticky Flag
 
@@ -3625,10 +3616,6 @@ existing Resource's `defaultversionsticky` values based on the data in the
 write operation request, and the incoming data is not easily modifiable to
 remove the `defaultversionsticky` attributes that might be in there.
 
-See:
-[`?ignoredefaultversionsticky` Flag](./http.md#ignoredefaultversionsticky-flag)
-for the HTTP usage.
-
 ### IgnoreEpoch Flag
 
 The `ignoreepoch` flag MAY be used on any write operation to
@@ -3640,8 +3627,6 @@ existing entity's `epoch` values based on the data in the
 write operation request, and the incoming data is not easily modifiable to
 remove the `epoch` attributes that might be in there.
 
-See: [`?ignoreepoch` Flag](./http.md#ignoreepoch-flag) for the HTTP usage.
-
 ### IgnoreReadOnly Flag
 
 The `ignorereadonly` flag MAY be used on any write operation to
@@ -3651,8 +3636,6 @@ ignored.
 This flag is useful in cases where detecting attempts to update read-only
 entity is not desired and the incoming data is not easily modifiable to
 remove the read-only entity.
-
-See: [`?ignorereadonly` Flag](./http.md#ignorereadonly-flag) for the HTTP usage.
 
 ### Inline Flag
 
@@ -3756,8 +3739,6 @@ those cases, the client will need to query the individual inlineable
 collection  attributes in isolation so the Registry can leverage a pagination
 type of feature to iteratively retrieve the entities.
 
-See: [`?inline` Flag](./http.md#inline-flag) for the HTTP usage.
-
 ### SetDefaultVersionID Flag
 
 The `setdefaultversionid` flag MAY be used on any write operation directed to
@@ -3789,9 +3770,6 @@ The following rules apply:
 Any use of this flag on a Resource that has the
 `setdefaultversionsticky` aspect set to `false` MUST generate an error
 ([bad_flag](#bad_flag)).
-
-See: [`?setdefaultversionid` Flag](./http.md#setdefaultversionid-flag) for
-the HTTP usage.
 
 ### Sort Flag
 
@@ -3845,8 +3823,6 @@ Some examples using the [HTTP protocol binding](./http.md#sort-flag):
 - `GET /endpoints/e1/messages?sort=messageid=desc` # Sort (desc) on 'messageid'
 - `GET /endpoints?sort=labels.stage`  # Sort (asc) on `labels.stage`, then `endpointid`
 
-See: [`?sort` Flag](./http.md#sort-flag) for the HTTP usage.
-
 ### SpecVersion Flag
 
 The SpecVersion flag MAY be used to indicate the xRegistry specification
@@ -3868,8 +3844,6 @@ backwards compatible.
 However, due to the potential for semantics changes of versions with suffix
 values (e.g. `v2.0.0-rc1`), the suffix value MUST be part of the comparison
 checking.
-
-See: [`?specversion` Flag](./http.md#specversion-flag) for the HTTP usage.
 
 ## Error Processing
 
