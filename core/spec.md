@@ -2309,7 +2309,7 @@ of the 3 Version-level `<RESOURCE>*` attributes MUST follow these rules:
     significant characters. For example, to remove (or add) whitespace. In
     other words, there is no requirement for the server to persist the
     document in the exact byte-for-byte format in which it was provided. If
-    that is desired then clients MUST `<RESOURCE>base64` MUST be used instead.
+    that is desired then clients MUST use `<RESOURCE>base64` instead.
   - On a non-patch type of write operation, when `<RESOURCE>` is present,
     if no `contenttype` value is provided then the server MUST set it to same
     type as the incoming request, e.g. `application/json`, even if the entity

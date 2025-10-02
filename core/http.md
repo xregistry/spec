@@ -4,7 +4,7 @@
 
 This specification defines an HTTP protocol binding for the
 [xRegistry specification](./spec.md). This document will include just the
-HTTP specific details and semantics, leaving the
+HTTP-specific details and semantics, leaving the
 [core specification](./spec.md) to define the xRegistry generic processing
 model and semantics that apply to all protocols.
 
@@ -152,7 +152,7 @@ pattern of the APIs:
 - A `PATCH` operation MUST only modify the attributes explicitly mentioned
   in the request. Any attribute in the request with a value of `null` MUST be
   interpreted as a request to delete the attribute, and as with `PUT`/`POST`,
-  server managed attributes might have specialized processing.
+  server-managed attributes might have specialized processing.
 - `PUT` MUST NOT be targeted at xRegistry collections. A `POST` or `PATCH`
   MUST be used instead to add entities to the collection, and a
   `DELETE` MUST then be used to delete unwanted entities.
@@ -335,7 +335,7 @@ following exceptions:
   newly created entity, the HTTP status MUST be `201 Created`, and it MUST
   include an HTTP `Location` header with a URL to the newly created entity.
   Note that this URL MUST be the same as the `self` attribute of that entity.
-- In the `PUT` or `PATCH` cases directed at a single Resource or Version, and
+- In the `PUT` or `PATCH` cases directed at a single Resource or Version, if
   a new Version was created, the response MUST include a `Content-Location`
   HTTP header to the newly created Version entity, and it MUST be the same as
   the Version's `self` attribute.
@@ -2922,7 +2922,7 @@ rules:
   serialized as `?FLAG_NAME=VALUE`, where the `FLAG_NAME` MUST be all
   lower case. The flag MUST NOT be specified more than once.
 - When the flag allows for multiple values, then each value MUST be
-  serialized as separate query parameters per the previous bullets.
+  serialized as a separate query parameter per the previous bullets.
 
 There are exceptions to these rules as specified by the following:
 

@@ -624,10 +624,10 @@ The following describes the attributes of the Registry model:
 ### `groups.<STRING>.resources.<STRING>.hasdocument`
 - Type: Boolean (`true` or `false`, case-sensitive).
 - OPTIONAL.
-- Indicates whether or not Resources of this type have a domains-specific
+- Indicates whether or not each Resource of this type has a domain-specific
   document associated with it. If `false` then the xRegistry metadata becomes
   "the document". Meaning, a query to the Resource's URL will return the
-  xRegistry metadata and not the domain-specific document.
+  xRegistry metadata and not a domain-specific document.
 
   A value of `true` does not mean that these Resources are guaranteed to
   have a non-empty document, and a query to the Resource MAY return an
@@ -638,8 +638,8 @@ The following describes the attributes of the Registry model:
   for more information.
 
 - When not specified, the default value MUST be `true`.
-- A value of `true` indicates that Resources of this type MUST a separate
-  document to be associated with it, even if it's empty.
+- A value of `true` indicates that each Resource of this type MUST have a
+  separate document associated with it, even if it's empty.
 
 ### `groups.<STRING>.resources.<STRING>.versionmode`
 - Type: String
@@ -1129,7 +1129,7 @@ of any includes, and after all specification-defined attributes have been
 added), MUST be available via the `model` attribute/entity. The directives MUST
 only be processed during the initial update of the model. In order to have
 them re-evaluated, a subsequent model update request (with those directive)
-MUST be done.
+MUST be sent.
 
 When there is tooling used outside of the server, e.g. in an xRegistry
 client, if that tooling resolves the "include" directives prior to sending
