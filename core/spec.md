@@ -438,7 +438,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
     "shortself": <BOOLEAN>, ?
     "specversions": [ "1.0-rc2", "<STRING>"* ], ?
     "stickyversions": <BOOLEAN>, ?
-    "versionmodes": [ "manual", "createdat",? "modifiedat",? "semver",
+    "versionmodes": [ "manual", "createdat",? "modifiedat",? "semver",?
       "<STRING>"* ],
 
     "<STRING>": ... *                   # Extension capabilities

@@ -1394,9 +1394,9 @@ HTTP/1.1 204 No Content
 
 #### Resource Metadata vs Resource Document
 
-In the core specification's
+The core specification's
 [Resource Metadata vs Resource Document](./spec.md#resource-metadata-vs-resource-document)
-section, it explains how Resource types might be defined to have a
+section explains how Resource types might be defined to have a
 domain-specific document associated with them via their
 [`hasdocument` model aspect](./model.md#groupsstringresourcesstringhasdocument`)
 being set to `true`. For HTTP, clients indicate whether they want to interact
