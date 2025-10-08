@@ -3967,10 +3967,14 @@ SHOULD attempt to use a more specific error when possible.
 
 ### action_not_allowed
 
+In the case of using the HTTP protocol binding, this error MUST include
+the HTTP `Allow` header in the response indicating which HTTP methods
+the API supports, if any.
+
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#action_not_allowed`
 * Code: `405 Method Not Allowed`
 * Instance: `<REQUEST URL>`
-* Title: `The specified action (<INVALID ACTiON>) is not supported for: <REQUEST URL>`
+* Title: `The specified action (<INVALID ACTION>) is not supported for: <REQUEST URL>`
 
 ### mismatched_epoch
 
