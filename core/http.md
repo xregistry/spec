@@ -124,7 +124,7 @@ use of that API MUST generate an error
 ([api_not_found](./http.md#api_not_found)).
 
 If an HTTP method is not supported for a supported HTTP path, then an error
-([method_not_allowed](./spec.md#method_not_allowed)) MUST be generated.
+([action](./spec.md#action_not_allowed)) MUST be generated.
 
 Implementations MAY support extension APIs, however, the following rules apply:
 - New HTTP paths that extend non-root paths MUST NOT be defined.
@@ -2374,7 +2374,7 @@ Content-Type: application/json; charset=utf-8
 #### `DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/meta`
 
 A `DELETE` directed to the Meta entity is not supported and MUST generate an
-error ([method_not_allowed](./spec.md#method_not_allowed)).
+error ([action_not_allowed](./spec.md#action_not_allowed)).
 
 ### Version Entity
 
