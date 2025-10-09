@@ -3974,7 +3974,7 @@ the API supports, if any.
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#action_not_allowed`
 * Code: `405 Method Not Allowed`
 * Instance: `<REQUEST URL>`
-* Title: `The specified action (<INVALID ACTION>) is not supported for: <REQUEST URL>`
+* Title: `The specified action (<INVALID ACTION>) is not allowed for: <REQUEST URL>`
 
 ### mismatched_epoch
 
