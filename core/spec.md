@@ -438,7 +438,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
     "shortself": <BOOLEAN>, ?
     "specversions": [ "1.0-rc2", "<STRING>"* ], ?
     "stickyversions": <BOOLEAN>, ?
-    "versionmodes": [ "manual", "createdat",? "modifiedat",? "semver",
+    "versionmodes": [ "manual", "createdat",? "modifiedat",? "semver",?
       "<STRING>"* ],
 
     "<STRING>": ... *                   # Extension capabilities
@@ -2497,7 +2497,7 @@ operation targeted directly to it.
 Each Resource MUST have a Meta entity, and when the Resource is deleted then
 the Meta entity MUST also be deleted. Delete requests directed to the Meta
 entity MUST generate an error
-([method_not_allowed](./spec.md#method_not_allowed)).
+([action_not_supported](./spec.md#action_not_supported)).
 
 A non-patch type of write operation that includes a Resource, as a mechanism
 to update its `meta` entity would need to include the Resource's default
@@ -3889,6 +3889,17 @@ The following list of protocol-independent errors are defined:
 
 <!-- start-err-def -->
 
+### action_not_supported
+
+In the case of using the HTTP protocol binding, this error MUST include
+the HTTP `Allow` header in the response indicating which HTTP methods
+the API supports, if any.
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#action_not_supported`
+* Code: `405 Method Not Allowed`
+* Instance: `<REQUEST URL>`
+* Title: `The specified action (<INVALID ACTION>) is not supported for: <REQUEST URL>`
+
 ### ancestor_circular_reference
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#ancestor_circular_reference`
@@ -3964,13 +3975,6 @@ SHOULD attempt to use a more specific error when possible.
 * Instance: `<URL TO THE ENTITY BEING PROCESSED>`
 * Title: `The data provided for "<ATTRIBUTE/PARAMETER NAME>" is invalid`
 * Detail: `<THE INVALID DATA>`
-
-### method_not_allowed
-
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#method_not_allowed`
-* Code: `405 Method Not Allowed`
-* Instance: `<REQUEST URL>`
-* Title: `The specified HTTP method (<INVALID METHOD>) is not supported for: <REQUEST URL>`
 
 ### mismatched_epoch
 

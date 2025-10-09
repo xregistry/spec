@@ -16,6 +16,7 @@ model and semantics that apply to all protocols.
 - [Registry HTTP APIs](#registry-http-apis)
   - [Entity Processing Rules](#entity-processing-rules)
     - [Creating or Updating Entities](#creating-or-updating-entities)
+    - [HTTP OPTIONS Method](#http-options-method)
   - [Registry Entity](#registry-entity)
     - [`GET /`](#get-)
     - [`PATCH` and `PUT /`](#patch-and-put-)
@@ -124,7 +125,7 @@ use of that API MUST generate an error
 ([api_not_found](./http.md#api_not_found)).
 
 If an HTTP method is not supported for a supported HTTP path, then an error
-([method_not_allowed](./spec.md#method_not_allowed)) MUST be generated.
+([action_not_supported](./spec.md#action_not_supported)) MUST be generated.
 
 Implementations MAY support extension APIs, however, the following rules apply:
 - New HTTP paths that extend non-root paths MUST NOT be defined.
@@ -422,6 +423,46 @@ an individual Group or Resource).
 In the remainder of this specification, the presence of the `Link` HTTP header
 indicates the use of the [pagination specification](../pagination/spec.md)
 MAY be used for that API.
+
+#### HTTP OPTIONS Method
+
+A server MAY support clients querying the list of supported HTTP methods
+for any supported API. The request MUST be of the form:
+
+```yaml
+OPTIONS <PATH>
+```
+
+A successful response MUST be of the form:
+
+```yaml
+HTTP/1.1 200 OK
+Allow: <METHODS>
+Access-Control-Allow-Methods: <METHODS>
+```
+
+Where:
+- `<METHODS>` is a comma-separated list of HTTP methods that are supported
+  by that API.
+- The same `<METHODS>` values MUST be returned for both headers.
+- `OPTIONS` MUST be one of the values returned.
+- This operation MUST NOT modify any data within the Registry.
+- Implementations MAY choose to include other information per the
+  [RFC9110](https://www.rfc-editor.org/rfc/rfc9110.html#section-9.3.7)
+  specification.
+
+**Examples:**
+
+Retrieve supported list of HTTP method at the root of the Registry:
+
+```yaml
+OPTIONS /
+```
+
+```yaml
+HTTP/1.1 200 OK
+Allow: GET, OPTIONS
+Access-Control-Allow-Methods: GET, OPTIONS
 
 ### Registry Entity
 
@@ -1394,9 +1435,9 @@ HTTP/1.1 204 No Content
 
 #### Resource Metadata vs Resource Document
 
-In the core specification's
+The core specification's
 [Resource Metadata vs Resource Document](./spec.md#resource-metadata-vs-resource-document)
-section, it explains how Resource types might be defined to have a
+section explains how Resource types might be defined to have a
 domain-specific document associated with them via their
 [`hasdocument` model aspect](./model.md#groupsstringresourcesstringhasdocument`)
 being set to `true`. For HTTP, clients indicate whether they want to interact
@@ -2374,7 +2415,7 @@ Content-Type: application/json; charset=utf-8
 #### `DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/meta`
 
 A `DELETE` directed to the Meta entity is not supported and MUST generate an
-error ([method_not_allowed](./spec.md#method_not_allowed)).
+error ([action_not_supported](./spec.md#action_not_supported)).
 
 ### Version Entity
 
