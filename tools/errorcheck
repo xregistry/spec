@@ -15,7 +15,7 @@ echo "> Looking for errors usage in: $*"
 
 # Make IFS a dummay char so we save the newlines
 IFS="!" lines=$(sed -r -n "/$START_PATTERN/,/$END_PATTERN/p" $* | \
-  sed -n 's/#### //p')
+  sed -n 's/##* //p')
 
 [[ "$lines" == "" ]] && echo "Can't find any errors" && exit 1
 
@@ -43,9 +43,9 @@ for file in $* ; do
   echo "> Checking alphabetical order in: $file"
 
   IFS="!" lines=$(sed -r -n "/$START_PATTERN/,/$END_PATTERN/p" $file | \
-    sed -n 's/#### //p')
+    sed -n 's/##* //p')
 
-  [[ "$lines" == "" ]] && continue
+  [[ "$lines" == "" ]] && echo "No errors found" && continue
 
   diff=$(IFS="!" diff <(echo "$lines") <(echo "$lines" | sort) || true)
   if [[ "$diff" != "" ]] ; then
