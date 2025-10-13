@@ -1,4 +1,4 @@
-all: docker
+all: models docker
 	@git diff --name-status --exit-code */schemas > /dev/null 2>&1 || \
 		( echo "schema files have been updated, make sure you commit them" ; \
 		  exit 1 )
@@ -26,7 +26,12 @@ samplescheck:
 	tools/samplescheck */model.json */samples/*json */samples/*/*json
 	@echo
 
-links: test_tools
+links:
+	@echo Loading python deps
+	@python -m pip install -qq -r tools/requirements.txt
+	@echo Testing our link verification tool
+	@pytest tools/
+	@echo Verifying our docs
 	@python tools/verify.py .
 	@echo
 
@@ -53,13 +58,6 @@ makeschema:
 	@python tools/schema-generator.py --type avro-schema --output cloudevents/schemas/document-schema.avsc endpoint/model.json message/model.json schema/model.json
 	@python tools/schema-generator.py --type openapi --output cloudevents/schemas/openapi.json endpoint/model.json message/model.json schema/model.json
 
-deps:
-	@echo Loading python deps
-	@python -m pip install -qq -r tools/requirements.txt
-
-test_tools: deps
-	@pytest tools/
-
-docker: models
+docker:
 	@docker run -ti -v $(PWD):/tmp/spec -w /tmp/spec python:3.11 \
 	    make -f tools/Makefile verify makeschema
