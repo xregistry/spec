@@ -54,7 +54,8 @@ _PHRASES_THAT_MUST_BE_CAPITALIZED_PATTERN = re.compile(
     # ignore the "required" in the jsonschema of the json-format.md
     # and ignore `required` cases (attribute name is `required`)
     # and ignore .required cases (attribute name is "required")
-    r'(?<![.`"_])REQUIRED(?![`"_])|'
+    # and ignore -required cases (href has "required")
+    r'(?<![-.`"_])REQUIRED(?![`"_])|'
     r"(?<!`)\bSHALL(\s+NOT)?\b|"  # ignore the word "marshall"
     r"(?<!`)SHOULD(\s+NOT)?|"
     r"(?<!`)RECOMMENDED|"
