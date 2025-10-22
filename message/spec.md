@@ -4,7 +4,7 @@
 
 This specification defines a message and event catalog extension to the
 xRegistry document format and API [specification](../core/spec.md). The
-message definitions registry service (or “message catalog”) allows for
+message definitions registry service (or "message catalog") allows for
 declaring the metadata (headers, properties, attributes) of messages and/or
 events and their relationships to schemas, and for grouping those declarations
 such that they can be associated with endpoints. With the help of this
@@ -14,17 +14,58 @@ to be received, and how these messages can be distinguished.
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Message Definitions](#message-definitions)
-- [Message Metadata](#message-metadata)
-- [Reusing Message Definitions](#reusing-message-definitions)
-- [Notations and Terminology](#notations-and-terminology)
-  - [Notational Conventions](#notational-conventions)
-  - [Terminology](#terminology)
-- [Message Definitions Registry Model](#message-definition-registry-model)
-  - [Message Definition Groups](#message-definition-groups)
-  - [Message Definitions](#message-definitions)
-  - [Metadata Envelopes and Message Protocols](#metadata-envelopes-and-message-protocols)
+- [Message Definitions Registry Service - Version 1.0-rc2](#message-definitions-registry-service---version-10-rc2)
+  - [Abstract](#abstract)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+    - [Message Definitions](#message-definitions)
+    - [Message Metadata](#message-metadata)
+    - [Context Attributes](#context-attributes)
+    - [Reusing Message Definitions](#reusing-message-definitions)
+    - [Message Definition Matching](#message-definition-matching)
+  - [Message Groups](#message-groups)
+  - [Notations and Terminology](#notations-and-terminology)
+    - [Notational Conventions](#notational-conventions)
+    - [Terminology](#terminology)
+      - [Message and Event](#message-and-event)
+      - [Envelopes and Protocols](#envelopes-and-protocols)
+  - [Message Definition Registry Model](#message-definition-registry-model)
+    - [Message Definition Groups](#message-definition-groups)
+      - [`envelope` (Message Group)](#envelope-message-group)
+      - [`protocol` (Message Group)](#protocol-message-group)
+    - [Message Definitions](#message-definitions-message-group)
+      - [`basemessage`](#basemessage)
+      - [`envelope`](#envelope)
+      - [`envelopemetadata`](#envelopemetadata)
+      - [`envelopeoptions`](#envelopeoptions)
+      - [`protocol`](#protocol)
+      - [`protocoloptions`](#protocoloptions)
+      - [`dataschemaformat`](#dataschemaformat)
+      - [`dataschema`](#dataschema)
+      - [`dataschemauri`](#dataschemauri)
+      - [`dataschemaxid`](#dataschemaxid)
+      - [`datacontenttype`](#datacontenttype)
+    - [Metadata Envelopes and Message Protocols](#metadata-envelopes-and-message-protocols)
+      - [Property Definitions](#property-definitions)
+        - [`description`](#description)
+        - [`required`](#required)
+        - [`specurl`](#specurl)
+        - [`type`](#type)
+        - [`value`](#value)
+      - [Metadata Envelopes](#metadata-envelopes)
+        - [CloudEvents/1.0](#cloudevents10)
+      - [Message Protocols](#message-protocols)
+        - ["HTTP/1.1", "HTTP/2", "HTTP/3" protocols](#http11-http2-http3-protocols)
+        - ["AMQP/1.0" protocol](#amqp10-protocol)
+        - [`properties` (AMQP 1.0)](#properties-amqp-10)
+        - [`application-properties` (AMQP 1.0)](#application-properties-amqp-10)
+        - [`message-annotations` (AMQP 1.0)](#message-annotations-amqp-10)
+        - [`delivery-annotations` (AMQP 1.0)](#delivery-annotations-amqp-10)
+          - [`header` (AMQP 1.0)](#header-amqp-10)
+          - [`footer` (AMQP 1.0)](#footer-amqp-10)
+        - ["MQTT/3.1.1" and "MQTT/5.0" protocols](#mqtt311-and-mqtt50-protocols)
+        - ["KAFKA" protocol](#kafka-protocol)
+        - ["NATS" protocol](#nats-protocol)
 
 ## Overview
 
@@ -47,35 +88,35 @@ scope, but delegated to the [schema registry extension](../schema/spec.md) for
 xRegistry. Schemas are linked from messages and event declarations through a
 URI Reference.
 
-## Message Definitions
+### Message Definitions
 
-A Message Definition (“message”) describes constraints for the metadata of a
+A Message Definition ("message") describes constraints for the metadata of a
 message or event. It declares, for instance, the concrete values or
 permissible value patterns for the `type`, `source`, and `subject` attributes
 of a CloudEvent.
 
 A message definition has two key purposes:
 
-1 - A message definition is a template. When an application needs to raise an
-    event, the message definition declares precisely, which attributes,
-    headers or properties need to be set on the event envelope or on the
-    protocol message, and which constant values are to be set, or which type of
-    pattern constraints apply. Such templates can be evaluated by tools and
-    code generators, which can then create an interface or event factory for
-    the application programmer that minimizes opportunities to introduce
-    mapping errors.
+1. A message definition is a template. When an application needs to raise an
+   event, the message definition declares precisely, which attributes,
+   headers or properties need to be set on the event envelope or on the
+   protocol message, and which constant values are to be set, or which type of
+   pattern constraints apply. Such templates can be evaluated by tools and
+   code generators, which can then create an interface or event factory for
+   the application programmer that minimizes opportunities to introduce
+   mapping errors.
 
-2 - A message definition is a filter condition. When an application needs to
-    demultiplex an incoming stream, messages, or events that come through the
-    same channel, it can use a collection of message definitions as a set of
-    candidate messages that are expected and can be handled. The metadata of
-    the incoming events or messages is tested against the declarations of the
-    candidate definitions, attribute by attribute, yielding none, one, or more
-    matches for the incoming message. If there is no match, the incoming
-    message is unexpected and will likely be sidelined. If there is one match,
-    the message can be passed on to the application. If there are multiple
-    matches, the message might be evaluated further by matching the body
-    content against the associated data schema.
+2. A message definition is a filter condition. When an application needs to
+   demultiplex an incoming stream, messages, or events that come through the
+   same channel, it can use a collection of message definitions as a set of
+   candidate messages that are expected and can be handled. The metadata of
+   the incoming events or messages is tested against the declarations of the
+   candidate definitions, attribute by attribute, yielding none, one, or more
+   matches for the incoming message. If there is no match, the incoming
+   message is unexpected and will likely be sidelined. If there is one match,
+   the message can be passed on to the application. If there are multiple
+   matches, the message might be evaluated further by matching the body
+   content against the associated data schema.
 
 For message and event producers, the template aspect is the primary concern.
 Following the declared rules, including validating the payload against the
@@ -87,54 +128,103 @@ Consumer applications and frameworks can rely on the declared message metadata
 to demultiplex and dispatch messages and events to handlers and they can
 sideline non-conformant messages, for instance into dead-letter queues.
 
-## Message Metadata
+### Message Metadata
 
 Any message definition covers up to three aspects:
 
-1 - Envelope: An “envelope” is a transport independent metadata convention that
-    lets a producer convey the context of an event or message to consumers or
-    intermediaries (like publish/subscribe routers) without them having to
-    understand the particular payload format or having to read the payload. The
-    only predefined envelope model in this specification is CNCF CloudEvents
-    1.0. Once the “envelope” selector is set, constraints for the attributes
-    of the CloudEvents envelope can be defined in the “envelopeoptions”.
+1. Envelope: An `envelope` is a transport independent metadata convention that
+   lets a producer convey the context of an event or message to consumers or
+   intermediaries (like publish/subscribe routers) without them having to
+   understand the particular payload format or having to read the payload. The
+   only predefined envelope model in this specification is CNCF CloudEvents
+   1.0. Once the `envelope` selector is set, constraints for the attributes
+   of the CloudEvents envelope can be defined in the `envelopeoptions`.
 
-2 - Protocol: The “protocol” selector picks a specific application protocol to
-    which the given message is bound. If a protocol is chosen, constraints for
-    the protocol-specific message model can be defined in “protocoloptions”.
-    For instance, if you choose the “MQTT/5.0” protocol, you can constrain the
-    topic path to which this message can be sent and/or the quality-of-service
-    QoS level that is to be used. This specification covers the full metadata
-    set of the application protocols AMQP/1.0, MQTT/3.1.1, MQTT/5.0, Kafka,
-    NATS, and HTTP.
+2. Protocol: The `protocol` selector picks a specific application protocol to
+   which the given message is bound. If a protocol is chosen, constraints for
+   the protocol-specific message model can be defined in `protocoloptions`.
+   For instance, if you choose the `MQTT/5.0` protocol, you can constrain the
+   topic path to which this message can be sent and/or the quality-of-service
+   QoS level that is to be used. This specification covers the full metadata
+   set of the application protocols AMQP/1.0, MQTT/3.1.1, MQTT/5.0, Kafka,
+   NATS, and HTTP.
 
-3 - Payload: The “dataschema*” and “datacontenttype” attributes declare the
-    content type of the payload and a schema that can be used to construct,
-    validate, decode and/or encode the payload. The “dataschemaformat”
-    declaration selects the kind of schema (e.g. XML Schema, Protobuf, Avro or
-    others) that is embedded at or referenced by the chosen “dataschema*”
-    attribute.
+3. Payload: The `dataschema*` and `datacontenttype` attributes declare the
+   content type of the payload and a schema that can be used to construct,
+   validate, decode and/or encode the payload. The `dataschemaformat`
+   declaration selects the kind of schema (e.g. XML Schema, Protobuf, Avro or
+   others) that is embedded at or referenced by the chosen `dataschema*`
+   attribute.
 
-A message definition MAY contain any combination of envelope, protocol, and
-payload declarations. A payload-only declaration can be useful if messages are
-sent through varying protocols without a fixed envelope model and are
-distinguished by content-type (including parameters) or even only through
+A `message` definition MAY contain any combination of `envelope`, `protocol`,
+and data payload declarations. A payload-only declaration can be useful if
+messages are sent through varying protocols without a fixed envelope model and
+are distinguished by content-type (including parameters) or even only through
 whether payload schema definitions match an incoming message.
 
-While attributes (or properties or headers; depending on protocol nomenclature)
+Where attributes (or properties or headers; depending on protocol nomenclature)
 can be defined in the `envelopeoptions` and `protocoloptions`, the general
 pattern used in this model is that the attribute can have a name, a
 description, a type and a value. Setting a value makes that value constant for
 all instances of that message, which is useful for discriminators like AMQP’s
 subject property or CloudEvents’ type attribute.
 
-The “uritemplate” type permits the values to have embedded placeholders (Level
+The `uritemplate` type permits the values to have embedded placeholders (Level
 1 URI templates), which turns the values into templates for publishers where
 the application inserts context information into designated places. For
 consumers, the templates act as pattern matching filters and to extract
 context values into named variables.
 
-## Reusing Message Definitions
+### Context Attributes
+
+The embedded placeholders in values of the `uritemplate` type can refer to
+context attributes provided by the application environment in which the metadata
+is evaluated. For instance, a message definition might declare a `source`
+attribute in the `envelopeoptions` of a CloudEvent, with a `uritemplate` type
+and a `value` definition `/vehicles/{vin}/systems/{system}/sensor/{sensor}`.
+
+If the application environment from which the message is published provides values
+for the `vin`, `system`, and `sensor` context attributes, those values can be
+easily inserted into the URI template when the message is published. Reversely,
+if a message is received with a URI that matches the template, the values can
+be extracted and made available as context attributes.
+
+A further use of such context attributes is the mapping of protocol-native
+messages to CloudEvents. An application evaluating message definitions that
+contain both, a `protocol` and an `envelope` definition might nevertheless
+choose to accept protocol-native messages that are not CloudEvents and then
+use context attributes to map them to the CloudEvents model.
+
+For example, let there be this definition:
+
+```json
+{
+  "protocol": "MQTT/5.0",
+  "protocoloptions": {
+    "topic_name": "/store/{storeid}/cashierdesk/{cdid}"
+    "user_properties" : [
+      { "name": "eventType", "type": "uritemplate", "value": "{eventType}" }
+    ]
+  },
+  "envelope": "CloudEvents/1.0",
+  "envelopeoptions": {
+    "type": { "type": "uritemplate", "value": "{eventType}" },
+    "source": { "type": "uritemplate", "value": "{storeid}" },
+    "subject": { "type": "uritemplate", "value": "{cdid}" }
+  }
+}
+```
+
+An application might use this definition to match incoming MQTT messages only
+against the `protocol`/`protocoloptions` part of the definition. If an incoming
+message matches this part, the application can then use the `envelope` and
+`envelopeoptions` definitions to transform the message into a CloudEvent, with
+the context attributes carrying the values.
+
+Context attributes and their handling are not covered by the following normative
+part of this specification.
+
+### Reusing Message Definitions
 
 In complex event-driven enterprise applications it might be desirable to reuse
 common definitions across different applications. There might also be a need
@@ -150,13 +240,68 @@ message’s definitions into the message that defines it. The mechanism is
 transitive, which means that `basemessage` relationships MUST be resolved
 recursively as long as they do not result in circular references.
 
-All aspects of the collected base message are “shadowed” by the definitions of
-the message that references it. If the base message defines an “envelope” but
-no “protocol”, the new definition can add the aforementioned MQTT aspects with
-a new “protocol” selector and corresponding options.
+All aspects of the collected base message are "shadowed" by the definitions of
+the message that references it. If the base message defines an "envelope" but
+no "protocol", the new definition can add the aforementioned MQTT aspects with
+a new "protocol" selector and corresponding options.
 
-The `xref` attribute from xRegistry Core allows aliasing of message definitions
-across message groups, which will be further discussed in the next section.
+```mermaid
+flowchart TB
+  %% Accessibility: Derived definitions (A', B', C') reference base definitions (A, B, C) via basemessage links.
+  subgraph DerivedMqtt["myEventsMqtt group"]
+    direction TB
+    APrime["A' protocol: MQTT/5.0,
+    envelope: CloudEvents/1.0"]
+    BPrime["B' protocol: MQTT/5.0,
+    envelope: CloudEvents/1.0"]
+  end
+
+  subgraph Base["myEvents group"]
+    direction TB
+    ABase["A
+    envelope: CloudEvents/1.0"]
+    BBase["B
+    envelope: CloudEvents/1.0"]
+  end
+
+  APrime -- "basemessage" --> ABase
+  BPrime -- "basemessage" --> BBase
+```
+
+### Message Definition Matching
+
+One popular use of a Message Registry is to be a catalog of Message definitions
+that are used to validate incoming messages. In these scenarios, the receiver
+of a message might need to "match" it to the corresponding Message definition
+that the message is meant to adhere to. This specification does not mandate how
+this "matching" is done. For example, matching headers or schema of the
+incoming message to the Message definitions in the Registry is one option.
+
+In a Registry with many Message definitions, and each one of those having
+potentially multiple Versions, results in a 2-dimensional collection of
+Message definitions to match against, which could make finding the exact
+Message definition complex, non-deterministic or very slow. To help with these
+situations, this specification provides the following guidance:
+
+- Use of CloudEvents is RECOMMENDED as it will provide well-defined
+  metadata that will appear in each Message to help differentiate Message
+  definitions.
+- Messages definitions SHOULD have a `messageid` value that is the same as the
+  CloudEvents' `type` context attribute defined for that Message. This will
+  allow for an exact mapping from the incoming Message's `type` attribute to
+  its related Message definition.
+- Message Resource types SHOULD be defined with a `maxversions` of `1`. This
+  eliminates the need for each incoming Message to include some unique
+  Version discriminator.
+- Modifications to Message definitions SHOULD NOT result in "on the wire"
+  changes to the resulting messages as that could break existing systems.
+  Rather, new Messages definitions SHOULD be created, with new `type` and
+  `messageid` values, and referenced through the use of the `deprecated`
+  attribute.
+
+Implementations, and Registry model authors, MAY deviate from these
+recommendations however they are then responsible for defining the mechanisms
+by which a unique Message definition is matched to incoming messages.
 
 ## Message Groups
 
@@ -167,12 +312,12 @@ mandated.
 
 In many cases, message groups will be a logical boundary around a set of
 related events that are commonly routed through the channel. A (primitive) air
-travel luggage handling system might have “checkedin”, “loaded”, “unloaded”,
-and “delivered” events related to items it moves. If those are reported to
+travel luggage handling system might have "checkedin", "loaded", "unloaded",
+and "delivered" events related to items it moves. If those are reported to
 external parties through the same channels, it likely makes sense to group
 them.
 
-A benefit of message groups is that they are very similar to “interfaces” in
+A benefit of message groups is that they are very similar to "interfaces" in
 common programming languages. When a message group is associated with a
 channel, like a queue, the messages contained in the group form the permitted
 and expected message set. The association becomes a contract.
@@ -188,12 +333,12 @@ When message definitions are to be recombined into different groups, the
 original message definitions can be referenced instead of copied. For
 instance, a pubsub topic might take 4 messages as input but a filtering
 subscription might only yield 1 of those messages as output. In this case, one
-would create a distinct message group for the subscription and “xref” the
+would create a distinct message group for the subscription and "xref" the
 message definition from the input group (sample to follow in the merged doc).
 
 Similarly, one could create a new message group to be associated with an MQTT
 endpoint if the messages annotate CloudEvent definitions with MQTT protocol
-options using the “basemessage” mechanism. (sample also to follow)
+options using the "basemessage" mechanism. (sample also to follow)
 
 ## Notations and Terminology
 
@@ -410,7 +555,7 @@ to the xRegistry-defined core
   - `AMQP/1.0`
   - `KAFKA`
 
-### Message Definitions
+### Message Definitions (Message Group)
 
 The Resource plural name (`<RESOURCES>`) is `messages`, and the Resource
 singular name (`<RESOURCE>`) is `message`.
@@ -493,13 +638,13 @@ Illustrating example:
       "com.example.abc.event1": {
         "messageid": "com.example.abc.event1",
         "envelope": "CloudEvents/1.0",
-         # ... details ...
+         # details ...
         }
       },
       "com.example.abc.event2": {
         "messageid": "com.example.abc.event1",
         "envelope": "CloudEvents/1.0",
-        # ... details ...
+        # details ...
       }
   },
   "com.example.def": {
@@ -511,7 +656,7 @@ Illustrating example:
     "messages": {
       "com.example.abc.event1": {
         "uri": "#/messagegroups/com.example.abc/messages/com.example.abc.event1",
-        # ... details ...
+        # details ...
       }
     }
   }
@@ -901,13 +1046,13 @@ HTTP.
 The [`protocoloptions`](#protocoloptions) object MAY contain several
 properties as defined below:
 
-| Property  | Type          | Description                  |
-| --------- | ------------- | ---------------------------- |
-| `headers` | Array         | The HTTP headers. See below  |
-| `query`   | Map           | The HTTP query parameters    |
-| `path`    | `uritemplate` | The HTTP path                |
-| `method`  | `string`      | The HTTP method              |
-| `status`  | `string`      | The HTTP status code         |
+| Property  | Type          | Description                 |
+| --------- | ------------- | --------------------------- |
+| `headers` | Array         | The HTTP headers. See below |
+| `query`   | Map           | The HTTP query parameters   |
+| `path`    | `uritemplate` | The HTTP path               |
+| `method`  | `string`      | The HTTP method             |
+| `status`  | `string`      | The HTTP status code        |
 
 HTTP allows for multiple headers with the same name. The `headers` property is
 therefore an array of objects with `name` and `value` properties. The `name`
@@ -1022,20 +1167,20 @@ The `properties` property is an object that contains the fixed properties of
 the AMQP 1.0 [Message Properties][AMQP 1.0 Message Properties] section. The
 following properties are defined, with type constraints:
 
-| Property               | Type          | Description                                                                      |
-| ---------------------- | ------------- | -------------------------------------------------------------------------------- |
+| Property               | Type             | Description                                                                      |
+| ---------------------- | ---------------- | -------------------------------------------------------------------------------- |
 | `message-id`           | (see note below) | uniquely identifies a message within the message system                          |
-| `user-id`              | `binary`      | identity of the user responsible for producing the message                       |
-| `to`                   | `uritemplate` | address of the node to send the message to                                       |
-| `subject`              | `string`      | message subject                                                                  |
-| `reply-to`             | `uritemplate` | address of the node to which the receiver of this message ought to send replies  |
-| `correlation-id`       | `string`      | client-specific id that can be used to mark or identify messages between clients |
-| `content-type`         | `symbol`      | MIME content type for the message                                                |
-| `content-encoding`     | `symbol`      | MIME content encoding for the message                                            |
-| `absolute-expiry-time` | `timestamp`   | time when this message is considered expired                                     |
-| `group-id`             | `string`      | group this message belongs to                                                    |
-| `group-sequence`       | `integer`     | position of this message within its group                                        |
-| `reply-to-group-id`    | `uritemplate` | group-id to which the receiver of this message ought to send replies to          |
+| `user-id`              | `binary`         | identity of the user responsible for producing the message                       |
+| `to`                   | `uritemplate`    | address of the node to send the message to                                       |
+| `subject`              | `string`         | message subject                                                                  |
+| `reply-to`             | `uritemplate`    | address of the node to which the receiver of this message ought to send replies  |
+| `correlation-id`       | `string`         | client-specific id that can be used to mark or identify messages between clients |
+| `content-type`         | `symbol`         | MIME content type for the message                                                |
+| `content-encoding`     | `symbol`         | MIME content encoding for the message                                            |
+| `absolute-expiry-time` | `timestamp`      | time when this message is considered expired                                     |
+| `group-id`             | `string`         | group this message belongs to                                                    |
+| `group-sequence`       | `integer`        | position of this message within its group                                        |
+| `reply-to-group-id`    | `uritemplate`    | group-id to which the receiver of this message ought to send replies to          |
 
 The `message-id` permits the types `ulong`, `uuid`, `binary`, `string`, and
 `uritemplate`. A `value` constraint for `message-id` property SHOULD NOT be
@@ -1112,7 +1257,7 @@ indicate whether the property is supported for the respective MQTT version.
 | ------------------------- | ------------- | ---------- | -------- | -------------------------------- |
 | `qos`                     | `integer`     | yes        | yes      | Quality of Service level         |
 | `retain`                  | `boolean`     | yes        | yes      | Retain flag                      |
-| `topic_name`              | `string`      | yes        | yes      | Topic name                       |
+| `topic_name`              | `uritemplate` | yes        | yes      | Topic name                       |
 | `payload_format`          | `integer`     | no         | yes      | Payload format indicator         |
 | `message_expiry_interval` | `integer`     | no         | yes      | Message expiry interval          |
 | `response_topic`          | `uritemplate` | no         | yes      | Response topic                   |
@@ -1162,13 +1307,13 @@ corresponding to the application properties collection of other protocols.
 
 The following properties are defined:
 
-| Property    | Type      | Description                                                                         |
-| ----------- | --------- | ----------------------------------------------------------------------------------- |
-| `topic`     | `string`  | The topic the record will be appended to                                            |
-| `partition` | `integer` | The partition to which the record is to be sent or has been received from           |
-| `key`       | `string`  | The key that is associated with the record, UTF-8 encoded                           |
-| `key_base64`| `binary`  | The key that is associated with the record as a base64 encoded string               |
-| `headers`   | Map       | A map of headers to set on the record                                               |
+| Property     | Type      | Description                                                               |
+| ------------ | --------- | ------------------------------------------------------------------------- |
+| `topic`      | `string`  | The topic the record will be appended to                                  |
+| `partition`  | `integer` | The partition to which the record is to be sent or has been received from |
+| `key`        | `string`  | The key that is associated with the record, UTF-8 encoded                 |
+| `key_base64` | `binary`  | The key that is associated with the record as a base64 encoded string     |
+| `headers`    | Map       | A map of headers to set on the record                                     |
 
 The `key` and `key_base64` properties are mutually exclusive and MUST NOT be
 present at the same time.
@@ -1204,11 +1349,11 @@ elements of the NATS message for the `HPUB` operation.
 
 The following properties are defined:
 
-| Property    | Type      | Description                                                                         |
-| ----------- | --------- | ----------------------------------------------------------------------------------- |
-| `subject`   | `uritemplate`  | The subject the message will be published to                                   |
-| `reply-to`  | `uritemplate`  | The subject the receiver ought to reply to                                        |
-| `headers`   | Array     | A list of headers to set on the message                                             |
+| Property   | Type          | Description                                  |
+| ---------- | ------------- | -------------------------------------------- |
+| `subject`  | `uritemplate` | The subject the message will be published to |
+| `reply-to` | `uritemplate` | The subject the receiver ought to reply to   |
+| `headers`  | Array         | A list of headers to set on the message      |
 
 The values of all `string`, `symbol`, `uritemplate`-typed properties
 and headers MAY contain placeholders using the [RFC6570][RFC6570] Level 1 URI

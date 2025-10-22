@@ -98,8 +98,8 @@ enumerated and explained in [protocol options](#protocol-options).
 
 Each endpoint MAY also define an `envelope` selector which allows for defining
 particular `envelopeoptions` at the endpoint level. For CloudEvents, this
-permits definition the serialization mode (binary or structured) and the event
-format for structured mode.
+permits the definition of the serialization mode (binary or structured) and the
+event format for structured mode.
 
 ### Message Groups
 
@@ -156,7 +156,7 @@ For clarity, OPTIONAL attributes (specification-defined and extensions) are
 OPTIONAL for clients to use, but the servers' responsibility will vary.
 Server-unknown extension attributes MUST be silently stored in the backing
 datastore. Specification-defined, and server-known extension, attributes MUST
-generate an error if corresponding feature is not supported or enabled.
+generate an error if the corresponding feature is not supported or enabled.
 However, as with all attributes, if accepting the attribute would result in a
 bad state (such as exceeding a size limit, or results in a security issue),
 then the server MAY choose to reject the request.

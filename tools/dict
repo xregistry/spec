@@ -5,6 +5,7 @@ api
 apicur
 apicurio
 apikey
+aprime
 asc
 asyncapi
 attr
@@ -20,9 +21,13 @@ avsc
 aws
 backend
 basemessage
+bbase
+bprime
 bson
 bunnymq
 capabilitiesoffered
+cashierdesk
+cdid
 cereg
 charset
 checkedin
@@ -66,6 +71,7 @@ definitiongroupsurl
 definitionscount
 definitionsurl
 deploymentid
+derivedmqtt
 deviceid
 dirid
 dirs
@@ -82,6 +88,7 @@ envelopeoptions
 erp
 etag
 eventing
+eventtype
 fabrikam
 files
 filescount
@@ -172,6 +179,8 @@ myattribute
 myendpoint
 myentity
 myevent
+myevents
+myeventsmqtt
 mygroup
 mygroupid
 mygroups
@@ -267,6 +276,7 @@ src
 ssl
 stickyversions
 stringified
+storeid
 svg
 targetregistry
 tcp
