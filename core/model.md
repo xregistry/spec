@@ -462,7 +462,7 @@ The following describes the attributes of the Registry model:
 - MUST be unique across all Group types (plural and singular names) in the
   Registry.
 - MUST be non-empty and MUST be a valid attribute name with the exception
-  that it MUST NOT exceed 58 characters (not 63).
+  that it MUST NOT exceed 57 characters (not 63).
 
 ### `groups.<STRING>.singular`
 - Type: String.
@@ -533,7 +533,7 @@ The following describes the attributes of the Registry model:
 - MUST be immutable.
 - The plural name of the Resource type e.g. `messages` (`<RESOURCES>`).
 - MUST be non-empty and MUST be a valid attribute name with the exception
-  that it MUST NOT exceed 58 characters (not 63).
+  that it MUST NOT exceed 57 characters (not 63).
 - MUST be unique across all Resources (plural and singular names) within the
   scope of its owning Group type.
 

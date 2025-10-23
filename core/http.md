@@ -463,6 +463,7 @@ OPTIONS /
 HTTP/1.1 200 OK
 Allow: GET, OPTIONS
 Access-Control-Allow-Methods: GET, OPTIONS
+```
 
 ### Registry Entity
 
@@ -3163,8 +3164,6 @@ The following list of HTTP protocol specific errors are defined:
 * Title: `The request is missing an HTTP body - try '{}'`
 
 <!-- end-err-def -->
-
-### ---
 
 [rfc7230-section-3]: https://tools.ietf.org/html/rfc7230#section-3
 [rfc7230-section-3-2-6]: https://tools.ietf.org/html/rfc7230#section-3.2.6

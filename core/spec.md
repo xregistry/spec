@@ -91,7 +91,7 @@ from the service. For example, the document can be checked into a code
 repository or used as input for tooling. To enable a seamless transition
 between the "document" and "API" views of the data, the specification ensures
 a consistent mapping between the two:
-<img src="./xregurlmapping.png">
+<img height="250" src="./xregurlmapping.png">
 
 This specification is meant to be a framework from which additional
 specifications can be defined that expose model-specific Resources and

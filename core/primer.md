@@ -631,16 +631,15 @@ sensitivity rules in the specification.
   All of these concerns are avoided by requiring IDs to be stored and compared
   in case insensitively.
 
-# Why the lower character limit on some Group and Resource names?
+# Why the lower character limit on some Group and Resource type names?
 
 Attribute names and key names are limited to 63 characters, so why are some
 Group and Resource names limited to less? Because when they appear as part of
 attribute names and they can be appended with phrases like `url`, `count`
 or `base64`, and they still have to fit within the 63-character limit, and so
-we need to take into account the length of those phrases.
-
-Note that Resource names are limited to 57 characters because they may be
-appended with `base64`, if their `hasdocument` model aspect is `true`.
+we need to take into account the length of those phrases. As a result, both
+Group and Resource type names (both singular and plural) are limited to
+57 characters.
 
 # Why must Group type and Resource type names be valid attribute names?
 
