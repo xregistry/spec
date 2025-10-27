@@ -549,9 +549,16 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
         if "plural" not in group: group["plural"] = key
         groups_name = group["plural"]
         group_name = group["singular"]
+        # Create a namespace folder for this group's definitions
+        # For OpenAPI: use flat keys without -schema suffix
+        # For JSON Schema: use nested structure with -schema suffix
+        if for_openapi:
+            group_definition_prefix = f"{reference_prefix}"
+        else:
+            group_definition_prefix = f"{reference_prefix}{group_name}-schema/"
         groups_schema = {
             "type": "object",
-            "additionalProperties": {"$ref": f"{reference_prefix}{group_name}"}
+            "additionalProperties": {"$ref": f"{group_definition_prefix}{group_name}"}
         }
 
         document_properties[groups_name] = groups_schema
@@ -629,7 +636,7 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                                 "versions": {
                                 "type": "object",
                                 "additionalProperties": {
-                                    "$ref": f"{reference_prefix}{resource_name}Version"
+                                    "$ref": f"{group_definition_prefix}{resource_name}Version"
                                     }
                                 }
                             },
@@ -637,25 +644,44 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                         }
                     ]
 
-                schema_definitions[f"{resource_name}Version"] = resource_version_schema
+                # For OpenAPI: flat keys, for JSON Schema: nested structure
+                if for_openapi:
+                    schema_definitions[f"{resource_name}Version"] = resource_version_schema
+                else:
+                    if f"{group_name}-schema" not in schema_definitions:
+                        schema_definitions[f"{group_name}-schema"] = {}
+                    schema_definitions[f"{group_name}-schema"][f"{resource_name}Version"] = resource_version_schema
             else:
                 handle_attributes(resource_schema, attributes)
 
-            schema_definitions[resource_name] = resource_schema
+            # For OpenAPI: flat keys, for JSON Schema: nested structure
+            if for_openapi:
+                schema_definitions[resource_name] = resource_schema
+            else:
+                if f"{group_name}-schema" not in schema_definitions:
+                    schema_definitions[f"{group_name}-schema"] = {}
+                schema_definitions[f"{group_name}-schema"][resource_name] = resource_schema
             resource_collection_properties[resource["plural"]] = {
                     "type": "object",
                     "additionalProperties": {
-                        "$ref": f"{reference_prefix}{resource_name}",
+                        "$ref": f"{group_definition_prefix}{resource_name}",
                     }
                 }
 
         for ximportresources_xid in group.get("ximportresources", []):
             xid_group_plural, xid_resource_plural = ximportresources_xid.split("/")[1:]
+            xid_group_singular = model_definition["groups"][xid_group_plural]["singular"]
             xid_resource_singular = model_definition["groups"][xid_group_plural]["resources"][xid_resource_plural]["singular"]
+            # Use the source group's namespace for imported resources
+            # For OpenAPI: flat keys, for JSON Schema: nested structure
+            if for_openapi:
+                xid_group_definition_prefix = f"{reference_prefix}"
+            else:
+                xid_group_definition_prefix = f"{reference_prefix}{xid_group_singular}-schema/"
             resource_collection_properties[xid_resource_plural] = {
                     "type": "object",
                     "additionalProperties": {
-                        "$ref": f"{reference_prefix}{xid_resource_singular}",
+                        "$ref": f"{xid_group_definition_prefix}{xid_resource_singular}",
                     }
                 }
 
@@ -670,7 +696,13 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
         handle_attributes(group_schema, attributes)
         for resource_collection_name, resource_collection_schema in resource_collection_properties.items():
             group_schema["properties"][resource_collection_name] = resource_collection_schema
-        schema_definitions[group_name] = group_schema
+        # For OpenAPI: flat keys, for JSON Schema: nested structure
+        if for_openapi:
+            schema_definitions[group_name] = group_schema
+        else:
+            if f"{group_name}-schema" not in schema_definitions:
+                schema_definitions[f"{group_name}-schema"] = {}
+            schema_definitions[f"{group_name}-schema"][group_name] = group_schema
     return schema
 
 
@@ -693,8 +725,10 @@ def generate_avro_schema(model_definition) -> dict:
             # Check for "*" extension attributes with "any" or "var" type
             if attr_name == "*" and attr_props.get("type") in ["any", "var", "object"]:
                 return True
-            # Check for object type without item specification
-            if attr_props.get("type") == "object" and "item" not in attr_props and "attributes" not in attr_props:
+            # Consolidated check: If attribute is an extension ("*") with type "any", "var", or "object",
+            # or if attribute is type "object" without "item" or "attributes", GenericRecord is needed.
+            if (attr_name == "*" and attr_props.get("type") in ["any", "var", "object"]) or \
+               (attr_props.get("type") == "object" and "item" not in attr_props and "attributes" not in attr_props):
                 return True
             # Check nested attributes
             if "attributes" in attr_props:
@@ -761,13 +795,21 @@ def generate_avro_schema(model_definition) -> dict:
     def handle_attributes(resource_schema, attributes, type_prefix=""):
         nonlocal avro_generic_record_emitted
         for attr_name, attr_props in attributes.items():
-            pascal_attr_name=pascal(attr_name)
+            pascal_attr_name = pascal(attr_name)
             # attribute schema is based on the type mapping
-            attr_schema = copy.deepcopy(avro_type_mapping[attr_props["type"]])
-
-            # Only add a "name" field for types that are actually record definitions
-            # (not for simple types or type references like "any"/"var")
+            if "type" in attr_props:
+                attr_schema = copy.deepcopy(avro_type_mapping[attr_props["type"]])
+            else:
+                # If 'type' is missing, skip this attribute or handle as needed
+                continue
+            # Only add a "name" field for types that are actual inline record definitions.
+            # If attr_schema["type"] is a dict and has "type" == "record", it's an inline record definition.
+            # Do not add "name" for simple types or references like "any"/"var".
             if attr_name != "*" and attr_props["type"] not in ["any", "var"]:
+                if isinstance(attr_schema.get("type"), dict) and attr_schema["type"].get("type") == "record":
+                    attr_schema["name"] = type_prefix+pascal_attr_name+"Type"
+                if isinstance(attr_schema.get("type"), dict) or attr_schema.get("type") == "record":
+                    attr_schema["name"] = type_prefix+pascal_attr_name+"Type"
                 if isinstance(attr_schema.get("type"), dict) or attr_schema.get("type") == "record":
                     attr_schema["name"] = type_prefix+pascal_attr_name+"Type"
 
@@ -798,6 +840,7 @@ def generate_avro_schema(model_definition) -> dict:
                     condition_schema_identifier = pascal_attr_name + pascal("".join([c if c.isalnum() else "_" for c in condition_value]))
                     conditional_schema = {
                                 "type": "record",
+                                "namespace": group_namespace,
                                 "name": type_prefix+condition_schema_identifier+"Type",
                                 "fields": []
                             }
@@ -893,17 +936,17 @@ def generate_avro_schema(model_definition) -> dict:
                                     "double",
                                     "bytes",
                                     "string",
-                                    "io.xregistry.GenericRecord"
+                                    avro_generic_record_qualified_name
                                 ]
                             },
-                            "io.xregistry.GenericRecord"
+                            avro_generic_record_qualified_name
                         ]
                     }
                 }
             ]
         }
         generic_record_field = {
-            "name": "_GenericRecordDefinition",
+            "name": "genericRecordDefinition",
             "type": {
                 "type": "array",
                 "items": generic_record_with_namespace
@@ -917,6 +960,8 @@ def generate_avro_schema(model_definition) -> dict:
         if "plural" not in group: group["plural"] = key
         groups_name = group["plural"]
         group_name = group["singular"]
+        # Create a namespace for this group to avoid type name collisions
+        group_namespace = f"io.xregistry.{groups_name}"
         resource_collection_fields = []
 
         for rKey, resource in group.get("resources", {}).items():
@@ -928,7 +973,7 @@ def generate_avro_schema(model_definition) -> dict:
                     "name": camel(resource["plural"]),
                     "type" :{
                         "type": "map",
-                        "values": pascal(resource_name)+"Type"
+                        "values": f"{group_namespace}.{pascal(resource_name)}Type"
                     }
                     })
             else:
@@ -938,6 +983,7 @@ def generate_avro_schema(model_definition) -> dict:
                 resource_schema = {
                     "type": "record",
                     "name": pascal(resource_name)+"Type",
+                    "namespace": group_namespace,
                     "fields": props
                 }
                 attributes = resource.get("attributes", {})
@@ -984,14 +1030,15 @@ def generate_avro_schema(model_definition) -> dict:
         for ximportresources_xid in group.get("ximportresources", []):
             xid_group_plural, xid_resource_plural = ximportresources_xid.split("/")[1:]
             xid_resource_singular = model_definition["groups"][xid_group_plural]["resources"][xid_resource_plural]["singular"]
+            # Use the source group's namespace for imported resources
+            xid_group_namespace = f"io.xregistry.{xid_group_plural}"
             resource_collection_fields.append({
                     "name": camel(xid_resource_plural),
                     "type" :{
                         "type": "map",
-                        "values": pascal(xid_resource_singular)+"Type"
+                        "values": f"{xid_group_namespace}.{pascal(xid_resource_singular)}Type"
                     }
-                })
-
+                    })
         props = copy.deepcopy(avro_common_attributes)
         props.insert(0, {"name" : group_name+"id", "type": "string", "description": f"ID of the {group_name} object"})
         group_schema = {
