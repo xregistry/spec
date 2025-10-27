@@ -4,6 +4,51 @@
   "namespace": "io.xregistry",
   "fields": [
     {
+      "name": "_GenericRecordDefinition",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "GenericRecord",
+          "fields": [
+            {
+              "name": "object",
+              "type": {
+                "type": "map",
+                "values": [
+                  "null",
+                  "boolean",
+                  "int",
+                  "long",
+                  "float",
+                  "double",
+                  "bytes",
+                  "string",
+                  {
+                    "type": "array",
+                    "items": [
+                      "null",
+                      "boolean",
+                      "int",
+                      "long",
+                      "float",
+                      "double",
+                      "bytes",
+                      "string",
+                      "io.xregistry.GenericRecord"
+                    ]
+                  },
+                  "io.xregistry.GenericRecord"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "default": [],
+      "doc": "Internal field to define GenericRecord type for use in extension attributes"
+    },
+    {
       "name": "messagegroups",
       "type": {
         "type": "map",
@@ -93,13 +138,13 @@
             },
             {
               "type": "string",
-              "name": "envelope",
-              "doc": "Envelope format identifier that defines the common metadata information for the message. All definitions in this group share this envelope format. Mixed-envelope-format groups are not permitted. The predefined envelope format is CloudEvents/1.0"
+              "doc": "Envelope format identifier that defines the common metadata information for the message. All definitions in this group share this envelope format. Mixed-envelope-format groups are not permitted. The predefined envelope format is CloudEvents/1.0",
+              "name": "envelope"
             },
             {
               "type": "string",
-              "name": "protocol",
-              "doc": "Protocol identifier that defines the transport message protocol. All definitions in this group share this protocol type. Mixed-protocol groups are not permitted. Predefined protocol formats are 'AMQP/1.0', 'MQTT/3.1.1', 'MQTT/5.0', 'KAFKA', 'HTTP', and 'NATS'"
+              "doc": "Protocol identifier that defines the transport message protocol. All definitions in this group share this protocol type. Mixed-protocol groups are not permitted. Predefined protocol formats are 'AMQP/1.0', 'MQTT/3.1.1', 'MQTT/5.0', 'KAFKA', 'HTTP', and 'NATS'",
+              "name": "protocol"
             },
             {
               "name": "Extensions",
@@ -107,7 +152,7 @@
                 "type": "map",
                 "name": "ExtensionsType",
                 "default": {},
-                "values": "record"
+                "values": "io.xregistry.GenericRecord"
               },
               "doc": "Any other attribute that is common to all definitions in this group"
             },
@@ -201,8 +246,8 @@
                     },
                     {
                       "type": "string",
-                      "name": "basemessageurl",
-                      "doc": "Reference to a base definition for this definition, either via a (relative) URL or a fragment identifier. The base definition is overridden by this definition. If not present, this definition does not override any base definition"
+                      "doc": "Reference to a base definition for this definition, either via a (relative) URL or a fragment identifier. The base definition is overridden by this definition. If not present, this definition does not override any base definition",
+                      "name": "basemessageurl"
                     },
                     {
                       "name": "envelope",
@@ -212,48 +257,12 @@
                           "name": "EnvelopeCloudevents10Type",
                           "fields": [
                             {
-                              "type": {
-                                "type": "record",
-                                "name": "GenericRecord",
-                                "fields": [
-                                  {
-                                    "name": "object",
-                                    "type": {
-                                      "type": "map",
-                                      "values": [
-                                        "null",
-                                        "boolean",
-                                        "int",
-                                        "long",
-                                        "float",
-                                        "double",
-                                        "bytes",
-                                        "string",
-                                        {
-                                          "type": "array",
-                                          "items": [
-                                            "null",
-                                            "boolean",
-                                            "int",
-                                            "long",
-                                            "float",
-                                            "double",
-                                            "bytes",
-                                            "string",
-                                            "GenericRecord"
-                                          ]
-                                        },
-                                        "GenericRecord"
-                                      ]
-                                    }
-                                  }
-                                ]
-                              },
+                              "type": "io.xregistry.GenericRecord",
                               "name": "envelopemetadata",
                               "doc": "CloudEvents attribute declarations, adding constraints to the CloudEvents envelope not yet covered by the CloudEvents spec https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md"
                             },
                             {
-                              "type": "GenericRecord",
+                              "type": "io.xregistry.GenericRecord",
                               "name": "envelopeoptions",
                               "doc": "Envelope metadata constraints"
                             }
@@ -270,7 +279,7 @@
                           "name": "ProtocolAmqp10Type",
                           "fields": [
                             {
-                              "type": "GenericRecord",
+                              "type": "io.xregistry.GenericRecord",
                               "name": "protocoloptions",
                               "doc": "AMQP message metadata constraints"
                             }
@@ -281,7 +290,7 @@
                           "name": "ProtocolMqtt311Type",
                           "fields": [
                             {
-                              "type": "GenericRecord",
+                              "type": "io.xregistry.GenericRecord",
                               "name": "protocoloptions",
                               "doc": "MQTT message metadata constraints"
                             }
@@ -292,7 +301,7 @@
                           "name": "ProtocolMqtt50Type",
                           "fields": [
                             {
-                              "type": "GenericRecord",
+                              "type": "io.xregistry.GenericRecord",
                               "name": "protocoloptions",
                               "doc": "MQTT message metadata constraints"
                             }
@@ -303,7 +312,7 @@
                           "name": "ProtocolKAFKAType",
                           "fields": [
                             {
-                              "type": "GenericRecord",
+                              "type": "io.xregistry.GenericRecord",
                               "name": "protocoloptions",
                               "doc": "Apache Kafka message metadata constraints"
                             }
@@ -314,7 +323,7 @@
                           "name": "ProtocolHTTPType",
                           "fields": [
                             {
-                              "type": "GenericRecord",
+                              "type": "io.xregistry.GenericRecord",
                               "name": "protocoloptions",
                               "doc": "The HTTP message metadata constraints"
                             }
@@ -325,7 +334,7 @@
                           "name": "ProtocolNATSType",
                           "fields": [
                             {
-                              "type": "GenericRecord",
+                              "type": "io.xregistry.GenericRecord",
                               "name": "protocoloptions",
                               "doc": "NATS message metadata constraints"
                             }
@@ -336,56 +345,23 @@
                     },
                     {
                       "type": "string",
-                      "name": "dataschemaformat",
-                      "doc": "The schema format applicable to the message payload, equivalent to the 'format' attribute of the schema registry"
+                      "doc": "The schema format applicable to the message payload, equivalent to the 'format' attribute of the schema registry",
+                      "name": "dataschemaformat"
                     },
                     {
-                      "type": "record",
-                      "name": "dataschema",
-                      "fields": [
-                        {
-                          "name": "object",
-                          "type": {
-                            "type": "map",
-                            "values": [
-                              "null",
-                              "boolean",
-                              "int",
-                              "long",
-                              "float",
-                              "double",
-                              "bytes",
-                              "string",
-                              {
-                                "type": "array",
-                                "items": [
-                                  "null",
-                                  "boolean",
-                                  "int",
-                                  "long",
-                                  "float",
-                                  "double",
-                                  "bytes",
-                                  "string",
-                                  "GenericRecord"
-                                ]
-                              },
-                              "GenericRecord"
-                            ]
-                          }
-                        }
-                      ],
-                      "doc": "The inline schema for the message payload, equivalent to the 'schema' attribute of the schema registry"
+                      "type": "io.xregistry.GenericRecord",
+                      "doc": "The inline schema for the message payload, equivalent to the 'schema' attribute of the schema registry",
+                      "name": "dataschema"
                     },
                     {
                       "type": "string",
-                      "name": "dataschemauri",
-                      "doc": "The URI of the schema for the message payload, equivalent to the 'schemauri' attribute of the schema registry"
+                      "doc": "The URI of the schema for the message payload, equivalent to the 'schemauri' attribute of the schema registry",
+                      "name": "dataschemauri"
                     },
                     {
                       "type": "string",
-                      "name": "datacontenttype",
-                      "doc": "The content type for the message payload"
+                      "doc": "The content type for the message payload",
+                      "name": "datacontenttype"
                     }
                   ]
                 }

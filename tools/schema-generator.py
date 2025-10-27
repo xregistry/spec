@@ -6,6 +6,7 @@ import re
 from jsonpointer import resolve_pointer
 
 avro_generic_record_name = "GenericRecord"
+avro_generic_record_qualified_name = "io.xregistry.GenericRecord"
 avro_generic_record = {
   "type": "record",
   "name": avro_generic_record_name,
@@ -34,10 +35,10 @@ avro_generic_record = {
               "double",
               "bytes",
               "string",
-              avro_generic_record_name
+              avro_generic_record_qualified_name
             ]
           },
-          avro_generic_record_name
+          avro_generic_record_qualified_name
         ]
       }
     }
@@ -59,8 +60,8 @@ avro_type_mapping = {
     "uritemplate": {"type": "string"},
     "binary": {"type": "bytes"},
     "timestamp": {"type": {"type":"int", "logicalType": "timestamp-millis"}},
-    "any": avro_generic_record,
-    "var": avro_generic_record,
+    "any": {"type": avro_generic_record_qualified_name},
+    "var": {"type": avro_generic_record_qualified_name},
     "xid": {"type": "string"}
 }
 
@@ -685,6 +686,42 @@ def generate_avro_schema(model_definition) -> dict:
         dict: The generated Avro schema.
     """
 
+    # Pre-scan to determine if GenericRecord is needed anywhere
+    def needs_generic_record(attributes):
+        """Check if any attribute requires GenericRecord type"""
+        for attr_name, attr_props in attributes.items():
+            # Check for "*" extension attributes with "any" or "var" type
+            if attr_name == "*" and attr_props.get("type") in ["any", "var", "object"]:
+                return True
+            # Check for object type without item specification
+            if attr_props.get("type") == "object" and "item" not in attr_props and "attributes" not in attr_props:
+                return True
+            # Check nested attributes
+            if "attributes" in attr_props:
+                if needs_generic_record(attr_props["attributes"]):
+                    return True
+            # Check ifvalues sibling attributes
+            if "ifvalues" in attr_props:
+                for condition_props in attr_props["ifvalues"].values():
+                    if "siblingattributes" in condition_props:
+                        if needs_generic_record(condition_props["siblingattributes"]):
+                            return True
+        return False
+
+    # Check if GenericRecord is needed in the entire model
+    generic_record_needed = False
+    for _, group in model_definition.get("groups", {}).items():
+        if "attributes" in group and needs_generic_record(group["attributes"]):
+            generic_record_needed = True
+            break
+        for _, resource in group.get("resources", {}).items():
+            resource = resolve_resource(group, resource)
+            if "attributes" in resource and needs_generic_record(resource["attributes"]):
+                generic_record_needed = True
+                break
+        if generic_record_needed:
+            break
+
     avro_generic_record_emitted = False
     record_types = set()
 
@@ -695,11 +732,8 @@ def generate_avro_schema(model_definition) -> dict:
                 handle_attributes(item_schema, item["attributes"], prefix)
                 resource_schema["type"] = item_schema
             else:
-                if avro_generic_record_emitted:
-                    resource_schema["type"] = avro_generic_record_name
-                else:
-                    resource_schema["type"] = copy.deepcopy(avro_generic_record)
-                    avro_generic_record_emitted = True
+                # Use GenericRecord reference (it's defined at document level if needed)
+                resource_schema["type"] = avro_generic_record_qualified_name
         elif type == "map":
             resource_schema["type"] =  { "type": "map", "name": prefix+name+"Type","values": "" }
             if "type" in item:
@@ -730,8 +764,13 @@ def generate_avro_schema(model_definition) -> dict:
             pascal_attr_name=pascal(attr_name)
             # attribute schema is based on the type mapping
             attr_schema = copy.deepcopy(avro_type_mapping[attr_props["type"]])
-            if attr_name != "*":
-                attr_schema["name"] = type_prefix+pascal_attr_name+"Type"
+
+            # Only add a "name" field for types that are actually record definitions
+            # (not for simple types or type references like "any"/"var")
+            if attr_name != "*" and attr_props["type"] not in ["any", "var"]:
+                if isinstance(attr_schema.get("type"), dict) or attr_schema.get("type") == "record":
+                    attr_schema["name"] = type_prefix+pascal_attr_name+"Type"
+
             # add the description, if any, as a doc attribute
             if "description" in attr_props:
                 attr_schema["doc"] = attr_props["description"]
@@ -741,11 +780,8 @@ def generate_avro_schema(model_definition) -> dict:
                     handle_item(attr_schema, attr_props["type"], attr_props["item"], pascal_attr_name, type_prefix)
                 else:
                     if attr_props["type"] == "object":
-                        if avro_generic_record_emitted:
-                            attr_schema["type"] = avro_generic_record_name
-                        else:
-                            attr_schema["type"] = copy.deepcopy(avro_generic_record)
-                            avro_generic_record_emitted = True
+                        # Use GenericRecord reference (it's defined at document level if needed)
+                        attr_schema["type"] = avro_generic_record_qualified_name
                     else:
                         raise Exception("array or map attribute must have an item specified")
 
@@ -777,15 +813,32 @@ def generate_avro_schema(model_definition) -> dict:
                     resource_schema["fields"].append(field_schema)
             else:
                 if attr_name == "*":
-                    if "name" in attr_schema["type"]:
-                        attr_schema["type"]["name"] = type_prefix+pascal_attr_name+"ExtensionItemType"
+                    # For extension attributes, we need to handle named types properly
+                    # Named types cannot be defined inline in a map's values field
+                    values_type = attr_schema["type"]
+
+                    # Handle the case where the type needs to be resolved
+                    if isinstance(values_type, dict) and "name" in values_type:
+                        # This is a named type (like GenericRecord) - use only the name as a reference
+                        values_type_ref = values_type["name"]
+                    elif isinstance(values_type, dict):
+                        # This is a complex unnamed type - should not happen but use as-is
+                        values_type_ref = values_type
+                    elif values_type == "record":
+                        # This is an incomplete object type - use GenericRecord reference
+                        # (GenericRecord is defined at document level if needed)
+                        values_type_ref = avro_generic_record_qualified_name
+                    else:
+                        # This is a simple type reference (string like "string", "int", etc.)
+                        values_type_ref = values_type
+
                     field_schema = {
                             "name": "Extensions",
                             "type":  {
                                "type": "map",
                                "name": type_prefix+"ExtensionsType",
                                "default": {},
-                               "values": attr_schema["type"]
+                               "values": values_type_ref
                              }}
                     if "description" in attr_props:
                         field_schema["doc"] = attr_props["description"]
@@ -807,6 +860,58 @@ def generate_avro_schema(model_definition) -> dict:
         "fields": [],
     }
     document_properties = document_type["fields"]
+
+    # If GenericRecord is needed anywhere in the schema, define it first as a field
+    # This ensures it's available for all references throughout the schema
+    if generic_record_needed:
+        # Create a version with fully qualified names for recursive references
+        generic_record_with_namespace = {
+            "type": "record",
+            "name": avro_generic_record_name,
+            "fields": [
+                {
+                    "name": "object",
+                    "type": {
+                        "type": "map",
+                        "values": [
+                            "null",
+                            "boolean",
+                            "int",
+                            "long",
+                            "float",
+                            "double",
+                            "bytes",
+                            "string",
+                            {
+                                "type": "array",
+                                "items": [
+                                    "null",
+                                    "boolean",
+                                    "int",
+                                    "long",
+                                    "float",
+                                    "double",
+                                    "bytes",
+                                    "string",
+                                    "io.xregistry.GenericRecord"
+                                ]
+                            },
+                            "io.xregistry.GenericRecord"
+                        ]
+                    }
+                }
+            ]
+        }
+        generic_record_field = {
+            "name": "_GenericRecordDefinition",
+            "type": {
+                "type": "array",
+                "items": generic_record_with_namespace
+            },
+            "default": [],
+            "doc": "Internal field to define GenericRecord type for use in extension attributes"
+        }
+        document_properties.append(generic_record_field)
 
     for key, group in model_definition.get("groups", {}).items():
         if "plural" not in group: group["plural"] = key
