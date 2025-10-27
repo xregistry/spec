@@ -1226,7 +1226,12 @@
             "type": "array",
             "description": "Client's expected usage of this endpoint",
             "items": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "subscriber",
+                "consumer",
+                "producer"
+              ]
             }
           },
           "channel": {
