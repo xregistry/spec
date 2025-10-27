@@ -472,7 +472,13 @@
                 "type": "array",
                 "name": "UsageArrayType",
                 "items": {
-                  "type": "string"
+                  "type": "enum",
+                  "name": "UsageEnumType",
+                  "symbols": [
+                    "subscriber",
+                    "consumer",
+                    "producer"
+                  ]
                 }
               },
               "name": "usage",
