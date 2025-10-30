@@ -424,7 +424,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
 
   "capabilities": {                     # Supported capabilities/options
     "apis": [ "/capabilities", "/export", "/model" ],
-    "flags": [                          # Query parameters
+    "flags": [                          # e.g. Query parameters
       "binary",? "collections",? "doc",? "epoch",? "filter",?
       "ignoredefaultversionid",? "ignoredefaultversionsticky",? "ignoreepoch",?
       "ignorereadonly",?  "inline", ? "setdefaultversionid",?  "sort",?
@@ -3861,29 +3861,34 @@ reference to one of the errors listed in this section. While it is RECOMMENDED
 that implementations use those errors (for consistency), they MAY choose to use
 a more appropriate one (or a custom one).
 
-Each protocol binding specification will define how error SHOULD be returned
+Each protocol binding specification will define how errors SHOULD be returned
 back to clients.
 
 In the definition of each error the following rules apply:
-- `<CODE>` is the HTTP response code and status text (e.g. `404 Not Found`).
-- "type" is a URI to the error definition.
-- "instance" is a URL to the entity being processed when the error occurred.
-- "title" is a human-readable summary of the error.
-- "detail" is additional information about the error. Typically will include
+- **Type**: MUST be a URI to the error definition.
+- **Code**: MUST be the HTTP response code and status text
+  (e.g. `404 Not Found`).
+- **Instance**: MUST be a URL to the entity being processed when the error
+  occurred. It is RECOMMENDED that this be an absolute URL if possible,
+  otherwise the xid of the entity SHOULD be used.
+- **Title**: MUST be a human-readable summary of the error.
+- **Detail**: is additional information about the error. Typically will include
   suggestions for how to fix the error.
 
-`<CODE>`, `"type"`, `"instance"` and `title` fields are REQUIRED. All other
+**Type**, **Code**, **Instance** and **Title** fields are REQUIRED. All other
 fields are OPTIONAL unless overwise stated as part of the error definition. Any
 substitutable information (as denoted by the `<...>` syntax) defined as part
-of an error MUST be populated appropriately.
+of an error MUST be populated appropriately by the server prior to returning
+the error.
 
 HTTP response codes and status text are defined in the [HTTP
 Semantics](https://datatracker.ietf.org/doc/html/rfc9110#name-status-codes)
 specification.
 
-In the following list of errors, the `Code`, `Type` and `Instance` values MUST
-be as specified. The other field values are recommendations and MAY be modified
-as appropriate, including being specified in a language other than English.
+The **Type**, **Code**, and **Instance** values MUST be as specified in
+the owning specifications. The other field values are recommendations and
+MAY be modified as appropriate, including being specified in a language other
+than English.
 
 The following list of protocol-independent errors are defined:
 
@@ -3897,22 +3902,22 @@ the API supports, if any.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#action_not_supported`
 * Code: `405 Method Not Allowed`
-* Instance: `<REQUEST URL>`
-* Title: `The specified action (<INVALID ACTION>) is not supported for: <REQUEST URL>`
+* Instance: `<ENTITY URL>`
+* Title: `The specified action (<INVALID ACTION>) is not supported`
 
 ### ancestor_circular_reference
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#ancestor_circular_reference`
 * Code: `400 Bad Request`
-* Instance: `<URL TO THE VERSION BEING PROCESSED>`
+* Instance: `<VERSION URL>`
 * Title: `The assigned "ancestor" value (<ANCESTOR VALUE>) creates a circular reference`
 
 ### bad_flag
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#bad_flag`
 * Code: `400 Bad Request`
-* Instance: `<REQUEST URL>`
-* Title: `The specified query parameter (<QUERY PARAMETER>) is not allowed in this context`
+* Instance: `<ENTITY URL>`
+* Title: `The specified flag (<flag name>) is not allowed in this context`
 
 ### bad_request
 
@@ -3922,57 +3927,57 @@ SHOULD attempt to use a more specific error when possible.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#bad_request`
 * Code: `400 Bad Request`
-* Instance: `<REQUEST URL>`
+* Instance: `<ENTITY URL>`
 * Title: `The request cannot be processed as provided`
 
 ### cannot_doc_xref
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#cannot_doc_xref`
 * Code: `400 Bad Request`
-* Instance: `<URL TO THE RESOURCE BEING RETRIEVED>`
+* Instance: `<RESOURCE URL>`
 * Title: `Retrieving the document view of an xref'd Resource's Versions is not possible`
 
 ### capability_error
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#capability_error`
 * Code: `400 Bad Request`
-* Instance: `<URL TO THE XREGISTRY SERVER>`
+* Instance: `<XREGISTRY SERVER URL>`
 * Title: `There was an error in the capabilities provided`
 
 ### compatibility_violation
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#compatibility_violation`
 * Code: `400 Bad Request`
-* Instance: `<URL TO THE VERSION THAT CAUSED THE VIOLATION>`
-* Title: `The request would cause one or more Versions of this Resource to violate the Resource's compatibility rules (<COMPATIBILITY ATTRIBUTE VALUE>)`
+* Instance: `<RESOURCE URL>`
+* Title: `The request would cause one or more Versions of this Resource to violate the Resource's compatibility rule (<COMPATIBILITY ATTRIBUTE VALUE>)`
 * Detail: `<LIST OF versionid VALUES THAT WOULD BE IN VIOLATION>`
 
 ### data_retrieval_error
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#data_retrieval_error`
 * Code: `500 Internal Server Error`
-* Instance: `<REQUEST URL>`
+* Instance: `<ENTITY URL>`
 * Title: `The server was unable to retrieve all of the requested data`
 
 ### defaultversionid_not_allowed
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#defaultversionid_not_allowed`
 * Code: `400 Bad Request`
-* Instance: `<URL TO THE RESOURCE BEING PROCESSED>`
+* Instance: `<RESOURCE URL>`
 * Title: `"defaultversionid" is not allowed to be specified`
 
 ### invalid_character
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#invalid_character`
 * Code: `400 Bad Request`
-* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
+* Instance: `<ENTITY URL>`
 * Title: `An invalid character (<THE CHARACTER>) was specified in an attribute's name (<FULL ATTRIBUTE NAME>)`
 
 ### invalid_data
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#invalid_data`
 * Code: `400 Bad Request`
-* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
+* Instance: `<ENTITY URL>`
 * Title: `The data provided for "<ATTRIBUTE/PARAMETER NAME>" is invalid`
 * Detail: `<THE INVALID DATA>`
 
@@ -3980,35 +3985,35 @@ SHOULD attempt to use a more specific error when possible.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#mismatched_epoch`
 * Code: `400 Bad Request`
-* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
+* Instance: `<ENTITY URL>`
 * Title: `The specified epoch value (<INVALID EPOCH>) does not match its current value (<CURRENT EPOCH>)`
 
 ### mismatched_id
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#mismatched_id`
 * Code: `400 Bad Request`
-* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
-* Title: `The specified <SINGULAR TYPE NAME> ID value (<INVALID ID>) needs to be "<EXPECTED ID>"`
+* Instance: `<ENTITY URL>`
+* Title: `The specified "<SINGULAR TYPE NAME>" ID value (<INVALID ID>) needs to be "<EXPECTED ID>"`
 
 ### misplaced_epoch
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#misplaced_epoch`
 * Code: `400 Bad Request`
-* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
+* Instance: `<ENTITY URL>`
 * Title: `The specified "epoch" value needs to be within a "meta" entity`
 
 ### missing_versions
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#missing_versions`
 * Code: `400 Bad Request`
-* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
+* Instance: `<ENTITY URL>`
 * Title: `At least one Version needs to be included in the request`
 
 ### model_compliance_error
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#model_compliance_error`
 * Code: `400 Bad Request`
-* Instance: `<URL TO THE XREGISTRY SERVER>`
+* Instance: `<XREGISTRY SERVER URL>`
 * Title: `The model provided would cause one or more entities in the Registry to become non-compliant`
 * Detail: `<LIST OF NON-COMPLIANT XIDs>`
 
@@ -4016,36 +4021,36 @@ SHOULD attempt to use a more specific error when possible.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#model_error`
 * Code: `400 Bad Request`
-* Instance: `<URL TO THE XREGISTRY SERVER>`
-* Title: `There was an error in the model definition provided at <JSON PATH TO ERROR>`
+* Instance: `<XREGISTRY SERVER URL>`
+* Title: `There was an error in the model definition provided, at: <JSON PATH TO ERROR>`
 * Detail: `<PROBLEMATIC JSON SNIPPET>`
 
 ### multiple_roots
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#multiple_roots`
 * Code: `400 Bad Request`
-* Instance: `<URL TO THE RESOURCE BEING PROCESSED>`
+* Instance: `<RESOURCE URL>`
 * Title: `The operation would result in multiple root Versions which is not allowed by this Resource type`
 
 ### not_found
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#not_found`
 * Code: `404 Not Found`
-* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
+* Instance: `<ENTITY URL>`
 * Title: `The specified entity cannot be found`
 
 ### readonly
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#readonly`
 * Code: `400 Bad Request`
-* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
-* Title: `Updating a read-only entity (<XID OF ENTITY>) is not allowed`
+* Instance: `<ENTITY URL>`
+* Title: `Updating a read-only entity is not allowed`
 
 ### required_attribute_missing
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#required_attribute_missing`
 * Code: `400 Bad Request`
-* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
+* Instance: `<ENTITY URL>`
 * Title: `One or more mandatory attributes are missing`
 * Detail: `<LIST OF MANDATORY ATTRIBUTES>`
 
@@ -4071,37 +4076,36 @@ something unexpected happened in the server that caused an error condition.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#too_many_versions`
 * Code: `400 Bad Request`
-* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
+* Instance: `<ENTITY URL>`
 * Title: `The request is only allowed to have one Version specified`
 
 ### unknown_attribute
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#unknown_attribute`
 * Code: `400 Bad Request`
-* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
+* Instance: `<ENTITY URL>`
 * Title: `An unknown attribute (<ATTRIBUTE NAME>) was specified`
 
 ### unknown_id
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#unknown_id`
 * Code: `400 Bad Request`
-* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
+* Instance: `<ENTITY URL>`
 * Title: `The "<SINGULAR NAME OF THE ENTITY TYPE>" with the ID "<UNKNOWN ID>" cannot be found`
 
 ### unsupported_specversion
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#unsupported_specversion`
 * Code: `400 Bad Request`
-* Instance: `<THE REQUEST URL>`
+* Instance: `<REQUEST URL>`
 * Title: `The specified "specversion" value (<SPECVERSION SPECIFIED>) is not supported`
 
 ### versionid_not_allowed
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#versionid_not_allowed`
 * Code: `400 Bad Request`
-* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
-* Title: `A "versionid" is not allowed to be specified`
-* Detail: `<versionid SPECIFIED>`
+* Instance: `<ENTITY URL>`
+* Title: `A "versionid" (<versionid SPECIFIC>) is not allowed to be specified`
 
 
 <!-- end-err-def -->

@@ -3138,14 +3138,14 @@ The following list of HTTP protocol specific errors are defined:
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#details_required`
 * Code: `400 Bad Request`
-* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
+* Instance: `<ENTITY URL>`
 * Title: `$details suffixed is needed when using PATCH for this Resource`
 
 #### extra_xregistry_headers
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/http.md#extra_xregistry_headers`
 * Code: `400 Bad Request`
-* Instance: `<URL TO THE ENTITY BEING PROCESSED>`
+* Instance: `<ENTITY URL>`
 * Title: `xRegistry HTTP headers are not allowed on this request`
 * Detail: `<LIST OF HEADERS>`
 
