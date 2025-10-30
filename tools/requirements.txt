@@ -6,3 +6,7 @@ tqdm
 pymdown-extensions
 pytest-asyncio
 jsonpointer
+pytest
+avro
+jsonschema
+openapi-spec-validator

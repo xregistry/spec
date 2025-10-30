@@ -5,243 +5,245 @@
     "schemagroups": {
       "type": "object",
       "additionalProperties": {
-        "$ref": "#/definitions/schemagroup"
+        "$ref": "#/definitions/schemagroup-schema/schemagroup"
       }
     }
   },
   "definitions": {
-    "schemaVersion": {
-      "type": "object",
-      "properties": {
-        "versionid": {
-          "type": "string",
-          "description": "ID of the schema version"
-        },
-        "schemaid": {
-          "type": "string",
-          "description": "ID of the schema object"
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the object"
-        },
-        "epoch": {
-          "type": "integer",
-          "description": "Epoch time of the object creation"
-        },
-        "self": {
-          "type": "string",
-          "format": "uri",
-          "description": "URL of the object"
-        },
-        "xid": {
-          "type": "string",
-          "format": "xid",
-          "description": "Relative URL of the object"
-        },
-        "description": {
-          "type": "string",
-          "description": "Description of the object"
-        },
-        "documentation": {
-          "type": "string",
-          "format": "uri",
-          "description": "URI of the documentation of the object"
-        },
-        "labels": {
-          "type": "object",
-          "description": "Labels for the object"
-        },
-        "createdat": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Time of the object creation"
-        },
-        "modifiedat": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Time of the object modification"
-        },
-        "format": {
-          "type": "string",
-          "description": "Schema format identifier for this schema version"
-        }
-      },
-      "oneOf": [
-        {
-          "properties": {
-            "schema": {
-              "description": "Embedded schema object",
-              "oneOf": [
-                {
-                  "type": "object"
-                },
-                {
-                  "type": "string"
-                }
-              ]
-            }
+    "schemagroup-schema": {
+      "schemaVersion": {
+        "type": "object",
+        "properties": {
+          "versionid": {
+            "type": "string",
+            "description": "ID of the schema version"
           },
-          "required": [
-            "schema"
-          ]
-        },
-        {
-          "properties": {
-            "schemabase64": {
-              "description": "Embedded schema object as binary data",
-              "type": "string",
-              "format": "base64"
-            }
+          "schemaid": {
+            "type": "string",
+            "description": "ID of the schema object"
           },
-          "required": [
-            "schemabase64"
-          ]
-        },
-        {
-          "properties": {
-            "schemaurl": {
-              "description": "Linked schema object",
-              "type": "string",
-              "format": "uri"
-            }
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
           },
-          "required": [
-            "schemaurl"
-          ]
-        }
-      ]
-    },
-    "schema": {
-      "type": "object",
-      "properties": {
-        "schemaid": {
-          "type": "string",
-          "description": "ID of the schema object"
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the object"
-        },
-        "epoch": {
-          "type": "integer",
-          "description": "Epoch time of the object creation"
-        },
-        "self": {
-          "type": "string",
-          "format": "uri",
-          "description": "URL of the object"
-        },
-        "xid": {
-          "type": "string",
-          "format": "xid",
-          "description": "Relative URL of the object"
-        },
-        "description": {
-          "type": "string",
-          "description": "Description of the object"
-        },
-        "documentation": {
-          "type": "string",
-          "format": "uri",
-          "description": "URI of the documentation of the object"
-        },
-        "labels": {
-          "type": "object",
-          "description": "Labels for the object"
-        },
-        "createdat": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Time of the object creation"
-        },
-        "modifiedat": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Time of the object modification"
-        }
-      },
-      "oneOf": [
-        {
-          "properties": {
-            "versionsurl": {
-              "type": "string"
-            },
-            "versionscount": {
-              "type": "integer"
-            }
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation"
           },
-          "required": [
-            "versionsurl"
-          ]
+          "self": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "string",
+            "format": "xid",
+            "description": "Relative URL of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri",
+            "description": "URI of the documentation of the object"
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object"
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation"
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification"
+          },
+          "format": {
+            "type": "string",
+            "description": "Schema format identifier for this schema version"
+          }
         },
-        {
-          "properties": {
-            "versions": {
-              "type": "object",
-              "additionalProperties": {
-                "$ref": "#/definitions/schemaVersion"
+        "oneOf": [
+          {
+            "properties": {
+              "schema": {
+                "description": "Embedded schema object",
+                "oneOf": [
+                  {
+                    "type": "object"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
               }
-            }
+            },
+            "required": [
+              "schema"
+            ]
           },
-          "required": [
-            "versions"
-          ]
-        }
-      ]
-    },
-    "schemagroup": {
-      "type": "object",
-      "properties": {
-        "schemagroupid": {
-          "type": "string",
-          "description": "ID of the schemagroup object"
+          {
+            "properties": {
+              "schemabase64": {
+                "description": "Embedded schema object as binary data",
+                "type": "string",
+                "format": "base64"
+              }
+            },
+            "required": [
+              "schemabase64"
+            ]
+          },
+          {
+            "properties": {
+              "schemaurl": {
+                "description": "Linked schema object",
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            "required": [
+              "schemaurl"
+            ]
+          }
+        ]
+      },
+      "schema": {
+        "type": "object",
+        "properties": {
+          "schemaid": {
+            "type": "string",
+            "description": "ID of the schema object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation"
+          },
+          "self": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "string",
+            "format": "xid",
+            "description": "Relative URL of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri",
+            "description": "URI of the documentation of the object"
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object"
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation"
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification"
+          }
         },
-        "name": {
-          "type": "string",
-          "description": "Name of the object"
-        },
-        "epoch": {
-          "type": "integer",
-          "description": "Epoch time of the object creation"
-        },
-        "self": {
-          "type": "string",
-          "format": "uri",
-          "description": "URL of the object"
-        },
-        "xid": {
-          "type": "string",
-          "format": "xid",
-          "description": "Relative URL of the object"
-        },
-        "description": {
-          "type": "string",
-          "description": "Description of the object"
-        },
-        "documentation": {
-          "type": "string",
-          "format": "uri",
-          "description": "URI of the documentation of the object"
-        },
-        "labels": {
-          "type": "object",
-          "description": "Labels for the object"
-        },
-        "createdat": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Time of the object creation"
-        },
-        "modifiedat": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Time of the object modification"
-        },
-        "schemas": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/schema"
+        "oneOf": [
+          {
+            "properties": {
+              "versionsurl": {
+                "type": "string"
+              },
+              "versionscount": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "versionsurl"
+            ]
+          },
+          {
+            "properties": {
+              "versions": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/definitions/schemagroup-schema/schemaVersion"
+                }
+              }
+            },
+            "required": [
+              "versions"
+            ]
+          }
+        ]
+      },
+      "schemagroup": {
+        "type": "object",
+        "properties": {
+          "schemagroupid": {
+            "type": "string",
+            "description": "ID of the schemagroup object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation"
+          },
+          "self": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "string",
+            "format": "xid",
+            "description": "Relative URL of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri",
+            "description": "URI of the documentation of the object"
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object"
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation"
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification"
+          },
+          "schemas": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/definitions/schemagroup-schema/schema"
+            }
           }
         }
       }
