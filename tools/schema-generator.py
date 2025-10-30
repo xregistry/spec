@@ -6,6 +6,7 @@ import re
 from jsonpointer import resolve_pointer
 
 avro_generic_record_name = "GenericRecord"
+avro_generic_record_qualified_name = "io.xregistry.GenericRecord"
 avro_generic_record = {
   "type": "record",
   "name": avro_generic_record_name,
@@ -34,10 +35,10 @@ avro_generic_record = {
               "double",
               "bytes",
               "string",
-              avro_generic_record_name
+              avro_generic_record_qualified_name
             ]
           },
-          avro_generic_record_name
+          avro_generic_record_qualified_name
         ]
       }
     }
@@ -59,8 +60,8 @@ avro_type_mapping = {
     "uritemplate": {"type": "string"},
     "binary": {"type": "bytes"},
     "timestamp": {"type": {"type":"int", "logicalType": "timestamp-millis"}},
-    "any": avro_generic_record,
-    "var": avro_generic_record,
+    "any": {"type": avro_generic_record_qualified_name},
+    "var": {"type": avro_generic_record_qualified_name},
     "xid": {"type": "string"}
 }
 
@@ -548,9 +549,16 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
         if "plural" not in group: group["plural"] = key
         groups_name = group["plural"]
         group_name = group["singular"]
+        # Create a namespace folder for this group's definitions
+        # For OpenAPI: use flat keys without -schema suffix
+        # For JSON Schema: use nested structure with -schema suffix
+        if for_openapi:
+            group_definition_prefix = f"{reference_prefix}"
+        else:
+            group_definition_prefix = f"{reference_prefix}{group_name}-schema/"
         groups_schema = {
             "type": "object",
-            "additionalProperties": {"$ref": f"{reference_prefix}{group_name}"}
+            "additionalProperties": {"$ref": f"{group_definition_prefix}{group_name}"}
         }
 
         document_properties[groups_name] = groups_schema
@@ -628,7 +636,7 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                                 "versions": {
                                 "type": "object",
                                 "additionalProperties": {
-                                    "$ref": f"{reference_prefix}{resource_name}Version"
+                                    "$ref": f"{group_definition_prefix}{resource_name}Version"
                                     }
                                 }
                             },
@@ -636,25 +644,44 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                         }
                     ]
 
-                schema_definitions[f"{resource_name}Version"] = resource_version_schema
+                # For OpenAPI: flat keys, for JSON Schema: nested structure
+                if for_openapi:
+                    schema_definitions[f"{resource_name}Version"] = resource_version_schema
+                else:
+                    if f"{group_name}-schema" not in schema_definitions:
+                        schema_definitions[f"{group_name}-schema"] = {}
+                    schema_definitions[f"{group_name}-schema"][f"{resource_name}Version"] = resource_version_schema
             else:
                 handle_attributes(resource_schema, attributes)
 
-            schema_definitions[resource_name] = resource_schema
+            # For OpenAPI: flat keys, for JSON Schema: nested structure
+            if for_openapi:
+                schema_definitions[resource_name] = resource_schema
+            else:
+                if f"{group_name}-schema" not in schema_definitions:
+                    schema_definitions[f"{group_name}-schema"] = {}
+                schema_definitions[f"{group_name}-schema"][resource_name] = resource_schema
             resource_collection_properties[resource["plural"]] = {
                     "type": "object",
                     "additionalProperties": {
-                        "$ref": f"{reference_prefix}{resource_name}",
+                        "$ref": f"{group_definition_prefix}{resource_name}",
                     }
                 }
 
         for ximportresources_xid in group.get("ximportresources", []):
             xid_group_plural, xid_resource_plural = ximportresources_xid.split("/")[1:]
+            xid_group_singular = model_definition["groups"][xid_group_plural]["singular"]
             xid_resource_singular = model_definition["groups"][xid_group_plural]["resources"][xid_resource_plural]["singular"]
+            # Use the source group's namespace for imported resources
+            # For OpenAPI: flat keys, for JSON Schema: nested structure
+            if for_openapi:
+                xid_group_definition_prefix = f"{reference_prefix}"
+            else:
+                xid_group_definition_prefix = f"{reference_prefix}{xid_group_singular}-schema/"
             resource_collection_properties[xid_resource_plural] = {
                     "type": "object",
                     "additionalProperties": {
-                        "$ref": f"{reference_prefix}{xid_resource_singular}",
+                        "$ref": f"{xid_group_definition_prefix}{xid_resource_singular}",
                     }
                 }
 
@@ -669,7 +696,13 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
         handle_attributes(group_schema, attributes)
         for resource_collection_name, resource_collection_schema in resource_collection_properties.items():
             group_schema["properties"][resource_collection_name] = resource_collection_schema
-        schema_definitions[group_name] = group_schema
+        # For OpenAPI: flat keys, for JSON Schema: nested structure
+        if for_openapi:
+            schema_definitions[group_name] = group_schema
+        else:
+            if f"{group_name}-schema" not in schema_definitions:
+                schema_definitions[f"{group_name}-schema"] = {}
+            schema_definitions[f"{group_name}-schema"][group_name] = group_schema
     return schema
 
 
@@ -685,6 +718,44 @@ def generate_avro_schema(model_definition) -> dict:
         dict: The generated Avro schema.
     """
 
+    # Pre-scan to determine if GenericRecord is needed anywhere
+    def needs_generic_record(attributes):
+        """Check if any attribute requires GenericRecord type"""
+        for attr_name, attr_props in attributes.items():
+            # Check for "*" extension attributes with "any" or "var" type
+            if attr_name == "*" and attr_props.get("type") in ["any", "var", "object"]:
+                return True
+            # Consolidated check: If attribute is an extension ("*") with type "any", "var", or "object",
+            # or if attribute is type "object" without "item" or "attributes", GenericRecord is needed.
+            if (attr_name == "*" and attr_props.get("type") in ["any", "var", "object"]) or \
+               (attr_props.get("type") == "object" and "item" not in attr_props and "attributes" not in attr_props):
+                return True
+            # Check nested attributes
+            if "attributes" in attr_props:
+                if needs_generic_record(attr_props["attributes"]):
+                    return True
+            # Check ifvalues sibling attributes
+            if "ifvalues" in attr_props:
+                for condition_props in attr_props["ifvalues"].values():
+                    if "siblingattributes" in condition_props:
+                        if needs_generic_record(condition_props["siblingattributes"]):
+                            return True
+        return False
+
+    # Check if GenericRecord is needed in the entire model
+    generic_record_needed = False
+    for _, group in model_definition.get("groups", {}).items():
+        if "attributes" in group and needs_generic_record(group["attributes"]):
+            generic_record_needed = True
+            break
+        for _, resource in group.get("resources", {}).items():
+            resource = resolve_resource(group, resource)
+            if "attributes" in resource and needs_generic_record(resource["attributes"]):
+                generic_record_needed = True
+                break
+        if generic_record_needed:
+            break
+
     avro_generic_record_emitted = False
     record_types = set()
 
@@ -695,11 +766,8 @@ def generate_avro_schema(model_definition) -> dict:
                 handle_attributes(item_schema, item["attributes"], prefix)
                 resource_schema["type"] = item_schema
             else:
-                if avro_generic_record_emitted:
-                    resource_schema["type"] = avro_generic_record_name
-                else:
-                    resource_schema["type"] = copy.deepcopy(avro_generic_record)
-                    avro_generic_record_emitted = True
+                # Use GenericRecord reference (it's defined at document level if needed)
+                resource_schema["type"] = avro_generic_record_qualified_name
         elif type == "map":
             resource_schema["type"] =  { "type": "map", "name": prefix+name+"Type","values": "" }
             if "type" in item:
@@ -727,11 +795,24 @@ def generate_avro_schema(model_definition) -> dict:
     def handle_attributes(resource_schema, attributes, type_prefix=""):
         nonlocal avro_generic_record_emitted
         for attr_name, attr_props in attributes.items():
-            pascal_attr_name=pascal(attr_name)
+            pascal_attr_name = pascal(attr_name)
             # attribute schema is based on the type mapping
-            attr_schema = copy.deepcopy(avro_type_mapping[attr_props["type"]])
-            if attr_name != "*":
-                attr_schema["name"] = type_prefix+pascal_attr_name+"Type"
+            if "type" in attr_props:
+                attr_schema = copy.deepcopy(avro_type_mapping[attr_props["type"]])
+            else:
+                # If 'type' is missing, skip this attribute or handle as needed
+                continue
+            # Only add a "name" field for types that are actual inline record definitions.
+            # If attr_schema["type"] is a dict and has "type" == "record", it's an inline record definition.
+            # Do not add "name" for simple types or references like "any"/"var".
+            if attr_name != "*" and attr_props["type"] not in ["any", "var"]:
+                if isinstance(attr_schema.get("type"), dict) and attr_schema["type"].get("type") == "record":
+                    attr_schema["name"] = type_prefix+pascal_attr_name+"Type"
+                if isinstance(attr_schema.get("type"), dict) or attr_schema.get("type") == "record":
+                    attr_schema["name"] = type_prefix+pascal_attr_name+"Type"
+                if isinstance(attr_schema.get("type"), dict) or attr_schema.get("type") == "record":
+                    attr_schema["name"] = type_prefix+pascal_attr_name+"Type"
+
             # add the description, if any, as a doc attribute
             if "description" in attr_props:
                 attr_schema["doc"] = attr_props["description"]
@@ -741,11 +822,8 @@ def generate_avro_schema(model_definition) -> dict:
                     handle_item(attr_schema, attr_props["type"], attr_props["item"], pascal_attr_name, type_prefix)
                 else:
                     if attr_props["type"] == "object":
-                        if avro_generic_record_emitted:
-                            attr_schema["type"] = avro_generic_record_name
-                        else:
-                            attr_schema["type"] = copy.deepcopy(avro_generic_record)
-                            avro_generic_record_emitted = True
+                        # Use GenericRecord reference (it's defined at document level if needed)
+                        attr_schema["type"] = avro_generic_record_qualified_name
                     else:
                         raise Exception("array or map attribute must have an item specified")
 
@@ -762,6 +840,7 @@ def generate_avro_schema(model_definition) -> dict:
                     condition_schema_identifier = pascal_attr_name + pascal("".join([c if c.isalnum() else "_" for c in condition_value]))
                     conditional_schema = {
                                 "type": "record",
+                                "namespace": group_namespace,
                                 "name": type_prefix+condition_schema_identifier+"Type",
                                 "fields": []
                             }
@@ -777,15 +856,32 @@ def generate_avro_schema(model_definition) -> dict:
                     resource_schema["fields"].append(field_schema)
             else:
                 if attr_name == "*":
-                    if "name" in attr_schema["type"]:
-                        attr_schema["type"]["name"] = type_prefix+pascal_attr_name+"ExtensionItemType"
+                    # For extension attributes, we need to handle named types properly
+                    # Named types cannot be defined inline in a map's values field
+                    values_type = attr_schema["type"]
+
+                    # Handle the case where the type needs to be resolved
+                    if isinstance(values_type, dict) and "name" in values_type:
+                        # This is a named type (like GenericRecord) - use only the name as a reference
+                        values_type_ref = values_type["name"]
+                    elif isinstance(values_type, dict):
+                        # This is a complex unnamed type - should not happen but use as-is
+                        values_type_ref = values_type
+                    elif values_type == "record":
+                        # This is an incomplete object type - use GenericRecord reference
+                        # (GenericRecord is defined at document level if needed)
+                        values_type_ref = avro_generic_record_qualified_name
+                    else:
+                        # This is a simple type reference (string like "string", "int", etc.)
+                        values_type_ref = values_type
+
                     field_schema = {
                             "name": "Extensions",
                             "type":  {
                                "type": "map",
                                "name": type_prefix+"ExtensionsType",
                                "default": {},
-                               "values": attr_schema["type"]
+                               "values": values_type_ref
                              }}
                     if "description" in attr_props:
                         field_schema["doc"] = attr_props["description"]
@@ -808,10 +904,64 @@ def generate_avro_schema(model_definition) -> dict:
     }
     document_properties = document_type["fields"]
 
+    # If GenericRecord is needed anywhere in the schema, define it first as a field
+    # This ensures it's available for all references throughout the schema
+    if generic_record_needed:
+        # Create a version with fully qualified names for recursive references
+        generic_record_with_namespace = {
+            "type": "record",
+            "name": avro_generic_record_name,
+            "fields": [
+                {
+                    "name": "object",
+                    "type": {
+                        "type": "map",
+                        "values": [
+                            "null",
+                            "boolean",
+                            "int",
+                            "long",
+                            "float",
+                            "double",
+                            "bytes",
+                            "string",
+                            {
+                                "type": "array",
+                                "items": [
+                                    "null",
+                                    "boolean",
+                                    "int",
+                                    "long",
+                                    "float",
+                                    "double",
+                                    "bytes",
+                                    "string",
+                                    avro_generic_record_qualified_name
+                                ]
+                            },
+                            avro_generic_record_qualified_name
+                        ]
+                    }
+                }
+            ]
+        }
+        generic_record_field = {
+            "name": "genericRecordDefinition",
+            "type": {
+                "type": "array",
+                "items": generic_record_with_namespace
+            },
+            "default": [],
+            "doc": "Internal field to define GenericRecord type for use in extension attributes"
+        }
+        document_properties.append(generic_record_field)
+
     for key, group in model_definition.get("groups", {}).items():
         if "plural" not in group: group["plural"] = key
         groups_name = group["plural"]
         group_name = group["singular"]
+        # Create a namespace for this group to avoid type name collisions
+        group_namespace = f"io.xregistry.{groups_name}"
         resource_collection_fields = []
 
         for rKey, resource in group.get("resources", {}).items():
@@ -823,7 +973,7 @@ def generate_avro_schema(model_definition) -> dict:
                     "name": camel(resource["plural"]),
                     "type" :{
                         "type": "map",
-                        "values": pascal(resource_name)+"Type"
+                        "values": f"{group_namespace}.{pascal(resource_name)}Type"
                     }
                     })
             else:
@@ -833,6 +983,7 @@ def generate_avro_schema(model_definition) -> dict:
                 resource_schema = {
                     "type": "record",
                     "name": pascal(resource_name)+"Type",
+                    "namespace": group_namespace,
                     "fields": props
                 }
                 attributes = resource.get("attributes", {})
@@ -879,14 +1030,15 @@ def generate_avro_schema(model_definition) -> dict:
         for ximportresources_xid in group.get("ximportresources", []):
             xid_group_plural, xid_resource_plural = ximportresources_xid.split("/")[1:]
             xid_resource_singular = model_definition["groups"][xid_group_plural]["resources"][xid_resource_plural]["singular"]
+            # Use the source group's namespace for imported resources
+            xid_group_namespace = f"io.xregistry.{xid_group_plural}"
             resource_collection_fields.append({
                     "name": camel(xid_resource_plural),
                     "type" :{
                         "type": "map",
-                        "values": pascal(xid_resource_singular)+"Type"
+                        "values": f"{xid_group_namespace}.{pascal(xid_resource_singular)}Type"
                     }
-                })
-
+                    })
         props = copy.deepcopy(avro_common_attributes)
         props.insert(0, {"name" : group_name+"id", "type": "string", "description": f"ID of the {group_name} object"})
         group_schema = {

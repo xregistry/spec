@@ -4,6 +4,51 @@
   "namespace": "io.xregistry",
   "fields": [
     {
+      "name": "genericRecordDefinition",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "GenericRecord",
+          "fields": [
+            {
+              "name": "object",
+              "type": {
+                "type": "map",
+                "values": [
+                  "null",
+                  "boolean",
+                  "int",
+                  "long",
+                  "float",
+                  "double",
+                  "bytes",
+                  "string",
+                  {
+                    "type": "array",
+                    "items": [
+                      "null",
+                      "boolean",
+                      "int",
+                      "long",
+                      "float",
+                      "double",
+                      "bytes",
+                      "string",
+                      "io.xregistry.GenericRecord"
+                    ]
+                  },
+                  "io.xregistry.GenericRecord"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "default": [],
+      "doc": "Internal field to define GenericRecord type for use in extension attributes"
+    },
+    {
       "name": "schemagroups",
       "type": {
         "type": "map",
@@ -97,7 +142,7 @@
                 "type": "map",
                 "name": "ExtensionsType",
                 "default": {},
-                "values": "record"
+                "values": "io.xregistry.GenericRecord"
               }
             },
             {
@@ -107,6 +152,7 @@
                 "values": {
                   "type": "record",
                   "name": "SchemaType",
+                  "namespace": "io.xregistry.schemagroups",
                   "fields": [
                     {
                       "name": "schemaid",
@@ -190,8 +236,8 @@
                     },
                     {
                       "type": "string",
-                      "name": "format",
-                      "doc": "Schema format identifier for this schema version"
+                      "doc": "Schema format identifier for this schema version",
+                      "name": "format"
                     },
                     {
                       "name": "Extensions",
@@ -199,7 +245,7 @@
                         "type": "map",
                         "name": "ExtensionsType",
                         "default": {},
-                        "values": "record"
+                        "values": "io.xregistry.GenericRecord"
                       }
                     }
                   ]
