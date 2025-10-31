@@ -947,6 +947,9 @@ attributes. However, they MUST adhere to the following rules:
   For example, use of a model (or domain) specific prefix could be used to help
   avoid possible future conflicts.
 
+Use of an extension attribute that does not conform to this specification
+MUST generate an error (([invalid_attribute](#invalid_attribute))).
+
 #### Common Attributes
 
 The following attributes are used by one or more entities defined by this
@@ -3859,7 +3862,8 @@ to not do so - such as due to security concerns.
 Most of the error conditions mentioned in this specification will include a
 reference to one of the errors listed in this section. While it is RECOMMENDED
 that implementations use those errors (for consistency), they MAY choose to use
-a more appropriate one (or a custom one).
+a more appropriate one (or a custom one). Implementations MAY define additional
+errors and the SHOULD adhere to the format defined here.
 
 Each protocol binding specification will define how errors SHOULD be returned
 back to clients.
@@ -3870,10 +3874,18 @@ In the definition of each error the following rules apply:
   (e.g. `404 Not Found`).
 - **Instance**: MUST be a URL to the entity being processed when the error
   occurred. It is RECOMMENDED that this be an absolute URL if possible,
-  otherwise the xid of the entity SHOULD be used.
-- **Title**: MUST be a human-readable summary of the error.
+  otherwise the xid of the entity SHOULD be used. Note that while it is
+  NOT RECOMMENDED, an empty relative URL (e.g. `""`) is valid in cases where
+  the error is not associated with any entity. However, ideally in those cases
+  a URL to the Registry would be used.
+- **Title**: MUST be a human-readable summary of the error. This SHOULD be
+  sufficiently detailed for most situations to determine what is the cause of
+  the error. In the case of generic errors, such as the
+  [`bad_request`](#bad_request) error, a substitutable placeholder SHOULD be
+  provided to include additional brief situational/runtime information.
 - **Detail**: is additional information about the error. Typically will include
-  suggestions for how to fix the error.
+  suggestions for how to fix the error or more verbose details such as lists
+  of offending entities/data.
 
 **Type**, **Code**, **Instance** and **Title** fields are REQUIRED. All other
 fields are OPTIONAL unless overwise stated as part of the error definition. Any
@@ -3917,32 +3929,33 @@ the API supports, if any.
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#bad_flag`
 * Code: `400 Bad Request`
 * Instance: `<ENTITY URL>`
-* Title: `The specified flag (<flag name>) is not allowed in this context`
+* Title: `The specified flag (<FLAG NAME>) is not allowed in this context`
 
 ### bad_request
 
 This error is purposely generic and can be used when there isn't a more
 condition-specific error that would be more appropriate. Implementations
-SHOULD attempt to use a more specific error when possible.
+SHOULD attempt to use a more specific error when possible. Notice, the `Title`
+field is just a substitution value and MUST NOT be empty.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#bad_request`
 * Code: `400 Bad Request`
 * Instance: `<ENTITY URL>`
-* Title: `The request cannot be processed as provided`
+* Title: `<SITUATIONAL DETAIL>`
 
 ### cannot_doc_xref
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#cannot_doc_xref`
 * Code: `400 Bad Request`
 * Instance: `<RESOURCE URL>`
-* Title: `Retrieving the document view of an xref'd Resource's Versions is not possible`
+* Title: `Retrieving the document view of a Version whose Resource uses "xref" is not possible`
 
 ### capability_error
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#capability_error`
 * Code: `400 Bad Request`
 * Instance: `<XREGISTRY SERVER URL>`
-* Title: `There was an error in the capabilities provided`
+* Title: `There was an error in the capabilities provided: <SITUATIONAL DETAIL>`
 
 ### compatibility_violation
 
@@ -3957,21 +3970,21 @@ SHOULD attempt to use a more specific error when possible.
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#data_retrieval_error`
 * Code: `500 Internal Server Error`
 * Instance: `<ENTITY URL>`
-* Title: `The server was unable to retrieve all of the requested data`
+* Title: `The server was unable to retrieve all of the requested data: %s`
 
 ### defaultversionid_not_allowed
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#defaultversionid_not_allowed`
 * Code: `400 Bad Request`
 * Instance: `<RESOURCE URL>`
-* Title: `"defaultversionid" is not allowed to be specified`
+* Title: `"defaultversionid" is not allowed to be specified for Resources of type "<RESOURCE TYPE>"`
 
-### invalid_character
+### invalid_attribute
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#invalid_character`
 * Code: `400 Bad Request`
 * Instance: `<ENTITY URL>`
-* Title: `An invalid character (<THE CHARACTER>) was specified in an attribute's name (<FULL ATTRIBUTE NAME>)`
+* Title: `The attribute "<ATTRIBUTE NAME>" is not valid: <SITUATIONAL DETAIL>`
 
 ### invalid_data
 
@@ -4022,7 +4035,7 @@ SHOULD attempt to use a more specific error when possible.
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#model_error`
 * Code: `400 Bad Request`
 * Instance: `<XREGISTRY SERVER URL>`
-* Title: `There was an error in the model definition provided, at: <JSON PATH TO ERROR>`
+* Title: `There was an error in the model definition provided: <SITUATIONAL DETAIL>`
 * Detail: `<PROBLEMATIC JSON SNIPPET>`
 
 ### multiple_roots
@@ -4037,22 +4050,21 @@ SHOULD attempt to use a more specific error when possible.
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#not_found`
 * Code: `404 Not Found`
 * Instance: `<ENTITY URL>`
-* Title: `The specified entity cannot be found`
+* Title: `The specified entity cannot be found: <ENTITY XID>`
 
 ### readonly
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#readonly`
 * Code: `400 Bad Request`
 * Instance: `<ENTITY URL>`
-* Title: `Updating a read-only entity is not allowed`
+* Title: `Updating a read-only entity is not allowed: <ENTITY XID>`
 
 ### required_attribute_missing
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#required_attribute_missing`
 * Code: `400 Bad Request`
 * Instance: `<ENTITY URL>`
-* Title: `One or more mandatory attributes are missing`
-* Detail: `<LIST OF MANDATORY ATTRIBUTES>`
+* Title: `One or more mandatory attributes are missing: <LIST OF MANDATORY ATTRIBUTES>`
 
 ### server_error
 

@@ -3132,12 +3132,12 @@ The following list of HTTP protocol specific errors are defined:
 * Type: `https://github.com/xregistry/spec/blob/main/core/http.md#api_not_found`
 * Code: `404 Not Found`
 * Instance: `<REQUEST URL>`
-* Title: `The specified path (<INVALID PATH>) is not supported`
+* Title: `The specified API is not supported: <RELATIVE REQUEST URL>`
 
 ### details_required
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#details_required`
-* Code: `400 Bad Request`
+* Code: `405 Method Not Allowed`
 * Instance: `<ENTITY URL>`
 * Title: `$details suffixed is needed when using PATCH for this Resource`
 
