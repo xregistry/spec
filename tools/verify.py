@@ -47,7 +47,7 @@ _NEWLINE_PATTERN = re.compile(r"\n")
 # [asd][asd] is normally a bookmark but if it ends with a ` (</code) then
 # don't treat it as one
 _MARKDOWN_BOOKMARK_PATTERN = re.compile(
-    r"(?<![\\])\[[^\?=].+?\]\[.+?\](?!</code)",
+    r"(?<![\\])\[[^\?=].+?\]\[.+?\](?!\*?</code)",
     re.IGNORECASE)
 _PHRASES_THAT_MUST_BE_CAPITALIZED_PATTERN = re.compile(
     r"(?<!`)(MUST(\s+NOT)?|"
