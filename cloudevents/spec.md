@@ -432,7 +432,7 @@ messaging protocols.
 
 The registry is designed to be extensible to support any structured data
 encoding and related schemas for message or event payloads. The [Schema
-Formats](../schema/spec.md#schema-formats) section describes the meta-schema
+Formats](../schema/spec.md#43-schema-formats) section describes the meta-schema
 for JSON Schema, XML Schema, Apache Avro schema, and Protobuf schema.
 
 ### File format

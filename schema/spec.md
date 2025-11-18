@@ -196,7 +196,7 @@ Any breaking change MUST result in a new **schema** Resource being created.
 
 In terms of versioning, you can think of a **schema** as a collection of
 versions that are compatible according to the selected `compatibility` mode.
-MUST be created, to indicate the breaking change. The [`deprecated`](xRegistry deprecated)
+MUST be created, to indicate the breaking change. The [`deprecated`][xRegistry deprecated]
 attribute MAY be used to indicate the appropriate new schema to use following a breaking change.
 MUST be created, to indicate the breaking change.
 
@@ -680,4 +680,4 @@ within a schema, allowing for fine-grained access control.
 [xRegistry pagination]: https://xregistry.io/xreg/xregistryspecs/pagination-v1/docs/spec.html
 [xRegistry deprecated]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#deprecated
 [xRegistry default-version]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#registry-design
-[xRegistry pagination]: https://xregistry.io/xreg/xregistryspecs/pagination-v1/docs/spec.html
+[xRegistry hasdocument]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#hasdocument
