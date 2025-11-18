@@ -361,7 +361,7 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
         dict: The generated JSON schema.
     """
 
-    def handle_item(resource_schema, type, item):
+    def handle_item(resource_schema, type, item, enum_values=None):
         if type == "object":
             resource_schema["type"] = "object"
             if "attributes" in item:
@@ -398,6 +398,9 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                     attr_schema["description"] = item["description"]
                 if "description" in attr_schema and attr_schema["description"] == "":
                     del attr_schema["description"]
+                # Apply enum constraint to array items if provided
+                if enum_values is not None and len(enum_values) > 0:
+                    attr_schema["enum"] = enum_values
                 resource_schema["items"] = attr_schema
                 if item["type"] == "object" or item["type"] == "map" or item["type"] == "array":
                     if "item" in item:
@@ -427,7 +430,9 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
 
             if attr_props["type"] == "object" or attr_props["type"] == "map" or attr_props["type"] == "array":
                 if "item" in attr_props:
-                    handle_item(attr_schema, attr_props["type"], attr_props["item"])
+                    # Pass enum values if this is an array with enum constraint
+                    enum_values = attr_props.get("enum") if attr_props["type"] == "array" else None
+                    handle_item(attr_schema, attr_props["type"], attr_props["item"], enum_values)
 
             if "required" in attr_props and attr_props["required"] == True and not "default" in attr_props:
                 if "required" not in resource_schema:
@@ -759,7 +764,7 @@ def generate_avro_schema(model_definition) -> dict:
     avro_generic_record_emitted = False
     record_types = set()
 
-    def handle_item(resource_schema, type, item, name, prefix):
+    def handle_item(resource_schema, type, item, name, prefix, enum_values=None):
         if type == "object":
             if "attributes" in item:
                 item_schema = { "type": "record", "name" : prefix+name+"Type", "fields": []}
@@ -787,6 +792,13 @@ def generate_avro_schema(model_definition) -> dict:
                         handle_item(item_schema, item["type"], item["item"], name, prefix)
                         resource_schema["type"]["items"] = item_schema["type"]
                 else:
+                    # Apply enum constraint to array items if provided
+                    if enum_values is not None and len(enum_values) > 0:
+                        item_schema = {
+                            "type": "enum",
+                            "name": prefix+name+"EnumType",
+                            "symbols": enum_values
+                        }
                     resource_schema["type"]["items"] = item_schema
             else:
                 raise Exception("Array item must have a type specified")
@@ -819,7 +831,9 @@ def generate_avro_schema(model_definition) -> dict:
 
             if attr_props["type"] == "object" or attr_props["type"] == "map" or attr_props["type"] == "array":
                 if "item" in attr_props:
-                    handle_item(attr_schema, attr_props["type"], attr_props["item"], pascal_attr_name, type_prefix)
+                    # Pass enum values if this is an array with enum constraint
+                    enum_values = attr_props.get("enum") if attr_props["type"] == "array" else None
+                    handle_item(attr_schema, attr_props["type"], attr_props["item"], pascal_attr_name, type_prefix, enum_values)
                 else:
                     if attr_props["type"] == "object":
                         # Use GenericRecord reference (it's defined at document level if needed)
