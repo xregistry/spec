@@ -110,10 +110,10 @@ removed. Some of these changes are compatible with existing data, while others
 are not.
 
 Serialization generally occurs based on a specific schema version that the data
-publisher uses. Multiple versions of publishers may exist in the same system,
+publisher uses. Multiple versions of publishers MAY exist in the same system,
 using different schema versions, which is a common occurrence in systems that
 perform live updates. Once data has been published, data serialized based on
-several different versions may exist in a system, in queues, in databases, or in
+several different versions MAY exist in a system, in queues, in databases, or in
 files.
 
 The schema registry therefore allows managing multiple versions of schemas,
@@ -197,7 +197,7 @@ Any breaking change MUST result in a new **schema** Resource being created.
 In terms of versioning, you can think of a **schema** as a collection of
 versions that are compatible according to the selected `compatibility` mode.
 MUST be created, to indicate the breaking change. The [`deprecated`](xRegistry deprecated)
-attribute may be used to indicate the appropriate new schema to use following a breaking change.
+attribute MAY be used to indicate the appropriate new schema to use following a breaking change.
 MUST be created, to indicate the breaking change.
 
 ### 2.3. Schema Group
@@ -656,7 +656,7 @@ securely protect the APIs.
 
 It is expected that any implementation of this specification will use
 authentication and authorization mechanisms that are appropriate for the
-application domain and the deployment environment. This may include, but is not
+application domain and the deployment environment. This MAY include, but is not
 limited to, OAuth 2.0, OpenID Connect, API keys, or other mechanisms
 appropriate for the use case.
 
