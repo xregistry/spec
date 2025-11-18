@@ -71,6 +71,8 @@ definitiongroupsurl
 definitionscount
 definitionsurl
 deploymentid
+deserialization
+deserializer
 derivedmqtt
 deviceid
 dirid
@@ -98,6 +100,7 @@ gid
 github
 githubusercontent
 gmt
+google
 gotchas
 groupid
 groupscount
@@ -211,6 +214,7 @@ npm
 oauth
 oci
 openapi
+openid
 pdf
 placeholders
 png
@@ -321,6 +325,7 @@ versionmodes
 versionscount
 versionsurl
 vid
+vnd
 watchkam
 waterboiler
 webhook

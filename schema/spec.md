@@ -32,11 +32,10 @@ allows for the storage, management and discovery of schema documents.
       - [4.3.2. XML Schema](#432-xml-schema)
       - [4.3.3. Apache Avro Schema](#433-apache-avro-schema)
       - [4.3.4. Protobuf Schema](#434-protobuf-schema)
-    - [5. Security Considerations](#5-security-considerations)
 
 ## 1. Overview
 
-A schema registry provides a respository for managing serialization and
+A schema registry provides a repository for managing serialization and
 validation and data type definitions schemas as they are commonly used in
 distributed systems. Common schema formats include JSON Schema, JSON
 Structure, Apache Avro Schema, Google Protobuf Schema, and XML Schema.
@@ -150,7 +149,7 @@ the client can append a `$details`suffix to the URL, like
 or
 `https://example.com/schemagroups/com.example.schemas/schemas/com.example.event$details`.
 
-Beyopnd this, the [xRegistry Core][xRegistry Core] specification provides rich
+Beyond this, the [xRegistry Core][xRegistry Core] specification provides rich
 filtering and export/import capabilities, which can be used to retrieve schema
 documents in bulk, or to export/import schemas and schema Versions in a
 structured way. The [xRegistry pagination][xRegistry pagination] mechanism can be used to
