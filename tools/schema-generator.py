@@ -80,7 +80,7 @@ json_type_mapping = {
     "uritemplate": {"type": "string", "format": "uri-template"},
     "binary": {"type": "string", "format": "base64"},
     "timestamp": {"type": "string", "format": "date-time"},
-    "any": {"type": "object"},
+    "any": {},
     "var": {"type": "object"}
 }
 
