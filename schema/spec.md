@@ -35,10 +35,11 @@ allows for the storage, management and discovery of schema documents.
 
 ## 1. Overview
 
-A schema registry provides a repository for managing serialization and
-validation and data type definitions schemas as they are commonly used in
-distributed systems. Common schema formats include JSON Schema, JSON
-Structure, Apache Avro Schema, Google Protobuf Schema, and XML Schema.
+A schema registry provides a repository for managing serialization, validation,
+and data type definitions schemas as they are commonly used in distributed
+systems. Common schema formats include JSON Schema, JSON Structure, Apache Avro
+Schema, Google Protobuf Schema, and XML Schema. However, this specification does
+not mandate, or limit, which schema formats are used.
 
 ### 1.1. Schemas
 
@@ -60,8 +61,8 @@ structures that are exchanged, provide a foundation for code generation, allow
 for validation of the data, and provide an anchor for documentation and semantic
 information, like scientific units for numeric values, that goes beyond simple
 labels and data types. Generally, it is a best practice for data structures that
-are exchanged in a distributed system to be described by a schema, even
-if the data serialization model does not require one.
+are exchanged in a distributed system to be described by a schema, even if the
+data serialization model does not require one.
 
 ### 1.2. Schema References
 
@@ -69,7 +70,8 @@ In the [CloudEvents][CloudEvents dataschema] specification, the `dataschema`
 attribute holds a URI and is specifically meant to reference a schema document
 residing in a registry. For example, a CloudEvent with a `dataschema` attribute
 pointing to a schema version in a schema registry might look like this, using
-the schema version's [`self`][xRegistry self] URL as the value of the `dataschema` attribute:
+the schema version's [`self`][xRegistry self] URL as the value of the
+`dataschema` attribute:
 
 ```json
 {
@@ -110,14 +112,14 @@ removed. Some of these changes are compatible with existing data, while others
 are not.
 
 Serialization generally occurs based on a specific schema version that the data
-publisher uses. Multiple versions of publishers MAY exist in the same system,
+publisher uses. Multiple versions of publishers might exist in the same system,
 using different schema versions, which is a common occurrence in systems that
 perform live updates. Once data has been published, data serialized based on
-several different versions MAY exist in a system, in queues, in databases, or in
+several different versions might exist in a system, in queues, in databases, or in
 files.
 
 The schema registry therefore allows managing multiple versions of schemas,
-declare their lineage, and state the compatibility policy. The compatibility
+declares their lineage, and state their compatibility policy. The compatibility
 policy is used to determine whether a schema change is compatible with existing
 data, and MAY be enforced by implementations of the schema registry. For this,
 this specification leans on the [xRegistry Core][xRegistry Core] specification
@@ -125,26 +127,26 @@ that already defines these versioning and compatibility mechanisms for any kind 
 
 ### 1.4. Document Store
 
-The schema registry is a document store and therefore also has the
+The schema registry is a document store and therefore has the
 [`hasdocument`][xRegistry hasdocument] attribute defined in the xRegistry Core
 attribute (implicitly) defined as `true` for the `schema` Resource.
 
-This means that the schema registry immediately yields a document with
-the stored content-type when a client issues a GET request to the
-[`self`][xRegistry self] URL of a schema Version. The associated metadata is
-returned in the HTTP headers. The [default version][xRegistry default-version]
-of the schema Version is returned when the client issues a GET request to the
-[`self`][xRegistry self] URL of the `schema` Resource.
+This means that the schema registry yields a document with the stored
+content-type when a client issues a GET request to the [`self`][xRegistry self]
+URL of a schema. The associated metadata is returned in the HTTP
+headers. The [default version][xRegistry default-version] of the schema is
+returned when the client issues a GET request to the [`self`][xRegistry self]
+URL of the `schema` Resource.
 
-This allows to provide external parties with a link that they can use without
+This enables the ability to provide external parties with a link that they can use without
 needing to know any details about xRegistry.
 
-Storing a new schema is similarly straightforward for clients that do not know
+Storing a new Version of a schema is similarly straightforward for clients that do not know
 xRegistry specifics, by simply using a POST against [`self`][xRegistry self] URL
 of the `schema` Resource in the simplest case.
 
-To access the metadata of the `schema` or the schema version as a JSON document,
-the client can append a `$details`suffix to the URL, like
+To access the metadata of the `schema`, or the schema version as a JSON document,
+the client can append a `$details` suffix to the URL, like
 `https://example.com/schemagroups/com.example.schemas/schemas/com.example.event/versions/1.0$details`
 or
 `https://example.com/schemagroups/com.example.schemas/schemas/com.example.event$details`.
@@ -196,9 +198,8 @@ Any breaking change MUST result in a new **schema** Resource being created.
 
 In terms of versioning, you can think of a **schema** as a collection of
 versions that are compatible according to the selected `compatibility` mode.
-MUST be created, to indicate the breaking change. The [`deprecated`][xRegistry deprecated]
-attribute MAY be used to indicate the appropriate new schema to use following a breaking change.
-MUST be created, to indicate the breaking change.
+The [`deprecated`][xRegistry deprecated] attribute MAY be used to indicate the
+appropriate new schema to use following a breaking change.
 
 ### 2.3. Schema Group
 
@@ -298,7 +299,7 @@ Versions of any kind; it is a document store.
 Implementations of this specification MAY include additional extension
 attributes, including the `*` attribute of type `any`.
 
-Since the Schema Registry is an application of the xRegistry specification, all
+Since the Schema Registry is an application of the [xRegistry specification][xRegistry Core], all
 attributes for Groups, Resources, and Resource Version objects are inherited
 from there.
 
@@ -312,7 +313,7 @@ some application-defined way. A Schema Group does not impose any restrictions
 on the contained schemas, meaning that a Schema Group MAY contain schemas of
 different formats.
 
-Every schema MUST reside inside a Schema Group.
+Every schema (i.e. the schema Resource) MUST reside inside a Schema Group.
 
 Example:
 
@@ -345,7 +346,7 @@ The Resources (`<RESOURCE>`) collection inside of Schema Groups is named
 container for one or more `versions`, which hold the concrete schema
 documents or schema document references.
 
-All Versions of a Schema MUST adhere to the semantic rules of the schema's
+All Versions of a single Schema Resource MUST adhere to the semantic rules of the schema's
 [`compatibility`][xRegistry compatibility] attribute.
 
 This specification defines "compatibility" for schemas as follows; version B of
@@ -377,11 +378,9 @@ major version identifier in the `schemaid`, like `"com.example.event.v1"` or
 `"com.example.event.2024-02"`, so that incompatible, but historically related
 schemas can be more easily identified by users and developers. The schema
 `versionid` then functions as the semantic minor version identifier.
-which is a `versionid` of the Version that this Version is based on. The `ancestor`
-attribute permits multiple Versions to reference the same ancestor, and allows for
-implementations to determine the Version's ancestor. See the
-attribute permits multiple version branches to exist, and allows for
-implementations to determine the Version lineage. See the
+
+The [`ancestor`][xRegistry ancestor] attribute permits multiple version branches
+to exist, and allows for implementations to determine the Version lineage. See the
 [`ancestor`][xRegistry ancestor] attribute in the core xRegistry specification
 for more information.
 
@@ -649,8 +648,6 @@ Examples:
   `.../com.example.telemetrydata:TelemetryEvent`.
 
 Like the [xRegistry Core][xRegistry Core] specification, this specification does not
-
-Like [xRegistry Core][xRegistry Core] specification, this specification does not
 explicitly address authentication or authorization levels of users, nor how to
 securely protect the APIs.
 
