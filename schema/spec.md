@@ -36,7 +36,7 @@ allows for the storage, management and discovery of schema documents.
 ## 1. Overview
 
 A schema registry provides a repository for managing serialization, validation,
-and data type definitions schemas as they are commonly used in distributed
+and data type definition schemas as they are commonly used in distributed
 systems. Common schema formats include JSON Schema, JSON Structure, Apache Avro
 Schema, Google Protobuf Schema, and XML Schema. However, this specification does
 not mandate, or limit, which schema formats are used.
@@ -322,7 +322,7 @@ Every schema (i.e. the schema Resource) MUST reside inside a Schema Group.
 
 Example:
 
-The follow abbreviated Schema Registry's contents shows a single Schema Group
+The follow abbreviated Schema Registry's content shows a single Schema Group
 containing 5 schemas.
 
 ```yaml
@@ -602,7 +602,7 @@ Examples:
 `#TelemetryEvent` references the record declaration of the `TelemetryEvent`
 record.
 - If the Avro schema document is a local Schema Registry reference like
-`#/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata`, in the
+`#/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata`, in
 which the reference is already in the form of a URI fragment, the suffix is
 appended separated with a colon, for instance
 `.../com.example.telemetrydata:TelemetryEvent`.
