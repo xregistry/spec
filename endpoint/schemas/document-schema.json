@@ -75,7 +75,6 @@
             "description": "The schema format applicable to the message payload, equivalent to the 'format' attribute of the schema registry"
           },
           "dataschema": {
-            "type": "object",
             "description": "The inline schema for the message payload, equivalent to the 'schema' attribute of the schema registry"
           },
           "dataschemauri": {
