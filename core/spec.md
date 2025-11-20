@@ -2502,7 +2502,7 @@ Rather, it will only show the `<RESOURCE>id` and `xref` attributes.
 However, a non-existing Resource is not the same as a poorly formed XID
 value. An `xref` that isn't syntactically correct, or references a
 non-existing Group or Resource, MUST generate an error
-([malformed_xref](#malformed_xref))
+([malformed_xref](#malformed_xref)).
 
 ### Meta Entity
 
@@ -4091,7 +4091,7 @@ field is just a substitution value and MUST NOT be empty.
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#defaultversionid_request`
 * Code: `400 Bad Request`
 * Subject: `<resource_xid>`
-* Title: `Processing Resource "<subject>", the "defaultversionid" attribute is not allowed to "request" is a Version wasn't processed.`
+* Title: `Processing Resource "<subject>", the "defaultversionid" attribute is not allowed to be "request" since a Version wasn't processed.`
 
 ### groups_only
 

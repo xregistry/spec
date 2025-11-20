@@ -16,6 +16,8 @@ model and semantics that apply to all protocols.
 - [Registry HTTP APIs](#registry-http-apis)
   - [Entity Processing Rules](#entity-processing-rules)
     - [Creating or Updating Entities](#creating-or-updating-entities)
+    - [HTTP-Specific Attribute Processing Rules](#http-specific-attribute-processing-rules)
+    - [Pagination](#pagination)
     - [HTTP OPTIONS Method](#http-options-method)
   - [Registry Entity](#registry-entity)
     - [`GET /`](#get-)
@@ -349,6 +351,29 @@ Otherwise an HTTP `200 OK` without an HTTP `Location` header MUST be returned.
 Note that the response MUST be generated applying the semantics of any
 [request flags](#request-flags--query-parameters) specified in the request
 URL (e.g. `?inline`).
+
+##### xRegistry Root HTTP Header
+
+All API responses, including errors, SHOULD include a `Link` HTTP header of
+the form:
+
+```yaml
+Link: <URL-TO-XREGISTRY-ROOT>;rel=xregistry-root
+```
+
+Where `URL-TO-XREGISTRY-ROOT` is the URL to the root of the current xRegistry
+instance.
+
+This allows for client-side response processing to unambiguously know the
+base URL of the Registry from which the response came without needing to
+know the request URL or attempting to determine the URL from the response
+payload.
+
+**Examples:**
+
+```yaml
+Link: <https://myregistry.example.com>;rel=xregistry-root
+```
 
 #### HTTP-Specific Attribute Processing Rules
 
