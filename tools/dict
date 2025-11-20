@@ -6,6 +6,7 @@ apicur
 apicurio
 apikey
 aprime
+args
 asc
 asyncapi
 attr
@@ -280,8 +281,8 @@ specversions
 src
 ssl
 stickyversions
-stringified
 storeid
+stringified
 svg
 targetregistry
 tcp

@@ -247,7 +247,7 @@ The following describes the attributes of the Registry model:
   characters that can be used for the object's top-level attribute names.
   Any attempt to define a top-level attribute for this object that does
   not adhere to the characters defined by the character set name MUST
-  generate an error ([invalid_character](./spec.md#invalid_character)).
+  generate an error ([invalid_attributes](./spec.md#invalid_attributes)).
 - Per the [Attributes and Extensions](./spec.md#attributes-and-extensions)
   section, attribute names are normally limited to just the set of characters
   that ensure they can reliably be used in cases such as code variable names

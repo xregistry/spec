@@ -16,6 +16,8 @@ model and semantics that apply to all protocols.
 - [Registry HTTP APIs](#registry-http-apis)
   - [Entity Processing Rules](#entity-processing-rules)
     - [Creating or Updating Entities](#creating-or-updating-entities)
+    - [HTTP-Specific Attribute Processing Rules](#http-specific-attribute-processing-rules)
+    - [Pagination](#pagination)
     - [HTTP OPTIONS Method](#http-options-method)
   - [Registry Entity](#registry-entity)
     - [`GET /`](#get-)
@@ -350,6 +352,29 @@ Note that the response MUST be generated applying the semantics of any
 [request flags](#request-flags--query-parameters) specified in the request
 URL (e.g. `?inline`).
 
+##### xRegistry Root HTTP Header
+
+All API responses, including errors, SHOULD include a `Link` HTTP header of
+the form:
+
+```yaml
+Link: <URL-TO-XREGISTRY-ROOT>;rel=xregistry-root
+```
+
+Where `URL-TO-XREGISTRY-ROOT` is the URL to the root of the current xRegistry
+instance.
+
+This allows for client-side response processing to unambiguously know the
+base URL of the Registry from which the response came without needing to
+know the request URL or attempting to determine the URL from the response
+payload.
+
+**Examples:**
+
+```yaml
+Link: <https://myregistry.example.com>;rel=xregistry-root
+```
+
 #### HTTP-Specific Attribute Processing Rules
 
 ##### `self` Attribute
@@ -642,6 +667,9 @@ Notice the format is almost the same as what a `PUT /` would look like if the
 request wanted to update the Registry's attributes and define a set of Groups,
 but without the Registry's attributes. This allows for an update of the
 specified Groups without modifying the Registry's attributes.
+
+A request that isn't a map of Group types (e.g. it contains other Registry
+level attributes) MUST generate an error ([groups_only](./spec.md#groups_only)).
 
 The response MUST be of the form:
 
@@ -1448,6 +1476,9 @@ Presence of the `$details` suffix MUST be interpreted as a request to interact
 with the xRegistry metadata of the Resource, while its absence MUST be
 interpreted as a request to interact with the Resource's domain-specific
 document.
+
+Inappropriate use of `$details` on an entity that does not support it MUST
+generate an error ([bad_details](./spec.md#bad_details)).
 
 For example:
 
@@ -3113,10 +3144,15 @@ Content-Type: application/json; charset=utf-8
 
 {
   "type": "<URI>",
-  "instance": "<URL>",
   "title": "<STRING>",
   "detail": "<STRING>", ?
-  ... error specific fields ...
+  "subject": "<STRING>", ?
+  "args": {
+    "<STRING>": "<STRING>", *    // arg name  -> arg value
+  }, ?
+  "instance": "<URL>", ?
+  "source": "<STRING>", ?
+  ... extension error fields ...
 }
 ```
 
@@ -3131,37 +3167,43 @@ The following list of HTTP protocol specific errors are defined:
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/http.md#api_not_found`
 * Code: `404 Not Found`
-* Instance: `<REQUEST URL>`
-* Title: `The specified path (<INVALID PATH>) is not supported`
+* Title: `The specified API is not supported: <subject>.`
+* Subject: `<request_path>`
 
-### details_required
+`request_path` MUST be the "Path" portion of the incoming request URL,
+starting with `/`. E.g. `/export` if the "export" feature is not supported.
+
+#### details_required
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#details_required`
-* Code: `400 Bad Request`
-* Instance: `<ENTITY URL>`
-* Title: `$details suffixed is needed when using PATCH for this Resource`
+* Code: `405 Method Not Allowed`
+* Title: `$details suffix is needed when using PATCH for Resource: <subject>.`
+* Subject: `<resource_xid>`
 
 #### extra_xregistry_headers
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/http.md#extra_xregistry_headers`
 * Code: `400 Bad Request`
-* Instance: `<ENTITY URL>`
-* Title: `xRegistry HTTP headers are not allowed on this request`
-* Detail: `<LIST OF HEADERS>`
+* Title: `xRegistry HTTP header "<header_name>" is not allowed on this request: <error_detail>.`
+* Subject: `<request_path>`
+* Args:
+  - `header_name`: The invalid xRegistry HTTP header name.
 
 #### header_decoding_error
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/http.md#header_decoding_error`
 * Code: `400 Bad Request`
-* Instance: `<REQUEST URL>`
-* Title: `The value ("<HEADER VALUE>") of the HTTP "<HEADER NAME>" header cannot be decoded`
+* Title: `The value (<header_value) of the HTTP "<header_name>" header cannot be decoded.`
+* Args:
+  - `header_value`: The specified value of the HTTP header.
+  - `header_name`: The HTTP header name.
 
 #### missing_body
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/http.md#missing_body`
 * Code: `400 Bad Request`
-* Instance: `<REQUEST URL>`
-* Title: `The request is missing an HTTP body - try '{}'`
+* Title: `The request is missing an HTTP body - try '{}'.`
+* Subject: `<request_path>`
 
 <!-- end-err-def -->
 
