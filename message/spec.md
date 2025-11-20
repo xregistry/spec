@@ -705,7 +705,7 @@ Illustrating example:
 
 - Type: String
 - Description: Identifies the schema format applicable to the message payload,
-  equivalent to the schema ['format'](../schema/spec.md#format)
+  equivalent to the schema ['format'](../schema/spec.md#422-format)
   attribute.
 - Constraints:
   - OPTIONAL.
@@ -723,13 +723,13 @@ Illustrating example:
 - Type: Any
 - Description: Contains the inline schema for the message payload. The schema
   format is identified by the `dataschemaformat` attribute. Equivalent to the
-  ['schema'](../schema/spec.md#schema) attribute.
+  ['schema'](../schema/spec.md#221-schema) attribute.
 - Constraints:
   - OPTIONAL.
   - Mutually exclusive with the `dataschemauri` attribute.
   - If present, `dataschemaformat` MUST be present.
 - Examples:
-  - See [Schema Formats](../schema/spec.md#schema-formats)
+  - See [Schema Formats](../schema/spec.md#43-schema-formats)
 
 #### `dataschemauri`
 
@@ -737,7 +737,7 @@ Illustrating example:
 - Description: Contains a relative or absolute URI that points to the schema
   object to use for the message payload. The schema format is identified by the
   `dataschemaformat` attribute. See
-  [Schema Formats](../schema/spec.md#schema-formats) for details on
+  [Schema Formats](../schema/spec.md#43-schema-formats) for details on
   how to reference specific schema objects for the message payload. It is not
   sufficient for the URI-reference to point to a schema document; it MUST
   resolve to a concrete schema object.
