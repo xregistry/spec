@@ -320,7 +320,7 @@ The processing of each individual entity follows the same set of rules:
 Resources and Versions have the following additional rules:
 - When a write operation request includes the Resource/Version's metadata in
   the HTTP body, then the inclusion of any xRegistry `xRegistry-` HTTP headers
-  MUST generate an error ([extra_xregistry_headers](#extra_xregistry_headers)).
+  MUST generate an error ([extra_xregistry_header](#extra_xregistry_header)).
 - When a write operation request includes a domain-specific document in the
   HTTP body, and the `<RESOURCE>url` xRegistry HTTP header is present with a
   non-null value, the HTTP body MUST be empty. If the `<RESOURCE>url`
@@ -3177,17 +3177,18 @@ starting with `/`. E.g. `/export` if the "export" feature is not supported.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#details_required`
 * Code: `405 Method Not Allowed`
-* Title: `$details suffix is needed when using PATCH for Resource: <subject>.`
+* Title: `$details suffix is needed when using PATCH for entity: <subject>.`
 * Subject: `<resource_xid>`
 
-#### extra_xregistry_headers
+#### extra_xregistry_header
 
-* Type: `https://github.com/xregistry/spec/blob/main/core/http.md#extra_xregistry_headers`
+* Type: `https://github.com/xregistry/spec/blob/main/core/http.md#extra_xregistry_header`
 * Code: `400 Bad Request`
 * Title: `xRegistry HTTP header "<header_name>" is not allowed on this request: <error_detail>.`
 * Subject: `<request_path>`
 * Args:
   - `header_name`: The invalid xRegistry HTTP header name.
+  - `error_detail`: Specific details about the error.
 
 #### header_decoding_error
 

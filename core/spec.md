@@ -930,7 +930,7 @@ attributes. However, they MUST adhere to the following rules:
 
 - All extension attributes that appear in the serialization of an entity MUST
   conform to the model definition of the Registry, otherwise an error
-  ([invalid_extensions](#invalid_extensions)) MUST be generated. This means
+  ([unknown_extensions](#unknown_extensions)) MUST be generated. This means
   that they MUST satisfy at least one of the following:
   - Be explicitly defined (by name) as part of the model.
   - Be permitted due to the presence of the `*` (undefined) extension attribute
@@ -1877,7 +1877,7 @@ However, the following rules apply in both cases.
 
 For any capability that is an array of strings, a value of `"*"` MAY be used to
 indicate that the server MUST replace `"*"` with the full set of items that
-are available. An error ([capability_error](#capability_error)) MUST be
+are available. An error ([capability_wildcard](#capability_wildcard)) MUST be
 generated if `"*"` appears along with any other value in the list. `"*"`
 MUST NOT appear in the serialization in any server's response.
 
@@ -1894,6 +1894,17 @@ format of the `capabilities` definition MAY still generate an error
 ([capability_error](#capability_error)) if the server determines it cannot
 support the request. For example, due to authorization concerns or the value,
 while syntactically valid, isn't allowed in certain situations.
+
+A request to update the `specversions` capability that doesn't include
+a mandatory value (such as the current specification version), MUST
+generate an error
+([capability_missing_specversion](#capability_missing_specversion)).
+
+A request to update a capability with an invalid value MUST generate an error
+([capability_value](#capability_value)).
+
+A request to update an unknown capability MUST generate an error
+([capability_unknown](#capability_unknown)).
 
 When processing a request to update the capabilities, the semantic
 changes MUST NOT take effect until after the processing of the current
@@ -3670,6 +3681,9 @@ contents of all specified inlineable attributes. Inlineable attributes include:
 - The `<RESOURCE>` attribute in a Resource or Version.
 - The `meta` attribute in a Resource.
 
+Specifying the name of a non-inlineable attribute MUST generate an error
+([inline_noninlineable](#inline_noninlineable)).
+
 While the `<RESOURCE>` and `<RESOURCE>base64` attributes are defined as two
 separate attributes, they are technically two separate "views" of the same
 underlying data. As such, the usage of each will be based on the content type
@@ -3789,7 +3803,7 @@ The following rules apply:
 
 Any use of this flag on a Resource that has the
 `setdefaultversionsticky` aspect set to `false` MUST generate an error
-([bad_flag](#bad_flag)).
+([setdefaultversionid_not_allowed](#setdefaultversionid_not_allowed)).
 
 Any other invalid usage of this flag MUST generate an error
 ([bad_defaultversionid](#bad_defaultversionid)).
@@ -3798,7 +3812,9 @@ Any other invalid usage of this flag MUST generate an error
 
 When a request is directed at a collection of Groups, Resources or Versions,
 the `Sort` flag MAY be used to indicate the order in which the entities of
-that collection are to be returned (i.e. sorted).
+that collection are to be returned (i.e. sorted). Use of the `sort` flag
+on a non-collection result MUST generate an error
+([sort_noncollection](#sort_noncollection).
 
 This flag MUST include a single parameter, a string containing the attribute
 (`<ATTRIBUTE>`) name to use as the "sort key" plus an OPTIONAL indication of
@@ -3929,6 +3945,24 @@ a more appropriate one. Implementations MAY define additional extension
 fields, as well as new error definitions. For new errors, it is RECOMMENDED
 that the "Subject" value appears within the "Title" field, when appropriate.
 
+While not a requirement, it is RECOMMENDED that custom errors adhere to the
+following rules for consistency:
+- Make `Title` and `Detail` text complete sentences that start with a capital
+  letter and end with a period.
+- Include `<subject>` in `Text` so that end users only need to examine the
+  `Title` to know what went wrong and which entity was being processed.
+- Avoid using The terms `Group`, `Groups`, `Resources` and `Resource` when
+  possible. Instead use the appropriate "singular" or "plural" type name for
+  the entity in question. End users will likely not know what "Groups" or
+  "Resources" are if they only work with the model defined entities.
+- Use "Arg" names that are short descriptions of the value of the arg.
+- Use `error_detail` as the "Arg" name for substitution text that provides
+  more details about the error beyond the generic text provided by the
+  error definition itself.
+- When possible, try to differentiate names of entities from their surrounding
+  text by using quotes, parentheses or a colon (":") separator to avoid cases
+  where the name could be misinterpreted as a normal English word.
+
 **Examples:**
 
 An error serialized per the [HTTP binding specification](./http.md):
@@ -4039,7 +4073,7 @@ field is just a substitution value and MUST NOT be empty.
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#bad_sort`
 * Code: `400 Bad Request`
 * Subject: `<request path>`
-* Title: `An error was found in sort value (sort_value): <error_detail>.`
+* Title: `An error was found in sort value (<sort_value>): <error_detail>.`
 * Args:
   - `sort_value`: Offending "inline" value.
 
@@ -4048,7 +4082,7 @@ field is just a substitution value and MUST NOT be empty.
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#cannot_doc_xref`
 * Code: `400 Bad Request`
 * Subject: `<resource_xid>`
-* Title: `Retrieving the document view of a Version whose Resource (<subject>) uses "xref" is not possible.`
+* Title: `Retrieving the document view of a Version for "<subject>" is not allowed because it uses "xref".`
 
 ### capability_error
 
@@ -4059,12 +4093,50 @@ field is just a substitution value and MUST NOT be empty.
 * Args:
   - `error_detail`: Specific details about the error.
 
+### capability_missing_specversion
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#capability_missing_specversion`
+* Code: `400 Bad Request`
+* Subject: `/capabilities`
+* Title: `The "specversions" capability needs to contain "<value>".`
+* Args:
+  - `value`: The missing "specversions" value.
+
+### capability_unknown
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#capability_unknown`
+* Code: `400 Bad Request`
+* Subject: `/capabilities`
+* Title: `Unknown capability specified: <field>.`
+* Args:
+  - `field`: The name of the unknown capability.
+
+### capability_value
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#capability_value`
+* Code: `400 Bad Request`
+* Subject: `/capabilities`
+* Title: `Invalid value (<value>) specified for capability "<field>". Allowable values include: <list>.`
+* Args:
+  - `value`: Unknown value.
+  - `field`: Capability field being modified.
+  - `list`: Comma separated list of allowable values.
+
+### capability_wildcard
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#capability_wildcard`
+* Code: `400 Bad Request`
+* Subject: `/capabilities`
+* Title: `When "<field>" includes a value of "*" then no other values are allowed.`
+* Args:
+  - `field`: The capability field being modified.
+
 ### compatibility_violation
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#compatibility_violation`
 * Code: `400 Bad Request`
 * Subject: `<resource_xid>`
-* Title: `The request would cause one or more Versions of this Resource (<subject>) to violate the Resource's compatibility rule (<compatibility_value>).`
+* Title: `The request would cause one or more Versions of "<subject>" to violate its compatibility rule (<compatibility_value>).`
 * Detail: Suggestion: list of `versionid` values that would be in violation.
 * Args:
   - `compatibility_value`: The Resource's `meta.compatibility` value.
@@ -4077,37 +4149,39 @@ field is just a substitution value and MUST NOT be empty.
 * Title: `The server was unable to retrieve all of the requested data.`
 * Detail: Suggestion: which entity's data was problematic, and why.
 
-### defaultversionid_not_allowed
-
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#defaultversionid_not_allowed`
-* Code: `400 Bad Request`
-* Subject: `<resource_xid>`
-* Title: `Processing Resource "<subject>", the "defaultversionid" attribute is not allowed to be specified for Resources of type "<resource_type>".`
-* Args:
-  - `resource_type`: The Resource type name of the offending Resource.
-
 ### defaultversionid_request
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#defaultversionid_request`
 * Code: `400 Bad Request`
 * Subject: `<resource_xid>`
-* Title: `Processing Resource "<subject>", the "defaultversionid" attribute is not allowed to be "request" since a Version wasn't processed.`
+* Title: `Processing "<subject>", the "defaultversionid" attribute is not allowed to be "request" since a Version wasn't processed.`
 
 ### groups_only
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#groups_only`
 * Code: `400 Bad Request`
 * Subject: `<request_path>`
-* Title: `Only Group types are allowed to be specified on this request: <subject>.`
+* Title: `Attribute "<name>" is invalid. Only Group types are allowed to be specified on this request: <subject>.`
+* Args:
+  - `name`: The name of the attribute in question.
+
+### inline_noninlineable
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#inline_noninlineable`
+* Code: `400 Bad Request`
+* Subject: `<request_path>`
+* Title: `Attempting to inline a non-inlineable attribute (<name>) on: <subject>.`
+* Args:
+  - `name`: The name of the attribute in question.
 
 ### invalid_attributes
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#invalid_attributes`
 * Code: `400 Bad Request`
 * Subject: `<entity_xid>`
-* Title: `The attribute(s) "<attribute_names>" for "<subject>" is not valid: <error_detail>.`
+* Title: `The attribute(s) "<list>" for "<subject>" is not valid: <error_detail>.`
 * Args:
-  - `attribute_names`: Comma separated list of offending attribute names.
+  - `list`: Comma separated list of offending attribute names.
   - `error_detail`: Specific details about the error.
 
 ### invalid_data
@@ -4119,15 +4193,6 @@ field is just a substitution value and MUST NOT be empty.
 * Args:
   - `name`: The attribute or flag name.
   - `error_detail`: Specific details about the error.
-
-### invalid_extensions
-
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#invalid_extensions`
-* Code: `400 Bad Request`
-* Subject: `<entity_xid>`
-* Title: `Invalid extension attribute(s) (<attribute_names>) specified for: <subject>.`
-* Args:
-  - `attribute_names`: Comma separated list of attribute names.
 
 ### malformed_id
 
@@ -4211,14 +4276,32 @@ field is just a substitution value and MUST NOT be empty.
 * Args:
   - `error_detail`: Specific details about the error.
 
+### model_required_true
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#model_required_true`
+* Code: `400 Bad Request`
+* Subject: `/model`
+* Title: `Model attribute "<name>" needs to have a "required" value of "true" since a default value is provided.`
+* Args:
+  - `name`: Model attribute name in question.
+
+### model_scalar_default
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#model_scalar_default`
+* Code: `400 Bad Request`
+* Subject: `/model`
+* Title: `Model attribute "<name>" is not allowed to have a default value since it is not a scalar.`
+* Args:
+  - `name`: Model attribute name in question.
+
 ### multiple_roots
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#multiple_roots`
 * Code: `400 Bad Request`
 * Subject: `<resource_xid>`
-* Title: `The operation would result in multiple root Versions which is not allowed for Resource "<subject>", which is of type "<resource_type>".`
+* Title: `The operation would result in multiple root Versions for "<subject>", which is not allowed for "<plural>".`
 * Args:
-  - `resource_type`: The Resource type of the Resource being processed.
+  - `plural`: The "plural" Resource type of the Resource being processed.
 
 ### not_found
 
@@ -4237,13 +4320,17 @@ error SHOULD be used instead.
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#one_resource`
 * Code: `400 Bad Request`
 * Subject: `<entity_xid>`
-* Title: `Only one "<singular>" (e.g. "url", "base64") type of attribute can be present at a time for: <subject>.`
+* Title: `Only one "<list>" attributes can be present at a time for: <subject>.`
+* Args:
+  - `list`: Comma separated list of `<RESOURCE>*` attributes allowed.
 
 ### parsing_data
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#parsing_data`
 * Code: `400 Bad Request`
 * Title: `There was an error parsing the data: <error_detail>.`
+* Args:
+  - `error_detail`: Specific details about the error.
 
 ### readonly
 
@@ -4257,9 +4344,9 @@ error SHOULD be used instead.
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#required_attribute_missing`
 * Code: `400 Bad Request`
 * Subject: `<entity_xid>`
-* Title: `One or more mandatory attributes for "<subject>" are missing: <attributes>.`
+* Title: `One or more mandatory attributes for "<subject>" are missing: <list>.`
 * Args:
-  - `attributes`: A comma separated list of attributes that are missing.
+  - `list`: A comma separated list of attributes that are missing.
 
 ### server_error
 
@@ -4270,6 +4357,30 @@ something unexpected happened in the server that caused an error condition.
 * Code: `500 Internal Server Error`
 * Subject: `<request_path>`
 * Title: `An unexpected error occurred, please try again later.`
+
+### setdefaultversionid_not_allowed
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#setdefaultversionid_not_allowed`
+* Code: `400 Bad Request`
+* Subject: `<resource_xid>`
+* Title: `Processing "<subject>", the "setdefaultversionid" flag is not allowed to be specified for entities of type "<singular>".`
+* Args:
+  - `singular`: The "singular" type name of the offending Resource.
+
+### setdefaultversionsticky_false
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#setdefaultversionsticky_false`
+* Code: `400 Bad Request`
+* Subject: `<resource_xid>`
+* Title: `The model attribute "setdefaultversionsticky" needs to be "false" since "maxversions" is "1".`
+
+### sort_noncollection
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#sort_noncollection`
+* Code: `400 Bad Request`
+* Subject: `<request_path>`
+* Title: `Can't sort on a non-collection result set. Query path: <subject>.`
+* Detail: Suggestion: list of attributes that are too large.
 
 ### too_large
 
@@ -4293,6 +4404,15 @@ something unexpected happened in the server that caused an error condition.
 * Title: `An unknown attribute (<name>) was specified for "<subject>".`
 * Args:
   - `name`: The name of the attribute in question.
+
+### unknown_extensions
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#unknown_extensions`
+* Code: `400 Bad Request`
+* Subject: `<entity_xid>`
+* Title: `Unknown extension attribute(s) (<list>) specified for: <subject>.`
+* Args:
+  - `list`: Comma separated list of attribute names.
 
 ### unknown_id
 
@@ -4321,9 +4441,9 @@ See [not_found](#not_found) as well.
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#versionid_not_allowed`
 * Code: `400 Bad Request`
 * Subject: `<resource_xid>`
-* Title: `While creating a new Version for Resource "<subject>", a "versionid" was specified but the "setversionid" model aspect for this Resource type (<type>) is "false".`
+* Title: `While creating a new Version for "<subject>", a "versionid" was specified but the "setversionid" model aspect for entities of type "<plural>" is "false".`
 * Args:
-  - `type`: The plural Resource type name of the owning Resource.
+  - `plural`: The "plural" type name of the owning Resource.
 
 ### wrong_defaultversionid
 

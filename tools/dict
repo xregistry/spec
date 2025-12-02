@@ -72,10 +72,10 @@ definitiongroupsurl
 definitionscount
 definitionsurl
 deploymentid
+derivedmqtt
 deserialization
 deserialized
 deserializer
-derivedmqtt
 deviceid
 dirid
 dirs
@@ -212,6 +212,7 @@ nans
 nats
 nbsp
 nginx
+noninlineable
 npm
 oauth
 oci

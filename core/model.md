@@ -347,12 +347,15 @@ The following describes the attributes of the Registry model:
 - When not specified the default value MUST be `false`.
 - When the attribute name is `*` then `required` MUST NOT be set to `true`.
 - MUST NOT be `false` if a default value (`attributes.<STRING>.default`)
-  is defined.
+  is defined. If not `true` when `default` has a value, an error MUST be
+  generated ([model_required_true](./spec.md#model_required_true)).
 
 ### `attributes.<STRING>.default`
 - Type: MUST be a non-`null` value of the type specified by the
   `attributes.<STRING>.type` model attribute and MUST only be used for
-  scalar types.
+  scalar types. Attempts to define a `default` value for a non-scalar type
+  MUST generate an error
+  ([model_scalar_default](./spec.md#model_scalar_default)).
 - OPTIONAL.
 - This value MUST be used to populate this attribute's value if one was
   not provided by a client. An attribute with a default value does not mean
@@ -618,8 +621,10 @@ The following describes the attributes of the Registry model:
   default Version.
 - An attempt to set the `defaultversionid` attribute when this aspect is
   `false` MUST generate an error
-  ([defaultversionid_not_allowed](./spec.md#defaultversionid_not_allowed)).
-- This attribute MUST NOT be `true` if `maxversions` is one (`1`).
+  ([setdefaultversionid_not_allowed](spec.md#setdefaultversionid_not_allowed)).
+- This attribute MUST NOT be `true` if `maxversions` is one (`1`). An attempt
+  to set it to `false` MUST generate an error
+  ([setdefaultversionsticky_false](./spec.md#setdefaultversionsticky_false).
 
 ### `groups.<STRING>.resources.<STRING>.hasdocument`
 - Type: Boolean (`true` or `false`, case-sensitive).
