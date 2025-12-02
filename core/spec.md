@@ -800,7 +800,8 @@ be one of the following data types:
      the serialization of an array that is syntactically valid for the
      format being used, but not semantically valid per the
      [xRegistry model](./model.md#registry-model) definition, MUST NOT be
-     accepted and MUST generate an error ([invalid_data](#invalid_data)).
+     accepted and MUST generate an error
+     ([invalid_attribute](#invalid_attribute)).
 - `boolean` - case-sensitive `true` or `false`.
 - `decimal` - number (integer or floating point).
 - `integer` - signed integer.
@@ -930,7 +931,7 @@ attributes. However, they MUST adhere to the following rules:
 
 - All extension attributes that appear in the serialization of an entity MUST
   conform to the model definition of the Registry, otherwise an error
-  ([unknown_extensions](#unknown_extensions)) MUST be generated. This means
+  ([unknown_attribute](#unknown_attribute)) MUST be generated. This means
   that they MUST satisfy at least one of the following:
   - Be explicitly defined (by name) as part of the model.
   - Be permitted due to the presence of the `*` (undefined) extension attribute
@@ -953,7 +954,7 @@ attributes. However, they MUST adhere to the following rules:
 
 Use of an attribute (specification defined, or extension) that does not
 conform to this specification MUST generate an error
-([invalid_attributes](#invalid_attributes)).
+([invalid_attribute](#invalid_attribute)).
 
 #### Common Attributes
 
@@ -2950,7 +2951,7 @@ and the following Version-level attributes:
   - When absent in an update operation request, it MUST be interpreted as the
     same as if it were present with its existing value.
   - Any attempt to set an `ancestor` attribute to a non-existing `versionid`
-    MUST generate an error ([invalid_data](#invalid_data)).
+    MUST generate an error ([unknown_id](#unknown_id)).
   - For clarity, any modification to the `ancestor` attribute MUST result in
     the owning Version's `epoch` and `modifiedat` attributes be updated
     appropriately.
@@ -4174,24 +4175,14 @@ field is just a substitution value and MUST NOT be empty.
 * Args:
   - `name`: The name of the attribute in question.
 
-### invalid_attributes
+### invalid_attribute
 
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#invalid_attributes`
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#invalid_attribute`
 * Code: `400 Bad Request`
 * Subject: `<entity_xid>`
-* Title: `The attribute(s) "<list>" for "<subject>" is not valid: <error_detail>.`
+* Title: `The attribute "<name>" for "<subject>" is not valid: <error_detail>.`
 * Args:
-  - `list`: Comma separated list of offending attribute names.
-  - `error_detail`: Specific details about the error.
-
-### invalid_data
-
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#invalid_data`
-* Code: `400 Bad Request`
-* Subject: `<entity_xid>`
-* Title: `The data provided for "<subject>" in "<name>" is invalid: <error_detail>.`
-* Args:
-  - `name`: The attribute or flag name.
+  - `name`: Name of the attribute in question.
   - `error_detail`: Specific details about the error.
 
 ### malformed_id
@@ -4313,18 +4304,21 @@ error SHOULD be used instead.
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#not_found`
 * Code: `404 Not Found`
 * Subject: `<entity_xid>`
-* Title: `The targeted entity cannot be found: <entity_xid>.`
+* Title: `The targeted entity (<subject>) cannot be found.`
 
 ### one_resource
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#one_resource`
 * Code: `400 Bad Request`
 * Subject: `<entity_xid>`
-* Title: `Only one "<list>" attributes can be present at a time for: <subject>.`
+* Title: `Only one attribute from "<list>" can be present at a time for: <subject>.`
 * Args:
   - `list`: Comma separated list of `<RESOURCE>*` attributes allowed.
 
 ### parsing_data
+
+This is a fairly generic error, so if a more focused one (e.g.
+[invalid_attribute](#invalid_attribute)) can be instead it, then it SHOULD be.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#parsing_data`
 * Code: `400 Bad Request`
@@ -4404,15 +4398,6 @@ something unexpected happened in the server that caused an error condition.
 * Title: `An unknown attribute (<name>) was specified for "<subject>".`
 * Args:
   - `name`: The name of the attribute in question.
-
-### unknown_extensions
-
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#unknown_extensions`
-* Code: `400 Bad Request`
-* Subject: `<entity_xid>`
-* Title: `Unknown extension attribute(s) (<list>) specified for: <subject>.`
-* Args:
-  - `list`: Comma separated list of attribute names.
 
 ### unknown_id
 

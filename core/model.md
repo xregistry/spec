@@ -247,7 +247,7 @@ The following describes the attributes of the Registry model:
   characters that can be used for the object's top-level attribute names.
   Any attempt to define a top-level attribute for this object that does
   not adhere to the characters defined by the character set name MUST
-  generate an error ([invalid_attributes](./spec.md#invalid_attributes)).
+  generate an error ([invalid_attribute](./spec.md#invalid_attribute)).
 - Per the [Attributes and Extensions](./spec.md#attributes-and-extensions)
   section, attribute names are normally limited to just the set of characters
   that ensure they can reliably be used in cases such as code variable names
@@ -300,7 +300,7 @@ The following describes the attributes of the Registry model:
 - Indicates whether the attribute restricts its values to just the array of
   values specified in `enum` or not. A value of `true` means that any
   values used that are not part of the `enum` set MUST generate an error
-  ([invalid_data](./spec.md#invalid_data)).
+  ([invalid_attribute](./spec.md#invalid_attribute)).
   This attribute has no impact when `enum` is absent or an empty array.
 - When not specified, the default value MUST be `true`.
 
@@ -340,7 +340,7 @@ The following describes the attributes of the Registry model:
   attribute's value is populated (i.e. by a client, the server or via a
   default value), just that by the end of processing any request it MUST
   have a non-null value, and generate an error
-  ([invalid_data](./spec.md#invalid_data)) if not.
+  ([invalid_attribute](./spec.md#invalid_attribute)) if not.
 - A `true` value also implies that this attribute MUST be serialized in any
   response from the server - with the exception of the optimizations
   specified for document view.

@@ -305,8 +305,9 @@ The processing of each individual entity follows the same set of rules:
   both `<RESOURCE>id` and `versionid` in the case of Resources and Versions.
   This is to prevent accidentally updating the wrong entity.
 - A request to update a mutable attribute with an invalid value MUST generate
-  an error ([invalid_data](./spec.md#invalid_data)) (this includes deleting a
-  mandatory mutable attribute that has no default value defined).
+  an error ([invalid_attribute](./spec.md#invalid_attribute))
+  (this includes deleting a mandatory mutable attribute that has no default
+  value defined).
 - Registry collection attributes MUST be processed per the rules specified
   in the [Updating Nested Registry
   Collections](./spec.md#updating-nested-registry-collections) section.
