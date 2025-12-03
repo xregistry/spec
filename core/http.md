@@ -248,8 +248,8 @@ semantics defined above with the following exceptions:
     operations, any missing REQUIRED attributes MUST generate an error
     ([required_attribute_missing](./spec.md#required_attribute_missing)).
 
-The `POST` variant when directed at a single entity, MUST adhere to the
-following:
+The `POST` variant when directed at a single entity (not a Resource), MUST
+adhere to the following:
   - The HTTP body MUST contain only a JSON map where the key MUST be the
     attribute (collection) name of a nested xRegistry collection. The value
     of each map entry MUST be a map of nested entities where the key is the
@@ -266,6 +266,17 @@ following:
   - The response message MUST be a map of the nested entity types with just
     the changed entities that were processed. No top-level entity attributes
     are to appear - similar to the request message.
+
+The `POST` variant when directed at a Resource entity, MUST adhere to the
+following:
+  - The 'PUT' variant rules above MUST apply.
+  - The HTTP body MUST contain the serialization of the single Version to be
+    created, however, it MAY include Resource-level read-only attributes (such
+    as `versionscount`), and if they are present, then they MUST be silently
+    ignored by the server. This is done as a convenience for users who might
+    have obtained the Version's serialization from a query to a Resource (not
+    a specific Version), in which case those extra Resource-level would be
+    included in the serialization.
 
 The `PATCH` variant when directed at an xRegistry collection, MUST adhere to
 the following:
@@ -2023,6 +2034,8 @@ A successful response MUST be of the form:
 ```yaml
 HTTP/1.1 200 OK
 or
+HTTP/1.1 201 Created
+or
 HTTP/1.1 303 See Other
 Content-Type: <STRING> ?
 xRegistry-<RESOURCE>id: <STRING>
@@ -2043,7 +2056,7 @@ xRegistry-<RESOURCE>url: <URL> ?       # If Resource is not in body
 xRegistry-metaurl: <URL>
 xRegistry-versionsurl: <URL>
 xRegistry-versionscount: <UINTEGER>
-Location: <URL> ?                      # If 303 is returned
+Location: <URL> ?                      # If 201 or 303 is returned
 Content-Location: <URL> ?
 Content-Disposition: <STRING> ?
 
@@ -2135,11 +2148,10 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1
 
 #### `POST /<GROUPS>/<GID>/<RESOURCES>/<RID>`
 
-A server MAY support clients creating, or updating, a
+A server MAY support clients creating, or updating, a single
 [Version](./spec.md#version-entity) of a
 [Resource](./spec.md#resource-entity) via an HTTP `POST` directed to the
-Resource entity. This API is an alias for
-`POST /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`.
+Resource entity.
 
 The processing of this API is defined in the [Creating or Updating
 Entities](#creating-or-updating-entities) section.
@@ -2149,7 +2161,7 @@ Version metadata or to the Version domain-specific document. See
 [Resource Metadata vs Resource Document](#resource-metadata-vs-resource-document)
 for more information.
 
-When directed to the Version metadata, the request MUST be of the form:
+When directed to the metadata of the entity, the request MUST be of the form:
 
 ```yaml
 POST /<GROUPS>/<GID>/<RESOURCES>/<RID>[$details]
@@ -2167,7 +2179,7 @@ Content-Type: application/json; charset=utf-8
 { ... Version entity excluded for brevity ... }
 ```
 
-When directed to the Version's domain-specific document, the request MUST be
+When directed to the entity's domain-specific document, the request MUST be
 of the form:
 
 ```yaml
@@ -2196,6 +2208,8 @@ A successful response MUST be of the form:
 ```yaml
 HTTP/1.1 200 OK
 or
+HTTP/1.1 201 Created
+or
 HTTP/1.1 303 See Other
 Content-Type: <STRING> ?
 xRegistry-<RESOURCE>id: <STRING>
@@ -2213,7 +2227,7 @@ xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
 xRegistry-ancestor: <STRING>
 xRegistry-<RESOURCE>url: <URL> ?       # If Resource is not in body
-Location: <URL> ?                      # If 303 is returned
+Location: <URL> ?                      # If 201 or 303 is returned
 Content-Location: <URL> ?
 Content-Disposition: <STRING> ?
 
@@ -2849,6 +2863,8 @@ A successful response MUST be of the form:
 ```yaml
 HTTP/1.1 200 OK
 or
+HTTP/1.1 201 Created
+or
 HTTP/1.1 303 See Other
 Content-Type: <STRING> ?
 xRegistry-<RESOURCE>id: <STRING>
@@ -2866,7 +2882,7 @@ xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
 xRegistry-ancestor: <STRING>
 xRegistry-<RESOURCE>url: <URL> ?       # If Resource is not in body
-Location: <URL> ?                      # If 303 is returned
+Location: <URL> ?                      # If 201 or 303 is returned
 Content-Location: <URL> ?
 Content-Disposition: <STRING> ?
 
