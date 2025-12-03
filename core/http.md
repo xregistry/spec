@@ -327,6 +327,9 @@ Resources and Versions have the following additional rules:
   non-null value, the HTTP body MUST be empty. If the `<RESOURCE>url`
   attribute is absent, then the contents of the HTTP body (even if empty) are
   to be used as the entity's document.
+- The `<RESOURCE>` and `<RESOURCEbase64>` attribute MUST never appear as
+  xRegistry HTTP headers, and if present on an write request MUST generate
+  an error ([extra_xregistry_header](#extra_xregistry_header)).
 
 A successful response MUST return the same response as a `GET` to the entity
 (or entities) processed, showing their current representation in the same
@@ -1524,6 +1527,10 @@ attribute prefixed with `xRegistry-`. Note, the optionality of this requirement
 is not to allow for servers to decide whether or not to do so, rather it is to
 allow for [No-Code Servers](#no-code-servers) servers that might not be
 able to control the HTTP response headers.
+
+The `<RESOURCE>` and `<RESOURCEbase64>` attribute MUST NOT be serialized as
+HTTP headers, even if their values can be considered "scalar", because their
+values will appear in the HTTP body.
 
 Top-level map attributes whose values are of scalar types SHOULD also appear as
 HTTP headers (each key having its own HTTP header) and in those cases the
