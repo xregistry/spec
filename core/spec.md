@@ -923,6 +923,9 @@ following rules:
   needs to indicate a request to delete that attribute value rather than to
   leave the attribute untouched (absent in the request), such as when `PATCH`
   is used in the [HTTP Binding Protocol](./http.md).
+- Unless otherwise stated, requests to update read-only attributes MUST be
+  silently ignored by servers, even if the contents of those attributes are
+  invalid.
 
 #### Extensions
 
