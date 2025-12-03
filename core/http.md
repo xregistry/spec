@@ -3123,10 +3123,9 @@ Percent-encoding SHOULD be performed using upper-case for values A-F,
 but decoding MUST accept lowercase values.
 
 When performing percent-decoding, values that have been unnecessarily
-percent-encoded MUST be accepted, but encoded byte sequences which are
-invalid in UTF-8 MUST generate an error
-([header_decoding_error](#header_decoding_error)). For example, "%C0%A0" is an
-overlong encoding of U+0020, and would be rejected.
+percent-encoded MUST be accepted, but encoded byte sequences which are invalid
+in UTF-8 MUST generate an error ([header_error](#header_error)). For example,
+"%C0%A0" is an overlong encoding of U+0020, and would be rejected.
 
 Example: a header value of "Euro &#x20AC; &#x1F600;" SHOULD be encoded as
 follows:
@@ -3192,20 +3191,19 @@ starting with `/`. E.g. `/export` if the "export" feature is not supported.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/http.md#extra_xregistry_header`
 * Code: `400 Bad Request`
-* Title: `xRegistry HTTP header "<header_name>" is not allowed on this request: <error_detail>.`
+* Title: `xRegistry HTTP header "<name>" is not allowed on this request: <error_detail>.`
 * Subject: `<request_path>`
 * Args:
-  - `header_name`: The invalid xRegistry HTTP header name.
+  - `name`: The invalid xRegistry HTTP header name.
   - `error_detail`: Specific details about the error.
 
-#### header_decoding_error
+#### header_error
 
-* Type: `https://github.com/xregistry/spec/blob/main/core/http.md#header_decoding_error`
+* Type: `https://github.com/xregistry/spec/blob/main/core/http.md#header_error`
 * Code: `400 Bad Request`
-* Title: `The value (<header_value) of the HTTP "<header_name>" header cannot be decoded.`
+* Title: `There was an error processing HTTP header "<name>": <error_detail>.`
 * Args:
-  - `header_value`: The specified value of the HTTP header.
-  - `header_name`: The HTTP header name.
+  - `name`: The HTTP header name.
 
 #### missing_body
 
