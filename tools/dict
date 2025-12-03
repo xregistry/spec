@@ -130,11 +130,6 @@ hxregistry
 iana
 ietf
 ifvalues
-ignoredefaultversionid
-ignoredefaultversionsticky
-ignoreeopch
-ignoreepoch
-ignorereadonly
 img
 impl
 inkjet

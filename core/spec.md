@@ -43,10 +43,7 @@ or automation and tooling usage.
   - [Doc Flag](#doc-flag)
   - [Epoch Flag](#epoch-flag)
   - [Filter Flag](#filter-flag)
-  - [IgnoreDefaultVersionID Flag](#ignoredefaultversionid-flag)
-  - [IgnoreDefaultVersionSticky Flag](#ignoredefaultversionsticky-flag)
-  - [IgnoreEpoch Flag](#ignoreepoch-flag)
-  - [IgnoreReadOnly Flag](#ignorereadonly-flag)
+  - [Ignore Flag](#ignore-flag)
   - [Inline Flag](#inline-flag)
   - [SetDefaultVersionID Flag](#setdefaultversionid-flag)
   - [Sort Flag](#sort-flag)
@@ -423,14 +420,14 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   "modifiedat": "<TIMESTAMP>",
 
   "capabilities": {                     # Supported capabilities/options
-    "apis": [ "/capabilities", "/export", "/model" ],
+    "apis": [ "/capabilities",? "/export",? "/model"? ],
     "flags": [                          # e.g. Query parameters
-      "binary",? "collections",? "doc",? "epoch",? "filter",?
-      "ignoredefaultversionid",? "ignoredefaultversionsticky",? "ignoreepoch",?
-      "ignorereadonly",?  "inline", ? "setdefaultversionid",?  "sort",?
-      "specversion",?
+      "binary",? "collections",? "doc",? "epoch",? "filter",?  "ignore".?
+      "inline",? "setdefaultversionid",?  "sort",?  "specversion",?
       "<STRING>" *
     ],
+    "ignore": [ "capabilities",? "defaultversionid",? "defaultversionsticky",?
+      "epoch",? "modelsource",? "readonly"? ],
     "mutable": [                        # What is mutable in the Registry
       "capabilities",? "entities",? "model",? "<STRING>"*
     ], ?
@@ -653,8 +650,8 @@ Depending on the use case, they might not want some of the retrieved data
 to be applied during the update. For example, they might not want the
 `epoch` validation checking to occur. Rather than forcing the user to edit
 the data to remove the potentially problematic attributes, a client MAY use
-one of the `ignore*` [request flags](#request-flags) to ignore some of the
-data in the incoming request.
+the [Ignore Flag](#ignore-flag) to ignore some of the data in the incoming
+request.
 
 ### Design: JSON `$schema` keyword
 
@@ -1807,8 +1804,7 @@ The following defines the specification-defined capabilities:
 - Description: The list of supported [Request Flags](#request-flags). Absence
   in the map indicates no support for that flag.
 - Defined values:
-    `binary`, `collections`, `doc`, `epoch`, `filter`, `ignoredefaultversionid`,
-    `ignoredefaultversionsticky`, `ignoreepoch`, `ignorereadonly`, `inline`,
+    `binary`, `collections`, `doc`, `epoch`, `filter`, `ignore`, `inline`,
     `setdefaultversionid`, `sort`, `specversion`.
 - When not specified, the default value MUST be an empty list and no flags
   are supported.
@@ -1994,10 +1990,8 @@ in the serialization of its capabilities offering map.
   },
   "flags": {
     "type": "string",
-    "enum": [ "binary", "collections", "doc", "epoch", "filter",
-      "ignoredefaultversionid", "ignoredefaultversionsticky", "ignoreepoch",
-      "ignorereadonly", "inline", "setdefaultversionid", "sort",
-      "specversion" ]
+    "enum": [ "binary", "collections", "doc", "epoch", "filter", "ignore",
+      "inline", "setdefaultversionid", "sort", "specversion" ]
   },
   "pagination": {
     "type": "boolean",
@@ -2619,8 +2613,9 @@ and the following Meta-level attributes:
   - It MUST be a case-sensitive `true` or `false`.
   - A request to update a read-only Resource SHOULD generate an error
     ([readonly](#readonly)) unless the
-    [IgnoreReadOnly Flag](#ignorereadonly-flag) was used, in which case the
-    error MUST be silently ignored, and the Resource MUST remain unchanged.
+    [Ignore Flag](#ignore-flag) was used with the `readonly` value, in which
+    case the error MUST be silently ignored, and the Resource MUST remain
+    unchanged.
 
 #### `compatibility` Attribute
 - Type: String (with Resource-specified enumeration of possible values)
@@ -3251,10 +3246,7 @@ specifications will indicate how they are to be serialized on each request:
 - [`doc`](#doc-flag)
 - [`epoch`](#epoch-flag)
 - [`filter`](#filter-flag)
-- [`ignoredefaultversionid`](#ignoredefaultversionid-flag)
-- [`ignoredefaultversionsticky`](#ignoredefaultversionsticky-flag)
-- [`ignoreepoch`](#ignoreepoch-flag)
-- [`ignorereadonly`](#ignorereadonly-flag)
+- [`ignore`](#ignore-flag)
 - [`inline`](#inline-flag)
 - [`setdefaultversionid`](#setdefaultversionid-flag)
 - [`sort`](#sort-flag)
@@ -3626,48 +3618,52 @@ Notice the first part of the filter expression (to the left of the "and"
 (`,`)) has no impact on the results because the list of resulting leaves in
 that subtree is not changed by that search criteria.
 
-### IgnoreDefaultVersionID Flag
+### Ignore Flag
 
-The `ignoredefaultversionid` flag MAY be used on any write operation to
-indicate that any `defaultversionid` attribute included in the request MUST
-be ignored.
+The `ignore` flag MAY be used on any write operation to indicate that certain
+parts of the request message MUST be ignored by the server. This flag is
+designed for cases where a user wants to import data into a Registry without
+going through the (potentially tedious) process of removing certain parts of
+the data in advance. Typically, in an "export->import" scenario.
 
-This flag is useful in cases where there is a desire to not change any
-existing Resource's `defaultversionid` values based on the data in the
-write operation request, and the incoming data is not easily modifiable to
-remove the `defaultversionid` attributes that might be in there.
+This flag take a list of strings indicating which aspects of the request
+message to ignore. This specification defines the following values:
 
-### IgnoreDefaultVersionSticky Flag
+- `capabilities`
 
-The `ignoredefaultversionsticky` flag MAY be used on any write operation to
-indicate that any `defaultversionsticky` attribute included in the request
-MUST be ignored.
+  This value indicates that any `capabilities` attribute included in the
+  request MUST be ignored.
 
-This flag is useful in cases where there is a desire to not change any
-existing Resource's `defaultversionsticky` values based on the data in the
-write operation request, and the incoming data is not easily modifiable to
-remove the `defaultversionsticky` attributes that might be in there.
+- `defaultversionid`
 
-### IgnoreEpoch Flag
+  This value indicates that any `defaultversionid` attribute included in the
+  request MUST be ignored.
 
-The `ignoreepoch` flag MAY be used on any write operation to
-indicate that any `epoch` attribute included in the request
-MUST be ignored.
+- `defaultversionsticky`
 
-This flag is useful in cases where there is a desire to not change any
-existing entity's `epoch` values based on the data in the
-write operation request, and the incoming data is not easily modifiable to
-remove the `epoch` attributes that might be in there.
+  This value indicates that any `defaultversionsticky` attribute included in
+  the request MUST be ignored.
 
-### IgnoreReadOnly Flag
+- `epoch`
 
-The `ignorereadonly` flag MAY be used on any write operation to
-indicate that any attempt to modify a read-only entity MUST be silently
-ignored.
+  This value indicates that any `epoch` attribute included in the request MUST
+  be ignored.
 
-This flag is useful in cases where detecting attempts to update read-only
-entity is not desired and the incoming data is not easily modifiable to
-remove the read-only entity.
+- `modelsource`
+
+  This value indicates that any `modelsource` attribute included in the request
+  MUST be ignored.
+
+- `readonly`
+
+  This value indicates that any attempt to modify a read-only entity MUST be
+  silently ignored.
+
+Implementations MAY defined additional values.
+
+Specifying the flag without any values, an empty string, or `*` indicates a
+request to ignore all possible (server supported) aspects of the request
+message.
 
 ### Inline Flag
 

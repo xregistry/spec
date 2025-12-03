@@ -818,9 +818,11 @@ Content-Type: application/json; charset=utf-8
     "/capabilities", "/export", "/model", "/modelsource"
   ],
   "flags": [
-    "binary", "collections", "doc", "epoch", "filter", "ignoredefaultversionid",
-    "ignoredefaultversionsticky", "ignoreepoch", "ignorereadonly", "inline",
+    "binary", "collections", "doc", "epoch", "filter", "ignore", "inline",
     "setdefaultversionid", "sort", "specversion"
+  ],
+  "ignore": [ "capabilities", "defaultversionid", "defaultversionsticky",
+    "epoch", "modelsource", "readonly"
   ],
   "mutable": [ "capabilities", "entities", "model" ],
   "pagination": false,
@@ -870,10 +872,13 @@ Content-Type: application/json; charset=utf-8
   },
   "flags": {
     "type": "string",
-    "enum": [ "collections", "doc", "epoch", "filter",
-      "ignoredefaultversionid", "ignoredefaultversionsticky", "ignoreepoch",
-      "ignorereadonly", "inline", "setdefaultversionid", "sort",
-      "specversion" ]
+    "enum": [ "collections", "doc", "epoch", "filter", "ignore", "inline",
+       "setdefaultversionid", "sort", "specversion" ]
+  },
+  "ignore": {
+    "type": "string",
+    "enum": [ "capabilities", "defaultversionid", "defaultversionsticky",
+      "epoch", "modelsource", "readonly" ]
   },
   "pagination": {
     "type": "boolean",
@@ -965,9 +970,12 @@ PATCH /capabilities
     "/capabilities", "/export", "/model", "/modelsource"
   ],
   "flags": [
-    "binary", "collections", "doc", "epoch", "filter", "ignoredefaultversionid",
-    "ignoredefaultversionsticky", "ignoreepoch", "ignorereadonly", "inline",
+    "binary", "collections", "doc", "epoch", "filter", "ignore", "inline",
     "setdefaultversionid", "sort", "specversion"
+  ],
+  "ignore": [
+    "capabilities", "defaultversionid", "defaultversionsticky", "epoch",
+    "modelsource", "readonly"
   ],
   "mutable": [ "capabilities", "entities", "model" ],
   "pagination": false,
@@ -3033,7 +3041,7 @@ See [Filter Flag](./spec.md#filter-flag) for more information.
 This query parameter MUST be serialized as:
 
 ```yaml
-?filter=<EXPRESSION>[,<EXPRESSION>]
+?filter=<EXPRESSION>[,...]*
 ```
 
 Where:
@@ -3051,6 +3059,16 @@ The abstract processing logic would be:
   sub-trees into one result set and remove any duplicates - adjusting any
   collection `url` and `count` values as needed.
 
+### `?ignore` Flag
+
+The `?ignore` query parameter MAY be specified one or more times, and each
+occurrence MAY include a comma separated list of one or more values.
+
+This query parameter MUST be serialized as:
+```yaml
+?ignore[=<value>[,...]*]
+```
+
 ### `?inline` Flag
 
 A server MAY support the `?inline` query parameter on any request to indicate
@@ -3062,7 +3080,7 @@ See [Inline Flag](./spec.md#inline-flag) for more information.
 This query parameter MUST be serialized as:
 
 ```yaml
-?inline=[<PATH>[,...]]
+?inline[=<PATH>[,...]*]
 ```
 
 Where:
