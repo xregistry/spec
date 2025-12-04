@@ -3227,7 +3227,7 @@ starting with `/`. E.g. `/export` if the "export" feature is not supported.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#details_required`
 * Code: `405 Method Not Allowed`
-* Title: `$details suffix is needed when using PATCH for an entity: <subject>.`
+* Title: `$details suffix is needed when using PATCH for the entity: <subject>.`
 * Subject: `<resource_xid>`
 
 #### extra_xregistry_header
