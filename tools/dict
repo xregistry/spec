@@ -72,10 +72,10 @@ definitiongroupsurl
 definitionscount
 definitionsurl
 deploymentid
+derivedmqtt
 deserialization
 deserialized
 deserializer
-derivedmqtt
 deviceid
 dirid
 dirs
@@ -130,11 +130,6 @@ hxregistry
 iana
 ietf
 ifvalues
-ignoredefaultversionid
-ignoredefaultversionsticky
-ignoreeopch
-ignoreepoch
-ignorereadonly
 img
 impl
 inkjet
@@ -212,6 +207,7 @@ nans
 nats
 nbsp
 nginx
+noninlineable
 npm
 oauth
 oci

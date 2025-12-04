@@ -248,8 +248,8 @@ semantics defined above with the following exceptions:
     operations, any missing REQUIRED attributes MUST generate an error
     ([required_attribute_missing](./spec.md#required_attribute_missing)).
 
-The `POST` variant when directed at a single entity, MUST adhere to the
-following:
+The `POST` variant when directed at a single entity other than  a Resource,
+MUST adhere to the following:
   - The HTTP body MUST contain only a JSON map where the key MUST be the
     attribute (collection) name of a nested xRegistry collection. The value
     of each map entry MUST be a map of nested entities where the key is the
@@ -266,6 +266,17 @@ following:
   - The response message MUST be a map of the nested entity types with just
     the changed entities that were processed. No top-level entity attributes
     are to appear - similar to the request message.
+
+The `POST` variant when directed at a Resource entity, MUST adhere to the
+following:
+  - The 'PUT' variant rules above MUST apply.
+  - The HTTP body MUST contain the serialization of the single Version to be
+    created, however, it MAY include Resource-level read-only attributes (such
+    as `versionscount`), and if they are present, then they MUST be silently
+    ignored by the server. This is done as a convenience for users who might
+    have obtained the Version's serialization from a query to a Resource (not
+    a specific Version), in which case those extra Resource-level would be
+    included in the serialization.
 
 The `PATCH` variant when directed at an xRegistry collection, MUST adhere to
 the following:
@@ -305,8 +316,9 @@ The processing of each individual entity follows the same set of rules:
   both `<RESOURCE>id` and `versionid` in the case of Resources and Versions.
   This is to prevent accidentally updating the wrong entity.
 - A request to update a mutable attribute with an invalid value MUST generate
-  an error ([invalid_data](./spec.md#invalid_data)) (this includes deleting a
-  mandatory mutable attribute that has no default value defined).
+  an error ([invalid_attribute](./spec.md#invalid_attribute))
+  (this includes deleting a mandatory mutable attribute that has no default
+  value defined).
 - Registry collection attributes MUST be processed per the rules specified
   in the [Updating Nested Registry
   Collections](./spec.md#updating-nested-registry-collections) section.
@@ -320,12 +332,15 @@ The processing of each individual entity follows the same set of rules:
 Resources and Versions have the following additional rules:
 - When a write operation request includes the Resource/Version's metadata in
   the HTTP body, then the inclusion of any xRegistry `xRegistry-` HTTP headers
-  MUST generate an error ([extra_xregistry_headers](#extra_xregistry_headers)).
+  MUST generate an error ([extra_xregistry_header](#extra_xregistry_header)).
 - When a write operation request includes a domain-specific document in the
   HTTP body, and the `<RESOURCE>url` xRegistry HTTP header is present with a
   non-null value, the HTTP body MUST be empty. If the `<RESOURCE>url`
   attribute is absent, then the contents of the HTTP body (even if empty) are
   to be used as the entity's document.
+- The `<RESOURCE>` and `<RESOURCEbase64>` attributes MUST never appear as
+  xRegistry HTTP headers, and if present on an write request MUST generate
+  an error ([extra_xregistry_header](#extra_xregistry_header)).
 
 A successful response MUST return the same response as a `GET` to the entity
 (or entities) processed, showing their current representation in the same
@@ -803,9 +818,11 @@ Content-Type: application/json; charset=utf-8
     "/capabilities", "/export", "/model", "/modelsource"
   ],
   "flags": [
-    "binary", "collections", "doc", "epoch", "filter", "ignoredefaultversionid",
-    "ignoredefaultversionsticky", "ignoreepoch", "ignorereadonly", "inline",
+    "binary", "collections", "doc", "epoch", "filter", "ignore", "inline",
     "setdefaultversionid", "sort", "specversion"
+  ],
+  "ignore": [ "capabilities", "defaultversionid", "defaultversionsticky",
+    "epoch", "modelsource", "readonly"
   ],
   "mutable": [ "capabilities", "entities", "model" ],
   "pagination": false,
@@ -855,10 +872,13 @@ Content-Type: application/json; charset=utf-8
   },
   "flags": {
     "type": "string",
-    "enum": [ "collections", "doc", "epoch", "filter",
-      "ignoredefaultversionid", "ignoredefaultversionsticky", "ignoreepoch",
-      "ignorereadonly", "inline", "setdefaultversionid", "sort",
-      "specversion" ]
+    "enum": [ "collections", "doc", "epoch", "filter", "ignore", "inline",
+       "setdefaultversionid", "sort", "specversion" ]
+  },
+  "ignore": {
+    "type": "string",
+    "enum": [ "capabilities", "defaultversionid", "defaultversionsticky",
+      "epoch", "modelsource", "readonly" ]
   },
   "pagination": {
     "type": "boolean",
@@ -950,9 +970,12 @@ PATCH /capabilities
     "/capabilities", "/export", "/model", "/modelsource"
   ],
   "flags": [
-    "binary", "collections", "doc", "epoch", "filter", "ignoredefaultversionid",
-    "ignoredefaultversionsticky", "ignoreepoch", "ignorereadonly", "inline",
+    "binary", "collections", "doc", "epoch", "filter", "ignore", "inline",
     "setdefaultversionid", "sort", "specversion"
+  ],
+  "ignore": [
+    "capabilities", "defaultversionid", "defaultversionsticky", "epoch",
+    "modelsource", "readonly"
   ],
   "mutable": [ "capabilities", "entities", "model" ],
   "pagination": false,
@@ -1524,6 +1547,10 @@ is not to allow for servers to decide whether or not to do so, rather it is to
 allow for [No-Code Servers](#no-code-servers) servers that might not be
 able to control the HTTP response headers.
 
+The `<RESOURCE>` and `<RESOURCEbase64>` attributes MUST NOT be serialized as
+HTTP headers, even if their values can be considered "scalar", because their
+values will appear in the HTTP body.
+
 Top-level map attributes whose values are of scalar types SHOULD also appear as
 HTTP headers (each key having its own HTTP header) and in those cases the
 HTTP header names will be of the form: `xRegistry-<MAPNAME>-<KEYNAME>`.
@@ -2015,6 +2042,8 @@ A successful response MUST be of the form:
 ```yaml
 HTTP/1.1 200 OK
 or
+HTTP/1.1 201 Created
+or
 HTTP/1.1 303 See Other
 Content-Type: <STRING> ?
 xRegistry-<RESOURCE>id: <STRING>
@@ -2035,7 +2064,7 @@ xRegistry-<RESOURCE>url: <URL> ?       # If Resource is not in body
 xRegistry-metaurl: <URL>
 xRegistry-versionsurl: <URL>
 xRegistry-versionscount: <UINTEGER>
-Location: <URL> ?                      # If 303 is returned
+Location: <URL> ?                      # If 201 or 303 is returned
 Content-Location: <URL> ?
 Content-Disposition: <STRING> ?
 
@@ -2127,11 +2156,10 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1
 
 #### `POST /<GROUPS>/<GID>/<RESOURCES>/<RID>`
 
-A server MAY support clients creating, or updating, a
+A server MAY support clients creating, or updating, a single
 [Version](./spec.md#version-entity) of a
 [Resource](./spec.md#resource-entity) via an HTTP `POST` directed to the
-Resource entity. This API is an alias for
-`POST /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions`.
+Resource entity.
 
 The processing of this API is defined in the [Creating or Updating
 Entities](#creating-or-updating-entities) section.
@@ -2141,7 +2169,7 @@ Version metadata or to the Version domain-specific document. See
 [Resource Metadata vs Resource Document](#resource-metadata-vs-resource-document)
 for more information.
 
-When directed to the Version metadata, the request MUST be of the form:
+When directed to the metadata of the entity, the request MUST be of the form:
 
 ```yaml
 POST /<GROUPS>/<GID>/<RESOURCES>/<RID>[$details]
@@ -2159,7 +2187,7 @@ Content-Type: application/json; charset=utf-8
 { ... Version entity excluded for brevity ... }
 ```
 
-When directed to the Version's domain-specific document, the request MUST be
+When directed to the entity's domain-specific document, the request MUST be
 of the form:
 
 ```yaml
@@ -2188,6 +2216,8 @@ A successful response MUST be of the form:
 ```yaml
 HTTP/1.1 200 OK
 or
+HTTP/1.1 201 Created
+or
 HTTP/1.1 303 See Other
 Content-Type: <STRING> ?
 xRegistry-<RESOURCE>id: <STRING>
@@ -2205,7 +2235,7 @@ xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
 xRegistry-ancestor: <STRING>
 xRegistry-<RESOURCE>url: <URL> ?       # If Resource is not in body
-Location: <URL> ?                      # If 303 is returned
+Location: <URL> ?                      # If 201 or 303 is returned
 Content-Location: <URL> ?
 Content-Disposition: <STRING> ?
 
@@ -2841,6 +2871,8 @@ A successful response MUST be of the form:
 ```yaml
 HTTP/1.1 200 OK
 or
+HTTP/1.1 201 Created
+or
 HTTP/1.1 303 See Other
 Content-Type: <STRING> ?
 xRegistry-<RESOURCE>id: <STRING>
@@ -2858,7 +2890,7 @@ xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
 xRegistry-ancestor: <STRING>
 xRegistry-<RESOURCE>url: <URL> ?       # If Resource is not in body
-Location: <URL> ?                      # If 303 is returned
+Location: <URL> ?                      # If 201 or 303 is returned
 Content-Location: <URL> ?
 Content-Disposition: <STRING> ?
 
@@ -3009,7 +3041,7 @@ See [Filter Flag](./spec.md#filter-flag) for more information.
 This query parameter MUST be serialized as:
 
 ```yaml
-?filter=<EXPRESSION>[,<EXPRESSION>]
+?filter=<EXPRESSION>[,...]*
 ```
 
 Where:
@@ -3027,6 +3059,25 @@ The abstract processing logic would be:
   sub-trees into one result set and remove any duplicates - adjusting any
   collection `url` and `count` values as needed.
 
+### `?ignore` Flag
+
+A server MAY support the `?ignore` query parameter on any write operation
+to indicate that certain aspects of the request message MUST be ignored
+by the server).
+
+See [Ignore Flag](./spec.md#ignore-flag) for more information.
+
+This query parameter MUST be serialized as:
+```yaml
+?ignore[=<value>[,...]*]
+```
+
+Where:
+- `<value>` indicate which aspect of the request message to ignore.
+- A value of `*` is an alias for all server supported values.
+- No value, or an empty string, is an alias for `*`.
+- The `?ignore` query parameter MAY be specified more than once.
+
 ### `?inline` Flag
 
 A server MAY support the `?inline` query parameter on any request to indicate
@@ -3038,7 +3089,7 @@ See [Inline Flag](./spec.md#inline-flag) for more information.
 This query parameter MUST be serialized as:
 
 ```yaml
-?inline=[<PATH>[,...]]
+?inline[=<PATH>[,...]*]
 ```
 
 Where:
@@ -3115,10 +3166,9 @@ Percent-encoding SHOULD be performed using upper-case for values A-F,
 but decoding MUST accept lowercase values.
 
 When performing percent-decoding, values that have been unnecessarily
-percent-encoded MUST be accepted, but encoded byte sequences which are
-invalid in UTF-8 MUST generate an error
-([header_decoding_error](#header_decoding_error)). For example, "%C0%A0" is an
-overlong encoding of U+0020, and would be rejected.
+percent-encoded MUST be accepted, but encoded byte sequences which are invalid
+in UTF-8 MUST generate an error ([header_error](#header_error)). For example,
+"%C0%A0" is an overlong encoding of U+0020, and would be rejected.
 
 Example: a header value of "Euro &#x20AC; &#x1F600;" SHOULD be encoded as
 follows:
@@ -3177,26 +3227,26 @@ starting with `/`. E.g. `/export` if the "export" feature is not supported.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#details_required`
 * Code: `405 Method Not Allowed`
-* Title: `$details suffix is needed when using PATCH for Resource: <subject>.`
+* Title: `$details suffix is needed when using PATCH for the entity: <subject>.`
 * Subject: `<resource_xid>`
 
-#### extra_xregistry_headers
+#### extra_xregistry_header
 
-* Type: `https://github.com/xregistry/spec/blob/main/core/http.md#extra_xregistry_headers`
+* Type: `https://github.com/xregistry/spec/blob/main/core/http.md#extra_xregistry_header`
 * Code: `400 Bad Request`
-* Title: `xRegistry HTTP header "<header_name>" is not allowed on this request: <error_detail>.`
+* Title: `xRegistry HTTP header "<name>" is not allowed on this request: <error_detail>.`
 * Subject: `<request_path>`
 * Args:
-  - `header_name`: The invalid xRegistry HTTP header name.
+  - `name`: The invalid xRegistry HTTP header name.
+  - `error_detail`: Specific details about the error.
 
-#### header_decoding_error
+#### header_error
 
-* Type: `https://github.com/xregistry/spec/blob/main/core/http.md#header_decoding_error`
+* Type: `https://github.com/xregistry/spec/blob/main/core/http.md#header_error`
 * Code: `400 Bad Request`
-* Title: `The value (<header_value) of the HTTP "<header_name>" header cannot be decoded.`
+* Title: `There was an error processing HTTP header "<name>": <error_detail>.`
 * Args:
-  - `header_value`: The specified value of the HTTP header.
-  - `header_name`: The HTTP header name.
+  - `name`: The HTTP header name.
 
 #### missing_body
 

@@ -13,27 +13,37 @@ END_PATTERN="end-err-def"
 echo "> Extracting error list from: $*"
 echo "> Looking for errors usage in: $*"
 
-# Make IFS a dummay char so we save the newlines
+# Make IFS a dummy char so we save the newlines
 IFS="!" lines=$(sed -r -n "/$START_PATTERN/,/$END_PATTERN/p" $* | \
   sed -n 's/##* //p')
 
 [[ "$lines" == "" ]] && echo "Can't find any errors" && exit 1
 
+# Look for unused error defs
 readarray -t err_array <<< "$lines"
 rc=0
 first="UNUSED ERRORS:\n"
 
 for err in "${err_array[@]}"; do
-  ref=$(echo "$err" | tr '[:upper:]' '[:lower:]' | sed "s/ /-/g")
-  grep -e "(#$ref)" -e "(\./[a-z]*\.md#$ref)" $* > /dev/null && continue
+  # ref=$(echo "$err" | tr '[:upper:]' '[:lower:]' | sed "s/ /-/g")
+  # grep -e "(#$ref)" -e "(\./[a-z]*\.md#$ref)" $* > /dev/null && continue
+  grep -e "(#$err)" -e "(\./[a-z]*\.md#$err)" $* > /dev/null && continue
 
   # special case this one
-  [[ "$ref" == "server_error" ]] && continue
+  [[ "$err" == "server_error" ]] && continue
 
   echo -ne $first
   first=""
   echo "- $err"
   rc=1
+done
+
+# Make sure Type uses the right ID
+echo "> Validating the IDs match the Types"
+for err in "${err_array[@]}"; do
+    grep -e "Type: *\`http.*#${err}\`" $* > /dev/null && continue
+    echo "Can't find a Type that uses ID: $err"
+    rc=1
 done
 
 # make sure the errors are alphabetized - per file
@@ -53,6 +63,8 @@ for file in $* ; do
     echo "ALPHABETIZE THESE (in $file):"
     echo "$diff" | grep "> " | sed "s/> /- /"
     rc=1
+  else
+    [[ "$rc" == "0" ]] && echo "No errors found"
   fi
 
 done

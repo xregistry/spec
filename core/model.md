@@ -247,7 +247,7 @@ The following describes the attributes of the Registry model:
   characters that can be used for the object's top-level attribute names.
   Any attempt to define a top-level attribute for this object that does
   not adhere to the characters defined by the character set name MUST
-  generate an error ([invalid_attributes](./spec.md#invalid_attributes)).
+  generate an error ([invalid_attribute](./spec.md#invalid_attribute)).
 - Per the [Attributes and Extensions](./spec.md#attributes-and-extensions)
   section, attribute names are normally limited to just the set of characters
   that ensure they can reliably be used in cases such as code variable names
@@ -300,7 +300,7 @@ The following describes the attributes of the Registry model:
 - Indicates whether the attribute restricts its values to just the array of
   values specified in `enum` or not. A value of `true` means that any
   values used that are not part of the `enum` set MUST generate an error
-  ([invalid_data](./spec.md#invalid_data)).
+  ([invalid_attribute](./spec.md#invalid_attribute)).
   This attribute has no impact when `enum` is absent or an empty array.
 - When not specified, the default value MUST be `true`.
 
@@ -340,19 +340,22 @@ The following describes the attributes of the Registry model:
   attribute's value is populated (i.e. by a client, the server or via a
   default value), just that by the end of processing any request it MUST
   have a non-null value, and generate an error
-  ([invalid_data](./spec.md#invalid_data)) if not.
+  ([invalid_attribute](./spec.md#invalid_attribute)) if not.
 - A `true` value also implies that this attribute MUST be serialized in any
   response from the server - with the exception of the optimizations
   specified for document view.
 - When not specified the default value MUST be `false`.
 - When the attribute name is `*` then `required` MUST NOT be set to `true`.
 - MUST NOT be `false` if a default value (`attributes.<STRING>.default`)
-  is defined.
+  is defined. If not `true` when `default` has a value, an error MUST be
+  generated ([model_required_true](./spec.md#model_required_true)).
 
 ### `attributes.<STRING>.default`
 - Type: MUST be a non-`null` value of the type specified by the
   `attributes.<STRING>.type` model attribute and MUST only be used for
-  scalar types.
+  scalar types. Attempts to define a `default` value for a non-scalar type
+  MUST generate an error
+  ([model_scalar_default](./spec.md#model_scalar_default)).
 - OPTIONAL.
 - This value MUST be used to populate this attribute's value if one was
   not provided by a client. An attribute with a default value does not mean
@@ -618,8 +621,10 @@ The following describes the attributes of the Registry model:
   default Version.
 - An attempt to set the `defaultversionid` attribute when this aspect is
   `false` MUST generate an error
-  ([defaultversionid_not_allowed](./spec.md#defaultversionid_not_allowed)).
-- This attribute MUST NOT be `true` if `maxversions` is one (`1`).
+  ([setdefaultversionid_not_allowed](spec.md#setdefaultversionid_not_allowed)).
+- This attribute MUST NOT be `true` if `maxversions` is one (`1`). An attempt
+  to set it to `false` MUST generate an error
+  ([setdefaultversionsticky_false](./spec.md#setdefaultversionsticky_false).
 
 ### `groups.<STRING>.resources.<STRING>.hasdocument`
 - Type: Boolean (`true` or `false`, case-sensitive).

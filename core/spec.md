@@ -43,10 +43,7 @@ or automation and tooling usage.
   - [Doc Flag](#doc-flag)
   - [Epoch Flag](#epoch-flag)
   - [Filter Flag](#filter-flag)
-  - [IgnoreDefaultVersionID Flag](#ignoredefaultversionid-flag)
-  - [IgnoreDefaultVersionSticky Flag](#ignoredefaultversionsticky-flag)
-  - [IgnoreEpoch Flag](#ignoreepoch-flag)
-  - [IgnoreReadOnly Flag](#ignorereadonly-flag)
+  - [Ignore Flag](#ignore-flag)
   - [Inline Flag](#inline-flag)
   - [SetDefaultVersionID Flag](#setdefaultversionid-flag)
   - [Sort Flag](#sort-flag)
@@ -423,14 +420,14 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   "modifiedat": "<TIMESTAMP>",
 
   "capabilities": {                     # Supported capabilities/options
-    "apis": [ "/capabilities", "/export", "/model" ],
+    "apis": [ "/capabilities",? "/export",? "/model"? ],
     "flags": [                          # e.g. Query parameters
-      "binary",? "collections",? "doc",? "epoch",? "filter",?
-      "ignoredefaultversionid",? "ignoredefaultversionsticky",? "ignoreepoch",?
-      "ignorereadonly",?  "inline", ? "setdefaultversionid",?  "sort",?
-      "specversion",?
+      "binary",? "collections",? "doc",? "epoch",? "filter",?  "ignore".?
+      "inline",? "setdefaultversionid",?  "sort",?  "specversion",?
       "<STRING>" *
     ],
+    "ignore": [ "capabilities",? "defaultversionid",? "defaultversionsticky",?
+      "epoch",? "modelsource",? "readonly"? ],
     "mutable": [                        # What is mutable in the Registry
       "capabilities",? "entities",? "model",? "<STRING>"*
     ], ?
@@ -653,8 +650,8 @@ Depending on the use case, they might not want some of the retrieved data
 to be applied during the update. For example, they might not want the
 `epoch` validation checking to occur. Rather than forcing the user to edit
 the data to remove the potentially problematic attributes, a client MAY use
-one of the `ignore*` [request flags](#request-flags) to ignore some of the
-data in the incoming request.
+the [Ignore Flag](#ignore-flag) to ignore some of the data in the incoming
+request.
 
 ### Design: JSON `$schema` keyword
 
@@ -800,7 +797,8 @@ be one of the following data types:
      the serialization of an array that is syntactically valid for the
      format being used, but not semantically valid per the
      [xRegistry model](./model.md#registry-model) definition, MUST NOT be
-     accepted and MUST generate an error ([invalid_data](#invalid_data)).
+     accepted and MUST generate an error
+     ([invalid_attribute](#invalid_attribute)).
 - `boolean` - case-sensitive `true` or `false`.
 - `decimal` - number (integer or floating point).
 - `integer` - signed integer.
@@ -922,6 +920,9 @@ following rules:
   needs to indicate a request to delete that attribute value rather than to
   leave the attribute untouched (absent in the request), such as when `PATCH`
   is used in the [HTTP Binding Protocol](./http.md).
+- Unless otherwise stated, requests to update read-only attributes MUST be
+  silently ignored by servers, even if the contents of those attributes are
+  invalid.
 
 #### Extensions
 
@@ -930,7 +931,7 @@ attributes. However, they MUST adhere to the following rules:
 
 - All extension attributes that appear in the serialization of an entity MUST
   conform to the model definition of the Registry, otherwise an error
-  ([invalid_extensions](#invalid_extensions)) MUST be generated. This means
+  ([unknown_attribute](#unknown_attribute)) MUST be generated. This means
   that they MUST satisfy at least one of the following:
   - Be explicitly defined (by name) as part of the model.
   - Be permitted due to the presence of the `*` (undefined) extension attribute
@@ -953,7 +954,7 @@ attributes. However, they MUST adhere to the following rules:
 
 Use of an attribute (specification defined, or extension) that does not
 conform to this specification MUST generate an error
-([invalid_attributes](#invalid_attributes)).
+([invalid_attribute](#invalid_attribute)).
 
 #### Common Attributes
 
@@ -1803,8 +1804,7 @@ The following defines the specification-defined capabilities:
 - Description: The list of supported [Request Flags](#request-flags). Absence
   in the map indicates no support for that flag.
 - Defined values:
-    `binary`, `collections`, `doc`, `epoch`, `filter`, `ignoredefaultversionid`,
-    `ignoredefaultversionsticky`, `ignoreepoch`, `ignorereadonly`, `inline`,
+    `binary`, `collections`, `doc`, `epoch`, `filter`, `ignore`, `inline`,
     `setdefaultversionid`, `sort`, `specversion`.
 - When not specified, the default value MUST be an empty list and no flags
   are supported.
@@ -1877,7 +1877,7 @@ However, the following rules apply in both cases.
 
 For any capability that is an array of strings, a value of `"*"` MAY be used to
 indicate that the server MUST replace `"*"` with the full set of items that
-are available. An error ([capability_error](#capability_error)) MUST be
+are available. An error ([capability_wildcard](#capability_wildcard)) MUST be
 generated if `"*"` appears along with any other value in the list. `"*"`
 MUST NOT appear in the serialization in any server's response.
 
@@ -1894,6 +1894,17 @@ format of the `capabilities` definition MAY still generate an error
 ([capability_error](#capability_error)) if the server determines it cannot
 support the request. For example, due to authorization concerns or the value,
 while syntactically valid, isn't allowed in certain situations.
+
+A request to update the `specversions` capability that doesn't include
+a mandatory value (such as the current specification version), MUST
+generate an error
+([capability_missing_specversion](#capability_missing_specversion)).
+
+A request to update a capability with an invalid value MUST generate an error
+([capability_value](#capability_value)).
+
+A request to update an unknown capability MUST generate an error
+([capability_unknown](#capability_unknown)).
 
 When processing a request to update the capabilities, the semantic
 changes MUST NOT take effect until after the processing of the current
@@ -1979,10 +1990,8 @@ in the serialization of its capabilities offering map.
   },
   "flags": {
     "type": "string",
-    "enum": [ "binary", "collections", "doc", "epoch", "filter",
-      "ignoredefaultversionid", "ignoredefaultversionsticky", "ignoreepoch",
-      "ignorereadonly", "inline", "setdefaultversionid", "sort",
-      "specversion" ]
+    "enum": [ "binary", "collections", "doc", "epoch", "filter", "ignore",
+      "inline", "setdefaultversionid", "sort", "specversion" ]
   },
   "pagination": {
     "type": "boolean",
@@ -2604,8 +2613,9 @@ and the following Meta-level attributes:
   - It MUST be a case-sensitive `true` or `false`.
   - A request to update a read-only Resource SHOULD generate an error
     ([readonly](#readonly)) unless the
-    [IgnoreReadOnly Flag](#ignorereadonly-flag) was used, in which case the
-    error MUST be silently ignored, and the Resource MUST remain unchanged.
+    [Ignore Flag](#ignore-flag) was used with the `readonly` value, in which
+    case the error MUST be silently ignored, and the Resource MUST remain
+    unchanged.
 
 #### `compatibility` Attribute
 - Type: String (with Resource-specified enumeration of possible values)
@@ -2939,7 +2949,7 @@ and the following Version-level attributes:
   - When absent in an update operation request, it MUST be interpreted as the
     same as if it were present with its existing value.
   - Any attempt to set an `ancestor` attribute to a non-existing `versionid`
-    MUST generate an error ([invalid_data](#invalid_data)).
+    MUST generate an error ([unknown_id](#unknown_id)).
   - For clarity, any modification to the `ancestor` attribute MUST result in
     the owning Version's `epoch` and `modifiedat` attributes be updated
     appropriately.
@@ -3236,10 +3246,7 @@ specifications will indicate how they are to be serialized on each request:
 - [`doc`](#doc-flag)
 - [`epoch`](#epoch-flag)
 - [`filter`](#filter-flag)
-- [`ignoredefaultversionid`](#ignoredefaultversionid-flag)
-- [`ignoredefaultversionsticky`](#ignoredefaultversionsticky-flag)
-- [`ignoreepoch`](#ignoreepoch-flag)
-- [`ignorereadonly`](#ignorereadonly-flag)
+- [`ignore`](#ignore-flag)
 - [`inline`](#inline-flag)
 - [`setdefaultversionid`](#setdefaultversionid-flag)
 - [`sort`](#sort-flag)
@@ -3611,48 +3618,52 @@ Notice the first part of the filter expression (to the left of the "and"
 (`,`)) has no impact on the results because the list of resulting leaves in
 that subtree is not changed by that search criteria.
 
-### IgnoreDefaultVersionID Flag
+### Ignore Flag
 
-The `ignoredefaultversionid` flag MAY be used on any write operation to
-indicate that any `defaultversionid` attribute included in the request MUST
-be ignored.
+The `ignore` flag MAY be used on any write operation to indicate that certain
+parts of the request message MUST be ignored by the server. This flag is
+designed for cases where a user wants to import data into a Registry without
+going through the (potentially tedious) process of removing certain parts of
+the data in advance. Typically, in an "export->import" scenario.
 
-This flag is useful in cases where there is a desire to not change any
-existing Resource's `defaultversionid` values based on the data in the
-write operation request, and the incoming data is not easily modifiable to
-remove the `defaultversionid` attributes that might be in there.
+This flag take a list of strings indicating which aspects of the request
+message to ignore. This specification defines the following values:
 
-### IgnoreDefaultVersionSticky Flag
+- `capabilities`
 
-The `ignoredefaultversionsticky` flag MAY be used on any write operation to
-indicate that any `defaultversionsticky` attribute included in the request
-MUST be ignored.
+  This value indicates that any `capabilities` attribute included in the
+  request MUST be ignored.
 
-This flag is useful in cases where there is a desire to not change any
-existing Resource's `defaultversionsticky` values based on the data in the
-write operation request, and the incoming data is not easily modifiable to
-remove the `defaultversionsticky` attributes that might be in there.
+- `defaultversionid`
 
-### IgnoreEpoch Flag
+  This value indicates that any `defaultversionid` attribute included in the
+  request MUST be ignored.
 
-The `ignoreepoch` flag MAY be used on any write operation to
-indicate that any `epoch` attribute included in the request
-MUST be ignored.
+- `defaultversionsticky`
 
-This flag is useful in cases where there is a desire to not change any
-existing entity's `epoch` values based on the data in the
-write operation request, and the incoming data is not easily modifiable to
-remove the `epoch` attributes that might be in there.
+  This value indicates that any `defaultversionsticky` attribute included in
+  the request MUST be ignored.
 
-### IgnoreReadOnly Flag
+- `epoch`
 
-The `ignorereadonly` flag MAY be used on any write operation to
-indicate that any attempt to modify a read-only entity MUST be silently
-ignored.
+  This value indicates that any `epoch` attribute included in the request MUST
+  be ignored.
 
-This flag is useful in cases where detecting attempts to update read-only
-entity is not desired and the incoming data is not easily modifiable to
-remove the read-only entity.
+- `modelsource`
+
+  This value indicates that any `modelsource` attribute included in the request
+  MUST be ignored.
+
+- `readonly`
+
+  This value indicates that any attempt to modify a read-only entity MUST be
+  silently ignored.
+
+Implementations MAY defined additional values.
+
+Specifying the flag without any values, an empty string, or `*` indicates a
+request to ignore all possible (server supported) aspects of the request
+message.
 
 ### Inline Flag
 
@@ -3669,6 +3680,9 @@ contents of all specified inlineable attributes. Inlineable attributes include:
   `<RESOURCES>` and `versions`.
 - The `<RESOURCE>` attribute in a Resource or Version.
 - The `meta` attribute in a Resource.
+
+Specifying the name of a non-inlineable attribute MUST generate an error
+([inline_noninlineable](#inline_noninlineable)).
 
 While the `<RESOURCE>` and `<RESOURCE>base64` attributes are defined as two
 separate attributes, they are technically two separate "views" of the same
@@ -3789,7 +3803,7 @@ The following rules apply:
 
 Any use of this flag on a Resource that has the
 `setdefaultversionsticky` aspect set to `false` MUST generate an error
-([bad_flag](#bad_flag)).
+([setdefaultversionid_not_allowed](#setdefaultversionid_not_allowed)).
 
 Any other invalid usage of this flag MUST generate an error
 ([bad_defaultversionid](#bad_defaultversionid)).
@@ -3798,7 +3812,9 @@ Any other invalid usage of this flag MUST generate an error
 
 When a request is directed at a collection of Groups, Resources or Versions,
 the `Sort` flag MAY be used to indicate the order in which the entities of
-that collection are to be returned (i.e. sorted).
+that collection are to be returned (i.e. sorted). Use of the `sort` flag
+on a non-collection result MUST generate an error
+([sort_noncollection](#sort_noncollection).
 
 This flag MUST include a single parameter, a string containing the attribute
 (`<ATTRIBUTE>`) name to use as the "sort key" plus an OPTIONAL indication of
@@ -3929,6 +3945,24 @@ a more appropriate one. Implementations MAY define additional extension
 fields, as well as new error definitions. For new errors, it is RECOMMENDED
 that the "Subject" value appears within the "Title" field, when appropriate.
 
+While not a requirement, it is RECOMMENDED that custom errors adhere to the
+following rules for consistency:
+- Make `Title` and `Detail` text complete sentences that start with a capital
+  letter and end with a period.
+- Include `<subject>` in `Text` so that end users only need to examine the
+  `Title` to know what went wrong and which entity was being processed.
+- Avoid using The terms `Group`, `Groups`, `Resources` and `Resource` when
+  possible. Instead use the appropriate "singular" or "plural" type name for
+  the entity in question. End users will likely not know what "Groups" or
+  "Resources" are if they only work with the model defined entities.
+- Use "Arg" names that are short descriptions of the value of the arg.
+- Use `error_detail` as the "Arg" name for substitution text that provides
+  more details about the error beyond the generic text provided by the
+  error definition itself.
+- When possible, try to differentiate names of entities from their surrounding
+  text by using quotes, parentheses or a colon (":") separator to avoid cases
+  where the name could be misinterpreted as a normal English word.
+
 **Examples:**
 
 An error serialized per the [HTTP binding specification](./http.md):
@@ -4039,7 +4073,7 @@ field is just a substitution value and MUST NOT be empty.
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#bad_sort`
 * Code: `400 Bad Request`
 * Subject: `<request path>`
-* Title: `An error was found in sort value (sort_value): <error_detail>.`
+* Title: `An error was found in sort value (<sort_value>): <error_detail>.`
 * Args:
   - `sort_value`: Offending "inline" value.
 
@@ -4048,7 +4082,7 @@ field is just a substitution value and MUST NOT be empty.
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#cannot_doc_xref`
 * Code: `400 Bad Request`
 * Subject: `<resource_xid>`
-* Title: `Retrieving the document view of a Version whose Resource (<subject>) uses "xref" is not possible.`
+* Title: `Retrieving the document view of a Version for "<subject>" is not allowed because it uses "xref".`
 
 ### capability_error
 
@@ -4059,12 +4093,50 @@ field is just a substitution value and MUST NOT be empty.
 * Args:
   - `error_detail`: Specific details about the error.
 
+### capability_missing_specversion
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#capability_missing_specversion`
+* Code: `400 Bad Request`
+* Subject: `/capabilities`
+* Title: `The "specversions" capability needs to contain "<value>".`
+* Args:
+  - `value`: The missing "specversions" value.
+
+### capability_unknown
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#capability_unknown`
+* Code: `400 Bad Request`
+* Subject: `/capabilities`
+* Title: `Unknown capability specified: <field>.`
+* Args:
+  - `field`: The name of the unknown capability.
+
+### capability_value
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#capability_value`
+* Code: `400 Bad Request`
+* Subject: `/capabilities`
+* Title: `Invalid value (<value>) specified for capability "<field>". Allowable values include: <list>.`
+* Args:
+  - `value`: Unknown value.
+  - `field`: Capability field being modified.
+  - `list`: Comma separated list of allowable values.
+
+### capability_wildcard
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#capability_wildcard`
+* Code: `400 Bad Request`
+* Subject: `/capabilities`
+* Title: `When "<field>" includes a value of "*" then no other values are allowed.`
+* Args:
+  - `field`: The capability field being modified.
+
 ### compatibility_violation
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#compatibility_violation`
 * Code: `400 Bad Request`
 * Subject: `<resource_xid>`
-* Title: `The request would cause one or more Versions of this Resource (<subject>) to violate the Resource's compatibility rule (<compatibility_value>).`
+* Title: `The request would cause one or more Versions of "<subject>" to violate its compatibility rule (<compatibility_value>).`
 * Detail: Suggestion: list of `versionid` values that would be in violation.
 * Args:
   - `compatibility_value`: The Resource's `meta.compatibility` value.
@@ -4077,57 +4149,40 @@ field is just a substitution value and MUST NOT be empty.
 * Title: `The server was unable to retrieve all of the requested data.`
 * Detail: Suggestion: which entity's data was problematic, and why.
 
-### defaultversionid_not_allowed
-
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#defaultversionid_not_allowed`
-* Code: `400 Bad Request`
-* Subject: `<resource_xid>`
-* Title: `Processing Resource "<subject>", the "defaultversionid" attribute is not allowed to be specified for Resources of type "<resource_type>".`
-* Args:
-  - `resource_type`: The Resource type name of the offending Resource.
-
 ### defaultversionid_request
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#defaultversionid_request`
 * Code: `400 Bad Request`
 * Subject: `<resource_xid>`
-* Title: `Processing Resource "<subject>", the "defaultversionid" attribute is not allowed to be "request" since a Version wasn't processed.`
+* Title: `Processing "<subject>", the "defaultversionid" attribute is not allowed to be "request" since a Version wasn't processed.`
 
 ### groups_only
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#groups_only`
 * Code: `400 Bad Request`
 * Subject: `<request_path>`
-* Title: `Only Group types are allowed to be specified on this request: <subject>.`
+* Title: `Attribute "<name>" is invalid. Only Group types are allowed to be specified on this request: <subject>.`
+* Args:
+  - `name`: The name of the attribute in question.
 
-### invalid_attributes
+### inline_noninlineable
 
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#invalid_attributes`
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#inline_noninlineable`
+* Code: `400 Bad Request`
+* Subject: `<request_path>`
+* Title: `Attempting to inline a non-inlineable attribute (<name>) on: <subject>.`
+* Args:
+  - `name`: The name of the attribute in question.
+
+### invalid_attribute
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#invalid_attribute`
 * Code: `400 Bad Request`
 * Subject: `<entity_xid>`
-* Title: `The attribute(s) "<attribute_names>" for "<subject>" is not valid: <error_detail>.`
+* Title: `The attribute "<name>" for "<subject>" is not valid: <error_detail>.`
 * Args:
-  - `attribute_names`: Comma separated list of offending attribute names.
+  - `name`: Name of the attribute in question.
   - `error_detail`: Specific details about the error.
-
-### invalid_data
-
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#invalid_data`
-* Code: `400 Bad Request`
-* Subject: `<entity_xid>`
-* Title: `The data provided for "<subject>" in "<name>" is invalid: <error_detail>.`
-* Args:
-  - `name`: The attribute or flag name.
-  - `error_detail`: Specific details about the error.
-
-### invalid_extensions
-
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#invalid_extensions`
-* Code: `400 Bad Request`
-* Subject: `<entity_xid>`
-* Title: `Invalid extension attribute(s) (<attribute_names>) specified for: <subject>.`
-* Args:
-  - `attribute_names`: Comma separated list of attribute names.
 
 ### malformed_id
 
@@ -4211,14 +4266,32 @@ field is just a substitution value and MUST NOT be empty.
 * Args:
   - `error_detail`: Specific details about the error.
 
+### model_required_true
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#model_required_true`
+* Code: `400 Bad Request`
+* Subject: `/model`
+* Title: `Model attribute "<name>" needs to have a "required" value of "true" since a default value is provided.`
+* Args:
+  - `name`: Model attribute name in question.
+
+### model_scalar_default
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#model_scalar_default`
+* Code: `400 Bad Request`
+* Subject: `/model`
+* Title: `Model attribute "<name>" is not allowed to have a default value since it is not a scalar.`
+* Args:
+  - `name`: Model attribute name in question.
+
 ### multiple_roots
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#multiple_roots`
 * Code: `400 Bad Request`
 * Subject: `<resource_xid>`
-* Title: `The operation would result in multiple root Versions which is not allowed for Resource "<subject>", which is of type "<resource_type>".`
+* Title: `The operation would result in multiple root Versions for "<subject>", which is not allowed for "<plural>".`
 * Args:
-  - `resource_type`: The Resource type of the Resource being processed.
+  - `plural`: The "plural" Resource type of the Resource being processed.
 
 ### not_found
 
@@ -4230,20 +4303,27 @@ error SHOULD be used instead.
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#not_found`
 * Code: `404 Not Found`
 * Subject: `<entity_xid>`
-* Title: `The targeted entity cannot be found: <entity_xid>.`
+* Title: `The targeted entity (<subject>) cannot be found.`
 
 ### one_resource
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#one_resource`
 * Code: `400 Bad Request`
 * Subject: `<entity_xid>`
-* Title: `Only one "<singular>" (e.g. "url", "base64") type of attribute can be present at a time for: <subject>.`
+* Title: `Only one attribute from "<list>" can be present at a time for: <subject>.`
+* Args:
+  - `list`: Comma separated list of `<RESOURCE>*` attributes allowed.
 
 ### parsing_data
+
+This is a fairly generic error, so if a more focused one (e.g.
+[invalid_attribute](#invalid_attribute)) can be instead it, then it SHOULD be.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#parsing_data`
 * Code: `400 Bad Request`
 * Title: `There was an error parsing the data: <error_detail>.`
+* Args:
+  - `error_detail`: Specific details about the error.
 
 ### readonly
 
@@ -4257,9 +4337,9 @@ error SHOULD be used instead.
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#required_attribute_missing`
 * Code: `400 Bad Request`
 * Subject: `<entity_xid>`
-* Title: `One or more mandatory attributes for "<subject>" are missing: <attributes>.`
+* Title: `One or more mandatory attributes for "<subject>" are missing: <list>.`
 * Args:
-  - `attributes`: A comma separated list of attributes that are missing.
+  - `list`: A comma separated list of attributes that are missing.
 
 ### server_error
 
@@ -4270,6 +4350,29 @@ something unexpected happened in the server that caused an error condition.
 * Code: `500 Internal Server Error`
 * Subject: `<request_path>`
 * Title: `An unexpected error occurred, please try again later.`
+
+### setdefaultversionid_not_allowed
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#setdefaultversionid_not_allowed`
+* Code: `400 Bad Request`
+* Subject: `<resource_xid>`
+* Title: `Processing "<subject>", the "setdefaultversionid" flag is not allowed to be specified for entities of type "<singular>".`
+* Args:
+  - `singular`: The "singular" type name of the offending Resource.
+
+### setdefaultversionsticky_false
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#setdefaultversionsticky_false`
+* Code: `400 Bad Request`
+* Subject: `<resource_xid>`
+* Title: `The model attribute "setdefaultversionsticky" needs to be "false" since "maxversions" is "1".`
+
+### sort_noncollection
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#sort_noncollection`
+* Code: `400 Bad Request`
+* Subject: `<request_path>`
+* Title: `Can't sort on a non-collection result set. Query path: <subject>.`
 
 ### too_large
 
@@ -4321,9 +4424,9 @@ See [not_found](#not_found) as well.
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#versionid_not_allowed`
 * Code: `400 Bad Request`
 * Subject: `<resource_xid>`
-* Title: `While creating a new Version for Resource "<subject>", a "versionid" was specified but the "setversionid" model aspect for this Resource type (<type>) is "false".`
+* Title: `While creating a new Version for "<subject>", a "versionid" was specified but the "setversionid" model aspect for entities of type "<plural>" is "false".`
 * Args:
-  - `type`: The plural Resource type name of the owning Resource.
+  - `plural`: The "plural" type name of the owning Resource.
 
 ### wrong_defaultversionid
 
