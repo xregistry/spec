@@ -4373,7 +4373,6 @@ something unexpected happened in the server that caused an error condition.
 * Code: `400 Bad Request`
 * Subject: `<request_path>`
 * Title: `Can't sort on a non-collection result set. Query path: <subject>.`
-* Detail: Suggestion: list of attributes that are too large.
 
 ### too_large
 

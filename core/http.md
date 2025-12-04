@@ -248,8 +248,8 @@ semantics defined above with the following exceptions:
     operations, any missing REQUIRED attributes MUST generate an error
     ([required_attribute_missing](./spec.md#required_attribute_missing)).
 
-The `POST` variant when directed at a single entity (not a Resource), MUST
-adhere to the following:
+The `POST` variant when directed at a single entity other than  a Resource,
+MUST adhere to the following:
   - The HTTP body MUST contain only a JSON map where the key MUST be the
     attribute (collection) name of a nested xRegistry collection. The value
     of each map entry MUST be a map of nested entities where the key is the
@@ -338,7 +338,7 @@ Resources and Versions have the following additional rules:
   non-null value, the HTTP body MUST be empty. If the `<RESOURCE>url`
   attribute is absent, then the contents of the HTTP body (even if empty) are
   to be used as the entity's document.
-- The `<RESOURCE>` and `<RESOURCEbase64>` attribute MUST never appear as
+- The `<RESOURCE>` and `<RESOURCEbase64>` attributes MUST never appear as
   xRegistry HTTP headers, and if present on an write request MUST generate
   an error ([extra_xregistry_header](#extra_xregistry_header)).
 
@@ -1547,7 +1547,7 @@ is not to allow for servers to decide whether or not to do so, rather it is to
 allow for [No-Code Servers](#no-code-servers) servers that might not be
 able to control the HTTP response headers.
 
-The `<RESOURCE>` and `<RESOURCEbase64>` attribute MUST NOT be serialized as
+The `<RESOURCE>` and `<RESOURCEbase64>` attributes MUST NOT be serialized as
 HTTP headers, even if their values can be considered "scalar", because their
 values will appear in the HTTP body.
 
@@ -3061,13 +3061,22 @@ The abstract processing logic would be:
 
 ### `?ignore` Flag
 
-The `?ignore` query parameter MAY be specified one or more times, and each
-occurrence MAY include a comma separated list of one or more values.
+A server MAY support the `?ignore` query parameter on any write operation
+to indicate that certain aspects of the request message MUST be ignored
+by the server).
+
+See [Ignore Flag](./spec.md#ignore-flag) for more information.
 
 This query parameter MUST be serialized as:
 ```yaml
 ?ignore[=<value>[,...]*]
 ```
+
+Where:
+- `<value>` indicate which aspect of the request message to ignore.
+- A value of `*` is an alias for all server supported values.
+- No value, or an empty string, is an alias for `*`.
+- The `?ignore` query parameter MAY be specified more than once.
 
 ### `?inline` Flag
 
@@ -3218,7 +3227,7 @@ starting with `/`. E.g. `/export` if the "export" feature is not supported.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#details_required`
 * Code: `405 Method Not Allowed`
-* Title: `$details suffix is needed when using PATCH for entity: <subject>.`
+* Title: `$details suffix is needed when using PATCH for an entity: <subject>.`
 * Subject: `<resource_xid>`
 
 #### extra_xregistry_header
