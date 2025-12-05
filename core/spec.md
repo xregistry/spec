@@ -3665,6 +3665,9 @@ Specifying the flag without any values, an empty string, or `*` indicates a
 request to ignore all possible (server supported) aspects of the request
 message.
 
+Specifying an invalid, or unsupported, value for this flag MUST generate an
+error ([bad_ignore](#bad_ignore)).
+
 ### Inline Flag
 
 The `inline` flag MAY be used on requests to indicate whether nested
@@ -4031,10 +4034,11 @@ the API supports, if any.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#bad_filter`
 * Code: `400 Bad Request`
-* Subject: `<request path>`
-* Title: `An error was found in filter (<filter_name>): <error_detail>.`
+* Subject: `<request_path>`
+* Title: `An error was found in "filter" value (<value>): <error_detail>.`
 * Args:
-  - `filter_name`: Name of the offending filter.
+  - `value`: Offending "filter" value.
+  - `error_detail`: Specific details about the error.
 
 ### bad_flag
 
@@ -4045,14 +4049,25 @@ the API supports, if any.
 * Args:
   - `flag`: The invalid flag name used.
 
+### bad_ignore
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#bad_ignore`
+* Code: `400 Bad Request`
+* Subject: `<request_path>`
+* Title: `An error was found in "ignore" value (<value>): <error_detail>.`
+* Args:
+  - `value`: Offending "ignore" value.
+  - `error_detail`: Specific details about the error.
+
 ### bad_inline
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#bad_inline`
 * Code: `400 Bad Request`
-* Subject: `<request path>`
-* Title: `An error was found in inline value (<inline_value>): <error_detail>.`
+* Subject: `<request_path>`
+* Title: `An error was found in "inline" value (<value>): <error_detail>.`
 * Args:
-  - `inline_value`: Offending "inline" value.
+  - `value`: Offending "inline" value.
+  - `error_detail`: Specific details about the error.
 
 ### bad_request
 
@@ -4072,10 +4087,11 @@ field is just a substitution value and MUST NOT be empty.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#bad_sort`
 * Code: `400 Bad Request`
-* Subject: `<request path>`
-* Title: `An error was found in sort value (<sort_value>): <error_detail>.`
+* Subject: `<request_path>`
+* Title: `An error was found in "sort" value (<value>): <error_detail>.`
 * Args:
-  - `sort_value`: Offending "inline" value.
+  - `value`: Offending "sort" value.
+  - `error_detail`: Specific details about the error.
 
 ### cannot_doc_xref
 
@@ -4136,10 +4152,10 @@ field is just a substitution value and MUST NOT be empty.
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#compatibility_violation`
 * Code: `400 Bad Request`
 * Subject: `<resource_xid>`
-* Title: `The request would cause one or more Versions of "<subject>" to violate its compatibility rule (<compatibility_value>).`
+* Title: `The request would cause one or more Versions of "<subject>" to violate its compatibility rule (<value>).`
 * Detail: Suggestion: list of `versionid` values that would be in violation.
 * Args:
-  - `compatibility_value`: The Resource's `meta.compatibility` value.
+  - `value`: The Resource's `meta.compatibility` value.
 
 ### data_retrieval_error
 
@@ -4397,6 +4413,18 @@ something unexpected happened in the server that caused an error condition.
 * Args:
   - `name`: The name of the attribute in question.
 
+### unknown_group_type
+
+Attempts to reference an unknown Group type MUST generate an error
+([unknown_group_type](#unknown_group_type)).
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#unknown_group_type`
+* Code: `400 Bad Request`
+* Subject: `<entity_xid>`
+* Title: `An unknown Group type (<name>) was specified in "<subject>".`
+* Args:
+  - `name`: The Group type name that cannot be found.
+
 ### unknown_id
 
 See [not_found](#not_found) as well.
@@ -4408,6 +4436,19 @@ See [not_found](#not_found) as well.
 * Args:
   - `singular`: The "singular" name of the type of entity being processed.
   - `id`: The ID of the entity that cannot be found.
+
+### unknown_resource_type
+
+Attempts to reference an unknown Resource type MUST generate an error
+([unknown_resource_type](#unknown_resource_type)).
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#unknown_resource_type`
+* Code: `400 Bad Request`
+* Subject: `<entity_xid>`
+* Title: `An unknown Resource type (<name>) was specified for Group type "<group>".`
+* Args:
+  - `group`: The Group type name under which the Resource was expected.
+  - `name`: The Resource type name that cannot be found.
 
 ### unsupported_specversion
 
