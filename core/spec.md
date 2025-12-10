@@ -3656,8 +3656,12 @@ message to ignore. This specification defines the following values:
 
 - `readonly`
 
-  This value indicates that any attempt to modify a read-only entity MUST be
-  silently ignored.
+  This value indicates that any attempt to modify a read-only Resource, or one
+  of its Versions, MUST be silently ignored.
+
+  Based on the protocol binding being used, some special processing or changes
+  to the expected output might occur when this flag is used. Each protocol
+  binding specification will provide details about any of those situations.
 
 Implementations MAY defined additional values.
 
