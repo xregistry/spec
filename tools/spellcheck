@@ -15,10 +15,21 @@ for f in $* ; do
     sort -iu | \
     grep "^[a-z]" | \
     grep -v "[0-9]" > specwords
-  sort -u tools/words tools/dict > words
+
+  touch tmpwords
+  grep '<!-- words:' < $f > tmpdict || true
+  if [[ -s tmpdict ]]; then
+    cat tmpdict | sed "s/^.*: *//" | sed "s/ *-->.*//" | \
+      tr -s ' ' '\n' | tr '[:upper:]' '[:lower:]' |
+      while read w ; do
+        echo $w >> tmpwords
+      done
+  fi
+
+  sort -u tmpwords tools/words tools/dict > words
   comm -23 specwords words > extra
   wc -l extra | grep "^0 extra" > /dev/null || \
 	( echo -e "\nMISSPELLED (add to 'tools/dict'?):" ; cat extra ; exit 1 )
-  rm specwords words extra
+  rm specwords words extra tmpdict tmpwords
 
 done

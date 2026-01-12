@@ -3079,7 +3079,7 @@ Where:
 - The `?ignore` query parameter MAY be specified more than once.
 
 A value of `readonly` might cause some of the APIs to return slightly different
-result from what their definitions specify. This is necessary to avoid
+results from what their definitions specify. This is necessary to avoid
 misleading the client with incorrect information while still adhering to the
 goal of "not failing the request due to a Resource being read-only".
 Assuming there are no error conditions during the processing of the request

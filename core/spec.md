@@ -2106,13 +2106,13 @@ the Resource.
 
 The Resource entity serves three purposes:
 
-1 - It represents the collection of historical Versions of the data being
+1.  It represents the collection of historical Versions of the data being
     managed. This is true even if the Resource type is defined to not use
     versioning, meaning the number of Versions allowed is just one. The
     Versions will appear as nested xRegistry collection  under the `versions`
     attribute.
 
-2 - It acts as an alias for the "default" Version of the Resource. This means
+2.  It acts as an alias for the "default" Version of the Resource. This means
     that any operation (read or write) that deals with attributes exposed via
     the Resource, but are inherited from the "default" Version, MUST
     act upon that Version's corresponding attribute. See
@@ -2122,7 +2122,7 @@ The Resource entity serves three purposes:
     and [Version Entity](#version-entity) for additional semantics that apply
     to write operations on Resources.
 
-3 - It has a set of attributes for Resource-level metadata - data that is not
+3.  It has a set of attributes for Resource-level metadata - data that is not
     specific to one Version of the Resource but instead applies to the
     Resource in general. Most of these attributes appear under a
     [`meta` entity](#meta-entity) so as to keep them separate
@@ -2298,26 +2298,101 @@ Resources and Versions:
   [SetDefaultVersionID Flag](#setdefaultversionid-flag) is RECOMMENDED. See
   [Default Version of a Resource](#default-version-of-a-resource) for more
   information.
-- A create operation that results in a Resource not having any Versions MUST
-  generate an error ([missing_versions](#missing_versions)) since
-  a Resource with no Versions would immediately delete that Resource.
-- When a write operation includes a `versionid` attribute, but it does not
-  match the existing "default" Version's `versionid` (after any necessary
-  processing of the `defaultversionid` attribute), then an error
-  ([mismatched_id](./spec.md#mismatched_id)) MUST be generated. Also see
-  [Default Version of a Resource](#default-version-of-a-resource).
-- If the `versionid` attribute is present while creating a new Resource, but
-  a `versions` collection is not included, rather than the server generating
-  the `versionid` of the newly created "default" Version, the server MUST use
-  the passed-in `versionid` attribute value. This is done as a convenience
-  for clients to avoid them having to include a `versions` collection just
-  to set the initial default Version's `versionid`. In other words, when
-  the `versions` collection is absent on a create, but `versionid` is
-  present, there is an implied `"versions": { "<VID>": {} }` (where `<VID>`
-  is the `versionid` value).
 
-When the xRegistry metadata is serialized as a JSON object, the processing
-of the 3 Version-level `<RESOURCE>*` attributes MUST follow these rules:
+The following sections go into more details about the processing of requests
+to create/update Resources and Versions.
+
+##### Resource Processing Algorithm
+
+Processing of a request to create/update a Resource has many different aspects
+to consider. The following describes the general algorithm that servers are
+expected to follow. Implementations are not mandated to follow this exact
+sequence of actions but the net semantic results MUST be adhered to.
+
+Users of Registries will most likely not need to understand all of the details
+mentioned in this section. Additionally, users are encouraged to limit
+themselves to operations that modify one entity at a time whenever possible to
+keep the interactions simple (e.g. operate on single Versions directly rather
+than the entire `versions` collection in one request). Then operations that
+need the level of complexity detailed in this section would only be needed for
+"import" type of cases.
+
+For this discussion, it is assumed that some variant of the Resource's JSON
+is present in a write operation request, as shown in the following abbreviated
+JSON serialization:
+
+```yaml
+{
+  "<RESOURCE>id": "<STRING>",
+  "versionid": "<STRING>",
+  "epoch": <UINTEGER>,
+  "isdefault": true,
+  ... other default Version attributes ...
+
+  "meta": {
+    "<RESOURCE>id": "<STRING>",
+    "xref": "<XID>",
+    "epoch": <UINTEGER>,
+    "defaultversionid": "<STRING>",
+    "defaultversionsticky": <BOOLEAN>
+    ... other meta-level attributes ...
+  },
+
+  "versions": { ... map of Versions ... }
+}
+```
+
+Notice that the serialization can be broken into 3 distinct parts:
+- The Resource's default Version attributes.
+- The `meta` sub-object.
+- The `versions` collection of Resource Versions.
+
+The overall processing of the request message is as follows:
+
+1.  Process the Versions in the `versions` collection, if present.
+2.  Process the Resource's default Version attributes only if the default
+    Version is not present in the `versions` collection.
+3.  Update all Version's [`ancestor` values](#ancestor-attribute) as needed,
+    based on the Resource's
+    [`versionmode`](./model.md#groupsstringresourcesstringversionmode) value.
+4.  Process the `meta` sub-object, if present.
+5.  Update [`meta.defaultversionid`](#defaultversionid-attribute) as needed.
+6.  Enforce the [Version compatibility checks](#compatibility-attribute).
+7.  Enforce the [Resource `maxversions`
+    constraints](./model.md#groupsstringresourcesstringmaxversions).
+
+The following provides additional details:
+
+- Implementation optimizations:
+  - Implementations MAY choose optimize the order in which the incoming
+    request's data is processed as long as the net semantic results are as
+    defined by this specification.
+  - For example:
+    - "fail-fast" error checking is RECOMMENDED.
+    - Determining if the resulting Resource has a non-empty `meta.xref` value
+      might allow for skipping unnecessary work.
+
+- Step 2 - Processing the Resource's default Version attributes:
+  - This step MUST use the Version referenced by `meta.defaultversionid` as
+    defined prior to the operation being processed.
+  - If the Resource is created as part of this operation then determining the
+    `versionid` to be used as "default" MUST adhere to the following:
+    - If a Resource `versionid` attribute is present in the request, then it
+      MUST be used.
+    - Otherwise, if `meta.defaultversionid` attribute is present in the
+      request, then it MUST be used. Also see
+      [SetDefaultVersionID Flag](#setdefaultversionid-flag).
+    - If neither are present, then the server MUST generate, and use, a new
+      [`versionid` value]((#version-ids).
+    - If a Version with the target default `versionid` does not exist then a
+      new Version with that `versionid` MUST be created.
+
+See [Resource Sample Updates](./resource.md) for examples.
+
+##### `<RESOURCE>*` Attribute Processing
+
+The processing of the 3 `<RESOURCE>*` attributes MUST follow these rules:
+
   - At most, only one of the 3 attributes MAY be present in the request, and
     the presence of any one of them MUST delete the other 2 attributes.
     Otherwise an error ([one_resource](#one_resource)) MUST be generated.
@@ -2458,7 +2533,9 @@ Resource, the following MUST be adhered to:
   check) only if the Resource already exists.
 - The request MUST NOT include nested collections or any other attributes
   (for the Resource or its "meta" entity). This includes default Version
-  attributes within the Resource serialization.
+  attributes within the Resource serialization. Presence of these extra
+  attributes MUST generate an error
+  ([extra_xref_attribute](#extra_xref_attribute)).
 - If the Resource already exists, as a "normal" Resource, then any Versions
   associated with the Resource MUST be deleted.
 
@@ -2470,6 +2547,9 @@ following MUST be adhered to:
   request to set the default Version attributes. Absence of any attributes
   MUST result in a default Version being created with all attributes set
   to their default values. Note that normal Resource update semantics apply.
+  See [Creating or Updating Resources and
+  Versions](#creating-or-updating-resources-and-versions) for more
+  information.
 - When not specified in the request, the Resource's `meta.createdat` value
   MUST be reset to the timestamp of when this source Resource was originally
   created.
@@ -2707,15 +2787,52 @@ and the following Meta-level attributes:
 - Type: String
 - Description: the `versionid` of the default Version of the Resource.
   This specification makes no statement as to the format of this string or
-  versioning scheme used by implementations of this specification. However, it
-  is assumed that newer Versions of a Resource will have a "higher"
-  value than older Versions.
+  versioning scheme used by implementations of this specification, other than
+  it MUST be a valid [`id` Attribute](#singularid-id-attribute).  However, it
+  is assumed that newer Versions of a Resource will have a "higher" value than
+  older Versions.
 
 - Constraints:
   - REQUIRED.
   - MUST be the `versionid` of the default Version of the Resource.
-  - See the [`defaultversionsticky` Attribute](#defaultversionsticky-attribute)
-    below for how to process these two attributes.
+
+When a "patch" type of operation is used and this attribute is present in the
+request but `defaultversionsticky` is absent, then:
+  - A non-`null` value MUST set `defaultversionsticky` to `true`.
+  - A `null` value MUST set `defaultversionsticky` to `false`.
+
+At the end of an update operation, this attribute MUST be set according to the
+[`versionmode`](./model.md#groupsstringresourcesstringversionmode) value
+of the Resource in any of the following situations:
+- The resulting `defaultversionsticky` value is `false`.
+- The processing fully replaced the `meta` sub-object and the request included
+  `defaultversionsticky` with a value of `true`, but no `defaultversionid` was
+  provided.
+- The processing patched the `meta` sub-object and the request modified
+  `defaultversionsticky` from `false` to `true`, but no `defaultversionid`
+  was provided.
+
+Regardless of the reason for `defaultversionid` or `defaultversionsticky`
+being modified, those changes alone MUST NOT change any attributes in any
+Version of the owning Resource. For example, attributes such as `modifiedat`
+and `epoch` of the previous or current default Version remain unchanged.
+However, the Resource's `meta` sub-object's `modifiedat` and `epoch` attributes
+MUST be updated.
+
+For clarity, when the processing a request that results in
+`defaultversionsticky` being `false`, then any existing `defaultversionid`
+value, or value specified in the request, MUST be ignored for the purpose of
+setting its final value.
+
+Any attempt to set `defaultversionid` to a non-existing Version, after all
+Version processing for the current operation is completed, MUST generate an
+error ([unknown_id](#unknown_id)).
+
+See [`defaultversionsticky` Attribute](#defaultversionsticky-attribute) below
+for the relationship between these two attribute.
+
+See [Default Version of a Resource](#default-version-of-a-resource) for more
+information about the management of default Versions.
 
 - Examples:
   - `1`, `2.0`, `v3-rc1` (v3's release candidate 1)
@@ -2750,21 +2867,11 @@ and the following Meta-level attributes:
 
 #### `defaultversionsticky` Attribute
 - Type: Boolean
-- Description: indicates whether or not the "default" Version has been
-  explicitly set or whether the "default" Version is always set to the newest
-  one (based on the Resource's
-  [`versionmode`](./model.md#groupsstringresourcesstringversionmode)
-  algorithm). A value of `true` means that it has been explicitly set and the
-  value of `defaultversionid` MUST NOT automatically change if other Versions
+- Description: A value of `true` means that `defaultversionid` has been
+  explicitly set and its value MUST NOT automatically change if other Versions
   are added or removed. A value of `false` means the default Version MUST be
   the newest Version, as defined by the Resource's
   [`versionmode`](./model.md#groupsstringresourcesstringversionmode) algorithm.
-
-  When set to `true`, if the default Version is deleted, then without any
-  indication of which Version is to become the new default Version, the
-  sticky aspect MUST be disabled and the default Version MUST be the newest
-  Version. See [Default Version of a Resource](#default-version-of-a-resource)
-  for more information.
 
 - Constraints:
   - REQUIRED.
@@ -2772,30 +2879,12 @@ and the following Meta-level attributes:
   - When specified, it MUST be a case-sensitive `true` or `false`.
   - When specified in a request, a value of `null` MUST be interpreted as a
     request to delete the attribute, implicitly setting it to `false`.
-  - The processing of the `defaultversionsticky` and `defaultversionid`
-    attributes are related, and is described as follows:
-    - When a "patch" type of operation is used but only one of the two
-      attributes is specified in the request, then:
-      - A non-`null` `defaultversionid` MUST result in processing as if
-        `defaultversionsticky` has a value of `true`.
-      - A `null` `defaultversionid` MUST result in processing as if
-        `defaultversionsticky` has a value of `false`.
-      - A `null` or `false` `defaultversionsticky` MUST result in processing
-        as if `defaultversionid` has a value of `null`.
-    - When a full replaced type of operation is used:
-      - A `null` or absent `defaultversionid` in the request MUST result in the
-        same semantics as it referencing "the newest Version".
-      - A `null` or absent `defaultversionsticky` in the request MUST result in
-        the same semantics as it being set to `false`.
-      - A `defaultversionid` referencing a non-existing Version MUST generate
-        an error ([unknown_id](#unknown_id)).
-      - If `defaultversionsticky` is `false` and `defaultversionid` does not
-        reference the newest Version then an error
-        ([wrong_defaultversionid](#wrong_defaultversionid)) MUST be generated,
-        as this would result in an inconsistent state.
-      - For clarity, if the net result of the processing is that the sticky
-        feature is turned off, then the `defaultversionid` MUST reference the
-        newest Version.
+
+See [`defaultversionid` Attribute](#defaultversionid-attribute) for more
+information on the relationship between these two attributes.
+
+See [Default Version of a Resource](#default-version-of-a-resource) for more
+information about the management of default Versions.
 
 - Examples:
   - `true`, `false`
@@ -2891,6 +2980,10 @@ and the following Version-level attributes:
   - REQUIRED in API and document views.
   - MUST NOT use a value of `null` or `request` due to these being reserved
     for use by the [SetDefaultVersionID Flag](#setdefaultversionid-flag).
+  - If present in a request operation's serialization of a Resource's default
+    Version attributes, then it MUST match the Resource's current
+    `meta.defaultversionid` value (if defined), otherwise an error
+    ([mismatched_id](./spec.md#mismatched_id)) MUST be generated.
 
 - Examples:
   - `1.0`
@@ -2934,9 +3027,8 @@ and the following Version-level attributes:
 
   If a create operation asks the server to choose the `versionid` when
   creating a root Version, the `versionid` is not yet known and therefore
-  cannot be assigned the value in the `ancestor` attribute. In those cases a
-  value of `request` MUST be used as a way to reference the Version being
-  processed in the current request.
+  cannot be specified in the `ancestor` attribute as part of the request. In
+  those cases a value of `request` MUST be used as a way to reference itself.
 
 - Constraints:
   - REQUIRED.
@@ -2952,7 +3044,9 @@ and the following Version-level attributes:
     MUST generate an error ([unknown_id](#unknown_id)).
   - For clarity, any modification to the `ancestor` attribute MUST result in
     the owning Version's `epoch` and `modifiedat` attributes be updated
-    appropriately.
+    appropriately, regardless of whether the change to `ancestor` was
+    explicitly part of a request or indirectly changed due to changes to other
+    Versions.
 
 #### `contenttype` Attribute
 - Type: String
@@ -3073,7 +3167,7 @@ If a server does not support client-side specification of the `versionid` of a
 new Version (see the
 [`setversionid` aspect](./model.md#groupsstringresourcesstringsetversionid)
 in the [Registry Model](./model.md#registry-model)), or if a client chooses to
-not specify the `versionid`, then the server MUST assign new Version an
+not specify the `versionid`, then the server MUST assign new Versions a
 `versionid` that is unique within the scope of its owning Resource.
 
 Servers MAY have their own algorithm for the creation of new Version
@@ -3100,45 +3194,32 @@ As Versions of a Resource are added or removed, there needs to be a mechanism
 by which the "default" one is determined. There are two options for how this
 might be done:
 
-1. Newest = Default. The newest Version (based on the Resource's
+1. Default = Newest. The newest Version (based on the Resource's
    [`versionmode`](./model.md#groupsstringresourcesstringversionmode)
-   algorithm) MUST be the "default" Version. This is the default choice.
+   algorithm) MUST become the "default" Version. This is the default choice.
 
 1. Client explicitly chooses the "default". In this option, a client has
-   explicitly chosen which Version is the "default" and it will not change
-   until a client chooses another Version, or that Version is deleted (in
-   which case the server MUST revert back to option 1 (newest = default), if
-   the client did not use the
-   [SetDefaultVersionID](#setdefaultversionid-flag) to choose the next
-   "default" Version - see below). This is referred to as the default Version
-   being "sticky" as it will not change until explicitly requested by a client.
+   explicitly chosen which Version is the "default" and it MUST NOT change
+   until a client chooses another Version - this is referred to as the default
+   Version being "sticky". When the current default Version is deleted and
+   the client did not specify which Version is to become the next default
+   Version (see below), then the server MUST revert back to option 1
+   (default = newest).
 
-If supported (as determined by the
-[`setdefaultversionsticky` aspect](./model.md#groupsstringresourcesstringsetdefaultversionsticky),
+If supported (as determined by the [`setdefaultversionsticky`
+aspect](./model.md#groupsstringresourcesstringsetdefaultversionsticky),
 a client MAY choose the "default" Version two ways:
 1. Via the Resource
    [ `defaultversionsticky`](#defaultversionsticky-attribute) and
    [ `defaultversionid`](#defaultversionid-attribute) attributes
-   in its `meta` entity.
+   in its `meta` sub-object.
 2. Via the
-   [SetDefaultVersionID Flag](#setdefaultversionid-flag)that is available on
+   [SetDefaultVersionID Flag](#setdefaultversionid-flag) that is available on
    certain APIs.
 
-Updating a Resource's `defaultversionid`, regardless of the mechanism used to
-do so, MUST adhere to the following rules:
-- Aside from the special values of `null` and `request`, its value MUST be
-  the `versionid` of a Version for the specified Resource after all Version
-  processing is completed (i.e. after any Versions are added or removed). Its
-  value is not limited to the Versions involved in the current operation.
-- When the operation also involves updating a Resource's "default" Version's
-  attributes, the update to the default Version ID/pointer MUST be done before
-  the attributes are updated. In other words, the Version updated is the new
-  default Version, not the old one.
-- Choosing a new default Version for a Resource MUST NOT change any attributes
-  in any Resource's Versions, for example, attributes such as `modifiedat`
-  remain unchanged.
-- And for clarity, the Resource's `meta` entity's `epoch` and `modifiedat`
-  attributes MUST be updated.
+See [`defaultversionid`](#defaultversionid-attribute) and
+[`defaultversionsticky`](#defaultversionsticky-attribute) attributes for more
+information.
 
 ### Deleting Entities
 
@@ -3780,22 +3861,24 @@ type of feature to iteratively retrieve the entities.
 ### SetDefaultVersionID Flag
 
 The `setdefaultversionid` flag MAY be used on any write operation directed to
-a Resource or Version where a Version is created, delete or updated but
-access to the `meta.defaultversionid` attribute is not available via that
-operation. This is to allow for the update to the Resource/Version to happen
-along with the change to the `defaultversionid` within the same operation.
-Without this ability there might be times where the default Version of the
-Resource could (temporarily) be pointing to the wrong Version.
+a single Resource, its `meta` sub-object or its Versions. The primary use case
+is one in which the current default Version is being deleted and the client
+wishes to choose a new default Version at the same time - to avoid an incorrect
+one being chosen temporarily.
+
+Use of this flag on an operation that allows for modifying multiple Resources
+MUST generate an error ([bad_flag](#bad_flag)).
 
 This flag MUST include a single parameter, a string containing the `versionid`
 of the Version that is to become the new default Version.
 
 The following rules apply:
 - A value of `null` indicates that the client wishes to switch to the
-  "newest = default" algorithm, in other words, the "sticky" aspect of the
-  current default Version will be removed.
+  ["default = newest" algorithm](#default-version-of-a-resource), in other
+  words, the "sticky" aspect of the current default Version will be removed
+  and `meta.defaultversionsticky` MUST be set to `false`.
 - If during a Version create operation the server is asked to choose the
-  `versionid` value fot the new Version, then including that value as the
+  `versionid` value for the new Version, then including that value as the
   `setdefaultversionid` value is not possible. In those cases a value of
   `request` MAY be used as a way to reference that new Version.
 - If `request` is used as a value, but more than one Version is modified in
@@ -3807,6 +3890,12 @@ The following rules apply:
 - If a non-`null` and non-`request` value does not reference an existing
   Version of the Resource, after all Version processing is completed, then an
   error ([unknown_id](#unknown_id)) MUST be generated.
+- Setting the `meta.defaultversionid` via this flag MUST also set the
+  `meta.defaultversionsticky` attribute to `true`.
+- Use on a request that updates more than one Resource MUST generate an
+  error ([bad_flag](#bad_flag)).
+- Use of this flag MUST override any `meta.defaultversionid` and
+  `meta.defaultversionsticky` value that is present in the request.
 
 Any use of this flag on a Resource that has the
 `setdefaultversionsticky` aspect set to `false` MUST generate an error
@@ -4176,6 +4265,15 @@ field is just a substitution value and MUST NOT be empty.
 * Subject: `<resource_xid>`
 * Title: `Processing "<subject>", the "defaultversionid" attribute is not allowed to be "request" since a Version wasn't processed.`
 
+### extra_xref_attribute
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#extra_xref_attribute`
+* Code: `400 Bad Request`
+* Subject: `<resource_xid>`
+* Title: `Attribute "<name>" is not allowed to be present since the Resource (<subject>) uses "xref".`
+* Args:
+  - `name`: The name of the attribute in question.
+
 ### groups_only
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#groups_only`
@@ -4261,13 +4359,6 @@ field is just a substitution value and MUST NOT be empty.
 * Code: `400 Bad Request`
 * Subject: `<entity_xid>`
 * Title: `The specified "epoch" value for "<subject>" needs to be within a "meta" entity.`
-
-### missing_versions
-
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#missing_versions`
-* Code: `400 Bad Request`
-* Subject: `<entity_xid>`
-* Title: `At least one Version needs to be included in the request to process "<subject>".`
 
 ### model_compliance_error
 
@@ -4472,13 +4563,6 @@ Attempts to reference an unknown Resource type MUST generate an error
 * Title: `While creating a new Version for "<subject>", a "versionid" was specified but the "setversionid" model aspect for entities of type "<plural>" is "false".`
 * Args:
   - `plural`: The "plural" type name of the owning Resource.
-
-### wrong_defaultversionid
-
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#wrong_defaultversionid`
-* Code: `400 Bad Request`
-* Title: `For "<subject>", the "defaultversionid" needs to be "<id>" since "defaultversionsticky" is "false".`
-* Subject: `<resource_xid>`
 
 <!-- end-err-def -->
 
