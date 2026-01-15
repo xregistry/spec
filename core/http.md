@@ -3086,12 +3086,14 @@ Assuming there are no error conditions during the processing of the request
 message, the following rules MUST be followed with respect to how to manage
 these cases:
 
-- Requests to create/modify a single read-only entity, that would normally
-  return the serialization of that single entity in the response, MUST either:
-  - If the entity exists, return an HTTP `200 OK` plus the same message as if
-    an HTTP `GET` were sent to that unmodified entity.
-  - If the entity doesn't exist, return an HTTP `204 No Content` plus an
-    empty body in the response body, and no `xRegistry-` HTTP headers.
+- Requests to create a read-only Resource that fails to do so solely due to
+  the read-only aspect of the Resource, MUST return an HTTP `204 No Content`
+  plus an empty body in the response, and no `xRegistry-` HTTP headers.
+
+- Requests to modify a single read-only entity, that would normally return the
+  serialization of that single entity in the response, MUST return an HTTP
+  `200 OK` plus the same message as if an HTTP `GET` were sent to that
+  unmodified entity.
 
 - Requests to modify a collection that contains a read-only entity, or a
   mutable entity that contains a read-only entity in a child collection, MUST
