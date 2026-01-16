@@ -3737,12 +3737,22 @@ message to ignore. This specification defines the following values:
 
 - `readonly`
 
-  This value indicates that any attempt to modify a read-only Resource, or one
-  of its Versions, MUST be silently ignored.
+  This value indicates that any attempt to modify a read-only Resource MUST be
+  silently ignored as if the Resource in question was never included in the
+  request. Usage of this value in situations where removing the Resource from
+  the request would invalidate the syntax or semantics of the request MUST
+  generate an error ([bad_flag](#bad_flag)).
 
-  Based on the protocol binding being used, some special processing or changes
-  to the expected output might occur when this flag is used. Each protocol
-  binding specification will provide details about any of those situations.
+  To clarify its usage consider the following scenarios:
+  - An update or delete request with `ignore` set to `readonly` directed to an
+    individual read-only Resource would generate an error because removing
+    the Resource from the request invalidates the validity of the request.
+  - An update or delete request with `ignore` set to `readonly` directed to a
+    Resource collection would ignore the read-only Resources referenced in the
+    collection map (conceptually removing them from the request), and the
+    request would still be valid (syntactically and semantically), even if the
+    resulting map is empty. The request would not generate an error due to the
+    usage of this flag.
 
 Implementations MAY defined additional values.
 

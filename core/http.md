@@ -3078,36 +3078,6 @@ Where:
 - No value, or an empty string, is an alias for `*`.
 - The `?ignore` query parameter MAY be specified more than once.
 
-A value of `readonly` might cause some of the APIs to return slightly different
-results from what their definitions specify. This is necessary to avoid
-misleading the client with incorrect information while still adhering to the
-goal of "not failing the request due to a Resource being read-only".
-Assuming there are no error conditions during the processing of the request
-message, the following rules MUST be followed with respect to how to manage
-these cases:
-
-- Requests to create a read-only Resource that fails to do so solely due to
-  the read-only aspect of the Resource, MUST return an HTTP `204 No Content`
-  plus an empty body in the response, and no `xRegistry-` HTTP headers.
-
-- Requests to modify a single read-only entity, that would normally return the
-  serialization of that single entity in the response, MUST return an HTTP
-  `200 OK` plus the same message as if an HTTP `GET` were sent to that
-  unmodified entity.
-
-- Requests to modify a collection that contains a read-only entity, or a
-  mutable entity that contains a read-only entity in a child collection, MUST
-  ignore the read-only entity and process the request as if it didn't appear
-  in the request at all.
-
-- Delete requests targeted to a single read-only entity MUST either:
-  - If the entity exists, return an HTTP `200 OK` with the response containing
-    the same message as if an HTTP `GET` were sent to that unchanged entity.
-  - If the entity doesn't exist, then follow the normal processing rules.
-
-- Delete requests targeted to a collection MUST ignore the read-only entities
-  and process the request as if they didn't appear in the request at all.
-
 ### `?inline` Flag
 
 A server MAY support the `?inline` query parameter on any request to indicate

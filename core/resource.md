@@ -1,26 +1,45 @@
-
-
-<!-- Unused, but if we ever figure out how to do it, use these -->
-<!--
-<style type="text/css">
-   table { border-collapse: collapse ; }
-  th, td { border : 1px solid #ccc ; padding : 5px ; }
-  tr:nth-child(odd) { background-color : #eeeeee ; }
-  code { background-color: lightgray ; }
-  pre code { background-color: inherit ; }
-</style>
--->
-
 # Resource Update Samples
 
-<!-- words: fileid valign lightgray css -->
+<!-- words: fileid valign cellborder cellpadding -->
 
-The following table shows a set of write operations that provide concrete
-examples of how the
-[Resource Processing Algorithm](./spec.md#resource-processing-algorithm)
-is applied based on the state of the Registry and the incoming request.
-They are meant to be read in order to avoid repeating the same commentary
-for each example.
+This document shows a set of write operations that provide concrete examples of
+how the [Resource Processing Algorithm](./spec.md#resource-processing-algorithm)
+is applied based on the state of the Registry and the incoming request.  They
+are meant to be read in order to avoid repeating the same commentary for each
+example.
+
+## Table of Contents
+
+- [The Setup](#the-setup)
+- [Create single Resource with empty content](#create-single-resource-with-empty-content)
+- [Create Resource via the "files" collection](#create-resource-via-the-files-collection)
+- [Create Resource with some Versions, no defaultversionid](#create-resource-with-some-versions-no-defaultversionid)
+- [Create Resource with Versions and defaultversionid](#create-resource-with-versions-and-defaultversionid)
+- [Create Resource with defaultversionid](#create-resource-with-defaultversionid)
+- [Create Resource with versionid and Versions](#create-resource-with-versionid-and-versions)
+- [Update Resource with new Versions and ne sticky default Version](#update-resource-with-new-versions-and-ne-sticky-default-version)
+- [Create Resource with Versions and sticky default Version](#create-resource-with-versions-and-sticky-default-version)
+- [Create Resource with versionid and defaultversionid](#create-resource-with-versionid-and-defaultversionid)
+- [Create Resource with sticky defaultversionid](#create-resource-with-sticky-defaultversionid)
+- [Update Resource with non-sticky bad defaultversionid](#update-resource-with-non-sticky-bad-defaultversionid)
+- [Update Resource with sticky non-specified defaultversionid](#update-resource-with-sticky-non-specified-defaultversionid)
+- [Patch Resource with Versions and defaultversionsticky](#patch-resource-with-versions-and-defaultversionsticky)
+- [Update Resource with empty content](#update-resource-with-empty-content)
+- [Patch new Resource with empty content](#patch-new-resource-with-empty-content)
+- [Update Resource with new description](#update-resource-with-new-description)
+- [Patch Resource's description field](#patch-resources-description-field)
+- [Update Resource with non-specified defaultversionsticky](#update-resource-with-non-specified-defaultversionsticky)
+- [Patch Resource with defaultversionsticky](#patch-resource-with-defaultversionsticky)
+- [Patch Resource with sticky defaultversionid](#patch-resource-with-sticky-defaultversionid)
+- [Patch Resource with bad defaultversionid](#patch-resource-with-bad-defaultversionid)
+- [Update Resource with bad sticky defaultversionid](#update-resource-with-bad-sticky-defaultversionid)
+- [Update Resource with non-specified sticky default Version](#update-resource-with-non-specified-sticky-default-version)
+- [Create Resource with conflicting default Version attributes - variant 1](#create-resource-with-conflicting-default-version-attributes---variant-1)
+- [Create Resource with conflicting default Version attributes - variant 2](#create-resource-with-conflicting-default-version-attributes---variant-2)
+- [Create Resource with conflicting default Version attributes - variant 3](#create-resource-with-conflicting-default-version-attributes---variant-3)
+
+
+### The Setup
 
 Each example:
 - Only includes the key attributes that are important from an "understanding"
@@ -48,24 +67,17 @@ Each example:
         }
 ```
 
-<table border=1>
-  <tr>
-   <th>Start State</th>
-   <th>Request</th>
-   <th>End State</th>
-  </tr>
+### Create single Resource with empty content
 
-  <!-- ----------------------------------------------------------------- -->
+<table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
 
-  <tr>
-   <td valign=top>
+**Initial State:**
 
 ```
 Empty
 ```
 
-</td>
-   <td valign=top>
+**Request:**
 
 ```
 PUT /dirs/d1/files/f1
@@ -73,8 +85,9 @@ PUT /dirs/d1/files/f1
 {}
 ```
 
-</td>
-  <td valign=top>
+</td><td valign=top>
+
+**Response:**
 
 ```
 {
@@ -99,7 +112,10 @@ PUT /dirs/d1/files/f1
 }
 ```
 
-Notes:
+</td></tr></table>
+
+**Notes:**
+
 - A new Resource `f1` is created.
 - A Version with a `versionid` of `1` is created per the default `versionid`
   naming algorithm defined in the specification. </li>
@@ -111,20 +127,21 @@ Notes:
 - Being the only Version, it is the default Version, and it is not "sticky".
 - Using `PATCH` instead of `PUT` will yield the exact same results.
 
-</td>
-  </tr>
+<hr>
 
-  <!-- ----------------------------------------------------------------- -->
+<!-- ----------------------------------------------------------------- -->
 
-  <tr>
-   <td valign=top>
+### Create Resource via the "files" collection
+
+<table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
+
+**Initial State:**
 
 ```
 Empty
 ```
 
-</td>
-   <td valign=top>
+**Request:**
 
 ```
 POST /dirs/d1/files
@@ -136,8 +153,9 @@ POST /dirs/d1/files
 }
 ```
 
-</td>
-   <td valign=top>
+</td><td valign=top>
+
+**Response:**
 
 ```
 {
@@ -165,27 +183,30 @@ POST /dirs/d1/files
 }
 ```
 
-Notes:
+</td></tr></table>
+
+**Notes:**
+
 - Similar to previous example, but creating the Resource via the owning
   Group's `files` collection.
 - The default Version properties include `name`, so that will appear both at
   the Resource level and within the Version in the `versions` collection.
 
-</td>
-  </tr>
+<hr>
 
+<!-- ----------------------------------------------------------------- -->
 
-  <!-- ----------------------------------------------------------------- -->
+### Create Resource with some Versions, no defaultversionid
 
-  <tr>
-   <td valign=top>
+<table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
+
+**Initial State:**
 
 ```
 Empty
 ```
 
-</td>
-   <td valign=top>
+**Request:**
 
 ```
 PUT /dirs/d1/files/f1
@@ -199,8 +220,9 @@ PUT /dirs/d1/files/f1
 }
 ```
 
-</td>
-   <td valign=top>
+</td><td valign=top>
+
+**Response:**
 
 ```
 {
@@ -238,7 +260,10 @@ PUT /dirs/d1/files/f1
 }
 ```
 
-Notes:
+</td></tr></table>
+
+**Notes:**
+
 - After creating the Resource, `f1`, Versions `v1` and `v2` are created.
 - Then, Version `1` is created from the Resource's default Version attributes
   (including `name`) due to no indication as to what its `versionid` is -
@@ -251,20 +276,21 @@ Notes:
 - Ancestor order: `1` <- `v1` <- `v2`.
 - Using `PATCH` would yield the exact same results.
 
-</td>
-  </tr>
+<hr>
 
-  <!-- ----------------------------------------------------------------- -->
+<!-- ----------------------------------------------------------------- -->
 
-  <tr>
-   <td valign=top>
+### Create Resource with Versions and defaultversionid
+
+<table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
+
+**Initial State:**
 
 ```
 Empty
 ```
 
-</td>
-   <td valign=top>
+**Request:**
 
 ```
 PUT /dirs/d1/files/f1
@@ -284,11 +310,11 @@ PUT /dirs/d1/files/f1
     "v3": {}
   }
 }
-
 ```
 
-</td>
-   <td valign=top>
+</td><td valign=top>
+
+**Response:**
 
 ```
 {
@@ -325,7 +351,10 @@ PUT /dirs/d1/files/f1
 }
 ```
 
-Notes:
+</td></tr></table>
+
+**Notes:**
+
 - No version `1` is created because we used `meta.defaultversionid` as a clue
   that Resource.* attributes are for `v1`.
 - Resource.* attributes (eg `name`) is ignored because `v1` is part of the
@@ -333,20 +362,21 @@ Notes:
 - Ancestor order: `v1`(2020) <- `v3` (now) <- `v2` (3030).
 - Version `v2` is default because it has the newest `createdat` timestamp.
 
-</td>
-  </tr>
+<hr>
 
-  <!-- ----------------------------------------------------------------- -->
+<!-- ----------------------------------------------------------------- -->
 
-  <tr>
-   <td valign=top>
+### Create Resource with defaultversionid
+
+<table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
+
+**Initial State:**
 
 ```
 Empty
 ```
 
-</td>
-   <td valign=top>
+**Request:**
 
 ```
 PUT /dirs/d1/files/f1
@@ -357,11 +387,11 @@ PUT /dirs/d1/files/f1
     "defaultversionid": "v1"
   }
 }
-
 ```
 
-</td>
-   <td valign=top>
+</td><td valign=top>
+
+**Response:**
 
 ```
 {
@@ -387,25 +417,29 @@ PUT /dirs/d1/files/f1
 }
 ```
 
-Notes:
+</td></tr></table>
+
+**Notes:**
+
 - Version `v1` is created due to `meta.defaultversionid` being set.
 - Since `v1` isn't part of the request's `versions` collection, the Resource.*
   attributes will be applied.
 
-</td>
-  </tr>
+<hr>
 
-  <!-- ----------------------------------------------------------------- -->
+<!-- ----------------------------------------------------------------- -->
 
-  <tr>
-   <td valign=top>
+### Create Resource with versionid and Versions
+
+<table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
+
+**Initial State:**
 
 ```
 Empty
 ```
 
-</td>
-   <td valign=top>
+**Request:**
 
 ```
 PUT /dirs/d1/files/f1
@@ -422,8 +456,9 @@ PUT /dirs/d1/files/f1
 }
 ```
 
-</td>
-   <td valign=top>
+</td><td valign=top>
+
+**Response:**
 
 ```
 {
@@ -461,17 +496,22 @@ PUT /dirs/d1/files/f1
 }
 ```
 
-Notes:
+</td></tr></table>
+
+**Notes:**
+
 - Version `v0` is created because it is not present in `versions`.
 - Ancestor order: `v1` (2020) <- `v0` (now) <- `v2` (now).
 
-</td>
-  </tr>
+<hr>
 
-  <!-- ----------------------------------------------------------------- -->
+<!-- ----------------------------------------------------------------- -->
 
-  <tr>
-   <td valign=top>
+### Update Resource with new Versions and ne sticky default Version
+
+<table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
+
+**Initial State:**
 
 ```
 {
@@ -497,8 +537,7 @@ Notes:
 }
 ```
 
-</td>
-   <td valign=top>
+**Request:**
 
 ```
 PUT /dirs/d1/files/f1
@@ -516,11 +555,11 @@ PUT /dirs/d1/files/f1
     "v2": {}
   }
 }
-
 ```
 
-</td>
-   <td valign=top>
+</td><td valign=top>
+
+**Response:**
 
 ```
 {
@@ -558,7 +597,10 @@ PUT /dirs/d1/files/f1
 }
 ```
 
-Notes:
+</td></tr></table>
+
+**Notes:**
+
 - Version `v0` (the current default Version) is updated with the
   Resource.* attributes. Notice that `versionid` is not present in the request
   and that it isn't needed as a "clue" because the Resource already exists
@@ -568,20 +610,21 @@ Notes:
   Version due to `defaultversionsticky` being `true`.
 - Ancestor order: `v1` (2020) <- `v0` (2021) <- `v2` (now).
 
-</td>
-  </tr>
+<hr>
 
-  <!-- ----------------------------------------------------------------- -->
+<!-- ----------------------------------------------------------------- -->
 
-  <tr>
-   <td valign=top>
+### Create Resource with Versions and sticky default Version
+
+<table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
+
+**Initial State:**
 
 ```
 Empty
 ```
 
-</td>
-   <td valign=top>
+**Request:**
 
 ```
 PUT /dirs/d1/files/f1
@@ -600,11 +643,11 @@ PUT /dirs/d1/files/f1
     "v2": {}
   }
 }
-
 ```
 
-</td>
-   <td valign=top>
+</td><td valign=top>
+
+**Response:**
 
 ```
 {
@@ -642,7 +685,10 @@ PUT /dirs/d1/files/f1
 }
 ```
 
-Notes:
+</td></tr></table>
+
+**Notes:**
+
 - In this case `versionid` at the Resource level is needed to ensure that
   the current default Version is `v0` and that it is created.
 - Notice that the 2 potential "clues" (`versionid` and `meta.defaultversionid`)
@@ -653,20 +699,21 @@ Notes:
   (same) net result.
 - Ancestor order: `v1` (2020) <- `v0` (now) <- `v2` (now).
 
-</td>
-  </tr>
+<hr>
 
-  <!-- ----------------------------------------------------------------- -->
+<!--  ----------------------------------------------------------------- -->
 
-  <tr>
-   <td valign=top>
+### Create Resource with versionid and defaultversionid
+
+<table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
+
+**Initial State:**
 
 ```
 Empty
 ```
 
-</td>
-   <td valign=top>
+**Request:**
 
 ```
 PUT /dirs/d1/files/f1
@@ -684,11 +731,11 @@ PUT /dirs/d1/files/f1
     "v2": {}
   }
 }
-
 ```
 
-</td>
-   <td valign=top>
+</td><td valign=top>
+
+**Response:**
 
 ```
 {
@@ -726,27 +773,31 @@ PUT /dirs/d1/files/f1
 }
 ```
 
-Notes:
+</td></tr></table>
+
+**Notes:**
+
 - Version `v0` is created due to the presence of `versionid`. Which means
   `meta.defaultversionid` is ignored for the purpose of determining the
   current default Version. However, it is also ignored when calculating the
   resulting default Version due to `defaultversionsticky` being `false`.
 - Ancestor order: `v1` (2020) <- `v0` (now) <- `v2` (now).
 
-</td>
-  </tr>
+<hr>
 
-  <!-- ----------------------------------------------------------------- -->
+<!--  ----------------------------------------------------------------- -->
 
-  <tr>
-   <td valign=top>
+### Create Resource with sticky defaultversionid
+
+<table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
+
+**Initial State:**
 
 ```
 Empty
 ```
 
-</td>
-   <td valign=top>
+**Request:**
 
 ```
 PUT /dirs/d1/files/f1
@@ -765,8 +816,9 @@ PUT /dirs/d1/files/f1
 }
 ```
 
-</td>
-   <td valign=top>
+</td><td valign=top>
+
+**Response:**
 
 ```
 {
@@ -795,20 +847,25 @@ PUT /dirs/d1/files/f1
     }
   }
 }
-
 ```
 
-Notes:
+</td></tr></table>
+
+**Notes:**
+
 - In this case since `versionid` is not present, `meta.defaultversionid` will
   be used as the "clue" for the current default Version.
+- And, Version v1 will be the default and it's sticky.
 
-</td>
-  </tr>
+<hr>
 
-  <!-- ----------------------------------------------------------------- -->
+<!--  ----------------------------------------------------------------- -->
 
-  <tr>
-   <td valign=top>
+### Update Resource with non-sticky bad defaultversionid
+
+<table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
+
+**Initial State:**
 
 ```
 {
@@ -837,8 +894,7 @@ Notes:
 }
 ```
 
-</td>
-   <td valign=top>
+**Request:**
 
 ```
 PUT /dirs/d1/files/f1
@@ -856,8 +912,9 @@ PUT /dirs/d1/files/f1
 }
 ```
 
-</td>
-   <td valign=top>
+</td><td valign=top>
+
+**Response:**
 
 ```
 {
@@ -889,7 +946,10 @@ PUT /dirs/d1/files/f1
 }
 ```
 
-Notes:
+</td></tr></table>
+
+**Notes:**
+
 - Current default Version is `v1`, and `v1` is not in the request's `versions`
   collection, so it's "name" attribute is updated.
 - Version `v2` is updated.
@@ -898,13 +958,15 @@ Notes:
   being `false`.
 - Ancestor order: `v2` (2020) <- `v1` (2025).
 
-</td>
-  </tr>
+<hr>
 
-  <!-- ----------------------------------------------------------------- -->
+<!--  ----------------------------------------------------------------- -->
 
-  <tr>
-   <td valign=top>
+### Update Resource with sticky non-specified defaultversionid
+
+<table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
+
+**Initial State:**
 
 ```
 {
@@ -936,8 +998,7 @@ Notes:
 }
 ```
 
-</td>
-   <td valign=top>
+**Request:**
 
 ```
 PUT /dirs/d1/files/f1
@@ -955,8 +1016,9 @@ PUT /dirs/d1/files/f1
 }
 ```
 
-</td>
-   <td valign=top>
+</td><td valign=top>
+
+**Response:**
 
 ```
 {
@@ -987,7 +1049,10 @@ PUT /dirs/d1/files/f1
 }
 ```
 
-Notes:
+</td></tr></table>
+
+**Notes:**
+
 - Notice that "Resource.name" is ignored because `v2` (the current default
   Version) appears in the request's `versions` collection.
 - While the current default is `v2`, setting `defaultversionsticky` to `true`
@@ -996,13 +1061,16 @@ Notes:
   not being in the request is akin to setting it to `null` in the request. In
   the next example we'll see how `PATCH` changes this semantics.
 - Ancestor order: `v2` (2020) <- `v1` (2025).
-</td>
-  </tr>
 
-  <!-- ----------------------------------------------------------------- -->
+<hr>
 
-  <tr>
-   <td valign=top>
+<!--  ----------------------------------------------------------------- -->
+
+### Patch Resource with Versions and defaultversionsticky
+
+<table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
+
+**Initial State:**
 
 ```
 {
@@ -1034,8 +1102,7 @@ Notes:
 }
 ```
 
-</td>
-   <td valign=top>
+**Request:**
 
 ```
 PATCH /dirs/d1/files/f1
@@ -1053,8 +1120,9 @@ PATCH /dirs/d1/files/f1
 }
 ```
 
-</td>
-   <td valign=top>
+</td><td valign=top>
+
+**Response:**
 
 ```
 {
@@ -1085,7 +1153,10 @@ PATCH /dirs/d1/files/f1
 }
 ```
 
-Notes:
+</td></tr></table>
+
+**Notes:**
+
 - Resource.name is ignored due to `v2` (the current default Version) being in
   the request's `versions` collection.
 - Since this is a `PATCH`, unlike the previous example where
@@ -1093,13 +1164,16 @@ Notes:
   remains unchanged. So, when `meta.defaultversionsticky` is set to `true` the
   current default Version becomes "sticky".
 - Ancestor order: `v2` (2020) <- `v1` (2025).
-</td>
-  </tr>
 
-  <!-- ----------------------------------------------------------------- -->
+<hr>
 
-  <tr>
-   <td valign=top>
+<!--  ----------------------------------------------------------------- -->
+
+### Update Resource with empty content
+
+<table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
+
+**Initial State:**
 
 ```
 {
@@ -1125,8 +1199,7 @@ Notes:
 }
 ```
 
-</td>
-   <td valign=top>
+**Request:**
 
 ```
 PUT /dirs/d1/files/f1
@@ -1134,8 +1207,9 @@ PUT /dirs/d1/files/f1
 {}
 ```
 
-</td>
-   <td valign=top>
+</td><td valign=top>
+
+**Response:**
 
 ```
 {
@@ -1160,18 +1234,23 @@ PUT /dirs/d1/files/f1
 }
 ```
 
-Notes:
+</td></tr></table>
+
+**Notes:**
+
 - Notice that `name` is deleted because `PUT` is a complete replacement
   of all attributes.
 - No attributes in `meta` are updated.
 
-</td>
-  </tr>
+<hr>
 
-  <!-- ----------------------------------------------------------------- -->
+<!--  ----------------------------------------------------------------- -->
 
-  <tr>
-   <td valign=top>
+### Patch new Resource with empty content
+
+<table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
+
+**Initial State:**
 
 ```
 {
@@ -1198,8 +1277,7 @@ Notes:
 }
 ```
 
-</td>
-   <td valign=top>
+**Request:**
 
 ```
 PATCH /dirs/d1/files/f1
@@ -1207,8 +1285,9 @@ PATCH /dirs/d1/files/f1
 {}
 ```
 
-</td>
-   <td valign=top>
+</td><td valign=top>
+
+**Response:**
 
 ```
 {
@@ -1234,20 +1313,25 @@ PATCH /dirs/d1/files/f1
 }
 ```
 
-Notes:
+</td></tr></table>
+
+**Notes:**
+
 - Notice this time `name` is unchanged due to the use of `PATCH` instead of
   `PUT`.
 - However, `PATCH` does update the `epoch` and `modifiedat` timestamps of the
   current default Version.
 - The `meta` sub-object is unchanged.
 
-</td>
-  </tr>
+<hr>
 
-  <!-- ----------------------------------------------------------------- -->
+<!--  ----------------------------------------------------------------- -->
 
-  <tr>
-   <td valign=top>
+### Update Resource with new description
+
+<table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
+
+**Initial State:**
 
 ```
 {
@@ -1273,8 +1357,7 @@ Notes:
 }
 ```
 
-</td>
-   <td valign=top>
+**Request:**
 
 ```
 PUT /dirs/d1/files/f1
@@ -1282,11 +1365,11 @@ PUT /dirs/d1/files/f1
 {
   "description": "very cool"
 }
-
 ```
 
-</td>
-   <td valign=top>
+</td><td valign=top>
+
+**Response:**
 
 ```
 {
@@ -1310,22 +1393,26 @@ PUT /dirs/d1/files/f1
     "1": { see Resource.* attrs }
   }
 }
-
 ```
 
-Notes:
+</td></tr></table>
+
+**Notes:**
+
 - Default Version's `name` attribute is deleted.
 - Its `description` is updated.
 - Its `epoch` and `modifiedat` are automatically updated.
 - The `meta` sub-object is unchanged.
 
-</td>
-  </tr>
+<hr>
 
-  <!-- ----------------------------------------------------------------- -->
+<!--  ----------------------------------------------------------------- -->
 
-  <tr>
-   <td valign=top>
+### Patch Resource's description field
+
+<table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
+
+**Initial State:**
 
 ```
 {
@@ -1351,8 +1438,7 @@ Notes:
 }
 ```
 
-</td>
-   <td valign=top>
+**Request:**
 
 ```
 PATCH /dirs/d1/files/f1
@@ -1362,8 +1448,9 @@ PATCH /dirs/d1/files/f1
 }
 ```
 
-</td>
-   <td valign=top>
+</td><td valign=top>
+
+**Response:**
 
 ```
 {
@@ -1390,19 +1477,24 @@ PATCH /dirs/d1/files/f1
 }
 ```
 
-Notes:
+</td></tr></table>
+
+**Notes:**
+
 - Default Version's `name` attribute is unchanged.
 - Its `description` is updated.
 - Its `epoch` and `modifiedat` are automatically updated.
 - The `meta` sub-object is unchanged.
 
-</td>
-  </tr>
+<hr>
 
-  <!-- ----------------------------------------------------------------- -->
+<!--  ----------------------------------------------------------------- -->
 
-  <tr>
-   <td valign=top>
+### Update Resource with non-specified defaultversionsticky
+
+<table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
+
+**Initial State:**
 
 ```
 {
@@ -1428,8 +1520,7 @@ Notes:
 }
 ```
 
-</td>
-   <td valign=top>
+**Request:**
 
 ```
 PUT /dirs/d1/files/f1
@@ -1441,8 +1532,9 @@ PUT /dirs/d1/files/f1
 }
 ```
 
-</td>
-   <td valign=top>
+</td><td valign=top>
+
+**Response:**
 
 ```
 {
@@ -1467,19 +1559,24 @@ PUT /dirs/d1/files/f1
 }
 ```
 
-Notes:
+</td></tr></table>
+
+**Notes:**
+
 - The default Version's `name` attribute is deleted due to the operation
   being a `PUT`. Its `epoch` and `modifiedat` are automatically updated.
 - `meta.defaultversionsticky` is set to `true`, and since there is only one
   Version the calculated default Version remains `1`.
 
-</td>
-  </tr>
+<hr>
 
-  <!-- ----------------------------------------------------------------- -->
+<!--  ----------------------------------------------------------------- -->
 
-  <tr>
-   <td valign=top>
+### Patch Resource with defaultversionsticky
+
+<table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
+
+**Initial State:**
 
 ```
 {
@@ -1505,8 +1602,7 @@ Notes:
 }
 ```
 
-</td>
-   <td valign=top>
+**Request:**
 
 ```
 PATCH /dirs/d1/files/f1
@@ -1518,8 +1614,9 @@ PATCH /dirs/d1/files/f1
 }
 ```
 
-</td>
-   <td valign=top>
+</td><td valign=top>
+
+**Response:**
 
 ```
 {
@@ -1545,7 +1642,10 @@ PATCH /dirs/d1/files/f1
 }
 ```
 
-Notes:
+</td></tr></table>
+
+**Notes:**
+
 - `name` is unchanged, but `epoch` and `modifiedat` are automatically updated.
 - As with previous example, Version `1` becomes sticky.
 - The default Version's `name` attribute is unchanged, but `epoch` and
@@ -1553,13 +1653,15 @@ Notes:
 - `meta.defaultversionsticky` is set to `true`, and since there is only one
   Version the calculated default Version remains `1`.
 
-</td>
-  </tr>
+<hr>
 
-  <!-- ----------------------------------------------------------------- -->
+<!--  ----------------------------------------------------------------- -->
 
-  <tr>
-   <td valign=top>
+### Patch Resource with sticky defaultversionid
+
+<table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
+
+**Initial State:**
 
 ```
 {
@@ -1590,8 +1692,7 @@ Notes:
 }
 ```
 
-</td>
-   <td valign=top>
+**Request:**
 
 ```
 PATCH /dirs/d1/files/f1/meta
@@ -1602,8 +1703,9 @@ PATCH /dirs/d1/files/f1/meta
 }
 ```
 
-</td>
-   <td valign=top>
+</td><td valign=top>
+
+**Response:**
 
 ```
 {
@@ -1634,7 +1736,10 @@ PATCH /dirs/d1/files/f1/meta
 }
 ```
 
-Notes:
+</td></tr></table>
+
+**Notes:**
+
 - Notice the operation is directed to the `meta` sub-object, no attributes
   on Version `v1` or `v2` are modified.
 - However, per the request, the default Version is set to `v1` and it is
@@ -1642,13 +1747,15 @@ Notes:
 - The `meta`'s `epoch` and `modifiedat` values are updated.
 - Ancestor order: `v1` (2025) <- `v2` (2025).
 
-</td>
-  </tr>
+<hr>
 
-  <!-- ----------------------------------------------------------------- -->
+<!--  ----------------------------------------------------------------- -->
 
-  <tr>
-   <td valign=top>
+### Patch Resource with bad defaultversionid
+
+<table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
+
+**Initial State:**
 
 ```
 {
@@ -1674,8 +1781,7 @@ Notes:
 }
 ```
 
-</td>
-   <td valign=top>
+**Request:**
 
 ```
 PATCH /dirs/d1/files/f1
@@ -1687,27 +1793,33 @@ PATCH /dirs/d1/files/f1
 }
 ```
 
-</td>
-   <td valign=top>
+</td><td valign=top>
+
+**Response:**
 
 ```
 Error due to `foo` being an unknown Version.
 ```
 
-Notes:
+</td></tr></table>
+
+**Notes:**
+
 - While the request didn't set `meta.defaultversionsticky` to `true`
   explicitly, setting `meta.defaultversionid` via a `PATCH` implicitly
   sets `meta.defaultversionsticky` to `true`. If this operation used `PUT`
   instead, the error would not have been generated and `meta.defaultversionid`
   would have been ignored.
 
-</td>
-  </tr>
+<hr>
 
-  <!-- ----------------------------------------------------------------- -->
+<!--  ----------------------------------------------------------------- -->
 
-  <tr>
-   <td valign=top>
+### Update Resource with bad sticky defaultversionid
+
+<table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
+
+**Initial State:**
 
 ```
 {
@@ -1733,8 +1845,7 @@ Notes:
 }
 ```
 
-</td>
-   <td valign=top>
+**Request:**
 
 ```
 PUT /dirs/d1/files/f1
@@ -1747,25 +1858,31 @@ PUT /dirs/d1/files/f1
 }
 ```
 
-</td>
-   <td valign=top>
+</td><td valign=top>
+
+**Response:**
 
 ```
 Error due to `foo` being an unknown Version.
 ```
 
-Notes:
+</td></tr></table>
+
+**Notes:**
+
 - Similar to the previous example, except using `PUT`. If
   `meta.defaultversionsticky` had not been included in the request with a
   value of `true` then `defaultversionid` would have been ignored.
 
-</td>
-  </tr>
+<hr>
 
-  <!-- ----------------------------------------------------------------- -->
+<!--  ----------------------------------------------------------------- -->
 
-  <tr>
-   <td valign=top>
+### Update Resource with non-specified sticky default Version
+
+<table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
+
+**Initial State:**
 
 ```
 {
@@ -1790,8 +1907,7 @@ Notes:
 }
 ```
 
-</td>
-   <td valign=top>
+**Request:**
 
 ```
 PUT /dirs/d1/files/f1
@@ -1808,8 +1924,9 @@ PUT /dirs/d1/files/f1
 }
 ```
 
-</td>
-   <td valign=top>
+</td><td valign=top>
+
+**Response:**
 
 ```
 {
@@ -1841,27 +1958,31 @@ PUT /dirs/d1/files/f1
 }
 ```
 
-Notes:
+</td></tr></table>
+
+**Notes:**
+
 - Version `v2` is created with a `createdat` value of `1998`.
 - Version `v1` is updated (`name`, `createdat`, `epoch` and `modifiedat`).
 - While `v2` was just created, `v1` is still the default Version because it has
   a newer `createdat` value. And it is now sticky per the request.
 - Ancestor order: `v2` (1998) <- `v1` (1999).
 
-</td>
-  </tr>
+<hr>
 
-  <!-- ----------------------------------------------------------------- -->
+<!--  ----------------------------------------------------------------- -->
 
-  <tr>
-   <td valign=top>
+### Create Resource with conflicting default Version attributes - variant 1
+
+<table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
+
+**Initial State:**
 
 ```
 Empty
 ```
 
-</td>
-   <td valign=top>
+**Request:**
 
 ```
 PUT /dirs/d1/files/f1
@@ -1879,8 +2000,9 @@ PUT /dirs/d1/files/f1
 }
 ```
 
-</td>
-   <td valign=top>
+</td><td valign=top>
+
+**Response:**
 
 ```
 {
@@ -1911,24 +2033,28 @@ PUT /dirs/d1/files/f1
 }
 ```
 
-Notes:
+</td></tr></table>
+
+**Notes:**
+
 - Resource.name is ignored because `v1` is in request's `versions` collection.
 - Version `v2` is default because it's the highest alphabetically.
 
-</td>
-  </tr>
+<hr>
 
-  <!-- ----------------------------------------------------------------- -->
+<!--  ----------------------------------------------------------------- -->
 
-  <tr>
-   <td valign=top>
+### Create Resource with conflicting default Version attributes - variant 2
+
+<table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
+
+**Initial State:**
 
 ```
 Empty
 ```
 
-</td>
-   <td valign=top>
+**Request:**
 
 ```
 PUT /dirs/d1/files/f1
@@ -1944,8 +2070,9 @@ PUT /dirs/d1/files/f1
 }
 ```
 
-</td>
-   <td valign=top>
+</td><td valign=top>
+
+**Response:**
 
 ```
 {
@@ -1976,7 +2103,10 @@ PUT /dirs/d1/files/f1
 }
 ```
 
-Notes:
+</td></tr></table>
+
+**Notes:**
+
 - Resource.* attributes (implied "null" values because they're missing) are
   ignored because `v1` is in the request's `versions` collection.
 - Version `v2` is default because it's the highest alphabetically,
@@ -1984,20 +2114,21 @@ Notes:
   calculating the default Version because `meta.defaultversionsticky` is not
   `true`.
 
-</td>
-  </tr>
+<hr>
 
-  <!-- ----------------------------------------------------------------- -->
+<!--  ----------------------------------------------------------------- -->
 
-  <tr>
-   <td valign=top>
+### Create Resource with conflicting default Version attributes - variant 3
+
+<table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
+
+**Initial State:**
 
 ```
 Empty
 ```
 
-</td>
-   <td valign=top>
+**Request:**
 
 ```
 PUT /dirs/d1/files/f1
@@ -2011,8 +2142,9 @@ PUT /dirs/d1/files/f1
 }
 ```
 
-</td>
-   <td valign=top>
+</td><td valign=top>
+
+**Response:**
 
 ```
 {
@@ -2043,13 +2175,8 @@ PUT /dirs/d1/files/f1
 }
 ```
 
-Notes:
+</td></tr></table>
+
+**Notes:**
+
 - Same net results as previous example.
-
-</td>
-  </tr>
-
-</td>
-  </tr>
-
-</table>
