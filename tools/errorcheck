@@ -55,7 +55,7 @@ for file in $* ; do
   IFS="!" lines=$(sed -r -n "/$START_PATTERN/,/$END_PATTERN/p" $file | \
     sed -n 's/##* //p')
 
-  [[ "$lines" == "" ]] && echo "No errors found" && continue
+  [[ "$lines" == "" ]] && echo "No error defined" && continue
 
   diff=$(IFS="!" diff <(echo "$lines") <(echo "$lines" | sort) || true)
   if [[ "$diff" != "" ]] ; then
@@ -63,8 +63,6 @@ for file in $* ; do
     echo "ALPHABETIZE THESE (in $file):"
     echo "$diff" | grep "> " | sed "s/> /- /"
     rc=1
-  else
-    [[ "$rc" == "0" ]] && echo "No errors found"
   fi
 
 done
