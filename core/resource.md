@@ -129,7 +129,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!-- ----------------------------------------------------------------- -->
 
 ### Create Resource via the "files" collection
 
@@ -194,7 +193,6 @@ POST /dirs/d1/files
 
 <hr>
 
-<!-- ----------------------------------------------------------------- -->
 
 ### Create Resource with some Versions, no defaultversionid
 
@@ -278,7 +276,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!-- ----------------------------------------------------------------- -->
 
 ### Create Resource with Versions and defaultversionid
 
@@ -364,7 +361,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!-- ----------------------------------------------------------------- -->
 
 ### Create Resource with defaultversionid
 
@@ -427,7 +423,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!-- ----------------------------------------------------------------- -->
 
 ### Create Resource with versionid and Versions
 
@@ -505,7 +500,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!-- ----------------------------------------------------------------- -->
 
 ### Update Resource with new Versions and ne sticky default Version
 
@@ -612,7 +606,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!-- ----------------------------------------------------------------- -->
 
 ### Create Resource with Versions and sticky default Version
 
@@ -701,7 +694,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Create Resource with versionid and defaultversionid
 
@@ -785,7 +777,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Create Resource with sticky defaultversionid
 
@@ -859,7 +850,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Update Resource with non-sticky bad defaultversionid
 
@@ -960,7 +950,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Update Resource with sticky non-specified defaultversionid
 
@@ -1064,7 +1053,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Patch Resource with Versions and defaultversionsticky
 
@@ -1167,7 +1155,6 @@ PATCH /dirs/d1/files/f1
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Update Resource with empty content
 
@@ -1244,7 +1231,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Patch new Resource with empty content
 
@@ -1325,7 +1311,6 @@ PATCH /dirs/d1/files/f1
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Update Resource with new description
 
@@ -1406,7 +1391,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Patch Resource's description field
 
@@ -1488,7 +1472,6 @@ PATCH /dirs/d1/files/f1
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Update Resource with non-specified defaultversionsticky
 
@@ -1570,7 +1553,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Patch Resource with defaultversionsticky
 
@@ -1655,7 +1637,6 @@ PATCH /dirs/d1/files/f1
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Patch Resource with sticky defaultversionid
 
@@ -1749,7 +1730,6 @@ PATCH /dirs/d1/files/f1/meta
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Patch Resource with bad defaultversionid
 
@@ -1813,7 +1793,6 @@ Error due to `foo` being an unknown Version.
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Update Resource with bad sticky defaultversionid
 
@@ -1876,7 +1855,6 @@ Error due to `foo` being an unknown Version.
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Update Resource with non-specified sticky default Version
 
@@ -1970,7 +1948,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Create Resource with conflicting default Version attributes - variant 1
 
@@ -2042,7 +2019,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Create Resource with conflicting default Version attributes - variant 2
 
@@ -2116,7 +2092,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Create Resource with conflicting default Version attributes - variant 3
 
