@@ -1895,10 +1895,9 @@ format of the `capabilities` definition MAY still generate an error
 support the request. For example, due to authorization concerns or the value,
 while syntactically valid, isn't allowed in certain situations.
 
-A request to update the `specversions` capability that doesn't include
-a mandatory value (such as the current specification version), MUST
-generate an error
-([capability_missing_specversion](#capability_missing_specversion)).
+A request to update a capability that doesn't include a mandatory value (such
+as the current specification version for `specversions`), MUST generate an
+error ([capability_missing_value](#capability_missing_value)).
 
 A request to update a capability with an invalid value MUST generate an error
 ([capability_value](#capability_value)).
@@ -2359,7 +2358,9 @@ The overall processing of the request message is as follows:
 5.  Update [`meta.defaultversionid`](#defaultversionid-attribute) as needed.
 6.  Enforce the [Version compatibility checks](#compatibility-attribute).
 7.  Enforce the [Resource `maxversions`
-    constraints](./model.md#groupsstringresourcesstringmaxversions).
+    constraints](./model.md#groupsstringresourcesstringmaxversions). Note that
+    this might require updating the [`ancestor` values](#ancestor-attribute)
+    again after some Versions have been deleted.
 
 The following provides additional details:
 
@@ -2381,13 +2382,14 @@ The following provides additional details:
       MUST be used.
     - Otherwise, if `meta.defaultversionid` attribute is present in the
       request, then it MUST be used. Also see
-      [SetDefaultVersionID Flag](#setdefaultversionid-flag).
+      [SetDefaultVersionID Flag](#setdefaultversionid-flag) for an additional
+      mechanism by which it might be set.
     - If neither are present, then the server MUST generate, and use, a new
-      [`versionid` value]((#version-ids).
+      [`versionid` value](#version-ids).
     - If a Version with the target default `versionid` does not exist then a
       new Version with that `versionid` MUST be created.
 
-See [Resource Sample Updates](./resource.md) for examples.
+See [Resource Update Samples](./resource.md) for examples.
 
 ##### `<RESOURCE>*` Attribute Processing
 
@@ -3891,21 +3893,21 @@ The following rules apply:
   `versionid` value for the new Version, then including that value as the
   `setdefaultversionid` value is not possible. In those cases a value of
   `request` MAY be used as a way to reference that new Version.
-- If `request` is used as a value, but more than one Version is modified in
-  the operation, then an error ([too_many_versions](#too_many_versions)) MUST
+- A value of `request` MUST only be used on APIs that allow the creation of
+  only a single new Version. In the case of HTTP, that is the `POST` API
+  directed to a Resource. This is because no other operation allows for the
+  creation of a single Version without specifying its `versionid`. Use of this
+  value on an inappropriate API MUST generate an error ([bad_flag](#bad_flag)).
   be generated.
-- If `request` is used as a value, but no Version is modified in the
-  operation, then an error
-  ([defaultversionid_request](#defaultversionid_request)) MUST be generated.
 - If a non-`null` and non-`request` value does not reference an existing
   Version of the Resource, after all Version processing is completed, then an
   error ([unknown_id](#unknown_id)) MUST be generated.
-- Setting the `meta.defaultversionid` via this flag MUST also set the
-  `meta.defaultversionsticky` attribute to `true`.
+- Setting the `meta.defaultversionid` to a non-empty value via this flag MUST
+  also set the `meta.defaultversionsticky` attribute to `true`.
 - Use on a request that updates more than one Resource MUST generate an
   error ([bad_flag](#bad_flag)).
 - Use of this flag MUST override any `meta.defaultversionid` and
-  `meta.defaultversionsticky` value that is present in the request.
+  `meta.defaultversionsticky` values that are present in the request.
 
 Any use of this flag on a Resource that has the
 `setdefaultversionsticky` aspect set to `false` MUST generate an error
@@ -4212,13 +4214,14 @@ field is just a substitution value and MUST NOT be empty.
 * Args:
   - `error_detail`: Specific details about the error.
 
-### capability_missing_specversion
+### capability_missing_value
 
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#capability_missing_specversion`
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#capability_missing_value`
 * Code: `400 Bad Request`
 * Subject: `/capabilities`
-* Title: `The "specversions" capability needs to contain "<value>".`
+* Title: `The "<name>" capability needs to contain "<value>".`
 * Args:
+  - `name`: The name of the capability missing a mandatory value.
   - `value`: The missing "specversions" value.
 
 ### capability_unknown
@@ -4267,13 +4270,6 @@ field is just a substitution value and MUST NOT be empty.
 * Subject: `<path>`
 * Title: `The server was unable to retrieve all of the requested data.`
 * Detail: Suggestion: which entity's data was problematic, and why.
-
-### defaultversionid_request
-
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#defaultversionid_request`
-* Code: `400 Bad Request`
-* Subject: `<resource_xid>`
-* Title: `Processing "<subject>", the "defaultversionid" attribute is not allowed to be "request" since a Version wasn't processed.`
 
 ### extra_xref_attribute
 
@@ -4502,12 +4498,6 @@ something unexpected happened in the server that caused an error condition.
 * Subject: `<request_path>`
 * Title: `The size of the response is too large to return in a single response.`
 * Detail: Suggestion: list of attributes that are too large.
-
-### too_many_versions
-
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#too_many_versions`
-* Code: `400 Bad Request`
-* Title: `When the "setdefaultversionid" flag is set to "request", only one Version is allowed to be specified in the request message.`
 
 ### unknown_attribute
 

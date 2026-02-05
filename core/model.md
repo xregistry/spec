@@ -688,10 +688,9 @@ The following describes the attributes of the Registry model:
       each new Version is created, it MUST become the "newest". If there
       is no existing Version then the new Version becomes a root and its
       `ancestor` value MUST be its `versionid` attribute value.
-    - Invalid Ancestor: if a Version's `ancestor` value is no longer
-      valid (i.e. the ancestor Version was deleted), then this Version
-      MUST become a root, and its `ancestor` value MUST is its `versionid`
-      attribute value.
+    - Deleted Ancestor: if a Version's ancestor is deleted, then this Version
+      MUST become a root, and its `ancestor` value MUST be set to its
+      `versionid` value.
 
   - `createdat`
     - Newest Version: MUST be determined by finding the Version with the
@@ -710,8 +709,9 @@ The following describes the attributes of the Registry model:
       MUST be its `versionid`. If there is more than one Version with the
       same `createdat` timestamp then those MUST be ordered in ascending
       case-insensitive ordered based on their `versionid` values.
-    - Invalid Ancestor: When a Version is deleted then the "ancestor
-      processing" logic as stated above MUST be applied.
+    - Deleted Ancestor: if a Version's ancestor is deleted, then this Version's
+      `ancestor` value MUST be determined by the "ancestor processing" logic
+      as stated above.
     - When this `versionmode` is used, the `singleversionroot` aspect
       MUST be set to `true`.
 
@@ -733,8 +733,9 @@ The following describes the attributes of the Registry model:
       `versionid` of the next oldest Version per the
       [Semantic Versioning](https://semver.org/) specification's
       "precedence" ordering rules.
-    - Invalid Ancestor: When a Version is deleted then the "ancestor
-      processing" logic as stated above MUST be applied.
+    - Deleted Ancestor: if a Version's ancestor is deleted, then this Version's
+      `ancestor` value MUST be determined by the "ancestor processing" logic
+      as stated above.
     - When this `versionmode` is used, the `singleversionroot` aspect
       MUST be set to `true`.
 

@@ -17,7 +17,7 @@ example.
 - [Create Resource with Versions and defaultversionid](#create-resource-with-versions-and-defaultversionid)
 - [Create Resource with defaultversionid](#create-resource-with-defaultversionid)
 - [Create Resource with versionid and Versions](#create-resource-with-versionid-and-versions)
-- [Update Resource with new Versions and ne sticky default Version](#update-resource-with-new-versions-and-ne-sticky-default-version)
+- [Update Resource with new Versions and sticky default Version](#update-resource-with-new-versions-and-sticky-default-version)
 - [Create Resource with Versions and sticky default Version](#create-resource-with-versions-and-sticky-default-version)
 - [Create Resource with versionid and defaultversionid](#create-resource-with-versionid-and-defaultversionid)
 - [Create Resource with sticky defaultversionid](#create-resource-with-sticky-defaultversionid)
@@ -37,6 +37,8 @@ example.
 - [Create Resource with conflicting default Version attributes - variant 1](#create-resource-with-conflicting-default-version-attributes---variant-1)
 - [Create Resource with conflicting default Version attributes - variant 2](#create-resource-with-conflicting-default-version-attributes---variant-2)
 - [Create Resource with conflicting default Version attributes - variant 3](#create-resource-with-conflicting-default-version-attributes---variant-3)
+- [Create Resource with SetDefaultVersionID flag](#create-resource-with-setdefaultversionid-flag)
+- [Create Resource with SetDefaultVersionID flag via /versions](#create-resource-with-setdefaultversionid-flag-via-versions)
 
 
 ### The Setup
@@ -87,7 +89,7 @@ PUT /dirs/d1/files/f1
 
 </td><td valign=top>
 
-**Response:**
+**Final State:**
 
 ```
 {
@@ -129,7 +131,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!-- ----------------------------------------------------------------- -->
 
 ### Create Resource via the "files" collection
 
@@ -155,7 +156,7 @@ POST /dirs/d1/files
 
 </td><td valign=top>
 
-**Response:**
+**Final State:**
 
 ```
 {
@@ -194,7 +195,6 @@ POST /dirs/d1/files
 
 <hr>
 
-<!-- ----------------------------------------------------------------- -->
 
 ### Create Resource with some Versions, no defaultversionid
 
@@ -222,7 +222,7 @@ PUT /dirs/d1/files/f1
 
 </td><td valign=top>
 
-**Response:**
+**Final State:**
 
 ```
 {
@@ -278,7 +278,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!-- ----------------------------------------------------------------- -->
 
 ### Create Resource with Versions and defaultversionid
 
@@ -314,7 +313,7 @@ PUT /dirs/d1/files/f1
 
 </td><td valign=top>
 
-**Response:**
+**Final State:**
 
 ```
 {
@@ -364,7 +363,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!-- ----------------------------------------------------------------- -->
 
 ### Create Resource with defaultversionid
 
@@ -391,7 +389,7 @@ PUT /dirs/d1/files/f1
 
 </td><td valign=top>
 
-**Response:**
+**Final State:**
 
 ```
 {
@@ -427,7 +425,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!-- ----------------------------------------------------------------- -->
 
 ### Create Resource with versionid and Versions
 
@@ -458,7 +455,7 @@ PUT /dirs/d1/files/f1
 
 </td><td valign=top>
 
-**Response:**
+**Final State:**
 
 ```
 {
@@ -505,9 +502,8 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!-- ----------------------------------------------------------------- -->
 
-### Update Resource with new Versions and ne sticky default Version
+### Update Resource with new Versions and sticky default Version
 
 <table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
 
@@ -559,7 +555,7 @@ PUT /dirs/d1/files/f1
 
 </td><td valign=top>
 
-**Response:**
+**Final State:**
 
 ```
 {
@@ -586,13 +582,13 @@ PUT /dirs/d1/files/f1
       "modifiedat": "now",
       "ancestor": "v1"
     },
-    "v1": {
-      "epoch": 1,
-      "createdat": "2020",
-      "modifiedat": "now",
-      "ancestor": "v1"
-    },
+    "v1": { see Resource.* attrs },
     "v2": { see Resource.* attrs }
+      "epoch": 1,
+      "createdat": "now",
+      "modifiedat": "now",
+      "ancestor": "v0"
+    }
   }
 }
 ```
@@ -612,7 +608,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!-- ----------------------------------------------------------------- -->
 
 ### Create Resource with Versions and sticky default Version
 
@@ -632,6 +627,7 @@ PUT /dirs/d1/files/f1
 {
   "versionid": "v0",
   "name": "foo",
+  "createdat": "2021",
   "meta": {
     "defaultversionid": "v1",
     "defaultversionsticky": true
@@ -647,7 +643,7 @@ PUT /dirs/d1/files/f1
 
 </td><td valign=top>
 
-**Response:**
+**Final State:**
 
 ```
 {
@@ -657,7 +653,7 @@ PUT /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "2020",
   "modifiedat": "now",
-  "ancestor": "v0",
+  "ancestor": "v1",
 
   "meta": {
     "epoch": 1,
@@ -670,17 +666,17 @@ PUT /dirs/d1/files/f1
     "v0": {
       "epoch": 1,
       "name": "foo",
+      "createdat": "2021",
+      "modifiedat": "now",
+      "ancestor": "v1"
+    },
+    "v1": { see Resource.* attrs }
+    "v2": {
+      "epoch": 1,
       "createdat": "now",
       "modifiedat": "now",
-      "ancestor": "v1"
-    },
-    "v1": {
-      "epoch": 1,
-      "createdat": "2020",
-      "modifiedat": "now",
-      "ancestor": "v1"
-    },
-    "v2": { see Resource.* attrs }
+      "ancestor": "v0"
+    }
   }
 }
 ```
@@ -701,7 +697,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Create Resource with versionid and defaultversionid
 
@@ -735,7 +730,7 @@ PUT /dirs/d1/files/f1
 
 </td><td valign=top>
 
-**Response:**
+**Final State:**
 
 ```
 {
@@ -785,7 +780,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Create Resource with sticky defaultversionid
 
@@ -818,7 +812,7 @@ PUT /dirs/d1/files/f1
 
 </td><td valign=top>
 
-**Response:**
+**Final State:**
 
 ```
 {
@@ -859,7 +853,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Update Resource with non-sticky bad defaultversionid
 
@@ -914,7 +907,7 @@ PUT /dirs/d1/files/f1
 
 </td><td valign=top>
 
-**Response:**
+**Final State:**
 
 ```
 {
@@ -960,7 +953,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Update Resource with sticky non-specified defaultversionid
 
@@ -1018,7 +1010,7 @@ PUT /dirs/d1/files/f1
 
 </td><td valign=top>
 
-**Response:**
+**Final State:**
 
 ```
 {
@@ -1064,7 +1056,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Patch Resource with Versions and defaultversionsticky
 
@@ -1122,7 +1113,7 @@ PATCH /dirs/d1/files/f1
 
 </td><td valign=top>
 
-**Response:**
+**Final State:**
 
 ```
 {
@@ -1167,7 +1158,6 @@ PATCH /dirs/d1/files/f1
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Update Resource with empty content
 
@@ -1209,7 +1199,7 @@ PUT /dirs/d1/files/f1
 
 </td><td valign=top>
 
-**Response:**
+**Final State:**
 
 ```
 {
@@ -1244,7 +1234,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Patch new Resource with empty content
 
@@ -1287,7 +1276,7 @@ PATCH /dirs/d1/files/f1
 
 </td><td valign=top>
 
-**Response:**
+**Final State:**
 
 ```
 {
@@ -1325,7 +1314,6 @@ PATCH /dirs/d1/files/f1
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Update Resource with new description
 
@@ -1369,7 +1357,7 @@ PUT /dirs/d1/files/f1
 
 </td><td valign=top>
 
-**Response:**
+**Final State:**
 
 ```
 {
@@ -1406,7 +1394,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Patch Resource's description field
 
@@ -1450,7 +1437,7 @@ PATCH /dirs/d1/files/f1
 
 </td><td valign=top>
 
-**Response:**
+**Final State:**
 
 ```
 {
@@ -1488,7 +1475,6 @@ PATCH /dirs/d1/files/f1
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Update Resource with non-specified defaultversionsticky
 
@@ -1534,7 +1520,7 @@ PUT /dirs/d1/files/f1
 
 </td><td valign=top>
 
-**Response:**
+**Final State:**
 
 ```
 {
@@ -1570,7 +1556,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Patch Resource with defaultversionsticky
 
@@ -1616,7 +1601,7 @@ PATCH /dirs/d1/files/f1
 
 </td><td valign=top>
 
-**Response:**
+**Final State:**
 
 ```
 {
@@ -1655,7 +1640,6 @@ PATCH /dirs/d1/files/f1
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Patch Resource with sticky defaultversionid
 
@@ -1705,7 +1689,7 @@ PATCH /dirs/d1/files/f1/meta
 
 </td><td valign=top>
 
-**Response:**
+**Final State:**
 
 ```
 {
@@ -1749,7 +1733,6 @@ PATCH /dirs/d1/files/f1/meta
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Patch Resource with bad defaultversionid
 
@@ -1795,7 +1778,7 @@ PATCH /dirs/d1/files/f1
 
 </td><td valign=top>
 
-**Response:**
+**Final State:**
 
 ```
 Error due to `foo` being an unknown Version.
@@ -1813,7 +1796,6 @@ Error due to `foo` being an unknown Version.
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Update Resource with bad sticky defaultversionid
 
@@ -1860,7 +1842,7 @@ PUT /dirs/d1/files/f1
 
 </td><td valign=top>
 
-**Response:**
+**Final State:**
 
 ```
 Error due to `foo` being an unknown Version.
@@ -1876,7 +1858,6 @@ Error due to `foo` being an unknown Version.
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Update Resource with non-specified sticky default Version
 
@@ -1926,7 +1907,7 @@ PUT /dirs/d1/files/f1
 
 </td><td valign=top>
 
-**Response:**
+**Final State:**
 
 ```
 {
@@ -1970,7 +1951,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Create Resource with conflicting default Version attributes - variant 1
 
@@ -2002,7 +1982,7 @@ PUT /dirs/d1/files/f1
 
 </td><td valign=top>
 
-**Response:**
+**Final State:**
 
 ```
 {
@@ -2023,6 +2003,7 @@ PUT /dirs/d1/files/f1
   },
   "versions": {
     "v1": {
+      "epoch": 1,
       "name": "abc",
       "createdat": "now",
       "modifiedat": "now",
@@ -2042,7 +2023,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Create Resource with conflicting default Version attributes - variant 2
 
@@ -2072,7 +2052,7 @@ PUT /dirs/d1/files/f1
 
 </td><td valign=top>
 
-**Response:**
+**Final State:**
 
 ```
 {
@@ -2093,6 +2073,7 @@ PUT /dirs/d1/files/f1
   },
   "versions": {
     "v1": {
+      "epoch": 1,
       "name": "abc",
       "createdat": "now",
       "modifiedat": "now",
@@ -2116,7 +2097,6 @@ PUT /dirs/d1/files/f1
 
 <hr>
 
-<!--  ----------------------------------------------------------------- -->
 
 ### Create Resource with conflicting default Version attributes - variant 3
 
@@ -2144,7 +2124,7 @@ PUT /dirs/d1/files/f1
 
 </td><td valign=top>
 
-**Response:**
+**Final State:**
 
 ```
 {
@@ -2165,12 +2145,138 @@ PUT /dirs/d1/files/f1
   },
   "versions": {
     "v1": {
+      "epoch": 1,
       "name": "abc",
       "createdat": "now",
       "modifiedat": "now",
       "ancestor": "v1"
     },
     "v2": { see Resource.* attrs }
+  }
+}
+```
+
+</td></tr></table>
+
+**Notes:**
+
+- Same net results as previous example.
+
+### Create Resource with SetDefaultVersionID flag
+
+<table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
+
+**Initial State:**
+
+```
+Empty
+```
+
+**Request:**
+
+```
+PUT /dirs/d1/files/f1?setdefaultversionid=v1
+
+{
+  "versions": {
+    "v1": {"name":"abc"},
+    "v2": {}
+  }
+}
+```
+
+</td><td valign=top>
+
+**Final State:**
+
+```
+{
+  "fileid": "f1",
+  "versionid": "v1",
+  "epoch": 1,
+  "name": "abc",
+  "isdefault": true,
+  "createdat": "now",
+  "modifiedat": "now",
+  "ancestor": "v1",
+
+  "meta": {
+    "epoch": 1,
+    "createdat": "now",
+    "modifiedat": "now",
+    "defaultversionid": "v1",
+    "defaultversionsticky": true
+  },
+  "versions": {
+    "v1": { see Resource.* attrs },
+    "v2": {
+      "epoch": 1,
+      "createdat": "now",
+      "modifiedat": "now",
+      "ancestor": "v1"
+    },
+  }
+}
+```
+
+</td></tr></table>
+
+**Notes:**
+
+- Use of the `?setdefaultversionid` flag has the same semantics as setting
+  `meta.defaultversionid=v1` and `meta.defaultversionsticky=true`.
+
+### Create Resource with SetDefaultVersionID flag via /versions
+
+<table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
+
+**Initial State:**
+
+```
+Empty
+```
+
+**Request:**
+
+```
+POST /dirs/d1/files/f1/versions?setdefaultversionid=v1
+
+{
+  "v1": {"name":"abc"},
+  "v2": {}
+}
+```
+
+</td><td valign=top>
+
+**Final State:**
+
+```
+{
+  "fileid": "f1",
+  "versionid": "v1",
+  "epoch": 1,
+  "name": "abc",
+  "isdefault": true,
+  "createdat": "now",
+  "modifiedat": "now",
+  "ancestor": "v1",
+
+  "meta": {
+    "epoch": 1,
+    "createdat": "now",
+    "modifiedat": "now",
+    "defaultversionid": "v1",
+    "defaultversionsticky": true
+  },
+  "versions": {
+    "v1": { see Resource.* attrs },
+    "v2": {
+      "epoch": 1,
+      "createdat": "now",
+      "modifiedat": "now",
+      "ancestor": "v1"
+    },
   }
 }
 ```
