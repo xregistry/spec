@@ -2383,7 +2383,7 @@ The following provides additional details:
       request, then it MUST be used. Also see
       [SetDefaultVersionID Flag](#setdefaultversionid-flag).
     - If neither are present, then the server MUST generate, and use, a new
-      [`versionid` value]((#version-ids).
+      [`versionid` value](#version-ids).
     - If a Version with the target default `versionid` does not exist then a
       new Version with that `versionid` MUST be created.
 
