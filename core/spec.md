@@ -2378,16 +2378,26 @@ The following provides additional details:
     defined prior to the operation being processed.
   - If the Resource is created as part of this operation then determining the
     `versionid` to be used as "default" MUST adhere to the following:
-    - If a Resource `versionid` attribute is present in the request, then it
-      MUST be used.
-    - Otherwise, if `meta.defaultversionid` attribute is present in the
-      request, then it MUST be used. Also see
+    - If a Resource-level `versionid` attribute is present in the request,
+      then its value MUST be used.
+    - Otherwise, if a `meta.defaultversionid` attribute is present in the
+      request, then its value MUST be used. Also see
       [SetDefaultVersionID Flag](#setdefaultversionid-flag) for an additional
       mechanism by which it might be set.
-    - If neither are present, then the server MUST generate, and use, a new
-      [`versionid` value](#version-ids).
+    - Otherwise, if the `versions` collection contains at least one Version,
+      then all of the Resource's default Version attributes MUST be ignored
+      and the remainder of the steps below MUST be skipped. This is because
+      without any indication from the client as to which Version those
+      attributes need to be applied to, rather than creating one, the assumption
+      is that one of the Versions in the `versions` collection is that Version.
+    - If neither the `versionid` nor `defaultversionid` are present, then the
+      server MUST generate a new unique [`versionid` value](#version-ids).
     - If a Version with the target default `versionid` does not exist then a
       new Version with that `versionid` MUST be created.
+  - If the operation is converting a cross-reference Resource back into a
+    "normal" Resource then the new Version created MUST adhere the rules
+    specified in the
+    [Cross Referencing Resources](#cross-referencing-resources) section.
 
 See [Resource Update Samples](./resource.md) for examples.
 
