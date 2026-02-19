@@ -13,8 +13,10 @@ example.
 - [The Setup](#the-setup)
 - [Create single Resource with empty content](#create-single-resource-with-empty-content)
 - [Create Resource via the "files" collection](#create-resource-via-the-files-collection)
-- [Create Resource with some Versions, no defaultversionid](#create-resource-with-some-versions-no-defaultversionid)
+- [Create Resource with Versions, no defaultversionid](#create-resource-with-versions-no-defaultversionid)
 - [Create Resource with Versions and defaultversionid](#create-resource-with-versions-and-defaultversionid)
+- [Create Resource with Versions and unique defaultversionid](#create-resource-with-versions-and-unique-defaultversionid)
+- [Create Resource with defaultversionid](#create-resource-with-defaultversionid)
 - [Create Resource with defaultversionid](#create-resource-with-defaultversionid)
 - [Create Resource with versionid and Versions](#create-resource-with-versionid-and-versions)
 - [Update Resource with new Versions and sticky default Version](#update-resource-with-new-versions-and-sticky-default-version)
@@ -25,7 +27,7 @@ example.
 - [Update Resource with sticky non-specified defaultversionid](#update-resource-with-sticky-non-specified-defaultversionid)
 - [Patch Resource with Versions and defaultversionsticky](#patch-resource-with-versions-and-defaultversionsticky)
 - [Update Resource with empty content](#update-resource-with-empty-content)
-- [Patch new Resource with empty content](#patch-new-resource-with-empty-content)
+- [Patch Resource with empty content](#patch-resource-with-empty-content)
 - [Update Resource with new description](#update-resource-with-new-description)
 - [Patch Resource's description field](#patch-resources-description-field)
 - [Update Resource with non-specified defaultversionsticky](#update-resource-with-non-specified-defaultversionsticky)
@@ -196,7 +198,7 @@ POST /dirs/d1/files
 <hr>
 
 
-### Create Resource with some Versions, no defaultversionid
+### Create Resource with Versions, no defaultversionid
 
 <table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
 
@@ -242,18 +244,11 @@ PUT /dirs/d1/files/f1
     "defaultversionsticky": false
   },
   "versions": {
-    "1": {
-      "epoch": 1,
-      "name": "foo",
-      "createdat": "now",
-      "modifiedat": "now",
-      "ancestor": "1"
-    },
     "v1": {
       "epoch": 1,
       "createdat": "now",
       "modifiedat": "now",
-      "ancestor": "1"
+      "ancestor": "v1"
     },
     "v2": { see Resource.* attrs }
   }
@@ -265,10 +260,9 @@ PUT /dirs/d1/files/f1
 **Notes:**
 
 - After creating the Resource, `f1`, Versions `v1` and `v2` are created.
-- Then, Version `1` is created from the Resource's default Version attributes
-  (including `name`) due to no indication as to what its `versionid` is -
-  meaning, no `versionid` or `meta.defaultversionid` being present - so a new
-  Version with the next server-generated `versionid` value (`1`) being used.
+- Note that `name` will be ignored because when `versionid` and
+  `meta.defaultversionid` are absent, but `versions` is not empty, all
+  Resource.* attributes are ignored.
 - Since all Versions have the same `createdat` timestamp they are sorted
   alphabetically by their `versionid` values in order to set their `ancestor`
   attributes.
@@ -354,12 +348,92 @@ PUT /dirs/d1/files/f1
 
 **Notes:**
 
-- No version `1` is created because we used `meta.defaultversionid` as a clue
+- No Version `1` is created because we used `meta.defaultversionid` as a clue
   that Resource.* attributes are for `v1`.
 - Resource.* attributes (eg `name`) is ignored because `v1` is part of the
   request's `versions` collection.
 - Ancestor order: `v1`(2020) <- `v3` (now) <- `v2` (3030).
 - Version `v2` is default because it has the newest `createdat` timestamp.
+
+<hr>
+
+
+### Create Resource with Versions and unique defaultversionid
+
+<table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
+
+**Initial State:**
+
+```
+Empty
+```
+
+**Request:**
+
+```
+PUT /dirs/d1/files/f1
+
+{
+  "name": "foo",
+  "meta": {
+    "defaultversionid": "v1"
+  },
+  "versions": {
+    "v2": {},
+    "v3": {}
+  }
+}
+```
+
+</td><td valign=top>
+
+**Final State:**
+
+```
+{
+  "fileid": "f1",
+  "versionid": "v3",
+  "epoch": 1,
+  "isdefault": true,
+  "createdat": "now",
+  "modifiedat": "now",
+  "ancestor": "v2",
+
+  "meta": {
+    "epoch": 1,
+    "createdat": "now",
+    "modifiedat": "now",
+    "defaultversionid": "v3",
+    "defaultversionsticky": false
+  },
+  "versions": {
+    "v1": {
+      "epoch": 1,
+      "name": "foo",
+      "createdat": "now",
+      "modifiedat": "now",
+      "ancestor": "v1"
+    },
+    "v2": {
+      "epoch": 1,
+      "createdat": "now",
+      "modifiedat": "now",
+      "ancestor": "v1"
+    },
+    "v3": { see Resource.* attrs },
+  }
+}
+```
+
+</td></tr></table>
+
+**Notes:**
+
+- No Version `1` is created because we used `meta.defaultversionid` as a clue
+  that Resource.* attributes are for `v1`.
+- Resource.* attributes (eg `name`) are assigned to `v1`.
+- Ancestor order: `v1`(now) <- `v2` (now) <- `v3` (now).
+- Version `v3` is default because it is the highest alphabetically.
 
 <hr>
 
@@ -1168,23 +1242,23 @@ PATCH /dirs/d1/files/f1
 ```
 {
   "fileid": "f1",
-  "versionid": "1",
+  "versionid": "v1",
   "epoch": 1,
   "name": "my file",
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "2025",
-  "ancestor": "1",
+  "ancestor": "v1",
 
   "meta": {
     "epoch": 1,
     "createdat": "2025",
     "modifiedat": "2025",
-    "defaultversionid": "1",
+    "defaultversionid": "v1",
     "defaultversionsticky": false
   },
   "versions": {
-    "1": { see Resource.* attrs }
+    "v1": { see Resource.* attrs }
   }
 }
 ```
@@ -1204,22 +1278,22 @@ PUT /dirs/d1/files/f1
 ```
 {
   "fileid": "f1",
-  "versionid": "1",
+  "versionid": "v1",
   "epoch": 2,
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "now",
-  "ancestor": "1",
+  "ancestor": "v1",
 
   "meta": {
     "epoch": 1,
     "createdat": "2025",
     "modifiedat": "2025",
-    "defaultversionid": "1",
+    "defaultversionid": "v1",
     "defaultversionsticky": false
   },
   "versions": {
-    "1": { see Resource.* attrs }
+    "v1": { see Resource.* attrs }
   }
 }
 ```
@@ -1235,7 +1309,7 @@ PUT /dirs/d1/files/f1
 <hr>
 
 
-### Patch new Resource with empty content
+### Patch Resource with empty content
 
 <table border=1 cellpadding=5 cellborder=1><tr><td valign=top>
 
@@ -1244,24 +1318,24 @@ PUT /dirs/d1/files/f1
 ```
 {
   "fileid": "f1",
-  "versionid": "1",
+  "versionid": "v1",
   "epoch": 1,
   "name": "my file",
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "2025",
-  "ancestor": "1",
+  "ancestor": "v1",
 
   "meta": {
     "epoch": 1,
     "createdat": "2025",
     "modifiedat": "2025",
-    "defaultversionid": "1",
+    "defaultversionid": "v1",
     "defaultversionsticky": false
   },
 
   "versions": {
-    "1": { see Resource.* attrs }
+    "v1": { see Resource.* attrs }
   }
 }
 ```
@@ -1281,23 +1355,23 @@ PATCH /dirs/d1/files/f1
 ```
 {
   "fileid": "f1",
-  "versionid": "1",
+  "versionid": "v1",
   "epoch": 2,
   "name": "my file",
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "now",
-  "ancestor": "1",
+  "ancestor": "v1",
 
   "meta": {
     "epoch": 1,
     "createdat": "2025",
     "modifiedat": "2025",
-    "defaultversionid": "1",
+    "defaultversionid": "v1",
     "defaultversionsticky": false
   },
   "versions": {
-    "1": { see Resource.* attrs }
+    "v1": { see Resource.* attrs }
   }
 }
 ```
@@ -1324,23 +1398,23 @@ PATCH /dirs/d1/files/f1
 ```
 {
   "fileid": "f1",
-  "versionid": "1",
+  "versionid": "v1",
   "epoch": 1,
   "name": "my file",
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "2025",
-  "ancestor": "1",
+  "ancestor": "v1",
 
   "meta": {
     "epoch": 1,
     "createdat": "2025",
     "modifiedat": "2025",
-    "defaultversionid": "1",
+    "defaultversionid": "v1",
     "defaultversionsticky": false
   },
   "versions": {
-    "1": { see Resource.* attrs }
+    "v1": { see Resource.* attrs }
   }
 }
 ```
@@ -1362,23 +1436,23 @@ PUT /dirs/d1/files/f1
 ```
 {
   "fileid": "f1",
-  "versionid": "1",
+  "versionid": "v1",
   "epoch": 2,
   "isdefault": true,
   "description": "very cool",
   "createdat": "2025",
   "modifiedat": "now",
-  "ancestor": "1",
+  "ancestor": "v1",
 
   "meta": {
     "epoch": 1,
     "createdat": "2025",
     "modifiedat": "2025",
-    "defaultversionid": "1",
+    "defaultversionid": "v1",
     "defaultversionsticky": false
   },
   "versions": {
-    "1": { see Resource.* attrs }
+    "v1": { see Resource.* attrs }
   }
 }
 ```
@@ -1404,23 +1478,23 @@ PUT /dirs/d1/files/f1
 ```
 {
   "fileid": "f1",
-  "versionid": "1",
+  "versionid": "v1",
   "epoch": 1,
   "name": "my file",
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "2025",
-  "ancestor": "1",
+  "ancestor": "v1",
 
   "meta": {
     "epoch": 1,
     "createdat": "2025",
     "modifiedat": "2025",
-    "defaultversionid": "1",
+    "defaultversionid": "v1",
     "defaultversionsticky": false
   },
   "versions": {
-    "1": { see Resource.* attrs }
+    "v1": { see Resource.* attrs }
   }
 }
 ```
@@ -1442,24 +1516,24 @@ PATCH /dirs/d1/files/f1
 ```
 {
   "fileid": "f1",
-  "versionid": "1",
+  "versionid": "v1",
   "epoch": 2,
   "name": "my file",
   "isdefault": true,
   "description": "very cool",
   "createdat": "2025",
   "modifiedat": "now",
-  "ancestor": "1",
+  "ancestor": "v1",
 
   "meta": {
     "epoch": 1,
     "createdat": "2025",
     "modifiedat": "2025",
-    "defaultversionid": "1",
+    "defaultversionid": "v1",
     "defaultversionsticky": false
   },
   "versions": {
-    "1": { see Resource.* attrs }
+    "v1": { see Resource.* attrs }
   }
 }
 ```
@@ -1485,23 +1559,23 @@ PATCH /dirs/d1/files/f1
 ```
 {
   "fileid": "f1",
-  "versionid": "1",
+  "versionid": "v1",
   "epoch": 1,
   "name": "my file",
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "2025",
-  "ancestor": "1",
+  "ancestor": "v1",
 
   "meta": {
     "epoch": 1,
     "createdat": "2025",
     "modifiedat": "2025",
-    "defaultversionid": "1",
+    "defaultversionid": "v1",
     "defaultversionsticky": false
   },
   "versions": {
-    "1": { see Resource.* attrs }
+    "v1": { see Resource.* attrs }
   }
 }
 ```
@@ -1525,22 +1599,22 @@ PUT /dirs/d1/files/f1
 ```
 {
   "fileid": "f1",
-  "versionid": "1",
+  "versionid": "v1",
   "epoch": 2,
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "now",
-  "ancestor": "1",
+  "ancestor": "v1",
 
   "meta": {
     "epoch": 2,
     "createdat": "2025",
     "modifiedat": "now",
-    "defaultversionid": "1",
+    "defaultversionid": "v1",
     "defaultversionsticky": true
   },
   "versions": {
-    "1": { see Resource.* attrs }
+    "v1": { see Resource.* attrs }
   }
 }
 ```
@@ -1566,23 +1640,23 @@ PUT /dirs/d1/files/f1
 ```
 {
   "fileid": "f1",
-  "versionid": "1",
+  "versionid": "v1",
   "epoch": 1,
   "name": "my file",
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "2025",
-  "ancestor": "1",
+  "ancestor": "v1",
 
   "meta": {
     "epoch": 1,
     "createdat": "2025",
     "modifiedat": "2025",
-    "defaultversionid": "1",
+    "defaultversionid": "v1",
     "defaultversionsticky": false
   },
   "versions": {
-    "1": { see Resource.* attrs }
+    "v1": { see Resource.* attrs }
   }
 }
 ```
@@ -1606,23 +1680,23 @@ PATCH /dirs/d1/files/f1
 ```
 {
   "fileid": "f1",
-  "versionid": "1",
+  "versionid": "v1",
   "epoch": 2,
   "name": "my file",
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "now",
-  "ancestor": "1",
+  "ancestor": "v1",
 
   "meta": {
     "epoch": 2,
     "createdat": "2025",
     "modifiedat": "now",
-    "defaultversionid": "1",
+    "defaultversionid": "v1",
     "defaultversionsticky": true
   },
   "versions": {
-    "1": { see Resource.* attrs }
+    "v1": { see Resource.* attrs }
   }
 }
 ```
@@ -1743,23 +1817,23 @@ PATCH /dirs/d1/files/f1/meta
 ```
 {
   "fileid": "f1",
-  "versionid": "1",
+  "versionid": "v1",
   "epoch": 1,
   "name": "my file",
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "2025",
-  "ancestor": "1",
+  "ancestor": "v1",
 
   "meta": {
     "epoch": 1,
     "createdat": "2025",
     "modifiedat": "2025",
-    "defaultversionid": "1",
+    "defaultversionid": "v1",
     "defaultversionsticky": false
   },
   "versions": {
-    "1": { see Resource.* attrs }
+    "v1": { see Resource.* attrs }
   }
 }
 ```
@@ -1806,23 +1880,23 @@ Error due to `foo` being an unknown Version.
 ```
 {
   "fileid": "f1",
-  "versionid": "1",
+  "versionid": "v1",
   "epoch": 1,
   "name": "my file",
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "2025",
-  "ancestor": "1",
+  "ancestor": "v1",
 
   "meta": {
     "epoch": 1,
     "createdat": "2025",
     "modifiedat": "2025",
-    "defaultversionid": "1",
+    "defaultversionid": "v1",
     "defaultversionsticky": false
   },
   "versions": {
-    "1": { see Resource.* attrs }
+    "v1": { see Resource.* attrs }
   }
 }
 ```
