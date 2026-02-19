@@ -2374,26 +2374,37 @@ The following provides additional details:
       might allow for skipping unnecessary work.
 
 - Step 2 - Processing the Resource's default Version attributes:
-  - This step MUST use the Version referenced by `meta.defaultversionid` as
-    defined prior to the operation being processed.
-  - If the Resource is created as part of this operation then determining the
-    `versionid` to be used as "default" MUST adhere to the following:
-    - If a Resource-level `versionid` attribute is present in the request,
-      then its value MUST be used.
-    - Otherwise, if a `meta.defaultversionid` attribute is present in the
-      request, then its value MUST be used. Also see
+  - In this step the Resource's default Version (as defined prior to the
+    start of the operation) is to be updated with the Resource-level attributes
+    specified in the request. Note that an empty list of attributes, when not
+    doing a patch type of operation, will reset all attributes to their default
+    values.
+  - However, when the Resource is created as part of the current operation
+    there is no "prior" default Version, so knowing how to apply those
+    attributes requires some additional clarity:
+    - If a Resource-level `versionid` attribute is present, and that Version
+      is not in the request's `versions` collection, then a new Version with
+      that `versionid` MUST be created with the Resource-level attributes. If
+      it is in the `versions` collection then the Resource-level attributes
+      MUST be ignored.
+    - If `versionid` is not present, but `meta.defaultversionid` is present,
+      and that Version is not in the request's `versions` collection, then a
+      new Version with that `versionid` MUST be created, with the
+      Resource-level attributes. If it is in the `versions` collection then
+      the Resource-level attributes MUST be ignored. Also see
       [SetDefaultVersionID Flag](#setdefaultversionid-flag) for an additional
       mechanism by which it might be set.
-    - Otherwise, if the `versions` collection contains at least one Version,
-      then all of the Resource's default Version attributes MUST be ignored
-      and the remainder of the steps below MUST be skipped. This is because
-      without any indication from the client as to which Version those
-      attributes need to be applied to, rather than creating one, the assumption
-      is that one of the Versions in the `versions` collection is that Version.
-    - If neither the `versionid` nor `defaultversionid` are present, then the
-      server MUST generate a new unique [`versionid` value](#version-ids).
-    - If a Version with the target default `versionid` does not exist then a
-      new Version with that `versionid` MUST be created.
+    - If neither of those attributes are present, then the `versions`
+      collection will dictate the result:
+      - If `versions` is missing, or empty, then the server MUST generate a
+        new unique [`versionid` value](#version-ids) and create a new Version
+        using that value, with the Resource-level attributes.
+      - If `versions` is present with at least one Version, then the
+        Resource-level attributes MUST be ignored. This is because without
+        any indication from the client as to which Version the Resource-level
+        attributes need to be applied to, rather than creating a new Version,
+        the assumption is that `versions` contains all of the Versions that are
+        meant to be created.
   - If the operation is converting a cross-reference Resource back into a
     "normal" Resource then the new Version created MUST adhere the rules
     specified in the
