@@ -807,7 +807,7 @@ compatibility guarantees between Versions of the Resource. The authority is
 expected to guarantee the configured `compatibility`. The
 [`compatibilityauthority` attribute](./spec.md#compatibilityauthority-attribute)
 represents who the enforcing authority is. Any requests to set the authority
-to the server when the server cannot perform compatibility checking will be
+to `server` when the server cannot perform compatibility checking will be
 refused. In cases where the hosting service isn't backed by an xRegistry
 implementation (e.g. blob-store), it is recommended that
 `compatibilityauthority` is set to `external` to accurately reflect the

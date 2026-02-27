@@ -464,6 +464,7 @@
               "type": "string",
               "enum": [ "none", "backward", "backward_transitive", "forward",
                         "forward_transitive", "full", "full_transitive" ],
+              "strict": true,
               "required": true,
               "default": "none"
             },
@@ -471,6 +472,9 @@
               "name": "compatibilityauthority",
               "type": "string",
               "enum": [ "external", "server" ]
+              "strict": true,
+              "required": true,
+              "default": "external"
             },
             "deprecated": {
               "name": "deprecated",

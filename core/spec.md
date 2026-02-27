@@ -589,7 +589,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
 
             "defaultversionid": "<STRING>",
             "defaultversionurl": "<URL>",
-            "defaultversionsticky": <BOOLEAN>      # Default=false
+            "defaultversionsticky": <BOOLEAN> ?    # Default=false
           }, ?
           "versionsurl": "<URL>",
           "versionscount": <UINTEGER>,
@@ -2655,7 +2655,7 @@ The serialization of the Meta entity MUST adhere to this form:
 
   "defaultversionid": "<STRING>",
   "defaultversionurl": "<URL>",
-  "defaultversionsticky": <BOOLEAN>
+  "defaultversionsticky": <BOOLEAN> ?
 }
 ```
 
@@ -2729,7 +2729,9 @@ and the following Meta-level attributes:
 
   This specification makes no statement as to which parts of the data are
   examined for compatibility (e.g. xRegistry metadata, domain-specific
-  document, etc.). This SHOULD be defined by the `compatibility` values.
+  document, etc.). This will be defined by the compatibility rules defined by
+  each Resource `format` value.
+
   The exact meaning of what each `compatibility` value means might vary based
   on the data model of the Resource, therefore this specification only defines
   a very high-level abstract meaning for each to ensure some degree of
@@ -2739,17 +2741,13 @@ and the following Meta-level attributes:
   Implementations MUST include `none` as one of the possible values and when
   set to `none` then compatibility checking MUST NOT be performed.
 
-  If the `compatibilityauthority` attribute is set to `server` then
-  implementations of this specification are REQUIRED to perform the proper
-  compatibility checks to ensure that all Versions of a Resource adhere to the
-  rules defined by the current value of this attribute.
   For `compatibility` strategies that require understanding the sequence in
   which Versions need to be compatible, the server MUST use the
   [`ancestor`](#ancestor-attribute) to determine the sequence of Versions.
 
-  Note that, like all attributes, if a default value is defined as part of the
-  model, then this attribute MUST be populated with that value if no value
-  is provided.
+  Note that when `compatibilitystrategy` is set to `external`, the
+  `compatibility` attribute is not used by the server for any internal
+  processing.
 
   This specification defines the following enumeration values. Implementations
   MAY choose to extend this list, or use a subset of it.
@@ -2778,12 +2776,21 @@ and the following Meta-level attributes:
 - Name: `compatibilityauthority`
 - Type: String
 - Description: Indicates the authority that enforces the `compatibility`
-  value defined by the owning Resource.
+  and `format` values defined by the owning Resource.
 
   This specification defines the following enumeration values. Implementations
-  MAY choose to extend this list.
+  MAY choose to extend this list:
+
   - `external` - The compatibility is enforced by an external authority.
-  - `server` - The compatibility is enforced by the server.
+    The server MUST NOT perform any compatibility checking and that the
+    compatibility checking is performed by an external authority.
+
+  - `server` - The server MUST perform the following actions:
+    - Verify that each Version adheres to the rules associated with the
+      `format` value of its owning Resource.
+    - Verify that all Versions of a Resource adhere to the rules defined by
+      the current value of the `compatibility` attribute, if `compatibility`
+      is not `none`.
 
   The server MUST generate an error
   ([compatibility_violation](#compatibility_violation)) due to any
@@ -2793,17 +2800,11 @@ and the following Meta-level attributes:
   When set to `server`, the server MUST generate an error
   ([compatibility_violation](#compatibility_violation)) following any
   attempt to create/update a Resource (or its Versions) that would result in
-  those entities violating the stated compatibility statement.
-
-  A value of `external` indicates that the server MUST NOT perform any
-  compatibility checking and that the compatibility checking is performed by
-  an external authority.
+  those entities violating the stated `compatibility` value.
 
 - Constraints:
-  - MUST be present when `compatibility` is not `none`.
-  - MUST NOT be present when `compatibility` is `none`.
-  - When not specified, and `compatibility` is not `none`, the default value
-    MUST be `external`.
+  - REQUIRED
+  - When not specified, the default value MUST be `external`.
   - If present, MUST be non-empty.
 
 #### `defaultversionid` Attribute
@@ -3489,7 +3490,7 @@ the following:
 
     "defaultversionid": "<STRING>",
     "defaultversionurl": "<URL>"
-    "defaultversionsticky": <BOOLEAN>
+    "defaultversionsticky": <BOOLEAN> ?
   }
 }
 ```

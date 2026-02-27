@@ -427,7 +427,7 @@ the core xRegistry Resource [attributes][xRegistry attributes-and-extensions]:
     the name of the schema format and `<VERSION>` is the Version of the schema
     format in the format defined by the schema format itself.
   - MUST be present if the `compatibility` attribute is set to a value other
-    than `None` and when the `compatibilityauthority` attribute is set to
+    than `none` and when the `compatibilityauthority` attribute is set to
     `server`, to enable validation of the schema document.
 - Examples:
   - `JsonSchema/draft-07`
