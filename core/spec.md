@@ -578,8 +578,9 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "createdat": "<TIMESTAMP>",            # Resource's
             "modifiedat": "<TIMESTAMP>",           # Resource's
             "readonly": <BOOLEAN>,                 # Default=false
-            "compatibility": "<STRING>",           # Default=none
-            "compatibilityauthority": "<STRING>", ?  # Default=external
+            "formatauthority": "<STRING>", ?
+            "compatibility": "<STRING>", ?
+            "compatibilityauthority": "<STRING>", ?
             "deprecated": {
               "effective": "<TIMESTAMP>", ?
               "removal": "<TIMESTAMP>", ?
@@ -611,6 +612,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
               "modifiedat": "<TIMESTAMP>",
               "ancestor": "<STRING>",              # Ancestor's versionid
               "contenttype": "<STRING>", ?
+              "format": "<STRING>", ?
 
               "<RESOURCE>url": "<URL>", ?                # If not local
               "<RESOURCE>": ... Resource document ..., ? # If inlined & JSON
@@ -2356,8 +2358,9 @@ The overall processing of the request message is as follows:
     [`versionmode`](./model.md#groupsstringresourcesstringversionmode) value.
 4.  Process the `meta` sub-object, if present.
 5.  Update [`meta.defaultversionid`](#defaultversionid-attribute) as needed.
-6.  Enforce the [Version compatibility checks](#compatibility-attribute).
-7.  Enforce the [Resource `maxversions`
+6.  Enforce the [Version format checks](#format-attribute).
+7.  Enforce the [Version compatibility checks](#compatibility-attribute).
+8.  Enforce the [Resource `maxversions`
     constraints](./model.md#groupsstringresourcesstringmaxversions). Note that
     this might require updating the [`ancestor` values](#ancestor-attribute)
     again after some Versions have been deleted.
@@ -2512,7 +2515,6 @@ then the resulting serialization of the source Resource would be:
     "createdat": "2024-01-01-T12:00:00Z",
     "modifiedat": "2024-01-01-T12:01:00Z",
     "readonly": false,
-    "compatibility": "none",
     "defaultversionid": "v1",
     "defaultversionurl": "http://example.com/schemagroups/group1/schemas/mySchema/versions/v1",
     "defaultversionsticky": false
@@ -2649,8 +2651,8 @@ The serialization of the Meta entity MUST adhere to this form:
   "createdat": "<TIMESTAMP>",               # Resource's
   "modifiedat": "<TIMESTAMP>",              # Resource's
   "readonly": <BOOLEAN>,                    # Default=false
-  "compatibility": "<STRING>",              # Default=none
-  "compatibilityauthority": "<STRING>", ?   # Default=external
+  "compatibility": "<STRING>", ?
+  "compatibilityauthority": "<STRING>", ?
   "deprecated": { ... }, ?
 
   "defaultversionid": "<STRING>",
@@ -2720,6 +2722,34 @@ and the following Meta-level attributes:
     case the error MUST be silently ignored, and the Resource MUST remain
     unchanged.
 
+#### `formatauthority` Attribute
+- Type: String
+- Description: Indicates the authority that enforces compliance with the
+  `format` value specified on each Version of this Resource.
+
+  This specification defines the following enumeration values, implementations
+  MAY choose to extend this list:
+
+  - `external` - The validation is enforced by an external authority.
+    The server MUST NOT perform any `format` validation checking.
+
+  - `server` - The server MUST verify that all Versions of this Resource
+    adhere to the rules defined by the value of their respective `format`
+    attribute value, and generate an error
+    ([format_violation](#format_violation)) for any operation that would
+    result in non-compliance.
+
+   When not specified, there is no statement being made as to the enforcement
+   of the `format` attribute's semantics and the server MUST NOT perform any
+   `format` validation checking.
+
+- Constraints:
+  - OPTIONAL.
+  - If present, MUST be a case-insensitive non-empty string.
+  - If present, all Versions of the Resource MUST have their respective
+    `format` attribute set, otherwise an error
+    ([format_missing](#format_missing)) MUST be generated.
+
 #### `compatibility` Attribute
 - Type: String (with Resource-specified enumeration of possible values)
 - Description: States that Versions of this Resource adhere to a certain
@@ -2727,27 +2757,21 @@ and the following Meta-level attributes:
   indicate that all Versions of a Resource are backwards compatible with the
   next oldest Version, as determined by their `ancestor` attributes.
 
-  This specification makes no statement as to which parts of the data are
-  examined for compatibility (e.g. xRegistry metadata, domain-specific
+  This specification makes no statement as to which parts of the Version data
+  are examined for compatibility (e.g. xRegistry metadata, domain-specific
   document, etc.). This will be defined by the compatibility rules defined by
-  each Resource `format` value.
+  each Version's `format` value.
 
   The exact meaning of what each `compatibility` value means might vary based
-  on the data model of the Resource, therefore this specification only defines
-  a very high-level abstract meaning for each to ensure some degree of
-  consistency. However, domain-specific specifications are expected to
-  modify the `compatibility` enum values defined in the Resource's model to
-  limit the list of available values and to define the exact meaning of each.
-  Implementations MUST include `none` as one of the possible values and when
-  set to `none` then compatibility checking MUST NOT be performed.
+  on the `format` value, therefore this specification only defines a very
+  high-level abstract meaning for each to ensure some degree of consistency.
+  However, domain-specific specifications are expected to modify the
+  `compatibility` enum values defined in the Resource's model to limit the
+  list of available values and to define the exact meaning of each.
 
-  For `compatibility` strategies that require understanding the sequence in
-  which Versions need to be compatible, the server MUST use the
-  [`ancestor`](#ancestor-attribute) to determine the sequence of Versions.
-
-  Note that when `compatibilitystrategy` is set to `external`, the
-  `compatibility` attribute is not used by the server for any internal
-  processing.
+  For `compatibility` strategies that require understanding the lineage
+  relationship between the Versions, the [`ancestor`](#ancestor-attribute)
+  attribute on each Version MUST be used to determine that information.
 
   This specification defines the following enumeration values. Implementations
   MAY choose to extend this list, or use a subset of it.
@@ -2759,53 +2783,48 @@ and the following Meta-level attributes:
     Versions.
   - `full_transitive` - A Version is compatible with all older and all newer
     Versions.
-  - `none` - No compatibility checking is performed.
+
+  When not specified, there is no statement being made as to the compatibility
+  relationship between the Resource's Versions and the server MUST NOT perform
+  any `compatibility` checking.
 
 - Constraints:
-  - REQUIRED.
-  - It MUST be a case-sensitive value from the model-defined enumeration range.
-  - When not specified, the default value MUST be `none`.
-  - The enumeration range MUST include `none` as a valid value.
-  - If the `compatibilityauthority` attribute is set to `server`, when
-    changing the `compatibility` attribute, the server MUST validate whether
-    the new `compatibility` value can be enforced across all existing
-    Versions. If that's not the case, the server MUST generate an error
-    ([compatibility_violation](#compatibility_violation)).
+  - OPTIONAL.
+  - It MUST be a case-sensitive non-empty value from the Resource model's
+    enumeration range.
+  - When changing the value of this attribute, it MUST be applied to all
+    Versions of the Resource, and an error
+    ([compatibility_violation](#compatibility_violation)) MUST be generated
+    if any Version can not conform to the requirements of the specified
+    compatibility value.
 
 #### `compatibilityauthority` Attribute
-- Name: `compatibilityauthority`
 - Type: String
 - Description: Indicates the authority that enforces the `compatibility`
-  and `format` values defined by the owning Resource.
+  value specified by the owning Resource.
 
-  This specification defines the following enumeration values. Implementations
+  This specification defines the following enumeration values, implementations
   MAY choose to extend this list:
 
   - `external` - The compatibility is enforced by an external authority.
-    The server MUST NOT perform any compatibility checking and that the
-    compatibility checking is performed by an external authority.
+    The server MUST NOT perform any compatibility checking.
 
-  - `server` - The server MUST perform the following actions:
-    - Verify that each Version adheres to the rules associated with the
-      `format` value of its owning Resource.
-    - Verify that all Versions of a Resource adhere to the rules defined by
-      the current value of the `compatibility` attribute, if `compatibility`
-      is not `none`.
+  - `server` - The server MUST verify that all Versions of the Resource adhere
+    to the rules defined by the value of the `compatibility` attribute, and
+    generate an error
+    ([compatibility_violation](#compatibility_violation)) for any operation
+    that would result in non-compliance.
 
-  The server MUST generate an error
-  ([compatibility_violation](#compatibility_violation)) due to any
-  attempt to set this attribute to `server` if the server cannot enforce,
-  or validate, the compatibility for the Resource's existing Versions.
-
-  When set to `server`, the server MUST generate an error
-  ([compatibility_violation](#compatibility_violation)) following any
-  attempt to create/update a Resource (or its Versions) that would result in
-  those entities violating the stated `compatibility` value.
+   When not specified, there is no statement being made as to the enforcement
+   of the `compatibility` attribute's semantics and the server MUST NOT
+   perform any `compatibility` checking.
 
 - Constraints:
-  - REQUIRED
-  - When not specified, the default value MUST be `external`.
-  - If present, MUST be non-empty.
+  - OPTIONAL.
+  - If present, MUST be a case-insensitive non-empty string.
+  - If present with a value of `server`, then the Resource's
+    `meta.formatauthority` attribute MUST also be `server`.
+  - MUST be absent if `compatibility` is not set.
 
 #### `defaultversionid` Attribute
 - Type: String
@@ -3089,6 +3108,40 @@ and the following Version-level attributes:
 
 - Examples:
   - `application/json`
+
+#### `format` Attribute
+- Type: String
+- Description: Identifies what the Version represents. For example, in the
+  case of a Schema Registry, this value would identify the schema format of
+  the Version's domain-specific document. However, it MAY also be used to
+  identify the xRegistry metadata definitions/values for the Version. For
+  example, it could be used to indicate that the Versions are
+  [Message definitions](../message/spec.md).
+
+  Managers of the xRegistry instance MAY enforce validation of the data within
+  the Registry by modifying the model to make this a mandatory attribute, or
+  by defining a default value.
+
+- Constraints:
+  - OPTIONAL.
+  - If present, MUST be a non-empty case-insensitive string.
+  - SHOULD follow the naming convention `<NAME>/<VERSION>`, whereby `<NAME>` is
+    the name of the format and `<VERSION>` is the version of the format used
+    by this Version.
+  - RECOMMENDED that the same `<NAME>` be used for all Versions of a Resource.
+  - MUST be present if the `formatauthority` attribute is set.
+  - MUST be present if the `compatibilityauthority` attribute is set.
+
+Note: an attempt to set this attribute to a value that differs from the other
+Version's values could result in the server rejecting the request due to
+the [`compatibility`](#compatibility-attribute) conformance checks, if
+`compatibilityauthority` is set to `server`.
+
+- Examples:
+  - `JsonSchema/draft-07`
+  - `Protobuf/3`
+  - `XSD/1.1`
+  - `Avro/1.9`
 
 #### `<RESOURCE>url` Attribute
 - Type: URI
@@ -4301,6 +4354,22 @@ field is just a substitution value and MUST NOT be empty.
 * Title: `Attribute "<name>" is not allowed to be present since the Resource (<subject>) uses "xref".`
 * Args:
   - `name`: The name of the attribute in question.
+
+### format_missing
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#format_missing`
+* Code: `400 Bad Request`
+* Subject: `<resource_xid>`
+* Title: `Version "<subject>" needs to have a "format" value due to its owning Resource's "formatauthority" being set.`
+
+### format_violation
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#format_violation`
+* Code: `400 Bad Request`
+* Subject: `<version_xid>`
+* Title: `The request would cause Version "<subject>" to violate its adherence to its "format" (<format>).`
+* Args:
+  - `format`: The Version's `format` value.
 
 ### groups_only
 

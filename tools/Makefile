@@ -3,7 +3,7 @@ all: models docker
 		( echo "schema files have been updated, make sure you commit them" ; \
 		  exit 1 )
 
-verify: spellcheck tabcheck errorcheck samplescheck links ticks
+verify: spellcheck tabcheck errorcheck samplescheck testpython links ticks
 
 spellcheck:
 	tools/spellcheck */README.md */spec.md core/*.md \
@@ -26,12 +26,16 @@ samplescheck:
 	tools/samplescheck */model.json */samples/*json */samples/*/*json
 	@echo
 
-links:
+loadpython:
 	@echo Loading python deps
 	@python -m pip install -qq -r tools/requirements.txt
-	@echo Testing our link verification tool
+
+testpython: loadpython
+	@echo Testing our python tools
 	@pytest tools/
-	@echo Verifying our docs
+
+links: loadpython
+	@echo Verifying links in our docs
 	@python tools/verify.py .
 	@echo
 
@@ -43,7 +47,7 @@ models:
 		ghcr.io/xregistry/xr -c "/xr model verify */model.json -v")
 	@echo
 
-makeschema:
+makeschema: loadpython
 	@echo Rebuilding the schemas...
 	@python tools/schema-generator.py --type json-schema --schema-id https://xregistry.io/xreg/xregistryspecs/schema-v1/schemas/document-schema.json --output schema/schemas/document-schema.json schema/model.json
 	@python tools/schema-generator.py --type avro-schema --output schema/schemas/document-schema.avsc schema/model.json

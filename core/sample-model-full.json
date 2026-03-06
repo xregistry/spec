@@ -319,6 +319,10 @@
               "name": "contenttype",
               "type": "string"
             },
+            "format": {
+              "name": "format",
+              "type": "string"
+            },
 
             "fileurl": {
               "name": "fileurl",
@@ -459,22 +463,24 @@
               "required": true,
               "default": false
             },
+            "formatauthority": {
+              "name": "formatauthority",
+              "type": "string",
+              "enum": [ "external", "server" ],
+              "strict": false
+            },
             "compatibility": {
               "name": "compatibility",
               "type": "string",
-              "enum": [ "none", "backward", "backward_transitive", "forward",
+              "enum": [ "backward", "backward_transitive", "forward",
                         "forward_transitive", "full", "full_transitive" ],
-              "strict": true,
-              "required": true,
-              "default": "none"
+              "strict": true
             },
             "compatibilityauthority": {
               "name": "compatibilityauthority",
               "type": "string",
-              "enum": [ "external", "server" ]
-              "strict": true,
-              "required": true,
-              "default": "external"
+              "enum": [ "external", "server" ],
+              "strict": false
             },
             "deprecated": {
               "name": "deprecated",

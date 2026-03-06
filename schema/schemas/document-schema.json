@@ -62,10 +62,6 @@
             "type": "string",
             "format": "date-time",
             "description": "Time of the object modification"
-          },
-          "format": {
-            "type": "string",
-            "description": "Schema format identifier for this schema version"
           }
         },
         "oneOf": [
