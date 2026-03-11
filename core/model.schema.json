@@ -63,7 +63,7 @@
               "type": "string",
               "description": "Version of the group model"
             },
-            "compatiblewith": {
+            "modelcompatiblewith": {
               "type": "string",
               "format": "uri",
               "description": "Statement of compatibility with model spec"
@@ -175,7 +175,7 @@
               "type": "string",
               "description": "Version of the resource model"
             },
-            "compatiblewith": {
+            "modelcompatiblewith": {
               "type": "string",
               "format": "uri",
               "description": "Statement of compatibility with model spec"

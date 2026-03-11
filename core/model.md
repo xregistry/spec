@@ -102,28 +102,28 @@ The overall format of a model definition is as follows:
   },
 
   "groups": {
-    "<STRING>": {                      # Key=plural name, e.g. "endpoints"
-      "plural": "<STRING>",            # E.g. "endpoints"
-      "singular": "<STRING>",          # E.g. "endpoint"
+    "<STRING>": {                        # Key=plural name, e.g. "endpoints"
+      "plural": "<STRING>",              # E.g. "endpoints"
+      "singular": "<STRING>",            # E.g. "endpoint"
       "description": "<STRING>", ?
       "documentation": "<URL>", ?
       "icon": "<URL>", ?
       "labels": { "<STRING>": "<STRING>" * }, ?
-      "modelversion": "<STRING>", ?    # Version of the group model
-      "compatiblewith": "<URI>", ?     # Statement of compatibility
-      "attributes": { ... }, ?         # See "attributes" above
+      "modelversion": "<STRING>", ?      # Version of the group model
+      "modelcompatiblewith": "<URI>", ?  # Statement of compatibility
+      "attributes": { ... }, ?           # See "attributes" above
       "ximportresources": [ "<XIDTYPE>", * ], ?   # Include these Resources
 
       "resources": {
-        "<STRING>": {                  # Key=plural name, e.g. "messages"
-          "plural": "<STRING>",        # E.g. "messages"
-          "singular": "<STRING>",      # E.g. "message"
+        "<STRING>": {                    # Key=plural name, e.g. "messages"
+          "plural": "<STRING>",          # E.g. "messages"
+          "singular": "<STRING>",        # E.g. "message"
           "description": "<STRING>", ?
           "documentation": "<URL>", ?
           "icon": "<URL>", ?
           "labels": { "<STRING>": "<STRING>" * }, ?
-          "modelversion": "<STRING>", ?  # Version of the resource model
-          "compatiblewith": "<URI>", ?   # Statement of compatibility
+          "modelversion": "<STRING>", ?     # Version of the resource model
+          "modelcompatiblewith": "<URI>", ? # Statement of compatibility
           "maxversions": <UINTEGER>, ?   # Num Vers(>=0). Default=0, 0=unlimited
           "setversionid": <BOOLEAN>, ?   # vid settable? Default=true
           "setdefaultversionsticky": <BOOLEAN>, ? # Sticky settable? Default=true
@@ -499,7 +499,7 @@ The following describes the attributes of the Registry model:
 - It is common to use a combination of major and minor version numbers.
 - Example: `1.2`
 
-### `groups.<STRING>.compatiblewith`
+### `groups.<STRING>.modelcompatiblewith`
 - Type: URI.
 - OPTIONAL.
 - References / represents an xRegistry model definition that
@@ -569,8 +569,8 @@ The following describes the attributes of the Registry model:
 - See [`modelversion`](#groupsstringmodelversion) above.
 - OPTIONAL.
 
-### `groups.<STRING>.resources.<STRING>.compatiblewith`
-- See [`modelversion`](#groupsstringcompatiblewith) above.
+### `groups.<STRING>.resources.<STRING>.modelcompatiblewith`
+- See [`modelversion`](#groupsstringmodelcompatiblewith) above.
 - OPTIONAL.
 
 ### `groups.<STRING>.resources.<STRING>.maxversions`

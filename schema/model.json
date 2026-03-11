@@ -4,7 +4,7 @@
     "schemagroups": {
       "singular": "schemagroup",
       "modelversion": "1.0-rc2",
-      "compatiblewith": "https://xregistry.io/xreg/domains/schema/specs/model.json",
+      "modelcompatiblewith": "https://xregistry.io/xreg/domains/schema/specs/model.json",
 
       "attributes": {
         "*": {
@@ -17,7 +17,7 @@
         "schemas": {
           "singular": "schema",
           "modelversion": "1.0-rc2",
-          "compatiblewith": "https://xregistry.io/xreg/domains/schema/specs/model.json",
+          "modelcompatiblewith": "https://xregistry.io/xreg/domains/schema/specs/model.json",
 
           "attributes": {
             "*": {

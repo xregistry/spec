@@ -7,7 +7,7 @@
     "endpoints": {
       "singular": "endpoint",
       "modelversion": "1.0-rc2",
-      "compatiblewith": "https://xregistry.io/xreg/domains/endpoint/specs/model.json",
+      "modelcompatiblewith": "https://xregistry.io/xreg/domains/endpoint/specs/model.json",
       "attributes": {
         "usage": {
           "name": "usage",

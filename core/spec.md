@@ -485,7 +485,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
         "icon": "<URL>", ?
         "labels": { "<STRING>": "<STRING>" * }, ?
         "modelversion": "<STRING>", ?     # Version of the group model
-        "compatiblewith": "<URI>", ?      # Statement of compatibility
+        "modelcompatiblewith": "<URI>", ? # Statement of compatibility
         "attributes": { ... }, ?          # Group-level attributes/extensions
         "ximportresources": [ "<XIDTYPE>", * ], ?   # Include these Resources
 
@@ -498,7 +498,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "icon": "<URL>", ?
             "labels": { "<STRING>": "<STRING>" * }, ?
             "modelversion": "<STRING>", ? # Version of the resource model
-            "compatiblewith": "<URI>", ?  # Statement of compatibility
+            "modelcompatiblewith": "<URI>", ?  # Statement of compatibility
             "maxversions": <UINTEGER>, ?  # Num Vers(>=0). Default=0(unlimited)
             "setversionid": <BOOLEAN>, ?  # vid settable? Default=true
             "setdefaultversionsticky": <BOOLEAN>, ? # sticky settable? Default=true

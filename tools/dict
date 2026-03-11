@@ -43,7 +43,6 @@ collectionscount
 collectionsurl
 commonattributes
 compatibilityauthority
-compatiblewith
 config
 configendpoints
 connectionproperties
@@ -113,7 +112,7 @@ groupsgidresourcesrid
 groupsgidresourcesridmeta
 groupsgidresourcesridversions
 groupsgidresourcesridversionsvid
-groupsstringcompatiblewith
+groupsstringmodelcompatiblewith
 groupsstringmodelversion
 groupsstringresourcesstringmetaattributes
 groupsstringresourcesstringresourceattributes
@@ -169,6 +168,7 @@ metaschemas
 metaurl
 microsoft
 middleware
+modelcompatiblewith
 modelsource
 modelversion
 modifiedat
