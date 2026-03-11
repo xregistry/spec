@@ -15,4 +15,4 @@ jobs:
       - name: Install tools dependencies
         run: python -m pip install -r tools/requirements.txt
       - name: Verify Specification
-        run: make -f tools/Makefile verify makeschema
+        run: make -f tools/Makefile
