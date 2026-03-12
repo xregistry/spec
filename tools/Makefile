@@ -43,7 +43,7 @@ models:
 	@# Note this will use a local 'xr' if available so that local build/test
 	@# of 'xr' can be done
 	(which xr && xr model verify */model.json -v) || \
-	(docker run -v $$PWD:/xreg -w /xreg --entrypoint /bin/sh \
+	(docker run -t -v $$PWD:/xreg -w /xreg --entrypoint /bin/sh \
 		ghcr.io/xregistry/xr -c "/xr model verify */model.json -v")
 	@echo
 
@@ -63,5 +63,5 @@ makeschema: loadpython
 	@python tools/schema-generator.py --type openapi --output cloudevents/schemas/openapi.json endpoint/model.json message/model.json schema/model.json
 
 docker:
-	@docker run -ti -v $(PWD):/tmp/spec -w /tmp/spec python:3.11 \
+	@docker run -t -v $(PWD):/tmp/spec -w /tmp/spec python:3.11 \
 	    make -f tools/Makefile verify makeschema
