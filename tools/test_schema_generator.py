@@ -330,7 +330,6 @@ class TestSchemaGenerator:
     def test_makefile_endpoint_openapi(self, endpoint_model, tools_dir):
         """Test endpoint model OpenAPI generation (matches Makefile)."""
         schema_data = self.generate_schema(endpoint_model, 'openapi', tools_dir)
-        print(f"{json.dumps(schema_data)}")
         # Validate with OpenAPI spec validator
         validate_spec(schema_data)
         # Check nested structure

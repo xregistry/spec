@@ -463,24 +463,12 @@
               "required": true,
               "default": false
             },
-            "formatauthority": {
-              "name": "formatauthority",
-              "type": "string",
-              "enum": [ "external", "server" ],
-              "strict": false
-            },
             "compatibility": {
               "name": "compatibility",
               "type": "string",
               "enum": [ "backward", "backward_transitive", "forward",
                         "forward_transitive", "full", "full_transitive" ],
               "strict": true
-            },
-            "compatibilityauthority": {
-              "name": "compatibilityauthority",
-              "type": "string",
-              "enum": [ "external", "server" ],
-              "strict": false
             },
             "deprecated": {
               "name": "deprecated",
