@@ -429,8 +429,8 @@ variable or structure property names - they're usually just stored as
   will match what was used in the request (either explicitly or implicity).
   So GET resource?meta or GET group?inline both ask for metadata
 - xRegistry- headers: first "-" separates xRegistry from attribute name,
-  next "-" separates attribute name from key, any subsequent "-" is part
-  of the key name. E.g. xRegistry-labels-abc-def:xxx => labels["abc-def"]=xxx
+  next "." separates attribute name from key, any subsequent "." is part
+  of the key name. E.g. xRegistry-labels.abc.def:xxx => labels["abc.def"]=xxx
 - impact of "\*required" flags at multiple levels
 - why we don't use underscore in our property names, tho legal to do so
   - not all http proxies (e.g. nginx) pass them along by default

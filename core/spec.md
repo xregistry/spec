@@ -507,6 +507,8 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "hasdocument": <BOOLEAN>, ?   # Has separate document. Default=true
             "versionmode": "<STRING>", ?  # 'ancestor' processing algorithm
             "singleversionroot": <BOOLEAN>, ? # Default=false"
+            "validatecompatibility": <BOOLEAN>, ? # Enforce version compat
+            "validateformat": <BOOLEAN>, ?    # Enforce version format checks
             "typemap": <MAP>, ?               # contenttype mappings
             "attributes": { ... }, ?          # Version attributes/extensions
             "resourceattributes": { ... }, ?  # Resource attributes/extensions
@@ -2761,8 +2763,8 @@ and the following Meta-level attributes:
 
 - Constraints:
   - OPTIONAL.
-  - It MUST be a case-sensitive non-empty value from the Resource model's
-    enumeration range.
+  - If present, MUST be a case-insensitive non-empty value from the Resource
+    model's enumeration range.
   - When changing the value of this attribute, it MUST be applied to all
     Versions of the Resource, and an error
     ([compatibility_violation](#compatibility_violation)) MUST be generated

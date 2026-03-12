@@ -413,7 +413,7 @@ apply:
 - When `labels` is serialized as an HTTP header, see
   [Serializing Resource Domain-Specific Documents](#serializing-resource-domain-specific-documents), then
   each map entry MUST appear as a separate HTTP header using a name of
-  `xRegistry-labels-<KEYNAME>`.
+  `xRegistry-labels.<KEYNAME>`.
 
 ##### `contenttype` Attribute
 
@@ -1553,9 +1553,9 @@ values will appear in the HTTP body.
 
 Top-level map attributes whose values are of scalar types SHOULD also appear as
 HTTP headers (each key having its own HTTP header) and in those cases the
-HTTP header names will be of the form: `xRegistry-<MAPNAME>-<KEYNAME>`.
-Note that map keys MAY contain the `-` character, so any `-` after the 2nd `-`
-is part of the key name. See
+HTTP header names will be of the form: `xRegistry-<MAPNAME>.<KEYNAME>`.
+Note that map keys MAY contain the `.` character, so any `.` after the
+`<MAPNAME>` is part of the key name. See
 [HTTP Header Values](#http-header-values) for additional information and
 [`labels`](#labels-attribute) for an example of one such attribute.
 
@@ -1598,7 +1598,7 @@ xRegistry-isdefault: true
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
-xRegistry-labels-<KEY>: <STRING> *
+xRegistry-labels.<KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
 xRegistry-ancestor: <STRING>
@@ -1643,7 +1643,7 @@ xRegistry-isdefault: <BOOLEAN>
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
-xRegistry-labels-<KEY>: <STRING> *
+xRegistry-labels.<KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
 xRegistry-ancestor: <STRING>
@@ -1920,7 +1920,7 @@ xRegistry-isdefault: true
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
-xRegistry-labels-<KEY>: <STRING> *
+xRegistry-labels.<KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
 xRegistry-ancestor: <STRING>
@@ -2025,7 +2025,7 @@ xRegistry-name: <STRING> ?
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
-xRegistry-labels-<KEY>: <STRING> *
+xRegistry-labels.<KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP> ?
 xRegistry-modifiedat: <TIMESTAMP> ?
 xRegistry-ancestor: <STRING> ?
@@ -2056,7 +2056,7 @@ xRegistry-isdefault: true
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
-xRegistry-labels-<KEY>: <STRING> *
+xRegistry-labels.<KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
 xRegistry-ancestor: <STRING>
@@ -2202,7 +2202,7 @@ xRegistry-name: <STRING> ?
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
-xRegistry-labels-<KEY>: <STRING> *
+xRegistry-labels.<KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP> ?
 xRegistry-modifiedat: <TIMESTAMP> ?
 xRegistry-ancestor: <STRING> ?
@@ -2230,7 +2230,7 @@ xRegistry-isdefault: <BOOLEAN>
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
-xRegistry-labels-<KEY>: <STRING> *
+xRegistry-labels.<KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
 xRegistry-ancestor: <STRING>
@@ -2737,7 +2737,7 @@ xRegistry-isdefault: <BOOLEAN>
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
-xRegistry-labels-<KEY>: <STRING> *
+xRegistry-labels.<KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
 xRegistry-ancestor: <STRING>
@@ -2854,7 +2854,7 @@ xRegistry-isdefault: <BOOLEAN>
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
-xRegistry-labels-<KEY>: <STRING> *
+xRegistry-labels.<KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP> ?
 xRegistry-modifiedat: <TIMESTAMP> ?
 xRegistry-ancestor: <STRING> ?
@@ -2885,7 +2885,7 @@ xRegistry-isdefault: <BOOLEAN>
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
-xRegistry-labels-<KEY>: <STRING> *
+xRegistry-labels.<KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
 xRegistry-ancestor: <STRING>
