@@ -705,7 +705,7 @@ Illustrating example:
 
 - Type: String
 - Description: Identifies the schema format applicable to the message payload,
-  equivalent to the schema ['format'](../schema/spec.md#422-format)
+  equivalent to the schema ['format'](../core/spec.md#format-attribute)
   attribute.
 - Constraints:
   - OPTIONAL.

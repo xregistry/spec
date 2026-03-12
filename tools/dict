@@ -43,7 +43,6 @@ collectionscount
 collectionsurl
 commonattributes
 compatibilityauthority
-compatiblewith
 config
 configendpoints
 connectionproperties
@@ -98,6 +97,7 @@ files
 filescount
 filesurl
 filesystem
+formatauthority
 gid
 github
 githubusercontent
@@ -112,7 +112,7 @@ groupsgidresourcesrid
 groupsgidresourcesridmeta
 groupsgidresourcesridversions
 groupsgidresourcesridversionsvid
-groupsstringcompatiblewith
+groupsstringmodelcompatiblewith
 groupsstringmodelversion
 groupsstringresourcesstringmetaattributes
 groupsstringresourcesstringresourceattributes
@@ -168,6 +168,7 @@ metaschemas
 metaurl
 microsoft
 middleware
+modelcompatiblewith
 modelsource
 modelversion
 modifiedat

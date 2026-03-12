@@ -4,7 +4,7 @@
     "messagegroups": {
       "singular": "messagegroup",
       "modelversion": "1.0-rc2",
-      "compatiblewith": "https://xregistry.io/xreg/domains/message/specs/model.json",
+      "modelcompatiblewith": "https://xregistry.io/xreg/domains/message/specs/model.json",
       "attributes": {
         "envelope": {
           "name": "envelope",
@@ -29,7 +29,7 @@
           "setdefaultversionsticky": false,
           "hasdocument": false,
           "modelversion": "1.0-rc2",
-          "compatiblewith": "https://xregistry.io/xreg/domains/message/specs/model.json",
+          "modelcompatiblewith": "https://xregistry.io/xreg/domains/message/specs/model.json",
           "attributes": {
             "basemessageurl": {
               "name": "basemessageurl",

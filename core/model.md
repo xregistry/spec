@@ -1,5 +1,7 @@
 # xRegistry Service Model - Version 1.0-rc2
 
+<!-- words: compat validatecompatibility validateformat -->
+
 ## Abstract
 
 This document describes the xRegistry model definition language that is used
@@ -102,34 +104,36 @@ The overall format of a model definition is as follows:
   },
 
   "groups": {
-    "<STRING>": {                      # Key=plural name, e.g. "endpoints"
-      "plural": "<STRING>",            # E.g. "endpoints"
-      "singular": "<STRING>",          # E.g. "endpoint"
+    "<STRING>": {                        # Key=plural name, e.g. "endpoints"
+      "plural": "<STRING>",              # E.g. "endpoints"
+      "singular": "<STRING>",            # E.g. "endpoint"
       "description": "<STRING>", ?
       "documentation": "<URL>", ?
       "icon": "<URL>", ?
       "labels": { "<STRING>": "<STRING>" * }, ?
-      "modelversion": "<STRING>", ?    # Version of the group model
-      "compatiblewith": "<URI>", ?     # Statement of compatibility
-      "attributes": { ... }, ?         # See "attributes" above
+      "modelversion": "<STRING>", ?      # Version of the group model
+      "modelcompatiblewith": "<URI>", ?  # Statement of compatibility
+      "attributes": { ... }, ?           # See "attributes" above
       "ximportresources": [ "<XIDTYPE>", * ], ?   # Include these Resources
 
       "resources": {
-        "<STRING>": {                  # Key=plural name, e.g. "messages"
-          "plural": "<STRING>",        # E.g. "messages"
-          "singular": "<STRING>",      # E.g. "message"
+        "<STRING>": {                    # Key=plural name, e.g. "messages"
+          "plural": "<STRING>",          # E.g. "messages"
+          "singular": "<STRING>",        # E.g. "message"
           "description": "<STRING>", ?
           "documentation": "<URL>", ?
           "icon": "<URL>", ?
           "labels": { "<STRING>": "<STRING>" * }, ?
-          "modelversion": "<STRING>", ?  # Version of the resource model
-          "compatiblewith": "<URI>", ?   # Statement of compatibility
+          "modelversion": "<STRING>", ?     # Version of the resource model
+          "modelcompatiblewith": "<URI>", ? # Statement of compatibility
           "maxversions": <UINTEGER>, ?   # Num Vers(>=0). Default=0, 0=unlimited
           "setversionid": <BOOLEAN>, ?   # vid settable? Default=true
           "setdefaultversionsticky": <BOOLEAN>, ? # Sticky settable? Default=true
           "hasdocument": <BOOLEAN>, ?       # Has separate document. Default=true
           "versionmode": "<STRING>", ?      # 'ancestor' processing algorithm
           "singleversionroot": <BOOLEAN>, ? # Enforce single root. Default=false
+          "validatecompatibility": <BOOLEAN>, ? # Enforce version compat checks
+          "validateformat": <BOOLEAN>, ?    # Enforce version format checks
           "typemap": <MAP>, ?               # Contenttype mappings
           "attributes": { ... }, ?          # Version attributes/extensions
           "resourceattributes": { ... }, ?  # Resource attributes/extensions
@@ -499,7 +503,7 @@ The following describes the attributes of the Registry model:
 - It is common to use a combination of major and minor version numbers.
 - Example: `1.2`
 
-### `groups.<STRING>.compatiblewith`
+### `groups.<STRING>.modelcompatiblewith`
 - Type: URI.
 - OPTIONAL.
 - References / represents an xRegistry model definition that
@@ -569,8 +573,8 @@ The following describes the attributes of the Registry model:
 - See [`modelversion`](#groupsstringmodelversion) above.
 - OPTIONAL.
 
-### `groups.<STRING>.resources.<STRING>.compatiblewith`
-- See [`modelversion`](#groupsstringcompatiblewith) above.
+### `groups.<STRING>.resources.<STRING>.modelcompatiblewith`
+- See [`modelversion`](#groupsstringmodelcompatiblewith) above.
 - OPTIONAL.
 
 ### `groups.<STRING>.resources.<STRING>.maxversions`
@@ -758,6 +762,40 @@ The following describes the attributes of the Registry model:
   [`singleversionroot` Policy
   Enforcement](./primer.md#singleversionroot-policy-enforcement) section of
   the Primer for more information.
+
+### `groups.<STRING>.resources.<STRING>.validatecompatibility`
+- Type: Boolean (`true` or `false`, case-sensitive).
+- OPTIONAL.
+- Indicated whether the server MUST validate that all Versions of this
+  Resource type adhere to its owning Resource's `meta.compatibility` value.
+- When not specified, the default value MUST be `false`.
+- A value of `true` indicates that the server MUST generate an error
+  ([compatibility_violation](spec.md#compatibility_violation)) if a Resource's
+  `meta.compatibility` value is not supported, or if any Version of that
+  Resource does not adhere to the rules as defined by the
+  `meta.compatibility` value. Additionally, if this model attribute is set
+  to `true` then the Resource model's `validateformat` MUST also be `true`.
+- A value of `false` indicates that the server MUST NOT perform any
+  `compatibility` checking for instances of this Resource type.
+- In cases where this attribute is `false`, but there is a desire to advertise
+  the entity that has performed the validation, a `label` MAY be added to
+  the Resource's model or to the Resource instance itself with this
+  information.
+
+### `groups.<STRING>.resources.<STRING>.validateformat`
+- Type: Boolean (`true` or `false`, case-sensitive).
+- OPTIONAL.
+- Indicated whether the server MUST validate that all Versions of this
+  Resource type adhere to the rules as defined by the Version's `format`
+  value.
+- When not specified, the default value MUST be `false`.
+- A value of `true` indicates that the server MUST generate an error
+  ([format_violation](spec.md#format_violation))if a Version of this Resource
+  type does not adhere to the `format` value of that Version. Note that a
+  missing (or empty) `format` value MUST be treated as non-compliant and
+  generate an error ([format_missing](spec.md#format_missing)).
+- A value of `false` indicates that the server MUST NOT perform any `format`
+  checking for Versions of this Resource type.
 
 ### `groups.<STRING>.resources.<STRING>.typemap`
 - Type: Map where the keys and values MUST be non-empty strings. The key

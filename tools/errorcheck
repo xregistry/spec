@@ -27,7 +27,7 @@ first="UNUSED ERRORS:\n"
 for err in "${err_array[@]}"; do
   # ref=$(echo "$err" | tr '[:upper:]' '[:lower:]' | sed "s/ /-/g")
   # grep -e "(#$ref)" -e "(\./[a-z]*\.md#$ref)" $* > /dev/null && continue
-  grep -e "(#$err)" -e "(\./[a-z]*\.md#$err)" $* > /dev/null && continue
+  grep -e "(.*#$err)" -e "(\./[a-z]*\.md#$err)" $* > /dev/null && continue
 
   # special case this one
   [[ "$err" == "server_error" ]] && continue

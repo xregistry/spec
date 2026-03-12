@@ -1,5 +1,7 @@
 # xRegistry Primer
 
+<!-- words: validatecompatibility validateformat -->
+
 <!-- no verify-specs -->
 
 ## Abstract
@@ -799,20 +801,18 @@ Versions exist with the same `createdat` timestamp, those Versions are
 sorted in an descending alphabetical order, and the first is the newest
 Version.
 
-# What does the `compatibilityauthority` attribute convey?
+# Can `validatecompatibility` and `validateformat` be `true` for file-servers?
 
-The [`compatibility` attribute](./spec.md#compatibility-attribute) is a
-statement made by the authority managing the registry about the
-compatibility guarantees between Versions of the Resource. The authority is
-expected to guarantee the configured `compatibility`. The
-[`compatibilityauthority` attribute](./spec.md#compatibilityauthority-attribute)
-represents who the enforcing authority is. Any requests to set the authority
-to the server when the server cannot perform compatibility checking will be
-refused. In cases where the hosting service isn't backed by an xRegistry
-implementation (e.g. blob-store), it is recommended that
-`compatibilityauthority` is set to `external` to accurately reflect the
-situation. However, there may be cases where it is appropriate to set it to
-`server`. For example, if the file-server based xRegistry is an alternative
+In general, the `validatecompatibility` and `validateformat` attributes are
+meant to enable server-side policy validation. However, they also convey to
+clients that the data within the Registry adheres to the specified
+`compatibility` and `format` values. In cases where the xRegistry is being
+hosted by a file-server, where such validation code does not exist, but the
+server would still like to indicate to its clients that the data has in fact
+been validated, it is appropriate for the xRegistry metadata to reflect this
+situation by exposing these attributes with a value of `true`.
+
+For example, if the file-server based xRegistry is an alternative
 mechanism to retrieve data from another xRegistry service that did validate
 the data (i.e. it was exported to the file-server), and there's a desire to
 not expose this implementation/deployment choice to the end-user. In other

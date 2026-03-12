@@ -235,11 +235,6 @@
                       "doc": "Time of the object modification"
                     },
                     {
-                      "type": "string",
-                      "doc": "Schema format identifier for this schema version",
-                      "name": "format"
-                    },
-                    {
                       "name": "Extensions",
                       "type": {
                         "type": "map",

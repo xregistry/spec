@@ -25,8 +25,6 @@ allows for the storage, management and discovery of schema documents.
   - [4. Schema Registry](#4-schema-registry)
     - [4.1. Schema Groups](#41-schema-groups)
     - [4.2. Schema Resources](#42-schema-resources)
-      - [4.2.1. `validation`](#421-validation)
-      - [4.2.2. `format`](#422-format)
     - [4.3. Schema Formats](#43-schema-formats)
       - [4.3.1. JSON Schema](#431-json-schema)
       - [4.3.2. XML Schema](#432-xml-schema)
@@ -272,18 +270,13 @@ this form:
           "modifiedat": "<TIMESTAMP>",
           "ancestor": "<STRING>",
 
-          "format": "<STRING>", ?                  # schema extension attr
-
           "schemaurl": "<URL>", ?
           "schema": <ANY> ?
           "schemabase64": "<STRING>", ?
           #  End of default Version's attributes
 
           "metaurl": "<URL>",                      # Resource level attrs
-          "meta": {
-            ... core spec metadata attributes ...
-            "validation": <BOOLEAN> ?              # schema extension attr
-          }, ?
+          "meta": { ... }, ?
 
           "versionsurl": "<URL>",
           "versionscount": <UINTEGER>,
@@ -352,7 +345,7 @@ container for one or more `versions`, which hold the concrete schema documents
 or schema document references.
 
 All Versions of a single Schema Resource MUST adhere to the semantic rules of
-the schema's [`compatibility`][xRegistry compatibility] attribute.
+the schema's [`compatibility`][xRegistry compatibility] attribute, if specified.
 
 Implementations of this specification MAY choose to support any of the
 [`compatibility`][xRegistry compatibility] values defined in the core xRegistry
@@ -379,56 +372,14 @@ to exist, and allows for implementations to determine the Version lineage. See
 the [`ancestor`][xRegistry ancestor] attribute in the core xRegistry
 specification for more information.
 
-The following extensions are defined for the `schema` Resource in addition to
-the core xRegistry Resource [attributes][xRegistry attributes-and-extensions]:
+### 4.3. Schema Formats
 
-#### 4.2.1. `validation`
+This specification further refines the
+[core specification's `format`](../core/spec.md#format-attribute) for use
+in a Schema Registry by defining a set of common schema format names that MUST
+be used for the given formats, but applications MAY define extensions for
+other formats on their own.
 
-- Type: Boolean
-- Description: Indicates whether or not the server will validate the Resource's
-  document(s) against the specified `format` attribute. A value of `true`
-  indicates that the server MUST reject any request that would cause any Version
-  of this Resource to be invalid per the rules as defined by the `format`
-  specification. Note, this includes a request to set this attribute to `true`.
-  This means that before validation can be enabled, all existing Versions of the
-  Resource MUST be compliant.
-
-  A value of `false` indicates that the server MUST NOT do any validation.
-
-  If `format` is not specified, or if the value is not known by the server (but
-  is an allowable value), then the server MUST NOT perform any validation.
-- Constraints:
-  - OPTIONAL.
-  - When not specified, the default value MUST be `false`.
-
-#### 4.2.2. `format`
-
-- Type: String
-- Description: Identifies the schema format. In absence of formal media-type
-  definitions for several important schema formats, we define a convention here
-  to reference schema formats by name and version as `<NAME>/<VERSION>`. This
-  specification defines a set of common [schema format
-  names](#43-schema-formats) that MUST be used for the given formats, but
-  applications MAY define extensions for other formats on their own.
-
-  For many schema registry use cases this attribute is important for schema
-  validation purposes, and as such implementations can choose to modify the
-  model to make this attribute mandatory.
-
-  It is RECOMMENDED that the same schema format `<NAME>` be used for all
-  Versions of a schema Resource.
-
-  Managers of the xRegistry instance can set a default value for this
-  attribute, making it a REQUIRED attribute.
-- Constraints:
-  - OPTIONAL.
-  - If present, MUST be a non-empty case-insensitive string.
-  - MUST follow the naming convention `<NAME>/<VERSION>`, whereby `<NAME>` is
-    the name of the schema format and `<VERSION>` is the Version of the schema
-    format in the format defined by the schema format itself.
-  - MUST be present if the `compatibility` attribute is set to a value other
-    than `None` and when the `compatibilityauthority` attribute is set to
-    `server`, to enable validation of the schema document.
 - Examples:
   - `JsonSchema/draft-07`
   - `Protobuf/3`
@@ -509,15 +460,10 @@ Versions for a schema named `com.example.telemetrydata`:
 }
 ```
 
-### 4.3. Schema Formats
-
-This section defines a set of common schema `format` values that MUST be used
-for the given formats, but applications MAY define extensions for other formats
-on their own.
-
 #### 4.3.1. JSON Schema
 
-The [`format`](#422-format) identifier for JSON Schema is `JsonSchema`.
+The [`format`](../core/spec.md/#format-attribute) identifier for JSON Schema is
+`JsonSchema`.
 
 When the `format` attribute is set to `JsonSchema`, the `schema` attribute of
 the schema Resource is a JSON object representing a JSON Schema document
@@ -550,9 +496,9 @@ version number.
 
 #### 4.3.2. XML Schema
 
-The [`format`](#422-format) identifier for XML Schema is `XSD`. The version of
-the XML Schema format is the version of the W3C XML Schema specification that is
-used to define the schema.
+The [`format`](../core/spec.md/#format-attribute) identifier for XML Schema is
+`XSD`. The version of the XML Schema format is the version of the W3C XML
+Schema specification that is used to define the schema.
 
 When the `format` attribute is set to `XSD`, the `schema` attribute of schema
 Resource is a string containing an XML Schema document conformant with the
@@ -575,9 +521,9 @@ are defined as follows:
 
 #### 4.3.3. Apache Avro Schema
 
-The [`format`](#422-format) identifier for Apache Avro Schema is `Avro`. The
-version of the Apache Avro Schema format is the version of the Apache Avro
-Schema release that is used to define the schema.
+The [`format`](../core/spec.md/#format-attribute) identifier for Apache Avro
+Schema is `Avro`. The version of the Apache Avro Schema format is the version
+of the Apache Avro Schema release that is used to define the schema.
 
 When the `format` attribute is set to `Avro`, the `schema` attribute of the
 schema Resource is a JSON object representing an Avro schema document conformant
@@ -609,9 +555,9 @@ appended separated with a colon, for instance
 
 #### 4.3.4. Protobuf Schema
 
-The [`format`](#422-format) identifier for Protobuf Schema is `Protobuf`. The
-version of the Protobuf Schema format is the version of the Protobuf syntax that
-is used to define the schema.
+The [`format`](../core/spec.md/#format-attribute) identifier for Protobuf Schema
+is `Protobuf`. The version of the Protobuf Schema format is the version of the
+Protobuf syntax that is used to define the schema.
 
 When the `format` attribute is set to `Protobuf`, the `schema` attribute of the
 schema Resource is a string containing a Protobuf schema document conformant
