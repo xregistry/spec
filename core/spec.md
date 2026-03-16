@@ -507,8 +507,8 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "hasdocument": <BOOLEAN>, ?   # Has separate document. Default=true
             "versionmode": "<STRING>", ?  # 'ancestor' processing algorithm
             "singleversionroot": <BOOLEAN>, ? # Default=false"
-            "validatecompatibility": <BOOLEAN>, ? # Enforce version compat
-            "validateformat": <BOOLEAN>, ?    # Enforce version format checks
+            "validatecompatibility": <BOOLEAN>, ? # Check version compatibility
+            "validateformat": <BOOLEAN>, ?    # Check version format compliance
             "typemap": <MAP>, ?               # contenttype mappings
             "attributes": { ... }, ?          # Version attributes/extensions
             "resourceattributes": { ... }, ?  # Resource attributes/extensions
@@ -578,7 +578,8 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "shortself": "<URL>", ?
             "xid": "<XID>",
             "xref": "<XID>", ?                     # xid of linked Resource
-            "epoch": <UINTEGER>,                   # Resource's epoch
+            "epoch": <UINTEGER>,                   # Resource's
+            "labels": { "<STRING>": "<STRING>" * }, ? # Resource's
             "createdat": "<TIMESTAMP>",            # Resource's
             "modifiedat": "<TIMESTAMP>",           # Resource's
             "readonly": <BOOLEAN>,                 # Default=false
@@ -609,7 +610,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
               "description": "<STRING>", ?
               "documentation": "<URL>", ?
               "icon": "<URL>", ?
-              "labels": { "<STRING>": "<STRING>" * }, ?
+              "labels": { "<STRING>": "<STRING>" * }, ? # Version's labels
               "createdat": "<TIMESTAMP>",
               "modifiedat": "<TIMESTAMP>",
               "ancestor": "<STRING>",              # Ancestor's versionid
@@ -2650,6 +2651,7 @@ The serialization of the Meta entity MUST adhere to this form:
   "xid": "<XID>",                           # Relative URI to this "meta"
   "xref": "<XID>", ?                        # Ptr to linked Resource
   "epoch": <UINTEGER>,                      # Resource's epoch
+  "labels": { "<STRING>": "<STRING>" * }, ?
   "createdat": "<TIMESTAMP>",               # Resource's
   "modifiedat": "<TIMESTAMP>",              # Resource's
   "readonly": <BOOLEAN>,                    # Default=false
@@ -2681,6 +2683,7 @@ The Meta entity includes the following
   not of one particular Version. And, it adheres to the normal `epoch`
   processing rules - its value is only updated when the Meta attributes
   are updated, but also when a Version is added/removed.
+- [`labels`](#labels-attribute) - OPTIONAL in API and document views..
 - [`createdat`](#createdat-attribute) - REQUIRED in API and document views.
   OPTIONAL in requests. Creation date of the Resource/Meta entity.
 - [`modifiedat`](#modifiedat-attribute) - REQUIRED in API and document views.
@@ -3481,6 +3484,7 @@ the following:
     "xref": "<XID>" ?
     # The following attributes are absent if 'xref' is set
     "epoch": <UINTEGER>,
+    "labels": { "<STRING>": "<STRING>" * }, ?
     "createdat": "<TIMESTAMP>",
     "modifiedat": "<TIMESTAMP>",
     "ancestor": "<STRING>",

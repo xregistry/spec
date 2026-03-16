@@ -1997,6 +1997,14 @@
             "minimum": 0,
             "description": "The epoch value for the meta sub-object."
           },
+          "labels": {
+            "type": "object",
+            "description": "A map of label key/value pairs.",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "nullable": true
+          },
           "createdat": {
             "type": "string",
             "format": "date-time",
