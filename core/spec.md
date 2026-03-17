@@ -424,12 +424,12 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   "capabilities": {                     # Supported capabilities/options
     "apis": [ "/capabilities",? "/export",? "/model"? ],
     "flags": [                          # e.g. Query parameters
-      "binary",? "collections",? "doc",? "epoch",? "filter",?  "ignore".?
+      "binary",? "collections",? "doc",? "epoch",? "filter",?  "ignore",?
       "inline",? "setdefaultversionid",?  "sort",?  "specversion",?
       "<STRING>" *
     ],
     "ignore": [ "capabilities",? "defaultversionid",? "defaultversionsticky",?
-      "epoch",? "modelsource",? "readonly"? ],
+      "id",? "epoch",? "modelsource",? "readonly"? ],
     "mutable": [                        # What is mutable in the Registry
       "capabilities",? "entities",? "model",? "<STRING>"*
     ], ?
@@ -1729,6 +1729,7 @@ The JSON serialization of capabilities map MUST be of the form:
 {
   "apis": [ "<STRING>" * ], ?
   "flags": [ "<STRING>" * ], ?
+  "ignore": [ "<STRING>" * ], ?
   "mutable": [ "<STRING>" * ], ?
   "pagination": <BOOLEAN>, ?
   "shortself": <BOOLEAN>, ?
@@ -1815,7 +1816,22 @@ The following defines the specification-defined capabilities:
   are supported.
 - Examples:
   - `"flags": [ "filter", "inline" ]`    # Just these 2
-  - `"flags": [ "*" ]`                   # All supported flags, for update only
+  - `"flags": [ "*" ]`                   # All supported flags (requests only)
+
+#### `ignore`
+- Name: `ignore`
+- Type: Array of strings
+- Description: The list of supported [Ignore Flag](#ignore-flag) values.
+- Defined values:
+    `capabilities`, `defaultversionid`, `defaultversionsticky`, `id`, `epoch`,
+    `modelsource`, `readonly`.
+- When not specified, or an empty list, the `ignore` flag is not supported
+  and `ignore` MUST NOT appear in the `flags` capability.
+- When specified with a non-empty list, the `ignore` flag MUST appear in the
+ `flags` capability.
+- Examples:
+  - `"ignore": [ "epoch", "id" ]`        # Just these 2
+  - `"ignore": [ "*" ]`                  # All supported values (requests only)
 
 #### `mutable`
 - Name `mutable`
@@ -1955,10 +1971,10 @@ Where:
 - When `"type"` is `array`, `"item.type"` MUST be one of `boolean`, `string`,
   `integer`, `decimal`, `uinteger`, otherwise `"item"` MUST be absent.
 - `"enum"`, when specified, contains a list of zero or more `<VALUE>`s whose
-  type MUST match either `"type"` or `"item.type"` if `"item"` is `"array"`.
+  type MUST match either `"type"` or `"item.type"` if `"type"` is `"array"`.
   This indicates the list of allowable values for this capability.
 - `"min"` and `"max"`, when specified, MUST match the same type as either
-  `"type"` or `"item.type"` if `"item"` is `"array"`. These indicate the
+  `"type"` or `"item.type"` if `"type"` is `"array"`. These indicate the
   minimum or maximum (inclusive) value range of this capability. When not
   specified, there is no stated lower (or upper) limit. These MUST only be
   used when "type" is a numeric type.
@@ -1996,6 +2012,15 @@ in the serialization of its capabilities offering map.
     "type": "string",
     "enum": [ "binary", "collections", "doc", "epoch", "filter", "ignore",
       "inline", "setdefaultversionid", "sort", "specversion" ]
+  },
+  "ignore": {
+    "type": "string",
+    "enum": [ "capabilities", "defaultversionid", "defaultversionsticky",
+      "epoch", "modelsource", "readonly" ]
+  },
+  "mutable": {
+    "type": "string",
+    "enum": [ "
   },
   "pagination": {
     "type": "boolean",
@@ -3757,6 +3782,22 @@ message to ignore. This specification defines the following values:
 
   This value indicates that any `epoch` attribute included in the request MUST
   be ignored.
+
+- `id`
+
+  When this value is used then any `<SINGULAR>id` present in the root entity
+  MUST be ignored, and any validation to ensure it matches the targeted
+  entity's existing `<SINGULAR>id` value MUST NOT be performed.
+
+  This feature MUST only apply in cases where the request is targeted to a
+  single entity not a collection.
+
+  This features is design for cases where an entity is exported and then used
+  as input for another entity where that targeted entity needs to use a
+  different `<SINGULAR>id`, without needing to transform the exported data.
+
+  In cases where the target entity is a Version, then the flag MUST apply to
+  both the Resource's `<SINGULAR>id` and the `versionid`.
 
 - `modelsource`
 

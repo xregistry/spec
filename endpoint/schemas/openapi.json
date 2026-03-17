@@ -2867,6 +2867,15 @@
             "default": [],
             "description": "List of supported flags (query parameters)."
           },
+          "ignore": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "An ignore flag value. Values are case insensitive and may include extension values."
+            },
+            "default": [],
+            "description": "List of supported ignore flag values."
+          },
           "mutable": {
             "type": "array",
             "items": {
