@@ -1,6 +1,6 @@
 # xRegistry Service - Version 1.0-rc2
 
-<!-- words: validatecompatibility validateformat -->
+<!-- words: validatecompatibility validateformat matchcase -->
 
 ## Abstract
 
@@ -456,6 +456,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
         "description": "<STRING>", ?
         "enum": [ <VALUE> * ], ?        # Array of scalars of type `"type"`
         "strict": <BOOLEAN>, ?          # Just "enum" values? Default=true
+        "matchcase": <BOOLEAN>, ?       # Strings case-sensitive? Def=false
         "readonly": <BOOLEAN>, ?        # From client's POV. Default=false
         "immutable": <BOOLEAN>, ?       # Once set, can't change. Default=false
         "required": <BOOLEAN>, ?        # Default=false

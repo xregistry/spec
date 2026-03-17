@@ -1,6 +1,6 @@
 # xRegistry Service Model - Version 1.0-rc2
 
-<!-- words: compat validatecompatibility validateformat -->
+<!-- words: compat validatecompatibility validateformat matchcase -->
 
 ## Abstract
 
@@ -81,6 +81,7 @@ The overall format of a model definition is as follows:
       "description": "<STRING>", ?
       "enum": [ <VALUE> * ], ?         # Array of scalars of type "<TYPE>"
       "strict": <BOOLEAN>, ?           # Just "enum" values or not. Default=true
+      "matchcase": <BOOLEAN>, ?        # Strings case-sensitive? Default=false
       "readonly": <BOOLEAN>, ?         # From client's POV. Default=false
       "immutable": <BOOLEAN>, ?        # Once set, can't change. Default=false
       "required": <BOOLEAN>, ?         # Default=false
@@ -308,6 +309,15 @@ The following describes the attributes of the Registry model:
   ([invalid_attribute](./spec.md#invalid_attribute)).
   This attribute has no impact when `enum` is absent or an empty array.
 - When not specified, the default value MUST be `true`.
+
+### `attributes.<STRING>.matchcase`
+- Type: Boolean.
+- OPTIONAL.
+- Indicates whether the `string` attribute's value MUST be compared with
+  a matching value in a case-sensitive way, or not.
+- This attribute MUST NOT be `true` if the owning attribute's `type` (or
+  `item.type` for non-scalars) is not `"string"`.
+- When not specified, the default value MUST be `false`.
 
 ### `attributes.<STRING>.readonly`
 - Type: Boolean.
