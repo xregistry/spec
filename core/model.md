@@ -273,6 +273,7 @@ The following describes the attributes of the Registry model:
     defined for all map key names - see [Attributes and
     Extensions](./spec.md#attributes-and-extensions).
 - When not specified, the default value is `strict`.
+- The value of this attribute MUST be case-insensitive.
 - Implementations MAY define additional character sets, however, an attempt
   to define a model that uses an unknown character set name MUST generate an
   error ([model_error](./spec.md#model_error)). There is currently no
@@ -424,7 +425,7 @@ The following describes the attributes of the Registry model:
 - This map can be used to conditionally include additional
   attribute definitions based on the runtime value of the current attribute.
   If the string serialization of the runtime value of this attribute matches
-  the `ifvalues` key (case-sensitive), then the `siblingattributes` MUST be
+  the `ifvalues` key (case-insensitive), then the `siblingattributes` MUST be
   included in the model as siblings to this attribute.
 
   While the properties of a map will automatically prevent two entries
@@ -672,6 +673,7 @@ The following describes the attributes of the Registry model:
   Resource might change if its `defaultversionsticky` attribute is `false`.
 - When not specified, the default value MUST be `manual`.
 - Implementations MUST support at least `manual`.
+- The value of this attribute MUST be case-insensitive.
 - This specification defines the following `versionmode` algorithms:
   - `manual`
     - Newest Version: MUST be determined by finding all Versions that are
