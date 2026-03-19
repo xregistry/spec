@@ -308,6 +308,11 @@
           "default": true,
           "description": "Whether to restrict values to enum only"
         },
+        "matchcase": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether string value comparisons are case-sensitive"
+        },
         "readonly": {
           "type": "boolean",
           "default": false,

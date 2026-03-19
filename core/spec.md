@@ -1,6 +1,6 @@
 # xRegistry Service - Version 1.0-rc2
 
-<!-- words: validatecompatibility validateformat -->
+<!-- words: validatecompatibility validateformat matchcase -->
 
 ## Abstract
 
@@ -424,12 +424,12 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   "capabilities": {                     # Supported capabilities/options
     "apis": [ "/capabilities",? "/export",? "/model"? ],
     "flags": [                          # e.g. Query parameters
-      "binary",? "collections",? "doc",? "epoch",? "filter",?  "ignore".?
+      "binary",? "collections",? "doc",? "epoch",? "filter",?  "ignore",?
       "inline",? "setdefaultversionid",?  "sort",?  "specversion",?
       "<STRING>" *
     ],
     "ignore": [ "capabilities",? "defaultversionid",? "defaultversionsticky",?
-      "epoch",? "modelsource",? "readonly"? ],
+      "id",? "epoch",? "modelsource",? "readonly"? ],
     "mutable": [                        # What is mutable in the Registry
       "capabilities",? "entities",? "model",? "<STRING>"*
     ], ?
@@ -456,6 +456,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
         "description": "<STRING>", ?
         "enum": [ <VALUE> * ], ?        # Array of scalars of type `"type"`
         "strict": <BOOLEAN>, ?          # Just "enum" values? Default=true
+        "matchcase": <BOOLEAN>, ?       # Strings case-sensitive? Def=false
         "readonly": <BOOLEAN>, ?        # From client's POV. Default=false
         "immutable": <BOOLEAN>, ?       # Once set, can't change. Default=false
         "required": <BOOLEAN>, ?        # Default=false
@@ -507,6 +508,8 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "hasdocument": <BOOLEAN>, ?   # Has separate document. Default=true
             "versionmode": "<STRING>", ?  # 'ancestor' processing algorithm
             "singleversionroot": <BOOLEAN>, ? # Default=false"
+            "validatecompatibility": <BOOLEAN>, ? # Check version compatibility
+            "validateformat": <BOOLEAN>, ?    # Check version format compliance
             "typemap": <MAP>, ?               # contenttype mappings
             "attributes": { ... }, ?          # Version attributes/extensions
             "resourceattributes": { ... }, ?  # Resource attributes/extensions
@@ -576,7 +579,8 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "shortself": "<URL>", ?
             "xid": "<XID>",
             "xref": "<XID>", ?                     # xid of linked Resource
-            "epoch": <UINTEGER>,                   # Resource's epoch
+            "epoch": <UINTEGER>,                   # Resource's
+            "labels": { "<STRING>": "<STRING>" * }, ? # Resource's
             "createdat": "<TIMESTAMP>",            # Resource's
             "modifiedat": "<TIMESTAMP>",           # Resource's
             "readonly": <BOOLEAN>,                 # Default=false
@@ -607,7 +611,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
               "description": "<STRING>", ?
               "documentation": "<URL>", ?
               "icon": "<URL>", ?
-              "labels": { "<STRING>": "<STRING>" * }, ?
+              "labels": { "<STRING>": "<STRING>" * }, ? # Version's labels
               "createdat": "<TIMESTAMP>",
               "modifiedat": "<TIMESTAMP>",
               "ancestor": "<STRING>",              # Ancestor's versionid
@@ -1726,6 +1730,7 @@ The JSON serialization of capabilities map MUST be of the form:
 {
   "apis": [ "<STRING>" * ], ?
   "flags": [ "<STRING>" * ], ?
+  "ignore": [ "<STRING>" * ], ?
   "mutable": [ "<STRING>" * ], ?
   "pagination": <BOOLEAN>, ?
   "shortself": <BOOLEAN>, ?
@@ -1812,7 +1817,22 @@ The following defines the specification-defined capabilities:
   are supported.
 - Examples:
   - `"flags": [ "filter", "inline" ]`    # Just these 2
-  - `"flags": [ "*" ]`                   # All supported flags, for update only
+  - `"flags": [ "*" ]`                   # All supported flags (requests only)
+
+#### `ignore`
+- Name: `ignore`
+- Type: Array of strings
+- Description: The list of supported [Ignore Flag](#ignore-flag) values.
+- Defined values:
+    `capabilities`, `defaultversionid`, `defaultversionsticky`, `id`, `epoch`,
+    `modelsource`, `readonly`.
+- When not specified, or an empty list, the `ignore` flag is not supported
+  and `ignore` MUST NOT appear in the `flags` capability.
+- When specified with a non-empty list, the `ignore` flag MUST appear in the
+ `flags` capability.
+- Examples:
+  - `"ignore": [ "epoch", "id" ]`        # Just these 2
+  - `"ignore": [ "*" ]`                  # All supported values (requests only)
 
 #### `mutable`
 - Name `mutable`
@@ -1952,10 +1972,10 @@ Where:
 - When `"type"` is `array`, `"item.type"` MUST be one of `boolean`, `string`,
   `integer`, `decimal`, `uinteger`, otherwise `"item"` MUST be absent.
 - `"enum"`, when specified, contains a list of zero or more `<VALUE>`s whose
-  type MUST match either `"type"` or `"item.type"` if `"item"` is `"array"`.
+  type MUST match either `"type"` or `"item.type"` if `"type"` is `"array"`.
   This indicates the list of allowable values for this capability.
 - `"min"` and `"max"`, when specified, MUST match the same type as either
-  `"type"` or `"item.type"` if `"item"` is `"array"`. These indicate the
+  `"type"` or `"item.type"` if `"type"` is `"array"`. These indicate the
   minimum or maximum (inclusive) value range of this capability. When not
   specified, there is no stated lower (or upper) limit. These MUST only be
   used when "type" is a numeric type.
@@ -1993,6 +2013,15 @@ in the serialization of its capabilities offering map.
     "type": "string",
     "enum": [ "binary", "collections", "doc", "epoch", "filter", "ignore",
       "inline", "setdefaultversionid", "sort", "specversion" ]
+  },
+  "ignore": {
+    "type": "string",
+    "enum": [ "capabilities", "defaultversionid", "defaultversionsticky",
+      "epoch", "modelsource", "readonly" ]
+  },
+  "mutable": {
+    "type": "string",
+    "enum": [ "
   },
   "pagination": {
     "type": "boolean",
@@ -2648,6 +2677,7 @@ The serialization of the Meta entity MUST adhere to this form:
   "xid": "<XID>",                           # Relative URI to this "meta"
   "xref": "<XID>", ?                        # Ptr to linked Resource
   "epoch": <UINTEGER>,                      # Resource's epoch
+  "labels": { "<STRING>": "<STRING>" * }, ?
   "createdat": "<TIMESTAMP>",               # Resource's
   "modifiedat": "<TIMESTAMP>",              # Resource's
   "readonly": <BOOLEAN>,                    # Default=false
@@ -2679,6 +2709,7 @@ The Meta entity includes the following
   not of one particular Version. And, it adheres to the normal `epoch`
   processing rules - its value is only updated when the Meta attributes
   are updated, but also when a Version is added/removed.
+- [`labels`](#labels-attribute) - OPTIONAL in API and document views..
 - [`createdat`](#createdat-attribute) - REQUIRED in API and document views.
   OPTIONAL in requests. Creation date of the Resource/Meta entity.
 - [`modifiedat`](#modifiedat-attribute) - REQUIRED in API and document views.
@@ -2761,8 +2792,8 @@ and the following Meta-level attributes:
 
 - Constraints:
   - OPTIONAL.
-  - It MUST be a case-sensitive non-empty value from the Resource model's
-    enumeration range.
+  - If present, MUST be a case-insensitive non-empty value from the Resource
+    model's enumeration range.
   - When changing the value of this attribute, it MUST be applied to all
     Versions of the Resource, and an error
     ([compatibility_violation](#compatibility_violation)) MUST be generated
@@ -3479,6 +3510,7 @@ the following:
     "xref": "<XID>" ?
     # The following attributes are absent if 'xref' is set
     "epoch": <UINTEGER>,
+    "labels": { "<STRING>": "<STRING>" * }, ?
     "createdat": "<TIMESTAMP>",
     "modifiedat": "<TIMESTAMP>",
     "ancestor": "<STRING>",
@@ -3751,6 +3783,22 @@ message to ignore. This specification defines the following values:
 
   This value indicates that any `epoch` attribute included in the request MUST
   be ignored.
+
+- `id`
+
+  When this value is used then any `<SINGULAR>id` present in the root entity
+  MUST be ignored, and any validation to ensure it matches the targeted
+  entity's existing `<SINGULAR>id` value MUST NOT be performed.
+
+  This feature MUST only apply in cases where the request is targeted to a
+  single entity not a collection.
+
+  This features is design for cases where an entity is exported and then used
+  as input for another entity where that targeted entity needs to use a
+  different `<SINGULAR>id`, without needing to transform the exported data.
+
+  In cases where the target entity is a Version, then the flag MUST apply to
+  both the Resource's `<SINGULAR>id` and the `versionid`.
 
 - `modelsource`
 

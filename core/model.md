@@ -1,6 +1,6 @@
 # xRegistry Service Model - Version 1.0-rc2
 
-<!-- words: compat validatecompatibility validateformat -->
+<!-- words: compat validatecompatibility validateformat matchcase -->
 
 ## Abstract
 
@@ -81,6 +81,7 @@ The overall format of a model definition is as follows:
       "description": "<STRING>", ?
       "enum": [ <VALUE> * ], ?         # Array of scalars of type "<TYPE>"
       "strict": <BOOLEAN>, ?           # Just "enum" values or not. Default=true
+      "matchcase": <BOOLEAN>, ?        # Strings case-sensitive? Default=false
       "readonly": <BOOLEAN>, ?         # From client's POV. Default=false
       "immutable": <BOOLEAN>, ?        # Once set, can't change. Default=false
       "required": <BOOLEAN>, ?         # Default=false
@@ -273,6 +274,7 @@ The following describes the attributes of the Registry model:
     defined for all map key names - see [Attributes and
     Extensions](./spec.md#attributes-and-extensions).
 - When not specified, the default value is `strict`.
+- The value of this attribute MUST be case-insensitive.
 - Implementations MAY define additional character sets, however, an attempt
   to define a model that uses an unknown character set name MUST generate an
   error ([model_error](./spec.md#model_error)). There is currently no
@@ -307,6 +309,15 @@ The following describes the attributes of the Registry model:
   ([invalid_attribute](./spec.md#invalid_attribute)).
   This attribute has no impact when `enum` is absent or an empty array.
 - When not specified, the default value MUST be `true`.
+
+### `attributes.<STRING>.matchcase`
+- Type: Boolean.
+- OPTIONAL.
+- Indicates whether the `string` attribute's value MUST be compared with
+  a matching value in a case-sensitive way, or not.
+- This attribute MUST NOT be `true` if the owning attribute's `type` (or
+  `item.type` for non-scalars) is not `"string"`.
+- When not specified, the default value MUST be `false`.
 
 ### `attributes.<STRING>.readonly`
 - Type: Boolean.
@@ -424,7 +435,7 @@ The following describes the attributes of the Registry model:
 - This map can be used to conditionally include additional
   attribute definitions based on the runtime value of the current attribute.
   If the string serialization of the runtime value of this attribute matches
-  the `ifvalues` key (case-sensitive), then the `siblingattributes` MUST be
+  the `ifvalues` key (case-insensitive), then the `siblingattributes` MUST be
   included in the model as siblings to this attribute.
 
   While the properties of a map will automatically prevent two entries
@@ -672,6 +683,7 @@ The following describes the attributes of the Registry model:
   Resource might change if its `defaultversionsticky` attribute is `false`.
 - When not specified, the default value MUST be `manual`.
 - Implementations MUST support at least `manual`.
+- The value of this attribute MUST be case-insensitive.
 - This specification defines the following `versionmode` algorithms:
   - `manual`
     - Newest Version: MUST be determined by finding all Versions that are
