@@ -3057,6 +3057,11 @@
             "format": "uri",
             "description": "The URI of the schema for the message payload, equivalent to the 'schemauri' attribute of the schema registry"
           },
+          "dataschemaxid": {
+            "type": "string",
+            "format": "uri",
+            "description": "Contains the xid of the xRegistry schema Resource entity associated with the dataschemauri referenced schema document. Note that this means the entity MUST be located within the same Registry."
+          },
           "datacontenttype": {
             "type": "string",
             "description": "The content type for the message payload"

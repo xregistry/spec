@@ -368,6 +368,11 @@
                     },
                     {
                       "type": "string",
+                      "doc": "Contains the xid of the xRegistry schema Resource entity associated with the dataschemauri referenced schema document. Note that this means the entity MUST be located within the same Registry.",
+                      "name": "dataschemaxid"
+                    },
+                    {
+                      "type": "string",
                       "doc": "The content type for the message payload",
                       "name": "datacontenttype"
                     }
