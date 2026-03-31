@@ -428,7 +428,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       "inline",? "setdefaultversionid",?  "sort",?  "specversion",?
       "<STRING>" *
     ],
-    "ignore": [ "capabilities",? "defaultversionid",? "defaultversionsticky",?
+    "ignores": [ "capabilities",? "defaultversionid",? "defaultversionsticky",?
       "id",? "epoch",? "modelsource",? "readonly"? ],
     "mutable": [                        # What is mutable in the Registry
       "capabilities",? "entities",? "model",? "<STRING>"*
@@ -1730,7 +1730,7 @@ The JSON serialization of capabilities map MUST be of the form:
 {
   "apis": [ "<STRING>" * ], ?
   "flags": [ "<STRING>" * ], ?
-  "ignore": [ "<STRING>" * ], ?
+  "ignores": [ "<STRING>" * ], ?
   "mutable": [ "<STRING>" * ], ?
   "pagination": <BOOLEAN>, ?
   "shortself": <BOOLEAN>, ?
@@ -1819,8 +1819,8 @@ The following defines the specification-defined capabilities:
   - `"flags": [ "filter", "inline" ]`    # Just these 2
   - `"flags": [ "*" ]`                   # All supported flags (requests only)
 
-#### `ignore`
-- Name: `ignore`
+#### `ignores`
+- Name: `ignores`
 - Type: Array of strings
 - Description: The list of supported [Ignore Flag](#ignore-flag) values.
 - Defined values:
@@ -1831,8 +1831,8 @@ The following defines the specification-defined capabilities:
 - When specified with a non-empty list, the `ignore` flag MUST appear in the
  `flags` capability.
 - Examples:
-  - `"ignore": [ "epoch", "id" ]`        # Just these 2
-  - `"ignore": [ "*" ]`                  # All supported values (requests only)
+  - `"ignores": [ "epoch", "id" ]`        # Just these 2
+  - `"ignores": [ "*" ]`                  # All supported values (requests only)
 
 #### `mutable`
 - Name `mutable`
@@ -2006,22 +2006,35 @@ in the serialization of its capabilities offering map.
 ```yaml
 {
   "apis": {
-    "type": "string",
-    "enum": [ "/capabilities", "/export", "/model", /"modelsource" ]
+    "type": "array",
+    "item": {
+      "type": "string"
+    },
+    "enum": [ "/capabilities", "capabilitiesoffered", "/export", "/model",
+              /"modelsource" ]
   },
   "flags": {
-    "type": "string",
+    "type": "array",
+    "item": {
+      "type": "string"
+    },
     "enum": [ "binary", "collections", "doc", "epoch", "filter", "ignore",
       "inline", "setdefaultversionid", "sort", "specversion" ]
   },
-  "ignore": {
-    "type": "string",
+  "ignores": {
+    "type": "array",
+    "item": {
+      "type": "string"
+    },
     "enum": [ "capabilities", "defaultversionid", "defaultversionsticky",
       "epoch", "modelsource", "readonly" ]
   },
   "mutable": {
-    "type": "string",
-    "enum": [ "
+    "type": "array",
+    "enum": [ "capabilities", "entities", "model" ],
+    "item": {
+      "type": "string"
+    }
   },
   "pagination": {
     "type": "boolean",
@@ -2032,14 +2045,23 @@ in the serialization of its capabilities offering map.
     "enum": [ false, true ]
   },
   "specversions": {
-    "type": "string",
-    "enum": [ "1.0-rc2" ]
+    "type": "array",
+    "enum": [ "1.0-rc2" ],
+    "item": {
+      "type": "string"
+    }
   },
   "stickyversions": {
     "type": "boolean",
-    "enum": [ true ]
+    "enum": [ false, true ]
   },
-  "versionmodes": [ "manual" ]
+  "versionmodes": {
+    "type": "string",
+    "enum": [ "manual", "createdat", "modifiedat", "semver" ],
+    "item": {
+      "type": "string"
+    }
+  }
 }
 ```
 
