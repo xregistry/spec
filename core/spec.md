@@ -1873,10 +1873,6 @@ The following defines the specification-defined capabilities:
 - Defined values:
     `capabilities`, `defaultversionid`, `defaultversionsticky`, `id`, `epoch`,
     `modelsource`, `readonly`.
-- When not specified, or an empty list, the `ignore` flag is not supported
-  and `ignore` MUST NOT appear in the `flags` capability.
-- When specified with a non-empty list, the `ignore` flag MUST appear in the
- `flags` capability.
 - Examples:
   - `"ignores": [ "epoch", "id" ]`        # Just these 2
   - `"ignores": [ "*" ]`                  # All supported values (requests only)
