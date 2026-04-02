@@ -1,6 +1,7 @@
 # xRegistry Service - Version 1.0-rc2
 
-<!-- words: validatecompatibility validateformat matchcase -->
+<!-- words: validatecompatibility validateformat strictvalidation matchcase -->
+<!-- words: compat formatvalidated compatibilityvalidated -->
 
 ## Abstract
 
@@ -422,12 +423,16 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   "modifiedat": "<TIMESTAMP>",
 
   "capabilities": {                     # Supported capabilities/options
-    "apis": [ "/capabilities",? "/export",? "/model"? ],
+    "apis": [ "/capabilities",? "/export",? "/model"? ], ?
+    "compatibilities": {
+      "<STRING>" : [ "<STRING>" * ] *
+    }, ?
     "flags": [                          # e.g. Query parameters
       "binary",? "collections",? "doc",? "epoch",? "filter",?  "ignore",?
       "inline",? "setdefaultversionid",?  "sort",?  "specversion",?
       "<STRING>" *
     ],
+    "formats": [ "<STRING" * ], ?
     "ignores": [ "capabilities",? "defaultversionid",? "defaultversionsticky",?
       "id",? "epoch",? "modelsource",? "readonly"? ],
     "mutable": [                        # What is mutable in the Registry
@@ -438,7 +443,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
     "specversions": [ "1.0-rc2", "<STRING>"* ], ?
     "stickyversions": <BOOLEAN>, ?
     "versionmodes": [ "manual", "createdat",? "modifiedat",? "semver",?
-      "<STRING>"* ],
+      "<STRING>"* ], ?
 
     "<STRING>": ... *                   # Extension capabilities
   }, ?
@@ -508,8 +513,9 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "hasdocument": <BOOLEAN>, ?   # Has separate document. Default=true
             "versionmode": "<STRING>", ?  # 'ancestor' processing algorithm
             "singleversionroot": <BOOLEAN>, ? # Default=false"
-            "validatecompatibility": <BOOLEAN>, ? # Check version compatibility
-            "validateformat": <BOOLEAN>, ?    # Check version format compliance
+            "validatecompatibility": <BOOLEAN>, ? # Check version compatibility. Default=true
+            "validateformat": <BOOLEAN>, ?    # Check version format compliance. Default=true
+            "strictvalidation": <BOOLEAN>, ?  # Block unknown format/compat. Default=false
             "typemap": <MAP>, ?               # contenttype mappings
             "attributes": { ... }, ?          # Version attributes/extensions
             "resourceattributes": { ... }, ?  # Resource attributes/extensions
@@ -617,6 +623,8 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
               "ancestor": "<STRING>",              # Ancestor's versionid
               "contenttype": "<STRING>", ?
               "format": "<STRING>", ?
+              "formatvalidated": <BOOLEAN>, ?
+              "compatibilityvalidated": <BOOLEAN>, ?
 
               "<RESOURCE>url": "<URL>", ?                # If not local
               "<RESOURCE>": ... Resource document ..., ? # If inlined & JSON
@@ -1729,7 +1737,9 @@ The JSON serialization of capabilities map MUST be of the form:
 ```
 {
   "apis": [ "<STRING>" * ], ?
+  "compatibilities": { "<STRING>": [ "<STRING>" * ] * }, ?
   "flags": [ "<STRING>" * ], ?
+  "formats": [ "<STRING>" * ], ?
   "ignores": [ "<STRING>" * ], ?
   "mutable": [ "<STRING>" * ], ?
   "pagination": <BOOLEAN>, ?
@@ -1778,7 +1788,7 @@ needed.
 
 The following defines the specification-defined capabilities:
 
-#### `apis`
+#### `apis` Capability
 - Name: `apis`
 - Type: Array of strings
 - Description: The list of APIs (beyond the APIs for the data model) that
@@ -1805,7 +1815,33 @@ The following defines the specification-defined capabilities:
 - It is STRONGLY RECOMMENDED that implementations support at least
   `/capabilities` and `/model`.
 
-#### `flags`
+#### `compatibilities` Capability
+- Name: `compatibilities`
+- Type: Map of compatibility rules per format
+- Description: The set of compatibility rules that are available for each
+  supported `format`. Each map key MUST be a case-insensitive Capabilities
+  `formats` value, and the map value MUST be the list of case-insensitive
+  compatibility rules supported by that `format`. An error
+  ([capability_error](#capability_error)) MUST be generated if a specified
+  key/format isn't in Capabilities `formats` list or the compatibility rule
+  specified is not supported for that `format` (i.e. that combination of
+  `format`/`compatibility` is not listed in the `compatibilities` offered
+  capabilities).
+
+  Compatibility rules are semantic requirements that define how Versions of a
+  Resource are allowed to change over time. For example, the compatibility rule
+  of `backward` typically means that a newer Version of the Resource is
+  backwards compatible with the next oldest Version of that Resource. What
+  "backward compatible" means will vary based on what the Resource/Version
+  represents. The Version's `format` attribute is meant to be the indicator
+  as to "what" the Version is - which is why it is the "key" into this
+  `compatibilities` map.
+- When not specified, the default value MUST be an empty map and no support
+  for Version compatibility is supported.
+- Examples:
+  - `"compatibilities": { "avro": [ "backward", "forward" ] }`
+
+#### `flags` Capability
 - Name: `flags`
 - Type: Array of strings
 - Description: The list of supported [Request Flags](#request-flags). Absence
@@ -1819,7 +1855,18 @@ The following defines the specification-defined capabilities:
   - `"flags": [ "filter", "inline" ]`    # Just these 2
   - `"flags": [ "*" ]`                   # All supported flags (requests only)
 
-#### `ignores`
+#### `formats` Capability
+- Name: `formats`
+- Type: Array of strings
+- Description: The list of case-insensitive Version
+  [`format`](#format-attribute) values that can be validated. An error
+  ([capability_error](#capability_error)) MUST be generated for any value
+  specified is not supported by the server (i.e. not listed in the `formats`
+  offered capabilities).
+- Examples:
+  - `"formats": [ "avro", "protobuf"", "jsonSchema" ]`
+
+#### `ignores` Capability
 - Name: `ignores`
 - Type: Array of strings
 - Description: The list of supported [Ignore Flag](#ignore-flag) values.
@@ -1834,7 +1881,7 @@ The following defines the specification-defined capabilities:
   - `"ignores": [ "epoch", "id" ]`        # Just these 2
   - `"ignores": [ "*" ]`                  # All supported values (requests only)
 
-#### `mutable`
+#### `mutable` Capability
 - Name `mutable`
 - Type: Array of strings
 - Description: The list of items in the Registry that can be edited by the
@@ -1848,7 +1895,7 @@ The following defines the specification-defined capabilities:
 - When not specified, the default value MUST be an empty list and the Registry
   is read-only.
 
-#### `pagination`
+#### `pagination` Capability
 - Name: `pagination`
 - Type: Boolean
 - Description: Indicates whether the server supports the use of a
@@ -1857,7 +1904,7 @@ The following defines the specification-defined capabilities:
   specification(s) is to be supported, if any.
 - When not specified, the default value MUST be `false`.
 
-#### `shortself`
+#### `shortself` Capability
 - Name: `shortself`
 - Type: Boolean
 - Description: Indicates whether the `shortself` attribute MUST be included
@@ -1865,7 +1912,7 @@ The following defines the specification-defined capabilities:
   `true`).
 - When not specified, the default value MUST be `false`.
 
-#### `specversions`
+#### `specversions` Capability
 - Name: `specversions`
 - Type: Array of strings
 - Description: List of xRegistry specification versions supported by the
@@ -1875,7 +1922,7 @@ The following defines the specification-defined capabilities:
 - When not specified, the default value MUST be the latest version of this
   specification supported by the server.
 
-#### `stickyversions`
+#### `stickyversions` Capability
 - Name: `stickyversions`
 - Type: Boolean
 - Description: Indicates whether the server supports clients choosing which
@@ -1927,16 +1974,21 @@ A request to update a capability with an invalid value MUST generate an error
 A request to update an unknown capability MUST generate an error
 ([capability_unknown](#capability_unknown)).
 
-When processing a request to update the capabilities, the semantic
-changes MUST NOT take effect until after the processing of the current
-request. Note that if the response includes the serialization of the
-Registry's capabilities, then the changes MUST appear in that serialization.
+When processing a request to update the capabilities, the processing of the
+changes to the capabilities MUST be in effect prior to any other changes
+specified in the request being made, except for the following capability
+attributes:
+- `apis`
+- `specversions`
 
-The above requirement is driven by the idea that modifying the capabilities
-of a server and modifying any entity data are typically two very distinct
-actions, and will not normally happen at the same time. However, if the
-situation does occur, a consistent (interoperable) processing order needs to
-be defined.
+These two only impact subsequent requests, however, if the response includes
+the serialization of the Registry's capabilities, then the full set of
+changes MUST appear in that serialization.
+
+Normally modifying the capabilities of a server and modifying any entity data
+are typically two very distinct actions, and will not normally happen at the
+same time. However, if the situation does occur, a consistent (interoperable)
+processing order needs to be defined.
 
 #### Offered Capabilities
 
@@ -1957,6 +2009,7 @@ The JSON serialization of the capabilities offering map MUST be of the form:
       "type": "<TYPE>"
     }, ?
     "enum": [ <VALUE>, * ], ?
+    "options": <MAP>, ?
     "min": <VALUE>, ?
     "max": <VALUE>, ?
     "documentation": "<URL>" ?
@@ -1967,13 +2020,19 @@ The JSON serialization of the capabilities offering map MUST be of the form:
 Where:
 - `<STRING>` MUST be the capability name.
 - `<TYPE>` MUST be one of `boolean`, `string`, `integer`, `decimal`,
-  `uinteger`, `array` as defined in [Attributes and
+  `uinteger`, `array` or `map` as defined in [Attributes and
   Extensions](#attributes-and-extensions).
-- When `"type"` is `array`, `"item.type"` MUST be one of `boolean`, `string`,
-  `integer`, `decimal`, `uinteger`, otherwise `"item"` MUST be absent.
+- When `"type"` is `array` `"item.type"` MUST be one of `boolean`,
+  `string`, `integer`, `decimal`, `uinteger`. When `"type"` is `map` then
+  `"item.type"` MUST be of type `string`. If `"type"` is of any other value
+  then `"item"` MUST be absent. This attribute specifies the "type" of the
+  nested array/map item.
 - `"enum"`, when specified, contains a list of zero or more `<VALUE>`s whose
   type MUST match either `"type"` or `"item.type"` if `"type"` is `"array"`.
   This indicates the list of allowable values for this capability.
+- `"options"`, when specified, contains a map of zero or more map-keys (of type
+  `<STRING>` where each key will then have an array of allowable `<STRING>`
+  values that MAY be used for the specified key in the capability.
 - `"min"` and `"max"`, when specified, MUST match the same type as either
   `"type"` or `"item.type"` if `"type"` is `"array"`. These indicate the
   minimum or maximum (inclusive) value range of this capability. When not
@@ -2013,6 +2072,16 @@ in the serialization of its capabilities offering map.
     "enum": [ "/capabilities", "capabilitiesoffered", "/export", "/model",
               /"modelsource" ]
   },
+  "compatibilities" {
+    "type": "map",
+    "item": {
+      "type": "string"
+    },
+    "options": {
+      "avro": [ "backward", "forward" ],
+      "protobuf": [ "backward" ]
+    }
+  },
   "flags": {
     "type": "array",
     "item": {
@@ -2020,6 +2089,13 @@ in the serialization of its capabilities offering map.
     },
     "enum": [ "binary", "collections", "doc", "epoch", "filter", "ignore",
       "inline", "setdefaultversionid", "sort", "specversion" ]
+  },
+  "formats": {
+    "type": "array",
+    "item": {
+      "type": "string"
+    },
+    "enum":  [ "avro", "protobuf", "jsonSchema" ]
   },
   "ignores": {
     "type": "array",
@@ -2260,7 +2336,7 @@ and the following Resource-level attributes:
 
 ##### `metaurl` Attribute
 - Type: URL
-- Description: a server-generated URL referencing the Resource's
+- Description: A server-generated URL referencing the Resource's
   [`meta` entity](#meta-entity).
 
 - API View Constraints:
@@ -2284,7 +2360,7 @@ and the following Resource-level attributes:
 
 ##### `meta` Attribute
 - Type: Object
-- Description: an object that contains most of the Resource-level attributes.
+- Description: An object that contains most of the Resource-level attributes.
 
   See [Meta Entity](#meta-entity) for more information.
 
@@ -2744,7 +2820,7 @@ and the following Meta-level attributes:
 
 #### `xref` Attribute
 - Type: XID
-- Description: indicates that this Resource is a reference to another Resource
+- Description: Indicates that this Resource is a reference to another Resource
   within the same Registry. See [Cross Referencing
   Resources](#cross-referencing-resources) for more information.
 
@@ -2754,7 +2830,7 @@ and the following Meta-level attributes:
 
 #### `readonly` Attribute
 - Type: Boolean
-- Description: indicates whether this Resource is updateable by clients. This
+- Description: Indicates whether this Resource is updateable by clients. This
   attribute is a server-controlled attribute and therefore SHOULD NOT be
   modifiable by clients. This specification makes no statement as to when
   Resources are to be read-only.
@@ -2824,7 +2900,7 @@ and the following Meta-level attributes:
 
 #### `defaultversionid` Attribute
 - Type: String
-- Description: the `versionid` of the default Version of the Resource.
+- Description: The `versionid` of the default Version of the Resource.
   This specification makes no statement as to the format of this string or
   versioning scheme used by implementations of this specification, other than
   it MUST be a valid [`id` Attribute](#singularid-id-attribute).  However, it
@@ -2878,7 +2954,7 @@ information about the management of default Versions.
 
 #### `defaultversionurl` Attribute
 - Type: URL
-- Description: a URL to the default Version of the Resource.
+- Description: A URL to the default Version of the Resource.
 
 - API View Constraints:
   - REQUIRED.
@@ -3031,7 +3107,7 @@ and the following Version-level attributes:
 
 #### `isdefault` Attribute
 - Type: Boolean
-- Description: indicates whether this Version is the "default" Version of the
+- Description: Indicates whether this Version is the "default" Version of the
   owning Resource. This value is different from other attributes in that it
   might often be a calculated value rather than persisted in a datastore.
   Thus, when its value changes due to the default Version of a Resource
@@ -3116,8 +3192,9 @@ and the following Version-level attributes:
 
   Managers of the xRegistry instance MAY enforce validation of the data within
   the Registry by modifying the model to make this a mandatory attribute, by
-  defining a default value, or by setting the Resource's `validateformat` model
-  attribute to `true`.
+  defining a default value, or by setting the Resource's
+  [`validateformat`](./model.md#groupsstringresourcesstringvalidateformat)
+  model attribute to `true`.
 
 - Constraints:
   - OPTIONAL.
@@ -3126,10 +3203,12 @@ and the following Version-level attributes:
     the name of the format and `<VERSION>` is the version of the format used
     by this Version.
   - RECOMMENDED that the same `<NAME>` be used for all Versions of a Resource.
-  - MUST be present if the Resource's `validateformat` model attribute
-    is `true`.
-  - MUST be present if the Resource's `validatecompatibility` model attribute
-    is `true`.
+  - MUST be present if the Resource's
+   [`strictvalidation`](model.md#groupsstringresourcesstringstrictvalidation)
+   model attribute is `true` and either
+   [`validateformat`](model.md#groupsstringresourcesstringvalidateformat) or
+   [`validatecompatibility`](model.md#groupsstringresourcesstringvalidatecompatibility)
+   model attributes are also `true`.
 
 Note: an attempt to set this attribute to a value that differs from the other
 Version's values could result in the server rejecting the request due to
@@ -3142,9 +3221,69 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
   - `XSD/1.1`
   - `Avro/1.9`
 
+#### `formatvalidated` Attribute
+- Type: Boolean
+- Description: When
+  [`format` validation](./model.md#groupsstringresourcesstringvalidateformat)
+  is enabled, this attribute will indicate whether or not the server has
+  validated that the Version conforms to the rules defined by its `format`
+  attribute's value.
+
+  A value of `true` indicates that the server has validated the Version and
+  it adheres to those rules.
+
+  A value of `false` indicates that the server has not validated the Version
+  due to the `format` attribute value not being supported. Note that this
+  attribute MUST only ever be `false` when the Resource's
+  [`strictvalidation`](model.md#groupsstringresourcesstringstrictvalidation)`
+  model attribute is set to `false`. If
+  [`strictvalidation`](model.md#groupsstringresourcesstringstrictvalidation) is
+  `true`, then adding the unsupported `format` value would have generated an
+  error ([format_violation](spec.md#format_violation)) instead.
+
+- Constraints:
+  - OPTIONAL
+  - MUST be a read-only attribute.
+  - MUST be present if the Resource model's `validateformat` attribute is
+    `true` and the Version's `format` attribute is present.
+  - MUST NOT be present if the Resource model's `validateformat` attribute is
+    `false` or the Version's `format` attribute is absent.
+
+#### `compatibilityvalidated` Attribute
+- Type: Boolean
+- Description: When [`compatibility`
+  validation](./model.md#groupsstringresourcesstringvalidateformat)
+  is enabled, this attribute will indicate whether or not the server has
+  validated that the Version conforms to the rules defined by its Resource's
+  `meta.compatibility` attribute's value.
+
+  A value of `true` indicates that the server has validated the Version and
+  it adheres to those rules.
+
+  A value of `false` indicates that the server has not validated the Version
+  due to the `format` or `meta.compatibility` attribute values not being
+  supported. Note that this attribute MUST only ever be `false` when the
+  Resource's
+  [`strictvalidation`](model.md#groupsstringresourcesstringstrictvalidation)
+  model attribute is set to `false`. If
+  [`strictvalidation`](model.md#groupsstringresourcesstringstrictvalidation)
+  is `true`, then adding the unsupported `format` or `compatibility` values
+  would have generated an error ([format_violation](spec.md#format_violation)
+  or [compatibility_violation](spec.md#format_violation)) error instead.
+
+- Constraints:
+  - OPTIONAL
+  - MUST be a read-only attribute.
+  - MUST be present if the Resource model's `validatecompatibility` attribute
+    is `true`, the Version's `format` value is present, and the Resource's
+    `meta.compatibility` attribute is present.
+  - MUST NOT be present if the Resource model's `validatecompatibility`
+    attribute is `false`, or the Version's `format` value is absent, or the
+    Resource's `meta.compatibility` attribute is absent.
+
 #### `<RESOURCE>url` Attribute
 - Type: URI
-- Description: if the Version's domain-specific document is stored outside of
+- Description: If the Version's domain-specific document is stored outside of
   the current Registry, then this attribute MUST contain a URL to the
   location where it can be retrieved. If the value of this attribute
   is a well-known identifier that is readily understood by registry
@@ -3474,6 +3613,8 @@ POST http://targetRegistry.com/
 The `doc` flag MAY be used to indicate that the response MUST use "document
 view" when serializing entities and MUST be modified to do the following:
 - MUST remove the default Version attributes from a Resource's serialization.
+- MUST remove the Version `formatvalidated` and `compatibilityvalidated`
+  attributes from Version serializations.
 - When a Resource (source) uses the `xref` feature, the target Resource's
   attributes MUST be excluded from the source's serialization.
 - Resources and Versions MUST be serialized in their
