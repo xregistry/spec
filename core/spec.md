@@ -3241,6 +3241,11 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
   `true`, then adding the unsupported `format` value would have generated an
   error ([format_violation](spec.md#format_violation)) instead.
 
+  Due to this attribute being server managed, and influenced by the state of
+  other Versions, as its value changes the Version itself MUST NOT be marked as
+  changed - meaning, attributes such as `modifiedat` and `epoch` remain
+  unchanged.
+
 - Constraints:
   - OPTIONAL
   - MUST be a read-only attribute.
@@ -3270,6 +3275,11 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
   is `true`, then adding the unsupported `format` or `compatibility` values
   would have generated an error ([format_violation](spec.md#format_violation)
   or [compatibility_violation](spec.md#format_violation)) error instead.
+
+  Due to this attribute being server managed, and influenced by the state of
+  other Versions, as its value changes the Version itself MUST NOT be marked as
+  changed - meaning, attributes such as `modifiedat` and `epoch` remain
+  unchanged.
 
 - Constraints:
   - OPTIONAL
