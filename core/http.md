@@ -105,7 +105,8 @@ This specification defines the following base API patterns:
 
 ```yaml
 /                                                # Access the Registry
-/capabilities                                    # Access available features
+/capabilities                                    # Access features enabled
+/capabilitiesoffered                             # Access available features
 /model                                           # Access full model definitions
 /modelsource                                     # Access model customizations
 /export                                          # Retrieve Registry as a doc

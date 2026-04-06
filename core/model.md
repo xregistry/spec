@@ -1,6 +1,7 @@
 # xRegistry Service Model - Version 1.0-rc2
 
-<!-- words: compat validatecompatibility validateformat matchcase -->
+<!-- words: compat validatecompatibility validateformat strictvalidation -->
+<!-- words: matchcase compatibilityvalidated formatvalidated -->
 
 ## Abstract
 
@@ -133,9 +134,10 @@ The overall format of a model definition is as follows:
           "hasdocument": <BOOLEAN>, ?       # Has separate document. Default=true
           "versionmode": "<STRING>", ?      # 'ancestor' processing algorithm
           "singleversionroot": <BOOLEAN>, ? # Enforce single root. Default=false
-          "validatecompatibility": <BOOLEAN>, ? # Enforce version compat checks
-          "validateformat": <BOOLEAN>, ?    # Enforce version format checks
-          "typemap": <MAP>, ?               # Contenttype mappings
+          "validatecompatibility": <BOOLEAN>, ? # Do Version compat checks. Default=true
+          "validateformat": <BOOLEAN>, ?    # Do Version format checks. Default=true
+          "strictvalidation": <BOOLEAN>, ?  # Block unknown format/compat. Default=false
+          "typemap": <MAP>, ?               # ContentType mappings
           "attributes": { ... }, ?          # Version attributes/extensions
           "resourceattributes": { ... }, ?  # Resource attributes/extensions
           "metaattributes": { ... } ?       # Meta attributes/extensions
@@ -780,18 +782,20 @@ The following describes the attributes of the Registry model:
 - OPTIONAL.
 - Indicated whether the server MUST validate that all Versions of this
   Resource type adhere to its owning Resource's `meta.compatibility` value.
-- When not specified, the default value MUST be `false`.
+- When not specified, the default value MUST be `true`.
 - A value of `true` indicates that the server MUST generate an error
-  ([compatibility_violation](spec.md#compatibility_violation)) if a Resource's
-  `meta.compatibility` value is not supported, or if any Version of that
-  Resource does not adhere to the rules as defined by the
-  `meta.compatibility` value. Additionally, if this model attribute is set
-  to `true` then the Resource model's `validateformat` MUST also be `true`.
+  [compatibility_violation](spec.md#compatibility_violation)) if any Version
+  of a Resource instance of this Resource type does not adhere to the rules of
+  the `meta.compatibility` value for that Resource's `format` value.
+  See [`strictvalidation`](#groupsstringresourcesstringstrictvalidation) for
+  exceptions to this requirement.
+- When this model attribute is `true` then its sibling `validateformat`
+  attribute MUST also be `true`.
 - A value of `false` indicates that the server MUST NOT perform any
   `compatibility` checking for instances of this Resource type.
 - In cases where this attribute is `false`, but there is a desire to advertise
-  the entity that has performed the validation, a `label` MAY be added to
-  the Resource's model or to the Resource instance itself with this
+  the external entity that has performed the validation, a `label` MAY be
+  added to the Resource's model or to the Resource instance itself with this
   information.
 
 ### `groups.<STRING>.resources.<STRING>.validateformat`
@@ -800,14 +804,45 @@ The following describes the attributes of the Registry model:
 - Indicated whether the server MUST validate that all Versions of this
   Resource type adhere to the rules as defined by the Version's `format`
   value.
-- When not specified, the default value MUST be `false`.
+- When not specified, the default value MUST be `true`.
 - A value of `true` indicates that the server MUST generate an error
-  ([format_violation](spec.md#format_violation))if a Version of this Resource
-  type does not adhere to the `format` value of that Version. Note that a
-  missing (or empty) `format` value MUST be treated as non-compliant and
-  generate an error ([format_missing](spec.md#format_missing)).
+  ([format_violation](spec.md#format_violation))if any Version of a Resource
+  instance of this Resource type does not adhere to the `format` value of that
+  Version. An absent `format` value MUST be treated as an error
+  ([format_missing](spec.md#format_missing)).
+  See [`strictvalidation`](#groupsstringresourcesstringstrictvalidation) for
+  exceptions to this requirement.
 - A value of `false` indicates that the server MUST NOT perform any `format`
-  checking for Versions of this Resource type.
+  checking for Versions of Resources of this Resource type.
+
+### `groups.<STRING>.resources.<STRING>.strictvalidation`
+- Type: Boolean (`true` or `false`, case-sensitive)
+- OPTIONAL
+- Indicates whether an unsupported Resource `meta.compatibility` or Version
+  `format` values are to be treated as errors or ignored.
+- This attribute only impacts server semantics when either `validateformat` or
+  `validatecompatibility` are `true`. Otherwise, this attribute's value is
+  ignored by the server.
+- When not specified, the default value MUST be `false`.
+- A value of `true` indicates that:
+  - The `format` validation logic MUST generate an error
+    ([format_missing](spec.md#format_missing)) if the Version's `format` value
+    is absent.
+  - The `format` validation logic MUST generate an error
+    ([format_violation](spec.md#format_violation)) if the Version's `format`
+    is an unsupported value.
+  - The `compatibility` validation logic MUST generate an error
+    ([compatibility_violation](spec.md#compatibility_violation)) if the
+    Resource's `meta.compatibility` value is an unsupported value.
+- A value of `false` indicates that:
+  - If the Version's `format` value is absent, then format and compatibility
+    validation logic MUST NOT be performed for that Version.
+  - If the Version's `format` value is not supported, then the `format`
+    validation logic MUST NOT generate an error. Instead, the Version's
+    `formatvalidated` and `compatibilityvalidated` attributes MUST be set to
+    `false`.
+  - If the Resource's `meta.compatibility` value is unsupported, then
+    the Version's `compatibilityvalidated` attribute MUST be set to `false`.
 
 ### `groups.<STRING>.resources.<STRING>.typemap`
 - Type: Map where the keys and values MUST be non-empty strings. The key
