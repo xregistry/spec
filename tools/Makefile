@@ -42,9 +42,14 @@ links: loadpython
 models:
 	@# Note this will use a local 'xr' if available so that local build/test
 	@# of 'xr' can be done
-	(which xr && xr model verify */model.json -v) || \
-	(docker run -t -v $$PWD:/xreg -w /xreg --entrypoint /bin/sh \
-		ghcr.io/xregistry/xr -c "/xr model verify */model.json -v")
+	if which xr ; then \
+	  echo Using local xr ; \
+	  xr model verify */model.json -v ; \
+	else \
+	  echo Using docker ghcr.io/xregistry/xr ; \
+	  docker run -t -v $$PWD:/xreg -w /xreg --entrypoint /bin/sh \
+		ghcr.io/xregistry/xr -c "/xr model verify */model.json -v" ; \
+	fi
 	@echo
 
 makeschema: loadpython

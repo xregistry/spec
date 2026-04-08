@@ -5172,6 +5172,9 @@
             "type": "string",
             "format": "date-time",
             "description": "Time of the object modification"
+          },
+          "format": {
+            "type": "string"
           }
         },
         "oneOf": [
@@ -5217,6 +5220,9 @@
               "schemaurl"
             ]
           }
+        ],
+        "required": [
+          "format"
         ]
       },
       "schema": {

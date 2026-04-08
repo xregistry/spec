@@ -18,8 +18,15 @@
           "singular": "schema",
           "modelversion": "1.0-rc2",
           "modelcompatiblewith": "https://xregistry.io/xreg/domains/schema/specs/model.json",
-
+          "validateformat": true,
+          "validatecompatibility": true,
+          "strictvalidation": false,
+          "consistentformat": true,
           "attributes": {
+            "format": {
+              "type": "string",
+              "required": true
+            },
             "*": {
               "name": "*",
               "type": "any"

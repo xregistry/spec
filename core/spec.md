@@ -2,6 +2,7 @@
 
 <!-- words: validatecompatibility validateformat strictvalidation matchcase -->
 <!-- words: compat formatvalidated compatibilityvalidated -->
+<!-- words: consistentformat -->
 
 ## Abstract
 
@@ -513,9 +514,10 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "hasdocument": <BOOLEAN>, ?   # Has separate document. Default=true
             "versionmode": "<STRING>", ?  # 'ancestor' processing algorithm
             "singleversionroot": <BOOLEAN>, ? # Default=false"
-            "validatecompatibility": <BOOLEAN>, ? # Check version compatibility. Default=true
-            "validateformat": <BOOLEAN>, ?    # Check version format compliance. Default=true
+            "validateformat": <BOOLEAN>, ?    # Check version format compliance. Default=false
+            "validatecompatibility": <BOOLEAN>, ? # Check version compatibility. Default=false
             "strictvalidation": <BOOLEAN>, ?  # Block unknown format/compat. Default=false
+            "consistentformat": <BOOLEAN>, ?  # Same format for all Vers. Default=false
             "typemap": <MAP>, ?               # contenttype mappings
             "attributes": { ... }, ?          # Version attributes/extensions
             "resourceattributes": { ... }, ?  # Resource attributes/extensions
@@ -2481,7 +2483,9 @@ The overall processing of the request message is as follows:
     [`versionmode`](./model.md#groupsstringresourcesstringversionmode) value.
 4.  Process the `meta` sub-object, if present.
 5.  Update [`meta.defaultversionid`](#defaultversionid-attribute) as needed.
-6.  Enforce the [Version format checks](#format-attribute).
+6.  Enforce the [Version format checks](#format-attribute). Including the
+    enforcement of the Resource model's `consistentformat` aspect if set to
+    `true`.
 7.  Enforce the [Version compatibility checks](#compatibility-attribute).
 8.  Enforce the [Resource `maxversions`
     constraints](./model.md#groupsstringresourcesstringmaxversions). Note that
@@ -3187,10 +3191,8 @@ and the following Version-level attributes:
   [Message definitions](../message/spec.md).
 
   Managers of the xRegistry instance MAY enforce validation of the data within
-  the Registry by modifying the model to make this a mandatory attribute, by
-  defining a default value, or by setting the Resource's
-  [`validateformat`](./model.md#groupsstringresourcesstringvalidateformat)
-  model attribute to `true`.
+  the Registry by modifying the model to make this a mandatory attribute or
+  by defining a default value.
 
 - Constraints:
   - OPTIONAL.
@@ -3199,17 +3201,17 @@ and the following Version-level attributes:
     the name of the format and `<VERSION>` is the version of the format used
     by this Version.
   - RECOMMENDED that the same `<NAME>` be used for all Versions of a Resource.
-  - MUST be present if the Resource's
-   [`strictvalidation`](model.md#groupsstringresourcesstringstrictvalidation)
-   model attribute is `true` and either
-   [`validateformat`](model.md#groupsstringresourcesstringvalidateformat) or
-   [`validatecompatibility`](model.md#groupsstringresourcesstringvalidatecompatibility)
-   model attributes are also `true`.
+  - When not present, `format` validation MUST NOT be performed for that
+    Version irrespective of the
+    [`validateformat`](model.md#groupsstringresourcesstringvalidateformat)
+    attribute's value.
 
 Note: an attempt to set this attribute to a value that differs from the other
 Version's values could result in the server rejecting the request due to
 the [`compatibility`](#compatibility-attribute) conformance checks, if
-`validatecompatibility` model attribute is `true`.
+`validatecompatibility` model attribute is `true`. See
+[`consistentformat`](model.md#groupsstringresourcesstringconsistentformat)
+for additional information.
 
 - Examples:
   - `JsonSchema/draft-07`
@@ -3218,24 +3220,50 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
   - `Avro/1.9`
 
 #### `formatvalidated` Attribute
-- Type: Boolean
+- Type: String
 - Description: When
   [`format` validation](./model.md#groupsstringresourcesstringvalidateformat)
   is enabled, this attribute will indicate whether or not the server has
-  validated that the Version conforms to the rules defined by its `format`
-  attribute's value.
+  attempted to validated that the Version conforms to the rules defined by
+  its `format` attribute's value.
 
-  A value of `true` indicates that the server has validated the Version and
-  it adheres to those rules.
+  The value MUST be a non-empty string in one of two forms:
+  - `"true"`
+  - `"false, <REASON>"`
 
-  A value of `false` indicates that the server has not validated the Version
-  due to the `format` attribute value not being supported. Note that this
-  attribute MUST only ever be `false` when the Resource's
+  A value of `"true"` indicates that the server has validated the Version and
+  it adheres to the `format` attribute's rules.
+
+  A value that starts with `false` indicates that the server did not attempt
+  to validated the Version. This can happen when
   [`strictvalidation`](model.md#groupsstringresourcesstringstrictvalidation)`
-  model attribute is set to `false`. If
-  [`strictvalidation`](model.md#groupsstringresourcesstringstrictvalidation) is
-  `true`, then adding the unsupported `format` value would have generated an
-  error ([format_violation](spec.md#format_violation)) instead.
+  is set to `false` and:
+  - The `format` attribute value is not supported by the server.
+  - The Version uses the `<RESOURCE>url` attribute to reference a
+    domain-specific document stored outside of the Registry. In this case
+    the server implementation doesn't have access to the document, and
+    therefore can not verify it, nor does this specification mandate that it
+    be able to access that URL.
+
+ When
+ [`strictvalidation`](model.md#groupsstringresourcesstringstrictvalidation)`
+ is `true`, the above conditions MUST generate an error
+ ([format_unknown](#format_unknown) or [format_external](#format_external)) and
+ reject the update request instead.
+
+  When `"false"`, this value MUST include some additional text (the `<REASON>`)
+  indicating why the server was unable to attempt validation of the Version.
+  Additionally, when `"false"`, if `compatibility` validation is enabled,
+  the Version's
+  [`compatibilityvalidated`](#compatibility-attribute) attribute MUST also be
+  `"false"`.
+
+  Note that `"false"` MUST NOT be used for validation failure. In those cases
+  the write operation MUST generate an error
+  ([format_violation](#format_violation) and reject the request regardless
+  of the value of the
+  [`strictvalidation`](model.md#groupsstringresourcesstringstrictvalidation)`
+  model aspect.
 
   Due to this attribute being server managed, and influenced by the state of
   other Versions, as its value changes the Version itself MUST NOT be marked as
@@ -3244,33 +3272,62 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
 
 - Constraints:
   - OPTIONAL
+  - If present, MUST be non-empty.
   - MUST be a read-only attribute.
   - MUST be present if the Resource model's `validateformat` attribute is
     `true` and the Version's `format` attribute is present.
   - MUST NOT be present if the Resource model's `validateformat` attribute is
     `false` or the Version's `format` attribute is absent.
 
+- Examples:
+  - `"true"`
+  - `"false, unknown format"`
+
 #### `compatibilityvalidated` Attribute
-- Type: Boolean
+- Type: String
 - Description: When [`compatibility`
   validation](./model.md#groupsstringresourcesstringvalidateformat)
   is enabled, this attribute will indicate whether or not the server has
   validated that the Version conforms to the rules defined by its Resource's
   `meta.compatibility` attribute's value.
 
-  A value of `true` indicates that the server has validated the Version and
-  it adheres to those rules.
+  The value MUST be a non-empty string in one of two forms:
+  - `"true"`
+  - `"false, <REASON>"`
 
-  A value of `false` indicates that the server has not validated the Version
-  due to the `format` or `meta.compatibility` attribute values not being
-  supported. Note that this attribute MUST only ever be `false` when the
-  Resource's
-  [`strictvalidation`](model.md#groupsstringresourcesstringstrictvalidation)
-  model attribute is set to `false`. If
-  [`strictvalidation`](model.md#groupsstringresourcesstringstrictvalidation)
-  is `true`, then adding the unsupported `format` or `compatibility` values
-  would have generated an error ([format_violation](spec.md#format_violation)
-  or [compatibility_violation](spec.md#format_violation)) error instead.
+  A value of `"true"` indicates that the server has validated the Version and
+  it adheres to the `meta.compatibility` attribute's rules.
+
+  A value that starts with `"false"` indicates that the server did not attempt
+  to validate the Version. This can happen when
+  [`strictvalidation`](model.md#groupsstringresourcesstringstrictvalidation)`
+  is set to `false` and:
+  - The `formatvalidated` attribute is `"false"`.
+  - The `format` or `meta.compatibility` attributes not supported by the
+    server.
+  - The Version uses the `<RESOURCE>url` attribute to reference a
+    domain-specific document stored outside of the Registry. In this case
+    the server implementation doesn't have access to the document, and
+    therefore can not verify it, nor does this specification mandate that it
+    be able to access that URL.
+
+  When
+  [`strictvalidation`](model.md#groupsstringresourcesstringstrictvalidation)`
+  is `true`, the above conditions MUST generate an error
+  ([format_unknown](#format_unknown),
+  [compatibility_unknown](#compatibility_unknown) or
+  [format_external](#format_external)) and
+  reject the update request instead.
+
+  When `"false"`, this value MUST include some additional text (the `<REASON>`)
+  indicating why the server was unable to attempt validation of the Version.
+
+  Note that `"false"` MUST NOT be used for validation failure. In those cases
+  the write operation MUST generate an error
+  ([compatibility_violation](#compatibility_violation) and reject the request
+  regardless of the value of the
+  [`strictvalidation`](model.md#groupsstringresourcesstringstrictvalidation)`
+  model aspect.
 
   Due to this attribute being server managed, and influenced by the state of
   other Versions, as its value changes the Version itself MUST NOT be marked as
@@ -3279,6 +3336,7 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
 
 - Constraints:
   - OPTIONAL
+  - If present, MUST be non-empty.
   - MUST be a read-only attribute.
   - MUST be present if the Resource model's `validatecompatibility` attribute
     is `true`, the Version's `format` value is present, and the Resource's
@@ -4490,15 +4548,24 @@ field is just a substitution value and MUST NOT be empty.
 * Args:
   - `field`: The capability field being modified.
 
+### compatibility_unknown
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#compatibility_unknown`
+* Code: `400 Bad Request`
+* Subject: `<resource_xid>`
+* Title: `The compatibility value (<compat>) on Resource "<subject>" is not supported.`
+* Args:
+  - `compat`: The Resource's `meta.compatibility` value.
+
 ### compatibility_violation
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#compatibility_violation`
 * Code: `400 Bad Request`
 * Subject: `<resource_xid>`
-* Title: `The request would cause one or more Versions of "<subject>" to violate its compatibility rule (<value>).`
+* Title: `The request would cause one or more Versions of "<subject>" to violate its compatibility rule (<compat>).`
 * Detail: Suggestion: list of `versionid` values that would be in violation.
 * Args:
-  - `value`: The Resource's `meta.compatibility` value.
+  - `compat`: The Resource's `meta.compatibility` value.
 
 ### data_retrieval_error
 
@@ -4517,12 +4584,28 @@ field is just a substitution value and MUST NOT be empty.
 * Args:
   - `name`: The name of the attribute in question.
 
-### format_missing
+### format_external
 
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#format_missing`
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#format_external`
+* Code: `400 Bad Request`
+* Subject: `<version_xid>`
+* Title: `Version "<subject>" references a document stored outside of the Registry, therefore no validation was performed.`
+
+### format_inconsistent
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#format_inconsistent`
 * Code: `400 Bad Request`
 * Subject: `<resource_xid>`
-* Title: `Version "<subject>" needs to have a "format" value due to its owning Resource model's "validateformat" being set.`
+* Title: `One or more Versions of Resource "<subject>" do not have the same "format" value as mandated by their owning Resource model's "consistentformat" attribute being set.`
+
+### format_unknown
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#format_unknown`
+* Code: `400 Bad Request`
+* Subject: `<version_xid>`
+* Title: `Version "<subject>" has a "format" value (<format>) that it not supported.`
+* Args:
+  - `format`: The Version's `format` value.
 
 ### format_violation
 

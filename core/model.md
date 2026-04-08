@@ -2,6 +2,7 @@
 
 <!-- words: compat validatecompatibility validateformat strictvalidation -->
 <!-- words: matchcase compatibilityvalidated formatvalidated -->
+<!-- words: consistentformat validators -->
 
 ## Abstract
 
@@ -134,9 +135,10 @@ The overall format of a model definition is as follows:
           "hasdocument": <BOOLEAN>, ?       # Has separate document. Default=true
           "versionmode": "<STRING>", ?      # 'ancestor' processing algorithm
           "singleversionroot": <BOOLEAN>, ? # Enforce single root. Default=false
-          "validatecompatibility": <BOOLEAN>, ? # Do Version compat checks. Default=true
-          "validateformat": <BOOLEAN>, ?    # Do Version format checks. Default=true
+          "validateformat": <BOOLEAN>, ?    # Do Version format checks. Default=false
+          "validatecompatibility": <BOOLEAN>, ? # Do Version compat checks. Default=false
           "strictvalidation": <BOOLEAN>, ?  # Block unknown format/compat. Default=false
+          "consistentformat": <BOOLEAN>, ?  # Same format for all Vers. Default=false
           "typemap": <MAP>, ?               # ContentType mappings
           "attributes": { ... }, ?          # Version attributes/extensions
           "resourceattributes": { ... }, ?  # Resource attributes/extensions
@@ -777,18 +779,49 @@ The following describes the attributes of the Registry model:
   Enforcement](./primer.md#singleversionroot-policy-enforcement) section of
   the Primer for more information.
 
+### `groups.<STRING>.resources.<STRING>.validateformat`
+- Type: Boolean (`true` or `false`, case-sensitive).
+- OPTIONAL.
+- Indicated whether the server MUST validate that all Versions of this
+  Resource type adhere to the rules as defined by the Version's `format`
+  value.
+- When not specified, the default value MUST be `false`.
+- The following rules clarify the "format" validation logic:
+  - When the validator is checking the Version's domain-specific document,
+    it is a format-specific decision as to whether an empty document is
+    valid or not.
+  - Validators MUST treat a Resource with its `hasdocument` model attribute
+    set to `false`, a Version with no domain-specific document even though
+    `hasdocument` is `true`, and a Version with an empty domain-specific
+    document as 3 different variants of "the domain-specific document is
+    empty (zero bytes in length)".
+  - When `hasdocument` is `true`, and a Version uses the `<RESOURCE>url`
+    attribute to reference the document in an external datastore, the
+    resulting [`formatvalidated`](spec.md#format-attribute) attribute on the
+    Version MUST be `"false"`.
+- A value of `true` indicates that the server MUST generate an error
+  ([format_violation](spec.md#format_violation)) if any Version of a Resource
+  instance of this Resource type does not adhere to the `format` value of that
+  Version. An absent `format` value on a Version MUST be treated as a request
+  to disable both "format" and "compatibility" verification logic for that
+  Version.
+- A value of `false` indicates that the server MUST NOT perform any `format`
+  checking for Versions of Resources of this Resource type.
+
 ### `groups.<STRING>.resources.<STRING>.validatecompatibility`
 - Type: Boolean (`true` or `false`, case-sensitive).
 - OPTIONAL.
 - Indicated whether the server MUST validate that all Versions of this
   Resource type adhere to its owning Resource's `meta.compatibility` value.
-- When not specified, the default value MUST be `true`.
+- When not specified, the default value MUST be `false`.
 - A value of `true` indicates that the server MUST generate an error
   [compatibility_violation](spec.md#compatibility_violation)) if any Version
   of a Resource instance of this Resource type does not adhere to the rules of
   the `meta.compatibility` value for that Resource's `format` value.
   See [`strictvalidation`](#groupsstringresourcesstringstrictvalidation) for
   exceptions to this requirement.
+- When a Version does not have a `format` value then compatibility verification
+  MUST NOT be done.
 - When this model attribute is `true` then its sibling `validateformat`
   attribute MUST also be `true`.
 - A value of `false` indicates that the server MUST NOT perform any
@@ -797,23 +830,6 @@ The following describes the attributes of the Registry model:
   the external entity that has performed the validation, a `label` MAY be
   added to the Resource's model or to the Resource instance itself with this
   information.
-
-### `groups.<STRING>.resources.<STRING>.validateformat`
-- Type: Boolean (`true` or `false`, case-sensitive).
-- OPTIONAL.
-- Indicated whether the server MUST validate that all Versions of this
-  Resource type adhere to the rules as defined by the Version's `format`
-  value.
-- When not specified, the default value MUST be `true`.
-- A value of `true` indicates that the server MUST generate an error
-  ([format_violation](spec.md#format_violation))if any Version of a Resource
-  instance of this Resource type does not adhere to the `format` value of that
-  Version. An absent `format` value MUST be treated as an error
-  ([format_missing](spec.md#format_missing)).
-  See [`strictvalidation`](#groupsstringresourcesstringstrictvalidation) for
-  exceptions to this requirement.
-- A value of `false` indicates that the server MUST NOT perform any `format`
-  checking for Versions of Resources of this Resource type.
 
 ### `groups.<STRING>.resources.<STRING>.strictvalidation`
 - Type: Boolean (`true` or `false`, case-sensitive)
@@ -825,9 +841,6 @@ The following describes the attributes of the Registry model:
   ignored by the server.
 - When not specified, the default value MUST be `false`.
 - A value of `true` indicates that:
-  - The `format` validation logic MUST generate an error
-    ([format_missing](spec.md#format_missing)) if the Version's `format` value
-    is absent.
   - The `format` validation logic MUST generate an error
     ([format_violation](spec.md#format_violation)) if the Version's `format`
     is an unsupported value.
@@ -843,6 +856,23 @@ The following describes the attributes of the Registry model:
     `false`.
   - If the Resource's `meta.compatibility` value is unsupported, then
     the Version's `compatibilityvalidated` attribute MUST be set to `false`.
+
+### `groups.<STRING>.resources.<STRING>.consistentformat`
+- Type: Boolean (`true` or `false`, case-sensitive)
+- OPTIONAL
+- Indicates whether all Versions of a Resource of this type are mandated to
+  have the same [`format`](spec.md#format-attribute) value.
+- This attribute's semantics apply regardless of the values of `validateformat`
+  and `validatecompatibility`.
+- When not specified, the default value MUST be `false`.
+- A value of `true` indicates that:
+  - The `format` attribute of all Versions of a Resource of this type MUST
+    have the same case-insensitive value (including the case of `format` being
+    an empty string). If a Version differs then an error
+    ([format_inconsistent](spec.md#format_inconsistent)) MUST be generated.
+- A value of `false` indicates that:
+  - The server MUST NOT check for a consistent (same) `format` value across
+    the Versions of a Resource of this type.
 
 ### `groups.<STRING>.resources.<STRING>.typemap`
 - Type: Map where the keys and values MUST be non-empty strings. The key
