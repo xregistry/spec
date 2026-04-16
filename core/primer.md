@@ -1,6 +1,7 @@
 # xRegistry Primer
 
-<!-- words: validatecompatibility validateformat -->
+<!-- words: validatecompatibility validateformat strickvalidation -->
+<!-- words: strictvalidation -->
 
 <!-- no verify-specs -->
 
@@ -1022,3 +1023,17 @@ new APIs), care should be taken to limit the possibility of overlapping with
 any future xRegistry work. While it is impossible to predict the future, some
 steps can be taken to lessen the concern. For example, using domain, or
 company, specific terms when naming things.
+
+## Validation
+
+There is one scenario worth pointing out with respect to `format` and
+`compatibility` validation. If a Resource's model definition has both the
+`validateformat` and `strictvalidation` aspects set to `true`, and the
+Registry's `capabilities` does not define any `format` values, then any
+attempt to create a Resource of that Resource type with a non-empty `format`
+value will always be rejected with an "unknown format" type of error.
+
+This is being called out because for light-weight server implementations that
+do not support validation checks, a user might define a Resource type with
+those aspects enabled without realizing they're defining a potentially
+unusable Resource type - if clients use the `format` attribute.

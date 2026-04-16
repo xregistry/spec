@@ -235,6 +235,10 @@
                       "doc": "Time of the object modification"
                     },
                     {
+                      "type": "string",
+                      "name": "format"
+                    },
+                    {
                       "name": "Extensions",
                       "type": {
                         "type": "map",
