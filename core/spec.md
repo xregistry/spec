@@ -2,6 +2,7 @@
 
 <!-- words: validatecompatibility validateformat strictvalidation matchcase -->
 <!-- words: compat formatvalidated compatibilityvalidated -->
+<!-- words: compat formatvalidatedreason compatibilityvalidatedreason -->
 <!-- words: consistentformat -->
 
 ## Abstract
@@ -574,6 +575,11 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
           "modifiedat": "<TIMESTAMP>",
           "ancestor": "<STRING>",                  # Ancestor's versionid
           "contenttype": "<STRING>, ?              # Add default Ver extensions
+          "format": "<STRING>", ?
+          "formatvalidated": <BOOLEAN>, ?
+          "formatvalidatedreason": "<STRING>", ?
+          "compatibilityvalidated": <BOOLEAN>, ?
+          "compatibilityvalidatedreason": "<STRING>", ?
 
           "<RESOURCE>url": "<URL>", ?              # If not local
           "<RESOURCE>": ... Resource document ..., ? # If local & inlined & JSON
@@ -626,7 +632,9 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
               "contenttype": "<STRING>", ?
               "format": "<STRING>", ?
               "formatvalidated": <BOOLEAN>, ?
+              "formatvalidatedreason": "<STRING>", ?
               "compatibilityvalidated": <BOOLEAN>, ?
+              "compatibilityvalidatedreason": "<STRING>", ?
 
               "<RESOURCE>url": "<URL>", ?                # If not local
               "<RESOURCE>": ... Resource document ..., ? # If inlined & JSON
@@ -1823,7 +1831,12 @@ The following defines the specification-defined capabilities:
 - Description: The set of compatibility rules that are available for each
   supported `format`. Each map key MUST be a case-insensitive Capabilities
   `formats` value, and the map value MUST be the list of case-insensitive
-  compatibility rules supported by that `format`. An error
+  compatibility rules supported by that `format`. The key MAY include a
+  `*` (wildcard) character that matches zero or more instances of any
+  character at that location in the string. Similar to a `.*` in regular
+  expressions.
+
+  An error
   ([capability_error](#capability_error)) MUST be generated if a specified
   key/format isn't in Capabilities `formats` list or the compatibility rule
   specified is not supported for that `format` (i.e. that combination of
@@ -1842,6 +1855,7 @@ The following defines the specification-defined capabilities:
   for Version compatibility is supported.
 - Examples:
   - `"compatibilities": { "avro": [ "backward", "forward" ] }`
+  - `"compatibilities": { "jsonschema*": [ "backward", "forward", "full" ] }`
 
 #### `flags` Capability
 - Name: `flags`
@@ -2890,8 +2904,9 @@ and the following Meta-level attributes:
 
 - Constraints:
   - OPTIONAL.
-  - If present, MUST be a case-insensitive non-empty value from the Resource
-    model's enumeration range.
+  - If present, MUST be a case-insensitive non-empty value from the Registry's
+    [`capabilities.compatibilities`](#compatibilities-capability) values
+    for the set of `format` values used by the Versions of the Resource.
   - When changing the value of this attribute, it MUST be applied to all
     Versions of the Resource, and an error
     ([compatibility_violation](#compatibility_violation)) MUST be generated
@@ -3220,22 +3235,20 @@ for additional information.
   - `Avro/1.9`
 
 #### `formatvalidated` Attribute
-- Type: String
+- Type: Boolean
 - Description: When
   [`format` validation](./model.md#groupsstringresourcesstringvalidateformat)
   is enabled, this attribute will indicate whether or not the server has
   attempted to validated that the Version conforms to the rules defined by
   its `format` attribute's value.
 
-  The value MUST be a non-empty string in one of two forms:
-  - `"true"`
-  - `"false, <REASON>"`
+  A value of `true` indicates that the server has validated the Version and
+  it adheres to the `format` attribute's rules. When `true` the Version's
+  [`formatvalidatedreason`](#formatvalidatedreason-attribute) MUST NOT be
+  present.
 
-  A value of `"true"` indicates that the server has validated the Version and
-  it adheres to the `format` attribute's rules.
-
-  A value that starts with `false` indicates that the server did not attempt
-  to validated the Version. This can happen when
+  A value of `false` indicates that the server did not attempt to validated
+  the Version. This can happen when
   [`strictvalidation`](model.md#groupsstringresourcesstringstrictvalidation)`
   is set to `false` and:
   - The `format` attribute value is not supported by the server.
@@ -3251,12 +3264,13 @@ for additional information.
  ([format_unknown](#format_unknown) or [format_external](#format_external)) and
  reject the update request instead.
 
-  When `"false"`, this value MUST include some additional text (the `<REASON>`)
-  indicating why the server was unable to attempt validation of the Version.
-  Additionally, when `"false"`, if `compatibility` validation is enabled,
-  the Version's
+  When `false`, the
+  [`formatvalidatedreason`](#formatvalidatedreason-attribute) MUST attribute
+  MUST be present with an explanation as to why the server was unable to
+  attempt validation of the Version. Additionally, when `false`, if
+  `compatibility` validation is enabled, the Version's
   [`compatibilityvalidated`](#compatibility-attribute) attribute MUST also be
-  `"false"`.
+  `false`.
 
   Note that `"false"` MUST NOT be used for validation failure. In those cases
   the write operation MUST generate an error
@@ -3272,37 +3286,49 @@ for additional information.
 
 - Constraints:
   - OPTIONAL
-  - If present, MUST be non-empty.
+  - When specified, MUST be either `true` or `false`, case-sensitive.
   - MUST be a read-only attribute.
   - MUST be present if the Resource model's `validateformat` attribute is
     `true` and the Version's `format` attribute is present.
   - MUST NOT be present if the Resource model's `validateformat` attribute is
     `false` or the Version's `format` attribute is absent.
 
-- Examples:
-  - `"true"`
-  - `"false, unknown format"`
+#### `formatvalidatedreason` Attribute
+- Type: String
+- Description: When [`formatvalidated`](#formatvalidated-attribute) has a
+  value of `false`, this attribute MUST provide information as to why the
+  format validation check was not performed.
+
+  Due to this attribute being server managed, and influenced by the state of
+  other Versions, as its value changes the Version itself MUST NOT be marked as
+  changed - meaning, attributes such as `modifiedat` and `epoch` remain
+  unchanged.
+
+- Constraints:
+  - OPTIONAL
+  - When specified, MUST be a non-empty string.
+  - MUST be a read-only attribute.
+  - MUST be present when [`formatvalidated`](#formatvalidated-attribute) is
+    present with a value of `false`.
+  - MUST NOT be present when [`formatvalidated`](#formatvalidated-attribute) is
+    absent.
 
 #### `compatibilityvalidated` Attribute
-- Type: String
+- Type: Boolean
 - Description: When [`compatibility`
   validation](./model.md#groupsstringresourcesstringvalidateformat)
   is enabled, this attribute will indicate whether or not the server has
-  validated that the Version conforms to the rules defined by its Resource's
-  `meta.compatibility` attribute's value.
+  attempted to validate that the Version conforms to the rules defined by its
+  Resource's `meta.compatibility` attribute's value.
 
-  The value MUST be a non-empty string in one of two forms:
-  - `"true"`
-  - `"false, <REASON>"`
-
-  A value of `"true"` indicates that the server has validated the Version and
+  A value of `true` indicates that the server has validated the Version and
   it adheres to the `meta.compatibility` attribute's rules.
 
-  A value that starts with `"false"` indicates that the server did not attempt
-  to validate the Version. This can happen when
+  A value of `false` indicates that the server did not attempt to validate the
+  Version. This can happen when
   [`strictvalidation`](model.md#groupsstringresourcesstringstrictvalidation)`
   is set to `false` and:
-  - The `formatvalidated` attribute is `"false"`.
+  - The `formatvalidated` attribute is `false`.
   - The `format` or `meta.compatibility` attributes not supported by the
     server.
   - The Version uses the `<RESOURCE>url` attribute to reference a
@@ -3319,10 +3345,12 @@ for additional information.
   [format_external](#format_external)) and
   reject the update request instead.
 
-  When `"false"`, this value MUST include some additional text (the `<REASON>`)
-  indicating why the server was unable to attempt validation of the Version.
+  When `false`, the
+  [`formatvalidatedreason`](#formatvalidatedreason-attribute) MUST attribute
+  MUST be present with an explanation as to why the server was unable to
+  attempt validation of the Version.
 
-  Note that `"false"` MUST NOT be used for validation failure. In those cases
+  Note that `false` MUST NOT be used for validation failure. In those cases
   the write operation MUST generate an error
   ([compatibility_violation](#compatibility_violation) and reject the request
   regardless of the value of the
@@ -3336,7 +3364,7 @@ for additional information.
 
 - Constraints:
   - OPTIONAL
-  - If present, MUST be non-empty.
+  - When specified, MUST be a non-empty string.
   - MUST be a read-only attribute.
   - MUST be present if the Resource model's `validatecompatibility` attribute
     is `true`, the Version's `format` value is present, and the Resource's
@@ -3344,6 +3372,30 @@ for additional information.
   - MUST NOT be present if the Resource model's `validatecompatibility`
     attribute is `false`, or the Version's `format` value is absent, or the
     Resource's `meta.compatibility` attribute is absent.
+
+#### `compatibilityvalidatedreason` Attribute
+- Type: String
+- Description: When
+  [`compatibilityvalidated`](#compatibilityvalidated-attribute) has a
+  value of `false`, this attribute MUST provide information as to why the
+  format validation check was not performed.
+
+  Due to this attribute being server managed, and influenced by the state of
+  other Versions, as its value changes the Version itself MUST NOT be marked as
+  changed - meaning, attributes such as `modifiedat` and `epoch` remain
+  unchanged.
+
+- Constraints:
+  - OPTIONAL
+  - When specified, MUST be a non-empty string.
+  - When specified, MUST be either `true` or `false`, case-sensitive.
+  - MUST be a read-only attribute.
+  - MUST be present when
+   [`compatibilityvalidated`](#compatibilityvalidated-attribute) is
+    present with a value of `false`.
+  - MUST NOT be present when
+   [`compatibilityvalidated`](#compatibilityvalidated-attribute) is
+    absent.
 
 #### `<RESOURCE>url` Attribute
 - Type: URI
@@ -4553,9 +4605,10 @@ field is just a substitution value and MUST NOT be empty.
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#compatibility_unknown`
 * Code: `400 Bad Request`
 * Subject: `<resource_xid>`
-* Title: `The compatibility value (<compat>) on Resource "<subject>" is not supported.`
+* Title: `The compatibility value (<compat>) on Resource "<subject>" is not supported for format "<format>".`
 * Args:
   - `compat`: The Resource's `meta.compatibility` value.
+  - `format`: The Version's `format` value.
 
 ### compatibility_violation
 
@@ -4793,6 +4846,15 @@ This is a fairly generic error, so if a more focused one (e.g.
 * Title: `One or more mandatory attributes for "<subject>" are missing: <list>.`
 * Args:
   - `list`: A comma separated list of attributes that are missing.
+
+### resources_only
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#resources_only`
+* Code: `400 Bad Request`
+* Subject: `<group_xid>`
+* Title: `Attribute "<name>" is invalid. Only Resource types are allowed to be specified on this request: <subject>.`
+* Args:
+  - `name`: The name of the attribute in question.
 
 ### server_error
 
