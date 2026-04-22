@@ -12,5 +12,5 @@ jobs:
           curl -X POST \
           -H "Accept: application/vnd.github+json" \
           -H "Authorization: Bearer ${{ secrets.XREGIO_PAT }}" \
-          https://github.com/repos/xregistry/xregistry.github.io/dispatches \
+          https://api.github.com/repos/xregistry/xregistry.github.io/dispatches \
           -d '{"event_type": "main_branch_updated"}'
