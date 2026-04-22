@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Look samples or our models being too verbose
+# Look for samples in our models being too verbose
 
 set -e
 

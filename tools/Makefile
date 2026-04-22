@@ -3,26 +3,36 @@ all: models docker
 		( echo "schema files have been updated, make sure you commit them" ; \
 		  exit 1 )
 
-verify: spellcheck tabcheck errorcheck samplescheck testpython links ticks
+verify: spellcheck ticks badhrefs tabcheck errorcheck samplescheck \
+	testpython links
 
 spellcheck:
+	@echo "Checking for spelling mistakes"
 	tools/spellcheck */README.md */spec.md core/*.md \
 		docs/share/README.md */samples/README.md */samples/*/README.md
 	@echo
 
 tabcheck:
+	@echo "Checking for tabs and extra spaces"
 	tools/tabcheck `find . -name "*.md" -o -name "*.json"`
 	@echo
 
 ticks:
 	@echo "Checking for uneven back-ticks"
 	@(! grep '^[^`]*`[^`]*$$' core/*.md)
+	@echo
+
+badhrefs:
+	@echo "Checking for hrefs that have /#"
+	@(! grep -e '/#' -r --include="*.md")
+	@echo
 
 errorcheck:
 	tools/errorcheck core/spec.md core/model.md core/http.md
 	@echo
 
 samplescheck:
+	@echo "Check for too verbose samples"
 	tools/samplescheck */model.json */samples/*json */samples/*/*json
 	@echo
 
@@ -40,6 +50,7 @@ links: loadpython
 	@echo
 
 models:
+	@echo "Verifying the models are valid"
 	@# Note this will use a local 'xr' if available so that local build/test
 	@# of 'xr' can be done
 	if which xr ; then \
