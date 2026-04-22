@@ -462,7 +462,7 @@ Versions for a schema named `com.example.telemetrydata`:
 
 #### 4.3.1. JSON Schema
 
-The [`format`](../core/spec.md/#format-attribute) identifier for JSON Schema is
+The [`format`](../core/spec.md#format-attribute) identifier for JSON Schema is
 `JsonSchema`.
 
 When the `format` attribute is set to `JsonSchema`, the `schema` attribute of
@@ -496,7 +496,7 @@ version number.
 
 #### 4.3.2. XML Schema
 
-The [`format`](../core/spec.md/#format-attribute) identifier for XML Schema is
+The [`format`](../core/spec.md#format-attribute) identifier for XML Schema is
 `XSD`. The version of the XML Schema format is the version of the W3C XML
 Schema specification that is used to define the schema.
 
@@ -521,7 +521,7 @@ are defined as follows:
 
 #### 4.3.3. Apache Avro Schema
 
-The [`format`](../core/spec.md/#format-attribute) identifier for Apache Avro
+The [`format`](../core/spec.md#format-attribute) identifier for Apache Avro
 Schema is `Avro`. The version of the Apache Avro Schema format is the version
 of the Apache Avro Schema release that is used to define the schema.
 
@@ -555,7 +555,7 @@ appended separated with a colon, for instance
 
 #### 4.3.4. Protobuf Schema
 
-The [`format`](../core/spec.md/#format-attribute) identifier for Protobuf Schema
+The [`format`](../core/spec.md#format-attribute) identifier for Protobuf Schema
 is `Protobuf`. The version of the Protobuf Schema format is the version of the
 Protobuf syntax that is used to define the schema.
 
