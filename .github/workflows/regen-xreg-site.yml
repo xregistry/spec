@@ -1,3 +1,4 @@
+name: Regen xReg.io xreg data
 on:
   push:
     branches:
