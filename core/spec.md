@@ -3240,7 +3240,7 @@ for additional information.
 - Description: When
   [`format` validation](./model.md#groupsstringresourcesstringvalidateformat)
   is enabled, this attribute will indicate whether or not the server has
-  attempted to validate that the Version conforms to the rules defined by
+  performed validation to ensure the Version conforms to the rules defined by
   its `format` attribute's value.
 
   A value of `true` indicates that the server has validated the Version and
@@ -3248,7 +3248,7 @@ for additional information.
   [`formatvalidatedreason`](#formatvalidatedreason-attribute) MUST NOT be
   present.
 
-  A value of `false` indicates that the server did not attempt to validate
+  A value of `false` indicates that the server did not perform validation of
   the Version. This can happen when
   [`strictvalidation`](model.md#groupsstringresourcesstringstrictvalidation)`
   is set to `false` and:
@@ -3268,7 +3268,7 @@ for additional information.
   When `false`, the
   [`formatvalidatedreason`](#formatvalidatedreason-attribute)
   MUST be present with an explanation as to why the server was unable to
-  attempt validation of the Version. Additionally, when `false`, if
+  perform validation of the Version. Additionally, when `false`, if
   `compatibility` validation is enabled, the Version's
   [`compatibilityvalidated`](#compatibility-attribute) attribute MUST also be
   `false`.
@@ -3309,14 +3309,14 @@ for additional information.
 - Description: When [`compatibility`
   validation](./model.md#groupsstringresourcesstringvalidateformat)
   is enabled, this attribute will indicate whether or not the server has
-  attempted to validate that the Version conforms to the rules defined by its
+  performed validation of the Version conforms to the rules defined by its
   Resource's `meta.compatibility` attribute's value.
 
   A value of `true` indicates that the server has validated the Version and
   it adheres to the `meta.compatibility` attribute's rules.
 
-  A value of `false` indicates that the server did not attempt to validate the
-  Version. This can happen when
+  A value of `false` indicates that the server did not perform validation of
+  the Version. This can happen when
   [`strictvalidation`](model.md#groupsstringresourcesstringstrictvalidation)`
   is set to `false` and:
   - The `formatvalidated` attribute is `false`.
@@ -3339,7 +3339,7 @@ for additional information.
   When `false`, the
   [`compatibilityvalidatedreason`](#compatibilityvalidatedreason-attribute)
   MUST be present with an explanation as to why the server was unable to
-  attempt validation of the Version.
+  perform validation of the Version.
 
   Note that `false` MUST NOT be used for validation failure. In those cases
   the write operation MUST generate an error
