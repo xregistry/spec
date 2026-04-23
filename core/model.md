@@ -877,7 +877,7 @@ The following describes the attributes of the Registry model:
 ### `groups.<STRING>.resources.<STRING>.typemap`
 - Type: Map where the keys and values MUST be non-empty strings. The key
   MAY include at most one `*` to act as a wildcard to mean zero or more
-  instance of any character at that position in the string - similar to a
+  instances of any character at that position in the string - similar to a
   `.*` in a regular expression. The key MUST be a case-insensitive string.
 - OPTIONAL.
 - When a Resource's metadata is serialized in a response and the

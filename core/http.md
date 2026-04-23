@@ -1372,6 +1372,10 @@ The processing of this API is defined in the [Creating or Updating
 Entities](#creating-or-updating-entities) section - see the discussion of the
 `POST <PATH-TO-ENTITY>` variant.
 
+A request that isn't a map of Resource types (e.g. it contains other Group
+level attributes) MUST generate an error
+([resources_only](./spec.md#resources_only)).
+
 The request MUST be of the form:
 
 ```yaml

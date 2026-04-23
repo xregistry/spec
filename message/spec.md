@@ -1,5 +1,8 @@
 # Message Definitions Registry Service - Version 1.0-rc2
 
+<!-- words: formatvalidated compatibilityvalidated -->
+<!-- words: formatvalidatedreason compatibilityvalidatedreason -->
+
 ## Abstract
 
 This specification defines a message and event catalog extension to the
@@ -468,6 +471,12 @@ this form:
           "createdat": "<TIMESTAMP>",
           "modifiedat": "<TIMESTAMP>",
           "ancestor": "<STRING>",
+          "contenttype": "<STRING>, ?
+          "format": "<STRING>", ?
+          "formatvalidated": <BOOLEAN>, ?
+          "formatvalidatedreason": "<STRING>", ?
+          "compatibilityvalidated": <BOOLEAN>, ?
+          "compatibilityvalidatedreason": "<STRING>", ?
 
           # Start of Message extension attributes
           "basemessage": "<URL>", ?            # Message being extended

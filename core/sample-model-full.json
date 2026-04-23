@@ -328,6 +328,22 @@
               "name": "format",
               "type": "string"
             },
+            "formatvalidated": {
+              "name": "formatvalidated",
+              "type": "boolean"
+            },
+            "formatvalidatedreason": {
+              "name": "formatvalidatedreason",
+              "type": "string"
+            },
+            "compatibilityvalidated": {
+              "name": "compatibilityvalidated",
+              "type": "boolean"
+            },
+            "compatibilityvalidatedreason": {
+              "name": "compatibilityvalidatedreason",
+              "type": "string"
+            },
 
             "fileurl": {
               "name": "fileurl",
@@ -479,10 +495,7 @@
             },
             "compatibility": {
               "name": "compatibility",
-              "type": "string",
-              "enum": [ "backward", "backward_transitive", "forward",
-                        "forward_transitive", "full", "full_transitive" ],
-              "strict": true
+              "type": "string"
             },
             "deprecated": {
               "name": "deprecated",

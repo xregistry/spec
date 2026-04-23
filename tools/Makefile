@@ -4,7 +4,7 @@ all: models docker
 		  exit 1 )
 
 verify: spellcheck ticks badhrefs tabcheck errorcheck samplescheck \
-	testpython links
+	testpython links website
 
 spellcheck:
 	@echo "Checking for spelling mistakes"
@@ -28,6 +28,7 @@ badhrefs:
 	@echo
 
 errorcheck:
+	@echo "Look for unused errors in the specs"
 	tools/errorcheck core/spec.md core/model.md core/http.md
 	@echo
 
@@ -60,6 +61,16 @@ models:
 	  echo Using docker ghcr.io/xregistry/xr ; \
 	  docker run -t -v $$PWD:/xreg -w /xreg --entrypoint /bin/sh \
 		ghcr.io/xregistry/xr -c "/xr model verify */model.json -v" ; \
+	fi
+	@echo
+
+website:
+	@echo If available, verify the website generation code works too
+	@if test -f `pwd -P`/../xregistry.github.io/tools/buildsite ; then \
+	  XR_SPEC=`pwd -P` `pwd -P`/../xregistry.github.io/tools/buildsite && \
+	    rm -rf xreg ; \
+	else \
+	  echo "> Website dir (../xregistry.github.io) can't be found" ; \
 	fi
 	@echo
 

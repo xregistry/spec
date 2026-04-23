@@ -1,5 +1,8 @@
 # Schema Registry Service - Version 1.0-rc2
 
+<!-- words: formatvalidated compatibilityvalidated -->
+<!-- words: formatvalidatedreason compatibilityvalidatedreason -->
+
 ## Abstract
 
 This specification defines a Schema Registry extension to the xRegistry
@@ -269,6 +272,12 @@ this form:
           "createdat": "<TIMESTAMP>",
           "modifiedat": "<TIMESTAMP>",
           "ancestor": "<STRING>",
+          "contenttype": "<STRING>, ?
+          "format": "<STRING>", ?
+          "formatvalidated": <BOOLEAN>, ?
+          "formatvalidatedreason": "<STRING>", ?
+          "compatibilityvalidated": <BOOLEAN>, ?
+          "compatibilityvalidatedreason": "<STRING>", ?
 
           "schemaurl": "<URL>", ?
           "schema": <ANY> ?
