@@ -947,6 +947,11 @@ following rules:
 - Unless otherwise stated, requests to update read-only attributes MUST be
   silently ignored by servers, even if the contents of those attributes are
   invalid.
+- <a id="read-only-changed"></a>Unless otherwise stated, server managed changes
+  to read-only attributes MUST NOT be treated the same as user initiated
+  changes to non-read-only attributes with respect to updating attributes such
+  as `modifiedat` and `epoch`. In other words, as these read-only attributes
+  are changed, the entity MUST NOT be considered "updated".
 
 #### Extensions
 
@@ -1204,7 +1209,7 @@ of the existing entity. Then the existing entity would be deleted.
 
 - Constraints:
   - REQUIRED.
-  - MUST be a read-only attribute.
+  - MUST be a [read-only](#read-only-changed) attribute.
   - MUST be an unsigned integer equal to or greater than zero.
   - MUST increase in value each time the entity is updated.
 
@@ -1691,7 +1696,7 @@ and the following Registry-level attributes:
     [Inline Flag](#inline-flag).
   - MUST be included in API and document views if requested via the
     [Inline Flag](#inline-flag).
-  - MUST be a read-only attribute.
+  - MUST be a [read-only](#read-only-changed) attribute.
 
 #### `modelsource` Attribute
 - Type: [Registry Model](./model.md#registry-model).
@@ -2855,7 +2860,7 @@ and the following Meta-level attributes:
 
 - Constraints:
   - REQUIRED.
-  - SHOULD be a read-only attribute.
+  - SHOULD be a [read-only](#read-only-changed) attribute.
   - When not specified, the default value MUST be `false`.
   - It MUST be a case-sensitive `true` or `false`.
   - A request to update a read-only Resource SHOULD generate an error
@@ -3123,11 +3128,7 @@ and the following Version-level attributes:
 #### `isdefault` Attribute
 - Type: Boolean
 - Description: Indicates whether this Version is the "default" Version of the
-  owning Resource. This value is different from other attributes in that it
-  might often be a calculated value rather than persisted in a datastore.
-  Thus, when its value changes due to the default Version of a Resource
-  changing, the Version itself does not change - meaning attributes such as
-  `modifiedat` remains unchanged.
+  owning Resource.
 
   See [Creating or Updating Resources and
   Versions](#creating-or-updating-resources-and-versions) for additional
@@ -3135,7 +3136,7 @@ and the following Version-level attributes:
 
 - Constraints:
   - REQUIRED.
-  - MUST be a read-only attribute.
+  - MUST be a [read-only](#read-only-changed) attribute.
   - When not specified, the default value MUST be `false`.
   - When specified, MUST be either `true` or `false`, case-sensitive.
 
@@ -3239,7 +3240,7 @@ for additional information.
 - Description: When
   [`format` validation](./model.md#groupsstringresourcesstringvalidateformat)
   is enabled, this attribute will indicate whether or not the server has
-  attempted to validated that the Version conforms to the rules defined by
+  attempted to validate that the Version conforms to the rules defined by
   its `format` attribute's value.
 
   A value of `true` indicates that the server has validated the Version and
@@ -3247,7 +3248,7 @@ for additional information.
   [`formatvalidatedreason`](#formatvalidatedreason-attribute) MUST NOT be
   present.
 
-  A value of `false` indicates that the server did not attempt to validated
+  A value of `false` indicates that the server did not attempt to validate
   the Version. This can happen when
   [`strictvalidation`](model.md#groupsstringresourcesstringstrictvalidation)`
   is set to `false` and:
@@ -3265,7 +3266,7 @@ for additional information.
  reject the update request instead.
 
   When `false`, the
-  [`formatvalidatedreason`](#formatvalidatedreason-attribute) MUST attribute
+  [`formatvalidatedreason`](#formatvalidatedreason-attribute)
   MUST be present with an explanation as to why the server was unable to
   attempt validation of the Version. Additionally, when `false`, if
   `compatibility` validation is enabled, the Version's
@@ -3279,15 +3280,10 @@ for additional information.
   [`strictvalidation`](model.md#groupsstringresourcesstringstrictvalidation)`
   model aspect.
 
-  Due to this attribute being server managed, and influenced by the state of
-  other Versions, as its value changes the Version itself MUST NOT be marked as
-  changed - meaning, attributes such as `modifiedat` and `epoch` remain
-  unchanged.
-
 - Constraints:
   - OPTIONAL
   - When specified, MUST be either `true` or `false`, case-sensitive.
-  - MUST be a read-only attribute.
+  - MUST be a [read-only](#read-only-changed) attribute.
   - MUST be present if the Resource model's `validateformat` attribute is
     `true` and the Version's `format` attribute is present.
   - MUST NOT be present if the Resource model's `validateformat` attribute is
@@ -3299,19 +3295,14 @@ for additional information.
   value of `false`, this attribute MUST provide information as to why the
   format validation check was not performed.
 
-  Due to this attribute being server managed, and influenced by the state of
-  other Versions, as its value changes the Version itself MUST NOT be marked as
-  changed - meaning, attributes such as `modifiedat` and `epoch` remain
-  unchanged.
-
 - Constraints:
   - OPTIONAL
   - When specified, MUST be a non-empty string.
-  - MUST be a read-only attribute.
+  - MUST be a [read-only](#read-only-changed) attribute.
   - MUST be present when [`formatvalidated`](#formatvalidated-attribute) is
     present with a value of `false`.
   - MUST NOT be present when [`formatvalidated`](#formatvalidated-attribute) is
-    absent.
+    absent or has a value of `true`.
 
 #### `compatibilityvalidated` Attribute
 - Type: Boolean
@@ -3346,7 +3337,7 @@ for additional information.
   reject the update request instead.
 
   When `false`, the
-  [`formatvalidatedreason`](#formatvalidatedreason-attribute) MUST attribute
+  [`compatibilityvalidatedreason`](#compatibilityvalidatedreason-attribute)
   MUST be present with an explanation as to why the server was unable to
   attempt validation of the Version.
 
@@ -3357,15 +3348,10 @@ for additional information.
   [`strictvalidation`](model.md#groupsstringresourcesstringstrictvalidation)`
   model aspect.
 
-  Due to this attribute being server managed, and influenced by the state of
-  other Versions, as its value changes the Version itself MUST NOT be marked as
-  changed - meaning, attributes such as `modifiedat` and `epoch` remain
-  unchanged.
-
 - Constraints:
   - OPTIONAL
-  - When specified, MUST be a non-empty string.
-  - MUST be a read-only attribute.
+  - When specified, MUST be either `true` or `false`, case-sensitive.
+  - MUST be a [read-only](#read-only-changed) attribute.
   - MUST be present if the Resource model's `validatecompatibility` attribute
     is `true`, the Version's `format` value is present, and the Resource's
     `meta.compatibility` attribute is present.
@@ -3380,22 +3366,16 @@ for additional information.
   value of `false`, this attribute MUST provide information as to why the
   format validation check was not performed.
 
-  Due to this attribute being server managed, and influenced by the state of
-  other Versions, as its value changes the Version itself MUST NOT be marked as
-  changed - meaning, attributes such as `modifiedat` and `epoch` remain
-  unchanged.
-
 - Constraints:
   - OPTIONAL
   - When specified, MUST be a non-empty string.
-  - When specified, MUST be either `true` or `false`, case-sensitive.
-  - MUST be a read-only attribute.
+  - MUST be a [read-only](#read-only-changed) attribute.
   - MUST be present when
    [`compatibilityvalidated`](#compatibilityvalidated-attribute) is
     present with a value of `false`.
   - MUST NOT be present when
    [`compatibilityvalidated`](#compatibilityvalidated-attribute) is
-    absent.
+    absent or has a value of `true`.
 
 #### `<RESOURCE>url` Attribute
 - Type: URI
