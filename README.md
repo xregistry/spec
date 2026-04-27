@@ -40,6 +40,7 @@ with a lowercase `x`, even when the first word in a sentence.
 | Endpoint Registry             | [v1.0-rc2](https://github.com/xregistry/spec/blob/v1.0-rc2/endpoint/spec.md) | [WIP](endpoint/spec.md)                         |
 | Message Definitions Registry  | [v1.0-rc2](https://github.com/xregistry/spec/blob/v1.0-rc2/message/spec.md) | [WIP](message/spec.md)                         |
 | Schema Registry               | [v1.0-rc2](https://github.com/xregistry/spec/blob/v1.0-rc2/schema/spec.md) | [WIP](schema/spec.md)                         |
+| WoT Registry                  | n/a | [WIP](wot/spec.md)                         |
 |                               |
 | **Additional Documentation:** |
 | xRegistry Primer              | [v1.0-rc2](https://github.com/xregistry/spec/blob/v1.0-rc2/core/primer.md) | [WIP](core/primer.md)                          |

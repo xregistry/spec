@@ -85,9 +85,12 @@ makeschema: loadpython
 	@python tools/schema-generator.py --type json-schema --schema-id https://xregistry.io/xreg/xregistryspecs/endpoint-v1/schemas/document-schema.json --output endpoint/schemas/document-schema.json endpoint/model.json
 	@python tools/schema-generator.py --type avro-schema --output endpoint/schemas/document-schema.avsc endpoint/model.json
 	@python tools/schema-generator.py --type openapi --output endpoint/schemas/openapi.json endpoint/model.json
-	@python tools/schema-generator.py --type json-schema --schema-id https://xregistry.io/xreg/xregistryspecs/cloudevents-v1/schemas/document-schema.json --output cloudevents/schemas/document-schema.json endpoint/model.json message/model.json schema/model.json
-	@python tools/schema-generator.py --type avro-schema --output cloudevents/schemas/document-schema.avsc endpoint/model.json message/model.json schema/model.json
-	@python tools/schema-generator.py --type openapi --output cloudevents/schemas/openapi.json endpoint/model.json message/model.json schema/model.json
+	@python tools/schema-generator.py --type json-schema --schema-id https://xregistry.io/xreg/xregistryspecs/wot-v1/schemas/document-schema.json --output wot/schemas/document-schema.json wot/model.json
+	@python tools/schema-generator.py --type avro-schema --output wot/schemas/document-schema.avsc wot/model.json
+	@python tools/schema-generator.py --type openapi --output wot/schemas/openapi.json wot/model.json
+	@python tools/schema-generator.py --type json-schema --schema-id https://xregistry.io/xreg/xregistryspecs/cloudevents-v1/schemas/document-schema.json --output cloudevents/schemas/document-schema.json endpoint/model.json message/model.json schema/model.json wot/model.json
+	@python tools/schema-generator.py --type avro-schema --output cloudevents/schemas/document-schema.avsc endpoint/model.json message/model.json schema/model.json wot/model.json
+	@python tools/schema-generator.py --type openapi --output cloudevents/schemas/openapi.json endpoint/model.json message/model.json schema/model.json wot/model.json
 
 docker:
 	@docker run -t -v $(PWD):/tmp/spec -w /tmp/spec python:3.11 \

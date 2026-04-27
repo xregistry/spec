@@ -68,6 +68,15 @@ Avro/1.11 schemas to define events such as power output updates and status
 changes, embedding context in headers and key.
 [windgenerator-kafka-avro.xreg.json](./windgenerator-kafka-avro.xreg.json).
 
+### Smart Lamp (WoT)
+
+The Smart Lamp sample demonstrates an end-to-end scenario combining a W3C
+WoT Thing Model and Thing Description with a JSON Schema, a CloudEvents
+message definition, and an MQTT/5.0 endpoint. It shows how the WoT Registry
+groups (`thinggroups`, `thingmodelgroups`) compose with `schemagroups`,
+`messagegroups`, and `endpoints` in a single registry document.
+[smartlamp-wot.xreg.json](./smartlamp-wot.xreg.json).
+
 ## Conclusion
 
 Each sample file not only encapsulates a focused area of an event-driven system

@@ -1,0 +1,78 @@
+{
+  "$schema": "https://xregistry.io/xregistryspecs/core-v1/schemas/model.schema.json",
+  "groups": {
+    "thinggroups": {
+      "singular": "thinggroup",
+      "modelversion": "1.0-rc2",
+      "modelcompatiblewith": "https://xregistry.io/xreg/domains/wot/specs/model.json",
+
+      "attributes": {
+        "*": {
+          "name": "*",
+          "type": "any"
+        }
+      },
+
+      "resources": {
+        "things": {
+          "singular": "thing",
+          "modelversion": "1.0-rc2",
+          "modelcompatiblewith": "https://xregistry.io/xreg/domains/wot/specs/model.json",
+          "validateformat": true,
+          "validatecompatibility": true,
+          "strictvalidation": false,
+          "consistentformat": true,
+          "attributes": {
+            "format": {
+              "type": "string",
+              "required": true,
+              "enum": [ "WoT-TD/1.1" ],
+              "strict": false
+            },
+            "*": {
+              "name": "*",
+              "type": "any"
+            }
+          }
+        }
+      }
+    },
+
+    "thingmodelgroups": {
+      "singular": "thingmodelgroup",
+      "modelversion": "1.0-rc2",
+      "modelcompatiblewith": "https://xregistry.io/xreg/domains/wot/specs/model.json",
+
+      "attributes": {
+        "*": {
+          "name": "*",
+          "type": "any"
+        }
+      },
+
+      "resources": {
+        "thingmodels": {
+          "singular": "thingmodel",
+          "modelversion": "1.0-rc2",
+          "modelcompatiblewith": "https://xregistry.io/xreg/domains/wot/specs/model.json",
+          "validateformat": true,
+          "validatecompatibility": true,
+          "strictvalidation": false,
+          "consistentformat": true,
+          "attributes": {
+            "format": {
+              "type": "string",
+              "required": true,
+              "enum": [ "WoT-TM/1.1" ],
+              "strict": false
+            },
+            "*": {
+              "name": "*",
+              "type": "any"
+            }
+          }
+        }
+      }
+    }
+  }
+}

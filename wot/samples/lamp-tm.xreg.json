@@ -1,0 +1,65 @@
+{
+    "thingmodelgroups": {
+        "Fabrikam.Lighting": {
+            "description": "Reusable Thing Models for Fabrikam lighting products",
+            "thingmodels": {
+                "Fabrikam.Lamp": {
+                    "description": "Generic dimmable lamp Thing Model",
+                    "format": "WoT-TM/1.1",
+                    "contenttype": "application/tm+json",
+                    "thingmodel": {
+                        "@context": [
+                            "https://www.w3.org/2022/wot/td/v1.1",
+                            { "fabrikam": "https://fabrikam.example/wot/v1#" }
+                        ],
+                        "@type": "tm:ThingModel",
+                        "title": "Fabrikam Lamp",
+                        "description": "A reusable Thing Model for a dimmable lamp.",
+                        "version": { "model": "1.0.0" },
+                        "properties": {
+                            "status": {
+                                "title": "On/Off status",
+                                "type": "string",
+                                "enum": [ "on", "off" ],
+                                "readOnly": true
+                            },
+                            "brightness": {
+                                "title": "Brightness",
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 100,
+                                "unit": "percent"
+                            }
+                        },
+                        "actions": {
+                            "toggle": {
+                                "title": "Toggle the lamp on or off",
+                                "synchronous": true
+                            },
+                            "setBrightness": {
+                                "title": "Set the lamp brightness",
+                                "input": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 100
+                                }
+                            }
+                        },
+                        "events": {
+                            "overheated": {
+                                "title": "Overheated",
+                                "description": "Emitted when the lamp's temperature exceeds the safe threshold.",
+                                "data": {
+                                    "type": "object",
+                                    "properties": {
+                                        "temperature": { "type": "number", "unit": "degC" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

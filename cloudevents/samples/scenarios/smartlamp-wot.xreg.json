@@ -1,0 +1,142 @@
+{
+    "thingmodelgroups": {
+        "Fabrikam.Lighting": {
+            "description": "Reusable Thing Models for Fabrikam lighting products",
+            "thingmodels": {
+                "Fabrikam.Lamp": {
+                    "description": "Generic dimmable lamp Thing Model",
+                    "format": "WoT-TM/1.1",
+                    "contenttype": "application/tm+json",
+                    "thingmodel": {
+                        "@context": "https://www.w3.org/2022/wot/td/v1.1",
+                        "@type": "tm:ThingModel",
+                        "title": "Fabrikam Lamp",
+                        "version": { "model": "1.0.0" },
+                        "properties": {
+                            "status": { "type": "string", "enum": [ "on", "off" ], "readOnly": true },
+                            "brightness": { "type": "integer", "minimum": 0, "maximum": 100, "unit": "percent" }
+                        },
+                        "actions": {
+                            "toggle": { "synchronous": true },
+                            "setBrightness": { "input": { "type": "integer", "minimum": 0, "maximum": 100 } }
+                        },
+                        "events": {
+                            "overheated": {
+                                "data": { "tm:ref": "/schemagroups/Fabrikam.Lighting/schemas/Fabrikam.Lamp.OverheatedData" }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+
+    "thinggroups": {
+        "Fabrikam.FactoryFloor.01": {
+            "description": "All Things deployed on Fabrikam factory floor #1",
+            "things": {
+                "lamp-42": {
+                    "description": "Smart lamp instance #42 (above workbench A)",
+                    "format": "WoT-TD/1.1",
+                    "contenttype": "application/td+json",
+                    "thing": {
+                        "@context": "https://www.w3.org/2022/wot/td/v1.1",
+                        "@type": "Thing",
+                        "id": "urn:fabrikam:lamp:42",
+                        "title": "Lamp #42 (workbench A)",
+                        "version": { "instance": "1.0.0", "model": "1.0.0" },
+                        "links": [
+                            {
+                                "rel": "type",
+                                "href": "/thingmodelgroups/Fabrikam.Lighting/thingmodels/Fabrikam.Lamp",
+                                "type": "application/tm+json"
+                            }
+                        ],
+                        "securityDefinitions": { "bearer_sc": { "scheme": "bearer", "format": "jwt" } },
+                        "security": [ "bearer_sc" ],
+                        "properties": {
+                            "brightness": {
+                                "type": "integer", "minimum": 0, "maximum": 100, "unit": "percent",
+                                "forms": [
+                                    {
+                                        "href": "https://gw.fabrikam.example/floor01/lamp-42/brightness",
+                                        "contentType": "application/json",
+                                        "op": [ "readproperty", "writeproperty" ]
+                                    }
+                                ]
+                            }
+                        },
+                        "events": {
+                            "overheated": {
+                                "data": { "tm:ref": "/schemagroups/Fabrikam.Lighting/schemas/Fabrikam.Lamp.OverheatedData" },
+                                "forms": [
+                                    {
+                                        "href": "mqtts://broker.fabrikam.example:8883/lamps/42/overheated",
+                                        "contentType": "application/cloudevents+json",
+                                        "op": [ "subscribeevent" ]
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+
+    "schemagroups": {
+        "Fabrikam.Lighting": {
+            "description": "Data schemas referenced by Fabrikam lighting Thing Models and Descriptions",
+            "schemas": {
+                "Fabrikam.Lamp.OverheatedData": {
+                    "description": "Payload schema for the lamp overheated event",
+                    "format": "JsonSchema/draft-07",
+                    "schema": {
+                        "$schema": "http://json-schema.org/draft-07/schema",
+                        "type": "object",
+                        "properties": {
+                            "temperature": { "type": "number", "description": "Measured temperature in degrees Celsius" },
+                            "thresholdExceededAt": { "type": "string", "format": "date-time" }
+                        },
+                        "required": [ "temperature" ]
+                    }
+                }
+            }
+        }
+    },
+
+    "messagegroups": {
+        "Fabrikam.Lighting": {
+            "envelope": "CloudEvents/1.0",
+            "description": "CloudEvents emitted by Fabrikam lighting devices",
+            "messages": {
+                "Fabrikam.Lamp.Overheated": {
+                    "description": "Emitted when a lamp reports an overheated event",
+                    "envelope": "CloudEvents/1.0",
+                    "envelopemetadata": {
+                        "id": { "required": true },
+                        "type": { "value": "Fabrikam.Lamp.Overheated" },
+                        "source": { "type": "uritemplate", "value": "{tenantid}/{deviceid}" },
+                        "time": { "required": true }
+                    },
+                    "dataschemaformat": "JsonSchema/draft-07",
+                    "dataschemauri": "/schemagroups/Fabrikam.Lighting/schemas/Fabrikam.Lamp.OverheatedData"
+                }
+            }
+        }
+    },
+
+    "endpoints": {
+        "Fabrikam.Lighting.Broker": {
+            "description": "Fabrikam MQTT broker for lighting device telemetry",
+            "usage": [ "producer", "consumer" ],
+            "envelope": "CloudEvents/1.0",
+            "protocol": "MQTT/5.0",
+            "channel": "lamps/+/overheated",
+            "messagegroups": [ "/messagegroups/Fabrikam.Lighting" ],
+            "config": {
+                "endpoints": [ { "uri": "mqtts://broker.fabrikam.example:8883" } ]
+            }
+        }
+    }
+}
