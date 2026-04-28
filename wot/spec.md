@@ -1,9 +1,9 @@
 # WoT Registry Service - Version 1.0-rc2
 
 <!-- words: WoT JSON-LD Servient affordances affordance discoverability tm td -->
-<!-- words: thing thingid thingurl things thingsurl thingscount thingbase -->
+<!-- words: thingdescription thingdescriptionid thingdescriptionurl thingdescriptions thingdescriptionsurl thingdescriptionscount thingdescriptionbase -->
 <!-- words: thingmodel thingmodels thingmodelid thingmodelurl thingmodelsurl thingmodelscount thingmodelbase -->
-<!-- words: thinggroup thinggroups thinggroupid thinggroupsurl thinggroupscount -->
+<!-- words: thingdescriptiongroup thingdescriptiongroups thingdescriptiongroupid thingdescriptiongroupsurl thingdescriptiongroupscount -->
 <!-- words: thingmodelgroup thingmodelgroups thingmodelgroupid thingmodelgroupsurl thingmodelgroupscount -->
 <!-- words: invokeaction readproperty writeproperty subscribeevent securitydefinitions versionmode urn href -->
 <!-- words: workbench fabrikam lamp lighting jwt tenantid deviceid -->
@@ -30,14 +30,14 @@ Registry allows for the storage, management and discovery of W3C
   - [2. Notations and Terminology](#2-notations-and-terminology)
     - [2.1. Notational Conventions](#21-notational-conventions)
     - [2.2. Terminology](#22-terminology)
-      - [2.2.1. Thing](#221-thing)
+      - [2.2.1. Thing Description](#221-thing-description)
       - [2.2.2. Thing Model](#222-thing-model)
-    - [2.3. Thing Group](#23-thing-group)
+    - [2.3. Thing Description Group](#23-thing-description-group)
     - [2.4. Thing Model Group](#24-thing-model-group)
   - [3. WoT Registry Model](#3-wot-registry-model)
   - [4. WoT Registry](#4-wot-registry)
-    - [4.1. Thing Groups](#41-thing-groups)
-    - [4.2. Thing Resources](#42-thing-resources)
+    - [4.1. Thing Description Groups](#41-thing-description-groups)
+    - [4.2. Thing Description Resources](#42-thing-description-resources)
     - [4.3. Thing Model Groups](#43-thing-model-groups)
     - [4.4. Thing Model Resources](#44-thing-model-resources)
     - [4.5. Formats](#45-formats)
@@ -118,7 +118,7 @@ Resource, not a new Version.
 
 ### 1.4. Document Store
 
-The WoT Registry is a document store: the `things` and `thingmodels` Resources
+The WoT Registry is a document store: the `thingdescriptions` and `thingmodels` Resources
 are defined with [`hasdocument`][xRegistry hasdocument] set to `true`. A GET
 against a Resource Version's [`self`][xRegistry self] URL returns the JSON-LD
 TD or TM document with the appropriate content-type
@@ -154,16 +154,16 @@ not normative.
 
 This specification defines the following terms:
 
-#### 2.2.1. Thing
+#### 2.2.1. Thing Description
 
-We use the term **Thing** (or `thing` Resource) in this specification as a
-logical grouping of **Thing Versions**. A **Thing Version** is a concrete
-WoT-TD 1.1 JSON-LD document. The **Thing** Resource is a semantic umbrella
+We use the term **Thing Description** (or `thingdescription` Resource) in this specification as a
+logical grouping of **Thing Description Versions**. A **Thing Description Version** is a concrete
+WoT-TD 1.1 JSON-LD document. The **Thing Description** Resource is a semantic umbrella
 formed around one or more concrete Thing Description documents that represent
 iterations of the same logical Thing instance. Per the definition of the
 [`compatibility`][xRegistry compatibility] attribute, all Versions of a single
-**Thing** MUST adhere to the rules defined by the `compatibility` attribute.
-Any breaking change MUST result in a new **Thing** Resource being created.
+**Thing Description** MUST adhere to the rules defined by the `compatibility` attribute.
+Any breaking change MUST result in a new **Thing Description** Resource being created.
 
 #### 2.2.2. Thing Model
 
@@ -177,12 +177,12 @@ describes a **class** of Things and typically lacks concrete `href` values in
 its forms, whereas a Thing Description describes a **specific** deployed Thing
 instance.
 
-### 2.3. Thing Group
+### 2.3. Thing Description Group
 
-A Thing Group is a container for Thing Descriptions that are related to each
+A Thing Description Group is a container for Thing Descriptions that are related to each
 other in some application-defined way (for example, all TDs for a tenant, a
 fleet, or a physical site). This specification does not impose any
-restrictions on what Things can be contained in a Thing Group.
+restrictions on what Thing Descriptions can be contained in a Thing Description Group.
 
 ### 2.4. Thing Model Group
 
@@ -218,11 +218,11 @@ form:
 
   "model": { ... }, ?
 
-  "thinggroupsurl": "<URL>",                       # ThingGroups collection
-  "thinggroupscount": <UINTEGER>,
-  "thinggroups": {
-    "KEY": {                                       # thinggroupid
-      "thinggroupid": "<STRING>",                  # xRegistry core attributes
+  "thingdescriptiongroupsurl": "<URL>",                       # ThingDescriptionGroups collection
+  "thingdescriptiongroupscount": <UINTEGER>,
+  "thingdescriptiongroups": {
+    "KEY": {                                       # thingdescriptiongroupid
+      "thingdescriptiongroupid": "<STRING>",                  # xRegistry core attributes
       "self": "<URL>",
       "xid": "<XID>",
       "epoch": <UINTEGER>,
@@ -234,11 +234,11 @@ form:
       "modifiedat": "<TIMESTAMP>",
       "deprecated": { ... }, ?
 
-      "thingsurl": "<URL>",                        # Things collection
-      "thingscount": <UINTEGER>,
-      "things": {
-        "KEY": {                                   # thingid
-          "thingid": "<STRING>",                   # xRegistry core attributes
+      "thingdescriptionsurl": "<URL>",                        # ThingDescriptions collection
+      "thingdescriptionscount": <UINTEGER>,
+      "thingdescriptions": {
+        "KEY": {                                   # thingdescriptionid
+          "thingdescriptionid": "<STRING>",                   # xRegistry core attributes
           "versionid": "<STRING>",
           "self": "<URL>",
           "xid": "<XID>",
@@ -259,9 +259,9 @@ form:
           "compatibilityvalidated": <BOOLEAN>, ?
           "compatibilityvalidatedreason": "<STRING>", ?
 
-          "thingurl": "<URL>", ?
-          "thing": <ANY> ?                         # the WoT-TD JSON-LD document
-          "thingbase64": "<STRING>", ?
+          "thingdescriptionurl": "<URL>", ?
+          "thingdescription": <ANY> ?                         # the WoT-TD JSON-LD document
+          "thingdescriptionbase64": "<STRING>", ?
           #  End of default Version's attributes
 
           "metaurl": "<URL>",
@@ -316,18 +316,18 @@ Since the WoT Registry is an application of the
 [xRegistry specification][xRegistry Core], all attributes for Groups,
 Resources, and Resource Version objects are inherited from there.
 
-### 4.1. Thing Groups
+### 4.1. Thing Description Groups
 
-The Group (`<GROUP>`) name for Thing Descriptions is `thinggroup` (singular).
-The plural, used as the collection name, is `thinggroups`. The Thing Group
+The Group (`<GROUP>`) name for Thing Descriptions is `thingdescriptiongroup` (singular).
+The plural, used as the collection name, is `thingdescriptiongroups`. The Thing Description Group
 does not have any specific extension attributes.
 
-A Thing Group is a collection of Thing Descriptions that are related to each
-other in some application-defined way. A Thing Group does not impose any
-restrictions on the contained Things.
+A Thing Description Group is a collection of Thing Descriptions that are related to each
+other in some application-defined way. A Thing Description Group does not impose any
+restrictions on the contained Thing Descriptions.
 
-Every Thing Description (i.e. the `thing` Resource) MUST reside inside a Thing
-Group.
+Every Thing Description (i.e. the `thingdescription` Resource) MUST reside inside a Thing
+Description Group.
 
 Example:
 
@@ -336,33 +336,33 @@ Example:
   "specversion": "1.0-rc2",
   # other xRegistry top-level attributes excluded for brevity
 
-  "thinggroupsurl": "https://example.com/thinggroups",
-  "thinggroupscount": 1,
-  "thinggroups": {
+  "thingdescriptiongroupsurl": "https://example.com/thingdescriptiongroups",
+  "thingdescriptiongroupscount": 1,
+  "thingdescriptiongroups": {
     "fabrikam.factory-floor-01": {
-      "thinggroupid": "fabrikam.factory-floor-01",
+      "thingdescriptiongroupid": "fabrikam.factory-floor-01",
       # other xRegistry Group-level attributes excluded for brevity
 
-      "thingsurl": "https://example.com/thinggroups/fabrikam.factory-floor-01/things",
-      "thingscount": 12
+      "thingdescriptionsurl": "https://example.com/thingdescriptiongroups/fabrikam.factory-floor-01/thingdescriptions",
+      "thingdescriptionscount": 12
     }
   }
 }
 ```
 
-### 4.2. Thing Resources
+### 4.2. Thing Description Resources
 
-The Resource (`<RESOURCE>`) inside of Thing Groups is named `thing`. The
-plural, used as the collection name, is `things`. Any single `thing` is a
+The Resource (`<RESOURCE>`) inside of Thing Description Groups is named `thingdescription`. The
+plural, used as the collection name, is `thingdescriptions`. Any single `thingdescription` is a
 container for one or more `versions`, each of which holds the concrete
 WoT-TD 1.1 JSON-LD document.
 
-The `format` attribute of a `thing` Resource Version MUST be `"WoT-TD/1.1"`.
-The `contenttype` of a `thing` document SHOULD be `application/td+json` per
+The `format` attribute of a `thingdescription` Resource Version MUST be `"WoT-TD/1.1"`.
+The `contenttype` of a `thingdescription` document SHOULD be `application/td+json` per
 [WoT-TD 1.1][WoT-TD-1.1].
 
-All Versions of a single Thing Resource MUST adhere to the semantic rules of
-the Thing's [`compatibility`][xRegistry compatibility] attribute, if specified.
+All Versions of a single Thing Description Resource MUST adhere to the semantic rules of
+the Thing Description's [`compatibility`][xRegistry compatibility] attribute, if specified.
 
 Implementations of this specification SHOULD use the xRegistry default
 algorithm for generating new `versionid` values and for determining which is
@@ -397,7 +397,7 @@ The `format` attribute of a `thingmodel` Resource Version MUST be
 [WoT-TM 1.1][WoT-TM-1.1].
 
 The same `compatibility`, `versionid`, and `ancestor` rules described for
-`thing` Resources apply to `thingmodel` Resources.
+`thingdescription` Resources apply to `thingmodel` Resources.
 
 ### 4.5. Formats
 
@@ -419,7 +419,7 @@ specification.
 - A URI-reference pointing to a TD MAY use a JSON-Pointer
   ([RFC 6901](https://www.rfc-editor.org/rfc/rfc6901)) fragment to deep-link
   into a particular property, action, or event affordance, e.g.
-  `…/things/lamp-42#/properties/status`.
+  `…/thingdescriptions/lamp-42#/properties/status`.
 
 #### 4.5.2. WoT Thing Model
 
@@ -499,10 +499,10 @@ application domain and the deployment environment. This MAY include, but is
 not limited to, OAuth 2.0, OpenID Connect, API keys, or other mechanisms
 appropriate for the use case.
 
-For authorization, the `thinggroup` and `thingmodelgroup` concepts provide a
+For authorization, the `thingdescriptiongroup` and `thingmodelgroup` concepts provide a
 natural authorization boundary, where users can be granted access to specific
 groups, and therefore to the Things or Thing Models contained within those
-groups. The `thing` and `thingmodel` Resources themselves can be used to
+groups. The `thingdescription` and `thingmodel` Resources themselves can be used to
 further restrict access to specific Versions, allowing for fine-grained
 access control.
 
@@ -514,8 +514,8 @@ additional guidance.
 
 ---
 
-[WoT-TD-1.1]: https://www.w3.org/TR/wot-thing-description11/
-[WoT-TM-1.1]: https://www.w3.org/TR/wot-thing-description11/#thing-model
+[WoT-TD-1.1]: https://www.w3.org/TR/wot-thingdescription-description11/
+[WoT-TM-1.1]: https://www.w3.org/TR/wot-thingdescription-description11/#thingdescription-model
 [WoT-Discovery]: https://www.w3.org/TR/wot-discovery/
 [WoT-Security]: https://www.w3.org/TR/wot-security/
 [xRegistry Core]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html

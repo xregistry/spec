@@ -1,13 +1,13 @@
 {
-    "thinggroups": {
+    "thingdescriptiongroups": {
         "Fabrikam.FactoryFloor.01": {
             "description": "All Things deployed on Fabrikam factory floor #1",
-            "things": {
+            "thingdescriptions": {
                 "lamp-42": {
                     "description": "Smart lamp instance #42 (above workbench A)",
                     "format": "WoT-TD/1.1",
                     "contenttype": "application/td+json",
-                    "thing": {
+                    "thingdescription": {
                         "@context": [
                             "https://www.w3.org/2022/wot/td/v1.1",
                             { "fabrikam": "https://fabrikam.example/wot/v1#" }

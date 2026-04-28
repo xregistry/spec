@@ -1,8 +1,8 @@
 {
   "$schema": "https://xregistry.io/xregistryspecs/core-v1/schemas/model.schema.json",
   "groups": {
-    "thinggroups": {
-      "singular": "thinggroup",
+    "thingdescriptiongroups": {
+      "singular": "thingdescriptiongroup",
       "modelversion": "1.0-rc2",
       "modelcompatiblewith": "https://xregistry.io/xreg/domains/wot/specs/model.json",
 
@@ -14,8 +14,8 @@
       },
 
       "resources": {
-        "things": {
-          "singular": "thing",
+        "thingdescriptions": {
+          "singular": "thingdescription",
           "modelversion": "1.0-rc2",
           "modelcompatiblewith": "https://xregistry.io/xreg/domains/wot/specs/model.json",
           "validateformat": true,
