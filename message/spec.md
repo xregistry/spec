@@ -471,7 +471,7 @@ this form:
           "createdat": "<TIMESTAMP>",
           "modifiedat": "<TIMESTAMP>",
           "ancestor": "<STRING>",
-          "contenttype": "<STRING>, ?
+          "contenttype": "<STRING>", ?
           "format": "<STRING>", ?
           "formatvalidated": <BOOLEAN>, ?
           "formatvalidatedreason": "<STRING>", ?

@@ -357,9 +357,13 @@ The following describes the attributes of the Registry model:
 - Indicates whether this attribute is REQUIRED to have a non-null value.
 - When set to `true`, this specification does not mandate how this
   attribute's value is populated (i.e. by a client, the server or via a
-  default value), just that by the end of processing any request it MUST
-  have a non-null value, and generate an error
+  default value), just that by the end of the server's processing any request
+  it MUST have a non-null value, and generate an error
   ([invalid_attribute](./spec.md#invalid_attribute)) if not.
+- Note that the previous bullet implies that a REQUIRED attribute does not
+  mean that clients are mandated to include that attribute in its requests
+  unless it will not be automatically populated by the server (e.g. it
+  has a default value defined).
 - A `true` value also implies that this attribute MUST be serialized in any
   response from the server - with the exception of the optimizations
   specified for document view.

@@ -259,7 +259,7 @@ this form:
           "type": "<STRING>", ?
           "resourceuri": "URI", ?
           "authorityuri": "URI", ?
-          "grant_types": [ "<STRING>" * ] ?
+          "granttypes": [ "<STRING>" * ] ?
         }, ?
         "deployed": <BOOLEAN>, ?
 
@@ -477,7 +477,7 @@ This specification defines the following envelope options for the indicated
 ##### `CloudEvents/1.0`
 
 - `mode` : indicates whether the CloudEvent will use `binary` or `structured`
-  (mode)[https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#message].
+  [mode](https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#message).
   When specified, its value MUST be one of: `binary` or `structured`, case
   sensitive. When not specified, the endpoint is indicating that either mode
   is acceptable.
@@ -545,22 +545,22 @@ This specification defines the following envelope options for the indicated
   - OPTIONAL.
   - Each object MUST contain a `uri` attribute with a valid, absolute URI (URL).
 - Examples:
-  - `[ {"uri": "https://example.com" } ]`
+  - `[ {"url": "https://example.com" } ]`
   - ```
     [
-      { "uri": "tcp://example.com" },
-      { "uri": "wss://example.com" }
+      { "url": "tcp://example.com" },
+      { "url": "wss://example.com" }
     ]
     ```
   - ```
     [
       {
-        "uri": "tcp://example.com",
+        "url": "tcp://example.com",
         "priority": 1,
         "status": "down"
       },
       {
-        "uri": "wss://example.com",
+        "url": "wss://example.com",
         "priority": 2,
         "status": "up"
       }
@@ -617,7 +617,7 @@ This specification defines the following envelope options for the indicated
   - OPTIONAL.
   - MUST be a non-empty URI if used.
 
-###### `protocoloptions.authorization.grant_types`
+###### `protocoloptions.authorization.granttypes`
 
 - Type: Array of Strings
 - Description: The supported authorization grant types. The value SHOULD be a
@@ -636,7 +636,7 @@ This specification defines the following envelope options for the indicated
 - Constraints:
   - OPTIONAL.
   - If present, MUST be either `true` or `false`, case-sensitive.
-  - When not specified, the default value is MUST be `true`.
+  - When not specified, the default value MUST be `true`.
 
 ##### `protocoloptions.options`
 
