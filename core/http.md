@@ -131,7 +131,8 @@ If an HTTP method is not supported for a supported HTTP path, then an error
 ([action_not_supported](./spec.md#action_not_supported)) MUST be generated.
 
 Implementations MAY support extension APIs, however, the following rules apply:
-- New HTTP paths that extend non-root paths MUST NOT be defined.
+- New HTTP paths that extend non-root paths MUST NOT be defined as they might
+  conflict with URLs of entities within the system.
 - New root HTTP paths MAY be defined as long as they do not use Registry-level
   HTTP paths or attribute names. This includes extension and Groups collection
   attribute names.
@@ -790,9 +791,6 @@ The request MUST be of the form:
 
 ```yaml
 GET /capabilities
-Content-Type: application/json; charset=utf-8
-
-{ ... Capabilities map excluded for brevity ...  }
 ```
 
 A successful response MUST be of the form:
@@ -822,8 +820,8 @@ Content-Type: application/json; charset=utf-8
     "binary", "collections", "doc", "epoch", "filter", "ignore", "inline",
     "setdefaultversionid", "sort", "specversion"
   ],
-  "ignore": [ "capabilities", "defaultversionid", "defaultversionsticky",
-    "epoch", "modelsource", "readonly"
+  "ignores": [ "capabilities", "defaultversionid", "defaultversionsticky",
+    "epoch", "id", "modelsource", "readonly"
   ],
   "mutable": [ "capabilities", "entities", "model" ],
   "pagination": false,
@@ -868,18 +866,22 @@ Content-Type: application/json; charset=utf-8
 
 {
   "apis": {
-    "type": "string",
-    "enum": [ "/capabilities", "/export", "/model", /"modelsource" ]
+    "type": "array",
+    "item": "string",
+    "enum": [ "/capabilities", "/capabilitiesoffered", "/export", "/model",
+       "/modelsource" ]
   },
   "flags": {
-    "type": "string",
+    "type": "array",
+    "item": "string",
     "enum": [ "collections", "doc", "epoch", "filter", "ignore", "inline",
        "setdefaultversionid", "sort", "specversion" ]
   },
-  "ignore": {
-    "type": "string",
+  "ignores": {
+    "type": "array",
+    "item": "string",
     "enum": [ "capabilities", "defaultversionid", "defaultversionsticky",
-      "epoch", "modelsource", "readonly" ]
+      "epoch", "id", "modelsource", "readonly" ]
   },
   "pagination": {
     "type": "boolean",
@@ -890,14 +892,19 @@ Content-Type: application/json; charset=utf-8
     "enum": [ false, true ]
   },
   "specversions": {
-    "type": "string",
+    "type": "array",
+    "item": "string",
     "enum": [ "1.0-rc2" ]
   },
   "stickyversions": {
     "type": "boolean",
     "enum": [ true ]
   },
-  "versionmodes": [ "manual" ]
+  "versionmodes": {
+    "type": "array",
+    "item": "string",
+    "enum": [ "manual" ]
+  }
 }
 ```
 
@@ -974,9 +981,9 @@ PATCH /capabilities
     "binary", "collections", "doc", "epoch", "filter", "ignore", "inline",
     "setdefaultversionid", "sort", "specversion"
   ],
-  "ignore": [
+  "ignores": [
     "capabilities", "defaultversionid", "defaultversionsticky", "epoch",
-    "modelsource", "readonly"
+    "id", "modelsource", "readonly"
   ],
   "mutable": [ "capabilities", "entities", "model" ],
   "pagination": false,
@@ -1147,10 +1154,10 @@ The request MUST be of the form:
 
 ```yaml
 PATCH /<GROUPS>
-Content-Type: application/json; charset:utf-8
+Content-Type: application/json; charset=utf-8
 or
 POST /<GROUPS>
-Content-Type: application/json; charset:utf-8
+Content-Type: application/json; charset=utf-8
 
 {
    "<KEY>": {                                      # <GROUP>id
@@ -1310,7 +1317,7 @@ Content-Type: application/json; charset=utf-8
 
 A server MAY support clients creating or updating a
 [Group](./spec.md#group-entity) in a Group collection via an HTTP `PATCH` or
-`POST` directed to the Group entity.
+`PUT` directed to the Group entity.
 
 The processing of these APIs is defined in the [Creating or Updating
 Entities](#creating-or-updating-entities) section.
@@ -1321,7 +1328,7 @@ The request MUST be of the form:
 PATCH /<GROUPS>/<GID>
 Content-Type: application/json; charset=utf-8
 or
-PUT /<GROUPS>/GID>
+PUT /<GROUPS>/<GID>
 Content-Type: application/json; charset=utf-8
 
 { ... Group entity excluded for brevity ... }
@@ -1752,10 +1759,10 @@ The request MUST be of the form:
 
 ```yaml
 PATCH /<GROUPS>/<GID>/<RESOURCES>
-Content-Type: application/json; charset:utf-8
+Content-Type: application/json; charset=utf-8
 or
 POST /<GROUPS>/<GID>/<RESOURCES>
-Content-Type: application/json; charset:utf-8
+Content-Type: application/json; charset=utf-8
 
 {
    "<KEY>": {                                      # <RESOURCE>id
@@ -2433,7 +2440,7 @@ The request MUST be of the form:
 PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>/meta
 Content-Type: application/json; charset=utf-8
 or
-PUT /<GROUPS>/GID>/<RESOURCES>/<RID>/meta
+PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/meta
 Content-Type: application/json; charset=utf-8
 
 { ... Meta entity excluded for brevity ... }
@@ -2558,10 +2565,10 @@ The request MUST be of the form:
 
 ```yaml
 PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions
-Content-Type: application/json; charset:utf-8
+Content-Type: application/json; charset=utf-8
 or
 POST /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions
-Content-Type: application/json; charset:utf-8
+Content-Type: application/json; charset=utf-8
 
 {
    "<KEY>": {                                      # <GROUP>id
@@ -2823,7 +2830,6 @@ for more information.
 
 When directed to the Version metadata, the request MUST be of the form:
 
-```yaml
 ```yaml
 PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>[$details]
 Content-Type: application/json; charset=utf-8
@@ -3230,7 +3236,7 @@ starting with `/`. E.g. `/export` if the "export" feature is not supported.
 
 #### details_required
 
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#details_required`
+* Type: `https://github.com/xregistry/spec/blob/main/core/http.md#details_required`
 * Code: `405 Method Not Allowed`
 * Title: `$details suffix is needed when using PATCH for the entity: <subject>.`
 * Subject: `<resource_xid>`
