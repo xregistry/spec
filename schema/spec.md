@@ -272,7 +272,7 @@ this form:
           "createdat": "<TIMESTAMP>",
           "modifiedat": "<TIMESTAMP>",
           "ancestor": "<STRING>",
-          "contenttype": "<STRING>, ?
+          "contenttype": "<STRING>", ?
           "format": "<STRING>", ?
           "formatvalidated": <BOOLEAN>, ?
           "formatvalidatedreason": "<STRING>", ?
@@ -329,7 +329,7 @@ containing 5 schemas.
 
 ```yaml
 {
-  "specversion": 1.0-rc2,
+  "specversion": "1.0-rc2",
   # other xRegistry top-level attributes excluded for brevity
 
   "schemagroupsurl": "http://example.com/schemagroups",
@@ -575,9 +575,9 @@ with the declared version.
 - `Protobuf/3` is the identifier for the Protobuf syntax version 3.
 - `Protobuf/2` is the identifier for the Protobuf syntax version 2.
 
-A URI-reference, like [`schemauri`](../message/spec.md#dataschemauri that points
-to an Protobuf Schema document MUST reference an Protobuf `message` declaration
-contained in the schema document using a URI fragment suffix
+A URI-reference, like [`schemauri`](../message/spec.md#dataschemauri) that
+points to an Protobuf Schema document MUST reference an Protobuf `message`
+declaration contained in the schema document using a URI fragment suffix
 `[:]{message-name}`. The ':' character is used as a separator when the URI
 already contains a fragment.
 
