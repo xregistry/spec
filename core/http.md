@@ -125,7 +125,7 @@ prefix MUST be used consistently for all APIs in the same Registry instance.
 
 If an OPTIONAL HTTP path is not supported by an implementation, then any
 use of that API MUST generate an error
-([api_not_found](./http.md#api_not_found)).
+([api_not_found](./spec.md#api_not_found)).
 
 If an HTTP method is not supported for a supported HTTP path, then an error
 ([action_not_supported](./spec.md#action_not_supported)) MUST be generated.
@@ -3233,16 +3233,6 @@ See the [Error Processing](./spec.md#error-processing) section in the
 The following list of HTTP protocol specific errors are defined:
 
 <!-- start-err-def -->
-
-#### api_not_found
-
-* Type: `https://github.com/xregistry/spec/blob/main/core/http.md#api_not_found`
-* Code: `404 Not Found`
-* Title: `The specified API is not supported: <subject>.`
-* Subject: `<request_path>`
-
-`request_path` MUST be the "Path" portion of the incoming request URL,
-starting with `/`. E.g. `/export` if the "export" feature is not supported.
 
 #### details_required
 

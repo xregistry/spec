@@ -576,7 +576,7 @@ with the declared version.
 - `Protobuf/2` is the identifier for the Protobuf syntax version 2.
 
 A URI-reference, like [`schemauri`](../message/spec.md#dataschemauri) that
-points to an Protobuf Schema document MUST reference an Protobuf `message`
+points to a Protobuf Schema document MUST reference a Protobuf `message`
 declaration contained in the schema document using a URI fragment suffix
 `[:]{message-name}`. The ':' character is used as a separator when the URI
 already contains a fragment.

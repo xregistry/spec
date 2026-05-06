@@ -1832,6 +1832,8 @@ The following defines the specification-defined capabilities:
   attribute names.
 - It is STRONGLY RECOMMENDED that implementations support at least
   `/capabilities` and `/model`.
+- Attempts to access an unsupported API MUST generate an error
+  ([api_not_found](#api_not_found)).
 
 #### `compatibilities` Capability
 - Name: `compatibilities`
@@ -1914,6 +1916,8 @@ The following defines the specification-defined capabilities:
   - `modelsource` (the [Registry model](./model.md#registry-model))
 - When not specified, the default value MUST be an empty list and the Registry
   is read-only.
+- Attempts to modify an unsupported item MUST generate an error
+  ([api_not_found](#api_not_found)).
 
 #### `pagination` Capability
 - Name: `pagination`
@@ -3349,7 +3353,7 @@ for additional information.
 
   Note that `false` MUST NOT be used for validation failure. In those cases
   the write operation MUST generate an error
-  [compatibility_violation](#compatibility_violation) and reject the request
+  ([compatibility_violation](#compatibility_violation)) and reject the request
   regardless of the value of the
   [`strictvalidation`](model.md#groupsstringresourcesstringstrictvalidation)`
   model aspect.
@@ -4453,6 +4457,16 @@ the API supports, if any.
 * Subject: `<resource_xid>`
 * Args:
   - `list`: List of ancestor IDs in the circular list.
+
+#### api_not_found
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#api_not_found`
+* Code: `404 Not Found`
+* Title: `The specified API is not supported: <subject>.`
+* Subject: `<request_path>`
+
+`request_path` MUST be the "Path" portion of the incoming request URL,
+starting with `/`. E.g. `/export` if the "export" feature is not supported.
 
 ### bad_defaultversionid
 
