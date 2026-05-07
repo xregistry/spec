@@ -1243,22 +1243,22 @@
               "effective": {
                 "type": "string",
                 "format": "date-time",
-                "description": "tbd"
+                "description": "date endpoint deprecation went into effect"
               },
               "removal": {
                 "type": "string",
                 "format": "date-time",
-                "description": "tbd"
+                "description": "date endpoint will be removed"
               },
               "alternative": {
                 "type": "string",
                 "format": "uri",
-                "description": "tbd"
+                "description": "alternative endpoint to consider"
               },
               "docs": {
                 "type": "string",
                 "format": "uri",
-                "description": "tbd"
+                "description": "additional information about deprecation"
               }
             }
           },
@@ -1350,7 +1350,7 @@
                     "properties": {
                       "endpoints": {
                         "type": "array",
-                        "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URI just identifies a network host or links directly to a resource managed by the network host is protocol specific",
+                        "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URL just identifies a network host or links directly to a resource managed by the network host is protocol specific",
                         "items": {
                           "type": "object",
                           "properties": {
@@ -1458,14 +1458,14 @@
                     "properties": {
                       "endpoints": {
                         "type": "array",
-                        "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URI just identifies a network host or links directly to a resource managed by the network host is protocol specific",
+                        "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URL just identifies a network host or links directly to a resource managed by the network host is protocol specific",
                         "items": {
                           "type": "object",
                           "properties": {
-                            "uri": {
+                            "url": {
                               "type": "string",
                               "format": "uri",
-                              "description": "MQTT URI (mqtt, mqtts, or ws scheme)"
+                              "description": "MQTT URL (mqtt, mqtts, or ws scheme)"
                             }
                           }
                         }
@@ -1552,14 +1552,14 @@
                     "properties": {
                       "endpoints": {
                         "type": "array",
-                        "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URI just identifies a network host or links directly to a resource managed by the network host is protocol specific",
+                        "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URL just identifies a network host or links directly to a resource managed by the network host is protocol specific",
                         "items": {
                           "type": "object",
                           "properties": {
-                            "uri": {
+                            "url": {
                               "type": "string",
                               "format": "uri",
-                              "description": "MQTT URI (mqtt, mqtts, or ws scheme)"
+                              "description": "MQTT URL (mqtt, mqtts, or ws scheme)"
                             }
                           }
                         }
@@ -1646,14 +1646,14 @@
                     "properties": {
                       "endpoints": {
                         "type": "array",
-                        "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URI just identifies a network host or links directly to a resource managed by the network host is protocol specific",
+                        "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URL just identifies a network host or links directly to a resource managed by the network host is protocol specific",
                         "items": {
                           "type": "object",
                           "properties": {
-                            "uri": {
+                            "url": {
                               "type": "string",
                               "format": "uri",
-                              "description": "HTTP URI"
+                              "description": "HTTP URL"
                             }
                           }
                         }
@@ -1745,7 +1745,7 @@
                     "properties": {
                       "endpoints": {
                         "type": "array",
-                        "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URI just identifies a network host or links directly to a resource managed by the network host is protocol specific",
+                        "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URL just identifies a network host or links directly to a resource managed by the network host is protocol specific",
                         "items": {
                           "type": "object",
                           "properties": {
@@ -1858,14 +1858,14 @@
                     "properties": {
                       "endpoints": {
                         "type": "array",
-                        "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URI just identifies a network host or links directly to a resource managed by the network host is protocol specific",
+                        "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URL just identifies a network host or links directly to a resource managed by the network host is protocol specific",
                         "items": {
                           "type": "object",
                           "properties": {
-                            "uri": {
+                            "url": {
                               "type": "string",
                               "format": "uri",
-                              "description": "NATS URI"
+                              "description": "NATS URL"
                             }
                           }
                         }

@@ -438,7 +438,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
     "ignores": [ "capabilities",? "defaultversionid",? "defaultversionsticky",?
       "id",? "epoch",? "modelsource",? "readonly"? ],
     "mutable": [                        # What is mutable in the Registry
-      "capabilities",? "entities",? "model",? "<STRING>"*
+      "capabilities",? "entities",? "modelsource",? "<STRING>"*
     ], ?
     "pagination": <BOOLEAN>, ?
     "shortself": <BOOLEAN>, ?
@@ -574,7 +574,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
           "createdat": "<TIMESTAMP>",
           "modifiedat": "<TIMESTAMP>",
           "ancestor": "<STRING>",                  # Ancestor's versionid
-          "contenttype": "<STRING>, ?              # Add default Ver extensions
+          "contenttype": "<STRING>", ?             # Add default Ver extensions
           "format": "<STRING>", ?
           "formatvalidated": <BOOLEAN>, ?
           "formatvalidatedreason": "<STRING>", ?
@@ -1114,7 +1114,7 @@ of the existing entity. Then the existing entity would be deleted.
 
   If an entity is deleted and then a new entity is created that results in
   the same `self` URL, this specification does not mandate that the same
-  `shorturl` be generated, but it MAY do so.
+  `shortself` be generated, but it MAY do so.
 
   This attribute MUST only appear in the serialization if the `shortself`
   capability is enabled. However, if this capability is enabled, then disabled,
@@ -1315,7 +1315,7 @@ of the existing entity. Then the existing entity would be deleted.
     existing value, however a value of `null` MUST use the current date/time
     as the new value.
   - When absent in an update request, any existing value MUST remain
-    unchanged, or if not already set, set to the current date/time.
+    unchanged.
   - During the processing of a single request, all entities that have their
     `createdat` or `modifiedat` attributes set to the current date/time MUST
     use the same value in all cases.
@@ -1554,6 +1554,8 @@ applied to the "default" Version of a Resource, and the incoming inlined
 Version attributes MUST be silently ignored. This is to avoid any possible
 conflicting data between the two sets of data for that Version. In other
 words, the Version attributes in the incoming `versions` collection wins.
+See [Resource Processing Algorithm](#resource-processing-algorithm) for more
+details.
 
 To better understand this scenario, consider the following HTTP request to
 update a Message where the `defaultversionid` is `v1`:
@@ -1818,6 +1820,7 @@ The following defines the specification-defined capabilities:
   support inlining the model via the [Inline Flag](#inline-flag).
 - Defined values:
   - `/capabilities`
+  - `/capabilitiesoffered`
   - `/export`
   - `/model`
   - `/modelsource`
@@ -1829,6 +1832,8 @@ The following defines the specification-defined capabilities:
   attribute names.
 - It is STRONGLY RECOMMENDED that implementations support at least
   `/capabilities` and `/model`.
+- Attempts to access an unsupported API MUST generate an error
+  ([api_not_found](#api_not_found)).
 
 #### `compatibilities` Capability
 - Name: `compatibilities`
@@ -1911,6 +1916,8 @@ The following defines the specification-defined capabilities:
   - `modelsource` (the [Registry model](./model.md#registry-model))
 - When not specified, the default value MUST be an empty list and the Registry
   is read-only.
+- Attempts to modify an unsupported item MUST generate an error
+  ([api_not_found](#api_not_found)).
 
 #### `pagination` Capability
 - Name: `pagination`
@@ -2086,10 +2093,10 @@ in the serialization of its capabilities offering map.
     "item": {
       "type": "string"
     },
-    "enum": [ "/capabilities", "capabilitiesoffered", "/export", "/model",
-              /"modelsource" ]
+    "enum": [ "/capabilities", "/capabilitiesoffered", "/export", "/model",
+              "/modelsource" ]
   },
-  "compatibilities" {
+  "compatibilities": {
     "type": "map",
     "item": {
       "type": "string"
@@ -2120,11 +2127,11 @@ in the serialization of its capabilities offering map.
       "type": "string"
     },
     "enum": [ "capabilities", "defaultversionid", "defaultversionsticky",
-      "epoch", "modelsource", "readonly" ]
+      "epoch", "id", "modelsource", "readonly" ]
   },
   "mutable": {
     "type": "array",
-    "enum": [ "capabilities", "entities", "model" ],
+    "enum": [ "capabilities", "entities", "modelsource" ],
     "item": {
       "type": "string"
     }
@@ -2149,7 +2156,7 @@ in the serialization of its capabilities offering map.
     "enum": [ false, true ]
   },
   "versionmodes": {
-    "type": "string",
+    "type": "array",
     "enum": [ "manual", "createdat", "modifiedat", "semver" ],
     "item": {
       "type": "string"
@@ -2314,7 +2321,7 @@ it MUST adhere to the following:
   "createdat": "<TIMESTAMP>",
   "modifiedat": "<TIMESTAMP>",
   "ancestor": "<STRING>",
-  "contenttype": "<STRING>, ?
+  "contenttype": "<STRING>", ?
 
   "<RESOURCE>url": "<URL>", ?                # If not local
   "<RESOURCE>": ... Resource document ..., ? # If local & inlined & JSON
@@ -2599,7 +2606,7 @@ be done in the other - running the risk of them getting out of sync.
 
 The second, and better, option is to create a cross-reference from one
 (the "source" Resource) to the other ("target" Resource). This is done
-by setting the `xref` attribute on the source Resource to be the `xid`
+by setting the `meta.xref` attribute on the source Resource to be the `xid`
 of the target Resource.
 
 For example: a `schema` Resource instance defined as:
@@ -2673,12 +2680,12 @@ then the resulting serialization of the source Resource would be:
 Note:
 - Any attributes referencing the source MUST use the source's metadata. In
   this respect, users of this serialization would never know that this is a
-  cross-referenced Resource except for the presence of the `xref` attribute.
-  For example, its `<RESOURCE>id` MUST be the source's `id` and not the
-  target's.
-- The `xref` attribute MUST appear within the `meta` entity so a client
-  can easily determine that this Resource is a cross-referenced Resource, and
-  it provides a reference to the targeted Resource.
+  cross-referenced Resource except for the presence of the `meta.xref`
+  attribute. For example, its `<RESOURCE>id` MUST be the source's `id` and not
+  the target's.
+- The `xref` attribute MUST always appear when the source's `meta` sub-object
+  is serialized so clients can easily determine that this Resource is a
+  cross-referenced Resource.
 - The `xref` XID MUST be the `xid` of the target Resource.
 
 From a consumption (read) perspective, aside from the presence of the `xref`
@@ -2748,7 +2755,7 @@ done.
 Both the source and target Resources MUST be of the same Resource model type,
 simply having similar Resource type definitions is not sufficient. This
 implies that the
-[`ximportresources`]./model.md#groupsstringximportresources) feature to
+[`ximportresources`](./model.md#groupsstringximportresources) feature to
 reference a Resource type from another Group type definition MUST be
 used.
 
@@ -2757,7 +2764,10 @@ it was deleted, never existed or the current client does not have permission
 to see it, is not an error and is not a condition that a server is REQUIRED to
 detect. In these "dangling xref" situations, the serialization of the source
 Resource will not include any target Resource attributes or nested collections.
-Rather, it will only show the `<RESOURCE>id` and `xref` attributes.
+Rather, it will only show the `<RESOURCE>id` and `xref` attributes. Therefore,
+a client that receives a response containing only those two attributes can
+treat this as an indicator that the target Resource is inaccessible, and can
+make the determination as to whether this is something to investigate or not.
 
 However, a non-existing Resource is not the same as a poorly formed XID
 value. An `xref` that isn't syntactically correct, or references a
@@ -3275,7 +3285,7 @@ for additional information.
 
   Note that `"false"` MUST NOT be used for validation failure. In those cases
   the write operation MUST generate an error
-  ([format_violation](#format_violation) and reject the request regardless
+  ([format_violation](#format_violation)) and reject the request regardless
   of the value of the
   [`strictvalidation`](model.md#groupsstringresourcesstringstrictvalidation)`
   model aspect.
@@ -3343,7 +3353,7 @@ for additional information.
 
   Note that `false` MUST NOT be used for validation failure. In those cases
   the write operation MUST generate an error
-  ([compatibility_violation](#compatibility_violation) and reject the request
+  ([compatibility_violation](#compatibility_violation)) and reject the request
   regardless of the value of the
   [`strictvalidation`](model.md#groupsstringresourcesstringstrictvalidation)`
   model aspect.
@@ -3772,7 +3782,6 @@ the following:
     "labels": { "<STRING>": "<STRING>" * }, ?
     "createdat": "<TIMESTAMP>",
     "modifiedat": "<TIMESTAMP>",
-    "ancestor": "<STRING>",
     "readonly": <BOOLEAN>,
     "compatibility": "<STRING>",
     "deprecated": { ... }, ?
@@ -4054,7 +4063,11 @@ message to ignore. This specification defines the following values:
 
   This features is design for cases where an entity is exported and then used
   as input for another entity where that targeted entity needs to use a
-  different `<SINGULAR>id`, without needing to transform the exported data.
+  different `<SINGULAR>id` for the root entity, without needing to transform
+  the exported data.
+
+  Note that any nested entities in the request MUST retain their `<SINGULAR>id`
+  values.
 
   In cases where the target entity is a Version, then the flag MUST apply to
   both the Resource's `<SINGULAR>id` and the `versionid`.
@@ -4444,6 +4457,16 @@ the API supports, if any.
 * Subject: `<resource_xid>`
 * Args:
   - `list`: List of ancestor IDs in the circular list.
+
+#### api_not_found
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#api_not_found`
+* Code: `404 Not Found`
+* Title: `The specified API is not supported: <subject>.`
+* Subject: `<request_path>`
+
+`request_path` MUST be the "Path" portion of the incoming request URL,
+starting with `/`. E.g. `/export` if the "export" feature is not supported.
 
 ### bad_defaultversionid
 
