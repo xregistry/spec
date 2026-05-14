@@ -1727,6 +1727,9 @@ and the following Registry-level attributes:
   include additional aspects even if those are defined/mandated by the
   specification or server implementation.
 
+See [Registry Entity](#registry-entity) for information related to updating
+the `modelsource` and Registry entities at the same time.
+
 - Constraints:
   - MUST NOT be included in API and document views unless requested, via the
     [Inline Flag](#inline-flag).
