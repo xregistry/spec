@@ -2014,6 +2014,9 @@ A request to update a capability with an invalid value MUST generate an error
 A request to update an unknown capability MUST generate an error
 ([capability_unknown](#capability_unknown)).
 
+See [Registry Entity](#registry-entity) for information related to updating
+the capabilities and Registry entities at the same time.
+
 Normally modifying the capabilities of a server and modifying any entity data
 are typically two very distinct actions, and will not normally happen at the
 same time. However, if the situation does occur, a consistent (interoperable)
