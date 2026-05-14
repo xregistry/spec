@@ -1480,7 +1480,7 @@
                               "type": "string",
                               "description": "The authentication/authorization type. OAuth2, Plain, APIKey, and X509Cert are well-defined"
                             },
-                            "resourceurl": {
+                            "resourceuri": {
                               "type": "string",
                               "format": "uri",
                               "description": "The resource uri for which authorization shall be granted (if applicable)"
@@ -1574,7 +1574,7 @@
                               "type": "string",
                               "description": "The authentication/authorization type. OAuth2, Plain, APIKey, and X509Cert are well-defined"
                             },
-                            "resourceurl": {
+                            "resourceuri": {
                               "type": "string",
                               "format": "uri",
                               "description": "The resource uri for which authorization shall be granted (if applicable)"
@@ -1668,7 +1668,7 @@
                               "type": "string",
                               "description": "The authentication/authorization type. OAuth2, Plain, APIKey, and X509Cert are well-defined"
                             },
-                            "resourceurl": {
+                            "resourceuri": {
                               "type": "string",
                               "format": "uri",
                               "description": "The resource uri for which authorization shall be granted (if applicable)"
@@ -1777,7 +1777,7 @@
                               "type": "string",
                               "description": "The authentication/authorization type. OAuth2, Plain, APIKey, and X509Cert are well-defined"
                             },
-                            "resourceurl": {
+                            "resourceuri": {
                               "type": "string",
                               "format": "uri",
                               "description": "The resource uri for which authorization shall be granted (if applicable)"
@@ -1880,7 +1880,7 @@
                               "type": "string",
                               "description": "The authentication/authorization type. OAuth2, Plain, APIKey, and X509Cert are well-defined"
                             },
-                            "resourceurl": {
+                            "resourceuri": {
                               "type": "string",
                               "format": "uri",
                               "description": "The resource uri for which authorization shall be granted (if applicable)"
