@@ -3,7 +3,7 @@
 <!-- words: validatecompatibility validateformat strictvalidation matchcase -->
 <!-- words: compat formatvalidated compatibilityvalidated -->
 <!-- words: compat formatvalidatedreason compatibilityvalidatedreason -->
-<!-- words: consistentformat mapenum -->
+<!-- words: consistentformat -->
 
 ## Abstract
 
@@ -444,9 +444,6 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
     "formats": [ "<STRING" * ], ?
     "ignores": [ "capabilities",? "defaultversionid",? "defaultversionsticky",?
       "id",? "epoch",? "modelsource",? "readonly"? ],
-    "mutable": [                        # What is mutable in the Registry
-      "capabilities",? "entities",? "modelsource",? "<STRING>"*
-    ], ?
     "pagination": <BOOLEAN>, ?
     "shortself": <BOOLEAN>, ?
     "specversions": [ "1.0-rc2", "<STRING>"* ], ?
@@ -1716,11 +1713,14 @@ and the following Registry-level attributes:
   specification. This allows for users to view (and edit) just the custom
   aspects of the model without the "noise" of the specification-defined parts.
 
-  During the processing of an update operation, if this attribute is present,
-  then the Registry's model MUST be updated prior to any entities being
-  updated. A value of `null`, or an empty JSON object (`{}`), MUST result
-  in all Groups, Resources and extension attributes being removed from the
-  model.
+  During a write operation:
+  - The absence of this attribute MUST result in no changes to the model, or
+    modelsource of the Registry.
+  - An explicit value of `null`, or an empty JSON object (`{}`), MUST result
+    in all Groups, Resources and extension attributes being removed from the
+    model.
+  - If present, the Registry's model MUST be updated prior to any entities
+    being updated.
 
   The serialization of this attribute MUST be semantically equivalent to
   what was used to create the model, but it is NOT REQUIRED to be syntactically
@@ -1837,7 +1837,9 @@ The following defines the specification-defined capabilities:
   data type is listed in this capability.
 
   Metadata not listed in this capability is to be assumed to be unavailable
-  via all mechanisms.
+  via all mechanisms. Attempts to access unavailable metadata MUST generate
+  an error ([not_available](#not_available)).
+
 - Defined values:
   - [`capabilities`](#registry-capabilities)
   - [`capabilitiesoffered`](#offered-capabilities)
@@ -1846,7 +1848,8 @@ The following defines the specification-defined capabilities:
   - [`export`](#single-document-view)
   - [`model`](#model-attribute) (MUST have a `mutable` value of `false`)
   - [`modelsource`](#modelsource-attribute)
-- When not specified, the default value MUST be just the `entities` value.
+- When not specified, the default value MUST be just the `entities` value,
+  with a `"mutable"` value of `true`.
 - This capability MUST always include `entities` as a value, even if its
   `mutable` attribute is `false`.
 - Implementations MAY define additional values.
@@ -1933,22 +1936,6 @@ The following defines the specification-defined capabilities:
   - `"ignores": [ "epoch", "id" ]`        # Just these 2
   - `"ignores": [ "*" ]`                  # All supported values (requests only)
 
-#### `mutable` Capability
-- Name `mutable`
-- Type: Array of strings
-- Description: The list of items in the Registry that can be edited by the
-  client. Presence in this list does not guarantee that a client can edit
-  all items of that type. For example, some Resources might still be read-only
-  even if the client has the ability to edit Resources in general.
-- Supported values:
-  - `capabilities` (ability to configure the server's features)
-  - `entities` (Groups, Resources, Versions and the Registry entity itself)
-  - `modelsource` (the [Registry model](./model.md#registry-model))
-- When not specified, the default value MUST be an empty list and the Registry
-  is read-only.
-- Attempts to modify an unsupported item MUST generate an error
-  ([api_not_found](#api_not_found)).
-
 #### `pagination` Capability
 - Name: `pagination`
 - Type: Boolean
@@ -2028,17 +2015,6 @@ A request to update a capability with an invalid value MUST generate an error
 A request to update an unknown capability MUST generate an error
 ([capability_unknown](#capability_unknown)).
 
-When processing a request to update the capabilities, the processing of the
-changes to the capabilities MUST be in effect prior to any other changes
-specified in the request being made, except for the following capability
-attributes:
-- `apis`
-- `specversions`
-
-These two only impact subsequent requests, however, if the response includes
-the serialization of the Registry's capabilities, then the full set of
-changes MUST appear in that serialization.
-
 Normally modifying the capabilities of a server and modifying any entity data
 are typically two very distinct actions, and will not normally happen at the
 same time. However, if the situation does occur, a consistent (interoperable)
@@ -2057,18 +2033,19 @@ The JSON serialization of the capabilities offering map MUST be of the form:
 
 ```yaml
 {
-  "<STRING>": {                    # Name of Capability attribute
+  "<STRING>": {                   # Name of Capability attribute
     "type": "<TYPE>",
-    "item": {                      # Used to non-scalar attribute types
-      "type": "<TYPE>",            # Value type of map/array attributes
-      "attributes": { ... }, ?     # If this item "type" is object
-      "item": { ... } ?            # If this item "type" is map, array
-    }, ?
-    "enum": [ <VALUE>, * ], ?      # Allowed values for scalars
-    "mapenum": <MAP>, ?            # Allowed map values form each map key
+    "enum": [ <VALUE>, * ], ?     # Allowed values for scalars
     "min": <VALUE>, ?
     "max": <VALUE>, ?
-    "documentation": "<URL>" ?
+    "documentation": "<URL>", ?
+
+    "attributes": { ... }, ?      # If "type" is object
+    "item": {                     # If "type" is map,array
+      "type": "<TYPE>",           # Value type of map, array type
+      "attributes": { ... }, ?    # If this item "type" is object (see above)
+      "item": { ... } ?           # If this item "type" is map,array (see above)
+    }, ?
   } *
 }
 ```
@@ -2078,12 +2055,8 @@ Where:
 - `<TYPE>` MUST be one of the data types specified in
   [Attributes and Extensions](#attributes-and-extensions).
 - `"enum"`, when specified, contains a list of zero or more `<VALUE>`s whose
-  type MUST match either `"type"` (when scaler or `"map"`) or `"item.type"` if
-  `"type"` is `"array"`. This indicates the list of allowable values (or "key"
-  value when a "map") for this capability.
-- `"mapenum"`, when specified, contains a map of zero or more map-keys (of type
-  `<STRING>` where each key will then have an array of allowable `<STRING>`
-  values that MAY be used for the specified key in the capability.
+  type MUST match either `"type"` (when scaler) or `"item.type"` if `"type"`
+  is `"array"` or `"map"` and `"item.type"` is a scalar.
 - `"min"` and `"max"`, when specified, MUST match the same type as either
   `"type"` or `"item.type"` if `"type"` is `"array"`. These indicate the
   minimum or maximum (inclusive) value range of this capability. When not
@@ -2091,6 +2064,12 @@ Where:
   used when "type" is a numeric type.
 - `"documentation"` provides a URL with additional information about the
   capability.
+- `"attributes"`, when specified, contains the list (as a map)  of attributes
+  defined for the "object"-typed capability. This makes the schema of the
+  capability recursive.
+- `"item"` MUST be specified when `"type"` is `"array"` or `"map"`, and
+  specify details about the items in the array, or values of the map.
+  Note, all map keys MUST be of type string.
 
 Notice the syntax borrows much of the same structure from the
 xRegistry [model definition](./model.md#registry-model) language.
@@ -2116,26 +2095,47 @@ in the serialization of its capabilities offering map.
 ```yaml
 {
   "available": {
-    "type": "map",
-    "item": {
-      "type": "object"
-      "attributes" {
-        "mutable": {
-          "type": "boolean"
-        }
+    "type": "object",
+    "attributes": {
+      "capabilities": {
+        "type": "object",
+        "attributes": { "mutable": { "type": "boolean" } }
+      },
+      "capabilitiesoffered": {
+        "type": "object",
+        "attributes": { "mutable": { "type": "boolean" } }
+      },
+      "entities": {
+        "type": "object",
+        "attributes": { "mutable": { "type": "boolean", "enum": [ false ] } }
+      },
+      "export": {
+        "type": "object",
+        "attributes": { "mutable": { "type": "boolean", "enum": [ false ] } }
+      },
+      "model": {
+        "type": "object",
+        "attributes": { "mutable": { "type": "boolean" } }
+      },
+      "modelsource": {
+        "type": "object",
+        "attributes": { "mutable": { "type": "boolean" } }
       }
-    },
-    "enum": [ "capabilities", "capabilitiesoffered", "entities", "export",
-              "model", "modelsource" ]
+    }
   },
   "compatibilities": {
-    "type": "map",
-    "item": {
-      "type": "string"
-    },
-    "mapenum": {
-      "avro": [ "backward", "forward" ],
-      "protobuf": [ "backward" ]
+    "type": "object",
+    "attributes": {
+      "avro": {
+        "type": "array",
+        "item": { "type": "string" },
+        "enum": [ "backward", "forward" ]
+      },
+      "protobuf": {
+        "type": "array",
+        "item": { "type": "string" },
+        "enum": [ "backward" ]
+      }
     }
   },
   "flags": {
@@ -4490,16 +4490,6 @@ the API supports, if any.
 * Args:
   - `list`: List of ancestor IDs in the circular list.
 
-### api_not_found
-
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#api_not_found`
-* Code: `404 Not Found`
-* Title: `The specified API is not supported: <subject>.`
-* Subject: `<request_path>`
-
-`request_path` MUST be the "Path" portion of the incoming request URL,
-starting with `/`. E.g. `/export` if the "export" feature is not supported.
-
 ### bad_defaultversionid
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#bad_defaultversionid`
@@ -4833,6 +4823,13 @@ field is just a substitution value and MUST NOT be empty.
 * Title: `The operation would result in multiple root Versions for "<subject>", which is not allowed for "<plural>".`
 * Args:
   - `plural`: The "plural" Resource type of the Resource being processed.
+
+### not_available
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#not_available`
+* Code: `400 Bad Request`
+* Subject: `<capability_available_type>`
+* Title: `The requested data (<subject>) is not available.`
 
 ### not_found
 
