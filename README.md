@@ -46,8 +46,19 @@ with a lowercase `x`, even when the first word in a sentence.
 | Pagination Specification      | n/a | [WIP](pagination/spec.md)                          |
 |                               |
 | **Even More:** |
-| Server & CLI Reference Implementation | [server repo](https://github.com/xregistry/server) |
+| Server & CLI Reference Implementation | [xregistry/server](https://github.com/xregistry/server) |
+| Code & File Generation CLI (`xrcg`)   | [xregistry/codegen](https://github.com/xregistry/codegen) |
+| Web Viewer for xRegistry APIs         | [xregistry/viewer](https://github.com/xregistry/viewer) |
+| xRegistry Proxies for package registries (NPM, PyPI, Maven, NuGet, OCI, MCP) | [xregistry/xrproxy](https://github.com/xregistry/xrproxy) |
 | [Samples](core/samples/README.md) | |
+
+Machine-readable schemas for each specification's document format are
+published alongside the specs as JSON Schema (`document-schema.json`),
+Avro (`document-schema.avsc`), and OpenAPI (`openapi.json`) in the
+`schemas/` subdirectory of each domain spec
+([endpoint](endpoint/schemas/), [message](message/schemas/),
+[schema](schema/schemas/)). The core model has its own JSON Schema at
+[core/model.schema.json](core/model.schema.json).
 
 Additional release related information:
   [Historical releases and changelogs](docs/RELEASES.md)
