@@ -142,6 +142,7 @@ inlining
 interoperability
 interoperable
 isdefault
+isnt
 javadoc
 json
 jsonpath
@@ -355,6 +356,7 @@ xregistry
 xregistryspecs
 xregsample
 xregurlmapping
+xrproxy
 xsd
 xy
 yaml
