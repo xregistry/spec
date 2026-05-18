@@ -9,4 +9,4 @@ jsonpointer
 pytest
 avro
 jsonschema
-openapi-spec-validator==0.8.0
+openapi-spec-validator>=0.7.1
