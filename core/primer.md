@@ -5,7 +5,7 @@
 
 <!-- no verify-specs -->
 
-## Abstract
+## 1. Abstract
 
 This non-normative document provides an overview of the [xRegistry
 specification](https://github.com/xregistry/spec/blob/main/core/spec.md). It is
@@ -14,18 +14,57 @@ and insight into the history and design decisions made during the development of
 the specification. This allows the specification itself to focus on the
 normative technical details.
 
-## Table of Contents
+## 2. Table of Contents
 
-- [History](#history)
-- [Value proposition](#value-proposition)
-- [Motivation](#motivation)
-- [Design Goals](#design-goals)
-- [Representations](#representations)
-- [Possible Use Cases](#possible-use-cases)
-- [Design decisions or topics of
-  interest](#design-decisions-or-topics-of-interest)
+- [1. Abstract](#1-abstract)
+- [2. Table of Contents](#2-table-of-contents)
+- [3. History](#3-history)
+- [4. Value proposition](#4-value-proposition)
+  - [4.1. Why build something new?](#41-why-build-something-new)
+  - [4.2. Discovery](#42-discovery)
+  - [4.3. Vendor-agnostic](#43-vendor-agnostic)
+  - [4.4. Versioning](#44-versioning)
+  - [4.5. Schema validation](#45-schema-validation)
+  - [4.6. Payload reduction](#46-payload-reduction)
+  - [4.7. Schema-based data contract generation](#47-schema-based-data-contract-generation)
+  - [4.8. Producer and consumer generation](#48-producer-and-consumer-generation)
+  - [4.9. Basis for further developments](#49-basis-for-further-developments)
+- [5. Motivation](#5-motivation)
+- [6. Design Goals](#6-design-goals)
+  - [6.1. Non-Goals](#61-non-goals)
+- [7. Representations](#7-representations)
+  - [7.1. File](#71-file)
+  - [7.2. Static File Server](#72-static-file-server)
+  - [7.3. API Server](#73-api-server)
+- [8. Embeddings, References, and Federation](#8-embeddings-references-and-federation)
+  - [8.1. Formats and Content/Media-Types](#81-formats-and-contentmedia-types)
+  - [8.2. Embeddings and Links](#82-embeddings-and-links)
+  - [8.3. Federation](#83-federation)
+    - [8.3.1. Composing registries in memory](#831-composing-registries-in-memory)
+    - [8.3.2. Shadowing](#832-shadowing)
+    - [8.3.3. Identifiers](#833-identifiers)
+    - [8.3.4. API Servers and Proxies](#834-api-servers-and-proxies)
+- [9. Possible Use Cases](#9-possible-use-cases)
+  - [9.1. CloudEvents](#91-cloudevents)
+  - [9.2. Business objects](#92-business-objects)
+  - [9.3. Metadata files in repositories](#93-metadata-files-in-repositories)
+- [10. Design decisions or topics of interest](#10-design-decisions-or-topics-of-interest)
+  - [10.1. Resource.ID vs Resource.Version.ID](#101-resourceid-vs-resourceversionid)
+  - [10.2. Valid Characters](#102-valid-characters)
+  - [10.3. Extensions](#103-extensions)
+  - [10.4. Deleting entities](#104-deleting-entities)
+  - [10.5. Detection of Referenced Resources](#105-detection-of-referenced-resources)
+  - [10.6. Shared/Referenced Resources](#106-sharedreferenced-resources)
+- [11. The `format` attribute in the Schema spec](#11-the-format-attribute-in-the-schema-spec)
+- [12. Problematic characters in attributes](#12-problematic-characters-in-attributes)
+- [13. Why do Resources have 3 levels of data?](#13-why-do-resources-have-3-levels-of-data)
+- [14. Why are some (conditional) read-only attributes not ignored?](#14-why-are-some-conditional-read-only-attributes-not-ignored)
+- [15. Why isn't `PUT` idempotent?](#15-why-isnt-put-idempotent)
+- [16. Defining Extensions](#16-defining-extensions)
+- [17. Validation](#17-validation)
 
-## History
+
+## 3. History
 
 The CNCF Serverless Working group was originally created by the CNCF's Technical
 Oversight Committee to investigate Serverless Technology and to recommend some
@@ -39,7 +78,7 @@ xRegistry (extensible registry) specification was created.
 xRegistry was initially part of CloudEvents, called "CloudEvents Discovery" but
 later moved into its own repository.
 
-## Value proposition
+## 4. Value proposition
 
 xRegistry provides a specification to define metadata and extensions for
 resources in an abstract model that can be used to centralize and standardize
@@ -63,7 +102,7 @@ context of event-driven systems. The following subsections provide a more
 specific overview of how xRegistry can be used to address common challenges in
 the event-driven space.
 
-### Why build something new?
+### 4.1. Why build something new?
 
 There are numerous metadata registries available today. Several schema
 registries exist. There are standards for container image registries, package
@@ -90,7 +129,7 @@ it can yet leave the authoritative management of the individual resources to
 the respective registries as those can be proxied with an xRegistry API or
 import/exported into an xRegistry representation.
 
-### Discovery
+### 4.2. Discovery
 
 One of the pain points of event-driven systems is the need to create and
 maintain documentation about endpoints and the events they expose, enabling
@@ -104,7 +143,7 @@ an event, and mark specific metadata that are required. Due to its rich metadata
 model, metadata can also be expressed in human language, making it easier for
 developers, data-analysts, or even business analysts to understand.
 
-### Vendor-agnostic
+### 4.3. Vendor-agnostic
 
 xRegistry provides a specification to define, query, group, version and enforce
 schemas for systems. Multiple schema registry solutions exist already,
@@ -120,7 +159,7 @@ interoperability and, therefore, complicating integration scenarios. xRegistry
 aims to address this with an agnostic specification, providing a common base
 across these offerings.
 
-### Versioning
+### 4.4. Versioning
 
 As systems evolve, the endpoints that emit events may change, as may the events
 themselves. Changes can sometimes break consumers making compatibility
@@ -132,7 +171,7 @@ deprecated, possibly providing an alternative endpoint, making these easier to
 discover for consumers. Finally, event schemas are also version aware, storing
 multiple versions of an event’s data schema.
 
-### Schema validation
+### 4.5. Schema validation
 
 The registry contains granular definitions for events defining their schemas,
 which serve as a contract between publishers and consumers. This doesn’t only
@@ -143,7 +182,7 @@ enforce it. A registry service could use the registry to perform validation
 on-publish, rejecting any events that don’t adhere to the schema for that
 context, avoiding the problem of poison messages.
 
-### Payload reduction
+### 4.6. Payload reduction
 
 Schema information enables real-time analysis of incoming data based on its
 contextual meaning, which is why applications often use serialization mechanisms
@@ -152,7 +191,7 @@ centralized registry, enables applications to rely on lighter weight
 serialization formats, significantly reducing bandwidth, while still allowing
 accurate real-time analysis of incoming data using the registry.
 
-### Schema-based data contract generation
+### 4.7. Schema-based data contract generation
 
 xRegistry provides a specification to manage metadata in files which can be
 stored next to the corresponding source code. This enables storing versions of
@@ -170,7 +209,7 @@ This enables teams to use code generation to generate relevant data contracts
 when interacting with endpoints. This removes the need for shared code packages
 and avoids any bugs on the data contract level.
 
-### Producer and consumer generation
+### 4.8. Producer and consumer generation
 
 Further, building upon the idea of schema-based data contract generation, even
 client-code can be generated. When the schema is defined in a vendor-agnostic,
@@ -183,7 +222,7 @@ and testing time and minimizing the risk of introducing bugs at this level.
 Clemens Vasters built a proof-of-concept that shows this approach in
 the [Avrotize VS Code Extension](https://github.com/clemensv/avrotize).
 
-### Basis for further developments
+### 4.9. Basis for further developments
 
 CloudEvents serve as a mechanism to aid in the delivery of events from a
 producer to a consumer, which is applicable independently of the protocol (MQTT,
@@ -199,7 +238,7 @@ flows, making these discoverable and predictable, as opposed to relying on
 human-produced documentation or observability on emerging behavior to understand
 complex flows.
 
-## Motivation
+## 5. Motivation
 
 While CloudEvents are harmonizing different event structures across event
 providers and increase interoperability between different brokers and their
@@ -231,7 +270,7 @@ registry specification is far more powerful and can be used for the exchange for
 any type of message. Take a look at the [Possible Use
 Cases](#possible-use-cases) for examples outside the eventing world.
 
-## Design Goals
+## 6. Design Goals
 
 - **Interoperability:** Enable effortless discovery, validation and versioning
   of resources.
@@ -246,7 +285,7 @@ Cases](#possible-use-cases) for examples outside the eventing world.
 - **Simplicity:** Allow simple use cases that do not need versioning of
   resources or a full-blown schema registry on the server.
 
-### Non-Goals
+### 6.1. Non-Goals
 
 - **Authentication and Authorization:** Rely on established security standards
   depending on the registry representation.
@@ -254,33 +293,46 @@ Cases](#possible-use-cases) for examples outside the eventing world.
   single event channel before standardizing the relationships between event
   channels.
 
-## Representations
+## 7. Representations
 
-An xRegistry can be represented in the different ways: a JSON file, a static
-file server and an API server. When building up this spec the API server had the
-highest priority, followed by the file representation and the static file server
-as an option to transition between the first two. To enable this transition, one
-of the design goals is the symmetry between all representations.
+An xRegistry can be represented in a few different ways: a JSON file, a static
+file server and an API server - with some further nuances. Resources will most 
+often be embedded in the registry, but the resource metadata might also point 
+to an external location. 
 
-Whenever registries get large, you will realistically want to use the API server
-or CLI to create the registry and then use its export function to generate files
-for the file or static file server representation.
+When building up this spec, the API server had the highest priority, followed 
+by the file representation and the static file server as an option to 
+transition between the first two. To enable this transition, one of the 
+design goals is the symmetry between all representations.
 
-### File
+Whenever registries get large or need to be shared with many people or systems, 
+you will realistically want to use the API server or CLI to create the registry
+and then use its export function to generate files for the file or static file
+server representation.
+
+### 7.1. File
 
 The registry is represented as a single JSON file.
 
 The primary use case for this representation is a registry whose purpose is to
-be used in cases where file-based access is preferred over network-based access.
+be used where file-based access is preferred over network-based access.
+
 This could be a project on your local machine or a public git repository, where
 the registry basically becomes a declaration manifest of the application(s). If
 you are new to xRegistry and are just trying to get the idea of the project,
 this is a great point to start.
 
+It is anticipated that application modules that need to share resources with 
+others, like the shape of raised events and associated schemas, will have one or 
+multiple associated xRegistry files that describe those resources and that 
+these files can later be merged into another xRegistry when the module is 
+deployed, so that other participants in the system can understand the
+raised events.
+
 Writing up a registry by hand can be a great way of getting the idea, but it can
 get tedious quickly. This is when you want to use the API server.
 
-### Static File Server
+### 7.2. Static File Server
 
 The registry is represented by multiple JSON files, where each one represents a
 single entity within the registry, served via a static file server (e.g. S3 or
@@ -304,7 +356,7 @@ filtering, you might consider using the API server instead. Adding server logic
 to the static file server to make up for the features of the API server is
 considered an anti pattern.
 
-### API Server
+### 7.3. API Server
 
 The API server is the most sophisticated representation of xRegistry. When you
 have multiple teams that are using the same registry with distributed ownership
@@ -318,14 +370,165 @@ generate files and split them up in directories like in the static file server
 and can make use of the server-side logic like searching, filtering and export
 options.
 
-Running the API server requires you to set up a compute unit and a persistence
+Running the API server requires you to set up a host and a persistence
 layer and maintain both. In exchange you get all the benefits listed above.
 While starting with the API server might be a little more work upfront, it saves
 you from migrating representations as your registry grows.
 
-## Possible Use Cases
+## 8. Embeddings, References, and Federation
 
-### CloudEvents
+The purpose of a registry is to act as a catalog more than as a container.
+
+xRegistry is extensible with models so that the catalog entries can be
+customized for the described kind of resource. You could fairly precisely
+catalog a fleet of vehicles using xRegistry, but the vehicles themselves would
+quite obviously not exist inside of it.
+
+However, when a model declares a resource to be of the
+["document"](spec.md#document-resources-vs-metadata-only-resources) type,
+xRegistry can indeed embed content, like schema documents. The shape of those
+documents is not declared by the model, but may be constrained by convention
+(and implementation choice) based on the [`format`](spec.md#format-attribute) attribute.
+
+### 8.1. Formats and Content/Media-Types
+
+`format` and the supported values are a convention chosen for this
+specification because the IANA "media-types" and not consistently available for
+many document types that are in focus. There is additionally a
+[contenttype](spec.md#contenttype-attribute) attribute that SHOULD be set for
+each document, that provides the corresponding media-type. An example for this
+is that Apache Avro schema has no official media type, so that the content type
+might be "application/json", but the `format` is "Avro/1.12".
+
+Some xRegistry implementations, including the reference server implementation,
+might choose to provide validation capabilities for well-known formats like
+Apache Avro schema, and even version-to-version compatibility checks. These
+validation capabilities per-se are not defined in the specification, but the
+specification allows the server to provide hints about whether they are
+available and whether they have been applied. 
+
+A registry server can only enforce validation constraints on embedded documents
+that are under its own control. If a document is external, meaning that the
+resource entry does not embed it but links to it, the document might change at
+the external location without the registry knowing. In this case, the registry
+might indeed choose to refuse to return an invalid document on GET, meaning it
+performs the enforcement during retrieval.
+
+### 8.2. Embeddings and Links
+
+When the resource is declared to be a document, it can be stored inside the
+registry either as a directly [embedded object](spec.md#resource-attribute), a
+[binary blob](spec.md#resourcebase64-attribute), or an [external URL
+reference](spec.md#resourceurl-attribute).
+
+Strictly speaking, the choice between whether, say, a schema is represented as
+`schema` with an embedded object or `schemabase64` with base64 binary content
+depends on the encoding of the registry metadata.
+
+At present, all examples and implementations use JSON, but it's very feasible
+to encode the entire registry in Avro binary and there is a formal schema 
+for Avro.
+
+In JSON, we can embed JSON-data like an Avro Schema into `schema` and we can
+also embed a single string for a text file into `schema` as long as we are
+applying appropriate escaping rules for JSON strings and we can use the same
+character encoding as the hosting JSON document. Any other document will be
+base64 encoded and stored in `schemabase64`. The `schemacontenttype` is meant
+to hold media-type and encoding of that data.
+
+You can also refer to the target document externally using `schemaurl` and
+point to a location from where that document can be directly obtained wither
+using an HTTP GET or resolving a file system file.
+
+External links are very handy if you already have an existing registry of some
+kind, possibly just files in a public repo, and want to catalog those with
+xRegistry. Using the `<RESOURCE>url` patterns, all your documents can remain 
+in their place. The `format` and `contenttype` information still needs to 
+exist in xRegistry so that clients can understand this information before
+trying to resolve the document.
+
+External links also make it possible to overlay xRegistry on top of a
+completely different registry model, proxy the metadata through an xRegistry
+API, but provide passthrough access to the other registry's content.
+
+### 8.3. Federation
+
+xRegistry does not have a synchronization API, by intent. Since xRegistry is
+both a document format model and an API, the integration of multiple registries
+("federation") does not rely on making copies but is intended to work via
+cross-referencing and "shadowing" across the [representations](#7-representations)
+described earlier.
+
+#### 8.3.1. Composing registries in memory
+
+A registry document, whether a single [file](#71-file) or the root of a
+[static file server](#72-static-file-server) layout, is meant to be loaded into
+an application as a local, in-memory registry. While a document technically
+needs to embed a model to be valid, servers often choose to allow that the
+models they know about are implicitly available, so that a registry document
+can just contain the resources and their metadata, without the model. There
+are several examples of such documents in the
+[cloudevents/samples](../cloudevents/samples) folder.
+
+When the registry is split across multiple files in a folder structure, the
+application can load the root document and traverse `<RESOURCE>url` links to
+individual documents on demand, building an in-memory view that combines the
+root document with only those branches that are relevant to the application.
+The same applies when the root sits behind an [API server](#73-api-server):
+the client fetches and caches just the branches it needs.
+
+#### 8.3.2. Shadowing
+
+Federation in xRegistry is built on *shadowing*: an application's view is a
+layered combination of registries, where a local registry can override or
+extend entries from an underlying one without modifying it. This lets you keep
+a local copy of selected resources that you can change freely, while still
+referring to the original registry for everything you haven't touched - with
+no synchronization protocol and no risk of conflicts between different users
+or applications.
+
+If you are just dealing with files, you load files in order and merge the
+content, with later files taking precedence over earlier ones.
+
+The principle applies uniformly across representations. A file can shadow
+another file, a folder can shadow an API server, and an API server can shadow
+another API server. The application always sees the composed result as a
+single registry.
+
+#### 8.3.3. Identifiers
+
+For shadowing and cross-referencing to work, identifiers need to be stable
+across registries. Group identifiers should be treated as globally unique, so
+that the same group can be recognized across different registries. Resource
+identifiers are only unique within a group, so a cross-registry reference
+should always use the combination of group identifier and resource identifier.
+
+The authority portion of a URL into a registry is only an endpoint identifier
+for the hosting registry, not a unique identifier for the resource itself. The
+same resource may be available in multiple registries, and applications can
+refer to it using the same *relative URI* regardless of which registry hosts
+it. This matters in practice: an application in a private network might not
+be able to reach a registry hosted in a public cloud, so the same content may
+need to be served from a local registry on a private DNS name. Treating the
+authority as an endpoint identifier rather than a resource identifier is what
+makes that possible.
+
+#### 8.3.4. API Servers and Proxies
+
+An API server can also act as a proxy that presents multiple underlying
+registries - including non-xRegistry ones - through a single xRegistry
+interface. The [xrproxy](https://github.com/xregistry/xrproxy) project
+provides reference implementations of such proxies, showing both how to
+federate xRegistry APIs and how to project other registry models into the
+xRegistry model.
+
+Shadowing applies here too: any API client can shadow the API server with a
+local registry to add or modify entries without affecting the underlying
+registry, and a proxying API server can do the same on behalf of its clients.
+
+## 9. Possible Use Cases
+
+### 9.1. CloudEvents
 
 Since xRegistry emerged from the CloudEvents project and initially was called
 "CloudEvents Discovery" the obvious use case is to manage all the CloudEvents of
@@ -336,14 +539,14 @@ specific use-case even though the original spec marks them as optional. In
 addition, the `dataschema` attribute of a CloudEvent can then point to a
 xRegistry schema document making this two projects that work hand in hand.
 
-### Business objects
+### 9.2. Business objects
 
 When defining the schemas of business objects in an enterprise, xRegistry can be
 the schema store for these definitions. One can then reference them in a data
 catalogue as well as in OpenAPI and AsyncAPI documents without repeating the
 schemas for the actual business objects.
 
-### Metadata files in repositories
+### 9.3. Metadata files in repositories
 
 Open source repositories could provide an xRegistry represented as a simple JSON
 file on the top level of the folder structure and list all metadata files this
@@ -351,9 +554,9 @@ repository contains like a `package.json`. This would allow machine-readable
 access to project dependencies and configurations as well as consistent
 management of metadata across different tools and environments.
 
-## Design decisions or topics of interest
+## 10. Design decisions or topics of interest
 
-### Resource.ID vs Resource.Version.ID
+### 10.1. Resource.ID vs Resource.Version.ID
 
 Resources, like all xRegistry entities, have unique `id` values. Resource
 `id`s are often user-friendly values that often have an implied semantic
@@ -372,7 +575,7 @@ xRegistry model. As a result, implementations might want to avoid using `id`
 values that could appear on a Resource and one of its Versions simply to avoid
 potential confusion for their end-users.
 
-### Valid Characters
+### 10.2. Valid Characters
 
 The xRegistry specification restricts the allowable characters for attribute
 and map key names. While it can be considered overly restrictive, for example
@@ -410,7 +613,7 @@ attribute names because map key names are not usually mapped to well-defined
 variable or structure property names - they're usually just stored as
 "strings" a map data structure.
 
-### Extensions
+### 10.3. Extensions
 
 - it's RECOMMENDED that all extensions be defined in advance as part of the
   model. However, the spec does support an extension of "\*" to allow for
@@ -427,7 +630,7 @@ variable or structure property names - they're usually just stored as
   nested elements
 - when hasdocument=false, we might need to talk about when ?meta appears on the
   various URLs (self, defaultversionurl, location,...). Right now its presence
-  will match what was used in the request (either explicitly or implicity).
+  will match what was used in the request (either explicitly or implicitly).
   So GET resource?meta or GET group?inline both ask for metadata
 - xRegistry- headers: first "-" separates xRegistry from attribute name,
   next "." separates attribute name from key, any subsequent "." is part
@@ -499,7 +702,7 @@ points worth noting:
   Version isn't being deleted. Note that a `404` in the `DELETE .../<ID>` case
   is an error and no changes to the "default" Version will occur.
 
-### Detection of Referenced Resources
+### 10.5. Detection of Referenced Resources
 
 The xRegistry specification allows for Resources to appear in multiple Groups
 via use of the `xref` feature. This could lead to situations where a user
@@ -514,7 +717,7 @@ some kind of "xref counter" extension on the target Resource. The specification
 might consider adding some feature to address this in the future, but as of now
 it is left as an implementation choice.
 
-### Shared/Referenced Resources
+### 10.6. Shared/Referenced Resources
 
 As discussed above, Resource may appear in multiple Groups via use of the
 `xref` feature. Users of the Registry may wish to consider how best to manage
@@ -920,7 +1123,7 @@ defined in the core specification for consistency. It is worth noting that
 the Endpoint [specification](../endpoint/spec.md) does exactly this to
 indicate when an Endpoint (i.e. a Group) is deprecated.
 
-## The `format` attribute in the Schema spec
+## 11. The `format` attribute in the Schema spec
 
 The `format` attribute in the Schema spec is required when the
 `compatibility` attribute is set to a value other than `none`. This may
@@ -931,7 +1134,7 @@ That means that when exporting a Schema Registry that only supports a single
 format, the `format` attribute will already be set, avoiding issues when
 importing this Registry into a server that may support multiple formats.
 
-## Problematic characters in attributes
+## 12. Problematic characters in attributes
 
 Certain attributes might be used for purposes outside of the scope of the
 xRegistry specification. For example, the `name` or ID-values might be used
@@ -946,7 +1149,7 @@ these situations are handled, or even if they're supported. In other words,
 tooling might reject such cases, or force uses to use non-problematic
 characters.
 
-## Why do Resources have 3 levels of data?
+## 13. Why do Resources have 3 levels of data?
 
 Resource attributes are split into 3 categories:
 
@@ -1010,7 +1213,28 @@ Version should be driven by whether the use cases being supported by the
 Resource type definition requires that attribute to be consistent across all
 Versions or have a Version-specific value.
 
-## Why isn't `PUT` idempotent?
+## 14. Why are some (conditional) read-only attributes not ignored?
+
+Attributes that are always defined as "read-only" normally have semantics such
+that attempts to update them are silently ignored. This is especially useful
+for attributes that might change over time so that clients do not need to
+either ensure they have the latest value, or remove them from an update
+request.
+
+However, there are times when trying to update a read-only attribute must
+generate an error. This will happen when the attribute might be read-only based
+on the configuration of the owning entity, in which case it is important for
+clients to know that updating this particular instance of this
+"sometimes read-only" attribute failed. So, while it may seem inconsistent,
+the risk of clients assuming a non-error response meant the request was fully
+adhere to was considered more important.
+
+For example, if a Resource is defined with the `setdefaultversionsticky`
+aspect set to `false` then the `meta.defaultversionid` attribute of instances
+of that Resource becomes "read-only". And any attempt to update it will result
+in an error being generated.
+
+## 15. Why isn't `PUT` idempotent?
 
 As stated in the [core](./spec.md) specification, the `PUT` operations are
 almost idempotent, per the HTTP specification. For the most part, multiple
@@ -1022,7 +1246,7 @@ of check on all attributes to determine if anything changed, and then only
 expensive or ambiguous check to perform, so it was determined it would be best
 to avoid it all together.
 
-## Defining Extensions
+## 16. Defining Extensions
 
 When defining extensions for xRegistry, whether it is via a model definition
 or by extending the functionality of the specification itself (e.g. adding
@@ -1031,7 +1255,7 @@ any future xRegistry work. While it is impossible to predict the future, some
 steps can be taken to lessen the concern. For example, using domain, or
 company, specific terms when naming things.
 
-## Validation
+## 17. Validation
 
 There is one scenario worth pointing out with respect to `format` and
 `compatibility` validation. If a Resource's model definition has both the
