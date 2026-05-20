@@ -1069,7 +1069,7 @@
         }
       }
     },
-    "/endpoints/{groupid}/messages/meta": {
+    "/endpoints/{groupid}/messages/{resourceid}/meta": {
       "parameters": [
         {
           "$ref": "#/components/parameters/groupid"
@@ -1267,7 +1267,7 @@
         }
       }
     },
-    "/endpoints/{groupid}/messages$details": {
+    "/endpoints/{groupid}/messages/{resourceid}$details": {
       "parameters": [
         {
           "$ref": "#/components/parameters/groupid"
@@ -2234,7 +2234,7 @@
         }
       }
     },
-    "/endpoints/{groupid}/messages/versions": {
+    "/endpoints/{groupid}/messages/{resourceid}/versions": {
       "parameters": [
         {
           "$ref": "#/components/parameters/groupid"
@@ -2491,7 +2491,7 @@
         }
       }
     },
-    "/endpoints/{groupid}/messages/versions/{versionid}": {
+    "/endpoints/{groupid}/messages/{resourceid}/versions/{versionid}": {
       "parameters": [
         {
           "$ref": "#/components/parameters/groupid"
