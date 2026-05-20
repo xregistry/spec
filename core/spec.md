@@ -1383,7 +1383,7 @@ of the existing entity. Then the existing entity would be deleted.
     client is expected to investigate the entity to determine if it is
     appropriate.
 
-  - `docs`<br>
+  - `documentation`<br>
     An OPTIONAL property specifying the URL to additional information about
     the deprecation of the entity. This specification does not mandate any
     particular format or information, however some possibilities include:
@@ -1626,6 +1626,39 @@ The serialization of the Registry entity MUST adhere to this form:
   "<GROUPS>": { Groups collection } ?            # Only if inlined
 }
 ```
+
+Write operations directed to the Registry root, when it includes the
+`capabilities` or `modelsource` attributes, SHOULD follow these general rules
+to help promote consistency across implementations:
+
+- Capability changes that might impact the processing of the `capabilities` or
+  `modelsource` attributes, SHOULD only go into effect on subsequent requests.
+  The current request SHOULD to use the capabilities for those related
+  features as seen prior to the request. For example:
+
+  - Support for the [`ignore` flag](#ignore-flag) would be controlled by the
+    [`ignores` capability's](#ignores-capability) prior state as that controls
+    whether the `capabilities` or `modelsource` attributes are ignored.
+  - However, support for the [`inline` flag](#inline-flag) would be controlled
+    by its related capabilities state after processing of the `"capabilities"`
+    attribute.
+
+- Once a feature is determined to be enabled, or disabled, it SHOULD remain in
+  that state for the duration of the request. And changes to its corresponding
+  capability SHOULD only go into effect for subsequent requests.
+
+- If processing of entity data (e.g. Groups, Resources) might be dependent on
+  the state of the capabilities and/or model, then the changes to the
+  `capabilities` and `modelsource` attributes SHOULD be processed first
+  and those changes used while updating the entities.  For example:
+
+  - The processing of the [`inline` flag](#inline-flag) would need to be done
+    after processing of the `modelsource` attribute and use the new model
+    definition.
+
+  - The [Resource Processing logic](#resource-processing-algorithm) would
+    need to used the `capabilities.format` and `capabilities.compatibilities`
+    after any request-specific changes were made to those values.
 
 The Registry entity includes the following
 [common attributes](#common-attributes):
