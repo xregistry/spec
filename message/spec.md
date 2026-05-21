@@ -597,7 +597,7 @@ the core xRegistry Resource
 
   When the value is a relative reference (begins with `/`), it MUST be a
   valid XID referencing a Resource, or Version, of type `message` within the
-  same registry. When the value is an absolute URI, it SHOULD resolve to a
+  same registry. When the value is an absolute URI, it MUST resolve to a
   message definition in an external registry, but the server is not required
   to validate or resolve external references.
 
@@ -627,7 +627,7 @@ the core xRegistry Resource
   - OPTIONAL.
   - If the value is a relative reference, it MUST be a valid `xid` of a
     Resource, or Version, of type `message` as defined by this specification.
-  - If the value is an absolute URI, it SHOULD point to a message definition
+  - If the value is an absolute URI, it MUST point to a message definition
     but the server MUST NOT validate the target.
 
 - Examples:
