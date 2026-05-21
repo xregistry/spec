@@ -132,7 +132,7 @@ Endpoint definitions can be abstract or concrete, distinguished by the
 endpoint to be reachable on the network with the given parameters, assuming
 the client is within the same network scope. If the flag is set to `false`,
 the endpoint definition is to be treated like a template where configuration
-elements like the endpoint URI will have to be supplied by external
+elements like the endpoint URL will have to be supplied by external
 configuration for the client to become functional.
 
 A possible application of the latter are Endpoint definitions that define
@@ -535,15 +535,15 @@ This specification defines the following envelope options for the indicated
 ##### `protocoloptions.endpoints`
 
 - Type: Array of Objects
-- Description: An array of objects map where each object contains a `uri`
+- Description: An array of objects map where each object contains a `url`
   attribute with the network address to which clients can communicate with
   the endpoint. The object MAY contain extension attributes that can be used
-  by clients to determine which URI to use, or to configure access to the
-  specific URI. Whether the URI identifies a network host or links directly to
+  by clients to determine which URL to use, or to configure access to the
+  specific URL. Whether the URL identifies a network host or links directly to
   a resource managed by the network host is protocol specific.
 - Constraints:
   - OPTIONAL.
-  - Each object MUST contain a `uri` attribute with a valid, absolute URI (URL).
+  - Each object MUST contain a `url` attribute with a valid, absolute URL.
 - Examples:
   - `[ {"url": "https://example.com" } ]`
   - ```
@@ -737,8 +737,8 @@ respective protocols. All of these are OPTIONAL.
 
 ##### HTTP options
 
-The [endpoint URIs](#protocoloptionsendpoints) for "HTTP" endpoints MUST be
-valid HTTP URIs using the "http" or "https" scheme.
+The [endpoint URLs](#protocoloptionsendpoints) for "HTTP" endpoints MUST be
+valid HTTP URLs using the "http" or "https" scheme.
 
 The following options are defined for HTTP:
 
@@ -780,15 +780,15 @@ Example:
 
 ##### AMQP options
 
-The [endpoint URIs](#protocoloptionsendpoints) for "AMQP" endpoints MUST be
-valid AMQP URIs using the "amqp" or "amqps" scheme. If the path portion of the
-URI is present, it MUST be a valid AMQP node name.
+The [endpoint URLs](#protocoloptionsendpoints) for "AMQP" endpoints MUST be
+valid AMQP URLs using the "amqp" or "amqps" scheme. If the path portion of the
+URL is present, it MUST be a valid AMQP node name.
 
 The following options are defined for AMQP endpoints.
 
 - `node`: The name of the AMQP node (a queue or topic or some addressable
   entity) to use for the endpoint.
-  - When specified, the value overrides the path portion of the Endpoint URI.
+  - When specified, the value overrides the path portion of the Endpoint URL.
 - `durable`: If `true`, the AMQP `durable` flag is set on transfers.
   - When not specified, the default value MUST be `false`.
   - This option only applies to `usage:producer` endpoints.
@@ -831,16 +831,16 @@ Example:
 
 ##### MQTT options
 
-The [endpoint URIs](#protocoloptionsendpoints) for "MQTT" endpoints MUST be
-valid MQTT URIs using the (informal) "mqtt" or "mqtts" scheme. If the path
-portion of the URI is present, it MUST be a valid MQTT topic name. The informal
+The [endpoint URLs](#protocoloptionsendpoints) for "MQTT" endpoints MUST be
+valid MQTT URLs using the (informal) "mqtt" or "mqtts" scheme. If the path
+portion of the URL is present, it MUST be a valid MQTT topic name. The informal
 schemes "tcp" (plain TCP/1883), "ssl" (TLS TCP/8883), and "wss"
 (Websockets/443) MAY also be used, but MUST NOT have a path.
 
 The following options are defined for MQTT endpoints.
 
 - `topic`: The MQTT topic to use for the endpoint.
-  - When specified, the value overrides the path portion of the Endpoint URI.
+  - When specified, the value overrides the path portion of the Endpoint URL.
   - The value MAY contain placeholders using the [RFC6570][RFC6570] Level 1
     URI Template syntax.
 - `qos`: The MQTT Quality of Service (QoS) level to use for the endpoint.
@@ -889,7 +889,7 @@ Example:
 
 ##### KAFKA options
 
-The [endpoint URIs](#protocoloptionsendpoints) for "Kafka" endpoints MUST be
+The [endpoint URLs](#protocoloptionsendpoints) for "Kafka" endpoints MUST be
 valid Kafka bootstrap server addresses. The scheme follows Kafka configuration
 usage, e.g. `SSL://<HOST>:<PORT>` or `PLAINTEXT://<HOST>:<PORT>`.
 
@@ -933,8 +933,8 @@ Example:
 
 ##### NATS options
 
-The [endpoint URIs](#protocoloptionsendpoints) for "NATS" endpoints MUST be
-valid NATS URIs. The scheme MUST be "nats" or "tls" or "ws" and the URI MUST
+The [endpoint URLs](#protocoloptionsendpoints) for "NATS" endpoints MUST be
+valid NATS URLs. The scheme MUST be "nats" or "tls" or "ws" and the URL MUST
 include a port number, e.g. `nats://<HOST>:<PORT>` or `tls://<HOST>:<PORT>`.
 
 The following options are defined for NATS endpoints.
