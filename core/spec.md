@@ -846,8 +846,7 @@ be one of the following data types:
   a server MUST be normalized to UTC to allow for easy (and consistent)
   comparisons.
 - `uinteger` - unsigned integer.
-- `uri` - a URI as defined in [RFC 3986](https://tools.ietf.org/html/rfc3986).
-   Note that it can be absolute or relative.
+- `uri` - an absolute URI ( `uriabsolute`) or relative URI (`urirelative`).
 - `uriabsolute` - absolute URI as defined in [RFC 3986 Section
   4.3](https://tools.ietf.org/html/rfc3986#section-4.3).
 - `urirelative` - relative URI as defined in [RFC 3986 Section

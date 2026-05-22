@@ -231,8 +231,9 @@
           "type": "string",
           "enum": [
             "boolean", "string", "integer", "uinteger", "decimal",
-            "uri", "url", "uri-reference", "url-reference",
-            "timestamp", "uritemplate", "binary", "xid",
+            "uri", "uriabsolute", "urirelative", "uritemplate",
+            "url", "urlabsolute", "urlrelative",
+            "timestamp", "binary", "xid", "xidtype",
             "array", "map", "object", "any"
           ]
         },
@@ -278,8 +279,9 @@
           "type": "string",
           "enum": [
             "boolean", "string", "integer", "uinteger", "decimal",
-            "uri", "url", "uri-reference", "url-reference",
-            "timestamp", "uritemplate", "binary", "xid",
+            "uri", "uriabsolute", "urirelative", "uritemplate",
+            "url", "urlabsolute", "urlrelative",
+            "timestamp", "binary", "xid", "xidtype",
             "array", "map", "object", "any"
           ],
           "description": "Data type of the attribute"
@@ -287,7 +289,7 @@
         "target": {
           "type": "string",
           "pattern": "^/[a-z][a-z0-9_]*(/[a-z][a-z0-9_]*(\\[/versions\\]|/versions)?)?$",
-          "description": "Target entity type for xid/url-reference/uri-reference types. Uses strict character set as defined in the xRegistry spec."
+          "description": "Target entity type for xid/url/uri types. Uses strict character set as defined in the xRegistry spec."
         },
         "namecharset": {
           "type": "string",
@@ -391,8 +393,9 @@
           "type": "string",
           "enum": [
             "boolean", "string", "integer", "uinteger", "decimal",
-            "uri", "url", "uri-reference", "url-reference",
-            "timestamp", "uritemplate", "binary", "xid",
+            "uri", "uriabsolute", "urirelative", "uritemplate",
+            "url", "urlabsolute", "urlrelative",
+            "timestamp", "binary", "xid", "xidtype",
             "array", "map", "object", "any"
           ]
         },
