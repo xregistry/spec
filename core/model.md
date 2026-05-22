@@ -220,9 +220,8 @@ The following describes the attributes of the Registry model:
 ### `attributes.<STRING>.target`
 - Type: String.
 - OPTIONAL.
-- The type of entity that this attribute points to when `type` is set to
-  `url-reference`, `uri-reference` or `xid`. `target` MUST NOT be used
-  for any other type of attribute.
+- The type of entity that this attribute points to when `type` is set to `url`,
+  `uri` or `xid`. `target` MUST NOT be used for any other type of attribute.
 - The value of this model attribute MUST be an "xid template" of one of the
   following forms:
   - `/<GROUPS>` - a plural Group type name. An entity attribute of this
@@ -242,7 +241,7 @@ The following describes the attributes of the Registry model:
   its model definition MUST match the `target` entity type specified. An
   `xid` attribute that does not include `target` definition has no
   such restriction and MAY be any valid `xid` value.
-- A URI/URL-reference entity attribute MAY include `target` as part of its
+- A URI/URL entity attribute MAY include `target` as part of its
   definition. If so, then any runtime value that is a relative URI/URL
   (begins with `/`) MUST be an `xid` and MUST adhere to the `target` entity
   type specified, if specified. Absolute URIs/URLs are not constrained by
@@ -420,8 +419,7 @@ The following describes the attributes of the Registry model:
 
 ### `attributes.<STRING>.item.target`
 - Type: String.
-- OPTIONAL, and MUST only be used when `item.type` is `url-reference`,
-  `uri-reference` or `xid`.
+- OPTIONAL, and MUST only be used when `item.type` is `url`, `uri` or `xid`.
 - See [`attributes.<STRING>.target`](#attributesstringtarget) above.
 
 ### `attributes.<STRING>.item.namecharset`

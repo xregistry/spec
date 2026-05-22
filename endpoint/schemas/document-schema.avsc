@@ -247,7 +247,7 @@
                     },
                     {
                       "type": "string",
-                      "doc": "Reference to a base definition for this definition, either via a (relative) URL or a fragment identifier. The base definition is overridden by this definition. If not present, this definition does not override any base definition",
+                      "doc": "Reference to a base definition for this definition. Relative references are XIDs within the same registry. Absolute URIs reference message definitions in external registries. The base definition is overridden by this definition. If not present, this definition does not override any base definition",
                       "name": "basemessageuri"
                     },
                     {
@@ -604,7 +604,7 @@
                 }
               },
               "name": "messagegroups",
-              "doc": "The message groups that are supported by this endpoint"
+              "doc": "The message groups that are supported by this endpoint. Relative references are XIDs within the same registry. Absolute URIs reference message groups in external registries."
             },
             {
               "name": "Extensions",

@@ -478,7 +478,7 @@ When the `format` attribute is set to `JsonSchema`, the `schema` attribute of
 the schema Resource is a JSON object representing a JSON Schema document
 conformant with the declared version.
 
-When a URI-reference, like [`schemauri`](../message/spec.md#dataschemauri),
+When a URI, like [`schemauri`](../message/spec.md#dataschemauri),
 points to a JSON Schema document it MAY use a [JSON pointer][JSON pointer]
 expression to deep link into the schema document to reference a particular type
 definition. Otherwise the top-level object definition of the schema is used.
@@ -513,7 +513,7 @@ When the `format` attribute is set to `XSD`, the `schema` attribute of schema
 Resource is a string containing an XML Schema document conformant with the
 declared version.
 
-When a URI-reference, like [`schemauri`](../message/spec.md#dataschemauri),
+When a URI, like [`schemauri`](../message/spec.md#dataschemauri),
 points to a JSON Schema document it MAY use an XPath expression to deep link
 into the schema document to reference a particular type definition. Otherwise
 the top-level object definition of the schema is used.
@@ -543,7 +543,7 @@ Examples:
 - `Avro/1.8.2` is the identifier for the Apache Avro release 1.8.2.
 - `Avro/1.11.0` is the identifier for the Apache Avro release 1.11.0
 
-When a URI-reference, like [`schemauri`](../message/spec.md#dataschemauri),
+When a URI, like [`schemauri`](../message/spec.md#dataschemauri),
 points to a JSON Schema document it MAY use a URI fragment suffix
 `[:]{record-name}` to deep link into the schema document to reference a
 particular type definition. Otherwise the top-level object definition of the
@@ -575,7 +575,7 @@ with the declared version.
 - `Protobuf/3` is the identifier for the Protobuf syntax version 3.
 - `Protobuf/2` is the identifier for the Protobuf syntax version 2.
 
-A URI-reference, like [`schemauri`](../message/spec.md#dataschemauri) that
+A URI, like [`schemauri`](../message/spec.md#dataschemauri) that
 points to a Protobuf Schema document MUST reference a Protobuf `message`
 declaration contained in the schema document using a URI fragment suffix
 `[:]{message-name}`. The ':' character is used as a separator when the URI

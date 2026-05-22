@@ -652,11 +652,10 @@ This specification defines the following envelope options for the indicated
 
 #### `messagegroups`
 
-The `messagegroups` attribute is an array of URI-references to message
-definition groups. Relative references (beginning with `/`) are XIDs within
-the same registry. Absolute URIs reference message
-definition groups in external
-registries. The server stores absolute URIs as-is without resolving them.
+The `messagegroups` attribute is an array of URI to message definition groups.
+Relative references (beginning with `/`) are XIDs within the same registry.
+Absolute URIs reference message definition groups in external registries. The
+server stores absolute URIs as-is without resolving them.
 
 The `messagegroups` attribute is used to reference message definition groups
 that are not inlined in the endpoint definition.

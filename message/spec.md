@@ -586,19 +586,19 @@ the core xRegistry Resource
 
 #### `basemessage`
 
-- Type: URI-reference
-- Description: if present, the URI-reference points to a message definition
-  that is the base for this message definition. By following the reference,
-  the base message can be retrieved and extended with the properties of this
-  message. This is useful for defining variants of messages that only differ
-  in minor additive aspects to avoid repetition. For example, messages that
-  only have a `envelope` with associated `envelopemetadata` to be bound to
-  various protocols.
+- Type: URI
+- Description: if present, the URI points to a message definition that is the
+  base for this message definition. By following the reference, the base
+  message can be retrieved and extended with the properties of this message.
+  This is useful for defining variants of messages that only differ in minor
+  additive aspects to avoid repetition. For example, messages that only have a
+  `envelope` with associated `envelopemetadata` to be bound to various
+  protocols.
 
   When the value is a relative reference (begins with `/`), it MUST be a
   valid XID referencing a Resource, or Version, of type `message` within the
   same registry. When the value is an absolute URI, it MUST point to a
-  message definition in an external registry, but the server is not required
+  message definition in an external registry, but the server is not mandated
   to validate or resolve external references.
 
   Referenced messages MAY themselves have a `basemessage` value, however,
@@ -620,7 +620,7 @@ the core xRegistry Resource
   an error MUST NOT be generated. Dangling references are permitted.
 
   Resolution of absolute URIs is a client responsibility. The server stores
-  the URI value but is not required to fetch, validate, or cache external
+  the URI value but is not mandated to fetch, validate, or cache external
   message definitions.
 
 - Constraints:
@@ -756,14 +756,14 @@ Illustrating example:
 
 #### `dataschemauri`
 
-- Type: URI-reference
+- Type: URI
 - Description: Contains a relative or absolute URI that points to the schema
   object to use for the message payload. The schema format is identified by the
   `dataschemaformat` attribute. See
   [Schema Formats](../schema/spec.md#43-schema-formats) for details on
   how to reference specific schema objects for the message payload. It is not
-  sufficient for the URI-reference to point to a schema document; it MUST
-  resolve to a concrete schema object.
+  sufficient for the URI to point to a schema document; it MUST resolve to a
+  concrete schema object.
 - Constraints:
   - OPTIONAL.
   - Mutually exclusive with the `dataschema` attribute.
@@ -860,7 +860,7 @@ the headers, properties or attributes defined for message:
 
 ##### `specurl`
 
-- Type: URI-reference
+- Type: URI
 - Description: Contains a relative or absolute URI that points to the
   human-readable specification of the property.
 - Constraints:
@@ -887,7 +887,6 @@ the headers, properties or attributes defined for message:
       underscores.
     - `timestamp`: CloudEvents "Timestamp" type (RFC3339 DateTime)
     - `uri`: CloudEvents URI type (RFC3986 URI).
-    - `urireference`: CloudEvents "URI-reference" type (RFC3986 URI-reference).
     - `uritemplate`: [RFC6570][RFC6570] Level 1 URI Template.
 
 ##### `value`
@@ -970,10 +969,9 @@ The following rules apply to the attribute declarations:
 - The `type` of the property definition defaults to the CloudEvents type
   definition for the attribute, if any. The `type` of an attribute MAY be
   modified be to further constrained. For instance, the `source` type
-  `urireference` MAY be changed to
-  `uritemplate` or the `subject` type `string` MAY be constrained to a
-  `urireference` or `stringified integer`. If no CloudEvents type definition
-  exists, the default value MUST be `string`.
+  `uri` MAY be changed to `uritemplate` or the `subject` type `string` MAY be
+  constrained to a `uri` or `stringified integer`. If no CloudEvents type
+  definition exists, the default value MUST be `string`.
 
 The values of all `string` and `uritemplate`-typed attributes MAY contain
 placeholders using the [RFC6570][RFC6570] Level 1 URI Template syntax. When the
@@ -1043,7 +1041,7 @@ attribute value is `https://example.com/schemas/com.example.myevent.json`:
       "type": "uritemplate"
     },
     "subject": {
-      "type": "urireference"
+      "type": "uri"
     },
     "time": {
       "required": true
