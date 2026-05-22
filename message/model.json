@@ -31,10 +31,11 @@
           "modelversion": "1.0-rc2",
           "modelcompatiblewith": "https://xregistry.io/xreg/domains/message/specs/model.json",
           "attributes": {
-            "basemessageurl": {
-              "name": "basemessageurl",
-              "type": "uri",
-              "description": "Reference to a base definition for this definition, either via a (relative) URL or a fragment identifier. The base definition is overridden by this definition. If not present, this definition does not override any base definition"
+            "basemessageuri": {
+              "name": "basemessageuri",
+              "type": "uri-reference",
+              "target": "/messagegroups/messages[/versions]",
+              "description": "Reference to a base definition for this definition. Relative references are XIDs within the same registry. Absolute URIs reference message definitions in external registries. The base definition is overridden by this definition. If not present, this definition does not override any base definition"
             },
             "envelope": {
               "name": "envelope",

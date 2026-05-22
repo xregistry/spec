@@ -586,20 +586,26 @@ the core xRegistry Resource
 
 #### `basemessage`
 
-- Type: XID
-- Description: if present, the XID points to a message definition that is the
-  base for this message definition. By following the XID, the base message
-  can be retrieved and extended with the properties of this message. This is
-  useful for defining variants of messages that only differ in minor additive
-  aspects to avoid repetition. For example, messages that only have a
-  `envelope` with associated `envelopemetadata` to be bound to various
-  protocols.
+- Type: URI-reference
+- Description: if present, the URI-reference points to a message definition
+  that is the base for this message definition. By following the reference,
+  the base message can be retrieved and extended with the properties of this
+  message. This is useful for defining variants of messages that only differ
+  in minor additive aspects to avoid repetition. For example, messages that
+  only have a `envelope` with associated `envelopemetadata` to be bound to
+  various protocols.
+
+  When the value is a relative reference (begins with `/`), it MUST be a
+  valid XID referencing a Resource, or Version, of type `message` within the
+  same registry. When the value is an absolute URI, it MUST point to a
+  message definition in an external registry, but the server is not required
+  to validate or resolve external references.
 
   Referenced messages MAY themselves have a `basemessage` value, however,
   the chain of messages MUST NOT be recursive.
 
   The processing that a client SHOULD take to materialize the message is
-  to follow the `basemessage` attributes to the end of the chain of messages,
+  to follow the `basemessage` references to the end of the chain of messages,
   get that message's attributes, and then walk back up the chain performing a
   "merge" operation of the next message's attributes. Note in the case of an
   inherited attribute being a complex type (e.g. map, object), and the
@@ -609,17 +615,25 @@ the core xRegistry Resource
   appropriately rather than it being a complete replacement of the entire
   complex type.
 
-  If the referenced message can not be found then an error MUST NOT be
-  generated, dangling references are permitted.
+  If the referenced message can not be found, whether due to a dangling
+  reference, an unreachable external registry, or insufficient permissions,
+  an error MUST NOT be generated. Dangling references are permitted.
+
+  Resolution of absolute URIs is a client responsibility. The server stores
+  the URI value but is not required to fetch, validate, or cache external
+  message definitions.
 
 - Constraints:
   - OPTIONAL.
-  - If present, MUST be the `xid` of a Resource, or Version, of type `message`
-    as defined by this specification.
+  - If the value is a relative reference, it MUST be a valid `xid` of a
+    Resource, or Version, of type `message` as defined by this specification.
+  - If the value is an absolute URI, it MUST point to a message definition
+    but the server MUST NOT validate the target.
 
 - Examples:
   - `/messagegroups/group1/messages/msg1`
   - `/messagegroups/group1/messages/msg1/versions/v1.0`
+  - `https://catalog.example.com/messagegroups/shared/messages/base-event`
 
 #### `envelope`
 
