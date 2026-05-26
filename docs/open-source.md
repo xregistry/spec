@@ -6,7 +6,7 @@ one of the xRegistry specifications, please include in the list below.
 - xRegistry code & file generation CLI (`xrcg`) — generates type-safe
   messaging SDKs (Java, C#, Python, TypeScript) for Kafka, MQTT, AMQP,
   Event Hubs, Service Bus, Event Grid, and HTTP/CloudEvents from xRegistry
-  message catalog definitions, plus AsyncAPI and OpenAPI documents:
+  endpoint, message, and schema catalog definitions, plus AsyncAPI and OpenAPI documents:
   https://github.com/xregistry/codegen
 - xRegistry Viewer — Angular-based web UI for browsing xRegistry-compliant
   APIs: https://github.com/xregistry/viewer
