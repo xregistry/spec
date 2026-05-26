@@ -464,7 +464,7 @@ The second, orthogonal organizational tool is `labels`. Labels are
 free-form name/value pairs that can be attached to Registries, Groups,
 Resources, Meta entities, and Versions, and they allow entities to be
 classified along as many independent axes as needed (for example
-`stage=dev`, `team=payments`, `tier=gold`). Server implementations MAY,
+`stage=dev`, `team=payments`, `tier=gold`). Server implementations may,
 and are encouraged to, support filtering and lookup by labels (see the
 filter examples in the core spec), which makes labels a powerful
 complement to the single Group dimension for cross-cutting discovery
