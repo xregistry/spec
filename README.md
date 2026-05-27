@@ -73,6 +73,11 @@ native ecosystem by making our systems interoperable with xRegistry.
   about your use of xRegistry, please submit a PR!
 - [Code of Conduct](https://github.com/cncf/foundation/blob/master/code-of-conduct.md)
 
+This repository does not include non-English versions of the documentation. If
+English is not your primary language and doing the translation yourself via any
+number of freely available tools (e.g. browsers, AI) is problematic please let
+us know.
+
 ### Security Concerns
 
 If there is a security concern with one of the specifications in this
