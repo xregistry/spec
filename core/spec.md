@@ -1627,39 +1627,6 @@ The serialization of the Registry entity MUST adhere to this form:
 }
 ```
 
-Write operations directed to the Registry root, when it includes the
-`capabilities` or `modelsource` attributes, SHOULD follow these general rules
-to help promote consistency across implementations:
-
-- Capability changes that might impact the processing of the `capabilities` or
-  `modelsource` attributes, SHOULD only go into effect on subsequent requests.
-  The current request SHOULD to use the capabilities for those related
-  features as seen prior to the request. For example:
-
-  - Support for the [`ignore` flag](#ignore-flag) would be controlled by the
-    [`ignores` capability's](#ignores-capability) prior state as that controls
-    whether the `capabilities` or `modelsource` attributes are ignored.
-  - However, support for the [`inline` flag](#inline-flag) would be controlled
-    by its related capabilities state after processing of the `"capabilities"`
-    attribute.
-
-- Once a feature is determined to be enabled, or disabled, it SHOULD remain in
-  that state for the duration of the request. And changes to its corresponding
-  capability SHOULD only go into effect for subsequent requests.
-
-- If processing of entity data (e.g. Groups, Resources) might be dependent on
-  the state of the capabilities and/or model, then the changes to the
-  `capabilities` and `modelsource` attributes SHOULD be processed first
-  and those changes used while updating the entities.  For example:
-
-  - The processing of the [`inline` flag](#inline-flag) would need to be done
-    after processing of the `modelsource` attribute and use the new model
-    definition.
-
-  - The [Resource Processing logic](#resource-processing-algorithm) would
-    need to used the `capabilities.format` and `capabilities.compatibilities`
-    after any request-specific changes were made to those values.
-
 The Registry entity includes the following
 [common attributes](#common-attributes):
 - [`registryid`](#singularid-id-attribute) - REQUIRED in API and document
@@ -1707,6 +1674,14 @@ and the following Registry-level attributes:
     of the Registry.
   - An explicit value of `null` for this attribute MUST result in resetting the
     capabilities to the server's default values.
+  - If present, MUST be processed before any other attributes since subsequent
+    processing might be impacted by the new capability values. In cases where
+    a capability setting influences the processing of this attribute, or
+    of the [`modelsource`](#modelsource-attribute) (e.g.  support for the
+    [`ignore` Flag](#ignore-flag) or
+    [`available.capability`](#available-capability)), the state of those
+    particular settings prior to the request MUST be used for the duration
+    of the current request.
 
 - Constraints:
   - MUST NOT be included in API and document views unless requested via the
@@ -1749,19 +1724,18 @@ and the following Registry-level attributes:
   - The absence of this attribute MUST result in no changes to the model, or
     modelsource of the Registry.
   - An explicit value of `null`, or an empty JSON object (`{}`), MUST result
-    in all Groups, Resources and extension attributes being removed from the
-    model.
+    in all Groups, Resources and extension Registry-level attributes being
+    removed from the model.
   - If present, the Registry's model MUST be updated prior to any entities
-    being updated.
+    being updated, including the other Registry-level attributes. However,
+    if the [`capabilities` attribute](#capabilities-attribute) is also present,
+    then `capabilities` MUST be processed before `modelsource`.
 
   The serialization of this attribute MUST be semantically equivalent to
   what was used to create the model, but it is NOT REQUIRED to be syntactically
   equivalent. In other words, it might be "pretty-printed", but it MUST NOT
   include additional aspects even if those are defined/mandated by the
   specification or server implementation.
-
-See [Registry Entity](#registry-entity) for information related to updating
-the `modelsource` and Registry entities at the same time.
 
 - Constraints:
   - MUST NOT be included in API and document views unless requested, via the
@@ -2049,9 +2023,6 @@ A request to update a capability with an invalid value MUST generate an error
 
 A request to update an unknown capability MUST generate an error
 ([capability_unknown](#capability_unknown)).
-
-See [Registry Entity](#registry-entity) for information related to updating
-the capabilities and Registry entities at the same time.
 
 Normally modifying the capabilities of a server and modifying any entity data
 are typically two very distinct actions, and will not normally happen at the
