@@ -16,52 +16,71 @@ normative technical details.
 
 ## 2. Table of Contents
 
-- [1. Abstract](#1-abstract)
-- [2. Table of Contents](#2-table-of-contents)
-- [3. History](#3-history)
-- [4. Value proposition](#4-value-proposition)
-  - [4.1. Why build something new?](#41-why-build-something-new)
-  - [4.2. Discovery](#42-discovery)
-  - [4.3. Vendor-agnostic](#43-vendor-agnostic)
-  - [4.4. Versioning](#44-versioning)
-  - [4.5. Schema validation](#45-schema-validation)
-  - [4.6. Payload reduction](#46-payload-reduction)
-  - [4.7. Schema-based data contract generation](#47-schema-based-data-contract-generation)
-  - [4.8. Producer and consumer generation](#48-producer-and-consumer-generation)
-  - [4.9. Basis for further developments](#49-basis-for-further-developments)
-- [5. Motivation](#5-motivation)
-- [6. Design Goals](#6-design-goals)
-  - [6.1. Non-Goals](#61-non-goals)
-- [7. Representations](#7-representations)
-  - [7.1. File](#71-file)
-  - [7.2. Static File Server](#72-static-file-server)
-  - [7.3. API Server](#73-api-server)
-- [8. Embeddings, References, and Federation](#8-embeddings-references-and-federation)
-  - [8.1. Formats and Content/Media-Types](#81-formats-and-contentmedia-types)
-  - [8.2. Embeddings and Links](#82-embeddings-and-links)
-  - [8.3. Federation](#83-federation)
-    - [8.3.1. Composing registries in memory](#831-composing-registries-in-memory)
-    - [8.3.2. Shadowing](#832-shadowing)
-    - [8.3.3. Identifiers](#833-identifiers)
-    - [8.3.4. API Servers and Proxies](#834-api-servers-and-proxies)
-- [9. Possible Use Cases](#9-possible-use-cases)
-  - [9.1. CloudEvents](#91-cloudevents)
-  - [9.2. Business objects](#92-business-objects)
-  - [9.3. Metadata files in repositories](#93-metadata-files-in-repositories)
-- [10. Design decisions or topics of interest](#10-design-decisions-or-topics-of-interest)
-  - [10.1. Resource.ID vs Resource.Version.ID](#101-resourceid-vs-resourceversionid)
-  - [10.2. Valid Characters](#102-valid-characters)
-  - [10.3. Extensions](#103-extensions)
-  - [10.4. Deleting entities](#104-deleting-entities)
-  - [10.5. Detection of Referenced Resources](#105-detection-of-referenced-resources)
-  - [10.6. Shared/Referenced Resources](#106-sharedreferenced-resources)
-- [11. The `format` attribute in the Schema spec](#11-the-format-attribute-in-the-schema-spec)
-- [12. Problematic characters in attributes](#12-problematic-characters-in-attributes)
-- [13. Why do Resources have 3 levels of data?](#13-why-do-resources-have-3-levels-of-data)
-- [14. Why are some (conditional) read-only attributes not ignored?](#14-why-are-some-conditional-read-only-attributes-not-ignored)
-- [15. Why isn't `PUT` idempotent?](#15-why-isnt-put-idempotent)
-- [16. Defining Extensions](#16-defining-extensions)
-- [17. Validation](#17-validation)
+- [xRegistry Primer](#xregistry-primer)
+  - [1. Abstract](#1-abstract)
+  - [2. Table of Contents](#2-table-of-contents)
+  - [3. History](#3-history)
+  - [4. Value proposition](#4-value-proposition)
+    - [4.1. Why build something new?](#41-why-build-something-new)
+    - [4.2. Discovery](#42-discovery)
+    - [4.3. Vendor-agnostic](#43-vendor-agnostic)
+    - [4.4. Versioning](#44-versioning)
+    - [4.5. Schema validation](#45-schema-validation)
+    - [4.6. Payload reduction](#46-payload-reduction)
+    - [4.7. Schema-based data contract generation](#47-schema-based-data-contract-generation)
+    - [4.8. Producer and consumer generation](#48-producer-and-consumer-generation)
+    - [4.9. Basis for further developments](#49-basis-for-further-developments)
+  - [5. Motivation](#5-motivation)
+  - [6. Design Goals](#6-design-goals)
+    - [6.1. Non-Goals](#61-non-goals)
+  - [7. Representations](#7-representations)
+    - [7.1. File](#71-file)
+    - [7.2. Static File Server](#72-static-file-server)
+    - [7.3. API Server](#73-api-server)
+  - [8. Embeddings, References, and Federation](#8-embeddings-references-and-federation)
+    - [8.1. Formats and Content/Media-Types](#81-formats-and-contentmedia-types)
+    - [8.2. Embeddings and Links](#82-embeddings-and-links)
+    - [8.3. Federation](#83-federation)
+      - [8.3.1. Composing registries in memory](#831-composing-registries-in-memory)
+      - [8.3.2. Shadowing](#832-shadowing)
+      - [8.3.3. Identifiers](#833-identifiers)
+      - [8.3.4. API Servers and Proxies](#834-api-servers-and-proxies)
+  - [9. Possible Use Cases](#9-possible-use-cases)
+    - [9.1. CloudEvents](#91-cloudevents)
+    - [9.2. Business objects](#92-business-objects)
+    - [9.3. Metadata files in repositories](#93-metadata-files-in-repositories)
+  - [10. Design decisions or topics of interest](#10-design-decisions-or-topics-of-interest)
+    - [10.1. Resource.ID vs Resource.Version.ID](#101-resourceid-vs-resourceversionid)
+    - [10.2. Valid Characters](#102-valid-characters)
+    - [10.3. Extensions](#103-extensions)
+    - [10.4. Deleting entities](#104-deleting-entities)
+    - [10.5. Detection of Referenced Resources](#105-detection-of-referenced-resources)
+    - [10.6. Shared/Referenced Resources](#106-sharedreferenced-resources)
+- [Default Version and Maximum Versions](#default-version-and-maximum-versions)
+- [Potential Extensions](#potential-extensions)
+- [Why Epoch?](#why-epoch)
+- [Naming and Case Sensitivity](#naming-and-case-sensitivity)
+- [Why the lower character limit on some Group and Resource type names?](#why-the-lower-character-limit-on-some-group-and-resource-type-names)
+- [Why must Group type and Resource type names be valid attribute names?](#why-must-group-type-and-resource-type-names-be-valid-attribute-names)
+- [Choosing unique Group and Resource names](#choosing-unique-group-and-resource-names)
+- [Are `self` and `shortself` attributes static?](#are-self-and-shortself-attributes-static)
+- [Why does an unknown query parameter not generate an error?](#why-does-an-unknown-query-parameter-not-generate-an-error)
+- [Updating attributes with `ifvalues`](#updating-attributes-with-ifvalues)
+- [Multi-root ancestor hierarchies](#multi-root-ancestor-hierarchies)
+- [`singleversionroot` Policy Enforcement](#singleversionroot-policy-enforcement)
+- [Pruning Versions with `singleversionroot` enabled](#pruning-versions-with-singleversionroot-enabled)
+- [What's the oldest/newest Version of a Resource?](#whats-the-oldestnewest-version-of-a-resource)
+- [Can `validatecompatibility` and `validateformat` be `true` for file-servers?](#can-validatecompatibility-and-validateformat-be-true-for-file-servers)
+- [Detecting circular references between Versions](#detecting-circular-references-between-versions)
+- [Optional required fields in requests](#optional-required-fields-in-requests)
+- [Deprecation of entities in an xRegistry](#deprecation-of-entities-in-an-xregistry)
+  - [11. The `format` attribute in the Schema spec](#11-the-format-attribute-in-the-schema-spec)
+  - [12. Problematic characters in attributes](#12-problematic-characters-in-attributes)
+  - [13. Why do Resources have 3 levels of data?](#13-why-do-resources-have-3-levels-of-data)
+  - [14. Why are some (conditional) read-only attributes not ignored?](#14-why-are-some-conditional-read-only-attributes-not-ignored)
+  - [15. Why isn't `PUT` idempotent?](#15-why-isnt-put-idempotent)
+  - [16. Defining Extensions](#16-defining-extensions)
+  - [17. Validation](#17-validation)
 
 
 ## 3. History
@@ -146,10 +165,14 @@ developers, data-analysts, or even business analysts to understand.
 ### 4.3. Vendor-agnostic
 
 xRegistry provides a specification to define, query, group, version and enforce
-schemas for systems. Multiple schema registry solutions exist already,
-including [Confluent Schema Registry](https://docs.confluent.io/platform/current/schema-registry/index.html), [Azure Event Hubs Registry](https://learn.microsoft.com/en-us/azure/event-hubs/schema-registry-overview)
-or [Apicurio Registry](https://www.apicur.io/registry/), [AWS Glue Schema Registry](https://docs.aws.amazon.com/glue/latest/dg/schema-registry.html)
-and more.
+schemas for systems. Multiple schema registry solutions exist already, including
+[Confluent Schema
+Registry](https://docs.confluent.io/platform/current/schema-registry/index.html),
+[Azure Event Hubs
+Registry](https://learn.microsoft.com/en-us/azure/event-hubs/schema-registry-overview)
+or [Apicurio Registry](https://www.apicur.io/registry/), [AWS Glue Schema
+Registry](https://docs.aws.amazon.com/glue/latest/dg/schema-registry.html) and
+more.
 
 These schema registries are broker- and therefore vendor-specific and even
 protocol-specific, which causes friction when an event travels through multiple
@@ -296,16 +319,18 @@ Cases](#possible-use-cases) for examples outside the eventing world.
 ## 7. Representations
 
 An xRegistry can be represented in a few different ways: a JSON file, a static
-file server and an API server - with some further nuances. Resources will most 
-often be embedded in the registry, but the resource metadata might also point 
-to an external location. 
+file server and an API server - with some further nuances. Resources
+(user-supplied data) will most often be embedded in the registry, but the
+resource metadata might also point to an external location where such data
+exists; also see the discussion about [embeddings and
+references](#8-embeddings-references-and-federation).
 
-When building up this spec, the API server had the highest priority, followed 
-by the file representation and the static file server as an option to 
-transition between the first two. To enable this transition, one of the 
+When building up this spec, the API server had the highest priority, followed
+by the file representation and the static file server as an option to
+transition between the first two. To enable this transition, one of the
 design goals is the symmetry between all representations.
 
-Whenever registries get large or need to be shared with many people or systems, 
+Whenever registries get large or need to be shared with many people or systems,
 you will realistically want to use the API server or CLI to create the registry
 and then use its export function to generate files for the file or static file
 server representation.
@@ -322,10 +347,10 @@ the registry basically becomes a declaration manifest of the application(s). If
 you are new to xRegistry and are just trying to get the idea of the project,
 this is a great point to start.
 
-It is anticipated that application modules that need to share resources with 
-others, like the shape of raised events and associated schemas, will have one or 
-multiple associated xRegistry files that describe those resources and that 
-these files can later be merged into another xRegistry when the module is 
+It is anticipated that application modules that need to share resources with
+others, like the shape of raised events and associated schemas, will have one or
+multiple associated xRegistry files that describe those resources and that
+these files can later be merged into another xRegistry when the module is
 deployed, so that other participants in the system can understand the
 raised events.
 
@@ -393,9 +418,9 @@ documents is not declared by the model, but may be constrained by convention
 ### 8.1. Formats and Content/Media-Types
 
 `format` and the supported values are a convention chosen for this
-specification because the IANA "media-types" and not consistently available for
+specification because the IANA "media-types" are not consistently available for
 many document types that are in focus. There is additionally a
-[contenttype](spec.md#contenttype-attribute) attribute that SHOULD be set for
+[contenttype](spec.md#contenttype-attribute) attribute that should be set for
 each document, that provides the corresponding media-type. An example for this
 is that Apache Avro schema has no official media type, so that the content type
 might be "application/json", but the `format` is "Avro/1.12".
@@ -405,14 +430,13 @@ might choose to provide validation capabilities for well-known formats like
 Apache Avro schema, and even version-to-version compatibility checks. These
 validation capabilities per-se are not defined in the specification, but the
 specification allows the server to provide hints about whether they are
-available and whether they have been applied. 
+available and whether they have been applied. Metadata declared in the models
+allows the server to validate embedded data directly.
 
 A registry server can only enforce validation constraints on embedded documents
 that are under its own control. If a document is external, meaning that the
 resource entry does not embed it but links to it, the document might change at
-the external location without the registry knowing. In this case, the registry
-might indeed choose to refuse to return an invalid document on GET, meaning it
-performs the enforcement during retrieval.
+the external location without the registry knowing.
 
 ### 8.2. Embeddings and Links
 
@@ -425,9 +449,11 @@ Strictly speaking, the choice between whether, say, a schema is represented as
 `schema` with an embedded object or `schemabase64` with base64 binary content
 depends on the encoding of the registry metadata.
 
-At present, all examples and implementations use JSON, but it's very feasible
-to encode the entire registry in Avro binary and there is a formal schema 
-for Avro.
+When a document is embedded, the encoding needs to align with the hosting
+registry document for the [embedded object](spec.md#resource-attribute) variant.
+At present, all examples and implementations use JSON anbd so it might appear
+that this is a JSON-related feature, but it's very feasible to encode the entire
+registry in Avro binary and there is a formal schema for Avro.
 
 In JSON, we can embed JSON-data like an Avro Schema into `schema` and we can
 also embed a single string for a text file into `schema` as long as we are
@@ -442,8 +468,8 @@ using an HTTP GET or resolving a file system file.
 
 External links are very handy if you already have an existing registry of some
 kind, possibly just files in a public repo, and want to catalog those with
-xRegistry. Using the `<RESOURCE>url` patterns, all your documents can remain 
-in their place. The `format` and `contenttype` information still needs to 
+xRegistry. Using the `<RESOURCE>url` patterns, all your documents can remain
+in their place. The `format` and `contenttype` information still needs to
 exist in xRegistry so that clients can understand this information before
 trying to resolve the document.
 
@@ -473,8 +499,8 @@ are several examples of such documents in the
 When the registry is split across multiple files in a folder structure, the
 application can load the root document and traverse `<RESOURCE>url` links to
 individual documents on demand, building an in-memory view that combines the
-root document with only those branches that are relevant to the application.
-The same applies when the root sits behind an [API server](#73-api-server):
+root document with only those branches that are relevant to the application. The
+same applies when the root sits behind an [API server](#73-api-server) or proxy:
 the client fetches and caches just the branches it needs.
 
 #### 8.3.2. Shadowing
@@ -500,27 +526,28 @@ single registry.
 For shadowing and cross-referencing to work, identifiers need to be stable
 across registries. Group identifiers should be treated as globally unique, so
 that the same group can be recognized across different registries. Resource
-identifiers are only unique within a group, so a cross-registry reference
-should always use the combination of group identifier and resource identifier.
+identifiers are only unique within a group, so a cross-registry reference should
+always use the combination of group identifier (group name and id) and resource
+identifier (resource name and id).
 
 The authority portion of a URL into a registry is only an endpoint identifier
 for the hosting registry, not a unique identifier for the resource itself. The
 same resource may be available in multiple registries, and applications can
-refer to it using the same *relative URI* regardless of which registry hosts
-it. This matters in practice: an application in a private network might not
-be able to reach a registry hosted in a public cloud, so the same content may
-need to be served from a local registry on a private DNS name. Treating the
-authority as an endpoint identifier rather than a resource identifier is what
-makes that possible.
+refer to it using the same *relative URI* regardless of which registry hosts it.
+This matters in practice: an application in a private network might not be able
+to reach a registry hosted in a public cloud, so the same content may need to be
+served from a local registry on a private DNS name. Treating the authority as an
+endpoint identifier rather than a resource identifier is what makes that
+possible.
 
 #### 8.3.4. API Servers and Proxies
 
 An API server can also act as a proxy that presents multiple underlying
 registries - including non-xRegistry ones - through a single xRegistry
-interface. The [xrproxy](https://github.com/xregistry/xrproxy) project
-provides reference implementations of such proxies, showing both how to
-federate xRegistry APIs and how to project other registry models into the
-xRegistry model.
+interface. The [xrproxy](https://github.com/xregistry/xrproxy) project provides
+reference implementations of such proxies, showing both how to federate
+xRegistry APIs and how to project other registry models into the xRegistry
+model.
 
 Shadowing applies here too: any API client can shadow the API server with a
 local registry to add or modify entries without affecting the underlying
