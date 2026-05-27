@@ -16,71 +16,70 @@ normative technical details.
 
 ## 2. Table of Contents
 
-- [xRegistry Primer](#xregistry-primer)
-  - [1. Abstract](#1-abstract)
-  - [2. Table of Contents](#2-table-of-contents)
-  - [3. History](#3-history)
-  - [4. Value proposition](#4-value-proposition)
-    - [4.1. Why build something new?](#41-why-build-something-new)
-    - [4.2. Discovery](#42-discovery)
-    - [4.3. Vendor-agnostic](#43-vendor-agnostic)
-    - [4.4. Versioning](#44-versioning)
-    - [4.5. Schema validation](#45-schema-validation)
-    - [4.6. Payload reduction](#46-payload-reduction)
-    - [4.7. Schema-based data contract generation](#47-schema-based-data-contract-generation)
-    - [4.8. Producer and consumer generation](#48-producer-and-consumer-generation)
-    - [4.9. Basis for further developments](#49-basis-for-further-developments)
-  - [5. Motivation](#5-motivation)
-  - [6. Design Goals](#6-design-goals)
-    - [6.1. Non-Goals](#61-non-goals)
-  - [7. Representations](#7-representations)
-    - [7.1. File](#71-file)
-    - [7.2. Static File Server](#72-static-file-server)
-    - [7.3. API Server](#73-api-server)
-  - [8. Embeddings, References, and Federation](#8-embeddings-references-and-federation)
-    - [8.1. Formats and Content/Media-Types](#81-formats-and-contentmedia-types)
-    - [8.2. Embeddings and Links](#82-embeddings-and-links)
-    - [8.3. Federation](#83-federation)
-      - [8.3.1. Composing registries in memory](#831-composing-registries-in-memory)
-      - [8.3.2. Shadowing](#832-shadowing)
-      - [8.3.3. Identifiers](#833-identifiers)
-      - [8.3.4. API Servers and Proxies](#834-api-servers-and-proxies)
-  - [9. Possible Use Cases](#9-possible-use-cases)
-    - [9.1. CloudEvents](#91-cloudevents)
-    - [9.2. Business objects](#92-business-objects)
-    - [9.3. Metadata files in repositories](#93-metadata-files-in-repositories)
-  - [10. Design decisions or topics of interest](#10-design-decisions-or-topics-of-interest)
-    - [10.1. Resource.ID vs Resource.Version.ID](#101-resourceid-vs-resourceversionid)
-    - [10.2. Valid Characters](#102-valid-characters)
-    - [10.3. Extensions](#103-extensions)
-    - [10.4. Deleting entities](#104-deleting-entities)
-    - [10.5. Detection of Referenced Resources](#105-detection-of-referenced-resources)
-    - [10.6. Shared/Referenced Resources](#106-sharedreferenced-resources)
-- [Default Version and Maximum Versions](#default-version-and-maximum-versions)
-- [Potential Extensions](#potential-extensions)
-- [Why Epoch?](#why-epoch)
-- [Naming and Case Sensitivity](#naming-and-case-sensitivity)
-- [Why the lower character limit on some Group and Resource type names?](#why-the-lower-character-limit-on-some-group-and-resource-type-names)
-- [Why must Group type and Resource type names be valid attribute names?](#why-must-group-type-and-resource-type-names-be-valid-attribute-names)
-- [Choosing unique Group and Resource names](#choosing-unique-group-and-resource-names)
-- [Are `self` and `shortself` attributes static?](#are-self-and-shortself-attributes-static)
-- [Why does an unknown query parameter not generate an error?](#why-does-an-unknown-query-parameter-not-generate-an-error)
-- [Updating attributes with `ifvalues`](#updating-attributes-with-ifvalues)
-- [Multi-root ancestor hierarchies](#multi-root-ancestor-hierarchies)
-- [`singleversionroot` Policy Enforcement](#singleversionroot-policy-enforcement)
-- [Pruning Versions with `singleversionroot` enabled](#pruning-versions-with-singleversionroot-enabled)
-- [What's the oldest/newest Version of a Resource?](#whats-the-oldestnewest-version-of-a-resource)
-- [Can `validatecompatibility` and `validateformat` be `true` for file-servers?](#can-validatecompatibility-and-validateformat-be-true-for-file-servers)
-- [Detecting circular references between Versions](#detecting-circular-references-between-versions)
-- [Optional required fields in requests](#optional-required-fields-in-requests)
-- [Deprecation of entities in an xRegistry](#deprecation-of-entities-in-an-xregistry)
-  - [11. The `format` attribute in the Schema spec](#11-the-format-attribute-in-the-schema-spec)
-  - [12. Problematic characters in attributes](#12-problematic-characters-in-attributes)
-  - [13. Why do Resources have 3 levels of data?](#13-why-do-resources-have-3-levels-of-data)
-  - [14. Why are some (conditional) read-only attributes not ignored?](#14-why-are-some-conditional-read-only-attributes-not-ignored)
-  - [15. Why isn't `PUT` idempotent?](#15-why-isnt-put-idempotent)
-  - [16. Defining Extensions](#16-defining-extensions)
-  - [17. Validation](#17-validation)
+- [1. Abstract](#1-abstract)
+- [2. Table of Contents](#2-table-of-contents)
+- [3. History](#3-history)
+- [4. Value proposition](#4-value-proposition)
+  - [4.1. Why build something new?](#41-why-build-something-new)
+  - [4.2. Discovery](#42-discovery)
+  - [4.3. Vendor-agnostic](#43-vendor-agnostic)
+  - [4.4. Versioning](#44-versioning)
+  - [4.5. Schema validation](#45-schema-validation)
+  - [4.6. Payload reduction](#46-payload-reduction)
+  - [4.7. Schema-based data contract generation](#47-schema-based-data-contract-generation)
+  - [4.8. Producer and consumer generation](#48-producer-and-consumer-generation)
+  - [4.9. Basis for further developments](#49-basis-for-further-developments)
+- [5. Motivation](#5-motivation)
+- [6. Design Goals](#6-design-goals)
+  - [6.1. Non-Goals](#61-non-goals)
+- [7. Representations](#7-representations)
+  - [7.1. File](#71-file)
+  - [7.2. Static File Server](#72-static-file-server)
+  - [7.3. API Server](#73-api-server)
+- [8. Embeddings, References, and Federation](#8-embeddings-references-and-federation)
+  - [8.1. Formats and Content/Media-Types](#81-formats-and-contentmedia-types)
+  - [8.2. Embeddings and Links](#82-embeddings-and-links)
+  - [8.3. Federation](#83-federation)
+    - [8.3.1. Composing registries in memory](#831-composing-registries-in-memory)
+    - [8.3.2. Shadowing](#832-shadowing)
+    - [8.3.3. Identifiers](#833-identifiers)
+    - [8.3.4. API Servers and Proxies](#834-api-servers-and-proxies)
+- [9. Possible Use Cases](#9-possible-use-cases)
+  - [9.1. CloudEvents](#91-cloudevents)
+  - [9.2. Business objects](#92-business-objects)
+  - [9.3. Metadata files in repositories](#93-metadata-files-in-repositories)
+- [10. Design decisions or topics of interest](#10-design-decisions-or-topics-of-interest)
+  - [10.1. Resource.ID vs Resource.Version.ID](#101-resourceid-vs-resourceversionid)
+  - [10.2. Valid Characters](#102-valid-characters)
+  - [10.3. Extensions](#103-extensions)
+  - [10.4. Deleting entities](#104-deleting-entities)
+  - [10.5. Detection of Referenced Resources](#105-detection-of-referenced-resources)
+  - [10.6. Shared/Referenced Resources](#106-sharedreferenced-resources)
+    - [10.6.1. Default Version and Maximum Versions](#1061-default-version-and-maximum-versions)
+    - [10.6.2. Potential Extensions](#1062-potential-extensions)
+    - [10.6.3. Why Epoch?](#1063-why-epoch)
+    - [10.6.4. Naming and Case Sensitivity](#1064-naming-and-case-sensitivity)
+    - [10.6.5. Why the lower character limit on some Group and Resource type names?](#1065-why-the-lower-character-limit-on-some-group-and-resource-type-names)
+    - [10.6.6. Why must Group type and Resource type names be valid attribute names?](#1066-why-must-group-type-and-resource-type-names-be-valid-attribute-names)
+    - [10.6.7. Choosing unique Group and Resource names](#1067-choosing-unique-group-and-resource-names)
+    - [10.6.8. Are `self` and `shortself` attributes static?](#1068-are-self-and-shortself-attributes-static)
+    - [10.6.9. Why does an unknown query parameter not generate an error?](#1069-why-does-an-unknown-query-parameter-not-generate-an-error)
+    - [10.6.10. Updating attributes with `ifvalues`](#10610-updating-attributes-with-ifvalues)
+    - [10.6.11. Multi-root ancestor hierarchies](#10611-multi-root-ancestor-hierarchies)
+    - [10.6.12. `singleversionroot` Policy Enforcement](#10612-singleversionroot-policy-enforcement)
+    - [10.6.13. Pruning Versions with `singleversionroot` enabled](#10613-pruning-versions-with-singleversionroot-enabled)
+    - [10.6.14. What's the oldest/newest Version of a Resource?](#10614-whats-the-oldestnewest-version-of-a-resource)
+    - [10.6.15. Can `validatecompatibility` and `validateformat` be `true` for file-servers?](#10615-can-validatecompatibility-and-validateformat-be-true-for-file-servers)
+    - [10.6.16. Detecting circular references between Versions](#10616-detecting-circular-references-between-versions)
+    - [10.6.17. Optional required fields in requests](#10617-optional-required-fields-in-requests)
+    - [10.6.18. Deprecation of entities in an xRegistry](#10618-deprecation-of-entities-in-an-xregistry)
+- [11. The `format` attribute in the Schema spec](#11-the-format-attribute-in-the-schema-spec)
+- [12. Problematic characters in attributes](#12-problematic-characters-in-attributes)
+- [13. Why do Resources have 3 levels of data?](#13-why-do-resources-have-3-levels-of-data)
+- [14. Why are some (conditional) read-only attributes not ignored?](#14-why-are-some-conditional-read-only-attributes-not-ignored)
+- [15. Why isn't `PUT` idempotent?](#15-why-isnt-put-idempotent)
+- [16. Defining Extensions](#16-defining-extensions)
+- [17. Validation](#17-validation)
 
 
 ## 3. History
@@ -760,7 +759,7 @@ Additionally, how the implementation of the xRegistry manages
 access-control-rights of Resources (often via Groups) might influence the
 initial placement into a Group of a new Resource.
 
-# Default Version and Maximum Versions
+#### 10.6.1. Default Version and Maximum Versions
 
 Each Resource type can specify the maximum number of Versions that the
 server must save. Once that limit is reached then it must delete Versions
@@ -795,7 +794,7 @@ Let's walk through a complex example:
 - The result is: v8 regardless of whether v8 was created with isdefault=true or
   not
 
-# Potential Extensions
+#### 10.6.2. Potential Extensions
 
 - `createdby`, `modifiedby`<br>
   These are related to the `createdat` and `modifiedat` attributes in that
@@ -808,7 +807,7 @@ Let's walk through a complex example:
   However, if an implementation does track this information, these attributes
   might be of interest.
 
-# Why Epoch?
+#### 10.6.3. Why Epoch?
 
 Why such an unusual name? As the specification describes, `epoch` is used as a
 way to help detect when an entity has been modified. It is very similar to
@@ -827,7 +826,7 @@ they know what it means due to some other usage in this technology space
 seemed unlikely. In fact, use of this word might pique people's curiosity
 and cause them to look it up in the specification to find out more about it.
 
-# Naming and Case Sensitivity
+#### 10.6.4. Naming and Case Sensitivity
 
 The following explains some of the reasoning behind the casing and case
 sensitivity rules in the specification.
@@ -892,7 +891,7 @@ sensitivity rules in the specification.
   All of these concerns are avoided by requiring IDs to be stored and compared
   in case insensitively.
 
-# Why the lower character limit on some Group and Resource type names?
+#### 10.6.5. Why the lower character limit on some Group and Resource type names?
 
 Attribute names and key names are limited to 63 characters, so why are some
 Group and Resource names limited to less? Because when they appear as part of
@@ -902,13 +901,13 @@ we need to take into account the length of those phrases. As a result, both
 Group and Resource type names (both singular and plural) are limited to
 57 characters.
 
-# Why must Group type and Resource type names be valid attribute names?
+#### 10.6.6. Why must Group type and Resource type names be valid attribute names?
 
 Since Group type and Resource type names will appear as attribute names (e.g.
 `<GROUPS>count` and `<RESOURCE>url`), the character set (and length) of their
 names need to be restricted in the same way as a attribute names.
 
-# Choosing unique Group and Resource names
+#### 10.6.7. Choosing unique Group and Resource names
 
 Aside from choosing names that give some descriptive meaning to the purpose
 of these entities, care should be taken when choosing names for entities that
@@ -918,7 +917,7 @@ name collisions with other similarly named entities. This might be useful
 for Resource names too (if they might co-exist under shared Groups), but
 normally ensuring uniqueness at the Group level is sufficient.
 
-# Are `self` and `shortself` attributes static?
+#### 10.6.8. Are `self` and `shortself` attributes static?
 
 In general any URL reference to an entity in the Registry should remain
 static for the lifetime of the entity, otherwise anything persisting that
@@ -935,7 +934,7 @@ values need to change.
 Obviously, situations like these should be rare but the specification needs
 to allow for them.
 
-# Why does an unknown query parameter not generate an error?
+#### 10.6.9. Why does an unknown query parameter not generate an error?
 
 People have identified cases where query parameters might be added to request
 URLs without the client (or developer) having control to prevent it. It might
@@ -948,7 +947,7 @@ worth noting that the specification says they SHOULD be ignored, not that they
 MUST be ignored. So there is room for an implementation to be very picky if
 needed, but at the risk of potentially causing interoperability problems.
 
-# Updating attributes with `ifvalues`
+#### 10.6.10. Updating attributes with `ifvalues`
 
 The `ifvalues` feature might be a new concept for some readers, so a point
 of clarification might be useful. If an attribute is defined with an `ifvalues`
@@ -965,7 +964,7 @@ in the entity in order to be model compliant.
 Likewise, implementations of the server must validate the entire entity
 against the new model, not just a subset of the entity's attributes.
 
-# Multi-root ancestor hierarchies
+#### 10.6.11. Multi-root ancestor hierarchies
 
 The [`ancestor` attribute](./spec.md#ancestor-attribute) is used to build a
 hierarchy of Versions to facilitate compatibility checking when the
@@ -984,7 +983,7 @@ makes the ancestor explicit, and the possible ambiguity of using another
 value such as null which, based on the scenario, could mean "no ancestor" or
 "default to the newest".
 
-# `singleversionroot` Policy Enforcement
+#### 10.6.12. `singleversionroot` Policy Enforcement
 
 Related to the previous discussions concerning the `ancestor` attribute,
 the [Resource Model](./model.md#registry-model) `singleversionroot` attribute
@@ -1017,7 +1016,7 @@ These examples are not meant to be complete. The flexibility of the
 specification allows for model authors to choose the most appropriate value
 for their needs.
 
-# Pruning Versions with `singleversionroot` enabled
+#### 10.6.13. Pruning Versions with `singleversionroot` enabled
 
 There are cases in which the server will need to prune Versions. For
 example, this can happen when attempting to create a new Version that would
@@ -1042,7 +1041,7 @@ creation of a new Version. To resolve this, the user will have to manually
 delete v2 or v3 to allow the server to prune the oldest Version (v1) before
 creating a new Version.
 
-# What's the oldest/newest Version of a Resource?
+#### 10.6.14. What's the oldest/newest Version of a Resource?
 
 The oldest Version of a Resource isn't necessarily the one with the oldest
 `createdat` timestamp, because the `ancestor` attribute takes precedence
@@ -1060,7 +1059,7 @@ Versions exist with the same `createdat` timestamp, those Versions are
 sorted in an descending alphabetical order, and the first is the newest
 Version.
 
-# Can `validatecompatibility` and `validateformat` be `true` for file-servers?
+#### 10.6.15. Can `validatecompatibility` and `validateformat` be `true` for file-servers?
 
 In general, the `validatecompatibility` and `validateformat` attributes are
 meant to enable server-side policy validation. However, they also convey to
@@ -1078,7 +1077,7 @@ not expose this implementation/deployment choice to the end-user. In other
 words, the use of the file-server as a caching service should be transparent
 to their users.
 
-# Detecting circular references between Versions
+#### 10.6.16. Detecting circular references between Versions
 
 The specification mentions that the Version's `ancestor` attribute should not
 be set in such a way as to cause a circular dependency list between Versions.
@@ -1098,7 +1097,7 @@ checking, they may need to add extra logic to ensure they don't go caught in
 an infinite loop. Additionally, implementations should also document that they
 do not enforce this check to set the proper expectation levels for their users.
 
-# Optional required fields in requests
+#### 10.6.17. Optional required fields in requests
 
 One of the design principles of the specification was to try to make each
 object be fully self-describing, within reason. For example, this is why when
@@ -1135,7 +1134,7 @@ messages (aside from when special flags, like the `?doc` flag, is enabled)
 must include all required attributes, even if they are duplicated elsewhere
 in the message.
 
-# Deprecation of entities in an xRegistry
+#### 10.6.18. Deprecation of entities in an xRegistry
 
 The core specification defines a `deprecated` attribute that may appear
 under a Resource's `meta` sub-object. This attribute was added to the Resource
