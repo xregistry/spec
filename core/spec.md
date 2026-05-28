@@ -1677,11 +1677,15 @@ and the following Registry-level attributes:
   - If present, MUST be processed before any other attributes since subsequent
     processing might be impacted by the new capability values. In cases where
     a capability setting influences the processing of this attribute, or
-    of the [`modelsource`](#modelsource-attribute) (e.g.  support for the
-    [`ignore` Flag](#ignore-flag) or
-    [`available.capability`](#available-capability)), the state of those
+    of the [`modelsource`](#modelsource-attribute), the state of those
     particular settings prior to the request MUST be used for the duration
-    of the current request.
+    of the current request. For example:
+    - Support for `ignore=capabilities` would be controlled by
+      the pre-request configuration since, if set, would result in ignoring
+      any `capabilities` attribute in the request.
+    - However, the set of supported `formats` would be controlled by the
+      updated `capabilities` to ensure proper validation of the Registry data
+      prior to completing the request.
 
 - Constraints:
   - MUST NOT be included in API and document views unless requested via the
