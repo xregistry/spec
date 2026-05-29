@@ -7,51 +7,51 @@ verify: spellcheck ticks badhrefs tabcheck errorcheck samplescheck \
 	testpython links website
 
 spellcheck:
-	@echo "Checking for spelling mistakes"
+	@echo "Checking for spelling mistakes:"
 	tools/spellcheck */README.md */spec.md core/*.md \
 		docs/share/README.md */samples/README.md */samples/*/README.md
 	@echo
 
 tabcheck:
-	@echo "Checking for tabs and extra spaces"
+	@echo "Checking for tabs and extra spaces:"
 	tools/tabcheck `find . -name "*.md" -o -name "*.json"`
 	@echo
 
 ticks:
-	@echo "Checking for uneven back-ticks"
+	@echo "Checking for uneven back-ticks:"
 	@(! grep '^[^`]*`[^`]*$$' core/*.md)
 	@echo
 
 badhrefs:
-	@echo "Checking for hrefs that have /#"
+	@echo "Checking for hrefs that have /#:"
 	@(! grep -e '/#' -r --include="*.md")
 	@echo
 
 errorcheck:
-	@echo "Look for unused errors in the specs"
+	@echo "Validating the errors in the specs:"
 	tools/errorcheck core/spec.md core/model.md core/http.md
 	@echo
 
 samplescheck:
-	@echo "Check for too verbose samples"
+	@echo "Check for too verbose samples:"
 	tools/samplescheck */model.json */samples/*json */samples/*/*json
 	@echo
 
 loadpython:
-	@echo Loading python deps
+	@echo "Loading python deps:"
 	@python -m pip install -qq -r tools/requirements.txt
 
 testpython: loadpython
-	@echo Testing our python tools
+	@echo "Testing our python tools:"
 	@pytest tools/
 
 links: loadpython
-	@echo Verifying links in our docs
+	@echo "Verifying links in our docs:"
 	@python tools/verify.py .
 	@echo
 
 models:
-	@echo "Verifying the models are valid"
+	@echo "Verifying the models are valid:"
 	@# Note this will use a local 'xr' if available so that local build/test
 	@# of 'xr' can be done
 	if which xr ; then \
@@ -65,7 +65,7 @@ models:
 	@echo
 
 website:
-	@echo If available, verify the website generation code works too
+	@echo "If available, verify the website generation code works too:"
 	@if test -f `pwd -P`/../xregistry.github.io/tools/buildsite ; then \
 	  XR_SPEC=`pwd -P` `pwd -P`/../xregistry.github.io/tools/buildsite && \
 	    rm -rf xreg ; \
@@ -75,7 +75,7 @@ website:
 	@echo
 
 makeschema: loadpython
-	@echo Rebuilding the schemas...
+	@echo "Rebuilding the schemas..."
 	@python tools/schema-generator.py --type json-schema --schema-id https://xregistry.io/xreg/xregistryspecs/schema-v1/schemas/document-schema.json --output schema/schemas/document-schema.json schema/model.json
 	@python tools/schema-generator.py --type avro-schema --output schema/schemas/document-schema.avsc schema/model.json
 	@python tools/schema-generator.py --type openapi --output schema/schemas/openapi.json schema/model.json

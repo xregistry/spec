@@ -55,7 +55,7 @@ for file in $* ; do
   IFS="!" lines=$(sed -r -n "/$START_PATTERN/,/$END_PATTERN/p" $file | \
     sed -n 's/##* //p')
 
-  [[ "$lines" == "" ]] && echo "No error defined" && continue
+  [[ "$lines" == "" ]] && echo "  - No errors defined" && continue
 
   diff=$(IFS="!" diff <(echo "$lines") <(echo "$lines" | sort) || true)
   if [[ "$diff" != "" ]] ; then

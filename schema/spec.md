@@ -346,6 +346,23 @@ containing 5 schemas.
 }
 ```
 
+There might be cases where all schemas within a schemagroup need to have the
+same `format` value. To enable this, set the schemagroup's `format` value to
+the string that all schemas/Versions within that schemagroup need to use.
+
+Additionally, if desired, a schemagroup-instance level constraint MAY be added:
+
+```yaml
+"constraints": {
+  "schemas.format": {
+    "default": "JsonSchema/draft-07"
+  }
+}
+```
+ 
+This will define a schemagroup-specific default value for the schemas' `format`
+value so clients would not need to specify it manually for each schema.
+
 ### 4.2. Schema Resources
 
 The Resource (`<RESOURCE>`) inside of Schema Groups is named `schema`. The

@@ -557,6 +557,13 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
         "alternative": "<URL>", ?
         "documentation": "<URL>"?
       }, ?
+      "constraints": {
+        "<RESOURCES>.<PATH>": {                # Resource-plural + attr path
+          "default": <VALUE>, ?                # Group specific default
+          "enum": [ <VALUE> * ], ?             # Allowed subset of values
+          "equals": "<PATH>" ?                 # Matching Group attribute path
+        } *
+      }, ?
 
       # Repeat for each Resource type in the Group
       "<RESOURCES>url": "<URL>",                   # e.g. "messagesurl"
@@ -1409,6 +1416,65 @@ of the existing entity. Then the existing entity would be deleted.
     }
     ```
 
+##### `constraints` Attribute
+
+- Type: Map of Resource attributes to be constrained just for this Group.
+
+  This attribute is used to create a set of Group instance specific constraints
+  on the Resources that exist within it. For example, with this mechanism a
+  Group can restrict all Resources within it to only have a subset of the
+  allowed values for a particular attribute. This allows for Group instance
+  specific restrictions without requiring the creating of new Resource types.
+
+  These restrictions are designed to only allow subsetting of the constraints
+  specified by the Resource type model and any Group model
+  [`constraints`](model.md#groupsstringconstraints) defined. They can not be
+  used to extend the allowable values of the attributes being constrained.
+
+  The definition of this map is the same as the Group type
+  [`constraints`](model.md#groupsstringconstraints) attribute.
+
+  Any map key value specified here that is the same as a key value included
+  in the Group type model's [`constraints`](model.md#groupsstringconstraints),
+  is interpreted as a request to further constrain the Resource attribute
+  being referenced. Therefore, the two definitions of the constraints are
+  layered (or merged), per the following rules:
+  - `default` attribute:
+    - If present here, it MUST be a valid value within the effective `enum`
+      values per the above `enum` bullet.
+    - If not present here, but specified at the Group type level, then the
+      value specified at the Group type level, MUST be valid per the effective
+      `enum` values per the above `enum` bullet.
+  - `enum` attribute:
+    - If present here and at the Group type level, then the values here MUST
+      be a subset of the values specified at the Group type level.
+    - If not present here, then any `enum` values specified at the Group type
+      level MUST apply.
+  - `equals` attribute:
+    - If present here and at the Group type level, then the values MUST be
+      the exact same.
+    - If not present here, then any `equals` value specified at the Group type
+      level MUST apply.
+
+- Constraints:
+  - OPTIONAL
+- Examples:
+  ```yaml
+  "constraints": {
+    "schemas.format" : {
+      "default": [ "jsonschema/draft-07" ],
+      "enum": [ "avro/1.9", "jsonschema/draft-07" ],
+      "equals": "format"
+    }
+  }
+  ```
+  The above example mandates that:
+  - All schema Resources within this group have a `format` values that
+    is either `avro/1.9` or `jsonschema/draft-07`. And when not specified,
+    it will default to `jsonschema/draft-07`.
+  - It also ensures that each Resource's `format` attribute is the same as
+    the owning Group's `format` values (if present).
+
 ### Registry Collections
 
 Registry collections (`<GROUPS>`, `<RESOURCES>` and `versions`) that are
@@ -2048,7 +2114,7 @@ The JSON serialization of the capabilities offering map MUST be of the form:
 {
   "<STRING>": {                   # Name of Capability attribute
     "type": "<TYPE>",
-    "enum": [ <VALUE>, * ], ?     # Allowed values for scalars
+    "enum": [ <VALUE> * ], ?      # Allowed values for scalars
     "min": <VALUE>, ?
     "max": <VALUE>, ?
     "documentation": "<URL>", ?
@@ -2554,9 +2620,9 @@ The overall processing of the request message is as follows:
     [`versionmode`](./model.md#groupsstringresourcesstringversionmode) value.
 4.  Process the `meta` sub-object, if present.
 5.  Update [`meta.defaultversionid`](#defaultversionid-attribute) as needed.
-6.  Enforce the [Version format checks](#format-attribute). Including the
-    enforcement of the Resource model's `consistentformat` aspect if set to
-    `true`.
+6.  Enforce the [Version format checks](#format-attribute) and the [Group-level
+    constraints](model.md#groupsstringconstraints). Including the enforcement
+    of the Resource model's `consistentformat` aspect if set to `true`.
 7.  Enforce the [Version compatibility checks](#compatibility-attribute).
 8.  Enforce the [Resource `maxversions`
     constraints](./model.md#groupsstringresourcesstringmaxversions). Note that
@@ -3069,6 +3135,11 @@ information about the management of default Versions.
   - When specified, it MUST be a case-sensitive `true` or `false`.
   - When specified in a request, a value of `null` MUST be interpreted as a
     request to delete the attribute, implicitly setting it to `false`.
+
+Attempts to set this attribute to `true` when the Resource's
+[`setdefaultversionsticky`](./model.md#groupsstringresourcesstringsetdefaultversionsticky)
+model aspect is `false` MUST generate an error
+[`defaultversionsticky_not_allowed`](#defaultversionsticky_not_allowed).
 
 See [`defaultversionid` Attribute](#defaultversionid-attribute) for more
 information on the relationship between these two attributes.
@@ -4281,8 +4352,12 @@ The following rules apply:
 - A value of `request` MUST only be used on APIs that allow the creation of
   only a single new Version. In the case of HTTP, that is the `POST` API
   directed to a Resource. This is because no other operation allows for the
-  creation of a single Version without specifying its `versionid`. Use of this
-  value on an inappropriate API MUST generate an error ([bad_flag](#bad_flag)).
+  creation of a single Version without specifying its `versionid`. Using it
+  when more than one Version is created MUST generate an error
+  ([too_many_versions](#too_many_versions)).  Other uses of this value on an
+  inappropriate API MUST generate an error ([bad_flag](#bad_flag)).
+- If a value of `request` was used but no Version was created for the request,
+  then an error ([defaultversionid_request](#defaultversionid_request)) MUST
   be generated.
 - If a non-`null` and non-`request` value does not reference an existing
   Version of the Resource, after all Version processing is completed, then an
@@ -4307,7 +4382,7 @@ When a request is directed at a collection of Groups, Resources or Versions,
 the `Sort` flag MAY be used to indicate the order in which the entities of
 that collection are to be returned (i.e. sorted). Use of the `sort` flag
 on a non-collection result MUST generate an error
-([sort_noncollection](#sort_noncollection).
+([sort_noncollection](#sort_noncollection)).
 
 This flag MUST include a single parameter, a string containing the attribute
 (`<ATTRIBUTE>`) name to use as the "sort key" plus an OPTIONAL indication of
@@ -4658,6 +4733,15 @@ field is just a substitution value and MUST NOT be empty.
 * Args:
   - `compat`: The Resource's `meta.compatibility` value.
 
+### constraint_failure
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#constraint_failure`
+* Code: `400 Bad Request`
+* Subject: `<resource_xid>`
+* Title: `The request would result in one or more Versions of "<subject>" not being compliant with its owning Group's "equals" constraint for attribute "<path>".`
+* Args:
+  - `path`: The dot (`.`) notion traversal path to the Resource's attribute being constrained.
+
 ### data_retrieval_error
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#data_retrieval_error`
@@ -4665,6 +4749,20 @@ field is just a substitution value and MUST NOT be empty.
 * Subject: `<path>`
 * Title: `The server was unable to retrieve all of the requested data.`
 * Detail: Suggestion: which entity's data was problematic, and why.
+
+### defaultversionid_request
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#defaultversionid_request`
+* Code: `400 Bad Request`
+* Subject: `<resource_xid>`
+* Title: `Processing "<subject>", the "defaultversionid" attribute is not allowed to be "request" since a Version wasn't processed.`
+
+### defaultversionsticky_not_allowed
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#defaultversionsticky_not_allowed`
+* Code: `400 Bad Request`
+* Subject: `<resource_xid>`
+* Title: `Setting "defaultversionsticky" to "true" is not allowed for "<subject>".`
 
 ### extra_xref_attribute
 
@@ -4715,6 +4813,13 @@ field is just a substitution value and MUST NOT be empty.
 * Title: `Attribute "<name>" is invalid. Only Group types are allowed to be specified on this request: <subject>.`
 * Args:
   - `name`: The name of the attribute in question.
+
+### hasdocument_violation
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#hasdocument_violation`
+* Code: `400 Bad Request`
+* Subject: `<version_xid>`
+* Title: `The request would cause Version "<subject>" to be non-compliant. The Resource model has "hasdocument" set to "false" but this Version has document content.`
 
 ### inline_noninlineable
 
@@ -4916,9 +5021,7 @@ something unexpected happened in the server that caused an error condition.
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#setdefaultversionid_not_allowed`
 * Code: `400 Bad Request`
 * Subject: `<resource_xid>`
-* Title: `Processing "<subject>", the "setdefaultversionid" flag is not allowed to be specified for entities of type "<singular>".`
-* Args:
-  - `singular`: The "singular" type name of the offending Resource.
+* Title: `Setting "defaultversionid" is not allowed for "<subject>".`
 
 ### setdefaultversionsticky_false
 
@@ -4941,6 +5044,13 @@ something unexpected happened in the server that caused an error condition.
 * Subject: `<request_path>`
 * Title: `The size of the response is too large to return in a single response.`
 * Detail: Suggestion: list of attributes that are too large.
+
+### too_many_versions
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#too_many_versions`
+* Code: `400 Bad Request`
+* Subject: `<request_path>`
+* Title: `When the "setdefaultversionid" flag is set to "request", only one Version is allowed to be specified in the request message.`
 
 ### unknown_attribute
 
