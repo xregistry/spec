@@ -1383,7 +1383,7 @@ of the existing entity. Then the existing entity would be deleted.
     client is expected to investigate the entity to determine if it is
     appropriate.
 
-  - `docs`<br>
+  - `documentation`<br>
     An OPTIONAL property specifying the URL to additional information about
     the deprecation of the entity. This specification does not mandate any
     particular format or information, however some possibilities include:
@@ -1674,6 +1674,18 @@ and the following Registry-level attributes:
     of the Registry.
   - An explicit value of `null` for this attribute MUST result in resetting the
     capabilities to the server's default values.
+  - If present, MUST be processed before any other attributes since subsequent
+    processing might be impacted by the new capability values. In cases where
+    a capability setting influences the processing of this attribute, or
+    of the [`modelsource`](#modelsource-attribute), the state of those
+    particular settings prior to the request MUST be used for the duration
+    of the current request. For example:
+    - Support for `ignore=capabilities` would be controlled by
+      the pre-request configuration since, if set, would result in ignoring
+      any `capabilities` attribute in the request.
+    - However, the set of supported `formats` would be controlled by the
+      updated `capabilities` to ensure proper validation of the Registry data
+      prior to completing the request.
 
 - Constraints:
   - MUST NOT be included in API and document views unless requested via the
@@ -1716,10 +1728,12 @@ and the following Registry-level attributes:
   - The absence of this attribute MUST result in no changes to the model, or
     modelsource of the Registry.
   - An explicit value of `null`, or an empty JSON object (`{}`), MUST result
-    in all Groups, Resources and extension attributes being removed from the
-    model.
+    in all Groups, Resources and extension Registry-level attributes being
+    removed from the model.
   - If present, the Registry's model MUST be updated prior to any entities
-    being updated.
+    being updated, including the other Registry-level attributes. However,
+    if the [`capabilities` attribute](#capabilities-attribute) is also present,
+    then `capabilities` MUST be processed before `modelsource`.
 
   The serialization of this attribute MUST be semantically equivalent to
   what was used to create the model, but it is NOT REQUIRED to be syntactically
