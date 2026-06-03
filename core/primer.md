@@ -428,7 +428,7 @@ Some xRegistry implementations, including the reference server implementation,
 might choose to provide validation capabilities for well-known formats like
 Apache Avro schema, and even version-to-version compatibility checks. These
 validation capabilities per-se are not defined in the specification, but the
-specification allows the server to provide hints about whether they are
+specification allows the server to provide indicators about whether they are
 available and whether they have been applied. Metadata declared in the models
 allows the server to validate embedded data directly.
 
@@ -470,7 +470,8 @@ kind, possibly just files in a public repo, and want to catalog those with
 xRegistry. Using the `<RESOURCE>url` patterns, all your documents can remain
 in their place. The `format` and `contenttype` information still needs to
 exist in xRegistry so that clients can understand this information before
-trying to resolve the document.
+trying to resolve the document. When a resource is registered with a URL, the
+registry will not resolve it and load the content; that is left to clients.
 
 External links also make it possible to overlay xRegistry on top of a
 completely different registry model, proxy the metadata through an xRegistry
@@ -506,13 +507,13 @@ the client fetches and caches just the branches it needs.
 
 Federation in xRegistry is built on *shadowing*: an application's view is a
 layered combination of registries, where a local registry can override or
-extend entries from an underlying one without modifying it. This lets you keep
-a local copy of selected resources that you can change freely, while still
-referring to the original registry for everything you haven't touched - with
+extend entries from an underlying one without modifying it. This allows keeping
+a local copy of selected resources that can be changed freely, while still
+referring to the original registry for everything that hasn't been touched - with
 no synchronization protocol and no risk of conflicts between different users
 or applications.
 
-If you are just dealing with files, you load files in order and merge the
+When dealing with files, applications load files in order and merge the
 content, with later files taking precedence over earlier ones.
 
 The principle applies uniformly across representations. A file can shadow
