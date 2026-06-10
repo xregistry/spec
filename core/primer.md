@@ -450,7 +450,7 @@ depends on the encoding of the registry metadata.
 
 When a document is embedded, the encoding needs to align with the hosting
 registry document for the [embedded object](spec.md#resource-attribute) variant.
-At present, all examples and implementations use JSON anbd so it might appear
+At present, all examples and implementations use JSON and so it might appear
 that this is a JSON-related feature, but it's very feasible to encode the entire
 registry in Avro binary and there is a formal schema for Avro.
 
@@ -505,13 +505,18 @@ the client fetches and caches just the branches it needs.
 
 #### 8.3.2. Shadowing
 
-Federation in xRegistry is built on *shadowing*: an application's view is a
-layered combination of registries, where a local registry can override or
-extend entries from an underlying one without modifying it. This allows keeping
-a local copy of selected resources that can be changed freely, while still
-referring to the original registry for everything that hasn't been touched - with
-no synchronization protocol and no risk of conflicts between different users
-or applications.
+Federation in xRegistry is intended to be built on *shadowing*: an application's
+view is a layered combination of registries, where a local registry can override
+or extend entries from an underlying one without modifying it. We say "intended"
+because the specification does not define any particular protocol for this, but
+the design of the registry model and API allows for it to be implemented in a
+very natural way.
+
+Layering registries and selective shadowing allows keeping a local copy of
+selected resources that can be changed freely, while still referring to the
+original registry for everything that hasn't been touched - with no
+synchronization protocol and no risk of conflicts between different users or
+applications.
 
 When dealing with files, applications load files in order and merge the
 content, with later files taking precedence over earlier ones.
@@ -520,6 +525,14 @@ The principle applies uniformly across representations. A file can shadow
 another file, a folder can shadow an API server, and an API server can shadow
 another API server. The application always sees the composed result as a
 single registry.
+
+For the xRegistry 1.0 release, composition and shadowing should be considered an
+emerging best practice. Mind that there is potential for conflicts when multiple
+registries are layered where the models are not identical or when resources and
+their versions are merged and constraints are not fully aligned. We believe that
+composition and shadowing is the best approach to federation, but the project
+will need to gain more experience with it in practice before it can be
+formalized.
 
 #### 8.3.3. Identifiers
 
