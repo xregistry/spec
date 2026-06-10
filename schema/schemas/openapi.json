@@ -2291,6 +2291,9 @@
             "format": "date-time",
             "description": "Time of the object modification"
           },
+          "format": {
+            "type": "string"
+          },
           "schemas": {
             "type": "object",
             "additionalProperties": {

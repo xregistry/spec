@@ -139,11 +139,6 @@
               "default": true,
               "description": "Whether client-side setting of versionid is supported"
             },
-            "setdefaultversionsticky": {
-              "type": "boolean",
-              "default": true,
-              "description": "Whether client-side selection of default Version is supported"
-            },
             "hasdocument": {
               "type": "boolean",
               "default": true,

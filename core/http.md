@@ -835,8 +835,7 @@ Content-Type: application/json; charset=utf-8
   "mutable": [ "capabilities", "entities", "model" ],
   "pagination": false,
   "shortself": false,
-  "specversions": [ "1.0-rc2" ],
-  "stickyversions": true
+  "specversions": [ "1.0-rc2" ]
 }
 ```
 
@@ -912,10 +911,6 @@ Content-Type: application/json; charset=utf-8
       "type": "string"
     },
     "enum": [ "1.0-rc2" ]
-  },
-  "stickyversions": {
-    "type": "boolean",
-    "enum": [ true ]
   },
   "versionmodes": {
     "type": "array",
@@ -1007,8 +1002,7 @@ PATCH /capabilities
   "mutable": [ "capabilities", "entities", "model" ],
   "pagination": false,
   "shortself": true,
-  "specversions": [ "1.0-rc2" ],
-  "stickyversions": true
+  "specversions": [ "1.0-rc2" ]
 }
 ```
 

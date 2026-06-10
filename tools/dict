@@ -278,7 +278,6 @@ specversion
 specversions
 src
 ssl
-stickyversions
 storeid
 stringified
 svg

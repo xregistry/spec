@@ -2,7 +2,7 @@
 
 <!-- words: compat validatecompatibility validateformat strictvalidation -->
 <!-- words: matchcase compatibilityvalidated formatvalidated -->
-<!-- words: consistentformat validators stickyversion -->
+<!-- words: validators -->
 
 ## Abstract
 
@@ -139,14 +139,12 @@ The overall format of a model definition is as follows:
           "modelcompatiblewith": "<URI>", ? # Statement of compatibility
           "maxversions": <UINTEGER>, ?   # Num Vers(>=0). Default=0, 0=unlimited
           "setversionid": <BOOLEAN>, ?   # vid settable? Default=true
-          "setdefaultversionsticky": <BOOLEAN>, ? # Sticky settable? Default=true
           "hasdocument": <BOOLEAN>, ?       # Has separate document. Default=true
           "versionmode": "<STRING>", ?      # 'ancestor' processing algorithm
           "singleversionroot": <BOOLEAN>, ? # Enforce single root. Default=false
           "validateformat": <BOOLEAN>, ?    # Do Version format checks. Default=false
           "validatecompatibility": <BOOLEAN>, ? # Do Version compat checks. Default=false
           "strictvalidation": <BOOLEAN>, ?  # Block unknown format/compat. Default=false
-          "consistentformat": <BOOLEAN>, ?  # Same format for all Vers. Default=false
           "typemap": <MAP>, ?               # ContentType mappings
           "attributes": { ... }, ?          # Version attributes/extensions
           "resourceattributes": { ... }, ?  # Resource attributes/extensions
@@ -726,25 +724,6 @@ words, it can not reference an attribute defined by an `ifvalues` clause or a
   a `versionid` is provided then the server MUST generate an error
   ([versionid_not_allowed](./spec.md#versionid_not_allowed)).
 
-### `groups.<STRING>.resources.<STRING>.setdefaultversionsticky`
-- Type: Boolean (`true` or `false`, case-sensitive).
-- OPTIONAL.
-- Indicates whether support for client-side selection of the "default"
-  Version is supported for Resources of this type. Once set, the default
-  Version MUST NOT change unless there is some explicit action by a client
-  to change it - hence the term "sticky".
-- When the server's `stickyversion` capability is `true`, then when this
-  aspect is not specified its default value MUST be `true`. Otherwise,
-  this aspect MUST always have a value of `false`.
-- A value of `true` indicates a client MAY select the default Version of
-  a Resource via one of the methods described in this specification rather
-  than the server always choosing the default Version.
-- A value of `false` indicates the server MUST choose which Version is the
-  default Version.
-- This attribute MUST NOT be `true` if `maxversions` is one (`1`). An attempt
-  to set it to `true` MUST generate an error
-  ([setdefaultversionsticky_false](./spec.md#setdefaultversionsticky_false)).
-
 ### `groups.<STRING>.resources.<STRING>.hasdocument`
 - Type: Boolean (`true` or `false`, case-sensitive).
 - OPTIONAL.
@@ -960,23 +939,6 @@ words, it can not reference an attribute defined by an `ifvalues` clause or a
     `false`.
   - If the Resource's `meta.compatibility` value is unsupported, then
     the Version's `compatibilityvalidated` attribute MUST be set to `false`.
-
-### `groups.<STRING>.resources.<STRING>.consistentformat`
-- Type: Boolean (`true` or `false`, case-sensitive)
-- OPTIONAL
-- Indicates whether all Versions of a Resource of this type are mandated to
-  have the same [`format`](spec.md#format-attribute) value.
-- This attribute's semantics apply regardless of the values of `validateformat`
-  and `validatecompatibility`.
-- When not specified, the default value MUST be `false`.
-- A value of `true` indicates that:
-  - The `format` attribute of all Versions of a Resource of this type MUST
-    have the same case-insensitive value (including the case of `format` being
-    an empty string). If a Version differs then an error
-    ([format_inconsistent](spec.md#format_inconsistent)) MUST be generated.
-- A value of `false` indicates that:
-  - The server MUST NOT check for a consistent (same) `format` value across
-    the Versions of a Resource of this type.
 
 ### `groups.<STRING>.resources.<STRING>.typemap`
 - Type: Map where the keys and values MUST be non-empty strings. The key

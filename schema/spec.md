@@ -253,6 +253,7 @@ this form:
       "createdat": "<TIMESTAMP>",
       "modifiedat": "<TIMESTAMP>",
       "deprecated": { ... }, ?
+      "format": "<STRING>", ?
 
       "schemasurl": "<URL>",                       # Schemas collection
       "schemascount": <UINTEGER>,
@@ -359,7 +360,7 @@ Additionally, if desired, a schemagroup-instance level constraint MAY be added:
   }
 }
 ```
- 
+
 This will define a schemagroup-specific default value for the schemas' `format`
 value so clients would not need to specify it manually for each schema.
 
