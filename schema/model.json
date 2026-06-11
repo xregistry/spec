@@ -7,8 +7,10 @@
       "modelcompatiblewith": "https://xregistry.io/xreg/domains/schema/specs/model.json",
 
       "attributes": {
+        "format": {
+          "type": "string"
+        },
         "*": {
-          "name": "*",
           "type": "any"
         }
       },
@@ -27,7 +29,6 @@
           "validateformat": true,
           "validatecompatibility": true,
           "strictvalidation": false,
-          "consistentformat": true,
           "attributes": {
             "format": {
               "type": "string",

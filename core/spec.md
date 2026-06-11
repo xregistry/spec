@@ -3,7 +3,6 @@
 <!-- words: validatecompatibility validateformat strictvalidation matchcase -->
 <!-- words: compat formatvalidated compatibilityvalidated -->
 <!-- words: compat formatvalidatedreason compatibilityvalidatedreason -->
-<!-- words: consistentformat -->
 
 ## Abstract
 
@@ -447,7 +446,6 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
     "pagination": <BOOLEAN>, ?
     "shortself": <BOOLEAN>, ?
     "specversions": [ "1.0-rc2", "<STRING>"* ], ?
-    "stickyversions": <BOOLEAN>, ?
     "versionmodes": [ "manual", "createdat",? "modifiedat",? "semver",?
       "<STRING>"* ], ?
 
@@ -515,14 +513,12 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "modelcompatiblewith": "<URI>", ?  # Statement of compatibility
             "maxversions": <UINTEGER>, ?  # Num Vers(>=0). Default=0(unlimited)
             "setversionid": <BOOLEAN>, ?  # vid settable? Default=true
-            "setdefaultversionsticky": <BOOLEAN>, ? # sticky settable? Default=true
             "hasdocument": <BOOLEAN>, ?   # Has separate document. Default=true
             "versionmode": "<STRING>", ?  # 'ancestor' processing algorithm
             "singleversionroot": <BOOLEAN>, ? # Default=false"
             "validateformat": <BOOLEAN>, ?    # Check version format compliance. Default=false
             "validatecompatibility": <BOOLEAN>, ? # Check version compatibility. Default=false
             "strictvalidation": <BOOLEAN>, ?  # Block unknown format/compat. Default=false
-            "consistentformat": <BOOLEAN>, ?  # Same format for all Vers. Default=false
             "typemap": <MAP>, ?               # contenttype mappings
             "attributes": { ... }, ?          # Version attributes/extensions
             "resourceattributes": { ... }, ?  # Resource attributes/extensions
@@ -1848,7 +1844,6 @@ The JSON serialization of capabilities map MUST be of the form:
   "pagination": <BOOLEAN>, ?
   "shortself": <BOOLEAN>, ?
   "specversions": [ "<STRING>" ], ?
-  "stickyversions": <BOOLEAN>, ?
   "versionmodes": [ "<STRING>" ], ?
 
   "<STRING>": ... capability configuration ... *   // Extension capabilities
@@ -2041,15 +2036,6 @@ The following defines the specification-defined capabilities:
   - `1.0-rc2`
 - When not specified, the default value MUST be the latest version of this
   specification supported by the server.
-
-#### `stickyversions` Capability
-- Name: `stickyversions`
-- Type: Boolean
-- Description: Indicates whether the server supports clients choosing which
-  Version of a Resource is to be the "default" Version. In other words, this
-  capability indicates whether a request to set a Resource's
-  `setdefaultversionsticky` aspect to `true` is allowed.
-- When not specified, the default value MUST be `true`.
 
 #### Updating the Capabilities of a Server
 
@@ -2261,10 +2247,6 @@ in the serialization of its capabilities offering map.
     "item": {
       "type": "string"
     }
-  },
-  "stickyversions": {
-    "type": "boolean",
-    "enum": [ false, true ]
   },
   "versionmodes": {
     "type": "array",
@@ -2621,8 +2603,7 @@ The overall processing of the request message is as follows:
 4.  Process the `meta` sub-object, if present.
 5.  Update [`meta.defaultversionid`](#defaultversionid-attribute) as needed.
 6.  Enforce the [Version format checks](#format-attribute) and the [Group-level
-    constraints](model.md#groupsstringconstraints). Including the enforcement
-    of the Resource model's `consistentformat` aspect if set to `true`.
+    constraints](model.md#groupsstringconstraints).
 7.  Enforce the [Version compatibility checks](#compatibility-attribute).
 8.  Enforce the [Resource `maxversions`
     constraints](./model.md#groupsstringresourcesstringmaxversions). Note that
@@ -3135,11 +3116,26 @@ information about the management of default Versions.
   - When specified, it MUST be a case-sensitive `true` or `false`.
   - When specified in a request, a value of `null` MUST be interpreted as a
     request to delete the attribute, implicitly setting it to `false`.
+  - When a Resource's `maxversions` is set to `1`, than an attempt to set this
+    this attribute to `true` MUST generate an error
+    ([setdefaultversionsticky_false](#setdefaultversionsticky_false)) since
+    setting a default/sticky Version is unnecessary when there can only be
+    one Version.
 
-Attempts to set this attribute to `true` when the Resource's
-[`setdefaultversionsticky`](./model.md#groupsstringresourcesstringsetdefaultversionsticky)
-model aspect is `false` MUST generate an error
-[`defaultversionsticky_not_allowed`](#defaultversionsticky_not_allowed).
+If a Resource type definition wishes to turn off the ability for clients to
+select the "default" Version (or to set the `defaultversionsticky` attribute to
+`true`), this MAY be done by modifying the definition of this attribute
+in the Resource type's model. For example, in the `metaattributes` section
+use the following definition:
+
+```yaml
+"defaultversionsticky": {
+  "name": "defaultversionsticky",
+  "enum": [ false ],
+  "required": true,
+  "default": false
+}
+```
 
 See [`defaultversionid` Attribute](#defaultversionid-attribute) for more
 information on the relationship between these two attributes.
@@ -3351,9 +3347,7 @@ and the following Version-level attributes:
 Note: an attempt to set this attribute to a value that differs from the other
 Version's values could result in the server rejecting the request due to
 the [`compatibility`](#compatibility-attribute) conformance checks, if
-`validatecompatibility` model attribute is `true`. See
-[`consistentformat`](model.md#groupsstringresourcesstringconsistentformat)
-for additional information.
+`validatecompatibility` model attribute is `true`.
 
 - Examples:
   - `JsonSchema/draft-07`
@@ -3643,9 +3637,7 @@ might be done:
    Version (see below), then the server MUST revert back to option 1
    (default = newest).
 
-If supported (as determined by the [`setdefaultversionsticky`
-aspect](./model.md#groupsstringresourcesstringsetdefaultversionsticky),
-a client MAY choose the "default" Version two ways:
+A client MAY choose the "default" Version two ways:
 1. Via the Resource
    [ `defaultversionsticky`](#defaultversionsticky-attribute) and
    [ `defaultversionid`](#defaultversionid-attribute) attributes
@@ -4369,10 +4361,6 @@ The following rules apply:
 - Use of this flag MUST override any `meta.defaultversionid` and
   `meta.defaultversionsticky` values that are present in the request.
 
-Any use of this flag on a Resource that has the
-`setdefaultversionsticky` aspect set to `false` MUST generate an error
-([setdefaultversionid_not_allowed](#setdefaultversionid_not_allowed)).
-
 Any other invalid usage of this flag MUST generate an error
 ([bad_defaultversionid](#bad_defaultversionid)).
 
@@ -4757,13 +4745,6 @@ field is just a substitution value and MUST NOT be empty.
 * Subject: `<resource_xid>`
 * Title: `Processing "<subject>", the "defaultversionid" attribute is not allowed to be "request" since a Version wasn't processed.`
 
-### defaultversionsticky_not_allowed
-
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#defaultversionsticky_not_allowed`
-* Code: `400 Bad Request`
-* Subject: `<resource_xid>`
-* Title: `Setting "defaultversionsticky" to "true" is not allowed for "<subject>".`
-
 ### extra_xref_attribute
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#extra_xref_attribute`
@@ -4779,13 +4760,6 @@ field is just a substitution value and MUST NOT be empty.
 * Code: `400 Bad Request`
 * Subject: `<version_xid>`
 * Title: `Version "<subject>" references a document stored outside of the Registry, therefore no validation was performed.`
-
-### format_inconsistent
-
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#format_inconsistent`
-* Code: `400 Bad Request`
-* Subject: `<resource_xid>`
-* Title: `One or more Versions of Resource "<subject>" do not have the same "format" value as mandated by their owning Resource model's "consistentformat" attribute being set.`
 
 ### format_unknown
 
@@ -5016,19 +4990,12 @@ something unexpected happened in the server that caused an error condition.
 * Subject: `<request_path>`
 * Title: `An unexpected error occurred, please try again later.`
 
-### setdefaultversionid_not_allowed
-
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#setdefaultversionid_not_allowed`
-* Code: `400 Bad Request`
-* Subject: `<resource_xid>`
-* Title: `Setting "defaultversionid" is not allowed for "<subject>".`
-
 ### setdefaultversionsticky_false
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#setdefaultversionsticky_false`
 * Code: `400 Bad Request`
 * Subject: `<resource_xid>`
-* Title: `The model attribute "setdefaultversionsticky" needs to be "false" since "maxversions" is "1".`
+* Title: `Setting "defaultversionsticky" to "true" is not allowed since "maxversions" is "1".`
 
 ### sort_noncollection
 

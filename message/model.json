@@ -26,7 +26,6 @@
         "messages": {
           "singular": "message",
           "maxversions": 1,
-          "setdefaultversionsticky": false,
           "hasdocument": false,
           "modelversion": "1.0-rc2",
           "modelcompatiblewith": "https://xregistry.io/xreg/domains/message/specs/model.json",

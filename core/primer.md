@@ -982,27 +982,6 @@ Version should be driven by whether the use cases being supported by the
 Resource type definition requires that attribute to be consistent across all
 Versions or have a Version-specific value.
 
-## Why are some (conditional) read-only attributes not ignored?
-
-Attributes that are always defined as "read-only" normally have semantics such
-that attempts to update them are silently ignored. This is especially useful
-for attributes that might change over time so that clients do not need to
-either ensure they have the latest value, or remove them from an update
-request.
-
-However, there are times when trying to update a read-only attribute must
-generate an error. This will happen when the attribute might be read-only based
-on the configuration of the owning entity, in which case it is important for
-clients to know that updating this particular instance of this
-"sometimes read-only" attribute failed. So, while it may seem inconsistent,
-the risk of clients assuming a non-error response meant the request was fully
-adhere to was considered more important.
-
-For example, if a Resource is defined with the `setdefaultversionsticky`
-aspect set to `false` then the `meta.defaultversionid` attribute of instances
-of that Resource becomes "read-only". And any attempt to update it will result
-in an error being generated.
-
 ## Why isn't `PUT` idempotent?
 
 As stated in the [core](./spec.md) specification, the `PUT` operations are
