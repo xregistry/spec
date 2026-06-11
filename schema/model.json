@@ -13,6 +13,12 @@
         }
       },
 
+      "constraints": {
+        "schemas.format": {
+          "equals": "format"
+        }
+      },
+
       "resources": {
         "schemas": {
           "singular": "schema",

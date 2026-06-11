@@ -301,6 +301,12 @@ following:
     if there are entities that need to be removed.
   - The processing of each individual entity in the map MUST follow the same
     rules as defined for `PUT` above.
+  - In the case of an empty map of Versions and the Resource being referenced
+    does not exist yet, an error ([missing_versions](#missing_versions)) MUST
+    be generated because a Resource can not exist without any Versions. If
+    the intent was to create a Resource with a Version that has just default
+    values, then there are other APIs that can be used that make that intent
+    clear (e.g. `PUT` to the Resource itself).
 
 The processing of each individual entity follows the same set of rules:
 - If an entity with the specified `<SINGULAR>id` already exists then it MUST be
@@ -596,8 +602,9 @@ Where:
   changes to those values.
 - For both the `PATCH` and `PUT` cases, if present, the `modelsource` attribute
   MUST be a complete replacement representation of the model definition. A
-  value of `null` MUST reset the model to the server's default value.
-  See [Creating or Updating the Registry
+  value of `null` or `{}` MUST reset the model to the server's default value
+  (no Groups, Resources, extension attributes or custom specification-defined
+  attributes).  See [Creating or Updating the Registry
   Model](./model.md#creating-or-updating-the-registry-model) for more
   information.
 - When the `capabilities` attribute is present and `PATCH` is used then only
@@ -1041,6 +1048,9 @@ A server MAY support clients retrieving the client-provided
 [model definition](./model.md#registry-model) used to define the current
 model via an HTTP `GET` directed to the stand-alone `modelsource` entity.
 
+In cases where the Registry's model has never been specified via `modelsource`,
+this operation MUST return `{}` not an empty HTTP body.
+
 The request MUST be of the form:
 
 ```yaml
@@ -1079,6 +1089,10 @@ Content-Type: application/json; charset=utf-8
 To update the `modelsource` as part of a request to update the
 [Registry entity](./spec.md#registry-entity), you can include the attribute
 as part of the [`PUT /`](#patch-and-put-) request.
+
+Note: the HTTP body MUST be a JSON object and an empty request MUST generate
+an error ([missing_body](#missing_body)). To denote an empty model `{}` SHOULD
+be used instead.
 
 ### Group Entity
 
@@ -3276,6 +3290,13 @@ starting with `/`. E.g. `/export` if the "export" feature is not supported.
 * Type: `https://github.com/xregistry/spec/blob/main/core/http.md#missing_body`
 * Code: `400 Bad Request`
 * Title: `The request is missing an HTTP body - try '{}'.`
+* Subject: `<request_path>`
+
+#### missing_versions
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/http.md#missing_versions`
+* Code: `400 Bad Request`
+* Title: `At least one Version needs to be included in the request to process "<subject>".`
 * Subject: `<request_path>`
 
 <!-- end-err-def -->

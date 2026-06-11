@@ -2,7 +2,7 @@
 
 <!-- words: compat validatecompatibility validateformat strictvalidation -->
 <!-- words: matchcase compatibilityvalidated formatvalidated -->
-<!-- words: consistentformat validators -->
+<!-- words: consistentformat validators stickyversion -->
 
 ## Abstract
 
@@ -118,6 +118,14 @@ The overall format of a model definition is as follows:
       "modelcompatiblewith": "<URI>", ?  # Statement of compatibility
       "attributes": { ... }, ?           # See "attributes" above
       "ximportresources": [ "<XIDTYPE>", * ], ?   # Include these Resources
+
+      "constraints": {
+        "<RESOURCES>.<PATH>": {          # Resource-plural + attribute path
+          "default": <VALUE>, ?          # Group specific default
+          "enum": [ <VALUE> * ], ?       # Allowed subset of values
+          "equals": "<PATH>" ?           # Matching Group attribute path
+        } *
+      }, ?
 
       "resources": {
         "<STRING>": {                    # Key=plural name, e.g. "messages"
@@ -539,6 +547,97 @@ The following describes the attributes of the Registry model:
 - See [Reuse of Resource Definitions](#reuse-of-resource-definitions) for
   more information.
 
+### `groups.<STRING>.constraints`
+
+The `constraints` map defines a set of rules that can be used to govern
+the attribute values in Resources that are added to instances of the Group
+type being defined.
+
+These constraints MUST be applied to all instances of this Group type. Group
+instances MAY choose to add additional entries, or further restrict the ones
+defined here, via use of the Group instance's
+[`constraints` attribute](./spec.md#constraints-attribute).
+
+The constraints MUST be applied to all Versions of all Resources in the Group
+instances, and generate an error
+([constraint_failure](./spec.md#constraint_failure)) if a violation is
+detected.
+
+When possible these constraints are best described when defining the Resource
+attributes in question, rather than here. However, there are cases where this
+might not be possible, such as when Resources are added to a Group type via the
+`ximportresources` feature or defining a relationship between Group and
+Resource attributes - such is the case for the `equals` constraint defined
+below.
+
+Inclusion of a Resource in a Group instance via the
+[`meta.xref`](./spec.md#cross-referencing-resources) mechanism introduces
+some special considerations. The following describes the how the aspects of
+a constraint are applied to such xref'd Resources:
+- The `enum` and `equals` constraints, if specified, MUST be adhered to by the
+  Resource. Note that this includes changes to the Resource in its original
+  location that would then violate any of the Groups' constraints that xref
+  that Resource.
+- The `default` values specified MUST NOT be applied to the Resource since
+  its presence in the Group is just a "reference" (or "read-only"). Write
+  operations on the Resource need to be done in its original location.
+
+### `groups.<STRING>.constraints.<RESOURCES>.<PATH>`
+
+This map key MUST reference the Resource attribute that is to be constrained.
+It MUST reference a scalar attribute (top-level, or nested within object or
+map, but MUST NOT reference items in arrays). It MUST only reference
+statically-defined attributes, not ones that are dynamically added via an
+`ifvalues` clause or via a `*` extension definition.
+
+The `<RESOURCES>` portion of the map key MUST be the plural name of the
+Resource type being referenced.
+
+The `<PATH>` portion of the map key MUST be a dot (`.`) notional traversal to
+the Resource attribute being constrained.
+
+### `groups.<STRING>.constraints.<RESOURCES>.<PATH>.default`
+
+This attribute defines the default value that MUST be used for the referenced
+Resource attribute. This MUST override any default value specified in the
+model for that attribute. See the
+[attribute `default` aspect](#attributesstringdefault) for additional
+information concerning default value processing, as they apply here as well
+with one exception: adding a default value here does not mandate that the
+referenced Resource attribute's `required` attribute be set to `true`.
+However, it would have the same net effect at runtime because a value would
+always be defined for that attribute.
+
+### `groups.<STRING>.constraints.<RESOURCES>.<PATH>.enum`
+
+This attribute defines the set of values that the referenced Resource attribute
+MUST be restricted to. The list's values MUST be valid per the Resource
+attribute's model definition (e.g. a proper subset of any `enum` defined, and
+of the same type). The list MUST NOT be empty.
+
+### `groups.<STRING>.constraints.<RESOURCES>.<PATH>.equals`
+
+Use of this attribute within a constraint MAY be used to ensure that all
+Resource instances within a Group instance have the same value for the
+specified attribute in all of their Versions.
+
+When present, this attribute MUST contain the dot (`.`) notation path in the
+Group instance that the referenced Resource attribute MUST match. If the two
+attributes exist and do not match then an error
+([constraint_failure](./spec.md#constraint_failure)) MUST be generated.
+
+If the referenced Group attribute does not exist, then the `equals` constraint
+enforcement for the Resource attribute MUST be silently ignored.
+
+If, after any potential `default` processing logic is performed, the Resource
+attribute (in any of its Versions) does not exist but the Group attribute does
+exist, then an error ([constraint_failure](./spec.md#constraint_failure)) MUST
+be generated.
+
+This attribute MUST reference a statically defined Group attribute. In other
+words, it can not reference an attribute defined by an `ifvalues` clause or a
+`*` extension definition.
+
 ### `groups.<STRING>.resources`
 - Type: Map where the key MUST be the plural name (`groups.resources.plural`)
   of the Resource type (`<RESOURCES>`).
@@ -634,18 +733,17 @@ The following describes the attributes of the Registry model:
   Version is supported for Resources of this type. Once set, the default
   Version MUST NOT change unless there is some explicit action by a client
   to change it - hence the term "sticky".
-- When not specified, the default value MUST be `true`.
+- When the server's `stickyversion` capability is `true`, then when this
+  aspect is not specified its default value MUST be `true`. Otherwise,
+  this aspect MUST always have a value of `false`.
 - A value of `true` indicates a client MAY select the default Version of
   a Resource via one of the methods described in this specification rather
   than the server always choosing the default Version.
 - A value of `false` indicates the server MUST choose which Version is the
   default Version.
-- An attempt to set the `defaultversionid` attribute when this aspect is
-  `false` MUST generate an error
-  ([setdefaultversionid_not_allowed](spec.md#setdefaultversionid_not_allowed)).
 - This attribute MUST NOT be `true` if `maxversions` is one (`1`). An attempt
-  to set it to `false` MUST generate an error
-  ([setdefaultversionsticky_false](./spec.md#setdefaultversionsticky_false).
+  to set it to `true` MUST generate an error
+  ([setdefaultversionsticky_false](./spec.md#setdefaultversionsticky_false)).
 
 ### `groups.<STRING>.resources.<STRING>.hasdocument`
 - Type: Boolean (`true` or `false`, case-sensitive).
@@ -658,6 +756,10 @@ The following describes the attributes of the Registry model:
   A value of `true` does not mean that these Resources are guaranteed to
   have a non-empty document, and a query to the Resource MAY return an
   empty document.
+
+  Attempts to change this value from `true` to `false` when there are existing
+  Versions with domain-specific documents MUST generate an error
+  ([hasdocument_violation](./spec.md#hasdocument_violation)).
 
   See
   [Document Resources vs Metadata-Only Resources](./spec.md#document-resources-vs-metadata-only-resources)
@@ -1086,6 +1188,8 @@ with respect to how models are defined or updated:
   aspect changed to `false`.
 - Specification-defined attributes that are `readonly` MUST NOT have this
   aspect changed to `false`.
+- Specification-defined attributes that define a `default` value MUST always
+  include a `default` value in its definition.
 
 Any specification attributes not included in a request to define, or update,
 a model MUST be included in the resulting full model. In other words, the full
