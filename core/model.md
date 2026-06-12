@@ -2,7 +2,7 @@
 
 <!-- words: compat validatecompatibility validateformat strictvalidation -->
 <!-- words: matchcase compatibilityvalidated formatvalidated -->
-<!-- words: validators -->
+<!-- words: validators matchversions -->
 
 ## Abstract
 
@@ -84,6 +84,7 @@ The overall format of a model definition is as follows:
       "enum": [ <VALUE> * ], ?         # Array of scalars of type "<TYPE>"
       "strict": <BOOLEAN>, ?           # Just "enum" values or not. Default=true
       "matchcase": <BOOLEAN>, ?        # Strings case-sensitive? Default=false
+      "matchversions": <BOOLEAN>, ?    # Same for all Versions? Default=false
       "readonly": <BOOLEAN>, ?         # From client's POV. Default=false
       "immutable": <BOOLEAN>, ?        # Once set, can't change. Default=false
       "required": <BOOLEAN>, ?         # Default=false
@@ -122,7 +123,7 @@ The overall format of a model definition is as follows:
       "constraints": {
         "<RESOURCES>.<PATH>": {          # Resource-plural + attribute path
           "default": <VALUE>, ?          # Group specific default
-          "enum": [ <VALUE> * ], ?       # Allowed subset of values
+          "enum": [ <VALUE> + ], ?       # Allowed subset of values
           "equals": "<PATH>" ?           # Matching Group attribute path
         } *
       }, ?
@@ -324,8 +325,28 @@ The following describes the attributes of the Registry model:
 - OPTIONAL.
 - Indicates whether the `string` attribute's value MUST be compared with
   a matching value in a case-sensitive way, or not.
-- This attribute MUST NOT be `true` if the owning attribute's `type` (or
+- This aspect MUST NOT be `true` if the owning attribute's `type` (or
   `item.type` for non-scalars) is not `"string"`.
+- When not specified, the default value MUST be `false`.
+
+### `attributes.<STRING>.matchversions`
+- Type: Boolean.
+- OPTIONAL.
+- Indicates whether all Versions of a Resource instance MUST have the same
+  value for this attribute (or MUST be missing from all Versions). If an
+  inconsistency is found then an error
+  ([mismatched_version_attribute](spec.md#mismatched_version_attribute)) MUST
+  be generated.
+- This aspect MUST only be `true` for attribute definitions that:
+  - Are within a [Resource type's versioned
+    attributes](#groupsstringresourcesstringattributes) section.
+  - Are for scalar typed attributes.
+  - Are statically defined. Meaning, not defined as part of a `ifvalues` clause
+    or via a `*` extension definition
+  - Are not defined within an array or map. Within an object is allowed.
+- In the case of the attribute type being a `string`, the comparison MUST take
+  into account the [matchcase](#attributesstringmatchcase) aspect of the
+  attribute.
 - When not specified, the default value MUST be `false`.
 
 ### `attributes.<STRING>.readonly`
@@ -402,6 +423,9 @@ The following describes the attributes of the Registry model:
   default value MUST only apply to new, or subsequent updates (when set to
   `null`, which would reset it to the current default value) of existing,
   instances of the attribute.
+- If the attribute is defined to have an `enum` list, and its `strict` aspect
+  is `true`, then if a `default` value is specified it MUST be one of those
+  `enum` values.
 
 ### `attributes.<STRING>.attributes`
 - Type: Object, see `attributes` above.
@@ -583,8 +607,8 @@ a constraint are applied to such xref'd Resources:
 ### `groups.<STRING>.constraints.<RESOURCES>.<PATH>`
 
 This map key MUST reference the Resource attribute that is to be constrained.
-It MUST reference a scalar attribute (top-level, or nested within object or
-map, but MUST NOT reference items in arrays). It MUST only reference
+It MUST reference a scalar attribute (top-level, or nested within objects) but
+but MUST NOT reference items in arrays or maps). It MUST only reference
 statically-defined attributes, not ones that are dynamically added via an
 `ifvalues` clause or via a `*` extension definition.
 
@@ -596,33 +620,48 @@ the Resource attribute being constrained.
 
 ### `groups.<STRING>.constraints.<RESOURCES>.<PATH>.default`
 
-This attribute defines the default value that MUST be used for the referenced
+This aspect defines the default value that MUST be used for the referenced
 Resource attribute. This MUST override any default value specified in the
 model for that attribute. See the
 [attribute `default` aspect](#attributesstringdefault) for additional
 information concerning default value processing, as they apply here as well
 with one exception: adding a default value here does not mandate that the
-referenced Resource attribute's `required` attribute be set to `true`.
+referenced Resource attribute's `required` aspect be set to `true`.
 However, it would have the same net effect at runtime because a value would
 always be defined for that attribute.
 
+Note, if the constraint does not define a new `enum` set, but a `default` value
+is defined, then if the referenced attribute has an `enum` set and has its
+`strict` aspect set to `true` then this `default` value MUST be one of those
+`enum` values.
+
 ### `groups.<STRING>.constraints.<RESOURCES>.<PATH>.enum`
 
-This attribute defines the set of values that the referenced Resource attribute
-MUST be restricted to. The list's values MUST be valid per the Resource
-attribute's model definition (e.g. a proper subset of any `enum` defined, and
-of the same type). The list MUST NOT be empty.
+This aspect defines the set of values that the referenced Resource attribute
+MUST be restricted to regardless of whether the Resource's
+[`strict`](#attributesstringstrict) attribute is set to `true` or not. The
+list's values MUST be valid per the Resource attribute's model definition
+(e.g. a proper subset of any `enum` defined if the Resource's `enum` is
+[`strict`](#attributesstringstrict), and of the same type).
+
+As with the [`enum` attribute](#attributesstringenum) defined for attributes,
+an empty `enum` list in a constraints MUST be treated the same as no `enum`
+aspect at all and no further constraints on the allowable attribute values are
+applied beyond what the attribute itself defines.
+
+If an `enum` set is defined, but a `default` values is not, then any `default`
+value specified in the attribute itself MUST be part of the `enum` set.
 
 ### `groups.<STRING>.constraints.<RESOURCES>.<PATH>.equals`
 
-Use of this attribute within a constraint MAY be used to ensure that all
+Use of this aspect within a constraint MAY be used to ensure that all
 Resource instances within a Group instance have the same value for the
 specified attribute in all of their Versions.
 
-When present, this attribute MUST contain the dot (`.`) notation path in the
-Group instance that the referenced Resource attribute MUST match. If the two
-attributes exist and do not match then an error
-([constraint_failure](./spec.md#constraint_failure)) MUST be generated.
+When present, this aspect MUST contain the dot (`.`) notation path in the
+Group instance that the referenced Resource attribute MUST match. In the
+case of the attribute type being a `string`, the comparison MUST take into
+account the [matchcase](#attributesstringmatchcase) aspect of the attribute.
 
 If the referenced Group attribute does not exist, then the `equals` constraint
 enforcement for the Resource attribute MUST be silently ignored.
@@ -634,7 +673,11 @@ be generated.
 
 This attribute MUST reference a statically defined Group attribute. In other
 words, it can not reference an attribute defined by an `ifvalues` clause or a
-`*` extension definition.
+`*` extension definition. Nor can it reference an attribute within an array.
+
+Note that if a Resource type's versioned attribute has a `matchversions` aspect
+set to `false`, then this feature will have the same net affect as
+`matchversions` for that attribute being `true`.
 
 ### `groups.<STRING>.resources`
 - Type: Map where the key MUST be the plural name (`groups.resources.plural`)
@@ -709,6 +752,13 @@ words, it can not reference an attribute defined by an `ifvalues` clause or a
   A special case for the pruning rules is that if `maxversions` is set to
   one (1), then the "default" Version is not skipped, which means it will be
   deleted and the new Version will become "default".
+- An attempt to change `maxversions` to `1` when there are existing Resource
+  instances that have their `defaultversionsticky` attribute set to `true` MUST
+  generate an error
+  ([setdefaultversionsticky_false](spec.md#setdefaultversionsticky_false)).
+  See
+  [`defaultversionsticky` Attribute](spec.md#defaultversionsticky-attribute)
+  for additional information.
 
 ### `groups.<STRING>.resources.<STRING>.setversionid`
 - Type: Boolean (`true` or `false`, case-sensitive).
