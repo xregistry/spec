@@ -859,7 +859,7 @@ words, it can not reference an attribute defined by an `ifvalues` clause or a
   the permissible values of this aspect.
 - See the
   [`singleversionroot` Policy
-  Enforcement](./primer.md#singleversionroot-policy-enforcement) section of
+  Enforcement](./primer.md#10712-singleversionroot-policy-enforcement) section of
   the Primer for more information.
 
 ### `groups.<STRING>.resources.<STRING>.validateformat`
