@@ -442,6 +442,34 @@ variable or structure property names - they're usually just stored as
 - how MIGHT someone implement multi-tenancy with xRegistry
   - and layers of xRegistries to get multi-level grouping ??
 
+### Group organization
+
+Groups are intentionally a single organizational dimension above Resources:
+the model is always Registry → Group → Resource → Version, and Groups
+themselves do not contain other Groups. This is a deliberate design choice.
+Allowing arbitrary nesting of Groups would significantly complicate the
+model, the URL space, traversal and filter semantics, access-control
+reasoning, and tooling, without adding expressive power that cannot be
+achieved by other means.
+
+Where a hierarchical organization is useful, xRegistry instead relies on
+dot-notation in Group identifiers. Because Group IDs may contain dots, an
+identifier like `Contoso.ERP.Orders` naturally expresses a logical
+hierarchy (`Contoso` → `ERP` → `Orders`) while keeping the underlying
+collection flat. This gives implementers and users the readability and
+grouping behavior of a hierarchy — including prefix-based filtering — without
+the structural complexity of nested containers.
+
+The second, orthogonal organizational tool is `labels`. Labels are
+free-form name/value pairs that can be attached to Registries, Groups,
+Resources, Meta entities, and Versions, and they allow entities to be
+classified along as many independent axes as needed (for example
+`stage=dev`, `team=payments`, `tier=gold`). Server implementations may,
+and are encouraged to, support filtering and lookup by labels (see the
+filter examples in the core spec), which makes labels a powerful
+complement to the single Group dimension for cross-cutting discovery
+scenarios that a strict hierarchy could not express.
+
 ### Deleting entities
 
 The "delete" operation typically has two variants:
