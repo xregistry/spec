@@ -48,6 +48,7 @@ configendpoints
 connectionproperties
 consumergroup
 consumerrecord
+contentmedia
 contenttype
 contoso
 createdat
@@ -81,6 +82,8 @@ dirs
 dirscount
 discount
 distributionmode
+dns
+embeddings
 emoji
 endpointid
 endpointscount
@@ -213,8 +216,10 @@ noninlineable
 npm
 oauth
 oci
+oldestnewest
 openapi
 openid
+passthrough
 pdf
 placeholders
 png
@@ -232,6 +237,7 @@ readonly
 redis
 registryid
 replytopic
+repo
 repos
 resourceattributes
 resourceid
@@ -239,11 +245,13 @@ resourcescount
 resourcesurl
 resourceuri
 resourceurl
+resourceversionid
 resultset
 rfc
 rid
 robovac
 rpc
+schemacontenttype
 schemagroup
 schemagroupid
 schemagroups
@@ -262,6 +270,7 @@ serverrequired
 setdefaultversionid
 setdefaultversionsticky
 setversionid
+sharedreferenced
 sharedschema
 shortself
 shorturl
@@ -354,6 +363,7 @@ xregistry
 xregistryspecs
 xregsample
 xregurlmapping
+xrproxy
 xsd
 xy
 yaml
