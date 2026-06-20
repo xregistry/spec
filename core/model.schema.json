@@ -83,6 +83,25 @@
               },
               "description": "Include these Resources"
             },
+            "constraints": {
+              "type": "object",
+              "properties": {
+                "default": {
+                  "type": [ "string", "number", "integer", "boolean" ]
+                },
+                "enum": {
+                  "type": "array",
+                  "items": {
+                    "type": [ "string", "number", "integer", "boolean" ]
+                  },
+                  "minItems": 1
+                },
+                "equals": {
+                  "type": "string"
+                }
+              }
+              "description": "Group level constraints over resources"
+            }
             "resources": {
               "type": "object",
               "description": "Resource types within this group",
@@ -309,6 +328,11 @@
           "type": "boolean",
           "default": false,
           "description": "Whether string value comparisons are case-sensitive"
+        },
+        "matchversions": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether attribute must be the same across all versions"
         },
         "readonly": {
           "type": "boolean",

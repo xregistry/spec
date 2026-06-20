@@ -3,6 +3,7 @@
 <!-- words: validatecompatibility validateformat strictvalidation matchcase -->
 <!-- words: compat formatvalidated compatibilityvalidated -->
 <!-- words: compat formatvalidatedreason compatibilityvalidatedreason -->
+<!-- words: matchversions -->
 
 ## Abstract
 
@@ -466,6 +467,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
         "enum": [ <VALUE> * ], ?        # Array of scalars of type `"type"`
         "strict": <BOOLEAN>, ?          # Just "enum" values? Default=true
         "matchcase": <BOOLEAN>, ?       # Strings case-sensitive? Def=false
+        "matchversions": <BOOLEAN>, ?   # Same for all Versions? Def=false
         "readonly": <BOOLEAN>, ?        # From client's POV. Default=false
         "immutable": <BOOLEAN>, ?       # Once set, can't change. Default=false
         "required": <BOOLEAN>, ?        # Default=false
@@ -556,7 +558,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       "constraints": {
         "<RESOURCES>.<PATH>": {                # Resource-plural + attr path
           "default": <VALUE>, ?                # Group specific default
-          "enum": [ <VALUE> * ], ?             # Allowed subset of values
+          "enum": [ <VALUE> + ], ?             # Allowed subset of values
           "equals": "<PATH>" ?                 # Matching Group attribute path
         } *
       }, ?
@@ -1437,10 +1439,10 @@ of the existing entity. Then the existing entity would be deleted.
   layered (or merged), per the following rules:
   - `default` attribute:
     - If present here, it MUST be a valid value within the effective `enum`
-      values per the above `enum` bullet.
+      values per the `enum` bullet below.
     - If not present here, but specified at the Group type level, then the
       value specified at the Group type level, MUST be valid per the effective
-      `enum` values per the above `enum` bullet.
+      `enum` values per the `enum` bullet below.
   - `enum` attribute:
     - If present here and at the Group type level, then the values here MUST
       be a subset of the values specified at the Group type level.
@@ -2602,10 +2604,12 @@ The overall processing of the request message is as follows:
     [`versionmode`](./model.md#groupsstringresourcesstringversionmode) value.
 4.  Process the `meta` sub-object, if present.
 5.  Update [`meta.defaultversionid`](#defaultversionid-attribute) as needed.
-6.  Enforce the [Version format checks](#format-attribute) and the [Group-level
-    constraints](model.md#groupsstringconstraints).
-7.  Enforce the [Version compatibility checks](#compatibility-attribute).
-8.  Enforce the [Resource `maxversions`
+6.  Enforce the [Version format checks](#format-attribute).
+7.  Enforce the [Group-level constraints](model.md#groupsstringconstraints).
+8.  Enforce the [Resource `matchversions`
+    checks](model.md#attributesstringmatchversions).
+9.  Enforce the [Version compatibility checks](#compatibility-attribute).
+10. Enforce the [Resource `maxversions`
     constraints](./model.md#groupsstringresourcesstringmaxversions). Note that
     this might require updating the [`ancestor` values](#ancestor-attribute)
     again after some Versions have been deleted.
@@ -3116,7 +3120,7 @@ information about the management of default Versions.
   - When specified, it MUST be a case-sensitive `true` or `false`.
   - When specified in a request, a value of `null` MUST be interpreted as a
     request to delete the attribute, implicitly setting it to `false`.
-  - When a Resource's `maxversions` is set to `1`, than an attempt to set this
+  - When a Resource type's `maxversions` is set to `1`, any attempt to set this
     this attribute to `true` MUST generate an error
     ([setdefaultversionsticky_false](#setdefaultversionsticky_false)) since
     setting a default/sticky Version is unnecessary when there can only be
@@ -3136,6 +3140,10 @@ use the following definition:
   "default": false
 }
 ```
+
+Likewise, forcing all Resource instances to have "sticky" Versions MAY be
+achieved via the same mechanism but using `true` instead of `false` in the
+`enum` and `default` aspects.
 
 See [`defaultversionid` Attribute](#defaultversionid-attribute) for more
 information on the relationship between these two attributes.
@@ -4864,6 +4872,15 @@ field is just a substitution value and MUST NOT be empty.
   - `singular`: The "singular" name of the model entity being processed.
   - `invalid_id`: The ID values specified in the request.
   - `expected_id`: The ID that was supposed to be used instead.
+
+### mismatched_version_attribute
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#mismatched_version_attribute`
+* Code: `400 Bad Request`
+* Subject: `<resource_xid>`
+* Title: `The request would cause the "<name>" attribute across the Versions of "<subject>" to be different.`
+* Args:
+  - `name`: The dot (`.`) notation path to the attribute causing the violation.
 
 ### misplaced_epoch
 

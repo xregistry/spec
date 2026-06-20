@@ -1,7 +1,7 @@
 # xRegistry Primer
 
 <!-- words: validatecompatibility validateformat strickvalidation -->
-<!-- words: strictvalidation -->
+<!-- words: strictvalidation matchversions -->
 
 <!-- no verify-specs -->
 
@@ -1309,3 +1309,12 @@ This is being called out because for light-weight server implementations that
 do not support validation checks, a user might define a Resource type with
 those aspects enabled without realizing they're defining a potentially
 unusable Resource type - if clients use the `format` attribute.
+
+## Constraints and MatchVersions Features
+
+These features limit the validation of attributes down to simple attributes
+(scalars in objects). Supporting attributes that are more complex, for example
+within maps, arrays, `ifvalues` clauses or `*` extensions, might be possible
+but the decision to limit it was made to ensure broad support across as many
+possible implementation choices as possible, while also keeping the code
+complexity burden to a minimum.

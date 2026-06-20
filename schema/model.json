@@ -32,7 +32,8 @@
           "attributes": {
             "format": {
               "type": "string",
-              "required": true
+              "required": true,
+              "matchversions": true
             },
             "*": {
               "name": "*",
