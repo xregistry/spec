@@ -3,7 +3,7 @@
   "groups": {
     "schemagroups": {
       "singular": "schemagroup",
-      "modelversion": "1.0-rc2",
+      "modelversion": "1.0-rc3",
       "modelcompatiblewith": "https://xregistry.io/xreg/domains/schema/specs/model.json",
 
       "attributes": {
@@ -24,7 +24,7 @@
       "resources": {
         "schemas": {
           "singular": "schema",
-          "modelversion": "1.0-rc2",
+          "modelversion": "1.0-rc3",
           "modelcompatiblewith": "https://xregistry.io/xreg/domains/schema/specs/model.json",
           "validateformat": true,
           "validatecompatibility": true,
