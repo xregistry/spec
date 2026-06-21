@@ -1,4 +1,4 @@
-# Endpoint Registry Service - Version 1.0-rc2
+# Endpoint Registry Service - Version 1.0-rc3
 
 ## Abstract
 

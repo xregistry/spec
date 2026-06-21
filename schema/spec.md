@@ -1,4 +1,4 @@
-# Schema Registry Service - Version 1.0-rc2
+# Schema Registry Service - Version 1.0-rc3
 
 <!-- words: formatvalidated compatibilityvalidated -->
 <!-- words: formatvalidatedreason compatibilityvalidatedreason -->
@@ -11,28 +11,27 @@ allows for the storage, management and discovery of schema documents.
 
 ## Table of Contents
 
-- [Schema Registry Service - Version 1.0-rc2](#schema-registry-service---version-10-rc2)
-  - [Abstract](#abstract)
-  - [Table of Contents](#table-of-contents)
-  - [1. Overview](#1-overview)
-    - [1.1. Schemas](#11-schemas)
-    - [1.2. Schema References](#12-schema-references)
-    - [1.3. Versioning](#13-versioning)
-    - [1.4. Document Store](#14-document-store)
-  - [2. Notations and Terminology](#2-notations-and-terminology)
-    - [2.1. Notational Conventions](#21-notational-conventions)
-    - [2.2. Terminology](#22-terminology)
-      - [2.2.1. Schema](#221-schema)
-    - [2.3. Schema Group](#23-schema-group)
-  - [3. Schema Registry Model](#3-schema-registry-model)
-  - [4. Schema Registry](#4-schema-registry)
-    - [4.1. Schema Groups](#41-schema-groups)
-    - [4.2. Schema Resources](#42-schema-resources)
-    - [4.3. Schema Formats](#43-schema-formats)
-      - [4.3.1. JSON Schema](#431-json-schema)
-      - [4.3.2. XML Schema](#432-xml-schema)
-      - [4.3.3. Apache Avro Schema](#433-apache-avro-schema)
-      - [4.3.4. Protobuf Schema](#434-protobuf-schema)
+- [Abstract](#abstract)
+- [Table of Contents](#table-of-contents)
+- [1. Overview](#1-overview)
+  - [1.1. Schemas](#11-schemas)
+  - [1.2. Schema References](#12-schema-references)
+  - [1.3. Versioning](#13-versioning)
+  - [1.4. Document Store](#14-document-store)
+- [2. Notations and Terminology](#2-notations-and-terminology)
+  - [2.1. Notational Conventions](#21-notational-conventions)
+  - [2.2. Terminology](#22-terminology)
+    - [2.2.1. Schema](#221-schema)
+  - [2.3. Schema Group](#23-schema-group)
+- [3. Schema Registry Model](#3-schema-registry-model)
+- [4. Schema Registry](#4-schema-registry)
+  - [4.1. Schema Groups](#41-schema-groups)
+  - [4.2. Schema Resources](#42-schema-resources)
+  - [4.3. Schema Formats](#43-schema-formats)
+    - [4.3.1. JSON Schema](#431-json-schema)
+    - [4.3.2. XML Schema](#432-xml-schema)
+    - [4.3.3. Apache Avro Schema](#433-apache-avro-schema)
+    - [4.3.4. Protobuf Schema](#434-protobuf-schema)
 
 ## 1. Overview
 
@@ -330,7 +329,7 @@ containing 5 schemas.
 
 ```yaml
 {
-  "specversion": "1.0-rc2",
+  "specversion": "1.0-rc3",
   # other xRegistry top-level attributes excluded for brevity
 
   "schemagroupsurl": "http://example.com/schemagroups",
@@ -418,7 +417,7 @@ Versions for a schema named `com.example.telemetrydata`:
 
 ```yaml
 {
-  "specversion": "1.0-rc2",
+  "specversion": "1.0-rc3",
   # other xRegistry top-level attributes excluded for brevity
 
   "schemagroupsurl": "http://example.com/schemagroups",

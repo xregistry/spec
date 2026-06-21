@@ -3,7 +3,7 @@
   "groups": {
     "messagegroups": {
       "singular": "messagegroup",
-      "modelversion": "1.0-rc2",
+      "modelversion": "1.0-rc3",
       "modelcompatiblewith": "https://xregistry.io/xreg/domains/message/specs/model.json",
       "attributes": {
         "envelope": {
@@ -27,7 +27,7 @@
           "singular": "message",
           "maxversions": 1,
           "hasdocument": false,
-          "modelversion": "1.0-rc2",
+          "modelversion": "1.0-rc3",
           "modelcompatiblewith": "https://xregistry.io/xreg/domains/message/specs/model.json",
           "attributes": {
             "basemessageuri": {

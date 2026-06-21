@@ -1,4 +1,4 @@
-# xRegistry Service Model - Version 1.0-rc2
+# xRegistry Service Model - Version 1.0-rc3
 
 <!-- words: compat validatecompatibility validateformat strictvalidation -->
 <!-- words: matchcase compatibilityvalidated formatvalidated -->

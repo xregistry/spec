@@ -1,4 +1,4 @@
-# xRegistry Service - Version 1.0-rc2
+# xRegistry Service - Version 1.0-rc3
 
 <!-- words: validatecompatibility validateformat strictvalidation matchcase -->
 <!-- words: compat formatvalidated compatibilityvalidated -->
@@ -446,7 +446,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       "id",? "epoch",? "modelsource",? "readonly"? ],
     "pagination": <BOOLEAN>, ?
     "shortself": <BOOLEAN>, ?
-    "specversions": [ "1.0-rc2", "<STRING>"* ], ?
+    "specversions": [ "1.0-rc3", "<STRING>"* ], ?
     "versionmodes": [ "manual", "createdat",? "modifiedat",? "semver",?
       "<STRING>"* ], ?
 
@@ -2035,7 +2035,7 @@ The following defines the specification-defined capabilities:
 - Description: List of xRegistry specification versions supported by the
   `specversion` flag.
 - Non-exhaustive list of supported values:
-  - `1.0-rc2`
+  - `1.0-rc3`
 - When not specified, the default value MUST be the latest version of this
   specification supported by the server.
 
@@ -2245,7 +2245,7 @@ in the serialization of its capabilities offering map.
   },
   "specversions": {
     "type": "array",
-    "enum": [ "1.0-rc2" ],
+    "enum": [ "1.0-rc3" ],
     "item": {
       "type": "string"
     }
