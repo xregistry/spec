@@ -558,7 +558,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       "constraints": {
         "<RESOURCES>.<PATH>": {                # Resource-plural + attr path
           "default": <VALUE>, ?                # Group specific default
-          "enum": [ <VALUE> + ], ?             # Allowed subset of values
+          "enum": [ <VALUE> * ], ?             # Allowed subset of values
           "equals": "<PATH>" ?                 # Matching Group attribute path
         } *
       }, ?
@@ -1424,9 +1424,9 @@ of the existing entity. Then the existing entity would be deleted.
   allowed values for a particular attribute. This allows for Group instance
   specific restrictions without requiring the creating of new Resource types.
 
-  These restrictions are designed to only allow subsetting of the constraints
-  specified by the Resource type model and any Group model
-  [`constraints`](model.md#groupsstringconstraints) defined. They can not be
+  These restrictions are designed to only allow subsetting of the definitions
+  specified by the Resource type model and any Group type model
+  [`constraints`](model.md#groupsstringconstraints) defined. They MUST NOT be
   used to extend the allowable values of the attributes being constrained.
 
   The definition of this map is the same as the Group type
@@ -1435,24 +1435,22 @@ of the existing entity. Then the existing entity would be deleted.
   Any map key value specified here that is the same as a key value included
   in the Group type model's [`constraints`](model.md#groupsstringconstraints),
   is interpreted as a request to further constrain the Resource attribute
-  being referenced. Therefore, the two definitions of the constraints are
-  layered (or merged), per the following rules:
-  - `default` attribute:
-    - If present here, it MUST be a valid value within the effective `enum`
-      values per the `enum` bullet below.
-    - If not present here, but specified at the Group type level, then the
-      value specified at the Group type level, MUST be valid per the effective
-      `enum` values per the `enum` bullet below.
-  - `enum` attribute:
-    - If present here and at the Group type level, then the values here MUST
-      be a subset of the values specified at the Group type level.
-    - If not present here, then any `enum` values specified at the Group type
-      level MUST apply.
-  - `equals` attribute:
-    - If present here and at the Group type level, then the values MUST be
-      the exact same.
-    - If not present here, then any `equals` value specified at the Group type
-      level MUST apply.
+  being referenced.
+
+  The two layers of definitions of the constraints are merged such that any
+  individual constraint aspect defined at the Group instance level MUST
+  override any constraint aspect mentioned at the Group type level. Absence
+  of (or `null` value for) an aspect at the Group instance level MUST NOT
+  impact any constraints defined at the Group type level.
+
+  The following further clarifies this merging:
+  - If `enum` is specified at both levels, then the Group instance `enum` set
+    MUST be a subset of the `enum` defined at the Group type level.
+  - If the `equals` aspect is defined in both levels then they MUST be the
+    exact same value. And in that situation, specifying it at the Group
+    instance level is redundant. For clarity, a Group instance MAY introduce
+    an `equals` aspect for a constraint key defined at the Group type level
+    that has no `equals` aspect.
 
 - Constraints:
   - OPTIONAL
@@ -1460,7 +1458,7 @@ of the existing entity. Then the existing entity would be deleted.
   ```yaml
   "constraints": {
     "schemas.format" : {
-      "default": [ "jsonschema/draft-07" ],
+      "default": "jsonschema/draft-07",
       "enum": [ "avro/1.9", "jsonschema/draft-07" ],
       "equals": "format"
     }
