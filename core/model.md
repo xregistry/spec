@@ -123,7 +123,7 @@ The overall format of a model definition is as follows:
       "constraints": {
         "<RESOURCES>.<PATH>": {          # Resource-plural + attribute path
           "default": <VALUE>, ?          # Group specific default
-          "enum": [ <VALUE> + ], ?       # Allowed subset of values
+          "enum": [ <VALUE> * ], ?       # Allowed subset of values
           "equals": "<PATH>" ?           # Matching Group attribute path
         } *
       }, ?
@@ -575,6 +575,25 @@ The `constraints` map defines a set of rules that can be used to govern
 the attribute values in Resources that are added to instances of the Group
 type being defined.
 
+These restrictions are designed to only allow subsetting of the constraints
+specified by the Resource type model. They MUST NOT be used to extend the
+allowable values of the attributes being constrained.
+
+The format of a constraint map MUST adhere to the following:
+
+```yaml
+"constraints": {
+  "<RESOURCES>.<PATH>": {          # Resource-plural + attribute path
+    "default": <VALUE>, ?          # Group specific default
+    "enum": [ <VALUE> * ], ?       # Allowed subset of values
+    "equals": "<PATH>" ?           # Matching Group attribute path
+  }
+}
+```
+
+More details about each part of the constraints are defined in the following
+sections.
+
 These constraints MUST be applied to all instances of this Group type. Group
 instances MAY choose to add additional entries, or further restrict the ones
 defined here, via use of the Group instance's
@@ -588,9 +607,9 @@ detected.
 When possible these constraints are best described when defining the Resource
 attributes in question, rather than here. However, there are cases where this
 might not be possible, such as when Resources are added to a Group type via the
-`ximportresources` feature or defining a relationship between Group and
-Resource attributes - such is the case for the `equals` constraint defined
-below.
+`ximportresources` feature, Resource are added to Groups via the `xref`
+features, or defining a relationship between Group and Resource attributes -
+such is the case for the `equals` constraint defined below.
 
 Inclusion of a Resource in a Group instance via the
 [`meta.xref`](./spec.md#cross-referencing-resources) mechanism introduces
@@ -608,7 +627,7 @@ a constraint are applied to such xref'd Resources:
 
 This map key MUST reference the Resource attribute that is to be constrained.
 It MUST reference a scalar attribute (top-level, or nested within objects) but
-but MUST NOT reference items in arrays or maps). It MUST only reference
+MUST NOT reference items in arrays or maps. It MUST only reference
 statically-defined attributes, not ones that are dynamically added via an
 `ifvalues` clause or via a `*` extension definition.
 
@@ -621,9 +640,10 @@ the Resource attribute being constrained.
 ### `groups.<STRING>.constraints.<RESOURCES>.<PATH>.default`
 
 This aspect defines the default value that MUST be used for the referenced
-Resource attribute. This MUST override any default value specified in the
-model for that attribute. See the
-[attribute `default` aspect](#attributesstringdefault) for additional
+Resource attribute. This Group type value MUST override any default value
+specified in the model for that attribute.
+
+See the [attribute `default` aspect](#attributesstringdefault) for additional
 information concerning default value processing, as they apply here as well
 with one exception: adding a default value here does not mandate that the
 referenced Resource attribute's `required` aspect be set to `true`.
@@ -641,7 +661,7 @@ This aspect defines the set of values that the referenced Resource attribute
 MUST be restricted to regardless of whether the Resource's
 [`strict`](#attributesstringstrict) attribute is set to `true` or not. The
 list's values MUST be valid per the Resource attribute's model definition
-(e.g. a proper subset of any `enum` defined if the Resource's `enum` is
+(i.e. a proper subset of any `enum` defined if the Resource's `enum` is
 [`strict`](#attributesstringstrict), and of the same type).
 
 As with the [`enum` attribute](#attributesstringenum) defined for attributes,
@@ -649,14 +669,18 @@ an empty `enum` list in a constraints MUST be treated the same as no `enum`
 aspect at all and no further constraints on the allowable attribute values are
 applied beyond what the attribute itself defines.
 
-If an `enum` set is defined, but a `default` values is not, then any `default`
-value specified in the attribute itself MUST be part of the `enum` set.
+If an `enum` set is defined, but a constraint `default` values is not, then
+any `default` value specified in the attribute itself MUST be part of the
+`enum` set.
 
 ### `groups.<STRING>.constraints.<RESOURCES>.<PATH>.equals`
 
-Use of this aspect within a constraint MAY be used to ensure that all
-Resource instances within a Group instance have the same value for the
-specified attribute in all of their Versions.
+Use of this aspect within a constraint MAY be used to ensure that the specified
+attribute in all Versions of all Resources within a Group instance is present
+with the same value as the specified `equals` attribute in the Group instance.
+
+When specified with an empty string, it MUST be treated as if it were not
+specified at all.
 
 When present, this aspect MUST contain the dot (`.`) notation path in the
 Group instance that the referenced Resource attribute MUST match. In the
@@ -666,18 +690,12 @@ account the [matchcase](#attributesstringmatchcase) aspect of the attribute.
 If the referenced Group attribute does not exist, then the `equals` constraint
 enforcement for the Resource attribute MUST be silently ignored.
 
-If, after any potential `default` processing logic is performed, the Resource
-attribute (in any of its Versions) does not exist but the Group attribute does
-exist, then an error ([constraint_failure](./spec.md#constraint_failure)) MUST
-be generated.
-
 This attribute MUST reference a statically defined Group attribute. In other
 words, it can not reference an attribute defined by an `ifvalues` clause or a
 `*` extension definition. Nor can it reference an attribute within an array.
 
-Note that if a Resource type's versioned attribute has a `matchversions` aspect
-set to `false`, then this feature will have the same net affect as
-`matchversions` for that attribute being `true`.
+Note that this feature has similar results as setting the Resource attribute's
+`matchversions` aspect being set to `true`.
 
 ### `groups.<STRING>.resources`
 - Type: Map where the key MUST be the plural name (`groups.resources.plural`)

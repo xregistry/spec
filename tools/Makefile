@@ -66,7 +66,7 @@ models:
 
 website:
 	@echo "If available, verify the website generation code works too:"
-	@if test -f `pwd -P`/../xregistry.github.io/tools/buildsite ; then \
+	@if test -f `readlink -f .`/../xregistry.github.io/tools/buildsite ; then \
 	  XR_SPEC=`pwd -P` `pwd -P`/../xregistry.github.io/tools/buildsite && \
 	    rm -rf xreg ; \
 	else \
