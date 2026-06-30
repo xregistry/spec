@@ -4,7 +4,7 @@
 <!-- words: compat formatvalidated compatibilityvalidated -->
 <!-- words: compat formatvalidatedreason compatibilityvalidatedreason -->
 <!-- words: matchversions -->
-<!-- words: myarray -->
+<!-- words: myarray myobject -->
 
 ## Abstract
 
@@ -4476,10 +4476,13 @@ different syntaxes for each.
 - `.name`          # An attribute (or map key) called "name"
 - `['my.name']`    # An attribute (or map key) called "my.name"
 - `[2]`            # The 3rd (zero-based) item in an array
-- `["birth.data]"` # Attribute/key called "birth.date"
+- `["birth.date"]` # Attribute/key called "birth.date"
 - `["2"]`          # An attribute/key called "2"
 - `employee.name`  # "name" attribute/key in an object/map called "employee"
 - `stack[3]`       # The 3rd (zero-based) item in an array called "stack"
+- `employee['joe'].addresses[0].state`  # 'joe' attr/key of 'employee', then
+                   # the first index of its 'addresses' array, then 'state'
+                   # attr/key of that address
 
 Depending on the situation in which the notation is being used, there are
 certain special values that MAY be used, a described in the following sections.
@@ -4489,7 +4492,20 @@ certain special values that MAY be used, a described in the following sections.
 When using [filters](#filter-flag) the following special values MAY be used::
 - `.*`             # Match any item in a collection of objects/maps.
 - `[*]`            # Match any item in an array.
-- `[-1]`           # Match the last item in an array.
+- `[-1]`           # Match the end of an array.
+
+Note that `['*']` is not the same as `.*`. Rather, `['*']` is a reference
+to an attribute/key called `*` - assuming that it is a valid attribute/key
+name in that particular situation.
+
+Additional details about the `-1` special value:
+- Use of `-1` as a special index in an array does not extend to other negative
+  integers. Those MUST generate an error ([bad_request](#bad_request)).
+- Use of `-1` when updating an index of an array MUST be interpreted as a
+  request to add a new item to the end of the array.
+- Use of `-1` when deleting an index of an array MUST be interpreted as a
+  request to delete the last item in the array. Use of this on an empty
+  array MUST NOT generate an error.
 
 **Examples**
 
@@ -4501,6 +4517,13 @@ Given the following definition of a `schemagroup` Group type extension:
     "owner": <STRING>,
     "reviewers": [ <STRING>, * ]                # An array of strings
     "labels": { "<STRING>": "<STRING>" * }, ?   # A map of string -> string
+    "addresses": {
+      "<STRING>": {                             # e.g. "home", "work"
+        "street": "<STRING>",
+        "state": "<STRING>",
+        "zip": "<STRING>"
+      } *
+    } *
   },
   "age": <INTEGER>
 }
@@ -4516,6 +4539,8 @@ Given the following definition of a `schemagroup` Group type extension:
   `GET /?filter=schemagroups.info.labels.*=June`
 - Find all schemagroups that have a "reviewers" value of `Steve`:
   `GET /?filter=schemagroups.info.reviewers[*]=June`
+- Find all schemagroups that have an "info.address" in `CA`:
+  `GET /?filter=schemagroups.info.addresses.*.state=CA`
 
 In the above examples, notice that the filter only specified the `schemagroups`
 collection as part of the hierarchy traversal. From a purist perspective those
@@ -4523,11 +4548,11 @@ filters really ought to have been written with the `*` wildcard for the
 matching schemagroups's `ID`, for example:
 
 ```yaml
-?filter=schemagroups.*.info.age
+?filter=schemagroups.*.info.owner
 ```
 
 to indicate that we're asking to search over all schemagroups (by ID) in the
-`schemagroups` collection, and then for each one examine its `info.age`
+`schemagroups` collection, and then for each one examine its `info.owner`
 attribute. However, requiring that extra bit of information in the query
 would introduce two potential problems:
 
@@ -4565,19 +4590,25 @@ filter:
 GET /?filter=schemagroups.schemas.name=myschema,schemagroups.schemagroupid=mygroup
 ```
 
-The `,` in a single filter expression represents and `AND` operation.
+The `,` in a single filter expression represents an `AND` operation.
 
 ### Additional Special Dot-Notation Variants
 
-While not used in this specification of a server, if tooling needs to provide
-a syntax to represent inserting an item into an array at a certain index then
-this MAY be used:
+While not used in this specification of a server, the following formats
+are RECOMMENDED to be used for consistency across xRegistry tooling:
 
-- `[3:]`           # Insert an item at the 4th index (zero-based).
-
-***Examples***
-- `set myarray[3:]=5` might mean "insert `5` at index `3` in `myarray`,
-  pushing current index positions 3 (and higher) further down in the array.
+- Insert an item into the middle of an array: `[INTEGER:]`.
+  - E.g. `set myarray[3:]=mary` would be used to insert "mary" at the 4th
+    index (zero-based), pushing current index positions 3 (and higher) further
+    down in the array.
+    Note that use of `-1` with this `:` variant SHOULD NOT be used as it is
+    ambiguous. Rather, to append to an array `[-1]` SHOULD be used instead.
+- Specifying an empty object/map: `{}`.
+  - E.g. `set myobject={}` would replace any value for `myobject` with an
+    empty object/map.
+- Specifying an empty array: `[]`.
+  - E.g. `set myarray=[]` would replace any values in `myarray` with an empty
+    array.
 
 ## Error Processing
 
