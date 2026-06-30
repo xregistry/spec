@@ -4,6 +4,7 @@
 <!-- words: compat formatvalidated compatibilityvalidated -->
 <!-- words: compat formatvalidatedreason compatibilityvalidatedreason -->
 <!-- words: matchversions -->
+<!-- words: myarray -->
 
 ## Abstract
 
@@ -53,6 +54,7 @@ or automation and tooling usage.
   - [SetDefaultVersionID Flag](#setdefaultversionid-flag)
   - [Sort Flag](#sort-flag)
   - [SpecVersion Flag](#specversion-flag)
+- [xRegistry Dot (`.`) Notation](#xregistry-dot--notation)
 - [Error Processing](#error-processing)
 
 ## Overview
@@ -4448,6 +4450,134 @@ backwards compatible.
 However, due to the potential for semantics changes of versions with suffix
 values (e.g. `v2.0.0-rc1`), the suffix value MUST be part of the comparison
 checking.
+
+## xRegistry Dot (`.`) Notation
+
+This specification defines a syntax for referencing entities and attributes
+within the xRegistry metadata. Known as "dot notation", it borrows the some
+of the core aspects of the [JSON Path](https://www.rfc-editor.org/info/rfc9535)
+specification.
+
+The following notation operators are defined:
+
+- `.NAME` : access a property (or key) of an object (or map).
+- `['NAME']` : same as previous but `NAME` contains characters that are not
+  to be interpreted as an operator (e.g. `.`) or it contains just digits and
+  is not to be interpreted as an array index. Double-quotes MAY be used as
+  well.
+- `[INTEGER]` : access an array index.
+
+Note: due to the serialization of maps and objects (often) being
+indistinguishable, this specification (similar to JSONPath) does not provide
+different syntaxes for each.
+
+**Examples:**
+
+- `.name`          # An attribute (or map key) called "name"
+- `['my.name']`    # An attribute (or map key) called "my.name"
+- `[2]`            # The 3rd (zero-based) item in an array
+- `["birth.data]"` # Attribute/key called "birth.date"
+- `["2"]`          # An attribute/key called "2"
+- `employee.name`  # "name" attribute/key in an object/map called "employee"
+- `stack[3]`       # The 3rd (zero-based) item in an array called "stack"
+
+Depending on the situation in which the notation is being used, there are
+certain special values that MAY be used, a described in the following sections.
+
+### Dot-Notation in Filters
+
+When using [filters](#filter-flag) the following special values MAY be used::
+- `.*`             # Match any item in a collection of objects/maps.
+- `[*]`            # Match any item in an array.
+- `[-1]`           # Match the last item in an array.
+
+**Examples**
+
+Given the following definition of a `schemagroup` Group type extension:
+
+```yaml
+{
+  "info": {
+    "owner": <STRING>,
+    "reviewers": [ <STRING>, * ]                # An array of strings
+    "labels": { "<STRING>": "<STRING>" * }, ?   # A map of string -> string
+  },
+  "age": <INTEGER>
+}
+```
+
+- Find all schemagroups that have an `age` of `5`:
+  `GET /?filter=schemagroups.age=5`
+- Find all schemagroups where `owner` is `joe`:
+  `GET /?filter=schemagroups.info.owner=joe`
+- Find all schemagroups that have a labels `env` set to `prod`:
+  `GET /?filter=schemagroups.info.labels.env=prop`
+- Find all schemagroups that have any label with a value of `June`:
+  `GET /?filter=schemagroups.info.labels.*=June`
+- Find all schemagroups that have a "reviewers" value of `Steve`:
+  `GET /?filter=schemagroups.info.reviewers[*]=June`
+
+In the above examples, notice that the filter only specified the `schemagroups`
+collection as part of the hierarchy traversal. From a purist perspective those
+filters really ought to have been written with the `*` wildcard for the
+matching schemagroups's `ID`, for example:
+
+```yaml
+?filter=schemagroups.*.info.age
+```
+
+to indicate that we're asking to search over all schemagroups (by ID) in the
+`schemagroups` collection, and then for each one examine its `info.age`
+attribute. However, requiring that extra bit of information in the query
+would introduce two potential problems:
+
+- It would mandate all users add `.*.` in almost all filter expressions,
+  which could be tedious since in most cases it's expected that people are
+  going to search over all items in the xRegistry collection.
+- Additionally, if they were interested in just one item in the collection,
+  then they would most likely have specified that as part of the request URL.
+  For example, `GET /schemagroups/mygroup/...` - in which case the ID would
+  not appear as part of the filter expression at all.
+
+As a result, when specifying a filter expression that steps between the
+xRegistry hierarchy, the `ID` portion of the path is excluded. Note that this
+does not apply to stepping through the path of objects/maps/arrays defined
+within an xRegistry entity (Group, Resource, Versions). In those cases use
+of the `*` wildcard MAY be used to indicate "any" items in that set. As
+shown in the "info" examples above.
+
+For completeness, to filter based on a schema's name, the request might
+look like:
+
+```yaml
+GET /?filter=schemagroups.schemas.name=myschema
+```
+
+would search over all schemagroups, and over all schemas in those groups
+for one with a `name` attribute set to `myschema`.
+
+It is worth noting that if the user really does want a certain schemagroup with
+a certain id (e.g. `mygroup`), without the request URL path being
+`/schemagroups/mygroup`, then they can achieve this by using a compound
+filter:
+
+```yaml
+GET /?filter=schemagroups.schemas.name=myschema,schemagroups.schemagroupid=mygroup
+```
+
+The `,` in a single filter expression represents and `AND` operation.
+
+### Additional Special Dot-Notation Variants
+
+While not used in this specification of a server, if tooling needs to provide
+a syntax to represent inserting an item into an array at a certain index then
+this MAY be used:
+
+- `[3:]`           # Insert an item at the 4th index (zero-based).
+
+***Examples***
+- `set myarray[3:]=5` might mean "insert `5` at index `3` in `myarray`,
+  pushing current index positions 3 (and higher) further down in the array.
 
 ## Error Processing
 
