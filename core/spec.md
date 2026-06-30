@@ -538,7 +538,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   "<GROUPS>url": "<URL>",                          # e.g. "endpointsurl"
   "<GROUPS>count": <UINTEGER>,                     # e.g. "endpointscount"
   "<GROUPS>": {                                    # Only if inlined
-    "<KEY>": {                                     # Key=the Group id
+    "<KEY>": {                                     # Key=the Group ID
       "<GROUP>id": "<STRING>",                     # The Group ID
       "self": "<URL>",
       "shortself": "<URL>", ?
@@ -569,7 +569,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       "<RESOURCES>url": "<URL>",                   # e.g. "messagesurl"
       "<RESOURCES>count": <UINTEGER>,              # e.g. "messagescount"
       "<RESOURCES>": {                             # Only if inlined
-        "<KEY>": {                                 # The Resource id
+        "<KEY>": {                                 # The Resource ID
           "<RESOURCE>id": "<STRING>",
           "versionid": "<STRING>",                 # Default Version's ID
           "self": "<URL>",                         # Resource URL, not Version
@@ -625,8 +625,8 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
           "versionscount": <UINTEGER>,
           "versions": {                            # Only if inlined
             "<KEY>": {                             # The Version's versionid
-              "<RESOURCE>id": "<STRING>",          # The Resource id
-              "versionid": "<STRING>",             # The Version id
+              "<RESOURCE>id": "<STRING>",          # The Resource ID
+              "versionid": "<STRING>",             # The Version ID
               "self": "<URL>",                     # Version URL
               "shortself": "<URL>", ?
               "xid": "<XID>",
@@ -4463,13 +4463,17 @@ The following notation operators are defined:
 - `.NAME` : access a property (or key) of an object (or map).
 - `['NAME']` : same as previous but `NAME` contains characters that are not
   to be interpreted as an operator (e.g. `.`) or it contains just digits and
-  is not to be interpreted as an array index. Double-quotes MAY be used as
-  well.
-- `[INTEGER]` : access an array index.
+  is not to be interpreted as an array index.
+- `["NAME"]` : same as previous but with double-quotes (`"`).
+- `[INTEGER]` : access an array index (zero-based).
 
 Note: due to the serialization of maps and objects (often) being
 indistinguishable, this specification (similar to JSONPath) does not provide
 different syntaxes for each.
+
+For clarity, use of square brackets (`[]`) without use of either type of
+quotes around the value MUST be interpreted as accessing an array. Conversely,
+use of quotes MUST be interpreted as accessing an object/map.
 
 **Examples:**
 
@@ -4490,7 +4494,7 @@ certain special values that MAY be used, a described in the following sections.
 ### Dot-Notation in Filters
 
 When using [filters](#filter-flag) the following special values MAY be used::
-- `.*`             # Match any item in a collection of objects/maps.
+- `.*`             # Match any item in an object/map.
 - `[*]`            # Match any item in an array.
 - `[-1]`           # Match the end of an array.
 
@@ -4578,11 +4582,11 @@ look like:
 GET /?filter=schemagroups.schemas.name=myschema
 ```
 
-would search over all schemagroups, and over all schemas in those groups
+would search over all schemagroups, and over all schemas in those groups,
 for one with a `name` attribute set to `myschema`.
 
 It is worth noting that if the user really does want a certain schemagroup with
-a certain id (e.g. `mygroup`), without the request URL path being
+a certain ID (e.g. `mygroup`), without the request URL path being
 `/schemagroups/mygroup`, then they can achieve this by using a compound
 filter:
 
@@ -4592,9 +4596,9 @@ GET /?filter=schemagroups.schemas.name=myschema,schemagroups.schemagroupid=mygro
 
 The `,` in a single filter expression represents an `AND` operation.
 
-### Additional Special Dot-Notation Variants
+### Additional Special Dot-Notation Considerations
 
-While not used in this specification of a server, the following formats
+While not used in this specification of a server, the following guidelines
 are RECOMMENDED to be used for consistency across xRegistry tooling:
 
 - Insert an item into the middle of an array: `[INTEGER:]`.
@@ -4609,6 +4613,10 @@ are RECOMMENDED to be used for consistency across xRegistry tooling:
 - Specifying an empty array: `[]`.
   - E.g. `set myarray=[]` would replace any values in `myarray` with an empty
     array.
+- Deleting an item from an array MUST shift all higher indexed items down one
+  since this specification does not support sparse arrays. Note, that if the
+  intent is to replace that item, rather than doing a delete followed by an
+  insert, a direct replacement of that index is RECOMMENDED.
 
 ## Error Processing
 
