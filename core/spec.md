@@ -4454,7 +4454,7 @@ checking.
 ## xRegistry Dot (`.`) Notation
 
 This specification defines a syntax for referencing entities and attributes
-within the xRegistry metadata. Known as "dot notation", it borrows the some
+within the xRegistry metadata. Known as "dot notation", it borrows some
 of the core aspects of the [JSON Path](https://www.rfc-editor.org/info/rfc9535)
 specification.
 
@@ -4469,7 +4469,7 @@ The following notation operators are defined:
 
 Note: due to the serialization of maps and objects (often) being
 indistinguishable, this specification (similar to JSONPath) does not provide
-different syntaxes for each.
+different syntaxes for traversing each.
 
 For clarity, use of square brackets (`[]`) without use of either type of
 quotes around the value MUST be interpreted as accessing an array. Conversely,
@@ -4477,39 +4477,35 @@ use of quotes MUST be interpreted as accessing an object/map.
 
 **Examples:**
 
-- `.name`          # An attribute (or map key) called "name"
-- `['my.name']`    # An attribute (or map key) called "my.name"
-- `[2]`            # The 3rd (zero-based) item in an array
-- `["birth.date"]` # Attribute/key called "birth.date"
-- `["2"]`          # An attribute/key called "2"
-- `employee.name`  # "name" attribute/key in an object/map called "employee"
-- `stack[3]`       # The 3rd (zero-based) item in an array called "stack"
-- `employee['joe'].addresses[0].state`  # 'joe' attr/key of 'employee', then
-                   # the first index of its 'addresses' array, then 'state'
-                   # attr/key of that address
+| Dot Notation      | Description |
+| ----------------- | --- |
+| `.name`           | An attribute (or map key) called `name` |
+| `['my.name']`     | An attribute (or map key) called `my.name` |
+| `[2]`             | The 3rd (zero-based) item in an array |
+| `["birth.date"] ` | Attribute/key called `birth.date` |
+| `["2"]`           | An attribute/key called `2` (a string, not integer)|
+| `employee.name`   | `name` attribute/key in an object/map called `employee` |
+| `stack[3]`        | The 3rd (zero-based) item in an array called `stack` |
+| `employee['joe'].addresses[0].state` | `joe` attr/key of `employee`, then the first index of its `addresses` array, then `state` attr/key of that address |
 
 Depending on the situation in which the notation is being used, there are
 certain special values that MAY be used, a described in the following sections.
 
 ### Dot-Notation in Filters
 
-When using [filters](#filter-flag) the following special values MAY be used::
-- `.*`             # Match any item in an object/map.
-- `[*]`            # Match any item in an array.
-- `[-1]`           # Match the end of an array.
+When using [filters](#filter-flag) the following special values MAY be used:
+| | |
+| ------ | --- |
+| `.*`   | Match any item in an object/map |
+| `[*]`  | Match any item in an array |
+| `[-1]` | Match the final item in an array |
 
 Note that `['*']` is not the same as `.*`. Rather, `['*']` is a reference
 to an attribute/key called `*` - assuming that it is a valid attribute/key
 name in that particular situation.
 
-Additional details about the `-1` special value:
-- Use of `-1` as a special index in an array does not extend to other negative
-  integers. Those MUST generate an error ([bad_request](#bad_request)).
-- Use of `-1` when updating an index of an array MUST be interpreted as a
-  request to add a new item to the end of the array.
-- Use of `-1` when deleting an index of an array MUST be interpreted as a
-  request to delete the last item in the array. Use of this on an empty
-  array MUST NOT generate an error.
+Use of `-1` as a special index in an array does not extend to other negative
+integers. Those MUST generate an error ([bad_request](#bad_request)).
 
 **Examples**
 
@@ -4537,12 +4533,12 @@ Given the following definition of a `schemagroup` Group type extension:
   `GET /?filter=schemagroups.age=5`
 - Find all schemagroups where `owner` is `joe`:
   `GET /?filter=schemagroups.info.owner=joe`
-- Find all schemagroups that have a labels `env` set to `prod`:
+- Find all schemagroups that have a label `env` set to `prod`:
   `GET /?filter=schemagroups.info.labels.env=prop`
 - Find all schemagroups that have any label with a value of `June`:
   `GET /?filter=schemagroups.info.labels.*=June`
 - Find all schemagroups that have a "reviewers" value of `Steve`:
-  `GET /?filter=schemagroups.info.reviewers[*]=June`
+  `GET /?filter=schemagroups.info.reviewers[*]=Steve`
 - Find all schemagroups that have an "info.address" in `CA`:
   `GET /?filter=schemagroups.info.addresses.*.state=CA`
 
@@ -4557,7 +4553,7 @@ matching schemagroups's `ID`, for example:
 
 to indicate that we're asking to search over all schemagroups (by ID) in the
 `schemagroups` collection, and then for each one examine its `info.owner`
-attribute. However, requiring that extra bit of information in the query
+attribute. However, requiring that extra bit of information in the filter
 would introduce two potential problems:
 
 - It would mandate all users add `.*.` in almost all filter expressions,
@@ -4569,11 +4565,11 @@ would introduce two potential problems:
   not appear as part of the filter expression at all.
 
 As a result, when specifying a filter expression that steps between the
-xRegistry hierarchy, the `ID` portion of the path is excluded. Note that this
+xRegistry hierarchy, the `ID` portion of the path is excluded. However, this
 does not apply to stepping through the path of objects/maps/arrays defined
 within an xRegistry entity (Group, Resource, Versions). In those cases use
-of the `*` wildcard MAY be used to indicate "any" items in that set. As
-shown in the "info" examples above.
+of the `*` wildcard would need to be used to indicate "any" items in that set.
+As shown in the "info.addresses" example above.
 
 For completeness, to filter based on a schema's name, the request might
 look like:
@@ -4583,7 +4579,7 @@ GET /?filter=schemagroups.schemas.name=myschema
 ```
 
 would search over all schemagroups, and over all schemas in those groups,
-for one with a `name` attribute set to `myschema`.
+for ones with a `name` attribute set to `myschema`.
 
 It is worth noting that if the user really does want a certain schemagroup with
 a certain ID (e.g. `mygroup`), without the request URL path being
@@ -4598,15 +4594,21 @@ The `,` in a single filter expression represents an `AND` operation.
 
 ### Additional Special Dot-Notation Considerations
 
-While not used in this specification of a server, the following guidelines
+While not used in this server specification, the following syntax guidelines
 are RECOMMENDED to be used for consistency across xRegistry tooling:
 
 - Insert an item into the middle of an array: `[INTEGER:]`.
   - E.g. `set myarray[3:]=mary` would be used to insert "mary" at the 4th
     index (zero-based), pushing current index positions 3 (and higher) further
     down in the array.
-    Note that use of `-1` with this `:` variant SHOULD NOT be used as it is
-    ambiguous. Rather, to append to an array `[-1]` SHOULD be used instead.
+  - If the specified integer value does not exist, then an error MUST be
+    generated. Even in the case of `0` for an empty array.
+- Insert at the start of an array: `[^]`.
+  - E.g. `set myarray[^]=mary` would add "mary" to the start of the array, and
+    create the array first if it is not yet defined.
+- Append to the end of an array: `[$]`.
+  - E.g. `set myarray[$]=mary` would add "mary" to the end of the array, and
+    create the array first if it is not yet defined.
 - Specifying an empty object/map: `{}`.
   - E.g. `set myobject={}` would replace any value for `myobject` with an
     empty object/map.
