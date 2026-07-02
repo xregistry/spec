@@ -634,7 +634,8 @@ statically-defined attributes, not ones that are dynamically added via an
 The `<RESOURCES>` portion of the map key MUST be the plural name of the
 Resource type being referenced.
 
-The `<PATH>` portion of the map key MUST be a dot (`.`) notional traversal to
+The `<PATH>` portion of the map key MUST be a
+[dot (`.`) notional](spec.md#xregistry-dot--notation) traversal to
 the Resource attribute being constrained.
 
 ### `groups.<STRING>.constraints.<RESOURCES>.<PATH>.default`
@@ -682,7 +683,8 @@ with the same value as the specified `equals` attribute in the Group instance.
 When specified with an empty string, it MUST be treated as if it were not
 specified at all.
 
-When present, this aspect MUST contain the dot (`.`) notation path in the
+When present, this aspect MUST contain the
+[dot (`.`) notation](spec.md#xregistry-dot--notation) path in the
 Group instance that the referenced Resource attribute MUST match. In the
 case of the attribute type being a `string`, the comparison MUST take into
 account the [matchcase](#attributesstringmatchcase) aspect of the attribute.

@@ -3968,19 +3968,22 @@ The format of a filter expression is one of:
 ```
 
 Where:
-- `<PATH>` MUST be a dot (`.`) notation traversal of the Registry to the entity
-  of interest, or absent if at the top of the Registry request. Note that
-  the `<PATH>` value is based on the requesting URL and not the root of the
-  Registry. See the examples below. To reference an attribute with a dot as
-  part of its name, the JSONPath escaping mechanism MUST be used:
-  `['my.name']`. For example, `prop1.my.name.prop2` would be specified as
-  `prop1['my.name'].prop2` if `my.name` is the name of one attribute.
+- `<PATH>` MUST be a [dot (`.`) notation](#xregistry-dot--notation) traversal
+  of the Registry to the entity of interest, or absent if at the top of the
+  Registry request. See the
+  [xRegistry Dot (`.`) Notation](#xregistry-dot--notation) section for more
+  details on the syntax.
+- The `<PATH>` value MUST be based on the requesting URL and not the root of
+  the Registry. Meaning, if the URL targets a Group then the `<PATH>` value
+  would be relative to the Group and not the root of the Registry. See the
+  examples below.
+- `<ATTRIBUTE>` uses dot notation as well. Technically, the filter expression
+  is a single dot notation reference, but the `<PATH>` and `<ATTRIBUTE>` are
+  called out separately here for descriptive purposes.
 - `<PATH>` MUST only consist of valid `<GROUPS>` type names, `<RESOURCES>`
-  type names or `versions`, otherwise an error
-  ([bad_filter](#bad_filter)) MUST be generated.
+  type names or `versions`, otherwise an error ([bad_filter](#bad_filter))
+  MUST be generated.
 - `<ATTRIBUTE>` MUST be the attribute in the entity to be examined.
-- Complex attributes (e.g. `labels`) MUST use dot (`.`) to reference nested
-  attributes. For example: `labels.stage=dev`.
 - A non-`null` `<VALUE>` MUST only be used when referencing scalar attributes.
 - A reference to a nonexistent attribute SHOULD NOT generate an error and
   SHOULD be treated the same as a non-matching situation. For example, a
