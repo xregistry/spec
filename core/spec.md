@@ -4488,7 +4488,7 @@ use of quotes MUST be interpreted as accessing an object/map.
 | `["birth.date"] ` | Attribute/key called `birth.date` |
 | `["2"]`           | An attribute/key called `2` (a string, not integer)|
 | `employee.name`   | `name` attribute/key in an object/map called `employee` |
-| `stack[3]`        | The 3rd (zero-based) item in an array called `stack` |
+| `stack[3]`        | Element with index 3 (zero-based) in `stack` array |
 | `employee['joe'].addresses[0].state` | `joe` attr/key of `employee`, then the first index of its `addresses` array, then `state` attr/key of that address |
 
 Depending on the situation in which the notation is being used, there are
@@ -4572,7 +4572,7 @@ xRegistry hierarchy, the `ID` portion of the path is excluded. However, this
 does not apply to stepping through the path of objects/maps/arrays defined
 within an xRegistry entity (Group, Resource, Versions). In those cases use
 of the `*` wildcard would need to be used to indicate "any" items in that set.
-As shown in the "info.addresses" example above.
+This is demonstrated in the "info.addresses" example above.
 
 For completeness, to filter based on a schema's name, the request might
 look like:
@@ -4607,11 +4607,11 @@ are RECOMMENDED to be used for consistency across xRegistry tooling:
   - If the specified integer value does not exist, then an error MUST be
     generated. Even in the case of `0` for an empty array.
 - Insert at the start of an array: `[^]`.
-  - E.g. `set myarray[^]=mary` would add "mary" to the start of the array, and
-    create the array first if it is not yet defined.
+  - E.g. `set myarray[^]=mary` would insert "mary" at the start of the array,
+    and create the array first if it is not yet defined.
 - Append to the end of an array: `[$]`.
-  - E.g. `set myarray[$]=mary` would add "mary" to the end of the array, and
-    create the array first if it is not yet defined.
+  - E.g. `set myarray[$]=mary` would append "mary" to the end of the array,
+    and create the array first if it is not yet defined.
 - Specifying an empty object/map: `{}`.
   - E.g. `set myobject={}` would replace any value for `myobject` with an
     empty object/map.

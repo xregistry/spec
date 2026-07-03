@@ -635,7 +635,7 @@ The `<RESOURCES>` portion of the map key MUST be the plural name of the
 Resource type being referenced.
 
 The `<PATH>` portion of the map key MUST be a
-[dot (`.`) notional](spec.md#xregistry-dot--notation) traversal to
+[dot (`.`) notation](spec.md#xregistry-dot--notation) traversal to
 the Resource attribute being constrained.
 
 ### `groups.<STRING>.constraints.<RESOURCES>.<PATH>.default`
