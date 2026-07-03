@@ -123,11 +123,6 @@ The working group also meets
 to develop xRegistry specifically. For those meetings, please see the
 [xRegistry Meeting Notes](https://docs.google.com/document/d/1YtBnjAyNdMLhAFYiq4yTrHcWpFjW-FWcV9neCTL6XRs/edit?usp=sharing).
 
-Recordings from our calls are available
-[here](https://www.youtube.com/playlist?list=PLO-qzjSpLN1BEyKjOVX_nMg7ziHXUYwec), and
-older ones are
-[here](https://www.youtube.com/playlist?list=PLj6h78yzYM2Ph7YoBIgsZNW_RGJvNlFOt).
-
 Periodically, the group may have in-person meetings that coincide with a major
 conference. Please see the
 [meeting minutes doc](https://docs.google.com/document/d/1OVF68rpuPK5shIHILK9JOqlZBbfe91RNzQ7u_P7YCDE/edit#)

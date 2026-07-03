@@ -822,7 +822,7 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "apis": [
+  "available": [
     "/capabilities", "/export", "/model", "/modelsource"
   ],
   "flags": [
@@ -873,7 +873,7 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "apis": {
+  "available": {
     "type": "array",
     "item": {
       "type": "string"
@@ -988,7 +988,7 @@ PATCH /capabilities
 
 ```yaml
 {
-  "apis": [
+  "available": [
     "/capabilities", "/export", "/model", "/modelsource"
   ],
   "flags": [
@@ -2302,7 +2302,7 @@ xRegistry-epoch: 1
 xRegistry-name: Blob Created
 xRegistry-isdefault: true
 xRegistry-ancestor: 1
-Location: https://example.com/endpoints/ep1/messages/msg1/versions/v2
+Location: https://example.com/endpoints/ep1/messages/msg1/versions/2
 Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/2
 Content-Disposition: msg1
 
@@ -2735,8 +2735,6 @@ for more information.
 When `$details` is used, or the Resource is not configured to have a
 domain-specific document, then a successful response MUST be of the form:
 
-A successful response MUST be of the form:
-
 ```yaml
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
@@ -2757,7 +2755,7 @@ MUST be of the form:
 ```yaml
 HTTP/1.1 200 OK
 or
-HTTP/1.2 303 See Other
+HTTP/1.1 303 See Other
 Content-Type: <STRING> ?
 xRegistry-<RESOURCE>id: <STRING>
 xRegistry-versionid: <STRING>

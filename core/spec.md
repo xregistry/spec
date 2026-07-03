@@ -4,6 +4,7 @@
 <!-- words: compat formatvalidated compatibilityvalidated -->
 <!-- words: compat formatvalidatedreason compatibilityvalidatedreason -->
 <!-- words: matchversions -->
+<!-- words: myarray myobject -->
 
 ## Abstract
 
@@ -53,6 +54,7 @@ or automation and tooling usage.
   - [SetDefaultVersionID Flag](#setdefaultversionid-flag)
   - [Sort Flag](#sort-flag)
   - [SpecVersion Flag](#specversion-flag)
+- [xRegistry Dot (`.`) Notation](#xregistry-dot--notation)
 - [Error Processing](#error-processing)
 
 ## Overview
@@ -536,7 +538,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   "<GROUPS>url": "<URL>",                          # e.g. "endpointsurl"
   "<GROUPS>count": <UINTEGER>,                     # e.g. "endpointscount"
   "<GROUPS>": {                                    # Only if inlined
-    "<KEY>": {                                     # Key=the Group id
+    "<KEY>": {                                     # Key=the Group ID
       "<GROUP>id": "<STRING>",                     # The Group ID
       "self": "<URL>",
       "shortself": "<URL>", ?
@@ -558,7 +560,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       "constraints": {
         "<RESOURCES>.<PATH>": {                # Resource-plural + attr path
           "default": <VALUE>, ?                # Group specific default
-          "enum": [ <VALUE> + ], ?             # Allowed subset of values
+          "enum": [ <VALUE> * ], ?             # Allowed subset of values
           "equals": "<PATH>" ?                 # Matching Group attribute path
         } *
       }, ?
@@ -567,7 +569,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       "<RESOURCES>url": "<URL>",                   # e.g. "messagesurl"
       "<RESOURCES>count": <UINTEGER>,              # e.g. "messagescount"
       "<RESOURCES>": {                             # Only if inlined
-        "<KEY>": {                                 # The Resource id
+        "<KEY>": {                                 # The Resource ID
           "<RESOURCE>id": "<STRING>",
           "versionid": "<STRING>",                 # Default Version's ID
           "self": "<URL>",                         # Resource URL, not Version
@@ -623,8 +625,8 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
           "versionscount": <UINTEGER>,
           "versions": {                            # Only if inlined
             "<KEY>": {                             # The Version's versionid
-              "<RESOURCE>id": "<STRING>",          # The Resource id
-              "versionid": "<STRING>",             # The Version id
+              "<RESOURCE>id": "<STRING>",          # The Resource ID
+              "versionid": "<STRING>",             # The Version ID
               "self": "<URL>",                     # Version URL
               "shortself": "<URL>", ?
               "xid": "<XID>",
@@ -1424,9 +1426,9 @@ of the existing entity. Then the existing entity would be deleted.
   allowed values for a particular attribute. This allows for Group instance
   specific restrictions without requiring the creating of new Resource types.
 
-  These restrictions are designed to only allow subsetting of the constraints
-  specified by the Resource type model and any Group model
-  [`constraints`](model.md#groupsstringconstraints) defined. They can not be
+  These restrictions are designed to only allow subsetting of the definitions
+  specified by the Resource type model and any Group type model
+  [`constraints`](model.md#groupsstringconstraints) defined. They MUST NOT be
   used to extend the allowable values of the attributes being constrained.
 
   The definition of this map is the same as the Group type
@@ -1435,24 +1437,22 @@ of the existing entity. Then the existing entity would be deleted.
   Any map key value specified here that is the same as a key value included
   in the Group type model's [`constraints`](model.md#groupsstringconstraints),
   is interpreted as a request to further constrain the Resource attribute
-  being referenced. Therefore, the two definitions of the constraints are
-  layered (or merged), per the following rules:
-  - `default` attribute:
-    - If present here, it MUST be a valid value within the effective `enum`
-      values per the `enum` bullet below.
-    - If not present here, but specified at the Group type level, then the
-      value specified at the Group type level, MUST be valid per the effective
-      `enum` values per the `enum` bullet below.
-  - `enum` attribute:
-    - If present here and at the Group type level, then the values here MUST
-      be a subset of the values specified at the Group type level.
-    - If not present here, then any `enum` values specified at the Group type
-      level MUST apply.
-  - `equals` attribute:
-    - If present here and at the Group type level, then the values MUST be
-      the exact same.
-    - If not present here, then any `equals` value specified at the Group type
-      level MUST apply.
+  being referenced.
+
+  The two layers of definitions of the constraints are merged such that any
+  individual constraint aspect defined at the Group instance level MUST
+  override any constraint aspect mentioned at the Group type level. Absence
+  of (or `null` value for) an aspect at the Group instance level MUST NOT
+  impact any constraints defined at the Group type level.
+
+  The following further clarifies this merging:
+  - If `enum` is specified at both levels, then the Group instance `enum` set
+    MUST be a subset of the `enum` defined at the Group type level.
+  - If the `equals` aspect is defined in both levels then they MUST be the
+    exact same value. And in that situation, specifying it at the Group
+    instance level is redundant. For clarity, a Group instance MAY introduce
+    an `equals` aspect for a constraint key defined at the Group type level
+    that has no `equals` aspect.
 
 - Constraints:
   - OPTIONAL
@@ -1460,7 +1460,7 @@ of the existing entity. Then the existing entity would be deleted.
   ```yaml
   "constraints": {
     "schemas.format" : {
-      "default": [ "jsonschema/draft-07" ],
+      "default": "jsonschema/draft-07",
       "enum": [ "avro/1.9", "jsonschema/draft-07" ],
       "equals": "format"
     }
@@ -3968,19 +3968,22 @@ The format of a filter expression is one of:
 ```
 
 Where:
-- `<PATH>` MUST be a dot (`.`) notation traversal of the Registry to the entity
-  of interest, or absent if at the top of the Registry request. Note that
-  the `<PATH>` value is based on the requesting URL and not the root of the
-  Registry. See the examples below. To reference an attribute with a dot as
-  part of its name, the JSONPath escaping mechanism MUST be used:
-  `['my.name']`. For example, `prop1.my.name.prop2` would be specified as
-  `prop1['my.name'].prop2` if `my.name` is the name of one attribute.
+- `<PATH>` MUST be a [dot (`.`) notation](#xregistry-dot--notation) traversal
+  of the Registry to the entity of interest, or absent if at the top of the
+  Registry request. See the
+  [xRegistry Dot (`.`) Notation](#xregistry-dot--notation) section for more
+  details on the syntax.
+- The `<PATH>` value MUST be based on the requesting URL and not the root of
+  the Registry. Meaning, if the URL targets a Group then the `<PATH>` value
+  would be relative to the Group and not the root of the Registry. See the
+  examples below.
+- `<ATTRIBUTE>` uses dot notation as well. Technically, the filter expression
+  is a single dot notation reference, but the `<PATH>` and `<ATTRIBUTE>` are
+  called out separately here for descriptive purposes.
 - `<PATH>` MUST only consist of valid `<GROUPS>` type names, `<RESOURCES>`
-  type names or `versions`, otherwise an error
-  ([bad_filter](#bad_filter)) MUST be generated.
+  type names or `versions`, otherwise an error ([bad_filter](#bad_filter))
+  MUST be generated.
 - `<ATTRIBUTE>` MUST be the attribute in the entity to be examined.
-- Complex attributes (e.g. `labels`) MUST use dot (`.`) to reference nested
-  attributes. For example: `labels.stage=dev`.
 - A non-`null` `<VALUE>` MUST only be used when referencing scalar attributes.
 - A reference to a nonexistent attribute SHOULD NOT generate an error and
   SHOULD be treated the same as a non-matching situation. For example, a
@@ -4450,6 +4453,175 @@ backwards compatible.
 However, due to the potential for semantics changes of versions with suffix
 values (e.g. `v2.0.0-rc1`), the suffix value MUST be part of the comparison
 checking.
+
+## xRegistry Dot (`.`) Notation
+
+This specification defines a syntax for referencing entities and attributes
+within the xRegistry metadata. Known as "dot notation", it borrows some
+of the core aspects of the [JSON Path](https://www.rfc-editor.org/info/rfc9535)
+specification.
+
+The following notation operators are defined:
+
+- `.NAME` : access a property (or key) of an object (or map).
+- `['NAME']` : same as previous but `NAME` contains characters that are not
+  to be interpreted as an operator (e.g. `.`) or it contains just digits and
+  is not to be interpreted as an array index.
+- `["NAME"]` : same as previous but with double-quotes (`"`).
+- `[INTEGER]` : access an array index (zero-based).
+
+Note: due to the serialization of maps and objects (often) being
+indistinguishable, this specification (similar to JSONPath) does not provide
+different syntaxes for traversing each.
+
+For clarity, use of square brackets (`[]`) without use of either type of
+quotes around the value MUST be interpreted as accessing an array. Conversely,
+use of quotes MUST be interpreted as accessing an object/map.
+
+**Examples:**
+
+| Dot Notation      | Description |
+| ----------------- | --- |
+| `.name`           | An attribute (or map key) called `name` |
+| `['my.name']`     | An attribute (or map key) called `my.name` |
+| `[2]`             | The 3rd (zero-based) item in an array |
+| `["birth.date"] ` | Attribute/key called `birth.date` |
+| `["2"]`           | An attribute/key called `2` (a string, not integer)|
+| `employee.name`   | `name` attribute/key in an object/map called `employee` |
+| `stack[3]`        | Element with index 3 (zero-based) in `stack` array |
+| `employee['joe'].addresses[0].state` | `joe` attr/key of `employee`, then the first index of its `addresses` array, then `state` attr/key of that address |
+
+Depending on the situation in which the notation is being used, there are
+certain special values that MAY be used, a described in the following sections.
+
+### Dot-Notation in Filters
+
+When using [filters](#filter-flag) the following special values MAY be used:
+| | |
+| ------ | --- |
+| `.*`   | Match any item in an object/map |
+| `[*]`  | Match any item in an array |
+| `[-1]` | Match the final item in an array |
+
+Note that `['*']` is not the same as `.*`. Rather, `['*']` is a reference
+to an attribute/key called `*` - assuming that it is a valid attribute/key
+name in that particular situation.
+
+Use of `-1` as a special index in an array does not extend to other negative
+integers. Those MUST generate an error ([bad_request](#bad_request)).
+
+**Examples**
+
+Given the following definition of a `schemagroup` Group type extension:
+
+```yaml
+{
+  "info": {
+    "owner": <STRING>,
+    "reviewers": [ <STRING>, * ]                # An array of strings
+    "labels": { "<STRING>": "<STRING>" * }, ?   # A map of string -> string
+    "addresses": {
+      "<STRING>": {                             # e.g. "home", "work"
+        "street": "<STRING>",
+        "state": "<STRING>",
+        "zip": "<STRING>"
+      } *
+    } *
+  },
+  "age": <INTEGER>
+}
+```
+
+- Find all schemagroups that have an `age` of `5`:
+  `GET /?filter=schemagroups.age=5`
+- Find all schemagroups where `owner` is `joe`:
+  `GET /?filter=schemagroups.info.owner=joe`
+- Find all schemagroups that have a label `env` set to `prod`:
+  `GET /?filter=schemagroups.info.labels.env=prop`
+- Find all schemagroups that have any label with a value of `June`:
+  `GET /?filter=schemagroups.info.labels.*=June`
+- Find all schemagroups that have a "reviewers" value of `Steve`:
+  `GET /?filter=schemagroups.info.reviewers[*]=Steve`
+- Find all schemagroups that have an "info.address" in `CA`:
+  `GET /?filter=schemagroups.info.addresses.*.state=CA`
+
+In the above examples, notice that the filter only specified the `schemagroups`
+collection as part of the hierarchy traversal. From a purist perspective those
+filters really ought to have been written with the `*` wildcard for the
+matching schemagroups's `ID`, for example:
+
+```yaml
+?filter=schemagroups.*.info.owner
+```
+
+to indicate that we're asking to search over all schemagroups (by ID) in the
+`schemagroups` collection, and then for each one examine its `info.owner`
+attribute. However, requiring that extra bit of information in the filter
+would introduce two potential problems:
+
+- It would mandate all users add `.*.` in almost all filter expressions,
+  which could be tedious since in most cases it's expected that people are
+  going to search over all items in the xRegistry collection.
+- Additionally, if they were interested in just one item in the collection,
+  then they would most likely have specified that as part of the request URL.
+  For example, `GET /schemagroups/mygroup/...` - in which case the ID would
+  not appear as part of the filter expression at all.
+
+As a result, when specifying a filter expression that steps between the
+xRegistry hierarchy, the `ID` portion of the path is excluded. However, this
+does not apply to stepping through the path of objects/maps/arrays defined
+within an xRegistry entity (Group, Resource, Versions). In those cases use
+of the `*` wildcard would need to be used to indicate "any" items in that set.
+This is demonstrated in the "info.addresses" example above.
+
+For completeness, to filter based on a schema's name, the request might
+look like:
+
+```yaml
+GET /?filter=schemagroups.schemas.name=myschema
+```
+
+would search over all schemagroups, and over all schemas in those groups,
+for ones with a `name` attribute set to `myschema`.
+
+It is worth noting that if the user really does want a certain schemagroup with
+a certain ID (e.g. `mygroup`), without the request URL path being
+`/schemagroups/mygroup`, then they can achieve this by using a compound
+filter:
+
+```yaml
+GET /?filter=schemagroups.schemas.name=myschema,schemagroups.schemagroupid=mygroup
+```
+
+The `,` in a single filter expression represents an `AND` operation.
+
+### Additional Special Dot-Notation Considerations
+
+While not used in this server specification, the following syntax guidelines
+are RECOMMENDED to be used for consistency across xRegistry tooling:
+
+- Insert an item into the middle of an array: `[INTEGER:]`.
+  - E.g. `set myarray[3:]=mary` would be used to insert "mary" at the 4th
+    index (zero-based), pushing current index positions 3 (and higher) further
+    down in the array.
+  - If the specified integer value does not exist, then an error MUST be
+    generated. Even in the case of `0` for an empty array.
+- Insert at the start of an array: `[^]`.
+  - E.g. `set myarray[^]=mary` would insert "mary" at the start of the array,
+    and create the array first if it is not yet defined.
+- Append to the end of an array: `[$]`.
+  - E.g. `set myarray[$]=mary` would append "mary" to the end of the array,
+    and create the array first if it is not yet defined.
+- Specifying an empty object/map: `{}`.
+  - E.g. `set myobject={}` would replace any value for `myobject` with an
+    empty object/map.
+- Specifying an empty array: `[]`.
+  - E.g. `set myarray=[]` would replace any values in `myarray` with an empty
+    array.
+- Deleting an item from an array MUST shift all higher indexed items down one
+  since this specification does not support sparse arrays. Note, that if the
+  intent is to replace that item, rather than doing a delete followed by an
+  insert, a direct replacement of that index is RECOMMENDED.
 
 ## Error Processing
 
