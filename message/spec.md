@@ -469,7 +469,7 @@ this form:
           "labels": { "<STRING>": "<STRING>" * }, ?
           "createdat": "<TIMESTAMP>",
           "modifiedat": "<TIMESTAMP>",
-          "ancestor": "<STRING>",
+          "ancestorid": "<STRING>",
           "contenttype": "<STRING>", ?
           "format": "<STRING>", ?
           "formatvalidated": <BOOLEAN>, ?
