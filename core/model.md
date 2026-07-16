@@ -119,7 +119,7 @@ The overall format of a model definition is as follows:
       "modelcompatiblewith": "<URI>", ?  # Statement of compatibility
       "attributes": { ... }, ?           # See "attributes" above
       "ximportresources": [ "<XIDTYPE>", * ], ?   # Include these Resources,
-                                         # only available for "modelsource"
+                                                  # only for "modelsource"
       "constraints": {
         "<RESOURCES>.<PATH>": {          # Resource-plural + attribute path
           "default": <VALUE>, ?          # Group specific default

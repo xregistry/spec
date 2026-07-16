@@ -508,7 +508,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
         "modelcompatiblewith": "<URI>", ? # Statement of compatibility
         "attributes": { ... }, ?          # Group-level attributes/extensions
         "ximportresources": [ "<XIDTYPE>", * ], ?   # Include these Resources,
-                                          # only available for "modelsource"
+                                                    # only for "modelsource"
         "resources": {
           "<STRING>": {                   # Key=plural name, e.g. "messages"
             "plural": "<STRING>",         # e.g. "messages"
@@ -4637,14 +4637,19 @@ can be discovered:
 
 ### Host-based Discovery
 
-Leveraging the `/.well-known` mechanism, this specification defines an
-xRegistry file that MAY exist at the root of a host's web server:
+If access to the root of a hosting environment is available, then it is
+RECOMMENDED that implementations leverage the
+[`/.well-known` discovery
+mechanism](https://www.iana.org/assignments/well-known-uris/well-known-uris.xhtml)
+by making xRegistry "discovery" metadata available at the
+following URL:
 
 ```yaml
-GET /.well-known/xregistry
+/.well-known/xregistry
 ```
 
-The format of the document returned MUST be:
+If supported, a request (`GET`) to this location MUST return a document of
+the form:
 
 ```yaml
 {
@@ -4657,21 +4662,19 @@ The format of the document returned MUST be:
 Where:
 - Each `URL` is the full absolute URL location an xRegistry server.
 
-While normally this list would only include servers hosted on this specific
-host, it is not a requirement that this be the case.
-
-This mechanism is RECOMMENDED if access to the root of the hosting
-environment is available.
+While normally this list would only include xRegistry servers hosted on this
+specific host, it is not a requirement that this be the case.
 
 - Examples:
-  - ```
+  - ```yaml
     {
       "registries": [
         "https://example.com/schemaregistry"
       ]
     }
+    ```
 
-### Registry-specific Discovery
+### Registry-base Discovery
 
 Similar to the [Host-based Discovery](#host-based-discovery) mechanism,
 an xRegistry server instance MAY advertise a list of additional xRegistry
@@ -4695,17 +4698,40 @@ Where:
   host-based discovery mechanism. It is expected that clients will
   detect duplicate URLs if needed.
 
-See the [xRegistry HTTP specification](./http.md#xregistry-discovery) for the
-HTTP-specific discovery mechanism.
+See the [xRegistry HTTP specification](./http.md#xregistry-discovery) for more
+information on the HTTP-specific discovery mechanism.
 
 - Examples:
-  - ```
+  - Using HTTP, a "dev" registry, points to a "prod" registry:
+    ```yaml
+    GET http://example.com/registries/dev/.xregistry
+
+    HTTP/1.1 200 OK
+    Content-Type: application/json; charset=utf-8
     {
       "registries": [
-        "https://example.com/schemaregistry"
+        "https://example.com/registries/prod"
       ]
     }
     ```
+  - Additionally, if access to the root of the host is available, the
+    following would work:
+    ```yaml
+    GET http://example.com/.well-known/xregistry
+
+    HTTP/1.1 200 OK
+    Content-Type: application/json; charset=utf-8
+    {
+      "registries": [
+        "https://example.com/registries/dev",
+        "https://example.com/registries/prod"
+      ]
+    }
+    ```
+
+Since clients might not be aware of the hosting limitations of the servers,
+to maximize the set of xRegistries servers found, both Host-based and
+Registry-based mechanisms SHOULD be attempted.
 
 ### Webpage-based Discovery
 
@@ -4721,7 +4747,7 @@ The format of the element MUST adhere to:
 - Example:
   - ```yaml
     <link rel="alternative" type="application/xregistry+json"
-          title="Our xRegistry server" href="https://example.com/xregistry"/>
+          title="Our xRegistry server" href="https://xreg.example.com/"/>
     ```
 
 ## Error Processing

@@ -1013,7 +1013,7 @@ PATCH /capabilities
 
 A server MUST support clients retrieving its full
 [model definition](./model.md#registry-model) via an HTTP `GET` directed to
-the stand-lone `model` entity.
+the stand-alone `model` entity.
 
 The request MUST be of the form:
 
@@ -3047,7 +3047,7 @@ HTTP/1.1 204 No Content
 
 As defined by the [core specification](./spec.md#xregistry-discovery), clients
 MAY query an xRegistry server for the list of additional xRegistry servers
-that might be of interest. If supported, the Registry-specific discovery file,
+that might be of interest. If supported, the Registry-based discovery file,
 for an HTTP server, MUST be available at the root of the Registry (e.g. as a
 sibling API to `/model`) via the `/.xregistry` API:
 
@@ -3065,6 +3065,7 @@ Content-Type: application/json; charset=utf-8
     "URL", *
   }
 }
+```
 
 Note that unlike the [Host-based Discovery](./spec.md#host-based-discovery)
 mechanism, this API includes a dot (`.`) before `xregistry` to avoid any
