@@ -5,6 +5,7 @@
 <!-- words: compat formatvalidatedreason compatibilityvalidatedreason -->
 <!-- words: matchversions -->
 <!-- words: myarray myobject -->
+<!-- words: href schemaregistry webpage -->
 
 ## Abstract
 
@@ -55,6 +56,7 @@ or automation and tooling usage.
   - [Sort Flag](#sort-flag)
   - [SpecVersion Flag](#specversion-flag)
 - [xRegistry Dot (`.`) Notation](#xregistry-dot--notation)
+- [xRegistry Discovery](#xregistry-discovery)
 - [Error Processing](#error-processing)
 
 ## Overview
@@ -270,7 +272,9 @@ This entity is also meant to serve a few other key purposes:
   - The domain-specific ["model"](./model.md#registry-model) that defines the
     types of entities being managed by the Registry. For example, the model
     might define a Group called `schemagroups` that has `schemas` as the
-    Resources within those Groups.
+    Resources within those Groups. All xRegistry protocol specifications
+    (e.g. `http`(./http.md) MUST define at least one REQUIRED mechanism by
+    which the model can be retrieved.
 
 ### Design: Group Entity
 
@@ -287,7 +291,7 @@ A Resource entity in the Registry holds one or more Versions of metadata, and
 optionally a domain-specific document. If a Resource holds multiple Versions,
 those can be organized with
 [compatibility policies](#compatibility-attribute) and[
-lineage](#ancestor-attribute). Each Resource
+lineage](#ancestorid-attribute). Each Resource
 always has a default Version corresponding to one of the available Versions
 that is indirectly accessed when interacting with the Resource. All held
 Versions can be accessed directly through the Versions collection.
@@ -503,8 +507,8 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
         "modelversion": "<STRING>", ?     # Version of the group model
         "modelcompatiblewith": "<URI>", ? # Statement of compatibility
         "attributes": { ... }, ?          # Group-level attributes/extensions
-        "ximportresources": [ "<XIDTYPE>", * ], ?   # Include these Resources
-
+        "ximportresources": [ "<XIDTYPE>", * ], ?   # Include these Resources,
+                                                    # only for "modelsource"
         "resources": {
           "<STRING>": {                   # Key=plural name, e.g. "messages"
             "plural": "<STRING>",         # e.g. "messages"
@@ -518,7 +522,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "maxversions": <UINTEGER>, ?  # Num Vers(>=0). Default=0(unlimited)
             "setversionid": <BOOLEAN>, ?  # vid settable? Default=true
             "hasdocument": <BOOLEAN>, ?   # Has separate document. Default=true
-            "versionmode": "<STRING>", ?  # 'ancestor' processing algorithm
+            "versionmode": "<STRING>", ?  # Ancestor processing algorithm
             "singleversionroot": <BOOLEAN>, ? # Default=false"
             "validateformat": <BOOLEAN>, ?    # Check version format compliance. Default=false
             "validatecompatibility": <BOOLEAN>, ? # Check version compatibility. Default=false
@@ -584,7 +588,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
           "labels": { "<STRING>": "<STRING>" * }, ?
           "createdat": "<TIMESTAMP>",
           "modifiedat": "<TIMESTAMP>",
-          "ancestor": "<STRING>",                  # Ancestor's versionid
+          "ancestorid": "<STRING>",                # Ancestor's versionid
           "contenttype": "<STRING>", ?             # Add default Ver extensions
           "format": "<STRING>", ?
           "formatvalidated": <BOOLEAN>, ?
@@ -639,7 +643,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
               "labels": { "<STRING>": "<STRING>" * }, ? # Version's labels
               "createdat": "<TIMESTAMP>",
               "modifiedat": "<TIMESTAMP>",
-              "ancestor": "<STRING>",              # Ancestor's versionid
+              "ancestorid": "<STRING>",            # Ancestor's versionid
               "contenttype": "<STRING>", ?
               "format": "<STRING>", ?
               "formatvalidated": <BOOLEAN>, ?
@@ -658,6 +662,10 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   } ?
 }
 ```
+
+See the [Includes in the xRegistry Model
+Data](./model.md#includes-in-the-xregistry-model-data)
+section for use of the `$include(s)` directives in `modelsource`.
 
 If there is an issue with reading or parsing the data provided to the
 server, then an error ([parsing_data](#parsing_data)) MUST be generated.
@@ -2415,7 +2423,7 @@ it MUST adhere to the following:
   "labels": { "<STRING>": "<STRING>" * }, ?
   "createdat": "<TIMESTAMP>",
   "modifiedat": "<TIMESTAMP>",
-  "ancestor": "<STRING>",
+  "ancestorid": "<STRING>",
   "contenttype": "<STRING>", ?
 
   "<RESOURCE>url": "<URL>", ?                # If not local
@@ -2599,7 +2607,7 @@ The overall processing of the request message is as follows:
 1.  Process the Versions in the `versions` collection, if present.
 2.  Process the Resource's default Version attributes only if the default
     Version is not present in the `versions` collection.
-3.  Update all Version's [`ancestor` values](#ancestor-attribute) as needed,
+3.  Update all Version's [`ancestorid` values](#ancestorid-attribute) as needed,
     based on the Resource's
     [`versionmode`](./model.md#groupsstringresourcesstringversionmode) value.
 4.  Process the `meta` sub-object, if present.
@@ -2611,7 +2619,7 @@ The overall processing of the request message is as follows:
 9.  Enforce the [Version compatibility checks](#compatibility-attribute).
 10. Enforce the [Resource `maxversions`
     constraints](./model.md#groupsstringresourcesstringmaxversions). Note that
-    this might require updating the [`ancestor` values](#ancestor-attribute)
+    this might require updating the [`ancestorid` values](#ancestorid-attribute)
     again after some Versions have been deleted.
 
 The following provides additional details:
@@ -2733,7 +2741,7 @@ So, if the target Resource (`sharedSchema`) is defined as:
   "isdefault": true,
   "createdat": "2024-01-01-T12:00:00Z",
   "modifiedat": "2024-01-01-T12:01:00Z",
-  "ancestor": "v1",
+  "ancestorid": "v1",
 
   "metaurl": "http://example.com/schemagroups/group2/schemas/sharedSchema/meta",
   "versionscount": 1,
@@ -2753,7 +2761,7 @@ then the resulting serialization of the source Resource would be:
   "isdefault": true,
   "createdat": "2024-01-01-T12:00:00Z",
   "modifiedat": "2024-01-01-T12:01:00Z",
-  "ancestor": "v1",
+  "ancestorid": "v1",
 
   "metaurl": "http://example.com/schemagroups/group1/schemas/mySchema/meta",
   "meta": {
@@ -2980,7 +2988,7 @@ and the following Meta-level attributes:
 - Description: States that Versions of this Resource adhere to a certain
   compatibility rule. For example, a `backward` compatibility value would
   indicate that all Versions of a Resource are backwards compatible with the
-  next oldest Version, as determined by their `ancestor` attributes.
+  next oldest Version, as determined by their `ancestorid` attributes.
 
   This specification makes no statement as to which parts of the Version data
   are examined for compatibility (e.g. xRegistry metadata, domain-specific
@@ -2995,7 +3003,7 @@ and the following Meta-level attributes:
   list of available values and to define the exact meaning of each.
 
   For `compatibility` strategies that require understanding the lineage
-  relationship between the Versions, the [`ancestor`](#ancestor-attribute)
+  relationship between the Versions, the [`ancestorid`](#ancestorid-attribute)
   attribute on each Version MUST be used to determine that information.
 
   This specification defines the following enumeration values. Implementations
@@ -3193,7 +3201,7 @@ following:
   "labels": { "<STRING>": "<STRING>" * }, ?
   "createdat": "<TIMESTAMP>",
   "modifiedat": "<TIMESTAMP>",
-  "ancestor": "<STRING>",
+  "ancestorid": "<STRING>",
   "contenttype": "<STRING>", ?
 
   "<RESOURCE>url": "<URL>", ?                  # If not local
@@ -3274,11 +3282,11 @@ and the following Version-level attributes:
   - `true`
   - `false`
 
-#### `ancestor` Attribute
+#### `ancestorid` Attribute
 - Type: String
 - Description: The `versionid` of this Version's ancestor.
 
-  The `ancestor` attribute MUST be set to the `versionid` of this Version's
+  The `ancestorid` attribute MUST be set to the `versionid` of this Version's
   ancestor. If this Version is a root of an ancestor hierarchy tree then it
   MUST be set to its own `versionid` value.
 
@@ -3288,12 +3296,12 @@ and the following Version-level attributes:
 
   If a create operation asks the server to choose the `versionid` when
   creating a root Version, the `versionid` is not yet known and therefore
-  cannot be specified in the `ancestor` attribute as part of the request. In
+  cannot be specified in the `ancestorid` attribute as part of the request. In
   those cases a value of `request` MUST be used as a way to reference itself.
 
 - Constraints:
   - REQUIRED.
-  - The `ancestor` attribute MUST NOT be set to a value that
+  - The `ancestorid` attribute MUST NOT be set to a value that
     creates circular references between Versions and it is STRONGLY RECOMMENDED
     that the server generate an error
     ([ancestor_circular_reference](#ancestor_circular_reference)) if a request
@@ -3301,11 +3309,11 @@ and the following Version-level attributes:
     ancestor B, and Version B's ancestor A, would generate an error.
   - When absent in an update operation request, it MUST be interpreted as the
     same as if it were present with its existing value.
-  - Any attempt to set an `ancestor` attribute to a non-existing `versionid`
+  - Any attempt to set an `ancestorid` attribute to a non-existing `versionid`
     MUST generate an error ([unknown_id](#unknown_id)).
-  - For clarity, any modification to the `ancestor` attribute MUST result in
+  - For clarity, any modification to the `ancestorid` attribute MUST result in
     the owning Version's `epoch` and `modifiedat` attributes be updated
-    appropriately, regardless of whether the change to `ancestor` was
+    appropriately, regardless of whether the change to `ancestorid` was
     explicitly part of a request or indirectly changed due to changes to other
     Versions.
 
@@ -3789,8 +3797,8 @@ of Resource and Version entities that have a domain-specific document.
 
 ### Collections Flag
 
-The `collections` flag MAY be used on requests directed to the Registry itself
-or to Group instances to indicate that the response message MUST NOT include
+The `collections` flag MAY be used on requests directed to the Registry itself,
+or to Group instances, to indicate that the response message MUST NOT include
 any attributes from the top-level entity (Registry or Group), but instead MUST
 include only all of the nested xRegistry Collection maps that are defined at
 that level. Specifying it on a request directed to some other part of the
@@ -3980,9 +3988,6 @@ Where:
 - `<ATTRIBUTE>` uses dot notation as well. Technically, the filter expression
   is a single dot notation reference, but the `<PATH>` and `<ATTRIBUTE>` are
   called out separately here for descriptive purposes.
-- `<PATH>` MUST only consist of valid `<GROUPS>` type names, `<RESOURCES>`
-  type names or `versions`, otherwise an error ([bad_filter](#bad_filter))
-  MUST be generated.
 - `<ATTRIBUTE>` MUST be the attribute in the entity to be examined.
 - A non-`null` `<VALUE>` MUST only be used when referencing scalar attributes.
 - A reference to a nonexistent attribute SHOULD NOT generate an error and
@@ -4055,6 +4060,8 @@ If the request references an entity (not a collection), and the expression
 references an attribute in that entity (i.e. there is no `<PATH>`), then if the
 expression does not match the entity, that entity MUST NOT be returned. In
 other words, a `404 Not Found` would be generated in the HTTP protocol case.
+
+Invalid filter expressions MUST generate an error ([bad_filter](#bad_filter)).
 
 **Examples:**
 
@@ -4265,17 +4272,13 @@ Some examples using the [HTTP protocol binding](./http.md#inline-flag):
 
 The value of the `inline` flag is a list of `<PATH>` values where each is a
 string indicating which inlineable attribute to show in the response.
-References to nested attributes are represented using a dot (`.`) notation
-where the xRegistry collection names along the hierarchy are concatenated. For
-example: `endpoints.messages.versions` will inline all Versions of Messages.
-Non-leaf parts of the `<PATH>` MUST only reference xRegistry collection names
-and not any specific entity IDs since `<PATH>` is meant to be an abstract
-traversal of the model.
-
-To reference an attribute with a dot as part of its name, the JSONPath
-escaping mechanism MUST be used: `['my.name']`. For example,
-`prop1.my.name.prop2` would be specified as `prop1['my.name'].prop2` if
-`my.name` is the name of an attribute.
+References to nested attributes are represented using a
+[dot (`.`) notation](#xregistry-dot--notation) where the xRegistry collection
+names along the hierarchy are concatenated. For example:
+`endpoints.messages.versions` will inline all Versions of Messages.  Non-leaf
+parts of the `<PATH>` MUST only reference xRegistry collection names and not
+any specific entity IDs since `<PATH>` is meant to be an abstract traversal of
+the model.
 
 There MAY be multiple `<PATH>`s specified in a single request and each
 protocol binding specification will indicate how the list is specified.
@@ -4388,8 +4391,9 @@ This flag MUST include a single parameter, a string containing the attribute
  whether the results are to be sorted in ascending or descending order.
 
 The following rules apply:
-- `<ATTRIBUTE>` MUST be the JSONPath to one of the attributes defined in
-  collection's entities that will be the primary sort key for the results.
+- `<ATTRIBUTE>` MUST be a [dot (`.`) notation](#xregistry-dot--notation) path
+  to one of the attributes defined in collection's entities that will be the
+  primary sort key for the results.
   The attribute MUST only reference a scalar attribute within the top-level
   collection, it MUST NOT attempt to traverse into a nested xRegistry
   collection even if that nested collection is inlined.
@@ -4501,14 +4505,10 @@ When using [filters](#filter-flag) the following special values MAY be used:
 | ------ | --- |
 | `.*`   | Match any item in an object/map |
 | `[*]`  | Match any item in an array |
-| `[-1]` | Match the final item in an array |
 
 Note that `['*']` is not the same as `.*`. Rather, `['*']` is a reference
 to an attribute/key called `*` - assuming that it is a valid attribute/key
 name in that particular situation.
-
-Use of `-1` as a special index in an array does not extend to other negative
-integers. Those MUST generate an error ([bad_request](#bad_request)).
 
 **Examples**
 
@@ -4597,8 +4597,11 @@ The `,` in a single filter expression represents an `AND` operation.
 
 ### Additional Special Dot-Notation Considerations
 
-While not used in this server specification, the following syntax guidelines
-are RECOMMENDED to be used for consistency across xRegistry tooling:
+The dot-notation defined in this specification is purposely limited to keep
+implementation requirements to a minimum. However, third-party xRegistry
+tooling might leverage more expressive dot-notation features. In order to
+encourage interoperability and consistency across tooling, the following
+syntax guidelines are RECOMMENDED for other common situations:
 
 - Insert an item into the middle of an array: `[INTEGER:]`.
   - E.g. `set myarray[3:]=mary` would be used to insert "mary" at the 4th
@@ -4612,6 +4615,10 @@ are RECOMMENDED to be used for consistency across xRegistry tooling:
 - Append to the end of an array: `[$]`.
   - E.g. `set myarray[$]=mary` would append "mary" to the end of the array,
     and create the array first if it is not yet defined.
+- Referencing the last item in an array: `[-1]`.
+  - E.g. `set myarray[-1]=mary` would replace the last item in the array.
+  - If the array is empty, then an error would be generated.
+  - This notation does not extend to other negative integers.
 - Specifying an empty object/map: `{}`.
   - E.g. `set myobject={}` would replace any value for `myobject` with an
     empty object/map.
@@ -4622,6 +4629,126 @@ are RECOMMENDED to be used for consistency across xRegistry tooling:
   since this specification does not support sparse arrays. Note, that if the
   intent is to replace that item, rather than doing a delete followed by an
   insert, a direct replacement of that index is RECOMMENDED.
+
+## xRegistry Discovery
+
+This specification defines the following mechanisms by which xRegistry servers
+can be discovered:
+
+### Host-based Discovery
+
+If access to the root of a hosting environment is available, then it is
+RECOMMENDED that implementations leverage the
+[`/.well-known` discovery
+mechanism](https://www.iana.org/assignments/well-known-uris/well-known-uris.xhtml)
+by making xRegistry "discovery" metadata available at the
+following URL:
+
+```yaml
+/.well-known/xregistry
+```
+
+If supported, a request (`GET`) to this location MUST return a document of
+the form:
+
+```yaml
+{
+  "registries": {
+    "URL", *
+  }
+}
+```
+
+Where:
+- Each `URL` is the full absolute URL location an xRegistry server.
+
+While normally this list would only include xRegistry servers hosted on this
+specific host, it is not a requirement that this be the case.
+
+- Examples:
+  - ```yaml
+    {
+      "registries": [
+        "https://example.com/schemaregistry"
+      ]
+    }
+    ```
+
+### Registry-base Discovery
+
+Similar to the [Host-based Discovery](#host-based-discovery) mechanism,
+an xRegistry server instance MAY advertise a list of additional xRegistry
+servers by supporting a protocol-specific retrieval mechanism.
+
+Regardless of the exact protocol mechanism, the data returned MUST adhere
+to the same format as the Host-based discovery mechanism:
+
+```yaml
+{
+  "registries": {
+    "URL", *
+  }
+}
+```
+
+Where:
+- Each `URL` is the full absolute URL location an xRegistry server.
+- While not expected, the list MAY include the current server's URL.
+- This list MAY, but is not mandated to, include URLs from the
+  host-based discovery mechanism. It is expected that clients will
+  detect duplicate URLs if needed.
+
+See the [xRegistry HTTP specification](./http.md#xregistry-discovery) for more
+information on the HTTP-specific discovery mechanism.
+
+- Examples:
+  - Using HTTP, a "dev" registry, points to a "prod" registry:
+    ```yaml
+    GET http://example.com/registries/dev/.xregistry
+
+    HTTP/1.1 200 OK
+    Content-Type: application/json; charset=utf-8
+    {
+      "registries": [
+        "https://example.com/registries/prod"
+      ]
+    }
+    ```
+  - Additionally, if access to the root of the host is available, the
+    following would work:
+    ```yaml
+    GET http://example.com/.well-known/xregistry
+
+    HTTP/1.1 200 OK
+    Content-Type: application/json; charset=utf-8
+    {
+      "registries": [
+        "https://example.com/registries/dev",
+        "https://example.com/registries/prod"
+      ]
+    }
+    ```
+
+Since clients might not be aware of the hosting limitations of the servers,
+to maximize the set of xRegistries servers found, both Host-based and
+Registry-based mechanisms SHOULD be attempted.
+
+### Webpage-based Discovery
+
+Web pages MAY choose to advertise the location of a related xRegistry
+server by including a `<link>` element in the page's `<head>` section.
+The format of the element MUST adhere to:
+
+```yaml
+<link rel="alternative" type="application/xregistry+json"
+      title="STRING" href="URL"/>
+```
+
+- Example:
+  - ```yaml
+    <link rel="alternative" type="application/xregistry+json"
+          title="Our xRegistry server" href="https://xreg.example.com/"/>
+    ```
 
 ## Error Processing
 

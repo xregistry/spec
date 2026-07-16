@@ -101,7 +101,7 @@ PUT /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "now",
   "modifiedat": "now",
-  "ancestor": "1",
+  "ancestorid": "1",
 
   "meta": {
     "epoch": 1,
@@ -126,7 +126,7 @@ PUT /dirs/d1/files/f1
 - Conceptually, this new Version is populated with the Resource's default
   Version attributes from the request. However, since there are none, all
   mandatory attributes are assigned their default values.
-- The Version's `ancestor` value is `1` (points to itself) because it is the
+- The Version's `ancestorid` value is `1` (points to itself) because it is the
   root of a hierarchy tree.
 - Being the only Version, it is the default Version, and it is not "sticky".
 - Using `PATCH` instead of `PUT` will yield the exact same results.
@@ -170,7 +170,7 @@ POST /dirs/d1/files
     "isdefault": true,
     "createdat": "now",
     "modifiedat": "now",
-    "ancestor": "1",
+    "ancestorid": "1",
 
     "meta": {
       "epoch": 1,
@@ -234,7 +234,7 @@ PUT /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "now",
   "modifiedat": "now",
-  "ancestor": "v1",
+  "ancestorid": "v1",
 
   "meta": {
     "epoch": 1,
@@ -248,7 +248,7 @@ PUT /dirs/d1/files/f1
       "epoch": 1,
       "createdat": "now",
       "modifiedat": "now",
-      "ancestor": "v1"
+      "ancestorid": "v1"
     },
     "v2": { see Resource.* attrs }
   }
@@ -264,7 +264,7 @@ PUT /dirs/d1/files/f1
   `meta.defaultversionid` are absent, but `versions` is not empty, all
   Resource.* attributes are ignored.
 - Since all Versions have the same `createdat` timestamp they are sorted
-  alphabetically by their `versionid` values in order to set their `ancestor`
+  alphabetically by their `versionid` values in order to set their `ancestorid`
   attributes.
 - Which means `v2` becomes the newest and therefore the default Version.
 - Ancestor order: `1` <- `v1` <- `v2`.
@@ -317,7 +317,7 @@ PUT /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "3030",
   "modifiedat": "now",
-  "ancestor": "v3",
+  "ancestorid": "v3",
 
   "meta": {
     "epoch": 1,
@@ -331,14 +331,14 @@ PUT /dirs/d1/files/f1
       "epoch": 1,
       "createdat": "2020",
       "modifiedat": "now",
-      "ancestor": "v1"
+      "ancestorid": "v1"
     },
     "v2": { see Resource.* attrs },
     "v3": {
       "epoch": 1,
       "createdat": "now",
       "modifiedat": "now",
-      "ancestor": "v1"
+      "ancestorid": "v1"
     }
   }
 }
@@ -397,7 +397,7 @@ PUT /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "now",
   "modifiedat": "now",
-  "ancestor": "v2",
+  "ancestorid": "v2",
 
   "meta": {
     "epoch": 1,
@@ -412,13 +412,13 @@ PUT /dirs/d1/files/f1
       "name": "foo",
       "createdat": "now",
       "modifiedat": "now",
-      "ancestor": "v1"
+      "ancestorid": "v1"
     },
     "v2": {
       "epoch": 1,
       "createdat": "now",
       "modifiedat": "now",
-      "ancestor": "v1"
+      "ancestorid": "v1"
     },
     "v3": { see Resource.* attrs },
   }
@@ -474,7 +474,7 @@ PUT /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "now",
   "modifiedat": "now",
-  "ancestor": "v1",
+  "ancestorid": "v1",
 
   "meta": {
     "epoch": 1,
@@ -539,7 +539,7 @@ PUT /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "now",
   "modifiedat": "now",
-  "ancestor": "v0",
+  "ancestorid": "v0",
 
   "meta": {
     "epoch": 1,
@@ -554,13 +554,13 @@ PUT /dirs/d1/files/f1
       "name": "foo"
       "createdat": "now",
       "modifiedat": "now",
-      "ancestor": "v1"
+      "ancestorid": "v1"
     },
     "v1": {
       "epoch": 1,
       "createdat": "2020",
       "modifiedat": "now",
-      "ancestor": "v1"
+      "ancestorid": "v1"
     },
     "v2": { see Resource.* attrs }
   }
@@ -591,7 +591,7 @@ PUT /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "2021",
   "modifiedat": "2021",
-  "ancestor": "v0",
+  "ancestorid": "v0",
 
   "meta": {
     "epoch": 1,
@@ -639,7 +639,7 @@ PUT /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "2020",
   "modifiedat": "now",
-  "ancestor": "v0",
+  "ancestorid": "v0",
 
   "meta": {
     "epoch": 2,
@@ -654,14 +654,14 @@ PUT /dirs/d1/files/f1
       "name": "foo",
       "createdat": "2021",
       "modifiedat": "now",
-      "ancestor": "v1"
+      "ancestorid": "v1"
     },
     "v1": { see Resource.* attrs },
     "v2": { see Resource.* attrs }
       "epoch": 1,
       "createdat": "now",
       "modifiedat": "now",
-      "ancestor": "v0"
+      "ancestorid": "v0"
     }
   }
 }
@@ -727,7 +727,7 @@ PUT /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "2020",
   "modifiedat": "now",
-  "ancestor": "v1",
+  "ancestorid": "v1",
 
   "meta": {
     "epoch": 1,
@@ -742,14 +742,14 @@ PUT /dirs/d1/files/f1
       "name": "foo",
       "createdat": "2021",
       "modifiedat": "now",
-      "ancestor": "v1"
+      "ancestorid": "v1"
     },
     "v1": { see Resource.* attrs }
     "v2": {
       "epoch": 1,
       "createdat": "now",
       "modifiedat": "now",
-      "ancestor": "v0"
+      "ancestorid": "v0"
     }
   }
 }
@@ -814,7 +814,7 @@ PUT /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "now",
   "modifiedat": "now",
-  "ancestor": "v0",
+  "ancestorid": "v0",
 
   "meta": {
     "epoch": 1,
@@ -829,13 +829,13 @@ PUT /dirs/d1/files/f1
       "name": "foo",
       "createdat": "now",
       "modifiedat": "now",
-      "ancestor": "v1"
+      "ancestorid": "v1"
     },
     "v1": {
       "epoch": 1,
       "createdat": "2020",
       "modifiedat": "now",
-      "ancestor": "v1"
+      "ancestorid": "v1"
     },
     "v2": { see Resource.* attrs }
   }
@@ -896,7 +896,7 @@ PUT /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "2020",
   "modifiedat": "now",
-  "ancestor": "v1",
+  "ancestorid": "v1",
 
   "meta": {
     "epoch": 1,
@@ -911,7 +911,7 @@ PUT /dirs/d1/files/f1
       "epoch": 1,
       "createdat": "now",
       "modifiedat": "now",
-      "ancestor": "v1"
+      "ancestorid": "v1"
     }
   }
 }
@@ -942,7 +942,7 @@ PUT /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "2025",
-  "ancestor": "v1",
+  "ancestorid": "v1",
 
   "meta": {
     "epoch": 1,
@@ -955,7 +955,7 @@ PUT /dirs/d1/files/f1
     "v1": { see Resource.* attrs },
     "v2": {
       "createdat": "2025",
-      "ancestor": "v1"
+      "ancestorid": "v1"
     }
   }
 }
@@ -992,7 +992,7 @@ PUT /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "now",
-  "ancestor": "v2",
+  "ancestorid": "v2",
 
   "meta": {
     "epoch": 2,
@@ -1007,7 +1007,7 @@ PUT /dirs/d1/files/f1
       "epoch": 2,
       "createdat": "2020",
       "modifiedat": "now",
-      "ancestor": "v2"
+      "ancestorid": "v2"
     }
   }
 }
@@ -1042,7 +1042,7 @@ PUT /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "2025",
-  "ancestor": "v1",
+  "ancestorid": "v1",
 
   "meta": {
     "epoch": 1,
@@ -1056,7 +1056,7 @@ PUT /dirs/d1/files/f1
       "epoch": 1,
       "createdat": "2025",
       "modifiedat": "2025",
-      "ancestor": "v1"
+      "ancestorid": "v1"
     },
     "v2": { see Resource.* attrs }
     }
@@ -1094,7 +1094,7 @@ PUT /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "now",
-  "ancestor": "v2",
+  "ancestorid": "v2",
 
   "meta": {
     "epoch": 2,
@@ -1109,7 +1109,7 @@ PUT /dirs/d1/files/f1
       "epoch": 2,
       "createdat": "2020",
       "modifiedat": "now",
-      "ancestor": "v2"
+      "ancestorid": "v2"
     }
   }
 }
@@ -1145,7 +1145,7 @@ PUT /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "2025",
-  "ancestor": "v1",
+  "ancestorid": "v1",
 
   "meta": {
     "epoch": 1,
@@ -1159,7 +1159,7 @@ PUT /dirs/d1/files/f1
       "epoch": 1,
       "createdat": "2025",
       "modifiedat": "2025",
-      "ancestor": "v1"
+      "ancestorid": "v1"
     },
     "v2": { see Resource.* attrs }
     }
@@ -1197,7 +1197,7 @@ PATCH /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "2020",
   "modifiedat": "now",
-  "ancestor": "v2",
+  "ancestorid": "v2",
 
   "meta": {
     "epoch": 2,
@@ -1211,7 +1211,7 @@ PATCH /dirs/d1/files/f1
       "epoch": 2,
       "createdat": "2025",
       "modifiedat": "now",
-      "ancestor": "v2"
+      "ancestorid": "v2"
     },
     "v2": { see Resource.* attrs }
   }
@@ -1248,7 +1248,7 @@ PATCH /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "2025",
-  "ancestor": "v1",
+  "ancestorid": "v1",
 
   "meta": {
     "epoch": 1,
@@ -1283,7 +1283,7 @@ PUT /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "now",
-  "ancestor": "v1",
+  "ancestorid": "v1",
 
   "meta": {
     "epoch": 1,
@@ -1324,7 +1324,7 @@ PUT /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "2025",
-  "ancestor": "v1",
+  "ancestorid": "v1",
 
   "meta": {
     "epoch": 1,
@@ -1361,7 +1361,7 @@ PATCH /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "now",
-  "ancestor": "v1",
+  "ancestorid": "v1",
 
   "meta": {
     "epoch": 1,
@@ -1404,7 +1404,7 @@ PATCH /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "2025",
-  "ancestor": "v1",
+  "ancestorid": "v1",
 
   "meta": {
     "epoch": 1,
@@ -1442,7 +1442,7 @@ PUT /dirs/d1/files/f1
   "description": "very cool",
   "createdat": "2025",
   "modifiedat": "now",
-  "ancestor": "v1",
+  "ancestorid": "v1",
 
   "meta": {
     "epoch": 1,
@@ -1484,7 +1484,7 @@ PUT /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "2025",
-  "ancestor": "v1",
+  "ancestorid": "v1",
 
   "meta": {
     "epoch": 1,
@@ -1523,7 +1523,7 @@ PATCH /dirs/d1/files/f1
   "description": "very cool",
   "createdat": "2025",
   "modifiedat": "now",
-  "ancestor": "v1",
+  "ancestorid": "v1",
 
   "meta": {
     "epoch": 1,
@@ -1565,7 +1565,7 @@ PATCH /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "2025",
-  "ancestor": "v1",
+  "ancestorid": "v1",
 
   "meta": {
     "epoch": 1,
@@ -1604,7 +1604,7 @@ PUT /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "now",
-  "ancestor": "v1",
+  "ancestorid": "v1",
 
   "meta": {
     "epoch": 2,
@@ -1646,7 +1646,7 @@ PUT /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "2025",
-  "ancestor": "v1",
+  "ancestorid": "v1",
 
   "meta": {
     "epoch": 1,
@@ -1686,7 +1686,7 @@ PATCH /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "now",
-  "ancestor": "v1",
+  "ancestorid": "v1",
 
   "meta": {
     "epoch": 2,
@@ -1729,7 +1729,7 @@ PATCH /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "2025",
-  "ancestor": "v1",
+  "ancestorid": "v1",
 
   "meta": {
     "epoch": 1,
@@ -1743,7 +1743,7 @@ PATCH /dirs/d1/files/f1
       "epoch": 1,
       "createdat": "2025",
       "modifiedat": "2025",
-      "ancestor": "v1"
+      "ancestorid": "v1"
     },
     "v2": { see Resource.* attrs }
   }
@@ -1773,7 +1773,7 @@ PATCH /dirs/d1/files/f1/meta
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "2025",
-  "ancestor": "v1",
+  "ancestorid": "v1",
 
   "meta": {
     "epoch": 2,
@@ -1788,7 +1788,7 @@ PATCH /dirs/d1/files/f1/meta
       "epoch": 1,
       "createdat": "2025",
       "modifiedat": "2025",
-      "ancestor": "v1"
+      "ancestorid": "v1"
     }
   }
 }
@@ -1823,7 +1823,7 @@ PATCH /dirs/d1/files/f1/meta
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "2025",
-  "ancestor": "v1",
+  "ancestorid": "v1",
 
   "meta": {
     "epoch": 1,
@@ -1886,7 +1886,7 @@ Error due to `foo` being an unknown Version.
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "2025",
-  "ancestor": "v1",
+  "ancestorid": "v1",
 
   "meta": {
     "epoch": 1,
@@ -1947,7 +1947,7 @@ Error due to `foo` being an unknown Version.
   "isdefault": true,
   "createdat": "2025",
   "modifiedat": "2025",
-  "ancestor": "v1",
+  "ancestorid": "v1",
 
   "meta": {
     "epoch": 1,
@@ -1992,7 +1992,7 @@ PUT /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "1999",
   "modifiedat": "now",
-  "ancestor": "v2",
+  "ancestorid": "v2",
 
   "meta": {
     "epoch": 2,
@@ -2007,7 +2007,7 @@ PUT /dirs/d1/files/f1
        "epoch": 1,
        "createdat": "1998",
        "modifiedat": "now",
-       "ancestor": "v2"
+       "ancestorid": "v2"
      }
   }
 }
@@ -2066,7 +2066,7 @@ PUT /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "now",
   "modifiedat": "now",
-  "ancestor": "v1",
+  "ancestorid": "v1",
 
   "meta": {
     "epoch": 1,
@@ -2081,7 +2081,7 @@ PUT /dirs/d1/files/f1
       "name": "abc",
       "createdat": "now",
       "modifiedat": "now",
-      "ancestor": "v1"
+      "ancestorid": "v1"
     },
     "v2": { see Resource.* attrs }
   }
@@ -2136,7 +2136,7 @@ PUT /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "now",
   "modifiedat": "now",
-  "ancestor": "v1",
+  "ancestorid": "v1",
 
   "meta": {
     "epoch": 1,
@@ -2151,7 +2151,7 @@ PUT /dirs/d1/files/f1
       "name": "abc",
       "createdat": "now",
       "modifiedat": "now",
-      "ancestor": "v1"
+      "ancestorid": "v1"
     },
     "v2": { see Resource.* attrs }
   }
@@ -2208,7 +2208,7 @@ PUT /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "now",
   "modifiedat": "now",
-  "ancestor": "v1",
+  "ancestorid": "v1",
 
   "meta": {
     "epoch": 1,
@@ -2223,7 +2223,7 @@ PUT /dirs/d1/files/f1
       "name": "abc",
       "createdat": "now",
       "modifiedat": "now",
-      "ancestor": "v1"
+      "ancestorid": "v1"
     },
     "v2": { see Resource.* attrs }
   }
@@ -2272,7 +2272,7 @@ PUT /dirs/d1/files/f1?setdefaultversionid=v1
   "isdefault": true,
   "createdat": "now",
   "modifiedat": "now",
-  "ancestor": "v1",
+  "ancestorid": "v1",
 
   "meta": {
     "epoch": 1,
@@ -2287,7 +2287,7 @@ PUT /dirs/d1/files/f1?setdefaultversionid=v1
       "epoch": 1,
       "createdat": "now",
       "modifiedat": "now",
-      "ancestor": "v1"
+      "ancestorid": "v1"
     },
   }
 }
@@ -2334,7 +2334,7 @@ POST /dirs/d1/files/f1/versions?setdefaultversionid=v1
   "isdefault": true,
   "createdat": "now",
   "modifiedat": "now",
-  "ancestor": "v1",
+  "ancestorid": "v1",
 
   "meta": {
     "epoch": 1,
@@ -2349,7 +2349,7 @@ POST /dirs/d1/files/f1/versions?setdefaultversionid=v1
       "epoch": 1,
       "createdat": "now",
       "modifiedat": "now",
-      "ancestor": "v1"
+      "ancestorid": "v1"
     },
   }
 }

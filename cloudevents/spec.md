@@ -163,7 +163,7 @@ endpoint with a single, embedded message definition using an embedded Protobuf
           "description": "device telemetry event",
           "createdat": "2024-04-30T12:00:00Z",
           "modifiedat": "2024-04-31T12:00:00Z",
-          "ancestor": "1.0",
+          "ancestorid": "1.0",
 
           "format": "CloudEvents/1.0",
           "metadata": {
@@ -271,7 +271,7 @@ other scenarios:
           "description": "device telemetry event",
           "createdat": "2024-04-30T12:00:00Z",
           "modifiedat": "2024-04-31T12:00:00Z",
-          "ancestor": "1.0",
+          "ancestorid": "1.0",
 
           "format": "CloudEvents/1.0",
           "metadata": {
@@ -331,7 +331,7 @@ other scenarios:
           "description": "device telemetry event data",
           "createdat": "2024-04-30T12:00:00Z",
           "modifiedat": "2024-04-31T12:00:00Z",
-          "ancestor": "1.0",
+          "ancestorid": "1.0",
 
           "format": "Protobuf/3.0",
           "schema": "syntax = \"proto3\"; message Metrics { float metric = 1;}",

@@ -314,8 +314,8 @@
               "type": "timestamp",
               "required": true
             },
-            "ancestor": {
-              "name": "ancestor",
+            "ancestorid": {
+              "name": "ancestorid",
               "type": "string",
               "matchcase": true,
               "required": true

@@ -981,7 +981,7 @@ against the new model, not just a subset of the entity's attributes.
 
 #### 10.7.11. Multi-root ancestor hierarchies
 
-The [`ancestor` attribute](./spec.md#ancestor-attribute) is used to build a
+The [`ancestorid` attribute](./spec.md#ancestorid-attribute) is used to build a
 hierarchy of Versions to facilitate compatibility checking when the
 [`compatibility` attribute](./spec.md#compatibility-attribute) is set. There
 are cases in which it's desirable to create multiple roots. In some
@@ -992,7 +992,7 @@ pruning of the Version tree. In such cases, when deleting the oldest Version,
 this could result in a new root being created when there are multiple
 decedents of the deleted Version.
 
-To signal that a Version represents a root of a hierarchy, the `ancestor`
+To signal that a Version represents a root of a hierarchy, the `ancestorid`
 attribute has its value set to the Version's `versionid` attribute. This
 makes the ancestor explicit, and the possible ambiguity of using another
 value such as null which, based on the scenario, could mean "no ancestor" or
@@ -1000,7 +1000,7 @@ value such as null which, based on the scenario, could mean "no ancestor" or
 
 #### 10.7.12. `singleversionroot` Policy Enforcement
 
-Related to the previous discussions concerning the `ancestor` attribute,
+Related to the previous discussions concerning the `ancestorid` attribute,
 the [Resource Model](./model.md#registry-model) `singleversionroot` attribute
 controls whether a Resource is allowed to have more than one "root" Version,
 or whether all Versions of that Resource must be a descendant of the same
@@ -1044,8 +1044,8 @@ scenarios, the server may be unable to prune Versions, when the
 must be rejected.
 
 Consider a scenario in which 3 Versions exist: v1 is the root (and therefore
-has its `ancestor` attribute set to v1), and v2 and v3 both have
-their `ancestor` attribute set to v1. In addition, the
+has its `ancestorid` attribute set to v1), and v2 and v3 both have
+their `ancestorid` attribute set to v1. In addition, the
 `groups.resources.maxversions` is set to 3. When creating a new Version, the
 server will find the oldest Version (v1) and attempt to prune it. However,
 deleting v1 would mean that v2 and v3 would become roots, as both of them
@@ -1059,7 +1059,7 @@ creating a new Version.
 #### 10.7.14. What's the oldest/newest Version of a Resource?
 
 The oldest Version of a Resource isn't necessarily the one with the oldest
-`createdat` timestamp, because the `ancestor` attribute takes precedence
+`createdat` timestamp, because the `ancestorid` attribute takes precedence
 over the `createdat` attribute. This is because the ancestor tree more
 accurately describes an ordered lineage of the Versions than timestamps. In
 the case multiple Versions exist with the same `createdat` timestamp, those
@@ -1094,7 +1094,7 @@ to their users.
 
 #### 10.7.16. Detecting circular references between Versions
 
-The specification mentions that the Version's `ancestor` attribute should not
+The specification mentions that the Version's `ancestorid` attribute should not
 be set in such a way as to cause a circular dependency list between Versions.
 However, when talking about the server generating an error in such conditions
 it says it is "STRONGLY RECOMMENDED" that an error is generated, not that it

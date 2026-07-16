@@ -271,7 +271,7 @@ this form:
           "labels": { "<STRING>": "<STRING>" * }, ?
           "createdat": "<TIMESTAMP>",
           "modifiedat": "<TIMESTAMP>",
-          "ancestor": "<STRING>",
+          "ancestorid": "<STRING>",
           "contenttype": "<STRING>", ?
           "format": "<STRING>", ?
           "formatvalidated": <BOOLEAN>, ?
@@ -393,10 +393,10 @@ major version identifier in the `schemaid`, like `"com.example.event.v1"` or
 schemas can be more easily identified by users and developers. The schema
 `versionid` then functions as the semantic minor version identifier.
 
-The [`ancestor`][xRegistry ancestor] attribute permits multiple version branches
-to exist, and allows for implementations to determine the Version lineage. See
-the [`ancestor`][xRegistry ancestor] attribute in the core xRegistry
-specification for more information.
+The [`ancestorid`][xRegistry ancestorid] attribute permits multiple version
+branches to exist, and allows for implementations to determine the Version
+lineage. See the [`ancestorid`][xRegistry ancestorid] attribute in the core
+xRegistry specification for more information.
 
 ### 4.3. Schema Formats
 
@@ -435,7 +435,7 @@ Versions for a schema named `com.example.telemetrydata`:
           "versionid": "3",
           "isdefault": true,
           "description": "device telemetry event data",
-          "ancestor": "2",
+          "ancestorid": "2",
           "format": "Protobuf/3",
           # other xRegistry default Version attributes excluded for brevity
 
@@ -450,7 +450,7 @@ Versions for a schema named `com.example.telemetrydata`:
               "versionid": "1",
               "isdefault": false,
               "description": "device telemetry event data",
-              "ancestor": "1",
+              "ancestorid": "1",
               "format": "Protobuf/3",
               # other xRegistry Version-level attributes excluded for brevity
 
@@ -461,7 +461,7 @@ Versions for a schema named `com.example.telemetrydata`:
               "versionid": "2",
               "isdefault": false,
               "description": "device telemetry event data",
-              "ancestor": "1",
+              "ancestorid": "1",
               "format": "Protobuf/3",
               # other xRegistry Version-level attributes excluded for brevity
 
@@ -472,7 +472,7 @@ Versions for a schema named `com.example.telemetrydata`:
               "versionid": "3",
               "isdefault": true,
               "description": "device telemetry event data",
-              "ancestor": "2",
+              "ancestorid": "2",
               "format": "Protobuf/3",
               # other xRegistry Version-level attributes excluded for brevity
 
@@ -636,7 +636,7 @@ a schema, allowing for fine-grained access control.
 [xRegistry compatibility]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#compatibility-attribute
 [xRegistry version-ids]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#version-ids
 [xRegistry attributes-and-extensions]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#attributes-and-extensions
-[xRegistry ancestor]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#ancestor-attribute
+[xRegistry ancestorid]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#ancestorid-attribute
 [xRegistry pagination]: https://xregistry.io/xreg/xregistryspecs/pagination-v1/docs/spec.html
 [xRegistry deprecated]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#deprecated
 [xRegistry default-version]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#registry-design

@@ -118,8 +118,8 @@ The overall format of a model definition is as follows:
       "modelversion": "<STRING>", ?      # Version of the group model
       "modelcompatiblewith": "<URI>", ?  # Statement of compatibility
       "attributes": { ... }, ?           # See "attributes" above
-      "ximportresources": [ "<XIDTYPE>", * ], ?   # Include these Resources
-
+      "ximportresources": [ "<XIDTYPE>", * ], ?   # Include these Resources,
+                                                  # only for "modelsource"
       "constraints": {
         "<RESOURCES>.<PATH>": {          # Resource-plural + attribute path
           "default": <VALUE>, ?          # Group specific default
@@ -141,7 +141,7 @@ The overall format of a model definition is as follows:
           "maxversions": <UINTEGER>, ?   # Num Vers(>=0). Default=0, 0=unlimited
           "setversionid": <BOOLEAN>, ?   # vid settable? Default=true
           "hasdocument": <BOOLEAN>, ?       # Has separate document. Default=true
-          "versionmode": "<STRING>", ?      # 'ancestor' processing algorithm
+          "versionmode": "<STRING>", ?      # Ancestor processing algorithm
           "singleversionroot": <BOOLEAN>, ? # Enforce single root. Default=false
           "validateformat": <BOOLEAN>, ?    # Do Version format checks. Default=false
           "validatecompatibility": <BOOLEAN>, ? # Do Version compat checks. Default=false
@@ -156,6 +156,10 @@ The overall format of a model definition is as follows:
   } ?
 }
 ```
+
+See the [Includes in the xRegistry Model
+Data](#includes-in-the-xregistry-model-data) section for use of the
+`$include(s)` directives in `modelsource`.
 
 The following describes the attributes of the Registry model:
 
@@ -825,17 +829,17 @@ Note that this feature has similar results as setting the Resource attribute's
   are managed with respect to aspects such as:
   - Which Version is the "newest"?
   - Which Version is the "oldest"?
-  - How a Version's `ancestor` attribute will be populated when not
+  - How a Version's `ancestorid` attribute will be populated when not
     explicitly set by a client.
 - Implementations MAY defined additional algorithms and MAY defined
   additional aspects that they control, as long as those aspects do not
   conflict with specification-defined semantics.
 - Regardless of the algorithm used, implementations MUST ensure that
-  the `ancestor` attribute of all Versions of a Resource accurately
+  the `ancestorid` attribute of all Versions of a Resource accurately
   represent the relationship of the Versions prior to the completion of
   any operation. For example, when the `createdat` algorithm is used and
   the `createdat` timestamp of a Version is modified, this might cause a
-  reordering of the Versions and the `ancestor` attributes might need to
+  reordering of the Versions and the `ancestorid` attributes might need to
   be changed accordingly. Similarly, the `defaultversionid` of the
   Resource might change if its `defaultversionsticky` attribute is `false`.
 - When not specified, the default value MUST be `manual`.
@@ -849,20 +853,20 @@ Note that this feature has similar results as setting the Resource attribute's
       more than one, then the one with the highest alphabetically
       case-insensitive `versionid` value MUST be chosen.
     - Oldest Version: MUST be determined by finding all root Versions (ones
-      that have an `ancestor` value that points to itself), then finding
+      that have an `ancestorid` value that points to itself), then finding
       the one with the oldest `createdat` timestamp. If there is more than
       one, then the one with the lowest alphabetically case-insensitive
       `versionid` MUST be chosen.
     - Ancestor Processing: typically provided by clients. During a "create"
-      operation, all Versions that do not have an `ancestor` value
+      operation, all Versions that do not have an `ancestorid` value
       provided MUST be sorted/processed by `versionid` (in case-insensitive
-      ascending order) and the `ancestor` value of each MUST be set to the
+      ascending order) and the `ancestorid` value of each MUST be set to the
       current "newest version" per the above semantics. Note that as
       each new Version is created, it MUST become the "newest". If there
       is no existing Version then the new Version becomes a root and its
-      `ancestor` value MUST be its `versionid` attribute value.
+      `ancestorid` value MUST be its `versionid` attribute value.
     - Deleted Ancestor: if a Version's ancestor is deleted, then this Version
-      MUST become a root, and its `ancestor` value MUST be set to its
+      MUST become a root, and its `ancestorid` value MUST be set to its
       `versionid` value.
 
   - `createdat`
@@ -875,15 +879,15 @@ Note that this feature has similar results as setting the Resource attribute's
       one with the lowest alphabetically case-insensitive `versionid`
       value MUST be chosen. Note that this MUST also be the one and only
       "root" Version.
-    - Ancestor Processing: The `ancestor` value of each Version MUST be
+    - Ancestor Processing: The `ancestorid` value of each Version MUST be
       determined via examination of the `createdat` timestamp of each
       Version and the Versions sorted in ascending order, where the first
-      one will be the "root" (oldest) Version and its `ancestor` value
+      one will be the "root" (oldest) Version and its `ancestorid` value
       MUST be its `versionid`. If there is more than one Version with the
       same `createdat` timestamp then those MUST be ordered in ascending
       case-insensitive ordered based on their `versionid` values.
     - Deleted Ancestor: if a Version's ancestor is deleted, then this Version's
-      `ancestor` value MUST be determined by the "ancestor processing" logic
+      `ancestorid` value MUST be determined by the "ancestor processing" logic
       as stated above.
     - When this `versionmode` is used, the `singleversionroot` aspect
       MUST be set to `true`.
@@ -901,13 +905,13 @@ Note that this feature has similar results as setting the Resource attribute's
       value per the [Semantic Versioning](https://semver.org/)
       specification's "precedence" ordering rules. Note that this MUST also
       be the one and only "root" Version.
-    - Ancestor Processing: The `ancestor` value of each Version MUST either
+    - Ancestor Processing: The `ancestorid` value of each Version MUST either
       be its `versionid` value (if it it the oldest Version), or the
       `versionid` of the next oldest Version per the
       [Semantic Versioning](https://semver.org/) specification's
       "precedence" ordering rules.
     - Deleted Ancestor: if a Version's ancestor is deleted, then this Version's
-      `ancestor` value MUST be determined by the "ancestor processing" logic
+      `ancestorid` value MUST be determined by the "ancestor processing" logic
       as stated above.
     - When this `versionmode` is used, the `singleversionroot` aspect
       MUST be set to `true`.
@@ -917,7 +921,7 @@ Note that this feature has similar results as setting the Resource attribute's
 - OPTIONAL.
 - Indicates whether Resources of this type can have multiple Versions
   that represent roots of an ancestor tree, as indicated by the
-  Version's `ancestor` attribute value being the same as its `versionid`
+  Version's `ancestorid` attribute value being the same as its `versionid`
   attribute.
 - When not specified, the default value MUST be `false`.
 - A value of `true` indicates that only one Version of the Resource can
@@ -1325,6 +1329,13 @@ where:
 Locally defined Resources MAY be defined within a Group that uses the
 `ximportresources` feature, however, Resource `plural` and `singular` values
 MUST be unique across all imported and locally defined Resources.
+
+This attribute, while listed in the schema definition of `model`, and
+`modelsource` for ease of reading the specification, is only available for
+`modelsource`. Similar to the `$include` directive, servers MUST process any
+`ximportresources` found in the `modelsource` data and the results MUST be
+reflected in the `model`, but the `ximportresources` directive MUST NOT appear
+in the `model` serialization.
 
 See [Cross Referencing Resources](./spec.md#cross-referencing-resources) for
 more additional information.
