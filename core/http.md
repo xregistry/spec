@@ -1524,7 +1524,7 @@ The core specification's
 [Resource Metadata vs Resource Document](./spec.md#resource-metadata-vs-resource-document)
 section explains how Resource types might be defined to have a
 domain-specific document associated with them via their
-[`hasdocument` model aspect](./model.md#groupsstringresourcesstringhasdocument`)
+[`hasdocument` model aspect](./model.md#groupsstringresourcesstringhasdocument)
 being set to `true`. For HTTP, clients indicate whether they want to interact
 with the Resource's xRegistry metadata or the Resource's domain-specific
 document by the use of a `$details` suffix on the `<RESOURCE>id` in its URL.

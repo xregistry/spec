@@ -1177,7 +1177,7 @@ message exchanges with the server might look like. As such, it MUST include:
 - All Resource definitions, including Version `<COLLECTION>*`, `meta` and
   `metaurl` attributes. Note that the `<RESOURCE>*` attribute would only appear
   if the
-  [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
+  [`hasdocument` aspect](#groupsstringresourcesstringhasdocument)
   aspect is `true`.
 
 The "modelsource" view of the model is just what was provided by the user when
@@ -1383,8 +1383,8 @@ include directive:
   attributes.
 - Both `$include` and `$includes` MUST NOT be present at the same time at the
   same level in the model.
-- Included model definitions MAY use `include` directives, but MUST NOT be
-  recursive.
+- Included model definitions MAY use `include` directives, but MUST NOT result
+  in a circular include chain.
 - Resolution of the include path MUST follow standard path resolution.
   Meaning, relative paths are relative to the document with the include
   directive.

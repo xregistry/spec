@@ -3,7 +3,7 @@ all: models docker
 		( echo "schema files have been updated, make sure you commit them" ; \
 		  exit 1 )
 
-verify: spellcheck ticks badhrefs tabcheck errorcheck samplescheck \
+verify: spellcheck ticks badhrefs tabcheck errorcheck samplescheck hrefs \
 	testpython links website
 
 spellcheck:
@@ -36,6 +36,14 @@ samplescheck:
 	@echo "Check for too verbose samples:"
 	tools/samplescheck */model.json */samples/*json */samples/*/*json
 	@echo
+
+hrefs:
+	@if which go > /dev/null ; then \
+	  echo "Verifying links in our docs:" ; \
+	  GO111MODULE=off go run tools/verify.go --test . ; \
+	else \
+	  echo "Skipping golang href checking, golang not found" ; \
+	fi
 
 loadpython:
 	@echo "Loading python deps:"
