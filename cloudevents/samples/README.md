@@ -1,5 +1,7 @@
 # Samples
 
+<!-- words: readme schemastore -->
+
 This directory contains sample assets for the CloudEvents Registry model:
 
 - [scenarios](scenarios): end-to-end sample registries that combine endpoints,

@@ -1,5 +1,7 @@
 # Schema Samples
 
+<!-- words: schemastore -->
+
 This directory contains schema-centric sample material for the CloudEvents
 Registry model.
 
