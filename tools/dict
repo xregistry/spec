@@ -234,6 +234,7 @@ ptr
 pubsub
 qos
 rawdata
+readme
 readonly
 redis
 registryid
@@ -262,6 +263,7 @@ schemaid
 schemaobject
 schemascount
 schemasurl
+schemastore
 schemauri
 schemaurl
 schemaversion
