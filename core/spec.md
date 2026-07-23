@@ -1119,10 +1119,10 @@ of the existing entity. Then the existing entity would be deleted.
 
 - Type: URL
 - Description: A server-generated unique absolute URL for an entity. This
-  attribute MUST be an alternative URL for the owning entity's `self` URL,
-  without any `$details` suffix. In this respect, the `shortself` URL MAY
-  have `$details` or any other flags (e.g. query parameters) that are valid
-  for use on the `self` URL.
+  attribute MUST be an alternative URL for the owning entity's `self`
+  (non-`$details` suffixed) URL. When a client constructs a request based on
+  the `shortself` URL, it MAY append `$details`, or any flags (e.g. query
+  parameters), that are valid for use on the `self` URL.
 
   The intention is that `shortself` SHOULD be shorter in length
   than `self` such that it MAY be used when the length of the URL referencing
