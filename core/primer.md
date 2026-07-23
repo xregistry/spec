@@ -1,7 +1,7 @@
 # xRegistry Primer
 
 <!-- words: validatecompatibility validateformat strickvalidation -->
-<!-- words: strictvalidation matchversions -->
+<!-- words: strictvalidation matchversions readme -->
 
 <!-- no verify-specs -->
 
@@ -495,7 +495,7 @@ needs to embed a model to be valid, servers often choose to allow that the
 models they know about are implicitly available, so that a registry document
 can just contain the resources and their metadata, without the model. There
 are several examples of such documents in the
-[cloudevents/samples](../cloudevents/samples) folder.
+[cloudevents/samples](../cloudevents/samples/README.md) folder.
 
 When the registry is split across multiple files in a folder structure, the
 application can load the root document and traverse `<RESOURCE>url` links to

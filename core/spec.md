@@ -3,7 +3,7 @@
 <!-- words: validatecompatibility validateformat strictvalidation matchcase -->
 <!-- words: compat formatvalidated compatibilityvalidated -->
 <!-- words: compat formatvalidatedreason compatibilityvalidatedreason -->
-<!-- words: matchversions -->
+<!-- words: matchversions excludeall -->
 <!-- words: myarray myobject -->
 <!-- words: href schemaregistry webpage -->
 
@@ -1120,7 +1120,11 @@ of the existing entity. Then the existing entity would be deleted.
 - Type: URL
 - Description: A server-generated unique absolute URL for an entity. This
   attribute MUST be an alternative URL for the owning entity's `self`
-  attribute. The intention is that `shortself` SHOULD be shorter in length
+  (non-`$details` suffixed) URL. When a client constructs a request based on
+  the `shortself` URL, it MAY append `$details`, or any flags (e.g. query
+  parameters), that are valid for use on the `self` URL.
+
+  The intention is that `shortself` SHOULD be shorter in length
   than `self` such that it MAY be used when the length of the URL referencing
   the owning entity is important. For example, in cases where the size of a
   message referencing this entity needs to be as small as possible.
@@ -1149,6 +1153,8 @@ of the existing entity. Then the existing entity would be deleted.
   - MUST be a non-empty absolute URL referencing the same entity as the `self`
     URL, either directly or indirectly via a protocol-specific redirect.
   - MUST be a read-only attribute.
+  - MUST NOT contain the `$` character as that is reserved for specification
+    defined suffixes (such as `$details`).
 
 - Examples:
   - `https://tinyurl.com/xreg123` redirects to
@@ -3845,6 +3851,7 @@ view" when serializing entities and MUST be modified to do the following:
 - MUST remove the default Version attributes from a Resource's serialization.
 - MUST remove the Version `formatvalidated` and `compatibilityvalidated`
   attributes from Version serializations.
+- MUST remove the `shortself` attribute from all entity serializations.
 - When a Resource (source) uses the `xref` feature, the target Resource's
   attributes MUST be excluded from the source's serialization.
 - Resources and Versions MUST be serialized in their
@@ -4055,6 +4062,44 @@ following constraints:
 - A `<VALUE>` of `*` MUST be equivalent to checking for the existence of the
   attribute, with any value (even an empty string). In other words, the filter
   will only fail if the attribute has no value at all.
+
+As specified in the [Registry Collections](#registry-collections) section,
+when a query includes a filter expression, any nested xRegistry collections
+in the response SHOULD result in the specification of a `<COLLECTION>url`
+attribute that allows clients to easily traverse into that collection with
+the appropriated sub-filter expression to yield the same results as the
+original filter, but just for that nested collection. However, if the filters
+results in zero entities for a particular collection due to the filter
+excluding that collection entirely, rather than the `<COLLECTION>url` not
+having any filter expression at all (which would result in the full collection
+being returned), servers MUST use the special filter expression `excludeall`
+to indicate no results are to be returned for that URL.
+
+For example, using HTTP:
+```yaml
+GET /?filter=schemagroups.schemas.name=myschema
+
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{
+  ... Registry attributes excluded for brevity ...
+  "messagegroupsurl": "http://example.com/messagegroups?filter=excludeall",
+  "messagegroupscount": 0,
+  "schemagroupsurl": "http://example.com/schemagroups?filter=schemas.name=myschema",
+  "schemagroupscount": 10
+}
+```
+
+If the URL references a collection then an empty collection (`{}`) MUST be
+returned. If the URL references an entity, then an error
+([not_found](#not_found)) MUST be generated. If any other filter expression
+appear at the same time, then an error ([bad_filter](#bad_filter)) MUST be
+generated.
+
+The special `filter` value `excludeall` MAY be used to indicate that no
+results are to be returned from the query. This value is expected to only be
+used by servers in response to a query that produces a `<COLLECTION>url`.
 
 If the request references an entity (not a collection), and the expression
 references an attribute in that entity (i.e. there is no `<PATH>`), then if the
