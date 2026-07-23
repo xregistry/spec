@@ -4097,11 +4097,9 @@ returned. If the URL references an entity, then an error
 appear at the same time, then an error ([bad_filter](#bad_filter)) MUST be
 generated.
 
-
-There is special `filter` value (`excludeall`) that MAY be used to indicate
-that no results are to be returned from the query. This value is expected to
-only be used by server's in response to a query that produces a
-`<COLLECTION>url`
+The special `filter` value `excludeall` MAY be used to indicate that no
+results are to be returned from the query. This value is expected to only be
+used by servers in response to a query that produces a `<COLLECTION>url`.
 
 If the request references an entity (not a collection), and the expression
 references an attribute in that entity (i.e. there is no `<PATH>`), then if the
