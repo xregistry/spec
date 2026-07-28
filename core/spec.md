@@ -5,7 +5,7 @@
 <!-- words: compat formatvalidatedreason compatibilityvalidatedreason -->
 <!-- words: matchversions excludeall -->
 <!-- words: myarray myobject -->
-<!-- words: href schemaregistry webpage -->
+<!-- words: href schemaregistry missingschema webpage -->
 
 ## Abstract
 
@@ -2874,10 +2874,28 @@ it was deleted, never existed or the current client does not have permission
 to see it, is not an error and is not a condition that a server is REQUIRED to
 detect. In these "dangling xref" situations, the serialization of the source
 Resource will not include any target Resource attributes or nested collections.
-Rather, it will only show the `<RESOURCE>id` and `xref` attributes. Therefore,
-a client that receives a response containing only those two attributes can
+Rather, it will only show the `xref` and ID-like attributes. Therefore, a
+client that receives a response containing only those attributes can
 treat this as an indicator that the target Resource is inaccessible, and can
 make the determination as to whether this is something to investigate or not.
+
+For example, a schema Resource (`mySchema`) referencing a non-existing schema
+Resource (`missingSchema`) would look like:
+
+```yaml
+{
+  "schemaid": "mySchema",
+  "self": "http://example.com/schemagroups/group1/schemas/mySchema",
+  "xid": "/schemagroups/group1/schemas/mySchema",
+  "metaurl": "https://example.com/schemagroups/group1/schemas/mySchema/meta",
+  "meta": {
+    "schemaid": "mySchema",
+    "self": "http://example.com/schemagroups/group1/schemas/mySchema/meta",
+    "xid": "/schemagroups/group1/schemas/mySchema/meta",
+    "xref": "/schemagroups/group1/schemas/missingSchema"
+  }
+}
+```
 
 However, a non-existing Resource is not the same as a poorly formed XID
 value. An `xref` that isn't syntactically correct, or references a
@@ -5078,9 +5096,10 @@ field is just a substitution value and MUST NOT be empty.
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#constraint_failure`
 * Code: `400 Bad Request`
 * Subject: `<resource_xid>`
-* Title: `The request would result in one or more Versions of "<subject>" not being compliant with its owning Group's "equals" constraint for attribute "<path>".`
+* Title: `The request would result in one or more Versions of "<subject>" not being compliant with its owning Group's "<kind>" constraint for attribute "<path>".`
 * Args:
   - `path`: The dot (`.`) notion traversal path to the Resource's attribute being constrained.
+  - `kind`: The type of constraint violated, either `enum` or `equals`.
 
 ### data_retrieval_error
 
