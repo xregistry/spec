@@ -6,7 +6,7 @@
     },
     "endpoints": {
       "singular": "endpoint",
-      "modelversion": "1.0-rc2",
+      "modelversion": "1.0-rc3",
       "modelcompatiblewith": "https://xregistry.io/xreg/domains/endpoint/specs/model.json",
       "attributes": {
         "usage": {
@@ -162,6 +162,7 @@
                       "name": "deployed",
                       "type": "boolean",
                       "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication",
+                      "required": true,
                       "default": true
                     },
                     "node": {
@@ -349,6 +350,7 @@
                       "name": "deployed",
                       "type": "boolean",
                       "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication",
+                      "required": true,
                       "default": true
                     },
                     "topic": {
@@ -505,6 +507,7 @@
                       "name": "deployed",
                       "type": "boolean",
                       "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication",
+                      "required": true,
                       "default": true
                     },
                     "topic": {
@@ -626,6 +629,7 @@
                       "name": "deployed",
                       "type": "boolean",
                       "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication",
+                      "required": true,
                       "default": true
                     },
                     "method": {
@@ -673,12 +677,14 @@
                       "name": "apikeyin",
                       "type": "string",
                       "description": "Placement of API key metadata for HTTP when authorization.type is APIKey. Expected values: header or query",
+                      "required": true,
                       "default": "header"
                     },
                     "plainscheme": {
                       "name": "plainscheme",
                       "type": "string",
                       "description": "HTTP transport pattern when authorization.type is Plain. Expected values: basic, form, or query",
+                      "required": true,
                       "default": "basic"
                     },
                     "plainusernamefield": {
@@ -781,6 +787,7 @@
                       "name": "deployed",
                       "type": "boolean",
                       "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication",
+                      "required": true,
                       "default": true
                     },
                     "topic": {
@@ -919,6 +926,7 @@
                       "name": "deployed",
                       "type": "boolean",
                       "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication",
+                      "required": true,
                       "default": true
                     },
                     "subject": {
