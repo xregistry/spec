@@ -257,8 +257,8 @@ this form:
         "endpoints": [
           {
             "uri": "<URI>"                        # plus endpoint extensions
-          } *
-        ], ?
+          } *                                     # "KAFKA" uses
+        ], ?                                      # "bootstrap.servers" instead
         "authorization": [
           {
             "type": "<STRING>", ?
@@ -386,9 +386,15 @@ to the xRegistry-defined core
 
   The following values are defined for `usage`
 
-  - `subscriber`: The endpoint offers managing subscriptions for delivery of
-    messages to another endpoint, using the [CloudEvents Subscriptions
-    API][CloudEvents Subscriptions API].
+  - `subscriber`: The endpoint offers management of subscriptions that cause
+    messages to be delivered to some other endpoint. A `subscriber` endpoint
+    is a control-plane endpoint: it does not itself transfer messages.
+    Establishing subscription interest is the only interaction it describes.
+
+    Depending on the protocol, subscription interest is established by the
+    [CloudEvents Subscriptions API][CloudEvents Subscriptions API], an MQTT
+    `SUBSCRIBE` packet, establishment of an AMQP link with the endpoint node
+    as source, creation of a Kafka consumer group, or a NATS subscription.
 
     Some perspectives that might exist on a subscriber endpoint:
     - Application from which messages originate.
@@ -427,13 +433,20 @@ to the xRegistry-defined core
     - "consumer"
     - "producer"
   - MUST be an array of at least one.
-  - SHOULD declare exactly one usage value per endpoint.
-  - Mixed usage declarations SHOULD be used only when the same protocol
-    interface and the same endpoint contract unambiguously serve each declared
-    role.
-  - Declarations that mix `producer` with any other role are strongly
-    discouraged. Prefer separate endpoint declarations, connected with a shared
-    `channel` when correlation is useful.
+  - MUST declare exactly one usage value, except for the single combination
+    permitted below.
+  - MUST NOT combine `producer` with any other value.
+  - MUST NOT declare all three values.
+  - MAY declare `["subscriber", "consumer"]` only when the protocol is
+    `MQTT/3.1.1`, `MQTT/5.0`, `AMQP/1.0`, or `NATS`. In these protocols a
+    single client connection both establishes subscription interest and
+    receives the resulting messages, so the two roles are served by one
+    protocol interface and one endpoint contract.
+  - MUST NOT declare `["subscriber", "consumer"]` for `HTTP` or `KAFKA`
+    endpoints. In those protocols the two roles are distinct interfaces and
+    MUST be modeled as separate Endpoint resources.
+  - Endpoints that jointly describe more than one role SHOULD be declared
+    separately and correlated with a shared `channel` value.
 
 #### `channel`
 
@@ -576,15 +589,28 @@ This specification defines the following envelope options for the indicated
 ##### `protocoloptions.endpoints`
 
 - Type: Array of Objects
-- Description: An array of objects map where each object contains a `uri`
-  attribute with the network address to which clients can communicate with
-  the endpoint. The object MAY contain extension attributes that can be used
-  by clients to determine which URI to use, or to configure access to the
-  specific URI. Whether the URI identifies a network host or links directly to
-  a resource managed by the network host is protocol specific.
+- Description: An array of objects where each object describes one network
+  address at which clients can communicate with the endpoint. The object MAY
+  contain extension attributes that can be used by clients to determine which
+  address to use, or to configure access to the specific address. Whether the
+  address identifies a network host or links directly to a resource managed by
+  the network host is protocol specific.
+
+  The addressing attribute is protocol specific. For `HTTP`, `AMQP/1.0`,
+  `MQTT/3.1.1`, `MQTT/5.0`, and `NATS` the address is carried in a `uri`
+  attribute. For `KAFKA` the address is carried in a `bootstrap.servers`
+  attribute, which is an array of Kafka bootstrap server addresses, because
+  Kafka clients are configured with a bootstrap server list rather than with a
+  single destination URI.
+
 - Constraints:
   - OPTIONAL.
-  - Each object MUST contain a `uri` attribute with a valid, absolute URI (URL).
+  - Entries are ordered by preference; the first entry is the preferred
+    address.
+  - For all protocols other than `KAFKA`, each object MUST contain a `uri`
+    attribute with a valid, absolute URI (URL).
+  - For `KAFKA`, each object MUST contain a non-empty `bootstrap.servers`
+    attribute. A `uri` attribute is not expected for `KAFKA` endpoints.
 - Examples:
   - `[ {"uri": "https://example.com" } ]`
   - ```
@@ -610,17 +636,19 @@ This specification defines the following envelope options for the indicated
 
 ##### `protocoloptions.authorization`
 
-- Type: Map
+- Type: Array of Objects
 - Description: OPTIONAL authorization configuration details of the endpoint.
-  When specified, the authorization configuration MUST provide sufficient
-  metadata for clients to select the authorization mechanism
+  Each entry describes one authorization option that the endpoint accepts;
+  a client selects one of them. When specified, each entry MUST provide
+  sufficient metadata for clients to select the authorization mechanism
   and discover where authorization is obtained. Runtime credentials and
   deployment-specific values are expected to be supplied separately through
-  external configuration. The configuration keys below MUST be used as
-  defined. Additional endpoint-specific configuration keys MAY be added.
+  external configuration. The attribute names below MUST be used as
+  defined. Additional endpoint-specific extension attributes MAY be added.
 
 - Constraints:
   - OPTIONAL.
+  - MUST be an array of objects if present. It is not a map.
   - MUST only be used for authorization configuration.
   - MUST NOT be used for credential configuration.
 
@@ -792,9 +820,12 @@ constraint for their users.
 The following protocol options are direct children of `protocoloptions` for
 the respective protocols. All of these are OPTIONAL.
 
-This specification is primarily descriptive for protocol options: it guides
-clients on how to interpret metadata. It does not require a validator to reject
-every role-inapplicable option.
+This specification is descriptive for the applicability of protocol options to
+roles: the role columns guide clients on how to interpret metadata, and a
+validator need not reject every role-inapplicable option. Where a
+rule below is stated with MUST, MUST NOT, or REQUIRED, it is a conformance
+requirement of this specification and an implementation MUST reject metadata
+that violates it.
 
 In each table below, role applicability is shown as:
 - `✓`: The option applies to that role. Clients acting in that role SHOULD
@@ -807,8 +838,28 @@ The [endpoint URIs](#protocoloptionsendpoints) for "HTTP" endpoints MUST be
 valid HTTP URIs using the "http" or "https" scheme as defined in
 [HTTP Message Format].
 
-HTTP commonly uses separate endpoint declarations for subscriber, consumer,
-and producer interactions.
+HTTP has no single connection that serves several roles, so each HTTP role is
+a distinct interface with its own request contract. This specification
+distinguishes three HTTP roles:
+
+- Subscription manager (`usage` = `["subscriber"]`): an endpoint that accepts
+  requests to create, modify, and delete subscriptions, for example an
+  implementation of the [CloudEvents Subscriptions API][CloudEvents
+  Subscriptions API]. It does not transfer messages.
+- Delivery target, also called webhook target (`usage` = `["producer"]`): an
+  endpoint that accepts messages pushed to it by an originator or by a
+  delivery agent.
+- Pull consumer (`usage` = `["consumer"]`): an endpoint from which a client
+  retrieves messages with its own requests.
+
+Constraints:
+
+- An HTTP Endpoint MUST declare exactly one `usage` value and therefore MUST
+  represent exactly one of the three roles above.
+- An HTTP Endpoint MUST NOT declare `["subscriber", "consumer"]`.
+- A subscription manager, a delivery target, and a pull consumer that belong
+  to the same logical channel MUST be declared as separate Endpoint resources
+  and SHOULD be correlated with a shared `channel` value.
 
 | Name | Type | P | C | S | Description |
 |---|---|---|---|---|---|
@@ -842,19 +893,25 @@ The following options are defined for AMQP endpoints.
 | Name | Type | P | C | S | Description |
 |---|---|---|---|---|---|
 | `node` | string | ✓ | ✓ | ✓ | AMQP node (address). When set, it overrides the URI path. |
-| `durable` | boolean, default `false` | ✓ | - | - | AMQP durable flag. This does not imply a delivery guarantee and is distinct from terminus durability. |
+| `durable` | boolean, default `false` | ✓ | - | - | Whether the node identified by `node` is a durable node rather than a transient one. This is a property of the node. It is not the AMQP message header field of the same name and it is not terminus durability, which is expressed by `terminus-durability`. It does not by itself imply a delivery guarantee. |
 | `link-properties` | map of string to string | ✓ | ✓ | ✓ | AMQP link properties. |
 | `connection-properties` | map of string to string | ✓ | ✓ | ✓ | AMQP connection properties. |
-| `distribution-mode` | enum: `move`, `copy`, default `move` | - | ✓ | - | AMQP receive distribution mode. |
+| `distribution-mode` | enum: `move`, `copy`, default `move` | - | ✓ | ✓ | AMQP source distribution mode. `move` means a transferred message is removed from the node and is therefore transferred to at most one receiver. `copy` means the message remains at the node after transfer and can also be transferred to other receivers. This describes distribution between the node and its receivers; it does not describe message locking. |
 | `connection-capabilities` | array of string | ✓ | ✓ | ✓ | AMQP connection capabilities. |
 | `node-capabilities` | array of string | ✓ | ✓ | ✓ | AMQP node capabilities. |
 | `source-filters` | map of string to any | - | ✓ | ✓ | AMQP source filter expressions/descriptor keys for receive setup. |
 | `dynamic` | boolean | ✓ | ✓ | ✓ | Dynamic node creation for source/target setup, depending on role. |
-| `terminus-durability` | enum: `none`, `configuration`, `unsettled-state` | ✓ | ✓ | ✓ | Durability mode for the applicable source or target terminus. |
-| `expiry-policy` | enum: `link-detach`, `session-end`, `connection-close`, `never` | ✓ | ✓ | ✓ | Expiry policy for the applicable terminus. |
+| `terminus-durability` | enum: `none`, `configuration`, `unsettled-state` | ✓ | ✓ | ✓ | Durability mode for the applicable source or target terminus. For a `producer` endpoint this is the target terminus; for a `consumer` or `subscriber` endpoint it is the source terminus. |
+| `expiry-policy` | enum: `link-detach`, `session-end`, `connection-close`, `never` | ✓ | ✓ | ✓ | Expiry policy for the applicable terminus, selected as for `terminus-durability`. |
 | `timeout` | uinteger | ✓ | ✓ | ✓ | Timeout value used with terminus expiry policy. |
-| `sender-settle-mode` | enum: `unsettled`, `settled`, `mixed` | ✓ | ✓ | ✓ | AMQP sender settlement mode for the active sending side of the link. |
-| `receiver-settle-mode` | enum: `first`, `second` | ✓ | ✓ | ✓ | AMQP receiver settlement mode for the active receiving side of the link. |
+| `sender-settle-mode` | enum: `unsettled`, `settled`, `mixed` | ✓ | ✓ | ✓ | AMQP sender settle mode requested for the link. It constrains the party that sends transfers over the link: the local client for a `producer` endpoint, the remote node for a `consumer` or `subscriber` endpoint. |
+| `receiver-settle-mode` | enum: `first`, `second` | ✓ | ✓ | ✓ | AMQP receiver settle mode requested for the link. It constrains the party that receives transfers over the link: the remote node for a `producer` endpoint, the local client for a `consumer` or `subscriber` endpoint. |
+
+An AMQP Endpoint MAY declare `["subscriber", "consumer"]`, because a single
+AMQP receiving link both establishes interest in the source node and carries
+the resulting transfers. When it does, the `subscriber` role refers to the
+establishment of the link with the node as source and the `consumer` role
+refers to the transfers over that link.
 
 The values of all `link-properties` and `connection-properties` MAY contain
 placeholders using the [RFC6570][RFC6570] Level 1 URI Template syntax. When the
@@ -874,12 +931,24 @@ The following options are defined for MQTT 3.1.1 and MQTT 5.0 endpoints.
 
 | Name | Type | P | C | S | Description |
 |---|---|---|---|---|---|
-| `topic` | string | ✓ | - | - | Concrete publish topic name. Prefer concrete destinations over filter syntax. |
+| `topic` | string | ✓ | - | - | Concrete publish topic name. |
 | `topicfilter` | string | - | - | ✓ | Subscribe topic filter. |
 | `qos` | enum: `0`, `1`, `2`, default `0` | ✓ | ✓ | ✓ | Role-relative QoS intent: publish QoS for producer, requested max QoS for subscriber, effective delivery QoS for consumer context. |
 | `retain` | boolean, default `false` | ✓ | - | - | MQTT retain flag for publish behavior. |
 | `willtopic` | string | ✓ | ✓ | ✓ | CONNECT Will topic configuration. |
 | `willmessage` | xid (message reference) | ✓ | ✓ | ✓ | CONNECT Will message definition reference. |
+
+Addressing constraints:
+
+- `topic` MUST be a concrete MQTT topic name. It MUST NOT contain the `+` or
+  `#` wildcard characters, since a wildcard is not a valid publish
+  destination.
+- `topicfilter` MAY contain the `+` and `#` wildcard characters as defined by
+  [MQTT 3.1.1] and [MQTT 5.0].
+- An MQTT Endpoint MUST NOT declare both `topic` and `topicfilter`.
+- An MQTT Endpoint MAY declare `["subscriber", "consumer"]`, because a single
+  MQTT connection both sends the `SUBSCRIBE` packet and receives the resulting
+  `PUBLISH` packets.
 
 MQTT 3.1.1 specific options:
 
@@ -893,13 +962,30 @@ MQTT 5.0 specific options:
 |---|---|---|---|---|---|
 | `cleanstart` | boolean | ✓ | ✓ | ✓ | MQTT 5 clean-start behavior for the connection. |
 | `sessionexpiryinterval` | uinteger (`0..4294967295`) | ✓ | ✓ | ✓ | MQTT 5 session expiry interval in seconds. |
-| `sharedsubscriptiongroup` | string | - | - | ✓ | Shared subscription group. Use with `topicfilter`. |
+| `sharedsubscriptiongroup` | string | - | - | ✓ | Shared subscription group name. |
 | `nolocal` | boolean | - | - | ✓ | MQTT 5 subscribe no-local flag. |
 | `retainaspublished` | boolean | - | - | ✓ | MQTT 5 subscribe retain-as-published flag. |
 | `retainhandling` | enum: `0`, `1`, `2` | - | - | ✓ | MQTT 5 retain-handling mode. |
 
-For MQTT 5.0, prefer `cleanstart` and `sessionexpiryinterval`; `cleansession`
-SHOULD NOT be used.
+`cleansession` is an MQTT 3.1.1 option only. It is not defined for `MQTT/5.0`
+endpoints and MUST NOT be used with them; `cleanstart` and
+`sessionexpiryinterval` express the equivalent MQTT 5 behavior and together
+supersede it.
+
+Shared subscription constraints:
+
+- `sharedsubscriptiongroup` MUST only be present when `topicfilter` is also
+  present.
+- The value of `sharedsubscriptiongroup` is the bare group name. It MUST NOT
+  include the `$share/` prefix and MUST NOT contain the `/` character.
+- When `sharedsubscriptiongroup` is present, a client MUST send the
+  subscription as the topic filter `$share/{sharedsubscriptiongroup}/{topicfilter}`,
+  where `{sharedsubscriptiongroup}` and `{topicfilter}` are the literal values
+  of those two options.
+
+MQTT 5 Subscription Identifiers are runtime subscription state established by
+the subscribing client. They are not endpoint metadata and are therefore not
+defined as protocol options by this specification.
 
 ##### KAFKA options
 
@@ -923,12 +1009,37 @@ The following options are defined for Kafka endpoints.
 | `autooffsetreset` | enum: `earliest`, `latest`, `none` | - | ✓ | - | Consumer offset reset behavior when no valid committed offset exists. |
 | `enableautocommit` | boolean | - | ✓ | - | Consumer automatic commit behavior. |
 
+Kafka does not have a subscription primitive that is separate from
+consumption; the group is the durable interest. This specification therefore
+discriminates the two roles by the presence of `consumergroup`:
+
+- A `subscriber` Kafka Endpoint describes the creation and configuration of a
+  consumer group as an act of registering interest. It MUST NOT declare
+  `consumergroup`, since the group is the resource being established rather
+  than a group to be joined.
+- A `consumer` Kafka Endpoint describes joining an existing consumer group.
+  It MUST declare `consumergroup` with a non-empty value.
+- A Kafka Endpoint MUST NOT declare `["subscriber", "consumer"]`. The two
+  roles MUST be declared as separate Endpoint resources and SHOULD be
+  correlated with a shared `channel` value.
+- `autooffsetreset` and `enableautocommit` describe group-based consumption.
+  They MUST NOT be used on a `producer` or `subscriber` Endpoint.
+- `autooffsetreset` expresses only the reset behavior when no valid committed
+  offset exists. A concrete starting offset or a starting timestamp is runtime
+  consumer state, not endpoint metadata, and MUST NOT be expressed through
+  this option.
+
 ##### NATS options
 
 The [endpoint URIs](#protocoloptionsendpoints) for "NATS" endpoints MUST be
 valid NATS URIs as described by [NATS]. The scheme MUST be "nats" or "tls" or
 "ws" and the URI MUST include a port number, e.g. `nats://<HOST>:<PORT>` or
 `tls://<HOST>:<PORT>`.
+
+The options below describe Core NATS publish and subscribe only. JetStream
+streams, consumers, and their durability and acknowledgement settings are out
+of scope for this specification and, if needed, MUST be expressed through
+extension attributes.
 
 The following options are defined for NATS endpoints.
 
@@ -937,6 +1048,18 @@ The following options are defined for NATS endpoints.
 | `subject` | string | ✓ | - | - | Concrete publish subject. |
 | `subjectfilter` | string | - | - | ✓ | Subscription subject filter. |
 | `queuegroup` | string | - | - | ✓ | Queue subscription group associated with a subject filter. |
+
+Addressing constraints:
+
+- `subject` MUST be a concrete NATS subject. It MUST NOT contain the `*` or
+  `>` wildcard tokens, since a wildcard is not a valid publish destination.
+- `subjectfilter` MAY contain the `*` and `>` wildcard tokens as defined by
+  [NATS].
+- `queuegroup` MUST only be present when `subjectfilter` is also present.
+- A NATS Endpoint MUST NOT declare both `subject` and `subjectfilter`.
+- A NATS Endpoint MAY declare `["subscriber", "consumer"]`, because a single
+  Core NATS connection both registers the subscription interest and receives
+  the resulting messages.
 
 [JSON Pointer]: https://www.rfc-editor.org/rfc/rfc6901
 [CloudEvents Types]: https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/spec.md#type-system
@@ -953,7 +1076,7 @@ The following options are defined for NATS endpoints.
 [MQTT 3.1.1]: https://docs.oasis-open.org/mqtt/mqtt/v3.1.1/mqtt-v3.1.1.html
 [CloudEvents]: https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md
 [CloudEvents Subscriptions API]: https://github.com/cloudevents/spec/blob/main/subscriptions/spec.md
-[NATS]: https://docs.nats.io/reference/reference-protocols/nats-protocol
+[NATS]: https://docs.nats.io/reference/protocols/client/
 [Apache Kafka]: https://kafka.apache.org/protocol
 [Apache Kafka producer]: https://kafka.apache.org/31/javadoc/org/apache/kafka/clients/producer/ProducerRecord.html
 [Apache Kafka consumer]: https://kafka.apache.org/31/javadoc/org/apache/kafka/clients/consumer/ConsumerRecord.html

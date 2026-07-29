@@ -3244,7 +3244,7 @@
               },
               "durable": {
                 "type": "boolean",
-                "description": "The AMQP durable flag. Whether the node is durable or transient"
+                "description": "Whether the AMQP node identified by 'node' is durable rather than transient. This is a property of the node, not of the link terminus and not of the message header field of the same name. Terminus durability is expressed by 'terminus-durability'"
               },
               "link-properties": {
                 "type": "object",
@@ -3262,7 +3262,7 @@
               },
               "distribution-mode": {
                 "type": "string",
-                "description": "The AMQP distribution mode for receivers. Can be 'move' or 'copy'.  A value of 'move' indicates an exclusive lock on the message. A value of 'copy' indicates a non-exclusive lock on the message"
+                "description": "The AMQP source distribution mode. 'move' means a transferred message is removed from the node and is therefore seen by only one receiver. 'copy' means the message remains at the node after transfer and may also be transferred to other receivers. This does not describe message locking"
               },
               "connection-capabilities": {
                 "type": "array",
@@ -3302,11 +3302,11 @@
               },
               "sender-settle-mode": {
                 "type": "string",
-                "description": "AMQP sender settle mode"
+                "description": "AMQP sender settle mode requested for the link. It constrains the party that sends transfers over the link: the client for a producer endpoint, the remote node for a consumer endpoint"
               },
               "receiver-settle-mode": {
                 "type": "string",
-                "description": "AMQP receiver settle mode"
+                "description": "AMQP receiver settle mode requested for the link. It constrains the party that receives transfers over the link: the remote node for a producer endpoint, the client for a consumer endpoint"
               }
             }
           }
@@ -3375,7 +3375,7 @@
               },
               "topic": {
                 "type": "string",
-                "description": "MQTT topic path that is used for communication with the endpoint unless overridden by the message"
+                "description": "The concrete MQTT topic name that is used for communication with the endpoint unless overridden by the message. It MUST NOT contain the '+' or '#' wildcard characters"
               },
               "qos": {
                 "type": "integer",
@@ -3470,7 +3470,7 @@
               },
               "topic": {
                 "type": "string",
-                "description": "The MQTT topic path that is used for communication with the endpoint unless overridden by the message"
+                "description": "The concrete MQTT topic name that is used for communication with the endpoint unless overridden by the message. It MUST NOT contain the '+' or '#' wildcard characters"
               },
               "qos": {
                 "type": "integer",
@@ -3481,13 +3481,9 @@
                 "type": "boolean",
                 "description": "The MQTT retain flag to use for publishers on ths endpoint"
               },
-              "cleansession": {
-                "type": "boolean",
-                "description": "The MQTT 3.1.1 clean session flag. For MQTT 5.0, prefer cleanstart and sessionexpiryinterval"
-              },
               "topicfilter": {
                 "type": "string",
-                "description": "MQTT subscribe topic filter"
+                "description": "MQTT subscribe topic filter. MAY contain the '+' and '#' wildcard characters"
               },
               "cleanstart": {
                 "type": "boolean",
@@ -3500,7 +3496,7 @@
               },
               "sharedsubscriptiongroup": {
                 "type": "string",
-                "description": "MQTT 5 shared subscription group"
+                "description": "MQTT 5 shared subscription group. It MUST only be used together with 'topicfilter' and MUST NOT include the '$share/' prefix"
               },
               "nolocal": {
                 "type": "boolean",
@@ -3617,7 +3613,7 @@
               },
               "consumergroup": {
                 "type": "string",
-                "description": "The Apache Kafka consumer group name to use for consumers"
+                "description": "The Apache Kafka consumer group name. It MUST be present and non-empty on a 'consumer' endpoint and MUST be absent on a 'subscriber' endpoint"
               },
               "headers": {
                 "type": "object",
@@ -3825,15 +3821,15 @@
               },
               "subject": {
                 "type": "string",
-                "description": "The NATS subject"
+                "description": "The concrete NATS publish subject. It MUST NOT contain the '*' or '>' wildcard tokens"
               },
               "subjectfilter": {
                 "type": "string",
-                "description": "The NATS subscription subject filter"
+                "description": "The NATS subscription subject filter. It MAY contain the '*' and '>' wildcard tokens"
               },
               "queuegroup": {
                 "type": "string",
-                "description": "The NATS queue group for queue subscriptions"
+                "description": "The NATS queue group for queue subscriptions. It MUST only be used together with 'subjectfilter'"
               }
             }
           }
