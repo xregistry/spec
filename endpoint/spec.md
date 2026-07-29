@@ -1,5 +1,8 @@
 # Endpoint Registry Service - Version 1.0-rc3
 <!-- words: apikeyname apikeyin plainscheme plainusernamefield plainpasswordfield sasl oauthbearer -->
+<!-- words: cleanstart sessionexpiryinterval topicfilter retainhandling retainaspublished nolocal -->
+<!-- words: sharedsubscriptiongroup keyserializer valueserializer enableautocommit autooffsetreset -->
+<!-- words: serializer subjectfilter queuegroup usernames -->
 
 ## Abstract
 
