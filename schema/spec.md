@@ -2,6 +2,7 @@
 
 <!-- words: formatvalidated compatibilityvalidated -->
 <!-- words: formatvalidatedreason compatibilityvalidatedreason -->
+<!-- words: jsonstructure jstruct namespace -->
 
 ## Abstract
 
