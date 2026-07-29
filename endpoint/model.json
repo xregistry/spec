@@ -6,19 +6,18 @@
     },
     "endpoints": {
       "singular": "endpoint",
-      "modelversion": "1.0-rc3",
+      "modelversion": "1.0-rc2",
       "modelcompatiblewith": "https://xregistry.io/xreg/domains/endpoint/specs/model.json",
       "attributes": {
         "usage": {
           "name": "usage",
           "type": "array",
-          "description": "Client's expected usage of this endpoint",
+          "description": "Client's expected usage of this endpoint. Single-role declarations are preferred. Mixed declarations are guidance-oriented metadata and should be used only when role semantics are unambiguous.",
           "enum": [
             "subscriber",
             "consumer",
             "producer"
           ],
-          "strict": true,
           "item": {
             "type": "string"
           }
@@ -36,22 +35,22 @@
             "effective": {
               "name": "effective",
               "type": "timestamp",
-              "description": "date endpoint deprecation went into effect"
+              "description": "tbd"
             },
             "removal": {
               "name": "removal",
               "type": "timestamp",
-              "description": "date endpoint will be removed"
+              "description": "tbd"
             },
             "alternative": {
               "name": "alternative",
               "type": "url",
-              "description": "alternative endpoint to consider"
+              "description": "tbd"
             },
             "docs": {
               "name": "docs",
               "type": "url",
-              "description": "additional information about deprecation"
+              "description": "tbd"
             },
             "*": {
               "name": "*",
@@ -109,14 +108,14 @@
                     "endpoints": {
                       "name": "endpoints",
                       "type": "array",
-                      "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URL just identifies a network host or links directly to a resource managed by the network host is protocol specific",
+                      "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URI just identifies a network host or links directly to a resource managed by the network host is protocol specific",
                       "item": {
                         "type": "object",
                         "attributes": {
-                          "url": {
-                            "name": "url",
-                            "type": "url",
-                            "description": "AMQP Addressing URL"
+                          "uri": {
+                            "name": "uri",
+                            "type": "uri",
+                            "description": "AMQP Addressing URI"
                           },
                           "*": {
                             "name": "*",
@@ -135,7 +134,12 @@
                           "type": {
                             "name": "type",
                             "type": "string",
-                            "description": "The authentication/authorization type. OAuth2, Plain, APIKey, and X509Cert are well-defined"
+                            "description": "The authentication/authorization type. OAuth2, Plain, APIKey, X509Cert, and SASL are well-defined"
+                          },
+                          "mechanism": {
+                            "name": "mechanism",
+                            "type": "string",
+                            "description": "The SASL mechanism name when authorization.type is SASL (for example PLAIN, SCRAM-SHA-256, SCRAM-SHA-512, OAUTHBEARER, or EXTERNAL)"
                           },
                           "resourceuri": {
                             "name": "resourceuri",
@@ -147,14 +151,6 @@
                             "type": "uri",
                             "description": "The authority uri where authorization shall be requested (if applicable)"
                           },
-                          "granttypes": {
-                            "name": "granttypes",
-                            "type": "array",
-                            "description": "The grant types that can be requested (if applicable)",
-                            "item": {
-                              "type": "string"
-                            }
-                          },
                           "*": {
                             "name": "*",
                             "type": "any"
@@ -165,9 +161,8 @@
                     "deployed": {
                       "name": "deployed",
                       "type": "boolean",
-                      "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint",
-                      "required": true,
-                      "default": false
+                      "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication",
+                      "default": true
                     },
                     "node": {
                       "name": "node",
@@ -224,6 +219,64 @@
                         "type": "string"
                       }
                     },
+                    "source-filters": {
+                      "name": "source-filters",
+                      "type": "map",
+                      "description": "AMQP source filters used for subscription/receive setup",
+                      "item": {
+                        "type": "any"
+                      }
+                    },
+                    "dynamic": {
+                      "name": "dynamic",
+                      "type": "boolean",
+                      "description": "Whether a dynamic source or target is requested"
+                    },
+                    "terminus-durability": {
+                      "name": "terminus-durability",
+                      "type": "string",
+                      "enum": [
+                        "none",
+                        "configuration",
+                        "unsettled-state"
+                      ],
+                      "description": "Durability mode for the applicable source/target terminus"
+                    },
+                    "expiry-policy": {
+                      "name": "expiry-policy",
+                      "type": "string",
+                      "enum": [
+                        "link-detach",
+                        "session-end",
+                        "connection-close",
+                        "never"
+                      ],
+                      "description": "Expiry policy for the applicable source/target terminus"
+                    },
+                    "timeout": {
+                      "name": "timeout",
+                      "type": "uinteger",
+                      "description": "Timeout in seconds for the applicable expiry policy"
+                    },
+                    "sender-settle-mode": {
+                      "name": "sender-settle-mode",
+                      "type": "string",
+                      "enum": [
+                        "unsettled",
+                        "settled",
+                        "mixed"
+                      ],
+                      "description": "AMQP sender settle mode"
+                    },
+                    "receiver-settle-mode": {
+                      "name": "receiver-settle-mode",
+                      "type": "string",
+                      "enum": [
+                        "first",
+                        "second"
+                      ],
+                      "description": "AMQP receiver settle mode"
+                    },
                     "*": {
                       "name": "*",
                       "type": "any"
@@ -242,14 +295,14 @@
                     "endpoints": {
                       "name": "endpoints",
                       "type": "array",
-                      "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URL just identifies a network host or links directly to a resource managed by the network host is protocol specific",
+                      "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URI just identifies a network host or links directly to a resource managed by the network host is protocol specific",
                       "item": {
                         "type": "object",
                         "attributes": {
-                          "url": {
-                            "name": "url",
-                            "type": "url",
-                            "description": "MQTT URL (mqtt, mqtts, or ws scheme)"
+                          "uri": {
+                            "name": "uri",
+                            "type": "uri",
+                            "description": "MQTT URI (mqtt, mqtts, or ws scheme)"
                           },
                           "*": {
                             "name": "*",
@@ -268,25 +321,22 @@
                           "type": {
                             "name": "type",
                             "type": "string",
-                            "description": "The authentication/authorization type. OAuth2, Plain, APIKey, and X509Cert are well-defined"
+                            "description": "The authentication/authorization type. OAuth2, Plain, APIKey, X509Cert, and SASL are well-defined"
+                          },
+                          "mechanism": {
+                            "name": "mechanism",
+                            "type": "string",
+                            "description": "The SASL mechanism name when authorization.type is SASL (for example PLAIN, SCRAM-SHA-256, SCRAM-SHA-512, OAUTHBEARER, or EXTERNAL)"
                           },
                           "resourceuri": {
                             "name": "resourceuri",
-                            "type": "url",
+                            "type": "uri",
                             "description": "The resource uri for which authorization shall be granted (if applicable)"
                           },
                           "authorityuri": {
                             "name": "authorityuri",
                             "type": "uri",
                             "description": "The authority uri where authorization shall be requested (if applicable)"
-                          },
-                          "granttypes": {
-                            "name": "granttypes",
-                            "type": "array",
-                            "description": "The grant types that can be requested (if applicable)",
-                            "item": {
-                              "type": "string"
-                            }
                           },
                           "*": {
                             "name": "*",
@@ -298,9 +348,8 @@
                     "deployed": {
                       "name": "deployed",
                       "type": "boolean",
-                      "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint",
-                      "required": true,
-                      "default": false
+                      "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication",
+                      "default": true
                     },
                     "topic": {
                       "name": "topic",
@@ -329,9 +378,49 @@
                     "cleansession": {
                       "name": "cleansession",
                       "type": "boolean",
-                      "description": "The MQTT clean session flag to use for publishers on this endpoint",
+                      "description": "The MQTT 3.1.1 clean session flag. For MQTT 5.0, prefer cleanstart and sessionexpiryinterval",
                       "required": true,
                       "default": true
+                    },
+                    "topicfilter": {
+                      "name": "topicfilter",
+                      "type": "string",
+                      "description": "MQTT subscribe topic filter"
+                    },
+                    "cleanstart": {
+                      "name": "cleanstart",
+                      "type": "boolean",
+                      "description": "MQTT 5 clean start flag"
+                    },
+                    "sessionexpiryinterval": {
+                      "name": "sessionexpiryinterval",
+                      "type": "uinteger",
+                      "description": "MQTT 5 session expiry interval in seconds"
+                    },
+                    "sharedsubscriptiongroup": {
+                      "name": "sharedsubscriptiongroup",
+                      "type": "string",
+                      "description": "MQTT 5 shared subscription group"
+                    },
+                    "nolocal": {
+                      "name": "nolocal",
+                      "type": "boolean",
+                      "description": "MQTT 5 no-local subscription flag"
+                    },
+                    "retainaspublished": {
+                      "name": "retainaspublished",
+                      "type": "boolean",
+                      "description": "MQTT 5 retain-as-published subscription flag"
+                    },
+                    "retainhandling": {
+                      "name": "retainhandling",
+                      "type": "uinteger",
+                      "enum": [
+                        0,
+                        1,
+                        2
+                      ],
+                      "description": "MQTT 5 retain-handling subscription mode"
                     },
                     "willtopic": {
                       "name": "willtopic",
@@ -362,14 +451,14 @@
                     "endpoints": {
                       "name": "endpoints",
                       "type": "array",
-                      "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URL just identifies a network host or links directly to a resource managed by the network host is protocol specific",
+                      "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URI just identifies a network host or links directly to a resource managed by the network host is protocol specific",
                       "item": {
                         "type": "object",
                         "attributes": {
-                          "url": {
-                            "name": "url",
-                            "type": "url",
-                            "description": "MQTT URL (mqtt, mqtts, or ws scheme)"
+                          "uri": {
+                            "name": "uri",
+                            "type": "uri",
+                            "description": "MQTT URI (mqtt, mqtts, or ws scheme)"
                           },
                           "*": {
                             "name": "*",
@@ -388,25 +477,22 @@
                           "type": {
                             "name": "type",
                             "type": "string",
-                            "description": "The authentication/authorization type. OAuth2, Plain, APIKey, and X509Cert are well-defined"
+                            "description": "The authentication/authorization type. OAuth2, Plain, APIKey, X509Cert, and SASL are well-defined"
+                          },
+                          "mechanism": {
+                            "name": "mechanism",
+                            "type": "string",
+                            "description": "The SASL mechanism name when authorization.type is SASL (for example PLAIN, SCRAM-SHA-256, SCRAM-SHA-512, OAUTHBEARER, or EXTERNAL)"
                           },
                           "resourceuri": {
                             "name": "resourceuri",
-                            "type": "url",
+                            "type": "uri",
                             "description": "The resource uri for which authorization shall be granted (if applicable)"
                           },
                           "authorityuri": {
                             "name": "authorityuri",
                             "type": "uri",
                             "description": "The authority uri where authorization shall be requested (if applicable)"
-                          },
-                          "granttypes": {
-                            "name": "granttypes",
-                            "type": "array",
-                            "description": "The grant types that can be requested (if applicable)",
-                            "item": {
-                              "type": "string"
-                            }
                           },
                           "*": {
                             "name": "*",
@@ -418,9 +504,8 @@
                     "deployed": {
                       "name": "deployed",
                       "type": "boolean",
-                      "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint",
-                      "required": true,
-                      "default": false
+                      "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication",
+                      "default": true
                     },
                     "topic": {
                       "name": "topic",
@@ -453,6 +538,11 @@
                       "required": true,
                       "default": true
                     },
+                    "topicfilter": {
+                      "name": "topicfilter",
+                      "type": "string",
+                      "description": "MQTT subscribe topic filter"
+                    },
                     "willtopic": {
                       "name": "willtopic",
                       "type": "string",
@@ -482,14 +572,14 @@
                     "endpoints": {
                       "name": "endpoints",
                       "type": "array",
-                      "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URL just identifies a network host or links directly to a resource managed by the network host is protocol specific",
+                      "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URI just identifies a network host or links directly to a resource managed by the network host is protocol specific",
                       "item": {
                         "type": "object",
                         "attributes": {
-                          "url": {
-                            "name": "url",
-                            "type": "url",
-                            "description": "HTTP URL"
+                          "uri": {
+                            "name": "uri",
+                            "type": "uri",
+                            "description": "HTTP URI"
                           },
                           "*": {
                             "name": "*",
@@ -508,25 +598,22 @@
                           "type": {
                             "name": "type",
                             "type": "string",
-                            "description": "The authentication/authorization type. OAuth2, Plain, APIKey, and X509Cert are well-defined"
+                            "description": "The authentication/authorization type. OAuth2, Plain, APIKey, X509Cert, and SASL are well-defined"
+                          },
+                          "mechanism": {
+                            "name": "mechanism",
+                            "type": "string",
+                            "description": "The SASL mechanism name when authorization.type is SASL (for example PLAIN, SCRAM-SHA-256, SCRAM-SHA-512, OAUTHBEARER, or EXTERNAL)"
                           },
                           "resourceuri": {
                             "name": "resourceuri",
-                            "type": "url",
+                            "type": "uri",
                             "description": "The resource uri for which authorization shall be granted (if applicable)"
                           },
                           "authorityuri": {
                             "name": "authorityuri",
                             "type": "uri",
                             "description": "The authority uri where authorization shall be requested (if applicable)"
-                          },
-                          "granttypes": {
-                            "name": "granttypes",
-                            "type": "array",
-                            "description": "The grant types that can be requested (if applicable)",
-                            "item": {
-                              "type": "string"
-                            }
                           },
                           "*": {
                             "name": "*",
@@ -538,9 +625,8 @@
                     "deployed": {
                       "name": "deployed",
                       "type": "boolean",
-                      "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint",
-                      "required": true,
-                      "default": false
+                      "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication",
+                      "default": true
                     },
                     "method": {
                       "name": "method",
@@ -578,6 +664,33 @@
                         "type": "string"
                       }
                     },
+                    "apikeyname": {
+                      "name": "apikeyname",
+                      "type": "string",
+                      "description": "Name of the API key header/query carrier when authorization.type is APIKey"
+                    },
+                    "apikeyin": {
+                      "name": "apikeyin",
+                      "type": "string",
+                      "description": "Placement of API key metadata for HTTP when authorization.type is APIKey. Expected values: header or query",
+                      "default": "header"
+                    },
+                    "plainscheme": {
+                      "name": "plainscheme",
+                      "type": "string",
+                      "description": "HTTP transport pattern when authorization.type is Plain. Expected values: basic, form, or query",
+                      "default": "basic"
+                    },
+                    "plainusernamefield": {
+                      "name": "plainusernamefield",
+                      "type": "string",
+                      "description": "Parameter or header field name carrying the username when plainscheme is form or query"
+                    },
+                    "plainpasswordfield": {
+                      "name": "plainpasswordfield",
+                      "type": "string",
+                      "description": "Parameter or header field name carrying the password when plainscheme is form or query"
+                    },
                     "*": {
                       "name": "*",
                       "type": "any"
@@ -596,7 +709,7 @@
                     "endpoints": {
                       "name": "endpoints",
                       "type": "array",
-                      "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URL just identifies a network host or links directly to a resource managed by the network host is protocol specific",
+                      "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URI just identifies a network host or links directly to a resource managed by the network host is protocol specific",
                       "item": {
                         "type": "object",
                         "namecharset": "extended",
@@ -640,25 +753,22 @@
                           "type": {
                             "name": "type",
                             "type": "string",
-                            "description": "The authentication/authorization type. OAuth2, Plain, APIKey, and X509Cert are well-defined"
+                            "description": "The authentication/authorization type. OAuth2, Plain, APIKey, X509Cert, and SASL are well-defined"
+                          },
+                          "mechanism": {
+                            "name": "mechanism",
+                            "type": "string",
+                            "description": "The SASL mechanism name when authorization.type is SASL (for example PLAIN, SCRAM-SHA-256, SCRAM-SHA-512, OAUTHBEARER, or EXTERNAL)"
                           },
                           "resourceuri": {
                             "name": "resourceuri",
-                            "type": "url",
+                            "type": "uri",
                             "description": "The resource uri for which authorization shall be granted (if applicable)"
                           },
                           "authorityuri": {
                             "name": "authorityuri",
                             "type": "uri",
                             "description": "The authority uri where authorization shall be requested (if applicable)"
-                          },
-                          "granttypes": {
-                            "name": "granttypes",
-                            "type": "array",
-                            "description": "The grant types that can be requested (if applicable)",
-                            "item": {
-                              "type": "string"
-                            }
                           },
                           "*": {
                             "name": "*",
@@ -670,9 +780,8 @@
                     "deployed": {
                       "name": "deployed",
                       "type": "boolean",
-                      "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint",
-                      "required": true,
-                      "default": false
+                      "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication",
+                      "default": true
                     },
                     "topic": {
                       "name": "topic",
@@ -682,7 +791,7 @@
                     "acks": {
                       "name": "acks",
                       "type": "integer",
-                      "description": "The Apache Kafka acks setting to use. If no acks setting is specified, the default is -1",
+                      "description": "The Apache Kafka acks setting to use. If no acks setting is specified, the default is 1",
                       "required": true,
                       "default": 1
                     },
@@ -723,6 +832,21 @@
                       "required": true,
                       "default": "org.apache.kafka.common.serialization.StringSerializer"
                     },
+                    "autooffsetreset": {
+                      "name": "autooffsetreset",
+                      "type": "string",
+                      "enum": [
+                        "earliest",
+                        "latest",
+                        "none"
+                      ],
+                      "description": "Consumer offset reset behavior when no valid committed offset exists"
+                    },
+                    "enableautocommit": {
+                      "name": "enableautocommit",
+                      "type": "boolean",
+                      "description": "Whether the consumer commits offsets automatically"
+                    },
                     "*": {
                       "name": "*",
                       "type": "any"
@@ -741,14 +865,14 @@
                     "endpoints": {
                       "name": "endpoints",
                       "type": "array",
-                      "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URL just identifies a network host or links directly to a resource managed by the network host is protocol specific",
+                      "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URI just identifies a network host or links directly to a resource managed by the network host is protocol specific",
                       "item": {
                         "type": "object",
                         "attributes": {
-                          "url": {
-                            "name": "url",
-                            "type": "url",
-                            "description": "NATS URL"
+                          "uri": {
+                            "name": "uri",
+                            "type": "uri",
+                            "description": "NATS URI"
                           },
                           "*": {
                             "name": "*",
@@ -767,25 +891,22 @@
                           "type": {
                             "name": "type",
                             "type": "string",
-                            "description": "The authentication/authorization type. OAuth2, Plain, APIKey, and X509Cert are well-defined"
+                            "description": "The authentication/authorization type. OAuth2, Plain, APIKey, X509Cert, and SASL are well-defined"
+                          },
+                          "mechanism": {
+                            "name": "mechanism",
+                            "type": "string",
+                            "description": "The SASL mechanism name when authorization.type is SASL (for example PLAIN, SCRAM-SHA-256, SCRAM-SHA-512, OAUTHBEARER, or EXTERNAL)"
                           },
                           "resourceuri": {
                             "name": "resourceuri",
-                            "type": "url",
+                            "type": "uri",
                             "description": "The resource uri for which authorization shall be granted (if applicable)"
                           },
                           "authorityuri": {
                             "name": "authorityuri",
                             "type": "uri",
                             "description": "The authority uri where authorization shall be requested (if applicable)"
-                          },
-                          "granttypes": {
-                            "name": "granttypes",
-                            "type": "array",
-                            "description": "The grant types that can be requested (if applicable)",
-                            "item": {
-                              "type": "string"
-                            }
                           },
                           "*": {
                             "name": "*",
@@ -797,14 +918,23 @@
                     "deployed": {
                       "name": "deployed",
                       "type": "boolean",
-                      "description": "If `true`, the endpoint metadata represents a public, live endpoint that is available for communication and a strict validator MAY test the liveness of the endpoint",
-                      "required": true,
-                      "default": false
+                      "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication",
+                      "default": true
                     },
                     "subject": {
                       "name": "subject",
                       "type": "string",
                       "description": "The NATS subject"
+                    },
+                    "subjectfilter": {
+                      "name": "subjectfilter",
+                      "type": "string",
+                      "description": "The NATS subscription subject filter"
+                    },
+                    "queuegroup": {
+                      "name": "queuegroup",
+                      "type": "string",
+                      "description": "The NATS queue group for queue subscriptions"
                     },
                     "*": {
                       "name": "*",
@@ -819,9 +949,9 @@
         "messagegroups": {
           "name": "messagegroups",
           "type": "array",
-          "description": "The message groups that are supported by this endpoint. Relative references are XIDs within the same registry. Absolute URIs reference message groups in external registries.",
+          "description": "The message groups that are supported by this endpoint",
           "item": {
-            "type": "uri",
+            "type": "xid",
             "target": "/messagegroups/messages"
           }
         },
