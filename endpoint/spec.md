@@ -2,7 +2,7 @@
 <!-- words: apikeyname apikeyin plainscheme plainusernamefield plainpasswordfield sasl oauthbearer -->
 <!-- words: cleanstart sessionexpiryinterval topicfilter retainhandling retainaspublished nolocal -->
 <!-- words: sharedsubscriptiongroup keyserializer valueserializer enableautocommit autooffsetreset -->
-<!-- words: serializer subjectfilter queuegroup usernames -->
+<!-- words: serializer subjectfilter queuegroup usernames tenantid -->
 
 ## Abstract
 
@@ -832,6 +832,17 @@ In each table below, role applicability is shown as:
   apply the option semantics.
 - `-`: The option does not apply to that role.
 
+Any string value of any protocol option MAY contain placeholders expressed
+with the [RFC6570][RFC6570] Level 1 URI Template expression syntax, for
+example `orders/{tenantid}/events`. This applies to plain
+string values, to the string items of arrays, and to the keys and values of
+maps, and it also applies to the `uri` values of
+[`protocoloptions.endpoints`](#protocoloptionsendpoints). Placeholders are
+resolved out-of-band by the client; this specification does not define how
+the values are supplied. When the same placeholder name occurs in more than
+one value of the same endpoint, all of its occurrences MUST resolve to the
+same value.
+
 ##### HTTP options
 
 The [endpoint URIs](#protocoloptionsendpoints) for "HTTP" endpoints MUST be
@@ -872,11 +883,6 @@ Constraints:
 | `plainusernamefield` | string | ✓ | ✓ | ✓ | Parameter or header field name carrying the username when `plainscheme` is `form` or `query`. |
 | `plainpasswordfield` | string | ✓ | ✓ | ✓ | Parameter or header field name carrying the password when `plainscheme` is `form` or `query`. |
 
-The values of all `query` and `headers` MAY contain placeholders using the
-[RFC6570][RFC6570] Level 1 URI Template syntax. When the same placeholder is
-used in multiple properties, the value of the placeholder is assumed to be
-identical.
-
 These options only define protocol-level placement and naming metadata.
 Credential values (API keys, usernames, passwords) MUST NOT be stored in
 endpoint metadata and MUST be supplied out-of-band.
@@ -912,11 +918,6 @@ AMQP receiving link both establishes interest in the source node and carries
 the resulting transfers. When it does, the `subscriber` role refers to the
 establishment of the link with the node as source and the `consumer` role
 refers to the transfers over that link.
-
-The values of all `link-properties` and `connection-properties` MAY contain
-placeholders using the [RFC6570][RFC6570] Level 1 URI Template syntax. When the
-same placeholder is used in multiple properties, the value of the placeholder
-is assumed to be identical.
 
 ##### MQTT options
 
@@ -967,10 +968,6 @@ MQTT 5.0 specific options:
 | `retainaspublished` | boolean | - | - | ✓ | MQTT 5 subscribe retain-as-published flag. |
 | `retainhandling` | enum: `0`, `1`, `2` | - | - | ✓ | MQTT 5 retain-handling mode. |
 
-`cleansession` is an MQTT 3.1.1 option only. It is not defined for `MQTT/5.0`
-endpoints and MUST NOT be used with them; `cleanstart` and
-`sessionexpiryinterval` express the equivalent MQTT 5 behavior and together
-supersede it.
 
 Shared subscription constraints:
 
@@ -1036,10 +1033,7 @@ valid NATS URIs as described by [NATS]. The scheme MUST be "nats" or "tls" or
 "ws" and the URI MUST include a port number, e.g. `nats://<HOST>:<PORT>` or
 `tls://<HOST>:<PORT>`.
 
-The options below describe Core NATS publish and subscribe only. JetStream
-streams, consumers, and their durability and acknowledgement settings are out
-of scope for this specification and, if needed, MUST be expressed through
-extension attributes.
+The options below describe Core NATS publish and subscribe.
 
 The following options are defined for NATS endpoints.
 
