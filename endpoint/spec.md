@@ -255,10 +255,13 @@ this form:
 
         # Common protocol options
         "endpoints": [
-          {
-            "uri": "<URI>"                        # plus endpoint extensions
-          } *                                     # "KAFKA" uses
-        ], ?                                      # "bootstrap.servers" instead
+          {                                     # entry shape is protocol
+            "uri": "<URI>", ?                   #   specific: "uri" for all
+            "bootstrap.servers":                #   protocols except "KAFKA",
+              [ "<STRING>" * ], ?               #   which has no "uri" and
+            "<STRING>": <JSON-VALUE> *          #   uses "bootstrap.servers"
+          } *
+        ], ?
         "authorization": [
           {
             "type": "<STRING>", ?
@@ -624,6 +627,11 @@ This specification defines the following envelope options for the indicated
     ```
   - ```
     [
+      { "bootstrap.servers": [ "broker1:9092", "broker2:9092" ] }
+    ]
+    ```
+  - ```
+    [
       {
         "uri": "tcp://example.com",
         "priority": 1,
@@ -827,10 +835,10 @@ Consumer, Subscriber) to which each option applies. All protocol options are
 OPTIONAL.
 
 The role applicability is descriptive: it guides clients on how to interpret
-metadata, and a validator need not reject every role-inapplicable option.
-Where a rule below is stated with MUST, MUST NOT, or REQUIRED, it is a
-conformance requirement of this specification and an implementation MUST
-reject metadata that violates it.
+metadata. Where a rule below is stated with MUST, MUST NOT, or REQUIRED, it
+is a conformance requirement of this specification, and a client evaluating
+the metadata MUST treat a violation as an error. A Registry server is not
+obligated to check these rules.
 
 In each table below, role applicability is shown as:
 - `✓`: The option applies to that role. Clients acting in that role SHOULD
@@ -867,6 +875,13 @@ distinguishes three HTTP roles:
   delivery agent.
 - Pull consumer (`usage` = `["consumer"]`): an endpoint from which a client
   retrieves messages with its own requests.
+
+An "HTTP" Endpoint describes a profile for message and event transfer over
+HTTP, not a general-purpose HTTP API surface. Declaring exactly one role per
+Endpoint keeps the request contract of each interface unambiguous, so that a
+client knows what it can send and what it can expect without inspecting
+individual messages. Describing a general HTTP API is out of scope for this
+specification and is served by an API description language such as OpenAPI.
 
 Constraints:
 
