@@ -530,7 +530,7 @@ This specification defines the following envelope options for the indicated
 ##### `CloudEvents/1.0`
 
 - `mode` : indicates whether the CloudEvent will use `binary` or `structured`
-  (mode)[https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#message].
+  [mode](https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#message).
   When specified, its value MUST be one of: `binary` or `structured`, case
   sensitive. When not specified, the endpoint is indicating that either mode
   is acceptable.
@@ -596,9 +596,9 @@ This specification defines the following envelope options for the indicated
   address identifies a network host or links directly to a resource managed by
   the network host is protocol specific.
 
-  The addressing attribute is protocol specific. For `HTTP`, `AMQP/1.0`,
-  `MQTT/3.1.1`, `MQTT/5.0`, and `NATS` the address is carried in a `uri`
-  attribute. For `KAFKA` the address is carried in a `bootstrap.servers`
+  The shape of each entry is customized for the protocol in use. For `HTTP`,
+  `AMQP/1.0`, `MQTT/3.1.1`, `MQTT/5.0`, and `NATS` the address is carried in a
+  `uri` attribute. For `KAFKA` the address is carried in a `bootstrap.servers`
   attribute, which is an array of Kafka bootstrap server addresses, because
   Kafka clients are configured with a bootstrap server list rather than with a
   single destination URI.
@@ -607,10 +607,13 @@ This specification defines the following envelope options for the indicated
   - OPTIONAL.
   - Entries are ordered by preference; the first entry is the preferred
     address.
-  - For all protocols other than `KAFKA`, each object MUST contain a `uri`
-    attribute with a valid, absolute URI (URL).
-  - For `KAFKA`, each object MUST contain a non-empty `bootstrap.servers`
-    attribute. A `uri` attribute is not expected for `KAFKA` endpoints.
+  - Each object MUST carry the endpoint address in the attribute that the
+    endpoint's protocol defines for that purpose. Of the protocols defined in
+    this specification, `HTTP`, `AMQP/1.0`, `MQTT/3.1.1`, `MQTT/5.0`, and
+    `NATS` use a `uri` attribute holding a valid, absolute URI (URL), and
+    `KAFKA` uses a non-empty `bootstrap.servers` attribute. A protocol
+    defined outside of this specification MAY define a different addressing
+    attribute.
 - Examples:
   - `[ {"uri": "https://example.com" } ]`
   - ```
@@ -648,7 +651,7 @@ This specification defines the following envelope options for the indicated
 
 - Constraints:
   - OPTIONAL.
-  - MUST be an array of objects if present. It is not a map.
+  - MUST be an array of objects if present.
   - MUST only be used for authorization configuration.
   - MUST NOT be used for credential configuration.
 
@@ -657,21 +660,23 @@ This specification defines the following envelope options for the indicated
 - Type: String
 - Description: The type of the authorization configuration. The value SHOULD be
   one of the following:
-  - `OAuth2`: OAuth 2.0 authorization is used. The `authorityuri` SHOULD
-    reference authorization server metadata as defined by RFC 8414.
+  - `OAuth2`: [OAuth 2.0][RFC6749] authorization is used. The
+    [`authorityuri`](#protocoloptionsauthorizationauthorityuri) SHOULD
+    reference authorization server metadata as defined by [RFC 8414][RFC8414].
   - `Plain`: The client uses username with a plaintext password for
-    authentication and authorization. For HTTP, see protocol options
-    `plainscheme`, `plainusernamefield`, and `plainpasswordfield`; for other
-    protocols, equivalent transport-specific options MAY be defined as
-    protocol extensions.
-  - `SASL`: The client uses a SASL authentication mechanism. The
-    `mechanism` attribute SHOULD be provided when this type is selected.
-  - `X509Cert`: The client uses client certificate authentication and
-    authorization.
+    authentication and authorization. For HTTP, see the
+    [HTTP options](#http-options) `plainscheme`, `plainusernamefield`, and
+    `plainpasswordfield`; for other protocols, equivalent transport-specific
+    options MAY be defined as protocol extensions.
+  - `SASL`: The client uses a [SASL][RFC4422] authentication mechanism. The
+    [`mechanism`](#protocoloptionsauthorizationmechanism) attribute SHOULD be
+    provided when this type is selected.
+  - `X509Cert`: The client uses [X.509][RFC5280] client certificate
+    authentication and authorization.
   - `APIKey`: The client uses an API key for authentication and
-    authorization. For HTTP, see protocol options `apikeyname` and
-    `apikeyin`; for other protocols, equivalent carrier-specific options MAY
-    be defined as protocol extensions.
+    authorization. For HTTP, see the [HTTP options](#http-options)
+    `apikeyname` and `apikeyin`; for other protocols, equivalent
+    carrier-specific options MAY be defined as protocol extensions.
 
 - Constraints:
   - OPTIONAL.
@@ -692,9 +697,11 @@ This specification defines the following envelope options for the indicated
 ###### `protocoloptions.authorization.mechanism`
 
 - Type: String
-- Description: The SASL mechanism name for `authorization.type = "SASL"`
-  (for example `PLAIN`, `SCRAM-SHA-256`, `SCRAM-SHA-512`, `OAUTHBEARER`,
-  or `EXTERNAL`).
+- Description: The SASL mechanism name for `authorization.type = "SASL"`, for
+  example `PLAIN` ([RFC4616][RFC4616]), `SCRAM-SHA-256` or `SCRAM-SHA-512`
+  ([RFC7677][RFC7677]), `OAUTHBEARER` ([RFC7628][RFC7628]), or `EXTERNAL`
+  ([RFC4422][RFC4422]). Mechanism names are those registered in the
+  [IANA SASL Mechanisms registry][IANA SASL Mechanisms].
 
 - Constraints:
   - OPTIONAL.
@@ -730,10 +737,7 @@ This specification defines the following envelope options for the indicated
 - Constraints:
   - OPTIONAL.
   - If present, MUST be either `true` or `false`, case-sensitive.
-  - When not specified, the default value is MUST be `true`.
-
-Protocol-specific options are direct children of `protocoloptions`.
-There is no nested `protocoloptions.options` object.
+  - When not specified, the default value MUST be `true`.
 
 #### `messagegroups`
 
@@ -817,15 +821,16 @@ constraint for their users.
 
 #### Protocol Options
 
-The following protocol options are direct children of `protocoloptions` for
-the respective protocols. All of these are OPTIONAL.
+For each protocol specified in the following sections there is a table that
+describes the set of protocol-specific options and the roles (Producer,
+Consumer, Subscriber) to which each option applies. All protocol options are
+OPTIONAL.
 
-This specification is descriptive for the applicability of protocol options to
-roles: the role columns guide clients on how to interpret metadata, and a
-validator need not reject every role-inapplicable option. Where a
-rule below is stated with MUST, MUST NOT, or REQUIRED, it is a conformance
-requirement of this specification and an implementation MUST reject metadata
-that violates it.
+The role applicability is descriptive: it guides clients on how to interpret
+metadata, and a validator need not reject every role-inapplicable option.
+Where a rule below is stated with MUST, MUST NOT, or REQUIRED, it is a
+conformance requirement of this specification and an implementation MUST
+reject metadata that violates it.
 
 In each table below, role applicability is shown as:
 - `✓`: The option applies to that role. Clients acting in that role SHOULD
@@ -1075,6 +1080,14 @@ Addressing constraints:
 [Apache Kafka producer]: https://kafka.apache.org/31/javadoc/org/apache/kafka/clients/producer/ProducerRecord.html
 [Apache Kafka consumer]: https://kafka.apache.org/31/javadoc/org/apache/kafka/clients/consumer/ConsumerRecord.html
 [HTTP Message Format]: https://www.rfc-editor.org/rfc/rfc9110#section-6
-[RFC7617]: https://www.rfc-editor.org/rfc/rfc7617
+[IANA SASL Mechanisms]: https://www.iana.org/assignments/sasl-mechanisms/sasl-mechanisms.xhtml
+[RFC4422]: https://www.rfc-editor.org/rfc/rfc4422
+[RFC4616]: https://www.rfc-editor.org/rfc/rfc4616
+[RFC5280]: https://www.rfc-editor.org/rfc/rfc5280
 [RFC6570]: https://www.rfc-editor.org/rfc/rfc6570
+[RFC6749]: https://www.rfc-editor.org/rfc/rfc6749
+[RFC7617]: https://www.rfc-editor.org/rfc/rfc7617
+[RFC7628]: https://www.rfc-editor.org/rfc/rfc7628
+[RFC7677]: https://www.rfc-editor.org/rfc/rfc7677
+[RFC8414]: https://www.rfc-editor.org/rfc/rfc8414
 [rfc3339]: https://tools.ietf.org/html/rfc3339
