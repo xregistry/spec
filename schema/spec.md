@@ -2,6 +2,7 @@
 
 <!-- words: formatvalidated compatibilityvalidated -->
 <!-- words: formatvalidatedreason compatibilityvalidatedreason -->
+<!-- words: jsonstructure jstruct namespace -->
 
 ## Abstract
 
@@ -32,6 +33,7 @@ allows for the storage, management and discovery of schema documents.
     - [4.3.2. XML Schema](#432-xml-schema)
     - [4.3.3. Apache Avro Schema](#433-apache-avro-schema)
     - [4.3.4. Protobuf Schema](#434-protobuf-schema)
+    - [4.3.5. JSON Structure Schema](#435-json-structure-schema)
 
 ## 1. Overview
 
@@ -495,10 +497,11 @@ When the `format` attribute is set to `JsonSchema`, the `schema` attribute of
 the schema Resource is a JSON object representing a JSON Schema document
 conformant with the declared version.
 
-When a URI, like [`schemauri`](../message/spec.md#dataschemauri),
-points to a JSON Schema document it MAY use a [JSON pointer][JSON pointer]
-expression to deep link into the schema document to reference a particular type
-definition. Otherwise the top-level object definition of the schema is used.
+When a URI, like the Message Registry's
+[`dataschemauri`](../message/spec.md#dataschemauri), points to a JSON Schema
+document it MAY use a [JSON pointer][JSON pointer] expression to deep link into
+the schema document to reference a particular type definition. Otherwise the
+top-level object definition of the schema is used.
 
 The version of the JSON Schema format is the version of the JSON Schema
 specification that is used to define the schema. The version of the JSON Schema
@@ -530,10 +533,11 @@ When the `format` attribute is set to `XSD`, the `schema` attribute of schema
 Resource is a string containing an XML Schema document conformant with the
 declared version.
 
-When a URI, like [`schemauri`](../message/spec.md#dataschemauri),
-points to a JSON Schema document it MAY use an XPath expression to deep link
-into the schema document to reference a particular type definition. Otherwise
-the top-level object definition of the schema is used.
+When a URI, like the Message Registry's
+[`dataschemauri`](../message/spec.md#dataschemauri), points to an XML Schema
+document it MAY use an XPath expression to deep link into the schema document to
+reference a particular type definition. Otherwise the top-level object
+definition of the schema is used.
 
 The identifiers for the following XML Schema versions:
 
@@ -560,12 +564,12 @@ Examples:
 - `Avro/1.8.2` is the identifier for the Apache Avro release 1.8.2.
 - `Avro/1.11.0` is the identifier for the Apache Avro release 1.11.0
 
-When a URI, like [`schemauri`](../message/spec.md#dataschemauri),
-points to a JSON Schema document it MAY use a URI fragment suffix
-`[:]{record-name}` to deep link into the schema document to reference a
-particular type definition. Otherwise the top-level object definition of the
-schema is used. The ':' character is used as a separator when the URI already
-contains a fragment.
+When a URI, like the Message Registry's
+[`dataschemauri`](../message/spec.md#dataschemauri), points to an Avro Schema
+document it MAY use a URI fragment suffix `[:]{record-name}` to deep link into
+the schema document to reference a particular type definition. Otherwise the
+top-level object definition of the schema is used. The ':' character is used as
+a separator when the URI already contains a fragment.
 
 Examples:
 
@@ -592,11 +596,11 @@ with the declared version.
 - `Protobuf/3` is the identifier for the Protobuf syntax version 3.
 - `Protobuf/2` is the identifier for the Protobuf syntax version 2.
 
-A URI, like [`schemauri`](../message/spec.md#dataschemauri) that
-points to a Protobuf Schema document MUST reference a Protobuf `message`
-declaration contained in the schema document using a URI fragment suffix
-`[:]{message-name}`. The ':' character is used as a separator when the URI
-already contains a fragment.
+A URI, like the Message Registry's
+[`dataschemauri`](../message/spec.md#dataschemauri), that points to a Protobuf
+Schema document MUST reference a Protobuf `message` declaration contained in the
+schema document using a URI fragment suffix `[:]{message-name}`. The ':'
+character is used as a separator when the URI already contains a fragment.
 
 Examples:
 
@@ -609,6 +613,38 @@ Examples:
   the which the reference is already in the form of a URI fragment, the suffix
   is appended separated with a colon, for instance
   `.../com.example.telemetrydata:TelemetryEvent`.
+
+#### 4.3.5. JSON Structure Schema
+
+The [`format`](../core/spec.md#format-attribute) identifier for JSON Structure
+Schema is `JsonStructure`. When the `format` attribute is set to `JsonStructure`,
+the `schema` attribute of the schema Resource is a JSON object representing a JSON
+Structure schema document [JSTRUCT-CORE].
+
+The version identifier follows the pattern `JsonStructure/{version}`, where
+`{version}` is the version of the JSON Structure Core specification that is
+used to define the schema.
+
+`JsonStructure/draft-04` is the identifier for the Internet-Draft version 04 of
+the JSON Structure Core specification. If a future RFC is published, the
+version identifier will be updated to reflect the RFC number, for example
+`JsonStructure/rfc-0000`.
+
+When a URI, like the Message Registry's
+[`dataschemauri`](../message/spec.md#dataschemauri), points to a JSON Structure
+schema document, it MAY use a [JSON pointer][JSON pointer] expression to deep
+link into the schema document to reference a particular type definition. This is
+typically used to reference type definitions within the `definitions` namespace.
+
+Examples:
+
+- `https://example.com/schemas/person.json#/definitions/Employee` uses the
+  `#/definitions/Employee` fragment to reference the `Employee` type definition.
+- For local Schema Registry references like
+  `#/schemagroups/com.example.schemas/schemas/com.example.person/versions/1/definitions/Employee`,
+  append the JSON Pointer fragment to reference a specific type within that schema.
+
+
 
 Like the [xRegistry Core][xRegistry Core] specification, this specification does
 not explicitly address authentication or authorization levels of users, nor how
@@ -629,6 +665,7 @@ a schema, allowing for fine-grained access control.
 ---
 
 [JSON Pointer]: https://www.rfc-editor.org/rfc/rfc6901
+[JSTRUCT-CORE]: https://json-structure.github.io/core/draft-vasters-json-structure-core.html
 [CloudEvents dataschema]: https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#dataschema
 [xRegistry Core]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html
 [xRegistry self]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#self-attribute
