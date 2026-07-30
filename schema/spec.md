@@ -534,7 +534,7 @@ Resource is a string containing an XML Schema document conformant with the
 declared version.
 
 When a URI, like the Message Registry's
-[`dataschemauri`](../message/spec.md#dataschemauri), points to a JSON Schema
+[`dataschemauri`](../message/spec.md#dataschemauri), points to an XML Schema
 document it MAY use an XPath expression to deep link into the schema document to
 reference a particular type definition. Otherwise the top-level object
 definition of the schema is used.
@@ -565,7 +565,7 @@ Examples:
 - `Avro/1.11.0` is the identifier for the Apache Avro release 1.11.0
 
 When a URI, like the Message Registry's
-[`dataschemauri`](../message/spec.md#dataschemauri), points to a JSON Schema
+[`dataschemauri`](../message/spec.md#dataschemauri), points to an Avro Schema
 document it MAY use a URI fragment suffix `[:]{record-name}` to deep link into
 the schema document to reference a particular type definition. Otherwise the
 top-level object definition of the schema is used. The ':' character is used as
