@@ -497,10 +497,11 @@ When the `format` attribute is set to `JsonSchema`, the `schema` attribute of
 the schema Resource is a JSON object representing a JSON Schema document
 conformant with the declared version.
 
-When a URI, like [`dataschemauri`](../message/spec.md#dataschemauri),
-points to a JSON Schema document it MAY use a [JSON pointer][JSON pointer]
-expression to deep link into the schema document to reference a particular type
-definition. Otherwise the top-level object definition of the schema is used.
+When a URI, like the Message Registry's
+[`dataschemauri`](../message/spec.md#dataschemauri), points to a JSON Schema
+document it MAY use a [JSON pointer][JSON pointer] expression to deep link into
+the schema document to reference a particular type definition. Otherwise the
+top-level object definition of the schema is used.
 
 The version of the JSON Schema format is the version of the JSON Schema
 specification that is used to define the schema. The version of the JSON Schema
@@ -532,10 +533,11 @@ When the `format` attribute is set to `XSD`, the `schema` attribute of schema
 Resource is a string containing an XML Schema document conformant with the
 declared version.
 
-When a URI, like [`dataschemauri`](../message/spec.md#dataschemauri),
-points to a JSON Schema document it MAY use an XPath expression to deep link
-into the schema document to reference a particular type definition. Otherwise
-the top-level object definition of the schema is used.
+When a URI, like the Message Registry's
+[`dataschemauri`](../message/spec.md#dataschemauri), points to a JSON Schema
+document it MAY use an XPath expression to deep link into the schema document to
+reference a particular type definition. Otherwise the top-level object
+definition of the schema is used.
 
 The identifiers for the following XML Schema versions:
 
@@ -562,12 +564,12 @@ Examples:
 - `Avro/1.8.2` is the identifier for the Apache Avro release 1.8.2.
 - `Avro/1.11.0` is the identifier for the Apache Avro release 1.11.0
 
-When a URI, like [`dataschemauri`](../message/spec.md#dataschemauri),
-points to a JSON Schema document it MAY use a URI fragment suffix
-`[:]{record-name}` to deep link into the schema document to reference a
-particular type definition. Otherwise the top-level object definition of the
-schema is used. The ':' character is used as a separator when the URI already
-contains a fragment.
+When a URI, like the Message Registry's
+[`dataschemauri`](../message/spec.md#dataschemauri), points to a JSON Schema
+document it MAY use a URI fragment suffix `[:]{record-name}` to deep link into
+the schema document to reference a particular type definition. Otherwise the
+top-level object definition of the schema is used. The ':' character is used as
+a separator when the URI already contains a fragment.
 
 Examples:
 
@@ -594,11 +596,11 @@ with the declared version.
 - `Protobuf/3` is the identifier for the Protobuf syntax version 3.
 - `Protobuf/2` is the identifier for the Protobuf syntax version 2.
 
-A URI, like [`dataschemauri`](../message/spec.md#dataschemauri) that
-points to a Protobuf Schema document MUST reference a Protobuf `message`
-declaration contained in the schema document using a URI fragment suffix
-`[:]{message-name}`. The ':' character is used as a separator when the URI
-already contains a fragment.
+A URI, like the Message Registry's
+[`dataschemauri`](../message/spec.md#dataschemauri), that points to a Protobuf
+Schema document MUST reference a Protobuf `message` declaration contained in the
+schema document using a URI fragment suffix `[:]{message-name}`. The ':'
+character is used as a separator when the URI already contains a fragment.
 
 Examples:
 
@@ -628,11 +630,11 @@ the JSON Structure Core specification. If a future RFC is published, the
 version identifier will be updated to reflect the RFC number, for example
 `JsonStructure/rfc-0000`.
 
-When a URI, like [`dataschemauri`](../message/spec.md#dataschemauri), points to a
-JSON Structure schema document, it MAY use a [JSON pointer][JSON pointer]
-expression to deep link into the schema document to reference a particular type
-definition. This is typically used to reference type definitions within the
-`definitions` namespace.
+When a URI, like the Message Registry's
+[`dataschemauri`](../message/spec.md#dataschemauri), points to a JSON Structure
+schema document, it MAY use a [JSON pointer][JSON pointer] expression to deep
+link into the schema document to reference a particular type definition. This is
+typically used to reference type definitions within the `definitions` namespace.
 
 Examples:
 
