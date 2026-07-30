@@ -1404,7 +1404,7 @@ Example:
 [MQTT 5.0]: https://docs.oasis-open.org/mqtt/mqtt/v5.0/mqtt-v5.0.html
 [MQTT 3.1.1]: https://docs.oasis-open.org/mqtt/mqtt/v3.1.1/mqtt-v3.1.1.html
 [CloudEvents]: https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md
-[NATS]: https://docs.nats.io/reference/reference-protocols/nats-protocol
+[NATS]: https://docs.nats.io/reference/protocols/client/
 [Apache Kafka]: https://kafka.apache.org/protocol
 [Apache Kafka producer]: https://kafka.apache.org/31/javadoc/org/apache/kafka/clients/producer/ProducerRecord.html
 [Apache Kafka consumer]: https://kafka.apache.org/31/javadoc/org/apache/kafka/clients/consumer/ConsumerRecord.html
