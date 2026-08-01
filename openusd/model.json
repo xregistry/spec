@@ -1,0 +1,206 @@
+{
+  "$schema": "https://xregistry.io/xregistryspecs/core-v1/schemas/model.schema.json",
+
+  "groups": {
+    "usdassetgroups": {
+      "singular": "usdassetgroup",
+      "modelversion": "1.0-rc3",
+      "modelcompatiblewith": "https://xregistry.io/xreg/domains/openusd/specs/model.json",
+      "description": "Asset containers. Each Group is one named USD asset container - a root layer together with the sublayers, references, payloads, textures, MaterialX documents and volumes it needs. The Group id is the asset container identifier.",
+
+      "attributes": {
+        "rootlayer": {
+          "name": "rootlayer",
+          "type": "string",
+          "description": "The assetidentifier of this container's single RootLayer usdasset, so a Consumer finds the composition entry point without scanning the collection"
+        },
+        "*": {
+          "name": "*",
+          "type": "any"
+        }
+      },
+
+      "resources": {
+        "usdassets": {
+          "singular": "usdasset",
+          "modelversion": "1.0-rc3",
+          "modelcompatiblewith": "https://xregistry.io/xreg/domains/openusd/specs/model.json",
+          "validateformat": true,
+          "validatecompatibility": true,
+          "strictvalidation": false,
+          "description": "A single USD artifact - a layer, package, texture, MaterialX document, volume or manifest - served as a document",
+
+          "attributes": {
+            "format": {
+              "name": "format",
+              "type": "string",
+              "required": true,
+              "enum": [
+                "OpenUSD/1.0",
+                "USDZ/1.0",
+                "MaterialX/1.39",
+                "USD-PlugInfo/1.0",
+                "USD-GeneratedSchema/1.0",
+                "Opaque/1.0"
+              ],
+              "strict": false,
+              "description": "The document format of this artifact. Orthogonal to assetkind, which records the artifact's role in the closure"
+            },
+            "assetidentifier": {
+              "name": "assetidentifier",
+              "type": "string",
+              "required": true,
+              "description": "The authored USD asset identifier, normalized relative to its asset container - the string a layer writes between @...@. It is the Resource source identity and the authority: the usdassetid is the symbolic identifier constructed from it, a one-way construction that is never inverted"
+            },
+            "assetkind": {
+              "name": "assetkind",
+              "type": "string",
+              "required": true,
+              "enum": [
+                "RootLayer",
+                "SubLayer",
+                "Reference",
+                "Payload",
+                "Texture",
+                "Package",
+                "MaterialX",
+                "Volume",
+                "SchemaPlugin",
+                "GeneratedSchema",
+                "Manifest"
+              ],
+              "strict": true,
+              "description": "The role this artifact plays in its container's composition closure. Exactly one usdasset in an asset container has the value RootLayer"
+            },
+            "dependson": {
+              "name": "dependson",
+              "type": "array",
+              "item": {
+                "type": "string"
+              },
+              "description": "The asset identifiers this artifact directly references, in authored order - authored identifiers, not xids, so a resolver matches them against @...@ references directly"
+            },
+            "digest": {
+              "name": "digest",
+              "type": "string",
+              "description": "Lower-case hexadecimal digest of the exact document bytes a Consumer retrieves, computed with digestalg"
+            },
+            "digestalg": {
+              "name": "digestalg",
+              "type": "string",
+              "enum": [
+                "Sha256",
+                "Sha384",
+                "Sha512"
+              ],
+              "strict": true,
+              "description": "The algorithm used to compute digest. REQUIRED when digest is present"
+            },
+            "*": {
+              "name": "*",
+              "type": "any"
+            }
+          }
+        }
+      }
+    },
+
+    "usdschemaplugingroups": {
+      "singular": "usdschemaplugingroup",
+      "modelversion": "1.0-rc3",
+      "modelcompatiblewith": "https://xregistry.io/xreg/domains/openusd/specs/model.json",
+      "description": "USD schema plugins. Each Group is one codeless USD schema plugin, and the Group id is the plugin name as declared in the plugin manifest. A codeless schema needs exactly two files, so a Group holds a SchemaPlugin usdasset and a GeneratedSchema usdasset",
+
+      "attributes": {
+        "*": {
+          "name": "*",
+          "type": "any"
+        }
+      },
+
+      "resources": {
+        "usdassets": {
+          "singular": "usdasset",
+          "modelversion": "1.0-rc3",
+          "modelcompatiblewith": "https://xregistry.io/xreg/domains/openusd/specs/model.json",
+          "validateformat": true,
+          "validatecompatibility": true,
+          "strictvalidation": false,
+          "description": "A single file of this schema plugin - its plugin manifest or its generated schema - served as a document",
+
+          "attributes": {
+            "format": {
+              "name": "format",
+              "type": "string",
+              "required": true,
+              "enum": [
+                "OpenUSD/1.0",
+                "USDZ/1.0",
+                "MaterialX/1.39",
+                "USD-PlugInfo/1.0",
+                "USD-GeneratedSchema/1.0",
+                "Opaque/1.0"
+              ],
+              "strict": false,
+              "description": "The document format of this artifact. Orthogonal to assetkind, which records the artifact's role in the closure"
+            },
+            "assetidentifier": {
+              "name": "assetidentifier",
+              "type": "string",
+              "required": true,
+              "description": "The authored USD asset identifier, normalized relative to its asset container - the string a layer writes between @...@. It is the Resource source identity and the authority: the usdassetid is the symbolic identifier constructed from it, a one-way construction that is never inverted"
+            },
+            "assetkind": {
+              "name": "assetkind",
+              "type": "string",
+              "required": true,
+              "enum": [
+                "RootLayer",
+                "SubLayer",
+                "Reference",
+                "Payload",
+                "Texture",
+                "Package",
+                "MaterialX",
+                "Volume",
+                "SchemaPlugin",
+                "GeneratedSchema",
+                "Manifest"
+              ],
+              "strict": true,
+              "description": "The role this artifact plays. Within a usdschemaplugingroup the value is SchemaPlugin for the plugin manifest and GeneratedSchema for the generated schema"
+            },
+            "dependson": {
+              "name": "dependson",
+              "type": "array",
+              "item": {
+                "type": "string"
+              },
+              "description": "The asset identifiers this artifact directly references, in authored order - authored identifiers, not xids, so a resolver matches them against @...@ references directly"
+            },
+            "digest": {
+              "name": "digest",
+              "type": "string",
+              "description": "Lower-case hexadecimal digest of the exact document bytes a Consumer retrieves, computed with digestalg"
+            },
+            "digestalg": {
+              "name": "digestalg",
+              "type": "string",
+              "enum": [
+                "Sha256",
+                "Sha384",
+                "Sha512"
+              ],
+              "strict": true,
+              "description": "The algorithm used to compute digest. REQUIRED when digest is present"
+            },
+            "*": {
+              "name": "*",
+              "type": "any"
+            }
+          }
+        }
+      }
+    }
+  }
+}
