@@ -99,9 +99,9 @@
                 "equals": {
                   "type": "string"
                 }
-              }
+              },
               "description": "Group level constraints over resources"
-            }
+            },
             "resources": {
               "type": "object",
               "description": "Resource types within this group",
