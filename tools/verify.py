@@ -162,6 +162,10 @@ def _find_all_uris(html: HtmlText) -> Iterable[Uri]:
         if uri:
             yield Uri(uri.strip())
 
+_LINK_PROBE_HEADERS = {
+    "Accept": "text/html, application/json, application/xml",
+    "User-Agent": "xregistry-tooling",
+}
 
 async def _uri_availability_issues(uri: HttpUri, settings: Settings) -> Sequence[Issue]:
     if "example.com"  in uri: return []
@@ -174,7 +178,11 @@ async def _uri_availability_issues(uri: HttpUri, settings: Settings) -> Sequence
                 async with ClientSession() as session:
                     with closing(
                         await session.get(
-                            uri, timeout=settings.http_timeout_seconds, ssl=False, max_field_size=81900
+                            uri,
+                            headers=_LINK_PROBE_HEADERS,
+                            timeout=settings.http_timeout_seconds,
+                            ssl=False,
+                            max_field_size=81900
                         )
                     ) as response:
                         match response.status:
