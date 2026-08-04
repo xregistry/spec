@@ -516,8 +516,16 @@ func localPathURIIssues(uri, currentPath string) []Issue {
 }
 
 func uriAvailabilityIssues(uri string, settings Settings) []Issue {
-	if strings.Contains(uri, "example.com") || strings.Contains(uri, "ietf.org") || strings.Contains(uri, "rfc-edit.org") {
-		return nil
+	skipList := []string{
+		"example.com",
+		"ietf.org",
+		"rfc-edit.org",
+	}
+
+	for _, u := range skipList {
+		if strings.Contains(uri, u) {
+			return nil
+		}
 	}
 
 	client := &http.Client{
@@ -532,7 +540,14 @@ func uriAvailabilityIssues(uri string, settings Settings) []Issue {
 		maxAttempts = 1
 	}
 	for attempt := 0; attempt < maxAttempts; attempt++ {
-		resp, err := client.Get(uri)
+		req, err := http.NewRequest("GET", uri, nil)
+		if err != nil {
+			panic(err)
+		}
+		req.Header.Set("Accept", "ext/html, application/json, application/xml")
+		req.Header.Set("User-Agent", "xregistry-tooling")
+
+		resp, err := client.Do(req)
 		if err != nil {
 			continue
 		}
