@@ -235,7 +235,7 @@ MQTT, where it would be useful to provide protocol-specific hints in addition
 to the CloudEvents declaration like requiring a specific topic path pattern
 for the event type.
 
-The `basemessage` attribute, an xid-typed reference to another message
+The `basemessage` attribute, a URI-typed reference to another message
 definition, enables such reuse scenarios. Any message definition MAY refer to
 another message definition as its base, which effects a copy of the base
 message’s definitions into the message that defines it. The mechanism is
@@ -478,7 +478,7 @@ this form:
           "compatibilityvalidatedreason": "<STRING>", ?
 
           # Start of Message extension attributes
-          "basemessage": "<URL>", ?            # Message being extended
+          "basemessage": "<URI>", ?            # Message being extended
 
           "envelope": "<STRING>", ?            # e.g. CloudEvents/1.0
           "envelopemetadata": {

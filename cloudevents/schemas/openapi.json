@@ -5174,7 +5174,7 @@
           },
           "messagegroups": {
             "type": "array",
-            "description": "The message groups that are supported by this endpoint",
+            "description": "The message groups that are supported by this endpoint. Relative references are XIDs within the same registry. Absolute URIs reference message groups in external registries.",
             "items": {
               "type": "string",
               "format": "uri"
