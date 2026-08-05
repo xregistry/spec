@@ -1705,6 +1705,13 @@ The serialization of the Registry entity MUST adhere to this form:
 }
 ```
 
+This entity behaves like all other entities in the Registry with respect to
+how it is managed. However, since it contains attributes that are only visible
+upon request (e.g. `model` and `capabilities`), for clarity, when those
+attributes are modified the Registry entity is considered to be updated, and
+therefore its `epoch` and `modifiedat` values MUST be updated per their
+defined semantics.
+
 The Registry entity includes the following
 [common attributes](#common-attributes):
 - [`registryid`](#singularid-id-attribute) - REQUIRED in API and document
@@ -2071,9 +2078,6 @@ indicate that the server MUST replace `"*"` with the full set of items that
 are available. An error ([capability_wildcard](#capability_wildcard)) MUST be
 generated if `"*"` appears along with any other value in the list. `"*"`
 MUST NOT appear in the serialization in any server's response.
-
-Regardless of the mechanism used to update the capabilities, the Registry's
-`epoch` value MUST be incremented upon each update.
 
 The enum of values allows for some special cases:
 - String capabilities MAY include `*` as a wildcard character in a value
