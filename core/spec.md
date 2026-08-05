@@ -1938,17 +1938,23 @@ The following defines the specification-defined capabilities:
   an error ([not_available](#not_available)).
 
 - Defined values:
-  - [`capabilities`](#registry-capabilities)
+  - [`capabilities`](#registry-capabilities) (MUST always be present in the
+    list)
   - [`capabilitiesoffered`](#offered-capabilities)
   - `entities` (xRegistry root entity, Groups, Resource and Versions. MUST
-    have a `mutable` value of `false`)
+    always be present in the list.)
   - [`export`](#single-document-view)
-  - [`model`](#model-attribute) (MUST have a `mutable` value of `false`)
+  - [`model`](#model-attribute) (MUST have a `mutable` value of `false`. MUST
+    always be present in the list.)
   - [`modelsource`](#modelsource-attribute)
-- When not specified, the default value MUST be just the `entities` value,
-  with a `"mutable"` value of `true`.
-- This capability MUST always include `entities` as a value, even if its
-  `mutable` attribute is `false`.
+- When not specified, the default value MUST be:
+  ```yaml
+  {
+    "capabilities": { "mutable": false },
+    "entities": { "mutable": true },
+    "model": { "mutable": false }
+  }
+  ```
 - Implementations MAY define additional values.
 - Implementations MAY define additional attributes for the nested Object.
 - It is STRONGLY RECOMMENDED that implementations also support at least

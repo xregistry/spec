@@ -868,6 +868,12 @@ Note that this feature has similar results as setting the Resource attribute's
     - Deleted Ancestor: if a Version's ancestor is deleted, then this Version
       MUST become a root, and its `ancestorid` value MUST be set to its
       `versionid` value.
+    - The name of this versionmode is a bit of a misnomer in that it is not
+      100% "manual". As stated above, as a convenience, by default new
+      Versions will point to the "latest" Version as its ancestor. If this
+      behavior is not desired, then during the "create" operation, the
+      `ancestorid` can be set to point to itself (or any other Version) if
+      desired.
 
   - `createdat`
     - Newest Version: MUST be determined by finding the Version with the
