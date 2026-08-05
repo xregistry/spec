@@ -4096,12 +4096,11 @@ when a query includes a filter expression, any nested xRegistry collections
 in the response SHOULD result in the specification of a `<COLLECTION>url`
 attribute that allows clients to easily traverse into that collection with
 the appropriated sub-filter expression to yield the same results as the
-original filter, but just for that nested collection. However, if the filters
-results in zero entities for a particular collection due to the filter
-excluding that collection entirely, rather than the `<COLLECTION>url` not
-having any filter expression at all (which would result in the full collection
-being returned), servers MUST use the special filter expression `excludeall`
-to indicate no results are to be returned for that URL.
+original filter, but just for that nested collection. However, if a collection
+has zero entities (regardless of whether the empty list is due to the filter
+or due to the collection being empty), server MUST use a special filter
+expression, `excludeall`, to indicate no results are to be returned for that
+URL.
 
 For example, using HTTP:
 ```yaml
@@ -4119,20 +4118,21 @@ Content-Type: application/json; charset=utf-8
 }
 ```
 
-If the URL references a collection then an empty collection (`{}`) MUST be
-returned. If the URL references an entity, then an error
-([not_found](#not_found)) MUST be generated. If any other filter expression
-appear at the same time, then an error ([bad_filter](#bad_filter)) MUST be
-generated.
+URLs with the `excludeall` filter expression MUST adhere to the following:
+- If the URL references a collection then an empty collection (`{}`) MUST be
+  returned.
+- If the URL references an entity, then an error ([not_found](#not_found)) MUST
+  be generated.
+- If any other filter expression appears at the same time, then an error
+  ([bad_filter](#bad_filter)) MUST be generated.
+- This value is expected to only be used by servers in response to a query that
+  used a filter and produces a `<COLLECTION>url` to an empty collection.
 
-The special `filter` value `excludeall` MAY be used to indicate that no
-results are to be returned from the query. This value is expected to only be
-used by servers in response to a query that produces a `<COLLECTION>url`.
-
-If the request references an entity (not a collection), and the expression
-references an attribute in that entity (i.e. there is no `<PATH>`), then if the
-expression does not match the entity, that entity MUST NOT be returned. In
-other words, a `404 Not Found` would be generated in the HTTP protocol case.
+If the request references an entity (not a collection), and the filter
+expression references an attribute in that entity (i.e. there is no `<PATH>`),
+then if the expression does not match the entity, that entity MUST NOT be
+returned. In other words, a `404 Not Found` would be generated in the HTTP
+protocol case.
 
 Invalid filter expressions MUST generate an error ([bad_filter](#bad_filter)).
 
