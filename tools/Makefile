@@ -9,7 +9,7 @@ verify: spellcheck ticks badhrefs tabcheck errorcheck samplescheck hrefs \
 spellcheck:
 	@echo "Checking for spelling mistakes:"
 	tools/spellcheck */README.md */spec.md core/*.md \
-		models/*/README.md models/*/spec.md \
+		workingdrafts/models/*/README.md workingdrafts/models/*/spec.md \
 		docs/share/README.md */samples/README.md */samples/*/README.md
 	@echo
 
@@ -35,7 +35,7 @@ errorcheck:
 
 samplescheck:
 	@echo "Check for too verbose samples:"
-	tools/samplescheck */model.json models/*/model.json \
+	tools/samplescheck */model.json workingdrafts/models/*/model.json \
 		*/samples/*json */samples/*/*json
 	@echo
 
@@ -66,7 +66,7 @@ models:
 	@# of 'xr' can be done
 	if which xr ; then \
 	  echo Using local xr ; \
-	  xr model verify */model.json models/*/model.json -v ; \
+	  xr model verify */model.json workingdrafts/models/*/model.json -v ; \
 	  xr model verify core/sample-model.json --full-model | \
 		jq 'del(.groups.dirs.resources.files.attributes.fileproxyurl)' \
 		> core/sample-model-full.json ; \
@@ -74,7 +74,8 @@ models:
 	  echo Using docker ghcr.io/xregistry/xr ; \
 	  docker run -t -v $$PWD:/xreg -w /xreg --entrypoint /bin/sh \
 		ghcr.io/xregistry/xr -c \
-			"/xr model verify */model.json models/*/model.json -v" ; \
+			"/xr model verify */model.json \
+			workingdrafts/models/*/model.json -v" ; \
 	  docker run -t -v $$PWD:/xreg -w /xreg --entrypoint /bin/sh \
 		ghcr.io/xregistry/xr -c "/xr model verify core/sample-model.json \
 		--full-model" | \
