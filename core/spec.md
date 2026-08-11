@@ -4844,8 +4844,8 @@ Each error definition consists of a set of fields as below:
 | Type  | REQUIRED. MUST be a URI to the error definition/specification. |
 | Code  | REQUIRED. MUST be the HTTP response code and status text. |
 | Title | REQUIRED. MUST be a short (non-empty) human-readable summary of the error. This SHOULD be sufficiently detailed for most users to determine what is the cause of the error. See the text below about substitution strings. |
-| Args | OPTIONAL. A map of the substitution strings that were used when generating the "Title" text. |
 | Subject | OPTIONAL. If present, MUST a reference to the entity being processed when the error occurred. In the case of a Registry entity, it MUST be the XID of the entity. If no specific value is appropriate then this field MAY be excluded. MUST start with "/". |
+| Args | OPTIONAL. A map of the substitution strings that were used when generating the "Title" text. |
 | Detail | OPTIONAL. While "Title" conveys the critical error information, if additional details might be useful to users, such as hints as to how to fix the error, then this field SHOULD be used. |
 | Instance | OPTIONAL. This non-empty string that can be used by servers to identify details related to the request/error processing. For example, a request or transaction ID of the request that generated the error. This information is not meant to be useful to clients directly, but can be provided to server administrators to help debugging if necessary. This specification places no striction on the format of this value. |
 | Source | OPTIONAL. A non-empty string representing the component that raised the error. Similar to "Instance", this is not meant to be used by clients, rather it is for debugging purposes. |
@@ -4910,11 +4910,11 @@ Content-Type: application/json; charset=utf-8
 {
   "type": "https://github.com/xregistry/spec/blob/main/core/spec.md#bad_flag",
   "title": "The specified flag (collections) is not allowed in this context: /schemagroups.",
-  "detail": "?collections is only allow on the Registry or Group instance level.",
   "subject": "/schemagroups",
   "args": {
     "flag": "collections"
   },
+  "detail": "?collections is only allow on the Registry or Group instance level.",
   "instance": "123e4567-e89b-12d3-a456-426614174000",
   "source": "parser:4123#d3beeeb5b0f"
 }
@@ -4967,8 +4967,8 @@ the API supports, if any.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#bad_filter`
 * Code: `400 Bad Request`
-* Subject: `<request_path>`
 * Title: `An error was found in "filter" value (<value>): <error_detail>.`
+* Subject: `<request_path>`
 * Args:
   - `value`: Offending "filter" value.
   - `error_detail`: Specific details about the error.
@@ -4986,8 +4986,8 @@ the API supports, if any.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#bad_ignore`
 * Code: `400 Bad Request`
-* Subject: `<request_path>`
 * Title: `An error was found in "ignore" value (<value>): <error_detail>.`
+* Subject: `<request_path>`
 * Args:
   - `value`: Offending "ignore" value.
   - `error_detail`: Specific details about the error.
@@ -4996,8 +4996,8 @@ the API supports, if any.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#bad_inline`
 * Code: `400 Bad Request`
-* Subject: `<request_path>`
 * Title: `An error was found in "inline" value (<value>): <error_detail>.`
+* Subject: `<request_path>`
 * Args:
   - `value`: Offending "inline" value.
   - `error_detail`: Specific details about the error.
@@ -5011,8 +5011,8 @@ field is just a substitution value and MUST NOT be empty.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#bad_request`
 * Code: `400 Bad Request`
-* Subject: `<request_path>`
 * Title: `<error_detail>.`
+* Subject: `<request_path>`
 * Args:
   - `error_detail`: Specific details about the error.
 
@@ -5020,8 +5020,8 @@ field is just a substitution value and MUST NOT be empty.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#bad_sort`
 * Code: `400 Bad Request`
-* Subject: `<request_path>`
 * Title: `An error was found in "sort" value (<value>): <error_detail>.`
+* Subject: `<request_path>`
 * Args:
   - `value`: Offending "sort" value.
   - `error_detail`: Specific details about the error.
@@ -5030,15 +5030,15 @@ field is just a substitution value and MUST NOT be empty.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#cannot_doc_xref`
 * Code: `400 Bad Request`
-* Subject: `<resource_xid>`
 * Title: `Retrieving the document view of a Version for "<subject>" is not allowed because it uses "xref".`
+* Subject: `<resource_xid>`
 
 ### capability_error
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#capability_error`
 * Code: `400 Bad Request`
-* Subject: `/capabilities`
 * Title: `There was an error in the capabilities provided: <error_detail>.`
+* Subject: `/capabilities`
 * Args:
   - `error_detail`: Specific details about the error.
 
@@ -5046,8 +5046,8 @@ field is just a substitution value and MUST NOT be empty.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#capability_missing_value`
 * Code: `400 Bad Request`
-* Subject: `/capabilities`
 * Title: `The "<name>" capability needs to contain "<value>".`
+* Subject: `/capabilities`
 * Args:
   - `name`: The name of the capability missing a mandatory value.
   - `value`: The missing "specversions" value.
@@ -5056,8 +5056,8 @@ field is just a substitution value and MUST NOT be empty.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#capability_unknown`
 * Code: `400 Bad Request`
-* Subject: `/capabilities`
 * Title: `Unknown capability specified: <field>.`
+* Subject: `/capabilities`
 * Args:
   - `field`: The name of the unknown capability.
 
@@ -5065,8 +5065,8 @@ field is just a substitution value and MUST NOT be empty.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#capability_value`
 * Code: `400 Bad Request`
-* Subject: `/capabilities`
 * Title: `Invalid value (<value>) specified for capability "<field>". Allowable values include: <list>.`
+* Subject: `/capabilities`
 * Args:
   - `value`: Unknown value.
   - `field`: Capability field being modified.
@@ -5076,8 +5076,8 @@ field is just a substitution value and MUST NOT be empty.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#capability_wildcard`
 * Code: `400 Bad Request`
-* Subject: `/capabilities`
 * Title: `When "<field>" includes a value of "*" then no other values are allowed.`
+* Subject: `/capabilities`
 * Args:
   - `field`: The capability field being modified.
 
@@ -5085,8 +5085,8 @@ field is just a substitution value and MUST NOT be empty.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#compatibility_unknown`
 * Code: `400 Bad Request`
-* Subject: `<resource_xid>`
 * Title: `The compatibility value (<compat>) on Resource "<subject>" is not supported for format "<format>".`
+* Subject: `<resource_xid>`
 * Args:
   - `compat`: The Resource's `meta.compatibility` value.
   - `format`: The Version's `format` value.
@@ -5095,18 +5095,18 @@ field is just a substitution value and MUST NOT be empty.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#compatibility_violation`
 * Code: `400 Bad Request`
-* Subject: `<resource_xid>`
 * Title: `The request would cause one or more Versions of "<subject>" to violate its compatibility rule (<compat>).`
-* Detail: Suggestion: list of `versionid` values that would be in violation.
+* Subject: `<resource_xid>`
 * Args:
   - `compat`: The Resource's `meta.compatibility` value.
+* Detail: Suggestion: list of `versionid` values that would be in violation.
 
 ### constraint_failure
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#constraint_failure`
 * Code: `400 Bad Request`
-* Subject: `<resource_xid>`
 * Title: `The request would result in one or more Versions of "<subject>" not being compliant with its owning Group's "<kind>" constraint for attribute "<path>".`
+* Subject: `<resource_xid>`
 * Args:
   - `path`: The dot (`.`) notion traversal path to the Resource's attribute being constrained.
   - `kind`: The type of constraint violated, either `enum` or `equals`.
@@ -5115,23 +5115,23 @@ field is just a substitution value and MUST NOT be empty.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#data_retrieval_error`
 * Code: `500 Internal Server Error`
-* Subject: `<path>`
 * Title: `The server was unable to retrieve all of the requested data.`
+* Subject: `<path>`
 * Detail: Suggestion: which entity's data was problematic, and why.
 
 ### defaultversionid_request
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#defaultversionid_request`
 * Code: `400 Bad Request`
-* Subject: `<resource_xid>`
 * Title: `Processing "<subject>", the "defaultversionid" attribute is not allowed to be "request" since a Version wasn't processed.`
+* Subject: `<resource_xid>`
 
 ### extra_xref_attribute
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#extra_xref_attribute`
 * Code: `400 Bad Request`
-* Subject: `<resource_xid>`
 * Title: `Attribute "<name>" is not allowed to be present since the Resource (<subject>) uses "xref".`
+* Subject: `<resource_xid>`
 * Args:
   - `name`: The name of the attribute in question.
 
@@ -5139,15 +5139,15 @@ field is just a substitution value and MUST NOT be empty.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#format_external`
 * Code: `400 Bad Request`
-* Subject: `<version_xid>`
 * Title: `Version "<subject>" references a document stored outside of the Registry, therefore no validation was performed.`
+* Subject: `<version_xid>`
 
 ### format_unknown
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#format_unknown`
 * Code: `400 Bad Request`
-* Subject: `<version_xid>`
 * Title: `Version "<subject>" has a "format" value (<format>) that it not supported.`
+* Subject: `<version_xid>`
 * Args:
   - `format`: The Version's `format` value.
 
@@ -5155,8 +5155,8 @@ field is just a substitution value and MUST NOT be empty.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#format_violation`
 * Code: `400 Bad Request`
-* Subject: `<version_xid>`
 * Title: `The request would cause Version "<subject>" to be non-compliant with its "format" (<format>).`
+* Subject: `<version_xid>`
 * Args:
   - `format`: The Version's `format` value.
 
@@ -5164,8 +5164,8 @@ field is just a substitution value and MUST NOT be empty.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#groups_only`
 * Code: `400 Bad Request`
-* Subject: `<request_path>`
 * Title: `Attribute "<name>" is invalid. Only Group types are allowed to be specified on this request: <subject>.`
+* Subject: `<request_path>`
 * Args:
   - `name`: The name of the attribute in question.
 
@@ -5173,15 +5173,15 @@ field is just a substitution value and MUST NOT be empty.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#hasdocument_violation`
 * Code: `400 Bad Request`
-* Subject: `<version_xid>`
 * Title: `The request would cause Version "<subject>" to be non-compliant. The Resource model has "hasdocument" set to "false" but this Version has document content.`
+* Subject: `<version_xid>`
 
 ### inline_noninlineable
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#inline_noninlineable`
 * Code: `400 Bad Request`
-* Subject: `<request_path>`
 * Title: `Attempting to inline a non-inlineable attribute (<name>) on: <subject>.`
+* Subject: `<request_path>`
 * Args:
   - `name`: The name of the attribute in question.
 
@@ -5189,8 +5189,8 @@ field is just a substitution value and MUST NOT be empty.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#invalid_attribute`
 * Code: `400 Bad Request`
-* Subject: `<entity_xid>`
 * Title: `The attribute "<name>" for "<subject>" is not valid: <error_detail>.`
+* Subject: `<entity_xid>`
 * Args:
   - `name`: Name of the attribute in question.
   - `error_detail`: Specific details about the error.
@@ -5199,8 +5199,8 @@ field is just a substitution value and MUST NOT be empty.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#malformed_id`
 * Code: `400 Bad Request`,
-* Subject: `<request_url>`,
 * Title: `The specified ID value (<id>) is malformed: <error_detail>.`,
+* Subject: `<request_url>`,
 * Args:
   - `id`: The ID value that is malformed.
   - `error_detail`: Specific details about what is wrong with the ID.
@@ -5209,8 +5209,8 @@ field is just a substitution value and MUST NOT be empty.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#malformed_xid`
 * Code: `400 Bad Request`,
-* Subject: `<request_url>`,
 * Title: `The specified XID value (<xid>) is malformed: <error_detail>.`,
+* Subject: `<request_url>`,
 * Args:
   - `xid`: The XID value that is malformed.
   - `error_detail`: Specific details about what is wrong with the ID.
@@ -5219,8 +5219,8 @@ field is just a substitution value and MUST NOT be empty.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#malformed_xref`
 * Code: `400 Bad Request`,
-* Subject: `<request_url>`,
 * Title: `The specified xref value (<xref>) is malformed: <error_detail>.`,
+* Subject: `<request_url>`,
 * Args:
   - `xref`: The xref value that is malformed.
   - `error_detail`: Specific details about what is wrong with the xref.
@@ -5229,8 +5229,8 @@ field is just a substitution value and MUST NOT be empty.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#mismatched_epoch`
 * Code: `400 Bad Request`
-* Subject: `<entity_xid>`
 * Title: `The specified epoch value (<bad_epoch>) for "<subject>" does not match its current value (<epoch>).`
+* Subject: `<entity_xid>`
 * Args:
   - `bad_epoch`: The `epoch` value specified in the request.
   - `epoch`: The current `epoch` value for the entity being processed.
@@ -5239,8 +5239,8 @@ field is just a substitution value and MUST NOT be empty.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#mismatched_id`
 * Code: `400 Bad Request`
-* Subject: `<entity_xid>`
 * Title: `The specified "<singular>id" value (<invalid_id>) for "<subject>" needs to be "<expected_id>".`
+* Subject: `<entity_xid>`
 * Args:
   - `singular`: The "singular" name of the model entity being processed.
   - `invalid_id`: The ID values specified in the request.
@@ -5250,8 +5250,8 @@ field is just a substitution value and MUST NOT be empty.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#mismatched_version_attribute`
 * Code: `400 Bad Request`
-* Subject: `<resource_xid>`
 * Title: `The request would cause the "<name>" attribute across the Versions of "<subject>" to be different.`
+* Subject: `<resource_xid>`
 * Args:
   - `name`: The dot (`.`) notation path to the attribute causing the violation.
 
@@ -5259,23 +5259,23 @@ field is just a substitution value and MUST NOT be empty.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#misplaced_epoch`
 * Code: `400 Bad Request`
-* Subject: `<entity_xid>`
 * Title: `The specified "epoch" value for "<subject>" needs to be within a "meta" entity.`
+* Subject: `<entity_xid>`
 
 ### model_compliance_error
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#model_compliance_error`
 * Code: `400 Bad Request`
-* Subject: `/model`
 * Title: `The model provided would cause one or more entities in the Registry to become non-compliant.`
+* Subject: `/model`
 * Detail: Suggestion: list of non-compliant entities.
 
 ### model_error
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#model_error`
 * Code: `400 Bad Request`
-* Subject: `/model`
 * Title: `There was an error in the model definition provided: <error_detail>.`
+* Subject: `/model`
 * Args:
   - `error_detail`: Specific details about the error.
 
@@ -5283,8 +5283,8 @@ field is just a substitution value and MUST NOT be empty.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#model_required_true`
 * Code: `400 Bad Request`
-* Subject: `/model`
 * Title: `Model attribute "<name>" needs to have a "required" value of "true" since a default value is provided.`
+* Subject: `/model`
 * Args:
   - `name`: Model attribute name in question.
 
@@ -5292,8 +5292,8 @@ field is just a substitution value and MUST NOT be empty.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#model_scalar_default`
 * Code: `400 Bad Request`
-* Subject: `/model`
 * Title: `Model attribute "<name>" is not allowed to have a default value since it is not a scalar.`
+* Subject: `/model`
 * Args:
   - `name`: Model attribute name in question.
 
@@ -5301,8 +5301,8 @@ field is just a substitution value and MUST NOT be empty.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#multiple_roots`
 * Code: `400 Bad Request`
-* Subject: `<resource_xid>`
 * Title: `The operation would result in multiple root Versions for "<subject>", which is not allowed for "<plural>".`
+* Subject: `<resource_xid>`
 * Args:
   - `plural`: The "plural" Resource type of the Resource being processed.
 
@@ -5310,8 +5310,8 @@ field is just a substitution value and MUST NOT be empty.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#not_available`
 * Code: `400 Bad Request`
-* Subject: `<capability_available_type>`
 * Title: `The requested data (<subject>) is not available.`
+* Subject: `<capability_available_type>`
 
 ### not_found
 
@@ -5322,15 +5322,15 @@ error SHOULD be used instead.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#not_found`
 * Code: `404 Not Found`
-* Subject: `<entity_xid>`
 * Title: `The targeted entity (<subject>) cannot be found.`
+* Subject: `<entity_xid>`
 
 ### one_resource
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#one_resource`
 * Code: `400 Bad Request`
-* Subject: `<entity_xid>`
 * Title: `Only one attribute from "<list>" can be present at a time for: <subject>.`
+* Subject: `<entity_xid>`
 * Args:
   - `list`: Comma separated list of `<RESOURCE>*` attributes allowed.
 
@@ -5349,15 +5349,15 @@ This is a fairly generic error, so if a more focused one (e.g.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#readonly`
 * Code: `400 Bad Request`
-* Subject: `<entity_xid>`
 * Title: `Updating a read-only entity (<subject>) is not allowed.`
+* Subject: `<entity_xid>`
 
 ### required_attribute_missing
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#required_attribute_missing`
 * Code: `400 Bad Request`
-* Subject: `<entity_xid>`
 * Title: `One or more mandatory attributes for "<subject>" are missing: <list>.`
+* Subject: `<entity_xid>`
 * Args:
   - `list`: A comma separated list of attributes that are missing.
 
@@ -5365,10 +5365,17 @@ This is a fairly generic error, so if a more focused one (e.g.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#resources_only`
 * Code: `400 Bad Request`
-* Subject: `<group_xid>`
 * Title: `Attribute "<name>" is invalid. Only Resource types are allowed to be specified on this request: <subject>.`
+* Subject: `<group_xid>`
 * Args:
   - `name`: The name of the attribute in question.
+
+### server_busy
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#server_busy`
+* Code: `503 Internal Server Error`
+* Title: `Due to excessive requests, the server could not complete "<subject>", please try again later.`
+* Subject: `<request_path>`
 
 ### server_error
 
@@ -5377,44 +5384,44 @@ something unexpected happened in the server that caused an error condition.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#server_error`
 * Code: `500 Internal Server Error`
-* Subject: `<request_path>`
 * Title: `An unexpected error occurred, please try again later.`
+* Subject: `<request_path>`
 
 ### setdefaultversionsticky_false
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#setdefaultversionsticky_false`
 * Code: `400 Bad Request`
-* Subject: `<resource_xid>`
 * Title: `Setting "defaultversionsticky" to "true" is not allowed since "maxversions" is "1".`
+* Subject: `<resource_xid>`
 
 ### sort_noncollection
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#sort_noncollection`
 * Code: `400 Bad Request`
-* Subject: `<request_path>`
 * Title: `Can't sort on a non-collection result set. Query path: <subject>.`
+* Subject: `<request_path>`
 
 ### too_large
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#too_large`
 * Code: `406 Not Acceptable`
-* Subject: `<request_path>`
 * Title: `The size of the response is too large to return in a single response.`
+* Subject: `<request_path>`
 * Detail: Suggestion: list of attributes that are too large.
 
 ### too_many_versions
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#too_many_versions`
 * Code: `400 Bad Request`
-* Subject: `<request_path>`
 * Title: `When the "setdefaultversionid" flag is set to "request", only one Version is allowed to be specified in the request message.`
+* Subject: `<request_path>`
 
 ### unknown_attribute
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#unknown_attribute`
 * Code: `400 Bad Request`
-* Subject: `<entity_xid>`
 * Title: `An unknown attribute (<name>) was specified for "<subject>".`
+* Subject: `<entity_xid>`
 * Args:
   - `name`: The name of the attribute in question.
 
@@ -5425,8 +5432,8 @@ Attempts to reference an unknown Group type MUST generate an error
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#unknown_group_type`
 * Code: `400 Bad Request`
-* Subject: `<entity_xid>`
 * Title: `An unknown Group type (<name>) was specified in "<subject>".`
+* Subject: `<entity_xid>`
 * Args:
   - `name`: The Group type name that cannot be found.
 
@@ -5436,8 +5443,8 @@ See [not_found](#not_found) as well.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#unknown_id`
 * Code: `400 Bad Request`
-* Subject: `<entity_xid>`
 * Title: `While processing "<subject>", the "<singular>" with a "<singular>id" value of "<id>" cannot be found.`
+* Subject: `<entity_xid>`
 * Args:
   - `singular`: The "singular" name of the type of entity being processed.
   - `id`: The ID of the entity that cannot be found.
@@ -5449,8 +5456,8 @@ Attempts to reference an unknown Resource type MUST generate an error
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#unknown_resource_type`
 * Code: `400 Bad Request`
-* Subject: `<entity_xid>`
 * Title: `An unknown Resource type (<name>) was specified for Group type "<group>".`
+* Subject: `<entity_xid>`
 * Args:
   - `group`: The Group type name under which the Resource was expected.
   - `name`: The Resource type name that cannot be found.
@@ -5459,8 +5466,8 @@ Attempts to reference an unknown Resource type MUST generate an error
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#unsupported_specversion`
 * Code: `400 Bad Request`
-* Subject: `<request_path>`
 * Title: `The specified "specversion" value (<specversion>) is not supported. Supported versions: <list>.`
+* Subject: `<request_path>`
 * Args:
   - `specversion`: The xRegistry specification version specified in the request.
   - `list`: A comma separated list of supported specification versions.
@@ -5469,8 +5476,8 @@ Attempts to reference an unknown Resource type MUST generate an error
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#versionid_not_allowed`
 * Code: `400 Bad Request`
-* Subject: `<resource_xid>`
 * Title: `While creating a new Version for "<subject>", a "versionid" was specified but the "setversionid" model aspect for entities of type "<plural>" is "false".`
+* Subject: `<resource_xid>`
 * Args:
   - `plural`: The "plural" type name of the owning Resource.
 

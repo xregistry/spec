@@ -29,8 +29,9 @@ for err in "${err_array[@]}"; do
   # grep -e "(#$ref)" -e "(\./[a-z]*\.md#$ref)" $* > /dev/null && continue
   grep -e "(.*#$err)" -e "(\./[a-z]*\.md#$err)" $* > /dev/null && continue
 
-  # special case this one
+  # special case these
   [[ "$err" == "server_error" ]] && continue
+  [[ "$err" == "server_busy" ]] && continue
 
   echo -ne $first
   first=""
