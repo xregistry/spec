@@ -100,7 +100,7 @@ of a CloudEvent.
 A message definition has two key purposes:
 
 1. A message definition is a template. When an application needs to raise an
-   event, the message definition declares precisely, which attributes,
+   event, the message definition declares precisely which attributes,
    headers or properties need to be set on the event envelope or on the
    protocol message, and which constant values are to be set, or which type of
    pattern constraints apply. Such templates can be evaluated by tools and
@@ -174,7 +174,7 @@ subject property or CloudEvents’ type attribute.
 The `uritemplate` type permits the values to have embedded placeholders (Level
 1 URI templates), which turns the values into templates for publishers where
 the application inserts context information into designated places. For
-consumers, the templates act as pattern matching filters and to extract
+consumers, the templates act as pattern-matching filters and extract
 context values into named variables.
 
 ### Context Attributes
@@ -193,7 +193,7 @@ be extracted and made available as context attributes.
 
 A further use of such context attributes is the mapping of protocol-native
 messages to CloudEvents. An application evaluating message definitions that
-contain both, a `protocol` and an `envelope` definition might nevertheless
+contain both a `protocol` and an `envelope` definition might nevertheless
 choose to accept protocol-native messages that are not CloudEvents and then
 use context attributes to map them to the CloudEvents model.
 
@@ -279,16 +279,16 @@ that the message is meant to adhere to. This specification does not mandate how
 this "matching" is done. For example, matching headers or schema of the
 incoming message to the Message definitions in the Registry is one option.
 
-In a Registry with many Message definitions, and each one of those having
-potentially multiple Versions, results in a 2-dimensional collection of
-Message definitions to match against, which could make finding the exact
-Message definition complex, non-deterministic or very slow. To help with these
+A Registry with many Message definitions, each potentially having
+multiple Versions, results in a 2-dimensional collection of Message
+definitions to match against, which could make finding the exact Message
+definition complex, non-deterministic or very slow. To help with these
 situations, this specification provides the following guidance:
 
 - Use of CloudEvents is RECOMMENDED as it will provide well-defined
   metadata that will appear in each Message to help differentiate Message
   definitions.
-- Messages definitions SHOULD have a `messageid` value that is the same as the
+- Message definitions SHOULD have a `messageid` value that is the same as the
   CloudEvents' `type` context attribute defined for that Message. This will
   allow for an exact mapping from the incoming Message's `type` attribute to
   its related Message definition.
@@ -297,13 +297,14 @@ situations, this specification provides the following guidance:
   Version discriminator.
 - Modifications to Message definitions SHOULD NOT result in "on the wire"
   changes to the resulting messages as that could break existing systems.
-  Rather, new Messages definitions SHOULD be created, with new `type` and
+  Rather, new Message definitions SHOULD be created, with new `type` and
   `messageid` values, and referenced through the use of the `deprecated`
   attribute.
 
-Implementations, and Registry model authors, MAY deviate from these
-recommendations however they are then responsible for defining the mechanisms
-by which a unique Message definition is matched to incoming messages.
+Implementations and Registry model authors MAY deviate from these
+recommendations; however, they are then responsible for defining the
+mechanisms by which a unique Message definition is matched to incoming
+messages.
 
 ## Message Groups
 
@@ -350,13 +351,14 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
 "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be
 interpreted as described in [RFC 2119](https://tools.ietf.org/html/rfc2119).
 
-For clarity, OPTIONAL attributes (specification-defined and extensions) are
-OPTIONAL for clients to use, but the servers' responsibility will vary.
+For clarity, OPTIONAL attributes, whether specification-defined or extension
+attributes, are OPTIONAL for clients to use, but the servers' responsibility
+will vary.
 Server-unknown extension attributes MUST be silently stored in the backing
-datastore. Specification-defined, and server-known extension, attributes MUST
-generate an error if corresponding feature is not supported or enabled.
+datastore. Specification-defined and server-known extension attributes MUST
+generate an error if the corresponding feature is not supported or enabled.
 However, as with all attributes, if accepting the attribute would result in a
-bad state (such as exceeding a size limit, or results in a security issue),
+bad state (such as exceeding a size limit or causing a security issue),
 then the server MAY choose to reject the request.
 
 In the pseudo JSON format snippets `?` means the preceding attribute is
@@ -590,9 +592,9 @@ the core xRegistry Resource
   base for this message definition. By following the reference, the base
   message can be retrieved and extended with the properties of this message.
   This is useful for defining variants of messages that only differ in minor
-  additive aspects to avoid repetition. For example, messages that only have a
-  `envelope` with associated `envelopemetadata` to be bound to various
-  protocols.
+  additive aspects to avoid repetition. For example, this applies to messages
+  that only have an `envelope` with associated `envelopemetadata` to be bound
+  to various protocols.
 
   When the value is a relative reference (begins with `/`), it MUST be a
   valid XID referencing a Resource, or Version, of type `message` within the
@@ -600,16 +602,16 @@ the core xRegistry Resource
   message definition in an external registry, but the server is not mandated
   to validate or resolve external references.
 
-  Referenced messages MAY themselves have a `basemessage` value, however,
+  Referenced messages MAY themselves have a `basemessage` value; however,
   the chain of messages MUST NOT be recursive.
 
-  The processing that a client SHOULD take to materialize the message is
+  The process that a client SHOULD follow to materialize the message is
   to follow the `basemessage` references to the end of the chain of messages,
   get that message's attributes, and then walk back up the chain performing a
-  "merge" operation of the next message's attributes. Note in the case of an
-  inherited attribute being a complex type (e.g. map, object), and the
-  overlaying attribute is scalar, then the entire inherited attribute (and
-  nested values) are replaced by that scalar value. For complex types, the
+  "merge" operation of the next message's attributes. Note that if an
+  inherited attribute is a complex type (e.g. map, object) and the overlaying
+  attribute is scalar, then the entire inherited attribute (and nested
+  values) are replaced by that scalar value. For complex types, the
   merge is "deep", meaning each level of the complex type is merged
   appropriately rather than it being a complete replacement of the entire
   complex type.
@@ -772,7 +774,7 @@ Illustrating example:
 
 - Type: XID
 - Description: Contains the `xid` of the xRegistry `schema` Resource entity
-  associated with the `dataschemauri` referenced schema document. Note that
+  associated with the schema document referenced by `dataschemauri`. Note that
   this means the entity MUST be located within the same Registry.
 - Constraints:
   - OPTIONAL.
@@ -787,10 +789,10 @@ Illustrating example:
   duplicative with some other metadata within the message definition. For
   example, in the case of using CloudEvents, the `envelopemetadata` attribute
   might include the `datacontenttype` attribute. This possible duplication
-  of data is expected so as to allow for a more consistent, and easy, discovery
+  of data is expected so as to allow for easy, more consistent discovery
   of the message's format. This means that if this information does appear in
-  more than one location within the message metadata they MUST all have the
-  same values.
+  more than one location within the message metadata, all occurrences MUST
+  have the same value.
 
   Note that when an `envelope` is defined for a message and the data of
   interest is serialized as being nested within the envelope (e.g.
@@ -823,11 +825,11 @@ A message can use either a metadata `envelope`, a message `protocol`, or both.
 If a message only uses a metadata `envelope`, any implicit protocol bindings
 defined by the envelope apply. For instance, a message definition that uses the
 "CloudEvents/1.0" envelope but no explicit `protocol` implicitly applies to all
-protocols for which CloudEvents bindings exist, and using the respective
-protocol binding rules.
+protocols for which CloudEvents bindings exist, using the respective protocol
+binding rules.
 
 If a message uses both a metadata `envelope` and a message `protocol`, the
-message binding rules takes precedence over the metadata envelope rules. For
+message binding rules take precedence over the metadata envelope rules. For
 instance, if a message definition uses the "CloudEvents/1.0" envelope and an
 "AMQP/1.0" protocol, then the implicit protocol bindings of the
 "CloudEvents/1.0" envelope are overridden by the "AMQP/1.0" protocol rules.
@@ -838,7 +840,7 @@ defined by the message `protocol` rules apply.
 #### Property Definitions
 
 The following attributes are used to define the properties associated with
-the headers, properties or attributes defined for message:
+the headers, properties or attributes defined for a message:
 
 ##### `description`
 
@@ -900,9 +902,9 @@ the headers, properties or attributes defined for message:
 
 If the `type` property has the value `uritemplate`, `value` MAY contain
 placeholders. As defined in [RFC6570][RFC6570] (Level 1), the placeholders MUST
-be enclosed in curly braces (`{` and `}`) and MUST be a valid `symbol`.
+be enclosed in curly braces (`{` and `}`) and each MUST be a valid `symbol`.
 Placeholders that are used multiple times in the same message definition MUST
-to represent identical values.
+represent identical values.
 
 When validating a message property against this value, the placeholders act as
 wildcards. For example, the value `{foo}/bar` would match the value `abc/bar`
@@ -955,7 +957,7 @@ The following rules apply to the attribute declarations:
 - The `type`, `id`, and `source` attributes implicitly have the `required` flag
   set to `true` and MUST NOT be declared as `required: false`.
 - The `id` attribute's `value` SHOULD NOT be defined.
-- The `time` attribute's `value` default value MUST be `0000-01-01T00:00:00Z`
+- The `time` attribute's `value` MUST default to `0000-01-01T00:00:00Z`
   ("current time") and SHOULD NOT be declared with a different value.
 - The `datacontenttype` attribute's `value` is inferred from the
   [`dataschemaformat`](#dataschemaformat) attribute of the message definition
@@ -967,7 +969,7 @@ The following rules apply to the attribute declarations:
   message definition.
 - The `type` of the property definition defaults to the CloudEvents type
   definition for the attribute, if any. The `type` of an attribute MAY be
-  modified be to further constrained. For instance, the `source` type
+  modified to be further constrained. For instance, the `source` type
   `uri` MAY be changed to `uritemplate` or the `subject` type `string` MAY be
   constrained to a `uri` or `stringified integer`. If no CloudEvents type
   definition exists, the default value MUST be `string`.
@@ -1021,7 +1023,7 @@ a message (see the [model file](model.json) for the complete definition):
 
 The following example declares a CloudEvent with a JSON payload. The attribute
 `id` is REQUIRED in the declared event per the CloudEvents specification in
-spite of such a declaration being absent here, the `type` of the `type`
+spite of such a declaration being absent here; the `type` of the `type`
 attribute is `string` and the attribute is `required` even though the
 declarations are absent. The `time` attribute is made `required` contrary to
 the CloudEvents base specification. The implied CloudEvents `datacontenttype`
@@ -1203,7 +1205,7 @@ following properties are defined, with type constraints:
 | `reply-to-group-id`    | `uritemplate`    | group-id to which the receiver of this message ought to send replies to          |
 
 The `message-id` permits the types `ulong`, `uuid`, `binary`, `string`, and
-`uritemplate`. A `value` constraint for `message-id` property SHOULD NOT be
+`uritemplate`. A `value` constraint for the `message-id` property SHOULD NOT be
 defined in the message definition except for the case where the `message-id`
 is a `uritemplate`.
 
@@ -1285,7 +1287,7 @@ indicate whether the property is supported for the respective MQTT version.
 | `content_type`            | `symbol`      | no         | yes      | MIME content type of the payload |
 | `user_properties`         | Array         | no         | yes      | User properties                  |
 
-Like HTTP, the MQTT allows for multiple user properties with the same name,
+Like HTTP, MQTT allows for multiple user properties with the same name,
 so the `user_properties` property is an array of objects, each of which
 contains a single property name and value.
 
@@ -1342,10 +1344,10 @@ The `partition` property is included because there are cases where applications
 use partitions explicitly for addressing and routing messages within the scope
 of a topic.
 
-The values of all `string`, `symbol`, `uritemplate`-typed properties
+The values of all `string`-, `symbol`-, and `uritemplate`-typed properties
 and headers MAY contain placeholders using the [RFC6570][RFC6570] Level 1 URI
-Template syntax. When the same placeholder is used in multiple properties, the
-value of the placeholder is assumed to be identical.
+Template syntax. When the same placeholder is used in multiple properties,
+the value of the placeholder is assumed to be identical.
 
 Example:
 
@@ -1375,10 +1377,10 @@ The following properties are defined:
 | `reply-to` | `uritemplate` | The subject the receiver ought to reply to   |
 | `headers`  | Array         | A list of headers to set on the message      |
 
-The values of all `string`, `symbol`, `uritemplate`-typed properties
+The values of all `string`-, `symbol`-, and `uritemplate`-typed properties
 and headers MAY contain placeholders using the [RFC6570][RFC6570] Level 1 URI
-Template syntax. When the same placeholder is used in multiple properties, the
-value of the placeholder is assumed to be identical.
+Template syntax. When the same placeholder is used in multiple properties,
+the value of the placeholder is assumed to be identical.
 
 Example:
 
