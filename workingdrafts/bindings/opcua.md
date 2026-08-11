@@ -94,10 +94,10 @@ This specification defines the OPC UA API binding for
 resources, versions, documents and attributes are discovered, read, created,
 updated and deleted natively over OPC UA Services while realizing the xRegistry
 core model on the OPC UA AddressSpace and FileTransfer model of [*OPC UA —
-xRegistry*](https://github.com/marcschier/opcua-drafts/blob/main/core-specs/xregistry/OPC-UA-xRegistry.md).
+xRegistry*](https://github.com/marcschier/opcua-drafts/blob/ff22f224400fc8be813bf0abcbfc3cde52bc7ed3/core-specs/xregistry/OPC-UA-xRegistry.md).
 
 The abstract information model is defined by [*OPC UA —
-xRegistry*](https://github.com/marcschier/opcua-drafts/blob/main/core-specs/xregistry/OPC-UA-xRegistry.md):
+xRegistry*](https://github.com/marcschier/opcua-drafts/blob/ff22f224400fc8be813bf0abcbfc3cde52bc7ed3/core-specs/xregistry/OPC-UA-xRegistry.md):
 a registry is a `RegistryType` folder (subtype of `FolderType`), each group is
 a `GroupType` folder (subtype of `FolderType`), and each resource or resource
 version document is a `ResourceType` file (subtype of `FileType`). This API
@@ -119,7 +119,7 @@ the OPC UA API patterns in this document remain the same.
 
 - [xRegistry Core specification, v1.0-rc3](https://github.com/xregistry/spec/blob/v1.0-rc3/core/spec.md) — the registry, group, resource, version, document, attribute, request-flag, operation-processing and error model.
 - [xRegistry primer, v1.0-rc3](https://github.com/xregistry/spec/blob/v1.0-rc3/core/primer.md) — the xRegistry concepts, representations, request-shaping concepts and federation model.
-- [OPC UA — xRegistry](https://github.com/marcschier/opcua-drafts/blob/main/core-specs/xregistry/OPC-UA-xRegistry.md) — the OPC UA companion information model used by this API.
+- [OPC UA — xRegistry](https://github.com/marcschier/opcua-drafts/blob/ff22f224400fc8be813bf0abcbfc3cde52bc7ed3/core-specs/xregistry/OPC-UA-xRegistry.md) — the OPC UA companion information model used by this API.
 - [OPC 10000-3](https://reference.opcfoundation.org/specs/OPC-10000-3/) — Address Space Model, including NodeIds, References, TypeDefinitions and `ExpandedNodeId`.
 - [OPC 10000-4](https://reference.opcfoundation.org/specs/OPC-10000-4/) — Services, including Browse, BrowseNext, Read, Write, Call, TranslateBrowsePathsToNodeIds and StatusCodes.
 - [OPC 10000-5](https://reference.opcfoundation.org/specs/OPC-10000-5/) — Base Information Model, including `FolderType` and `PropertyType`.
@@ -141,7 +141,7 @@ the selected `RegistryType` root.
 
 OPC UA type and member names follow OPC UA naming conventions and are written
 exactly as defined by [*OPC UA —
-xRegistry*](https://github.com/marcschier/opcua-drafts/blob/main/core-specs/xregistry/OPC-UA-xRegistry.md)
+xRegistry*](https://github.com/marcschier/opcua-drafts/blob/ff22f224400fc8be813bf0abcbfc3cde52bc7ed3/core-specs/xregistry/OPC-UA-xRegistry.md)
 Annex A and the corresponding NodeSet: `RegistryType`, `GroupType`,
 `ResourceType`, `AttributesType`, `RegistryCapabilitiesDataType`,
 `RegistryId`, `SpecVersion`, `Capabilities`, `CapabilitiesInfo`, `Model`,
@@ -237,7 +237,7 @@ identifier: `groupid`, `resourceid` or `versionid`, respectively, and each
 group's and resource's DisplayName to its `Name`. A `groupid` and a
 `resourceid` are **symbolic identifiers** built from the entity's domain source
 identity by the construction of [*OPC UA —
-xRegistry*](https://github.com/marcschier/opcua-drafts/blob/main/core-specs/xregistry/OPC-UA-xRegistry.md)
+xRegistry*](https://github.com/marcschier/opcua-drafts/blob/ff22f224400fc8be813bf0abcbfc3cde52bc7ed3/core-specs/xregistry/OPC-UA-xRegistry.md)
 §6.9, so they are readable, safe in a URL, on a command line and as a file name,
 and never derived from a document. Because Browse results carry BrowseName,
 DisplayName, NodeClass, TypeDefinition and the target NodeId, a client selects
@@ -314,7 +314,7 @@ Any successful create or update MUST update `ModifiedAt` and increment `Epoch`
 on the modified entity. Creation MUST initialize `CreatedAt`, `ModifiedAt`,
 `Epoch`, `Xid` and the appropriate identifier Properties according to [*OPC UA
 —
-xRegistry*](https://github.com/marcschier/opcua-drafts/blob/main/core-specs/xregistry/OPC-UA-xRegistry.md)
+xRegistry*](https://github.com/marcschier/opcua-drafts/blob/ff22f224400fc8be813bf0abcbfc3cde52bc7ed3/core-specs/xregistry/OPC-UA-xRegistry.md)
 §6.5 and the xRegistry core rules.
 
 ### 4.4. OPC UA-specific attribute processing
@@ -1063,7 +1063,7 @@ or are server-managed.
 
 Serialization MUST preserve the three-representation symmetry described by the
 xRegistry primer and by [*OPC UA —
-xRegistry*](https://github.com/marcschier/opcua-drafts/blob/main/core-specs/xregistry/OPC-UA-xRegistry.md)
+xRegistry*](https://github.com/marcschier/opcua-drafts/blob/ff22f224400fc8be813bf0abcbfc3cde52bc7ed3/core-specs/xregistry/OPC-UA-xRegistry.md)
 §4.2 and §7: an entity has the same `Xid` and identity whether reached as a
 file, through OPC UA services, or in an exported xRegistry document.
 
@@ -1072,7 +1072,7 @@ file, through OPC UA services, or in an exported xRegistry document.
 Federation is realized by `ExternalReference` and `ResourceUrl` on
 `ResourceType`, as defined by the xRegistry primer, xRegistry core
 specification, and [*OPC UA —
-xRegistry*](https://github.com/marcschier/opcua-drafts/blob/main/core-specs/xregistry/OPC-UA-xRegistry.md)
+xRegistry*](https://github.com/marcschier/opcua-drafts/blob/ff22f224400fc8be813bf0abcbfc3cde52bc7ed3/core-specs/xregistry/OPC-UA-xRegistry.md)
 §8 and Annex B.
 
 `ExternalReference` is an `ExpandedNodeId`. Its `ServerUri` identifies the
@@ -1181,7 +1181,7 @@ serialize or consume xRegistry document representations according to §8.
 
 A conforming implementation MUST NOT require any node or Method name that is not
 defined by [*OPC UA —
-xRegistry*](https://github.com/marcschier/opcua-drafts/blob/main/core-specs/xregistry/OPC-UA-xRegistry.md),
+xRegistry*](https://github.com/marcschier/opcua-drafts/blob/ff22f224400fc8be813bf0abcbfc3cde52bc7ed3/core-specs/xregistry/OPC-UA-xRegistry.md),
 OPC 10000-20, or its own domain companion specification.
 
 ## Annex A — Correspondence to the xRegistry HTTP binding (informative)

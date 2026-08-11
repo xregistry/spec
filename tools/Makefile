@@ -8,7 +8,8 @@ verify: spellcheck ticks badhrefs tabcheck errorcheck samplescheck hrefs \
 
 spellcheck:
 	@echo "Checking for spelling mistakes:"
-	tools/spellcheck */README.md */spec.md core/*.md bindings/*.md \
+	tools/spellcheck */README.md */spec.md core/*.md \
+		workingdrafts/bindings/*.md \
 		workingdrafts/models/*/README.md workingdrafts/models/*/spec.md \
 		docs/share/README.md */samples/README.md */samples/*/README.md
 	@echo
@@ -20,7 +21,7 @@ tabcheck:
 
 ticks:
 	@echo "Checking for uneven back-ticks:"
-	@(! grep '^[^`]*`[^`]*$$' core/*.md bindings/*.md)
+	@(! grep '^[^`]*`[^`]*$$' core/*.md workingdrafts/bindings/*.md)
 	@echo
 
 badhrefs:
