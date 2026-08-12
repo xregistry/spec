@@ -120,7 +120,7 @@ a message registry, and which have the advantage of being shareable across
 multiple Endpoints.
 
 For describing a message broker queue, the best approach is to define a
-message group that defines the messages that are be allowed to flow on the
+message group that defines the messages that are allowed to flow on the
 queue and for that message group to then be referenced from the `producer` and
 the `consumer` endpoints of the queue, whereby both of those endpoints share
 the same `channel` identifier.
@@ -139,13 +139,13 @@ the endpoint definition is to be treated like a template where configuration
 elements like the endpoint URI will have to be supplied by external
 configuration for the client to become functional.
 
-A possible application of the latter are Endpoint definitions that define
-endpoint patterns as they are common for applications of the MQTT protocol.
+The latter can be used for Endpoint definitions that define endpoint patterns
+common in applications of the MQTT protocol.
 For instance, the [Eclipse Sparkplug](https://sparkplug.eclipse.org/) protocol
 is a convention that defines endpoint roles and messages and schemas for MQTT,
 and the
 [SparkPlugB](../cloudevents/samples/scenarios/mqtt-sparkplugB.xreg.json)
-example that illustrates how Registry Endpoints can model the convention in
+example illustrates how Registry Endpoints can model the convention in
 formal terms.
 
 ## Notations and Terminology
@@ -159,10 +159,11 @@ interpreted as described in [RFC 2119](https://tools.ietf.org/html/rfc2119).
 For clarity, OPTIONAL attributes (specification-defined and extensions) are
 OPTIONAL for clients to use, but the servers' responsibility will vary.
 Server-unknown extension attributes MUST be silently stored in the backing
-datastore. Specification-defined, and server-known extension, attributes MUST
-generate an error if the corresponding feature is not supported or enabled.
+datastore. Specification-defined attributes and server-known extension
+attributes MUST generate an error if the corresponding feature is not supported
+or enabled.
 However, as with all attributes, if accepting the attribute would result in a
-bad state (such as exceeding a size limit, or results in a security issue),
+bad state (such as exceeding a size limit or resulting in a security issue),
 then the server MAY choose to reject the request.
 
 In the pseudo JSON format snippets `?` means the preceding attribute is
@@ -186,7 +187,7 @@ available via subscription for delivery to a consumer-designated endpoint.
 
 The Endpoint Registry is a registry of metadata definitions for abstract and
 concrete network endpoints to which messages can be produced, from which
-messages can be consumed, or which makes messages available via subscription
+messages can be consumed, or which make messages available via subscription
 and delivery to a consumer-designated endpoint.
 
 As discussed in the [CloudEvents Registry overview](../cloudevents/spec.md),
@@ -435,7 +436,7 @@ to the xRegistry-defined core
     - "subscriber"
     - "consumer"
     - "producer"
-  - MUST be an array of at least one.
+  - MUST be an array of at least one value.
   - MUST declare exactly one usage value, except for the single combination
     permitted below.
   - MUST NOT combine `producer` with any other value.
@@ -507,8 +508,8 @@ to the xRegistry-defined core
     `envelope` value of `myspec`, then Resources within that Group can have
     `envelope` values of `myspec` or `myspec/1.0`. However, if a Group has a
     value of `myspec/1.0`, it would be invalid for a Resource to have a value
-    of `myspec/2.0` or just `myspec`. Additionally, if a Group does not have
-    a `envelope` attribute then there are no constraints on its Resources
+    of `myspec/2.0` or just `myspec`. Additionally, if a Group does not have an
+    `envelope` attribute, then there are no constraints on its Resources'
     `envelope` attributes.
   - This specification places no restriction on the syntax of the
     `<VERSION>` value.
@@ -572,7 +573,7 @@ This specification defines the following envelope options for the indicated
   - MUST be a non-empty case-insensitive string.
   - SHOULD follow the naming convention `<NAME>/<VERSION>`,
     whereby `<NAME>` is the name of the protocol and `<VERSION>` is the
-    version of protocol.
+    version of the protocol.
 - Examples:
   - `MQTT/3.1.1`
   - `AMQP/1.0`
@@ -582,7 +583,7 @@ This specification defines the following envelope options for the indicated
 
 - Type: Map
 - Description: Configuration details of the endpoint related to the protocol
-  used to transmit the messages. An endpoint MAY be defined without detail
+  used to transmit the messages. An endpoint MAY be defined without detailed
   configuration. In this case, the endpoint is considered to be "abstract".
   For per-protocol option definitions, see [Protocol Options](#protocol-options).
 
@@ -671,7 +672,7 @@ This specification defines the following envelope options for the indicated
   - `OAuth2`: [OAuth 2.0][RFC6749] authorization is used. The
     [`authorityuri`](#protocoloptionsauthorizationauthorityuri) SHOULD
     reference authorization server metadata as defined by [RFC 8414][RFC8414].
-  - `Plain`: The client uses username with a plaintext password for
+  - `Plain`: The client uses a username with a plaintext password for
     authentication and authorization. For HTTP, see the
     [HTTP options](#http-options) `plainscheme`, `plainusernamefield`, and
     `plainpasswordfield`; for other protocols, equivalent transport-specific
@@ -819,15 +820,16 @@ However, there are times when this is not possible. For example, take the case
 where an Endpoint might have the same semantic message defined twice, once for
 a JSON serialization and once for an XML serialization. Using the same
 `messageid` value is not possible (even though the CloudEvent `type` attribute
-would be the same for both runtime messages), so one (or both) message
-definition's `messageid` values might not match the runtime message's `type`
-value. In those cases, finding the appropriate message definition will need to
-be done via examination of some other metadata - such as the message's
+would be the same for both runtime messages), so the `messageid` value of one
+message definition (or the values of both) might not match the runtime
+message's `type` value. In those cases, finding the appropriate message
+definition will need to be done via examination of some other metadata - such
+as the message's
 `envelopemetadata.type` value along with its `envelopeoptions.format` value.
 These details are out of scope for this specification to define and are left as
 an implementation detail.
 
-Implementations MAY choose to generate an error if it detects duplicate
+Implementations MAY choose to generate an error if they detect duplicate
 `messageid` values across the `messages` collection message definitions and
 the `messagegroups` referenced message definitions, if that is the desired
 constraint for their users.
