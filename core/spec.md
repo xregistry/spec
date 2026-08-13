@@ -4646,8 +4646,8 @@ syntax guidelines are RECOMMENDED for other common situations:
   - E.g. `set myarray[3:]=mary` would be used to insert "mary" at the 4th
     index (zero-based), pushing current index positions 3 (and higher) further
     down in the array.
-  - If the specified integer value does not exist, then an error would be
-    generated. Even in the case of `0` for an empty array.
+  - If the specified integer value does not exist, then an error is generated.
+    Even in the case of `0` for an empty array.
 - Insert at the start of an array: `[^]`.
   - E.g. `set myarray[^]=mary` would insert "mary" at the start of the array,
     and create the array first if it is not yet defined.
@@ -4656,7 +4656,7 @@ syntax guidelines are RECOMMENDED for other common situations:
     and create the array first if it is not yet defined.
 - Referencing the last item in an array: `[-1]`.
   - E.g. `set myarray[-1]=mary` would replace the last item in the array.
-  - If the array is empty, then an error would be generated.
+  - If the array is empty, then an error is generated.
   - This notation does not extend to other negative integers.
 - Specifying an empty object/map: `{}`.
   - E.g. `set myobject={}` would replace any value for `myobject` with an
