@@ -3950,11 +3950,11 @@ value for the purpose of the server's
 
 The `filter` flag MAY be used to indicate that the response MUST include only
 those entities that match the specified filter criteria expressions. This
-means that any Registry Collection's `<COLLECTION*` attributes will be
+means that any Registry Collection's `<COLLECTION>*` attributes will be
 modified to match the resulting subset. In particular:
 - If the collection is inlined, it MUST only include entities that match the
   filter expression(s).
-- The collection `url` attribute MAT include the appropriate filter
+- The collection `url` attribute MAY include the appropriate filter
   expression(s) such that a query to that URL would return the same subset of
   entities, if the protocol supports including the filter flag value as part
   of the URL.
