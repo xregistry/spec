@@ -173,7 +173,7 @@ pattern of the APIs:
   saying that the `PUT` method is idempotent, this specification does not
   adhere to that rule when it comes to the `epoch` and `modifiedat` attributes.
   While multiple identical `PUT` requests will yield the same semantic effect
-  as single `PUT` for all other attributes, the `epoch` and `modifiedat`
+  as a single `PUT` for all other attributes, the `epoch` and `modifiedat`
   attributes are designed to always be updated on each write operation to that
   entity.
 
@@ -183,7 +183,7 @@ In the [core specification](./spec.md) there is a
 discussion about ["no-code servers"](./spec.md#design-no-code-servers). In the
 case of HTTP, simple file servers SHOULD support exposing Resources where the
 HTTP body response contains the Resource's domain-specific "document" as well
-exposing the serialization of the Resource's xRegistry metadata via the
+as exposing the serialization of the Resource's xRegistry metadata via the
 [`$details`](#resource-metadata-vs-resource-document) suffix on the URL path.
 This can be achieved by creating a secondary, sibling, file on disk with
 `$details` at the end of its filename.
@@ -266,7 +266,7 @@ MUST adhere to the following:
     entry's value is the input.
   - The root of the JSON object in the HTTP body MUST NOT contain any
     attributes of the targeted entity other than the nested collections, and
-    none of those entity's attribute are to be updated. This operation allows
+    none of that entity's attribute are to be updated. This operation allows
     for an update to multiple nested collections in a single operation without
     modifying the owning entity.
   - The response message MUST be a map of the nested entity types with just
@@ -280,8 +280,8 @@ following:
     as `versionscount`), and if they are present, then they MUST be silently
     ignored by the server. This is done as a convenience for users who might
     have obtained the Version's serialization from a query to a Resource (not
-    a specific Version), in which case those extra Resource-level would be
-    included in the serialization.
+    a specific Version), in which case those extra Resource-level attributes
+    would be included in the serialization.
   - The 'PUT' variant rules above MUST apply to the new Version entity.
 
 The `PATCH` variant when directed at an xRegistry collection, MUST adhere to
@@ -351,7 +351,7 @@ Resources and Versions have the following additional rules:
   attribute is absent, then the contents of the HTTP body (even if empty) are
   to be used as the entity's document.
 - The `<RESOURCE>` and `<RESOURCEbase64>` attributes MUST never appear as
-  xRegistry HTTP headers, and if present on an write request MUST generate
+  xRegistry HTTP headers, and if present on a write request MUST generate
   an error ([extra_xregistry_header](#extra_xregistry_header)).
 
 A successful response MUST return the same response as a `GET` to the entity
@@ -471,7 +471,7 @@ collection, not at its owning entity (such as the root of the Registry, or at
 an individual Group or Resource).
 
 In the remainder of this specification, the presence of the `Link` HTTP header
-indicates the use of the [pagination specification](../pagination/spec.md)
+indicates that the [pagination specification](../pagination/spec.md)
 MAY be used for that API.
 
 #### HTTP OPTIONS Method
@@ -503,7 +503,7 @@ Where:
 
 **Examples:**
 
-Retrieve supported list of HTTP method at the root of the Registry:
+Retrieve the supported list of HTTP methods at the root of the Registry:
 
 ```yaml
 OPTIONS /
@@ -794,7 +794,7 @@ Content-Type: application/json; charset=utf-8
 #### `GET /capabilities`
 
 A server SHOULD support clients retrieving the set of
-[capabilities](./spec.md#registry-capabilities)(features) it supports via
+[capabilities](./spec.md#registry-capabilities) (features) it supports via
 an HTTP `GET` directed to the stand-alone `capabilities` map.
 
 The request MUST be of the form:
@@ -1085,7 +1085,7 @@ To update the `modelsource` as part of a request to update the
 as part of the [`PUT /`](#patch-and-put-) request.
 
 Note: the HTTP body MUST be a JSON object and an empty request MUST generate
-an error ([missing_body](#missing_body)). To denote an empty model `{}` SHOULD
+an error ([missing_body](#missing_body)). To denote an empty model, `{}` SHOULD
 be used instead.
 
 ### Group Entity
@@ -1576,7 +1576,7 @@ On responses, unless otherwise stated, all top-level scalar attributes of the
 Resource SHOULD appear as HTTP headers where the header name is the name of the
 attribute prefixed with `xRegistry-`. Note, the optionality of this requirement
 is not to allow for servers to decide whether or not to do so, rather it is to
-allow for [No-Code Servers](#no-code-servers) servers that might not be
+allow for [No-Code Servers](#no-code-servers) that might not be
 able to control the HTTP response headers.
 
 The `<RESOURCE>` and `<RESOURCEbase64>` attributes MUST NOT be serialized as
@@ -1612,7 +1612,7 @@ in their entirety and any missing keys MUST be interpreted as a request to
 delete those keys from the map.
 
 Since only some types of attributes can appear as HTTP headers, in order
-to manage the full set of attributes the xRegistry metadata view (via use
+to manage the full set of attributes, the xRegistry metadata view (via use
 of the `$details` URL suffix) MUST be used instead.
 
 When a Resource (not a Version) is serialized with the Resource document
@@ -2581,7 +2581,7 @@ Link: <URL>;rel=next;count=<UINTEGER> ?
 
 **Examples:**
 
-Retrieve all Version of a `message` Resource:
+Retrieve all Versions of a `message` Resource:
 
 ```yaml
 GET /endpoints/ep1/messages/msg1/versions
@@ -2696,7 +2696,7 @@ Content-Type: application/json; charset=utf-8
 ]
 ```
 
-Note that in this case, the new "label" replaces all existing labels, it is
+Note that in this case, the new "label" replaces all existing labels; it is
 not a "merge" operation because all attributes need to be specified in their
 entirety.
 
@@ -3164,7 +3164,8 @@ Where:
 
 The abstract processing logic would be:
 - For each `?filter` query parameter, find all entities that satisfy all
-  `<EXPRESSION>` for that `?filter`. Each will result in a sub-tree of entities.
+  `<EXPRESSION>` values for that `?filter`. Each will result in a sub-tree of
+  entities.
 - After processing all individual `?filter` query parameters, combine those
   sub-trees into one result set and remove any duplicates - adjusting any
   collection `url` and `count` values as needed.
@@ -3173,7 +3174,7 @@ The abstract processing logic would be:
 
 A server MAY support the `?ignore` query parameter on any write operation
 to indicate that certain aspects of the request message MUST be ignored
-by the server).
+by the server.
 
 See [Ignore Flag](./spec.md#ignore-flag) for more information.
 
@@ -3183,7 +3184,7 @@ This query parameter MUST be serialized as:
 ```
 
 Where:
-- `<value>` indicate which aspect of the request message to ignore.
+- `<value>` indicates which aspect of the request message to ignore.
 - A value of `*` is an alias for all server supported values.
 - No value, or an empty string, is an alias for `*`.
 - The `?ignore` query parameter MAY be specified more than once.
@@ -3319,7 +3320,7 @@ Content-Type: application/json; charset=utf-8
 See the [Error Processing](./spec.md#error-processing) section in the
 [core specification](./spec.md) for more information.
 
-The following list of HTTP protocol specific errors are defined:
+The following list of HTTP protocol-specific errors are defined:
 
 <!-- start-err-def -->
 
