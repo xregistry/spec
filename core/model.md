@@ -939,7 +939,7 @@ Note that this feature has similar results as setting the Resource attribute's
   the permissible values of this aspect.
 - See the
   [`singleversionroot` Policy
-  Enforcement](./primer.md#10712-singleversionroot-policy-enforcement) section of
+  Enforcement](./primer.md#1119-singleversionroot-policy-enforcement) section of
   the Primer for more information.
 
 ### `groups.<STRING>.resources.<STRING>.validateformat`

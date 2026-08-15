@@ -18,15 +18,15 @@
     "self": {
       "name": "self",
       "type": "url",
-      "immutable": true,
       "readonly": true,
+      "immutable": true,
       "required": true
     },
     "shortself": {
       "name": "shortself",
       "type": "url",
-      "immutable": true,
-      "readonly": true
+      "readonly": true,
+      "immutable": true
     },
     "xid": {
       "name": "xid",
@@ -74,12 +74,12 @@
       "type": "timestamp",
       "required": true
     },
-
     "capabilities": {
       "name": "capabilities",
       "type": "object",
       "attributes": {
         "*": {
+          "name": "*",
           "type": "any"
         }
       }
@@ -90,6 +90,7 @@
       "readonly": true,
       "attributes": {
         "*": {
+          "name": "*",
           "type": "any"
         }
       }
@@ -99,16 +100,16 @@
       "type": "object",
       "attributes": {
         "*": {
+          "name": "*",
           "type": "any"
         }
       }
     },
-
     "dirsurl": {
       "name": "dirsurl",
       "type": "url",
-      "immutable": true,
       "readonly": true,
+      "immutable": true,
       "required": true
     },
     "dirscount": {
@@ -124,13 +125,13 @@
         "type": "object",
         "attributes": {
           "*": {
+            "name": "*",
             "type": "any"
           }
         }
       }
     }
   },
-
   "groups": {
     "dirs": {
       "plural": "dirs",
@@ -202,12 +203,61 @@
           "type": "timestamp",
           "required": true
         },
-
+        "deprecated": {
+          "name": "deprecated",
+          "type": "object",
+          "attributes": {
+            "alternative": {
+              "name": "alternative",
+              "type": "url"
+            },
+            "documentation": {
+              "name": "documentation",
+              "type": "url"
+            },
+            "effective": {
+              "name": "effective",
+              "type": "timestamp"
+            },
+            "removal": {
+              "name": "removal",
+              "type": "timestamp"
+            },
+            "*": {
+              "name": "*",
+              "type": "any"
+            }
+          }
+        },
+        "constraints": {
+          "name": "constraints",
+          "type": "map",
+          "item": {
+            "type": "object",
+            "attributes": {
+              "default": {
+                "name": "default",
+                "type": "any"
+              },
+              "enum": {
+                "name": "enum",
+                "type": "array",
+                "item": {
+                  "type": "any"
+                }
+              },
+              "equals": {
+                "name": "equals",
+                "type": "string"
+              }
+            }
+          }
+        },
         "filesurl": {
           "name": "filesurl",
           "type": "url",
-          "immutable": true,
           "readonly": true,
+          "immutable": true,
           "required": true
         },
         "filescount": {
@@ -220,9 +270,10 @@
           "name": "files",
           "type": "map",
           "item": {
-           "type": "object",
+            "type": "object",
             "attributes": {
               "*": {
+                "name": "*",
                 "type": "any"
               }
             }
@@ -231,7 +282,16 @@
       },
       "resources": {
         "files": {
+          "plural": "files",
           "singular": "file",
+          "maxversions": 0,
+          "setversionid": true,
+          "hasdocument": true,
+          "versionmode": "manual",
+          "singleversionroot": false,
+          "validateformat": false,
+          "validatecompatibility": false,
+          "strictvalidation": false,
           "attributes": {
             "fileid": {
               "name": "fileid",
@@ -250,16 +310,15 @@
             "self": {
               "name": "self",
               "type": "url",
-              "immutable": true,
               "readonly": true,
+              "immutable": true,
               "required": true
             },
             "shortself": {
               "name": "shortself",
               "type": "url",
-              "immutable": true,
               "readonly": true,
-              "required": true
+              "immutable": true
             },
             "xid": {
               "name": "xid",
@@ -330,21 +389,24 @@
             },
             "formatvalidated": {
               "name": "formatvalidated",
-              "type": "boolean"
+              "type": "boolean",
+              "readonly": true
             },
             "formatvalidatedreason": {
               "name": "formatvalidatedreason",
-              "type": "string"
+              "type": "string",
+              "readonly": true
             },
             "compatibilityvalidated": {
               "name": "compatibilityvalidated",
-              "type": "boolean"
+              "type": "boolean",
+              "readonly": true
             },
             "compatibilityvalidatedreason": {
               "name": "compatibilityvalidatedreason",
-              "type": "string"
+              "type": "string",
+              "readonly": true
             },
-
             "fileurl": {
               "name": "fileurl",
               "type": "url"
@@ -369,15 +431,15 @@
             "self": {
               "name": "self",
               "type": "url",
-              "immutable": true,
               "readonly": true,
+              "immutable": true,
               "required": true
             },
             "shortself": {
               "name": "shortself",
               "type": "url",
-              "immutable": true,
-              "readonly": true
+              "readonly": true,
+              "immutable": true
             },
             "xid": {
               "name": "xid",
@@ -386,7 +448,6 @@
               "immutable": true,
               "required": true
             },
-
             "metaurl": {
               "name": "metaurl",
               "type": "url",
@@ -404,12 +465,11 @@
                 }
               }
             },
-
             "versionsurl": {
               "name": "versionsurl",
               "type": "url",
-              "immutable": true,
               "readonly": true,
+              "immutable": true,
               "required": true
             },
             "versionscount": {
@@ -425,6 +485,7 @@
                 "type": "object",
                 "attributes": {
                   "*": {
+                    "name": "*",
                     "type": "any"
                   }
                 }
@@ -442,15 +503,15 @@
             "self": {
               "name": "self",
               "type": "url",
-              "immutable": true,
               "readonly": true,
+              "immutable": true,
               "required": true
             },
             "shortself": {
               "name": "shortself",
               "type": "url",
-              "immutable": true,
-              "readonly": true
+              "readonly": true,
+              "immutable": true
             },
             "xid": {
               "name": "xid",
@@ -495,20 +556,21 @@
             },
             "compatibility": {
               "name": "compatibility",
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "backward",
+                "backward_transitive",
+                "forward",
+                "forward_transitive",
+                "full",
+                "full_transitive"
+              ],
+              "strict": true
             },
             "deprecated": {
               "name": "deprecated",
               "type": "object",
               "attributes": {
-                "effective": {
-                  "name": "effective",
-                  "type": "timestamp"
-                },
-                "removal": {
-                  "name": "removal",
-                  "type": "timestamp"
-                },
                 "alternative": {
                   "name": "alternative",
                   "type": "url"
@@ -516,6 +578,14 @@
                 "documentation": {
                   "name": "documentation",
                   "type": "url"
+                },
+                "effective": {
+                  "name": "effective",
+                  "type": "timestamp"
+                },
+                "removal": {
+                  "name": "removal",
+                  "type": "timestamp"
                 },
                 "*": {
                   "name": "*",
