@@ -132,8 +132,8 @@ preceding item MUST appear at least once. The presence of the `#` character
 means the remaining portion of the line is a comment. Whitespace characters in
 the JSON snippets are used for readability and are not normative.
 
-Use of `<...>` the notation indicates a substitutable value where that is
-meant to be replaced with a runtime situational-specific value as defined by
+Use of the `<...>` notation indicates a substitutable value that is
+meant to be replaced with a runtime situation-specific value as defined by
 the word/phrase in the angled brackets. For example `<NAME>` would be expected
 to be replaced by the "name" of the item being discussed.
 
@@ -1405,7 +1405,7 @@ of the existing entity. Then the existing entity would be deleted.
     via a query.
 
   Note that an implementation is not mandated to use this attribute in
-  advance of removing an entity, but is it RECOMMENDED that they do so.
+  advance of removing an entity, but it is RECOMMENDED to do so.
 
   This attribute can appear on Groups and Resources, however, this
   specification makes no statement as to the relationship, or validity, of the
@@ -2055,7 +2055,7 @@ The following defines the specification-defined capabilities:
 Implementations MAY support clients updating the capabilities of the server.
 If so, they SHOULD support it via updates to the Registry entity's
 `capabilities` attribute as well as updates via a stand-alone map independent
-of the the Registry entity (e.g.
+of the Registry entity (e.g.
 [`PUT /capabilities`](./http.md#patch-and-put-capabilities) in the HTTP case).
 
 The request to update the capabilities MUST include a serialization of the
@@ -2126,7 +2126,7 @@ Where:
 - `<TYPE>` MUST be one of the data types specified in
   [Attributes and Extensions](#attributes-and-extensions).
 - `"enum"`, when specified, contains a list of zero or more `<VALUE>`s whose
-  type MUST match either `"type"` (when scaler) or `"item.type"` if `"type"`
+  type MUST match either `"type"` (when scalar) or `"item.type"` if `"type"`
   is `"array"` or `"map"` and `"item.type"` is a scalar.
 - `"min"` and `"max"`, when specified, MUST match the same type as either
   `"type"` or `"item.type"` if `"type"` is `"array"` or `"map"`. These indicate
@@ -2528,7 +2528,7 @@ xRegistry metadata. In this sense, there are two "views" of the
 Resource/Version that client can choose from.
 
 Each xRegistry binding specification will define the mechanism by which clients
-can indicate which view of the Resource/Version they want to interacting with.
+can indicate which view of the Resource/Version they want to interact with.
 For HTTP, see the
 [Resource Metadata vs Resource Document](./http.md#resource-metadata-vs-resource-document)
 section for more information, in particular about the use of the `$details`
@@ -2620,7 +2620,7 @@ The overall processing of the request message is as follows:
 The following provides additional details:
 
 - Implementation optimizations:
-  - Implementations MAY choose optimize the order in which the incoming
+  - Implementations MAY choose to optimize the order in which the incoming
     request's data is processed as long as the net semantic results are as
     defined by this specification.
   - For example:
@@ -2685,9 +2685,9 @@ The processing of the 3 `<RESOURCE>*` attributes MUST follow these rules:
     document in the exact byte-for-byte format in which it was provided. If
     that is desired then clients MUST use `<RESOURCE>base64` instead.
   - On a non-patch type of write operation, when `<RESOURCE>` is present,
-    if no `contenttype` value is provided then the server MUST set it to same
-    type as the incoming request, e.g. `application/json`, even if the entity
-     previous had a `contenttype` value.
+    if no `contenttype` value is provided then the server MUST set it to the
+    same type as the incoming request, e.g. `application/json`, even if the
+    entity previously had a `contenttype` value.
   - On a patch type of operation, when `<RESOURCE>` or `<RESOURCE>base64` is
     present, if no `contenttype` value is provided then the server MUST set it
     to the same type as the incoming request, e.g. `application/json`, only if
@@ -3077,7 +3077,7 @@ Version of the Resource. For example, attributes such as `modifiedat` and
 However, the Resource's `meta` sub-object's `modifiedat` and `epoch` attributes
 MUST be updated.
 
-For clarity, when the processing a request that results in
+For clarity, when processing a request that results in
 `defaultversionsticky` being `false`, then any existing `defaultversionid`
 value, or value specified in the request, MUST be ignored for the purpose of
 setting its final value.
@@ -3137,7 +3137,7 @@ information about the management of default Versions.
   - When specified, it MUST be a case-sensitive `true` or `false`.
   - When specified in a request, a value of `null` MUST be interpreted as a
     request to delete the attribute, implicitly setting it to `false`.
-  - When a Resource type's `maxversions` is set to `1`, any attempt to set this
+  - When a Resource type's `maxversions` is set to `1`, any attempt to set
     this attribute to `true` MUST generate an error
     ([setdefaultversionsticky_false](#setdefaultversionsticky_false)) since
     setting a default/sticky Version is unnecessary when there can only be
@@ -3600,7 +3600,7 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
 
 ---
 
-When accessing a Versions's xRegistry metadata, often it is to
+When accessing a Version's xRegistry metadata, often it is to
 view or update the xRegistry metadata and not the document, as such, including
 the potentially large amount of data from the Version's document in request
 and response messages could be cumbersome. To address this, the `<RESOURCE>`
@@ -4064,7 +4064,7 @@ following constraints:
 As previously specified, when a query includes a filter expression, any nested
 xRegistry collections in the response SHOULD result in the specification of a
 `<COLLECTION>url` attribute that allows clients to easily traverse into that
-collection with the appropriated sub-filter expression to yield the same
+collection with the appropriate sub-filter expression to yield the same
 results as the original filter, but just for that nested collection. However,
 if a collection has zero entities (regardless of whether the empty list is due
 to the filter or due to the collection being empty), server MUST use a special
@@ -4197,7 +4197,7 @@ designed for cases where a user wants to import data into a Registry without
 going through the (potentially tedious) process of removing certain parts of
 the data in advance. Typically, in an "export->import" scenario.
 
-This flag take a list of strings indicating which aspects of the request
+This flag takes a list of strings indicating which aspects of the request
 message to ignore. This specification defines the following values:
 
 - `capabilities`
@@ -4229,7 +4229,7 @@ message to ignore. This specification defines the following values:
   This feature MUST only apply in cases where the request is targeted to a
   single entity not a collection.
 
-  This features is design for cases where an entity is exported and then used
+  This feature is designed for cases where an entity is exported and then used
   as input for another entity where that targeted entity needs to use a
   different `<SINGULAR>id` for the root entity, without needing to transform
   the exported data.
@@ -4264,7 +4264,7 @@ message to ignore. This specification defines the following values:
     resulting map is empty. The request would not generate an error due to the
     usage of this flag.
 
-Implementations MAY defined additional values.
+Implementations MAY define additional values.
 
 Specifying the flag without any values, an empty string, or `*` indicates a
 request to ignore all possible (server supported) aspects of the request
@@ -4535,7 +4535,7 @@ use of quotes MUST be interpreted as accessing an object/map.
 | `employee['joe'].addresses[0].state` | `joe` attr/key of `employee`, then the first index of its `addresses` array, then `state` attr/key of that address |
 
 Depending on the situation in which the notation is being used, there are
-certain special values that MAY be used, a described in the following sections.
+certain special values that MAY be used, as described in the following sections.
 
 ### Dot-Notation in Filters
 
@@ -4692,9 +4692,9 @@ the form:
 
 ```yaml
 {
-  "registries": {
+  "registries": [
     "URL", *
-  }
+  ]
 }
 ```
 
@@ -4724,9 +4724,9 @@ to the same format as the Host-based discovery mechanism:
 
 ```yaml
 {
-  "registries": {
+  "registries": [
     "URL", *
-  }
+  ]
 }
 ```
 
@@ -4815,7 +4815,7 @@ Each error definition consists of a set of fields as below:
 | Detail | OPTIONAL. While "Title" conveys the critical error information, if additional details might be useful to users, such as hints as to how to fix the error, then this field SHOULD be used. |
 | Subject | OPTIONAL. If present, MUST be a reference to the entity being processed when the error occurred. In the case of a Registry entity, it MUST be the XID of the entity. If no specific value is appropriate then this field MAY be excluded. MUST start with "/" when referencing an xRegistry entity or collection. |
 | Args | OPTIONAL. A map of the substitution strings that were used when generating the "Title" text. |
-| Instance | OPTIONAL. This non-empty string that can be used by servers to identify details related to the request/error processing. For example, a request or transaction ID of the request that generated the error. This information is not meant to be useful to clients directly, but can be provided to server administrators to help debugging if necessary. This specification places no striction on the format of this value. |
+| Instance | OPTIONAL. This is a non-empty string that can be used by servers to identify details related to the request/error processing. For example, a request or transaction ID of the request that generated the error. This information is not meant to be useful to clients directly, but can be provided to server administrators to help debugging if necessary. This specification places no restriction on the format of this value. |
 | Source | OPTIONAL. A non-empty string representing the component that raised the error. Similar to "Instance", this is not meant to be used by clients, rather it is for debugging purposes. |
 
 The definition of each error's "Title" field MAY include substitutable
@@ -5076,7 +5076,7 @@ field is just a substitution value and MUST NOT be empty.
 * Title: `The request would result in one or more Versions of "<subject>" not being compliant with its owning Group's "<kind>" constraint for attribute "<path>".`
 * Subject: `<resource_xid>`
 * Args:
-  - `path`: The dot (`.`) notion traversal path to the Resource's attribute being constrained.
+  - `path`: The dot (`.`) notation traversal path to the Resource's attribute being constrained.
   - `kind`: The type of constraint violated, either `enum` or `equals`.
 
 ### data_retrieval_error
@@ -5308,7 +5308,8 @@ error SHOULD be used instead.
 ### parsing_data
 
 This is a fairly generic error, so if a more focused one (e.g.
-[invalid_attribute](#invalid_attribute)) can be instead it, then it SHOULD be.
+[invalid_attribute](#invalid_attribute)) can be used instead, then it
+SHOULD be.
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#parsing_data`
 * Code: `400 Bad Request`
