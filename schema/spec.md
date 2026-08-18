@@ -121,7 +121,7 @@ several different versions might exist in a system, in queues, in databases, or
 in files.
 
 The schema registry therefore allows managing multiple versions of schemas,
-declares their lineage, and state their compatibility policy. The compatibility
+declares their lineage, and states their compatibility policy. The compatibility
 policy is used to determine whether a schema change is compatible with prior
 versions and whether data that has been serialized based on prior versions can
 still be deserialized and/or validated using the new schema. This compatibility
@@ -136,25 +136,20 @@ The schema registry is a document store and therefore has the
 [`hasdocument`][xRegistry hasdocument] attribute defined in the xRegistry Core
 attribute (implicitly) defined as `true` for the `schema` Resource.
 
-This means that the schema registry yields a document with the stored
-content-type when a client issues a GET request to the [`self`][xRegistry self]
-URL of a schema. The associated metadata is returned in the HTTP headers. The
-[default version][xRegistry default-version] of the schema is returned when the
-client issues a GET request to the [`self`][xRegistry self] URL of the `schema`
-Resource.
+This means that the schema registry exposes the schema document through the
+Resource's document view, using the stored media type. When no Version is
+explicitly selected, the [default version][xRegistry default-version] is
+exposed. The applicable protocol binding defines how clients select the
+document and metadata views and how those views are retrieved.
 
 This enables the ability to provide external parties with a link that they can
 use without needing to know any details about xRegistry.
 
-Storing a new Version of a schema is similarly straightforward for clients that
-do not know xRegistry specifics, by simply using a POST against
-[`self`][xRegistry self] URL of the `schema` Resource in the simplest case.
+The applicable protocol binding also defines how clients create or update
+schema Versions through the document view.
 
-To access the metadata of the `schema`, or the schema version as a JSON
-document, the client can append a `$details` suffix to the URL, like
-`https://example.com/schemagroups/com.example.schemas/schemas/com.example.event/versions/1.0$details`
-or
-`https://example.com/schemagroups/com.example.schemas/schemas/com.example.event$details`.
+For example, the xRegistry HTTP Binding uses the `$details` URL suffix to
+access the metadata view of the schema Resource or a specific Version.
 
 Beyond this, the [xRegistry Core][xRegistry Core] specification provides rich
 filtering and export/import capabilities, which can be used to retrieve schema
@@ -174,11 +169,11 @@ interpreted as described in [RFC 2119](https://tools.ietf.org/html/rfc2119).
 For clarity, OPTIONAL attributes (specification-defined and extensions) are
 OPTIONAL for clients to use, but the servers' responsibility will vary.
 Server-unknown extension attributes MUST be silently stored in the backing
-datastore. Specification-defined attributes and server-known extension
-attributes MUST generate an error if the corresponding feature is not supported
-or enabled. However, as with all attributes, if accepting the attribute results
-in a bad state (such as exceeding a size limit or resulting in a security
-issue), then the server MAY choose to reject the request.
+datastore. Specification-defined and server-known extension attributes MUST
+generate an error if the corresponding feature is not supported or enabled.
+However, as with all attributes, if accepting the attribute would result in a
+bad state (such as exceeding a size limit, or results in a security issue),
+then the server MAY choose to reject the request.
 
 In the pseudo JSON format snippets `?` means the preceding attribute is
 OPTIONAL, `*` means the preceding attribute MAY appear zero or more times,
@@ -326,7 +321,7 @@ Every schema (i.e. the schema Resource) MUST reside inside a Schema Group.
 
 Example:
 
-The follow abbreviated Schema Registry's content shows a single Schema Group
+The following abbreviated Schema Registry content shows a single Schema Group
 containing 5 schemas.
 
 ```yaml
@@ -499,7 +494,7 @@ conformant with the declared version.
 
 When a URI, like the Message Registry's
 [`dataschemauri`](../message/spec.md#dataschemauri), points to a JSON Schema
-document it MAY use a [JSON pointer][JSON pointer] expression to deep link into
+document, it MAY use a [JSON pointer][JSON pointer] expression to deep link into
 the schema document to reference a particular type definition. Otherwise the
 top-level object definition of the schema is used.
 
@@ -529,14 +524,14 @@ The [`format`](../core/spec.md#format-attribute) identifier for XML Schema is
 `XSD`. The version of the XML Schema format is the version of the W3C XML
 Schema specification that is used to define the schema.
 
-When the `format` attribute is set to `XSD`, the `schema` attribute of schema
-Resource is a string containing an XML Schema document conformant with the
-declared version.
+When the `format` attribute is set to `XSD`, the `schema` attribute of the
+schema Resource is a string containing an XML Schema document conformant with
+the declared version.
 
 When a URI, like the Message Registry's
 [`dataschemauri`](../message/spec.md#dataschemauri), points to an XML Schema
-document it MAY use an XPath expression to deep link into the schema document to
-reference a particular type definition. Otherwise the top-level object
+document, it MAY use an XPath expression to deep link into the schema document
+to reference a particular type definition. Otherwise the top-level object
 definition of the schema is used.
 
 The identifiers for the following XML Schema versions:
@@ -566,7 +561,7 @@ Examples:
 
 When a URI, like the Message Registry's
 [`dataschemauri`](../message/spec.md#dataschemauri), points to an Avro Schema
-document it MAY use a URI fragment suffix `[:]{record-name}` to deep link into
+document, it MAY use a URI fragment suffix `[:]{record-name}` to deep link into
 the schema document to reference a particular type definition. Otherwise the
 top-level object definition of the schema is used. The ':' character is used as
 a separator when the URI already contains a fragment.
@@ -580,7 +575,7 @@ record.
 - If the Avro schema document is a local Schema Registry reference like
 `#/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata`, in
 which the reference is already in the form of a URI fragment, the suffix is
-appended separated with a colon, for instance
+appended, separated by a colon, for instance
 `.../com.example.telemetrydata:TelemetryEvent`.
 
 #### 4.3.4. Protobuf Schema
@@ -610,8 +605,8 @@ Examples:
   message.
 - If the Protobuf schema document is a local Schema Registry reference like
   `#/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata`, in
-  the which the reference is already in the form of a URI fragment, the suffix
-  is appended separated with a colon, for instance
+  which the reference is already in the form of a URI fragment, the suffix
+  is appended, separated by a colon, for instance
   `.../com.example.telemetrydata:TelemetryEvent`.
 
 #### 4.3.5. JSON Structure Schema
