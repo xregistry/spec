@@ -1,6 +1,6 @@
 # xRegistry Service - Version 1.0-rc3
 
-<!-- words: validatecompatibility validateformat strictvalidation matchcase -->
+<!-- words: validatecompatibility validateformat strictvalidation -->
 <!-- words: compat formatvalidated compatibilityvalidated -->
 <!-- words: compat formatvalidatedreason compatibilityvalidatedreason -->
 <!-- words: matchversions excludeall -->
@@ -468,7 +468,6 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
         "description": "<STRING>", ?
         "enum": [ <VALUE> * ], ?        # Array of scalars of type `"type"`
         "strict": <BOOLEAN>, ?          # Just "enum" values? Default=true
-        "matchcase": <BOOLEAN>, ?       # Strings case-sensitive? Def=false
         "matchversions": <BOOLEAN>, ?   # Same for all Versions? Def=false
         "readonly": <BOOLEAN>, ?        # From client's POV. Default=false
         "immutable": <BOOLEAN>, ?       # Once set, can't change. Default=false
@@ -872,13 +871,13 @@ be one of the following data types:
   4.2](https://datatracker.ietf.org/doc/html/rfc3986#section-4.2) with the
   added "URL" constraints mentioned in [RFC 3986 Section
   1.1.3](https://datatracker.ietf.org/doc/html/rfc3986#section-1.1.3).
-- `xid` - MUST be a URL (xid) reference to another entity defined within
-  the Registry. The actual entity attribute value MAY reference a non-existing
-  entity (i.e. be a dangling pointer), but the syntax MUST reference a
-  defined/valid type in the Registry. This type of attribute is used in
-  place of `url` so that the Registry can do "type checking" to ensure the
-  value references the correct type of Registry entity. See the definition of
-  the [`target` model attribute](./model.md#attributesstringtarget) for more
+- `xid` - MUST be a case-sensitive URL (xid) reference to another entity
+  defined within the Registry. The actual entity attribute value MAY reference
+  a non-existing entity (i.e. be a dangling pointer), but the syntax MUST
+  reference a defined/valid type in the Registry. This type of attribute is
+  used in place of `url` so that the Registry can do "type checking" to ensure
+  the value references the correct type of Registry entity. See the definition
+  of the [`target` model attribute](./model.md#attributesstringtarget) for more
   information. Its value MUST start with a `/`.
 - `xidtype` - MUST be a URL reference to an
    [xRegistry model](./model.md#registry-model) type. The reference MUST point
@@ -1181,7 +1180,7 @@ of the existing entity. Then the existing entity would be deleted.
 - Constraints:
   - REQUIRED.
   - MUST be immutable.
-  - MUST be a non-empty relative URL to the current entity.
+  - MUST be a case-sensitive non-empty relative URL to the current entity.
   - MUST be of the form:
     `/[<GROUPS>/<GID>[/<RESOURCES>/<RID>[/meta | /versions/<VID>]]]` and
     reference valid Group and Resource types. Otherwise, an error
@@ -2978,7 +2977,8 @@ and the following Meta-level attributes:
 
 - Constraints:
   - OPTIONAL.
-  - If present, it MUST be the `xid` of a same-typed Resource in the Registry.
+  - If present, it MUST be the case-sensitive `xid` of a same-typed Resource
+    in the Registry.
 
 #### `readonly` Attribute
 - Type: Boolean
@@ -3053,7 +3053,8 @@ and the following Meta-level attributes:
 
 #### `defaultversionid` Attribute
 - Type: String
-- Description: The `versionid` of the default Version of the Resource.
+- Description: The case-sensitive `versionid` of the default Version of the
+  Resource.
 
 - Constraints:
   - REQUIRED.
@@ -3305,9 +3306,9 @@ and the following Version-level attributes:
 - Type: String
 - Description: The `versionid` of this Version's ancestor.
 
-  The `ancestorid` attribute MUST be set to the `versionid` of this Version's
-  ancestor. If this Version is a root of an ancestor hierarchy tree then it
-  MUST be set to its own `versionid` value.
+  The `ancestorid` attribute MUST be set to the case-sensitive `versionid` of
+  this Version's ancestor. If this Version is a root of an ancestor hierarchy
+  tree then it MUST be set to its own `versionid` value.
 
   See the Resource's
   [`versionmode`](./model.md#groupsstringresourcesstringversionmode) model
@@ -4390,8 +4391,9 @@ one being chosen temporarily.
 Use of this flag on an operation that allows for modifying multiple Resources
 MUST generate an error ([bad_flag](#bad_flag)).
 
-This flag MUST include a single parameter, a string containing the `versionid`
-of the Version that is to become the new default Version.
+This flag MUST include a single parameter, a string containing the
+case-sensitive `versionid` of the Version that is to become the new default
+Version.
 
 The following rules apply:
 - A value of `null` indicates that the client wishes to switch to the

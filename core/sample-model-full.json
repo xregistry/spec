@@ -10,7 +10,6 @@
     "registryid": {
       "name": "registryid",
       "type": "string",
-      "matchcase": true,
       "readonly": true,
       "immutable": true,
       "required": true
@@ -140,7 +139,6 @@
         "dirid": {
           "name": "dirid",
           "type": "string",
-          "matchcase": true,
           "immutable": true,
           "required": true
         },
@@ -296,14 +294,12 @@
             "fileid": {
               "name": "fileid",
               "type": "string",
-              "matchcase": true,
               "immutable": true,
               "required": true
             },
             "versionid": {
               "name": "versionid",
               "type": "string",
-              "matchcase": true,
               "immutable": true,
               "required": true
             },
@@ -376,7 +372,6 @@
             "ancestorid": {
               "name": "ancestorid",
               "type": "string",
-              "matchcase": true,
               "required": true
             },
             "contenttype": {
@@ -424,7 +419,6 @@
             "fileid": {
               "name": "fileid",
               "type": "string",
-              "matchcase": true,
               "immutable": true,
               "required": true
             },
@@ -496,7 +490,6 @@
             "fileid": {
               "name": "fileid",
               "type": "string",
-              "matchcase": true,
               "immutable": true,
               "required": true
             },
@@ -596,7 +589,6 @@
             "defaultversionid": {
               "name": "defaultversionid",
               "type": "string",
-              "matchcase": true,
               "required": true
             },
             "defaultversionurl": {
