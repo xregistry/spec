@@ -700,13 +700,15 @@ in responses or to use this information.
 
 ### Design: Implicit Creation of Parent Entities
 
-To reduce the number of interactions needed when creating an entity, all
-nonexisting parent entities specified as part of `<PATH>` to the entity MUST
-be implicitly created. Each of those entities MUST be created with the
-appropriate `<SINGULAR>id` specified in the `<PATH>`. If any of those
-entities have REQUIRED attributes, then they cannot be implicitly created, and
-would need to be created directly. This also means that the creation of the
-original entity would fail and generate an error
+To reduce the number of interactions needed when creating an entity, if any of
+its parent entities do not exist, then they MUST be implicitly created. Each of
+those entities MUST be created with the appropriate `<SINGULAR>id` as specified
+by the protocol-specific mechanism by which the nested entity is identified.
+For example, in HTTP the `<PATH>` would include the `<SINGULAR>id` values
+of the parent entities. If any of those entities have REQUIRED attributes,
+then they cannot be implicitly created, and would need to be created directly.
+This also means that the creation of the original entity would fail and
+generate an error
 ([required_attribute_missing](./spec.md#required_attribute_missing)) for the
 appropriate parent entity.
 
@@ -1136,6 +1138,9 @@ of the existing entity. Then the existing entity would be deleted.
   values. In this sense, implementations might create a `shortself` that is
   known for the lifetime of the entity and the capability controls whether
   the attribute is serialized or not.
+
+  When the `shortself` capability is disabled, the attribute name `shortself`
+  is still a reserved attribute name and MUST NOT be used as an extension.
 
 - Constraints:
   - REQUIRED if the `shortself` capability is enabled.

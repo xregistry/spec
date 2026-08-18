@@ -354,10 +354,11 @@ The following describes the attributes of the Registry model:
 ### `attributes.<STRING>.readonly`
 - Type: Boolean.
 - OPTIONAL.
-- Indicates whether this attribute is modifiable by a client. During
-  creation, or update, of an entity if this attribute is specified, then
-  its value MUST be silently ignored by the server even if the value is
-  invalid.
+- Indicates whether this attribute is modifiable by a client. Unless otherwise
+  stated, during creation, or update, of an entity if this attribute is
+  specified, then its value MUST be silently ignored by the server even if the
+  value is invalid. Note that there are some readonly attributes that are
+  examined by a server during a write operation (e.g. `epoch` and IDs).
 
   Typically, attributes that are completely under the server's control
   will be `readonly` - e.g. `self`.
