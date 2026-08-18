@@ -136,25 +136,20 @@ The schema registry is a document store and therefore has the
 [`hasdocument`][xRegistry hasdocument] attribute defined in the xRegistry Core
 attribute (implicitly) defined as `true` for the `schema` Resource.
 
-This means that the schema registry yields a document with the stored
-content-type when a client issues a GET request to the [`self`][xRegistry self]
-URL of a schema. The associated metadata is returned in the HTTP headers. The
-[default version][xRegistry default-version] of the schema is returned when the
-client issues a GET request to the [`self`][xRegistry self] URL of the `schema`
-Resource.
+This means that the schema registry exposes the schema document through the
+Resource's document view, using the stored media type. When no Version is
+explicitly selected, the [default version][xRegistry default-version] is
+exposed. The applicable protocol binding defines how clients select the
+document and metadata views and how those views are retrieved.
 
 This enables the ability to provide external parties with a link that they can
 use without needing to know any details about xRegistry.
 
-Storing a new Version of a schema is similarly straightforward for clients that
-do not know xRegistry specifics, by simply using a POST against the
-[`self`][xRegistry self] URL of the `schema` Resource in the simplest case.
+The applicable protocol binding also defines how clients create or update
+schema Versions through the document view.
 
-To access the metadata of the `schema`, or the schema version as a JSON
-document, the client can append a `$details` suffix to the URL, like
-`https://example.com/schemagroups/com.example.schemas/schemas/com.example.event/versions/1.0$details`
-or
-`https://example.com/schemagroups/com.example.schemas/schemas/com.example.event$details`.
+For example, the xRegistry HTTP Binding uses the `$details` URL suffix to
+access the metadata view of the schema Resource or a specific Version.
 
 Beyond this, the [xRegistry Core][xRegistry Core] specification provides rich
 filtering and export/import capabilities, which can be used to retrieve schema
