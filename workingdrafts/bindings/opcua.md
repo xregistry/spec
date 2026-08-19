@@ -1,4 +1,4 @@
-# xRegistry OPC UA API - Version 1.0-rc3
+# xRegistry OPC UA API - Version 1.0-rc4
 
 <!-- words: xregistry addressspace browsename browsenames browsepath -->
 <!-- words: browsepaths nodeid nodeids nodeclass typedefinition opc ua -->
@@ -117,8 +117,8 @@ the OPC UA API patterns in this document remain the same.
 
 ## 2. Normative references
 
-- [xRegistry Core specification, v1.0-rc3](https://github.com/xregistry/spec/blob/v1.0-rc3/core/spec.md) — the registry, group, resource, version, document, attribute, request-flag, operation-processing and error model.
-- [xRegistry primer, v1.0-rc3](https://github.com/xregistry/spec/blob/v1.0-rc3/core/primer.md) — the xRegistry concepts, representations, request-shaping concepts and federation model.
+- [xRegistry Core specification](../../core/spec.md) — the registry, group, resource, version, document, attribute, request-flag, operation-processing and error model.
+- [xRegistry primer](../../core/primer.md) — the xRegistry concepts, representations, request-shaping concepts and federation model.
 - [OPC UA — xRegistry](https://github.com/marcschier/opcua-drafts/blob/ff22f224400fc8be813bf0abcbfc3cde52bc7ed3/core-specs/xregistry/OPC-UA-xRegistry.md) — the OPC UA companion information model used by this API.
 - [OPC 10000-3](https://reference.opcfoundation.org/specs/OPC-10000-3/) — Address Space Model, including NodeIds, References, TypeDefinitions and `ExpandedNodeId`.
 - [OPC 10000-4](https://reference.opcfoundation.org/specs/OPC-10000-4/) — Services, including Browse, BrowseNext, Read, Write, Call, TranslateBrowsePathsToNodeIds and StatusCodes.

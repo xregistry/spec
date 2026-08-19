@@ -1,4 +1,4 @@
-# OpenUSD Artifact Registry Service - Version 1.0-rc3
+# OpenUSD Artifact Registry Service - Version 1.0-rc4
 
 <!-- words: OpenUSD -->
 

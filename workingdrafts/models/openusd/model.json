@@ -4,7 +4,7 @@
   "groups": {
     "usdassetgroups": {
       "singular": "usdassetgroup",
-      "modelversion": "1.0-rc3",
+      "modelversion": "1.0-rc4",
       "modelcompatiblewith": "https://xregistry.io/xreg/domains/openusd/specs/model.json",
       "description": "Asset containers. Each Group is one named USD asset container - a root layer together with the sublayers, references, payloads, textures, MaterialX documents and volumes it needs. The Group id is the asset container identifier.",
 
@@ -23,7 +23,7 @@
       "resources": {
         "usdassets": {
           "singular": "usdasset",
-          "modelversion": "1.0-rc3",
+          "modelversion": "1.0-rc4",
           "modelcompatiblewith": "https://xregistry.io/xreg/domains/openusd/specs/model.json",
           "validateformat": true,
           "validatecompatibility": true,
@@ -107,7 +107,7 @@
 
     "usdschemaplugingroups": {
       "singular": "usdschemaplugingroup",
-      "modelversion": "1.0-rc3",
+      "modelversion": "1.0-rc4",
       "modelcompatiblewith": "https://xregistry.io/xreg/domains/openusd/specs/model.json",
       "description": "USD schema plugins. Each Group is one codeless USD schema plugin, and the Group id is the plugin name as declared in the plugin manifest. A codeless schema needs exactly two files, so a Group holds a SchemaPlugin usdasset and a GeneratedSchema usdasset",
 
@@ -121,7 +121,7 @@
       "resources": {
         "usdassets": {
           "singular": "usdasset",
-          "modelversion": "1.0-rc3",
+          "modelversion": "1.0-rc4",
           "modelcompatiblewith": "https://xregistry.io/xreg/domains/openusd/specs/model.json",
           "validateformat": true,
           "validatecompatibility": true,
