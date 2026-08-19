@@ -1,4 +1,4 @@
-# Message Definitions Registry Service - Version 1.0-rc3
+# Message Definitions Registry Service - Version 1.0-rc4
 
 <!-- words: formatvalidated compatibilityvalidated -->
 <!-- words: formatvalidatedreason compatibilityvalidatedreason -->

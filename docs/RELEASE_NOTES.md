@@ -19,3 +19,8 @@
 - Add Link HTTP header - to root of registry
 - Add support for OPTIONS method
 - Groups now have "deprecated"
+
+## v1.0-rc4 - 2026/08/19
+- Release candidate 4!
+- final release before v1.0 !
+- See changelog: https://github.com/xregistry/spec/releases/tag/v1.0-rc4

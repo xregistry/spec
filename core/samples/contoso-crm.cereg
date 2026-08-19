@@ -1,6 +1,6 @@
 {
     "$schema": "https://cloudevents.io/schemas/registry",
-    "specversion": "1.0-rc3",
+    "specversion": "1.0-rc4",
     "endpoints": {
         "Contoso.CRM.Eventing.Http": {
             "id": "Contoso.CRM.Eventing.Http",

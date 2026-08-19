@@ -1,4 +1,4 @@
-# CloudEvents Registry Service - Version 1.0-rc3
+# CloudEvents Registry Service - Version 1.0-rc4
 
 ## Abstract
 
@@ -118,7 +118,7 @@ endpoint with a single, embedded message definition using an embedded Protobuf
 ```json
 {
   "$schema": "https://cloudevents.io/schemas/registry",
-  "specversion": "1.0-rc3",
+  "specversion": "1.0-rc4",
   "registryid": "Example Registry",
   "self": "http://example.com",
   "xid": "/",
@@ -208,7 +208,7 @@ other scenarios:
 ```json
 {
   "$schema": "https://cloudevents.io/schemas/registry",
-  "specversion": "1.0-rc3",
+  "specversion": "1.0-rc4",
   "registryid": "Example Registry",
   "self": "http://example.com",
   "xid": "/",
@@ -353,7 +353,7 @@ group with a deep link to the respective object in the service:
 ```json
 {
   "$schema": "https://cloudevents.io/schemas/registry",
-  "specversion": "1.0-rc3",
+  "specversion": "1.0-rc4",
   "registryid": "Example Registry",
 
   "endpointsurl": "https://example.com/endpoints",
@@ -388,7 +388,7 @@ link will first reference the file and then the object within the file, using
 ```yaml
 {
   "$schema": "https://cloudevents.io/schemas/registry",
-  "specversion": "1.0-rc3",
+  "specversion": "1.0-rc4",
   "registryid": "Example Registry",
 
   "endpointsurl": "https://example.com/endpoints",
@@ -460,7 +460,7 @@ embedded or referenced. Any of the three sub-registries MAY be omitted.
 ```yaml
 {
   "$schema": "https://cloudevents.io/schemas/registry",
-  "specversion": "1.0-rc3",
+  "specversion": "1.0-rc4",
   "registryid": "STRING",
 
   "endpointsurl": "URL",

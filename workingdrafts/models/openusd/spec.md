@@ -1,4 +1,4 @@
-# OpenUSD Artifact Registry Service - Version 1.0-rc3
+# OpenUSD Artifact Registry Service - Version 1.0-rc4
 
 <!-- words: OpenUSD usd usda usdc usdz usdi AOUSD MaterialX mtlx OpenVDB -->
 <!-- words: Alembic Omniverse prim prims sublayer sublayers subLayers -->
@@ -28,7 +28,7 @@ consumer needs in order to compose and render a USD stage.
 
 ## Table of Contents
 
-- [OpenUSD Artifact Registry Service - Version 1.0-rc3](#openusd-artifact-registry-service---version-10-rc3)
+- [OpenUSD Artifact Registry Service - Version 1.0-rc4](#openusd-artifact-registry-service---version-10-rc4)
   - [Abstract](#abstract)
   - [Table of Contents](#table-of-contents)
   - [1. Overview](#1-overview)

@@ -1,4 +1,4 @@
-# Schema Registry Service - Version 1.0-rc3
+# Schema Registry Service - Version 1.0-rc4
 
 <!-- words: formatvalidated compatibilityvalidated -->
 <!-- words: formatvalidatedreason compatibilityvalidatedreason -->
@@ -326,7 +326,7 @@ containing 5 schemas.
 
 ```yaml
 {
-  "specversion": "1.0-rc3",
+  "specversion": "1.0-rc4",
   # other xRegistry top-level attributes excluded for brevity
 
   "schemagroupsurl": "http://example.com/schemagroups",
@@ -414,7 +414,7 @@ Versions for a schema named `com.example.telemetrydata`:
 
 ```yaml
 {
-  "specversion": "1.0-rc3",
+  "specversion": "1.0-rc4",
   # other xRegistry top-level attributes excluded for brevity
 
   "schemagroupsurl": "http://example.com/schemagroups",

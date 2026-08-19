@@ -556,7 +556,7 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "specversion": "1.0-rc3",
+  "specversion": "1.0-rc4",
   "registryid": "myRegistry",
   "self": "https://example.com/",
   "xid": "/",
@@ -647,7 +647,7 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "specversion": "1.0-rc3",
+  "specversion": "1.0-rc4",
   "registryid": "myRegistry",
   "self": "https://example.com/",
   "xid": "/",
@@ -836,7 +836,7 @@ Content-Type: application/json; charset=utf-8
   "mutable": [ "capabilities", "entities", "model" ],
   "pagination": false,
   "shortself": false,
-  "specversions": [ "1.0-rc3" ]
+  "specversions": [ "1.0-rc4" ]
 }
 ```
 
@@ -911,7 +911,7 @@ Content-Type: application/json; charset=utf-8
     "item": {
       "type": "string"
     },
-    "enum": [ "1.0-rc3" ]
+    "enum": [ "1.0-rc4" ]
   },
   "versionmodes": {
     "type": "array",
@@ -1002,7 +1002,7 @@ PATCH /capabilities
   "mutable": [ "capabilities", "entities", "model" ],
   "pagination": false,
   "shortself": true,
-  "specversions": [ "1.0-rc3" ]
+  "specversions": [ "1.0-rc4" ]
 }
 ```
 
