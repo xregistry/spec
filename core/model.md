@@ -1,7 +1,7 @@
 # xRegistry Service Model - Version 1.0-rc3
 
 <!-- words: compat validatecompatibility validateformat strictvalidation -->
-<!-- words: matchcase compatibilityvalidated formatvalidated -->
+<!-- words: compatibilityvalidated formatvalidated -->
 <!-- words: validators matchversions -->
 
 ## Abstract
@@ -81,7 +81,6 @@ The overall format of a model definition is as follows:
       "description": "<STRING>", ?
       "enum": [ <VALUE> * ], ?         # Array of scalars of type "<TYPE>"
       "strict": <BOOLEAN>, ?           # Just "enum" values or not. Default=true
-      "matchcase": <BOOLEAN>, ?        # Strings case-sensitive? Default=false
       "matchversions": <BOOLEAN>, ?    # Same for all Versions? Default=false
       "readonly": <BOOLEAN>, ?         # From client's POV. Default=false
       "immutable": <BOOLEAN>, ?        # Once set, can't change. Default=false
@@ -322,15 +321,6 @@ The following describes the attributes of the Registry model:
   This attribute has no impact when `enum` is absent or an empty array.
 - When not specified, the default value MUST be `true`.
 
-### `attributes.<STRING>.matchcase`
-- Type: Boolean.
-- OPTIONAL.
-- Indicates whether the `string` attribute's value MUST be compared with
-  a matching value in a case-sensitive way, or not.
-- This aspect MUST NOT be `true` if the owning attribute's `type` (or
-  `item.type` for non-scalars) is not `"string"`.
-- When not specified, the default value MUST be `false`.
-
 ### `attributes.<STRING>.matchversions`
 - Type: Boolean.
 - OPTIONAL.
@@ -346,18 +336,16 @@ The following describes the attributes of the Registry model:
   - Are statically defined. Meaning, not defined as part of an `ifvalues` clause
     or via a `*` extension definition
   - Are not defined within an array or map. Within an object is allowed.
-- In the case of the attribute type being a `string`, the comparison MUST take
-  into account the [matchcase](#attributesstringmatchcase) aspect of the
-  attribute.
 - When not specified, the default value MUST be `false`.
 
 ### `attributes.<STRING>.readonly`
 - Type: Boolean.
 - OPTIONAL.
-- Indicates whether this attribute is modifiable by a client. During
-  creation, or update, of an entity if this attribute is specified, then
-  its value MUST be silently ignored by the server even if the value is
-  invalid.
+- Indicates whether this attribute is modifiable by a client. Unless otherwise
+  stated, during creation, or update, of an entity if this attribute is
+  specified, then its value MUST be silently ignored by the server even if the
+  value is invalid. Note that there are some readonly attributes that are
+  examined by a server during a write operation (e.g. `epoch` and IDs).
 
   Typically, attributes that are completely under the server's control
   will be `readonly` - e.g. `self`.
@@ -688,9 +676,7 @@ specified at all.
 
 When present, this aspect MUST contain the
 [dot (`.`) notation](spec.md#xregistry-dot--notation) path in the
-Group instance that the referenced Resource attribute MUST match. In the
-case of the attribute type being a `string`, the comparison MUST take into
-account the [matchcase](#attributesstringmatchcase) aspect of the attribute.
+Group instance that the referenced Resource attribute MUST match.
 
 If the Group and Resource attributes are not of the same scalar `type` then
 an error ([model_error])(./spec.md#model_error) MUST be generated.

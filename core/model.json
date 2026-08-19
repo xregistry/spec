@@ -9,7 +9,6 @@
     },
     "registryid": {
       "type": "string",
-      "matchcase": true,
       "immutable": true,
       "readonly": true,
       "required": true
