@@ -14,7 +14,10 @@ The project includes a "core" specification that defines the basic model and
 APIs of a Registry and a set of domain-specific specifications that extend that
 core for particular use cases. By leveraging the same "core" model/APIs,
 generic tooling and common patterns of Registry access can be developed which
-help create an interoperable (and standard) interface.
+help create an interoperable (and standard) interface. See
+[A Quick Introduction to
+xRegistry](core/primer.md#3-a-quick-introduction-to-xregistry) for more
+information.
 
 It is expected that further specifications will be developed, both as part
 of the xRegistry project and outside, that will leverage this framework for

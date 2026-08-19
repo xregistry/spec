@@ -67,16 +67,16 @@ models:
 	@# of 'xr' can be done
 	if which xr ; then \
 	  echo Using local xr ; \
-	  xr model verify */model.json workingdrafts/models/*/model.json -v ; \
+	  xr model verify */model.json workingdrafts/models/*/model.json -v && \
 	  xr model verify core/sample-model.json --full-model | \
 		jq 'del(.groups.dirs.resources.files.attributes.fileproxyurl)' \
 		> core/sample-model-full.json ; \
 	else \
-	  echo Using docker ghcr.io/xregistry/xr ; \
+	  echo Using docker ghcr.io/xregistry/xr && \
 	  docker run -t -v $$PWD:/xreg -w /xreg --entrypoint /bin/sh \
 		ghcr.io/xregistry/xr -c \
 			"/xr model verify */model.json \
-			workingdrafts/models/*/model.json -v" ; \
+			workingdrafts/models/*/model.json -v" && \
 	  docker run -t -v $$PWD:/xreg -w /xreg --entrypoint /bin/sh \
 		ghcr.io/xregistry/xr -c "/xr model verify core/sample-model.json \
 		--full-model" | \
