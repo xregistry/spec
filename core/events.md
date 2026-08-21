@@ -239,7 +239,7 @@ value.
   - MUST be generated when `model`, `modelsource` or `capabilities` are
     updated and the appropriate attribute MUST appear in `changed`, if present.
 
-The `io.xregistry.registry.created` and `io.xregistry.registry.updated` events
+The `io.xregistry.registry.created` and `io.xregistry.registry.deleted` events
 are not defined as part of this specification as those operations are not
 defined in the xRegistry specification. It is expected that the tooling that
 performs those operations will define those events, if needed.
@@ -260,7 +260,7 @@ Often `io.xregistry.model.updated` and `io.xregistry.modelsource.updated`
 will be generated at the same time since model updates are most likely done
 by changing the `modelsource` attribute. However, since the `model` might
 change for other reasons, users who are interested in all `model` changes need
-to watch for `io.xregistry.model.update` events, not
+to watch for `io.xregistry.model.updated` events, not
 `io.xregistry.modelsource.updated` events.
 
 ### `modelsource` Events
@@ -278,7 +278,7 @@ will be generated at the same time since model updates are most likely done
 by changing the `modelsource` attribute. However, since the `model` might
 change for other reasons, users who are only interested in changes related
 to user modifications of the model need to watch for
-`io.xregistry.modelsource.update` events, not `io.xregistry.model.updated`
+`io.xregistry.modelsource.updated` events, not `io.xregistry.model.updated`
 events.
 
 ### `capabilities` Events
@@ -326,7 +326,7 @@ events.
     `deprecated` sub-object that were modified.
 
   - An `io.xregistry.group.updated` event will also be generated where the
-    `deprecated` attribute will be included in `changed`, if present.
+    `deprecated` sub-object will be included in `changed`, if present.
 
 - Action: `deleted`
   - MUST be generated when a Group is deleted.
@@ -338,13 +338,12 @@ events.
 ### `resource` Events
 
 - Action: `created`
-  - MUST be generated when a new Resource is created, where each modified
-    attribute MUST be included in `changed`, if present.
+  - MUST be generated when a new Resource is created.
 
   - At least one `io.xregistry.version.created` event will also be
     generated since at least one Version will also be created.
 
-  - An `io.xregistry.registry.updated` event will also be generated where the
+  - An `io.xregistry.group.updated` event will also be generated where the
     `<RESOURCES>` and `<RESOURCES>count` attributes will be included in
     `changed`, if present.
 
@@ -352,7 +351,7 @@ events.
   - MUST be generated when a Resource's (default Version) attribute is updated,
     where each modified attribute MUST be included in `changed`, if present.
 
-  - MUST be generated when a Resource's `meta` attribute is updated, where
+  - MUST be generated when a Resource's `meta` sub-object is updated, where
     `changed`, if present, includes (at least) the changed top-level `meta`
     attribute names prefixed with `meta.`. For example,
     `meta.defaultversionid`.
@@ -368,7 +367,7 @@ events.
     if present, includes (at least) `meta.epoch`, `meta.modifiedat`,
     `versions` and `versionscount` attribute names.
 
-    While the `version` attribute is present due to the child
+    While the `versions` attribute is present due to the child
     collection changing, in order to see which specific Versions were impacted,
     the `io.xregistry.version.created` and `io.xregistry.version.deleted`
     events would need to be examined.
@@ -385,7 +384,7 @@ events.
     `deprecated` sub-object that were modified.
 
   - An `io.xregistry.resource.updated` event will also be generated where the
-    `deprecated` attribute will be included in `changed`, if present.
+    `meta.deprecated` sub-object will be included in `changed`, if present.
 
 - Action: `deleted`
   - MUST be generated when a Resource is deleted.
@@ -393,7 +392,7 @@ events.
   - A `io.xregistry.version.deleted` event will also be generated for
     each Version.
 
-  - An `io.xregistry.registry.updated` event will also be generated where the
+  - An `io.xregistry.group.updated` event will also be generated where the
     `<RESOURCES>` and `<RESOURCES>count` attributes will be included in
     `changed`, if present.
 
@@ -475,7 +474,7 @@ the following model definition:
     - Subject: `/dirs/d1/files/f1`
     - Changed: `epoch`, `modifiedat`, `name`
   - `io.xregistry.version.updated`
-    - Subject: `/dirs/d1/files/f1/version/v1`
+    - Subject: `/dirs/d1/files/f1/versions/v1`
     - Changed: `epoch`, `modifiedat`, `name`
 
 ### Update a Resource's meta sub-object
@@ -580,7 +579,7 @@ the following model definition:
     - Subject: `/dirs/d1/files/f1`
     - Changed: `epoch`, `modifiedat`, `name`
   - `io.xregistry.version.updated`
-    - Subject: `/dirs/d1/files/f1/version/v1`
+    - Subject: `/dirs/d1/files/f1/versions/v1`
     - Changed: `epoch`, `modifiedat`, `name`
 
 ### Update a Version attribute (not the default Version)
@@ -591,12 +590,12 @@ the following model definition:
   - Body: `{ "name": "foo" }`
 - Events:
   - `io.xregistry.version.updated`
-    - Subject: `/dirs/d1/files/f1/version/v2`
+    - Subject: `/dirs/d1/files/f1/versions/v2`
     - Changed: `epoch`, `modifiedat`, `name`
 
 ### Create a new Version - not sticky
 
-- Current default Version is `v1`
+- Current default Version (v1) is not "sticky"
 - Interaction:
   - `POST /dirs/d1/files/f1`
   - Body: `{}`
@@ -607,11 +606,11 @@ the following model definition:
        `versions`, `versionscount`,
        `<ALL-OLD-AND-NEW-DEFAULT-VERSION-ATTRIBUTES>`,
   - `io.xregistry.version.created`
-    - Subject: `/dirs/d1/files/f1/version/v2`
+    - Subject: `/dirs/d1/files/f1/versions/v2`
 
 ### Create a new Version - sticky
 
-- Current default Version is `v1`
+- Current default Version (v1) is "sticky"
 - Interaction:
   - `POST /dirs/d1/files/f1`
   - Body: `{}`
@@ -620,7 +619,7 @@ the following model definition:
     - Subject: `/dirs/d1/files/f1`
     - Changed: `meta.epoch`, `meta.modifiedat`, `versions`, `versionscount`
   - `io.xregistry.version.created`
-    - Subject: `/dirs/d1/files/f1/version/v2`
+    - Subject: `/dirs/d1/files/f1/versions/v2`
 
 ### Delete a Group
 
