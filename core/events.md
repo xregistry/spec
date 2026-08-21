@@ -326,7 +326,7 @@ events.
     `deprecated` sub-object that were modified.
 
   - An `io.xregistry.group.updated` event will also be generated where the
-    `deprecated` attribute will be included in `changed`, if present.
+    `deprecated` sub-object will be included in `changed`, if present.
 
 - Action: `deleted`
   - MUST be generated when a Group is deleted.
@@ -338,13 +338,12 @@ events.
 ### `resource` Events
 
 - Action: `created`
-  - MUST be generated when a new Resource is created, where each modified
-    attribute MUST be included in `changed`, if present.
+  - MUST be generated when a new Resource is created.
 
   - At least one `io.xregistry.version.created` event will also be
     generated since at least one Version will also be created.
 
-  - An `io.xregistry.registry.updated` event will also be generated where the
+  - An `io.xregistry.group.updated` event will also be generated where the
     `<RESOURCES>` and `<RESOURCES>count` attributes will be included in
     `changed`, if present.
 
@@ -352,7 +351,7 @@ events.
   - MUST be generated when a Resource's (default Version) attribute is updated,
     where each modified attribute MUST be included in `changed`, if present.
 
-  - MUST be generated when a Resource's `meta` attribute is updated, where
+  - MUST be generated when a Resource's `meta` sub-object is updated, where
     `changed`, if present, includes (at least) the changed top-level `meta`
     attribute names prefixed with `meta.`. For example,
     `meta.defaultversionid`.
@@ -385,7 +384,7 @@ events.
     `deprecated` sub-object that were modified.
 
   - An `io.xregistry.resource.updated` event will also be generated where the
-    `meta.deprecated` attribute will be included in `changed`, if present.
+    `meta.deprecated` sub-object will be included in `changed`, if present.
 
 - Action: `deleted`
   - MUST be generated when a Resource is deleted.
@@ -393,7 +392,7 @@ events.
   - A `io.xregistry.version.deleted` event will also be generated for
     each Version.
 
-  - An `io.xregistry.registry.updated` event will also be generated where the
+  - An `io.xregistry.group.updated` event will also be generated where the
     `<RESOURCES>` and `<RESOURCES>count` attributes will be included in
     `changed`, if present.
 
