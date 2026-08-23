@@ -184,6 +184,11 @@ The `changed` attribute, when present, has the following constraints:
 - MUST be a list of the top-level attribute names (not values) that were
   added, modified, or deleted for the `subject` entity.
 
+- When a domain-specific document that is stored within the Registry is
+  modified, then the Resource's `SINGULAR` attribute would be included in this
+  list, not `SINGULARbase64` - even if the `base64` variant is used during
+  serialization of the Resource.
+
 - In the case of changing a Resource's default Version pointer, the list MUST
   include all attributes from the previous default Version that have non-`null`
   values, and all attributes from the new default Version that have non-`null`
@@ -196,8 +201,9 @@ The `changed` attribute, when present, has the following constraints:
 
 There are certain events where non-top-level attributes are included, and
 those will be noted in the [Entity Events](#entity-events) sections below.
-When they do appear they MUST use the JSONPath dot (`.`) notation to express
-the traversal to the attribute of interest.
+When they do appear they MUST use the
+[xRegistry Dot (`.`) Notation](spec.md#xregistry-dot--notation) to express the
+traversal to the attribute of interest.
 
 If an entity is updated for multiple reasons during the processing of an
 interaction, per the rules previously stated, only one `updated` event
@@ -223,6 +229,17 @@ value.
 
 ### `registry` Events
 
+- Action: `created`
+  - STRONGLY RECOMMENDED to be generated when a new Registry is created.
+    This event isn't mandated since the action of creating a new Registry
+    is not defined in the xRegistry specification, and therefore (technically)
+    out of scope. However, for interoperability, the suggested event is defined
+    here.
+
+  - If, during the process of creating a new Registry, the model, modelsource
+    or entities are modified/created, then events for those actions MUST be
+    generated as well.
+
 - Action: `updated`
   - MUST be generated when a Registry's attribute is updated, where each
     modified attribute MUST be included in `changed`, if present.
@@ -239,10 +256,17 @@ value.
   - MUST be generated when `model`, `modelsource` or `capabilities` are
     updated and the appropriate attribute MUST appear in `changed`, if present.
 
-The `io.xregistry.registry.created` and `io.xregistry.registry.deleted` events
-are not defined as part of this specification as those operations are not
-defined in the xRegistry specification. It is expected that the tooling that
-performs those operations will define those events, if needed.
+- Action: `deleted`
+  - STRONGLY RECOMMENDED to be generated when a Registry is deleted.
+    This event isn't mandated since the action of deleting a new Registry
+    is not defined in the xRegistry specification, and therefore (technically)
+    out of scope. However, for interoperability, the suggested event is defined
+    here.
+
+  - It is STRONGLY RECOMMENDED that a `deleted` event be generated for each
+    entity within the deleted Registry. The optionality of this requirement
+    is to allow for situations where implementations (or users) might view
+    such a large volume of events to be problematic in their use cases.
 
 ### `model` Events
 
@@ -295,9 +319,9 @@ events.
 - Action: `created`
   - MUST be generated when a new Group is created.
 
-  - An `io.xregistry.registry.updated` event will also be generated where the
-    `<GROUPS>` and `<GROUPS>count` attributes will be included in `changed`,
-    if present.
+  - An `io.xregistry.registry.updated` event will also be generated where
+    `changed`, if present, includes (at least) `epoch`, `modifiedat`,
+    `<GROUPS>` and `<GROUPS>count` attribute names.
 
 - Action: `updated`
   - MUST be generated when a Group's attribute is updated, where each modified
@@ -321,19 +345,20 @@ events.
 
 - Action: `deprecation`
   - MUST be generated when a Group's `deprecated` sub-object is set or
-    deleted, or when any of its attributes are updated, where "changed",
+    deleted, or when any of its attributes are updated, where `changed`,
     if present, includes the list of top-level attribute names from the
     `deprecated` sub-object that were modified.
 
-  - An `io.xregistry.group.updated` event will also be generated where the
-    `deprecated` sub-object will be included in `changed`, if present.
+  - An `io.xregistry.group.updated` event will also be generated where
+    `changed`, if present, includes (at least) `epoch`, `modifiedat` and
+    `deprecated` attribute names.
 
 - Action: `deleted`
   - MUST be generated when a Group is deleted.
 
-  - An `io.xregistry.registry.updated` event will also be generated where the
-   `<GROUPS>` and `<GROUPS>count` attributes will be included in `changed`, if
-   present.
+  - An `io.xregistry.registry.updated` event will also be generated where
+    `changed`, if present, includes (at least) `epoch`, `modifiedat`,
+   `<GROUPS>` and `<GROUPS>count` attribute names.
 
 ### `resource` Events
 
@@ -344,8 +369,8 @@ events.
     generated since at least one Version will also be created.
 
   - An `io.xregistry.group.updated` event will also be generated where the
-    `<RESOURCES>` and `<RESOURCES>count` attributes will be included in
-    `changed`, if present.
+    `changed`, if present, includes (at least) `epoch`, `modifiedat`,
+    `<RESOURCES>` and `<RESOURCES>count` attributes names.
 
 - Action: `updated`
   - MUST be generated when a Resource's (default Version) attribute is updated,
@@ -379,12 +404,13 @@ events.
 
 - Action: `deprecation`
   - MUST be generated when a Resource's `meta.deprecated` sub-object is set
-    or deleted, or when any of its attributes are updated, where "changed",
+    or deleted, or when any of its attributes are updated, where `changed`,
     if present, includes the list of top-level attribute names from the
     `deprecated` sub-object that were modified.
 
-  - An `io.xregistry.resource.updated` event will also be generated where the
-    `meta.deprecated` sub-object will be included in `changed`, if present.
+  - An `io.xregistry.resource.updated` event will also be generated where
+    `changed`, if present, includes (at least) `epoch`, `modifiedat` and
+    `meta.deprecated` attribute names.
 
 - Action: `deleted`
   - MUST be generated when a Resource is deleted.
@@ -392,18 +418,18 @@ events.
   - A `io.xregistry.version.deleted` event will also be generated for
     each Version.
 
-  - An `io.xregistry.group.updated` event will also be generated where the
-    `<RESOURCES>` and `<RESOURCES>count` attributes will be included in
-    `changed`, if present.
+  - An `io.xregistry.group.updated` event will also be generated where
+    `changed`, if present, includes (at least) `epoch`, `modifiedat` and
+    `<RESOURCES>` and `<RESOURCES>count` attribute names.
 
 ### `version` Events
 
 - Action: `created`
   - MUST be generated when a new Version is created.
 
-  - An `io.xregistry.resource.updated` event will also be generated where the
-    `versions` and `versionscount` attributes will be included in `changed`, if
-    present.
+  - An `io.xregistry.resource.updated` event will also be generated where
+    `changed`, if present, includes (at least) `epoch`, `modifiedat` and
+    `versions` and `versionscount` attribute names.
 
 - Action: `updated`
   - MUST be generated when a Version attribute is updated, where each modified
@@ -412,9 +438,9 @@ events.
 - Action: `deleted`
   - MUST be generated when a Version is deleted.
 
-  - An `io.xregistry.resource.updated` event will also be generated where the
-    `versions` and `versionscount` attributes will be included in `changed`, if
-    present.
+  - An `io.xregistry.resource.updated` event will also be generated where
+    `changed`, if present, includes (at least) `epoch`, `modifiedat` and
+    `versions` and `versionscount` attribute names.
 
 ## Sample xRegistry Interactions
 
@@ -481,21 +507,21 @@ the following model definition:
 
 - Interaction:
   - `PATCH /dirs/d1/files/f1/meta`
-  - Body: `{ "compatibilityauthority": "server" }`
+  - Body: `{ "compatibility": "backward" }`
 - Events:
   - `io.xregistry.resource.updated`
     - Subject: `/dirs/d1/files/f1`
-    - Changed: `meta.epoch`, `meta.modifiedat`, `meta.compatibilityauthority`
+    - Changed: `meta.epoch`, `meta.modifiedat`, `meta.compatibility`
 
 ### Update a Resource's meta sub-object and deprecate the Resource
 
 - Interaction:
   - `PATCH /dirs/d1/files/f1/meta`
-  - Body: `{ "compatibilityauthority": "server", "deprecated": {...} }`
+  - Body: `{ "compatibility": "backward", "deprecated": {...} }`
 - Events:
   - `io.xregistry.resource.updated`
     - Subject: `/dirs/d1/files/f1`
-    - Changed: `meta.epoch`, `meta.modifiedat`, `meta.compatibilityauthority`,
+    - Changed: `meta.epoch`, `meta.modifiedat`, `meta.compatibility`,
       `meta.deprecated`
   - `io.xregistry.resource.deprecation`
     - Subject: `/dirs/d1/files/f1`
@@ -512,7 +538,7 @@ the following model definition:
   - `io.xregistry.registry.updated`
     - Subject: `/`
     - Changed: `epoch`, `modifiedat`, `model`, `modelsource`, `capabilities`,
-      `<GROUPS>`, `<GROUPS>count`, `<OTHER-REGISTRY-ATTRIBUTES>`
+      `<GROUPS>`, `<GROUPS>count`, `<OTHER-REGISTRY-ENTITY-ATTRIBUTES>`
   - `io.xregistry.model.updated`
     - Subject: `/model`
   - `io.xregistry.modelsource.updated`
