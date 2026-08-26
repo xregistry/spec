@@ -205,6 +205,10 @@ for everything in it.
   - `PATCH` = partial update (only what you include is changed; `null`
     deletes an attribute).
 
+Creating a nested entity also creates any missing parent entities. A parent
+with required attributes must be created explicitly first; otherwise creation
+of the nested entity fails.
+
 Example - create a Group:
 
 ```
@@ -601,6 +605,10 @@ xRegistry can embed content such as schema documents. The following sections
 separate document format metadata from the choice to embed, encode, or link the
 document.
 
+The model declares document metadata but does not define the document's
+internal shape. Implementations may interpret and validate that shape according
+to `format`.
+
 <a id="91-formats-and-contentmedia-types"></a>
 ### 8.1. Formats and Content/Media-Types
 
@@ -647,6 +655,9 @@ registry document for the [embedded object](spec.md#resource-attribute) variant.
 At present, all examples and implementations use JSON and so it might appear
 that this is a JSON-related feature, but it's very feasible to encode the entire
 registry in Avro binary and there is a formal schema for Avro.
+
+The core specification defines only JSON serialization. Another registry
+encoding requires a separately defined serialization binding.
 
 In JSON, we can embed JSON-data like an Avro Schema into `schema` and we can
 also embed a single string for a text file into `schema` as long as we are
