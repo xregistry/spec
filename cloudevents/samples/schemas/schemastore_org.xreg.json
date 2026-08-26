@@ -595,8 +595,7 @@
           "versions": {
             "1.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/block.json",
-              "description": "Schema for block.json",
-              "format": "JSONSchema/Unknown"
+              "description": "Schema for block.json"
             }
           }
         },
@@ -2193,8 +2192,7 @@
           "versions": {
             "1.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/haxelib.json",
-              "description": "Schema for haxelib.json",
-              "format": "JSONSchema/Unknown"
+              "description": "Schema for haxelib.json"
             }
           }
         },
@@ -2633,8 +2631,7 @@
           "versions": {
             "1.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/ksp-avc.json",
-              "description": "Schema for ksp-avc.json",
-              "format": "JSONSchema/Unknown"
+              "description": "Schema for ksp-avc.json"
             }
           }
         },
@@ -2642,8 +2639,7 @@
           "versions": {
             "1.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/ksp-ckan.json",
-              "description": "Schema for ksp-ckan.json",
-              "format": "JSONSchema/Unknown"
+              "description": "Schema for ksp-ckan.json"
             }
           }
         },
@@ -2950,8 +2946,7 @@
           "versions": {
             "1.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/markdownlint.json",
-              "description": "Schema for markdownlint.json",
-              "format": "JSONSchema/Unknown"
+              "description": "Schema for markdownlint.json"
             }
           }
         },
@@ -3311,8 +3306,7 @@
           "versions": {
             "1.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/neoload.json",
-              "description": "Schema for neoload.json",
-              "format": "JSONSchema/Unknown"
+              "description": "Schema for neoload.json"
             }
           }
         },
@@ -4339,8 +4333,7 @@
           "versions": {
             "1.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/renovate.json",
-              "description": "Schema for renovate.json",
-              "format": "JSONSchema/Unknown"
+              "description": "Schema for renovate.json"
             }
           }
         },
@@ -4692,8 +4685,7 @@
           "versions": {
             "1.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/semgrep.json",
-              "description": "Schema for semgrep.json",
-              "format": "JSONSchema/Unknown"
+              "description": "Schema for semgrep.json"
             }
           }
         },
@@ -4999,8 +4991,7 @@
           "versions": {
             "1.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/taskfile.json",
-              "description": "Schema for taskfile.json",
-              "format": "JSONSchema/Unknown"
+              "description": "Schema for taskfile.json"
             }
           }
         },
@@ -5044,8 +5035,7 @@
           "versions": {
             "1.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/theme-v1.json",
-              "description": "Schema for theme-v1.json",
-              "format": "JSONSchema/Unknown"
+              "description": "Schema for theme-v1.json"
             }
           }
         },
@@ -5838,13 +5828,11 @@
           "versions": {
             "2.2": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/xunit-2.2.json",
-              "description": "Schema for xunit-2.2.json",
-              "format": "JSONSchema/Unknown"
+              "description": "Schema for xunit-2.2.json"
             },
             "2.3": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/xunit-2.3.json",
-              "description": "Schema for xunit-2.3.json",
-              "format": "JSONSchema/Unknown"
+              "description": "Schema for xunit-2.3.json"
             }
           }
         },
@@ -5852,8 +5840,7 @@
           "versions": {
             "1.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/xunit.runner.schema.json",
-              "description": "Schema for xunit.runner.schema.json",
-              "format": "JSONSchema/Unknown"
+              "description": "Schema for xunit.runner.schema.json"
             }
           }
         },

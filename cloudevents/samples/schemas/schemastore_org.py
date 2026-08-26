@@ -118,13 +118,13 @@ def build_registry(groups):
     for base, versions in groups.items():
         version_entries = {}
         for ver, info in sorted(versions.items()):
-            # Capitalize the draft string (e.g. "draft-07" -> "Draft-07")
-            draft_cap = info["draft"].capitalize() if info["draft"] else "unknown"
-            version_entries[ver] = {
+            version_entry = {
                 "schemaurl": BASE_URI + info["filename"],
-                "description": f"Schema for {info['filename']}",
-                "format": f"JSONSchema/{draft_cap}"
+                "description": f"Schema for {info['filename']}"
             }
+            if info["draft"]:
+                version_entry["format"] = f"JSONSchema/{info['draft'].capitalize()}"
+            version_entries[ver] = version_entry
         schemas[base] = {
             "versions": version_entries
         }
