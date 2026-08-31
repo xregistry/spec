@@ -29,6 +29,7 @@ normative technical details.
     - [3.2.6. Errors](#326-errors)
   - [3.3. Defining a Basic Model](#33-defining-a-basic-model)
     - [3.3.1. Adding your own attributes (extensions)](#331-adding-your-own-attributes-extensions)
+  - [3.4. Where to go next](#34-where-to-go-next)
 - [4. History](#4-history)
 - [5. Value proposition](#5-value-proposition)
   - [5.1. Why build something new?](#51-why-build-something-new)
@@ -38,55 +39,73 @@ normative technical details.
   - [5.5. Schema validation](#55-schema-validation)
   - [5.6. Payload reduction](#56-payload-reduction)
   - [5.7. Schema-based contract and client generation](#57-schema-based-contract-and-client-generation)
-  - [5.8. Basis for further developments](#59-basis-for-further-developments)
-- [6. Non-Goals](#7-design-goals)
-- [7. Representations](#8-representations)
-  - [7.1. File](#81-file)
-  - [7.2. Static File Server](#82-static-file-server)
-  - [7.3. API Server](#83-api-server)
-- [8. Embeddings, References, and Federation](#9-embeddings-references-and-federation)
-  - [8.1. Formats and Content/Media-Types](#91-formats-and-contentmedia-types)
-  - [8.2. Embeddings and Links](#92-embeddings-and-links)
-  - [8.3. Federation](#93-federation)
-    - [8.3.1. Composing registries in memory](#931-composing-registries-in-memory)
-    - [8.3.2. Shadowing](#932-shadowing)
-    - [8.3.3. Identifiers](#933-identifiers)
-    - [8.3.4. API Servers and Proxies](#934-api-servers-and-proxies)
-- [9. Possible Use Cases](#10-possible-use-cases)
-  - [9.1. CloudEvents](#101-cloudevents)
-  - [9.2. Business objects](#102-business-objects)
-  - [9.3. Metadata files in repositories](#103-metadata-files-in-repositories)
-- [10. Design decisions or topics of interest](#11-design-decisions-or-topics-of-interest)
-  - [10.1. Resource.ID vs Resource.Version.ID](#111-resourceid-vs-resourceversionid)
-  - [10.2. Valid Characters](#112-valid-characters)
-  - [10.3. Extensions](#113-extensions)
-  - [10.4. Group organization](#114-group-organization)
-  - [10.5. Deleting entities](#115-deleting-entities)
-  - [10.6. Detection of Referenced Resources](#116-detection-of-referenced-resources)
-  - [10.7. Shared/Referenced Resources](#117-sharedreferenced-resources)
-  - [10.8. Default Version and Maximum Versions](#118-default-version-and-maximum-versions)
-  - [10.9. Why Epoch?](#1110-why-epoch)
-  - [10.10. Naming and Case Sensitivity](#1111-naming-and-case-sensitivity)
-  - [10.11. Why are Group and Resource type names more restricted?](#1112-why-the-lower-character-limit-on-some-group-and-resource-type-names)
-  - [10.12. Choosing unique Group and Resource names](#1114-choosing-unique-group-and-resource-names)
-  - [10.13. Are `self` and `shortself` attributes static?](#1115-are-self-and-shortself-attributes-static)
-  - [10.14. Why does an unknown query parameter not generate an error?](#1116-why-does-an-unknown-query-parameter-not-generate-an-error)
-  - [10.15. Updating attributes with `ifvalues`](#1117-updating-attributes-with-ifvalues)
-  - [10.16. Multi-root ancestor hierarchies](#1118-multi-root-ancestor-hierarchies)
-  - [10.17. `singleversionroot` Policy Enforcement](#1119-singleversionroot-policy-enforcement)
-  - [10.18. Pruning Versions with `singleversionroot` enabled](#1120-pruning-versions-with-singleversionroot-enabled)
-  - [10.19. What's the oldest/newest Version of a Resource?](#1121-whats-the-oldestnewest-version-of-a-resource)
-  - [10.20. Can `validatecompatibility` and `validateformat` be `true` for file-servers?](#1122-can-validatecompatibility-and-validateformat-be-true-for-file-servers)
-  - [10.21. Detecting circular references between Versions](#1123-detecting-circular-references-between-versions)
-  - [10.22. Optional required fields in requests](#1124-optional-required-fields-in-requests)
-  - [10.23. Deprecation of entities in an xRegistry](#1125-deprecation-of-entities-in-an-xregistry)
-- [11. Problematic characters in values](#13-problematic-characters-in-values)
-- [12. Why do Resources have 3 levels of data?](#14-why-do-resources-have-3-levels-of-data)
-- [13. Why are some (conditional) read-only attributes not ignored?](#15-why-are-some-conditional-read-only-attributes-not-ignored)
-- [14. Why isn't `PUT` idempotent?](#16-why-isnt-put-idempotent)
-- [15. Validation edge cases](#18-validation-edge-cases)
-  - [15.1. Empty format capabilities](#181-empty-format-capabilities)
-  - [15.2. Constraints and `matchversions`](#182-constraints-and-matchversions)
+  - [5.8. Basis for further developments](#basis-for-further-developments)
+- [6. Non-Goals](#non-goals)
+- [7. Representations](#representations)
+  - [7.1. File](#file)
+  - [7.2. Static File Server](#static-file-server)
+  - [7.3. API Server](#api-server)
+- [8. Embeddings, References, and
+  Federation](#embeddings-references-and-federation)
+  - [8.1. Formats and Content/Media-Types](#formats-and-contentmedia-types)
+  - [8.2. Embeddings and Links](#embeddings-and-links)
+  - [8.3. Federation](#federation)
+    - [8.3.1. Composing registries in memory](#composing-registries-in-memory)
+    - [8.3.2. Shadowing](#shadowing)
+    - [8.3.3. Identifiers](#identifiers)
+    - [8.3.4. API Servers and Proxies](#api-servers-and-proxies)
+- [9. Possible Use Cases](#possible-use-cases)
+  - [9.1. CloudEvents](#cloudevents)
+  - [9.2. Business objects](#business-objects)
+  - [9.3. Metadata files in repositories](#metadata-files-in-repositories)
+- [10. Design decisions or topics of
+  interest](#design-decisions-or-topics-of-interest)
+  - [10.1. Resource.ID vs Resource.Version.ID](#resourceid-vs-resourceversionid)
+  - [10.2. Valid Characters](#valid-characters)
+  - [10.3. Extensions](#extensions)
+  - [10.4. Group organization](#group-organization)
+  - [10.5. Deleting entities](#deleting-entities)
+  - [10.6. Detection of Referenced
+    Resources](#detection-of-referenced-resources)
+  - [10.7. Shared/Referenced Resources](#sharedreferenced-resources)
+  - [10.8. Default Version and Maximum
+    Versions](#default-version-and-maximum-versions)
+  - [10.9. Why Epoch?](#why-epoch)
+  - [10.10. Naming and Case Sensitivity](#naming-and-case-sensitivity)
+  - [10.11. Why are Group and Resource type names more
+    restricted?](#group-resource-type-name-limits)
+  - [10.12. Choosing unique Group and Resource
+    names](#choosing-unique-group-and-resource-names)
+  - [10.13. Are `self` and `shortself` attributes
+    static?](#are-self-and-shortself-attributes-static)
+  - [10.14. Why does an unknown query parameter not generate an
+    error?](#why-does-an-unknown-query-parameter-not-generate-an-error)
+  - [10.15. Updating attributes with
+    `ifvalues`](#updating-attributes-with-ifvalues)
+  - [10.16. Multi-root ancestor hierarchies](#multi-root-ancestor-hierarchies)
+  - [10.17. `singleversionroot` Policy
+    Enforcement](#singleversionroot-policy-enforcement)
+  - [10.18. Pruning Versions with `singleversionroot`
+    enabled](#pruning-versions-with-singleversionroot-enabled)
+  - [10.19. What's the oldest/newest Version of a
+    Resource?](#whats-the-oldestnewest-version-of-a-resource)
+  - [10.20. Can `validatecompatibility` and `validateformat` be `true` for
+    file-servers?](#validation-for-file-servers)
+  - [10.21. Detecting circular references between
+    Versions](#detecting-circular-references-between-versions)
+  - [10.22. Optional required fields in
+    requests](#optional-required-fields-in-requests)
+  - [10.23. Deprecation of entities in an
+    xRegistry](#deprecation-of-entities-in-an-xregistry)
+- [11. Problematic characters in values](#problematic-characters-in-values)
+- [12. Why do Resources have 3 levels of
+  data?](#why-do-resources-have-3-levels-of-data)
+- [13. Why are some (conditional) read-only attributes not
+  ignored?](#why-are-some-conditional-read-only-attributes-not-ignored)
+- [14. Why isn't `PUT` idempotent?](#why-isnt-put-idempotent)
+- [15. Validation edge cases](#validation-edge-cases)
+  - [15.1. Empty format capabilities](#empty-format-capabilities)
+  - [15.2. Constraints and `matchversions`](#constraints-and-matchversions)
 
 
 ## 3. A Quick Introduction to xRegistry
@@ -172,7 +191,8 @@ defines (e.g. `endpoints`, `messages`) - they're not literal.
 #### 3.2.1. Reading things
 
 A plain `GET` on a Registry, Group, metadata-only Resource, or Version returns
-its metadata as JSON. Document Resources are the exception described in
+its metadata as JSON. Resources with domain-specific documents, called
+Document Resources in the core specification, are the exception described in
 section 3.2.3.
 
 ```
@@ -243,8 +263,10 @@ xRegistry metadata (`epoch`, `name`, etc.).
   **metadata** as JSON instead (with the document's metadata such as
   `contenttype`, but not the document body itself).
 
-For `PUT`, `PUT .../msg1` with a raw body sets the document content, while
-`PUT .../msg1$details` with a JSON body updates only the metadata.
+For `PUT`, `PUT .../msg1` with a raw body sets the document content.
+`PUT .../msg1$details` accepts a JSON Resource body and can update both metadata
+and document content. The document can be supplied through the `message`,
+`messagebase64`, or `messageurl` attribute.
 
 If a Resource type doesn't have its own separate document (just metadata),
 then `$details` isn't needed - plain requests just return the metadata.
@@ -361,6 +383,15 @@ This model is sufficient to create Groups and Resources. The full model
 specification covers constraints, versioning policies, `xid` targets,
 `ifvalues`, and other advanced scenarios; see [`model.md`](./model.md).
 
+### 3.4. Where to go next
+
+- [`spec.md`](./spec.md) - the full core specification (concepts, entities,
+  capabilities).
+- [`http.md`](./http.md) - the full HTTP binding (every API, header, and
+  query parameter in detail).
+- [`model.md`](./model.md) - the full model specification (every model
+  attribute and option).
+
 ## 4. History
 
 The CNCF Serverless Working group was originally created by the CNCF's Technical
@@ -381,7 +412,7 @@ xRegistry provides a specification to define metadata and extensions for
 resources in an abstract model that can be used to centralize and standardize
 information about resources in a system. The core specification defines the
 basic building blocks for managing metadata about resources and provides
-multiple formats to [represent](#8-representations) this information.
+multiple formats to [represent](#representations) this information.
 
 xRegistry can be used to represent any type of metadata, as long as it adheres
 to the basic model in which a registry consists of groups, which in turn
@@ -389,7 +420,7 @@ consists of multiple resources which can have multiple versions defined. This
 model is useful for any metadata that is crucial to the operation of a system or
 helps facilitate the interaction between systems. The use cases for xRegistry
 are therefore very broad. See
-[possible use cases](#10-possible-use-cases) for more examples.
+[possible use cases](#possible-use-cases) for more examples.
 
 In addition to the core specification, xRegistry provides secondary
 specifications for [endpoints](../endpoint/spec.md),
@@ -420,7 +451,7 @@ the xRegistry resource model. This provides consistent metadata and
 cross-references while the source registries remain authoritative. For example,
 a container image can contain an application, published as a package, that
 exposes an endpoint for events with particular payload schemas. Section
-[8.3.4](#934-api-servers-and-proxies) explains how an xRegistry API can project
+[8.3.4](#api-servers-and-proxies) explains how an xRegistry API can project
 resources managed by another registry.
 
 ### 5.2. Discovery
@@ -429,10 +460,11 @@ One of the pain points of event-driven systems is the need to create and
 maintain documentation about endpoints and the events they expose, enabling
 consumers from other teams or even other organizations to find the information
 they need. A centralized registry gives teams one place to discover and query
-endpoints and the events they produce or consume. Extensions can describe these
-events in more detail, including which metadata are required. Descriptions can
-also be written for people rather than tools, so developers, data analysts, and
-business analysts can use the same registry.
+endpoints and the events they produce or consume. Extensions can add
+domain-specific metadata that describes these events in greater detail. An
+extension's model can declare which of those attributes are required.
+Descriptions can also be written for people rather than tools, so developers,
+data analysts, and business analysts can use the same registry.
 
 ### 5.3. Vendor-agnostic
 
@@ -475,15 +507,17 @@ published and reject events that do not conform to the schema for that context.
 ### 5.6. Payload reduction
 
 Schema information enables real-time analysis of incoming data based on its
-context. Applications therefore often use serialization formats such as JSON
-that carry structural information in each payload. With that information
-available from a centralized registry, applications can use lighter-weight
-serialization formats and reduce bandwidth without giving up contextual
-analysis.
+context. Self-describing encodings such as JSON repeat field names and other
+structural information in each payload. When applications can resolve the
+applicable schema through registry metadata, they can use compact serialization
+formats that omit this repetition without giving up contextual analysis.
+Generated contracts can be created on demand or published alongside a model
+version as reusable libraries, allowing consumers to use them without
+installing the generator tooling.
 
 ### 5.7. Schema-based contract and client generation
 
-The [file and API representations](#8-representations) can both supply versioned
+The [file and API representations](#representations) can both supply versioned
 model input to code generators. Teams can generate the data contracts needed to
 interact with endpoints instead of maintaining shared packages for those
 contracts by hand. A schema in a
@@ -493,8 +527,12 @@ consumers reduce the amount of contract code that teams must write and test.
 Clemens Vasters built a proof-of-concept that shows this approach in
 the [Avrotize VS Code Extension](https://github.com/clemensv/avrotize).
 
-<a id="59-basis-for-further-developments"></a>
+<a id="basis-for-further-developments"></a>
 ### 5.8. Basis for further developments
+
+The core xRegistry resource model is independent of messaging protocols.
+Domain-specific specifications can describe resources associated with MQTT,
+HTTP, Kafka, AMQP, or other protocols without changing that common model.
 
 CloudEvents serve as a mechanism to aid in the delivery of events from a
 producer to a consumer, which is applicable independently of the protocol (MQTT,
@@ -508,17 +546,17 @@ needed to define event flows. Those flows can then be discovered directly
 instead of reconstructed from manually maintained documentation or observed
 runtime behavior.
 
-<a id="7-design-goals"></a>
-<a id="71-non-goals"></a>
+<a id="design-goals"></a>
+<a id="non-goals"></a>
 ## 6. Non-Goals
 
 - **Authentication and Authorization:** Rely on established security standards
   depending on the registry representation.
-- **Relationships between event channels:** Focus on precisely describing a
-  single event channel before standardizing the relationships between event
-  channels.
+- **Relationships between event channels:** The Endpoint specification focuses
+  on describing individual event channels and does not standardize relationships
+  between them.
 
-<a id="8-representations"></a>
+<a id="representations"></a>
 ## 7. Representations
 
 An xRegistry can be represented as a JSON file, a static file server, or an API
@@ -526,12 +564,12 @@ server. Resources
 (user-supplied data) will most often be embedded in the registry, but the
 resource metadata might also point to an external location where such data
 exists; also see the discussion about [embeddings and
-references](#9-embeddings-references-and-federation).
+references](#embeddings-references-and-federation).
 
 The representations are symmetric so that data can move between them. Choose a
-representation according to the required write path and deployment model.
+representation based on how the registry will be updated and deployed.
 
-<a id="81-file"></a>
+<a id="file"></a>
 ### 7.1. File
 
 The registry is represented as a single JSON file.
@@ -554,7 +592,7 @@ raised events.
 Writing a registry by hand is useful for learning or small projects. Larger or
 shared registries will usually need tooling or an API server.
 
-<a id="82-static-file-server"></a>
+<a id="static-file-server"></a>
 ### 7.2. Static File Server
 
 The registry is represented by multiple JSON files, where each one represents a
@@ -565,8 +603,9 @@ This representation allows clients to retrieve individual entities instead of
 the entire registry as one JSON document. It can also serve data exported from
 an API server.
 
-It requires storage but no continuously running compute. For example, an
-xRegistry can be hosted on GitHub Pages, much like a Helm registry.
+It requires storage but no continuously running compute. For example, the
+[xRegistry specification registry](https://xregistry.io/xreg/) is hosted on
+GitHub Pages.
 
 Since the static file server is read-only, adding resources to the registry is
 only possible by rebuilding the server and file structure, e.g. via pipelines.
@@ -575,7 +614,7 @@ filtering, you might consider using the API server instead. Adding server logic
 to the static file server to make up for the features of the API server is
 considered an anti pattern.
 
-<a id="83-api-server"></a>
+<a id="api-server"></a>
 ### 7.3. API Server
 
 An API server suits registries shared by multiple teams, especially when
@@ -589,7 +628,7 @@ Running the API server requires you to set up a host and a persistence
 layer and maintain both. Start with this representation when direct writes,
 authorization, or server-side queries are already required.
 
-<a id="9-embeddings-references-and-federation"></a>
+<a id="embeddings-references-and-federation"></a>
 ## 8. Embeddings, References, and Federation
 
 The purpose of a registry is to act as a catalog more than as a container.
@@ -609,7 +648,7 @@ The model declares document metadata but does not define the document's
 internal shape. Implementations may interpret and validate that shape according
 to `format`.
 
-<a id="91-formats-and-contentmedia-types"></a>
+<a id="formats-and-contentmedia-types"></a>
 ### 8.1. Formats and Content/Media-Types
 
 `format` and the supported values are a convention chosen for this
@@ -632,13 +671,13 @@ that are under its own control. If a document is external, meaning that the
 resource entry does not embed it but links to it, the document might change at
 the external location without the registry knowing.
 
-<a id="12-the-format-attribute-in-the-schema-spec"></a>
-The Schema specification requires `format` when `compatibility` is anything
-other than `none`, even when an implementation supports only one format. This
-keeps the format explicit in exports so that another server, including one that
-supports several formats, can import them without ambiguity.
+<a id="the-format-attribute-in-the-schema-spec"></a>
+The Schema specification requires `format` when `compatibility` is present,
+even when an implementation supports only one format. This keeps the format
+explicit in exports so that another server, including one that supports several
+formats, can import them without ambiguity.
 
-<a id="92-embeddings-and-links"></a>
+<a id="embeddings-and-links"></a>
 ### 8.2. Embeddings and Links
 
 When the resource is declared to be a document, it can be stored inside the
@@ -671,37 +710,39 @@ The URL can identify an HTTP resource or a file-system location, which allows
 documents in an existing registry or public repository to remain in place. The
 `format` and `contenttype` information still needs to exist in xRegistry so
 that clients can interpret the document before resolving it. The registry does
-not resolve the URL or load the content; clients do that.
+not resolve the URL or load the content; clients do that. API servers can also
+use external links when proxying content from non-xRegistry registries; see
+[API Servers and Proxies](#api-servers-and-proxies).
 
-<a id="93-federation"></a>
+<a id="federation"></a>
 ### 8.3. Federation
 
 xRegistry does not have a synchronization API, by intent. Since xRegistry is
 both a document format model and an API, the integration of multiple registries
 ("federation") does not rely on making copies but is intended to work via
-cross-referencing and "shadowing" across the [representations](#8-representations)
+cross-referencing and "shadowing" across the [representations](#representations)
 described earlier.
 
-<a id="931-composing-registries-in-memory"></a>
+<a id="composing-registries-in-memory"></a>
 #### 8.3.1. Composing registries in memory
 
-A registry document, whether a single [file](#81-file) or the root of a
-[static file server](#82-static-file-server) layout, is meant to be loaded into
-an application as a local, in-memory registry. A registry document used on its
-own must embed a model to be valid. A server may nevertheless accept source
-input that contains only resources and metadata, supply a model it already
-knows, and construct a valid registry from both. There are several examples of
-such source documents in the
+A registry document, whether a single [file](#file) or the root of a
+[static file server](#static-file-server) layout, is meant to be loaded into
+an application as a local, in-memory registry. For standalone use, a registry
+document embeds its model. A server may instead accept source input that
+contains only resources and metadata, supply a model it already knows, and
+construct a registry from both. There are several examples of such source
+documents in the
 [cloudevents/samples](../cloudevents/samples/README.md) folder.
 
 When the registry is split across multiple files in a folder structure, the
 application can load the root document and traverse `<RESOURCE>url` links to
 individual documents on demand, building an in-memory view that combines the
 root document with only those branches that are relevant to the application. The
-same applies when the root sits behind an [API server](#83-api-server) or proxy:
+same applies when the root sits behind an [API server](#api-server) or proxy:
 the client fetches and caches just the branches it needs.
 
-<a id="932-shadowing"></a>
+<a id="shadowing"></a>
 #### 8.3.2. Shadowing
 
 Federation in xRegistry is intended to be built on *shadowing*: an application's
@@ -731,7 +772,7 @@ composition and shadowing is the best approach to federation, but the project
 will need to gain more experience with it in practice before it can be
 formalized.
 
-<a id="933-identifiers"></a>
+<a id="identifiers"></a>
 #### 8.3.3. Identifiers
 
 For shadowing and cross-referencing to work, identifiers need to be stable
@@ -748,7 +789,7 @@ regardless of which registry hosts it. For example, an application in a private
 network may resolve the URI against a local registry when it cannot reach the
 public registry.
 
-<a id="934-api-servers-and-proxies"></a>
+<a id="api-servers-and-proxies"></a>
 #### 8.3.4. API Servers and Proxies
 
 An API server can also act as a proxy that presents multiple underlying
@@ -762,10 +803,10 @@ Shadowing applies here too: any API client can shadow the API server with a
 local registry to add or modify entries without affecting the underlying
 registry, and a proxying API server can do the same on behalf of its clients.
 
-<a id="10-possible-use-cases"></a>
+<a id="possible-use-cases"></a>
 ## 9. Possible Use Cases
 
-<a id="101-cloudevents"></a>
+<a id="cloudevents"></a>
 ### 9.1. CloudEvents
 
 Since xRegistry emerged from the CloudEvents project and initially was called
@@ -777,7 +818,7 @@ specific use-case even though the original spec marks them as optional. In
 addition, the `dataschema` attribute of a CloudEvent can then point to a
 xRegistry schema document making this two projects that work hand in hand.
 
-<a id="102-business-objects"></a>
+<a id="business-objects"></a>
 ### 9.2. Business objects
 
 When defining the schemas of business objects in an enterprise, xRegistry can be
@@ -785,17 +826,17 @@ the schema store for these definitions. One can then reference them in a data
 catalogue as well as in OpenAPI and AsyncAPI documents without repeating the
 schemas for the actual business objects.
 
-<a id="103-metadata-files-in-repositories"></a>
+<a id="metadata-files-in-repositories"></a>
 ### 9.3. Metadata files in repositories
 
-The [file representation](#81-file) supports a repository-level manifest similar
+The [file representation](#file) supports a repository-level manifest similar
 to `package.json`. Such a manifest can list the repository's metadata files and
 provide machine-readable access to project dependencies and configuration.
 
-<a id="11-design-decisions-or-topics-of-interest"></a>
+<a id="design-decisions-or-topics-of-interest"></a>
 ## 10. Design decisions or topics of interest
 
-<a id="111-resourceid-vs-resourceversionid"></a>
+<a id="resourceid-vs-resourceversionid"></a>
 ### 10.1. Resource.ID vs Resource.Version.ID
 
 Resources, like all xRegistry entities, have unique `id` values. Resource
@@ -815,12 +856,12 @@ xRegistry model. As a result, implementations might want to avoid using `id`
 values that could appear on a Resource and one of its Versions simply to avoid
 potential confusion for their end-users.
 
-<a id="112-valid-characters"></a>
+<a id="valid-characters"></a>
 ### 10.2. Valid Characters
 
 Attribute names appear in JSON objects, HTTP headers, URLs, and generated code.
 The specification therefore uses a restricted character set that works across
-those contexts. Section [10.10](#1111-naming-and-case-sensitivity) explains the
+those contexts. Section [10.10](#naming-and-case-sensitivity) explains the
 casing rules. Section 10.11 explains the additional restrictions on Group and
 Resource type names.
 
@@ -832,25 +873,25 @@ for that behavior.
 Map keys allow more characters than attribute names because they are normally
 stored as strings rather than mapped to named fields in code structures.
 
-<a id="113-extensions"></a>
+<a id="extensions"></a>
 ### 10.3. Extensions
 
 Extensions SHOULD be defined in the model. A model can also define a `*`
 extension to allow attributes supplied at runtime. Extension names follow the
-[valid character](#112-valid-characters) and
-[casing](#1111-naming-and-case-sensitivity) rules for all attributes.
+[valid character](#valid-characters) and
+[casing](#naming-and-case-sensitivity) rules for all attributes.
 
 Required aspects apply at each level of a nested extension. In particular,
 `clientrequired=true` also requires `serverrequired=true`; otherwise the model
 is invalid.
 
-<a id="119-potential-extensions"></a>
+<a id="potential-extensions"></a>
 Implementations that track the identity responsible for a change might define
 `createdby` and `modifiedby` extensions alongside `createdat` and `modifiedat`.
 The core specification does not define them because it does not define
 authentication or identity tracking.
 
-<a id="114-group-organization"></a>
+<a id="group-organization"></a>
 ### 10.4. Group organization
 
 Groups are intentionally a single organizational dimension above Resources:
@@ -874,7 +915,7 @@ Versions, for example `stage=dev`, `team=payments`, or `tier=gold`. Server
 implementations may support filtering and lookup by labels; see the filter
 examples in the core specification.
 
-<a id="115-deleting-entities"></a>
+<a id="deleting-entities"></a>
 ### 10.5. Deleting entities
 
 The "delete" operation typically has two variants:
@@ -903,7 +944,7 @@ delete multiple entities. For collection deletion:
   Version isn't being deleted. Note that a `404` in the `DELETE .../<ID>` case
   is an error and no changes to the "default" Version will occur.
 
-<a id="116-detection-of-referenced-resources"></a>
+<a id="detection-of-referenced-resources"></a>
 ### 10.6. Detection of Referenced Resources
 
 The xRegistry specification allows for Resources to appear in multiple Groups
@@ -919,7 +960,7 @@ some kind of "xref counter" extension on the target Resource. The specification
 might consider adding some feature to address this in the future, but as of now
 it is left as an implementation choice.
 
-<a id="117-sharedreferenced-resources"></a>
+<a id="sharedreferenced-resources"></a>
 ### 10.7. Shared/Referenced Resources
 
 Beyond detecting dangling references, users need to decide how shared Resources
@@ -935,7 +976,7 @@ Additionally, how the implementation of the xRegistry manages
 access-control-rights of Resources (often via Groups) might influence the
 initial placement into a Group of a new Resource.
 
-<a id="118-default-version-and-maximum-versions"></a>
+<a id="default-version-and-maximum-versions"></a>
 ### 10.8. Default Version and Maximum Versions
 
 Each Resource type can specify the maximum number of Versions that the
@@ -971,7 +1012,7 @@ Let's walk through a complex example:
 - The result is: v8 regardless of whether v8 was created with isdefault=true or
   not
 
-<a id="1110-why-epoch"></a>
+<a id="why-epoch"></a>
 ### 10.9. Why Epoch?
 
 Why such an unusual name? As the specification describes, `epoch` is used as a
@@ -991,7 +1032,7 @@ they know what it means due to some other usage in this technology space
 seemed unlikely. In fact, use of this word might pique people's curiosity
 and cause them to look it up in the specification to find out more about it.
 
-<a id="1111-naming-and-case-sensitivity"></a>
+<a id="naming-and-case-sensitivity"></a>
 ### 10.10. Naming and Case Sensitivity
 
 The following explains some of the reasoning behind the casing and case
@@ -1057,7 +1098,7 @@ sensitivity rules in the specification.
   The specification therefore requires case-sensitive lookup while prohibiting
   IDs that differ only by case within the same parent.
 
-<a id="1112-why-the-lower-character-limit-on-some-group-and-resource-type-names"></a>
+<a id="group-resource-type-name-limits"></a>
 ### 10.11. Why are Group and Resource type names more restricted?
 
 Attribute names and key names are limited to 63 characters, so why are some
@@ -1068,12 +1109,12 @@ we need to take into account the length of those phrases. As a result, both
 Group and Resource type names (both singular and plural) are limited to
 57 characters.
 
-<a id="1113-why-must-group-type-and-resource-type-names-be-valid-attribute-names"></a>
+<a id="why-group-resource-type-names-are-limited"></a>
 Since Group type and Resource type names will appear as attribute names (e.g.
 `<GROUPS>count` and `<RESOURCE>url`), the character set (and length) of their
 names need to be restricted in the same way as a attribute names.
 
-<a id="1114-choosing-unique-group-and-resource-names"></a>
+<a id="choosing-unique-group-and-resource-names"></a>
 ### 10.12. Choosing unique Group and Resource names
 
 Aside from choosing names that give some descriptive meaning to the purpose
@@ -1084,11 +1125,11 @@ name collisions with other similarly named entities. This might be useful
 for Resource names too (if they might co-exist under shared Groups), but
 normally ensuring uniqueness at the Group level is sufficient.
 
-<a id="17-defining-extensions"></a>
+<a id="defining-extensions"></a>
 The same collision guidance applies to model extensions and new APIs; their
 names should remain clear of future xRegistry additions.
 
-<a id="1115-are-self-and-shortself-attributes-static"></a>
+<a id="are-self-and-shortself-attributes-static"></a>
 ### 10.13. Are `self` and `shortself` attributes static?
 
 In general any URL reference to an entity in the Registry should remain
@@ -1106,7 +1147,7 @@ values need to change.
 Obviously, situations like these should be rare but the specification needs
 to allow for them.
 
-<a id="1116-why-does-an-unknown-query-parameter-not-generate-an-error"></a>
+<a id="why-does-an-unknown-query-parameter-not-generate-an-error"></a>
 ### 10.14. Why does an unknown query parameter not generate an error?
 
 People have identified cases where query parameters might be added to request
@@ -1119,7 +1160,7 @@ the authors chose to have the server ignore unknown query parameters. The
 specification says they SHOULD be ignored, not that they MUST be ignored. An
 implementation can reject them, but doing so risks interoperability problems.
 
-<a id="1117-updating-attributes-with-ifvalues"></a>
+<a id="updating-attributes-with-ifvalues"></a>
 ### 10.15. Updating attributes with `ifvalues`
 
 The `ifvalues` feature might be a new concept for some readers, so a point
@@ -1137,14 +1178,14 @@ in the entity in order to be model compliant.
 Likewise, implementations of the server must validate the entire entity
 against the new model, not just a subset of the entity's attributes.
 
-<a id="1118-multi-root-ancestor-hierarchies"></a>
+<a id="multi-root-ancestor-hierarchies"></a>
 ### 10.16. Multi-root ancestor hierarchies
 
 The [`ancestorid` attribute](./spec.md#ancestorid-attribute) builds a Version
 hierarchy for compatibility checking when the
 [`compatibility` attribute](./spec.md#compatibility-attribute) is set. Some
 use cases need multiple roots. Pruning can also create additional roots;
-section [10.18](#1120-pruning-versions-with-singleversionroot-enabled)
+section [10.18](#pruning-versions-with-singleversionroot-enabled)
 describes the case in which `singleversionroot` prevents that operation.
 
 To signal that a Version represents a root of a hierarchy, the `ancestorid`
@@ -1153,7 +1194,7 @@ makes the ancestor explicit, and the possible ambiguity of using another
 value such as null which, based on the scenario, could mean "no ancestor" or
 "default to the newest".
 
-<a id="1119-singleversionroot-policy-enforcement"></a>
+<a id="singleversionroot-policy-enforcement"></a>
 ### 10.17. `singleversionroot` Policy Enforcement
 
 Related to the previous discussions concerning the `ancestorid` attribute,
@@ -1187,7 +1228,7 @@ These examples are not meant to be complete. The flexibility of the
 specification allows for model authors to choose the most appropriate value
 for their needs.
 
-<a id="1120-pruning-versions-with-singleversionroot-enabled"></a>
+<a id="pruning-versions-with-singleversionroot-enabled"></a>
 ### 10.18. Pruning Versions with `singleversionroot` enabled
 
 There are cases in which the server will need to prune Versions. For
@@ -1213,7 +1254,7 @@ creation of a new Version. To resolve this, the user will have to manually
 delete v2 or v3 to allow the server to prune the oldest Version (v1) before
 creating a new Version.
 
-<a id="1121-whats-the-oldestnewest-version-of-a-resource"></a>
+<a id="whats-the-oldestnewest-version-of-a-resource"></a>
 ### 10.19. What's the oldest/newest Version of a Resource?
 
 The oldest Version of a Resource isn't necessarily the one with the oldest
@@ -1232,7 +1273,7 @@ Versions exist with the same `createdat` timestamp, those Versions are
 sorted in an descending alphabetical order, and the first is the newest
 Version.
 
-<a id="1122-can-validatecompatibility-and-validateformat-be-true-for-file-servers"></a>
+<a id="validation-for-file-servers"></a>
 ### 10.20. Can `validatecompatibility` and `validateformat` be `true` for file-servers?
 
 `validatecompatibility` and `validateformat` report both policy and validation
@@ -1244,7 +1285,7 @@ For example, an API server can validate data before exporting it to a file
 server. Clients can then use either representation without needing to account
 for that deployment choice.
 
-<a id="1123-detecting-circular-references-between-versions"></a>
+<a id="detecting-circular-references-between-versions"></a>
 ### 10.21. Detecting circular references between Versions
 
 The specification mentions that the Version's `ancestorid` attribute should not
@@ -1265,7 +1306,7 @@ checking, they may need to add extra logic to ensure they don't go caught in
 an infinite loop. Additionally, implementations should also document that they
 do not enforce this check to set the proper expectation levels for their users.
 
-<a id="1124-optional-required-fields-in-requests"></a>
+<a id="optional-required-fields-in-requests"></a>
 ### 10.22. Optional required fields in requests
 
 One of the design principles of the specification was to try to make each
@@ -1303,7 +1344,7 @@ messages (aside from when special flags, like the `?doc` flag, is enabled)
 must include all required attributes, even if they are duplicated elsewhere
 in the message.
 
-<a id="1125-deprecation-of-entities-in-an-xregistry"></a>
+<a id="deprecation-of-entities-in-an-xregistry"></a>
 ### 10.23. Deprecation of entities in an xRegistry
 
 The core specification defines a `deprecated` attribute that may appear
@@ -1319,7 +1360,7 @@ defined in the core specification for consistency. The Endpoint
 [specification](../endpoint/spec.md) does exactly this to indicate when an
 Endpoint (i.e. a Group) is deprecated.
 
-<a id="13-problematic-characters-in-values"></a>
+<a id="problematic-characters-in-values"></a>
 ## 11. Problematic characters in values
 
 Attribute values can be used outside the scope of the xRegistry specification.
@@ -1331,7 +1372,7 @@ Tooling must decide how to handle such cases. It can convert or escape the
 value, reject it, or require the user to choose a value that is valid in the
 target system. The specification does not prescribe that behavior.
 
-<a id="14-why-do-resources-have-3-levels-of-data"></a>
+<a id="why-do-resources-have-3-levels-of-data"></a>
 ## 12. Why do Resources have 3 levels of data?
 
 Resource attributes are split into 3 categories:
@@ -1396,7 +1437,7 @@ Version should be driven by whether the use cases being supported by the
 Resource type definition requires that attribute to be consistent across all
 Versions or have a Version-specific value.
 
-<a id="15-why-are-some-conditional-read-only-attributes-not-ignored"></a>
+<a id="why-are-some-conditional-read-only-attributes-not-ignored"></a>
 ## 13. Why are some (conditional) read-only attributes not ignored?
 
 Attributes that are always defined as "read-only" normally have semantics such
@@ -1418,7 +1459,7 @@ aspect set to `false` then the `meta.defaultversionid` attribute of instances
 of that Resource becomes "read-only". And any attempt to update it will result
 in an error being generated.
 
-<a id="16-why-isnt-put-idempotent"></a>
+<a id="why-isnt-put-idempotent"></a>
 ## 14. Why isn't `PUT` idempotent?
 
 As stated in the [core](./spec.md) specification, the `PUT` operations are
@@ -1431,15 +1472,15 @@ of check on all attributes to determine if anything changed, and then only
 expensive or ambiguous check to perform, so it was determined it would be best
 to avoid it all together.
 
-<a id="18-validation-edge-cases"></a>
+<a id="validation-edge-cases"></a>
 ## 15. Validation edge cases
 
 Sections [5.5](#55-schema-validation) and
-[8.1](#91-formats-and-contentmedia-types) explain the purpose and boundaries of
+[8.1](#formats-and-contentmedia-types) explain the purpose and boundaries of
 validation. The following cases cover two less obvious interactions between
 validation settings.
 
-<a id="181-empty-format-capabilities"></a>
+<a id="empty-format-capabilities"></a>
 ### 15.1. Empty format capabilities
 
 If a Resource model sets both `validateformat` and `strictvalidation` to `true`,
@@ -1451,7 +1492,7 @@ unusable Resource type if its model enables those aspects and clients supply
 `format`.
 
 <a id="constraints-and-matchversions-features"></a>
-<a id="182-constraints-and-matchversions"></a>
+<a id="constraints-and-matchversions"></a>
 ### 15.2. Constraints and `matchversions`
 
 `constraints` and `matchversions` validate only scalar attributes in objects.
