@@ -728,8 +728,10 @@ Note that this feature has similar results to setting the Resource attribute's
 - MUST be unique across all Resources (plural and singular names) within the
   scope of its owning Group type.
 - When `hasdocument` is `true`, the derived `<RESOURCE>`, `<RESOURCE>base64`,
-  and `<RESOURCE>url` Version attribute names MUST NOT collide with
-  specification-defined Version attribute names.
+  and `<RESOURCE>url` Version attribute names MUST NOT collide with Version
+  attributes defined by the Core specification or an extension specification.
+  For example, a Schema Registry Resource named `format` would collide with
+  the Schema specification's `format` Version attribute.
 
 ### `groups.<STRING>.resources.<STRING>.description`
 - Type: String.
