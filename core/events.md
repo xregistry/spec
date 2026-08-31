@@ -27,7 +27,7 @@ to consumers, nor does it mandate how consumers register interest in receiving
 events.
 
 Below is a sample event serialized as a "structured" JSON CloudEvent due to a
-Group's `name` being changed:
+Group's `name` being modified:
 
 ```yaml
 {
@@ -39,6 +39,7 @@ Group's `name` being changed:
   "time": "2025-09-01T12:01:02Z",
   "xregcorrelationid": "B9282-129301",
   "data": {
+    "epoch": 5,
     "changed": [ "epoch", "modifiedat", "name" ]
   }
 }
@@ -89,6 +90,7 @@ Implementations MAY define additional metadata.
 
 The type of action taken on the entity. The value MUST be of the form:
     `io.xregistry.<ENTITY>.<ACTION>`
+
 where:
 - `<ENTITY>` is the type of xRegistry entity
   ([`subject`](#cloudevent-subject-core-context-attribute)) that was acted
@@ -176,38 +178,61 @@ When present, and serialized in JSON, the `data` MUST be of the form:
 
 ```yaml
 {
+  "epoch": UINTEGER, ?
+  "meta.epoch": UINTEGER, ?
   "changed": [ "<STRING>", * ] ?
 }
 ```
 
-The `changed` attribute, when present, has the following constraints:
-- MUST be a list of the top-level attribute names (not values) that were
-  added, modified, or deleted for the `subject` entity.
+where:
+- The `epoch` attribute MUST be included in `created` and `updated` events
+  for Registries, Groups, Resources and Versions; and it MUST be the `subject`
+  entity's `epoch` value as seen at the end of the interaction.
 
-- This attribute MUST NOT appear on the `created` or `deleted` events.
+  - MUST NOT be included in `deleted` events.
 
-- This specification does not mandate any particular order for the attribute
-  names in the array.
+- The `meta.epoch` attribute MUST be include in Resource `created` and
+  `updated` events and it MUST be the `subject` Resource's `meta.epoch` value
+  as seen at the end of the interaction.
 
-There are certain events where non-top-level attributes are included, and
-those will be noted in the [Entity Events](#entity-events) sections below.
-When they do appear they MUST use the
-[xRegistry Dot (`.`) Notation](spec.md#xregistry-dot--notation) to express the
-traversal to the attribute of interest.
+  - MUST only be included for Resource related events.
 
-If an entity is updated for multiple reasons during the processing of an
-interaction, per the rules previously stated, there MUST only be one `updated`
-event be generated. This means the attribute names of all impacted attributes
-MUST be merged into one `changed` list.
+  - MUST NOT be included in Resource `deleted` events.
 
-While `changed` is OPTIONAL, it is RECOMMENDED to be present on an event where
-it is permitted due to its usefulness for consumers. However, if exposure of
-this information would be inappropriate for some scenarios then it MAY be
-excluded. For example, for privacy/security reasons.
+  - Note that Resource `created` and `updated` events will include both
+    `epoch` and `meta.epoch` attributes even one of them didn't change for
+    the interaction.
 
-While this specification only shows `data` being present when `changed` is
-permitted, implementations MAY define their own metadata to be included
-in the `data` of a CloudEvent.
+- The `changed` attribute MAY be included to indicate which attribute of the
+  `subject` entity were modified. When present, has the following
+  constraints:
+
+  - MUST be a list of the top-level attribute names (not values) that were
+    added, modified, or deleted for the `subject` entity.
+
+  - This attribute MUST NOT appear on the `created` or `deleted` events.
+
+  - This specification does not mandate any particular order for the attribute
+    names in the array.
+
+  - There are certain events where non-top-level attributes are included, and
+    those will be noted in the [Entity Events](#entity-events) sections below.
+    When they do appear they MUST use the
+    [xRegistry Dot (`.`) Notation](spec.md#xregistry-dot--notation) to express
+    the traversal to the attribute of interest.
+
+  - While `changed` is OPTIONAL, it is RECOMMENDED to be present on an event
+    where it is permitted due to its usefulness for consumers. However, if
+    exposure of this information would be inappropriate for some scenarios
+    then it MAY be excluded. For example, for privacy/security reasons.
+
+  - If an entity is updated for multiple reasons during the processing of an
+    interaction, per the rules previously stated, there MUST only be one
+    `updated` event be generated. This means the attribute names of all
+    impacted attributes MUST be merged into one `changed` list.
+
+Implementations MAY define their own metadata to be included in the `data` of
+a CloudEvent.
 
 This metadata (`data`) is NOT REQUIRED to be present in the event, but is
 RECOMMENDED.
@@ -476,8 +501,9 @@ the following model definition:
   - Body: `{ "name": "foo" }`
 - Events:
   - `io.xregistry.registry.updated`
-    - Subject: `/`
-    - Changed: `epoch`, `modifiedat`, `name`
+    - `subject`: `/`
+    - `epoch`: Registry's `epoch` value
+    - `changed`: `epoch`, `modifiedat`, `name`
 
 ### Create a tree of entities
 
@@ -487,14 +513,19 @@ the following model definition:
   - Body: `{}`
 - Events:
   - `io.xregistry.registry.updated`
-    - Subject: `/`
-    - Changed: `epoch`, `modifiedat`, `dirs`, `dirscount`
+    - `subject`: `/`
+    - `epoch`: Registry's `epoch` value
+    - `changed`: `epoch`, `modifiedat`, `dirs`, `dirscount`
   - `io.xregistry.group.created`
-    - Subject: `/dirs/d1`
+    - `subject`: `/dirs/d1`
+    - `epoch`: Group's `epoch` value
   - `io.xregistry.resource.created`
-    - Subject: `/dirs/d1/files/f1`
+    - `subject`: `/dirs/d1/files/f1`
+    - `epoch`: Resource's `epoch` value
+    - `meta.epoch`: Resource's `meta.epoch` value
   - `io.xregistry.version.created`
-    - Subject: `/dirs/d1/files/f1/versions/v1`
+    - `subject`: `/dirs/d1/files/f1/versions/v1`
+    - `epoch`: Version's `epoch` value
 
 ### Update a Resource attribute (a default Version attribute)
 
@@ -504,11 +535,14 @@ the following model definition:
   - Body: `{ "name": "foo" }`
 - Events:
   - `io.xregistry.resource.updated`
-    - Subject: `/dirs/d1/files/f1`
-    - Changed: `epoch`, `modifiedat`, `name`
+    - `subject`: `/dirs/d1/files/f1`
+    - `epoch`: Resource's `epoch` value (technically, default `v1`'s `epoch`)
+    - `meta.epoch`: Resource's `meta.epoch` value
+    - `changed`: `epoch`, `modifiedat`, `name`
   - `io.xregistry.version.updated`
-    - Subject: `/dirs/d1/files/f1/versions/v1`
-    - Changed: `epoch`, `modifiedat`, `name`
+    - `subject`: `/dirs/d1/files/f1/versions/v1`
+    - `epoch`: Version's `epoch` value
+    - `changed`: `epoch`, `modifiedat`, `name`
 
 ### Update a Resource's meta sub-object
 
@@ -517,8 +551,10 @@ the following model definition:
   - Body: `{ "compatibility": "backward" }`
 - Events:
   - `io.xregistry.resource.updated`
-    - Subject: `/dirs/d1/files/f1`
-    - Changed: `meta.epoch`, `meta.modifiedat`, `meta.compatibility`
+    - `subject`: `/dirs/d1/files/f1`
+    - `epoch`: Resource's `epoch` value (technically, the default Version's)
+    - `meta.epoch`: Resource's `meta.epoch` value
+    - `changed`: `meta.epoch`, `meta.modifiedat`, `meta.compatibility`
 
 ### Update a Resource's meta sub-object and deprecate the Resource
 
@@ -527,12 +563,14 @@ the following model definition:
   - Body: `{ "compatibility": "backward", "deprecated": {...} }`
 - Events:
   - `io.xregistry.resource.updated`
-    - Subject: `/dirs/d1/files/f1`
-    - Changed: `meta.epoch`, `meta.modifiedat`, `meta.compatibility`,
+    - `subject`: `/dirs/d1/files/f1`
+    - `epoch`: Resource's `epoch` value (technically, the default Version's)
+    - `meta.epoch`: Resource's `meta.epoch` value
+    - `changed`: `meta.epoch`, `meta.modifiedat`, `meta.compatibility`,
       `meta.deprecated`
   - `io.xregistry.resource.deprecation`
-    - Subject: `/dirs/d1/files/f1`
-    - Changed: `<DEPRECATED-ATTRIBUTES-CHANGED-IF-ANY>`
+    - `subject`: `/dirs/d1/files/f1`
+    - `changed`: `<DEPRECATED-ATTRIBUTES-CHANGED-IF-ANY>`
 
 ### Import an entire Registry
 
@@ -543,21 +581,26 @@ the following model definition:
     Resources, Versions
 - Events:
   - `io.xregistry.registry.updated`
-    - Subject: `/`
-    - Changed: `epoch`, `modifiedat`, `model`, `modelsource`, `capabilities`,
+    - `subject`: `/`
+    - `epoch`: Registry's `epoch` value
+    - `changed`: `epoch`, `modifiedat`, `model`, `modelsource`, `capabilities`,
       `<GROUPS>`, `<GROUPS>count`, `<OTHER-REGISTRY-ENTITY-ATTRIBUTES>`
   - `io.xregistry.model.updated`
-    - Subject: `/model`
+    - `subject`: `/model`
   - `io.xregistry.modelsource.updated`
-    - Subject: `/modelsource`
+    - `subject`: `/modelsource`
   - `io.xregistry.capabilities.updated`
-    - Subject: `/capabilities`
+    - `subject`: `/capabilities`
   - `io.xregistry.group.created` for each new Group
-    - Subject: `/dirs/d1`
+    - `subject`: `/dirs/d1`
+    - `epoch`: Group's `epoch` value
   - `io.xregistry.resource.created` for each new Resource
-    - Subject: `/dirs/d1/files/f1`
+    - `subject`: `/dirs/d1/files/f1`
+    - `epoch`: Resource's `epoch` value (technically, the default Version's)
+    - `meta.epoch`: Resource's `meta.epoch` value
   - `io.xregistry.version.created` for each new Version
-    - Subject: `/dirs/d1/files/f1/versions/v1`
+    - `epoch`: Version's `epoch` value
+    - `subject`: `/dirs/d1/files/f1/versions/v1`
 
 ### Create a new Version - non-sticky
 
@@ -567,12 +610,15 @@ the following model definition:
   - Body: `{}`
 - Events:
   - `io.xregistry.resource.updated`
-    - Subject: `/dirs/d1/files/f1`
-    - Changed: `meta.defaultversionid`, `meta.epoch`, `meta.modifiedat`,
+    - `subject`: `/dirs/d1/files/f1`
+    - `epoch`: Resource's `epoch` value (technically, the default Version's)
+    - `meta.epoch`: Resource's `meta.epoch` value
+    - `changed`: `meta.defaultversionid`, `meta.epoch`, `meta.modifiedat`,
       `versions`, `versionscount`,
       `<ALL-OLD-AND-NEW-DEFAULT-VERSION-ATTRIBUTES>`,
   - `io.xregistry.version.created`
-    - Subject: `/dirs/d1/files/f1/versions/v2`
+    - `epoch`: Version's `epoch` value
+    - `subject`: `/dirs/d1/files/f1/versions/v2`
 
 ### Create a new Version - sticky
 
@@ -582,10 +628,13 @@ the following model definition:
   - Body: `{}`
 - Events:
   - `io.xregistry.resource.updated`
-    - Subject: `/dirs/d1/files/f1`
-    - Changed: `meta.epoch`, `meta.modifiedat`, `versions`, `versionscount`
+    - `subject`: `/dirs/d1/files/f1`
+    - `epoch`: Resource's `epoch` value (technically, the default Version's)
+    - `meta.epoch`: Resource's `meta.epoch` value
+    - `changed`: `meta.epoch`, `meta.modifiedat`, `versions`, `versionscount`
   - `io.xregistry.version.created`
-    - Subject: `/dirs/d1/files/f1/versions/v2`
+    - `epoch`: Version's `epoch` value
+    - `subject`: `/dirs/d1/files/f1/versions/v2`
 
 ### Change `defaultversionid` pointer
 
@@ -595,8 +644,10 @@ the following model definition:
   - Body: `{ "defaultversionid": "v2" }`
 - Events:
   - `io.xregistry.resource.updated`
-    - Subject: `/dirs/d1/files/f1`
-    - Changed: `meta.defaultversionid`, `meta.epoch`, `meta.modifiedat`,
+    - `subject`: `/dirs/d1/files/f1`
+    - `epoch`: Resource's `epoch` value (technically, the default Version's)
+    - `meta.epoch`: Resource's `meta.epoch` value
+    - `changed`: `meta.defaultversionid`, `meta.epoch`, `meta.modifiedat`,
        `<ALL-OLD-AND-NEW-DEFAULT-VERSION-ATTRIBUTES>`
 
   Note that no `io.xregistry.version.updated` event is generated.
@@ -609,11 +660,14 @@ the following model definition:
   - Body: `{ "name": "foo" }`
 - Events:
   - `io.xregistry.resource.updated`
-    - Subject: `/dirs/d1/files/f1`
-    - Changed: `epoch`, `modifiedat`, `name`
+    - `subject`: `/dirs/d1/files/f1`
+    - `epoch`: Resource's `epoch` value (technically, the default Version's)
+    - `meta.epoch`: Resource's `meta.epoch` value
+    - `changed`: `epoch`, `modifiedat`, `name`
   - `io.xregistry.version.updated`
-    - Subject: `/dirs/d1/files/f1/versions/v1`
-    - Changed: `epoch`, `modifiedat`, `name`
+    - `subject`: `/dirs/d1/files/f1/versions/v1`
+    - `epoch`: Version's `epoch` value
+    - `changed`: `epoch`, `modifiedat`, `name`
 
 ### Update a Version attribute (not the default Version)
 
@@ -623,8 +677,9 @@ the following model definition:
   - Body: `{ "name": "foo" }`
 - Events:
   - `io.xregistry.version.updated`
-    - Subject: `/dirs/d1/files/f1/versions/v2`
-    - Changed: `epoch`, `modifiedat`, `name`
+    - `subject`: `/dirs/d1/files/f1/versions/v2`
+    - `epoch`: Version's `epoch` value
+    - `changed`: `epoch`, `modifiedat`, `name`
 
 ### Create a new Version - not sticky
 
@@ -634,12 +689,15 @@ the following model definition:
   - Body: `{}`
 - Events:
   - `io.xregistry.resource.updated`
-    - Subject: `/dirs/d1/files/f1`
-    - Changed: `meta.defaultversionid`, `meta.epoch`, `meta.modifiedat`,
+    - `subject`: `/dirs/d1/files/f1`
+    - `epoch`: Resource's `epoch` value (technically, the default Version's)
+    - `meta.epoch`: Resource's `meta.epoch` value
+    - `changed`: `meta.defaultversionid`, `meta.epoch`, `meta.modifiedat`,
        `versions`, `versionscount`,
        `<ALL-OLD-AND-NEW-DEFAULT-VERSION-ATTRIBUTES>`,
   - `io.xregistry.version.created`
-    - Subject: `/dirs/d1/files/f1/versions/v2`
+    - `subject`: `/dirs/d1/files/f1/versions/v2`
+    - `epoch`: Version's `epoch` value
 
 ### Create a new Version - sticky
 
@@ -649,10 +707,13 @@ the following model definition:
   - Body: `{}`
 - Events:
   - `io.xregistry.resource.updated`
-    - Subject: `/dirs/d1/files/f1`
-    - Changed: `meta.epoch`, `meta.modifiedat`, `versions`, `versionscount`
+    - `subject`: `/dirs/d1/files/f1`
+    - `epoch`: Resource's `epoch` value (technically, the default Version's)
+    - `meta.epoch`: Resource's `meta.epoch` value
+    - `changed`: `meta.epoch`, `meta.modifiedat`, `versions`, `versionscount`
   - `io.xregistry.version.created`
-    - Subject: `/dirs/d1/files/f1/versions/v2`
+    - `subject`: `/dirs/d1/files/f1/versions/v2`
+    - `epoch`: Version's `epoch` value
 
 ### Delete a Group
 
@@ -660,14 +721,15 @@ the following model definition:
   - `DELETE /dirs/d1`
 - Events:
   - `io.xregistry.registry.updated`
-    - Subject: `/`
-    - Changed: `dirs`, `dirscount`, `epoch`, `modifiedat`
+    - `subject`: `/`
+    - `epoch`: Registry's `epoch` value
+    - `changed`: `dirs`, `dirscount`, `epoch`, `modifiedat`
   - `io.xregistry.group.deleted`
-    - Subject: `/dirs/d1`
+    - `subject`: `/dirs/d1`
   - `io.xregistry.resource.deleted` for each deleted Resource
-    - Subject: `/dirs/d1/files/f1`
+    - `subject`: `/dirs/d1/files/f1`
   - `io.xregistry.version.deleted` for each deleted Version
-    - Subject: `/dirs/d1/files/f1/versions/v1`
+    - `subject`: `/dirs/d1/files/f1/versions/v1`
 
 ### Creating a Group with a complete client HTTP message exchange
 
@@ -713,6 +775,7 @@ Events Generated:
   "time": "2025-07-02T12:00:01Z",
   "xregcorrelationid": "B9282-129301",
   "data": {
+    "epoch": 2,
     "changed": [ "dirs", "dirscount", "epoch", "modifiedat" ]
   }
 }
@@ -727,5 +790,8 @@ Events Generated:
   "id": "A432-4321-4321",
   "time": "2025-07-02T12:00:01Z",
   "xregcorrelationid": "B9282-129301"
+  "data": {
+    "epoch": 1
+  }
 }
 ```
