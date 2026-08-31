@@ -1,7 +1,8 @@
 # xRegistry Primer
 
 <!-- words: validatecompatibility validateformat -->
-<!-- words: strictvalidation matchversions readme upserts -->
+<!-- words: strictvalidation matchversions messageurl -->
+<!-- words: readme standalone upserts -->
 
 <!-- no verify-specs -->
 
