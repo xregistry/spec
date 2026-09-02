@@ -192,7 +192,7 @@ where:
 
   - MUST NOT be included in `deleted` events.
 
-- The `meta.epoch` attribute MUST be include in Resource `created` and
+- The `meta.epoch` attribute MUST be included in Resource `created` and
   `updated` events and it MUST be the `subject` Resource's `meta.epoch` value
   as seen at the end of the interaction.
 
@@ -201,17 +201,17 @@ where:
   - MUST NOT be included in Resource `deleted` events.
 
   - Note that Resource `created` and `updated` events will include both
-    `epoch` and `meta.epoch` attributes even one of them didn't change for
+    `epoch` and `meta.epoch` attributes even if one of them didn't change for
     the interaction.
 
-- The `changed` attribute MAY be included to indicate which attribute of the
+- The `changed` attribute MAY be included to indicate which attributes of the
   `subject` entity were modified. When present, has the following
   constraints:
 
   - MUST be a list of the top-level attribute names (not values) that were
     added, modified, or deleted for the `subject` entity.
 
-  - This attribute MUST NOT appear on the `created`, `deleted`, `deprecated,
+  - This attribute MUST NOT appear on the `created`, `deleted`, `deprecated`,
     or `undeprecated` events.
 
   - This specification does not mandate any particular order for the attribute
