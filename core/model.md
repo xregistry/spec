@@ -931,7 +931,7 @@ Note that this feature has similar results to setting the Resource attribute's
   values of this aspect.
 - See the
   [`singleversionroot` Policy
-  Enforcement](./primer.md#1119-singleversionroot-policy-enforcement) section of
+  Enforcement](./primer.md#singleversionroot-policy-enforcement) section of
   the Primer for more information.
 
 ### `groups.<STRING>.resources.<STRING>.validateformat`
