@@ -791,6 +791,16 @@ users, nor how to securely protect the APIs, clients or servers, from attacks.
 Implementations of this specification are expected to add these various
 features as needed.
 
+Any feature, whether it is specification defined or not, that has not been
+explicitly defined as REQUIRED is OPTIONAL (but RECOMMENDED) to be supported
+by implementations. Implementations SHOULD document which features they do not
+support. For example, the specification defines a `createdat` attribute for
+the entities within a Registry. The specification is written such that it is
+assumed that if the entity if mutable then the `createdat` attribute is
+mutable as well. However, it is permissible for implementations to ban updating
+of this attribute once the entity is created, if their requirements mandate
+this behaviour.
+
 Additionally, implementations MAY choose to customize the data and behavior on
 a per-user basis as needed. For example, the following non-exhaustive list of
 customizations might be implemented:
