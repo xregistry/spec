@@ -791,12 +791,12 @@ users, nor how to securely protect the APIs, clients or servers, from attacks.
 Implementations of this specification are expected to add these various
 features as needed.
 
-Any feature, whether it is specification defined or not, that has not been
+Any feature, whether it is specification-defined or not, that has not been
 explicitly defined as REQUIRED is OPTIONAL (but RECOMMENDED) to be supported
 by implementations. Implementations SHOULD document which features they do not
 support. For example, the specification defines a `createdat` attribute for
 the entities within a Registry. The specification is written such that it is
-assumed that if the entity if mutable then the `createdat` attribute is
+assumed that if the entity is mutable, then the `createdat` attribute is
 mutable as well. However, it is permissible for implementations to ban updating
 of this attribute once the entity is created, if their requirements mandate
 this behaviour.
@@ -1003,7 +1003,7 @@ attributes. However, they MUST adhere to the following rules:
   For example, use of a model (or domain) specific prefix could be used to help
   avoid possible future conflicts.
 
-Use of an attribute (specification defined, or extension) that does not
+Use of an attribute (specification-defined, or extension) that does not
 conform to this specification MUST generate an error
 ([invalid_attribute](#invalid_attribute)).
 
