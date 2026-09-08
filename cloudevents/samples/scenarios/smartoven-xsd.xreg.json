@@ -28,7 +28,7 @@
                             "required": true
                         }
                     },
-                    "dataschemaformat": "XMLSchema/1.1",
+                    "dataschemaformat": "XSD/1.1",
                     "dataschemauri": "/schemagroups/Fabrikam.SmartOven/schemas/Fabrikam.SmartOven.TurnedOnEventData"
                 },
                 "Fabrikam.SmartOven.TurnedOff": {
@@ -55,7 +55,7 @@
                             "required": true
                         }
                     },
-                    "dataschemaformat": "XMLSchema/1.1",
+                    "dataschemaformat": "XSD/1.1",
                     "dataschemauri": "/schemagroups/Fabrikam.SmartOven/schemas/Fabrikam.SmartOven.TurnedOffEventData"
                 },
                 "Fabrikam.SmartOven.TimerSet": {
@@ -82,7 +82,7 @@
                             "required": true
                         }
                     },
-                    "dataschemaformat": "XMLSchema/1.1",
+                    "dataschemaformat": "XSD/1.1",
                     "dataschemauri": "/schemagroups/Fabrikam.SmartOven/schemas/Fabrikam.SmartOven.TimerSetEventData"
                 },
                 "Fabrikam.SmartOven.TimerCompleted": {
@@ -109,7 +109,7 @@
                             "required": true
                         }
                     },
-                    "dataschemaformat": "XMLSchema/1.1",
+                    "dataschemaformat": "XSD/1.1",
                     "dataschemauri": "/schemagroups/Fabrikam.SmartOven/schemas/Fabrikam.SmartOven.TimerCompletedEventData"
                 },
                 "Fabrikam.SmartOven.PreheatingFinished": {
@@ -136,7 +136,7 @@
                             "required": true
                         }
                     },
-                    "dataschemaformat": "XMLSchema/1.1",
+                    "dataschemaformat": "XSD/1.1",
                     "dataschemauri": "/schemagroups/Fabrikam.SmartOven/schemas/Fabrikam.SmartOven.PreheatingFinishedEventData"
                 }
             }
@@ -146,46 +146,46 @@
         "Fabrikam.SmartOven": {
             "schemas": {
                 "Fabrikam.SmartOven.TurnedOnEventData": {
-                    "format": "XMLSchema/1.1",
+                    "format": "XSD/1.1",
                     "versions": {
                         "1": {
-                            "format": "XMLSchema/1.1",
+                            "format": "XSD/1.1",
                             "schema": "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:vc=\"http://www.w3.org/2007/XMLSchema-versioning\" vc:minVersion=\"1.1\">\n  <xs:element name=\"TurnedOnEventData\">\n    <xs:complexType>\n      <xs:sequence>\n        <xs:element name=\"tenantid\" type=\"xs:string\"/>\n        <xs:element name=\"deviceid\" type=\"xs:string\"/>\n        <xs:element name=\"temperatureF\" type=\"xs:int\"/>\n        <xs:element name=\"temperatureC\" type=\"xs:int\"/>\n        <xs:element name=\"mode\">\n          <xs:simpleType>\n            <xs:restriction base=\"xs:string\">\n              <xs:enumeration value=\"Microwave\"/>\n              <xs:enumeration value=\"TopHeat\"/>\n              <xs:enumeration value=\"BottomHeat\"/>\n              <xs:enumeration value=\"TopBottomHeat\"/>\n              <xs:enumeration value=\"Convection\"/>\n            </xs:restriction>\n          </xs:simpleType>\n        </xs:element>\n      </xs:sequence>\n    </xs:complexType>\n  </xs:element>\n</xs:schema>"
                         }
                     }
                 },
                 "Fabrikam.SmartOven.TurnedOffEventData": {
-                    "format": "XMLSchema/1.1",
+                    "format": "XSD/1.1",
                     "versions": {
                         "1": {
-                            "format": "XMLSchema/1.1",
+                            "format": "XSD/1.1",
                             "schema": "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:vc=\"http://www.w3.org/2007/XMLSchema-versioning\" vc:minVersion=\"1.1\">\n  <xs:element name=\"TurnedOffEventData\">\n    <xs:complexType>\n      <xs:sequence>\n        <xs:element name=\"tenantid\" type=\"xs:string\"/>\n        <xs:element name=\"deviceid\" type=\"xs:string\"/>\n      </xs:sequence>\n    </xs:complexType>\n  </xs:element>\n</xs:schema>"
                         }
                     }
                 },
                 "Fabrikam.SmartOven.TimerSetEventData": {
-                    "format": "XMLSchema/1.1",
+                    "format": "XSD/1.1",
                     "versions": {
                         "1": {
-                            "format": "XMLSchema/1.1",
+                            "format": "XSD/1.1",
                             "schema": "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:vc=\"http://www.w3.org/2007/XMLSchema-versioning\" vc:minVersion=\"1.1\">\n  <xs:element name=\"TimerSetEventData\">\n    <xs:complexType>\n      <xs:sequence>\n        <xs:element name=\"tenantid\" type=\"xs:string\"/>\n        <xs:element name=\"deviceid\" type=\"xs:string\"/>\n        <xs:element name=\"timerType\">\n          <xs:simpleType>\n            <xs:restriction base=\"xs:string\">\n              <xs:enumeration value=\"Standard\"/>\n              <xs:enumeration value=\"Smart\"/>\n            </xs:restriction>\n          </xs:simpleType>\n        </xs:element>\n        <xs:element name=\"duration\" type=\"xs:int\"/>\n      </xs:sequence>\n    </xs:complexType>\n  </xs:element>\n</xs:schema>"
                         }
                     }
                 },
                 "Fabrikam.SmartOven.TimerCompletedEventData": {
-                    "format": "XMLSchema/1.1",
+                    "format": "XSD/1.1",
                     "versions": {
                         "1": {
-                            "format": "XMLSchema/1.1",
+                            "format": "XSD/1.1",
                             "schema": "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:vc=\"http://www.w3.org/2007/XMLSchema-versioning\" vc:minVersion=\"1.1\">\n  <xs:element name=\"TimerCompletedEventData\">\n    <xs:complexType>\n      <xs:sequence>\n        <xs:element name=\"tenantid\" type=\"xs:string\"/>\n        <xs:element name=\"deviceid\" type=\"xs:string\"/>\n        <xs:element name=\"duration\" type=\"xs:int\"/>\n      </xs:sequence>\n    </xs:complexType>\n  </xs:element>\n</xs:schema>"
                         }
                     }
                 },
                 "Fabrikam.SmartOven.PreheatingFinishedEventData": {
-                    "format": "XMLSchema/1.1",
+                    "format": "XSD/1.1",
                     "versions": {
                         "1": {
-                            "format": "XMLSchema/1.1",
+                            "format": "XSD/1.1",
                             "schema": "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:vc=\"http://www.w3.org/2007/XMLSchema-versioning\" vc:minVersion=\"1.1\">\n  <xs:element name=\"PreheatingFinishedEventData\">\n    <xs:complexType>\n      <xs:sequence>\n        <xs:element name=\"tenantid\" type=\"xs:string\"/>\n        <xs:element name=\"deviceid\" type=\"xs:string\"/>\n        <xs:element name=\"temperatureF\" type=\"xs:int\"/>\n        <xs:element name=\"temperatureC\" type=\"xs:int\"/>\n      </xs:sequence>\n    </xs:complexType>\n  </xs:element>\n</xs:schema>"
                         }
                     }

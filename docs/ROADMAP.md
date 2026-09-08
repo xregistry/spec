@@ -28,11 +28,11 @@ _Release Candidate 2_ – 2025/06/19
   [Endpoint](../endpoint/spec.md), [Messages](../message/spec.md) and
   [Schema](../schema/spec.md)) reviewed for completeness
 
-_Release Candidate 3_ – WIP – 2025/07/08
+_Release Candidate 3_ – WIP – 2026/06/20
 
 * Complete all actions from reviews
 * Announce final pre-1.0 version for review
 
-_Version 1.0_ – WIP – 2025/08/01
+_Version 1.0_ – WIP – 2026/09/01
 
 * Our first stable version!

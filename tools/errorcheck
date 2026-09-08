@@ -29,8 +29,9 @@ for err in "${err_array[@]}"; do
   # grep -e "(#$ref)" -e "(\./[a-z]*\.md#$ref)" $* > /dev/null && continue
   grep -e "(.*#$err)" -e "(\./[a-z]*\.md#$err)" $* > /dev/null && continue
 
-  # special case this one
+  # special case these
   [[ "$err" == "server_error" ]] && continue
+  [[ "$err" == "server_busy" ]] && continue
 
   echo -ne $first
   first=""
@@ -55,7 +56,7 @@ for file in $* ; do
   IFS="!" lines=$(sed -r -n "/$START_PATTERN/,/$END_PATTERN/p" $file | \
     sed -n 's/##* //p')
 
-  [[ "$lines" == "" ]] && echo "No error defined" && continue
+  [[ "$lines" == "" ]] && echo "  - No errors defined" && continue
 
   diff=$(IFS="!" diff <(echo "$lines") <(echo "$lines" | sort) || true)
   if [[ "$diff" != "" ]] ; then

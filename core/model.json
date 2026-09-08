@@ -5,11 +5,10 @@
       "type": "string",
       "readonly": true,
       "required": true,
-      "default": "1.0-rc2"
+      "default": "1.0-rc4"
     },
     "registryid": {
       "type": "string",
-      "matchcase": true,
       "immutable": true,
       "readonly": true,
       "required": true

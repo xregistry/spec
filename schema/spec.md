@@ -1,7 +1,8 @@
-# Schema Registry Service - Version 1.0-rc2
+# Schema Registry Service - Version 1.0-rc4
 
 <!-- words: formatvalidated compatibilityvalidated -->
 <!-- words: formatvalidatedreason compatibilityvalidatedreason -->
+<!-- words: jsonstructure jstruct namespace -->
 
 ## Abstract
 
@@ -11,28 +12,28 @@ allows for the storage, management and discovery of schema documents.
 
 ## Table of Contents
 
-- [Schema Registry Service - Version 1.0-rc2](#schema-registry-service---version-10-rc2)
-  - [Abstract](#abstract)
-  - [Table of Contents](#table-of-contents)
-  - [1. Overview](#1-overview)
-    - [1.1. Schemas](#11-schemas)
-    - [1.2. Schema References](#12-schema-references)
-    - [1.3. Versioning](#13-versioning)
-    - [1.4. Document Store](#14-document-store)
-  - [2. Notations and Terminology](#2-notations-and-terminology)
-    - [2.1. Notational Conventions](#21-notational-conventions)
-    - [2.2. Terminology](#22-terminology)
-      - [2.2.1. Schema](#221-schema)
-    - [2.3. Schema Group](#23-schema-group)
-  - [3. Schema Registry Model](#3-schema-registry-model)
-  - [4. Schema Registry](#4-schema-registry)
-    - [4.1. Schema Groups](#41-schema-groups)
-    - [4.2. Schema Resources](#42-schema-resources)
-    - [4.3. Schema Formats](#43-schema-formats)
-      - [4.3.1. JSON Schema](#431-json-schema)
-      - [4.3.2. XML Schema](#432-xml-schema)
-      - [4.3.3. Apache Avro Schema](#433-apache-avro-schema)
-      - [4.3.4. Protobuf Schema](#434-protobuf-schema)
+- [Abstract](#abstract)
+- [Table of Contents](#table-of-contents)
+- [1. Overview](#1-overview)
+  - [1.1. Schemas](#11-schemas)
+  - [1.2. Schema References](#12-schema-references)
+  - [1.3. Versioning](#13-versioning)
+  - [1.4. Document Store](#14-document-store)
+- [2. Notations and Terminology](#2-notations-and-terminology)
+  - [2.1. Notational Conventions](#21-notational-conventions)
+  - [2.2. Terminology](#22-terminology)
+    - [2.2.1. Schema](#221-schema)
+  - [2.3. Schema Group](#23-schema-group)
+- [3. Schema Registry Model](#3-schema-registry-model)
+- [4. Schema Registry](#4-schema-registry)
+  - [4.1. Schema Groups](#41-schema-groups)
+  - [4.2. Schema Resources](#42-schema-resources)
+  - [4.3. Schema Formats](#43-schema-formats)
+    - [4.3.1. JSON Schema](#431-json-schema)
+    - [4.3.2. XML Schema](#432-xml-schema)
+    - [4.3.3. Apache Avro Schema](#433-apache-avro-schema)
+    - [4.3.4. Protobuf Schema](#434-protobuf-schema)
+    - [4.3.5. JSON Structure Schema](#435-json-structure-schema)
 
 ## 1. Overview
 
@@ -120,7 +121,7 @@ several different versions might exist in a system, in queues, in databases, or
 in files.
 
 The schema registry therefore allows managing multiple versions of schemas,
-declares their lineage, and state their compatibility policy. The compatibility
+declares their lineage, and states their compatibility policy. The compatibility
 policy is used to determine whether a schema change is compatible with prior
 versions and whether data that has been serialized based on prior versions can
 still be deserialized and/or validated using the new schema. This compatibility
@@ -135,25 +136,20 @@ The schema registry is a document store and therefore has the
 [`hasdocument`][xRegistry hasdocument] attribute defined in the xRegistry Core
 attribute (implicitly) defined as `true` for the `schema` Resource.
 
-This means that the schema registry yields a document with the stored
-content-type when a client issues a GET request to the [`self`][xRegistry self]
-URL of a schema. The associated metadata is returned in the HTTP headers. The
-[default version][xRegistry default-version] of the schema is returned when the
-client issues a GET request to the [`self`][xRegistry self] URL of the `schema`
-Resource.
+This means that the schema registry exposes the schema document through the
+Resource's document view, using the stored media type. When no Version is
+explicitly selected, the [default version][xRegistry default-version] is
+exposed. The applicable protocol binding defines how clients select the
+document and metadata views and how those views are retrieved.
 
 This enables the ability to provide external parties with a link that they can
 use without needing to know any details about xRegistry.
 
-Storing a new Version of a schema is similarly straightforward for clients that
-do not know xRegistry specifics, by simply using a POST against
-[`self`][xRegistry self] URL of the `schema` Resource in the simplest case.
+The applicable protocol binding also defines how clients create or update
+schema Versions through the document view.
 
-To access the metadata of the `schema`, or the schema version as a JSON
-document, the client can append a `$details` suffix to the URL, like
-`https://example.com/schemagroups/com.example.schemas/schemas/com.example.event/versions/1.0$details`
-or
-`https://example.com/schemagroups/com.example.schemas/schemas/com.example.event$details`.
+For example, the xRegistry HTTP Binding uses the `$details` URL suffix to
+access the metadata view of the schema Resource or a specific Version.
 
 Beyond this, the [xRegistry Core][xRegistry Core] specification provides rich
 filtering and export/import capabilities, which can be used to retrieve schema
@@ -173,7 +169,7 @@ interpreted as described in [RFC 2119](https://tools.ietf.org/html/rfc2119).
 For clarity, OPTIONAL attributes (specification-defined and extensions) are
 OPTIONAL for clients to use, but the servers' responsibility will vary.
 Server-unknown extension attributes MUST be silently stored in the backing
-datastore. Specification-defined, and server-known extension, attributes MUST
+datastore. Specification-defined and server-known extension attributes MUST
 generate an error if the corresponding feature is not supported or enabled.
 However, as with all attributes, if accepting the attribute would result in a
 bad state (such as exceeding a size limit, or results in a security issue),
@@ -253,6 +249,7 @@ this form:
       "createdat": "<TIMESTAMP>",
       "modifiedat": "<TIMESTAMP>",
       "deprecated": { ... }, ?
+      "format": "<STRING>", ?
 
       "schemasurl": "<URL>",                       # Schemas collection
       "schemascount": <UINTEGER>,
@@ -271,8 +268,8 @@ this form:
           "labels": { "<STRING>": "<STRING>" * }, ?
           "createdat": "<TIMESTAMP>",
           "modifiedat": "<TIMESTAMP>",
-          "ancestor": "<STRING>",
-          "contenttype": "<STRING>, ?
+          "ancestorid": "<STRING>",
+          "contenttype": "<STRING>", ?
           "format": "<STRING>", ?
           "formatvalidated": <BOOLEAN>, ?
           "formatvalidatedreason": "<STRING>", ?
@@ -324,12 +321,12 @@ Every schema (i.e. the schema Resource) MUST reside inside a Schema Group.
 
 Example:
 
-The follow abbreviated Schema Registry's content shows a single Schema Group
+The following abbreviated Schema Registry content shows a single Schema Group
 containing 5 schemas.
 
 ```yaml
 {
-  "specversion": 1.0-rc2,
+  "specversion": "1.0-rc4",
   # other xRegistry top-level attributes excluded for brevity
 
   "schemagroupsurl": "http://example.com/schemagroups",
@@ -345,6 +342,23 @@ containing 5 schemas.
   }
 }
 ```
+
+There might be cases where all schemas within a schemagroup need to have the
+same `format` value. To enable this, set the schemagroup's `format` value to
+the string that all schemas/Versions within that schemagroup need to use.
+
+Additionally, if desired, a schemagroup-instance level constraint MAY be added:
+
+```yaml
+"constraints": {
+  "schemas.format": {
+    "default": "JsonSchema/draft-07"
+  }
+}
+```
+
+This will define a schemagroup-specific default value for the schemas' `format`
+value so clients would not need to specify it manually for each schema.
 
 ### 4.2. Schema Resources
 
@@ -376,10 +390,10 @@ major version identifier in the `schemaid`, like `"com.example.event.v1"` or
 schemas can be more easily identified by users and developers. The schema
 `versionid` then functions as the semantic minor version identifier.
 
-The [`ancestor`][xRegistry ancestor] attribute permits multiple version branches
-to exist, and allows for implementations to determine the Version lineage. See
-the [`ancestor`][xRegistry ancestor] attribute in the core xRegistry
-specification for more information.
+The [`ancestorid`][xRegistry ancestorid] attribute permits multiple version
+branches to exist, and allows for implementations to determine the Version
+lineage. See the [`ancestorid`][xRegistry ancestorid] attribute in the core
+xRegistry specification for more information.
 
 ### 4.3. Schema Formats
 
@@ -400,7 +414,7 @@ Versions for a schema named `com.example.telemetrydata`:
 
 ```yaml
 {
-  "specversion": 1.0-rc2,
+  "specversion": "1.0-rc4",
   # other xRegistry top-level attributes excluded for brevity
 
   "schemagroupsurl": "http://example.com/schemagroups",
@@ -418,7 +432,7 @@ Versions for a schema named `com.example.telemetrydata`:
           "versionid": "3",
           "isdefault": true,
           "description": "device telemetry event data",
-          "ancestor": "2",
+          "ancestorid": "2",
           "format": "Protobuf/3",
           # other xRegistry default Version attributes excluded for brevity
 
@@ -433,7 +447,7 @@ Versions for a schema named `com.example.telemetrydata`:
               "versionid": "1",
               "isdefault": false,
               "description": "device telemetry event data",
-              "ancestor": "1",
+              "ancestorid": "1",
               "format": "Protobuf/3",
               # other xRegistry Version-level attributes excluded for brevity
 
@@ -444,7 +458,7 @@ Versions for a schema named `com.example.telemetrydata`:
               "versionid": "2",
               "isdefault": false,
               "description": "device telemetry event data",
-              "ancestor": "1",
+              "ancestorid": "1",
               "format": "Protobuf/3",
               # other xRegistry Version-level attributes excluded for brevity
 
@@ -455,7 +469,7 @@ Versions for a schema named `com.example.telemetrydata`:
               "versionid": "3",
               "isdefault": true,
               "description": "device telemetry event data",
-              "ancestor": "2",
+              "ancestorid": "2",
               "format": "Protobuf/3",
               # other xRegistry Version-level attributes excluded for brevity
 
@@ -478,10 +492,11 @@ When the `format` attribute is set to `JsonSchema`, the `schema` attribute of
 the schema Resource is a JSON object representing a JSON Schema document
 conformant with the declared version.
 
-When a URI-reference, like [`schemauri`](../message/spec.md#dataschemauri),
-points to a JSON Schema document it MAY use a [JSON pointer][JSON pointer]
-expression to deep link into the schema document to reference a particular type
-definition. Otherwise the top-level object definition of the schema is used.
+When a URI, like the Message Registry's
+[`dataschemauri`](../message/spec.md#dataschemauri), points to a JSON Schema
+document, it MAY use a [JSON pointer][JSON pointer] expression to deep link into
+the schema document to reference a particular type definition. Otherwise the
+top-level object definition of the schema is used.
 
 The version of the JSON Schema format is the version of the JSON Schema
 specification that is used to define the schema. The version of the JSON Schema
@@ -509,14 +524,15 @@ The [`format`](../core/spec.md#format-attribute) identifier for XML Schema is
 `XSD`. The version of the XML Schema format is the version of the W3C XML
 Schema specification that is used to define the schema.
 
-When the `format` attribute is set to `XSD`, the `schema` attribute of schema
-Resource is a string containing an XML Schema document conformant with the
-declared version.
+When the `format` attribute is set to `XSD`, the `schema` attribute of the
+schema Resource is a string containing an XML Schema document conformant with
+the declared version.
 
-When a URI-reference, like [`schemauri`](../message/spec.md#dataschemauri),
-points to a JSON Schema document it MAY use an XPath expression to deep link
-into the schema document to reference a particular type definition. Otherwise
-the top-level object definition of the schema is used.
+When a URI, like the Message Registry's
+[`dataschemauri`](../message/spec.md#dataschemauri), points to an XML Schema
+document, it MAY use an XPath expression to deep link into the schema document
+to reference a particular type definition. Otherwise the top-level object
+definition of the schema is used.
 
 The identifiers for the following XML Schema versions:
 
@@ -543,12 +559,12 @@ Examples:
 - `Avro/1.8.2` is the identifier for the Apache Avro release 1.8.2.
 - `Avro/1.11.0` is the identifier for the Apache Avro release 1.11.0
 
-When a URI-reference, like [`schemauri`](../message/spec.md#dataschemauri),
-points to a JSON Schema document it MAY use a URI fragment suffix
-`[:]{record-name}` to deep link into the schema document to reference a
-particular type definition. Otherwise the top-level object definition of the
-schema is used. The ':' character is used as a separator when the URI already
-contains a fragment.
+When a URI, like the Message Registry's
+[`dataschemauri`](../message/spec.md#dataschemauri), points to an Avro Schema
+document, it MAY use a URI fragment suffix `[:]{record-name}` to deep link into
+the schema document to reference a particular type definition. Otherwise the
+top-level object definition of the schema is used. The ':' character is used as
+a separator when the URI already contains a fragment.
 
 Examples:
 
@@ -559,7 +575,7 @@ record.
 - If the Avro schema document is a local Schema Registry reference like
 `#/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata`, in
 which the reference is already in the form of a URI fragment, the suffix is
-appended separated with a colon, for instance
+appended, separated by a colon, for instance
 `.../com.example.telemetrydata:TelemetryEvent`.
 
 #### 4.3.4. Protobuf Schema
@@ -575,11 +591,11 @@ with the declared version.
 - `Protobuf/3` is the identifier for the Protobuf syntax version 3.
 - `Protobuf/2` is the identifier for the Protobuf syntax version 2.
 
-A URI-reference, like [`schemauri`](../message/spec.md#dataschemauri that points
-to an Protobuf Schema document MUST reference an Protobuf `message` declaration
-contained in the schema document using a URI fragment suffix
-`[:]{message-name}`. The ':' character is used as a separator when the URI
-already contains a fragment.
+A URI, like the Message Registry's
+[`dataschemauri`](../message/spec.md#dataschemauri), that points to a Protobuf
+Schema document MUST reference a Protobuf `message` declaration contained in the
+schema document using a URI fragment suffix `[:]{message-name}`. The ':'
+character is used as a separator when the URI already contains a fragment.
 
 Examples:
 
@@ -589,9 +605,41 @@ Examples:
   message.
 - If the Protobuf schema document is a local Schema Registry reference like
   `#/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata`, in
-  the which the reference is already in the form of a URI fragment, the suffix
-  is appended separated with a colon, for instance
+  which the reference is already in the form of a URI fragment, the suffix
+  is appended, separated by a colon, for instance
   `.../com.example.telemetrydata:TelemetryEvent`.
+
+#### 4.3.5. JSON Structure Schema
+
+The [`format`](../core/spec.md#format-attribute) identifier for JSON Structure
+Schema is `JsonStructure`. When the `format` attribute is set to `JsonStructure`,
+the `schema` attribute of the schema Resource is a JSON object representing a JSON
+Structure schema document [JSTRUCT-CORE].
+
+The version identifier follows the pattern `JsonStructure/{version}`, where
+`{version}` is the version of the JSON Structure Core specification that is
+used to define the schema.
+
+`JsonStructure/draft-04` is the identifier for the Internet-Draft version 04 of
+the JSON Structure Core specification. If a future RFC is published, the
+version identifier will be updated to reflect the RFC number, for example
+`JsonStructure/rfc-0000`.
+
+When a URI, like the Message Registry's
+[`dataschemauri`](../message/spec.md#dataschemauri), points to a JSON Structure
+schema document, it MAY use a [JSON pointer][JSON pointer] expression to deep
+link into the schema document to reference a particular type definition. This is
+typically used to reference type definitions within the `definitions` namespace.
+
+Examples:
+
+- `https://example.com/schemas/person.json#/definitions/Employee` uses the
+  `#/definitions/Employee` fragment to reference the `Employee` type definition.
+- For local Schema Registry references like
+  `#/schemagroups/com.example.schemas/schemas/com.example.person/versions/1/definitions/Employee`,
+  append the JSON Pointer fragment to reference a specific type within that schema.
+
+
 
 Like the [xRegistry Core][xRegistry Core] specification, this specification does
 not explicitly address authentication or authorization levels of users, nor how
@@ -612,6 +660,7 @@ a schema, allowing for fine-grained access control.
 ---
 
 [JSON Pointer]: https://www.rfc-editor.org/rfc/rfc6901
+[JSTRUCT-CORE]: https://json-structure.github.io/core/draft-vasters-json-structure-core.html
 [CloudEvents dataschema]: https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#dataschema
 [xRegistry Core]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html
 [xRegistry self]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#self-attribute
@@ -619,7 +668,7 @@ a schema, allowing for fine-grained access control.
 [xRegistry compatibility]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#compatibility-attribute
 [xRegistry version-ids]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#version-ids
 [xRegistry attributes-and-extensions]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#attributes-and-extensions
-[xRegistry ancestor]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#ancestor-attribute
+[xRegistry ancestorid]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#ancestorid-attribute
 [xRegistry pagination]: https://xregistry.io/xreg/xregistryspecs/pagination-v1/docs/spec.html
 [xRegistry deprecated]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#deprecated
 [xRegistry default-version]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#registry-design

@@ -22,11 +22,11 @@ fit within one response message.
 
 ### Client Attributes
 
-The follow list of attributes MAY be included in a client's request for
+The following list of attributes MAY be included in a client's request for
 a set of records from a server. The client MUST only specify these on
 the initial request for the set. If the results can not fit within one
 response then these attributes MUST NOT be added to subsequent requests
-by the client. Note, the server MAY include these attributes within
+by the client. Note that the server MAY include these attributes within
 the URI-reference returned in a response message, but the client MUST NOT
 modify those values.
 
@@ -35,10 +35,10 @@ modify those values.
 - Type: `Unsigned 64-bit Integer`
 - Description: Indicates the maximum number of records per message
   that the client is willing to accept. If the server is unable to
-  meet this criteria then it MUST generate an error.
+  meet this criterion then it MUST generate an error.
   There is no default value for this attribute.
   If this attribute is not specified, then the server MAY choose to send back
-  as many, or as little, records per response message.
+  as many or as few records per response message.
 - Constraints:
   - OPTIONAL.
   - MUST be an unsigned 64-bit integer with a value greater than 0.
@@ -65,7 +65,7 @@ this specification.
 
 - Type: `URI-Reference`
 - Description: A URI-Reference to another subset of records. The relationship
-  of the next subset, to the current subset, MUST be specified by the `rel`
+  of the next subset to the current subset MUST be specified by the `rel`
   attribute. This value is meant to be treated as an opaque value by the
   client. If a client uses this value in a subsequent request then it
   MUST use it as it was provided by the server. Any attempt to modify its
@@ -123,7 +123,7 @@ this specification.
 
 - Type: `Unsigned 64-bit Integer`
 - Description: Indicates the total number of records in the complete set
-  referenced by the `link`. Note, this is not the number of records in any one
+  referenced by the `link`. Note that this is not the number of records in any one
   message, but instead it is the aggregate count of records across all
   messages in the set.
 - Constraints:
@@ -134,7 +134,7 @@ this specification.
 
 ## HTTP Binding
 
-THe following describes how the attributes defined above would appear in a
+The following describes how the attributes defined above would appear in a
 flow of HTTP messages during the retrieval of a set of records.
 
 ### Request for a record set
@@ -144,7 +144,7 @@ request to the server. How this URL is determined is out of scope of this
 specification.
 
 The client MAY include the `limit` attribute as part of this request. Unless
-there is some out-of-bands negotiation to determine a different mechanism,
+there is some out-of-band negotiation to determine a different mechanism,
 the server MUST accept the `limit` attribute as a query parameter (named
 `limit`, case sensitive) in the URL.
 
@@ -163,7 +163,7 @@ Each successful response from the server MUST adhere to the following:
 - If the response does not include the start of the set of records, then the
   `prev` Link MAY be included in the response.
 - The response MAY include the `first` Link in any response.
-- If  `limit` attribute was specified as part of the flow, the response MUST
+- If the `limit` attribute was specified as part of the flow, the response MUST
   NOT include more records than what the `limit` attribute has indicated.
 - If the response refers to the end of the set of records, then the `next`
   Link MUST NOT be included in the response.

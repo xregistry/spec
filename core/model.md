@@ -1,8 +1,8 @@
-# xRegistry Service Model - Version 1.0-rc2
+# xRegistry Service Model - Version 1.0-rc4
 
 <!-- words: compat validatecompatibility validateformat strictvalidation -->
-<!-- words: matchcase compatibilityvalidated formatvalidated -->
-<!-- words: consistentformat validators -->
+<!-- words: compatibilityvalidated formatvalidated -->
+<!-- words: validators matchversions -->
 
 ## Abstract
 
@@ -32,7 +32,7 @@ This specification defines the format and features of the xRegistry model
 language. The xRegistry model is used to define the custom
 [Groups](./spec.md#group), [Resources](./spec.md#resource) and
 [attributes](./spec.md#attributes-and-extensions) of the entities
-managed within an xRegistry service instance. It will also define the
+managed within an xRegistry server. It will also define the
 semantics, and constraints, of modifying an existing model.
 
 ## Notations and Terminology
@@ -63,9 +63,7 @@ knowledge of the structure of the Registry in advance and therefore will need
 to dynamically discover it.
 
 The following sections will go into the details of how to create, retrieve
-and edit the model of a Registry, while the xRegistry protocol binding
-specifications will define how the operations defined in this specification
-will be mapped to those protocols.
+and edit the model of a Registry.
 
 The overall format of a model definition is as follows:
 
@@ -83,7 +81,7 @@ The overall format of a model definition is as follows:
       "description": "<STRING>", ?
       "enum": [ <VALUE> * ], ?         # Array of scalars of type "<TYPE>"
       "strict": <BOOLEAN>, ?           # Just "enum" values or not. Default=true
-      "matchcase": <BOOLEAN>, ?        # Strings case-sensitive? Default=false
+      "matchversions": <BOOLEAN>, ?    # Same for all Versions? Default=false
       "readonly": <BOOLEAN>, ?         # From client's POV. Default=false
       "immutable": <BOOLEAN>, ?        # Once set, can't change. Default=false
       "required": <BOOLEAN>, ?         # Default=false
@@ -117,7 +115,15 @@ The overall format of a model definition is as follows:
       "modelversion": "<STRING>", ?      # Version of the group model
       "modelcompatiblewith": "<URI>", ?  # Statement of compatibility
       "attributes": { ... }, ?           # See "attributes" above
-      "ximportresources": [ "<XIDTYPE>", * ], ?   # Include these Resources
+      "ximportresources": [ "<XIDTYPE>", * ], ?   # Include these Resources,
+                                                  # only for "modelsource"
+      "constraints": {
+        "<RESOURCES>.<PATH>": {          # Resource-plural + attribute path
+          "default": <VALUE>, ?          # Group specific default
+          "enum": [ <VALUE> * ], ?       # Allowed subset of values
+          "equals": "<PATH>" ?           # Matching Group attribute path
+        } *
+      }, ?
 
       "resources": {
         "<STRING>": {                    # Key=plural name, e.g. "messages"
@@ -131,14 +137,12 @@ The overall format of a model definition is as follows:
           "modelcompatiblewith": "<URI>", ? # Statement of compatibility
           "maxversions": <UINTEGER>, ?   # Num Vers(>=0). Default=0, 0=unlimited
           "setversionid": <BOOLEAN>, ?   # vid settable? Default=true
-          "setdefaultversionsticky": <BOOLEAN>, ? # Sticky settable? Default=true
           "hasdocument": <BOOLEAN>, ?       # Has separate document. Default=true
-          "versionmode": "<STRING>", ?      # 'ancestor' processing algorithm
+          "versionmode": "<STRING>", ?      # Ancestor processing algorithm
           "singleversionroot": <BOOLEAN>, ? # Enforce single root. Default=false
           "validateformat": <BOOLEAN>, ?    # Do Version format checks. Default=false
           "validatecompatibility": <BOOLEAN>, ? # Do Version compat checks. Default=false
           "strictvalidation": <BOOLEAN>, ?  # Block unknown format/compat. Default=false
-          "consistentformat": <BOOLEAN>, ?  # Same format for all Vers. Default=false
           "typemap": <MAP>, ?               # ContentType mappings
           "attributes": { ... }, ?          # Version attributes/extensions
           "resourceattributes": { ... }, ?  # Resource attributes/extensions
@@ -150,6 +154,10 @@ The overall format of a model definition is as follows:
 }
 ```
 
+Also see the "[Includes in the xRegistry Model
+Data](#includes-in-the-xregistry-model-data)" section for use of the
+`$include(s)` directive in `modelsource`.
+
 The following describes the attributes of the Registry model:
 
 ### `description`
@@ -160,8 +168,8 @@ The following describes the attributes of the Registry model:
 ### `labels`
 - Type: Map of string-string.
 - OPTIONAL.
-- A set of name/value pairs that allows for additional metadata about the
-  Registry to be stored without changing the schema of the model.
+- A set of name/value pairs that allows for additional metadata/tags to
+  be associated with the model.
 - If present, MUST be a map of zero or more name/value string pairs.
   See [Attributes and Extensions](./spec.md#attributes-and-extensions) for
   more information.
@@ -170,7 +178,7 @@ The following describes the attributes of the Registry model:
 
 ### `attributes`
 - Type: Map of attribute definitions where each attribute's name MUST match
-  the key of the map.
+  its key in the map.
 - OPTIONAL.
 - A set of zero or more attributes. This includes extensions and
   specification-defined/modified attributes.
@@ -186,12 +194,12 @@ The following describes the attributes of the Registry model:
 ### `attributes.<STRING>.name`
 - Type: String.
 - REQUIRED.
-- The name of the attribute. MUST be the same as the key used in the owning
+- The name of the attribute. MUST be the same as its key in the owning
   `attributes` map. A value of `*` indicates support for undefined
-  extension names. Absence of a `*` attribute indicates lack of support for
-  undefined extensions and an error
-  ([unknown_attribute](./spec.md#unknown_attribute)) MUST be generated if
-  one is present in a request to update the Registry attributes.
+  extension names at runtime. Absence of a `*` attribute indicates lack of
+  support for undefined extensions the presence of an unknown attribute at
+  runtime MUST generate an ([unknown_attribute](./spec.md#unknown_attribute))
+  error.
 
   Often `*` is used with a `type` of `any` to allow for any undefined
   extension name of any supported data type. By default, the model
@@ -220,9 +228,8 @@ The following describes the attributes of the Registry model:
 ### `attributes.<STRING>.target`
 - Type: String.
 - OPTIONAL.
-- The type of entity that this attribute points to when `type` is set to
-  `url-reference`, `uri-reference` or `xid`. `target` MUST NOT be used
-  for any other type of attribute.
+- The type of entity that this attribute points to when `type` is set to `url`,
+  `uri` or `xid`. `target` MUST NOT be used for any other type of attribute.
 - The value of this model attribute MUST be an "xid template" of one of the
   following forms:
   - `/<GROUPS>` - a plural Group type name. An entity attribute of this
@@ -240,9 +247,9 @@ The following describes the attributes of the Registry model:
     of this Resource type, not the Resource itself.
 - An `xid` entity attribute that includes a `target` value as part of
   its model definition MUST match the `target` entity type specified. An
-  `xid` attribute that does not include `target` definition has no
+  `xid` attribute that does not include a `target` definition has no
   such restriction and MAY be any valid `xid` value.
-- A URI/URL-reference entity attribute MAY include `target` as part of its
+- A URI/URL entity attribute MAY include `target` as part of its
   definition. If so, then any runtime value that is a relative URI/URL
   (begins with `/`) MUST be an `xid` and MUST adhere to the `target` entity
   type specified, if specified. Absolute URIs/URLs are not constrained by
@@ -277,7 +284,7 @@ The following describes the attributes of the Registry model:
   - `extended` - this character set is the same as the set of characters
     defined for all map key names - see [Attributes and
     Extensions](./spec.md#attributes-and-extensions).
-- When not specified, the default value is `strict`.
+- When not specified, the default value MUST be `strict`.
 - The value of this attribute MUST be case-insensitive.
 - Implementations MAY define additional character sets, however, an attempt
   to define a model that uses an unknown character set name MUST generate an
@@ -293,10 +300,10 @@ The following describes the attributes of the Registry model:
 - A human-readable description of the attribute.
 
 ### `attributes.<STRING>.enum`
-- Type: Array of values of type `attributes.<STRING>.type`..
+- Type: Array of values of type `attributes.<STRING>.type`.
 - OPTIONAL.
 - A list of possible values for this attribute. Each item in the array MUST
-  be of type defined by `type`. When not specified, or an empty array, there
+  be of the type defined by `type`. When not specified, or an empty array, there
   are no restrictions on the value set of this attribute. This MUST only be
   used when the `type` is a scalar. See the `strict` attribute below.
 
@@ -314,22 +321,31 @@ The following describes the attributes of the Registry model:
   This attribute has no impact when `enum` is absent or an empty array.
 - When not specified, the default value MUST be `true`.
 
-### `attributes.<STRING>.matchcase`
+### `attributes.<STRING>.matchversions`
 - Type: Boolean.
 - OPTIONAL.
-- Indicates whether the `string` attribute's value MUST be compared with
-  a matching value in a case-sensitive way, or not.
-- This attribute MUST NOT be `true` if the owning attribute's `type` (or
-  `item.type` for non-scalars) is not `"string"`.
+- Indicates whether all Versions of a Resource instance MUST have the same
+  value for this attribute (or MUST be missing from all Versions). If an
+  inconsistency is found then an error
+  ([mismatched_version_attribute](spec.md#mismatched_version_attribute)) MUST
+  be generated.
+- This aspect MUST only be `true` for attribute definitions that:
+  - Are within a [Resource type's versioned
+    attributes](#groupsstringresourcesstringattributes) section.
+  - Are for scalar typed attributes.
+  - Are statically defined. Meaning, not defined as part of an `ifvalues` clause
+    or via a `*` extension definition
+  - Are not defined within an array or map. Within an object is allowed.
 - When not specified, the default value MUST be `false`.
 
 ### `attributes.<STRING>.readonly`
 - Type: Boolean.
 - OPTIONAL.
-- Indicates whether this attribute is modifiable by a client. During
-  creation, or update, of an entity if this attribute is specified, then
-  its value MUST be silently ignored by the server even if the value is
-  invalid.
+- Indicates whether this attribute is modifiable by a client. Unless otherwise
+  stated, during creation, or update, of an entity if this attribute is
+  specified, then its value MUST be silently ignored by the server even if the
+  value is invalid. Note that there are some readonly attributes that are
+  examined by a server during a write operation (e.g. `epoch` and IDs).
 
   Typically, attributes that are completely under the server's control
   will be `readonly` - e.g. `self`.
@@ -357,17 +373,21 @@ The following describes the attributes of the Registry model:
 - Indicates whether this attribute is REQUIRED to have a non-null value.
 - When set to `true`, this specification does not mandate how this
   attribute's value is populated (i.e. by a client, the server or via a
-  default value), just that by the end of processing any request it MUST
-  have a non-null value, and generate an error
-  ([invalid_attribute](./spec.md#invalid_attribute)) if not.
+  default value), just that by the end of the server's processing of any request
+  it MUST have a non-null value, and generate an error
+  ([invalid_attribute](./spec.md#invalid_attribute)) if not. Note that this
+  implies that a REQUIRED attribute does not mean that clients are mandated to
+  include that attribute in their requests. If the attribute will automatically
+  be populated by the server (e.g. it has a default value defined) the client
+  MAY omit it.
 - A `true` value also implies that this attribute MUST be serialized in any
   response from the server - with the exception of the optimizations
-  specified for document view.
+  specified for [document view](./spec.md#registry-model).
 - When not specified the default value MUST be `false`.
 - When the attribute name is `*` then `required` MUST NOT be set to `true`.
-- MUST NOT be `false` if a default value (`attributes.<STRING>.default`)
-  is defined. If not `true` when `default` has a value, an error MUST be
-  generated ([model_required_true](./spec.md#model_required_true)).
+- When a default value (`attributes.<STRING>.default`) is defined, then this
+  aspect MUST be `true`, otherwise an error
+  ([model_required_true](./spec.md#model_required_true)) MUST be generated.
 
 ### `attributes.<STRING>.default`
 - Type: MUST be a non-`null` value of the type specified by the
@@ -378,7 +398,7 @@ The following describes the attributes of the Registry model:
 - OPTIONAL.
 - This value MUST be used to populate this attribute's value if one was
   not provided by a client. An attribute with a default value does not mean
-  that its owning Object is mandated to be present, rather the attribute
+  that its owning Object is mandated to be present; rather the attribute
   would only appear when the owning Object is present. By default,
   attributes have no default values.
 - When not specified, this attribute has no default value and has the same
@@ -390,12 +410,15 @@ The following describes the attributes of the Registry model:
 - If the default value of an attribute changes over time, all existing
   instances of that attribute MUST retain their current values and not
   be automatically changed to the new default value. In other words, a new
-  default value MUST only apply to new, or subsequent updates (when set to
-  `null`, which would reset it to the current default value) of existing,
+  default value MUST only apply to new or subsequent updates (when set to
+  `null`, which would reset it to the current default value) of existing
   instances of the attribute.
+- If the attribute is defined to have an `enum` list, and its `strict` aspect
+  is `true`, then if a `default` value is specified it MUST be one of those
+  `enum` values.
 
 ### `attributes.<STRING>.attributes`
-- Type: Object, see `attributes` above.
+- Type: Object, see [`attributes`](#attributes) above.
 - OPTIONAL.
 - This contains the list of attributes defined as part of a nested entity.
 - MAY be present when the owning attribute's `type` is `object`, otherwise it
@@ -412,12 +435,11 @@ The following describes the attributes of the Registry model:
 ### `attributes.<STRING>.item.type`
 - Type: String.
 - REQUIRED.
-- The "TYPE" of this nested entity.
+- The ["TYPE"](#attributesstringtype) of this nested entity.
 
 ### `attributes.<STRING>.item.target`
 - Type: String.
-- OPTIONAL, and MUST only be used when `item.type` is `url-reference`,
-  `uri-reference` or `xid`.
+- OPTIONAL, and MUST only be used when `item.type` is `url`, `uri` or `xid`.
 - See [`attributes.<STRING>.target`](#attributesstringtarget) above.
 
 ### `attributes.<STRING>.item.namecharset`
@@ -442,14 +464,15 @@ The following describes the attributes of the Registry model:
   the `ifvalues` key (case-insensitive), then the `siblingattributes` MUST be
   included in the model as siblings to this attribute.
 
-  While the properties of a map will automatically prevent two entries
-  with the same value, they will not prevent two entries that only differ
+  While maps will automatically prevent two entries
+  with the same key, they will not prevent two entries that only differ
   in case. Therefore, during a model update, servers MUST ensure that no
   two entries are the same irrespective of case, otherwise an
   error ([model_error](./spec.md#model_error)) MUST be generated.
 
-  If `enum` is not empty and `strict` is `true` then this map MUST NOT
-  contain any value that is not specified in the `enum` array.
+  If attribute's `enum` aspect is not empty and its `strict` aspect is `true`
+  then this map MUST NOT contain any value that is not specified in the `enum`
+  array.
 
   This aspect MUST only be used for scalar attributes.
 
@@ -457,7 +480,8 @@ The following describes the attributes of the Registry model:
   of this `ifvalues` and MUST NOT match a named attribute defined at this
   level of the entity. If multiple `ifvalues` sections, at the same entity
   level, are active at the same time then there MUST NOT be duplicate
-  `ifvalues` attributes names between those `ifvalues` sections.
+  `ifvalues` attribute names between those `ifvalues` sections and a runtime
+  error ([invalid_attribute](./spec.md#invalid_attribute)) MUST be generated.
 - `ifvalues` `<STRING>` MUST NOT be an empty string.
 - `ifvalues` `<STRING>` MUST NOT start with the `^` (caret) character as
   its presence at the beginning of `<STRING>` is reserved for future use.
@@ -466,7 +490,7 @@ The following describes the attributes of the Registry model:
 
 ### `groups`
 - Type: Map where the key MUST be the plural name (`groups.plural`) of the
-  Group type (`<GROUPS>`).
+  Group type (`<GROUPS>`) being defined.
 - REQUIRED if there are any Group types defined for the Registry.
 - A set of zero or more Group types supported by the Registry.
 
@@ -508,7 +532,7 @@ The following describes the attributes of the Registry model:
 - See [`icon`](./spec.md#icon-attribute) for more information.
 
 ### `groups.<STRING>.labels`
-- See [`labels`]((./spec.md#labels) above.
+- See [`labels`](#labels) above.
 - OPTIONAL.
 
 ### `groups.<STRING>.modelversion`
@@ -523,7 +547,7 @@ The following describes the attributes of the Registry model:
 - OPTIONAL.
 - References / represents an xRegistry model definition that
   the Group type is compatible with. This is meant to express
-  interoperability between models in different xRegistries via using a
+  interoperability between models in different xRegistries via a
   shared compatible model.
 - Does not imply runtime validation of the claim.
 - Example: `https://xregistry.io/xreg/xregistryspecs/schema-v1/docs/model.json`
@@ -537,9 +561,144 @@ The following describes the attributes of the Registry model:
 - See [Reuse of Resource Definitions](#reuse-of-resource-definitions) for
   more information.
 
+### `groups.<STRING>.constraints`
+
+The `constraints` map defines a set of rules that can be used to govern
+the attribute values in Resource instances within instances of this Group type.
+
+These restrictions are designed to only allow subsetting of the constraints
+specified by the Resource type model. They MUST NOT be used to extend the
+allowable values of the attributes being constrained.
+
+The format of a constraint map MUST adhere to the following:
+
+```yaml
+"constraints": {
+  "<RESOURCES>.<PATH>": {          # Resource-plural + attribute path
+    "default": <VALUE>, ?          # Group specific default
+    "enum": [ <VALUE> * ], ?       # Allowed subset of values
+    "equals": "<PATH>" ?           # Matching Group attribute path
+  }
+}
+```
+
+More details about each part of the constraints are defined in the following
+sections.
+
+These constraints MUST be applied to all instances of this Group type. Group
+instances MAY choose to add additional entries, or further restrict the ones
+defined here, via use of the Group instance's
+[`constraints` attribute](./spec.md#constraints-attribute).
+
+The constraints MUST be applied to all Versions of all Resources in the Group
+instances, and generate an error
+([constraint_failure](./spec.md#constraint_failure)) if a violation is
+detected.
+
+When possible these constraints are best described when defining the Resource
+attributes in question, rather than here. However, there are cases where this
+might not be possible, such as when Resources are added to a Group type via the
+`ximportresources` feature, Resources are added to Groups via the `xref`
+features, or defining a relationship between Group and Resource attributes -
+such is the case for the `equals` constraint defined below.
+
+Inclusion of a Resource in a Group instance via the
+[`meta.xref`](./spec.md#cross-referencing-resources) mechanism introduces
+some special considerations. The following describes how the aspects of
+a constraint are applied to such xref'd Resources:
+- The `enum` and `equals` constraints, if specified, MUST be adhered to by the
+  Resource. Note that this includes changes to the Resource in its original
+  location that would then violate any of the Groups' constraints that xref
+  that Resource.
+- The `default` values specified MUST NOT be applied to the Resource since
+  its presence in the Group is just a "reference" (or "read-only"). Write
+  operations on the Resource need to be done in its original location.
+
+### `groups.<STRING>.constraints.<RESOURCES>.<PATH>`
+
+This map key MUST reference the Resource attribute that is to be constrained.
+It MUST reference a scalar attribute (top-level, or nested within objects) but
+MUST NOT reference items in arrays or maps. It MUST only reference
+statically-defined attributes, not ones that are dynamically added via an
+`ifvalues` clause or via a `*` extension definition.
+
+The `<RESOURCES>` portion of the map key MUST be the plural name of the
+Resource type being referenced.
+
+The `<PATH>` portion of the map key MUST be a
+[dot (`.`) notation](spec.md#xregistry-dot--notation) traversal to
+the Resource attribute being constrained.
+
+### `groups.<STRING>.constraints.<RESOURCES>.<PATH>.default`
+
+This aspect defines the default value that MUST be used for the referenced
+Resource attribute. This Group type value MUST override any default value
+specified in the model for that attribute.
+
+See the [attribute `default` aspect](#attributesstringdefault) for additional
+information concerning default value processing, as they apply here as well
+with one exception: adding a default value here does not mandate that the
+referenced Resource attribute's `required` aspect be set to `true`.
+However, it would have the same net effect at runtime because a value would
+always be defined for that attribute.
+
+Note, if the constraint does not define a new `enum` set, but a `default` value
+is defined, then if the referenced attribute has an `enum` set and has its
+`strict` aspect set to `true` then this `default` value MUST be one of those
+`enum` values.
+
+### `groups.<STRING>.constraints.<RESOURCES>.<PATH>.enum`
+
+This aspect defines the set of values that the referenced Resource attribute
+MUST be restricted to regardless of whether the Resource's
+[`strict`](#attributesstringstrict) attribute is set to `true` or not. The
+list's values MUST be valid per the Resource attribute's model definition
+(i.e. a proper subset of any `enum` defined if the Resource's `enum` is
+[`strict`](#attributesstringstrict), and of the same type).
+
+As with the [`enum` attribute](#attributesstringenum) defined for attributes,
+an empty `enum` list in a constraint MUST be treated the same as no `enum`
+aspect at all and no further constraints on the allowable attribute values are
+applied beyond what the attribute itself defines.
+
+If an `enum` set is defined, but a constraint `default` value is not, then
+any `default` value specified in the attribute itself MUST be part of the
+`enum` set.
+
+### `groups.<STRING>.constraints.<RESOURCES>.<PATH>.equals`
+
+Use of this aspect within a constraint MAY be used to ensure that the specified
+attribute in all Versions of all Resources within a Group instance is present
+with the same value as the specified `equals` attribute in the Group instance.
+
+When specified with an empty string, it MUST be treated as if it were not
+specified at all.
+
+When present, this aspect MUST contain the
+[dot (`.`) notation](spec.md#xregistry-dot--notation) path in the
+Group instance that the referenced Resource attribute MUST match.
+
+If the Group and Resource attributes are not of the same scalar `type` then
+an error ([model_error])(./spec.md#model_error) MUST be generated.
+
+If the referenced Group attribute does not have a value at runtime, then the
+`equals` constraint enforcement for the Resource attribute MUST be silently
+ignored.
+
+This attribute MUST reference a statically defined Group attribute. In other
+words, it can not reference an attribute defined by an `ifvalues` clause or a
+`*` extension definition. Nor can it reference an attribute within an array.
+
+If the Group attribute is not defined at part of the the model, then an error
+([model_error])(./spec.md#model_error) MUST be generated.
+
+Note that this feature has similar results to setting the Resource attribute's
+`matchversions` aspect to `true`.
+`matchversions` aspect to `true`.
+
 ### `groups.<STRING>.resources`
 - Type: Map where the key MUST be the plural name (`groups.resources.plural`)
-  of the Resource type (`<RESOURCES>`).
+  of the Resource type (`<RESOURCES>`) being defined.
 - REQUIRED if there are any Resource types defined for the Group type.
 - A set of zero or more Resource types defined for the Group type.
 
@@ -581,7 +740,7 @@ The following describes the attributes of the Registry model:
 - See [`icon`](./spec.md#icon-attribute) for more information.
 
 ### `groups.<STRING>.resources.<STRING>.labels`
-- See [`attributes`](#attributes) above.
+- See [`labels`](#labels) above.
 - OPTIONAL.
 
 ### `groups.<STRING>.resources.<STRING>.modelversion`
@@ -610,6 +769,13 @@ The following describes the attributes of the Registry model:
   A special case for the pruning rules is that if `maxversions` is set to
   one (1), then the "default" Version is not skipped, which means it will be
   deleted and the new Version will become "default".
+- An attempt to change `maxversions` to `1` when there are existing Resource
+  instances that have their `defaultversionsticky` attribute set to `true` MUST
+  generate an error
+  ([setdefaultversionsticky_false](spec.md#setdefaultversionsticky_false)).
+  See
+  [`defaultversionsticky` Attribute](spec.md#defaultversionsticky-attribute)
+  for additional information.
 
 ### `groups.<STRING>.resources.<STRING>.setversionid`
 - Type: Boolean (`true` or `false`, case-sensitive).
@@ -625,26 +791,6 @@ The following describes the attributes of the Registry model:
   a `versionid` is provided then the server MUST generate an error
   ([versionid_not_allowed](./spec.md#versionid_not_allowed)).
 
-### `groups.<STRING>.resources.<STRING>.setdefaultversionsticky`
-- Type: Boolean (`true` or `false`, case-sensitive).
-- OPTIONAL.
-- Indicates whether support for client-side selection of the "default"
-  Version is supported for Resources of this type. Once set, the default
-  Version MUST NOT change unless there is some explicit action by a client
-  to change it - hence the term "sticky".
-- When not specified, the default value MUST be `true`.
-- A value of `true` indicates a client MAY select the default Version of
-  a Resource via one of the methods described in this specification rather
-  than the server always choosing the default Version.
-- A value of `false` indicates the server MUST choose which Version is the
-  default Version.
-- An attempt to set the `defaultversionid` attribute when this aspect is
-  `false` MUST generate an error
-  ([setdefaultversionid_not_allowed](spec.md#setdefaultversionid_not_allowed)).
-- This attribute MUST NOT be `true` if `maxversions` is one (`1`). An attempt
-  to set it to `false` MUST generate an error
-  ([setdefaultversionsticky_false](./spec.md#setdefaultversionsticky_false).
-
 ### `groups.<STRING>.resources.<STRING>.hasdocument`
 - Type: Boolean (`true` or `false`, case-sensitive).
 - OPTIONAL.
@@ -655,15 +801,18 @@ The following describes the attributes of the Registry model:
 
   A value of `true` does not mean that these Resources are guaranteed to
   have a non-empty document, and a query to the Resource MAY return an
-  empty document.
+  empty document. However, it does mean that each Resource of this type MUST
+  have a separate document associated with it, even if it's empty.
+
+  Attempts to change this value from `true` to `false` when there are existing
+  Versions with domain-specific documents MUST generate an error
+  ([hasdocument_violation](./spec.md#hasdocument_violation)).
 
   See
   [Document Resources vs Metadata-Only Resources](./spec.md#document-resources-vs-metadata-only-resources)
   for more information.
 
 - When not specified, the default value MUST be `true`.
-- A value of `true` indicates that each Resource of this type MUST have a
-  separate document associated with it, even if it's empty.
 
 ### `groups.<STRING>.resources.<STRING>.versionmode`
 - Type: String
@@ -672,17 +821,17 @@ The following describes the attributes of the Registry model:
   are managed with respect to aspects such as:
   - Which Version is the "newest"?
   - Which Version is the "oldest"?
-  - How a Version's `ancestor` attribute will be populated when not
+  - How a Version's `ancestorid` attribute will be populated when not
     explicitly set by a client.
-- Implementations MAY defined additional algorithms and MAY defined
+- Implementations MAY define additional algorithms and MAY define
   additional aspects that they control, as long as those aspects do not
   conflict with specification-defined semantics.
 - Regardless of the algorithm used, implementations MUST ensure that
-  the `ancestor` attribute of all Versions of a Resource accurately
-  represent the relationship of the Versions prior to the completion of
+  the `ancestorid` attribute of all Versions of a Resource accurately
+  represents the relationship of the Versions prior to the completion of
   any operation. For example, when the `createdat` algorithm is used and
   the `createdat` timestamp of a Version is modified, this might cause a
-  reordering of the Versions and the `ancestor` attributes might need to
+  reordering of the Versions and the `ancestorid` attributes might need to
   be changed accordingly. Similarly, the `defaultversionid` of the
   Resource might change if its `defaultversionsticky` attribute is `false`.
 - When not specified, the default value MUST be `manual`.
@@ -696,21 +845,27 @@ The following describes the attributes of the Registry model:
       more than one, then the one with the highest alphabetically
       case-insensitive `versionid` value MUST be chosen.
     - Oldest Version: MUST be determined by finding all root Versions (ones
-      that have an `ancestor` value that points to itself), then finding
+      that have an `ancestorid` value that points to itself), then finding
       the one with the oldest `createdat` timestamp. If there is more than
       one, then the one with the lowest alphabetically case-insensitive
       `versionid` MUST be chosen.
     - Ancestor Processing: typically provided by clients. During a "create"
-      operation, all Versions that do not have an `ancestor` value
+      operation, all new Versions that do not have an `ancestorid` value
       provided MUST be sorted/processed by `versionid` (in case-insensitive
-      ascending order) and the `ancestor` value of each MUST be set to the
-      current "newest version" per the above semantics. Note that as
+      ascending order) and the `ancestorid` value of each MUST be set to the
+      current "newest Version" per the above semantics. Note that as
       each new Version is created, it MUST become the "newest". If there
       is no existing Version then the new Version becomes a root and its
-      `ancestor` value MUST be its `versionid` attribute value.
+      `ancestorid` value MUST be its own `versionid` attribute value.
     - Deleted Ancestor: if a Version's ancestor is deleted, then this Version
-      MUST become a root, and its `ancestor` value MUST be set to its
+      MUST become a root, and its `ancestorid` value MUST be set to its own
       `versionid` value.
+    - The name of this versionmode is a bit of a misnomer in that it is not
+      100% "manual". As stated above, as a convenience, by default new
+      Versions will point to the "newest" Version as their ancestor. If this
+      behavior is not desired, then during the "create" operation, the
+      `ancestorid` can be set to point to itself (or any other Version) if
+      desired.
 
   - `createdat`
     - Newest Version: MUST be determined by finding the Version with the
@@ -722,15 +877,15 @@ The following describes the attributes of the Registry model:
       one with the lowest alphabetically case-insensitive `versionid`
       value MUST be chosen. Note that this MUST also be the one and only
       "root" Version.
-    - Ancestor Processing: The `ancestor` value of each Version MUST be
+    - Ancestor Processing: The `ancestorid` value of each Version MUST be
       determined via examination of the `createdat` timestamp of each
       Version and the Versions sorted in ascending order, where the first
-      one will be the "root" (oldest) Version and its `ancestor` value
+      one will be the "root" (oldest) Version and its `ancestorid` value
       MUST be its `versionid`. If there is more than one Version with the
       same `createdat` timestamp then those MUST be ordered in ascending
-      case-insensitive ordered based on their `versionid` values.
+      case-insensitive order based on their `versionid` values.
     - Deleted Ancestor: if a Version's ancestor is deleted, then this Version's
-      `ancestor` value MUST be determined by the "ancestor processing" logic
+      `ancestorid` value MUST be determined by the "ancestor processing" logic
       as stated above.
     - When this `versionmode` is used, the `singleversionroot` aspect
       MUST be set to `true`.
@@ -748,13 +903,13 @@ The following describes the attributes of the Registry model:
       value per the [Semantic Versioning](https://semver.org/)
       specification's "precedence" ordering rules. Note that this MUST also
       be the one and only "root" Version.
-    - Ancestor Processing: The `ancestor` value of each Version MUST either
-      be its `versionid` value (if it it the oldest Version), or the
+    - Ancestor Processing: The `ancestorid` value of each Version MUST either
+      be its `versionid` value (if it is the oldest Version), or the
       `versionid` of the next oldest Version per the
       [Semantic Versioning](https://semver.org/) specification's
       "precedence" ordering rules.
     - Deleted Ancestor: if a Version's ancestor is deleted, then this Version's
-      `ancestor` value MUST be determined by the "ancestor processing" logic
+      `ancestorid` value MUST be determined by the "ancestor processing" logic
       as stated above.
     - When this `versionmode` is used, the `singleversionroot` aspect
       MUST be set to `true`.
@@ -764,7 +919,7 @@ The following describes the attributes of the Registry model:
 - OPTIONAL.
 - Indicates whether Resources of this type can have multiple Versions
   that represent roots of an ancestor tree, as indicated by the
-  Version's `ancestor` attribute value being the same as its `versionid`
+  Version's `ancestorid` attribute value being the same as its own `versionid`
   attribute.
 - When not specified, the default value MUST be `false`.
 - A value of `true` indicates that only one Version of the Resource can
@@ -772,17 +927,17 @@ The following describes the attributes of the Registry model:
   ([multiple_roots](./spec.md#multiple_roots)) if any request results in a
   state where more than one Version of a Resource is a root of an ancestor
   tree.
-- Note that if the Resource's `versionmode` value might influence
-  the permissible values of this aspect.
+- Note that the Resource's `versionmode` value might influence the permissible
+  values of this aspect.
 - See the
   [`singleversionroot` Policy
-  Enforcement](./primer.md#singleversionroot-policy-enforcement) section of
+  Enforcement](./primer.md#1119-singleversionroot-policy-enforcement) section of
   the Primer for more information.
 
 ### `groups.<STRING>.resources.<STRING>.validateformat`
 - Type: Boolean (`true` or `false`, case-sensitive).
 - OPTIONAL.
-- Indicated whether the server MUST validate that all Versions of this
+- Indicates whether the server MUST validate that all Versions of this
   Resource type adhere to the rules as defined by the Version's `format`
   value.
 - When not specified, the default value MUST be `false`.
@@ -793,8 +948,8 @@ The following describes the attributes of the Registry model:
   - Validators MUST treat a Resource with its `hasdocument` model attribute
     set to `false`, a Version with no domain-specific document even though
     `hasdocument` is `true`, and a Version with an empty domain-specific
-    document as 3 different variants of "the domain-specific document is
-    empty (zero bytes in length)".
+    document as 3 variants of "the domain-specific document is
+    empty (zero bytes in length)" and MUST yield the same semantic results.
   - When `hasdocument` is `true`, and a Version uses the `<RESOURCE>url`
     attribute to reference the document in an external datastore, the
     resulting [`formatvalidated`](spec.md#format-attribute) attribute on the
@@ -811,11 +966,11 @@ The following describes the attributes of the Registry model:
 ### `groups.<STRING>.resources.<STRING>.validatecompatibility`
 - Type: Boolean (`true` or `false`, case-sensitive).
 - OPTIONAL.
-- Indicated whether the server MUST validate that all Versions of this
+- Indicates whether the server MUST validate that all Versions of this
   Resource type adhere to its owning Resource's `meta.compatibility` value.
 - When not specified, the default value MUST be `false`.
 - A value of `true` indicates that the server MUST generate an error
-  [compatibility_violation](spec.md#compatibility_violation)) if any Version
+  ([compatibility_violation](spec.md#compatibility_violation)) if any Version
   of a Resource instance of this Resource type does not adhere to the rules of
   the `meta.compatibility` value for that Resource's `format` value.
   See [`strictvalidation`](#groupsstringresourcesstringstrictvalidation) for
@@ -856,34 +1011,17 @@ The following describes the attributes of the Registry model:
     `false`.
   - If the Resource's `meta.compatibility` value is unsupported, then
     the Version's `compatibilityvalidated` attribute MUST be set to `false`.
-
-### `groups.<STRING>.resources.<STRING>.consistentformat`
-- Type: Boolean (`true` or `false`, case-sensitive)
-- OPTIONAL
-- Indicates whether all Versions of a Resource of this type are mandated to
-  have the same [`format`](spec.md#format-attribute) value.
-- This attribute's semantics apply regardless of the values of `validateformat`
-  and `validatecompatibility`.
-- When not specified, the default value MUST be `false`.
-- A value of `true` indicates that:
-  - The `format` attribute of all Versions of a Resource of this type MUST
-    have the same case-insensitive value (including the case of `format` being
-    an empty string). If a Version differs then an error
-    ([format_inconsistent](spec.md#format_inconsistent)) MUST be generated.
-- A value of `false` indicates that:
-  - The server MUST NOT check for a consistent (same) `format` value across
-    the Versions of a Resource of this type.
+- Regardless of the value of this aspect, if the Version's `format` value is
+  absent, then format and compatibility validation logic MUST NOT be performed
+  for that Version.
 
 ### `groups.<STRING>.resources.<STRING>.typemap`
-- Type: Map where the keys and values MUST be non-empty strings. The key
-  MAY include at most one `*` to act as a wildcard to mean zero or more
-  instances of any character at that position in the string - similar to a
-  `.*` in a regular expression. The key MUST be a case-insensitive string.
+- Type: Map where the keys and values MUST be non-empty strings.
 - OPTIONAL.
 - When a Resource's metadata is serialized in a response and the
   `?inline=<RESOURCE>` feature is enabled, the server will attempt to
   serialize the Resource's "document" under the `<RESOURCE>` attribute.
-  However, this can only happen under two situations:<br>
+  However, this can only happen in two situations:<br>
   1 - The Resource document's bytes are already in the same format as
       the xRegistry metadata - in other words JSON, or<br>
   2 - The Resource's document can be considered a "string" and therefore
@@ -906,6 +1044,10 @@ The following describes the attributes of the Registry model:
   they all have the same value, then that value MUST be used. If they are
   not all the same, then `binary` MUST be used.
 
+- The key MAY include at most one `*` to act as a wildcard to mean zero or
+  more instances of any character at that position in the string - similar to
+  a `.*` in a regular expression. The key MUST be a case-insensitive string.
+
 - This specification defines the following values (case-insensitive):
   - `binary`
   - `json`
@@ -915,7 +1057,7 @@ The following describes the attributes of the Registry model:
 
   A value of `binary` indicates that the Resource's document is to be treated
   as an array of bytes and serialized under the `<RESOURCE>base64` attribute,
-  even if the `contenttype` is of the same type of the xRegistry metadata
+  even if the `contenttype` is of the same type as the xRegistry metadata
   (e.g. `application/json`). This is useful when it is desirable to not
   have the server potentially modify the document (e.g. "pretty-print" it).
 
@@ -952,11 +1094,9 @@ The following describes the attributes of the Registry model:
   ```
 
 ### `groups.<STRING>.resources.<STRING>.attributes`
-- See [`attributes`](#attributes) above,
-  as well as
+- See [`attributes`](#attributes) above, as well as
   [`resourceattributes`](#groupsstringresourcesstringresourceattributes)
-  and [`metaattributes`](#groupsstringresourcesstringmetaattributes)
-  below.
+  and [`metaattributes`](#groupsstringresourcesstringmetaattributes) below.
 - OPTIONAL.
 - The list of attributes associated with each Version of the Resource.
 - Extension attribute names at this level MUST NOT overlap with extension
@@ -979,7 +1119,7 @@ The following describes the attributes of the Registry model:
 - While it is NOT RECOMMENDED, implementations MAY add additional attributes
   to this list if they are necessary to help with model traversal. Otherwise
   the other 2 attribute lists SHOULD be used. The goal is to make the
-  Resource entity look at much like the "default" Version as possible,
+  Resource entity look as much like the `default` Version as possible;
   adding additional attributes at the Resource level violates that goal.
 
 ### `groups.<STRING>.resources.<STRING>.metaattributes`
@@ -999,7 +1139,7 @@ Clarifying the  usage of the `attributes`, `resourceattributes` and
 - To enable this, most of the Resource-specific data (e.g. its
   `defaultversionid`), is serialized under the `meta` sub-object. This avoids
   potential name conflicts between Version and Resource-level attributes, as
-  well as avoiding making the serialization of the Resource too verbose/noisy.
+  well as avoids making the serialization of the Resource too verbose/noisy.
 - However, there are some Resource-level attributes, that if placed in the
   `meta` sub-object, would appear to be misplaced. For example, the `versions`
   collection attributes could be confusing to users since `meta` is not
@@ -1008,7 +1148,7 @@ Clarifying the  usage of the `attributes`, `resourceattributes` and
   not have `/meta/` in it.
 - Additionally, some common attributes (e.g. `self`) need to appear on both
   Resources as well as Versions but the values need to be different in each
-  case. This is why the same attribute names can appear both the
+  case. This is why the same attribute names can appear in both the
   `resourceattributes` and `attributes` lists, but only specification-defined
   attributes are allowed to have this naming conflict. Extensions are not, as
   that could lead to confusion for users.
@@ -1023,9 +1163,11 @@ Clarifying the  usage of the `attributes`, `resourceattributes` and
 ## Retrieving the Registry Model
 
 The Registry model is available in two forms:
-- The full "model" with all possible aspects of the model defined.
+- The full "model" with all possible aspects of the model defined. This
+  includes user-defined model extensions as well as specification-defined
+  model aspects.
 - The "modelsource" form represents just the model aspects as specified when
-  the model was defined or last updated.
+  the model was defined or last updated by authorized users.
 
 The full "model" view can be thought of as a full schema definition of what the
 message exchanges with the server might look like. As such, it MUST include:
@@ -1037,8 +1179,8 @@ message exchanges with the server might look like. As such, it MUST include:
 - All Resource definitions, including Version `<COLLECTION>*`, `meta` and
   `metaurl` attributes. Note that the `<RESOURCE>*` attribute would only appear
   if the
-  [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
-  aspect is `true`.
+  [`hasdocument` aspect](#groupsstringresourcesstringhasdocument)
+  is `true`.
 
 The "modelsource" view of the model is just what was provided by the user when
 the model was defined, or last edited. It is expected that this view of the
@@ -1057,7 +1199,7 @@ retrieve these two model views as both stand-alone entities and
 
 For the sake of brevity, this specification doesn't include the full definition
 of the specification-defined attributes as part of the snippets of output.
-However, an example of a full model definition of a Registry can be can be
+However, an example of a full model definition of a Registry can be
 found in this sample [sample-model-full.json](sample-model-full.json).
 
 When retrieving the `modelsource`, the response MUST only include what
@@ -1078,12 +1220,14 @@ with respect to how models are defined or updated:
 - Changes to specification-defined attributes MAY be included in the model but
   MUST NOT change them such that they become incompatible with the
   specification. For example, changes to further constrain the allowable values
-  of an attribute is typically allowed, but changing its `type` from `string`
+  of an attribute are typically allowed, but changing its `type` from `string`
   to `integer` is not.
 - Specification-defined attributes that are `required` MUST NOT have this
   aspect changed to `false`.
 - Specification-defined attributes that are `readonly` MUST NOT have this
   aspect changed to `false`.
+- Specification-defined attributes that define a `default` value MUST always
+  include a `default` value in their definitions.
 
 Any specification attributes not included in a request to define, or update,
 a model MUST be included in the resulting full model. In other words, the full
@@ -1105,7 +1249,7 @@ server implementations. This specification makes no statement as to what types
 of changes are allowed beyond the following requirements:
 - Any model change MUST result in a specification compliant model definition.
 - Servers MUST ensure that the representation of all entities within the
-  Registry adhere to the new model prior to completing the model update
+  Registry adheres to the new model prior to completing the model update
   request.
 
 Any request to update the model that does not adhere to those requirements
@@ -1142,8 +1286,8 @@ system-defined aspects added) can be found [here](./sample-model-full.json).
 When a Resource type definition is to be shared between Groups, rather than
 creating a duplicate Resource definition, the `ximportresources` mechanism MAY
 be used instead. The `ximportresources` attribute on a Group definition
-allows for a list of `<XIDTYPE>` references to other Resource types that are
-to be included within this Group.
+allows for a list of `<XIDTYPE>` references to other Resource types to be
+included within this Group.
 
 For example, the following abbreviated model definition defines
 one Resource type (`messages`) under the `messagegroups` Group, that is
@@ -1185,11 +1329,18 @@ where:
   MUST NOT result in a circular import chain.
 
 Locally defined Resources MAY be defined within a Group that uses the
-`ximportresources` feature, however, Resource `plural` and `singular` values
+`ximportresources` feature; however, Resource `plural` and `singular` values
 MUST be unique across all imported and locally defined Resources.
 
+This attribute, while listed in the schema definition of `model`, and
+`modelsource` for ease of reading the specification, is only available for
+`modelsource`. Similar to the `$include` directive, servers MUST process any
+`ximportresources` found in the `modelsource` data and the results MUST be
+reflected in the `model`, but the `ximportresources` directive MUST NOT appear
+in the `model` serialization.
+
 See [Cross Referencing Resources](./spec.md#cross-referencing-resources) for
-more additional information.
+additional information.
 
 ### Includes in the xRegistry Model Data
 
@@ -1217,10 +1368,10 @@ is asking for the attributes of a Group called `mygroup` to be included at
 this location of the current model definition.
 
 These directives MAY be used in any JSON Object or Map entity in an
-xRegistry model definition. The following rules apply for how to process the
-include directive:
+xRegistry model definition. The following rules apply to how the include
+directive is processed:
 - The include path reference value MUST be compatible with the environment in
-  which the include is being evaluated. For example, in an xRegistry server it
+  which the `include` is being evaluated. For example, in an xRegistry server it
   would most likely always be a URL. However, in an external tool the reference
   might be to a local file on disk or a URL.
 - The include MUST reference a JSON Object or Map that is consistent with
@@ -1234,8 +1385,8 @@ include directive:
   attributes.
 - Both `$include` and `$includes` MUST NOT be present at the same time at the
   same level in the model.
-- Included model definitions MAY use `include` directives, but MUST NOT be
-  recursive.
+- Included model definitions MAY use `include` directives, but MUST NOT result
+  in a circular include chain.
 - Resolution of the include path MUST follow standard path resolution.
   Meaning, relative paths are relative to the document with the include
   directive.
@@ -1249,14 +1400,14 @@ the `modelsource` attribute/entity. The expanded model (after the resolution
 of any includes, and after all specification-defined attributes have been
 added), MUST be available via the `model` attribute/entity. The directives MUST
 only be processed during the initial update of the model. In order to have
-them re-evaluated, a subsequent model update request (with those directive)
+them re-evaluated, a subsequent model update request (with those directives)
 MUST be sent.
 
 When there is tooling used outside of the server, e.g. in an xRegistry
 client, if that tooling resolves the "include" directives prior to sending
 the model to the server, then the directives will not appear in the
-`modelsource` view of the the model. Ideally, tooling SHOULD allow users
-to choose whether the resolution of the directives are done locally or by
+`modelsource` view of the model. Ideally, tooling SHOULD allow users
+to choose whether the resolution of the directives is done locally or by
 the server.
 
 **Examples:**

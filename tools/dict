@@ -1,6 +1,7 @@
 acks
 amqp
 amqps
+ancestorid
 api
 apicur
 apicurio
@@ -48,6 +49,7 @@ configendpoints
 connectionproperties
 consumergroup
 consumerrecord
+contentmedia
 contenttype
 contoso
 createdat
@@ -81,6 +83,8 @@ dirs
 dirscount
 discount
 distributionmode
+dns
+embeddings
 emoji
 endpointid
 endpointscount
@@ -104,6 +108,7 @@ githubusercontent
 gmt
 google
 gotchas
+granttypes
 groupid
 groupscount
 groupsgid
@@ -145,6 +150,7 @@ javadoc
 json
 jsonpath
 jsonschema
+jsonstructure
 jul
 keyname
 lifecycle
@@ -198,6 +204,7 @@ myregistry
 myresourceid
 myresources
 myschema
+myschemagroup
 myschemas
 myspec
 mysubject
@@ -212,8 +219,10 @@ noninlineable
 npm
 oauth
 oci
+oldestnewest
 openapi
 openid
+passthrough
 pdf
 placeholders
 png
@@ -231,6 +240,7 @@ readonly
 redis
 registryid
 replytopic
+repo
 repos
 resourceattributes
 resourceid
@@ -238,11 +248,13 @@ resourcescount
 resourcesurl
 resourceuri
 resourceurl
+resourceversionid
 resultset
 rfc
 rid
 robovac
 rpc
+schemacontenttype
 schemagroup
 schemagroupid
 schemagroups
@@ -261,6 +273,7 @@ serverrequired
 setdefaultversionid
 setdefaultversionsticky
 setversionid
+sharedreferenced
 sharedschema
 shortself
 shorturl
@@ -277,7 +290,6 @@ specversion
 specversions
 src
 ssl
-stickyversions
 storeid
 stringified
 svg
@@ -354,6 +366,7 @@ xregistry
 xregistryspecs
 xregsample
 xregurlmapping
+xrproxy
 xsd
 xy
 yaml

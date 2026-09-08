@@ -1,4 +1,4 @@
-# CloudEvents Registry Service - Version 1.0-rc2
+# CloudEvents Registry Service - Version 1.0-rc4
 
 ## Abstract
 
@@ -8,16 +8,14 @@ metaschemas, and messaging and eventing endpoints.
 
 ## Table of Contents
 
-- [CloudEvents Registry Service - Version 1.0-rc2](#cloudevents-registry-service---version-10-rc2)
-  - [Abstract](#abstract)
-  - [Table of Contents](#table-of-contents)
-  - [Overview](#overview)
-  - [Notations and Terminology](#notations-and-terminology)
-    - [Notational Conventions](#notational-conventions)
-  - [CloudEvents Registry](#cloudevents-registry)
-    - [File format](#file-format)
-  - [References](#references)
-
+- [Abstract](#abstract)
+- [Table of Contents](#table-of-contents)
+- [Overview](#overview)
+- [Notations and Terminology](#notations-and-terminology)
+  - [Notational Conventions](#notational-conventions)
+- [CloudEvents Registry](#cloudevents-registry)
+  - [File format](#file-format)
+- [References](#references)
 
 ## Overview
 
@@ -57,11 +55,11 @@ interpreted as described in [RFC 2119](https://tools.ietf.org/html/rfc2119).
 For clarity, OPTIONAL attributes (specification-defined and extensions) are
 OPTIONAL for clients to use, but the servers' responsibility will vary.
 Server-unknown extension attributes MUST be silently stored in the backing
-datastore. Specification-defined, and server-known extension, attributes MUST
-generate an error if corresponding feature is not supported or enabled.
-However, as with all attributes, if accepting the attribute would result in a
-bad state (such as exceeding a size limit, or results in a security issue),
-then the server MAY choose to reject the request.
+datastore. Specification-defined attributes and server-known extension
+attributes MUST generate an error if the corresponding feature is not supported
+or enabled. However, as with all attributes, if accepting the attribute results
+in a bad state (such as exceeding a size limit or resulting in a security
+issue), then the server MAY choose to reject the request.
 
 In the pseudo JSON format snippets `?` means the preceding attribute is
 OPTIONAL, `*` means the preceding attribute MAY appear zero or more times,
@@ -120,7 +118,7 @@ endpoint with a single, embedded message definition using an embedded Protobuf
 ```json
 {
   "$schema": "https://cloudevents.io/schemas/registry",
-  "specversion": "1.0-rc2",
+  "specversion": "1.0-rc4",
   "registryid": "Example Registry",
   "self": "http://example.com",
   "xid": "/",
@@ -165,7 +163,7 @@ endpoint with a single, embedded message definition using an embedded Protobuf
           "description": "device telemetry event",
           "createdat": "2024-04-30T12:00:00Z",
           "modifiedat": "2024-04-31T12:00:00Z",
-          "ancestor": "1.0",
+          "ancestorid": "1.0",
 
           "format": "CloudEvents/1.0",
           "metadata": {
@@ -210,7 +208,7 @@ other scenarios:
 ```json
 {
   "$schema": "https://cloudevents.io/schemas/registry",
-  "specversion": "1.0-rc2",
+  "specversion": "1.0-rc4",
   "registryid": "Example Registry",
   "self": "http://example.com",
   "xid": "/",
@@ -273,7 +271,7 @@ other scenarios:
           "description": "device telemetry event",
           "createdat": "2024-04-30T12:00:00Z",
           "modifiedat": "2024-04-31T12:00:00Z",
-          "ancestor": "1.0",
+          "ancestorid": "1.0",
 
           "format": "CloudEvents/1.0",
           "metadata": {
@@ -333,7 +331,7 @@ other scenarios:
           "description": "device telemetry event data",
           "createdat": "2024-04-30T12:00:00Z",
           "modifiedat": "2024-04-31T12:00:00Z",
-          "ancestor": "1.0",
+          "ancestorid": "1.0",
 
           "format": "Protobuf/3.0",
           "schema": "syntax = \"proto3\"; message Metrics { float metric = 1;}",
@@ -355,7 +353,7 @@ group with a deep link to the respective object in the service:
 ```json
 {
   "$schema": "https://cloudevents.io/schemas/registry",
-  "specversion": "1.0-rc2",
+  "specversion": "1.0-rc4",
   "registryid": "Example Registry",
 
   "endpointsurl": "https://example.com/endpoints",
@@ -390,7 +388,7 @@ link will first reference the file and then the object within the file, using
 ```yaml
 {
   "$schema": "https://cloudevents.io/schemas/registry",
-  "specversion": "1.0-rc2",
+  "specversion": "1.0-rc4",
   "registryid": "Example Registry",
 
   "endpointsurl": "https://example.com/endpoints",
@@ -462,7 +460,7 @@ embedded or referenced. Any of the three sub-registries MAY be omitted.
 ```yaml
 {
   "$schema": "https://cloudevents.io/schemas/registry",
-  "specversion": "1.0-rc2",
+  "specversion": "1.0-rc4",
   "registryid": "STRING",
 
   "endpointsurl": "URL",

@@ -83,6 +83,32 @@
               },
               "description": "Include these Resources"
             },
+            "constraints": {
+              "type": "object",
+              "patternProperties": {
+                "^[a-z][a-z0-9_]*\\..+$": {
+                  "type": "object",
+                  "properties": {
+                    "default": {
+                      "type": [ "string", "number", "integer", "boolean" ]
+                    },
+                    "enum": {
+                      "type": "array",
+                      "items": {
+                        "type": [ "string", "number", "integer", "boolean" ]
+                      },
+                      "minItems": 1
+                    },
+                    "equals": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false,
+              "description": "Group level constraints over resources"
+            },
             "resources": {
               "type": "object",
               "description": "Resource types within this group",
@@ -139,11 +165,6 @@
               "default": true,
               "description": "Whether client-side setting of versionid is supported"
             },
-            "setdefaultversionsticky": {
-              "type": "boolean",
-              "default": true,
-              "description": "Whether client-side selection of default Version is supported"
-            },
             "hasdocument": {
               "type": "boolean",
               "default": true,
@@ -159,6 +180,21 @@
               "type": "boolean",
               "default": false,
               "description": "Whether to enforce single root Version"
+            },
+            "validateformat": {
+              "type": "boolean",
+              "default": false,
+              "description": "Whether to perform Version format checks"
+            },
+            "validatecompatibility": {
+              "type": "boolean",
+              "default": false,
+              "description": "Whether to perform Version compatibility checks"
+            },
+            "strictvalidation": {
+              "type": "boolean",
+              "default": false,
+              "description": "Whether to reject unknown format and compatibility validators"
             },
             "typemap": {
               "type": "object",
@@ -231,8 +267,9 @@
           "type": "string",
           "enum": [
             "boolean", "string", "integer", "uinteger", "decimal",
-            "uri", "url", "uri-reference", "url-reference",
-            "timestamp", "uritemplate", "binary", "xid",
+            "uri", "uriabsolute", "urirelative", "uritemplate",
+            "url", "urlabsolute", "urlrelative",
+            "timestamp", "binary", "xid", "xidtype",
             "array", "map", "object", "any"
           ]
         },
@@ -278,8 +315,9 @@
           "type": "string",
           "enum": [
             "boolean", "string", "integer", "uinteger", "decimal",
-            "uri", "url", "uri-reference", "url-reference",
-            "timestamp", "uritemplate", "binary", "xid",
+            "uri", "uriabsolute", "urirelative", "uritemplate",
+            "url", "urlabsolute", "urlrelative",
+            "timestamp", "binary", "xid", "xidtype",
             "array", "map", "object", "any"
           ],
           "description": "Data type of the attribute"
@@ -287,7 +325,7 @@
         "target": {
           "type": "string",
           "pattern": "^/[a-z][a-z0-9_]*(/[a-z][a-z0-9_]*(\\[/versions\\]|/versions)?)?$",
-          "description": "Target entity type for xid/url-reference/uri-reference types. Uses strict character set as defined in the xRegistry spec."
+          "description": "Target entity type for xid/url/uri types. Uses strict character set as defined in the xRegistry spec."
         },
         "namecharset": {
           "type": "string",
@@ -308,10 +346,10 @@
           "default": true,
           "description": "Whether to restrict values to enum only"
         },
-        "matchcase": {
+        "matchversions": {
           "type": "boolean",
           "default": false,
-          "description": "Whether string value comparisons are case-sensitive"
+          "description": "Whether attribute must be the same across all versions"
         },
         "readonly": {
           "type": "boolean",
@@ -391,8 +429,9 @@
           "type": "string",
           "enum": [
             "boolean", "string", "integer", "uinteger", "decimal",
-            "uri", "url", "uri-reference", "url-reference",
-            "timestamp", "uritemplate", "binary", "xid",
+            "uri", "uriabsolute", "urirelative", "uritemplate",
+            "url", "urlabsolute", "urlrelative",
+            "timestamp", "binary", "xid", "xidtype",
             "array", "map", "object", "any"
           ]
         },

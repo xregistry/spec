@@ -3,6 +3,7 @@ Tests for schema-generator.py to validate JSON Schema and Avro output conformanc
 """
 import json
 import os
+import re
 import subprocess
 import tempfile
 from pathlib import Path
@@ -55,6 +56,86 @@ class TestSchemaGenerator:
 
             with open(tmp_path, 'r') as f:
                 return json.load(f)
+        finally:
+            if os.path.exists(tmp_path):
+                os.unlink(tmp_path)
+
+    def assert_json_structure(self, schema_data: dict):
+        """Validate the structural invariants of generated JSON Structure."""
+        assert schema_data['$schema'] == 'https://json-structure.org/meta/extended/v0/#'
+        assert schema_data['$uses'] == ['JSONStructureAlternateNames']
+        assert schema_data['type'] == 'object'
+        assert schema_data['additionalProperties'] is False
+
+        identifier_pattern = re.compile(r'^[A-Za-z][A-Za-z0-9]*$')
+
+        def resolve_reference(reference):
+            assert reference.startswith('#/definitions/')
+            target = schema_data
+            for segment in reference[2:].split('/'):
+                target = target[segment]
+            return target
+
+        def visit(node):
+            if isinstance(node, dict):
+                if '$ref' in node:
+                    resolve_reference(node['$ref'])
+                for collection_name in ('properties', 'definitions'):
+                    for name in node.get(collection_name, {}):
+                        assert identifier_pattern.fullmatch(name), name
+                for value in node.values():
+                    visit(value)
+            elif isinstance(node, list):
+                for value in node:
+                    visit(value)
+
+        visit(schema_data)
+
+    def test_schema_model_json_structure(self, schema_model, tools_dir):
+        """Test native JSON Structure shape for a registry model."""
+        schema_data = self.generate_schema(schema_model, 'json-structure', tools_dir)
+
+        self.assert_json_structure(schema_data)
+        assert schema_data['properties']['schemagroups']['type'] == 'map'
+        schema_version = schema_data['definitions']['Schemagroups']['SchemaVersion']
+        assert schema_version['properties']['format']['type'] == 'string'
+
+    def test_cloudevents_multi_model_json_structure(
+        self, endpoint_model, message_model, schema_model, tools_dir
+    ):
+        """Test namespaced JSON Structure composition for all extension models."""
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as tmp:
+            tmp_path = tmp.name
+
+        try:
+            result = subprocess.run(
+                [
+                    'python', 'schema-generator.py', '--type', 'json-structure',
+                    str(endpoint_model), str(message_model), str(schema_model),
+                    '--output', tmp_path
+                ],
+                cwd=str(tools_dir),
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+            assert result.returncode == 0, result.stderr
+            with open(tmp_path, 'r', encoding='utf-8') as schema_file:
+                schema_data = json.load(schema_file)
+            self.assert_json_structure(schema_data)
+            assert set(schema_data['properties']) == {
+                'endpoints', 'messagegroups', 'schemagroups'
+            }
+            assert set(schema_data['definitions']) == {
+                'Endpoints', 'Messagegroups', 'Schemagroups'
+            }
+            message = schema_data['definitions']['Messagegroups']['Message']
+            protocol_properties = message['properties']['protocoloptions'][
+                'properties'
+            ]['properties']['properties']
+            assert protocol_properties['messageId']['altnames'] == {
+                'json': 'message-id'
+            }
         finally:
             if os.path.exists(tmp_path):
                 os.unlink(tmp_path)
