@@ -6,6 +6,7 @@
 
 <!-- no verify-specs -->
 
+<a id="abstract"></a>
 ## 1. Abstract
 
 This non-normative document provides an overview of the [xRegistry
@@ -15,31 +16,35 @@ and insight into the history and design decisions made during the development of
 the specification. This allows the specification itself to focus on the
 normative technical details.
 
+<a id="table-of-contents"></a>
 ## 2. Table of Contents
 
-- [1. Abstract](#1-abstract)
-- [2. Table of Contents](#2-table-of-contents)
-- [3. A Quick Introduction to xRegistry](#3-a-quick-introduction-to-xregistry)
-  - [3.1. What is xRegistry?](#31-what-is-xregistry)
-  - [3.2. Core HTTP Interactions](#32-core-http-interactions)
-    - [3.2.1. Reading things](#321-reading-things)
-    - [3.2.2. Creating / updating things](#322-creating--updating-things)
-    - [3.2.3. Resources: metadata vs. the actual document](#323-resources-metadata-vs-the-actual-document)
-    - [3.2.4. Versions](#324-versions)
-    - [3.2.5. Deleting](#325-deleting)
-    - [3.2.6. Errors](#326-errors)
-  - [3.3. Defining a Basic Model](#33-defining-a-basic-model)
-    - [3.3.1. Adding your own attributes (extensions)](#331-adding-your-own-attributes-extensions)
-  - [3.4. Where to go next](#34-where-to-go-next)
-- [4. History](#4-history)
-- [5. Value proposition](#5-value-proposition)
-  - [5.1. Why build something new?](#51-why-build-something-new)
-  - [5.2. Discovery](#52-discovery)
-  - [5.3. Vendor-agnostic](#53-vendor-agnostic)
-  - [5.4. Versioning](#54-versioning)
-  - [5.5. Schema validation](#55-schema-validation)
-  - [5.6. Payload reduction](#56-payload-reduction)
-  - [5.7. Schema-based contract and client generation](#57-schema-based-contract-and-client-generation)
+- [1. Abstract](#abstract)
+- [2. Table of Contents](#table-of-contents)
+- [3. A Quick Introduction to xRegistry](#quick-introduction)
+  - [3.1. What is xRegistry?](#what-is-xregistry)
+  - [3.2. Core HTTP Interactions](#core-http-interactions)
+    - [3.2.1. Reading things](#reading-things)
+    - [3.2.2. Creating / updating things](#creating-updating-things)
+    - [3.2.3. Resources: metadata vs. the actual
+      document](#resource-metadata-vs-document)
+    - [3.2.4. Versions](#versions)
+    - [3.2.5. Deleting](#deleting)
+    - [3.2.6. Errors](#errors)
+  - [3.3. Defining a Basic Model](#defining-basic-model)
+    - [3.3.1. Adding your own attributes
+      (extensions)](#adding-attributes)
+  - [3.4. Where to go next](#where-to-go-next)
+- [4. History](#history)
+- [5. Value proposition](#value-proposition)
+  - [5.1. Why build something new?](#why-build-something-new)
+  - [5.2. Discovery](#discovery)
+  - [5.3. Vendor-agnostic](#vendor-agnostic)
+  - [5.4. Versioning](#versioning)
+  - [5.5. Schema validation](#schema-validation)
+  - [5.6. Payload reduction](#payload-reduction)
+  - [5.7. Schema-based contract and client
+    generation](#schema-contract-client-generation)
   - [5.8. Basis for further developments](#basis-for-further-developments)
 - [6. Non-Goals](#non-goals)
 - [7. Representations](#representations)
@@ -53,12 +58,12 @@ normative technical details.
   - [8.3. Federation](#federation)
     - [8.3.1. Composing registries in memory](#composing-registries-in-memory)
     - [8.3.2. Shadowing](#shadowing)
-    - [8.3.3. Identifiers](#identifiers)
+    - [8.3.3. Entity identity across registry
+      views](#entity-identity-across-registry-views)
     - [8.3.4. API Servers and Proxies](#api-servers-and-proxies)
 - [9. Possible Use Cases](#possible-use-cases)
   - [9.1. CloudEvents](#cloudevents)
   - [9.2. Business objects](#business-objects)
-  - [9.3. Metadata files in repositories](#metadata-files-in-repositories)
 - [10. Design decisions or topics of
   interest](#design-decisions-or-topics-of-interest)
   - [10.1. Resource.ID vs Resource.Version.ID](#resourceid-vs-resourceversionid)
@@ -109,6 +114,7 @@ normative technical details.
   - [15.2. Constraints and `matchversions`](#constraints-and-matchversions)
 
 
+<a id="quick-introduction"></a>
 ## 3. A Quick Introduction to xRegistry
 
 *A quick-start guide for developers who just want to use xRegistry, not read
@@ -121,6 +127,7 @@ language. If you need the full details later, see [`spec.md`](./spec.md),
 already know how typical REST APIs work (`GET`/`POST`/`PUT`/`PATCH`/`DELETE`,
 JSON bodies, HTTP status codes).
 
+<a id="what-is-xregistry"></a>
 ### 3.1. What is xRegistry?
 
 xRegistry is a generic way to expose and manage collections of metadata (and
@@ -168,6 +175,7 @@ common metadata attributes, the most important being:
 You don't need to memorize these - they just show up automatically in
 responses.
 
+<a id="core-http-interactions"></a>
 ### 3.2. Core HTTP Interactions
 
 xRegistry maps directly onto normal REST/HTTP verbs. The URL patterns are:
@@ -189,6 +197,7 @@ GET/PUT/PATCH/DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>  # a speci
 `<GROUPS>` and `<RESOURCES>` are whatever plural names your Registry's model
 defines (e.g. `endpoints`, `messages`) - they're not literal.
 
+<a id="reading-things"></a>
 #### 3.2.1. Reading things
 
 A plain `GET` on a Registry, Group, metadata-only Resource, or Version returns
@@ -217,6 +226,7 @@ advanced topic.)
 `GET`-ing a collection (e.g. `GET /endpoints`) returns a map of `id -> entity`
 for everything in it.
 
+<a id="creating-updating-things"></a>
 #### 3.2.2. Creating / updating things
 
 - `POST` on a **collection** creates (or upserts) one or more entities in it.
@@ -252,6 +262,7 @@ HTTP/1.1 201 Created
 }
 ```
 
+<a id="resource-metadata-vs-document"></a>
 #### 3.2.3. Resources: metadata vs. the actual document
 
 Document Resources differ from metadata-only Resources. A Resource such as a
@@ -272,6 +283,7 @@ and document content. The document can be supplied through the `message`,
 If a Resource type doesn't have its own separate document (just metadata),
 then `$details` isn't needed - plain requests just return the metadata.
 
+<a id="versions"></a>
 #### 3.2.4. Versions
 
 If you don't care about history, ignore `versions` entirely - just treat
@@ -283,11 +295,13 @@ Version, and `GET .../versions` to list them all. The most recent (or
 explicitly-chosen "default") Version is always what you get back when you
 address the Resource directly, without a specific `versionid`.
 
+<a id="deleting"></a>
 #### 3.2.5. Deleting
 
 `DELETE` on any entity or collection member removes it, cascading to
 everything beneath it (delete a Group, its Resources go too).
 
+<a id="errors"></a>
 #### 3.2.6. Errors
 
 Errors come back as normal HTTP status codes with a JSON body describing
@@ -301,6 +315,7 @@ what went wrong, e.g.:
 }
 ```
 
+<a id="defining-basic-model"></a>
 ### 3.3. Defining a Basic Model
 
 Before you can create Groups/Resources, the Registry needs a **model**
@@ -343,6 +358,7 @@ PUT /endpoints/ep1
 PUT /endpoints/ep1/messages/msg1
 ```
 
+<a id="adding-attributes"></a>
 #### 3.3.1. Adding your own attributes (extensions)
 
 If you want Resources/Groups to carry extra domain-specific fields, add
@@ -384,6 +400,7 @@ This model is sufficient to create Groups and Resources. The full model
 specification covers constraints, versioning policies, `xid` targets,
 `ifvalues`, and other advanced scenarios; see [`model.md`](./model.md).
 
+<a id="where-to-go-next"></a>
 ### 3.4. Where to go next
 
 - [`spec.md`](./spec.md) - the full core specification (concepts, entities,
@@ -393,6 +410,7 @@ specification covers constraints, versioning policies, `xid` targets,
 - [`model.md`](./model.md) - the full model specification (every model
   attribute and option).
 
+<a id="history"></a>
 ## 4. History
 
 The CNCF Serverless Working group was originally created by the CNCF's Technical
@@ -407,6 +425,7 @@ xRegistry (extensible registry) specification was created.
 xRegistry was initially part of CloudEvents, called "CloudEvents Discovery" but
 later moved into its own repository.
 
+<a id="value-proposition"></a>
 ## 5. Value proposition
 
 xRegistry provides a specification to define metadata and extensions for
@@ -431,6 +450,7 @@ context of event-driven systems. The following subsections provide a more
 specific overview of how xRegistry can be used to address common challenges in
 the event-driven space.
 
+<a id="why-build-something-new"></a>
 ### 5.1. Why build something new?
 
 There are numerous metadata registries available today. Several schema
@@ -455,6 +475,7 @@ exposes an endpoint for events with particular payload schemas. Section
 [8.3.4](#api-servers-and-proxies) explains how an xRegistry API can project
 resources managed by another registry.
 
+<a id="discovery"></a>
 ### 5.2. Discovery
 
 One of the pain points of event-driven systems is the need to create and
@@ -467,6 +488,7 @@ extension's model can declare which of those attributes are required.
 Descriptions can also be written for people rather than tools, so developers,
 data analysts, and business analysts can use the same registry.
 
+<a id="vendor-agnostic"></a>
 ### 5.3. Vendor-agnostic
 
 xRegistry provides a specification to define, query, group, version and enforce
@@ -487,6 +509,7 @@ interoperability and, therefore, complicating integration scenarios. xRegistry
 aims to address this with an agnostic specification, providing a common base
 across these offerings.
 
+<a id="versioning"></a>
 ### 5.4. Versioning
 
 As systems evolve, the endpoints that emit events may change, as may the events
@@ -497,6 +520,7 @@ changes. The specifications also allow endpoints to be marked as deprecated and
 can identify an alternative endpoint. Event schemas are version-aware and can
 retain multiple versions of a data schema.
 
+<a id="schema-validation"></a>
 ### 5.5. Schema validation
 
 The registry contains granular event definitions and schemas that serve as a
@@ -505,6 +529,7 @@ payload and its metadata. Implementations can also use these definitions for
 enforcement. For example, an event service could validate events when they are
 published and reject events that do not conform to the schema for that context.
 
+<a id="payload-reduction"></a>
 ### 5.6. Payload reduction
 
 Schema information enables real-time analysis of incoming data based on its
@@ -516,6 +541,7 @@ Generated contracts can be created on demand or published alongside a model
 version as reusable libraries, allowing consumers to use them without
 installing the generator tooling.
 
+<a id="schema-contract-client-generation"></a>
 ### 5.7. Schema-based contract and client generation
 
 The [file and API representations](#representations) can both supply versioned
@@ -743,52 +769,53 @@ root document with only those branches that are relevant to the application. The
 same applies when the root sits behind an [API server](#api-server) or proxy:
 the client fetches and caches just the branches it needs.
 
+When assembling such a view, the application needs to process the fetched
+content under the effective model and the applicable xRegistry rules, including
+constraints and `xref` processing. It also needs to distinguish a partially
+loaded view from a complete Registry. For example, a collection count can
+include entities that the application has not fetched.
+
 <a id="shadowing"></a>
 #### 8.3.2. Shadowing
 
-Federation in xRegistry is intended to be built on *shadowing*: an application's
-view is a layered combination of registries, where a local registry can override
-or extend entries from an underlying one without modifying it. We say "intended"
-because the specification does not define a protocol for this composition.
+Shadowing is a composition pattern in which one source can override or extend
+entries from another source without modifying it. This lets an application keep
+locally modified entries while continuing to read untouched entries from an
+underlying registry.
 
-Layering registries and selective shadowing lets an application keep locally
-modified copies of selected resources while continuing to read untouched
-resources from the underlying registry. Layer precedence resolves duplicate
-entries, but incompatible models or constraints can still make the composed
-registry invalid.
+An implementation can assign precedence to its sources. For files, it can load
+them in order and give later files precedence over earlier ones. The same
+pattern can combine files, folders, API servers, or proxies into one view.
 
-When dealing with files, applications load files in order and merge the
-content, with later files taking precedence over earlier ones.
+When assembling such a view, the implementation needs to process the result as
+an xRegistry rather than as a generic merge. Precedence can select between
+overlapping entries, but it does not detect incompatible models, invalid
+entities or references, or violated constraints.
 
-The principle applies uniformly across representations. A file can shadow
-another file, a folder can shadow an API server, and an API server can shadow
-another API server. The application always sees the composed result as a
-single registry.
+The specification does not define how sources are discovered, how precedence is
+assigned, how conflicts are resolved, or what happens when the composed result
+is invalid. Composition and shadowing are therefore emerging implementation
+patterns rather than xRegistry 1.0 features. The project needs more experience
+with them before it can define interoperable behavior.
 
-For the xRegistry 1.0 release, composition and shadowing should be considered an
-emerging best practice. Mind that there is potential for conflicts when multiple
-registries are layered where the models are not identical or when resources and
-their versions are merged and constraints are not fully aligned. We believe that
-composition and shadowing is the best approach to federation, but the project
-will need to gain more experience with it in practice before it can be
-formalized.
+<a id="entity-identity-across-registry-views"></a>
+#### 8.3.3. Entity identity across registry views
 
-<a id="identifiers"></a>
-#### 8.3.3. Identifiers
+When two registry views intentionally represent the same logical entity using
+the same model hierarchy and IDs, the entity has the same `xid` in each view.
+An application can resolve that relative path against the registry available in
+its environment. For example, an application in a private network can use a
+local registry while another application uses a public registry.
 
-For shadowing and cross-referencing to work, identifiers need to be stable
-across registries. Group identifiers should be treated as globally unique, so
-that the same group can be recognized across different registries. Resource
-identifiers are only unique within a group, so a cross-registry reference should
-always use the combination of group identifier (group name and id) and resource
-identifier (resource name and id).
+When correlating entities this way, an application needs to account for the
+scope of each identifier. An entity's `<SINGULAR>id` is unique only within its
+parent, and its `xid` is unique only within one Registry. Matching `xid` values
+can support correlation, but xRegistry does not assert that they identify the
+same logical entity across Registries or define a global identity scheme.
 
-The authority portion of a URL into a registry identifies the hosting endpoint,
-not the resource itself. The same resource may be available in multiple
-registries, and applications can refer to it using the same *relative URI*
-regardless of which registry hosts it. For example, an application in a private
-network may resolve the URI against a local registry when it cannot reach the
-public registry.
+The `self` and `shortself` attributes are URLs through which an entity can be
+retrieved. They can differ between registry services that expose the same
+logical entity and therefore are not portable identifiers across registries.
 
 <a id="api-servers-and-proxies"></a>
 #### 8.3.4. API Servers and Proxies
@@ -800,9 +827,10 @@ reference implementations of such proxies, showing both how to federate
 xRegistry APIs and how to project other registry models into the xRegistry
 model.
 
-Shadowing applies here too: any API client can shadow the API server with a
-local registry to add or modify entries without affecting the underlying
-registry, and a proxying API server can do the same on behalf of its clients.
+A proxy can expose a composed registry view, or a client can construct one
+locally. In either case, the component constructing the view is responsible for
+the conformance processing described above; calling a source a shadow does not
+relax any xRegistry rule.
 
 <a id="possible-use-cases"></a>
 ## 9. Possible Use Cases
@@ -827,13 +855,6 @@ the schema store for these definitions. One can then reference them in a data
 catalogue as well as in OpenAPI and AsyncAPI documents without repeating the
 schemas for the actual business objects.
 
-<a id="metadata-files-in-repositories"></a>
-### 9.3. Metadata files in repositories
-
-The [file representation](#file) supports a repository-level manifest similar
-to `package.json`. Such a manifest can list the repository's metadata files and
-provide machine-readable access to project dependencies and configuration.
-
 <a id="design-decisions-or-topics-of-interest"></a>
 ## 10. Design decisions or topics of interest
 
@@ -846,6 +867,9 @@ meaning of the purpose of the underlying Resource document. Also, since they
 are static values and as the Resource changes over time (meaning, new Versions
 are created), it's important for end-users to have a static URL reference to
 the default Version of the Resource.
+
+A Resource's `defaultversionid` selects its default Version. Resource-level
+attributes are not default values inherited by the Resource's Versions.
 
 Versions of a Resource, on the other hand, might change quite often and the
 `id` isn't meant to convey the purpose of the underlying entity, rather it is
@@ -863,8 +887,9 @@ potential confusion for their end-users.
 Attribute names appear in JSON objects, HTTP headers, URLs, and generated code.
 The specification therefore uses a restricted character set that works across
 those contexts. Section [10.10](#naming-and-case-sensitivity) explains the
-casing rules. Section 10.11 explains the additional restrictions on Group and
-Resource type names.
+casing rules. Section
+[10.11](#group-resource-type-name-limits) explains the additional
+restrictions on Group and Resource type names.
 
 The specification permits underscores in attribute names, but some proxies,
 including nginx with its default configuration, drop HTTP headers containing
@@ -881,10 +906,6 @@ Extensions SHOULD be defined in the model. A model can also define a `*`
 extension to allow attributes supplied at runtime. Extension names follow the
 [valid character](#valid-characters) and
 [casing](#naming-and-case-sensitivity) rules for all attributes.
-
-Required aspects apply at each level of a nested extension. In particular,
-`clientrequired=true` also requires `serverrequired=true`; otherwise the model
-is invalid.
 
 <a id="potential-extensions"></a>
 Implementations that track the identity responsible for a change might define
@@ -1476,7 +1497,7 @@ to avoid it all together.
 <a id="validation-edge-cases"></a>
 ## 15. Validation edge cases
 
-Sections [5.5](#55-schema-validation) and
+Sections [5.5](#schema-validation) and
 [8.1](#formats-and-contentmedia-types) explain the purpose and boundaries of
 validation. The following cases cover two less obvious interactions between
 validation settings.
