@@ -1,4 +1,4 @@
-# WoT Registry Service - Version 1.0-rc2
+# WoT Registry Service - Version 1.0-rc4
 
 <!-- words: WoT JSON-LD Servient affordances affordance discoverability tm td -->
 <!-- words: thingdescription thingdescriptionid thingdescriptionurl thingdescriptions thingdescriptionsurl thingdescriptionscount thingdescriptionbase -->
@@ -8,6 +8,7 @@
 <!-- words: invokeaction readproperty writeproperty subscribeevent securitydefinitions versionmode urn href -->
 <!-- words: workbench fabrikam lamp lighting jwt tenantid deviceid -->
 <!-- words: formatvalidated compatibilityvalidated formatvalidatedreason compatibilityvalidatedreason -->
+<!-- words: coap describedby integrators lifecycles modbus opc tds tms ua matchversions -->
 
 ## Abstract
 
@@ -19,7 +20,7 @@ Registry allows for the storage, management and discovery of W3C
 
 ## Table of Contents
 
-- [WoT Registry Service - Version 1.0-rc2](#wot-registry-service---version-10-rc2)
+- [WoT Registry Service - Version 1.0-rc4](#wot-registry-service---version-10-rc4)
   - [Abstract](#abstract)
   - [Table of Contents](#table-of-contents)
   - [1. Overview](#1-overview)
@@ -75,7 +76,7 @@ those interaction affordances to network endpoints over specific protocols
 A **Thing Model** (TM) is a JSON-LD 1.1 document conforming to
 [WoT-TM 1.1][WoT-TM-1.1]. It is an **abstract** description of a class of
 Things, typically without `href` values in its forms. Thing Models are
-intended to be reused: a concrete Thing Description may extend or compose one
+intended to be reused: a concrete Thing Description MAY extend or compose one
 or more Thing Models via the WoT `tm:extends` and `tm:ref` mechanisms, or via
 JSON-LD `@type` declarations.
 
@@ -104,11 +105,11 @@ referents resolve.
 
 ### 1.3. Versioning
 
-WoT-TD 1.1 defines an OPTIONAL `version` member with `instance` and `model`
-sub-members. Implementations of this specification SHOULD reflect a TD's or
-TM's `version.instance` (or, when absent, an implementation-chosen identifier)
-into the xRegistry [`versionid`][xRegistry version-ids] when ingesting the
-document.
+Each Version of a `thingdescription` or `thingmodel` Resource holds a complete
+WoT-TD or WoT-TM document. This specification does not require a registry to
+parse the document in order to derive registry metadata; the document is
+stored as-is and the xRegistry [`versionid`][xRegistry version-ids] is
+assigned by the xRegistry Core rules.
 
 The xRegistry Core versioning rules (monotonically increasing integer
 `versionid`s, `ancestor` lineage, default-Version selection) apply unchanged.
@@ -253,7 +254,7 @@ form:
           "modifiedat": "<TIMESTAMP>",
           "ancestor": "<STRING>",
           "contenttype": "<STRING>", ?            # SHOULD be application/td+json
-          "format": "<STRING>",                    # MUST be "WoT-TD/1.1"
+          "format": "<STRING>",                    # MUST be "JSON-LD/1.1"
           "formatvalidated": <BOOLEAN>, ?
           "formatvalidatedreason": "<STRING>", ?
           "compatibilityvalidated": <BOOLEAN>, ?
@@ -290,7 +291,7 @@ form:
           "versionid": "<STRING>",
           # ... xRegistry Resource and default-Version attributes ...
 
-          "format": "<STRING>",                    # MUST be "WoT-TM/1.1"
+          "format": "<STRING>",                    # MUST be "JSON-LD/1.1"
           "contenttype": "<STRING>", ?            # SHOULD be application/tm+json
           "thingmodelurl": "<URL>", ?
           "thingmodel": <ANY> ?                    # the WoT-TM JSON-LD document
@@ -333,7 +334,7 @@ Example:
 
 ```yaml
 {
-  "specversion": "1.0-rc2",
+  "specversion": "1.0-rc4",
   # other xRegistry top-level attributes excluded for brevity
 
   "thingdescriptiongroupsurl": "https://example.com/thingdescriptiongroups",
@@ -357,7 +358,7 @@ plural, used as the collection name, is `thingdescriptions`. Any single `thingde
 container for one or more `versions`, each of which holds the concrete
 WoT-TD 1.1 JSON-LD document.
 
-The `format` attribute of a `thingdescription` Resource Version MUST be `"WoT-TD/1.1"`.
+The `format` attribute of a `thingdescription` Resource Version MUST be `"JSON-LD/1.1"`.
 The `contenttype` of a `thingdescription` document SHOULD be `application/td+json` per
 [WoT-TD 1.1][WoT-TD-1.1].
 
@@ -368,10 +369,6 @@ Implementations of this specification SHOULD use the xRegistry default
 algorithm for generating new `versionid` values and for determining which is
 the latest Version. See [Version IDs][xRegistry version-ids] for more
 information.
-
-When a Thing Description carries a WoT `version.instance` value, that value
-SHOULD be used as the xRegistry `versionid`, provided it satisfies the
-constraints of the Resource's `versionmode`.
 
 ### 4.3. Thing Model Groups
 
@@ -393,7 +390,7 @@ or more `versions`, each of which holds the concrete WoT-TM 1.1 JSON-LD
 document.
 
 The `format` attribute of a `thingmodel` Resource Version MUST be
-`"WoT-TM/1.1"`. The `contenttype` SHOULD be `application/tm+json` per
+`"JSON-LD/1.1"`. The `contenttype` SHOULD be `application/tm+json` per
 [WoT-TM 1.1][WoT-TM-1.1].
 
 The same `compatibility`, `versionid`, and `ancestor` rules described for
@@ -401,17 +398,17 @@ The same `compatibility`, `versionid`, and `ancestor` rules described for
 
 ### 4.5. Formats
 
-This specification refines the
-[core specification's `format`](../core/spec.md#format-attribute) for use in
-a WoT Registry by defining the format identifiers a WoT Registry MUST
-recognize. Implementations MAY define extension format identifiers for
-non-W3C Thing-description dialects, but MUST NOT use the identifiers below
-for any document that is not conformant with the corresponding W3C
-specification.
+Both Thing Descriptions and Thing Models are serialized as JSON-LD 1.1
+documents, so both use the
+[core specification's `format`](../core/spec.md#format-attribute) identifier
+`JSON-LD/1.1`. The distinction between the two document classes is carried by
+the Resource type (`thingdescriptions` versus `thingmodels`) and by the
+`contenttype` attribute, not by `format`.
 
 #### 4.5.1. WoT Thing Description
 
-- Format identifier: `WoT-TD/1.1`
+- Format identifier: `JSON-LD/1.1`
+- `contenttype`: `application/td+json`
 - Document: a JSON-LD 1.1 document conformant with
   [W3C WoT Thing Description 1.1][WoT-TD-1.1].
 - The document's `@context` MUST include
@@ -423,7 +420,8 @@ specification.
 
 #### 4.5.2. WoT Thing Model
 
-- Format identifier: `WoT-TM/1.1`
+- Format identifier: `JSON-LD/1.1`
+- `contenttype`: `application/tm+json`
 - Document: a JSON-LD 1.1 document conformant with
   [W3C WoT Thing Model 1.1][WoT-TM-1.1].
 - The document's `@context` MUST include
@@ -460,9 +458,11 @@ For example:
 }
 ```
 
-A registry MAY also surface this relationship through standard xRegistry
-[`xref`][xRegistry xref] mechanisms when the implementation chooses to model
-the Thing-to-Thing-Model link as a registry-native cross-reference.
+A Thing Description and the Thing Model it derives from are two distinct
+Resources with independent lifecycles, so this relationship is expressed
+through the TD document's `links` member rather than through the xRegistry
+[`xref`][xRegistry xref] attribute, which exists to surface the *same*
+Resource under more than one Group.
 
 ### 5.2. Thing Description to Endpoint Registry
 
@@ -474,8 +474,8 @@ the corresponding `endpoint` Resource's protocol bindings.
 
 This specification does not require an `endpoint` Resource to exist for every
 `forms` entry, nor does it require any specific naming or correlation
-mechanism. Implementations MAY use [`endpointuri`][xRegistry endpoint] or
-similar conventions to correlate the two.
+mechanism. Implementations MAY define their own conventions to correlate the
+two.
 
 ### 5.3. Thing Description to Schema Registry
 
@@ -514,8 +514,8 @@ additional guidance.
 
 ---
 
-[WoT-TD-1.1]: https://www.w3.org/TR/wot-thingdescription-description11/
-[WoT-TM-1.1]: https://www.w3.org/TR/wot-thingdescription-description11/#thingdescription-model
+[WoT-TD-1.1]: https://www.w3.org/TR/wot-thing-description11/
+[WoT-TM-1.1]: https://www.w3.org/TR/wot-thing-description11/
 [WoT-Discovery]: https://www.w3.org/TR/wot-discovery/
 [WoT-Security]: https://www.w3.org/TR/wot-security/
 [xRegistry Core]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html
@@ -526,5 +526,4 @@ additional guidance.
 [xRegistry compatibility]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#compatibility-attribute
 [xRegistry version-ids]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#version-ids
 [xRegistry hasdocument]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#hasdocument
-[xRegistry endpoint]: https://xregistry.io/xreg/xregistryspecs/endpoint-v1/docs/spec.html
 [xRegistry xref]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#xref-attribute

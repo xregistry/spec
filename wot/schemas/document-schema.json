@@ -1,0 +1,500 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://xregistry.io/xreg/xregistryspecs/wot-v1/schemas/document-schema.json",
+  "properties": {
+    "thingdescriptiongroups": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/thingdescriptiongroup-schema/thingdescriptiongroup"
+      }
+    },
+    "thingmodelgroups": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/thingmodelgroup-schema/thingmodelgroup"
+      }
+    }
+  },
+  "definitions": {
+    "thingdescriptiongroup-schema": {
+      "thingdescriptionVersion": {
+        "type": "object",
+        "properties": {
+          "versionid": {
+            "type": "string",
+            "description": "ID of the thingdescription version"
+          },
+          "thingdescriptionid": {
+            "type": "string",
+            "description": "ID of the thingdescription object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation"
+          },
+          "self": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "string",
+            "format": "xid",
+            "description": "Relative URL of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri",
+            "description": "URI of the documentation of the object"
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object"
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation"
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification"
+          },
+          "format": {
+            "type": "string"
+          }
+        },
+        "oneOf": [
+          {
+            "properties": {
+              "thingdescription": {
+                "description": "Embedded thingdescription object",
+                "oneOf": [
+                  {
+                    "type": "object"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "thingdescription"
+            ]
+          },
+          {
+            "properties": {
+              "thingdescriptionbase64": {
+                "description": "Embedded thingdescription object as binary data",
+                "type": "string",
+                "format": "base64"
+              }
+            },
+            "required": [
+              "thingdescriptionbase64"
+            ]
+          },
+          {
+            "properties": {
+              "thingdescriptionurl": {
+                "description": "Linked thingdescription object",
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            "required": [
+              "thingdescriptionurl"
+            ]
+          }
+        ],
+        "required": [
+          "format"
+        ]
+      },
+      "thingdescription": {
+        "type": "object",
+        "properties": {
+          "thingdescriptionid": {
+            "type": "string",
+            "description": "ID of the thingdescription object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation"
+          },
+          "self": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "string",
+            "format": "xid",
+            "description": "Relative URL of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri",
+            "description": "URI of the documentation of the object"
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object"
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation"
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification"
+          }
+        },
+        "oneOf": [
+          {
+            "properties": {
+              "versionsurl": {
+                "type": "string"
+              },
+              "versionscount": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "versionsurl"
+            ]
+          },
+          {
+            "properties": {
+              "versions": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/definitions/thingdescriptiongroup-schema/thingdescriptionVersion"
+                }
+              }
+            },
+            "required": [
+              "versions"
+            ]
+          }
+        ]
+      },
+      "thingdescriptiongroup": {
+        "type": "object",
+        "properties": {
+          "thingdescriptiongroupid": {
+            "type": "string",
+            "description": "ID of the thingdescriptiongroup object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation"
+          },
+          "self": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "string",
+            "format": "xid",
+            "description": "Relative URL of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri",
+            "description": "URI of the documentation of the object"
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object"
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation"
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification"
+          },
+          "thingdescriptions": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/definitions/thingdescriptiongroup-schema/thingdescription"
+            }
+          }
+        }
+      }
+    },
+    "thingmodelgroup-schema": {
+      "thingmodelVersion": {
+        "type": "object",
+        "properties": {
+          "versionid": {
+            "type": "string",
+            "description": "ID of the thingmodel version"
+          },
+          "thingmodelid": {
+            "type": "string",
+            "description": "ID of the thingmodel object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation"
+          },
+          "self": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "string",
+            "format": "xid",
+            "description": "Relative URL of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri",
+            "description": "URI of the documentation of the object"
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object"
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation"
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification"
+          },
+          "format": {
+            "type": "string"
+          }
+        },
+        "oneOf": [
+          {
+            "properties": {
+              "thingmodel": {
+                "description": "Embedded thingmodel object",
+                "oneOf": [
+                  {
+                    "type": "object"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "thingmodel"
+            ]
+          },
+          {
+            "properties": {
+              "thingmodelbase64": {
+                "description": "Embedded thingmodel object as binary data",
+                "type": "string",
+                "format": "base64"
+              }
+            },
+            "required": [
+              "thingmodelbase64"
+            ]
+          },
+          {
+            "properties": {
+              "thingmodelurl": {
+                "description": "Linked thingmodel object",
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            "required": [
+              "thingmodelurl"
+            ]
+          }
+        ],
+        "required": [
+          "format"
+        ]
+      },
+      "thingmodel": {
+        "type": "object",
+        "properties": {
+          "thingmodelid": {
+            "type": "string",
+            "description": "ID of the thingmodel object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation"
+          },
+          "self": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "string",
+            "format": "xid",
+            "description": "Relative URL of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri",
+            "description": "URI of the documentation of the object"
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object"
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation"
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification"
+          }
+        },
+        "oneOf": [
+          {
+            "properties": {
+              "versionsurl": {
+                "type": "string"
+              },
+              "versionscount": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "versionsurl"
+            ]
+          },
+          {
+            "properties": {
+              "versions": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/definitions/thingmodelgroup-schema/thingmodelVersion"
+                }
+              }
+            },
+            "required": [
+              "versions"
+            ]
+          }
+        ]
+      },
+      "thingmodelgroup": {
+        "type": "object",
+        "properties": {
+          "thingmodelgroupid": {
+            "type": "string",
+            "description": "ID of the thingmodelgroup object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation"
+          },
+          "self": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "string",
+            "format": "xid",
+            "description": "Relative URL of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri",
+            "description": "URI of the documentation of the object"
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object"
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation"
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification"
+          },
+          "thingmodels": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/definitions/thingmodelgroup-schema/thingmodel"
+            }
+          }
+        }
+      }
+    }
+  }
+}

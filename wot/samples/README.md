@@ -1,6 +1,6 @@
 # WoT Registry Samples
 
-<!-- words: WoT thingdescriptiongroups thingmodelgroups schemagroups messagegroups fabrikam lamp -->
+<!-- words: WoT thingdescriptiongroups thingmodelgroups schemagroups messagegroups fabrikam lamp smartlamp -->
 
 This directory contains illustrative sample documents that exercise the
 WoT Registry model defined in [../model.json](../model.json):
