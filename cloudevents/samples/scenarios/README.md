@@ -1,5 +1,7 @@
 # xRegistry Sample Overview
 
+<!-- words: smartlamp thingdescriptiongroups thingmodelgroups -->
+
 This document explains the various .xreg.json files in this directory. These
 files model different use cases using the [xRegistry
 specification](../../../core/spec.md). As described in the [xRegistry

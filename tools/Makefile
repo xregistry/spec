@@ -11,6 +11,7 @@ spellcheck:
 	tools/spellcheck */README.md */spec.md core/*.md \
 		workingdrafts/bindings/*.md \
 		workingdrafts/models/*/README.md workingdrafts/models/*/spec.md \
+		workingdrafts/models/*/samples/README.md \
 		docs/share/README.md */samples/README.md */samples/*/README.md
 	@echo
 
@@ -37,7 +38,8 @@ errorcheck:
 samplescheck:
 	@echo "Check for too verbose samples:"
 	tools/samplescheck */model.json workingdrafts/models/*/model.json \
-		*/samples/*json */samples/*/*json
+		*/samples/*json */samples/*/*json \
+		workingdrafts/models/*/samples/*json
 	@echo
 
 hrefs:
@@ -109,10 +111,6 @@ makeschema: loadpython
 	@python tools/schema-generator.py --type json-structure --schema-id https://xregistry.io/xreg/xregistryspecs/endpoint-v1/schemas/document-schema.struct.json --schema-name EndpointRegistryDocument --output endpoint/schemas/document-schema.struct.json endpoint/model.json
 	@python tools/schema-generator.py --type avro-schema --output endpoint/schemas/document-schema.avsc endpoint/model.json
 	@python tools/schema-generator.py --type openapi --output endpoint/schemas/openapi.json endpoint/model.json
-	@python tools/schema-generator.py --type json-schema --schema-id https://xregistry.io/xreg/xregistryspecs/wot-v1/schemas/document-schema.json --output wot/schemas/document-schema.json wot/model.json
-	@python tools/schema-generator.py --type json-structure --schema-id https://xregistry.io/xreg/xregistryspecs/wot-v1/schemas/document-schema.struct.json --schema-name WoTRegistryDocument --output wot/schemas/document-schema.struct.json wot/model.json
-	@python tools/schema-generator.py --type avro-schema --output wot/schemas/document-schema.avsc wot/model.json
-	@python tools/schema-generator.py --type openapi --output wot/schemas/openapi.json wot/model.json
 	@python tools/schema-generator.py --type json-schema --schema-id https://xregistry.io/xreg/xregistryspecs/cloudevents-v1/schemas/document-schema.json --output cloudevents/schemas/document-schema.json endpoint/model.json message/model.json schema/model.json
 	@python tools/schema-generator.py --type json-structure --schema-id https://xregistry.io/xreg/xregistryspecs/cloudevents-v1/schemas/document-schema.struct.json --schema-name CloudEventsRegistryDocument --output cloudevents/schemas/document-schema.struct.json endpoint/model.json message/model.json schema/model.json
 	@python tools/schema-generator.py --type avro-schema --output cloudevents/schemas/document-schema.avsc endpoint/model.json message/model.json schema/model.json
