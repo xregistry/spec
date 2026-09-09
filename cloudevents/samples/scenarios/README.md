@@ -1,7 +1,5 @@
 # xRegistry Sample Overview
 
-<!-- words: smartlamp thingdescriptiongroups thingmodelgroups -->
-
 This document explains the various .xreg.json files in this directory. These
 files model different use cases using the [xRegistry
 specification](../../../core/spec.md). As described in the [xRegistry
@@ -69,15 +67,6 @@ The Wind Generator sample models wind generator events using Kafka with
 Avro/1.11 schemas to define events such as power output updates and status
 changes, embedding context in headers and key.
 [windgenerator-kafka-avro.xreg.json](./windgenerator-kafka-avro.xreg.json).
-
-### Smart Lamp (WoT)
-
-The Smart Lamp sample demonstrates an end-to-end scenario combining a W3C
-WoT Thing Model and Thing Description with a JSON Schema, a CloudEvents
-message definition, and an MQTT/5.0 endpoint. It shows how the WoT Registry
-groups (`thingdescriptiongroups`, `thingmodelgroups`) compose with `schemagroups`,
-`messagegroups`, and `endpoints` in a single registry document.
-[smartlamp-wot.xreg.json](./smartlamp-wot.xreg.json).
 
 ## Conclusion
 

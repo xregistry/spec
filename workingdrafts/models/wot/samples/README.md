@@ -25,6 +25,8 @@ WoT Registry model defined in [../model.json](../model.json):
   `.../versions/1` yields the earlier one. It also carries the provenance
   attributes an agent uses to prefer an official model.
 
-For an end-to-end scenario combining `thingdescriptiongroups`, `thingmodelgroups`,
-`schemagroups`, `messagegroups`, and `endpoints`, see
-[smartlamp-wot.xreg.json](../../../../cloudevents/samples/scenarios/smartlamp-wot.xreg.json).
+- [smartlamp-wot.xreg.json](smartlamp-wot.xreg.json) — an end-to-end scenario
+  combining a Thing Model and Thing Description with a JSON Schema, a
+  CloudEvents message definition and an MQTT/5.0 endpoint, showing how
+  `thingdescriptiongroups` and `thingmodelgroups` compose with `schemagroups`,
+  `messagegroups` and `endpoints` in a single registry document.
