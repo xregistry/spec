@@ -1,0 +1,25 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "resource",
+  "entity": {
+    "xid": "/documents/main/assets/item",
+    "assetid": "item"
+  },
+  "meta": {
+    "kind": "meta",
+    "xid": "/documents/main/assets/item/meta",
+    "href": "records/n9.json",
+    "size": 357,
+    "sha256": "b41ff745f2cfd876acf3784a50ae5979c7be66c27058a505acb5421b5ad20922"
+  },
+  "collections": [
+    {
+      "kind": "collection",
+      "xid": "/documents/main/assets/item/versions",
+      "href": "indexes/n6.json",
+      "size": 630,
+      "sha256": "a6bec49de586c4fe472326b28b5ecc1eb252a2a0eaa6b28bad68f6ac29c80343"
+    }
+  ]
+}

@@ -1,0 +1,1720 @@
+{
+  "entity": {
+    "capabilities": {
+      "available": {
+        "capabilities": {
+          "mutable": false
+        },
+        "entities": {
+          "mutable": false
+        },
+        "model": {
+          "mutable": false
+        },
+        "modelsource": {
+          "mutable": false
+        }
+      },
+      "flags": [],
+      "mutable": [],
+      "pagination": false
+    },
+    "createdat": "2026-09-01T12:00:00Z",
+    "epoch": 1,
+    "model": {
+      "attributes": {
+        "capabilities": {
+          "attributes": {
+            "*": {
+              "name": "*",
+              "type": "any"
+            }
+          },
+          "name": "capabilities",
+          "type": "object"
+        },
+        "createdat": {
+          "name": "createdat",
+          "required": true,
+          "type": "timestamp"
+        },
+        "description": {
+          "name": "description",
+          "type": "string"
+        },
+        "dirs": {
+          "item": {
+            "attributes": {
+              "*": {
+                "name": "*",
+                "type": "any"
+              }
+            },
+            "type": "object"
+          },
+          "name": "dirs",
+          "type": "map"
+        },
+        "dirscount": {
+          "name": "dirscount",
+          "readonly": true,
+          "required": true,
+          "type": "uinteger"
+        },
+        "dirsurl": {
+          "immutable": true,
+          "name": "dirsurl",
+          "readonly": true,
+          "required": true,
+          "type": "url"
+        },
+        "documentation": {
+          "name": "documentation",
+          "type": "url"
+        },
+        "emptygroups": {
+          "item": {
+            "attributes": {
+              "*": {
+                "name": "*",
+                "type": "any"
+              }
+            },
+            "type": "object"
+          },
+          "name": "emptygroups",
+          "type": "map"
+        },
+        "emptygroupscount": {
+          "name": "emptygroupscount",
+          "readonly": true,
+          "required": true,
+          "type": "uinteger"
+        },
+        "emptygroupsurl": {
+          "immutable": true,
+          "name": "emptygroupsurl",
+          "readonly": true,
+          "required": true,
+          "type": "url"
+        },
+        "epoch": {
+          "name": "epoch",
+          "readonly": true,
+          "required": true,
+          "type": "uinteger"
+        },
+        "icon": {
+          "name": "icon",
+          "type": "url"
+        },
+        "imports": {
+          "item": {
+            "attributes": {
+              "*": {
+                "name": "*",
+                "type": "any"
+              }
+            },
+            "type": "object"
+          },
+          "name": "imports",
+          "type": "map"
+        },
+        "importscount": {
+          "name": "importscount",
+          "readonly": true,
+          "required": true,
+          "type": "uinteger"
+        },
+        "importsurl": {
+          "immutable": true,
+          "name": "importsurl",
+          "readonly": true,
+          "required": true,
+          "type": "url"
+        },
+        "labels": {
+          "item": {
+            "type": "string"
+          },
+          "name": "labels",
+          "type": "map"
+        },
+        "model": {
+          "attributes": {
+            "*": {
+              "name": "*",
+              "type": "any"
+            }
+          },
+          "name": "model",
+          "readonly": true,
+          "type": "object"
+        },
+        "modelsource": {
+          "attributes": {
+            "*": {
+              "name": "*",
+              "type": "any"
+            }
+          },
+          "name": "modelsource",
+          "type": "object"
+        },
+        "modifiedat": {
+          "name": "modifiedat",
+          "required": true,
+          "type": "timestamp"
+        },
+        "name": {
+          "name": "name",
+          "type": "string"
+        },
+        "registryid": {
+          "immutable": true,
+          "name": "registryid",
+          "readonly": true,
+          "required": true,
+          "type": "string"
+        },
+        "self": {
+          "immutable": true,
+          "name": "self",
+          "readonly": true,
+          "required": true,
+          "type": "url"
+        },
+        "shortself": {
+          "immutable": true,
+          "name": "shortself",
+          "readonly": true,
+          "type": "url"
+        },
+        "specversion": {
+          "default": "1.0-rc4",
+          "name": "specversion",
+          "readonly": true,
+          "required": true,
+          "type": "string"
+        },
+        "xid": {
+          "immutable": true,
+          "name": "xid",
+          "readonly": true,
+          "required": true,
+          "type": "xid"
+        }
+      },
+      "groups": {
+        "dirs": {
+          "attributes": {
+            "constraints": {
+              "item": {
+                "attributes": {
+                  "default": {
+                    "name": "default",
+                    "type": "any"
+                  },
+                  "enum": {
+                    "item": {
+                      "type": "any"
+                    },
+                    "name": "enum",
+                    "type": "array"
+                  },
+                  "equals": {
+                    "name": "equals",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "name": "constraints",
+              "type": "map"
+            },
+            "createdat": {
+              "name": "createdat",
+              "required": true,
+              "type": "timestamp"
+            },
+            "deprecated": {
+              "attributes": {
+                "*": {
+                  "name": "*",
+                  "type": "any"
+                },
+                "alternative": {
+                  "name": "alternative",
+                  "type": "url"
+                },
+                "documentation": {
+                  "name": "documentation",
+                  "type": "url"
+                },
+                "effective": {
+                  "name": "effective",
+                  "type": "timestamp"
+                },
+                "removal": {
+                  "name": "removal",
+                  "type": "timestamp"
+                }
+              },
+              "name": "deprecated",
+              "type": "object"
+            },
+            "description": {
+              "name": "description",
+              "type": "string"
+            },
+            "dirid": {
+              "immutable": true,
+              "name": "dirid",
+              "required": true,
+              "type": "string"
+            },
+            "documentation": {
+              "name": "documentation",
+              "type": "url"
+            },
+            "epoch": {
+              "name": "epoch",
+              "readonly": true,
+              "required": true,
+              "type": "uinteger"
+            },
+            "files": {
+              "item": {
+                "attributes": {
+                  "*": {
+                    "name": "*",
+                    "type": "any"
+                  }
+                },
+                "type": "object"
+              },
+              "name": "files",
+              "type": "map"
+            },
+            "filescount": {
+              "name": "filescount",
+              "readonly": true,
+              "required": true,
+              "type": "uinteger"
+            },
+            "filesurl": {
+              "immutable": true,
+              "name": "filesurl",
+              "readonly": true,
+              "required": true,
+              "type": "url"
+            },
+            "icon": {
+              "name": "icon",
+              "type": "url"
+            },
+            "labels": {
+              "item": {
+                "type": "string"
+              },
+              "name": "labels",
+              "type": "map"
+            },
+            "modifiedat": {
+              "name": "modifiedat",
+              "required": true,
+              "type": "timestamp"
+            },
+            "name": {
+              "name": "name",
+              "type": "string"
+            },
+            "notes": {
+              "item": {
+                "attributes": {
+                  "*": {
+                    "name": "*",
+                    "type": "any"
+                  }
+                },
+                "type": "object"
+              },
+              "name": "notes",
+              "type": "map"
+            },
+            "notescount": {
+              "name": "notescount",
+              "readonly": true,
+              "required": true,
+              "type": "uinteger"
+            },
+            "notesurl": {
+              "immutable": true,
+              "name": "notesurl",
+              "readonly": true,
+              "required": true,
+              "type": "url"
+            },
+            "self": {
+              "immutable": true,
+              "name": "self",
+              "readonly": true,
+              "required": true,
+              "type": "url"
+            },
+            "shortself": {
+              "immutable": true,
+              "name": "shortself",
+              "readonly": true,
+              "type": "url"
+            },
+            "xid": {
+              "immutable": true,
+              "name": "xid",
+              "readonly": true,
+              "required": true,
+              "type": "xid"
+            }
+          },
+          "plural": "dirs",
+          "resources": {
+            "files": {
+              "attributes": {
+                "ancestorid": {
+                  "name": "ancestorid",
+                  "required": true,
+                  "type": "string"
+                },
+                "compatibilityvalidated": {
+                  "name": "compatibilityvalidated",
+                  "readonly": true,
+                  "type": "boolean"
+                },
+                "compatibilityvalidatedreason": {
+                  "name": "compatibilityvalidatedreason",
+                  "readonly": true,
+                  "type": "string"
+                },
+                "contenttype": {
+                  "name": "contenttype",
+                  "type": "string"
+                },
+                "createdat": {
+                  "name": "createdat",
+                  "required": true,
+                  "type": "timestamp"
+                },
+                "description": {
+                  "name": "description",
+                  "type": "string"
+                },
+                "documentation": {
+                  "name": "documentation",
+                  "type": "url"
+                },
+                "epoch": {
+                  "name": "epoch",
+                  "readonly": true,
+                  "required": true,
+                  "type": "uinteger"
+                },
+                "extra": {
+                  "attributes": {
+                    "*": {
+                      "type": "any"
+                    }
+                  },
+                  "name": "extra",
+                  "type": "object"
+                },
+                "file": {
+                  "name": "file",
+                  "type": "any"
+                },
+                "filebase64": {
+                  "name": "filebase64",
+                  "type": "string"
+                },
+                "fileid": {
+                  "immutable": true,
+                  "name": "fileid",
+                  "required": true,
+                  "type": "string"
+                },
+                "fileurl": {
+                  "name": "fileurl",
+                  "type": "url"
+                },
+                "format": {
+                  "name": "format",
+                  "type": "string"
+                },
+                "formatvalidated": {
+                  "name": "formatvalidated",
+                  "readonly": true,
+                  "type": "boolean"
+                },
+                "formatvalidatedreason": {
+                  "name": "formatvalidatedreason",
+                  "readonly": true,
+                  "type": "string"
+                },
+                "icon": {
+                  "name": "icon",
+                  "type": "url"
+                },
+                "isdefault": {
+                  "default": false,
+                  "name": "isdefault",
+                  "readonly": true,
+                  "required": true,
+                  "type": "boolean"
+                },
+                "labels": {
+                  "item": {
+                    "type": "string"
+                  },
+                  "name": "labels",
+                  "type": "map"
+                },
+                "modifiedat": {
+                  "name": "modifiedat",
+                  "required": true,
+                  "type": "timestamp"
+                },
+                "name": {
+                  "name": "name",
+                  "type": "string"
+                },
+                "self": {
+                  "immutable": true,
+                  "name": "self",
+                  "readonly": true,
+                  "required": true,
+                  "type": "url"
+                },
+                "shortself": {
+                  "immutable": true,
+                  "name": "shortself",
+                  "readonly": true,
+                  "type": "url"
+                },
+                "versionid": {
+                  "immutable": true,
+                  "name": "versionid",
+                  "required": true,
+                  "type": "string"
+                },
+                "xid": {
+                  "immutable": true,
+                  "name": "xid",
+                  "readonly": true,
+                  "required": true,
+                  "type": "xid"
+                }
+              },
+              "hasdocument": true,
+              "maxversions": 0,
+              "metaattributes": {
+                "compatibility": {
+                  "enum": [
+                    "backward",
+                    "backward_transitive",
+                    "forward",
+                    "forward_transitive",
+                    "full",
+                    "full_transitive"
+                  ],
+                  "name": "compatibility",
+                  "strict": true,
+                  "type": "string"
+                },
+                "createdat": {
+                  "name": "createdat",
+                  "required": true,
+                  "type": "timestamp"
+                },
+                "defaultversionid": {
+                  "name": "defaultversionid",
+                  "required": true,
+                  "type": "string"
+                },
+                "defaultversionsticky": {
+                  "default": false,
+                  "name": "defaultversionsticky",
+                  "required": true,
+                  "type": "boolean"
+                },
+                "defaultversionurl": {
+                  "name": "defaultversionurl",
+                  "readonly": true,
+                  "required": true,
+                  "type": "url"
+                },
+                "deprecated": {
+                  "attributes": {
+                    "*": {
+                      "name": "*",
+                      "type": "any"
+                    },
+                    "alternative": {
+                      "name": "alternative",
+                      "type": "url"
+                    },
+                    "documentation": {
+                      "name": "documentation",
+                      "type": "url"
+                    },
+                    "effective": {
+                      "name": "effective",
+                      "type": "timestamp"
+                    },
+                    "removal": {
+                      "name": "removal",
+                      "type": "timestamp"
+                    }
+                  },
+                  "name": "deprecated",
+                  "type": "object"
+                },
+                "epoch": {
+                  "name": "epoch",
+                  "readonly": true,
+                  "required": true,
+                  "type": "uinteger"
+                },
+                "fileid": {
+                  "immutable": true,
+                  "name": "fileid",
+                  "required": true,
+                  "type": "string"
+                },
+                "labels": {
+                  "item": {
+                    "type": "string"
+                  },
+                  "name": "labels",
+                  "type": "map"
+                },
+                "modifiedat": {
+                  "name": "modifiedat",
+                  "required": true,
+                  "type": "timestamp"
+                },
+                "readonly": {
+                  "default": false,
+                  "name": "readonly",
+                  "readonly": true,
+                  "required": true,
+                  "type": "boolean"
+                },
+                "self": {
+                  "immutable": true,
+                  "name": "self",
+                  "readonly": true,
+                  "required": true,
+                  "type": "url"
+                },
+                "shortself": {
+                  "immutable": true,
+                  "name": "shortself",
+                  "readonly": true,
+                  "type": "url"
+                },
+                "xid": {
+                  "immutable": true,
+                  "name": "xid",
+                  "readonly": true,
+                  "required": true,
+                  "type": "xid"
+                },
+                "xref": {
+                  "name": "xref",
+                  "type": "xid"
+                }
+              },
+              "plural": "files",
+              "resourceattributes": {
+                "fileid": {
+                  "immutable": true,
+                  "name": "fileid",
+                  "required": true,
+                  "type": "string"
+                },
+                "meta": {
+                  "attributes": {
+                    "*": {
+                      "name": "*",
+                      "type": "any"
+                    }
+                  },
+                  "name": "meta",
+                  "type": "object"
+                },
+                "metaurl": {
+                  "immutable": true,
+                  "name": "metaurl",
+                  "readonly": true,
+                  "required": true,
+                  "type": "url"
+                },
+                "self": {
+                  "immutable": true,
+                  "name": "self",
+                  "readonly": true,
+                  "required": true,
+                  "type": "url"
+                },
+                "shortself": {
+                  "immutable": true,
+                  "name": "shortself",
+                  "readonly": true,
+                  "type": "url"
+                },
+                "versions": {
+                  "item": {
+                    "attributes": {
+                      "*": {
+                        "name": "*",
+                        "type": "any"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "name": "versions",
+                  "type": "map"
+                },
+                "versionscount": {
+                  "name": "versionscount",
+                  "readonly": true,
+                  "required": true,
+                  "type": "uinteger"
+                },
+                "versionsurl": {
+                  "immutable": true,
+                  "name": "versionsurl",
+                  "readonly": true,
+                  "required": true,
+                  "type": "url"
+                },
+                "xid": {
+                  "immutable": true,
+                  "name": "xid",
+                  "readonly": true,
+                  "required": true,
+                  "type": "xid"
+                }
+              },
+              "setversionid": true,
+              "singleversionroot": false,
+              "singular": "file",
+              "strictvalidation": false,
+              "validatecompatibility": false,
+              "validateformat": false,
+              "versionmode": "manual"
+            },
+            "notes": {
+              "attributes": {
+                "ancestorid": {
+                  "name": "ancestorid",
+                  "required": true,
+                  "type": "string"
+                },
+                "compatibilityvalidated": {
+                  "name": "compatibilityvalidated",
+                  "readonly": true,
+                  "type": "boolean"
+                },
+                "compatibilityvalidatedreason": {
+                  "name": "compatibilityvalidatedreason",
+                  "readonly": true,
+                  "type": "string"
+                },
+                "contenttype": {
+                  "name": "contenttype",
+                  "type": "string"
+                },
+                "createdat": {
+                  "name": "createdat",
+                  "required": true,
+                  "type": "timestamp"
+                },
+                "description": {
+                  "name": "description",
+                  "type": "string"
+                },
+                "documentation": {
+                  "name": "documentation",
+                  "type": "url"
+                },
+                "epoch": {
+                  "name": "epoch",
+                  "readonly": true,
+                  "required": true,
+                  "type": "uinteger"
+                },
+                "format": {
+                  "name": "format",
+                  "type": "string"
+                },
+                "formatvalidated": {
+                  "name": "formatvalidated",
+                  "readonly": true,
+                  "type": "boolean"
+                },
+                "formatvalidatedreason": {
+                  "name": "formatvalidatedreason",
+                  "readonly": true,
+                  "type": "string"
+                },
+                "icon": {
+                  "name": "icon",
+                  "type": "url"
+                },
+                "isdefault": {
+                  "default": false,
+                  "name": "isdefault",
+                  "readonly": true,
+                  "required": true,
+                  "type": "boolean"
+                },
+                "labels": {
+                  "item": {
+                    "type": "string"
+                  },
+                  "name": "labels",
+                  "type": "map"
+                },
+                "modifiedat": {
+                  "name": "modifiedat",
+                  "required": true,
+                  "type": "timestamp"
+                },
+                "name": {
+                  "name": "name",
+                  "type": "string"
+                },
+                "noteid": {
+                  "immutable": true,
+                  "name": "noteid",
+                  "required": true,
+                  "type": "string"
+                },
+                "self": {
+                  "immutable": true,
+                  "name": "self",
+                  "readonly": true,
+                  "required": true,
+                  "type": "url"
+                },
+                "shortself": {
+                  "immutable": true,
+                  "name": "shortself",
+                  "readonly": true,
+                  "type": "url"
+                },
+                "versionid": {
+                  "immutable": true,
+                  "name": "versionid",
+                  "required": true,
+                  "type": "string"
+                },
+                "xid": {
+                  "immutable": true,
+                  "name": "xid",
+                  "readonly": true,
+                  "required": true,
+                  "type": "xid"
+                }
+              },
+              "hasdocument": false,
+              "maxversions": 0,
+              "metaattributes": {
+                "compatibility": {
+                  "enum": [
+                    "backward",
+                    "backward_transitive",
+                    "forward",
+                    "forward_transitive",
+                    "full",
+                    "full_transitive"
+                  ],
+                  "name": "compatibility",
+                  "strict": true,
+                  "type": "string"
+                },
+                "createdat": {
+                  "name": "createdat",
+                  "required": true,
+                  "type": "timestamp"
+                },
+                "defaultversionid": {
+                  "name": "defaultversionid",
+                  "required": true,
+                  "type": "string"
+                },
+                "defaultversionsticky": {
+                  "default": false,
+                  "name": "defaultversionsticky",
+                  "required": true,
+                  "type": "boolean"
+                },
+                "defaultversionurl": {
+                  "name": "defaultversionurl",
+                  "readonly": true,
+                  "required": true,
+                  "type": "url"
+                },
+                "deprecated": {
+                  "attributes": {
+                    "*": {
+                      "name": "*",
+                      "type": "any"
+                    },
+                    "alternative": {
+                      "name": "alternative",
+                      "type": "url"
+                    },
+                    "documentation": {
+                      "name": "documentation",
+                      "type": "url"
+                    },
+                    "effective": {
+                      "name": "effective",
+                      "type": "timestamp"
+                    },
+                    "removal": {
+                      "name": "removal",
+                      "type": "timestamp"
+                    }
+                  },
+                  "name": "deprecated",
+                  "type": "object"
+                },
+                "epoch": {
+                  "name": "epoch",
+                  "readonly": true,
+                  "required": true,
+                  "type": "uinteger"
+                },
+                "labels": {
+                  "item": {
+                    "type": "string"
+                  },
+                  "name": "labels",
+                  "type": "map"
+                },
+                "modifiedat": {
+                  "name": "modifiedat",
+                  "required": true,
+                  "type": "timestamp"
+                },
+                "noteid": {
+                  "immutable": true,
+                  "name": "noteid",
+                  "required": true,
+                  "type": "string"
+                },
+                "readonly": {
+                  "default": false,
+                  "name": "readonly",
+                  "readonly": true,
+                  "required": true,
+                  "type": "boolean"
+                },
+                "self": {
+                  "immutable": true,
+                  "name": "self",
+                  "readonly": true,
+                  "required": true,
+                  "type": "url"
+                },
+                "shortself": {
+                  "immutable": true,
+                  "name": "shortself",
+                  "readonly": true,
+                  "type": "url"
+                },
+                "xid": {
+                  "immutable": true,
+                  "name": "xid",
+                  "readonly": true,
+                  "required": true,
+                  "type": "xid"
+                },
+                "xref": {
+                  "name": "xref",
+                  "type": "xid"
+                }
+              },
+              "plural": "notes",
+              "resourceattributes": {
+                "meta": {
+                  "attributes": {
+                    "*": {
+                      "name": "*",
+                      "type": "any"
+                    }
+                  },
+                  "name": "meta",
+                  "type": "object"
+                },
+                "metaurl": {
+                  "immutable": true,
+                  "name": "metaurl",
+                  "readonly": true,
+                  "required": true,
+                  "type": "url"
+                },
+                "noteid": {
+                  "immutable": true,
+                  "name": "noteid",
+                  "required": true,
+                  "type": "string"
+                },
+                "self": {
+                  "immutable": true,
+                  "name": "self",
+                  "readonly": true,
+                  "required": true,
+                  "type": "url"
+                },
+                "shortself": {
+                  "immutable": true,
+                  "name": "shortself",
+                  "readonly": true,
+                  "type": "url"
+                },
+                "versions": {
+                  "item": {
+                    "attributes": {
+                      "*": {
+                        "name": "*",
+                        "type": "any"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "name": "versions",
+                  "type": "map"
+                },
+                "versionscount": {
+                  "name": "versionscount",
+                  "readonly": true,
+                  "required": true,
+                  "type": "uinteger"
+                },
+                "versionsurl": {
+                  "immutable": true,
+                  "name": "versionsurl",
+                  "readonly": true,
+                  "required": true,
+                  "type": "url"
+                },
+                "xid": {
+                  "immutable": true,
+                  "name": "xid",
+                  "readonly": true,
+                  "required": true,
+                  "type": "xid"
+                }
+              },
+              "setversionid": true,
+              "singleversionroot": false,
+              "singular": "note",
+              "strictvalidation": false,
+              "validatecompatibility": false,
+              "validateformat": false,
+              "versionmode": "manual"
+            }
+          },
+          "singular": "dir"
+        },
+        "emptygroups": {
+          "attributes": {
+            "constraints": {
+              "item": {
+                "attributes": {
+                  "default": {
+                    "name": "default",
+                    "type": "any"
+                  },
+                  "enum": {
+                    "item": {
+                      "type": "any"
+                    },
+                    "name": "enum",
+                    "type": "array"
+                  },
+                  "equals": {
+                    "name": "equals",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "name": "constraints",
+              "type": "map"
+            },
+            "createdat": {
+              "name": "createdat",
+              "required": true,
+              "type": "timestamp"
+            },
+            "deprecated": {
+              "attributes": {
+                "*": {
+                  "name": "*",
+                  "type": "any"
+                },
+                "alternative": {
+                  "name": "alternative",
+                  "type": "url"
+                },
+                "documentation": {
+                  "name": "documentation",
+                  "type": "url"
+                },
+                "effective": {
+                  "name": "effective",
+                  "type": "timestamp"
+                },
+                "removal": {
+                  "name": "removal",
+                  "type": "timestamp"
+                }
+              },
+              "name": "deprecated",
+              "type": "object"
+            },
+            "description": {
+              "name": "description",
+              "type": "string"
+            },
+            "documentation": {
+              "name": "documentation",
+              "type": "url"
+            },
+            "emptygroupid": {
+              "immutable": true,
+              "name": "emptygroupid",
+              "required": true,
+              "type": "string"
+            },
+            "epoch": {
+              "name": "epoch",
+              "readonly": true,
+              "required": true,
+              "type": "uinteger"
+            },
+            "icon": {
+              "name": "icon",
+              "type": "url"
+            },
+            "labels": {
+              "item": {
+                "type": "string"
+              },
+              "name": "labels",
+              "type": "map"
+            },
+            "modifiedat": {
+              "name": "modifiedat",
+              "required": true,
+              "type": "timestamp"
+            },
+            "name": {
+              "name": "name",
+              "type": "string"
+            },
+            "self": {
+              "immutable": true,
+              "name": "self",
+              "readonly": true,
+              "required": true,
+              "type": "url"
+            },
+            "shortself": {
+              "immutable": true,
+              "name": "shortself",
+              "readonly": true,
+              "type": "url"
+            },
+            "xid": {
+              "immutable": true,
+              "name": "xid",
+              "readonly": true,
+              "required": true,
+              "type": "xid"
+            }
+          },
+          "plural": "emptygroups",
+          "resources": {},
+          "singular": "emptygroup"
+        },
+        "imports": {
+          "attributes": {
+            "constraints": {
+              "item": {
+                "attributes": {
+                  "default": {
+                    "name": "default",
+                    "type": "any"
+                  },
+                  "enum": {
+                    "item": {
+                      "type": "any"
+                    },
+                    "name": "enum",
+                    "type": "array"
+                  },
+                  "equals": {
+                    "name": "equals",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "name": "constraints",
+              "type": "map"
+            },
+            "createdat": {
+              "name": "createdat",
+              "required": true,
+              "type": "timestamp"
+            },
+            "deprecated": {
+              "attributes": {
+                "*": {
+                  "name": "*",
+                  "type": "any"
+                },
+                "alternative": {
+                  "name": "alternative",
+                  "type": "url"
+                },
+                "documentation": {
+                  "name": "documentation",
+                  "type": "url"
+                },
+                "effective": {
+                  "name": "effective",
+                  "type": "timestamp"
+                },
+                "removal": {
+                  "name": "removal",
+                  "type": "timestamp"
+                }
+              },
+              "name": "deprecated",
+              "type": "object"
+            },
+            "description": {
+              "name": "description",
+              "type": "string"
+            },
+            "documentation": {
+              "name": "documentation",
+              "type": "url"
+            },
+            "epoch": {
+              "name": "epoch",
+              "readonly": true,
+              "required": true,
+              "type": "uinteger"
+            },
+            "files": {
+              "item": {
+                "attributes": {
+                  "*": {
+                    "name": "*",
+                    "type": "any"
+                  }
+                },
+                "type": "object"
+              },
+              "name": "files",
+              "type": "map"
+            },
+            "filescount": {
+              "name": "filescount",
+              "readonly": true,
+              "required": true,
+              "type": "uinteger"
+            },
+            "filesurl": {
+              "immutable": true,
+              "name": "filesurl",
+              "readonly": true,
+              "required": true,
+              "type": "url"
+            },
+            "icon": {
+              "name": "icon",
+              "type": "url"
+            },
+            "importid": {
+              "immutable": true,
+              "name": "importid",
+              "required": true,
+              "type": "string"
+            },
+            "labels": {
+              "item": {
+                "type": "string"
+              },
+              "name": "labels",
+              "type": "map"
+            },
+            "modifiedat": {
+              "name": "modifiedat",
+              "required": true,
+              "type": "timestamp"
+            },
+            "name": {
+              "name": "name",
+              "type": "string"
+            },
+            "self": {
+              "immutable": true,
+              "name": "self",
+              "readonly": true,
+              "required": true,
+              "type": "url"
+            },
+            "shortself": {
+              "immutable": true,
+              "name": "shortself",
+              "readonly": true,
+              "type": "url"
+            },
+            "xid": {
+              "immutable": true,
+              "name": "xid",
+              "readonly": true,
+              "required": true,
+              "type": "xid"
+            }
+          },
+          "plural": "imports",
+          "resources": {
+            "files": {
+              "attributes": {
+                "ancestorid": {
+                  "name": "ancestorid",
+                  "required": true,
+                  "type": "string"
+                },
+                "compatibilityvalidated": {
+                  "name": "compatibilityvalidated",
+                  "readonly": true,
+                  "type": "boolean"
+                },
+                "compatibilityvalidatedreason": {
+                  "name": "compatibilityvalidatedreason",
+                  "readonly": true,
+                  "type": "string"
+                },
+                "contenttype": {
+                  "name": "contenttype",
+                  "type": "string"
+                },
+                "createdat": {
+                  "name": "createdat",
+                  "required": true,
+                  "type": "timestamp"
+                },
+                "description": {
+                  "name": "description",
+                  "type": "string"
+                },
+                "documentation": {
+                  "name": "documentation",
+                  "type": "url"
+                },
+                "epoch": {
+                  "name": "epoch",
+                  "readonly": true,
+                  "required": true,
+                  "type": "uinteger"
+                },
+                "extra": {
+                  "attributes": {
+                    "*": {
+                      "type": "any"
+                    }
+                  },
+                  "name": "extra",
+                  "type": "object"
+                },
+                "file": {
+                  "name": "file",
+                  "type": "any"
+                },
+                "filebase64": {
+                  "name": "filebase64",
+                  "type": "string"
+                },
+                "fileid": {
+                  "immutable": true,
+                  "name": "fileid",
+                  "required": true,
+                  "type": "string"
+                },
+                "fileurl": {
+                  "name": "fileurl",
+                  "type": "url"
+                },
+                "format": {
+                  "name": "format",
+                  "type": "string"
+                },
+                "formatvalidated": {
+                  "name": "formatvalidated",
+                  "readonly": true,
+                  "type": "boolean"
+                },
+                "formatvalidatedreason": {
+                  "name": "formatvalidatedreason",
+                  "readonly": true,
+                  "type": "string"
+                },
+                "icon": {
+                  "name": "icon",
+                  "type": "url"
+                },
+                "isdefault": {
+                  "default": false,
+                  "name": "isdefault",
+                  "readonly": true,
+                  "required": true,
+                  "type": "boolean"
+                },
+                "labels": {
+                  "item": {
+                    "type": "string"
+                  },
+                  "name": "labels",
+                  "type": "map"
+                },
+                "modifiedat": {
+                  "name": "modifiedat",
+                  "required": true,
+                  "type": "timestamp"
+                },
+                "name": {
+                  "name": "name",
+                  "type": "string"
+                },
+                "self": {
+                  "immutable": true,
+                  "name": "self",
+                  "readonly": true,
+                  "required": true,
+                  "type": "url"
+                },
+                "shortself": {
+                  "immutable": true,
+                  "name": "shortself",
+                  "readonly": true,
+                  "type": "url"
+                },
+                "versionid": {
+                  "immutable": true,
+                  "name": "versionid",
+                  "required": true,
+                  "type": "string"
+                },
+                "xid": {
+                  "immutable": true,
+                  "name": "xid",
+                  "readonly": true,
+                  "required": true,
+                  "type": "xid"
+                }
+              },
+              "hasdocument": true,
+              "maxversions": 0,
+              "metaattributes": {
+                "compatibility": {
+                  "enum": [
+                    "backward",
+                    "backward_transitive",
+                    "forward",
+                    "forward_transitive",
+                    "full",
+                    "full_transitive"
+                  ],
+                  "name": "compatibility",
+                  "strict": true,
+                  "type": "string"
+                },
+                "createdat": {
+                  "name": "createdat",
+                  "required": true,
+                  "type": "timestamp"
+                },
+                "defaultversionid": {
+                  "name": "defaultversionid",
+                  "required": true,
+                  "type": "string"
+                },
+                "defaultversionsticky": {
+                  "default": false,
+                  "name": "defaultversionsticky",
+                  "required": true,
+                  "type": "boolean"
+                },
+                "defaultversionurl": {
+                  "name": "defaultversionurl",
+                  "readonly": true,
+                  "required": true,
+                  "type": "url"
+                },
+                "deprecated": {
+                  "attributes": {
+                    "*": {
+                      "name": "*",
+                      "type": "any"
+                    },
+                    "alternative": {
+                      "name": "alternative",
+                      "type": "url"
+                    },
+                    "documentation": {
+                      "name": "documentation",
+                      "type": "url"
+                    },
+                    "effective": {
+                      "name": "effective",
+                      "type": "timestamp"
+                    },
+                    "removal": {
+                      "name": "removal",
+                      "type": "timestamp"
+                    }
+                  },
+                  "name": "deprecated",
+                  "type": "object"
+                },
+                "epoch": {
+                  "name": "epoch",
+                  "readonly": true,
+                  "required": true,
+                  "type": "uinteger"
+                },
+                "fileid": {
+                  "immutable": true,
+                  "name": "fileid",
+                  "required": true,
+                  "type": "string"
+                },
+                "labels": {
+                  "item": {
+                    "type": "string"
+                  },
+                  "name": "labels",
+                  "type": "map"
+                },
+                "modifiedat": {
+                  "name": "modifiedat",
+                  "required": true,
+                  "type": "timestamp"
+                },
+                "readonly": {
+                  "default": false,
+                  "name": "readonly",
+                  "readonly": true,
+                  "required": true,
+                  "type": "boolean"
+                },
+                "self": {
+                  "immutable": true,
+                  "name": "self",
+                  "readonly": true,
+                  "required": true,
+                  "type": "url"
+                },
+                "shortself": {
+                  "immutable": true,
+                  "name": "shortself",
+                  "readonly": true,
+                  "type": "url"
+                },
+                "xid": {
+                  "immutable": true,
+                  "name": "xid",
+                  "readonly": true,
+                  "required": true,
+                  "type": "xid"
+                },
+                "xref": {
+                  "name": "xref",
+                  "type": "xid"
+                }
+              },
+              "plural": "files",
+              "resourceattributes": {
+                "fileid": {
+                  "immutable": true,
+                  "name": "fileid",
+                  "required": true,
+                  "type": "string"
+                },
+                "meta": {
+                  "attributes": {
+                    "*": {
+                      "name": "*",
+                      "type": "any"
+                    }
+                  },
+                  "name": "meta",
+                  "type": "object"
+                },
+                "metaurl": {
+                  "immutable": true,
+                  "name": "metaurl",
+                  "readonly": true,
+                  "required": true,
+                  "type": "url"
+                },
+                "self": {
+                  "immutable": true,
+                  "name": "self",
+                  "readonly": true,
+                  "required": true,
+                  "type": "url"
+                },
+                "shortself": {
+                  "immutable": true,
+                  "name": "shortself",
+                  "readonly": true,
+                  "type": "url"
+                },
+                "versions": {
+                  "item": {
+                    "attributes": {
+                      "*": {
+                        "name": "*",
+                        "type": "any"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "name": "versions",
+                  "type": "map"
+                },
+                "versionscount": {
+                  "name": "versionscount",
+                  "readonly": true,
+                  "required": true,
+                  "type": "uinteger"
+                },
+                "versionsurl": {
+                  "immutable": true,
+                  "name": "versionsurl",
+                  "readonly": true,
+                  "required": true,
+                  "type": "url"
+                },
+                "xid": {
+                  "immutable": true,
+                  "name": "xid",
+                  "readonly": true,
+                  "required": true,
+                  "type": "xid"
+                }
+              },
+              "setversionid": true,
+              "singleversionroot": false,
+              "singular": "file",
+              "strictvalidation": false,
+              "validatecompatibility": false,
+              "validateformat": false,
+              "versionmode": "manual"
+            }
+          },
+          "singular": "import"
+        }
+      }
+    },
+    "modelsource": {
+      "groups": {
+        "dirs": {
+          "resources": {
+            "files": {
+              "attributes": {
+                "extra": {
+                  "attributes": {
+                    "*": {
+                      "type": "any"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "singular": "file"
+            },
+            "notes": {
+              "hasdocument": false,
+              "singular": "note"
+            }
+          },
+          "singular": "dir"
+        },
+        "emptygroups": {
+          "singular": "emptygroup"
+        },
+        "imports": {
+          "singular": "import",
+          "ximportresources": [
+            "/dirs/files"
+          ]
+        }
+      }
+    },
+    "modifiedat": "2026-09-01T12:00:00Z",
+    "registryid": "fixture-linked",
+    "specversion": "1.0-rc4",
+    "xid": "/"
+  },
+  "formatversion": 1,
+  "kind": "registry",
+  "modelresolved": {
+    "groups": {
+      "dirs": {
+        "resources": {
+          "files": {
+            "attributes": {
+              "extra": {
+                "attributes": {
+                  "*": {
+                    "type": "any"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "singular": "file"
+          },
+          "notes": {
+            "hasdocument": false,
+            "singular": "note"
+          }
+        },
+        "singular": "dir"
+      },
+      "emptygroups": {
+        "singular": "emptygroup"
+      },
+      "imports": {
+        "singular": "import",
+        "ximportresources": [
+          "/dirs/files"
+        ]
+      }
+    }
+  },
+  "snapshot": "linked"
+}

@@ -1,0 +1,25 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "resource",
+  "entity": {
+    "xid": "/documents/main/assets/CON",
+    "assetid": "CON"
+  },
+  "meta": {
+    "kind": "meta",
+    "xid": "/documents/main/assets/CON/meta",
+    "href": "records/n6.json",
+    "size": 359,
+    "sha256": "6e6cda01333f8cb7b48759122b1bc6e833c6251114706e597fd7b2fe26dfab0f"
+  },
+  "collections": [
+    {
+      "kind": "collection",
+      "xid": "/documents/main/assets/CON/versions",
+      "href": "indexes/n5.json",
+      "size": 403,
+      "sha256": "167d2556c9eda77e4d6aca916b6c0fc19a86a6f66ed68e754abaf09065ed7b07"
+    }
+  ]
+}

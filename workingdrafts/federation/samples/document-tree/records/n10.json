@@ -1,0 +1,21 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "group",
+  "entity": {
+    "epoch": 1,
+    "createdat": "2026-09-04T00:00:00Z",
+    "modifiedat": "2026-09-04T00:00:00Z",
+    "xid": "/mirrors/local",
+    "mirrorid": "local"
+  },
+  "collections": [
+    {
+      "kind": "collection",
+      "xid": "/mirrors/local/assets",
+      "href": "indexes/nc.json",
+      "size": 816,
+      "sha256": "06df0d1ae8cceea245156a8135dc895f6f1c72ac777b0c982071397a9ce4c7ab"
+    }
+  ]
+}

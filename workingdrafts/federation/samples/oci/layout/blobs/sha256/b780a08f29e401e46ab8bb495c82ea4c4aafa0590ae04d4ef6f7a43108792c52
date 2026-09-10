@@ -1,0 +1,18 @@
+{
+  "document": {
+    "mode": "embedded"
+  },
+  "entity": {
+    "ancestorid": "v1",
+    "contenttype": "application/octet-stream",
+    "createdat": "2026-09-01T12:00:00Z",
+    "epoch": 1,
+    "fileid": "binary",
+    "isdefault": true,
+    "modifiedat": "2026-09-01T12:00:00Z",
+    "versionid": "v1",
+    "xid": "/dirs/main/files/binary/versions/v1"
+  },
+  "formatversion": 1,
+  "kind": "version"
+}

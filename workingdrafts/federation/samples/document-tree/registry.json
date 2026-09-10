@@ -1,0 +1,131 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "registry",
+  "entity": {
+    "epoch": 1,
+    "createdat": "2026-09-04T00:00:00Z",
+    "modifiedat": "2026-09-04T00:00:00Z",
+    "xid": "/",
+    "registryid": "first",
+    "specversion": "1.0-rc4",
+    "fixture": "document-tree",
+    "modelsource": {
+      "attributes": {
+        "fixture": {
+          "type": "string"
+        }
+      },
+      "groups": {
+        "categories": {
+          "singular": "category",
+          "resources": {
+            "registries": {
+              "singular": "registry",
+              "hasdocument": false,
+              "attributes": {
+                "weburl": {
+                  "type": "url"
+                }
+              }
+            }
+          }
+        },
+        "documents": {
+          "singular": "document",
+          "resources": {
+            "assets": {
+              "singular": "asset",
+              "attributes": {
+                "purpose": {
+                  "type": "string"
+                }
+              }
+            },
+            "notes": {
+              "singular": "note",
+              "hasdocument": false
+            }
+          }
+        },
+        "independent": {
+          "singular": "independent",
+          "resources": {
+            "assets": {
+              "singular": "asset"
+            }
+          }
+        },
+        "mirrors": {
+          "singular": "mirror",
+          "ximportresources": [
+            "/documents/assets"
+          ]
+        }
+      }
+    },
+    "capabilities": {
+      "available": {
+        "capabilities": {
+          "mutable": false
+        },
+        "entities": {
+          "mutable": false
+        },
+        "model": {
+          "mutable": false
+        },
+        "modelsource": {
+          "mutable": false
+        }
+      },
+      "flags": [
+        "doc",
+        "inline"
+      ],
+      "pagination": false,
+      "shortself": false,
+      "specversions": [
+        "1.0-rc4"
+      ]
+    }
+  },
+  "snapshot": {
+    "scope": "/",
+    "completeness": "offline-complete"
+  },
+  "source": {
+    "uri": "https://example.com/registry",
+    "revision": "fixture-1"
+  },
+  "collections": [
+    {
+      "kind": "collection",
+      "xid": "/categories",
+      "href": "indexes/n0.json",
+      "size": 351,
+      "sha256": "b9f9d9d3b8b55adac2458790f71fdaab9357c0fde63270580d10aa672c44bb76"
+    },
+    {
+      "kind": "collection",
+      "xid": "/documents",
+      "href": "indexes/n3.json",
+      "size": 349,
+      "sha256": "86c84466fa62e3cbf0c6abbbe235cd9080247db9c9c877e029a951f684dbb540"
+    },
+    {
+      "kind": "collection",
+      "xid": "/independent",
+      "href": "indexes/n9.json",
+      "size": 353,
+      "sha256": "5f503b6123ea55a41442a6786e27d6794308dd0f8a3f24f7e5e8a54bedaf0198"
+    },
+    {
+      "kind": "collection",
+      "xid": "/mirrors",
+      "href": "indexes/nb.json",
+      "size": 347,
+      "sha256": "e900b9e714219a196e1d3a37d7f3d66ea16eb771c0de0e19304ac5a453f15da3"
+    }
+  ]
+}

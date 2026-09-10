@@ -730,10 +730,15 @@ scanning documents alone will under-report it.
 
 ### 5.3. Federation
 
-A registry need not host every artifact it knows about. An artifact
-that this registry describes but does not store is published with
-[`xref`][xRegistry xref], or with a `usdasseturl` naming its location, instead
-of an inline document.
+A registry need not host every artifact it knows about. A `usdasseturl` can
+name an external domain document instead of an inline document. It does not
+import the remote Resource's metadata or Versions.
+
+[`xref`][xRegistry xref] has a different purpose: it aliases a Resource of
+the same Resource model type within the same Registry. It is not a remote
+URL and is not followed transitively. The
+[federation working draft](../../federation/spec.md) defines explicit Registry
+selection and binding access while preserving this Core distinction.
 
 This is what makes artifact registries composable, and it is the reason the
 identifier rules of [Section 5.1](#51-asset-identifiers-and-xids) are strict. A

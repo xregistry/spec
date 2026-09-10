@@ -2,6 +2,7 @@
 
 <!-- words: validatecompatibility validateformat strickvalidation -->
 <!-- words: strictvalidation matchversions readme upserts -->
+<!-- words: workingdrafts -->
 
 <!-- no verify-specs -->
 
@@ -828,12 +829,13 @@ formalized.
 
 #### 9.3.3. Identifiers
 
-For shadowing and cross-referencing to work, identifiers need to be stable
-across registries. Group identifiers should be treated as globally unique, so
-that the same group can be recognized across different registries. Resource
-identifiers are only unique within a group, so a cross-registry reference should
-always use the combination of group identifier (group name and id) and resource
-identifier (resource name and id).
+For shadowing to recognize corresponding entities, participants need an agreed
+identity policy. Core does not make Group IDs or XIDs globally unique: an XID
+is interpreted within a selected Registry. A cross-registry selection therefore
+needs both Registry context and the typed Group/Resource path. Core `xref`
+remains a same-Registry, same-Resource-model-type reference, not a remote URL.
+The [federation working drafts](../workingdrafts/federation/spec.md) describe
+catalog discovery and binding-specific access without changing those rules.
 
 The authority portion of a URL into a registry is only an endpoint identifier
 for the hosting registry, not a unique identifier for the resource itself. The
