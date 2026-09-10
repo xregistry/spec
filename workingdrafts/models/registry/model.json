@@ -3,7 +3,7 @@
   "groups": {
     "categories": {
       "singular": "category",
-      "modelversion": "0.1",
+      "modelversion": "1.0-rc1",
       "description": "Open-ended organizational categories of catalog entries.",
       "attributes": {
         "*": {
@@ -13,7 +13,7 @@
       "resources": {
         "registries": {
           "singular": "registry",
-          "modelversion": "0.1",
+          "modelversion": "1.0-rc1",
           "hasdocument": false,
           "description": "Versioned descriptions of independently managed Registries.",
           "attributes": {

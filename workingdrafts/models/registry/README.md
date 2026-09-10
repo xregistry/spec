@@ -1,4 +1,4 @@
-# Registry-of-Registries Service - Version 0.1
+# Registry-of-Registries Service - Version 1.0-rc1
 
 <!-- words: federationprofiles readme registrytypes website weburl xregurl -->
 

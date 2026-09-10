@@ -1,4 +1,4 @@
-# Registry-of-Registries Service - Version 0.1
+# Registry-of-Registries Service - Version 1.0-rc1
 
 <!-- words: applicationuri federationprofiles nodeid nsu opcua registryroot -->
 <!-- words: registrytypes transportprofileuri weburl xregurl crosswalk -->
@@ -23,7 +23,6 @@ Consumers can discover an entry without fetching or copying its contents.
 
 - [1. Overview](#1-overview)
   - [1.1. Scope](#11-scope)
-  - [1.2. Hub Compatibility](#12-hub-compatibility)
 - [2. Notations and Terminology](#2-notations-and-terminology)
 - [3. Registry Model](#3-registry-model)
   - [3.1. Hierarchy](#31-hierarchy)
@@ -78,24 +77,6 @@ dependency traversal, write-through, conflict resolution or credential
 storage. It does not change domain document formats or require remote
 Registries to adopt the catalog's model.
 
-### 1.2. Hub Compatibility
-
-The [deployed hub][Hub] uses `categories` / `category` Groups containing
-`registries` / `registry` Resources with `hasdocument: false`. Its
-domain-specific Version attributes are `xregurl` and `weburl`.
-This specification retains that vocabulary and adds only OPTIONAL
-Version attributes.
-
-Base catalog entries MUST NOT be rejected merely because they lack labels,
-types, advertisements or an API endpoint. In particular, `weburl` without
-`xregurl` is valid. Categories such as `ai`, `dev`, `mcp` and `oci` are
-examples of deployed data, not a fixed enumeration.
-
-The hub is evidence for domain vocabulary, not a replacement for local
-Core semantics. In particular, the hub's expanded model description of
-`xref` as a URL is NOT adopted: [Core `xref`][Core xref] remains an XID
-within the containing Registry.
-
 ## 2. Notations and Terminology
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
@@ -105,13 +86,14 @@ document are to be interpreted as described in [RFC 2119][RFC2119].
 Core defines Registry, Group, Resource, Meta, Version, XID, API view and
 document view. This specification uses these additional distinctions:
 
-- **Catalog:** The containing Registry using this domain.
-- **Category:** A Group organizing catalog entries without defining their
-  domain, transport or authority.
+- **Catalog:** A Registry containing Registries.
+- **Category:** A Group organizing registries in the catalog, also called 
+  a Catalog entry. A category does not define a registry domain, transport
+  or authority.
 - **Catalog entry:** A `registry` Resource within a Category.
 - **Catalog-description Version:** A Version of that entry's description.
 - **Target Registry:** The independently administered Registry described
-  by an entry. It has its own root, model, capabilities and ID scopes.
+  by a Catalog entry. It has its own root, model, capabilities and ID scopes.
 - **Advertisement:** An access method for the target Registry.
 - **Registry context:** The selected logical Registry and access context
   within which a target XID is interpreted.
@@ -289,7 +271,7 @@ by the model.
 ### 4.1. `xregurl`
 
 - Type: URL.
-- Description: The legacy xRegistry HTTP root of the described Registry.
+- Description: The xRegistry *HTTP* API root of the described Registry.
 - Constraints:
   - OPTIONAL.
   - MUST be an absolute HTTP or HTTPS Registry root URL without user
@@ -954,60 +936,6 @@ Derived artifacts MUST NOT override Core or this specification when a
 generator omits a constraint or produces an incompatible description.
 Current limitations and reproduction commands are documented alongside the
 generated files rather than changing the domain model to accommodate them.
-
-## Appendix A. Source Crosswalk
-
-This appendix is informative. The source proposals are Working Draft 0.1,
-dated 2026-09-04, reviewed on 2026-09-10. Their filenames identify the
-reviewed inputs; they are not normative dependencies on private files.
-
-### A.1. Domain Proposal
-
-Source: `01_xRegistry_Registry_of_Registries_Domain 6.docx`.
-
-| Source clause | Disposition and destination |
-| --- | --- |
-| Abstract and scope | Retained discovery; [scope](#11-scope) separates resolution. |
-| 1: Domain model | Corrected `registrygroups` to [Categories](#31-hierarchy). |
-| 2: Resource attributes | Moved description data to [Versions](#3-registry-model). |
-| 2: `registryTypes` | Lowercase, OPTIONAL [URI identifiers](#43-registrytypes). |
-| 2: `federationProfiles` | Lowercase, OPTIONAL [advertisements](#45-federationprofiles). |
-| 2: Authority | Retained [administrative assertion](#44-authority), not trust. |
-| 3: Mandatory labels | Replaced with OPTIONAL [Core labels](#47-core-labels). |
-| 3: Exact NFC matching | Replaced with [Core selection](#61-entry-selection). |
-| 4: Full Resource schema | Replaced by [model and derivations](#11-examples-and-derived-schemas). |
-| 4: Closed profile enum | Made [extensible](#57-extensions), with explicit failures. |
-| 4: Profile fields | Retained [envelope](#51-common-fields); clarified URI rules. |
-| 4: Relationship object | Retained [fields and URI bases](#7-descriptive-relationships). |
-| 5: Example | Replaced with [complete examples](samples/README.md). |
-| 5: OCI endpoint tag | Separated into [OCI reference](#531-parametersreference). |
-| 6: Relationship processing | Retained [descriptive meanings](#7-descriptive-relationships). |
-
-### A.2. Family Proposal and Reviewed Hub
-
-Source: `00_xRegistry_Federation_WG_Proposal 6.docx`.
-Its scope, non-goals and work item 1 are retained in
-[scope](#11-scope) and [conformance](#10-conformance). Its section 2
-architecture is retained as independent Registry contexts, but its claim
-that every entry is resolvable is narrowed to the separate resolvable
-class. Section 3's OPTIONAL peer bindings remain read-only consumption.
-
-The HTTP, OCI, Git and File Word inputs supply binding requirements, not
-alternate catalog models. Their access parameters are reconciled in
-[Section 5](#5-federation-advertisements); their transport and snapshot
-processing belongs to the [federation family][Federation]. The existing
-[OPC UA binding][OPC UA] supplies the native fifth binding; there was no
-separate OPC UA Word input.
-
-The hub observations retain `categories` / `registries`,
-`hasdocument: false`, `xregurl`, `weburl` and website-only entries.
-Observed Category IDs are not standardized. The expanded hub's URL-typed
-`xref` is rejected in favor of [local Core][Core xref]. Observed endpoint
-versions, timestamps and read-only capabilities do not prove target
-compatibility, freshness or mutation history.
-
-Core's model source, XID scope, OPTIONAL labels, versioning and document
-view rules take precedence over conflicting preliminary examples.
 
 ## References
 
