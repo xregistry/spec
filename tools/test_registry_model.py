@@ -778,7 +778,7 @@ def test_registry_catalog_attributes_are_versioned_and_metadata_only(
     assert (group["singular"], set(group["resources"]), resource_model["singular"]) == (
         "category", {"registries"}, "registry"
     )
-    assert (group["modelversion"], resource_model["modelversion"]) == ("0.1", "0.1")
+    assert (group["modelversion"], resource_model["modelversion"]) == ("1.0-rc1", "1.0-rc1")
     assert resource_model["hasdocument"] is False
     assert set(resource_model["attributes"]) == DOMAIN_FIELDS | {"*"}
     assert resource_model.get("resourceattributes", {}) == {}

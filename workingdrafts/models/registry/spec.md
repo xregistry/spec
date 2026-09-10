@@ -15,7 +15,7 @@ A catalog contains versioned descriptions of independently administered
 Registries, human-facing websites and OPTIONAL federation advertisements.
 Consumers can discover an entry without fetching or copying its contents.
 
-**Status:** Unreleased working draft, Version 0.1. This specification uses
+**Status:** Unreleased working draft, Version 1.0-rc1. This specification uses
 [xRegistry Core][Core] and the [Core model language][Model], Version
 1.0-rc4. It is not part of a released xRegistry specification.
 
@@ -53,7 +53,6 @@ Consumers can discover an entry without fetching or copying its contents.
 - [9. Security Considerations](#9-security-considerations)
 - [10. Conformance](#10-conformance)
 - [11. Examples and Derived Schemas](#11-examples-and-derived-schemas)
-- [Appendix A. Source Crosswalk](#appendix-a-source-crosswalk)
 - [References](#references)
 
 ## 1. Overview
@@ -87,7 +86,7 @@ Core defines Registry, Group, Resource, Meta, Version, XID, API view and
 document view. This specification uses these additional distinctions:
 
 - **Catalog:** A Registry containing Registries.
-- **Category:** A Group organizing registries in the catalog, also called 
+- **Category:** A Group organizing registries in the catalog, also called
   a Catalog entry. A category does not define a registry domain, transport
   or authority.
 - **Catalog entry:** A `registry` Resource within a Category.
