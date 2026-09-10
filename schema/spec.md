@@ -439,6 +439,7 @@ Versions for a schema named `com.example.telemetrydata`:
           "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; string description = 3; } }",
 
           "metaurl": "http://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/meta",
+
           "versionsurl": "http://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions",
           "versionscount": 3,
           "versions": {
