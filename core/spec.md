@@ -620,6 +620,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "defaultversionurl": "<URL>",
             "defaultversionsticky": <BOOLEAN> ?    # Default=false
           }, ?
+
           "versionsurl": "<URL>",
           "versionscount": <UINTEGER>,
           "versions": {                            # Only if inlined
@@ -2407,6 +2408,7 @@ it MUST adhere to the following:
 
   "metaurl": "<URL>",                        # URL to 'meta' entity
   "meta": { meta entity }, ?                 # Only if inlined
+
   "versionsurl": "<URL>",                    # Absolute URL to versions
   "versionscount": <UINTEGER>,               # Size of versions collection
   "versions": { map of Versions }            # Only if inlined
@@ -2442,6 +2444,7 @@ it MUST adhere to the following:
                                              # End of default Ver attributes
   "metaurl": "<URL>",
   "meta": { meta entity }, ?                 # Only if inlined
+
   "versionsurl": "<URL>",
   "versionscount": <UINTEGER>,
   "versions": { map of Versions } ?          # Only if inlined
@@ -2754,6 +2757,7 @@ So, if the target Resource (`sharedSchema`) is defined as:
   "ancestorid": "v1",
 
   "metaurl": "http://example.com/schemagroups/group2/schemas/sharedSchema/meta",
+
   "versionscount": 1,
   "versionsurl": "http://example.com/schemagroups/group2/schemas/sharedSchema/versions"
 }
@@ -2786,6 +2790,7 @@ then the resulting serialization of the source Resource would be:
     "defaultversionurl": "http://example.com/schemagroups/group1/schemas/mySchema/versions/v1",
     "defaultversionsticky": false
   },
+
   "versionscount": 1,
   "versionsurl": "http://example.com/schemagroups/group1/schemas/mySchema/versions"
 }
