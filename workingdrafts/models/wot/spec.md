@@ -51,6 +51,7 @@ Registry allows for the storage, management and discovery of W3C
   - [5. Identity and Resolution](#5-identity-and-resolution)
     - [5.1. WoT Identifiers and `xid`s](#51-wot-identifiers-and-xids)
       - [5.1.1. The Symbolic Identifier Construction](#511-the-symbolic-identifier-construction)
+      - [5.1.2. Breaking Changes and Successor Identifiers](#512-breaking-changes-and-successor-identifiers)
     - [5.2. Preserving Customer Documents](#52-preserving-customer-documents)
     - [5.3. Lookup](#53-lookup)
     - [5.4. Ambiguity and Errors](#54-ambiguity-and-errors)
@@ -124,13 +125,21 @@ assigned by the xRegistry Core rules.
 
 A version is never part of an identifier. A Resource's `wotid`,
 `thingdescriptionid` and `thingmodelid` are stable across revisions of the
-document they name; see [Section 5.1](#51-wot-identifiers-and-xids).
+document they name; `wotid` is declared with
+[`matchversions`][xRegistry matchversions], so a registry rejects a Version
+that supplies a different one. See
+[Section 5.1](#51-wot-identifiers-and-xids).
 
 The xRegistry Core versioning rules (monotonically increasing integer
-`versionid`s, `ancestor` lineage, default-Version selection) apply unchanged.
-A breaking change to a TD or TM that violates the Resource's
-[`compatibility`][xRegistry compatibility] policy MUST result in a new
-Resource, not a new Version.
+`versionid`s, [`ancestorid`][xRegistry ancestorid] lineage, default-Version
+selection) apply unchanged. A breaking change to a TD or TM that violates the
+Resource's [`compatibility`][xRegistry compatibility] policy MUST result in a
+new Resource, not a new Version.
+
+Because a Resource's id is a function of its `wotid`, that successor Resource
+is reached by authoring a *new* WoT identifier, and the superseded Resource
+records where the successor lives; see
+[Section 5.1.2](#512-breaking-changes-and-successor-identifiers).
 
 ### 1.4. Document Store
 
@@ -280,7 +289,7 @@ form:
           "labels": { "<STRING>": "<STRING>" * }, ?
           "createdat": "<TIMESTAMP>",
           "modifiedat": "<TIMESTAMP>",
-          "ancestor": "<STRING>",
+          "ancestorid": "<STRING>",
           "contenttype": "<STRING>", ?            # SHOULD be application/td+json
           "format": "<STRING>",                    # MUST be "JSON-LD/1.1"
           "wotid": "<STRING>",                     # the document's authored 'id'
@@ -315,19 +324,38 @@ form:
   "thingmodelgroupscount": <UINTEGER>,
   "thingmodelgroups": {
     "KEY": {                                       # thingmodelgroupid
-      "thingmodelgroupid": "<STRING>",
-      # ... xRegistry Group-level attributes ...
+      "thingmodelgroupid": "<STRING>",                        # xRegistry core attributes
+      "self": "<URL>",
+      "xid": "<XID>",
+      "epoch": <UINTEGER>,
+      "name": "<STRING>", ?
+      "description": "<STRING>", ?
+      "documentation": "<URL>", ?
+      "labels": { "<STRING>": "<STRING>" * }, ?
+      "createdat": "<TIMESTAMP>",
+      "modifiedat": "<TIMESTAMP>",
+      "deprecated": { ... }, ?
 
-      "thingmodelsurl": "<URL>",                   # ThingModels collection
+      "thingmodelsurl": "<URL>",                              # ThingModels collection
       "thingmodelscount": <UINTEGER>,
       "thingmodels": {
         "KEY": {                                   # thingmodelid
-          "thingmodelid": "<STRING>",
+          "thingmodelid": "<STRING>",                         # xRegistry core attributes
           "versionid": "<STRING>",
-          # ... xRegistry Resource and default-Version attributes ...
+          "self": "<URL>",
+          "xid": "<XID>",
 
-          "format": "<STRING>",                    # MUST be "JSON-LD/1.1"
+          #  Start of default Version's attributes
+          "epoch": <UINTEGER>,
+          "name": "<STRING>", ?
+          "description": "<STRING>", ?
+          "documentation": "<URL>", ?
+          "labels": { "<STRING>": "<STRING>" * }, ?
+          "createdat": "<TIMESTAMP>",
+          "modifiedat": "<TIMESTAMP>",
+          "ancestorid": "<STRING>",
           "contenttype": "<STRING>", ?            # SHOULD be application/tm+json
+          "format": "<STRING>",                    # MUST be "JSON-LD/1.1"
           "wotid": "<STRING>",                     # the document's authored 'id'
           "derivedfrom": [ "<STRING>" * ], ?       # wotids of the TMs it extends
           "license": "<STRING>", ?                 # provenance metadata
@@ -335,10 +363,21 @@ form:
           "standardsbody": "<STRING>", ?
           "canonicalurl": "<URL>", ?
           "maturity": "<STRING>", ?
-          "thingmodelurl": "<URL>", ?
-          "thingmodel": <ANY> ?                    # the WoT-TM JSON-LD document
-          "thingmodelbase64": "<STRING>", ?
+          "formatvalidated": <BOOLEAN>, ?
+          "formatvalidatedreason": "<STRING>", ?
+          "compatibilityvalidated": <BOOLEAN>, ?
+          "compatibilityvalidatedreason": "<STRING>", ?
 
+          "thingmodelurl": "<URL>", ?
+          "thingmodel": <ANY> ?                               # the WoT-TM JSON-LD document
+          "thingmodelbase64": "<STRING>", ?
+          #  End of default Version's attributes
+
+          "metaurl": "<URL>",
+          "meta": { ... }, ?
+
+          "versionsurl": "<URL>",
+          "versionscount": <UINTEGER>,
           "versions": { ... } ?
         } *
       } ?
@@ -441,8 +480,9 @@ The `format` attribute of a `thingmodel` Resource Version MUST be
 `"JSON-LD/1.1"`. The `contenttype` SHOULD be `application/tm+json` per
 [WoT-TM 1.1][WoT-TM-1.1].
 
-The same `compatibility`, `versionid`, and `ancestor` rules described for
-`thingdescription` Resources apply to `thingmodel` Resources.
+The same `compatibility`, `versionid`, and
+[`ancestorid`][xRegistry ancestorid] rules described for `thingdescription`
+Resources apply to `thingmodel` Resources.
 
 The `wotid` attribute is REQUIRED on a `thingmodel` and holds the document's
 authored WoT identifier, from which the `thingmodelid` is constructed. Where a
@@ -549,13 +589,22 @@ identifier as the authority:
 > MUST NOT recover a WoT identifier by attempting to invert the construction.
 > The same rules apply to a `thingmodel`'s `wotid` and `thingmodelid`.
 
-A `wotid` MUST NOT encode a version. Encoding one — for example as a
-`:v2` suffix — makes the identifier change whenever the document changes, so
-the registry can no longer tell that two documents describe the same logical
-Thing, `ancestor` lineage is broken, and every consumer holding a reference
-has to be rewritten on each revision. The version of a document is carried by
-the xRegistry `versionid` and, where the document declares one, by its own
-WoT `version` member; neither is part of the identifier.
+A `wotid` MUST NOT encode a revision of the document it names. Encoding one —
+for example as a `:v2` suffix appended when the document is edited — makes the
+identifier change whenever the document changes, so the registry can no longer
+tell that two documents describe the same logical Thing,
+[`ancestorid`][xRegistry ancestorid] lineage is broken, and every consumer
+holding a reference has to be rewritten on each revision. The version of a
+document is carried by the xRegistry `versionid` and, where the document
+declares one, by its own WoT `version` member; neither is part of the
+identifier.
+
+This is a prohibition on *versioning an identifier*, not on the characters
+that may appear in one. A vendor who deliberately publishes a second,
+incompatible Thing alongside the first is naming a different Thing, and the
+identifier they author for it — which may well carry a `v2` token — is that
+Thing's own stable `wotid`; see
+[Section 5.1.2](#512-breaking-changes-and-successor-identifiers).
 
 Consequently, where a document is revised:
 
@@ -623,6 +672,49 @@ that assigned value is thereafter the document's identity in this registry. A
 registry MUST reject a write that supplies neither an `id` member nor a
 `wotid`, rather than inventing one, because an invented identifier is not
 stable across registries.
+
+#### 5.1.2. Breaking Changes and Successor Identifiers
+
+[Section 1.3](#13-versioning) requires a breaking change to result in a new
+Resource rather than a new Version. Since a Resource's id is a function of its
+`wotid` alone, and a `wotid` does not change when its document is revised, a
+successor Resource cannot be produced by editing an existing document: it is
+produced by authoring a **new logical Thing** with its own `wotid`.
+
+- The successor's `wotid` is a new authored identifier, distinct from the
+  predecessor's. It is that Thing's permanent identity and is itself never
+  revised thereafter.
+- Its `thingdescriptionid` (or `thingmodelid`) follows from that `wotid` by the
+  construction in [Section 5.1.1](#511-the-symbolic-identifier-construction),
+  so the two Resources occupy distinct paths in the same Group.
+- The predecessor's Versions are retained and remain retrievable. A breaking
+  change does not remove history.
+- The predecessor SHOULD set [`deprecated`][xRegistry deprecated], naming the
+  successor Resource, so a consumer holding the old identifier can find the
+  new one without a side channel.
+
+Where a solution versions its Things semantically, it is RECOMMENDED that the
+authored identifier carry a major-version token — `urn:fabrikam:lamp:v2`, or
+`https://fabrikam.example/tm/lamp/v2` — so that incompatible but historically
+related Things are recognizable to users and developers. The `versionid` then
+functions as the minor-version identifier within each of them. This mirrors
+the convention the [Schema Registry][xRegistry Schema] recommends for
+`schemaid`.
+
+This does not contradict [Section 5.1](#51-wot-identifiers-and-xids): the
+token is chosen once, by the author, as part of naming a distinct Thing, and
+that Thing's `wotid` is thereafter stable across all of its own revisions. What
+Section 5.1 forbids is a registry or a Producer *mutating* an identifier — a
+`wotid` that becomes `…:v2` because the document it already names was edited.
+
+For example, a lamp whose control interface changes incompatibly:
+
+| | Predecessor | Successor |
+|---|---|---|
+| `wotid` | `urn:fabrikam:lamp` | `urn:fabrikam:lamp:v2` |
+| `thingmodelid` | `urn.fabrikam.lamp` | `urn.fabrikam.lamp.v2` |
+| Versions | `1`, `2`, `3` — retained | `1`, growing independently |
+| `deprecated` | set, naming the successor | absent |
 
 ### 5.2. Preserving Customer Documents
 
@@ -858,6 +950,9 @@ additional guidance.
 [xRegistry Schema]: https://xregistry.io/xreg/xregistryspecs/schema-v1/docs/spec.html
 [xRegistry self]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#self-attribute
 [xRegistry compatibility]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#compatibility-attribute
+[xRegistry ancestorid]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#ancestorid-attribute
+[xRegistry deprecated]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#deprecated
+[xRegistry matchversions]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/model.html#attributesstringmatchversions
 [xRegistry version-ids]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#version-ids
 [xRegistry hasdocument]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#hasdocument
 [xRegistry xref]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#xref-attribute
