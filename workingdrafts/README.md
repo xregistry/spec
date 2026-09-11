@@ -44,6 +44,11 @@ These choices describe access to a source Registry. A consumer-facing API
 server can use a different binding to read that source. For example, it can
 serve HTTP clients from a local File mapping or an OCI snapshot.
 
+The [resolution-owner capability](federation/spec.md#signaling-who-performs-resolution)
+distinguishes views combined by their producer from views that consumers
+combine themselves. The default is `consumer`. With `producer`, the consumer
+reads the supplied view without repeating its catalog traversal.
+
 The [Registry model artifacts](models/registry/README.md) and
 [conformance examples](federation/samples/README.md) accompany these drafts.
 Core `xref` remains a same-Registry, same-Resource-model-type mechanism.

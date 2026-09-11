@@ -1,15 +1,27 @@
 """Concrete local shadow and ordered-source examples without network access."""
 
+import json
+import re
+from pathlib import Path
 from unittest.mock import Mock
 
 import pytest
+from jsonschema import Draft202012Validator
 
 from federation_examples import FederationError
-from federation_resolution_examples import Source, resolve_resource_read
+from federation_resolution_examples import Source, resolution_owner, resolve_resource_read
 
 
 XID = "/documents/main/assets/item"
 RESOURCE = {"xid": XID, "assetid": "item"}
+
+
+@pytest.fixture(scope="module")
+def capability_validator():
+    root = Path(__file__).resolve().parent.parent / "workingdrafts" / "federation"
+    schema = json.loads((root / "schemas" / "capabilities.json").read_text(encoding="utf-8"))
+    Draft202012Validator.check_schema(schema)
+    return Draft202012Validator(schema)
 
 
 def missing():
@@ -113,3 +125,131 @@ def test_source_policy_rejects_unordered_candidates_before_reading():
         )
     assert error.value.code == "invalid_package"
     read.assert_not_called()
+
+
+@pytest.mark.parametrize("capabilities", [
+    None, {}, {"flags": []}, {"federation": {"resolution": "consumer"}},
+])
+def test_absent_or_consumer_resolution_signal_preserves_catalog_resolution(
+    capabilities, capability_validator
+):
+    capability_validator.validate(capabilities if capabilities is not None else {})
+    local = Mock(side_effect=missing())
+    remote = Mock(return_value=RESOURCE)
+    result = resolve_resource_read(
+        XID, "entity", Source("local", local, capabilities), [Source("remote", remote)]
+    )
+    assert result == {"origin": "remote", "target": XID, "value": RESOURCE}
+    local.assert_called_once_with("entity", XID)
+    remote.assert_called_once_with("entity", XID)
+
+
+@pytest.mark.parametrize("operation,target,value", [
+    ("entity", XID, RESOURCE),
+    ("entity", XID + "/meta", {"xid": XID + "/meta", "defaultversionid": "v1"}),
+    ("entity", XID + "/versions/v1", {"xid": XID + "/versions/v1", "versionid": "v1"}),
+    ("document", XID, b"combined document"),
+    ("document", XID + "/versions/v1", b""),
+])
+def test_producer_resolved_view_is_read_once_without_catalog_traversal(operation, target, value):
+    read = Mock(return_value=value)
+    source = Source("combined", read, {"federation": {"resolution": "producer"}})
+    catalog = Mock(side_effect=AssertionError("Catalog must not be traversed"))
+    result = resolve_resource_read(target, operation, source, catalog)
+    assert result == {"origin": "combined", "target": target, "value": value}
+    read.assert_called_once_with(operation, target)
+    catalog.assert_not_called()
+
+
+@pytest.mark.parametrize("code", [
+    "not_found", "policy_denied", "integrity_error", "unavailable", "inconsistent_snapshot",
+])
+def test_producer_view_errors_do_not_trigger_consumer_fallback(code):
+    failure = FederationError(code, "Producer read failed")
+    local = Mock(side_effect=failure)
+    remote = Mock(side_effect=AssertionError("No retry in another Registry"))
+    with pytest.raises(FederationError) as error:
+        resolve_resource_read(
+            XID, "document",
+            Source("combined", local, {"federation": {"resolution": "producer"}}),
+            [Source("remote", remote)],
+        )
+    assert error.value is failure
+    local.assert_called_once_with("document", XID)
+    remote.assert_not_called()
+
+
+@pytest.mark.parametrize("capabilities,code", [
+    ([], "invalid_package"),
+    ({"federation": None}, "invalid_package"),
+    ({"federation": True}, "invalid_package"),
+    ({"federation": {}}, "invalid_package"),
+    ({"federation": {"resolution": 1}}, "invalid_package"),
+    ({"federation": {"resolution": "producer", "fallback": True}}, "unsupported_operation"),
+    ({"federation": {"resolution": "server"}}, "unsupported_operation"),
+    ({"federation": {"resolution": "Producer"}}, "unsupported_operation"),
+])
+def test_invalid_resolution_signals_fail_before_reading_sources(
+    capabilities, code, capability_validator
+):
+    assert not capability_validator.is_valid(capabilities)
+    read = Mock()
+    with pytest.raises(FederationError) as error:
+        resolve_resource_read(XID, "entity", Source("root", read, capabilities), [])
+    assert error.value.code == code
+    read.assert_not_called()
+
+
+@pytest.mark.parametrize("value", [None, {}, {"xid": XID + "/versions/wrong"}])
+def test_producer_mode_still_validates_returned_entity_identity(value):
+    read = Mock(return_value=value)
+    remote = Mock()
+    with pytest.raises(FederationError) as error:
+        resolve_resource_read(
+            XID, "entity",
+            Source("combined", read, {"federation": {"resolution": "producer"}}),
+            [Source("remote", remote)],
+        )
+    assert error.value.code == "invalid_package"
+    read.assert_called_once_with("entity", XID)
+    remote.assert_not_called()
+
+
+def test_published_resolution_signals_match_the_capability_schema(capability_validator):
+    root = Path(__file__).resolve().parent.parent / "workingdrafts" / "federation"
+    text = (root / "spec.md").read_text(encoding="utf-8")
+    examples = [json.loads(block) for block in re.findall(r"```json\n(.*?)```", text, re.S)]
+    capabilities = [value for value in examples if "federation" in value]
+    assert len(capabilities) == 2
+    assert [resolution_owner(value) for value in capabilities] == ["producer", "consumer"]
+    for value in capabilities:
+        capability_validator.validate(value)
+
+
+@pytest.mark.parametrize("binding", ["file", "oci"])
+def test_snapshot_capabilities_preserve_producer_resolution_without_catalog_reads(tmp_path, binding):
+    if binding == "file":
+        from mapping_examples import DocumentTree, MemoryStore, encode_tree, sample_records
+        records, documents = sample_records()
+        records[0]["entity"]["capabilities"]["federation"] = {"resolution": "producer"}
+        reader = DocumentTree(MemoryStore(encode_tree(records, documents)))
+        capabilities = reader.capabilities()
+        target = "/documents/main/assets/item"
+        expected = b'{"hello":"world"}\n'
+        read = Mock(side_effect=lambda operation, xid: reader.document(xid))
+    else:
+        from oci_examples import FixtureLayout, build_layout, sample_records
+        records, documents = sample_records()
+        records[0]["entity"]["capabilities"]["federation"] = {"resolution": "producer"}
+        build_layout(tmp_path, records, documents)
+        reader = FixtureLayout(tmp_path)
+        capabilities = reader.lookup("/", operation="capabilities")["value"]
+        target = "/dirs/main/files/sample"
+        expected = b'{"type":"string"}\n'
+        read = Mock(side_effect=lambda operation, xid: reader.lookup(xid, operation=operation)["data"])
+    assert capabilities["federation"] == {"resolution": "producer"}
+    catalog = Mock(side_effect=AssertionError("Do not resolve the stored view again"))
+    result = resolve_resource_read(target, "document", Source(binding, read, capabilities), catalog)
+    assert result == {"origin": binding, "target": target, "value": expected}
+    read.assert_called_once_with("document", target)
+    catalog.assert_not_called()

@@ -152,6 +152,11 @@ capabilities and document rules. Registry, Group, Resource, Meta and Version
 metadata use its Core document-view assembly. No checkout-specific or
 Git-specific entity serialization is defined.
 
+The mapped Registry's enabled capabilities identify
+[who performs federation resolution](../federation/spec.md#signaling-who-performs-resolution).
+Consumers read a `producer` view directly. They use consumer-side resolution
+when the signal is absent or explicitly `consumer`.
+
 Explicit XID traversal MUST NOT retrieve unrelated domain documents.
 Collection selection MUST apply the common literal label comparison and
 inspect the complete necessary index/member metadata before asserting

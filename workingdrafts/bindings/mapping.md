@@ -608,6 +608,10 @@ are capture context, not new Core attributes.
 `entity.capabilities` MUST describe access to this snapshot, not copy claims
 of upstream writes or filtering that the selected binding cannot implement.
 It MUST include Core's `available` map. The bindings are read-only.
+It also carries the [resolution-owner signal](../federation/spec.md#signaling-who-performs-resolution).
+A stored combined view declares `federation.resolution: "producer"`, so a
+consumer does not repeat its catalog resolution. Absence retains consumer
+resolution. This signal is independent of linked/offline completeness.
 Captured source information MAY appear in the Registry record's `source`
 object with an absolute, credential-free `uri` and OPTIONAL `revision`.
 This is provenance, not the operation's Git pin, an entity XID, or an implicit

@@ -137,6 +137,11 @@ label selection, Core document view, defaults and `xref`. Every internal
 `href` is relative to this directory, not to a nested record's directory.
 No extra `xregistry` directory is implied.
 
+Both layout modes carry the selected Registry's
+[resolution-owner capability](../federation/spec.md#signaling-who-performs-resolution).
+A consumer MUST NOT repeat catalog resolution for a `producer` view.
+Absence of the signal retains the default consumer-side process.
+
 The mapping can be added to an existing directory. Metadata records and
 indexes can be placed alongside existing files or in a separate metadata
 directory. Local document references can point anywhere inside the selected

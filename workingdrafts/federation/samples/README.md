@@ -16,6 +16,12 @@ not credentials or production endpoints.
 | [Registry samples](../../models/registry/samples) | Base catalog and richer binding advertisements. |
 | [Source selection](../../../tools/federation_resolution_examples.py) | Local Resource shadows and ordered source misses, using in-memory reads. |
 
+The source-selection helper's `Source` accepts the selected view's enabled
+capabilities. With `{"federation":{"resolution":"producer"}}`, it calls the
+view's requested read directly and does not consult the source list.
+With no signal, or explicit `consumer`, it performs local-first resolution.
+Read failures remain failures rather than triggering a different owner mode.
+
 The `registry` object in `selection.json` is a reduced logical test vector,
 not a complete serialized Core API response. In particular, omission of
 server-generated metadata there is not permission to omit it from an API.

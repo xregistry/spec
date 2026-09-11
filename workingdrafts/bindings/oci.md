@@ -435,6 +435,13 @@ snapshot, not advertise the source server's write operations or unsupported
 HTTP flags as native OCI features. Other Registry metadata preserves the
 captured identity and state. Capability mapping does not change its XIDs.
 
+The config's capabilities carry the shared
+[resolution-owner signal](../federation/spec.md#signaling-who-performs-resolution).
+A combined view declares `federation.resolution: "producer"` so consumers read
+it directly instead of repeating catalog resolution. An absent signal
+defaults to `consumer`. This value describes the supplied view, independently
+of the root digest and linked/offline-complete class.
+
 `entity.model` is the full resolved Core model, including Core attributes.
 `entity.modelsource` is the original model-source value. `modelresolved`
 is that model source after Core `$include`/`$includes` processing but

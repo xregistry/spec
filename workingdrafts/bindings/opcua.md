@@ -641,6 +641,13 @@ use the authoritative raw `Capabilities` JSON for fields that lack a
 faithful typed mapping and MUST NOT invent enabled capabilities from old
 field names. All FileType reads in this section follow §5.13.1.
 
+The [resolution-owner signal](../federation/spec.md#signaling-who-performs-resolution)
+is an extension capability. When `CapabilitiesInfo` cannot represent it,
+read it from the raw `Capabilities` JSON or a documented equivalent mapping.
+Do not discard the field and assume it was absent. A producer-resolved view
+declares `federation.resolution: "producer"`. Consumers read that view without
+repeating catalog resolution. An absent signal defaults to consumer resolution.
+
 The base information model does not define a separate
 `CapabilitiesOffered` Property. If a server supports mutable capabilities, it
 MUST expose the offered-capabilities information either inside the

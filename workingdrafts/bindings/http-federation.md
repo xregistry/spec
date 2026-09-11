@@ -137,6 +137,10 @@ supported `/modelsource` has its Core meaning.
 `GET B/capabilities` retrieves enabled capabilities. A resolver MAY use
 already inlined capabilities or request supported inlining. It MUST NOT
 assume that `filter`, `inline`, pagination, `/export` or writes are enabled.
+Before composing the selected view, it MUST apply the shared
+[resolution-owner signal](../federation/spec.md#signaling-who-performs-resolution).
+`federation.resolution: "producer"` means read the view directly without
+traversing its catalog. An absent signal defaults to consumer resolution.
 An absent capabilities API, an absent flag, or `flags: null` provides no
 positive evidence for that flag. `/capabilitiesoffered` describes choices
 that can be enabled, not what is currently enabled.
