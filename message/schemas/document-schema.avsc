@@ -2455,6 +2455,65 @@
                                 "null",
                                 "string"
                               ],
+                              "name": "compatibility",
+                              "default": null
+                            },
+                            {
+                              "type": [
+                                "null",
+                                {
+                                  "type": "record",
+                                  "name": "MessageMetaDeprecatedType",
+                                  "fields": [
+                                    {
+                                      "type": [
+                                        "null",
+                                        {
+                                          "type": "long",
+                                          "logicalType": "timestamp-millis"
+                                        }
+                                      ],
+                                      "name": "effective",
+                                      "default": null
+                                    },
+                                    {
+                                      "type": [
+                                        "null",
+                                        {
+                                          "type": "long",
+                                          "logicalType": "timestamp-millis"
+                                        }
+                                      ],
+                                      "name": "removal",
+                                      "default": null
+                                    },
+                                    {
+                                      "type": [
+                                        "null",
+                                        "string"
+                                      ],
+                                      "name": "alternative",
+                                      "default": null
+                                    },
+                                    {
+                                      "type": [
+                                        "null",
+                                        "string"
+                                      ],
+                                      "name": "documentation",
+                                      "default": null
+                                    }
+                                  ]
+                                }
+                              ],
+                              "name": "deprecated",
+                              "default": null
+                            },
+                            {
+                              "type": [
+                                "null",
+                                "string"
+                              ],
                               "name": "defaultversionid",
                               "default": null
                             },
@@ -2472,14 +2531,6 @@
                                 "boolean"
                               ],
                               "name": "defaultversionsticky",
-                              "default": null
-                            },
-                            {
-                              "type": [
-                                "null",
-                                "string"
-                              ],
-                              "name": "compatibility",
                               "default": null
                             }
                           ]

@@ -2,10 +2,13 @@
 
 import copy
 import importlib.util
+import io
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 import avro.schema
+import avro.io
 import jsonschema
 import pytest
 from openapi_spec_validator import validate
@@ -142,3 +145,55 @@ def test_openapi_exposes_collection_and_version_metadata_without_fake_documents(
         assert set(content) == {"application/json"}
         assert content["application/json"]["schema"] == expected
         assert all(parameter.get("name") != "meta" for parameter in path.get("parameters", []))
+
+
+def test_avro_core_root_customization_overlays_existing_field():
+    model = copy.deepcopy(MODEL)
+    model["attributes"] = {
+        "name": {"type": "string", "required": True, "description": "Required name"}
+    }
+    value = GENERATOR.generate_avro_schema(model)
+    parsed = avro.schema.parse(json.dumps(value))
+    assert [item["name"] for item in value["fields"]].count("name") == 1
+    assert parsed.fields_dict["name"].type.type == "string"
+    assert parsed.fields_dict["name"].get_prop("doc") == "Required name"
+    assert not avro.io.validate(parsed.fields_dict["name"].type, None)
+
+
+@pytest.mark.parametrize("state", [{}, {"alternative": "https://example.com/new"}])
+def test_avro_meta_deprecation_encodes_a_structured_record(state):
+    value = avro.schema.parse(json.dumps(generate("avro")))
+    entry = value.fields_dict["catalogs"].type.values.fields_dict["entries"].type.values
+    meta = next(part for part in entry.fields_dict["meta"].type.schemas if part.type != "null")
+    stamp = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    data = {
+        "entryid": "e", "name": None, "epoch": 1, "self": "#/meta",
+        "xid": "/catalogs/c/entries/e/meta", "description": None, "documentation": None,
+        "labels": {}, "createdat": stamp, "modifiedat": stamp, "xref": None,
+        "readonly": False, "compatibility": None, "deprecated": state,
+        "defaultversionid": "v1", "defaultversionurl": "#/versions/v1",
+        "defaultversionsticky": True,
+    }
+    assert avro.io.validate(meta, data)
+    output = io.BytesIO()
+    avro.io.DatumWriter(meta).write(data, avro.io.BinaryEncoder(output))
+    output.seek(0)
+    decoded = avro.io.DatumReader(meta).read(avro.io.BinaryDecoder(output))
+    assert {key: val for key, val in decoded["deprecated"].items() if val is not None} == state
+    assert not avro.io.validate(meta, {**data, "deprecated": False})
+
+
+def test_openapi_document_version_metadata_does_not_require_content():
+    model = copy.deepcopy(MODEL)
+    model["groups"]["catalogs"]["resources"]["entries"]["hasdocument"] = True
+    schema = GENERATOR.generate_openapi(model)
+    path = "/catalogs/{groupid}/entries/{resourceid}/versions/{versionid}$details"
+    assert schema["paths"][path]["get"]["responses"]["200"]["content"]["application/json"]["schema"] == {
+        "$ref": "#/components/schemas/entryVersion"
+    }
+    validator = jsonschema.Draft7Validator(schema["components"]["schemas"]["entryVersion"])
+    validator.validate({"entryid": "e", "versionid": "v1"})
+    with pytest.raises(jsonschema.ValidationError):
+        validator.validate({"entryid": "e", "versionid": "v1", "entrybase64": 5})
+    with pytest.raises(jsonschema.ValidationError):
+        validator.validate({"entryid": "e", "versionid": "v1", "entry": {}, "entrybase64": ""})

@@ -210,6 +210,30 @@
               "readonly": {
                 "type": "boolean"
               },
+              "compatibility": {
+                "type": "string"
+              },
+              "deprecated": {
+                "type": "object",
+                "properties": {
+                  "effective": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "removal": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "alternative": {
+                    "type": "string",
+                    "format": "uri-reference"
+                  },
+                  "documentation": {
+                    "type": "string",
+                    "format": "uri-reference"
+                  }
+                }
+              },
               "defaultversionid": {
                 "type": "string"
               },
@@ -219,12 +243,6 @@
               },
               "defaultversionsticky": {
                 "type": "boolean"
-              },
-              "compatibility": {
-                "type": "string"
-              },
-              "deprecated": {
-                "type": "object"
               }
             }
           },
@@ -2263,6 +2281,25 @@
             "format": "date-time",
             "description": "Time of the object modification"
           },
+          "schema": {
+            "description": "Embedded schema object",
+            "oneOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "schemabase64": {
+            "type": "string",
+            "format": "base64"
+          },
+          "schemaurl": {
+            "type": "string",
+            "format": "uri-reference"
+          },
           "ancestorid": {
             "type": "string"
           },
@@ -2278,46 +2315,40 @@
         },
         "oneOf": [
           {
-            "properties": {
-              "schema": {
-                "description": "Embedded schema object",
-                "oneOf": [
-                  {
-                    "type": "object"
-                  },
-                  {
-                    "type": "string"
-                  }
-                ]
-              }
-            },
             "required": [
               "schema"
             ]
           },
           {
-            "properties": {
-              "schemabase64": {
-                "description": "Embedded schema object as binary data",
-                "type": "string",
-                "format": "base64"
-              }
-            },
             "required": [
               "schemabase64"
             ]
           },
           {
-            "properties": {
-              "schemaurl": {
-                "description": "Linked schema object",
-                "type": "string",
-                "format": "uri-reference"
-              }
-            },
             "required": [
               "schemaurl"
             ]
+          },
+          {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "schema"
+                  ]
+                },
+                {
+                  "required": [
+                    "schemabase64"
+                  ]
+                },
+                {
+                  "required": [
+                    "schemaurl"
+                  ]
+                }
+              ]
+            }
           }
         ],
         "required": [
@@ -2371,6 +2402,25 @@
             "type": "string",
             "format": "date-time",
             "description": "Time of the object modification"
+          },
+          "schema": {
+            "description": "Embedded schema object",
+            "oneOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "schemabase64": {
+            "type": "string",
+            "format": "base64"
+          },
+          "schemaurl": {
+            "type": "string",
+            "format": "uri-reference"
           },
           "metaurl": {
             "type": "string",
@@ -2431,6 +2481,30 @@
               "readonly": {
                 "type": "boolean"
               },
+              "compatibility": {
+                "type": "string"
+              },
+              "deprecated": {
+                "type": "object",
+                "properties": {
+                  "effective": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "removal": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "alternative": {
+                    "type": "string",
+                    "format": "uri-reference"
+                  },
+                  "documentation": {
+                    "type": "string",
+                    "format": "uri-reference"
+                  }
+                }
+              },
               "defaultversionid": {
                 "type": "string"
               },
@@ -2440,12 +2514,6 @@
               },
               "defaultversionsticky": {
                 "type": "boolean"
-              },
-              "compatibility": {
-                "type": "string"
-              },
-              "deprecated": {
-                "type": "object"
               }
             }
           },

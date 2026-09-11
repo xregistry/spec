@@ -1013,7 +1013,22 @@
                 "type": "string"
               },
               "deprecated": {
-                "type": "any"
+                "type": "object",
+                "properties": {
+                  "effective": {
+                    "type": "datetime"
+                  },
+                  "removal": {
+                    "type": "datetime"
+                  },
+                  "alternative": {
+                    "type": "string"
+                  },
+                  "documentation": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
               },
               "defaultversionid": {
                 "type": "string"

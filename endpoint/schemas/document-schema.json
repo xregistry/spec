@@ -196,6 +196,30 @@
               "readonly": {
                 "type": "boolean"
               },
+              "compatibility": {
+                "type": "string"
+              },
+              "deprecated": {
+                "type": "object",
+                "properties": {
+                  "effective": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "removal": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "alternative": {
+                    "type": "string",
+                    "format": "uri-reference"
+                  },
+                  "documentation": {
+                    "type": "string",
+                    "format": "uri-reference"
+                  }
+                }
+              },
               "defaultversionid": {
                 "type": "string"
               },
@@ -205,12 +229,6 @@
               },
               "defaultversionsticky": {
                 "type": "boolean"
-              },
-              "compatibility": {
-                "type": "string"
-              },
-              "deprecated": {
-                "type": "object"
               }
             }
           },
