@@ -150,6 +150,7 @@ javadoc
 json
 jsonpath
 jsonschema
+jsonstructure
 jul
 keyname
 lifecycle
@@ -203,6 +204,7 @@ myregistry
 myresourceid
 myresources
 myschema
+myschemagroup
 myschemas
 myspec
 mysubject
