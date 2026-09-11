@@ -1,0 +1,16 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "collection",
+  "xid": "/documents/main/assets",
+  "count": 1,
+  "entries": [
+    {
+      "kind": "resource",
+      "xid": "/documents/main/assets/widget",
+      "href": "registry-metadata/widget.json",
+      "size": 679,
+      "sha256": "630d2ea1e6d94f89c75a3c56a74a713c4b232a81fb3fff874a83320405b9efdb"
+    }
+  ]
+}

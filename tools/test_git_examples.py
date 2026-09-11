@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 import pytest
 
-import document_examples as document
+import mapping_examples as document
 from federation_examples import FederationError
 
 

@@ -2,6 +2,7 @@
 
 <!-- words: applicationuri federationprofiles nfc nodeid nodeids opc opcua rebasing registrygroups registryroot reparse standalone symlinks transportprofileuri ua website weburl xregurl -->
 <!-- words: py sequencediagram -->
+<!-- words: assetid selectedxid -->
 
 ## Abstract
 
@@ -16,6 +17,7 @@ that Registry using xRegistry Core. Protocol bindings define retrieval.
 - [Notations and Terminology](#notations-and-terminology)
 - [Design: Hosting Models](#design-hosting-models)
 - [Design: Resolving a Consumer Request](#design-resolving-a-consumer-request)
+  - [Example: Select After Applying Shadows](#example-select-after-applying-shadows)
 - [Discovery and Binding Selection](#discovery-and-binding-selection)
 - [Read Operations](#read-operations)
 - [Identity and References](#identity-and-references)
@@ -266,6 +268,83 @@ consumer-visible Registry, not whichever source happened to respond first.
 The client-side model performs the same selection locally. A consumer that
 already selected exactly one source bypasses composition and uses the
 single-source read operations below.
+
+### Example: Select After Applying Shadows
+
+Consider a consumer-visible collection `/documents/main/assets`. Its policy
+uses local Resources first, then source A, then source B. The sources use
+compatible models and remain unchanged for this example. Each row below is
+one Resource and the label on its default Version:
+
+| Origin | Resource ID | Default Version | `labels.stage` |
+| --- | --- | --- | --- |
+| Local | `item` | `v1` | `development` |
+| Source A | `item` | `v2` | `production` |
+| Source B | `other` | `v7` | `production` |
+
+The consumer requests the collection with this literal selector:
+
+```json
+{"label": "stage", "value": "production"}
+```
+
+First apply Resource precedence, without filtering:
+
+| Visible Resource | Chosen origin and Version | Reason |
+| --- | --- | --- |
+| `/documents/main/assets/item` | Local, `v1` | The local Resource shadows source A's entire `item` Resource. |
+| `/documents/main/assets/other` | Source B, `v7` | Neither the local view nor source A contains `other`. |
+
+Then compare the visible Resources' default-Version labels. Local `item`
+does not match. `other` matches, so it is the unique selected Resource.
+Filtering the sources before applying shadows would incorrectly admit A's
+`item`, which is not part of the consumer-visible view.
+
+A subsequent default-document read of `other` uses source B's `v7`. It does
+not use `v1` or `v2` from `item`. For a server exposing Core HTTP, the selected
+Version's metadata can be returned as follows:
+
+```json
+{
+  "assetid": "other",
+  "versionid": "v7",
+  "self": "https://registry.example.com/documents/main/assets/other/versions/v7$details",
+  "xid": "/documents/main/assets/other/versions/v7",
+  "epoch": 1,
+  "createdat": "2026-01-01T00:00:00Z",
+  "modifiedat": "2026-01-01T00:00:00Z",
+  "isdefault": true,
+  "ancestorid": "v7",
+  "contenttype": "text/plain",
+  "labels": {"stage": "production"}
+}
+```
+
+Here `self` belongs to the consumer-facing Registry, not source B. A document
+read returns `source B version v7` followed by one newline. The resolver
+retains separate origin information, illustrated below. This is resolver
+context, not an additional Core attribute or a new HTTP response envelope:
+
+```json
+{
+  "source": "B",
+  "binding": "http",
+  "endpoint": "https://b.example.com/registry",
+  "registryid": "supplier-b",
+  "selectedxid": "/documents/main/assets/other/versions/v7",
+  "revision": null,
+  "consistency": "live"
+}
+```
+
+There is no immutable revision pin for the live HTTP source in this example.
+
+Now remove the local `item` Resource and repeat the collection request.
+Source A's `item` becomes visible with default Version `v2`. Both `item` and
+`other` now match `stage=production`, so the resolver returns `ambiguous`.
+Source order selects the origin of an individual Resource. It does not let
+the resolver discard a second visible Resource to manufacture a unique
+label match.
 
 ## Discovery and Binding Selection
 
@@ -592,7 +671,7 @@ or mandates for new HTTP status codes:
 
 An error MUST retain the underlying Core error or transport diagnostic when
 available, without exposing credentials. An incomplete retrieval MUST NOT
-produce a success-shaped empty collection. Core's dangling-alias exception
+be returned as a successful empty collection. Core's dangling-alias exception
 is preserved.
 
 ## Security Considerations

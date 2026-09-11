@@ -9,7 +9,7 @@ not credentials or production endpoints.
 | Path | Purpose |
 | --- | --- |
 | [selection.json](selection.json) | Abstract requests, colliding XIDs in independent contexts, labels, explicit defaults and local alias cases. |
-| [document-tree](../../bindings/samples/document-tree) | Shared portable records and exact content used by Git and File. |
+| [document-tree](../../bindings/samples/mapping) | Shared portable records and exact content used by Git and File. |
 | [oci](oci) | Standard OCI descriptor graph with independently retrievable content. |
 | [http](./http/README.md) | HTTP request/response and consistency examples. |
 | [opcua](opcua) | Native addressing and transfer examples. |
@@ -24,7 +24,7 @@ The binding formats define their complete record representations separately.
 Run the conformance suite from the repository root:
 
 ```console
-python -m pytest tools/test_registry_model.py tools/test_federation_examples.py tools/test_federation_resolution_examples.py tools/test_document_examples.py tools/test_git_examples.py tools/test_oci_examples.py tools/test_http_examples.py tools/test_opcua_examples.py -q
+python -m pytest tools/test_registry_model.py tools/test_federation_examples.py tools/test_federation_resolution_examples.py tools/test_mapping_examples.py tools/test_git_examples.py tools/test_oci_examples.py tools/test_http_examples.py tools/test_opcua_examples.py -q
 ```
 
 The helper modules under `tools` exercise specified algorithms without

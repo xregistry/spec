@@ -223,7 +223,7 @@ It MUST NOT replace entity XIDs, Resource Version IDs or Core navigation.
 OCI root selection, entity absence and ambiguity retain the OCI/common
 definitions. Other I/O failures are `unavailable` unless a more specific
 outcome applies. No failure silently switches layouts, retries another
-profile or returns a success-shaped empty collection.
+profile or reports a failed retrieval as a successful empty collection.
 
 A producer MUST provide a complete snapshot in one explicitly declared
 layout. A consumer MUST implement that layout's metadata/document semantics
@@ -232,7 +232,7 @@ identify which layouts it implements. Support for one does not imply the
 other. An offline-complete claim additionally requires the selected layout's
 offline content closure.
 
-The [document helper](../../tools/document_examples.py) implements only
+The [document helper](../../tools/mapping_examples.py) implements only
 `document-tree`. `file_root(profile, boundary)` parses and checks a local
 advertisement, and `FileStore(root)` supplies exact bytes to `DocumentTree`.
 The fixture helper rejects `oci-layout` with `unsupported_operation`.

@@ -220,11 +220,11 @@ validation, commit pinning, object-only reads, the common operations and
 the rejection rules above. Offline-complete conformance additionally requires
 all declared document bytes locally in that snapshot.
 
-The shared [offline helper](../../tools/document_examples.py) accepts an
+The shared [offline helper](../../tools/mapping_examples.py) accepts an
 explicit local Git object directory and a revision:
 
 ```text
-python -B tools\document_examples.py validate --git-dir STORE --revision refs/heads/main --path xregistry
+python -B tools\mapping_examples.py validate --git-dir STORE --revision refs/heads/main --path xregistry
 ```
 
 `GitStore(git_dir, revision, path="xregistry")` exposes the resolved `pin`,

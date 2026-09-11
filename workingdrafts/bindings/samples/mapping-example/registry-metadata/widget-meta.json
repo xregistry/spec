@@ -1,0 +1,15 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "meta",
+  "entity": {
+    "xid": "/documents/main/assets/widget/meta",
+    "assetid": "widget",
+    "epoch": 1,
+    "createdat": "2026-01-01T00:00:00Z",
+    "modifiedat": "2026-01-01T00:00:00Z",
+    "readonly": true,
+    "defaultversionid": "v1",
+    "defaultversionsticky": true
+  }
+}

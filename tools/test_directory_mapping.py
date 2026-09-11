@@ -7,13 +7,13 @@ from unittest.mock import patch
 
 import pytest
 
-import document_examples as document
+import mapping_examples as document
 from federation_examples import FederationError
 from test_git_examples import GitFixture
 
 
 ROOT = Path(__file__).resolve().parent.parent
-FIXTURE = ROOT / "workingdrafts" / "bindings" / "samples" / "document-tree"
+FIXTURE = ROOT / "workingdrafts" / "bindings" / "samples" / "mapping"
 ITEM = "/documents/main/assets/item"
 V1 = ITEM + "/versions/v1"
 BINARY = "/documents/main/assets/CON"

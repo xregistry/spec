@@ -1,19 +1,24 @@
 # Document-Tree Binding Example
 
-<!-- words: gitattributes py workingdrafts -->
+<!-- words: gitattributes py walkthrough workingdrafts -->
 
-The [document-tree directory](document-tree) contains the complete example
+The [mapping directory](mapping) contains the complete example
 for the [directory mapping format](../mapping.md). The
 [Git](../git.md) and [File](../file.md) bindings select that directory
 without changing its metadata or document bytes.
 
-[registry.json](document-tree/registry.json) is the entry point. Its references lead to
+For a smaller starting point, [mapping-example](mapping-example) contains
+the nine files used by the complete walkthrough in the specification.
+Every JSON file is shown in that walkthrough, together with the expected
+read results. Start there when authoring a mapping by hand.
+
+[registry.json](mapping/registry.json) is the entry point. Its references lead to
 the collection indexes, entity records and exact document bytes. It includes
 explicit default Versions, local aliases, metadata-only Resources, a binary
 document and an empty document.
 
 ```text
-python -B tools\document_examples.py validate workingdrafts\bindings\samples\document-tree
+python -B tools\mapping_examples.py validate workingdrafts\bindings\samples\mapping
 ```
 
 The physical filenames in this generated example are storage allocations,

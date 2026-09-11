@@ -9,6 +9,7 @@
 <!-- words: gitattributes checkout -->
 <!-- words: formatvalidated compatibilityvalidated -->
 <!-- words: filesystems readme -->
+<!-- words: assetid documentid walkthrough -->
 
 ## Abstract
 
@@ -25,6 +26,7 @@ not part of a released xRegistry specification.
 
 - [Scope and Conventions](#scope-and-conventions)
 - [Motivation and Use](#motivation-and-use)
+- [Worked Example: Map One Existing File](#worked-example-map-one-existing-file)
 - [Root and Storage Paths](#root-and-storage-paths)
 - [Record and Index Documents](#record-and-index-documents)
 - [Model and Capabilities](#model-and-capabilities)
@@ -114,16 +116,328 @@ beside the described files or in a separate directory. Unreferenced files
 such as `source/main.py` and the README do not become Resources automatically
 and are not part of the Registry's declared content closure.
 
-The [complete generated fixture](samples/document-tree/registry.json) uses
-allocated filenames as another valid layout. The
-[directory mapping tests](../../tools/test_directory_mapping.py) demonstrate
-adding only metadata to an existing project and reading the same mapping
-through File and Git.
+The [worked example](#worked-example-map-one-existing-file) below shows
+every file needed to map one existing document and the resulting reads.
+The [larger sample](samples/mapping/registry.json) demonstrates multiple
+Resource types, aliases and binary content.
 
 Git chooses the directory through `parameters.path` and pins its commit.
 File selects that same directory through a file URI. The shared
 [hosting and resolution model](../federation/spec.md#design-hosting-models)
 determines whether the consumer or an API server performs these reads.
+
+## Worked Example: Map One Existing File
+
+<!-- mapping-walkthrough:start -->
+
+This example maps one existing file to Resource
+`/documents/main/assets/widget`, with default Version `v1`.
+The selected root is the `project` directory. No file outside that
+directory is read.
+
+The complete files are also available in the
+[walkthrough directory](samples/mapping-example). You can save the JSON
+blocks below directly. Use UTF-8, two-space indentation, LF line endings
+and one final newline in each file. The size and digest values describe
+those exact bytes. If you change a file, recalculate its size and digest
+in the referring metadata, continuing up to `registry.json`.
+
+### 1. Keep the Existing Document
+
+`source/specs/widget.json` already contains:
+
+```json
+{"type":"string"}
+```
+
+It is 18 bytes, including the final newline. Its SHA-256 is
+`85803e087e684bdab3e5d6c2dd1af627da83382db625be9a42aea3d4d06539be`.
+Leave this file unchanged.
+
+### 2. Add the Mapping Files
+
+Add the following eight JSON files. They are shown from the Version
+record up to the root, so each reference names a file already shown.
+The directory names are example choices, not format requirements.
+
+**`source/specs/widget.registry.json`**
+
+```json
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "version",
+  "entity": {
+    "xid": "/documents/main/assets/widget/versions/v1",
+    "assetid": "widget",
+    "versionid": "v1",
+    "epoch": 1,
+    "createdat": "2026-01-01T00:00:00Z",
+    "modifiedat": "2026-01-01T00:00:00Z",
+    "ancestorid": "v1",
+    "isdefault": true,
+    "contenttype": "application/schema+json"
+  },
+  "document": {
+    "kind": "local",
+    "href": "source/specs/widget.json",
+    "size": 18,
+    "sha256": "85803e087e684bdab3e5d6c2dd1af627da83382db625be9a42aea3d4d06539be"
+  }
+}
+```
+
+**`registry-metadata/versions.json`**
+
+```json
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "collection",
+  "xid": "/documents/main/assets/widget/versions",
+  "count": 1,
+  "entries": [
+    {
+      "kind": "version",
+      "xid": "/documents/main/assets/widget/versions/v1",
+      "href": "source/specs/widget.registry.json",
+      "size": 580,
+      "sha256": "6587872b270d75ecaa6be1028518d47bff4ac282379d89f1c34c6efce8c1b70f"
+    }
+  ]
+}
+```
+
+**`registry-metadata/widget-meta.json`**
+
+```json
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "meta",
+  "entity": {
+    "xid": "/documents/main/assets/widget/meta",
+    "assetid": "widget",
+    "epoch": 1,
+    "createdat": "2026-01-01T00:00:00Z",
+    "modifiedat": "2026-01-01T00:00:00Z",
+    "readonly": true,
+    "defaultversionid": "v1",
+    "defaultversionsticky": true
+  }
+}
+```
+
+**`registry-metadata/widget.json`**
+
+```json
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "resource",
+  "entity": {
+    "xid": "/documents/main/assets/widget",
+    "assetid": "widget"
+  },
+  "meta": {
+    "kind": "meta",
+    "xid": "/documents/main/assets/widget/meta",
+    "href": "registry-metadata/widget-meta.json",
+    "size": 361,
+    "sha256": "9a34e98106eef18aa64b07c5878d75c0a5dfd96f3823750584709365b2681895"
+  },
+  "collections": [
+    {
+      "kind": "collection",
+      "xid": "/documents/main/assets/widget/versions",
+      "href": "registry-metadata/versions.json",
+      "size": 423,
+      "sha256": "08a43de17e9d6630a57b315a47583e1b1c785b965df05c91823900807cbe2010"
+    }
+  ]
+}
+```
+
+**`registry-metadata/assets.json`**
+
+```json
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "collection",
+  "xid": "/documents/main/assets",
+  "count": 1,
+  "entries": [
+    {
+      "kind": "resource",
+      "xid": "/documents/main/assets/widget",
+      "href": "registry-metadata/widget.json",
+      "size": 679,
+      "sha256": "630d2ea1e6d94f89c75a3c56a74a713c4b232a81fb3fff874a83320405b9efdb"
+    }
+  ]
+}
+```
+
+**`registry-metadata/main.json`**
+
+```json
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "group",
+  "entity": {
+    "xid": "/documents/main",
+    "documentid": "main",
+    "epoch": 1,
+    "createdat": "2026-01-01T00:00:00Z",
+    "modifiedat": "2026-01-01T00:00:00Z"
+  },
+  "collections": [
+    {
+      "kind": "collection",
+      "xid": "/documents/main/assets",
+      "href": "registry-metadata/assets.json",
+      "size": 392,
+      "sha256": "72c43f08dd89af2c16b51ab9dc21fc36b7901ab475cae7ebb9e610c6a6cc9626"
+    }
+  ]
+}
+```
+
+**`registry-metadata/groups.json`**
+
+```json
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "collection",
+  "xid": "/documents",
+  "count": 1,
+  "entries": [
+    {
+      "kind": "group",
+      "xid": "/documents/main",
+      "href": "registry-metadata/main.json",
+      "size": 510,
+      "sha256": "b963e9db3e1ecdebe20c78be39d0fd98b26d2beb1338e06223b92e9164666d04"
+    }
+  ]
+}
+```
+
+**`registry.json`**
+
+```json
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "registry",
+  "entity": {
+    "xid": "/",
+    "registryid": "workshop",
+    "specversion": "1.0-rc4",
+    "epoch": 1,
+    "createdat": "2026-01-01T00:00:00Z",
+    "modifiedat": "2026-01-01T00:00:00Z",
+    "modelsource": {
+      "groups": {
+        "documents": {
+          "singular": "document",
+          "resources": {
+            "assets": {
+              "singular": "asset"
+            }
+          }
+        }
+      }
+    },
+    "capabilities": {
+      "available": {
+        "capabilities": {
+          "mutable": false
+        },
+        "entities": {
+          "mutable": false
+        },
+        "model": {
+          "mutable": false
+        },
+        "modelsource": {
+          "mutable": false
+        }
+      },
+      "flags": [
+        "doc",
+        "inline"
+      ],
+      "pagination": false
+    }
+  },
+  "snapshot": {
+    "scope": "/",
+    "completeness": "offline-complete"
+  },
+  "collections": [
+    {
+      "kind": "collection",
+      "xid": "/documents",
+      "href": "registry-metadata/groups.json",
+      "size": 361,
+      "sha256": "edafff00fe4486be418968a4d3b770ff40a3b60c75ddc015f34252cca1c8c330"
+    }
+  ]
+}
+```
+
+The root declares the model and references the `documents` collection.
+That collection leads to Group `main`, then its `assets` collection,
+Resource `widget`, the Resource's Meta and its Versions. The Meta names
+`v1` as the default. The Version record points to the unchanged file.
+
+### 3. Read Metadata or Document Bytes
+
+The abstract operation `entity` with target
+`/documents/main/assets/widget/versions/v1` returns the following native
+metadata envelope. Its local pointer selects the entity in this response,
+not a file on disk:
+
+```json
+{
+  "kind": "version",
+  "entity": {
+    "xid": "/documents/main/assets/widget/versions/v1",
+    "assetid": "widget",
+    "versionid": "v1",
+    "epoch": 1,
+    "createdat": "2026-01-01T00:00:00Z",
+    "modifiedat": "2026-01-01T00:00:00Z",
+    "ancestorid": "v1",
+    "isdefault": true,
+    "contenttype": "application/schema+json",
+    "self": "#/entity"
+  }
+}
+```
+
+The `document` operation on that Version returns the original 18-byte
+body, with the media type recorded by `contenttype`:
+
+```json
+{"type":"string"}
+```
+
+A `document` request to `/documents/main/assets/widget` returns the same
+bytes because its Meta selects `v1`. These are read-operation concepts,
+not additional HTTP routes. A server exposing this mapping uses its
+consumer-facing binding to deliver the corresponding response.
+
+The eight mapping files and the document form the complete declared
+Registry in this example. Other project files are unaffected. If
+`widget.json` later changes, its old size/digest no longer matches and
+the reader reports `integrity_error` until the mapping is updated.
+
+<!-- mapping-walkthrough:end -->
 
 ## Root and Storage Paths
 
@@ -187,10 +501,9 @@ An unknown version MUST produce `unsupported_version`.
 
 An entity record contains `kind` and `entity`. `entity` is a storage fragment
 of Core metadata, with full `xid` and explicit model-named identifiers.
-These fragments are NOT standalone Core response documents. Derived navigation
-is intentionally absent, rather than populated with fictitious API URLs or
-pointers into another file. Section [Reads and Core Document
-View](#reads-and-core-document-view) defines their materialization.
+These records store metadata without API navigation fields. A reader adds
+the navigation links when it assembles a Core response, as described in
+[Reads and Core Document View](#reads-and-core-document-view).
 
 | Kind | REQUIRED metadata in `entity`, in addition to `xid` |
 | --- | --- |
@@ -310,11 +623,12 @@ Each Version record MUST have exactly one `document` descriptor:
 | `external` | `uri` | Explicit external domain-document reference. |
 | `none` | No others | The Resource model has `hasdocument: false`. |
 
-For `local`, `base` and `origin` are OPTIONAL absolute, credential-free URIs.
-`base` supplies the original resolution base for relative links inside the
-domain document, when that domain needs one. `origin` records a materialized
-external document's original locator without retaining a misleading
-`<RESOURCE>url` on the now-local Version.
+For a local document, OPTIONAL `base` supplies the base URI used to resolve
+relative links inside that document. If the file was copied from an external
+location, OPTIONAL `origin` records that original location. The copied
+Version no longer has a `<RESOURCE>url`, because its document is now local.
+Both `base` and `origin`, when present, MUST be absolute URIs without embedded
+credentials.
 
 For `external`, `uri` MUST equal the Version's `<RESOURCE>url` exactly.
 A relative URI MUST have an explicit absolute `base` on this descriptor.
@@ -323,13 +637,14 @@ is an implicit base. Known integrity is represented by OPTIONAL paired
 `size` and `sha256` fields. Consumers MUST check both if they retrieve content
 with these fields. An external locator is not a metadata alias.
 
-An ordinary document-bearing Version MUST have local bytes or an explicit
-external locator. A missing document is an invalid package, not empty content.
+A Version referencing a document MUST identify either local bytes or an
+explicit external location. A missing referenced local file is an
+`invalid_package` error, not an empty document.
 A zero-byte local document MUST reference an actual zero-byte file, with
 `size: 0` and SHA-256
 `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`.
-Binary and JSON bytes MUST NOT be decoded, reserialized, newline-converted,
-smudged or replaced by an empty JSON wrapper. The Version's `contenttype`,
+Binary and JSON bytes MUST NOT be decoded, reserialized, newline-converted
+or replaced by an empty JSON wrapper. The Version's `contenttype`,
 if present, describes the bytes independently of the file's extension.
 
 For `hasdocument: false`, `document.kind` MUST be `none`, and all three
@@ -342,8 +657,11 @@ This is distinct from a present zero-byte document.
 An exact read walks the Registry record, the necessary typed collection
 indexes and selected child records. A Version read MUST NOT require reading
 unrelated domain bytes. A consumer MAY scan a collection index in memory.
-This version defines one complete index per collection and no pagination.
-A size or traversal limit MUST fail explicitly, not act as a partial index.
+The format defines one complete index per collection and no pagination.
+If a configured limit prevents a consumer from reading the complete index
+or the records needed for its request, the consumer MUST return
+`limit_exceeded`. It MUST NOT return the subset already read as a complete
+collection or use that subset to claim a unique match.
 
 The following materialization defines the metadata result envelope. The
 envelope is not a new wire API. It keeps storage and transport context outside
@@ -415,9 +733,15 @@ present in the selected directory. Only files reached through the mapping's
 references participate in its completeness and integrity checks. Existing
 unreferenced project files remain outside that graph.
 
-External catalog advertisements, provenance and links embedded inside domain
-bytes do not become containment edges. Offline completeness does not promise
-to copy every Registry mentioned by a catalog or every arbitrary domain link.
+Only the mapping's record, index and local-document references identify files
+that belong to its stored Registry graph. These references are the graph's
+containment edges. For example, `registry.json` links to a collection index,
+and a Version record links to its local document file.
+
+External catalog advertisements, provenance URLs and links embedded inside
+domain bytes are not such references. Offline completeness does not require
+copying every Registry mentioned by a catalog or following links inside
+domain documents.
 An OPTIONAL full-graph validator checks every referenced object. A selective
 read validates its visited path but MUST NOT claim to have independently
 audited unvisited graph closure.
@@ -438,16 +762,21 @@ these failures.
 
 ## Security and Conformance
 
-All package data is untrusted. Producers MUST use regular files and real
+All data in a [package](../federation/spec.md#notations-and-terminology), the
+stored mapping and its referenced documents, is untrusted. Producers MUST
+use regular files and real
 directories, not symlinks, reparse points, parent paths, device names, alternate
 data streams or OS aliases. Consumers MUST enforce selected-root containment
 before reading bytes. Dot segments, empty components, backslashes, absolute
-paths and encoded separator tricks are not valid `href` syntax.
+paths are not valid `href` syntax. Percent encodings that could be interpreted
+as separators or parent-path components, such as `%2f`, `%5c` and `%2e%2e`,
+are also rejected. The reader does not decode an `href` as a URI.
 
 Bindings define access to the selected root and race protection. Consumers
 MUST impose explicit file, byte and traversal limits. Integrity checks do not
-authorize filesystem access, establish publisher trust or permit external
-retrieval. External URIs require independent policy and credential scoping.
+ensure authorized filesystem access or establish publisher trust. Before
+retrieving an external URI, the consumer MUST check that destination against
+its access policy and use only credentials authorized for that destination.
 
 A producer conforms by emitting schema-valid records and indexes satisfying
 all semantic, byte and closure rules. A consumer conforms by implementing
@@ -457,7 +786,7 @@ requirement to implement a server or an API-view facade.
 
 ## Executable Example
 
-The [shared fixture](samples/document-tree/registry.json) contains typed
+The [shared fixture](samples/mapping/registry.json) contains typed
 collections, explicit defaults, JSON, empty and binary documents, a
 metadata-only catalog entry, a Windows-reserved ID, type-sharing aliases,
 a dangling alias and an alias chain. An empty independent collection
@@ -469,15 +798,15 @@ not a containment edge or permission for Git readers to apply attributes.
 Existing projects do not need to replace their `.gitattributes` to add a
 mapping. Git readers obtain stored object bytes without checkout conversion.
 
-[`tools/document_examples.py`](../../tools/document_examples.py) provides
+[`tools/mapping_examples.py`](../../tools/mapping_examples.py) provides
 offline parsing, schema/semantic validation, selective reads, document-view
 assembly and an OPTIONAL local Git object-store reader. It uses the common
 `FederationError`, XID validation, label selection and Resource type helper.
 It does not fetch repositories or external documents.
 
 ```text
-python -B tools\document_examples.py validate workingdrafts\bindings\samples\document-tree
-python -B tools\document_examples.py entity workingdrafts\bindings\samples\document-tree /documents/main/assets/item/versions/v1
+python -B tools\mapping_examples.py validate workingdrafts\bindings\samples\mapping
+python -B tools\mapping_examples.py entity workingdrafts\bindings\samples\mapping /documents/main/assets/item/versions/v1
 ```
 
 `read_record` exposes a storage fragment, not a Core response. `metadata`

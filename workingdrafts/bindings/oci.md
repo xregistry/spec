@@ -6,6 +6,7 @@
 <!-- words: unsharded referrers sha256 xref xid xids jsonschema -->
 <!-- words: compatibilityvalidated docx federationerror federationprofiles fileid formatvalidated imagelayoutversion namespace opencontainers py readme reparse reserialized standalone symlink -->
 <!-- words: resolvedmodelsource -->
+<!-- words: registryconfig registrymetadata sequencediagram versionconfig -->
 
 ## Abstract
 
@@ -30,6 +31,7 @@ content is reachable through ordinary OCI descriptor edges.
 - [4. Containment and Range Shards](#4-containment-and-range-shards)
 - [5. Metadata and Documents](#5-metadata-and-documents)
 - [6. Native Read Operations](#6-native-read-operations)
+  - [Example: Retrieve One Version](#example-retrieve-one-version)
 - [7. Production and Publication](#7-production-and-publication)
 - [8. Errors and Security](#8-errors-and-security)
 - [9. Conformance and Executable Examples](#9-conformance-and-executable-examples)
@@ -78,6 +80,27 @@ following the [shared hosting models](../federation/spec.md#design-hosting-model
 The OCI repository is an access location, not the Registry's XID namespace,
 and publishing a new snapshot does not change a pinned read.
 
+The following overview shows what is stored in the artifact. The hierarchy
+box includes the Group, Resource, collection-directory and range-shard
+indexes detailed in Section 4. It also includes their metadata manifests.
+
+```mermaid
+flowchart TD
+    Root["Registry snapshot root (OCI index)"]
+    RegistryMetadata["Registry metadata manifest"]
+    RegistryConfig["Config blob: Registry metadata and model"]
+    Hierarchy["Index hierarchy: Groups, Resources and Versions"]
+    Version["Selected Version manifest"]
+    VersionConfig["Config blob: Version metadata"]
+    Document["Layer blob: exact document bytes"]
+    Root --> RegistryMetadata
+    RegistryMetadata --> RegistryConfig
+    Root --> Hierarchy
+    Hierarchy --> Version
+    Version --> VersionConfig
+    Version --> Document
+```
+
 ## 2. Advertisement and Root Selection
 
 An advertisement uses the shared `federationprofiles` entry shape:
@@ -109,8 +132,8 @@ necessary. Priority and caller selection use the shared contract.
 ### 2.1. Distribution selection
 
 The locator above maps to the HTTPS Distribution repository
-`https://registry.example.org/v2/team/catalog`. It does not map to a
-server file named `index.json`.
+`https://registry.example.org/v2/team/catalog`. Requests use the Distribution
+API paths described here. Section 2.2 separately describes a local OCI layout.
 
 The resolver MUST request the selected reference at
 `/v2/<repository>/manifests/<reference>`. The returned object MUST be a
@@ -340,11 +363,11 @@ second shard:
 ]
 ```
 
-This is an explanation of annotation values, not another containment
-format. No key MUST actually exist at a boundary. Gaps in the set of
-entity IDs are ordinary. Gaps or overlaps in routing intervals are
-invalid. A producer can choose each split boundary as the first key in
-the right-hand shard. Split choice is not globally canonical.
+This illustrates the annotation values. A boundary MAY fall between existing
+entity IDs. Gaps in the set of entity IDs are ordinary. Gaps or overlaps in
+routing intervals are invalid. A producer can choose each split boundary
+as the first key in the right-hand shard. Split choice is not globally
+canonical.
 
 A lookup selects exactly one containing interval at each level and then
 an exact key in a leaf. A well-formed leaf without the key is `not_found`.
@@ -597,14 +620,53 @@ domain content type and any explicit document base. `metadata-only` is
 Fetching an `external` document requires
 separate caller policy and URI handling, and its mutable bytes are not
 pinned by the root digest. An offline-only reader reports `unavailable`
-instead of returning the placeholder or pretending to have fetched it.
+instead of returning the placeholder as document content.
+
+### Example: Retrieve One Version
+
+For `/dirs/main/files/sample/versions/v1`, the resolver follows only the
+indexes on that typed path. This sequence summarizes the native Distribution
+requests. The resolver verifies each descriptor before interpreting its
+referenced bytes. Reading metadata alone stops before the document-layer
+request.
+
+```mermaid
+sequenceDiagram
+    participant C as Resolver
+    participant O as OCI Distribution service
+    C->>O: GET /v2/team/catalog/manifests/release-1
+    O-->>C: Registry root index
+    C->>C: Compute and retain root digest
+    C->>O: Read Registry metadata manifest and config blob
+    O-->>C: Model and Registry metadata
+    loop Directory, collection and range indexes on the selected path
+        C->>O: GET /v2/team/catalog/manifests/digest
+        O-->>C: Index and child descriptors
+        C->>C: Verify bytes and select the matching path or range
+    end
+    C->>O: Read Resource Meta if needed for Version selection
+    O-->>C: Default Version and Resource metadata
+    C->>O: GET /v2/team/catalog/manifests/version-digest
+    O-->>C: Version manifest with config and document descriptors
+    C->>O: GET /v2/team/catalog/blobs/config-digest
+    O-->>C: Version metadata
+    opt Document requested
+        C->>O: GET /v2/team/catalog/blobs/document-digest
+        O-->>C: Exact document bytes
+    end
+```
+
+`digest`, `version-digest`, `config-digest` and `document-digest` are
+placeholders for the complete digests obtained from descriptors, not literal
+request values. The initial tag is not read again during this operation.
+Other Versions' document layers are not needed.
 
 ## 7. Production and Publication
 
 A producer MUST capture a coherent Registry state, including model,
 capabilities, defaults and Version metadata. If its source changes in a
 way that prevents coherent capture, it MUST report `inconsistent_snapshot`
-and MUST NOT publish a purported complete snapshot.
+and MUST NOT publish the capture as a complete snapshot.
 
 Production proceeds from leaves to root:
 
@@ -638,20 +700,25 @@ definition of nested-index containment traversal.
 
 ## 8. Errors and Security
 
-Use the shared `FederationError` categories, not new Core error codes:
+Use the [abstract resolver outcomes](../federation/spec.md#errors) defined
+by the Federation specification:
 
 | Condition | Outcome |
 | --- | --- |
-| No matching root, key, Version or declared document | `not_found` |
+| The requested root, entity key or Version does not exist | `not_found` |
+| A document read through a local alias has no accessible one-hop target | `not_found` |
+| A document is requested from a metadata-only Resource | `unsupported_operation` |
 | More than one selected root or label match | `ambiguous` |
 | Unknown profile or format version | `unsupported_binding` or `unsupported_version` |
 | Unsupported operation, view or parameter | `unsupported_operation` |
 | Bad digest or byte size | `integrity_error` |
-| Missing referenced object, invalid roles, ranges, model or identity | `invalid_package` |
+| A referenced index, manifest, config or embedded document blob is missing | `invalid_package` |
+| Invalid roles, ranges, model or identity | `invalid_package` |
 | Incoherent capture or immutable state replaced during access | `inconsistent_snapshot` |
 | Exceeded format or configured traversal limits | `limit_exceeded` |
 | Disallowed access, unsafe URI or filesystem escape | `policy_denied` |
-| Network/storage failure or uncaptured external content offline | `unavailable` |
+| Network or storage access fails | `unavailable` |
+| External document content cannot be retrieved through the selected access method | `unavailable` |
 
 Duplicate JSON keys, invalid UTF-8 and non-JSON numbers MUST be rejected.
 Consumers MUST detect cycles and impose finite resource budgets. Budget

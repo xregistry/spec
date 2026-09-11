@@ -11,7 +11,7 @@ import pytest
 from jsonschema import Draft7Validator, Draft202012Validator, FormatChecker
 
 import oci_examples as oci
-from document_examples import (
+from mapping_examples import (
     DocumentTree, MemoryStore, encode_tree,
     sample_records as document_sample_records,
 )
@@ -20,7 +20,7 @@ from federation_examples import FederationError
 
 ROOT = Path(__file__).resolve().parent.parent
 OCI_FIXTURES = ROOT / "workingdrafts" / "federation" / "samples" / "oci"
-DOCUMENT_FIXTURES = ROOT / "workingdrafts" / "bindings" / "samples" / "document-tree"
+DOCUMENT_FIXTURES = ROOT / "workingdrafts" / "bindings" / "samples" / "mapping"
 SCHEMAS = ROOT / "workingdrafts" / "bindings" / "schemas"
 INDEX = "application/vnd.oci.image.index.v1+json"
 MANIFEST = "application/vnd.oci.image.manifest.v1+json"

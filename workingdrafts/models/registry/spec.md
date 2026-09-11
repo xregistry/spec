@@ -61,7 +61,7 @@ Consumers can discover an entry without fetching or copying its contents.
 
 A Registry of Registries is itself an xRegistry Registry, called the
 catalog. Its `category` Groups organize `registry` Resources. Each
-Resource describes one claimed logical Registry, or a website listed for
+Resource describes one Registry, or a website listed for
 discovery. Its Versions record successive descriptions, not copies of the
 described Registry.
 
@@ -85,7 +85,8 @@ document are to be interpreted as described in [RFC 2119][RFC2119].
 Core defines Registry, Group, Resource, Meta, Version, XID, API view and
 document view. This specification uses these additional distinctions:
 
-- **Catalog:** A Registry containing Registries.
+- **Catalog:** An xRegistry containing entries that describe independently
+  administered Registries or discovery-only websites.
 - **Category:** A Group organizing Registry entries in the catalog.
   A Category does not define a registry domain, transport
   or authority.

@@ -180,7 +180,7 @@ No error is represented as empty bytes or an empty successful collection.
 observations agree. `"unverified"` means no such check was supplied.
 Neither value asserts an atomic Registry snapshot or an immutable pin.
 `trace` contains the successful normalized operations in order. Failed
-sequences raise instead of returning a success-shaped trace.
+sequences raise an error rather than reporting successful completion.
 The byte, event and reference budgets are configurable example limits, not
 new OPC UA or xRegistry document-size limits.
 
