@@ -1,0 +1,868 @@
+{
+  "type": "record",
+  "name": "DocumentType",
+  "namespace": "io.xregistry",
+  "fields": [
+    {
+      "name": "genericRecordDefinition",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "GenericRecord",
+          "fields": [
+            {
+              "name": "object",
+              "type": {
+                "type": "map",
+                "values": [
+                  "null",
+                  "boolean",
+                  "int",
+                  "long",
+                  "float",
+                  "double",
+                  "bytes",
+                  "string",
+                  {
+                    "type": "array",
+                    "items": [
+                      "null",
+                      "boolean",
+                      "int",
+                      "long",
+                      "float",
+                      "double",
+                      "bytes",
+                      "string",
+                      "io.xregistry.GenericRecord"
+                    ]
+                  },
+                  "io.xregistry.GenericRecord"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "default": [],
+      "doc": "Internal field defining the shared recursive extension type"
+    },
+    {
+      "name": "registryid",
+      "type": "string"
+    },
+    {
+      "name": "specversion",
+      "type": "string"
+    },
+    {
+      "name": "name",
+      "type": [
+        "string",
+        "null"
+      ],
+      "doc": "Name of the object"
+    },
+    {
+      "name": "epoch",
+      "type": [
+        "int",
+        "null"
+      ],
+      "doc": "Epoch time of the object creation"
+    },
+    {
+      "name": "self",
+      "type": "string",
+      "doc": "URL of the object"
+    },
+    {
+      "name": "xid",
+      "type": "string",
+      "doc": "XID of the object"
+    },
+    {
+      "name": "description",
+      "type": [
+        "string",
+        "null"
+      ],
+      "doc": "Description of the object"
+    },
+    {
+      "name": "documentation",
+      "type": [
+        "string",
+        "null"
+      ],
+      "doc": "URI of the documentation of the object"
+    },
+    {
+      "name": "labels",
+      "type": {
+        "type": "map",
+        "values": [
+          "string",
+          "null"
+        ]
+      },
+      "doc": "Labels for the object"
+    },
+    {
+      "name": "createdat",
+      "type": [
+        {
+          "type": "long",
+          "logicalType": "timestamp-millis"
+        },
+        "null"
+      ],
+      "doc": "Time of the object creation"
+    },
+    {
+      "name": "modifiedat",
+      "type": [
+        {
+          "type": "long",
+          "logicalType": "timestamp-millis"
+        },
+        "null"
+      ],
+      "doc": "Time of the object modification"
+    },
+    {
+      "name": "model",
+      "type": [
+        "null",
+        "io.xregistry.GenericRecord"
+      ],
+      "default": null
+    },
+    {
+      "name": "modelsource",
+      "type": [
+        "null",
+        "io.xregistry.GenericRecord"
+      ],
+      "default": null
+    },
+    {
+      "name": "capabilities",
+      "type": [
+        "null",
+        "io.xregistry.GenericRecord"
+      ],
+      "default": null
+    },
+    {
+      "name": "categories",
+      "type": {
+        "type": "map",
+        "values": {
+          "type": "record",
+          "name": "CategoryType",
+          "fields": [
+            {
+              "name": "categoryid",
+              "type": "string",
+              "description": "ID of the category object"
+            },
+            {
+              "name": "name",
+              "type": [
+                "string",
+                "null"
+              ],
+              "doc": "Name of the object"
+            },
+            {
+              "name": "epoch",
+              "type": [
+                "int",
+                "null"
+              ],
+              "doc": "Epoch time of the object creation"
+            },
+            {
+              "name": "self",
+              "type": "string",
+              "doc": "URL of the object"
+            },
+            {
+              "name": "xid",
+              "type": "string",
+              "doc": "XID of the object"
+            },
+            {
+              "name": "description",
+              "type": [
+                "string",
+                "null"
+              ],
+              "doc": "Description of the object"
+            },
+            {
+              "name": "documentation",
+              "type": [
+                "string",
+                "null"
+              ],
+              "doc": "URI of the documentation of the object"
+            },
+            {
+              "name": "labels",
+              "type": {
+                "type": "map",
+                "values": [
+                  "string",
+                  "null"
+                ]
+              },
+              "doc": "Labels for the object"
+            },
+            {
+              "name": "createdat",
+              "type": [
+                {
+                  "type": "long",
+                  "logicalType": "timestamp-millis"
+                },
+                "null"
+              ],
+              "doc": "Time of the object creation"
+            },
+            {
+              "name": "modifiedat",
+              "type": [
+                {
+                  "type": "long",
+                  "logicalType": "timestamp-millis"
+                },
+                "null"
+              ],
+              "doc": "Time of the object modification"
+            },
+            {
+              "name": "Extensions",
+              "type": {
+                "type": "map",
+                "name": "ExtensionsType",
+                "default": {},
+                "values": "io.xregistry.GenericRecord"
+              }
+            },
+            {
+              "name": "registries",
+              "type": {
+                "type": "map",
+                "values": {
+                  "type": "record",
+                  "name": "RegistryType",
+                  "namespace": "io.xregistry.categories",
+                  "fields": [
+                    {
+                      "name": "registryid",
+                      "type": "string",
+                      "description": "ID of the registry object"
+                    },
+                    {
+                      "name": "name",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "doc": "Name of the object"
+                    },
+                    {
+                      "name": "epoch",
+                      "type": [
+                        "int",
+                        "null"
+                      ],
+                      "doc": "Epoch time of the object creation"
+                    },
+                    {
+                      "name": "self",
+                      "type": "string",
+                      "doc": "URL of the object"
+                    },
+                    {
+                      "name": "xid",
+                      "type": "string",
+                      "doc": "XID of the object"
+                    },
+                    {
+                      "name": "description",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "doc": "Description of the object"
+                    },
+                    {
+                      "name": "documentation",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "doc": "URI of the documentation of the object"
+                    },
+                    {
+                      "name": "labels",
+                      "type": {
+                        "type": "map",
+                        "values": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "doc": "Labels for the object"
+                    },
+                    {
+                      "name": "createdat",
+                      "type": [
+                        {
+                          "type": "long",
+                          "logicalType": "timestamp-millis"
+                        },
+                        "null"
+                      ],
+                      "doc": "Time of the object creation"
+                    },
+                    {
+                      "name": "modifiedat",
+                      "type": [
+                        {
+                          "type": "long",
+                          "logicalType": "timestamp-millis"
+                        },
+                        "null"
+                      ],
+                      "doc": "Time of the object modification"
+                    },
+                    {
+                      "name": "versions",
+                      "type": {
+                        "type": "map",
+                        "values": {
+                          "type": "record",
+                          "name": "RegistryVersionType",
+                          "namespace": "io.xregistry.categories",
+                          "fields": [
+                            {
+                              "name": "versionid",
+                              "type": "string",
+                              "description": "ID of the registry version"
+                            },
+                            {
+                              "name": "registryid",
+                              "type": "string",
+                              "description": "ID of the registry object"
+                            },
+                            {
+                              "name": "name",
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "doc": "Name of the object"
+                            },
+                            {
+                              "name": "epoch",
+                              "type": [
+                                "int",
+                                "null"
+                              ],
+                              "doc": "Epoch time of the object creation"
+                            },
+                            {
+                              "name": "self",
+                              "type": "string",
+                              "doc": "URL of the object"
+                            },
+                            {
+                              "name": "xid",
+                              "type": "string",
+                              "doc": "XID of the object"
+                            },
+                            {
+                              "name": "description",
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "doc": "Description of the object"
+                            },
+                            {
+                              "name": "documentation",
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "doc": "URI of the documentation of the object"
+                            },
+                            {
+                              "name": "labels",
+                              "type": {
+                                "type": "map",
+                                "values": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "doc": "Labels for the object"
+                            },
+                            {
+                              "name": "createdat",
+                              "type": [
+                                {
+                                  "type": "long",
+                                  "logicalType": "timestamp-millis"
+                                },
+                                "null"
+                              ],
+                              "doc": "Time of the object creation"
+                            },
+                            {
+                              "name": "modifiedat",
+                              "type": [
+                                {
+                                  "type": "long",
+                                  "logicalType": "timestamp-millis"
+                                },
+                                "null"
+                              ],
+                              "doc": "Time of the object modification"
+                            },
+                            {
+                              "type": [
+                                "null",
+                                "string"
+                              ],
+                              "doc": "xRegistry HTTP Registry root URL.",
+                              "name": "xregurl",
+                              "default": null
+                            },
+                            {
+                              "type": [
+                                "null",
+                                "string"
+                              ],
+                              "doc": "Human-facing website. Not a resolution advertisement.",
+                              "name": "weburl",
+                              "default": null
+                            },
+                            {
+                              "type": [
+                                "null",
+                                {
+                                  "type": "array",
+                                  "name": "RegistrytypesArrayType",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              ],
+                              "name": "registrytypes",
+                              "doc": "Descriptive domain or model URI identifiers.",
+                              "default": null
+                            },
+                            {
+                              "type": [
+                                "null",
+                                "string"
+                              ],
+                              "doc": "Administrative authority identifier. Not a trust claim.",
+                              "name": "authority",
+                              "default": null
+                            },
+                            {
+                              "type": [
+                                "null",
+                                {
+                                  "type": "array",
+                                  "name": "FederationprofilesArrayType",
+                                  "items": {
+                                    "type": "record",
+                                    "name": "FederationprofilesItemType",
+                                    "fields": [
+                                      {
+                                        "type": "string",
+                                        "doc": "Nonempty, case-sensitive binding identifier.",
+                                        "name": "name"
+                                      },
+                                      {
+                                        "type": "string",
+                                        "doc": "Absolute, credential-free binding endpoint URI.",
+                                        "name": "endpoint"
+                                      },
+                                      {
+                                        "type": [
+                                          "null",
+                                          "int"
+                                        ],
+                                        "doc": "Lower values are preferred. Absence means 0.",
+                                        "name": "priority",
+                                        "default": null
+                                      },
+                                      {
+                                        "type": [
+                                          "null",
+                                          {
+                                            "type": "record",
+                                            "name": "FederationprofilesItemParametersType",
+                                            "fields": [
+                                              {
+                                                "name": "Extensions",
+                                                "type": {
+                                                  "type": "map",
+                                                  "name": "FederationprofilesItemParametersExtensionsType",
+                                                  "default": {},
+                                                  "values": "io.xregistry.GenericRecord"
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ],
+                                        "name": "parameters",
+                                        "doc": "Binding parameters. Absence means an empty object.",
+                                        "default": null
+                                      }
+                                    ]
+                                  }
+                                }
+                              ],
+                              "name": "federationprofiles",
+                              "doc": "Ordered access advertisements for one logical Registry.",
+                              "default": null
+                            },
+                            {
+                              "type": [
+                                "null",
+                                {
+                                  "type": "array",
+                                  "name": "RelationshipsArrayType",
+                                  "items": {
+                                    "type": "record",
+                                    "name": "RelationshipsItemType",
+                                    "fields": [
+                                      {
+                                        "type": "string",
+                                        "doc": "Nonempty relationship identifier.",
+                                        "name": "type"
+                                      },
+                                      {
+                                        "type": "string",
+                                        "doc": "Catalog-root Resource XID or absolute entry URI.",
+                                        "name": "target"
+                                      },
+                                      {
+                                        "type": [
+                                          "null",
+                                          {
+                                            "type": "map",
+                                            "name": "RelationshipsItemLabelsType",
+                                            "values": "string"
+                                          }
+                                        ],
+                                        "name": "labels",
+                                        "doc": "Ordinary Core labels describing this relationship.",
+                                        "default": null
+                                      }
+                                    ]
+                                  }
+                                }
+                              ],
+                              "name": "relationships",
+                              "doc": "Descriptive links to catalog entries, not instructions.",
+                              "default": null
+                            },
+                            {
+                              "name": "Extensions",
+                              "type": {
+                                "type": "map",
+                                "name": "ExtensionsType",
+                                "default": {},
+                                "values": "io.xregistry.GenericRecord"
+                              }
+                            },
+                            {
+                              "name": "ancestorid",
+                              "type": "string"
+                            },
+                            {
+                              "name": "isdefault",
+                              "type": "boolean"
+                            },
+                            {
+                              "name": "contenttype",
+                              "type": [
+                                "null",
+                                "string"
+                              ],
+                              "default": null
+                            }
+                          ]
+                        }
+                      },
+                      "default": {}
+                    },
+                    {
+                      "name": "versionsurl",
+                      "type": [
+                        "null",
+                        "string"
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "versionscount",
+                      "type": [
+                        "null",
+                        "long"
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "metaurl",
+                      "type": [
+                        "null",
+                        "string"
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "meta",
+                      "type": [
+                        "null",
+                        {
+                          "type": "record",
+                          "namespace": "io.xregistry.categories",
+                          "name": "RegistryMetaType",
+                          "fields": [
+                            {
+                              "name": "registryid",
+                              "type": "string"
+                            },
+                            {
+                              "name": "name",
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "doc": "Name of the object"
+                            },
+                            {
+                              "name": "epoch",
+                              "type": [
+                                "int",
+                                "null"
+                              ],
+                              "doc": "Epoch time of the object creation"
+                            },
+                            {
+                              "name": "self",
+                              "type": "string",
+                              "doc": "URL of the object"
+                            },
+                            {
+                              "name": "xid",
+                              "type": "string",
+                              "doc": "XID of the object"
+                            },
+                            {
+                              "name": "description",
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "doc": "Description of the object"
+                            },
+                            {
+                              "name": "documentation",
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "doc": "URI of the documentation of the object"
+                            },
+                            {
+                              "name": "labels",
+                              "type": {
+                                "type": "map",
+                                "values": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "doc": "Labels for the object"
+                            },
+                            {
+                              "name": "createdat",
+                              "type": [
+                                {
+                                  "type": "long",
+                                  "logicalType": "timestamp-millis"
+                                },
+                                "null"
+                              ],
+                              "doc": "Time of the object creation"
+                            },
+                            {
+                              "name": "modifiedat",
+                              "type": [
+                                {
+                                  "type": "long",
+                                  "logicalType": "timestamp-millis"
+                                },
+                                "null"
+                              ],
+                              "doc": "Time of the object modification"
+                            },
+                            {
+                              "type": [
+                                "null",
+                                "string"
+                              ],
+                              "name": "xref",
+                              "default": null
+                            },
+                            {
+                              "type": [
+                                "null",
+                                "boolean"
+                              ],
+                              "name": "readonly",
+                              "default": null
+                            },
+                            {
+                              "type": [
+                                "null",
+                                "string"
+                              ],
+                              "name": "compatibility",
+                              "default": null
+                            },
+                            {
+                              "type": [
+                                "null",
+                                {
+                                  "type": "record",
+                                  "name": "RegistryMetaDeprecatedType",
+                                  "fields": [
+                                    {
+                                      "type": [
+                                        "null",
+                                        {
+                                          "type": "long",
+                                          "logicalType": "timestamp-millis"
+                                        }
+                                      ],
+                                      "name": "effective",
+                                      "default": null
+                                    },
+                                    {
+                                      "type": [
+                                        "null",
+                                        {
+                                          "type": "long",
+                                          "logicalType": "timestamp-millis"
+                                        }
+                                      ],
+                                      "name": "removal",
+                                      "default": null
+                                    },
+                                    {
+                                      "type": [
+                                        "null",
+                                        "string"
+                                      ],
+                                      "name": "alternative",
+                                      "default": null
+                                    },
+                                    {
+                                      "type": [
+                                        "null",
+                                        "string"
+                                      ],
+                                      "name": "documentation",
+                                      "default": null
+                                    }
+                                  ]
+                                }
+                              ],
+                              "name": "deprecated",
+                              "default": null
+                            },
+                            {
+                              "type": [
+                                "null",
+                                "string"
+                              ],
+                              "name": "defaultversionid",
+                              "default": null
+                            },
+                            {
+                              "type": [
+                                "null",
+                                "string"
+                              ],
+                              "name": "defaultversionurl",
+                              "default": null
+                            },
+                            {
+                              "type": [
+                                "null",
+                                "boolean"
+                              ],
+                              "name": "defaultversionsticky",
+                              "default": null
+                            }
+                          ]
+                        }
+                      ],
+                      "default": null
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "registriesurl",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            },
+            {
+              "name": "registriescount",
+              "type": [
+                "null",
+                "long"
+              ],
+              "default": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "categoriesurl",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    {
+      "name": "categoriescount",
+      "type": [
+        "null",
+        "long"
+      ],
+      "default": null
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+*.json text eol=lf
+documents/** -text

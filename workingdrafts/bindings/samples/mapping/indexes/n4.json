@@ -1,0 +1,23 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "collection",
+  "xid": "/documents/main/assets",
+  "count": 2,
+  "entries": [
+    {
+      "kind": "resource",
+      "xid": "/documents/main/assets/CON",
+      "href": "records/n5.json",
+      "size": 632,
+      "sha256": "d98a5e5ff168d7d895066159b1f9c54463df278112f90c6c4e193c832e3cc5e4"
+    },
+    {
+      "kind": "resource",
+      "xid": "/documents/main/assets/item",
+      "href": "records/n8.json",
+      "size": 636,
+      "sha256": "aec3ad258394597ab2bc90038623193b2bb4333d02747f03d17c07240cc1759f"
+    }
+  ]
+}

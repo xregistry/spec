@@ -1,0 +1,17 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "resource",
+  "entity": {
+    "xid": "/mirrors/local/assets/copy",
+    "assetid": "copy"
+  },
+  "meta": {
+    "kind": "meta",
+    "xid": "/mirrors/local/assets/copy/meta",
+    "href": "records/n14.json",
+    "size": 214,
+    "sha256": "780ddcf19ea11b338586aa7f4a58e4927819f9f6e03ca7467faf47f53ce36f8b"
+  },
+  "collections": []
+}

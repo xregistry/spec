@@ -1,0 +1,474 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://xregistry.io/workingdrafts/models/registry/schemas/document-schema.json",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the object"
+    },
+    "epoch": {
+      "type": "integer",
+      "description": "Epoch time of the object creation"
+    },
+    "self": {
+      "type": "string",
+      "format": "uri-reference",
+      "description": "URL of the object"
+    },
+    "xid": {
+      "type": "string",
+      "format": "xid",
+      "description": "Relative URL of the object"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the object"
+    },
+    "documentation": {
+      "type": "string",
+      "format": "uri-reference",
+      "description": "URI of the documentation of the object"
+    },
+    "labels": {
+      "type": "object",
+      "description": "Labels for the object"
+    },
+    "createdat": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Time of the object creation"
+    },
+    "modifiedat": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Time of the object modification"
+    },
+    "registryid": {
+      "type": "string"
+    },
+    "specversion": {
+      "type": "string"
+    },
+    "model": {
+      "type": "object"
+    },
+    "modelsource": {
+      "type": "object"
+    },
+    "capabilities": {
+      "type": "object"
+    },
+    "categories": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/category-schema/category"
+      }
+    },
+    "categoriesurl": {
+      "type": "string",
+      "format": "uri-reference"
+    },
+    "categoriescount": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "definitions": {
+    "category-schema": {
+      "registryVersion": {
+        "type": "object",
+        "properties": {
+          "versionid": {
+            "type": "string",
+            "description": "ID of the registry version"
+          },
+          "registryid": {
+            "type": "string",
+            "description": "ID of the registry object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation"
+          },
+          "self": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "string",
+            "format": "xid",
+            "description": "Relative URL of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "URI of the documentation of the object"
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object"
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation"
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification"
+          },
+          "ancestorid": {
+            "type": "string"
+          },
+          "isdefault": {
+            "type": "boolean"
+          },
+          "contenttype": {
+            "type": "string"
+          },
+          "xregurl": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "xRegistry HTTP Registry root URL."
+          },
+          "weburl": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "Human-facing website. Not a resolution advertisement."
+          },
+          "registrytypes": {
+            "type": "array",
+            "description": "Descriptive domain or model URI identifiers.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "authority": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "Administrative authority identifier. Not a trust claim."
+          },
+          "federationprofiles": {
+            "type": "array",
+            "description": "Ordered access advertisements for one logical Registry.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Nonempty, case-sensitive binding identifier."
+                },
+                "endpoint": {
+                  "type": "string",
+                  "format": "uri-reference",
+                  "description": "Absolute, credential-free binding endpoint URI."
+                },
+                "priority": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Lower values are preferred. Absence means 0."
+                },
+                "parameters": {
+                  "type": "object",
+                  "description": "Binding parameters. Absence means an empty object.",
+                  "properties": {}
+                }
+              },
+              "required": [
+                "name",
+                "endpoint"
+              ]
+            }
+          },
+          "relationships": {
+            "type": "array",
+            "description": "Descriptive links to catalog entries, not instructions.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "description": "Nonempty relationship identifier."
+                },
+                "target": {
+                  "type": "string",
+                  "format": "uri-reference",
+                  "description": "Catalog-root Resource XID or absolute entry URI."
+                },
+                "labels": {
+                  "type": "object",
+                  "description": "Ordinary Core labels describing this relationship.",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "type",
+                "target"
+              ]
+            }
+          }
+        }
+      },
+      "registry": {
+        "type": "object",
+        "properties": {
+          "registryid": {
+            "type": "string",
+            "description": "ID of the registry object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation"
+          },
+          "self": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "string",
+            "format": "xid",
+            "description": "Relative URL of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "URI of the documentation of the object"
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object"
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation"
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification"
+          },
+          "metaurl": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Name of the object"
+              },
+              "epoch": {
+                "type": "integer",
+                "description": "Epoch time of the object creation"
+              },
+              "self": {
+                "type": "string",
+                "format": "uri-reference",
+                "description": "URL of the object"
+              },
+              "xid": {
+                "type": "string",
+                "format": "xid",
+                "description": "Relative URL of the object"
+              },
+              "description": {
+                "type": "string",
+                "description": "Description of the object"
+              },
+              "documentation": {
+                "type": "string",
+                "format": "uri-reference",
+                "description": "URI of the documentation of the object"
+              },
+              "labels": {
+                "type": "object",
+                "description": "Labels for the object"
+              },
+              "createdat": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Time of the object creation"
+              },
+              "modifiedat": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Time of the object modification"
+              },
+              "registryid": {
+                "type": "string"
+              },
+              "xref": {
+                "type": "string",
+                "format": "uri-reference",
+                "pattern": "^/"
+              },
+              "readonly": {
+                "type": "boolean"
+              },
+              "compatibility": {
+                "type": "string"
+              },
+              "deprecated": {
+                "type": "object",
+                "properties": {
+                  "effective": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "removal": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "alternative": {
+                    "type": "string",
+                    "format": "uri-reference"
+                  },
+                  "documentation": {
+                    "type": "string",
+                    "format": "uri-reference"
+                  }
+                }
+              },
+              "defaultversionid": {
+                "type": "string"
+              },
+              "defaultversionurl": {
+                "type": "string",
+                "format": "uri-reference"
+              },
+              "defaultversionsticky": {
+                "type": "boolean"
+              }
+            }
+          },
+          "versionsurl": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "versionscount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "versions": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/definitions/category-schema/registryVersion"
+            }
+          }
+        },
+        "anyOf": [
+          {
+            "required": [
+              "versionsurl"
+            ]
+          },
+          {
+            "required": [
+              "versions"
+            ]
+          },
+          {
+            "properties": {
+              "meta": {
+                "required": [
+                  "xref"
+                ]
+              }
+            },
+            "required": [
+              "meta"
+            ]
+          }
+        ]
+      },
+      "category": {
+        "type": "object",
+        "properties": {
+          "categoryid": {
+            "type": "string",
+            "description": "ID of the category object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation"
+          },
+          "self": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "string",
+            "format": "xid",
+            "description": "Relative URL of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "URI of the documentation of the object"
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object"
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation"
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification"
+          },
+          "registries": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/definitions/category-schema/registry"
+            }
+          },
+          "registriesurl": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "registriescount": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    }
+  },
+  "type": "object"
+}

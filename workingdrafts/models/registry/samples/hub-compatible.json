@@ -1,0 +1,160 @@
+{
+  "specversion": "1.0-rc4",
+  "registryid": "hub-compatible",
+  "self": "#",
+  "xid": "/",
+  "epoch": 1,
+  "name": "Hub-compatible catalog examples",
+  "createdat": "2026-09-04T00:00:00Z",
+  "modifiedat": "2026-09-04T00:00:00Z",
+  "categoriesurl": "#/categories",
+  "categoriescount": 3,
+  "categories": {
+    "oci": {
+      "categoryid": "oci",
+      "self": "#/categories/oci",
+      "xid": "/categories/oci",
+      "epoch": 1,
+      "name": "Container registries",
+      "createdat": "2026-09-04T00:00:00Z",
+      "modifiedat": "2026-09-04T00:00:00Z",
+      "registriesurl": "#/categories/oci/registries",
+      "registriescount": 1,
+      "registries": {
+        "docker-hub": {
+          "registryid": "docker-hub",
+          "self": "#/categories/oci/registries/docker-hub",
+          "xid": "/categories/oci/registries/docker-hub",
+          "metaurl": "#/categories/oci/registries/docker-hub/meta",
+          "meta": {
+            "registryid": "docker-hub",
+            "self": "#/categories/oci/registries/docker-hub/meta",
+            "xid": "/categories/oci/registries/docker-hub/meta",
+            "epoch": 1,
+            "createdat": "2026-09-04T00:00:00Z",
+            "modifiedat": "2026-09-04T00:00:00Z",
+            "readonly": true,
+            "defaultversionid": "1",
+            "defaultversionurl": "#/categories/oci/registries/docker-hub/versions/1",
+            "defaultversionsticky": false
+          },
+          "versionsurl": "#/categories/oci/registries/docker-hub/versions",
+          "versionscount": 1,
+          "versions": {
+            "1": {
+              "registryid": "docker-hub",
+              "versionid": "1",
+              "self": "#/categories/oci/registries/docker-hub/versions/1",
+              "xid": "/categories/oci/registries/docker-hub/versions/1",
+              "epoch": 1,
+              "name": "Docker Hub",
+              "isdefault": true,
+              "description": "A website listing, not an xRegistry API advertisement.",
+              "createdat": "2026-09-04T00:00:00Z",
+              "modifiedat": "2026-09-04T00:00:00Z",
+              "ancestorid": "1",
+              "weburl": "https://hub.docker.com/"
+            }
+          }
+        }
+      }
+    },
+    "dev": {
+      "categoryid": "dev",
+      "self": "#/categories/dev",
+      "xid": "/categories/dev",
+      "epoch": 1,
+      "name": "Developer registries",
+      "createdat": "2026-09-04T00:00:00Z",
+      "modifiedat": "2026-09-04T00:00:00Z",
+      "registriesurl": "#/categories/dev/registries",
+      "registriescount": 1,
+      "registries": {
+        "schema-bridge": {
+          "registryid": "schema-bridge",
+          "self": "#/categories/dev/registries/schema-bridge",
+          "xid": "/categories/dev/registries/schema-bridge",
+          "metaurl": "#/categories/dev/registries/schema-bridge/meta",
+          "meta": {
+            "registryid": "schema-bridge",
+            "self": "#/categories/dev/registries/schema-bridge/meta",
+            "xid": "/categories/dev/registries/schema-bridge/meta",
+            "epoch": 1,
+            "createdat": "2026-09-04T00:00:00Z",
+            "modifiedat": "2026-09-04T00:00:00Z",
+            "readonly": true,
+            "defaultversionid": "1",
+            "defaultversionurl": "#/categories/dev/registries/schema-bridge/versions/1",
+            "defaultversionsticky": false
+          },
+          "versionsurl": "#/categories/dev/registries/schema-bridge/versions",
+          "versionscount": 1,
+          "versions": {
+            "1": {
+              "registryid": "schema-bridge",
+              "versionid": "1",
+              "self": "#/categories/dev/registries/schema-bridge/versions/1",
+              "xid": "/categories/dev/registries/schema-bridge/versions/1",
+              "epoch": 1,
+              "name": "Example schema bridge",
+              "isdefault": true,
+              "description": "HTTP discovery via xregurl without additional profile fields.",
+              "createdat": "2026-09-04T00:00:00Z",
+              "modifiedat": "2026-09-04T00:00:00Z",
+              "ancestorid": "1",
+              "xregurl": "https://bridge.example.com/xregistry"
+            }
+          }
+        }
+      }
+    },
+    "community": {
+      "categoryid": "community",
+      "self": "#/categories/community",
+      "xid": "/categories/community",
+      "epoch": 1,
+      "name": "Community directory",
+      "createdat": "2026-09-04T00:00:00Z",
+      "modifiedat": "2026-09-04T00:00:00Z",
+      "registriesurl": "#/categories/community/registries",
+      "registriescount": 1,
+      "registries": {
+        "directory": {
+          "registryid": "directory",
+          "self": "#/categories/community/registries/directory",
+          "xid": "/categories/community/registries/directory",
+          "metaurl": "#/categories/community/registries/directory/meta",
+          "meta": {
+            "registryid": "directory",
+            "self": "#/categories/community/registries/directory/meta",
+            "xid": "/categories/community/registries/directory/meta",
+            "epoch": 1,
+            "createdat": "2026-09-04T00:00:00Z",
+            "modifiedat": "2026-09-04T00:00:00Z",
+            "readonly": true,
+            "defaultversionid": "1",
+            "defaultversionurl": "#/categories/community/registries/directory/versions/1",
+            "defaultversionsticky": false
+          },
+          "versionsurl": "#/categories/community/registries/directory/versions",
+          "versionscount": 1,
+          "versions": {
+            "1": {
+              "registryid": "directory",
+              "versionid": "1",
+              "self": "#/categories/community/registries/directory/versions/1",
+              "xid": "/categories/community/registries/directory/versions/1",
+              "epoch": 1,
+              "name": "Community directory under review",
+              "isdefault": true,
+              "description": "No website or resolution endpoint is advertised.",
+              "createdat": "2026-09-04T00:00:00Z",
+              "modifiedat": "2026-09-04T00:00:00Z",
+              "ancestorid": "1"
+            }
+          }
+        }
+      }
+    }
+  }
+}

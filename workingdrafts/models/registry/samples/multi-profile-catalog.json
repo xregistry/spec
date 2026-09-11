@@ -1,0 +1,165 @@
+{
+  "specversion": "1.0-rc4",
+  "registryid": "multi-profile-catalog",
+  "self": "#",
+  "xid": "/",
+  "epoch": 1,
+  "name": "Multiple access methods for one logical Registry",
+  "createdat": "2026-09-04T00:00:00Z",
+  "modifiedat": "2026-09-10T00:00:00Z",
+  "categoriesurl": "#/categories",
+  "categoriescount": 1,
+  "categories": {
+    "public": {
+      "categoryid": "public",
+      "self": "#/categories/public",
+      "xid": "/categories/public",
+      "epoch": 1,
+      "name": "Public data registries",
+      "createdat": "2026-09-04T00:00:00Z",
+      "modifiedat": "2026-09-04T00:00:00Z",
+      "registriesurl": "#/categories/public/registries",
+      "registriescount": 1,
+      "registries": {
+        "schemas": {
+          "registryid": "schemas",
+          "self": "#/categories/public/registries/schemas",
+          "xid": "/categories/public/registries/schemas",
+          "metaurl": "#/categories/public/registries/schemas/meta",
+          "meta": {
+            "registryid": "schemas",
+            "self": "#/categories/public/registries/schemas/meta",
+            "xid": "/categories/public/registries/schemas/meta",
+            "epoch": 2,
+            "createdat": "2026-09-04T00:00:00Z",
+            "modifiedat": "2026-09-10T00:00:00Z",
+            "readonly": true,
+            "defaultversionid": "2",
+            "defaultversionurl": "#/categories/public/registries/schemas/versions/2",
+            "defaultversionsticky": true
+          },
+          "versionsurl": "#/categories/public/registries/schemas/versions",
+          "versionscount": 2,
+          "versions": {
+            "1": {
+              "registryid": "schemas",
+              "versionid": "1",
+              "self": "#/categories/public/registries/schemas/versions/1",
+              "xid": "/categories/public/registries/schemas/versions/1",
+              "epoch": 1,
+              "name": "Initial schema Registry description",
+              "isdefault": false,
+              "description": "HTTP via xregurl remains a priority-zero access candidate.",
+              "labels": {},
+              "createdat": "2026-09-04T00:00:00Z",
+              "modifiedat": "2026-09-04T00:00:00Z",
+              "ancestorid": "1",
+              "xregurl": "https://schemas.example.com/xregistry",
+              "registrytypes": [],
+              "federationprofiles": [
+                {
+                  "name": "http",
+                  "endpoint": "https://schemas.example.com/xregistry",
+                  "priority": 20,
+                  "parameters": {}
+                },
+                {
+                  "name": "oci",
+                  "endpoint": "oci://artifacts.example.com/team/schemas",
+                  "priority": 10,
+                  "parameters": {
+                    "reference": "stable"
+                  }
+                }
+              ],
+              "relationships": []
+            },
+            "2": {
+              "registryid": "schemas",
+              "versionid": "2",
+              "self": "#/categories/public/registries/schemas/versions/2",
+              "xid": "/categories/public/registries/schemas/versions/2",
+              "epoch": 1,
+              "name": "Public schema and event Registry",
+              "isdefault": true,
+              "description": "One logical Registry exposed through peer bindings.",
+              "labels": {
+                "team": "Platform",
+                "tier": "public",
+                "note": ""
+              },
+              "createdat": "2026-09-10T00:00:00Z",
+              "modifiedat": "2026-09-10T00:00:00Z",
+              "ancestorid": "1",
+              "weburl": "https://schemas.example.com/docs/",
+              "xregurl": "https://schemas.example.com/xregistry",
+              "registrytypes": [
+                "https://xregistry.io/xreg/domains/schema/specs/model.json",
+                "https://models.example.com/events/1.0/model.json"
+              ],
+              "authority": "urn:example:organization:platform-team",
+              "federationprofiles": [
+                {
+                  "name": "com.example.discovery",
+                  "endpoint": "https://discovery.example.com/registries/schemas",
+                  "priority": 0,
+                  "parameters": {
+                    "mode": "catalog"
+                  }
+                },
+                {
+                  "name": "oci",
+                  "endpoint": "oci://artifacts.example.com/team/schemas",
+                  "priority": 0,
+                  "parameters": {
+                    "reference": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+                  }
+                },
+                {
+                  "name": "git",
+                  "endpoint": "https://git.example.com/team/schemas.git",
+                  "priority": 0,
+                  "parameters": {
+                    "revision": "0123456789abcdef0123456789abcdef01234567",
+                    "path": "xregistry"
+                  }
+                },
+                {
+                  "name": "http",
+                  "endpoint": "https://schemas.example.com/xregistry"
+                },
+                {
+                  "name": "file",
+                  "endpoint": "file:///C:/catalog-cache/schemas/",
+                  "priority": 10,
+                  "parameters": {
+                    "layout": "document-tree"
+                  }
+                },
+                {
+                  "name": "file",
+                  "endpoint": "file:///C:/catalog-cache/layouts/schemas/",
+                  "priority": 20,
+                  "parameters": {
+                    "layout": "oci-layout",
+                    "reference": "stable"
+                  }
+                },
+                {
+                  "name": "opcua",
+                  "endpoint": "opc.tcp://ua.example.com:4840/xregistry",
+                  "priority": 10,
+                  "parameters": {
+                    "registryroot": "nsu=urn:example:xregistry;s=Registries/PublicSchemas",
+                    "applicationuri": "urn:example:ua:catalog-server",
+                    "transportprofileuri": "http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary"
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

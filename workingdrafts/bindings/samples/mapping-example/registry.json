@@ -1,0 +1,59 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "registry",
+  "entity": {
+    "xid": "/",
+    "registryid": "workshop",
+    "specversion": "1.0-rc4",
+    "epoch": 1,
+    "createdat": "2026-01-01T00:00:00Z",
+    "modifiedat": "2026-01-01T00:00:00Z",
+    "modelsource": {
+      "groups": {
+        "documents": {
+          "singular": "document",
+          "resources": {
+            "assets": {
+              "singular": "asset"
+            }
+          }
+        }
+      }
+    },
+    "capabilities": {
+      "available": {
+        "capabilities": {
+          "mutable": false
+        },
+        "entities": {
+          "mutable": false
+        },
+        "model": {
+          "mutable": false
+        },
+        "modelsource": {
+          "mutable": false
+        }
+      },
+      "flags": [
+        "doc",
+        "inline"
+      ],
+      "pagination": false
+    }
+  },
+  "snapshot": {
+    "scope": "/",
+    "completeness": "offline-complete"
+  },
+  "collections": [
+    {
+      "kind": "collection",
+      "xid": "/documents",
+      "href": "registry-metadata/groups.json",
+      "size": 361,
+      "sha256": "edafff00fe4486be418968a4d3b770ff40a3b60c75ddc015f34252cca1c8c330"
+    }
+  ]
+}

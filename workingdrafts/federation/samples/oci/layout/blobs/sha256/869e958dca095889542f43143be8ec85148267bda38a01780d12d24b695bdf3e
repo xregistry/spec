@@ -1,0 +1,33 @@
+{
+  "annotations": {
+    "io.xregistry.oci.kind": "collection",
+    "io.xregistry.oci.lower": "/dirs/main/files/binary",
+    "io.xregistry.oci.mode": "leaf",
+    "io.xregistry.oci.upper": "/dirs/main/files/dangling",
+    "io.xregistry.oci.version": "1",
+    "io.xregistry.oci.xid": "/dirs/main/files"
+  },
+  "artifactType": "application/vnd.xregistry.collection.v1+json",
+  "manifests": [
+    {
+      "annotations": {
+        "io.xregistry.oci.role": "entity",
+        "io.xregistry.oci.xid": "/dirs/main/files/binary"
+      },
+      "digest": "sha256:f2ec9eb4ca89c231b6240992b8ded217105388d87532b6777b8ae2d769211976",
+      "mediaType": "application/vnd.oci.image.index.v1+json",
+      "size": 1291
+    },
+    {
+      "annotations": {
+        "io.xregistry.oci.role": "entity",
+        "io.xregistry.oci.xid": "/dirs/main/files/chain"
+      },
+      "digest": "sha256:b6906b2727d8912451fd6f74422269aed1b03976e16cf76c6dd49641ab59bf44",
+      "mediaType": "application/vnd.oci.image.index.v1+json",
+      "size": 1287
+    }
+  ],
+  "mediaType": "application/vnd.oci.image.index.v1+json",
+  "schemaVersion": 2
+}

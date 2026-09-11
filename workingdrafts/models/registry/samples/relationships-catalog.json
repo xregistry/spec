@@ -1,0 +1,193 @@
+{
+  "specversion": "1.0-rc4",
+  "registryid": "relationship-catalog",
+  "self": "#",
+  "xid": "/",
+  "epoch": 1,
+  "name": "Descriptive relationships between independent Registries",
+  "createdat": "2026-09-10T00:00:00Z",
+  "modifiedat": "2026-09-10T00:00:00Z",
+  "categoriesurl": "#/categories",
+  "categoriescount": 1,
+  "categories": {
+    "public": {
+      "categoryid": "public",
+      "self": "#/categories/public",
+      "xid": "/categories/public",
+      "epoch": 1,
+      "name": "Related public registries",
+      "createdat": "2026-09-10T00:00:00Z",
+      "modifiedat": "2026-09-10T00:00:00Z",
+      "registriesurl": "#/categories/public/registries",
+      "registriescount": 3,
+      "registries": {
+        "canonical": {
+          "registryid": "canonical",
+          "self": "#/categories/public/registries/canonical",
+          "xid": "/categories/public/registries/canonical",
+          "metaurl": "#/categories/public/registries/canonical/meta",
+          "meta": {
+            "registryid": "canonical",
+            "self": "#/categories/public/registries/canonical/meta",
+            "xid": "/categories/public/registries/canonical/meta",
+            "epoch": 1,
+            "createdat": "2026-09-10T00:00:00Z",
+            "modifiedat": "2026-09-10T00:00:00Z",
+            "readonly": true,
+            "defaultversionid": "1",
+            "defaultversionurl": "#/categories/public/registries/canonical/versions/1",
+            "defaultversionsticky": false
+          },
+          "versionsurl": "#/categories/public/registries/canonical/versions",
+          "versionscount": 1,
+          "versions": {
+            "1": {
+              "registryid": "canonical",
+              "versionid": "1",
+              "self": "#/categories/public/registries/canonical/versions/1",
+              "xid": "/categories/public/registries/canonical/versions/1",
+              "epoch": 1,
+              "name": "Canonical schema Registry",
+              "isdefault": true,
+              "labels": {
+                "tier": "public",
+                "note": ""
+              },
+              "createdat": "2026-09-10T00:00:00Z",
+              "modifiedat": "2026-09-10T00:00:00Z",
+              "ancestorid": "1",
+              "xregurl": "https://schemas.example.com/xregistry",
+              "authority": "urn:example:organization:platform-team",
+              "relationships": [
+                {
+                  "type": "federates-with",
+                  "target": "/categories/public/registries/mirror",
+                  "labels": {
+                    "purpose": "discovery",
+                    "note": ""
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "mirror": {
+          "registryid": "mirror",
+          "self": "#/categories/public/registries/mirror",
+          "xid": "/categories/public/registries/mirror",
+          "metaurl": "#/categories/public/registries/mirror/meta",
+          "meta": {
+            "registryid": "mirror",
+            "self": "#/categories/public/registries/mirror/meta",
+            "xid": "/categories/public/registries/mirror/meta",
+            "epoch": 1,
+            "createdat": "2026-09-10T00:00:00Z",
+            "modifiedat": "2026-09-10T00:00:00Z",
+            "readonly": true,
+            "defaultversionid": "1",
+            "defaultversionurl": "#/categories/public/registries/mirror/versions/1",
+            "defaultversionsticky": false
+          },
+          "versionsurl": "#/categories/public/registries/mirror/versions",
+          "versionscount": 1,
+          "versions": {
+            "1": {
+              "registryid": "mirror",
+              "versionid": "1",
+              "self": "#/categories/public/registries/mirror/versions/1",
+              "xid": "/categories/public/registries/mirror/versions/1",
+              "epoch": 1,
+              "name": "Locally captured schema Registry",
+              "isdefault": true,
+              "description": "An asserted copy, not proof of matching snapshot bytes.",
+              "labels": {
+                "tier": "public"
+              },
+              "createdat": "2026-09-10T00:00:00Z",
+              "modifiedat": "2026-09-10T00:00:00Z",
+              "ancestorid": "1",
+              "federationprofiles": [
+                {
+                  "name": "file",
+                  "endpoint": "file:///C:/catalog-cache/schema-mirror/",
+                  "parameters": {
+                    "layout": "document-tree"
+                  }
+                }
+              ],
+              "relationships": [
+                {
+                  "type": "mirrors",
+                  "target": "/categories/public/registries/canonical"
+                },
+                {
+                  "type": "derived-from",
+                  "target": "/categories/public/registries/canonical",
+                  "labels": {
+                    "note": "Publisher assertion only"
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "aggregate": {
+          "registryid": "aggregate",
+          "self": "#/categories/public/registries/aggregate",
+          "xid": "/categories/public/registries/aggregate",
+          "metaurl": "#/categories/public/registries/aggregate/meta",
+          "meta": {
+            "registryid": "aggregate",
+            "self": "#/categories/public/registries/aggregate/meta",
+            "xid": "/categories/public/registries/aggregate/meta",
+            "epoch": 1,
+            "createdat": "2026-09-10T00:00:00Z",
+            "modifiedat": "2026-09-10T00:00:00Z",
+            "readonly": true,
+            "defaultversionid": "1",
+            "defaultversionurl": "#/categories/public/registries/aggregate/versions/1",
+            "defaultversionsticky": false
+          },
+          "versionsurl": "#/categories/public/registries/aggregate/versions",
+          "versionscount": 1,
+          "versions": {
+            "1": {
+              "registryid": "aggregate",
+              "versionid": "1",
+              "self": "#/categories/public/registries/aggregate/versions/1",
+              "xid": "/categories/public/registries/aggregate/versions/1",
+              "epoch": 1,
+              "name": "Community catalog guide",
+              "isdefault": true,
+              "description": "A website guide; relationships do not create endpoints.",
+              "createdat": "2026-09-10T00:00:00Z",
+              "modifiedat": "2026-09-10T00:00:00Z",
+              "ancestorid": "1",
+              "weburl": "https://catalog-guide.example.com/",
+              "federationprofiles": [],
+              "relationships": [
+                {
+                  "type": "depends-on",
+                  "target": "/categories/public/registries/canonical"
+                },
+                {
+                  "type": "supersedes",
+                  "target": "/categories/public/registries/retired"
+                },
+                {
+                  "type": "federates-with",
+                  "target": "/categories/public/registries/mirror"
+                },
+                {
+                  "type": "com.example.curated-with",
+                  "target": "https://catalog.example.net/categories/shared/registries/events",
+                  "labels": {}
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

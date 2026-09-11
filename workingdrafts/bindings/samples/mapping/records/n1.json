@@ -1,0 +1,25 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "resource",
+  "entity": {
+    "xid": "/categories/main/registries/site",
+    "registryid": "site"
+  },
+  "meta": {
+    "kind": "meta",
+    "xid": "/categories/main/registries/site/meta",
+    "href": "records/n2.json",
+    "size": 365,
+    "sha256": "e7b61eec9fcf107b8a8a07d90e9c407038707e14799f853d01d9ee15225ec241"
+  },
+  "collections": [
+    {
+      "kind": "collection",
+      "xid": "/categories/main/registries/site/versions",
+      "href": "indexes/n2.json",
+      "size": 411,
+      "sha256": "f199f5870b49fda35d7712dcba4721c07d706501f00efcd923d2f7e77b512763"
+    }
+  ]
+}

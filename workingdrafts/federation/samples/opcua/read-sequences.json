@@ -1,0 +1,674 @@
+{
+  "format": "xregistry-opcua-examples-v1",
+  "cases": [
+    {
+      "name": "registry-metadata",
+      "kind": "sequence",
+      "input": {
+        "sequence": {
+          "kind": "metadata",
+          "specversion": "1.0-rc4",
+          "request": {"operation": "entity", "target": "/"},
+          "events": [
+            {
+              "service": "Read", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=FirstRegistry",
+              "status": "Good",
+              "values": {
+                "RegistryId": {"status": "Good", "value": "first"},
+                "SpecVersion": {"status": "Good", "value": "1.0-rc4"},
+                "Xid": {"status": "Good", "value": "/"}
+              }
+            }
+          ]
+        }
+      },
+      "expected": {
+        "values": {"RegistryId": "first", "SpecVersion": "1.0-rc4", "Xid": "/"},
+        "trace": ["Read"],
+        "consistency": "unverified"
+      }
+    },
+    {
+      "name": "metadata-only-catalog",
+      "kind": "sequence",
+      "note": "xregurl and federationprofiles are typed, implementation-mapped Version extensions, not base companion Properties or Labels strings.",
+      "input": {
+        "sequence": {
+          "kind": "metadata",
+          "hasdocument": false,
+          "specversion": "1.0-rc4",
+          "request": {"operation": "entity", "target": "/categories/dev/registries/bridge"},
+          "events": [
+            {
+              "service": "Read", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=CatalogBridge",
+              "status": "Good",
+              "values": {
+                "ResourceId": {"status": "Good", "value": "bridge"},
+                "VersionId": {"status": "Good", "value": "v1"},
+                "Xid": {"status": "Good", "value": "/categories/dev/registries/bridge"},
+                "xregurl": {"status": "Good", "value": "https://first.example.com/services/xreg/"},
+                "federationprofiles": {
+                  "status": "Good",
+                  "value": [
+                    {
+                      "name": "opcua",
+                      "endpoint": "opc.tcp://ua.example.com:4840",
+                      "parameters": {
+                        "registryroot": "nsu=urn:example:registry;s=FirstRegistry",
+                        "applicationuri": "urn:example:ua:first"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      },
+      "expected": {
+        "values": {
+          "ResourceId": "bridge",
+          "VersionId": "v1",
+          "Xid": "/categories/dev/registries/bridge",
+          "xregurl": "https://first.example.com/services/xreg/",
+          "federationprofiles": [
+            {
+              "name": "opcua",
+              "endpoint": "opc.tcp://ua.example.com:4840",
+              "parameters": {
+                "registryroot": "nsu=urn:example:registry;s=FirstRegistry",
+                "applicationuri": "urn:example:ua:first"
+              }
+            }
+          ]
+        },
+        "trace": ["Read"],
+        "consistency": "unverified"
+      }
+    },
+    {
+      "name": "default-v1-short-chunks",
+      "kind": "sequence",
+      "input": {
+        "sequence": {
+          "kind": "file",
+          "specversion": "1.0-rc4",
+          "request": {"operation": "document", "target": "/documents/main/assets/item"},
+          "selectedXid": "/documents/main/assets/item/versions/v1",
+          "namespaceArray": [
+            "http://opcfoundation.org/UA/", "urn:example:other",
+            "urn:example:companion", "urn:example:registry"
+          ],
+          "expectedSize": 17,
+          "before": {"defaultversionid": "v1", "versionid": "v1", "epoch": 1, "size": 17},
+          "after": {"defaultversionid": "v1", "versionid": "v1", "epoch": 1, "size": 17},
+          "events": [
+            {
+              "service": "Call", "session": "session-1", "nodeId": "ns=3;s=ItemV1",
+              "method": "Open", "input": {"mode": 1},
+              "status": "Good", "output": {"fileHandle": 41}
+            },
+            {
+              "service": "Call", "session": "session-1", "nodeId": "ns=3;s=ItemV1",
+              "method": "Read", "input": {"fileHandle": 41, "length": 64},
+              "status": "Good", "output": {"data": "eyJ0eXBlIjo="}
+            },
+            {
+              "service": "Call", "session": "session-1", "nodeId": "ns=3;s=ItemV1",
+              "method": "Read", "input": {"fileHandle": 41, "length": 64},
+              "status": "Good", "output": {"data": "InN0cmluZyJ9"}
+            },
+            {
+              "service": "Call", "session": "session-1", "nodeId": "ns=3;s=ItemV1",
+              "method": "Read", "input": {"fileHandle": 41, "length": 64},
+              "status": "Good", "output": {"data": ""}
+            },
+            {
+              "service": "Call", "session": "session-1", "nodeId": "ns=3;s=ItemV1",
+              "method": "Close", "input": {"fileHandle": 41}, "status": "Good"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "data": "eyJ0eXBlIjoic3RyaW5nIn0=",
+        "size": 17,
+        "complete": true,
+        "trace": ["Open", "Read", "Read", "Read", "Close"],
+        "consistency": "observed",
+        "selectedXid": "/documents/main/assets/item/versions/v1"
+      }
+    },
+    {
+      "name": "explicit-v2-binary",
+      "kind": "sequence",
+      "input": {
+        "sequence": {
+          "kind": "file",
+          "request": {"operation": "document", "target": "/documents/main/assets/item/versions/v2"},
+          "selectedXid": "/documents/main/assets/item/versions/v2",
+          "expectedSize": 2,
+          "before": {"versionid": "v2", "epoch": 1, "size": 2},
+          "after": {"versionid": "v2", "epoch": 1, "size": 2},
+          "events": [
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=ItemV2",
+              "method": "Open", "input": {"mode": 1},
+              "status": "Good", "output": {"fileHandle": 42}
+            },
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=ItemV2",
+              "method": "Read", "input": {"fileHandle": 42, "length": 2},
+              "status": "Good", "output": {"data": "AP8="}
+            },
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=ItemV2",
+              "method": "Read", "input": {"fileHandle": 42, "length": 2},
+              "status": "Good", "output": {"data": ""}
+            },
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=ItemV2",
+              "method": "Close", "input": {"fileHandle": 42}, "status": "Good"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "data": "AP8=", "size": 2, "complete": true,
+        "trace": ["Open", "Read", "Read", "Close"],
+        "consistency": "observed",
+        "selectedXid": "/documents/main/assets/item/versions/v2"
+      }
+    },
+    {
+      "name": "zero-byte-v3",
+      "kind": "sequence",
+      "input": {
+        "sequence": {
+          "kind": "file",
+          "request": {"operation": "document", "target": "/documents/main/assets/item/versions/v3"},
+          "selectedXid": "/documents/main/assets/item/versions/v3",
+          "expectedSize": 0,
+          "before": {"versionid": "v3", "epoch": 1, "size": 0},
+          "after": {"versionid": "v3", "epoch": 1, "size": 0},
+          "events": [
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=ItemV3",
+              "method": "Open", "input": {"mode": 1},
+              "status": "Good", "output": {"fileHandle": 43}
+            },
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=ItemV3",
+              "method": "Read", "input": {"fileHandle": 43, "length": 64},
+              "status": "Good", "output": {"data": ""}
+            },
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=ItemV3",
+              "method": "Close", "input": {"fileHandle": 43}, "status": "Good"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "data": "", "size": 0, "complete": true,
+        "trace": ["Open", "Read", "Close"], "consistency": "observed",
+        "selectedXid": "/documents/main/assets/item/versions/v3"
+      }
+    },
+    {
+      "name": "metadata-only-document-rejected-before-open",
+      "kind": "sequence",
+      "input": {
+        "sequence": {
+          "kind": "file", "hasdocument": false,
+          "request": {"operation": "document", "target": "/categories/dev/registries/bridge"},
+          "events": []
+        }
+      },
+      "error": "unsupported_operation"
+    },
+    {
+      "name": "capabilities-file-with-unknown-size",
+      "kind": "sequence",
+      "note": "Size was unavailable with Bad_NotSupported; no zero-size observation is invented.",
+      "input": {
+        "sequence": {
+          "kind": "file",
+          "request": {"operation": "capabilities", "target": "/"},
+          "events": [
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=Capabilities",
+              "method": "Open", "input": {"mode": 1},
+              "status": "Good", "output": {"fileHandle": 44}
+            },
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=Capabilities",
+              "method": "Read", "input": {"fileHandle": 44, "length": 64},
+              "status": "Good", "output": {"data": "eyJmbGFncyI6W119"}
+            },
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=Capabilities",
+              "method": "Read", "input": {"fileHandle": 44, "length": 64},
+              "status": "Good", "output": {"data": ""}
+            },
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=Capabilities",
+              "method": "Close", "input": {"fileHandle": 44}, "status": "Good"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "data": "eyJmbGFncyI6W119", "size": 12, "complete": true,
+        "trace": ["Open", "Read", "Read", "Close"], "consistency": "unverified"
+      }
+    },
+    {
+      "name": "three-browse-pages-with-reused-continuation-token",
+      "kind": "sequence",
+      "input": {
+        "sequence": {
+          "kind": "browse",
+          "request": {"operation": "collection", "target": "/documents/main/assets/item/versions"},
+          "namespaceArray": ["http://opcfoundation.org/UA/", "urn:example:registry"],
+          "events": [
+            {
+              "service": "Browse", "session": "session-1", "nodeId": "ns=1;s=MainGroup",
+              "input": {"requestedMaxReferencesPerNode": 1}, "status": "Good",
+              "output": {
+                "references": [
+                  {
+                    "nodeId": {
+                      "serverIndex": 0, "namespaceIndex": 1,
+                      "identifierType": "String", "identifier": "ItemV1"
+                    },
+                    "browseName": {"namespaceIndex": 1, "name": "v1"}
+                  }
+                ],
+                "continuationPoint": "cDE="
+              }
+            },
+            {
+              "service": "BrowseNext", "session": "session-1", "nodeId": "ns=1;s=MainGroup",
+              "input": {"continuationPoints": ["cDE="], "releaseContinuationPoints": false},
+              "status": "Good",
+              "output": {
+                "references": [
+                  {
+                    "nodeId": {
+                      "serverIndex": 0, "namespaceIndex": 1,
+                      "identifierType": "String", "identifier": "ItemV2"
+                    },
+                    "browseName": {"namespaceIndex": 1, "name": "v2"}
+                  }
+                ],
+                "continuationPoint": "cDE="
+              }
+            },
+            {
+              "service": "BrowseNext", "session": "session-1", "nodeId": "ns=1;s=MainGroup",
+              "input": {"continuationPoints": ["cDE="], "releaseContinuationPoints": false},
+              "status": "Good",
+              "output": {
+                "references": [
+                  {
+                    "nodeId": {
+                      "serverIndex": 0, "namespaceIndex": 1,
+                      "identifierType": "String", "identifier": "ItemV3"
+                    },
+                    "browseName": {"namespaceIndex": 1, "name": "v3"}
+                  }
+                ],
+                "continuationPoint": null
+              }
+            }
+          ]
+        }
+      },
+      "expected": {
+        "references": [
+          {
+            "nodeId": {
+              "serverIndex": 0, "namespaceIndex": 1,
+              "identifierType": "String", "identifier": "ItemV1"
+            },
+            "browseName": {"namespaceIndex": 1, "name": "v1"}
+          },
+          {
+            "nodeId": {
+              "serverIndex": 0, "namespaceIndex": 1,
+              "identifierType": "String", "identifier": "ItemV2"
+            },
+            "browseName": {"namespaceIndex": 1, "name": "v2"}
+          },
+          {
+            "nodeId": {
+              "serverIndex": 0, "namespaceIndex": 1,
+              "identifierType": "String", "identifier": "ItemV3"
+            },
+            "browseName": {"namespaceIndex": 1, "name": "v3"}
+          }
+        ],
+        "complete": true,
+        "trace": ["Browse", "BrowseNext", "BrowseNext"],
+        "consistency": "unverified"
+      }
+    },
+    {
+      "name": "read-failure-still-closes",
+      "kind": "sequence",
+      "input": {
+        "sequence": {
+          "kind": "file",
+          "events": [
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=ItemV1",
+              "method": "Open", "input": {"mode": 1},
+              "status": "Good", "output": {"fileHandle": 51}
+            },
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=ItemV1",
+              "method": "Read", "input": {"fileHandle": 51, "length": 64},
+              "status": "Bad_CommunicationError"
+            },
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=ItemV1",
+              "method": "Close", "input": {"fileHandle": 51}, "status": "Good"
+            }
+          ]
+        }
+      },
+      "error": "unavailable"
+    },
+    {
+      "name": "open-denied-no-handle",
+      "kind": "sequence",
+      "input": {
+        "sequence": {
+          "kind": "file",
+          "events": [
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=ItemV1",
+              "method": "Open", "input": {"mode": 1}, "status": "Bad_UserAccessDenied"
+            }
+          ]
+        }
+      },
+      "error": "policy_denied"
+    },
+    {
+      "name": "missing-document-is-not-empty",
+      "kind": "sequence",
+      "input": {
+        "sequence": {
+          "kind": "file",
+          "events": [
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=Missing",
+              "method": "Open", "input": {"mode": 1}, "status": "Bad_NotFound"
+            }
+          ]
+        }
+      },
+      "error": "not_found"
+    },
+    {
+      "name": "locked-document-is-not-redirect",
+      "kind": "sequence",
+      "input": {
+        "sequence": {
+          "kind": "file",
+          "events": [
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=ItemV1",
+              "method": "Open", "input": {"mode": 1}, "status": "Bad_NotReadable"
+            }
+          ]
+        }
+      },
+      "error": "unavailable"
+    },
+    {
+      "name": "service-good-does-not-hide-datavalue-denial",
+      "kind": "sequence",
+      "input": {
+        "sequence": {
+          "kind": "metadata",
+          "events": [
+            {
+              "service": "Read", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=FirstRegistry",
+              "serviceStatus": "Good", "status": "Good",
+              "values": {
+                "RegistryId": {"status": "Bad_UserAccessDenied", "value": null}
+              }
+            }
+          ]
+        }
+      },
+      "error": "policy_denied"
+    },
+    {
+      "name": "expired-browse-continuation",
+      "kind": "sequence",
+      "input": {
+        "sequence": {
+          "kind": "browse",
+          "events": [
+            {
+              "service": "Browse", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=MainGroup",
+              "status": "Good", "output": {"references": [], "continuationPoint": "cDE="}
+            },
+            {
+              "service": "BrowseNext", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=MainGroup",
+              "input": {"continuationPoints": ["cDE="], "releaseContinuationPoints": false},
+              "status": "Bad_ContinuationPointInvalid"
+            }
+          ]
+        }
+      },
+      "error": "inconsistent_snapshot"
+    },
+    {
+      "name": "wrong-handle-with-cleanup",
+      "kind": "sequence",
+      "input": {
+        "sequence": {
+          "kind": "file",
+          "events": [
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=ItemV1",
+              "method": "Open", "input": {"mode": 1},
+              "status": "Good", "output": {"fileHandle": 51}
+            },
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=ItemV1",
+              "method": "Read", "input": {"fileHandle": 52, "length": 64},
+              "status": "Good", "output": {"data": ""}
+            },
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=ItemV1",
+              "method": "Close", "input": {"fileHandle": 51}, "status": "Good"
+            }
+          ]
+        }
+      },
+      "error": "invalid_package"
+    },
+    {
+      "name": "byte-budget-still-closes",
+      "kind": "sequence",
+      "input": {
+        "max_bytes": 1,
+        "sequence": {
+          "kind": "file",
+          "events": [
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=ItemV2",
+              "method": "Open", "input": {"mode": 1},
+              "status": "Good", "output": {"fileHandle": 51}
+            },
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=ItemV2",
+              "method": "Read", "input": {"fileHandle": 51, "length": 64},
+              "status": "Good", "output": {"data": "AP8="}
+            },
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=ItemV2",
+              "method": "Close", "input": {"fileHandle": 51}, "status": "Good"
+            }
+          ]
+        }
+      },
+      "error": "limit_exceeded"
+    },
+    {
+      "name": "premature-eof",
+      "kind": "sequence",
+      "input": {
+        "sequence": {
+          "kind": "file", "expectedSize": 2,
+          "events": [
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=ItemV2",
+              "method": "Open", "input": {"mode": 1},
+              "status": "Good", "output": {"fileHandle": 51}
+            },
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=ItemV2",
+              "method": "Read", "input": {"fileHandle": 51, "length": 64},
+              "status": "Good", "output": {"data": ""}
+            },
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=ItemV2",
+              "method": "Close", "input": {"fileHandle": 51}, "status": "Good"
+            }
+          ]
+        }
+      },
+      "error": "inconsistent_snapshot"
+    },
+    {
+      "name": "unsupported-core-version",
+      "kind": "sequence",
+      "input": {
+        "sequence": {"kind": "metadata", "specversion": "1.0-rc2", "events": []}
+      },
+      "error": "unsupported_version"
+    },
+    {
+      "name": "unsupported-actual-specversion-property",
+      "kind": "sequence",
+      "input": {
+        "sequence": {
+          "kind": "metadata",
+          "request": {"operation": "entity", "target": "/"},
+          "events": [
+            {
+              "service": "Read", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=FirstRegistry",
+              "status": "Good",
+              "values": {
+                "SpecVersion": {"status": "Good", "value": "1.0-rc2"}
+              }
+            }
+          ]
+        }
+      },
+      "error": "unsupported_version"
+    },
+    {
+      "name": "namespace-refresh-then-file-read",
+      "kind": "sequence",
+      "input": {
+        "sequence": {
+          "kind": "namespace-file", "refresh": true, "expectedSize": 70,
+          "events": [
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=NamespaceFile",
+              "method": "ExportNamespace", "input": {}, "status": "Good", "output": {}
+            },
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=NamespaceFile",
+              "method": "Open", "input": {"mode": 1},
+              "status": "Good", "output": {"fileHandle": 61}
+            },
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=NamespaceFile",
+              "method": "Read", "input": {"fileHandle": 61, "length": 128},
+              "status": "Good",
+              "output": {"data": "PFVBTm9kZVNldCB4bWxucz0iaHR0cDovL29wY2ZvdW5kYXRpb24ub3JnL1VBLzIwMTEvMDMvVUFOb2RlU2V0LnhzZCIvPg=="}
+            },
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=NamespaceFile",
+              "method": "Read", "input": {"fileHandle": 61, "length": 128},
+              "status": "Good", "output": {"data": ""}
+            },
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=NamespaceFile",
+              "method": "Close", "input": {"fileHandle": 61}, "status": "Good"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "data": "PFVBTm9kZVNldCB4bWxucz0iaHR0cDovL29wY2ZvdW5kYXRpb24ub3JnL1VBLzIwMTEvMDMvVUFOb2RlU2V0LnhzZCIvPg==",
+        "size": 70, "complete": true,
+        "trace": ["ExportNamespace", "Open", "Read", "Read", "Close"],
+        "consistency": "unverified"
+      }
+    },
+    {
+      "name": "namespace-refresh-not-supported",
+      "kind": "sequence",
+      "input": {
+        "sequence": {
+          "kind": "namespace-file", "refresh": true,
+          "events": [
+            {
+              "service": "Call", "session": "session-1",
+              "nodeId": "nsu=urn:example:registry;s=NamespaceFile",
+              "method": "ExportNamespace", "input": {}, "status": "Bad_MethodInvalid"
+            }
+          ]
+        }
+      },
+      "error": "unsupported_operation"
+    }
+  ]
+}

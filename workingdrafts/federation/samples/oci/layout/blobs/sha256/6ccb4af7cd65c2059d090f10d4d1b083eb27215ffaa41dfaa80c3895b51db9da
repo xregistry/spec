@@ -1,0 +1,11 @@
+{
+  "entity": {
+    "createdat": "2026-09-01T12:00:00Z",
+    "dirid": "empty",
+    "epoch": 1,
+    "modifiedat": "2026-09-01T12:00:00Z",
+    "xid": "/dirs/empty"
+  },
+  "formatversion": 1,
+  "kind": "group"
+}

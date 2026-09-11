@@ -1,0 +1,37 @@
+{
+  "annotations": {
+    "io.xregistry.oci.kind": "collection",
+    "io.xregistry.oci.lower": "/dirs/main/files/dangling",
+    "io.xregistry.oci.mode": "branch",
+    "io.xregistry.oci.upper": "",
+    "io.xregistry.oci.version": "1",
+    "io.xregistry.oci.xid": "/dirs/main/files"
+  },
+  "artifactType": "application/vnd.xregistry.collection.v1+json",
+  "manifests": [
+    {
+      "annotations": {
+        "io.xregistry.oci.lower": "/dirs/main/files/dangling",
+        "io.xregistry.oci.role": "shard",
+        "io.xregistry.oci.upper": "/dirs/main/files/empty",
+        "io.xregistry.oci.xid": "/dirs/main/files"
+      },
+      "digest": "sha256:e9380249b79341b160c89e893213792a26793e8186ac8f848ec84ec60706e578",
+      "mediaType": "application/vnd.oci.image.index.v1+json",
+      "size": 793
+    },
+    {
+      "annotations": {
+        "io.xregistry.oci.lower": "/dirs/main/files/empty",
+        "io.xregistry.oci.role": "shard",
+        "io.xregistry.oci.upper": "",
+        "io.xregistry.oci.xid": "/dirs/main/files"
+      },
+      "digest": "sha256:b4c432b24f90db7afc9264b73d71f8a9045a08717c248043a6a8cd8cf7b75f39",
+      "mediaType": "application/vnd.oci.image.index.v1+json",
+      "size": 1083
+    }
+  ],
+  "mediaType": "application/vnd.oci.image.index.v1+json",
+  "schemaVersion": 2
+}

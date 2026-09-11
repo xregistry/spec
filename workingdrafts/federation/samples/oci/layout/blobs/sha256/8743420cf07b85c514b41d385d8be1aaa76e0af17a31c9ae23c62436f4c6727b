@@ -1,0 +1,18 @@
+{
+  "document": {
+    "mode": "embedded"
+  },
+  "entity": {
+    "ancestorid": "v1",
+    "contenttype": "text/plain; charset=utf-8",
+    "createdat": "2026-09-01T12:00:00Z",
+    "epoch": 1,
+    "fileid": "empty",
+    "isdefault": true,
+    "modifiedat": "2026-09-01T12:00:00Z",
+    "versionid": "v1",
+    "xid": "/dirs/main/files/empty/versions/v1"
+  },
+  "formatversion": 1,
+  "kind": "version"
+}

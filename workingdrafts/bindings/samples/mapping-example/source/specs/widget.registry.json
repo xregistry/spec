@@ -1,0 +1,22 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "version",
+  "entity": {
+    "xid": "/documents/main/assets/widget/versions/v1",
+    "assetid": "widget",
+    "versionid": "v1",
+    "epoch": 1,
+    "createdat": "2026-01-01T00:00:00Z",
+    "modifiedat": "2026-01-01T00:00:00Z",
+    "ancestorid": "v1",
+    "isdefault": true,
+    "contenttype": "application/schema+json"
+  },
+  "document": {
+    "kind": "local",
+    "href": "source/specs/widget.json",
+    "size": 18,
+    "sha256": "85803e087e684bdab3e5d6c2dd1af627da83382db625be9a42aea3d4d06539be"
+  }
+}

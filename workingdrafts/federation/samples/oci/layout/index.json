@@ -1,0 +1,24 @@
+{
+  "manifests": [
+    {
+      "annotations": {
+        "org.opencontainers.image.ref.name": "offline"
+      },
+      "artifactType": "application/vnd.xregistry.registry.v1+json",
+      "digest": "sha256:c937f902c54ca9c63e510bab3b4ec07ec3775ad338ac030ac93d916a736efba6",
+      "mediaType": "application/vnd.oci.image.index.v1+json",
+      "size": 903
+    },
+    {
+      "annotations": {
+        "org.opencontainers.image.ref.name": "linked"
+      },
+      "artifactType": "application/vnd.xregistry.registry.v1+json",
+      "digest": "sha256:dff871378d2678ee851fb7d97bae5a6b69b05c3d668f224a2f97127e8e8dee88",
+      "mediaType": "application/vnd.oci.image.index.v1+json",
+      "size": 903
+    }
+  ],
+  "mediaType": "application/vnd.oci.image.index.v1+json",
+  "schemaVersion": 2
+}

@@ -1,0 +1,16 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "collection",
+  "xid": "/documents/main/notes",
+  "count": 1,
+  "entries": [
+    {
+      "kind": "resource",
+      "xid": "/documents/main/notes/item",
+      "href": "records/nc.json",
+      "size": 632,
+      "sha256": "52453c4344d108ab11aefbd23d35345eb1467ef95ae4bb11fe9ad14211a1b051"
+    }
+  ]
+}

@@ -1,0 +1,279 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:xregistry:document-tree:record:1",
+  "title": "xRegistry document-tree storage record, working draft 1",
+  "description": "Storage metadata fragments. Core navigation is assembled on read.",
+  "type": "object",
+  "required": ["format", "formatversion", "kind", "entity"],
+  "additionalProperties": false,
+  "properties": {
+    "format": {"const": "xregistry-document-tree"},
+    "formatversion": {"const": "1"},
+    "kind": {
+      "enum": ["registry", "group", "resource", "meta", "version"]
+    },
+    "entity": {"$ref": "#/$defs/entity"},
+    "collections": {
+      "type": "array",
+      "items": {
+        "allOf": [
+          {"$ref": "#/$defs/reference"},
+          {"properties": {"kind": {"const": "collection"}}}
+        ]
+      }
+    },
+    "meta": {
+      "allOf": [
+        {"$ref": "#/$defs/reference"},
+        {"properties": {"kind": {"const": "meta"}}}
+      ]
+    },
+    "document": {"$ref": "#/$defs/document"},
+    "snapshot": {
+      "type": "object",
+      "required": ["scope", "completeness"],
+      "additionalProperties": false,
+      "properties": {
+        "scope": {"const": "/"},
+        "completeness": {"enum": ["linked", "offline-complete"]}
+      }
+    },
+    "resolvedmodelsource": {"type": "object"},
+    "modelbase": {"type": "string", "format": "uri"},
+    "source": {
+      "type": "object",
+      "required": ["uri"],
+      "additionalProperties": false,
+      "properties": {
+        "uri": {"type": "string", "format": "uri"},
+        "revision": {"type": "string", "minLength": 1}
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"kind": {"const": "registry"}}},
+      "then": {
+        "required": ["collections", "snapshot"],
+        "properties": {
+          "entity": {
+            "required": [
+              "registryid", "specversion", "epoch", "createdat",
+              "modifiedat", "modelsource", "capabilities"
+            ],
+            "properties": {"xid": {"const": "/"}}
+          },
+          "meta": false,
+          "document": false
+        }
+      },
+      "else": {
+        "properties": {
+          "snapshot": false,
+          "resolvedmodelsource": false,
+          "modelbase": false,
+          "source": false
+        }
+      }
+    },
+    {
+      "if": {"properties": {"kind": {"const": "group"}}},
+      "then": {
+        "required": ["collections"],
+        "properties": {
+          "entity": {
+            "required": ["epoch", "createdat", "modifiedat"],
+            "properties": {"xid": {"pattern": "^/[^/]+/[^/]+$"}}
+          },
+          "meta": false,
+          "document": false
+        }
+      }
+    },
+    {
+      "if": {"properties": {"kind": {"const": "resource"}}},
+      "then": {
+        "required": ["collections", "meta"],
+        "properties": {
+          "entity": {
+            "properties": {
+              "xid": {"pattern": "^/[^/]+/[^/]+/[^/]+/[^/]+$"},
+              "epoch": false,
+              "createdat": false,
+              "modifiedat": false,
+              "versionid": false,
+              "labels": false
+            }
+          },
+          "document": false
+        }
+      }
+    },
+    {
+      "if": {"properties": {"kind": {"const": "meta"}}},
+      "then": {
+        "properties": {
+          "entity": {
+            "properties": {
+              "xid": {"pattern": "^/[^/]+/[^/]+/[^/]+/[^/]+/meta$"}
+            },
+            "if": {"required": ["xref"]},
+            "then": {
+              "properties": {
+                "epoch": false,
+                "createdat": false,
+                "modifiedat": false,
+                "readonly": false,
+                "defaultversionid": false,
+                "defaultversionsticky": false
+              }
+            },
+            "else": {
+              "required": [
+                "epoch", "createdat", "modifiedat", "readonly",
+                "defaultversionid", "defaultversionsticky"
+              ]
+            }
+          },
+          "collections": false,
+          "meta": false,
+          "document": false
+        }
+      }
+    },
+    {
+      "if": {"properties": {"kind": {"const": "version"}}},
+      "then": {
+        "required": ["document"],
+        "properties": {
+          "entity": {
+            "properties": {
+              "xid": {"pattern": "^/[^/]+/[^/]+/[^/]+/[^/]+/versions/[^/]+$"}
+            },
+            "required": [
+              "versionid", "epoch", "createdat", "modifiedat",
+              "ancestorid", "isdefault"
+            ]
+          },
+          "collections": false,
+          "meta": false
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_][A-Za-z0-9_.~:@-]{0,127}(?![\\s\\S])"
+    },
+    "xid": {
+      "type": "string",
+      "pattern": "^/(?:[A-Za-z0-9_][A-Za-z0-9_.~:@-]{0,127}(?:/[A-Za-z0-9_][A-Za-z0-9_.~:@-]{0,127})*)?(?![\\s\\S])"
+    },
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "pattern": "^(?![\\s\\S]*(?:^|/)\\.{1,2}(?:/|$))[^/\\u0000-\\u001f\\u007f\\\\<>:\"|?*]+(?:/[^/\\u0000-\\u001f\\u007f\\\\<>:\"|?*]+)*(?![\\s\\S])",
+      "$comment": "Root-relative path, not an entity ID or URI. Semantic checks also reject platform aliases, case-colliding allocations and encoded separator/dot tricks."
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "reference": {
+      "type": "object",
+      "required": ["kind", "xid", "href", "size", "sha256"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": ["group", "resource", "meta", "version", "collection"]
+        },
+        "xid": {"$ref": "#/$defs/xid"},
+        "href": {"$ref": "#/$defs/path"},
+        "size": {"type": "integer", "minimum": 0},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "entity": {
+      "type": "object",
+      "required": ["xid"],
+      "properties": {
+        "xid": {"$ref": "#/$defs/xid"},
+        "registryid": {"$ref": "#/$defs/id"},
+        "versionid": {
+          "allOf": [
+            {"$ref": "#/$defs/id"},
+            {"not": {"enum": ["null", "request"]}}
+          ]
+        },
+        "specversion": {"type": "string", "minLength": 1},
+        "epoch": {"type": "integer", "minimum": 0},
+        "createdat": {"type": "string", "format": "date-time"},
+        "modifiedat": {"type": "string", "format": "date-time"},
+        "ancestorid": {"$ref": "#/$defs/id"},
+        "isdefault": {"type": "boolean"},
+        "readonly": {"type": "boolean"},
+        "defaultversionid": {"$ref": "#/$defs/id"},
+        "defaultversionsticky": {"type": "boolean"},
+        "xref": {"$ref": "#/$defs/xid"},
+        "contenttype": {"type": "string", "minLength": 1},
+        "labels": {
+          "type": "object",
+          "additionalProperties": {"type": "string"}
+        },
+        "model": {"type": "object"},
+        "modelsource": {"type": "object"},
+        "capabilities": {
+          "type": "object",
+          "required": ["available"],
+          "properties": {"available": {"type": "object", "minProperties": 1}}
+        },
+        "self": false,
+        "shortself": false,
+        "metaurl": false,
+        "defaultversionurl": false,
+        "formatvalidated": false,
+        "formatvalidatedreason": false,
+        "compatibilityvalidated": false,
+        "compatibilityvalidatedreason": false
+      }
+    },
+    "document": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind", "href", "size", "sha256"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": {"const": "local"},
+            "href": {"$ref": "#/$defs/path"},
+            "size": {"type": "integer", "minimum": 0},
+            "sha256": {"$ref": "#/$defs/sha256"},
+            "base": {"type": "string", "format": "uri"},
+            "origin": {"type": "string", "format": "uri"}
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "uri"],
+          "additionalProperties": false,
+          "dependentRequired": {"size": ["sha256"], "sha256": ["size"]},
+          "properties": {
+            "kind": {"const": "external"},
+            "uri": {"type": "string", "minLength": 1, "format": "uri-reference"},
+            "base": {"type": "string", "format": "uri"},
+            "size": {"type": "integer", "minimum": 0},
+            "sha256": {"$ref": "#/$defs/sha256"}
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind"],
+          "additionalProperties": false,
+          "properties": {"kind": {"const": "none"}}
+        }
+      ]
+    }
+  }
+}

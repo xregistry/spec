@@ -1,0 +1,21 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "group",
+  "entity": {
+    "epoch": 1,
+    "createdat": "2026-09-04T00:00:00Z",
+    "modifiedat": "2026-09-04T00:00:00Z",
+    "xid": "/categories/main",
+    "categoryid": "main"
+  },
+  "collections": [
+    {
+      "kind": "collection",
+      "xid": "/categories/main/registries",
+      "href": "indexes/n1.json",
+      "size": 386,
+      "sha256": "fba80b3ee1b3feec85c1a91b6af59374f6bed620dcd3507fc020156b603879d9"
+    }
+  ]
+}

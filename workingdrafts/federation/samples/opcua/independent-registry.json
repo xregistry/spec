@@ -1,0 +1,68 @@
+{
+  "specversion": "1.0-rc4",
+  "registryid": "second",
+  "self": "#",
+  "xid": "/",
+  "epoch": 1,
+  "createdat": "2026-09-01T00:00:00Z",
+  "modifiedat": "2026-09-01T00:00:00Z",
+  "modelsource": {
+    "groups": {
+      "documents": {
+        "singular": "document",
+        "resources": {"assets": {"singular": "asset"}}
+      }
+    }
+  },
+  "documentsurl": "#/documents",
+  "documentscount": 1,
+  "documents": {
+    "main": {
+      "documentid": "main",
+      "self": "#/documents/main",
+      "xid": "/documents/main",
+      "epoch": 1,
+      "createdat": "2026-09-01T00:00:00Z",
+      "modifiedat": "2026-09-01T00:00:00Z",
+      "assetsurl": "#/documents/main/assets",
+      "assetscount": 1,
+      "assets": {
+        "item": {
+          "assetid": "item",
+          "self": "#/documents/main/assets/item",
+          "xid": "/documents/main/assets/item",
+          "metaurl": "#/documents/main/assets/item/meta",
+          "meta": {
+            "assetid": "item",
+            "self": "#/documents/main/assets/item/meta",
+            "xid": "/documents/main/assets/item/meta",
+            "epoch": 1,
+            "createdat": "2026-09-01T00:00:00Z",
+            "modifiedat": "2026-09-01T00:00:00Z",
+            "readonly": false,
+            "defaultversionid": "v1",
+            "defaultversionurl": "#/documents/main/assets/item/versions/v1",
+            "defaultversionsticky": true
+          },
+          "versionsurl": "#/documents/main/assets/item/versions",
+          "versionscount": 1,
+          "versions": {
+            "v1": {
+              "assetid": "item",
+              "versionid": "v1",
+              "self": "#/documents/main/assets/item/versions/v1",
+              "xid": "/documents/main/assets/item/versions/v1",
+              "epoch": 1,
+              "createdat": "2026-09-01T00:00:00Z",
+              "modifiedat": "2026-09-01T00:00:00Z",
+              "isdefault": true,
+              "ancestorid": "v1",
+              "contenttype": "application/json",
+              "assetbase64": "eyJ0eXBlIjoibnVtYmVyIn0="
+            }
+          }
+        }
+      }
+    }
+  }
+}
