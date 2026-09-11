@@ -85,7 +85,7 @@ lowercase for the pin. A full ref is a selection input, not an immutable pin.
 A nonempty `path` MUST use `/`-separated portable directory components.
 Components MUST be 1 to 64 ASCII letters, digits, `_`, `-` or `.`, begin with
 a letter, digit or `_`, and MUST NOT end in `.`. A component MUST NOT have a
-case-insensitive Windows device stem (`CON`, `PRN`, `AUX`, `NUL`, `COM1`
+case-insensitive Windows device name (`CON`, `PRN`, `AUX`, `NUL`, `COM1`
 through `COM9`, or `LPT1` through `LPT9`, including before an extension).
 Leading/trailing separators, empty components, `.` and `..`, backslashes,
 colon/drive names, URI escapes and OS aliases are forbidden. This constraint
@@ -214,7 +214,7 @@ and repository trust policies are independent.
 
 ## Conformance
 
-A producer MUST publish a complete shared document-tree snapshot in one
+A producer MUST publish a complete document-tree mapping in one
 commit at the advertised path. A native resolver MUST implement locator
 validation, commit pinning, object-only reads, the common operations and
 the rejection rules above. Offline-complete conformance additionally requires

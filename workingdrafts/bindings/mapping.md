@@ -462,7 +462,7 @@ They MUST NOT be absolute, contain empty components, `.` or `..` components,
 backslashes, NUL/control characters or surrogate code points. URI decoding
 MUST NOT be applied. Encoded separator/dot traversal tricks MUST be rejected.
 Portable paths MUST NOT contain `<>:"|?*`, end a component with a space or
-period, or use Windows device stems such as `CON` and `NUL`.
+period, or use Windows device names such as `CON` and `NUL`.
 Other Unicode names and spaces within components are permitted. Platform
 path-length and access limits produce explicit errors.
 

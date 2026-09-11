@@ -737,7 +737,9 @@ NOT execute hooks, start containers, extract archives or interpret domain
 links merely to traverse this profile. Integrity does not establish
 publisher authorization. Trust decisions and OPTIONAL signature checks
 are distinct from format validity. Integrity and policy errors MUST NOT
-silently trigger fallback to another advertisement.
+silently trigger fallback to another
+[advertisement](#2-advertisement-and-root-selection), as specified by the
+[Federation binding-selection rules](../federation/spec.md#discovery-and-binding-selection).
 
 ## 9. Conformance and Executable Examples
 

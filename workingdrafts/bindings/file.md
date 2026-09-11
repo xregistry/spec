@@ -3,12 +3,13 @@
 <!-- words: filesystem symlinks reparse unc sha256 percent-encoded -->
 <!-- words: filenames href uri oid oci modelsource hasdocument -->
 <!-- words: documenttree filestore localhost posix py realpath symlink -->
+<!-- words: mnt nas -->
 
 ## Abstract
 
 This binding reads a Registry snapshot from an explicitly selected filesystem
-directory, using either the shared document-tree format or an OCI image
-layout. It is suitable for offline and local access without a server.
+directory, using either the document-tree mapping format or an OCI image
+layout. It is suitable for filesystem access without an xRegistry server.
 
 **Status:** Unreleased working draft. This binding is not part of a released
 xRegistry specification.
@@ -47,6 +48,18 @@ A request for `/documents/main/assets/item/versions/v1` follows its
 record/index references and reads the selected bytes. Alternatively,
 `layout: "oci-layout"` and `reference: "release-1"` select one snapshot
 from an OCI layout at the same kind of local location.
+
+The directory can reside on local storage, network-attached storage (NAS)
+or another file share exposed by the operating system as a mounted
+filesystem. For example, `file:///mnt/team-registry` can select a mounted
+share on a POSIX host, while `file:///R:/team-registry` can select a Windows
+mapped drive. Mounting the share and configuring its credentials are
+operating-system tasks, not operations defined by this binding.
+
+These examples use local filesystem paths to an already mounted share.
+They do not enable remote-authority URIs such as `file://nas/team-registry`.
+The authority and containment rules below still apply, including the
+restrictions on symlinks and reparse points.
 
 Consumers can read these formats directly. A federating API server can also
 use the directory as a source and return a normal xRegistry response to its
@@ -107,7 +120,7 @@ URI parsing MUST validate escapes before decoding, decode UTF-8 exactly once,
 and reject NUL/control characters, backslashes, encoded separators and
 encoded dot/parent segments. After decoding, `.` and `..`, empty interior
 components, drive or device prefixes, alternate data streams, trailing
-spaces/dots and Windows-reserved component stems MUST be rejected where
+spaces/dots and Windows-reserved component names MUST be rejected where
 applicable. A single terminal slash is permitted for a directory URI.
 Decoding a second time MUST NOT turn a literal percent sequence into traversal.
 
