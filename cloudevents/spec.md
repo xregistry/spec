@@ -192,6 +192,7 @@ endpoint with a single, embedded message definition using an embedded Protobuf
           "datacontenttype": "application/x-protobuf",
 
           "metaurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/meta",
+
           "versionsurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/versions",
           "versionscount": 1
         }
@@ -300,6 +301,7 @@ other scenarios:
           "datacontenttype": "application/x-protobuf",
 
           "metaurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/meta",
+
           "versionsurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/versions",
           "versionscount": 1
         }
@@ -337,6 +339,7 @@ other scenarios:
           "schema": "syntax = \"proto3\"; message Metrics { float metric = 1;}",
 
           "metaurl": "https://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/meta",
+
           "versionscount": 1,
           "versionsurl": "https://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions"
         }
