@@ -29,10 +29,9 @@ Files:
 
 ## Multi-Format Document Store
 
-This example is another document store, however, in this case the format of
-the documents stored needs to be a first class concept in the model. So, in
-this case the "document" maps to the xRegistry "group" and the document
-"format" maps to the xRegistry "resource".
+This example is another document store, but in this case each rendition of a
+document needs to be a first-class concept in the model. The "document" maps
+to an xRegistry Group and each "rendition" maps to an xRegistry Resource.
 
 In this model each document does not need to have a unique id for each rendition,
 rather in this scenario the document id (and often "name") will be the same for
