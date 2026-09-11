@@ -22,11 +22,14 @@ WoT Registry model defined in [../model.json](../model.json):
   untouched, and all registry-side identity lives outside the documents in
   `wotid` and `derivedfrom`. The pump has two Versions, with `2` as the
   default, so retrieving the Resource yields the latest while
-  `.../versions/1` yields the earlier one. It also carries the provenance
-  attributes an agent uses to prefer an official model.
+  `.../versions/1` yields the earlier one. Because the pump supplies an
+  explicit `versions` collection, its attributes — including the provenance
+  attributes an agent uses to prefer an official model — are carried on each
+  Version rather than on the Resource; the device, which has a single
+  implicit Version, carries them on the Resource directly.
 
 - [smartlamp-wot.xreg.json](smartlamp-wot.xreg.json) — an end-to-end scenario
-  combining a Thing Model and Thing Description with a JSON Schema, a
-  CloudEvents message definition and an MQTT/5.0 endpoint, showing how
-  `thingdescriptiongroups` and `thingmodelgroups` compose with `schemagroups`,
-  `messagegroups` and `endpoints` in a single registry document.
+  combining a Thing Model and a Thing Description that conforms to it in a
+  single registry document, showing how `thingmodelgroups` and
+  `thingdescriptiongroups` compose: the instance carries `derivedfrom` and a
+  `links[].rel = "type"` reference to the Thing Model Resource.

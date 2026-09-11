@@ -4,21 +4,21 @@
             "description": "Thing Models supplied by Contoso and stored unchanged",
             "thingmodels": {
                 "example.contoso.tm.pump": {
-                    "description": "Vendor-supplied pump Thing Model, stored as authored",
-                    "format": "JSON-LD/1.1",
-                    "contenttype": "application/tm+json",
-                    "wotid": "https://contoso.example/tm/pump",
-                    "derivedfrom": [ "https://contoso.example/tm/device" ],
-                    "publisher": "Contoso",
-                    "standardsbody": "W3C",
-                    "license": "https://contoso.example/licenses/tm",
-                    "canonicalurl": "https://contoso.example/tm/pump",
-                    "maturity": "Standard",
                     "meta": {
                         "defaultversionid": "2"
                     },
                     "versions": {
                         "1": {
+                            "description": "Vendor-supplied pump Thing Model, stored as authored",
+                            "format": "JSON-LD/1.1",
+                            "contenttype": "application/tm+json",
+                            "wotid": "https://contoso.example/tm/pump",
+                            "derivedfrom": [ "https://contoso.example/tm/device" ],
+                            "publisher": "Contoso",
+                            "standardsbody": "W3C",
+                            "license": "https://contoso.example/licenses/tm",
+                            "canonicalurl": "https://contoso.example/tm/pump",
+                            "maturity": "Standard",
                             "thingmodel": {
                                 "@context": "https://www.w3.org/2022/wot/td/v1.1",
                                 "@type": "tm:ThingModel",
@@ -32,6 +32,16 @@
                             }
                         },
                         "2": {
+                            "description": "Vendor-supplied pump Thing Model, stored as authored",
+                            "format": "JSON-LD/1.1",
+                            "contenttype": "application/tm+json",
+                            "wotid": "https://contoso.example/tm/pump",
+                            "derivedfrom": [ "https://contoso.example/tm/device" ],
+                            "publisher": "Contoso",
+                            "standardsbody": "W3C",
+                            "license": "https://contoso.example/licenses/tm",
+                            "canonicalurl": "https://contoso.example/tm/pump",
+                            "maturity": "Standard",
                             "thingmodel": {
                                 "@context": "https://www.w3.org/2022/wot/td/v1.1",
                                 "@type": "tm:ThingModel",

@@ -21,11 +21,6 @@
                         "actions": {
                             "toggle": { "synchronous": true },
                             "setBrightness": { "input": { "type": "integer", "minimum": 0, "maximum": 100 } }
-                        },
-                        "events": {
-                            "overheated": {
-                                "data": { "tm:ref": "/schemagroups/Fabrikam.Lighting/schemas/Fabrikam.Lamp.OverheatedData" }
-                            }
                         }
                     }
                 }
@@ -69,77 +64,9 @@
                                     }
                                 ]
                             }
-                        },
-                        "events": {
-                            "overheated": {
-                                "data": { "tm:ref": "/schemagroups/Fabrikam.Lighting/schemas/Fabrikam.Lamp.OverheatedData" },
-                                "forms": [
-                                    {
-                                        "href": "mqtts://broker.fabrikam.example:8883/lamps/42/overheated",
-                                        "contentType": "application/cloudevents+json",
-                                        "op": [ "subscribeevent" ]
-                                    }
-                                ]
-                            }
                         }
                     }
                 }
-            }
-        }
-    },
-
-    "schemagroups": {
-        "Fabrikam.Lighting": {
-            "description": "Data schemas referenced by Fabrikam lighting Thing Models and Descriptions",
-            "schemas": {
-                "Fabrikam.Lamp.OverheatedData": {
-                    "description": "Payload schema for the lamp overheated event",
-                    "format": "JsonSchema/draft-07",
-                    "schema": {
-                        "$schema": "http://json-schema.org/draft-07/schema",
-                        "type": "object",
-                        "properties": {
-                            "temperature": { "type": "number", "description": "Measured temperature in degrees Celsius" },
-                            "thresholdExceededAt": { "type": "string", "format": "date-time" }
-                        },
-                        "required": [ "temperature" ]
-                    }
-                }
-            }
-        }
-    },
-
-    "messagegroups": {
-        "Fabrikam.Lighting": {
-            "envelope": "CloudEvents/1.0",
-            "description": "CloudEvents emitted by Fabrikam lighting devices",
-            "messages": {
-                "Fabrikam.Lamp.Overheated": {
-                    "description": "Emitted when a lamp reports an overheated event",
-                    "envelope": "CloudEvents/1.0",
-                    "envelopemetadata": {
-                        "id": { "required": true },
-                        "type": { "value": "Fabrikam.Lamp.Overheated" },
-                        "source": { "type": "uritemplate", "value": "{tenantid}/{deviceid}" },
-                        "time": { "required": true }
-                    },
-                    "dataschemaformat": "JsonSchema/draft-07",
-                    "dataschemauri": "/schemagroups/Fabrikam.Lighting/schemas/Fabrikam.Lamp.OverheatedData"
-                }
-            }
-        }
-    },
-
-    "endpoints": {
-        "Fabrikam.Lighting.Broker": {
-            "description": "Fabrikam MQTT broker for lighting device telemetry",
-            "usage": [ "producer", "consumer" ],
-            "envelope": "CloudEvents/1.0",
-            "protocol": "MQTT/5.0",
-            "channel": "lamps/+/overheated",
-            "messagegroups": [ "/messagegroups/Fabrikam.Lighting" ],
-            "config": {
-                "endpoints": [ { "uri": "mqtts://broker.fabrikam.example:8883" } ]
             }
         }
     }
