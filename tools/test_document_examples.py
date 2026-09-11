@@ -830,7 +830,7 @@ def test_document_portable_path_mapping_is_injective(tmp_path, identity):
     "mutation,code,message",
     [
         pytest.param("duplicate-allocation", "invalid_package", "Conflicting storage allocation", id="duplicate-allocation"),
-        pytest.param("case-collision", "policy_denied", "Unsafe storage name", id="case-collision"),
+        pytest.param("case-collision", "invalid_package", "Conflicting storage allocation", id="case-collision"),
     ],
 )
 def test_document_conflicting_portable_allocations_are_rejected_before_reads(
@@ -866,8 +866,6 @@ def test_document_conflicting_portable_allocations_are_rejected_before_reads(
         pytest.param("documents/./n1.bin", "policy_denied", "Unsafe storage name", id="dot-component"),
         pytest.param("documents/n1.bin:stream", "policy_denied", "Unsafe storage name", id="alternate-stream"),
         pytest.param("documents/n1.bin\n", "policy_denied", "Unsafe storage name", id="trailing-newline"),
-        pytest.param("documents/n01.bin", "policy_denied", "Noncanonical storage name", id="leading-zero"),
-        pytest.param("documents/n1.json", "policy_denied", "Noncanonical storage name", id="wrong-suffix"),
         pytest.param(None, "policy_denied", "Storage name must be a string", id="not-string"),
     ],
 )
@@ -885,6 +883,17 @@ def test_file_document_tree_rejects_traversal_and_path_escape(
     assert store.reads == []
     assert store.total_bytes == 0
     assert outside.read_bytes() == b"outside poison must never be opened"
+
+
+@pytest.mark.parametrize("name", ["documents/n01.bin", "documents/n1.json"])
+def test_existing_document_paths_need_not_use_the_example_allocation_scheme(tmp_path, name):
+    path = tmp_path.joinpath(*name.split("/"))
+    path.parent.mkdir(parents=True)
+    path.write_bytes(b"existing bytes")
+    reader = document.FileStore(tmp_path)
+    assert reader.read(name) == b"existing bytes"
+    assert reader.reads == [name]
+    assert reader.total_bytes == 14
 
 
 def test_file_document_tree_rejects_symlink_escape(copied_tree, tmp_path):

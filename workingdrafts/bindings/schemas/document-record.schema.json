@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:xregistry:document-tree:record:1",
   "title": "xRegistry document-tree storage record, working draft 1",
-  "description": "Storage metadata fragments; Core navigation is assembled on read.",
+  "description": "Storage metadata fragments. Core navigation is assembled on read.",
   "type": "object",
   "required": ["format", "formatversion", "kind", "entity"],
   "additionalProperties": false,
@@ -172,7 +172,10 @@
     },
     "path": {
       "type": "string",
-      "pattern": "^(?:records|indexes|documents)/(?:n[0-9a-f]{32}/)*n[0-9a-f]{1,32}\\.(?:json|bin)$"
+      "minLength": 1,
+      "maxLength": 4096,
+      "pattern": "^(?![\\s\\S]*(?:^|/)\\.{1,2}(?:/|$))[^/\\u0000-\\u001f\\u007f\\\\<>:\"|?*]+(?:/[^/\\u0000-\\u001f\\u007f\\\\<>:\"|?*]+)*(?![\\s\\S])",
+      "$comment": "Root-relative path, not an entity ID or URI. Semantic checks also reject platform aliases, case-colliding allocations and encoded separator/dot tricks."
     },
     "sha256": {
       "type": "string",
@@ -190,10 +193,7 @@
         "href": {"$ref": "#/$defs/path"},
         "size": {"type": "integer", "minimum": 0},
         "sha256": {"$ref": "#/$defs/sha256"}
-      },
-      "if": {"properties": {"kind": {"const": "collection"}}},
-      "then": {"properties": {"href": {"pattern": "^indexes/.+\\.json$"}}},
-      "else": {"properties": {"href": {"pattern": "^records/.+\\.json$"}}}
+      }
     },
     "entity": {
       "type": "object",
@@ -247,12 +247,7 @@
           "additionalProperties": false,
           "properties": {
             "kind": {"const": "local"},
-            "href": {
-              "allOf": [
-                {"$ref": "#/$defs/path"},
-                {"pattern": "^documents/.+\\.bin$"}
-              ]
-            },
+            "href": {"$ref": "#/$defs/path"},
             "size": {"type": "integer", "minimum": 0},
             "sha256": {"$ref": "#/$defs/sha256"},
             "base": {"type": "string", "format": "uri"},

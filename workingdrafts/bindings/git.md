@@ -9,8 +9,8 @@
 ## Abstract
 
 This binding reads one xRegistry snapshot from a Git repository. It selects
-and pins a commit, then reads the [shared document-tree
-format](document-format.md) directly from Git objects.
+and pins a commit, then reads the [directory mapping
+format](mapping.md) directly from Git objects.
 
 **Status:** Unreleased working draft. This binding is not part of a released
 xRegistry specification.
@@ -43,7 +43,7 @@ execution. Package publication is separate from federation consumption.
 
 Git lets a team review and version a Registry alongside its project metadata.
 An application can use the exact approved Registry state from a release
-commit even after a branch or tag moves. The [document-tree format](document-format.md)
+commit even after a branch or tag moves. The [directory mapping format](mapping.md)
 preserves separate metadata and domain bytes inside that commit.
 
 For example, a repository at `https://example.com/registries.git` can store
@@ -126,6 +126,12 @@ Starting at the pinned commit's tree, the resolver MUST walk `path` with
 case-sensitive Git tree-name comparison. Every component MUST be a tree.
 The selected tree MUST contain the format root `registry.json`.
 Every format `href` is resolved inside that same selected tree.
+
+An existing repository tree can become a Registry by adding `registry.json`
+and the referenced metadata/index documents in a commit. Existing content
+stays at its current paths. The mapping, rather than the physical directory
+layout, determines its Group, Resource and Version hierarchy. Files not
+referenced by that mapping do not participate in the Registry's closure.
 
 Records, indexes and documents MUST be read as blob payloads. Consumers MUST
 NOT use checkout bytes, text conversion, clean/smudge filters, attributes,
@@ -235,7 +241,7 @@ caller-provided, isolated local object store.
 ## References
 
 - [Shared federation](../federation/spec.md).
-- [Shared document-tree format](document-format.md).
+- [Directory mapping format](mapping.md).
 - [Git objects](https://git-scm.com/book/en/v2/Git-Internals-Git-Objects).
 - [Git revision syntax](https://git-scm.com/docs/gitrevisions).
 - [Git repository layout](https://git-scm.com/docs/gitrepository-layout).

@@ -53,7 +53,7 @@ This specification defines the shared interpretation of resolution requests.
 [HTTP](../bindings/http-federation.md), [OCI](../bindings/oci.md),
 [Git](../bindings/git.md), [File](../bindings/file.md) and
 [OPC UA](../bindings/opcua.md) define how to perform those reads. The
-[document-tree format](../bindings/document-format.md) is shared by Git and File.
+[directory mapping format](../bindings/mapping.md) is shared by Git and File.
 Native bindings do not require an HTTP facade.
 
 This specification does not define synchronization, replication, write-through,
@@ -145,7 +145,7 @@ when creating that stored view. Its consumers read the captured state, not
 live changes in every referenced Registry.
 
 Core single-document exports and multiple-document views remain available.
-The [document-tree](../bindings/document-format.md) and
+The [directory mapping](../bindings/mapping.md) and
 [OCI](../bindings/oci.md) bindings additionally define storage formats with
 explicit content and integrity references. Their
 [snapshot completeness](#snapshots-and-completeness) rules identify which
@@ -545,7 +545,7 @@ A snapshot is a captured state of a Registry, including the model, metadata
 and declared domain documents in its selected scope. It lets a consumer make
 related reads against one chosen state instead of observing different live
 states between requests. A package stores such a snapshot using the
-[document-tree](../bindings/document-format.md) or [OCI](../bindings/oci.md)
+[directory mapping](../bindings/mapping.md) or [OCI](../bindings/oci.md)
 representation. Core Resource Versions remain distinct from the revision
 of a snapshot that contains them.
 

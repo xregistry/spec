@@ -112,17 +112,23 @@ applicable. A single terminal slash is permitted for a directory URI.
 Decoding a second time MUST NOT turn a literal percent sequence into traversal.
 
 The selected directory's spelling is a locator, not a new restriction on
-Core IDs. Internal document-tree allocations preserve IDs which are invalid
-as native filenames. The OCI layout uses its own digest-based names.
+Core IDs. Directory mappings separate entity IDs from existing native
+filenames. The OCI layout uses its own digest-based names.
 
 ## Layout Selection and Reads
 
 For `document-tree`, the selected directory MUST contain `registry.json`.
-The [shared document-tree format](document-format.md) defines
+The [directory mapping format](mapping.md) defines
 all record/index schemas, exact bytes, model and capabilities reads,
 label selection, Core document view, defaults and `xref`. Every internal
 `href` is relative to this directory, not to a nested record's directory.
 No extra `xregistry` directory is implied.
+
+The mapping can be added to an existing directory. Metadata records and
+indexes can be placed alongside existing files or in a separate metadata
+directory. Local document references can point anywhere inside the selected
+root. No `records/`, `indexes/` or `documents/` directory is mandatory.
+Unreferenced files remain outside the Registry view.
 
 For `oci-layout`, consumers MUST use the
 [OCI binding](../bindings/oci.md)'s normative image-layout selection and
@@ -236,7 +242,7 @@ production filesystem security boundary.
 ## References
 
 - [Shared federation](../federation/spec.md).
-- [Shared document-tree format](document-format.md).
+- [Directory mapping format](mapping.md).
 - [OCI layout and native binding](../bindings/oci.md).
 - [File URI scheme, RFC8089](https://www.rfc-editor.org/rfc/rfc8089).
 - [URI syntax, RFC3986](https://www.rfc-editor.org/rfc/rfc3986).

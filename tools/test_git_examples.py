@@ -67,7 +67,7 @@ class GitFixture:
                 else:
                     mode, kind, oid = "100644", "blob", self.blob(value)
                 entries.append(f"{mode} {kind} {oid}\t{name}\n")
-            return self.run("mktree", "--missing", data="".join(sorted(entries)).encode("ascii"))
+            return self.run("mktree", "--missing", data="".join(sorted(entries)).encode("utf-8"))
 
         root = store(tree)
         commit = self.run("commit-tree", root, data=b"fixture snapshot\n")

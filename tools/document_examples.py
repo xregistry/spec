@@ -11,6 +11,7 @@ import re
 import stat
 import subprocess
 import sys
+import unicodedata
 from pathlib import Path
 from urllib.parse import quote, unquote_to_bytes, urlsplit
 
@@ -31,10 +32,6 @@ FORMAT = "xregistry-document-tree"
 FORMAT_VERSION = "1"
 CORE_VERSION = "1.0-rc4"
 _SCHEMAS = Path(__file__).parent.parent / "workingdrafts" / "bindings" / "schemas"
-_SLOT = re.compile(
-    r"(records|indexes|documents)/((?:n[0-9a-f]{32}/)*"
-    r"n[0-9a-f]{1,32})\.(json|bin)\Z"
-)
 _DEVICE = re.compile(r"(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)", re.I)
 _OID = re.compile(r"(?:[0-9a-fA-F]{40}|[0-9a-fA-F]{64})\Z")
 _STAMP_FIELDS = ("st_dev", "st_ino", "st_mode", "st_size", "st_mtime_ns")
@@ -94,17 +91,19 @@ def storage_path(namespace, number):
 def _storage_name(value, namespace=None):
     _require(isinstance(value, str), "Storage name must be a string", "policy_denied")
     _require(len(value) <= 4096, "Storage path length limit", "limit_exceeded")
-    if value == "registry.json" and namespace is None:
-        return value
-    match = _SLOT.fullmatch(value)
-    _require(match is not None, "Unsafe storage name", "policy_denied")
-    role, chunks, suffix = match.groups()
-    digits = "".join(chunk[1:] for chunk in chunks.split("/"))
-    _require(value == storage_path(role, int(digits, 16)),
-             "Noncanonical storage name", "policy_denied")
-    _require(namespace is None or role == namespace, "Wrong storage namespace")
-    _require(suffix == ("bin" if role == "documents" else "json"),
-             "Wrong storage suffix")
+    _require(namespace is None or namespace in ("records", "indexes", "documents"),
+             "Unknown storage role")
+    _require(
+        value
+        and not any(c in '\\<>:"|?*' or unicodedata.category(c) in ("Cc", "Cs") for c in value)
+        and not re.search(r"%(?:2e|2f|5c)", value, re.I)
+        and all(
+            part and part not in (".", "..")
+            and not part.endswith((" ", ".")) and not _DEVICE.match(part)
+            for part in value.split("/")
+        ),
+        "Unsafe storage name", "policy_denied",
+    )
     return value
 
 
@@ -496,7 +495,7 @@ class GitStore(_Store):
             mode = data[offset:space]
             entry_name = data[space + 1:end]
             oid = data[end + 1:end + 1 + self._oid_bytes].hex()
-            if entry_name == name.encode("ascii"):
+            if entry_name == name.encode("utf-8"):
                 _require(found is None, "Duplicate Git tree entry")
                 found = (mode, oid)
             offset = end + 1 + self._oid_bytes
@@ -679,13 +678,16 @@ class DocumentTree:
 
     def _allocate(self, reference, namespace):
         href = _storage_name(reference["href"], namespace)
+        key = href.casefold()
         identity = (
-            reference.get("kind"), reference.get("xid"),
+            href, namespace,
+            None if namespace == "documents" else reference.get("kind"),
+            None if namespace == "documents" else reference.get("xid"),
             reference["size"], reference["sha256"],
         )
-        _require(href not in self._allocations or self._allocations[href] == identity,
+        _require(key not in self._allocations or self._allocations[key] == identity,
                  "Conflicting storage allocation")
-        self._allocations[href] = identity
+        self._allocations[key] = identity
 
     @staticmethod
     def _ordered(references):

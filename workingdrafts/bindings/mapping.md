@@ -1,4 +1,4 @@
-# xRegistry Shared Document-Tree Format
+# xRegistry Directory Mapping Format
 
 <!-- words: modelbase resolvedmodelsource sha256 symlinks reparse xids -->
 <!-- words: modelsource hasdocument defaultversionid defaultversionsticky -->
@@ -8,13 +8,15 @@
 <!-- words: standalone workingdrafts -->
 <!-- words: gitattributes checkout -->
 <!-- words: formatvalidated compatibilityvalidated -->
+<!-- words: filesystems readme -->
 
 ## Abstract
 
-This specification defines one indexed, read-only snapshot representation
-for the [Git](git.md) and [File](file.md) federation
-bindings. Storage paths are not entity identifiers. A selected root contains
-exactly one Registry, its model, metadata and declared document content.
+This specification maps an existing directory to a read-only xRegistry for
+the [Git](git.md) and [File](file.md) federation bindings. Add `registry.json`
+and the referenced metadata documents without reorganizing the directory's
+existing files. Versions reference those files through paths inside the
+selected root. Storage paths are not entity identifiers.
 
 **Status:** Unreleased working draft, format version `1`. This document is
 not part of a released xRegistry specification.
@@ -68,28 +70,55 @@ An ordinary Core JSON export is appropriate when one document is sufficient.
 A [no-code HTTP server](../../core/http.md#no-code-servers) can serve files
 whose paths implement the HTTP binding. Neither requires this format.
 
-The document tree adds a concrete storage allocation, complete typed
-collection indexes and exact size/digest references. These permit selective
-reads and integrity checks without deriving filesystem names from Core IDs.
-Its stored records are not Core API responses. The reader assembles them
-into the Core document view defined below.
+The mapping adds complete typed collection indexes and exact size/digest
+references. These permit selective reads and integrity checks while leaving
+existing file names and directory structure unchanged. Stored records are
+not Core API responses. The reader assembles them into the Core document
+view defined below.
 
-For example, a Registry with one asset can be captured as:
+For example, a project can already contain `source/specs/widget.json`,
+`engineering/assets/image.dat`, its application code and a README. Adding
+the mapping can produce:
 
 ```text
-snapshot/
+project/
   registry.json
-  indexes/n0.json
-  records/n0.json
-  documents/n0.bin
+  registry-metadata/
+    groups.json
+    assets.json
+    item.json
+    item-meta.json
+    versions.json
+  source/
+    main.py
+    specs/
+      widget.json
+      widget.registry.json
+  engineering/
+    assets/
+      image.dat
+  README.md
 ```
 
-`registry.json` identifies the Registry and its modeled collections.
-The indexes and records associate `/documents/main/assets/item` with its
-Meta and Versions. A Version's descriptor locates `documents/n0.bin`, whose
-bytes are returned unchanged. The illustration omits the remaining records
-and indexes. The [complete fixture](samples/document-tree/registry.json)
-shows a valid tree.
+`registry.json` identifies the Registry and its modeled collections. Added
+indexes and records associate `/documents/main/assets/item` with its Meta
+and Versions. A Version record in `source/specs/widget.registry.json` can
+contain a local document descriptor whose `href` is
+`source/specs/widget.json`. This path is relative to the selected root, not
+to the Version record. Its `size` and `sha256` describe the existing file's
+exact bytes. Neither `widget.json` nor `image.dat` needs to move or change.
+
+The illustration omits some metadata records. The directory names and
+metadata locations are choices, not a prescribed layout. Metadata can sit
+beside the described files or in a separate directory. Unreferenced files
+such as `source/main.py` and the README do not become Resources automatically
+and are not part of the Registry's declared content closure.
+
+The [complete generated fixture](samples/document-tree/registry.json) uses
+allocated filenames as another valid layout. The
+[directory mapping tests](../../tools/test_directory_mapping.py) demonstrate
+adding only metadata to an existing project and reading the same mapping
+through File and Git.
 
 Git chooses the directory through `parameters.path` and pins its commit.
 File selects that same directory through a file URI. The shared
@@ -107,38 +136,47 @@ in nested records. It is NOT relative to the referring file. The `/` separator
 in these serialized storage names is a format separator. Filesystem bindings
 translate it to their native separator without URI decoding.
 
-Other files occupy three disjoint namespaces:
+Apart from the entry-point filename, this format prescribes no directory
+names, file extensions or correspondence between physical and Registry
+hierarchies. Each record/index `href` identifies the complete metadata JSON
+document at that location. Each local Version document `href` identifies a
+regular file anywhere within the selected root, regardless of its extension
+or domain format.
 
-| Namespace | Contents |
-| --- | --- |
-| `records/` | Group, Resource, Meta and Version records, suffix `.json`. |
-| `indexes/` | Collection indexes, suffix `.json`. |
-| `documents/` | Exact domain bytes, suffix `.bin`, irrespective of media type. |
+Paths MUST be nonempty, normalized root-relative strings with `/` separators.
+They MUST NOT be absolute, contain empty components, `.` or `..` components,
+backslashes, NUL/control characters or surrogate code points. URI decoding
+MUST NOT be applied. Encoded separator/dot traversal tricks MUST be rejected.
+Portable paths MUST NOT contain `<>:"|?*`, end a component with a space or
+period, or use Windows device stems such as `CON` and `NUL`.
+Other Unicode names and spaces within components are permitted. Platform
+path-length and access limits produce explicit errors.
 
-Within each namespace, producers MUST allocate a distinct nonnegative integer
-to each stored object. Encode the integer in minimal lowercase hexadecimal,
-using `0` for zero, and split it left-to-right into chunks of 32 digits.
-Prefix each chunk with `n`, separate chunks with `/`, and append the namespace's
-suffix to the last chunk. For example, object 26 is `records/n1a.json`.
-Leading zeroes on the entire integer are forbidden. All chunks except the last
-have exactly 32 digits. Readers MUST reject noncanonical spellings.
+Metadata files describing different records or indexes MUST have distinct
+paths. Paths whose spellings differ only by case MUST NOT designate different
+mapping objects, because such mappings are ambiguous on case-insensitive
+filesystems. Several Versions MAY reference the same local document file
+using the same path and identical size/digest values. A document path MUST
+NOT also be allocated to a metadata record or index.
 
-The index maps the full, case-sensitive XID to this allocated path. Allocation
-need not be stable across snapshots and MUST NOT merge different objects.
-This is a collision-free allocation, not a truncated hash or a sanitized
-filename derived from an ID. The mapping preserves every Core-valid ID,
-including `CON`, `a:b`, `a@b`, trailing dots, mixed case and 128-character IDs.
-The same local ID in different typed collections remains distinct.
+An index maps a full, case-sensitive XID to a storage path. That path is not
+derived from the entity ID. The mapping therefore supports all Core-valid
+IDs, including IDs that are not portable filesystem names. The same local ID
+in different typed collections remains distinct.
 
 Core's case-insensitive uniqueness within a parent and case-sensitive lookup
 still apply. A pair differing only in case in the same collection is invalid
 Core data, not a filesystem collision to repair. An ID MUST match the entire
 string against `[A-Za-z0-9_](?:[A-Za-z0-9_.~:@-]){0,127}`. Whitespace and trailing
 line terminators are not part of an ID. This grammar is independent of native
-filename rules. Storage names are lowercase, have no OS-reserved stems, and
-have bounded components. An implementation unable to represent the total
+filename rules. An implementation unable to represent the total
 path length or object count MUST report
 `limit_exceeded`. It MUST NOT truncate, normalize or replace an entity ID.
+
+The example generator uses `records/`, `indexes/` and `documents/` directories,
+with opaque hexadecimal allocations such as `records/n1a.json`. This avoids
+name collisions when generating a new tree. It is a producer convention, not
+a restriction on existing files or on other conforming mappings.
 
 ## Record and Index Documents
 
@@ -190,12 +228,12 @@ Each reference has exactly these fields:
 | --- | --- |
 | `kind` | `collection`, `group`, `resource`, `meta` or `version`. |
 | `xid` | Full entity XID, or full typed collection path. |
-| `href` | Canonical root-relative storage name. |
+| `href` | Normalized path relative to the selected directory root. |
 | `size` | Nonnegative integer count of exact encoded file bytes. |
 | `sha256` | 64 lowercase hexadecimal digits hashing those exact bytes. |
 
 The reference's kind and XID MUST equal the referenced object's kind and XID.
-Collection references use `indexes/`. Entity references use `records/`.
+Its role comes from this metadata, not its directory name or file extension.
 Both `size` and `sha256` are REQUIRED, including for zero-byte content.
 There is no external form of a metadata or collection reference.
 
@@ -205,7 +243,7 @@ the array length. An empty collection has `count: 0` and `entries: []`.
 Each entry MUST name an immediate member of this collection with the correct
 kind. References in both `entries` and `collections` MUST be strictly sorted
 by unsigned UTF-8 bytes of the full XID. Duplicate XIDs, case-insensitive
-sibling ID collisions and repeated storage allocation are invalid.
+sibling ID collisions and conflicting metadata storage allocations are invalid.
 
 For example, this complete empty index is valid:
 
@@ -268,7 +306,7 @@ Each Version record MUST have exactly one `document` descriptor:
 
 | `document.kind` | REQUIRED fields | Meaning |
 | --- | --- | --- |
-| `local` | `href`, `size`, `sha256` | Exact bytes under `documents/`. |
+| `local` | `href`, `size`, `sha256` | Exact bytes in an existing or newly stored file inside the selected root. |
 | `external` | `uri` | Explicit external domain-document reference. |
 | `none` | No others | The Resource model has `hasdocument: false`. |
 
@@ -292,7 +330,7 @@ A zero-byte local document MUST reference an actual zero-byte file, with
 `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`.
 Binary and JSON bytes MUST NOT be decoded, reserialized, newline-converted,
 smudged or replaced by an empty JSON wrapper. The Version's `contenttype`,
-if present, describes the bytes, not the `.bin` suffix.
+if present, describes the bytes independently of the file's extension.
 
 For `hasdocument: false`, `document.kind` MUST be `none`, and all three
 Core document attributes (`<RESOURCE>`, `<RESOURCE>base64`, `<RESOURCE>url`)
@@ -372,6 +410,11 @@ internal record/index/document graph. An `offline-complete` snapshot MUST NOT
 contain external-only domain documents. Captured resolved model material MUST
 permit offline interpretation in both classes.
 
+Here `scope: "/"` denotes the modeled Registry, not every file physically
+present in the selected directory. Only files reached through the mapping's
+references participate in its completeness and integrity checks. Existing
+unreferenced project files remain outside that graph.
+
 External catalog advertisements, provenance and links embedded inside domain
 bytes do not become containment edges. Offline completeness does not promise
 to copy every Registry mentioned by a catalog or every arbitrary domain link.
@@ -423,6 +466,8 @@ demonstrates a distinct Resource model type.
 The fixture's local `.gitattributes` retains LF for JSON records and disables
 text conversion for domain files on checkout. This is repository integration,
 not a containment edge or permission for Git readers to apply attributes.
+Existing projects do not need to replace their `.gitattributes` to add a
+mapping. Git readers obtain stored object bytes without checkout conversion.
 
 [`tools/document_examples.py`](../../tools/document_examples.py) provides
 offline parsing, schema/semantic validation, selective reads, document-view
