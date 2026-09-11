@@ -17,7 +17,7 @@ select a transport binding.
 | --- | --- |
 | [Registry of Registries](models/registry/spec.md) | Hub-compatible catalog model, advertisements and relationships. |
 | [Federation](federation/spec.md) | Registry contexts, selection, references, representations and conformance. |
-| [Document-tree format](federation/document-format.md) | Portable records shared by Git and File. |
+| [Document-tree format](bindings/document-format.md) | Portable records shared by Git and File. |
 | [OCI](bindings/oci.md) | Bounded descriptor graphs, publication and native snapshot resolution. |
 | [HTTP federation](bindings/http-federation.md) | Federation using the existing xRegistry HTTP API. |
 | [Git](bindings/git.md) | Commit-pinned document-tree access. |
@@ -26,5 +26,5 @@ select a transport binding.
 
 The [Registry model artifacts](models/registry/README.md) and
 [conformance examples](federation/samples/README.md) accompany these drafts.
-Core `xref` remains a same-Registry, same-Resource-model-type mechanism;
-federation does not redefine it as a remote URL.
+Core `xref` remains a same-Registry, same-Resource-model-type mechanism.
+Federation does not redefine it as a remote URL.

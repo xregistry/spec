@@ -18,7 +18,7 @@ using only letters, digits, `_`, `.`, `~`, `:`, `@` or `-`.
 Sibling IDs are unique case-insensitively, while lookups preserve and
 require exact case. Case-only duplicate siblings MUST NOT be used as valid
 fixture data. Filesystem-collision examples can use distinct parent or
-model-type scopes; they MUST NOT redefine Core IDs as raw filesystem names.
+model-type scopes. They MUST NOT redefine Core IDs as raw filesystem names.
 
 All navigation targets referenced by JSON Pointers in these full documents
 are included in the same document. For a partial document view, Core
@@ -30,7 +30,7 @@ storage path or an assumed catalog-root pointer.
 The document views omit `shortself`, Version `formatvalidated` and
 `compatibilityvalidated`, and duplicated default-Version attributes on
 Resources. Catalog XIDs and relationship targets retain catalog-root
-scope; they are not converted to document-local pointers.
+scope. They are not converted to document-local pointers.
 
 The examples omit the OPTIONAL inlined model and capabilities, rather
 than claiming to capture a complete server configuration. Load the sibling
@@ -39,7 +39,7 @@ domain document. The sample catalog's root `registryid` is not the ID of a
 described Registry.
 
 Endpoints, commits and snapshot references are illustrative data, not
-running services or packaged snapshots. Their syntax is complete; no
+running services or packaged snapshots. Their syntax is complete. No
 network access, filesystem read, artifact publication or credential is
 needed to inspect these examples. The Docker Hub website is included only
 as a familiar human-facing listing.
@@ -52,9 +52,9 @@ authority or relationships.
 
 | Entry XID | Meaning |
 | --- | --- |
-| `/categories/oci/registries/docker-hub` | Website only; base conformance. |
-| `/categories/dev/registries/schema-bridge` | Legacy HTTP via `xregurl`. |
-| `/categories/community/registries/directory` | No endpoint; base conformance. |
+| `/categories/oci/registries/docker-hub` | Website only. Base conformance. |
+| `/categories/dev/registries/schema-bridge` | HTTP via `xregurl`. |
+| `/categories/community/registries/directory` | No endpoint. Base conformance. |
 
 The `community` Category demonstrates that Category IDs are not a closed
 enumeration. The website-only and endpoint-free entries produce
@@ -69,7 +69,7 @@ hub export or the expanded hub model's non-Core `xref` typing.
 
 [multi-profile-catalog.json](multi-profile-catalog.json) contains
 `/categories/public/registries/schemas`, with two description Versions.
-Version `2` is the explicit, sticky default; Version `1` remains available.
+Version `2` is the explicit, sticky default. Version `1` remains available.
 Its `versionid` is not the Git commit, OCI root digest or a target schema's
 Version ID.
 
@@ -84,20 +84,20 @@ policy restriction, expected choices are:
 
 | Caller choice | Selected advertisement |
 | --- | --- |
-| None | OCI at array index `1`; the unknown extension is not supported. |
+| None | OCI at array index `1`. The unknown extension is not supported. |
 | `git` | Git at index `2`, despite OCI appearing first. |
-| `http` | Explicit HTTP at index `3`, before the legacy candidate. |
+| `http` | Explicit HTTP at index `3`, before the implicit candidate. |
 | `file` | Document-tree File at index `4`, ahead of OCI-layout File. |
 | `opcua` | OPC UA at index `6`. |
 | Original index `5` | OCI-layout File, if explicitly allowed by the caller. |
 
 Indexes are zero-based, and refer to the original serialized array, not
 an array after filtering. The unknown extension can only participate if a
-consumer independently implements it; the sample does not define it.
+consumer independently implements it. The sample does not define it.
 
 Version `1` deliberately has explicit HTTP priority `20` and OCI priority
 `10`, plus matching `xregurl`. Under the frozen catalog contract, the
-appended legacy HTTP candidate retains priority `0` and wins absent a
+appended implicit HTTP candidate retains priority `0` and wins absent a
 caller override. Removing that candidate merely because explicit HTTP
 exists changes the result. This is an important cross-specification
 selection case, not an invitation to normalize or merge advertisements.
@@ -136,25 +136,25 @@ checks without treating derived-schema acceptance as the authority.
 | Area | Valid sample behavior |
 | --- | --- |
 | Base compatibility | No labels or new attributes in the hub-compatible file. |
-| Optionality | Absent endpoints; absent and empty maps and arrays. |
+| Optionality | Absent endpoints. Absent and empty maps and arrays. |
 | Core serialization | Complete IDs, Meta, Version defaults and JSON Pointers. |
-| ID uniqueness | No case-insensitive sibling collisions; exact-case lookup. |
+| ID uniqueness | No case-insensitive sibling collisions. Exact-case lookup. |
 | Scope | Catalog IDs, entry IDs and binding revisions are separate. |
 | Ordering | Default zero, equal-priority array order and caller choice. |
-| Legacy HTTP | Matching explicit endpoint plus independent priority-zero candidate. |
+| HTTP via xregurl | Matching explicit endpoint plus independent priority-zero candidate. |
 | Bindings | All five built-ins, both File layouts and unknown extension. |
-| Revisions | OCI tag and digest; full Git object ID, not a Version ID. |
+| Revisions | OCI tag and digest. Full Git object ID, not a Version ID. |
 | Labels | Case-insensitive values, empty value, absence and ambiguity. |
 | Relationships | All built-ins, extension, local cycle and dangling target. |
 
-Additional boundary checks follow directly from the normative constraints:
-empty names; invalid priority types or negative values; relative or
-credential-bearing endpoints; query or fragment violations; an OCI tag
-embedded in its endpoint; missing binding parameters; unknown selected
-built-in parameters; abbreviated Git revisions and unsafe paths; File
-layout/reference mismatches; persisted OPC UA namespace indexes;
-contradictory `xregurl`; and unknown names that resemble built-ins only by
-case. None is an instruction to fetch a sample endpoint.
+Additional boundary checks follow directly from the normative constraints.
+They reject empty names, invalid priorities, relative or credential-bearing
+endpoints, and query or fragment violations. They cover misplaced OCI tags,
+missing or unknown binding parameters, abbreviated Git revisions and unsafe
+paths. They also cover File layout/reference mismatches, persisted OPC UA
+namespace indexes, contradictory `xregurl`, and unknown profile names that
+resemble built-ins only by case. None is an instruction to fetch a sample
+endpoint.
 
 Core boundary checks also need to reject case-only duplicate siblings and
 out-of-grammar IDs, report not found for wrong-case lookups, and preserve
@@ -164,7 +164,7 @@ check JSON Pointer escaping.
 
 The current samples contain no alias entries. Additional alias checks MUST
 preserve source IDs and suppress target expansion in document view. Reading
-an alias Resource in document view remains valid; requesting document view
+an alias Resource in document view remains valid. Requesting document view
 of its `versions` collection or a specific Version MUST produce Core
 `cannot_doc_xref`, not transitive traversal. These requirements are
 explicit in the [domain document-view rules](../spec.md#33-document-view).
@@ -190,7 +190,7 @@ Collection label selection likewise uses the selected description Versions.
 
 `resource_type(modelsource, xid)` identifies the Resource model type.
 `resolve_local_xref(registry, source_xid)` requires the Registry's
-`modelsource`; these catalog samples omit that OPTIONAL inline field, so
+`modelsource`. These catalog samples omit that OPTIONAL inline field, so
 callers supply the authoritative sibling model in their in-memory context.
 The helper performs one-hop lookup, not document-view serialization.
 Consumers remain responsible for preserving source identity.
@@ -206,5 +206,5 @@ transport implementations are outside this catalog's helper surface.
 See [schema generation and limitations](../schemas/README.md).
 Validate the model, Core document-view structure and the
 [domain's semantic rules](../spec.md) separately. A generated schema's
-acceptance alone does not prove conformance; equally, generator omissions
+acceptance alone does not prove conformance. Equally, generator omissions
 do not justify removing mandatory Core fields from these documents.

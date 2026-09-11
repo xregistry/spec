@@ -124,6 +124,24 @@ avro_common_attributes = [
     {"name": "modifiedat", "type": [{"type":"long", "logicalType": "timestamp-millis"},"null"], "doc": "Time of the object modification"}
 ]
 
+core_meta_attributes = {
+    "xref": {"type": "xid"},
+    "readonly": {"type": "boolean"},
+    "compatibility": {"type": "string"},
+    "deprecated": {
+        "type": "object",
+        "attributes": {
+            "effective": {"type": "timestamp"},
+            "removal": {"type": "timestamp"},
+            "alternative": {"type": "url"},
+            "documentation": {"type": "url"},
+        },
+    },
+    "defaultversionid": {"type": "string"},
+    "defaultversionurl": {"type": "url"},
+    "defaultversionsticky": {"type": "boolean"},
+}
+
 
 def pascal(string):
     if not string or len(string) == 0:
@@ -653,39 +671,30 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
             props.update(copy.deepcopy(json_common_attributes))
 
             if resource.get("hasdocument", True):
+                props.update({
+                    resource_name: {
+                        "description": f"Embedded {resource_name} object",
+                        "oneOf": [{"type": "object"}, {"type": "string"}],
+                    },
+                    resource_name + "base64": {
+                        "type": "string", "format": "base64",
+                    },
+                    resource_name + "url": {
+                        "type": "string", "format": "uri-reference",
+                    },
+                })
                 resource_schema = {
                     "type": "object",
                     "properties": props,
                     "oneOf": [
-                        {
-                            "properties": {
-                                resource_name : {
-                                    "description": f"Embedded {resource_name} object",
-                                    "oneOf": [{"type": "object"},{"type": "string"}]
-                                }
-                            },
-                            "required": [resource_name]
-                        },
-                        {
-                            "properties": {
-                                resource_name+"base64" : {
-                                    "description": f"Embedded {resource_name} object as binary data",
-                                    "type": "string",
-                                    "format": "base64"
-                                }
-                            },
-                            "required": [resource_name+"base64"]
-                        },
-                        {
-                            "properties": {
-                                resource_name+"url" : {
-                                    "description": f"Linked {resource_name} object",
-                                    "type": "string",
-                                    "format": "uri-reference"
-                                }
-                            },
-                            "required": [resource_name+"url"]
-                        }
+                        {"required": [resource_name]},
+                        {"required": [resource_name + "base64"]},
+                        {"required": [resource_name + "url"]},
+                        {"not": {"anyOf": [
+                            {"required": [resource_name]},
+                            {"required": [resource_name + "base64"]},
+                            {"required": [resource_name + "url"]},
+                        ]}},
                     ]
                 }
             else:
@@ -699,16 +708,11 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                 "properties": {
                     **copy.deepcopy(json_common_attributes),
                     resource_name + "id": {"type": "string"},
-                    "xref": copy.deepcopy(json_type_mapping["xid"]),
-                    "readonly": {"type": "boolean"},
-                    "defaultversionid": {"type": "string"},
-                    "defaultversionurl": {"type": "string", "format": "uri-reference"},
-                    "defaultversionsticky": {"type": "boolean"},
-                    "compatibility": {"type": "string"},
-                    "deprecated": {"type": "object"},
                 },
             }
-            handle_attributes(meta_schema, resource.get("metaattributes", {}))
+            handle_attributes(meta_schema, {
+                **core_meta_attributes, **resource.get("metaattributes", {})
+            })
             resource_schema["properties"]["metaurl"] = {
                 "type": "string", "format": "uri-reference",
             }
@@ -987,13 +991,7 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
             meta_schema = object_schema(
                 {
                     **identity_attributes,
-                    "xref": {"type": "xid"},
-                    "readonly": {"type": "boolean"},
-                    "compatibility": {"type": "string"},
-                    "deprecated": {"type": "any"},
-                    "defaultversionid": {"type": "string"},
-                    "defaultversionurl": {"type": "url"},
-                    "defaultversionsticky": {"type": "boolean"},
+                    **core_meta_attributes,
                     **resource.get("metaattributes", {}),
                 },
                 namespace,
@@ -1179,6 +1177,13 @@ def generate_avro_schema(model_definition) -> dict:
 
 
     def handle_attributes(resource_schema, attributes, type_prefix=""):
+        def emit(field):
+            for index, existing in enumerate(resource_schema["fields"]):
+                if existing["name"] == field["name"]:
+                    resource_schema["fields"][index] = field
+                    return
+            resource_schema["fields"].append(field)
+
         for attr_name, attr_props in attributes.items():
             pascal_attr_name = pascal(attr_name)
             # attribute schema is based on the type mapping
@@ -1239,7 +1244,7 @@ def generate_avro_schema(model_definition) -> dict:
                     }
                     if "description" in attr_props:
                         field_schema["doc"] = attr_props["description"]
-                    resource_schema["fields"].append(field_schema)
+                    emit(field_schema)
             else:
                 if attr_name == "*":
                     # For extension attributes, we need to handle named types properly
@@ -1271,13 +1276,13 @@ def generate_avro_schema(model_definition) -> dict:
                              }}
                     if "description" in attr_props:
                         field_schema["doc"] = attr_props["description"]
-                    resource_schema["fields"].append(field_schema)
+                    emit(field_schema)
                 else:
                     attr_schema["name"] = camel(pascal_attr_name)
                     if not attr_props.get("required", False) or "default" in attr_props:
                         attr_schema["type"] = ["null", attr_schema["type"]]
                         attr_schema["default"] = None
-                    resource_schema["fields"].append(attr_schema)
+                    emit(attr_schema)
 
 
 
@@ -1373,12 +1378,7 @@ def generate_avro_schema(model_definition) -> dict:
                     ],
                 }
                 handle_attributes(meta_schema, {
-                    "xref": {"type": "xid"},
-                    "readonly": {"type": "boolean"},
-                    "defaultversionid": {"type": "string"},
-                    "defaultversionurl": {"type": "url"},
-                    "defaultversionsticky": {"type": "boolean"},
-                    "compatibility": {"type": "string"},
+                    **core_meta_attributes,
                     **resource.get("metaattributes", {}),
                 }, pascal(resource_name) + "Meta")
                 resource_schema["fields"].extend([

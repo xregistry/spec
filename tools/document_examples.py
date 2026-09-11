@@ -30,7 +30,7 @@ from federation_examples import (
 FORMAT = "xregistry-document-tree"
 FORMAT_VERSION = "1"
 CORE_VERSION = "1.0-rc4"
-_SCHEMAS = Path(__file__).parent.parent / "workingdrafts" / "federation" / "schemas"
+_SCHEMAS = Path(__file__).parent.parent / "workingdrafts" / "bindings" / "schemas"
 _SLOT = re.compile(
     r"(records|indexes|documents)/((?:n[0-9a-f]{32}/)*"
     r"n[0-9a-f]{1,32})\.(json|bin)\Z"
@@ -82,7 +82,7 @@ def _parse_json(data, name):
 
 
 def storage_path(namespace, number):
-    """Allocate an opaque portable name; never encode or sanitize a Core ID."""
+    """Allocate an opaque portable name. Never encode or sanitize a Core ID."""
     _require(namespace in ("records", "indexes", "documents"), "Unknown namespace")
     _require(type(number) is int and number >= 0, "Invalid storage allocation")
     digits = format(number, "x")
@@ -154,7 +154,7 @@ def _revision(value):
 
 
 def git_locator(profile):
-    """Validate an advertisement; return endpoint, revision, selected root."""
+    """Validate an advertisement. Return endpoint, revision, selected root."""
     validate_profile(profile)
     _require(profile["name"] == "git", "Not a Git profile", "unsupported_binding")
     _uri(profile["endpoint"])
@@ -293,7 +293,7 @@ class MemoryStore(_Store):
 
 
 class FileStore(_Store):
-    """Static containment and mutation checks; not a hostile-race sandbox."""
+    """Static containment and mutation checks, not a hostile-race sandbox."""
 
     def __init__(self, root, **limits):
         super().__init__(**limits)
@@ -831,7 +831,7 @@ class DocumentTree:
         return self._read_ref(reference)
 
     def read_record(self, xid):
-        """Read a storage fragment; unlike metadata(), it has no Core URLs."""
+        """Read a storage fragment. Unlike metadata(), it has no Core URLs."""
         kind = self._typed(xid)
         if xid == "/":
             return self.root
@@ -902,7 +902,7 @@ class DocumentTree:
         return descriptor
 
     def document(self, xid):
-        """Return exact local bytes; external retrieval is never implicit."""
+        """Return exact local bytes. External retrieval is never implicit."""
         record = self._selected_version(xid)
         descriptor = record["document"]
         _require(descriptor["kind"] == "local", "External content is not fetched",
@@ -1018,7 +1018,7 @@ class DocumentTree:
         return copy.deepcopy(self.root["entity"]["capabilities"])
 
     def validate(self):
-        """Walk complete closure; selective APIs deliberately do not do this."""
+        """Walk complete closure. Selective APIs deliberately do not do this."""
         counts = {"records": 0, "indexes": 0, "documents": 0}
 
         def walk(record):
@@ -1255,7 +1255,7 @@ def sample_records():
 
 
 def write_sample(root):
-    """Write generated fixture bytes; refuse to overwrite different content."""
+    """Write generated fixture bytes. Refuse to overwrite different content."""
     files = encode_tree(*sample_records())
     root = Path(root).absolute()
     root.mkdir(parents=True, exist_ok=True)

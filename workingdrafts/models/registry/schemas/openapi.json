@@ -2249,12 +2249,12 @@
           "xregurl": {
             "type": "string",
             "format": "uri-reference",
-            "description": "Legacy xRegistry HTTP Registry root URL."
+            "description": "xRegistry HTTP Registry root URL."
           },
           "weburl": {
             "type": "string",
             "format": "uri-reference",
-            "description": "Human-facing website; not a resolution advertisement."
+            "description": "Human-facing website. Not a resolution advertisement."
           },
           "registrytypes": {
             "type": "array",
@@ -2266,7 +2266,7 @@
           "authority": {
             "type": "string",
             "format": "uri-reference",
-            "description": "Administrative authority identifier; not a trust claim."
+            "description": "Administrative authority identifier. Not a trust claim."
           },
           "federationprofiles": {
             "type": "array",
@@ -2286,11 +2286,11 @@
                 "priority": {
                   "type": "integer",
                   "minimum": 0,
-                  "description": "Lower values are preferred; absence means 0."
+                  "description": "Lower values are preferred. Absence means 0."
                 },
                 "parameters": {
                   "type": "object",
-                  "description": "Binding parameters; absence means an empty object.",
+                  "description": "Binding parameters. Absence means an empty object.",
                   "properties": {}
                 }
               },
@@ -2438,6 +2438,30 @@
               "readonly": {
                 "type": "boolean"
               },
+              "compatibility": {
+                "type": "string"
+              },
+              "deprecated": {
+                "type": "object",
+                "properties": {
+                  "effective": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "removal": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "alternative": {
+                    "type": "string",
+                    "format": "uri-reference"
+                  },
+                  "documentation": {
+                    "type": "string",
+                    "format": "uri-reference"
+                  }
+                }
+              },
               "defaultversionid": {
                 "type": "string"
               },
@@ -2447,12 +2471,6 @@
               },
               "defaultversionsticky": {
                 "type": "boolean"
-              },
-              "compatibility": {
-                "type": "string"
-              },
-              "deprecated": {
-                "type": "object"
               }
             }
           },

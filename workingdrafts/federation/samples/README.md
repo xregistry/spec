@@ -9,11 +9,12 @@ not credentials or production endpoints.
 | Path | Purpose |
 | --- | --- |
 | [selection.json](selection.json) | Abstract requests, colliding XIDs in independent contexts, labels, explicit defaults and local alias cases. |
-| [document-tree](document-tree) | Shared portable records and exact content used by Git and File. |
+| [document-tree](../../bindings/samples/document-tree) | Shared portable records and exact content used by Git and File. |
 | [oci](oci) | Standard OCI descriptor graph with independently retrievable content. |
 | [http](./http/README.md) | HTTP request/response and consistency examples. |
 | [opcua](opcua) | Native addressing and transfer examples. |
 | [Registry samples](../../models/registry/samples) | Base catalog and richer binding advertisements. |
+| [Source selection](../../../tools/federation_resolution_examples.py) | Local Resource shadows and ordered source misses, using in-memory reads. |
 
 The `registry` object in `selection.json` is a reduced logical test vector,
 not a complete serialized Core API response. In particular, omission of
@@ -23,12 +24,12 @@ The binding formats define their complete record representations separately.
 Run the conformance suite from the repository root:
 
 ```console
-python -m pytest tools/test_registry_model.py tools/test_federation_examples.py tools/test_document_examples.py tools/test_git_examples.py tools/test_oci_examples.py tools/test_http_examples.py tools/test_opcua_examples.py -q
+python -m pytest tools/test_registry_model.py tools/test_federation_examples.py tools/test_federation_resolution_examples.py tools/test_document_examples.py tools/test_git_examples.py tools/test_oci_examples.py tools/test_http_examples.py tools/test_opcua_examples.py -q
 ```
 
 The helper modules under `tools` exercise specified algorithms without
 implementing a production client or server. Tests construct negative cases
-in memory or temporary directories; checked-in positive JSON examples have
+in memory or temporary directories. Checked-in positive JSON examples have
 unique keys. Byte integrity, selected Version identity, full graph closure
 and selective fetch traces are different assertions.
 

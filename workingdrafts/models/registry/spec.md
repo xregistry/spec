@@ -1,7 +1,7 @@
 # Registry-of-Registries Service - Version 1.0-rc1
 
 <!-- words: applicationuri federationprofiles nodeid nsu opcua registryroot -->
-<!-- words: registrytypes transportprofileuri weburl xregurl crosswalk -->
+<!-- words: registrytypes transportprofileuri weburl xregurl -->
 <!-- words: categoryid curated docx mcp namespace nfc nodeset opc opcfoundation -->
 <!-- words: opencontainers parametersreference publicschemas readme -->
 <!-- words: registrygroups registryurl ssh ua uabinary uasc uatcp unversioned -->
@@ -86,8 +86,8 @@ Core defines Registry, Group, Resource, Meta, Version, XID, API view and
 document view. This specification uses these additional distinctions:
 
 - **Catalog:** A Registry containing Registries.
-- **Category:** A Group organizing registries in the catalog, also called
-  a Catalog entry. A category does not define a registry domain, transport
+- **Category:** A Group organizing Registry entries in the catalog.
+  A Category does not define a registry domain, transport
   or authority.
 - **Catalog entry:** A `registry` Resource within a Category.
 - **Catalog-description Version:** A Version of that entry's description.
@@ -122,7 +122,7 @@ placed in Core's reserved `resourceattributes` map, and this revision adds
 no `metaattributes`. Genuine Resource-wide extensions belong in
 `metaattributes`, as defined by [the model language][Model attributes].
 
-The following is illustrative pseudo JSON; Core attributes are omitted.
+The following is illustrative pseudo JSON. Core attributes are omitted.
 The `?` notation means OPTIONAL and `*` means zero or more occurrences.
 
 ```yaml
@@ -171,7 +171,7 @@ collection name MUST be `registries`. Canonical entry XIDs have the form:
 /categories/<categoryid>/registries/<registryid>
 ```
 
-A catalog-description Version appends `/versions/<versionid>`; its Meta
+A catalog-description Version appends `/versions/<versionid>`. Its Meta
 entity appends `/meta` to the entry XID. All identifiers MUST follow
 [Core ID rules][Core IDs]. IDs MUST be unique case-insensitively within
 their parent scope, but lookups MUST be case-sensitive. For example,
@@ -188,20 +188,20 @@ scopes, without weakening this grammar or introducing case-only duplicate
 siblings. Equal IDs in distinct parent or model-type scopes do not imply
 identity.
 
-Every catalog entry MUST belong to a Category. Category IDs are open-ended;
-a producer MUST NOT assume that a Category ID selects a protocol, grants
+Every catalog entry MUST belong to a Category. Category IDs are open-ended.
+A producer MUST NOT assume that a Category ID selects a protocol, grants
 trust or proves a target model. Empty Categories are valid. A catalog MAY
 host other Group types in addition to this domain.
 
 Registry Resources MUST have `hasdocument: false`. Their metadata is their
-document; this domain does not define a separate `registry` document,
+document. This domain does not define a separate `registry` document,
 `registrybase64` content or `registryurl` document locator. `xregurl` is a
 distinct domain attribute, not a renamed Core document locator.
 
 ### 3.2. Versions and References
 
 Each non-alias entry MUST have at least one catalog-description Version.
-Core determines its default Version through `meta.defaultversionid`; a
+Core determines its default Version through `meta.defaultversionid`. A
 consumer MUST NOT select a description by sorting Version IDs, endpoint
 tags or timestamps instead.
 
@@ -223,7 +223,7 @@ the same catalog. Core's one-hop processing, source-relative identity,
 document-view serialization and dangling-reference behavior MUST remain
 unchanged. An absolute endpoint MUST NOT be placed in `meta.xref`.
 Consumers MUST NOT transitively follow a target Resource's own `xref`.
-Following an advertisement establishes a separate Registry context; it
+Following an advertisement establishes a separate Registry context. It
 does not convert a remote document or remote Resource into a Core alias.
 
 ### 3.3. Document View
@@ -351,7 +351,7 @@ by the model.
   - OPTIONAL. An empty array advertises no explicit access methods.
   - Each object MUST satisfy [Section 5](#5-federation-advertisements).
   - Multiple advertisements MAY use the same profile name or endpoint.
-  - Producers MUST preserve array order; it determines preference when
+  - Producers MUST preserve array order. It determines preference when
     priorities are equal.
   - Multiple advertisements assert access to the same logical Registry,
     but MUST NOT be taken as a guarantee of identical instantaneous
@@ -379,7 +379,7 @@ by the model.
 Labels retain their [Core definition][Core labels]. They are OPTIONAL maps
 of ordinary key/value strings, not mandatory localized names. An absent
 map, an empty map and an empty string value are valid. Keys MUST follow
-Core map-key rules; this specification assigns no language-tag meaning.
+Core map-key rules. This specification assigns no language-tag meaning.
 
 Version labels describe that catalog-description Version. Meta labels
 remain Resource-wide Core metadata and MUST NOT silently replace Version
@@ -419,8 +419,8 @@ Profile-specific extensions belong inside `parameters`.
   - MUST be an absolute URI satisfying the named binding's endpoint rules.
   - MUST NOT contain user information or embedded credentials.
   - MUST NOT be interpreted as a global entity identifier or an XID.
-  - A snapshot selector belongs in the binding parameters when so defined;
-    consumers MUST NOT infer one from an unrelated URL component.
+  - A snapshot selector belongs in the binding parameters when so defined.
+    Consumers MUST NOT infer one from an unrelated URL component.
 - Examples:
   - `https://schemas.example.com/xregistry`
   - `oci://artifacts.example.com/team/schemas`
@@ -464,7 +464,7 @@ Profile-specific extensions belong inside `parameters`.
 The profile name is `http`. Its endpoint MUST be an absolute HTTP or HTTPS
 URL of the target Registry root, with no query or fragment. It MUST NOT
 point to a Group, Resource, Version, website or domain document in place of
-that root. This revision defines no HTTP parameters; `parameters`, if
+that root. This revision defines no HTTP parameters. `parameters`, if
 present in a supported advertisement, MUST be empty.
 
 The target uses the [Core HTTP binding][HTTP]. A resolver still needs to
@@ -495,10 +495,10 @@ not a claim that Core defines a new HTTP endpoint.
   - MUST be an OCI tag or `sha256:` followed by 64 lowercase hexadecimal
     digits, using [OCI Distribution][OCI Distribution] reference syntax.
   - A tag MUST contain 1 to 128 ASCII characters. Its first character
-    MUST be alphanumeric or `_`; subsequent characters MUST be
+    MUST be alphanumeric or `_`. Subsequent characters MUST be
     alphanumeric, `_`, `.` or `-`.
   - A tag is mutable. A resolver MUST pin the resolved root digest for
-    the operation; the digest identifies exact published bytes.
+    the operation. The digest identifies exact published bytes.
   - MUST NOT replace a target XID or target Resource `versionid`.
 - Examples:
   - `stable`
@@ -650,8 +650,8 @@ defines supported transport profiles and endpoint discovery.
 - Constraints:
   - OPTIONAL.
   - MUST be an absolute transport-profile URI recognized by the consumer.
-  - An unsupported requested profile MUST produce `unsupported_operation`;
-    it MUST NOT be silently dropped to select a weaker transport.
+  - An unsupported requested profile MUST produce `unsupported_operation`.
+    It MUST NOT be silently dropped to select a weaker transport.
 - Examples:
   - `http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary`
 
@@ -661,7 +661,7 @@ bridge, NodeSet export domain or additional OPC UA Services.
 
 ### 5.7. Extensions
 
-Profile names are extensible; the model's `enum` is advisory rather than
+Profile names are extensible. The model's `enum` is advisory rather than
 closed. An extension SHOULD use a collision-resistant name under its
 publisher's control and document its endpoint, parameters, version rules,
 security properties and conformance requirements.
@@ -670,7 +670,7 @@ Unknown profiles remain valid catalog descriptions when their common
 fields are valid. A consumer that does not implement their semantics MUST
 exclude them from supported resolution candidates. It MUST NOT infer a
 known binding from their endpoints. Parameters in an extension profile are
-owned by that extension; their names do not activate built-in semantics.
+owned by that extension. Their names do not activate built-in semantics.
 
 ## 6. Discovery and Selection
 
@@ -683,14 +683,14 @@ use [Core string matching][Core filter] and the
 [shared selector rules][Selectors].
 
 Label values are literal strings, including the empty string. An absent
-label does not match. String matching is case-insensitive under Core; this
+label does not match. String matching is case-insensitive under Core. This
 domain MUST NOT impose NFC normalization, language-key selection or a
 case-sensitive alternate default. A consumer MUST examine every necessary
-page before claiming a unique match. Zero matches yield `not_found`;
-multiple matches yield `ambiguous`, not an arbitrary first entry.
+page before claiming a unique match. Zero matches yield `not_found`.
+Multiple matches yield `ambiguous`, not an arbitrary first entry.
 
 The consumer MUST select an explicit catalog-description Version if the
-caller supplied one; otherwise it MUST use the Core default Version.
+caller supplied one. Otherwise it MUST use the Core default Version.
 In document view, the consumer obtains that Version through the entry's
 Meta entity and Versions collection. It MUST NOT merge advertisements
 from different description Versions.
@@ -707,7 +707,7 @@ Selection MUST use the following procedure:
    `xregurl` exactly. Otherwise the entry is contradictory and resolution
    MUST fail. Comparison here is exact string comparison, not URI
    normalization or a global identity rule.
-3. A present `xregurl` contributes a legacy `http` candidate with that
+3. A present `xregurl` contributes a implicit `http` candidate with that
    endpoint, priority `0` and empty parameters, ordered after the explicit
    advertisements. Its selection defaults MUST NOT be inherited from a
    different explicit candidate.
@@ -715,11 +715,11 @@ Selection MUST use the following procedure:
    profile name or original array position, and the caller's access
    policy. The producer's priority MUST NOT override that choice.
 5. Exclude profile names the consumer does not support. If no supported
-   candidate remains, report `unsupported_binding`; if policy rejects
+   candidate remains, report `unsupported_binding`. If policy rejects
    the selection, report `policy_denied`.
 6. Order eligible candidates by ascending priority, treating an absent
    value as `0`. Preserve original array order for equal priorities,
-   including the appended legacy candidate.
+   including the appended implicit candidate.
 7. Select the first candidate. Validate its binding parameters, establish
    the target Registry context and perform the shared federation
    operation. Unknown parameters of a selected built-in profile produce
@@ -729,7 +729,7 @@ Repeated advertisements are permitted. Exact duplicates do not create
 ambiguous Registry selection: the first equally ranked candidate wins.
 Candidates with the same endpoint but different parameters or priorities
 MUST retain those distinctions. In particular, a matching explicit HTTP
-advertisement does not change the legacy candidate's zero priority.
+advertisement does not change the implicit candidate's zero priority.
 Map iteration order MUST NOT be used to rank advertisements.
 
 ### 6.3. Consistency and Failure
@@ -827,13 +827,13 @@ rather than presenting truncated results as complete.
 
 Catalog writers and servers MUST apply Core model, attribute and entity
 errors. For example, a value that violates an attribute constraint
-generates Core `invalid_attribute`; a field not permitted by the model
+generates Core `invalid_attribute`. A field not permitted by the model
 generates `unknown_attribute`. This domain does not add Core error codes.
 
 Resolution uses the [shared federation error vocabulary][Errors].
 Malformed or contradictory catalog input encountered by an offline
 resolver is `invalid_package`. Absence of a supported binding is
-`unsupported_binding`; unknown selected built-in parameters are
+`unsupported_binding`. Unknown selected built-in parameters are
 `unsupported_operation`. An unreadable selected endpoint is not a
 successful empty Registry.
 
@@ -893,7 +893,7 @@ A federation-resolvable entry MUST first be a conforming base entry. In
 its selected description Version it MUST provide at least one valid
 advertisement for a binding supported by the consumer, either explicitly
 or through `xregurl`, with all parameters needed to identify the target.
-Any legacy/explicit HTTP consistency constraint MUST also hold.
+Any xregurl/explicit HTTP consistency constraint MUST also hold.
 
 This is relative to a consumer's supported bindings and policy. A
 well-formed extension-only entry can be resolvable by an extension-aware
@@ -940,8 +940,8 @@ generated files rather than changing the domain model to accommodate them.
 
 Normative dependencies for this working draft are the repository's Core
 1.0-rc4 specifications and the companion unreleased federation contract.
-External references below provide the named URI and transport syntax;
-they do not imply that this domain is a published transport standard.
+External references below provide the named URI and transport syntax.
+They do not imply that this domain is a published transport standard.
 
 - [xRegistry Core 1.0-rc4][Core]
 - [xRegistry Service Model 1.0-rc4][Model]

@@ -18,6 +18,7 @@ with an earlier release candidate.
 ## Table of Contents
 
 - [Notations and Scope](#notations-and-scope)
+- [Motivation and Example](#motivation-and-example)
 - [Advertisement and Bootstrap](#advertisement-and-bootstrap)
 - [Registry Root and Version Discovery](#registry-root-and-version-discovery)
 - [Native Read Mapping](#native-read-mapping)
@@ -40,7 +41,7 @@ Core owns entity types, IDs, labels, default Versions, `xref`, document
 view, errors and request flags. The HTTP binding owns methods, paths,
 `$details`, HTTP metadata headers and the wire representation of flags.
 [HTTP Semantics][http] and [HTTP Caching][cache] own HTTP processing.
-Requirements here apply to federation resolvers; they do not turn an
+Requirements here apply to federation resolvers. They do not turn an
 OPTIONAL Core API into a mandatory server API or redefine CRUD operations.
 
 In the tables, `B` is the selected Registry root URL, `G` is
@@ -48,6 +49,27 @@ In the tables, `B` is the selected Registry root URL, `G` is
 `R/versions/<VID>`. Collection names come from the selected model.
 `B + path` means append below the Registry base path, with one separating
 slash. It does not mean resolve a leading-slash URI against the host.
+
+## Motivation and Example
+
+An existing xRegistry HTTP service can participate in federation without
+implementing another API. A consumer-side resolver can use its catalog entry
+directly, or a federating API server can access it as a source on behalf of
+ordinary HTTP clients.
+
+For example, a source advertised at
+`https://first.example.com/services/xreg/` can supply
+`/documents/main/assets/item`. The resolver reads metadata from that
+Resource's `$details` URL, obtains the explicit default Version choice and
+reads the selected document through its Version URL. The server hosting
+the consumer-visible Registry can perform those steps after a local Resource
+miss. A local shadow Resource takes precedence as described by the
+[shared resolution model](../federation/spec.md#design-resolving-a-consumer-request).
+
+This binding preserves the source's HTTP capabilities, pagination,
+conditional requests and authorization boundaries. A catalog describes an
+access method. It does not prove that a live HTTP read is an immutable
+snapshot or that unsupported query flags will be honored.
 
 ## Advertisement and Bootstrap
 
@@ -64,7 +86,7 @@ selected advertisement MUST produce `unsupported_operation`.
 }
 ```
 
-Selection, priorities, ties and legacy `xregurl` handling follow
+Selection, priorities, ties and implicit `xregurl` handling follow
 [Federation discovery](../federation/spec.md#discovery-and-binding-selection).
 If explicit HTTP advertisements coexist with `xregurl`, one endpoint MUST
 match `xregurl` exactly. `weburl` is a website, not an API fallback.
@@ -72,7 +94,7 @@ match `xregurl` exactly. `weburl` is a website, not an API fallback.
 A resolver bootstrapping from a catalog MUST read the catalog model before
 interpreting its `categories` / `registries` collections. These catalog
 Resources have `hasdocument: false`. Their Version metadata contains
-`xregurl`, `weburl` and any `federationprofiles`; it is not a domain
+`xregurl`, `weburl` and any `federationprofiles`. It is not a domain
 document to download. An explicit catalog-description Version selects that
 Version. Otherwise, the catalog Resource's Core default Version applies.
 The described Registry's `registryid` need not equal the catalog entry ID.
@@ -100,7 +122,7 @@ root does not silently authorize access to a different origin.
 
 The resolver MUST obtain `specversion` from the Registry representation
 before interpreting model-dependent entities. A known, explicitly supported
-Core version is necessary; parsing JSON is not a compatibility check.
+Core version is necessary. Parsing JSON is not a compatibility check.
 An unsupported version MUST produce `unsupported_version`. If supported,
 Core's `specversion` flag can request a compatible representation, but the
 resolver MUST verify the version actually returned. Silently ignoring a
@@ -108,8 +130,8 @@ query parameter MUST NOT be mistaken for successful negotiation.
 
 `GET B/model` retrieves the interpreted model. `GET B/modelsource`, when
 available, retrieves the client-provided source and preserves information
-such as shared Resource type definitions. These are different documents;
-a missing model source is not an empty effective model. `{}` from a
+such as shared Resource type definitions. These are different documents.
+A missing model source is not an empty effective model. `{}` from a
 supported `/modelsource` has its Core meaning.
 
 `GET B/capabilities` retrieves enabled capabilities. A resolver MAY use
@@ -129,7 +151,7 @@ and completeness. If no equivalent read exists, it MUST return
 
 These are mappings of the common abstract requests, not new request
 envelopes sent to the server. `model` and `capabilities` use abstract target
-`/`; `/model` and `/capabilities` below are HTTP API paths, not entity XIDs.
+`/`. `/model` and `/capabilities` below are HTTP API paths, not entity XIDs.
 
 | Abstract operation and target | Native HTTP request | Result |
 | --- | --- | --- |
@@ -138,15 +160,15 @@ envelopes sent to the server. `model` and `capabilities` use abstract target
 | `entity`, `G` | `GET B + G` | Group metadata. |
 | `collection`, `G/<RESOURCES>` | `GET B + G/<RESOURCES>` | Map keyed by Resource ID, containing Resource metadata. |
 | `entity`, `R`, document-bearing type | `GET B + R$details` | Resource metadata, including the default Version projection in API view. |
-| `entity`, `R`, metadata-only type | `GET B + R` | Resource metadata; `$details` is also accepted by Core but is unnecessary. |
+| `entity`, `R`, metadata-only type | `GET B + R` | Resource metadata. `$details` is also accepted by Core but is unnecessary. |
 | `entity`, `R/meta` | `GET B + R/meta` | Resource Meta entity, not default Version metadata. |
 | `collection`, `R/versions` | `GET B + R/versions` | Map keyed by Version ID, containing Version metadata. |
 | `entity`, `V`, document-bearing type | `GET B + V$details` | That Version's metadata. |
 | `entity`, `V`, metadata-only type | `GET B + V` | That Version's metadata. |
 | `document`, `R`, document-bearing type | `GET B + R` | Default Version document or Core external-document redirect. |
 | `document`, `V`, document-bearing type | `GET B + V` | Explicit Version document or Core external-document redirect. |
-| `document`, metadata-only `R` or `V` | No document request | `unsupported_operation`; the unsuffixed URL would return metadata. |
-| `model`, `/` | `GET B/model`; `GET B/modelsource` when available | Effective model and available source, kept distinct. |
+| `document`, metadata-only `R` or `V` | No document request | `unsupported_operation`. The unsuffixed URL would return metadata. |
+| `model`, `/` | `GET B/model`. `GET B/modelsource` when available | Effective model and available source, kept distinct. |
 | `capabilities`, `/` | `GET B/capabilities` or equivalent enabled map | Enabled capabilities for this endpoint and caller. |
 
 Collections do not take `$details`. Meta, Group and Registry URLs do not
@@ -181,18 +203,18 @@ MUST preserve Core navigation semantics rather than replace `self` with an
 endpoint label.
 
 Raw document reads use the domain media type and bytes. Core's
-`xRegistry-` headers carry accompanying metadata; `Content-Location`, when
+`xRegistry-` headers carry accompanying metadata. `Content-Location`, when
 present on a default read, identifies the default Version as Core specifies.
 A zero-byte document is a successful empty byte sequence, not a missing
 document. Absent content and metadata-only types MUST remain distinguishable.
 For byte-preserving capture, raw Version reads or supported Core `binary`
-serialization are appropriate; reparsing and pretty-printing JSON is not
+serialization are appropriate. Reparsing and pretty-printing JSON is not
 byte preservation.
 
 Core `meta.xref` remains same-Registry, same Resource model type and one hop.
 Source IDs and navigation remain source-relative. A dangling target or a
 target that is itself an alias keeps Core's minimal source serialization.
-Document view MUST NOT expand an alias; document-view requests below its
+Document view MUST NOT expand an alias. Document-view requests below its
 `versions` preserve `cannot_doc_xref`. Federation MUST NOT reinterpret an
 absolute remote URL as `xref`.
 
@@ -203,7 +225,7 @@ IDs or change the selected Registry context.
 ## Literal Label Selection
 
 The common selector is an exact label-key lookup and a Core
-case-insensitive comparison of string values. Labels are OPTIONAL; values
+case-insensitive comparison of string values. Labels are OPTIONAL. Values
 can be empty. An absent label does not match an empty value. The resolver
 MUST NOT require a language label, impose NFC normalization, infer a locale
 from a category, or interpret the caller's `*` as a wildcard.
@@ -252,7 +274,7 @@ locator policy checks as redirects.
 
 Unique label selection requires the complete relevant candidate set. A
 match on the first page is not proof of uniqueness. No match after complete
-enumeration yields `not_found`; a second match yields `ambiguous`.
+enumeration yields `not_found`. A second match yields `ambiguous`.
 An unavailable later page or a traversal limit MUST NOT become either a
 unique result or `not_found`. Conflicting duplicates, changed declared
 totals or an incomplete capture MUST be reported, not silently merged.
@@ -278,8 +300,8 @@ The resolver MUST use the selected representation's validator with that
 representation, respecting `Vary`, cache directives and authorization scope.
 
 Conditional `GET` with `If-None-Match` uses HTTP's weak comparison and can
-revalidate a cached response. `304 Not Modified` has no replacement body;
-the resolver MUST use an applicable stored response and update it according
+revalidate a cached response. `304 Not Modified` has no replacement body.
+The resolver MUST use an applicable stored response and update it according
 to RFC 9111 section 4.3.4. Without one, it needs an unconditional read or an
 explicit failure. `If-Modified-Since` and `Last-Modified` have HTTP's
 semantics and precedence, not Core timestamp semantics.
@@ -309,7 +331,7 @@ Redirect processing follows RFC 9110 section 15.4 and Core HTTP. In
 particular, a Core external document can yield `303 See Other` with an
 empty body and `Location` matching `<RESOURCE>url`. The destination is
 domain content, not another Registry root. Other redirects can relocate
-an endpoint or representation; the resolver MUST distinguish these cases.
+an endpoint or representation. The resolver MUST distinguish these cases.
 
 Every redirect, advertised endpoint, next link and external document URL
 MUST pass caller policy, including scheme, destination, network access and
@@ -343,14 +365,14 @@ immutable pin separately from Core IDs. It MUST distinguish a live,
 best-effort observation from a producer-guaranteed snapshot. A resolver
 requiring a stronger guarantee MUST fail explicitly when the endpoint cannot
 provide it. If the necessary capture operation is unsupported, the outcome
-is `unsupported_operation`; if an attempted capture is inconsistent or
+is `unsupported_operation`. If an attempted capture is inconsistent or
 incomplete, the outcome is `inconsistent_snapshot`.
 
 For a multi-request capture, the resolver SHOULD recheck the default
 selection and the representations on which the capture depends. A changed
 default, changed representation, conflicting membership or interrupted
 page/byte sequence invalidates a claim of consistent capture. It MUST
-report `inconsistent_snapshot` and discard that claim; it MAY start a new,
+report `inconsistent_snapshot` and discard that claim. It MAY start a new,
 separately identified operation. A fresh capture is not a silent continuation
 using mixed old and new state.
 
@@ -371,7 +393,7 @@ Common errors are resolver outcomes, not additional Core HTTP errors:
 | Transport failure, rate limit or transient server failure outside a completed capture | `unavailable` |
 
 The resolver MUST retain the HTTP status and any Core error detail.
-`api_not_found` is not an absent entity; a generic `404` without enough
+`api_not_found` is not an absent entity. A generic `404` without enough
 context MUST NOT be used to invent an empty collection. Failure of a
 previously identified member during capture is also evidence of incomplete
 capture, not proof of a consistent deletion history.
@@ -382,7 +404,7 @@ A conforming resolver implements the applicable native mappings, literal
 selectors, all necessary pages, no-filter fallback, Core views and version
 checks. It applies HTTP validator and security rules and never claims an
 immutable snapshot solely from live reads. A server remains subject to Core
-HTTP conformance; this document does not require query support from a
+HTTP conformance. This document does not require query support from a
 no-code server.
 
 [Offline examples](../federation/samples/http/README.md) contain exact

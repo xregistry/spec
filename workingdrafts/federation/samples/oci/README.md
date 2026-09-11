@@ -21,7 +21,7 @@ conversion for content-addressed blobs, including JSON and empty blobs.
 | `linked` | `fixture-linked` | `linked` | 98 objects |
 
 Each root has 44 indexes, 25 manifests and 25 entity configs. The offline
-root has four document blobs; the linked root has three and one external
+root has four document blobs. The linked root has three and one external
 document URL. Both include the OCI two-byte empty-layer placeholder.
 The roots share unchanged content but are independent contexts with
 colliding XIDs. Neither root depends on the other root.
@@ -29,7 +29,7 @@ colliding XIDs. Neither root depends on the other root.
 The generic `dirs` / `files` vocabulary comes from the
 [Core example](../../../../core/sample-model.json). JSON Schema documents
 are ordinary domain bytes, not a newly invented document format. `notes`
-is a metadata-only Resource type; `imports` imports the same `files`
+is a metadata-only Resource type. `imports` imports the same `files`
 model type using `ximportresources`. `emptygroups` has no instances.
 The complete model, original compact model source and include-resolved
 compact source are present in the Registry config.
@@ -39,15 +39,15 @@ compact source are present in the Registry config.
 | XID under the offline Registry | Purpose |
 | --- | --- |
 | `/dirs/main/files/sample` | Two Versions, explicitly defaulting to older `v1` |
-| `/dirs/main/files/sample/versions/v1` | `{"type":"string"}` plus one LF; labels and nested extension data |
-| `/dirs/main/files/sample/versions/v2` | `{"type":"number"}` plus one LF; independent Version read |
+| `/dirs/main/files/sample/versions/v1` | `{"type":"string"}` plus one LF. Labels and nested extension data |
+| `/dirs/main/files/sample/versions/v2` | `{"type":"number"}` plus one LF. Independent Version read |
 | `/dirs/main/files/binary` | Seven exact bytes: `00 01 7f 80 ff 0d 0a` |
 | `/dirs/main/files/empty` | Zero bytes, not the two-byte OCI placeholder |
 | `/dirs/main/notes/info` | `hasdocument: false`, with Version metadata |
 | `/dirs/main/files/alias` | One-hop local reference to `sample` |
 | `/imports/shared/files/alias` | Valid same-type reference across Group model types |
 | `/dirs/main/files/dangling` | Target Group instance does not exist |
-| `/dirs/main/files/chain` | Target is itself an alias; no transitive expansion |
+| `/dirs/main/files/chain` | Target is itself an alias. No transitive expansion |
 | `/dirs/empty/files` | Empty Resource collection |
 | `/emptygroups` | Empty Group collection |
 
@@ -57,7 +57,7 @@ fetches it. Default `v1` remains embedded.
 
 Routing pages were deliberately built with `page_size=2`. This creates
 multi-level range shards even in a small example. Entity indexes still
-have their fixed two or three control descriptors; `page_size` is not a
+have their fixed two or three control descriptors. `page_size` is not a
 different normative entity-index limit. Every index remains below both
 256 descriptors and 1,048,576 bytes.
 
@@ -83,7 +83,7 @@ route from a blob route, although the files all reside in the layout.
 
 `validate` walks the entire closure, including document bytes.
 `--inventory <path>` saves the actually verified descriptors. `lookup`
-reads only what its operation needs; a Version document request does not
+reads only what its operation needs. A Version document request does not
 fetch other Version payloads. Collection label selection visits all
 necessary pages and detects ambiguity, including on a later page.
 
@@ -99,7 +99,7 @@ Python document results contain raw `data: bytes`, `mediaType`, the
 original `target`, and the actual `resolved` Version XID. The CLI
 substitutes `base64` and `size` for `data`. `snapshot` is always the pinned
 root digest, not a Resource Version ID. Metadata operations on an alias
-do not project target metadata; domain-document operations follow at
+do not project target metadata. Domain-document operations follow at
 most one same-type local hop.
 
 ### Python interfaces
@@ -160,8 +160,8 @@ Here each `documents` value is a base64 string, and `records` needs an
 actual Registry plus its entity records for a valid build. This builder
 input is not the published OCI format and is never used as hidden
 containment. The published graph uses only the binding's descriptors.
-The helper validates graph/profile invariants and Core model shapes;
-it is not a general domain-document validator or full Core server.
+The helper validates graph/profile invariants and Core model shapes.
+It is not a general domain-document validator or full Core server.
 
 Reproduce the two roots in a scratch directory:
 
@@ -200,7 +200,7 @@ exercise, of which exactly one is an eligible Registry root. That mutable
 entry-point index is not the selected Registry index, which still has
 two descriptors and the same digest. Consumers MUST NOT mistake the
 auxiliary entries for additional Registry snapshots. Large copy jobs
-also need to check the destination entry-point bounds; this small
+also need to check the destination entry-point bounds. This small
 exercise does not establish every tool's behavior at every scale.
 
 All stored index and manifest objects were additionally validated with
@@ -231,8 +231,8 @@ Positive and negative probes for later automated suites include:
 - Core document-view pointers, including escaped `~` in IDs, retained
   nested extensions, no default Version projection, and Meta context.
 - Separate metadata-only, zero-byte, binary and external-only document
-  states; rejection of absent document-capable content and false
-  offline-complete claims; selective fetch traces.
+  states. Rejection of absent document-capable content and false
+  offline-complete claims. Selective fetch traces.
 - Actual artifact-aware layout copying and byte-level closure comparison,
   without requiring OPTIONAL referrer traversal.
 

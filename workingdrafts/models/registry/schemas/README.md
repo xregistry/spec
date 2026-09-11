@@ -55,7 +55,7 @@ on every supported host. Do not manually change generated definitions.
 
 All generated files are JSON documents, including the Avro description.
 Parsing their JSON is only the first check. JSON Schema needs its Draft 7
-schema check; Avro needs an Avro schema parser; OpenAPI needs an OpenAPI
+schema check. Avro needs an Avro schema parser. OpenAPI needs an OpenAPI
 validator. JSON Structure needs reference and schema-shape checks as well
 as any available validator for its declared dialect.
 
@@ -70,7 +70,7 @@ semantic checks specified in the domain.
 
 The schema permits collection navigation together with inlined Versions,
 and includes Core root and Meta metadata. URI references accept document
-pointers and catalog-root relationship targets; the domain separately
+pointers and catalog-root relationship targets. The domain separately
 requires advertisement endpoints to be absolute. The complete catalog
 samples are validated with Draft 7 and format assertions enabled.
 
@@ -88,7 +88,7 @@ not a general JSON Structure validator for every possible extension.
 
 The binary record projection preserves structured advertisement and
 relationship arrays, Meta data and Version collections. OPTIONAL model
-fields use nullable unions; their absence does not turn a website-only
+fields use nullable unions. Their absence does not turn a website-only
 entry into an invalid catalog. The REQUIRED advertisement `name` and
 `endpoint` remain non-nullable.
 
@@ -102,5 +102,5 @@ domain constraints still require separate validation.
 The description includes `/categories`, its entities, Resource/Version
 paths and the shared HTTP operations. It derives the same metadata
 schemas rather than maintaining another catalog model. Structural
-OpenAPI validation is supplemented by concrete path and schema checks;
-it does not certify a deployed HTTP server.
+OpenAPI validation is supplemented by concrete path and schema checks.
+It does not certify a deployed HTTP server.

@@ -49,7 +49,7 @@
               "epoch": 1,
               "name": "Initial schema Registry description",
               "isdefault": false,
-              "description": "Legacy HTTP remains a priority-zero access candidate.",
+              "description": "HTTP via xregurl remains a priority-zero access candidate.",
               "labels": {},
               "createdat": "2026-09-04T00:00:00Z",
               "modifiedat": "2026-09-04T00:00:00Z",

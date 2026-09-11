@@ -204,7 +204,7 @@ def catalog_validator(catalog_schema):
 @pytest.fixture
 def version_validator(catalog_schema):
     # Exercise the emitted Version schema directly as well as the full document.
-    # Navigation must not mask invalid inline Versions; that has a separate
+    # Navigation must not mask invalid inline Versions. That has a separate
     # full-document regression below, rather than a fixture that removes URLs.
     return jsonschema.Draft7Validator(
         catalog_schema["definitions"]["category-schema"]["registryVersion"],
@@ -330,17 +330,17 @@ def test_registry_base_catalog_requires_no_federation_fields(
         pytest.param(
             "hub-compatible.json", "dev", "schema-bridge", "1", None, None,
             {"name": "http", "endpoint": "https://bridge.example.com/xregistry"},
-            id="hub-legacy-only",
+            id="hub-xregurl-only",
         ),
         pytest.param(
             "multi-profile-catalog.json", "public", "schemas", "1", None, None,
             {"name": "http", "endpoint": "https://schemas.example.com/xregistry"},
-            id="legacy-zero-beats-matching-http20-and-oci10",
+            id="xregurl-zero-beats-matching-http20-and-oci10",
         ),
         pytest.param(
             "multi-profile-catalog.json", "public", "schemas", "2", "http", 3,
             {"name": "http", "endpoint": "https://schemas.example.com/xregistry"},
-            id="explicit-http-zero-precedes-appended-legacy",
+            id="explicit-http-zero-precedes-appended-xregurl",
         ),
         pytest.param(
             "multi-profile-catalog.json", "public", "schemas", "2", None, 1,
@@ -355,11 +355,11 @@ def test_registry_base_catalog_requires_no_federation_fields(
                     )
                 },
             },
-            id="explicit-oci-zero-precedes-appended-legacy",
+            id="explicit-oci-zero-precedes-appended-xregurl",
         ),
     ],
 )
-def test_registry_legacy_xregurl_entry_remains_valid(
+def test_registry_xregurl_xregurl_entry_remains_valid(
     filename, category_id, resource_id, version_id, choice, expected_index, expected,
     catalog_validator, version_validator,
 ):
@@ -528,7 +528,7 @@ def test_registry_website_only_entry_is_valid_but_not_resolvable(
         pytest.param(
             {"xregurl": HTTP["endpoint"] + "/", "federationprofiles": [HTTP]},
             BUILTINS, None, ("invalid_package", "Conflicting xregurl"),
-            id="legacy-consistency-is-exact-not-normalized",
+            id="xregurl-consistency-is-exact-not-normalized",
         ),
         pytest.param(
             {
@@ -537,8 +537,8 @@ def test_registry_website_only_entry_is_valid_but_not_resolvable(
                     dict(HTTP, priority=1, parameters={"unrecognized": True}), OCI
                 ],
             },
-            {"http"}, None, "legacy",
-            id="matching-explicit-does-not-supply-legacy-parameters",
+            {"http"}, None, "xregurl",
+            id="matching-explicit-does-not-supply-xregurl-parameters",
         ),
     ],
 )
@@ -558,7 +558,7 @@ def test_registry_resolvable_entry_requires_supported_valid_advertisement(
         _assert_federation_error(version, *outcome, supported=supported, name=choice)
     else:
         selected = select_profile(version, supported, name=choice)
-        if outcome == "legacy":
+        if outcome == "xregurl":
             assert selected == HTTP
             assert all(selected is not item for item in version["federationprofiles"])
         else:
@@ -661,7 +661,7 @@ def test_registry_resolvable_entry_requires_supported_valid_advertisement(
         pytest.param({"registrytypes": "schema"}, ("registrytypes",), "type", id="registrytypes-string"),
         pytest.param({"registrytypes": [7]}, ("registrytypes", 0), "type", id="registrytype-nonstring"),
         pytest.param({"authority": False}, ("authority",), "type", id="authority-nonstring"),
-        pytest.param({"xregurl": None}, ("xregurl",), "type", id="legacy-url-null"),
+        pytest.param({"xregurl": None}, ("xregurl",), "type", id="xregurl-url-null"),
         pytest.param({"weburl": []}, ("weburl",), "type", id="website-array"),
         pytest.param({"relationships": {}}, ("relationships",), "type", id="relationships-object"),
         pytest.param({"relationships": [None]}, ("relationships", 0), "type", id="relationship-null"),

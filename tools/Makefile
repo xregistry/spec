@@ -14,6 +14,7 @@ spellcheck:
 	@echo "Checking for spelling mistakes:"
 	tools/spellcheck */README.md */spec.md core/*.md \
 		workingdrafts/bindings/*.md \
+		workingdrafts/bindings/samples/*.md \
 		workingdrafts/federation/*.md workingdrafts/federation/samples/*.md \
 		workingdrafts/federation/samples/*/README.md \
 		workingdrafts/models/*/README.md workingdrafts/models/*/spec.md \

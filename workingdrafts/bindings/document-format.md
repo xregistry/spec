@@ -12,7 +12,7 @@
 ## Abstract
 
 This specification defines one indexed, read-only snapshot representation
-for the [Git](../bindings/git.md) and [File](../bindings/file.md) federation
+for the [Git](git.md) and [File](file.md) federation
 bindings. Storage paths are not entity identifiers. A selected root contains
 exactly one Registry, its model, metadata and declared document content.
 
@@ -22,6 +22,7 @@ not part of a released xRegistry specification.
 ## Table of Contents
 
 - [Scope and Conventions](#scope-and-conventions)
+- [Motivation and Use](#motivation-and-use)
 - [Root and Storage Paths](#root-and-storage-paths)
 - [Record and Index Documents](#record-and-index-documents)
 - [Model and Capabilities](#model-and-capabilities)
@@ -30,7 +31,6 @@ not part of a released xRegistry specification.
 - [Completeness and Integrity](#completeness-and-integrity)
 - [Security and Conformance](#security-and-conformance)
 - [Executable Example](#executable-example)
-- [Source Crosswalk](#source-crosswalk)
 - [References](#references)
 
 ## Scope and Conventions
@@ -41,7 +41,7 @@ document are to be interpreted as described in
 [RFC2119](https://www.rfc-editor.org/rfc/rfc2119).
 
 [Core 1.0-rc4](../../core/spec.md), its
-[model language](../../core/model.md) and [federation](spec.md) define entity
+[model language](../../core/model.md) and [federation](../federation/spec.md) define entity
 semantics, selection and errors. This format does not define a server,
 write-through interface, global identifier or synchronization protocol.
 Normative schemas describe storage, not another domain model:
@@ -50,19 +50,61 @@ Normative schemas describe storage, not another domain model:
 - [Collection index schema](schemas/document-index.schema.json).
 
 Both schemas use JSON Schema Draft 2020-12. Their URNs identify this draft's
-schemas; they are not network retrieval endpoints. Producers and consumers
+schemas. They are not network retrieval endpoints. Producers and consumers
 MUST also implement the semantic constraints below. Schema validity alone
 does not establish Core model compliance or graph completeness.
+
+## Motivation and Use
+
+This format is a storage representation for the Git and File bindings.
+A publisher can capture one Registry once and make the same directory tree
+available in a Git commit, an offline bundle or a local filesystem. A
+consumer-side resolver or a federating API server then reads the selected
+metadata and document bytes from that tree.
+
+Core already defines [single-document](../../core/spec.md#single-document-view)
+and [multiple-document](../../core/spec.md#multiple-document-view) views.
+An ordinary Core JSON export is appropriate when one document is sufficient.
+A [no-code HTTP server](../../core/http.md#no-code-servers) can serve files
+whose paths implement the HTTP binding. Neither requires this format.
+
+The document tree adds a concrete storage allocation, complete typed
+collection indexes and exact size/digest references. These permit selective
+reads and integrity checks without deriving filesystem names from Core IDs.
+Its stored records are not Core API responses. The reader assembles them
+into the Core document view defined below.
+
+For example, a Registry with one asset can be captured as:
+
+```text
+snapshot/
+  registry.json
+  indexes/n0.json
+  records/n0.json
+  documents/n0.bin
+```
+
+`registry.json` identifies the Registry and its modeled collections.
+The indexes and records associate `/documents/main/assets/item` with its
+Meta and Versions. A Version's descriptor locates `documents/n0.bin`, whose
+bytes are returned unchanged. The illustration omits the remaining records
+and indexes. The [complete fixture](samples/document-tree/registry.json)
+shows a valid tree.
+
+Git chooses the directory through `parameters.path` and pins its commit.
+File selects that same directory through a file URI. The shared
+[hosting and resolution model](../federation/spec.md#design-hosting-models)
+determines whether the consumer or an API server performs these reads.
 
 ## Root and Storage Paths
 
 The selected directory MUST contain `registry.json`. Its record MUST have
 `kind: "registry"` and `entity.xid: "/"`. Git's `parameters.path` and File's
-endpoint select this same directory; neither adds an implicit extra directory.
+endpoint select this same directory. Neither adds an implicit extra directory.
 
 Every internal `href` is relative to that selected root, including references
 in nested records. It is NOT relative to the referring file. The `/` separator
-in these serialized storage names is a format separator; filesystem bindings
+in these serialized storage names is a format separator. Filesystem bindings
 translate it to their native separator without URI decoding.
 
 Other files occupy three disjoint namespaces:
@@ -91,12 +133,12 @@ The same local ID in different typed collections remains distinct.
 Core's case-insensitive uniqueness within a parent and case-sensitive lookup
 still apply. A pair differing only in case in the same collection is invalid
 Core data, not a filesystem collision to repair. An ID MUST match the entire
-string against `[A-Za-z0-9_](?:[A-Za-z0-9_.~:@-]){0,127}`; whitespace and trailing
+string against `[A-Za-z0-9_](?:[A-Za-z0-9_.~:@-]){0,127}`. Whitespace and trailing
 line terminators are not part of an ID. This grammar is independent of native
 filename rules. Storage names are lowercase, have no OS-reserved stems, and
 have bounded components. An implementation unable to represent the total
 path length or object count MUST report
-`limit_exceeded`; it MUST NOT truncate, normalize or replace an entity ID.
+`limit_exceeded`. It MUST NOT truncate, normalize or replace an entity ID.
 
 ## Record and Index Documents
 
@@ -116,7 +158,7 @@ View](#reads-and-core-document-view) defines their materialization.
 | --- | --- |
 | `registry` | `registryid`, `specversion`, `epoch`, `createdat`, `modifiedat`, `modelsource`, `capabilities`. |
 | `group` | `<GROUP>id`, `epoch`, `createdat`, `modifiedat`. |
-| `resource` | `<RESOURCE>id`; no inherited default-Version attributes. |
+| `resource` | `<RESOURCE>id`. No inherited default-Version attributes. |
 | `meta`, ordinary | `<RESOURCE>id`, `epoch`, `createdat`, `modifiedat`, `readonly`, `defaultversionid`, `defaultversionsticky`. |
 | `meta`, alias | Only `<RESOURCE>id`, `xid`, `xref`. |
 | `version` | `<RESOURCE>id`, `versionid`, `epoch`, `createdat`, `modifiedat`, `ancestorid`, `isdefault`. |
@@ -153,7 +195,7 @@ Each reference has exactly these fields:
 | `sha256` | 64 lowercase hexadecimal digits hashing those exact bytes. |
 
 The reference's kind and XID MUST equal the referenced object's kind and XID.
-Collection references use `indexes/`; entity references use `records/`.
+Collection references use `indexes/`. Entity references use `records/`.
 Both `size` and `sha256` are REQUIRED, including for zero-byte content.
 There is no external form of a metadata or collection reference.
 
@@ -179,7 +221,7 @@ For example, this complete empty index is valid:
 ```
 
 Version indexes MUST include all locally owned Versions. An ordinary Resource
-MUST have at least one Version; exactly one MUST have `isdefault: true`,
+MUST have at least one Version. Exactly one MUST have `isdefault: true`,
 matching its Meta's `defaultversionid`. Ancestors MUST exist in that same
 index and MUST NOT form cycles other than a root's self-reference.
 An alias MUST NOT own a Version index, including a fabricated empty index.
@@ -199,17 +241,17 @@ Resource type sharing. `modelbase` MUST record the absolute base of the
 original source. Consumers MUST NOT re-fetch mutable includes during a read.
 The producer MUST establish equivalence of the captured source, resolved
 source and full model, when present. The original include directives remain
-available through `entity.modelsource`; the resolved copy is storage context,
+available through `entity.modelsource`. The resolved copy is storage context,
 not a second authoritative domain model.
 
 When includes are absent, `resolvedmodelsource` is OPTIONAL and, if present,
 MUST equal `entity.modelsource`. Model reads expose the original source,
 available resolved source and available full model. Interpreting a compact
-source MUST apply Core defaults; it MUST NOT silently infer type sharing
+source MUST apply Core defaults. It MUST NOT silently infer type sharing
 from structural similarity.
 
 Model results MUST preserve `modelbase` when present. Registry metadata
-envelopes retain `snapshot` and available `source` outside `entity`; these
+envelopes retain `snapshot` and available `source` outside `entity`. These
 are capture context, not new Core attributes.
 
 `entity.capabilities` MUST describe access to this snapshot, not copy claims
@@ -261,17 +303,17 @@ This is distinct from a present zero-byte document.
 
 An exact read walks the Registry record, the necessary typed collection
 indexes and selected child records. A Version read MUST NOT require reading
-unrelated domain bytes. A consumer MAY scan a collection index in memory;
-this version defines one complete index per collection and no pagination.
+unrelated domain bytes. A consumer MAY scan a collection index in memory.
+This version defines one complete index per collection and no pagination.
 A size or traversal limit MUST fail explicitly, not act as a partial index.
 
 The following materialization defines the metadata result envelope. The
-envelope is not a new wire API; it keeps storage and transport context outside
+envelope is not a new wire API. It keeps storage and transport context outside
 Core metadata:
 
 | Operation | Envelope and materialization |
 | --- | --- |
-| `entity` | `kind` and `entity`; recursively inline descendant metadata, never domain bytes. |
+| `entity` | `kind` and `entity`. Recursively inline descendant metadata, never domain bytes. |
 | `collection` | `kind: "collection"`, `xid`, `complete: true`, and `entities`, a Core collection map. |
 | `model` | Original `modelsource`, available `resolvedmodelsource`, and available full `model`. |
 | `capabilities` | The captured snapshot access capabilities. |
@@ -280,7 +322,7 @@ Core metadata:
 Every materialized entity's `self` MUST be a JSON Pointer fragment locating
 that entity in the returned envelope. For example, a standalone Version
 has `self: "#/entity"`. Collection members begin at `#/entities/<ID>`.
-JSON Pointer tokens MUST escape `~` as `~0` and `/` as `~1`; URI-fragment
+JSON Pointer tokens MUST escape `~` as `~0` and `/` as `~1`. URI-fragment
 encoding also applies. XIDs are not rewritten.
 
 Navigation MUST use a `#` JSON Pointer if and only if the referenced entity
@@ -288,7 +330,7 @@ or collection is included in the output. A pointer into another record file
 is not document-local navigation.
 
 Registry and Group results inline all child metadata. Ordinary Resource
-results inline `meta` and all Version metadata; `metaurl`, `versionsurl`,
+results inline `meta` and all Version metadata. `metaurl`, `versionsurl`,
 and the Meta's `defaultversionurl` MUST point at those actual objects.
 Collection URLs and counts, when included, MUST describe the materialized
 maps, including empty maps. Default-Version attributes MUST NOT also be
@@ -311,8 +353,8 @@ No materialized target metadata can replace the source IDs.
 A logical document request to an alias MAY read the one-hop target's selected
 document, independently of document-view metadata. It MUST NOT follow a
 second alias. If no one-hop target document exists, the document request
-returns `not_found`; that does not make the source's minimal metadata invalid.
-Resource document requests use `meta.defaultversionid`; explicit Version
+returns `not_found`. That does not make the source's minimal metadata invalid.
+Resource document requests use `meta.defaultversionid`. Explicit Version
 requests use exactly that ID. A snapshot revision, index position or highest
 Version string MUST NOT override the Core default.
 
@@ -338,8 +380,8 @@ read validates its visited path but MUST NOT claim to have independently
 audited unvisited graph closure.
 
 Consumers MUST verify length and SHA-256 before parsing or returning each
-internally referenced object. Root bytes are captured once per operation;
-their SHA-256 identifies that root serialization, not universal semantic
+internally referenced object. Root bytes are captured once per operation.
+Their SHA-256 identifies that root serialization, not universal semantic
 identity or publisher authenticity. Every descendant is pinned transitively
 by its parent descriptor. Newly published states MUST be complete without
 replaying a prior snapshot. Shared content reuse does not relax closure.
@@ -389,13 +431,13 @@ assembly and an OPTIONAL local Git object-store reader. It uses the common
 It does not fetch repositories or external documents.
 
 ```text
-python -B tools\document_examples.py validate workingdrafts\federation\samples\document-tree
-python -B tools\document_examples.py entity workingdrafts\federation\samples\document-tree /documents/main/assets/item/versions/v1
+python -B tools\document_examples.py validate workingdrafts\bindings\samples\document-tree
+python -B tools\document_examples.py entity workingdrafts\bindings\samples\document-tree /documents/main/assets/item/versions/v1
 ```
 
 `read_record` exposes a storage fragment, not a Core response. `metadata`
 and `collection` return the materialized envelopes above. `document` returns
-`bytes`, including `b""`; `document_descriptor` exposes an external locator
+`bytes`, including `b""`. `document_descriptor` exposes an external locator
 without fetching it. `reads` exposes storage-file reads so tests can
 distinguish full validation from selective retrieval. CLI JSON metadata
 includes this trace outside `entity`, without moving the pointer root.
@@ -413,24 +455,11 @@ processes racing pathname lookup. Such use requires OS handle-relative,
 no-follow traversal or a private immutable snapshot as described by the File
 binding. This limitation is not a claim of production resolver conformance.
 
-## Source Crosswalk
-
-| Design input | Retained requirement or correction |
-| --- | --- |
-| Git proposal, sections 2, 3 and 5 | Indexed tree and commit capture retained; type-less paths replaced by typed XIDs and opaque allocations. |
-| File proposal, sections 2, 3 and 5 | One selected `registry.json` root; filesystem containment and explicit layout selection. |
-| Both proposals, section 4 | Ordinary OPTIONAL Core labels and case-insensitive values replace mandatory language keys and exact localized matching. |
-| Both proposals, section 6 | Read-only access and distinct selection failures; concrete schemas and exact-byte rules added. |
-| Core document view and model reuse | Navigation is materialized, defaults are not duplicated, and `xref` is not remote federation. |
-
-The preliminary proposals are informative design inputs. Local Core and the
-approved shared federation contract take precedence over their examples.
-
 ## References
 
 - [xRegistry Core 1.0-rc4](../../core/spec.md).
 - [xRegistry Model 1.0-rc4](../../core/model.md).
 - [xRegistry HTTP document/metadata distinction](../../core/http.md#resource-metadata-vs-resource-document).
-- [Shared federation contract](spec.md).
+- [Shared federation contract](../federation/spec.md).
 - [JSON Pointer, RFC6901](https://www.rfc-editor.org/rfc/rfc6901).
 - [JSON Schema Draft 2020-12](https://json-schema.org/draft/2020-12/json-schema-core).

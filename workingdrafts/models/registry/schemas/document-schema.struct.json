@@ -91,13 +91,13 @@
           },
           "priority": {
             "type": "uint32",
-            "description": "Lower values are preferred; absence means 0."
+            "description": "Lower values are preferred. Absence means 0."
           },
           "parameters": {
             "type": "object",
             "properties": {},
             "additionalProperties": true,
-            "description": "Binding parameters; absence means an empty object."
+            "description": "Binding parameters. Absence means an empty object."
           }
         },
         "additionalProperties": false,
@@ -200,11 +200,11 @@
           },
           "xregurl": {
             "type": "string",
-            "description": "Legacy xRegistry HTTP Registry root URL."
+            "description": "xRegistry HTTP Registry root URL."
           },
           "weburl": {
             "type": "string",
-            "description": "Human-facing website; not a resolution advertisement."
+            "description": "Human-facing website. Not a resolution advertisement."
           },
           "registrytypes": {
             "type": "array",
@@ -215,7 +215,7 @@
           },
           "authority": {
             "type": "string",
-            "description": "Administrative authority identifier; not a trust claim."
+            "description": "Administrative authority identifier. Not a trust claim."
           },
           "federationprofiles": {
             "type": "array",
@@ -341,7 +341,22 @@
                 "type": "string"
               },
               "deprecated": {
-                "type": "any"
+                "type": "object",
+                "properties": {
+                  "effective": {
+                    "type": "datetime"
+                  },
+                  "removal": {
+                    "type": "datetime"
+                  },
+                  "alternative": {
+                    "type": "string"
+                  },
+                  "documentation": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
               },
               "defaultversionid": {
                 "type": "string"

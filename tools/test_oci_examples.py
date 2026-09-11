@@ -20,7 +20,7 @@ from federation_examples import FederationError
 
 ROOT = Path(__file__).resolve().parent.parent
 OCI_FIXTURES = ROOT / "workingdrafts" / "federation" / "samples" / "oci"
-DOCUMENT_FIXTURES = OCI_FIXTURES.parent / "document-tree"
+DOCUMENT_FIXTURES = ROOT / "workingdrafts" / "bindings" / "samples" / "document-tree"
 SCHEMAS = ROOT / "workingdrafts" / "bindings" / "schemas"
 INDEX = "application/vnd.oci.image.index.v1+json"
 MANIFEST = "application/vnd.oci.image.manifest.v1+json"

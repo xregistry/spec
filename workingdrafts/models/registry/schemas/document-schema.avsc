@@ -440,7 +440,7 @@
                                 "null",
                                 "string"
                               ],
-                              "doc": "Legacy xRegistry HTTP Registry root URL.",
+                              "doc": "xRegistry HTTP Registry root URL.",
                               "name": "xregurl",
                               "default": null
                             },
@@ -449,7 +449,7 @@
                                 "null",
                                 "string"
                               ],
-                              "doc": "Human-facing website; not a resolution advertisement.",
+                              "doc": "Human-facing website. Not a resolution advertisement.",
                               "name": "weburl",
                               "default": null
                             },
@@ -473,7 +473,7 @@
                                 "null",
                                 "string"
                               ],
-                              "doc": "Administrative authority identifier; not a trust claim.",
+                              "doc": "Administrative authority identifier. Not a trust claim.",
                               "name": "authority",
                               "default": null
                             },
@@ -502,7 +502,7 @@
                                           "null",
                                           "int"
                                         ],
-                                        "doc": "Lower values are preferred; absence means 0.",
+                                        "doc": "Lower values are preferred. Absence means 0.",
                                         "name": "priority",
                                         "default": null
                                       },
@@ -526,7 +526,7 @@
                                           }
                                         ],
                                         "name": "parameters",
-                                        "doc": "Binding parameters; absence means an empty object.",
+                                        "doc": "Binding parameters. Absence means an empty object.",
                                         "default": null
                                       }
                                     ]
@@ -741,6 +741,65 @@
                                 "null",
                                 "string"
                               ],
+                              "name": "compatibility",
+                              "default": null
+                            },
+                            {
+                              "type": [
+                                "null",
+                                {
+                                  "type": "record",
+                                  "name": "RegistryMetaDeprecatedType",
+                                  "fields": [
+                                    {
+                                      "type": [
+                                        "null",
+                                        {
+                                          "type": "long",
+                                          "logicalType": "timestamp-millis"
+                                        }
+                                      ],
+                                      "name": "effective",
+                                      "default": null
+                                    },
+                                    {
+                                      "type": [
+                                        "null",
+                                        {
+                                          "type": "long",
+                                          "logicalType": "timestamp-millis"
+                                        }
+                                      ],
+                                      "name": "removal",
+                                      "default": null
+                                    },
+                                    {
+                                      "type": [
+                                        "null",
+                                        "string"
+                                      ],
+                                      "name": "alternative",
+                                      "default": null
+                                    },
+                                    {
+                                      "type": [
+                                        "null",
+                                        "string"
+                                      ],
+                                      "name": "documentation",
+                                      "default": null
+                                    }
+                                  ]
+                                }
+                              ],
+                              "name": "deprecated",
+                              "default": null
+                            },
+                            {
+                              "type": [
+                                "null",
+                                "string"
+                              ],
                               "name": "defaultversionid",
                               "default": null
                             },
@@ -758,14 +817,6 @@
                                 "boolean"
                               ],
                               "name": "defaultversionsticky",
-                              "default": null
-                            },
-                            {
-                              "type": [
-                                "null",
-                                "string"
-                              ],
-                              "name": "compatibility",
                               "default": null
                             }
                           ]

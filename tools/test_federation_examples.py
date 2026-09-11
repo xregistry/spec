@@ -954,7 +954,7 @@ def test_select_profile_filters_before_priority_and_parameter_validation(other, 
     assert selected is winner
     assert selected == {"name": "http", "endpoint": "https://selected.example.test/nonroot/registry"}
     assert entry == before
-    # Real validation would reject the other entry; selection must not validate it.
+    # Real validation would reject the other entry. Selection must not validate it.
     with pytest.raises(FederationError) as raised:
         validate_profile(other)
     assert raised.value.code == "invalid_package"
@@ -1051,17 +1051,17 @@ def test_select_profile_caller_name_precedes_ranking_and_is_case_sensitive(name,
 @pytest.mark.parametrize(
     ("file_priority", "expected_name"),
     [
-        pytest.param(None, "http", id="legacy-only"),
-        pytest.param(0, "file", id="explicit-file-ties-legacy"),
-        pytest.param(1, "http", id="legacy-priority-zero-wins"),
+        pytest.param(None, "http", id="xregurl-only"),
+        pytest.param(0, "file", id="explicit-file-ties-xregurl"),
+        pytest.param(1, "http", id="xregurl-priority-zero-wins"),
     ],
 )
-def test_select_profile_legacy_http_is_appended_after_explicit_profiles(file_priority, expected_name):
+def test_select_profile_xregurl_http_is_appended_after_explicit_profiles(file_priority, expected_name):
     file_profile = {
         "name": "file", "endpoint": "file:///catalog", "priority": file_priority,
         "parameters": {"layout": "document-tree"},
     }
-    entry = {"xregurl": "https://legacy.example.test/nonroot/registry"}
+    entry = {"xregurl": "https://xregurl.example.test/nonroot/registry"}
     if file_priority is not None:
         entry["federationprofiles"] = [file_profile]
     before = deepcopy(entry)
@@ -1073,7 +1073,7 @@ def test_select_profile_legacy_http_is_appended_after_explicit_profiles(file_pri
         assert selected is file_profile
         assert selected["endpoint"] == "file:///catalog"
     else:
-        assert selected == {"name": "http", "endpoint": "https://legacy.example.test/nonroot/registry"}
+        assert selected == {"name": "http", "endpoint": "https://xregurl.example.test/nonroot/registry"}
         assert "priority" not in selected
     assert entry == before
 
@@ -1085,20 +1085,20 @@ def test_select_profile_legacy_http_is_appended_after_explicit_profiles(file_pri
         pytest.param(True, id="one-matching-http-is-sufficient"),
     ],
 )
-def test_select_profile_matching_explicit_http_preserves_legacy_candidate(include_other_http):
-    matching = {"name": "http", "endpoint": "https://legacy.example.test/registry", "priority": 5}
+def test_select_profile_matching_explicit_http_preserves_xregurl_candidate(include_other_http):
+    matching = {"name": "http", "endpoint": "https://xregurl.example.test/registry", "priority": 5}
     file_profile = {
         "name": "file", "endpoint": "file:///catalog", "priority": 2,
         "parameters": {"layout": "document-tree"},
     }
     other_http = {"name": "http", "endpoint": "https://other.example.test/registry", "priority": 1}
     profiles = [matching, file_profile, other_http] if include_other_http else [matching, file_profile]
-    entry = {"xregurl": "https://legacy.example.test/registry", "federationprofiles": profiles}
+    entry = {"xregurl": "https://xregurl.example.test/registry", "federationprofiles": profiles}
     before = deepcopy(entry)
 
     selected = select_profile(entry, {"http", "file"})
 
-    assert selected == {"name": "http", "endpoint": "https://legacy.example.test/registry"}
+    assert selected == {"name": "http", "endpoint": "https://xregurl.example.test/registry"}
     assert selected.get("priority", 0) == 0
     assert all(selected is not profile for profile in profiles)
     assert entry == before
@@ -1108,13 +1108,13 @@ def test_select_profile_matching_explicit_http_preserves_legacy_candidate(includ
     "explicit_endpoint",
     [
         pytest.param("https://other.example.test/registry", id="different-endpoint"),
-        pytest.param("https://legacy.example.test/registry/", id="trailing-slash-only"),
+        pytest.param("https://xregurl.example.test/registry/", id="trailing-slash-only"),
         pytest.param("https://LEGACY.example.test/registry", id="host-case-only"),
     ],
 )
-def test_select_profile_rejects_legacy_http_conflicts(explicit_endpoint):
+def test_select_profile_rejects_xregurl_http_conflicts(explicit_endpoint):
     entry = {
-        "xregurl": "https://legacy.example.test/registry",
+        "xregurl": "https://xregurl.example.test/registry",
         "federationprofiles": [{"name": "http", "endpoint": explicit_endpoint}],
     }
     before = deepcopy(entry)
@@ -1128,19 +1128,19 @@ def test_select_profile_rejects_legacy_http_conflicts(explicit_endpoint):
 
 
 @pytest.mark.parametrize(
-    ("legacy", "code", "message"),
+    ("xregurl", "code", "message"),
     [
-        pytest.param("/registry", "invalid_package", "Endpoint must be absolute", id="relative-legacy"),
-        pytest.param("ftp://legacy.example.test/registry", "invalid_package", "HTTP endpoint scheme", id="non-http-legacy"),
+        pytest.param("/registry", "invalid_package", "Endpoint must be absolute", id="relative-xregurl"),
+        pytest.param("ftp://xregurl.example.test/registry", "invalid_package", "HTTP endpoint scheme", id="non-http-xregurl"),
         pytest.param(
-            "https://reader@legacy.example.test/registry", "policy_denied",
-            "Embedded credentials prohibited", id="credential-bearing-legacy",
+            "https://reader@xregurl.example.test/registry", "policy_denied",
+            "Embedded credentials prohibited", id="credential-bearing-xregurl",
         ),
     ],
 )
-def test_select_profile_validates_legacy_http_even_if_not_selected(legacy, code, message):
+def test_select_profile_validates_xregurl_http_even_if_not_selected(xregurl, code, message):
     entry = {
-        "xregurl": legacy,
+        "xregurl": xregurl,
         "federationprofiles": [
             {"name": "file", "endpoint": "file:///catalog", "priority": 0, "parameters": {"layout": "document-tree"}},
         ],

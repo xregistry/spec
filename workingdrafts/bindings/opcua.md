@@ -46,7 +46,7 @@ HTTP over OPC UA.
 **Status:** Unreleased working draft. The companion proposal pinned at
 `ff22f224400fc8be813bf0abcbfc3cde52bc7ed3` is an explicitly unadopted draft,
 not an OPC Foundation standard or endorsement. The federation corrections
-and dependency gaps in §9 apply to its use here; its claims about remote
+and dependency gaps in §9 apply to its use here. Its claims about remote
 identity do not override xRegistry Core or the OPC UA Parts.
 
 ## Table of Contents
@@ -54,6 +54,7 @@ identity do not override xRegistry Core or the OPC UA Parts.
 - [Abstract](#abstract)
 - [Table of Contents](#table-of-contents)
 - [1. Scope](#1-scope)
+  - [1.1. Motivation and Example](#11-motivation-and-example)
 - [2. Normative references](#2-normative-references)
 - [3. Terms and conventions](#3-terms-and-conventions)
 - [4. The OPC UA API access model](#4-the-opc-ua-api-access-model)
@@ -126,11 +127,11 @@ a registry is a `RegistryType` folder (subtype of `FolderType`), each group is
 a `GroupType` folder (subtype of `FolderType`), and each resource or resource
 version is a `ResourceType` (subtype of `FileType`). Document-bearing
 Resources expose their bytes through that file interface. Metadata-only
-Resources remain readable as metadata without a fabricated domain document;
+Resources remain readable as metadata without a fabricated domain document.
 §9.6 records the limitation of the pinned proposal. This API
 specifies how clients interact with those nodes using Browse, BrowseNext, Read,
 Write, Call, TranslateBrowsePathsToNodeIds and the FileTransfer Methods
-inherited by `ResourceType`; deletion is an xRegistry `Delete(ExpectedEpoch)`
+inherited by `ResourceType`. Deletion is an xRegistry `Delete(ExpectedEpoch)`
 Method call on the `GroupType` or `ResourceType` entity being deleted.
 
 > Annex A provides an informative correspondence for readers familiar with
@@ -139,8 +140,29 @@ Method call on the `GroupType` or `ResourceType` entity being deleted.
 
 This binding is independent of any domain registry. A concrete companion
 specification subtypes `RegistryType`, `GroupType` and `ResourceType`,
-constrains group and resource names, and MAY add domain Properties or Methods;
-the OPC UA API patterns in this document remain the same.
+constrains group and resource names, and MAY add domain Properties or Methods.
+The OPC UA API patterns in this document remain the same.
+
+### 1.1. Motivation and Example
+
+A device or industrial service can already expose metadata and files through
+an OPC UA AddressSpace. This binding lets an xRegistry consumer use that
+native interface without requiring the device to host an HTTP facade.
+
+For example, a catalog entry can advertise `opc.tcp://ua.example.com:4840`
+and Registry root `nsu=urn:example:registry;s=FirstRegistry`.
+The resolver selects that application and root, reads the model, and maps
+`/documents/main/assets/item/versions/v1` to the corresponding Version node.
+It reads metadata through Properties and document bytes through the
+FileType Open/Read/Close lifecycle.
+
+The resolver can run in the consumer or in an API server that exposes a
+consumer-facing Registry. A local shadow Resource in that server takes
+precedence before it uses the UA source. The shared
+[hosting models](../federation/spec.md#design-hosting-models) describe this
+separation. The endpoint, namespace index, Registry root and XID remain
+distinct throughout resolution. The companion dependency and native mapping
+requirements below determine which operations an implementation can provide.
 
 ## 2. Normative references
 
@@ -165,7 +187,7 @@ collection, `xid`, `self`, `epoch`, `labels`, model, capabilities, request
 flags, representation and federation have the meanings defined by the xRegistry
 core specification and primer. In this document, an `xid` is the xRegistry
 relative identifier of an entity within a registry, for example
-`/schemagroups/g1/schemas/s1`; it is not a protocol URL and is resolved against
+`/schemagroups/g1/schemas/s1`. It is not a protocol URL and is resolved against
 the selected `RegistryType` root.
 
 OPC UA type and member names follow OPC UA naming conventions and are written
@@ -196,9 +218,9 @@ subtypes of `ResourceType`.
 
 An OPC UA xRegistry API is an AddressSpace subtree rooted at a selected
 `RegistryType` domain subtype instance. Each registry root represents one
-xRegistry registry; each `GroupType` child represents a group; each
+xRegistry registry. Each `GroupType` child represents a group. Each
 `ResourceType` child represents a resource or resource version whose document,
-if its model permits one, is obtained through `FileType` Methods; and labels and
+if its model permits one, is obtained through `FileType` Methods. And labels and
 extension attributes are represented by Property Variables under each entity's
 `Labels` object of type `AttributesType`.
 
@@ -208,7 +230,7 @@ this API. Federation advertisements use the portable `registryroot` NodeId
 specified in §9.1. Endpoint selection alone does not select a Registry.
 
 The selected registry root is the API authority for the operation sequence. No
-URL authority is involved in the native OPC UA API; entity identity is carried
+URL authority is involved in the native OPC UA API. Entity identity is carried
 by xRegistry identifier Properties and `Xid`, while the OPC UA session,
 endpoint and NodeIds identify where those entities are currently served.
 
@@ -239,15 +261,15 @@ metadata starting at the selected `RegistryType` root.
 
 `capabilities`, `model` and export below are operation concepts, not entity
 XIDs. Common federation `model` and `capabilities` requests target `/`.
-Metadata mode is an operation choice; an HTTP `$details` suffix is not part
+Metadata mode is an operation choice. An HTTP `$details` suffix is not part
 of an OPC UA NodeId, BrowseName or XID.
 
 | xRegistry target or operation | OPC UA target | Primary OPC UA operation |
 |---|---|---|
 | `/` | selected `RegistryType` root node | Read registry Properties and Browse group children |
-| Capabilities | `RegistryType.CapabilitiesInfo` Variable or `RegistryType.Capabilities` `FileType` component Object | Read supported fixed fields from `CapabilitiesInfo`; use `Open`/`Read`/`Close` on `Capabilities` for raw JSON and fields not faithfully represented by the pinned DataType; when writable, `Open(write)`/`Write`/`Close` replaces the JSON document |
+| Capabilities | `RegistryType.CapabilitiesInfo` Variable or `RegistryType.Capabilities` `FileType` component Object | Read supported fixed fields from `CapabilitiesInfo`. Use `Open`/`Read`/`Close` on `Capabilities` for raw JSON and fields not faithfully represented by the pinned DataType. When writable, `Open(write)`/`Write`/`Close` replaces the JSON document |
 | Offered capabilities | offered-capabilities structure exposed by the server, if any | Read a domain Property or an offered section inside the `Capabilities` JSON document |
-| Model | `RegistryType.Model` `FileType` component Object | `Open`/`Read`/`Close` the JSON bytes; when writable as model source, `Open(write)`/`Write`/`Close` replaces the document |
+| Model | `RegistryType.Model` `FileType` component Object | `Open`/`Read`/`Close` the JSON bytes. When writable as model source, `Open(write)`/`Write`/`Close` replaces the document |
 | Model source | server-specific model-source Property or operation, if exposed | Read or Write the domain-defined model-source target, or reject as unsupported |
 | Export | selected `RegistryType` subtree serialized as an xRegistry document | Browse and Read the subtree, or use a domain export Method or Property if advertised |
 | `/<GROUPS>` | collection of `GroupType` children under the registry whose collection name is `<GROUPS>` | Browse and optionally `CreateGroup` or `GetOrCreateGroup` on the registry |
@@ -255,7 +277,7 @@ of an OPC UA NodeId, BrowseName or XID.
 | `/<GROUPS>/<GID>/<RESOURCES>` | collection of `ResourceType` children under the group whose collection name is `<RESOURCES>` | Browse and optionally `CreateResource` or `GetOrCreateResource` on the group |
 | `/<GROUPS>/<GID>/<RESOURCES>/<RID>` | default `ResourceType` for `ResourceId = <RID>` | `Open`/`Read` document bytes or Read metadata Properties |
 | Resource metadata operation at `/<GROUPS>/<GID>/<RESOURCES>/<RID>` | same `ResourceType`, metadata view | Read/Write Properties and optionally `Labels.AddAttribute`/`Labels.RemoveAttribute` |
-| `/<GROUPS>/<GID>/<RESOURCES>/<RID>/meta` | metadata Properties of the resource and default-version selection state | Read/Write Properties; domain extensions MAY add meta Properties |
+| `/<GROUPS>/<GID>/<RESOURCES>/<RID>/meta` | metadata Properties of the resource and default-version selection state | Read/Write Properties. Domain extensions MAY add meta Properties |
 | `/<GROUPS>/<GID>/<RESOURCES>/<RID>/versions` | set of `ResourceType` files with matching `ResourceId` and distinct `VersionId` | Browse associated version files |
 | `/<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>` | `ResourceType` whose `ResourceId = <RID>` and `VersionId = <VID>` | `Open`/`Read` document bytes or Read metadata Properties |
 | Version metadata operation at `/<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>` | same version file, metadata view | Read/Write Properties and optionally `Labels.AddAttribute`/`Labels.RemoveAttribute` |
@@ -268,14 +290,14 @@ resource or version instance MUST be a `ResourceType` or subtype. Collection
 names, identifier Properties and model type provenance MUST be checked
 together. The same `ResourceId` in independently defined collections is not
 the same Resource type. Qualified BrowsePath elements MUST use namespace
-URIs mapped to the selected Server's namespace indexes; neither an unqualified
+URIs mapped to the selected Server's namespace indexes. Neither an unqualified
 display path nor a persisted namespace index is a portable address.
 
 A server MUST set each group's, resource's and version's BrowseName to its
 identifier: `groupid`, `resourceid` or `versionid`, respectively, and each
 group's and resource's DisplayName to its `Name`, when present. IDs MUST
 preserve the Core grammar, case-insensitive sibling uniqueness and
-case-sensitive lookup; they are not filesystem names or global identities.
+case-sensitive lookup. They are not filesystem names or global identities.
 The symbolic identifier construction of [*OPC UA —
 xRegistry*](https://github.com/marcschier/opcua-drafts/blob/ff22f224400fc8be813bf0abcbfc3cde52bc7ed3/core-specs/xregistry/OPC-UA-xRegistry.md)
 §6.9 is a domain convention for entities derived from that source model,
@@ -305,7 +327,7 @@ file.
 
 Full replacement of an entity targets the entity node or the parent folder from
 which the entity can be created. If the entity does not exist, the server
-creates a `GroupType` folder or `ResourceType` file; if it exists, the server
+creates a `GroupType` folder or `ResourceType` file. If it exists, the server
 updates it. Mutable Properties or `Labels` entries omitted from the replacement
 representation MUST be deleted, reset to default or left unchanged only where
 the xRegistry core rules or server-managed semantics require that behavior.
@@ -316,21 +338,21 @@ Write of writable Properties and, where extension attributes or labels are
 involved, by Call of
 `Labels.AddAttribute(Key: String, Value: String, ExpectedEpoch: UInt32)` or
 `Labels.RemoveAttribute(Key: String, ExpectedEpoch: UInt32)` on the entity's
-`Labels` `AttributesType` object; success/failure is conveyed by the Method Call
+`Labels` `AttributesType` object. Success/failure is conveyed by the Method Call
 StatusCode. Partial update MUST NOT patch arbitrary bytes inside a resource
-document; document content changes use complete replacement of the document byte
+document. Document content changes use complete replacement of the document byte
 stream.
 
 Collection processing creates or updates one or more child entities under the
 collection's parent folder. A client preferably creates or resolves groups with
 `GetOrCreateGroup` on `RegistryType` and resources or versions with
-`GetOrCreateResource` on `GroupType`; strict create operations use
+`GetOrCreateResource` on `GroupType`. Strict create operations use
 `CreateGroup` and `CreateResource` when existence is an error. After creation or
 resolution the client writes mandatory and mutable Properties, updates the
 `Labels` container where supplied, and writes document bytes where supplied. A
 server MUST apply the xRegistry atomicity rule: if one entity in a collection
 operation cannot be processed, the server SHOULD reject the whole operation and
-avoid partial effects; if the server cannot guarantee multi-node atomicity, it
+avoid partial effects. If the server cannot guarantee multi-node atomicity, it
 MUST advertise that limitation in `Capabilities`.
 
 Nested collection processing on an entity MUST process only nested collection
@@ -346,8 +368,8 @@ sequence or server-defined batch of `Delete(ExpectedEpoch)` Calls over selected
 children.
 
 Unless otherwise stated, a request to update a read-only Property MUST be
-ignored only if xRegistry says that read-only attribute updates are ignored;
-otherwise the server MUST reject the Write with `Bad_NotWritable` or
+ignored only if xRegistry says that read-only attribute updates are ignored.
+Otherwise the server MUST reject the Write with `Bad_NotWritable` or
 `Bad_UserAccessDenied`. A request that supplies an identifier Property
 (`RegistryId`, `GroupId`, `ResourceId` or `VersionId`) whose value conflicts
 with the target entity MUST fail with `Bad_InvalidArgument` or
@@ -364,7 +386,7 @@ xRegistry*](https://github.com/marcschier/opcua-drafts/blob/ff22f224400fc8be813b
 
 OPC UA carries fixed metadata as typed Property Values. Strings are OPC UA
 `String`, timestamps are `DateTime`, `ExternalReference` is `ExpandedNodeId`,
-and `Epoch` is `UInt32`; labels are `String` Property Variables under the
+and `Epoch` is `UInt32`. Labels are `String` Property Variables under the
 entity's `Labels` object of type `AttributesType`. Structured extension
 attributes require an explicit domain mapping preserving their Core types.
 For example, a `federationprofiles` array is not a string label or a domain
@@ -378,11 +400,11 @@ Browse and Read metadata.
 
 The metadata view of a resource or version is represented by choosing Property
 Reads or Writes instead of file content Reads or Writes. The target NodeId is
-the same `ResourceType`; only the operation mode differs.
+the same `ResourceType`. Only the operation mode differs.
 
 The xRegistry `contenttype` attribute maps to `ContentType`, not to `MimeType`
 . `MimeType` is inherited from `FileType` and MAY mirror `ContentType` for
-generic FileTransfer clients; when both are present, `ContentType` is the
+generic FileTransfer clients. When both are present, `ContentType` is the
 xRegistry attribute and `MimeType` is the FileTransfer media hint.
 
 ### 4.5. Method signatures and argument mapping
@@ -397,24 +419,24 @@ definitions are normative in OPC 10000-20.
 
 | xRegistry action | OPC UA Method or Service | Argument mapping |
 |---|---|---|
-| Create group | `RegistryType.CreateGroup(GroupId) -> (GroupNodeId)` | `GroupId` is the groupid of the `GroupType` (or subtype) to create; the server creates the group folder and bootstraps its xRegistry attributes; fails if the group already exists |
-| Get or create group | `RegistryType.GetOrCreateGroup(GroupId) -> (GroupNodeId, Created)` | `GroupId` is the groupid to resolve; the server returns the existing group with `Created = false` or creates, bootstraps and returns a new group with `Created = true` |
-| Create resource or version | `GroupType.CreateResource(ResourceId, VersionId, RequestFileOpen) -> (ResourceNodeId, VersionId, FileHandle)` | A version is identified by `(ResourceId, VersionId)`; a new `ResourceId` creates the resource with its first version, an existing `ResourceId` with a new `VersionId` creates a new sibling version, and an empty `VersionId` lets the server assign the next versionid (returned as the output `VersionId`); `RequestFileOpen = true` returns a write `FileHandle` when document bytes follow; fails with `Bad_NodeIdExists` if that exact `(ResourceId, VersionId)` already exists |
-| Get or create resource or version | `GroupType.GetOrCreateResource(ResourceId, VersionId, RequestFileOpen) -> (ResourceNodeId, VersionId, FileHandle, Created)` | resolves the `(ResourceId, VersionId)` version (empty `VersionId` selects or creates the default version); the server returns the existing file with `Created = false` or creates and returns a new one with `Created = true`; `RequestFileOpen = true` returns a write `FileHandle` |
-| Delete group/resource/version | `Delete(ExpectedEpoch: UInt32)` on the selected `GroupType` or `ResourceType` | The target node is resolved from the xRegistry `xid` or identifier Properties; `ExpectedEpoch` can be omitted; `0` or omission disables the epoch check, and a non-zero value MUST equal the entity's current `Epoch` or the Call fails with `Bad_InvalidState` and deletes nothing; the Method returns no output arguments |
-| Read document | `ResourceType.Open(mode)` -> `Read(fileHandle, length)` -> `Close(fileHandle)` | `mode` is read-only; `length` and repeated Reads are bounded by `Size` |
-| Replace document | `ResourceType.Open(mode)` -> `SetPosition(fileHandle, 0)` -> `Write(fileHandle, data)` -> `Close(fileHandle)` | `mode` allows write; the complete replacement byte stream is written; server updates `ModifiedAt` and `Epoch` |
+| Create group | `RegistryType.CreateGroup(GroupId) -> (GroupNodeId)` | `GroupId` is the groupid of the `GroupType` (or subtype) to create. The server creates the group folder and bootstraps its xRegistry attributes. Fails if the group already exists |
+| Get or create group | `RegistryType.GetOrCreateGroup(GroupId) -> (GroupNodeId, Created)` | `GroupId` is the groupid to resolve. The server returns the existing group with `Created = false` or creates, bootstraps and returns a new group with `Created = true` |
+| Create resource or version | `GroupType.CreateResource(ResourceId, VersionId, RequestFileOpen) -> (ResourceNodeId, VersionId, FileHandle)` | A version is identified by `(ResourceId, VersionId)`. A new `ResourceId` creates the resource with its first version, an existing `ResourceId` with a new `VersionId` creates a new sibling version, and an empty `VersionId` lets the server assign the next versionid (returned as the output `VersionId`). `RequestFileOpen = true` returns a write `FileHandle` when document bytes follow. Fails with `Bad_NodeIdExists` if that exact `(ResourceId, VersionId)` already exists |
+| Get or create resource or version | `GroupType.GetOrCreateResource(ResourceId, VersionId, RequestFileOpen) -> (ResourceNodeId, VersionId, FileHandle, Created)` | resolves the `(ResourceId, VersionId)` version (empty `VersionId` selects or creates the default version). The server returns the existing file with `Created = false` or creates and returns a new one with `Created = true`. `RequestFileOpen = true` returns a write `FileHandle` |
+| Delete group/resource/version | `Delete(ExpectedEpoch: UInt32)` on the selected `GroupType` or `ResourceType` | The target node is resolved from the xRegistry `xid` or identifier Properties. `ExpectedEpoch` can be omitted. `0` or omission disables the epoch check, and a non-zero value MUST equal the entity's current `Epoch` or the Call fails with `Bad_InvalidState` and deletes nothing. The Method returns no output arguments |
+| Read document | `ResourceType.Open(mode)` -> `Read(fileHandle, length)` -> `Close(fileHandle)` | `mode` is read-only. `length` and repeated Reads are bounded by `Size` |
+| Replace document | `ResourceType.Open(mode)` -> `SetPosition(fileHandle, 0)` -> `Write(fileHandle, data)` -> `Close(fileHandle)` | `mode` allows write. The complete replacement byte stream is written. Server updates `ModifiedAt` and `Epoch` |
 | Read metadata | Read Service on Properties | Property BrowseNames map to xRegistry attribute names by the tables in this document and the domain model |
 | Replace scalar metadata | Write Service on Properties | Value DataTypes are those in Annex A of the base model |
-| Add/update extension attribute or label | `Labels.AddAttribute(Key: String, Value: String, ExpectedEpoch: UInt32)` | `Labels` is the entity's `AttributesType` object; `Key` is the xRegistry attribute or label key, `Value` is the canonical string representation materialized as a `<Attribute>` Property Variable, and `ExpectedEpoch` provides the optimistic-concurrency check; success/failure is conveyed by the Method Call StatusCode |
-| Remove extension attribute or label | `Labels.RemoveAttribute(Key: String, ExpectedEpoch: UInt32)` | `Labels` is the entity's `AttributesType` object; `Key` is the xRegistry attribute or label key and `ExpectedEpoch` provides the optimistic-concurrency check; success/failure is conveyed by the Method Call StatusCode |
+| Add/update extension attribute or label | `Labels.AddAttribute(Key: String, Value: String, ExpectedEpoch: UInt32)` | `Labels` is the entity's `AttributesType` object. `Key` is the xRegistry attribute or label key, `Value` is the canonical string representation materialized as a `<Attribute>` Property Variable, and `ExpectedEpoch` provides the optimistic-concurrency check. Success/failure is conveyed by the Method Call StatusCode |
+| Remove extension attribute or label | `Labels.RemoveAttribute(Key: String, ExpectedEpoch: UInt32)` | `Labels` is the entity's `AttributesType` object. `Key` is the xRegistry attribute or label key and `ExpectedEpoch` provides the optimistic-concurrency check. Success/failure is conveyed by the Method Call StatusCode |
 
 The base model defines `CreateGroup` and `GetOrCreateGroup` on `RegistryType`,
 `CreateResource` and `GetOrCreateResource` on `GroupType`, and `AttributesType`
-with `AddAttribute` / `RemoveAttribute`; each registry, group or resource MAY
+with `AddAttribute` / `RemoveAttribute`. Each registry, group or resource MAY
 expose a `Labels` object of type `AttributesType`, and clients call those
 Methods on that `Labels` object for label or extension-attribute updates. The
-creation Methods are the base API create operations; move/copy is out of scope
+creation Methods are the base API create operations. Move/copy is out of scope
 for the base API and can be modeled by re-creating an entity and deleting the
 original where permitted.
 
@@ -430,19 +452,19 @@ For label or metadata mutation through `Labels.AddAttribute` and
 `Labels.RemoveAttribute`, a client passes the entity's current `Epoch` as
 `ExpectedEpoch`. If `ExpectedEpoch` is non-zero and does not equal the entity's
 current `Epoch`, the Method MUST fail with `Bad_InvalidState` and make no
-change; `ExpectedEpoch = 0` or an omitted argument disables the check.
+change. `ExpectedEpoch = 0` or an omitted argument disables the check.
 On success the owning entity's `Epoch` increments.
 
 For document replacement, exclusive `Open(write)` serializes writers. An
 epoch-matched replacement sequence is: Read `Epoch`, call `Open(write)`,
 re-Read `Epoch`, abort and `Close` if the value changed, otherwise `Write` the
-complete replacement document and `Close`; the server increments `Epoch` on
+complete replacement document and `Close`. The server increments `Epoch` on
 successful `Close`.
 
 For deletion, a client passes the current entity `Epoch` as the
 `ExpectedEpoch` input to `Delete(ExpectedEpoch)`. If `ExpectedEpoch` is
 non-zero and does not equal the entity's current `Epoch`, the Method Call MUST
-fail with `Bad_InvalidState`, delete nothing and produce no partial effects;
+fail with `Bad_InvalidState`, delete nothing and produce no partial effects.
 `ExpectedEpoch = 0` or omission disables the check. Deletion is therefore an
 atomic epoch-matched Method call rather than a read-then-delete sequence.
 
@@ -451,7 +473,7 @@ using the standard OPC UA locking mechanism — a `LockingServicesType` componen
 (`InitLock` / `RenewLock` / `ExitLock` / `BreakLock`, OPC 10000-5) — on the
 registry root, a group or a resource, so that a client can hold an explicit
 exclusive lock across a multi-step create/update sequence. This API does not
-require locking; when it is absent, clients rely on FileTransfer `Open`
+require locking. When it is absent, clients rely on FileTransfer `Open`
 exclusivity and `Epoch` preconditions.
 
 ### 4.6. Attribute mapping
@@ -462,8 +484,8 @@ The base model Properties map to xRegistry attributes as follows.
 |---|---|---|
 | `registryid` | `RegistryId` | `RegistryType` |
 | `specversion` | `SpecVersion` | `RegistryType` |
-| `capabilities` | preferred: `CapabilitiesInfo` Variable (`RegistryCapabilitiesDataType`) for fixed fields; alternative: `Capabilities` Object (`FileType`) whose content is the raw capabilities JSON | `RegistryType` |
-| `model` | `Model` Object (`FileType`) whose content is the model JSON; no structured DataType is defined because the OPC UA AddressSpace type system is the structural equivalent | `RegistryType` |
+| `capabilities` | preferred: `CapabilitiesInfo` Variable (`RegistryCapabilitiesDataType`) for fixed fields. Alternative: `Capabilities` Object (`FileType`) whose content is the raw capabilities JSON | `RegistryType` |
+| `model` | `Model` Object (`FileType`) whose content is the model JSON. No structured DataType is defined because the OPC UA AddressSpace type system is the structural equivalent | `RegistryType` |
 | `<GROUP>id` | `GroupId` | `GroupType` |
 | `<RESOURCE>id` | `ResourceId` | `ResourceType` |
 | `versionid` | `VersionId` | `ResourceType` |
@@ -471,7 +493,7 @@ The base model Properties map to xRegistry attributes as follows.
 | `contenttype` | `ContentType` | `ResourceType` |
 | `<RESOURCE>url` | `ResourceUrl` | `ResourceType` |
 | draft external document target, not Core `xref` | `ExternalReference` | `ResourceType` |
-| `meta.xref`, default-Version selection and other Meta state | no complete base mapping; documented domain mapping is necessary (§9.6) | Resource/Meta view |
+| `meta.xref`, default-Version selection and other Meta state | no complete base mapping. Documented domain mapping is necessary (§9.6) | Resource/Meta view |
 | `xid` | `Xid` | all base entity types |
 | `epoch` | `Epoch` | all base entity types |
 | `name` | `Name` | all base entity types |
@@ -542,18 +564,18 @@ Browsing its `Capabilities` and `Model` `FileType` component Objects when those
 JSON documents are requested, and Browsing its group children. The standard base
 Properties are `RegistryId`, `SpecVersion`, `CapabilitiesInfo`, `Xid`,
 `Epoch`, `Name`, `Description`, `Documentation`, `CreatedAt` and
-`ModifiedAt` where present; `Capabilities` and `Model` are `FileType`
+`ModifiedAt` where present. `Capabilities` and `Model` are `FileType`
 component Objects, and `Labels` is an `AttributesType` Object.
 
 A serialized registry representation follows §8. Counts require complete Browse
-results; document-local navigation does not require a fabricated API URL.
+results. Document-local navigation does not require a fabricated API URL.
 Domain group subtypes and the `Model` JSON document determine how browsed groups
 are grouped into xRegistry collections.
 
 ### 5.2. Creating and updating the registry
 
 A registry-level full replacement writes the full replacement set of mutable
-`RegistryType` Properties; omitted mutable attributes are removed or reset
+`RegistryType` Properties. Omitted mutable attributes are removed or reset
 according to xRegistry rules. `Capabilities` and `Model` are `FileType`
 component Objects: absence MUST NOT require a change, while presence MUST be
 written as a complete replacement document with `Open(write)` /`Write`/`Close`
@@ -570,7 +592,7 @@ failing with `Bad_NotSupported` if the attribute is mandatory or cannot be
 removed.
 
 The base `RegistryType` does not define `AddAttribute` or `RemoveAttribute`
-directly; label and extension-attribute updates are made by calling those
+directly. Label and extension-attribute updates are made by calling those
 Methods on the registry's `Labels` object of type `AttributesType`.
 
 When a registry-level operation includes nested group collections, each group
@@ -632,7 +654,7 @@ A client reads the registry model by calling `Open` for read on the
 until the complete JSON byte stream is returned, and calling `Close`. The
 content is the full xRegistry model definition, and clients MAY use it to
 resolve domain collection names to `GroupType` and `ResourceType` subtype
-BrowseNames before browsing entities. `Model` remains FileType JSON only; no
+BrowseNames before browsing entities. `Model` remains FileType JSON only. No
 structured DataType is defined for the model because the OPC UA AddressSpace
 type system is the structural equivalent.
 
@@ -648,7 +670,7 @@ object (`{}`) as the model-source JSON content, matching xRegistry semantics.
 Capabilities updates use `Open(write)` /`Write`/`Close` on the
 `RegistryType.Capabilities` `FileType` component Object if it is writable for
 the current user. A full replacement writes the complete capabilities JSON byte
-stream; a partial capabilities update writes only top-level capabilities if the
+stream. A partial capabilities update writes only top-level capabilities if the
 server supports patch-level semantics, otherwise the client MUST perform
 read-modify-write and the server MAY reject partial writes with
 `Bad_NotSupported`.
@@ -662,7 +684,7 @@ domain-defined operation. The abstract base API does not define a writable
 `ModelSource` node. If a server supports model-source updates via the
 `RegistryType.Model` `FileType` component Object, it MUST document that `Model`
 is serving as model source and MUST apply the xRegistry full-replacement rules
-using `Open(write)` /`Write`/`Close`; if the server exposes only effective
+using `Open(write)` /`Write`/`Close`. If the server exposes only effective
 `Model`, attempts to write model source MUST fail with `Bad_NotWritable` or
 `Bad_NotSupported`.
 
@@ -670,7 +692,7 @@ using `Open(write)` /`Write`/`Close`; if the server exposes only effective
 
 A client lists a group collection by Browse over the selected `RegistryType`
 root to return `GroupType` children that belong to the requested group
-collection. xRegistry group collections are unordered maps keyed by id; OPC UA
+collection. xRegistry group collections are unordered maps keyed by id. OPC UA
 Browse returns children in a server-defined order, so a client MUST NOT infer
 collection order from Browse position.
 
@@ -685,8 +707,8 @@ for every candidate.
 A client creates or updates groups as `GroupType` children under the registry
 root. For each group key, the preferred one-shot path is
 `GetOrCreateGroup(GroupId)` on the `RegistryType` root, which returns the
-existing group with `Created = false` or creates it with `Created = true`;
-strict create operations use `CreateGroup(GroupId)` when an existing group MUST
+existing group with `Created = false` or creates it with `Created = true`.
+Strict create operations use `CreateGroup(GroupId)` when an existing group MUST
 fail. It then writes group Properties and updates the group's `Labels` container
 according to the requested processing mode: partial updates write only named
 attributes, while full representations reset or remove omitted mutable
@@ -697,16 +719,16 @@ processed, not the entire group collection.
 
 If a group does not exist and the operation permits creation, the server creates
 it with `GetOrCreateGroup` or strict `CreateGroup` on the registry root. The
-supplied group identifier MUST match `GroupId`; a mismatch fails with
+supplied group identifier MUST match `GroupId`. A mismatch fails with
 `Bad_InvalidArgument`.
 
 Processing nested resource collections under a group creates or updates resource
 collections under the specified group without modifying the group's own
 Properties or `Labels` container. The request representation is a map from
-resource collection names to resource maps; for each resource entry, the client
+resource collection names to resource maps. For each resource entry, the client
 preferably calls `GetOrCreateResource`, writes the document if supplied, and
 writes resource Properties or updates the resource's `Labels` container
-according to the nested operation semantics; strict creation uses
+according to the nested operation semantics. Strict creation uses
 `CreateResource`.
 
 If an operation attempts to update group-level attributes while it is explicitly
@@ -720,7 +742,7 @@ equals the requested `groupid`, then Reading its Properties and Browsing its
 resource children as needed.
 
 The standard base Properties are `GroupId`, `Xid`, `Epoch`, `Name`,
-`Description`, `Documentation`, `CreatedAt` and `ModifiedAt`; `Labels` is an
+`Description`, `Documentation`, `CreatedAt` and `ModifiedAt`. `Labels` is an
 `AttributesType` Object. Domain group subtypes MAY add mandatory
 group-key Properties and extension metadata.
 
@@ -736,7 +758,7 @@ group child.
 If an entity-specific `epoch` precondition is supplied for deletion, the client
 MUST pass it as `ExpectedEpoch`. If `ExpectedEpoch` is non-zero and does not
 equal the group's current `Epoch`, the Call MUST fail with `Bad_InvalidState`
-and delete nothing; `ExpectedEpoch = 0` or omission disables the check.
+and delete nothing. `ExpectedEpoch = 0` or omission disables the check.
 
 ### 5.10. Resource metadata and resource documents
 
@@ -757,7 +779,7 @@ MUST be rejected with `Bad_NotReadable`, `Bad_InvalidState` or
 `Bad_NotSupported`, and metadata access remains the normal entity
 representation. A federation resolver maps that model-level condition to
 `unsupported_operation` before attempting FileTransfer. Inherited FileType
-members remain subject to their OPC UA ModellingRules; their presence does
+members remain subject to their OPC UA ModellingRules. Their presence does
 not imply that a domain document exists. A `Size` value of zero alone MUST
 NOT turn a metadata-only Resource into an empty document. This includes the
 `categories` / `registries` catalog model.
@@ -781,7 +803,7 @@ such a declaration is not a redirect instruction.
 
 A client lists a resource collection by Browse over the `GroupType` folder to
 return `ResourceType` children in the requested resource collection. xRegistry
-resource collections are unordered maps keyed by id; OPC UA Browse returns
+resource collections are unordered maps keyed by id. OPC UA Browse returns
 children in a server-defined order, so a client MUST NOT infer collection order
 from Browse position.
 
@@ -790,7 +812,7 @@ Resource model type. The default version is the `ResourceType` selected by
 the server's documented default-Version mapping for that Resource. A single
 Version is unambiguous only when the server establishes that no other Version
 exists. With multiple Versions, `VersionId` or Browse order alone does not
-identify the default; absence of a usable mapping yields
+identify the default. Absence of a usable mapping yields
 `unsupported_operation` for default selection.
 
 A client derives `versionscount` only after browsing all Versions of that
@@ -803,7 +825,7 @@ A client creates or updates resources as `ResourceType` children under the
 group. For each resource key, the preferred one-shot path is
 `GetOrCreateResource(ResourceId, VersionId, RequestFileOpen)` on the `GroupType`
 , which returns the existing `(ResourceId, VersionId)` version with
-`Created = false` or creates it with `Created = true`; if
+`Created = false` or creates it with `Created = true`. If
 `RequestFileOpen = true`, the returned write file handle MAY be used
 immediately to write the document bytes. A new version of an existing resource
 is created by passing its `ResourceId` with a new (or empty, server-assigned)
@@ -842,13 +864,13 @@ cached bytes from the local file. The choice MUST be documented in
 
 The baseline read uses the [FileType Methods][ua-filetype] on the selected
 file Object. A Method's ObjectId and MethodId MUST identify that Object and
-its actual Method node; a BrowseName shown here is not a numeric MethodId.
+its actual Method node. A BrowseName shown here is not a numeric MethodId.
 This procedure also applies to `Model`, `Capabilities` and a namespace file.
 
 1. Establish the selected file, Version and Session. Read available metadata
    needed by the operation, including `Size` and relevant change indicators.
    Check Service, per-node and per-Call StatusCodes. `Bad_NotSupported` on
-   `Size` means unknown size, as Part 20 permits; it does not mean zero.
+   `Size` means unknown size, as Part 20 permits. It does not mean zero.
 2. Call `Open(mode = 1)` for read only. The other mode bits remain clear.
    Retain a successful `fileHandle` only for this Object and Session.
 3. Call `Read(fileHandle, length)` with a positive Int32 length bounded by
@@ -864,7 +886,7 @@ This procedure also applies to `Model`, `Capabilities` and a namespace file.
 5. Call `Close(fileHandle)` when finished. After every successful Open, the
    client MUST attempt Close on success, error, cancellation or limit
    exhaustion while the Session is usable. A failed Open does not allocate
-   a handle to close. Session loss invalidates the handle; reconnecting
+   a handle to close. Session loss invalidates the handle. Reconnecting
    requires a new Open, not reuse of that handle or file position.
 6. Recheck available Version/default selection and change indicators when
    the operation claims a consistent capture. Changed observations produce
@@ -897,10 +919,10 @@ server-managed and MUST NOT be directly writable unless the server explicitly
 allows administrative writes.
 
 Changing default-version state is domain-defined because the base model only
-defines `VersionId` on `ResourceType`; a server that supports the xRegistry
+defines `VersionId` on `ResourceType`. A server that supports the xRegistry
 `defaultversionid` meta attribute MUST expose a writable domain Property or
 Method for that state. Read-only federation also needs a readable mapping
-for default selection and the rest of the Core Meta entity; this does not
+for default selection and the rest of the Core Meta entity. This does not
 require a new write Method. The precise base-model gaps are listed in §9.6.
 
 Deleting the meta view is not supported. The server MUST reject attempts to
@@ -944,7 +966,7 @@ the server MUST return `Bad_InvalidState` or `Bad_NotSupported`.
 A client lists versions by Browse for all `ResourceType` files associated with
 the selected Resource model type, `ResourceId` and a non-empty `VersionId`
 under the owning `GroupType`. xRegistry version collections are unordered maps keyed by
-`VersionId`; OPC UA Browse returns children in a server-defined order, and
+`VersionId`. OPC UA Browse returns children in a server-defined order, and
 version order is conveyed by attributes such as `ancestor`, `createdat` and
 `defaultversionid`, not by container position.
 
@@ -956,7 +978,7 @@ collection keys are `VersionId` values.
 ### 5.18. Creating and updating versions
 
 A client creates or updates a version by resolving a `ResourceType` with the
-selected `ResourceId` and `VersionId`; if absent and creation is allowed, it
+selected `ResourceId` and `VersionId`. If absent and creation is allowed, it
 calls `GetOrCreateResource` on the group with the resource identifier or
 `CreateResource` for strict creation, and sets the version identifier according
 to the domain versioning model. The version file's BrowseName MUST be the
@@ -1033,18 +1055,18 @@ response-shaping hints, and MUST be rejected with `Bad_NotSupported` or
 
 | xRegistry flag | OPC UA realization |
 |---|---|
-| `inline` | Browse and Read the named child collections or Properties in the same client operation sequence; a domain export MAY inline server-side |
-| `filter` | Filter collection Browse results by BrowseName, NodeClass, TypeDefinition and target NodeId; read Properties or `Labels` only for predicates on values not present in the Browse result |
-| `sort` | Client-side ordering of Browse results by a chosen attribute such as BrowseName, `VersionId` or `CreatedAt`, plus any additional Properties used as sort keys; OPC UA collection nodes remain unordered |
+| `inline` | Browse and Read the named child collections or Properties in the same client operation sequence. A domain export MAY inline server-side |
+| `filter` | Filter collection Browse results by BrowseName, NodeClass, TypeDefinition and target NodeId. Read Properties or `Labels` only for predicates on values not present in the Browse result |
+| `sort` | Client-side ordering of Browse results by a chosen attribute such as BrowseName, `VersionId` or `CreatedAt`, plus any additional Properties used as sort keys. OPC UA collection nodes remain unordered |
 | pagination | Browse continuation points, `BrowseNext`, file `Read` length, and Read `IndexRange` |
 | `doc` | Serialize using document shape, omitting redundant URL/count metadata as defined by xRegistry |
-| `meta` | Read metadata Properties rather than document bytes; equivalent to metadata operation mode for resources and versions |
+| `meta` | Read metadata Properties rather than document bytes. Equivalent to metadata operation mode for resources and versions |
 | `export` | Serialize the selected subtree as an xRegistry document |
-| `epoch` | Pass `ExpectedEpoch` to `Labels.AddAttribute`, `Labels.RemoveAttribute` and `Delete`; for document replacement, use the epoch-matched sequence in §4.5.1 |
-| `ignore` | Server-side write processing option advertised in `Capabilities`; unsupported ignore values fail with `Bad_InvalidArgument` |
+| `epoch` | Pass `ExpectedEpoch` to `Labels.AddAttribute`, `Labels.RemoveAttribute` and `Delete`. For document replacement, use the epoch-matched sequence in §4.5.1 |
+| `ignore` | Server-side write processing option advertised in `Capabilities`. Unsupported ignore values fail with `Bad_InvalidArgument` |
 | `setdefaultversionid` | Domain-defined default-version update, normally a meta Property or Method |
-| `specversion` | Compare requested version against `SpecVersion` and `Capabilities`; reject incompatible processing with `Bad_InvalidArgument` |
-| `binary` | Prefer raw `Open`/`Read` bytes for documents; metadata remains OPC UA typed Properties |
+| `specversion` | Compare requested version against `SpecVersion` and `Capabilities`. Reject incompatible processing with `Bad_InvalidArgument` |
+| `binary` | Prefer raw `Open`/`Read` bytes for documents. Metadata remains OPC UA typed Properties |
 | `collections` | Include or omit collection members by Browse depth and serialization rules |
 
 ### 6.1. Filtering
@@ -1053,19 +1075,19 @@ A client applies the `filter` flag by Browsing the collection folder and
 evaluating predicates directly against the Browse results where possible.
 Identity and collection predicates can use BrowseName, NodeClass, TypeDefinition
 and target NodeId when the documented mapping identifies the relevant type and
-ID. Missing identifier information requires Property reads; for example, a
+ID. Missing identifier information requires Property reads. For example, a
 Version's BrowseName alone need not identify its owning Resource.
 
 Predicates on dynamic label values or other attributes not present in
 Browse results require additional Reads. For a label-value predicate, the client
 browses the candidate entity's `Labels` `AttributesType` object and reads only
-the matching `<Attribute>` Property Variable where present; for fixed or domain
+the matching `<Attribute>` Property Variable where present. For fixed or domain
 Properties such as `Name`, `CreatedAt` or `ModifiedAt`, the client reads those
 Properties for the remaining candidates and evaluates the predicate locally.
 
 For the common federation selector, label keys use Core map lookup and
 values use Core case-insensitive string comparison. The requested value is
-literal, including `*` and an empty string; an absent label does not match.
+literal, including `*` and an empty string. An absent label does not match.
 The client MUST NOT impose NFC normalization or mandatory language labels.
 Unique selection requires every necessary Browse page and Property read.
 BrowseName namespace indexes and order do not supply label values.
@@ -1100,7 +1122,7 @@ parent entity representation.
 Clients sort collection entries locally. xRegistry group, resource and version
 collections are unordered maps keyed by id, and OPC UA defines no
 ordered-collection interface, so none is used. Sort keys available in Browse
-results, such as BrowseName and DisplayName, require no per-result Read; sort
+results, such as BrowseName and DisplayName, require no per-result Read. Sort
 keys based on fixed Properties such as `VersionId` or `CreatedAt`, domain
 Properties or label values require reading those values for the candidate
 entries.
@@ -1108,7 +1130,7 @@ entries.
 Browse order alone MUST NOT be assumed to be xRegistry sort order unless the
 server explicitly documents that behavior in `Capabilities`. Version order is
 conveyed by attributes such as `ancestor`, `createdat` and `defaultversionid`,
-not by container position; a server MAY expose a domain index Property if it
+not by container position. A server MAY expose a domain index Property if it
 needs deterministic order.
 
 ### 6.5. Document and metadata modes
@@ -1119,7 +1141,7 @@ omits them. In OPC UA this is a serialization mode, not a different node.
 
 The `meta` flag selects Property access for resources and versions. A client
 MUST NOT attempt byte-level partial update of a document by selecting metadata
-mode; metadata and document bytes are separate operation modes on the same
+mode. Metadata and document bytes are separate operation modes on the same
 `ResourceType`.
 
 ### 6.6. Pagination and ranges
@@ -1167,7 +1189,7 @@ FileTransfer are inputs to serialization, not an alternative JSON schema.
 
 For a `RegistryType`, emit `registryid`, `specversion` and mapped common
 attributes. Read requested `capabilities` and effective `model` from their
-mapped sources. Preserve available `modelsource` separately; the effective
+mapped sources. Preserve available `modelsource` separately. The effective
 model is not automatically the original source. Group collection names and
 the singular ID attribute names come from the model, not from a generic
 BrowseName guess.
@@ -1176,14 +1198,14 @@ For a `GroupType`, emit the modeled Group ID and mapped common attributes.
 For a Resource, emit the modeled Resource ID and its distinct Meta entity.
 For a Version, emit that Resource ID, the exact `versionid` and Version
 attributes. Do not conflate the Meta epoch with the Version epoch. All
-REQUIRED Core attributes need actual values or valid Core derivation; an
+REQUIRED Core attributes need actual values or valid Core derivation. An
 incomplete companion mapping MUST produce an explicit unsupported operation
 rather than plausible invented metadata.
 
 Without a defined retrievable Core API URL, metadata MUST use document-local
 navigation. `self` locates the entity within the returned JSON document,
 not within the OPC UA AddressSpace. For example, in a whole-Registry export,
-an asset's `self` is `#/documents/main/assets/item`; its Meta `self` is
+an asset's `self` is `#/documents/main/assets/item`. Its Meta `self` is
 `#/documents/main/assets/item/meta`. In a standalone Resource result they
 are `#` and `#/meta`. Here `#` denotes the empty
 [RFC 6901 JSON Pointer][json-pointer] selecting the document root.
@@ -1228,7 +1250,7 @@ semantics, including the following:
 For an included, document-bearing Version, use `<RESOURCE>` or
 `<RESOURCE>base64` according to Core. An exact-byte export SHOULD use raw
 FileTransfer bytes and `<RESOURCE>base64`, including `""` for a zero-byte
-document. JSON domain bytes are not the Resource's metadata; reserializing
+document. JSON domain bytes are not the Resource's metadata. Reserializing
 JSON does not preserve its original byte representation. Metadata-only
 Versions MUST NOT gain `<RESOURCE>`, `<RESOURCE>base64` or a fake domain
 URL.
@@ -1237,7 +1259,7 @@ URL.
 the domain document with a defined retrieval mechanism. Preserve external
 documents as links when exporting a linked representation. An
 offline-complete export MUST obtain and include all declared documents in
-its scope under policy; it MUST NOT claim completeness from locators alone.
+its scope under policy. It MUST NOT claim completeness from locators alone.
 `ExternalReference` is not a Core JSON attribute. A documented extension can
 preserve it as native provenance, or a permitted document read can
 materialize its bytes, but it MUST NOT become `meta.xref`.
@@ -1304,25 +1326,25 @@ policy, use OPC UA discovery where necessary, and validate the selected
 application and security context. A supplied `applicationuri` MUST match
 the discovered and authenticated application's identity. The selected
 `transportprofileuri`, if supplied, MUST match the endpoint's transport
-profile; `https` alone does not imply an xRegistry HTTP facade.
+profile. `https` alone does not imply an xRegistry HTTP facade.
 
 The resolver reads the target Server's `NamespaceArray`, finds the exact
 namespace URI and constructs a session-local NodeId with that index. It MUST
 verify that the node is the selected `RegistryType` or a permitted subtype.
 It MUST NOT choose the first Registry it finds at the endpoint. A supplied
 BrowsePath from another discovery mechanism also needs a defined starting
-node, qualified elements and namespace-URI remapping; it is not an additional
+node, qualified elements and namespace-URI remapping. It is not an additional
 advertisement parameter in this version.
 
 Read `SpecVersion` and the necessary model/capabilities before interpreting
-entities. An incompatible Core version yields `unsupported_version`; an
+entities. An incompatible Core version yields `unsupported_version`. An
 absent usable model or REQUIRED mapping is an explicit unsupported operation.
 The selected root's `RegistryId`, a catalog entry's Resource ID and the
 Application URI have different scopes.
 
 Common `entity`, `collection`, `model`, `capabilities` and `document`
 requests map to §4.2. Resource document requests select the documented Core
-default Version; Version requests select the exact Version. A
+default Version. Version requests select the exact Version. A
 `categories` / `registries` catalog is read through metadata Properties,
 including typed Version extensions, without opening a fabricated file.
 
@@ -1336,12 +1358,12 @@ including typed Version extensions, without opening a fabricated file.
 For an `ExpandedNodeId` received from a source Server, a resolver MUST:
 
 1. Resolve `serverIndex` against the **source Server's** `ServerArray`.
-   Index zero identifies that source Server; a nonzero index identifies a
+   Index zero identifies that source Server. A nonzero index identifies a
    remote application. Reject an out-of-range or missing table context.
 2. Obtain the namespace URI from `namespaceUri`, or from the namespace
    table belonging to the encoded value's context when only a
    `namespaceIndex` is present. An explicit `namespaceUri` makes the
-   numeric namespace index inapplicable; Part 4 specifies zero for that
+   numeric namespace index inapplicable. Part 4 specifies zero for that
    ignored field. Do not transfer an unqualified source index to a target.
 3. Treat the application identity from the server table as an opaque,
    case-sensitive [Application URI][ua-uris]. Use discovery or configured,
@@ -1353,11 +1375,11 @@ For an `ExpandedNodeId` received from a source Server, a resolver MUST:
 5. Read the selected target's declared representation. FileType document
    access uses a new target-local handle and §5.13.1. To interpret it as a
    Registry entity, separately establish the target Registry root, model,
-   Core version and node membership; an arbitrary remote file and matching
+   Core version and node membership. An arbitrary remote file and matching
    XID do not identify a Registry context.
 
 Table indexes are meaningful only in their captured context. Reconnecting or
-using another Server requires remapping; missing namespaces yield a specific
+using another Server requires remapping. Missing namespaces yield a specific
 failure, not namespace zero. For storage without table context, use Part 6
 `nsu=` and, when application-specific, `svu=` forms. `svu=` carries an
 Application URI, not a connectable endpoint. Namespace and Application URIs
@@ -1366,7 +1388,7 @@ MUST use exact opaque-string comparison without URL normalization.
 For example, source `ServerArray[2] = "urn:example:ua:remote"` and source
 `NamespaceArray[3] = "urn:example:registry"` can identify
 `svu=urn:example:ua:remote;nsu=urn:example:registry;s=ItemV1`.
-One target maps that namespace to index 7, giving `ns=7;s=ItemV1`; another
+One target maps that namespace to index 7, giving `ns=7;s=ItemV1`. Another
 deployment maps it to index 2, giving `ns=2;s=ItemV1`. The Application URI,
 namespace URI and identifier remain unchanged. The two endpoint URLs and
 their namespace indexes are not serialized Core identity.
@@ -1376,15 +1398,15 @@ their namespace indexes are not serialized Core identity.
 | Mechanism | Scope and semantics |
 | --- | --- |
 | Core `meta.xref` | Same Registry, same Resource model type, one hop. Core defines metadata inheritance and source-relative identity/navigation. |
-| Draft `ExternalReference` Property | Native external document target expressed as `ExpandedNodeId`; resolve its table context and target FileType under the declared mapping. It is not a standard ReferenceType or a Core metadata alias. |
+| Draft `ExternalReference` Property | Native external document target expressed as `ExpandedNodeId`. Resolve its table context and target FileType under the declared mapping. It is not a standard ReferenceType or a Core metadata alias. |
 | `ResourceUrl` Property | Core `<RESOURCE>url`, identifying a Version's domain document through a defined retrieval mechanism. It does not designate remote Resource metadata. |
 
 A local `xref` MUST remain a Resource XID, not an absolute URI or a
 remote-node locator. Structurally identical Resource type definitions do
-not establish the same type; imported/shared types follow Core
+not establish the same type. Imported/shared types follow Core
 `ximportresources`. If the target is inaccessible or itself an alias, Core
 does not expand it transitively. The source's minimal serialization remains
-valid. The pinned base model lacks an `xref` Property mapping; a conforming
+valid. The pinned base model lacks an `xref` Property mapping. A conforming
 implementation needs an explicit domain mapping and MUST NOT substitute
 `ExternalReference`.
 
@@ -1402,8 +1424,8 @@ generic `opc.tcp` endpoint-plus-path or fragment syntax for document access.
 An unsupported retrieval scheme or undocumented convention MUST fail
 explicitly. `ResourceUrl` and `ExternalReference` MUST NOT be assumed to
 be two interchangeable spellings of the same target. If both are present,
-their relationship and selection need a declared mapping and policy;
-conflicting or ambiguous targets are not resolved by arbitrary precedence.
+their relationship and selection need a declared mapping and policy.
+Conflicting or ambiguous targets are not resolved by arbitrary precedence.
 
 ### 9.4. Trust and live consistency
 
@@ -1445,7 +1467,7 @@ Call NamespaceFile.Close(fileHandle)     -> status
 not part of ordinary read-only Registry discovery. If it is unavailable,
 the client can only read the existing file if exposed and MUST NOT claim
 that it was refreshed. There is no standard direct-return `Export` Method
-or standard `Import` Method in this type; Part 5 describes import mechanisms
+or standard `Import` Method in this type. Part 5 describes import mechanisms
 as vendor-specific. This example defines no new domain or gateway.
 
 ### 9.6. Pinned companion dependency gaps
@@ -1459,8 +1481,8 @@ standard mapping:
 | Sections 6.4, 8 and Annex B describe cross-Registry XID identity and endpoint-valued `ServerUri` | Apply Core XID scope and Parts 3/4/6 application/table resolution instead (§9.2-§9.3). |
 | ResourceType derives from FileType and sections 4.3/9 require document download | Core metadata-only Resources need metadata access without a fabricated document (§5.10). This binding's catalog conformance is not a claim of that draft's download-only conformance. |
 | VersionId exists, but complete Resource Meta/default selection and `xref` members do not | A documented, readable domain mapping is necessary. The client cannot choose a default or implement Core aliases from VersionId/ExternalReference alone. |
-| Labels/AttributesType values are strings | Typed catalog arrays and objects need a documented domain mapping; string labels are insufficient. |
-| Model FileType exists, but no separate ModelSource base member exists | Preserve available source explicitly; do not invent a standard Property or lose shared-type provenance. |
+| Labels/AttributesType values are strings | Typed catalog arrays and objects need a documented domain mapping. String labels are insufficient. |
+| Model FileType exists, but no separate ModelSource base member exists | Preserve available source explicitly. Do not invent a standard Property or lose shared-type provenance. |
 | RegistryCapabilitiesDataType reflects the proposal's older Core vocabulary | Raw capabilities or a documented faithful mapping is necessary for current fields (§5.4). |
 
 These are dependency constraints on interoperable reads and serialization.
@@ -1535,14 +1557,14 @@ does not override a failed node read or Method result.
 | `Bad_UserAccessDenied`, `Bad_SecurityChecksFailed` or local destination-policy rejection | `policy_denied` |
 | Expected application identity or declared document digest mismatch | `integrity_error` |
 | Malformed reference, out-of-range source table index, invalid input or `Bad_InvalidArgument` | `invalid_package` |
-| Missing target namespace URI | `not_found`; do not substitute namespace zero |
+| Missing target namespace URI | `not_found`. Do not substitute namespace zero |
 | `Bad_ContinuationPointInvalid`, changed capture state, premature EOF or incomplete capture | `inconsistent_snapshot` |
 | Byte/page budget, `Bad_TooManyOperations` or `Bad_EncodingLimitsExceeded` | `limit_exceeded` |
 | `Bad_CommunicationError`, `Bad_Timeout`, `Bad_SessionClosed`, `Bad_SessionIdInvalid` or `Bad_ResourceUnavailable` | `unavailable`, with incomplete-capture context when applicable |
 | Locked file `Bad_NotReadable` or file-state `Bad_InvalidState` without a declared external-document mapping | `unavailable`, not an empty document or implicit redirect |
 
 An unknown bad or uncertain status MUST be reported as a failure with its
-original diagnostic; it MUST NOT be treated as Good. A normal dangling local
+original diagnostic. It MUST NOT be treated as Good. A normal dangling local
 `xref` is not a missing source Resource and retains Core's serialization.
 An explicitly requested early stop or an expired continuation point is not
 proof that a label selector had no match.
@@ -1587,20 +1609,20 @@ distinguish Application URI, endpoint, namespace URI, session-local NodeId,
 Registry-root selection and Core XID. It MUST reject unsupported Core
 versions and disclose incomplete or non-atomic live captures. The
 [offline helper and fixtures](../federation/samples/opcua/README.md) exercise
-these mappings without a live UA connection; they do not certify a Server.
+these mappings without a live UA connection. They do not certify a Server.
 
 A conforming implementation MUST NOT assume additional node or Method names.
 Members it requires MUST be defined by the pinned companion proposal,
 subject to §9.6, by the normative OPC UA Parts in §2, or by an explicitly
 documented domain mapping. In particular, the standard Server and namespace
-tables come from Part 5; no new ReferenceType or Registry-discovery Method
+tables come from Part 5. No new ReferenceType or Registry-discovery Method
 is introduced by federation.
 
 ## Annex A — Correspondence to the xRegistry HTTP binding (informative)
 
 This annex is informative and provides a cross-walk for readers coming from the
 sibling xRegistry HTTP binding. The OPC UA API defined by this document is not
-derived from these HTTP methods or paths; the table only identifies the
+derived from these HTTP methods or paths. The table only identifies the
 corresponding operation concepts in the two peer bindings.
 
 | xRegistry operation | OPC UA operation in this document | HTTP binding method and path |
@@ -1609,7 +1631,7 @@ corresponding operation concepts in the two peer bindings.
 | Replace or partially update registry attributes | Write mutable `RegistryType` Properties, call `Labels.AddAttribute`/`Labels.RemoveAttribute` for labels, and process nested groups when supplied (§5.2) | `PUT /`, `PATCH /` |
 | Process group collections at the registry root | Resolve or create `GroupType` children with `GetOrCreateGroup` or strict `CreateGroup` and Write Properties (§5.2) | `POST /` |
 | Export registry document | Browse/Read the `RegistryType` subtree and serialize it (§5.3, §8) | `GET /export` or `GET /?doc&inline=*,capabilities,modelsource` |
-| Read capabilities | Prefer Read of typed `RegistryType.CapabilitiesInfo`; alternatively `Open`/`Read`/`Close` on raw JSON `RegistryType.Capabilities` (§5.4) | `GET /capabilities` |
+| Read capabilities | Prefer Read of typed `RegistryType.CapabilitiesInfo`. Alternatively `Open`/`Read`/`Close` on raw JSON `RegistryType.Capabilities` (§5.4) | `GET /capabilities` |
 | Read offered capabilities | Read a domain offered-capabilities Property or offered section in the `Capabilities` JSON document (§5.4) | `GET /capabilitiesoffered` |
 | Replace or partially update capabilities | `Open(write)`/`Write`/`Close` on `RegistryType.Capabilities` if writable (§5.5) | `PUT /capabilities`, `PATCH /capabilities` |
 | Read model | `Open`/`Read`/`Close` on `RegistryType.Model` (§5.4) | `GET /model` |

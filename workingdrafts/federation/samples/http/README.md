@@ -16,13 +16,13 @@ The model source is interpretation input, not a claim that an effective
 and document-bearing assets share the paths used by the federation examples.
 
 `transcripts.json` contains named synthetic exchanges. Each `request.url`
-is absolute; `request.headers` is the complete set relevant to the example.
+is absolute. `request.headers` is the complete set relevant to the example.
 Each `response.status` is the HTTP status, `headers` retains significant
 headers, and exactly one of `json`, `text` or `base64` supplies a body when
 there is one. JSON bodies describe metadata values, not a canonical JSON
 byte encoding. `text` is UTF-8 without an added newline. `base64` denotes
 exact response bytes. A response without a body member has zero body bytes.
-`expected` states the resolver outcome; it is not an HTTP response field.
+`expected` states the resolver outcome. It is not an HTTP response field.
 
 Collection payloads are metadata maps. No transcript puts domain bytes in
 a metadata-only catalog entry. Pagination links are opaque inputs, and the
@@ -50,7 +50,7 @@ Host: catalog.example.com
 
 The JSON fixture supplies the complete second response. Applying the
 literal selector `stage=PRODUCTION` chooses `bridge`, whose label value is
-`production`; `website` has no matching label and only a `weburl`.
+`production`. `website` has no matching label and only a `weburl`.
 There is no `filter` or `inline` request and no domain document read.
 
 The redirect example uses an explicitly synthetic, non-secret Authorization
@@ -85,24 +85,24 @@ contiguous range assembly and same-URL cache revalidation, not a complete
 HTTP cache. It performs no network I/O.
 
 Use `tools\federation_examples.py` for profile and literal-label selection.
-Its `execute_selected` invokes one supplied read function; it does not catch
+Its `execute_selected` invokes one supplied read function. It does not catch
 a failure and try another advertisement. Tests exercise these helpers
 against the transcripts and separately assert their outcomes and traces.
 
 The executable OPC UA examples use the same `item` XID, default `v1`,
-non-default `v2`, and zero-byte `v3`; its
+non-default `v2`, and zero-byte `v3`. Its
 [export](../opcua/registry-export.json) also demonstrates local `xref` and
 document-local navigation.
 
 | Area | Cases supplied or directly derivable |
 | --- | --- |
-| Addressing | Root and non-root bases; all entity and collection kinds; explicit and default Versions; no `$details` on Meta or collections. |
-| Views | Metadata versus JSON domain bytes; metadata-only catalog; binary and zero-byte documents; separate model/model source. |
-| Selection | No-filter fallback; ignored filters; empty/absent labels; escaped literal `*`; bracket-quoted key; literal `null`; later-page ambiguity. |
-| Pagination | Exact next URL; relative next URL; incomplete later page; changing count; page budget exhaustion. |
-| HTTP | Applicable `304` cache reuse; strong versus weak validators; complete `200` replacing partial bytes; truncated content; distinct metadata/document validators. |
-| Trust | External-document `303`; independent destination credentials; denied redirect; no silent fallback after `401`/`403`; cached temporary redirect still subject to policy. |
-| Capture | Incompatible Core release; changing default Version; lack of Registry-wide atomicity; colliding XIDs in independent contexts. |
+| Addressing | Root and non-root bases. All entity and collection kinds. Explicit and default Versions. No `$details` on Meta or collections. |
+| Views | Metadata versus JSON domain bytes. Metadata-only catalog. Binary and zero-byte documents. Separate model/model source. |
+| Selection | No-filter fallback. Ignored filters. Empty/absent labels. Escaped literal `*`. Bracket-quoted key. Literal `null`. Later-page ambiguity. |
+| Pagination | Exact next URL. Relative next URL. Incomplete later page. Changing count. Page budget exhaustion. |
+| HTTP | Applicable `304` cache reuse. Strong versus weak validators. Complete `200` replacing partial bytes. Truncated content. Distinct metadata/document validators. |
+| Trust | External-document `303`. Independent destination credentials. Denied redirect. No silent fallback after `401`/`403`. Cached temporary redirect still subject to policy. |
+| Capture | Incompatible Core release. Changing default Version. Lack of Registry-wide atomicity. Colliding XIDs in independent contexts. |
 
 The matrix is an inventory for the dedicated test phase, not a claim that
 every derivable mutation already has an executable test.

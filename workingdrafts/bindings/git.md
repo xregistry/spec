@@ -10,7 +10,7 @@
 
 This binding reads one xRegistry snapshot from a Git repository. It selects
 and pins a commit, then reads the [shared document-tree
-format](../federation/document-format.md) directly from Git objects.
+format](document-format.md) directly from Git objects.
 
 **Status:** Unreleased working draft. This binding is not part of a released
 xRegistry specification.
@@ -18,13 +18,14 @@ xRegistry specification.
 ## Table of Contents
 
 - [Scope and Conventions](#scope-and-conventions)
+- [Motivation and Example](#motivation-and-example)
 - [Advertisement](#advertisement)
 - [Revision and Object Selection](#revision-and-object-selection)
 - [Read Operations](#read-operations)
 - [Unsupported Indirections](#unsupported-indirections)
 - [Errors and Security](#errors-and-security)
 - [Conformance](#conformance)
-- [Source Crosswalk and References](#source-crosswalk-and-references)
+- [References](#references)
 
 ## Scope and Conventions
 
@@ -38,6 +39,26 @@ This binding implements the read contract of
 It defines no write-through, synchronization, checkout, build or repository
 execution. Package publication is separate from federation consumption.
 
+## Motivation and Example
+
+Git lets a team review and version a Registry alongside its project metadata.
+An application can use the exact approved Registry state from a release
+commit even after a branch or tag moves. The [document-tree format](document-format.md)
+preserves separate metadata and domain bytes inside that commit.
+
+For example, a repository at `https://example.com/registries.git` can store
+the tree below `xregistry`. Selecting `refs/tags/release-1` and requesting
+`/documents/main/assets/item/versions/v1` first pins the tag's commit, then
+reads the corresponding Git blobs. It does not read working-tree files or
+choose the newest Resource Version from a Git timestamp.
+
+The resolver can be part of the consumer or a federating API server.
+In the latter case, the consumer uses a standard xRegistry API while the
+server uses this binding as a source. The shared
+[hosting models](../federation/spec.md#design-hosting-models) define that
+choice. Git repository acquisition and source policy are separate from
+the Core metadata representation returned to the consumer.
+
 ## Advertisement
 
 The profile name MUST be `git`. `endpoint` MUST be an absolute HTTPS
@@ -50,7 +71,7 @@ are not part of this binding. A web page URL is not implicitly a repository.
 | Parameter | Constraint |
 | --- | --- |
 | `revision` | REQUIRED string: full Git ref or complete SHA-1/SHA-256 object ID. |
-| `path` | OPTIONAL portable relative directory; default `xregistry`; `""` selects the repository tree root. |
+| `path` | OPTIONAL portable relative directory. Default `xregistry`. `""` selects the repository tree root. |
 
 A full ref MUST begin with `refs/` and pass Git's
 [`check-ref-format`](https://git-scm.com/docs/git-check-ref-format) rules.
@@ -58,7 +79,7 @@ For example, `refs/heads/main` and `refs/tags/release-1` are valid.
 `HEAD`, branch shorthand, abbreviated OIDs, reflog selectors, revision ranges,
 `~`, `^` expressions and `:<path>` expressions MUST NOT be accepted.
 A complete object ID consists of exactly 40 or 64 hexadecimal characters,
-matching the repository's object format; readers normalize its spelling to
+matching the repository's object format. Readers normalize its spelling to
 lowercase for the pin. A full ref is a selection input, not an immutable pin.
 
 A nonempty `path` MUST use `/`-separated portable directory components.
@@ -93,7 +114,7 @@ permitted, but MUST NOT create or execute a working tree. Any acquisition
 MUST be explicit, bounded and complete for the requested operation.
 
 The resolver MUST resolve `revision` once. Lightweight tags and branches
-select their referenced object; annotated tags MUST be peeled to a commit.
+select their referenced object. Annotated tags MUST be peeled to a commit.
 An object that cannot resolve to a commit is invalid selection input.
 The resulting complete commit OID MUST be recorded and remain pinned for the
 entire operation, including model, label and document reads. Movement of the
@@ -109,7 +130,7 @@ Every format `href` is resolved inside that same selected tree.
 Records, indexes and documents MUST be read as blob payloads. Consumers MUST
 NOT use checkout bytes, text conversion, clean/smudge filters, attributes,
 LFS downloads, hooks, external diff commands, build steps or repository code.
-Blob mode `100644` or `100755` denotes data; executable permission does not
+Blob mode `100644` or `100755` denotes data. Executable permission does not
 authorize execution. Git object type and identity MUST be verified, in
 addition to the format's descriptor size and SHA-256.
 
@@ -136,7 +157,7 @@ object in the selected commit. Linked external document locators require a
 separate caller-authorized retrieval, not an implicit Git fetch. Relative
 domain links use the format's explicit document base, not the repository URL.
 Core `xref` is resolved only inside this captured Registry and remains
-one-hop; it is not a link to another repository.
+one-hop. It is not a link to another repository.
 
 ## Unsupported Indirections
 
@@ -144,10 +165,10 @@ When encountered on the selected root or traversed internal graph:
 
 | Git object or indirection | REQUIRED outcome |
 | --- | --- |
-| Mode `120000`, a symbolic link | `policy_denied`; do not follow or treat its target string as metadata. |
-| Mode `160000`, a submodule gitlink | `unsupported_operation`; no submodule initialization or fetch. |
-| Git LFS pointer blob | `unsupported_operation`; no smudge or network content substitution. |
-| Missing pinned tree/blob | `inconsistent_snapshot`; no implicit lazy fetch or ref re-resolution. |
+| Mode `120000`, a symbolic link | `policy_denied`. Do not follow or treat its target string as metadata. |
+| Mode `160000`, a submodule gitlink | `unsupported_operation`. No submodule initialization or fetch. |
+| Git LFS pointer blob | `unsupported_operation`. No smudge or network content substitution. |
+| Missing pinned tree/blob | `inconsistent_snapshot`. No implicit lazy fetch or ref re-resolution. |
 | Wrong tree/blob type or malformed tree entry | `invalid_package`. |
 
 For this binding, a blob starting with the Git LFS v1 signature line
@@ -158,14 +179,14 @@ override this rule.
 
 Unrelated submodules or LFS files elsewhere in the repository do not invalidate
 the selected tree. A full snapshot validator traverses its entire declared
-closure; a selective reader only encounters objects on its visited paths.
+closure. A selective reader only encounters objects on its visited paths.
 
 ## Errors and Security
 
 An unknown ref or unavailable initial commit selection is `not_found`.
 Missing `registry.json` at the selected root is `not_found`. A selected
 internal reference missing from an otherwise readable Git tree is an
-`invalid_package`; a tree entry whose pinned object is unavailable is
+`invalid_package`. A tree entry whose pinned object is unavailable is
 `inconsistent_snapshot`. Descriptor or Git object identity mismatch is
 `integrity_error`. Unsupported Core/format versions are `unsupported_version`.
 Resource, label and document failures retain the common distinctions.
@@ -182,7 +203,7 @@ shell evaluation, and MUST isolate unsafe configuration/environment settings.
 Acquisition, tag peeling, tree traversal and object reads MUST have explicit
 resource limits. Limits or incomplete acquisition MUST NOT be reported as
 successful empty results or used to justify fallback to another profile.
-Git content identity alone does not authenticate the publisher; signature
+Git content identity alone does not authenticate the publisher. Signature
 and repository trust policies are independent.
 
 ## Conformance
@@ -194,8 +215,7 @@ the rejection rules above. Offline-complete conformance additionally requires
 all declared document bytes locally in that snapshot.
 
 The shared [offline helper](../../tools/document_examples.py) accepts an
-explicit local Git object directory and a revision. It performs no network
-acquisition and is not a production Git client:
+explicit local Git object directory and a revision:
 
 ```text
 python -B tools\document_examples.py validate --git-dir STORE --revision refs/heads/main --path xregistry
@@ -208,22 +228,14 @@ this interface without commits in the user's repository, checkout, network
 access or publication.
 
 For selective CLI reads, `--target` supplies the Core XID independently of
-`--git-dir`; no filesystem-root positional argument is used in Git mode.
+`--git-dir`. No filesystem-root positional argument is used in Git mode.
 `git_locator` validates the HTTPS advertisement separately from opening a
 caller-provided, isolated local object store.
 
-## Source Crosswalk and References
-
-| Git proposal clause | Disposition |
-| --- | --- |
-| Section 1, `git+https` and URI fragment | Replaced by HTTPS endpoint plus REQUIRED structured `revision`. |
-| Sections 2 and 3, indexed commit snapshot | Retained, with REQUIRED pinning and object-only access. |
-| Section 4, exact localized labels | Replaced by shared Core-compatible literal label selection. |
-| Section 5, example paths | Replaced by the shared typed index and collision-free filename allocation. |
-| Section 6, read-only conformance | Retained with explicit indirection, integrity and consistency failures. |
+## References
 
 - [Shared federation](../federation/spec.md).
-- [Shared document-tree format](../federation/document-format.md).
+- [Shared document-tree format](document-format.md).
 - [Git objects](https://git-scm.com/book/en/v2/Git-Internals-Git-Objects).
 - [Git revision syntax](https://git-scm.com/docs/gitrevisions).
 - [Git repository layout](https://git-scm.com/docs/gitrepository-layout).

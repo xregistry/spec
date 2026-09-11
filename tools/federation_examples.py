@@ -1,4 +1,4 @@
-"""Offline examples of federation selection; not a network resolver."""
+"""Offline examples of federation selection, not a network resolver."""
 
 import re
 from urllib.parse import urlsplit
@@ -21,7 +21,7 @@ _PROFILE_PARAMETERS = {
 
 
 def validate_xid(value, *, collection=False):
-    """Validate syntax; callers also validate collection names against a model."""
+    """Validate syntax. Callers also validate collection names against a model."""
     if not isinstance(value, str) or not value.startswith("/"):
         raise FederationError("invalid_package", "XID must start with /")
     if value == "/" and not collection:
@@ -64,6 +64,8 @@ def _absolute_uri(value):
 def validate_profile(profile):
     if not isinstance(profile, dict):
         raise FederationError("invalid_package", "Advertisement must be an object")
+    if profile.keys() - {"name", "endpoint", "priority", "parameters"}:
+        raise FederationError("invalid_package", "Unknown advertisement field")
     name = profile.get("name")
     if not isinstance(name, str) or not name:
         raise FederationError("invalid_package", "Missing profile name")
@@ -141,7 +143,7 @@ def validate_profile(profile):
 
 
 def select_profile(entry, supported, *, name=None):
-    """Choose once; validation failures never trigger a weaker fallback."""
+    """Choose once. Validation failures never trigger a weaker fallback."""
     if not isinstance(entry, dict):
         raise FederationError("invalid_package", "Catalog entry must be an object")
     candidates = entry.get("federationprofiles", [])
@@ -155,13 +157,13 @@ def select_profile(entry, supported, *, name=None):
     ):
         raise FederationError("invalid_package", "Missing profile name")
     candidates = list(candidates)
-    legacy = entry.get("xregurl")
+    xregurl = entry.get("xregurl")
     explicit_http = [p for p in candidates if p.get("name") == "http"]
-    if legacy is not None:
-        validate_profile({"name": "http", "endpoint": legacy})
-        if explicit_http and not any(p.get("endpoint") == legacy for p in explicit_http):
+    if xregurl is not None:
+        validate_profile({"name": "http", "endpoint": xregurl})
+        if explicit_http and not any(p.get("endpoint") == xregurl for p in explicit_http):
             raise FederationError("invalid_package", "Conflicting xregurl")
-        candidates.append({"name": "http", "endpoint": legacy})
+        candidates.append({"name": "http", "endpoint": xregurl})
     eligible = [
         p for p in candidates
         if p.get("name") in supported and (name is None or p.get("name") == name)
@@ -178,7 +180,7 @@ def select_profile(entry, supported, *, name=None):
 
 
 def execute_selected(entry, supported, read, *, name=None):
-    """Exercise one selected read; failures propagate without another candidate."""
+    """Exercise one selected read. Failures propagate without another candidate."""
     return read(select_profile(entry, supported, name=name))
 
 

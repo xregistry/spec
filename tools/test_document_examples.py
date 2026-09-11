@@ -23,7 +23,7 @@ from federation_examples import FederationError
 
 FIXTURE_ROOT = (
     Path(__file__).resolve().parent.parent
-    / "workingdrafts" / "federation" / "samples" / "document-tree"
+    / "workingdrafts" / "bindings" / "samples" / "document-tree"
 )
 SCHEMA_ROOT = FIXTURE_ROOT.parent.parent / "schemas"
 ITEM = "/documents/main/assets/item"

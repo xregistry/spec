@@ -1,22 +1,21 @@
 # xRegistry Federation
 
 <!-- words: applicationuri federationprofiles nfc nodeid nodeids opc opcua rebasing registrygroups registryroot reparse standalone symlinks transportprofileuri ua website weburl xregurl -->
+<!-- words: py sequencediagram -->
 
 ## Abstract
 
 This specification defines read-only resolution across independently
-administered xRegistries. A Registry of Registries describes access methods;
-a resolver chooses a method, establishes a Registry context and interprets
-that Registry using xRegistry Core. Protocol bindings define retrieval, not a
-new identity system or changes to Core cross-references.
-
-**Status:** Unreleased working draft. This specification and its companion
-bindings are not part of a released xRegistry specification.
+administered xRegistries. A Registry of Registries describes access methods.
+A resolver chooses a method, establishes a Registry context and interprets
+that Registry using xRegistry Core. Protocol bindings define retrieval.
 
 ## Table of Contents
 
 - [Overview](#overview)
 - [Notations and Terminology](#notations-and-terminology)
+- [Design: Hosting Models](#design-hosting-models)
+- [Design: Resolving a Consumer Request](#design-resolving-a-consumer-request)
 - [Discovery and Binding Selection](#discovery-and-binding-selection)
 - [Read Operations](#read-operations)
 - [Identity and References](#identity-and-references)
@@ -26,29 +25,41 @@ bindings are not part of a released xRegistry specification.
 - [Errors](#errors)
 - [Security Considerations](#security-considerations)
 - [Conformance](#conformance)
-- [Source Reconciliation](#source-reconciliation)
 - [References](#references)
 
 ## Overview
 
-Federation permits a consumer to find and read entities through a catalog
-without requiring all content to be copied into that catalog. The
-[Registry domain](../models/registry/spec.md) retains the deployed hub's
-`categories` / `registries` hierarchy. A catalog entry is itself a
-metadata-only Resource. It describes another Registry; it is not that
-Registry's root.
+Federation permits a consumer to find and read entities through a Registry
+without requiring all content to be stored in that Registry. A Registry can
+serve local Resources and obtain other Resources from configured source
+Registries. A locally supplied Resource can shadow a Resource available from
+a source Registry. The consumer's access point remains the Registry.
+
+The [Registry domain](../models/registry/spec.md) contains a
+`categories` / `registries` hierarchy for describing source Registries and
+their access methods. These descriptions form a catalog that the resolver
+uses for discovery. A catalog entry is a metadata-only Resource describing
+another Registry. It is not that Registry's root, and a consumer need not
+query or even see the catalog when an API server resolves requests for it.
+
+For example, an organization can expose a Registry containing a locally
+approved asset at `/documents/main/assets/approved`. It can also use a
+supplier's Registry to serve `/documents/main/assets/supplied`, which is not
+locally present. Requests for `approved` use the local Resource even if the
+supplier advertises a Resource with that path. The source selection policy
+defines which supplier Registries participate and their order.
 
 This specification defines the shared interpretation of resolution requests.
 [HTTP](../bindings/http-federation.md), [OCI](../bindings/oci.md),
 [Git](../bindings/git.md), [File](../bindings/file.md) and
 [OPC UA](../bindings/opcua.md) define how to perform those reads. The
-[document-tree format](document-format.md) is shared by Git and File.
+[document-tree format](../bindings/document-format.md) is shared by Git and File.
 Native bindings do not require an HTTP facade.
 
 This specification does not define synchronization, replication, write-through,
 global entity identifiers, arbitrary merge precedence or discovery of
 dependencies embedded inside domain documents. OCI publication is a separate
-producer operation; describing it does not grant a reader publication rights.
+producer operation.
 
 ## Notations and Terminology
 
@@ -70,8 +81,14 @@ different Core Version or a catalog-description Version.
 | Registry context | The selected logical Registry, model and access context in which an XID is interpreted. |
 | Revision pin | A binding's immutable snapshot selection, when supported. |
 | Origin | The catalog entry, advertisement and revision used for a result. |
-| Resolver | A consumer implementing this specification and a named binding. |
-| Snapshot | A captured Registry state, independent of earlier snapshots. |
+| Resolver | The client-side or server-side component selecting the source and retrieving a requested entity or document. |
+| Federating Registry | The consumer-visible Registry whose view combines local Resources and explicitly configured source Registries. |
+| Source Registry | A Registry selected as a source by the federating Registry's composition policy. |
+| Shadow Resource | A local Resource that takes precedence over the same Resource path in configured sources. |
+| Alias | A Resource using Core [`meta.xref`](../../core/spec.md#cross-referencing-resources) to reference another Resource in the same Registry. |
+| Selector | A criterion used to select members of a collection, such as a label key and value. See [Selectors](#selectors). |
+| Snapshot | A captured Registry state read as one selected revision. See [Snapshots and Completeness](#snapshots-and-completeness). |
+| Package | A stored representation of a snapshot's metadata and declared documents, using the document-tree or OCI format. |
 | Linked snapshot | A complete internal package graph allowing explicit external document references. |
 | Offline-complete snapshot | A snapshot also carrying all declared xRegistry documents in its selected scope. |
 
@@ -80,7 +97,181 @@ Registry root's `registryid` have different scopes. Their values need not
 match. A catalog-description `versionid`, target Resource `versionid`, OCI
 digest, Git commit and endpoint address MUST NOT be treated as interchangeable.
 
+## Design: Hosting Models
+
+Core defines [Registry views](../../core/spec.md#design-registry-views) and
+[no-code servers](../../core/spec.md#design-no-code-servers). Federation
+supports the same separation between a Registry's representation and the
+component performing reads. It does not require every consumer to implement
+every binding.
+
+### Client-Side Resolution
+
+A federation-aware consumer can read a Registry and its configured catalog,
+select a source and access that source's native binding directly. In this
+hosting model, the resolver runs in the consuming application or a library.
+The application supplies the local view, permitted source scope and ordering.
+The consumer retains each result's source context and revision separately
+from its XID.
+
+This model is useful for offline tools or applications that already support
+OCI, Git or other native bindings. A stored catalog alone does not execute
+the selection algorithm. The client performs the additional reads.
+
+### API Server Resolution
+
+A federating API server performs resolution for consumers that call its
+ordinary xRegistry API. For example, an HTTP consumer reads a Resource or
+Version using [Core HTTP](../../core/http.md). The server checks its local
+Resource store and, when appropriate, resolves through its configured catalog.
+The consumer does not need a separate federation request envelope.
+
+A conforming server-hosted resolver MUST expose a Core-conforming Registry
+through each consumer-facing binding that it implements. Its model MUST
+describe the resulting view. Responses, including source-derived data, MUST
+use the consumer-facing Registry's identity and navigation according to that
+binding. Source provenance and revision information remain separate.
+
+The server MUST apply the source-selection, shadowing, error and completeness
+rules below. It MUST NOT expose unrelated source identities as though their
+XIDs were globally interchangeable. The server's advertised capabilities
+describe what it can provide, not the union of features advertised by sources.
+
+### No-Code and Stored Views
+
+A no-code server can serve a previously assembled Registry representation
+without executing federation on each request. A producer performs resolution
+when creating that stored view. Its consumers read the captured state, not
+live changes in every referenced Registry.
+
+Core single-document exports and multiple-document views remain available.
+The [document-tree](../bindings/document-format.md) and
+[OCI](../bindings/oci.md) bindings additionally define storage formats with
+explicit content and integrity references. Their
+[snapshot completeness](#snapshots-and-completeness) rules identify which
+content has been captured. A live resolver MAY consume these stored
+snapshots as source Registries.
+
+The following topology shows a server-hosted resolver. In the client-side
+model the same resolver and policy reside in the consumer instead.
+
+```mermaid
+flowchart LR
+    C["Consumer"] -->|"Standard xRegistry API"| R["Federating Registry"]
+    R --> L["Local Resources and shadows"]
+    R --> X["Resolver and ordered source policy"]
+    X --> K["Catalog of source Registries"]
+    X -->|"Selected binding"| A["Source Registry A"]
+    X -->|"Selected binding"| B["Source Registry B or snapshot"]
+```
+
+## Design: Resolving a Consumer Request
+
+Resolution starts with an operation and a typed target in the consumer's
+Registry view. An exact Resource or Version request uses an XID. A collection
+request can additionally use a [selector](#selectors), such as
+`stage=production`, to find one matching member. Selecting a source Registry
+and selecting a binding for that source are separate decisions.
+
+### Local Resources and Ordered Sources
+
+The federating Registry MUST use an explicit composition policy identifying
+the eligible catalog entries, their order and the Resource paths they can
+supply. That ordered list is configuration, not JSON object-map order or
+Category enumeration order. This specification does not add a catalog
+attribute for that list. A caller MAY choose one source explicitly instead.
+An unordered set of potentially competing origins is insufficient to choose
+a winner and MUST produce `ambiguous` when disambiguation is needed.
+
+For Resource metadata, Meta, Version metadata and document reads, the unit
+of shadowing is the Resource, including all of its Versions:
+
+1. Check the requested Resource path in the local Registry view. A present
+   local Resource wins, including a local alias. Its missing Version or
+   unavailable document MUST NOT be filled from another Registry.
+2. If the Resource is absent locally, visit the eligible source entries in
+   their configured order. For each entry, select a catalog-description
+   Version and then one binding using
+   [Discovery and Binding Selection](#discovery-and-binding-selection).
+3. Resolve the same typed Resource XID in the selected source context. A
+   policy that projects a different source path MUST define that mapping
+   explicitly. The source's model and data MUST be compatible with the
+   consumer-visible model for that path.
+4. A Resource is **found** when that exact Resource exists and its metadata
+   can be interpreted under the selected source context and composition
+   policy. A successful empty collection, a reachable endpoint or a catalog
+   entry alone is not a found Resource.
+5. Stop at the first found Resource. Select its requested Version, or its
+   Core default Version, and obtain the requested representation. All Meta,
+   Version and document reads for this Resource MUST use that selected
+   origin and revision. Do not merge Version sets across origins.
+6. A source Resource result of `not_found` permits trying the next configured
+   source entry. Exhausting the list yields `not_found`. Other failures,
+   including authorization denial, unsupported binding/version, malformed
+   data and integrity failure, MUST be reported rather than treated as
+   absence.
+
+Thus the resolver can retry the same XID in configured source Registries
+after a local Resource miss. It does not search arbitrary Registries or
+follow descriptive catalog relationships automatically. Ordered shadowing
+is an explicit projection policy and does not redefine global identity.
+Failing to retrieve a chosen Version or document is not permission to select
+a lower-priority Resource from a different origin.
+
+```mermaid
+sequenceDiagram
+    participant C as Consumer
+    participant R as Federating Registry / resolver
+    participant L as Local Resource view
+    participant K as Catalog and ordered policy
+    participant S as Selected source Registry
+    C->>R: Read Resource or Version by typed XID
+    R->>L: Find owning Resource
+    alt Local Resource exists
+        L-->>R: Local Resource and default/Versions
+        R-->>C: Requested local representation or its error
+    else Local Resource is absent
+        R->>K: Read eligible source entries in policy order
+        K-->>R: Versioned binding advertisements
+        loop Until a Resource is found or the source list ends
+            R->>S: Resolve Resource XID through selected binding
+            S-->>R: Resource metadata, not_found, or another error
+        end
+        Note over R,S: Only Resource not_found advances to the next source
+        alt A Resource was found
+            R->>S: Read chosen Version or document at pinned origin
+            S-->>R: Requested representation or its error
+            R-->>C: Result in consumer view with separate origin context
+        else No Resource or another error
+            R-->>C: not_found or the specific failure
+        end
+    end
+```
+
+### Collections and Selection
+
+A federating server exposing a combined Group or Resource collection MUST
+enumerate all eligible source collections needed for that view and apply the
+same Resource-level precedence before returning members. A shadowed source
+Resource contributes no additional Versions or alternate label values.
+Configured source type mappings MUST account for the collection's model.
+
+A label selector is then evaluated on the resulting visible collection.
+Finding one matching member in an early source is not proof of uniqueness.
+All necessary collection pages and unshadowed sources MUST be considered.
+Errors or incomplete traversal MUST NOT be disguised as a complete result.
+Counts, continuation links and model/capability reads MUST describe the
+consumer-visible Registry, not whichever source happened to respond first.
+
+The client-side model performs the same selection locally. A consumer that
+already selected exactly one source bypasses composition and uses the
+single-source read operations below.
+
 ## Discovery and Binding Selection
+
+This section chooses among access methods for **one catalog entry**. It does
+not rank different source Registries. The preceding composition policy
+determines source order and local shadow precedence.
 
 A resolver MUST select a catalog-description Version before interpreting its
 advertisements. In the absence of an explicit description Version, it MUST
@@ -96,21 +287,21 @@ are case-sensitive. The names defined by this family are:
 | --- | --- | --- |
 | `http` | HTTP(S) Registry root | None. |
 | `oci` | `oci://host/repository` | `reference`: tag or `sha256` digest. |
-| `git` | HTTPS repository URL | `revision`: full ref or complete object ID; `path` defaults to `xregistry`, with an empty string selecting the repository root. |
-| `file` | File URI selecting a directory | `layout`: `document-tree` or `oci-layout`; `reference` for OCI layout selection only. |
-| `opcua` | Native UA endpoint URL | `registryroot`: portable NodeId; OPTIONAL `applicationuri` and `transportprofileuri`. |
+| `git` | HTTPS repository URL | `revision`: full ref or complete object ID. `path` defaults to `xregistry`, with an empty string selecting the repository root. |
+| `file` | File URI selecting a directory | `layout`: `document-tree` or `oci-layout`. `reference` for OCI layout selection only. |
+| `opcua` | Native UA endpoint URL | `registryroot`: portable NodeId. OPTIONAL `applicationuri` and `transportprofileuri`. |
 
 The bindings define parameter grammars and their supported transports.
 Endpoints MUST be absolute URIs and MUST NOT embed credentials. A selected
 built-in advertisement with an unknown parameter MUST produce
-`unsupported_operation`; silently ignoring a parameter could select a
+`unsupported_operation`. Silently ignoring a parameter could select a
 different Registry or revision. An unknown profile name remains valid catalog
 metadata, but MUST NOT be executed as a known profile.
 
-An absent `priority` means zero; lower unsigned integer values are preferred.
+An absent `priority` means zero. Lower unsigned integer values are preferred.
 An absent `parameters` means an empty object. Selection MUST proceed as follows:
 
-1. Validate the catalog's advertised legacy/explicit HTTP consistency as
+1. Validate the catalog's advertised xregurl/explicit HTTP consistency as
    specified by the Registry domain.
 2. Apply the caller's explicit profile choice and access policy.
 3. Remove unsupported profile names from consideration.
@@ -135,6 +326,10 @@ instantaneous state. Credentials and trust are established independently.
 
 ## Read Operations
 
+These are reads within one selected source context. A federating resolver
+first applies [local and source selection](#local-resources-and-ordered-sources)
+when the request addresses its combined Registry view.
+
 The following abstract operations define common behavior, not new URLs,
 HTTP verbs or a transport-level request envelope:
 
@@ -150,7 +345,7 @@ A Resource document request selects its Core default Version. An explicit
 Version request selects exactly that Version, case-sensitively. Neither
 operation selects the greatest Version string, latest OCI tag, newest Git
 commit or most recently modified file. Metadata-only Resources have no domain
-document; requesting one MUST produce `unsupported_operation`.
+document. Requesting one MUST produce `unsupported_operation`.
 
 For each operation a resolver MUST:
 
@@ -175,8 +370,8 @@ but MUST still establish all other context.
 If a model is captured, the package MUST preserve enough model source to
 retain Resource type sharing. An expanded model alone can obscure
 `ximportresources` provenance. Included model documents MUST be resolved
-within the captured scope, or supplied with immutable checked references;
-offline-complete interpretation MUST NOT fetch mutable external includes.
+within the captured scope, or supplied with immutable checked references.
+Offline-complete interpretation MUST NOT fetch mutable external includes.
 Unknown Core versions MUST NOT be accepted merely because a document parses.
 
 ## Identity and References
@@ -190,14 +385,18 @@ case-sensitively. Storage bindings MUST NOT weaken either rule.
 ### Local Cross-References
 
 Core [`meta.xref`](../../core/spec.md#cross-referencing-resources) remains
-an intra-Registry Resource XID. It MUST NOT contain an endpoint URL, OCI
-locator or remote Registry selector. Its source and target MUST have the
-same Resource model type; structurally identical independent definitions
+an intra-Registry Resource XID. Federation chooses a source Registry through
+the catalog and composition policy, rather than adding a remote meaning to
+this Core attribute. Its source and target MUST have the
+same Resource model type. Structurally identical independent definitions
 are insufficient. Sharing between Group types uses
 [`ximportresources`](../../core/model.md#reuse-of-resource-definitions).
 
-For example, this model source permits a local alias from a mirror Group
-to an asset in a document Group:
+An [alias](#notations-and-terminology) is the source Resource in that Core
+cross-reference. In the following example, `mirrors` is simply the name of
+a Group type that imports the `assets` Resource type. It is not a standard
+mirror-Group feature or a replication mechanism. This model source permits
+a local alias in such a Group to reference an asset in a `documents` Group:
 
 ```json
 {
@@ -223,7 +422,7 @@ An alias in `/mirrors/local/assets/copy` can then carry
 target metadata, source IDs and navigation MUST remain source-relative.
 If the target is itself an alias, a resolver MUST NOT follow another `xref`.
 If the target is unavailable, Core's minimal ID-like alias serialization
-applies; this is not automatically `not_found` for the source.
+applies. This is not automatically `not_found` for the source.
 
 A malformed XID or nonexistent model type is not the same as a dangling
 entity instance. Core's malformed-reference rules still apply. Document
@@ -255,7 +454,7 @@ copy registries, establish trust or synchronize changes.
 | Relationship target starting with `/` | Containing catalog Registry root. |
 | Absolute relationship target | The explicitly identified external catalog. |
 | Package storage reference | The selected package root or record base defined by its format. |
-| Relative domain-document URI | The document's declared origin/base under its binding; not an inferred catalog URL. |
+| Relative domain-document URI | The document's declared origin/base under its binding. Not an inferred catalog URL. |
 | Model include | The model source document containing the include, following Core. |
 | `#` JSON Pointer navigation | The returned JSON document. |
 
@@ -266,7 +465,11 @@ rather than guess.
 
 ## Selectors
 
-A label selector is scoped to one named collection. Its JSON illustration,
+A selector is a condition used to choose members of a named collection.
+This specification uses Core label matching for that condition, as described
+under [the Filter flag](../../core/spec.md#filter-flag). It does not create
+a new entity identifier. A label selector is scoped to one named collection.
+Its JSON illustration,
 used by the conformance examples, is:
 
 ```json
@@ -280,24 +483,24 @@ used by the conformance examples, is:
 }
 ```
 
-The [request schema](schemas/request.json) constrains these example envelopes;
-the operation table and Core constrain typed paths and semantics.
+The [request schema](schemas/request.json) constrains these example envelopes.
+The operation table and Core constrain typed paths and semantics.
 
-The `label` names a map key; `value` is a literal string. Labels MAY be absent,
+The `label` names a map key. `value` is a literal string. Labels MAY be absent,
 and an empty string value is valid. An absent key does not match an empty
-value. Comparison MUST follow Core's case-insensitive string filtering;
-en-US Unicode collation is STRONGLY RECOMMENDED by Core. This specification
+value. Comparison MUST follow Core's case-insensitive string filtering.
+En-US Unicode collation is STRONGLY RECOMMENDED by Core. This specification
 adds neither mandatory language keys nor NFC normalization. Map-key selection
-remains exact; comparison applies to the selected value.
+remains exact. Comparison applies to the selected value.
 
 A resolver using a transport filter MUST escape its literal value and
-attribute path under that binding; `*`, `\`, `.` or an operator in a selector
+attribute path under that binding. `*`, `\`, `.` or an operator in a selector
 MUST NOT accidentally become a wildcard or another expression. Implementations
 MAY instead enumerate and compare locally. An optimization MUST NOT change
 the matching or ambiguity outcome.
 
-Zero matches yields `not_found`; exactly one complete match yields the
-selected entity; multiple matches yields `ambiguous`. A resolver MUST inspect
+Zero matches yields `not_found`. Exactly one complete match yields the
+selected entity. Multiple matches yields `ambiguous`. A resolver MUST inspect
 all necessary continuation pages before claiming uniqueness. It MAY report
 ambiguity after a second match without reading further pages. A request
 limit, incomplete page chain or unstable collection MUST NOT be reported as
@@ -309,9 +512,9 @@ object in document view.
 
 Metadata and domain documents are distinct results, even when both are JSON.
 `self`, `metaurl` and `defaultversionurl` locate metadata under the relevant
-Core binding; they MUST NOT automatically be treated as raw-byte locations.
+Core binding. They MUST NOT automatically be treated as raw-byte locations.
 
-Native snapshot access uses Core
+Native access to a [snapshot](#snapshots-and-completeness) uses Core
 [document view](../../core/spec.md#doc-flag), with storage descriptors and
 transport context outside the Core entity. This requires removal of duplicated
 default-Version attributes, Version validation-result attributes and
@@ -337,6 +540,14 @@ document is present content and MUST NOT be replaced by `{}`, `null` or a
 missing document. Binary documents MUST NOT pass through text conversion.
 
 ## Snapshots and Completeness
+
+A snapshot is a captured state of a Registry, including the model, metadata
+and declared domain documents in its selected scope. It lets a consumer make
+related reads against one chosen state instead of observing different live
+states between requests. A package stores such a snapshot using the
+[document-tree](../bindings/document-format.md) or [OCI](../bindings/oci.md)
+representation. Core Resource Versions remain distinct from the revision
+of a snapshot that contains them.
 
 Every snapshot MUST have a complete internal containment graph. A linked
 snapshot MAY retain explicit external document references. An
@@ -396,7 +607,7 @@ Resolvers MUST bound traversal depth, request count and aggregate bytes,
 detect discovery/redirect cycles, and surface exhausted bounds. SHA-256
 integrity does not authenticate a publisher. Signature and provenance
 policies are separate from containment completeness. Git readers MUST NOT
-execute repository content; filesystem readers MUST enforce containment
+execute repository content. Filesystem readers MUST enforce containment
 including symlinks and reparse points.
 
 ## Conformance
@@ -417,27 +628,14 @@ The executable examples are offline conformance aids, not production
 resolvers. [Shared vectors](samples/selection.json) distinguish identity,
 selection and reference cases. Binding fixtures exercise transport-specific
 retrieval. Tests MUST distinguish full graph validation from selective
-lookup; a validator walking everything does not demonstrate efficient
+lookup. A validator walking everything does not demonstrate efficient
 selective resolution.
 
-## Source Reconciliation
-
-The preliminary WG and profile proposals supplied for this work are design
-inputs, not normative dependencies. The following disposition applies:
-
-| Input requirement | Destination or correction |
-| --- | --- |
-| WG: independent authorities and peer bindings | Overview, read operations and binding conformance. |
-| WG: discovery without universal replication | Catalog discovery and explicit snapshot scope. |
-| Catalog: `registrygroups` and localized mandatory labels | Replaced by the deployed `categories` hierarchy and ordinary OPTIONAL Core labels. |
-| Catalog: endpoints, model descriptions and relationships | Additive Registry domain Version attributes. |
-| Profiles: remote reference resolution | Explicit Registry context, not a widening of Core `xref`. |
-| Profiles: selectors and common failures | Selectors and errors in this specification. |
-| OCI: packaging and selective retrieval | Bounded standard descriptor graph in the OCI binding. |
-| Git/File: independently shaped directories | One shared document-tree format with separate transport selection. |
-| HTTP: transport retrieval | Existing Core HTTP API, with federation selection and consistency rules. |
-| OPC UA: native access | Existing draft binding, with corrected addressing and serialization. |
-| Synchronization, writes and inferred payload dependencies | Outside this read-only federation specification. |
+The [source-selection example](../../tools/federation_resolution_examples.py)
+uses in-memory read functions to demonstrate local shadow precedence,
+ordered source misses and selection of one Resource origin for all Version
+reads. It does not introduce a federation wire API. The caller supplies
+already authorized sources with compatible model mappings.
 
 ## References
 

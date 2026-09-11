@@ -98,7 +98,7 @@
               "epoch": 1,
               "name": "Example schema bridge",
               "isdefault": true,
-              "description": "Legacy HTTP discovery without additional profile fields.",
+              "description": "HTTP discovery via xregurl without additional profile fields.",
               "createdat": "2026-09-04T00:00:00Z",
               "modifiedat": "2026-09-04T00:00:00Z",
               "ancestorid": "1",

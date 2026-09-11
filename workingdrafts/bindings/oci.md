@@ -24,6 +24,7 @@ content is reachable through ordinary OCI descriptor edges.
 ## Table of Contents
 
 - [1. Scope and Notation](#1-scope-and-notation)
+  - [1.1. Motivation and Example](#11-motivation-and-example)
 - [2. Advertisement and Root Selection](#2-advertisement-and-root-selection)
 - [3. Media Types and Descriptor Rules](#3-media-types-and-descriptor-rules)
 - [4. Containment and Range Shards](#4-containment-and-range-shards)
@@ -32,8 +33,7 @@ content is reachable through ordinary OCI descriptor edges.
 - [7. Production and Publication](#7-production-and-publication)
 - [8. Errors and Security](#8-errors-and-security)
 - [9. Conformance and Executable Examples](#9-conformance-and-executable-examples)
-- [10. Source Correction Crosswalk](#10-source-correction-crosswalk)
-- [11. References](#11-references)
+- [10. References](#10-references)
 
 ## 1. Scope and Notation
 
@@ -58,6 +58,25 @@ separate operations. Write-through, replication, synchronization, delta
 replay, arbitrary domain-document dependency discovery and conflict
 resolution are outside this binding. An xRegistry HTTP facade is OPTIONAL
 and MUST separately conform to [the HTTP binding](../../core/http.md).
+
+### 1.1. Motivation and Example
+
+OCI artifact stores already distribute immutable, content-addressed data.
+This binding packages a Registry as an ordinary OCI descriptor graph so a
+publisher can copy and distribute its metadata and documents together,
+while consumers can retrieve one Version without downloading every payload.
+
+For example, `oci://registry.example.org/team/catalog` with
+`reference: "release-1"` selects a Registry snapshot. The resolver resolves
+that tag once, pins the root digest and walks the typed path for
+`/dirs/main/files/sample/versions/v1`. Metadata comes from the Version
+manifest's config. The document bytes come from its separate layer.
+
+A consumer can perform these native reads directly. A federating API server
+can instead use the OCI snapshot as a source behind its consumer-facing API,
+following the [shared hosting models](../federation/spec.md#design-hosting-models).
+The OCI repository is an access location, not the Registry's XID namespace,
+and publishing a new snapshot does not change a pinned read.
 
 ## 2. Advertisement and Root Selection
 
@@ -84,7 +103,7 @@ defines no other parameters. Unknown parameters on a selected entry
 produce `unsupported_operation`.
 
 The [advertisement schema](schemas/oci-profile.schema.json) supplements
-the shared advertisement rules; URI authority and security checks remain
+the shared advertisement rules. URI authority and security checks remain
 necessary. Priority and caller selection use the shared contract.
 
 ### 2.1. Distribution selection
@@ -105,7 +124,7 @@ All subsequent requests in that operation MUST use descriptor digests,
 not re-resolve the tag. Movement of the tag does not change the selected
 state. A missing descendant MUST NOT trigger a retry at a newer root.
 If a SHA-256 `Docker-Content-Digest` header is present it MUST agree with
-the bytes; the header is not a substitute for computing the digest.
+the bytes. The header is not a substitute for computing the digest.
 An absent header is not an error. A different supported digest algorithm
 in that header is verified independently and does not replace the
 profile's SHA-256 pin.
@@ -129,8 +148,8 @@ A tag selects exactly one matching entry. Multiple entries with that tag
 are `ambiguous`, even if they name the same digest. A digest can select a
 stored Registry index directly, including one not tagged in `index.json`.
 If an interactive tool offers unqualified selection, it MUST select only
-when exactly one distinct eligible Registry root digest is advertised;
-zero is `not_found`, and more than one is `ambiguous`. Advertisements
+when exactly one distinct eligible Registry root digest is advertised.
+Zero is `not_found`, and more than one is `ambiguous`. Advertisements
 themselves always have an explicit reference.
 
 After selection the resolver MUST verify the root and retain its digest.
@@ -165,8 +184,8 @@ Metadata manifests use the kind of the entity they describe.
 
 Every internal descriptor MUST contain `mediaType`, `digest`, `size`,
 and string-valued annotations `io.xregistry.oci.role` and
-`io.xregistry.oci.xid`. The XID is the target entity or collection path;
-for collection directories it is the owning entity's XID. A shard
+`io.xregistry.oci.xid`. The XID is the target entity or collection path.
+For collection directories it is the owning entity's XID. A shard
 retains its routing index's XID. A config, document or empty layer
 descriptor retains its owning entity's XID.
 
@@ -270,7 +289,7 @@ It is not the character count or a reserialized estimate.
 
 A producer MUST split a routing index before either limit is exceeded.
 It MAY shard smaller indexes. An individual entry or fixed entity index
-that cannot fit is `limit_exceeded`; silently dropping data is forbidden.
+that cannot fit is `limit_exceeded`. Silently dropping data is forbidden.
 No collection size is capped at 256: additional routing levels support
 arbitrarily large finite collections. A consumer MAY impose separately
 reported depth, total-byte or object-count policy limits.
@@ -279,7 +298,7 @@ Keys are complete, validated Core XIDs or collection paths, compared
 lexicographically by their UTF-8 bytes, case-sensitively, without URI
 decoding, Unicode normalization or locale collation. Core ID grammar
 makes these keys ASCII in the referenced Core version. Thus `A` precedes
-`a`; `v10` precedes `v2`. Labels do not determine these keys.
+`a`. `v10` precedes `v2`. Labels do not determine these keys.
 
 ### 4.2. Exact range representation
 
@@ -288,8 +307,8 @@ Every directory, collection and shard MUST carry these annotations:
 | Annotation | Meaning |
 | --- | --- |
 | `io.xregistry.oci.mode` | `leaf` or `branch` |
-| `io.xregistry.oci.lower` | Inclusive lower key; `""` means negative infinity |
-| `io.xregistry.oci.upper` | Exclusive upper key; `""` means positive infinity |
+| `io.xregistry.oci.lower` | Inclusive lower key. `""` means negative infinity |
+| `io.xregistry.oci.upper` | Exclusive upper key. `""` means positive infinity |
 
 The top directory or collection has range `["", "")`, meaning the whole
 key space in this notation, not an empty interval. Other nonempty bounds
@@ -305,7 +324,7 @@ unsharded leaf with zero descriptors and the whole-space range.
 A **branch** has at least two `shard` descriptors. Every shard descriptor
 MUST have `lower` and `upper` annotations equal to those on its target
 index. Target kind and XID MUST equal the parent's. The first lower
-bound MUST equal the parent's lower bound; the last upper bound MUST
+bound MUST equal the parent's lower bound. The last upper bound MUST
 equal the parent's upper bound. Every intervening upper bound MUST equal
 the next lower bound, and MUST be finite. The descriptors MUST be ordered
 by these bounds. All shards MUST contain at least one eventual entry.
@@ -322,7 +341,7 @@ second shard:
 ```
 
 This is an explanation of annotation values, not another containment
-format. No key MUST actually exist at a boundary; gaps in the set of
+format. No key MUST actually exist at a boundary. Gaps in the set of
 entity IDs are ordinary. Gaps or overlaps in routing intervals are
 invalid. A producer can choose each split boundary as the first key in
 the right-hand shard. Split choice is not globally canonical.
@@ -378,7 +397,7 @@ The following storage decomposition is REQUIRED:
   document view. Domain documents are detached, never duplicated in the
   `<RESOURCE>` or `<RESOURCE>base64` fields of configs.
 
-The config schema supplements the Core model; it is not a second,
+The config schema supplements the Core model. It is not a second,
 hand-maintained full Resource schema. Core-required attributes, dynamic
 singular names, model constraints and descriptor consistency require
 semantic validation in addition to JSON Schema.
@@ -391,7 +410,7 @@ include `specversion`, `registryid`, `model`, `modelsource` and
 `capabilities`. Capabilities MUST describe access to this read-only
 snapshot, not advertise the source server's write operations or unsupported
 HTTP flags as native OCI features. Other Registry metadata preserves the
-captured identity and state; capability mapping does not change its XIDs.
+captured identity and state. Capability mapping does not change its XIDs.
 
 `entity.model` is the full resolved Core model, including Core attributes.
 `entity.modelsource` is the original model-source value. `modelresolved`
@@ -419,17 +438,17 @@ A Version config MUST have a `document` object containing `mode`:
 | Mode | Meaning and Version manifest layer |
 | --- | --- |
 | `embedded` | One `document` layer with exact bytes, possibly zero bytes |
-| `external` | One `empty` layer; Core `<RESOURCE>url` names uncaptured content |
-| `metadata-only` | One `empty` layer; Resource model has `hasdocument: false` |
+| `external` | One `empty` layer. Core `<RESOURCE>url` names uncaptured content |
+| `metadata-only` | One `empty` layer. Resource model has `hasdocument: false` |
 
 An external URL MUST be absolute and credential-free. A relative
 domain-document locator MUST be resolved against its original retrieval
 base before capture, never against an OCI repository, XID, or config
 blob path. A captured copy of an externally stored document uses
-`embedded`; its original locator MAY be retained as `document.origin`,
+`embedded`. Its original locator MAY be retained as `document.origin`,
 not as a misleading Core `<RESOURCE>url`. Embedded content MAY also retain
 an absolute `document.base` for relative references inside the domain
-document. A resolver MUST preserve this base when returning the bytes; it
+document. A resolver MUST preserve this base when returning the bytes. It
 MUST NOT substitute the OCI repository or config path. Both OPTIONAL fields
 MUST be credential-free absolute URIs and MUST appear only in `embedded`
 mode. The selected snapshot supplies the pinned bytes, not a fresh fetch
@@ -440,8 +459,8 @@ NOT have document bytes or `<RESOURCE>url`. All other modes require
 `hasdocument` to be true. Only `external` has a Core `<RESOURCE>url`.
 An `external` Version cannot claim to contain bytes. Missing an expected
 `embedded` blob is an invalid package, not an empty document. Core requires
-a document-capable Version to have a document, even if its length is zero;
-there is no successful "absent document" state for that Version.
+a document-capable Version to have a document, even if its length is zero.
+There is no successful "absent document" state for that Version.
 
 The opaque document media type on the OCI layer intentionally does not
 vary with the domain format. It prevents a domain document that itself
@@ -449,7 +468,7 @@ contains OCI JSON from being mistaken for a nested manifest. No tar
 wrapper, compression, newline conversion or JSON reformatting is applied.
 Core `contenttype`, if present, preserves the domain response media type,
 including parameters. If absent, the domain response is
-`application/octet-stream`; the absent metadata is not silently rewritten.
+`application/octet-stream`. The absent metadata is not silently rewritten.
 
 All metadata manifests and non-embedded Version manifests MUST have one
 `empty` layer. Its media type is `application/vnd.oci.empty.v1+json`,
@@ -489,7 +508,7 @@ API entity. The baseline view inlines the requested metadata subtree,
 including Meta and Version metadata, but not domain-document bytes.
 It recreates collection counts and navigation fields. `self` and
 navigation URLs MUST be valid `#`-prefixed JSON Pointers into that
-returned document; `#` denotes the empty pointer to the document root.
+returned document. `#` denotes the empty pointer to the document root.
 Transport endpoint and snapshot pin are separate result context.
 
 For standalone Meta retrieval, the returned metadata document contains
@@ -509,7 +528,7 @@ target metadata and Versions, exactly as Core document view requires.
 Metadata requests for their Versions or Versions collection produce
 `unsupported_operation` corresponding to Core `cannot_doc_xref`.
 Dangling references and targets that are themselves aliases retain this
-unexpanded serialization; they are not invalid packages.
+unexpanded serialization. They are not invalid packages.
 
 A domain-document operation is not the Core `doc` metadata flag. It MAY
 resolve the source Resource's default, or an explicit Version's bytes,
@@ -560,21 +579,21 @@ Full closure validation is a separate, potentially exhaustive operation.
 Label selection is scoped to a named collection. It uses the shared
 Core case-insensitive string comparison on the named label's literal
 value. The key is not an implicit language key. Absent labels do not
-match; empty strings are valid values. There is no forced Unicode
+match. Empty strings are valid values. There is no forced Unicode
 normalization or wildcard interpretation.
 
 A Resource's selection metadata uses the default Version's labels, with
 Core one-hop `xref` rules, before document-view serialization removes
 that projection. A Group or Version uses its own labels. The resolver
 MUST examine every necessary shard before asserting uniqueness. Zero
-matches are `not_found`; multiple matches are `ambiguous`, including a
+matches are `not_found`. Multiple matches are `ambiguous`, including a
 match on a later page. OPTIONAL acceleration MUST NOT alter this result
 or hide missing content. Version documents need not be fetched to select
 by label.
 
 For `embedded`, the document result is the verified bytes and preserved
 domain content type and any explicit document base. `metadata-only` is
-`unsupported_operation`; missing expected content is an invalid package.
+`unsupported_operation`. Missing expected content is an invalid package.
 Fetching an `external` document requires
 separate caller policy and URI handling, and its mutable bytes are not
 pinned by the root digest. An offline-only reader reports `unavailable`
@@ -595,14 +614,14 @@ Production proceeds from leaves to root:
    checking both index bounds against their final encoded bytes.
 4. Validate model correspondence, ordering, range partitions, defaults,
    document states and complete descriptor closure.
-5. Upload blobs using Distribution's blob upload protocol; publish child
+5. Upload blobs using Distribution's blob upload protocol. Publish child
    manifests and indexes through the manifest endpoint, then the root.
 6. Only after the root's closure is available, create or move a tag to it.
 
 A publisher SHOULD use the Distribution existence and blob-mount
 mechanisms to reuse content where supported. Reusing an unchanged
 subtree's digest avoids rewriting its descendants. Each newly published
-root still denotes a complete graph; reading it MUST NOT require an old
+root still denotes a complete graph. Reading it MUST NOT require an old
 snapshot, parent root, delta chain or replay log.
 
 JSON serialization and shard grouping choices affect digests. A producer
@@ -614,7 +633,7 @@ Copying MUST preserve the selected root and all standard containment
 descendants. A compatible artifact copier MUST support nested indexes,
 typed artifact configs, opaque layers and zero-byte document blobs.
 Normal containment copy does not require a referrers operation.
-ORAS's `--recursive` option concerns referrer artifacts; it is not the
+ORAS's `--recursive` option concerns referrer artifacts. It is not the
 definition of nested-index containment traversal.
 
 ## 8. Errors and Security
@@ -642,14 +661,14 @@ chosen path does not prove that every unvisited shard is well-formed.
 Use authenticated HTTPS and repository-scoped credentials under caller
 policy. OCI metadata MUST NOT contain credentials. Redirect destinations,
 external document URLs and filesystem roots require independent policy
-checks; authorization headers MUST NOT be forwarded indiscriminately.
+checks. Authorization headers MUST NOT be forwarded indiscriminately.
 A layout reader MUST prevent path traversal and symlink or reparse-point
 escape. A blob name is derived from a validated digest, never from an ID.
 
 Untrusted document blobs are data, not executable code. Consumers MUST
 NOT execute hooks, start containers, extract archives or interpret domain
 links merely to traverse this profile. Integrity does not establish
-publisher authorization; trust decisions and OPTIONAL signature checks
+publisher authorization. Trust decisions and OPTIONAL signature checks
 are distinct from format validity. Integrity and policy errors MUST NOT
 silently trigger fallback to another advertisement.
 
@@ -677,38 +696,12 @@ no network requests or production publication.
 
 The sample README documents the CLI and reproducible, artifact-aware
 layout-to-layout copy command. A copy exercise MUST execute the tool,
-then verify the copied root digest and all REQUIRED descendants; merely
+then verify the copied root digest and all REQUIRED descendants. Merely
 parsing JSON or quoting tool help is not interoperability evidence.
 Environment-specific logs and downloaded tools belong outside the
 repository's samples.
 
-## 10. Source Correction Crosswalk
-
-This table records the disposition of the supplied
-`02_xRegistry_OCI_Federation_Profile 6.docx` (Working Draft 0.1,
-2026-09-04). It does not reproduce that proposal as an adopted standard.
-
-| Source clause | Retained requirement or correction |
-| --- | --- |
-| Abstract and scope | Native read-only OCI access and Registry/Group/Resource/Version hierarchy retained; selected root is a graph, not necessarily one manifest. |
-| Normative references | Unbounded "1.1 or later" replaced by Image v1.1.1 and Distribution v1.1.1; unrelated Git reference removed. |
-| 1, advertisement | Embedded `:tag` corrected to endpoint plus REQUIRED `parameters.reference`; snapshot and entity selection separated. |
-| 2, layout | Standard local layout retained; a Distribution response is not server-side `index.json`. Multiple roots in storage are allowed. |
-| 2, annotations | JSON-encoded labels and authoritative metadata moved to typed configs. Only small routing annotations determine containment. |
-| 3, resolution | Explicit selected Registry index, bounded typed paths, pin-once reads and independent Version metadata/document access replace ambiguous manifest-chain selection. |
-| 4, labels | Shared Core comparison and complete ambiguity detection replace unspecified exact/localized matching. No mandatory language key. |
-| 5, example | Placeholder digests replaced by executable byte-accurate layouts. XIDs remain separate from tags and digests. |
-| 6, conformance | Distinct producer, resolver, snapshot-class and copier claims; metadata-only, absence, empty bytes, integrity and unsupported cases made explicit. |
-| 7 and 8, manifests | Custom child-manifest media types inside `layers` replaced by standard nested image-index edges; metadata configs and domain blobs remain manifest leaves. |
-| Approved plan 6D and 7 | Descriptor/byte bounds, directories, range shards, complete closure, preserved model provenance, source-correct views and actual copy evidence added. |
-
-OCI nested-index support is a base-standard SHOULD and a profile MUST.
-OCI `subject` is a weak association, not mandatory containment. Referrers
-and their fallback were already present in Distribution v1.1.0; this
-profile does not require their use. These corrections follow the pinned
-primary sources, not assumptions about ordinary container tooling.
-
-## 11. References
+## 10. References
 
 - [OCI image index v1.1.1][oci-index]
 - [OCI image manifest and artifact usage v1.1.1][oci-manifest]
@@ -719,7 +712,7 @@ primary sources, not assumptions about ordinary container tooling.
 - [OCI schemas v1.1.1][oci-schemas]
 - [Core specification](../../core/spec.md) and
   [model language](../../core/model.md), repository revision of this draft
-- [ORAS copy command][oras-copy] (informative; exercise pins ORAS 1.3.0)
+- [ORAS copy command][oras-copy] (informative. Exercise pins ORAS 1.3.0)
 - [JSON Pointer, RFC 6901][rfc6901]
 
 [rfc2119]: https://www.rfc-editor.org/rfc/rfc2119

@@ -46,114 +46,7 @@
         }
       },
       "default": [],
-      "doc": "Internal field defining the shared recursive extension type"
-    },
-    {
-      "name": "registryid",
-      "type": "string"
-    },
-    {
-      "name": "specversion",
-      "type": "string"
-    },
-    {
-      "name": "name",
-      "type": [
-        "string",
-        "null"
-      ],
-      "doc": "Name of the object"
-    },
-    {
-      "name": "epoch",
-      "type": [
-        "int",
-        "null"
-      ],
-      "doc": "Epoch time of the object creation"
-    },
-    {
-      "name": "self",
-      "type": "string",
-      "doc": "URL of the object"
-    },
-    {
-      "name": "xid",
-      "type": "string",
-      "doc": "XID of the object"
-    },
-    {
-      "name": "description",
-      "type": [
-        "string",
-        "null"
-      ],
-      "doc": "Description of the object"
-    },
-    {
-      "name": "documentation",
-      "type": [
-        "string",
-        "null"
-      ],
-      "doc": "URI of the documentation of the object"
-    },
-    {
-      "name": "labels",
-      "type": {
-        "type": "map",
-        "values": [
-          "string",
-          "null"
-        ]
-      },
-      "doc": "Labels for the object"
-    },
-    {
-      "name": "createdat",
-      "type": [
-        {
-          "type": "long",
-          "logicalType": "timestamp-millis"
-        },
-        "null"
-      ],
-      "doc": "Time of the object creation"
-    },
-    {
-      "name": "modifiedat",
-      "type": [
-        {
-          "type": "long",
-          "logicalType": "timestamp-millis"
-        },
-        "null"
-      ],
-      "doc": "Time of the object modification"
-    },
-    {
-      "name": "model",
-      "type": [
-        "null",
-        "io.xregistry.GenericRecord"
-      ],
-      "default": null
-    },
-    {
-      "name": "modelsource",
-      "type": [
-        "null",
-        "io.xregistry.GenericRecord"
-      ],
-      "default": null
-    },
-    {
-      "name": "capabilities",
-      "type": [
-        "null",
-        "io.xregistry.GenericRecord"
-      ],
-      "default": null
+      "doc": "Internal field to define GenericRecord type for use in extension attributes"
     },
     {
       "name": "schemagroups",
@@ -225,8 +118,8 @@
               "name": "createdat",
               "type": [
                 {
-                  "type": "long",
-                  "logicalType": "timestamp-millis"
+                  "type": "int",
+                  "logicalType": "time-millis"
                 },
                 "null"
               ],
@@ -236,20 +129,16 @@
               "name": "modifiedat",
               "type": [
                 {
-                  "type": "long",
-                  "logicalType": "timestamp-millis"
+                  "type": "int",
+                  "logicalType": "time-millis"
                 },
                 "null"
               ],
               "doc": "Time of the object modification"
             },
             {
-              "type": [
-                "null",
-                "string"
-              ],
-              "name": "format",
-              "default": null
+              "type": "string",
+              "name": "format"
             },
             {
               "name": "Extensions",
@@ -331,8 +220,8 @@
                       "name": "createdat",
                       "type": [
                         {
-                          "type": "long",
-                          "logicalType": "timestamp-millis"
+                          "type": "int",
+                          "logicalType": "time-millis"
                         },
                         "null"
                       ],
@@ -342,345 +231,33 @@
                       "name": "modifiedat",
                       "type": [
                         {
-                          "type": "long",
-                          "logicalType": "timestamp-millis"
+                          "type": "int",
+                          "logicalType": "time-millis"
                         },
                         "null"
                       ],
                       "doc": "Time of the object modification"
                     },
                     {
-                      "name": "versions",
+                      "type": "string",
+                      "name": "format"
+                    },
+                    {
+                      "name": "Extensions",
                       "type": {
                         "type": "map",
-                        "values": {
-                          "type": "record",
-                          "name": "SchemaVersionType",
-                          "namespace": "io.xregistry.schemagroups",
-                          "fields": [
-                            {
-                              "name": "versionid",
-                              "type": "string",
-                              "description": "ID of the schema version"
-                            },
-                            {
-                              "name": "schemaid",
-                              "type": "string",
-                              "description": "ID of the schema object"
-                            },
-                            {
-                              "name": "name",
-                              "type": [
-                                "string",
-                                "null"
-                              ],
-                              "doc": "Name of the object"
-                            },
-                            {
-                              "name": "epoch",
-                              "type": [
-                                "int",
-                                "null"
-                              ],
-                              "doc": "Epoch time of the object creation"
-                            },
-                            {
-                              "name": "self",
-                              "type": "string",
-                              "doc": "URL of the object"
-                            },
-                            {
-                              "name": "xid",
-                              "type": "string",
-                              "doc": "XID of the object"
-                            },
-                            {
-                              "name": "description",
-                              "type": [
-                                "string",
-                                "null"
-                              ],
-                              "doc": "Description of the object"
-                            },
-                            {
-                              "name": "documentation",
-                              "type": [
-                                "string",
-                                "null"
-                              ],
-                              "doc": "URI of the documentation of the object"
-                            },
-                            {
-                              "name": "labels",
-                              "type": {
-                                "type": "map",
-                                "values": [
-                                  "string",
-                                  "null"
-                                ]
-                              },
-                              "doc": "Labels for the object"
-                            },
-                            {
-                              "name": "createdat",
-                              "type": [
-                                {
-                                  "type": "long",
-                                  "logicalType": "timestamp-millis"
-                                },
-                                "null"
-                              ],
-                              "doc": "Time of the object creation"
-                            },
-                            {
-                              "name": "modifiedat",
-                              "type": [
-                                {
-                                  "type": "long",
-                                  "logicalType": "timestamp-millis"
-                                },
-                                "null"
-                              ],
-                              "doc": "Time of the object modification"
-                            },
-                            {
-                              "type": "string",
-                              "name": "format"
-                            },
-                            {
-                              "name": "Extensions",
-                              "type": {
-                                "type": "map",
-                                "name": "ExtensionsType",
-                                "default": {},
-                                "values": "io.xregistry.GenericRecord"
-                              }
-                            },
-                            {
-                              "name": "ancestorid",
-                              "type": "string"
-                            },
-                            {
-                              "name": "isdefault",
-                              "type": "boolean"
-                            },
-                            {
-                              "name": "contenttype",
-                              "type": [
-                                "null",
-                                "string"
-                              ],
-                              "default": null
-                            }
-                          ]
-                        }
-                      },
-                      "default": {}
-                    },
-                    {
-                      "name": "versionsurl",
-                      "type": [
-                        "null",
-                        "string"
-                      ],
-                      "default": null
-                    },
-                    {
-                      "name": "versionscount",
-                      "type": [
-                        "null",
-                        "long"
-                      ],
-                      "default": null
-                    },
-                    {
-                      "name": "metaurl",
-                      "type": [
-                        "null",
-                        "string"
-                      ],
-                      "default": null
-                    },
-                    {
-                      "name": "meta",
-                      "type": [
-                        "null",
-                        {
-                          "type": "record",
-                          "namespace": "io.xregistry.schemagroups",
-                          "name": "SchemaMetaType",
-                          "fields": [
-                            {
-                              "name": "schemaid",
-                              "type": "string"
-                            },
-                            {
-                              "name": "name",
-                              "type": [
-                                "string",
-                                "null"
-                              ],
-                              "doc": "Name of the object"
-                            },
-                            {
-                              "name": "epoch",
-                              "type": [
-                                "int",
-                                "null"
-                              ],
-                              "doc": "Epoch time of the object creation"
-                            },
-                            {
-                              "name": "self",
-                              "type": "string",
-                              "doc": "URL of the object"
-                            },
-                            {
-                              "name": "xid",
-                              "type": "string",
-                              "doc": "XID of the object"
-                            },
-                            {
-                              "name": "description",
-                              "type": [
-                                "string",
-                                "null"
-                              ],
-                              "doc": "Description of the object"
-                            },
-                            {
-                              "name": "documentation",
-                              "type": [
-                                "string",
-                                "null"
-                              ],
-                              "doc": "URI of the documentation of the object"
-                            },
-                            {
-                              "name": "labels",
-                              "type": {
-                                "type": "map",
-                                "values": [
-                                  "string",
-                                  "null"
-                                ]
-                              },
-                              "doc": "Labels for the object"
-                            },
-                            {
-                              "name": "createdat",
-                              "type": [
-                                {
-                                  "type": "long",
-                                  "logicalType": "timestamp-millis"
-                                },
-                                "null"
-                              ],
-                              "doc": "Time of the object creation"
-                            },
-                            {
-                              "name": "modifiedat",
-                              "type": [
-                                {
-                                  "type": "long",
-                                  "logicalType": "timestamp-millis"
-                                },
-                                "null"
-                              ],
-                              "doc": "Time of the object modification"
-                            },
-                            {
-                              "type": [
-                                "null",
-                                "string"
-                              ],
-                              "name": "xref",
-                              "default": null
-                            },
-                            {
-                              "type": [
-                                "null",
-                                "boolean"
-                              ],
-                              "name": "readonly",
-                              "default": null
-                            },
-                            {
-                              "type": [
-                                "null",
-                                "string"
-                              ],
-                              "name": "defaultversionid",
-                              "default": null
-                            },
-                            {
-                              "type": [
-                                "null",
-                                "string"
-                              ],
-                              "name": "defaultversionurl",
-                              "default": null
-                            },
-                            {
-                              "type": [
-                                "null",
-                                "boolean"
-                              ],
-                              "name": "defaultversionsticky",
-                              "default": null
-                            },
-                            {
-                              "type": [
-                                "null",
-                                "string"
-                              ],
-                              "name": "compatibility",
-                              "default": null
-                            }
-                          ]
-                        }
-                      ],
-                      "default": null
+                        "name": "ExtensionsType",
+                        "default": {},
+                        "values": "io.xregistry.GenericRecord"
+                      }
                     }
                   ]
                 }
               }
-            },
-            {
-              "name": "schemasurl",
-              "type": [
-                "null",
-                "string"
-              ],
-              "default": null
-            },
-            {
-              "name": "schemascount",
-              "type": [
-                "null",
-                "long"
-              ],
-              "default": null
             }
           ]
         }
       }
-    },
-    {
-      "name": "schemagroupsurl",
-      "type": [
-        "null",
-        "string"
-      ],
-      "default": null
-    },
-    {
-      "name": "schemagroupscount",
-      "type": [
-        "null",
-        "long"
-      ],
-      "default": null
     }
   ]
 }
