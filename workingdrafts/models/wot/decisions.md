@@ -9,16 +9,25 @@ changes with the draft.
 
 ## 1. A WoT identifier never encodes a version
 
-**Decision.** A `wotid` is the document's authored `id` and MUST NOT carry a
-version suffix such as `:v2`.
+**Decision.** A `wotid` is the document's authored `id`, and MUST NOT be
+rewritten — for example by appending a `:v2` suffix — because the document it
+names was revised. It is enforced with `matchversions`, so all Versions of a
+Resource carry one `wotid`.
 
 **Why.** An identifier that changes when the document changes is not an
-identifier. With a version baked in, the registry cannot tell that two
-documents describe the same logical Thing, `ancestor` lineage cannot be
+identifier. With a revision baked in, the registry cannot tell that two
+documents describe the same logical Thing, `ancestorid` lineage cannot be
 formed, and every holder of a reference has to be rewritten on each revision.
 
 **Consequence.** Revising a document leaves `wotid`, `thingdescriptionid` and
 `thingmodelid` unchanged and adds a Version.
+
+**Scope.** This constrains *mutating* an identifier, not the characters in
+one. An author who publishes a second, incompatible Thing is naming a
+different Thing, and the identifier they choose for it may legitimately carry
+a `v2` token — that token is part of the new Thing's own permanent `wotid`,
+not a version appended to an existing one. See
+[Decision 10](#10-a-breaking-change-produces-a-new-logical-thing).
 
 See [Section 5.1](spec.md#51-wot-identifiers-and-xids).
 
@@ -133,6 +142,34 @@ an obscure one, but a popularity count is an observation of one registry's
 traffic rather than a property of the document, and does not travel with it.
 
 See [Section 4.6](spec.md#46-provenance-and-selection-metadata).
+
+## 10. A breaking change produces a new logical Thing
+
+**Decision.** A breaking change creates a new Resource, and that Resource is
+reached by authoring a **new `wotid`** — not by revising the existing one. The
+superseded Resource retains its Versions and SHOULD set `deprecated` naming
+the successor. Where a solution versions Things semantically, the authored
+identifier SHOULD carry a major-version token.
+
+**Why.** [Decision 1](#1-a-wot-identifier-never-encodes-a-version) makes a
+Resource's id a pure function of its `wotid`, and holds that `wotid` constant
+across revisions. Two Resources therefore require two `wotid`s, so the only
+place a successor can come from is a newly authored identifier. Stating this
+explicitly removes an apparent contradiction between the two rules: without
+it, a breaking change has no legal representation, since it may neither become
+a Version nor acquire an id.
+
+The major-version token is the convention the
+[Schema Registry](https://xregistry.io/xreg/xregistryspecs/schema-v1/docs/spec.html)
+already recommends for `schemaid`, and `deprecated` is how it already links a
+superseded schema to its replacement; reusing both keeps a WoT registry
+legible to anyone who knows the approved specifications.
+
+**Consequence.** A consumer holding a stale identifier is not stranded: the
+old Resource still resolves, still serves its documents, and points at the
+successor.
+
+See [Section 5.1.2](spec.md#512-breaking-changes-and-successor-identifiers).
 
 ## Open items
 

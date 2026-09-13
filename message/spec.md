@@ -508,6 +508,7 @@ this form:
 
           "metaurl": "<URL>",
           "meta": { ... }, ?
+
           "versionsurl": "<URL>",
           "versionscount": <UINTEGER>,
           "versions": { ... } ?

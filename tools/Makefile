@@ -89,11 +89,11 @@ models:
 
 website:
 	@echo "If available, verify the website generation code works too:"
-	@if test -f `readlink -f .`/../xregistry.github.io/tools/buildsite ; then \
-	  XR_SPEC=`pwd -P` `pwd -P`/../xregistry.github.io/tools/buildsite && \
+	@if test -f `readlink -f .`/../xregistry.io/tools/buildsite ; then \
+	  XR_SPEC=`pwd -P` `pwd -P`/../xregistry.io/tools/buildsite && \
 	    rm -rf xreg ; \
 	else \
-	  echo "> Website dir (../xregistry.github.io) can't be found" ; \
+	  echo "> Website dir (../xregistry.io) can't be found" ; \
 	fi
 	@echo
 
