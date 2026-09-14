@@ -49,11 +49,10 @@ even where the Avro parsing-canonical schema has not.
 
 ## Numeric and timestamp semantics
 
-The numeric token grammar is JSON's number grammar:
-
-```text
--?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?[0-9]+)?
-```
+The numeric token grammar is JSON's number grammar: an optional minus sign,
+an integer part without leading zeros (except zero itself), an optional
+decimal point followed by one or more digits, and an optional `e` or `E`
+exponent with an optional sign and one or more digits. Digits are ASCII.
 
 The adapter retains the token and compares normalized coefficient/exponent
 values without expanding exponent notation. `1e1000` stays a six-character
