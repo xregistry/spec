@@ -68,6 +68,11 @@ Avro (`document-schema.avsc`), and OpenAPI (`openapi.json`) in the
 [schema](schema/schemas/)). The core model has its own JSON Schema at
 [core/model.schema.json](core/model.schema.json).
 
+Generated OpenAPI request types distinguish replacement and partial inputs
+from completed responses, and Resource Meta types use model-specific IDs.
+See the [request and Meta guidance](tools/openapi-request-meta-schemas.md)
+for default/server obligations, alias forms and structural validation limits.
+
 Additional release related information:
   [Historical releases and changelogs](docs/RELEASES.md)
 

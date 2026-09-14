@@ -150,6 +150,7 @@ def camel(string):
 
 
 def generate_openapi(model_definition):
+    model_definition = copy.deepcopy(model_definition)
 
     # now recursively find all $ref attributes in the template and replace them with references to the appropriate schema
     def replace_refs(schema_fragment: dict, expression: str, reference: str):
@@ -180,7 +181,10 @@ def generate_openapi(model_definition):
         template_file_name = os.path.join(os.path.dirname(__file__), '..', 'core', 'templates', 'xregistry_openapi_template.json')
         with open(template_file_name, encoding='utf-8') as file:
             openapi = json.load(file)
-        json_schema = generate_json_schema(model_definition, True)
+        json_schema = generate_json_schema(
+            model_definition, True,
+            meta_template=openapi["components"]["schemas"]["Meta"],
+        )
         # merge JSON schema with template
         for schema_name, schema in json_schema["components"]["schemas"].items():
             openapi["components"]["schemas"][schema_name] = schema
@@ -336,6 +340,15 @@ def generate_openapi(model_definition):
         openapi["paths"].pop(path)
 
         registry_entity_schema = openapi["components"]["schemas"]["RegistryEntity"]
+        document_schema = openapi["components"]["schemas"]["document"]
+        for name in model_definition.get("attributes", {}):
+            if name in document_schema["properties"]:
+                registry_entity_schema["properties"][name] = copy.deepcopy(
+                    document_schema["properties"][name]
+                )
+        for name in document_schema.get("required", []):
+            if name not in registry_entity_schema["required"]:
+                registry_entity_schema["required"].append(name)
         for _, group in model_definition.get("groups", {}).items():
             group_plural = group["plural"]
             group_singular = group["singular"]
@@ -358,13 +371,35 @@ def generate_openapi(model_definition):
             "nullable": True
             }
 
+        for method, name in (("put", "RegistryWriteInput"), ("patch", "RegistryPatchInput")):
+            openapi["paths"]["/"][method]["requestBody"]["content"]["application/json"]["schema"] = {
+                "$ref": f"#/components/schemas/{name}"
+            }
+        for group in model_definition.get("groups", {}).values():
+            resources = dict(group.get("resources", {}))
+            for imported in group.get("ximportresources", []):
+                source_group, plural = imported.split("/")[1:]
+                resources[plural] = model_definition["groups"][source_group]["resources"][plural]
+            for plural, definition in resources.items():
+                resource = resolve_resource(group, definition)
+                name = resource["singular"]
+                path = f"/{group['plural']}/{{groupid}}/{plural}/{{resourceid}}/meta"
+                operation = openapi["paths"][path]
+                replace_refs(operation, "#/components/schemas/Meta", f"#/components/schemas/{name}Meta")
+                for method, suffix in (("put", "WriteInput"), ("patch", "PatchInput")):
+                    operation[method]["requestBody"]["content"]["application/json"]["schema"] = {
+                        "$ref": f"#/components/schemas/{name}Meta{suffix}"
+                    }
+        openapi["components"]["schemas"].pop("Meta")
         return openapi
     except:
         print(f"Error opening template file {template_file_name}")
         raise
 
 
-def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> dict:
+def generate_json_schema(
+    model_definition, for_openapi=False, schema_id='', meta_template=None
+) -> dict:
     """
     Generate a JSON schema for the given model definition.
 
@@ -377,18 +412,18 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
         dict: The generated JSON schema.
     """
 
-    def handle_item(resource_schema, type, item, enum_values=None):
+    def handle_item(resource_schema, type, item, enum_values=None, role=None):
         if type == "object":
             resource_schema["type"] = "object"
             if "attributes" in item:
-                handle_attributes(resource_schema,  item["attributes"])
+                handle_attributes(resource_schema, item["attributes"], role=role)
         elif type == "map":
             resource_schema["type"] = "object"
             if "type" in item:
                 if item["type"] == "object":
                     attr_schema = {"type": "object", "description": "", "properties": {}}
                     if "attributes" in item:
-                        handle_attributes(attr_schema, item["attributes"])
+                        handle_attributes(attr_schema, item["attributes"], role=role)
                 else:
                     attr_schema = copy.deepcopy(json_type_mapping[item["type"]])
                 if "description" in item:
@@ -398,14 +433,14 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                 resource_schema["additionalProperties"] = attr_schema
                 if item["type"] == "object" or item["type"] == "map" or item["type"] == "array":
                     if "item" in item:
-                        handle_item(resource_schema["additionalProperties"], item["type"], item["item"])
+                        handle_item(resource_schema["additionalProperties"], item["type"], item["item"], role=role)
         elif type == "array":
             resource_schema["type"] = "array"
             if "type" in item:
                 if item["type"] == "object":
                     attr_schema = {"type": "object", "description": "", "properties": {}}
                     if "attributes" in item:
-                        handle_attributes(attr_schema, item["attributes"])
+                        handle_attributes(attr_schema, item["attributes"], role=role)
                     else:
                         attr_schema = copy.deepcopy(attr_schema)
                 else:
@@ -420,11 +455,11 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                 resource_schema["items"] = attr_schema
                 if item["type"] == "object" or item["type"] == "map" or item["type"] == "array":
                     if "item" in item:
-                        handle_item(resource_schema["items"], item["type"], item["item"])
+                        handle_item(resource_schema["items"], item["type"], item["item"], role=role)
 
 
 
-    def handle_attributes(resource_schema, attributes):
+    def handle_attributes(resource_schema, attributes, role=None, partial=False):
         """
         This function takes in a resource schema and a dictionary of attributes and their properties.
         It iterates through each attribute and creates a JSON schema for it based on its properties.
@@ -432,10 +467,16 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
         The resulting schema is added to the resource schema.
         """
         for attr_name, attr_props in attributes.items():
+            request_role = role in ("write", "patch")
+            if request_role and attr_props.get("readonly", False):
+                resource_schema.setdefault("properties", {})[attr_name] = {
+                    "description": "Server-controlled attribute; ignored in requests."
+                }
+                continue
             if attr_props["type"] == "object":
                 attr_schema = {"type": "object", "description": "", "properties": {}}
                 if "attributes" in attr_props:
-                    handle_attributes(attr_schema, attr_props["attributes"])
+                    handle_attributes(attr_schema, attr_props["attributes"], role=role)
             else:
                 attr_schema = copy.deepcopy(json_type_mapping[attr_props["type"]])
 
@@ -448,12 +489,44 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                 if "item" in attr_props:
                     # Pass enum values if this is an array with enum constraint
                     enum_values = attr_props.get("enum") if attr_props["type"] == "array" else None
-                    handle_item(attr_schema, attr_props["type"], attr_props["item"], enum_values)
+                    handle_item(attr_schema, attr_props["type"], attr_props["item"], enum_values, role=role)
 
-            if "required" in attr_props and attr_props["required"] == True and not "default" in attr_props:
+            if role == "response" and attr_props.get("readonly", False):
+                attr_schema["readOnly"] = True
+            if role in ("response", "write") and "default" in attr_props:
+                attr_schema["default"] = copy.deepcopy(attr_props["default"])
+            if request_role and (
+                not attr_props.get("required", False) or "default" in attr_props
+            ):
+                attr_schema["nullable"] = True
+            if not partial and attr_props.get("required") is True and (
+                role == "response" or "default" not in attr_props
+            ):
                 if "required" not in resource_schema:
                     resource_schema["required"] = []
                 resource_schema["required"].append(attr_name)
+
+            if request_role:
+                if attr_name == "*":
+                    resource_schema["additionalProperties"] = copy.deepcopy(attr_schema)
+                    continue
+                properties = resource_schema.setdefault("properties", {})
+                properties[attr_name] = copy.deepcopy(attr_schema)
+                # Retained selectors are server state, not facts in a partial request.
+                for condition in attr_props.get("ifvalues", {}).values():
+                    possible = {"type": "object", "properties": {}}
+                    handle_attributes(
+                        possible, condition.get("siblingattributes", {}),
+                        role=role, partial=True,
+                    )
+                    for name, value in possible["properties"].items():
+                        if "type" in value:
+                            value["nullable"] = True
+                        if name not in properties:
+                            properties[name] = value
+                        elif properties[name] != value:
+                            properties[name] = {"anyOf": [properties[name], value]}
+                continue
 
             if "ifvalues" in attr_props:
                 if attr_name == "*":
@@ -534,6 +607,169 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                     if not "properties" in resource_schema:
                         resource_schema["properties"] = {}
                     resource_schema["properties"][attr_name] = copy.deepcopy(attr_schema)
+
+    def input_core(identity):
+        properties = {
+            identity: {"type": "string"},
+            **copy.deepcopy(json_common_attributes),
+        }
+        for name in ("self", "shortself", "xid"):
+            properties[name] = {"description": "Server-controlled; ignored in requests."}
+        for name in ("name", "description", "documentation", "labels", "createdat", "modifiedat"):
+            properties[name]["nullable"] = True
+        properties["epoch"]["minimum"] = 0
+        return properties
+
+    server_obligations = {
+        "self", "shortself", "xid", "epoch", "createdat", "modifiedat",
+    }
+
+    def required_input(attributes, identities=()):
+        return [
+            name for name, definition in attributes.items()
+            if name != "*" and definition.get("required") is True
+            and not definition.get("readonly", False) and "default" not in definition
+            and name not in server_obligations and name not in identities
+        ]
+
+    def entity_input(properties, attributes, role, identity=None, server_fields=()):
+        guarded = {
+            name: copy.deepcopy(properties[name])
+            for name in (identity, "epoch")
+            if name in properties
+        }
+        ignored = {
+            name: copy.deepcopy(value) for name, value in properties.items()
+            if name in ("self", "shortself", "xid", "model", "specversion", "defaultversionurl")
+            and "type" not in value
+        }
+        value = {
+            "type": "object", "properties": properties,
+            "description": (
+                "Structural request input. The server applies defaults, retained "
+                "state, conditional model constraints and final creation validation."
+            ),
+        }
+        handle_attributes(value, attributes, role=role, partial=role == "patch")
+        for name, definition in guarded.items():
+            definition.pop("readOnly", None)
+            value["properties"][name] = definition
+        value["properties"].update(ignored)
+        for name in ("createdat", "modifiedat"):
+            if name in value["properties"]:
+                value["properties"][name]["nullable"] = True
+        supplied_by_server = server_obligations | set(server_fields) | {identity}
+        if "required" in value:
+            value["required"] = [
+                name for name in value["required"] if name not in supplied_by_server
+            ]
+        return value
+
+    def meta_schemas(resource):
+        identity = resource["singular"] + "id"
+        complete = copy.deepcopy(meta_template)
+        properties = complete["properties"]
+        properties[identity] = properties.pop("RESOURCEid")
+        properties["self"].update({
+            "format": "uri-reference",
+            "description": "Meta URL, including a relative document-view reference.",
+        })
+        properties["shortself"]["format"] = "uri-reference"
+        properties["xid"].update({"format": "uri-reference", "pattern": "^/(?!/)"})
+        properties["xref"].update({
+            "format": "uri-reference",
+            "pattern": "^/[^/?#]+/[^/?#]+/[^/?#]+/[^/?#]+$",
+            "description": (
+                "Registry-relative Resource XID. The server validates the effective "
+                "model, same Resource type, visibility and target resolution."
+            ),
+        })
+        properties["xref"].pop("nullable", None)
+        properties["defaultversionurl"]["format"] = "uri-reference"
+        properties["deprecated"] = {
+            "type": "object",
+            "properties": {
+                "effective": {"type": "string", "format": "date-time"},
+                "removal": {"type": "string", "format": "date-time"},
+                "alternative": {"type": "string", "format": "uri-reference"},
+                "documentation": {"type": "string", "format": "uri-reference"},
+            },
+        }
+        for name in (
+            identity, "readonly", "defaultversionid",
+            "defaultversionurl", "defaultversionsticky",
+        ):
+            if name not in complete["required"]:
+                complete["required"].append(name)
+        attributes = resource.get("metaattributes", {})
+        xid_contracts = {
+            name: copy.deepcopy(properties[name]) for name in ("xid", "xref")
+        }
+        handle_attributes(complete, attributes, role="response")
+        properties[identity]["type"] = "string"
+        for name, definition in xid_contracts.items():
+            properties[name].update(definition)
+        complete_required = complete.pop("required")
+        complete["oneOf"] = [
+            {"required": complete_required},
+            {
+                "properties": {name: {} for name in (
+                    identity, "self", "shortself", "xid", "xref"
+                )},
+                "required": [identity, "self", "xid", "xref"],
+                "additionalProperties": False,
+            },
+        ]
+        complete["description"] = (
+            "Completed Meta response, or the Core identity-only alias representation "
+            "used for document views and inaccessible targets."
+        )
+        result = {"": complete}
+        for role, suffix in (("write", "WriteInput"), ("patch", "PatchInput")):
+            inputs = copy.deepcopy(properties)
+            for name in ("self", "shortself", "xid", "defaultversionurl"):
+                inputs[name] = {"description": "Server-controlled; ignored in normal requests."}
+            for name in (
+                "labels", "createdat", "modifiedat", "xref", "readonly",
+                "compatibility", "deprecated", "defaultversionid", "defaultversionsticky",
+            ):
+                inputs[name]["nullable"] = True
+            normal = entity_input(
+                inputs, attributes, role, identity=identity,
+                server_fields=("readonly", "defaultversionid", "defaultversionurl", "defaultversionsticky"),
+            )
+            normal["properties"]["xref"] = {
+                **copy.deepcopy(properties["xref"]), "nullable": True,
+            }
+            normal["properties"]["xref"].pop("readOnly", None)
+            for name in ("readonly", "defaultversionid", "defaultversionsticky"):
+                normal["properties"][name]["nullable"] = True
+            normal.setdefault("allOf", []).append({
+                "not": {
+                    "properties": {"xref": {"type": "string"}},
+                    "required": ["xref"],
+                }
+            })
+            alias = {
+                "type": "object",
+                "properties": {
+                    name: copy.deepcopy(properties[name])
+                    for name in (identity, "xref", "epoch")
+                },
+                "required": ["xref"],
+                "additionalProperties": False,
+                "description": (
+                    "Alias creation/update accepts only the Resource ID, xref and "
+                    "an applicable Meta epoch. Graph and transition checks are server-side."
+                ),
+            }
+            for definition in alias["properties"].values():
+                definition.pop("readOnly", None)
+            result[suffix] = {
+                "type": "object", "oneOf": [normal, alias],
+                "description": normal["description"],
+            }
+        return result
 
     ## body of the core function starts here
     schema_group_names = []
@@ -724,6 +960,142 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
             if f"{group_name}-schema" not in schema_definitions:
                 schema_definitions[f"{group_name}-schema"] = {}
             schema_definitions[f"{group_name}-schema"][group_name] = group_schema
+    if for_openapi:
+        if meta_template is None:
+            path = os.path.join(
+                os.path.dirname(__file__), "..", "core", "templates",
+                "xregistry_openapi_template.json",
+            )
+            with open(path, encoding="utf-8") as source:
+                meta_template = json.load(source)["components"]["schemas"]["Meta"]
+        document_schema = schema_definitions["document"]
+        handle_attributes(
+            document_schema, model_definition.get("attributes", {}), role="response"
+        )
+        for group in model_definition.get("groups", {}).values():
+            for resource in group.get("resources", {}).values():
+                resource = resolve_resource(group, resource)
+                name = resource["singular"]
+                attributes = resource.get("attributes", {})
+                for suffix, definition in meta_schemas(resource).items():
+                    schema_definitions[name + "Meta" + suffix] = definition
+                schema_definitions[name]["properties"]["meta"] = {
+                    "$ref": f"{reference_prefix}{name}Meta"
+                }
+                for role, suffix in (("write", "WriteInput"), ("patch", "PatchInput")):
+                    version = entity_input(
+                        input_core(name + "id"), attributes, role, identity=name + "id"
+                    )
+                    version["properties"]["versionid"] = {"type": "string"}
+                    if "required" in version:
+                        version["required"] = [
+                            field for field in version["required"] if field != "versionid"
+                        ]
+                    if resource.get("hasdocument", True):
+                        version["properties"].update({
+                            name: {},
+                            name + "base64": {"type": "string"},
+                            name + "url": {"type": "string", "format": "uri-reference"},
+                        })
+                    schema_definitions[name + "Version" + suffix] = version
+                    value = copy.deepcopy(version)
+                    value.pop("required", None)
+                    value["properties"]["versions"] = {
+                        "type": "object",
+                        "additionalProperties": {
+                            "$ref": f"{reference_prefix}{name}Version{suffix}"
+                        },
+                    }
+                    value["properties"]["meta"] = {
+                        "$ref": f"{reference_prefix}{name}Meta{suffix}"
+                    }
+                    alias_selected = {
+                        "properties": {"meta": {
+                            "properties": {"xref": {"type": "string"}},
+                            "required": ["xref"],
+                        }},
+                        "required": ["meta"],
+                    }
+                    client_required = required_input(attributes, (name + "id", "versionid"))
+                    if role == "write" and client_required:
+                        value["anyOf"] = [
+                            {"required": ["versions"]},
+                            alias_selected,
+                            {"required": client_required},
+                        ]
+                    value.setdefault("allOf", []).append({"anyOf": [
+                        {"not": alias_selected},
+                        {
+                            "properties": {name + "id": {}, "meta": {}},
+                            "additionalProperties": False,
+                        },
+                    ]})
+                    if role == "patch":
+                        value["nullable"] = True
+                        version["nullable"] = True
+                    schema_definitions[name + suffix] = value
+
+        for group in model_definition.get("groups", {}).values():
+            resources = dict(group.get("resources", {}))
+            for imported in group.get("ximportresources", []):
+                source_group, plural = imported.split("/")[1:]
+                resources[plural] = model_definition["groups"][source_group]["resources"][plural]
+            for role, suffix in (("write", "WriteInput"), ("patch", "PatchInput")):
+                value = entity_input(
+                    input_core(group["singular"] + "id"),
+                    group.get("attributes", {}), role, identity=group["singular"] + "id",
+                )
+                for plural, definition in resources.items():
+                    resource = resolve_resource(group, definition)
+                    value["properties"][plural] = {
+                        "type": "object",
+                        "additionalProperties": {
+                            "$ref": f"{reference_prefix}{resource['singular']}{suffix}"
+                        },
+                    }
+                if role == "patch":
+                    value["nullable"] = True
+                schema_definitions[group["singular"] + suffix] = value
+
+        for role, suffix in (("write", "WriteInput"), ("patch", "PatchInput")):
+            properties = input_core("registryid")
+            properties.update({
+                "specversion": {"description": "Server-controlled; ignored in requests."},
+                "model": {"description": "Server-controlled; ignored in requests."},
+                "modelsource": {"type": "object", "nullable": True},
+                "capabilities": {"type": "object", "nullable": True},
+            })
+            dynamic_properties = copy.deepcopy(properties)
+            for group in model_definition.get("groups", {}).values():
+                properties[group["plural"]] = {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": f"{reference_prefix}{group['singular']}{suffix}"
+                    },
+                }
+            normal = entity_input(
+                properties, model_definition.get("attributes", {}), role,
+                identity="registryid", server_fields=("specversion", "model"),
+            )
+            normal.setdefault("allOf", []).append({
+                "not": {"required": ["modelsource"]}
+            })
+            schema_definitions["Registry" + suffix] = {
+                "type": "object",
+                "description": normal["description"],
+                "oneOf": [
+                    normal,
+                    {
+                        "type": "object", "properties": dynamic_properties,
+                        "required": ["modelsource"],
+                        "description": (
+                            "The request changes or resets the model. The server "
+                            "validates all model-dependent data against the resulting "
+                            "model; the old generated model is not authoritative."
+                        ),
+                    },
+                ],
+            }
     return schema
 
 
@@ -1442,6 +1814,9 @@ def main():
             print(f"> {input_file} as '{args.type}'")
             input_definition = json.load(file)
             input_definition = resolve_imports(os.path.dirname(input_file), input_definition)
+            if args.type == 'openapi':
+                for name, definition in input_definition.get("attributes", {}).items():
+                    model_definition.setdefault("attributes", {}).setdefault(name, definition)
             if "groups" in input_definition:
                 for group_name, group_definition in input_definition["groups"].items():
                     # convert file.name to using OS separators
@@ -1477,8 +1852,9 @@ def main():
     elif (args.type == 'openapi'):
         openapi = generate_openapi(model_definition)
         if args.output:
-            with open(args.output, 'w') as of:
+            with open(args.output, 'w', encoding='utf-8', newline='\n') as of:
                 json.dump(openapi, of, indent=2)
+                of.write('\n')
         else:
             print(json.dumps(openapi, indent=2))
 

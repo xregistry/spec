@@ -80,7 +80,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RegistryEntity"
+                "$ref": "#/components/schemas/RegistryWriteInput"
               }
             }
           }
@@ -132,7 +132,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RegistryEntity"
+                "$ref": "#/components/schemas/RegistryPatchInput"
               }
             }
           }
@@ -737,7 +737,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Meta"
+                  "$ref": "#/components/schemas/schemaMeta"
                 }
               }
             }
@@ -767,7 +767,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Meta"
+                "$ref": "#/components/schemas/schemaMetaWriteInput"
               }
             }
           }
@@ -778,7 +778,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Meta"
+                  "$ref": "#/components/schemas/schemaMeta"
                 }
               }
             }
@@ -808,7 +808,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Meta"
+                "$ref": "#/components/schemas/schemaMetaPatchInput"
               }
             }
           }
@@ -819,7 +819,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Meta"
+                  "$ref": "#/components/schemas/schemaMeta"
                 }
               }
             }
@@ -1966,90 +1966,6 @@
           }
         }
       },
-      "Meta": {
-        "type": "object",
-        "required": [
-          "self",
-          "xid",
-          "epoch",
-          "createdat",
-          "modifiedat"
-        ],
-        "properties": {
-          "RESOURCEid": {
-            "type": "string",
-            "description": "The resource identifier for the meta sub-object; usually the same as the resource id."
-          },
-          "self": {
-            "type": "string",
-            "format": "uri",
-            "description": "The absolute URL of the meta sub-object."
-          },
-          "shortself": {
-            "type": "string",
-            "format": "uri",
-            "description": "A shorter alternative URL for the meta sub-object.",
-            "nullable": true
-          },
-          "xid": {
-            "type": "string",
-            "description": "The relative URL (xid) for the meta sub-object."
-          },
-          "xref": {
-            "type": "string",
-            "format": "uri",
-            "description": "A pointer to a linked resource, if applicable.",
-            "nullable": true
-          },
-          "epoch": {
-            "type": "integer",
-            "minimum": 0,
-            "description": "The epoch value for the meta sub-object."
-          },
-          "labels": {
-            "type": "object",
-            "description": "A map of label key/value pairs.",
-            "additionalProperties": {
-              "type": "string"
-            },
-            "nullable": true
-          },
-          "createdat": {
-            "type": "string",
-            "format": "date-time",
-            "description": "The creation timestamp for the meta sub-object."
-          },
-          "modifiedat": {
-            "type": "string",
-            "format": "date-time",
-            "description": "The last modification timestamp for the meta sub-object."
-          },
-          "readonly": {
-            "type": "boolean",
-            "description": "Indicates whether the resource is readonly.",
-            "default": false
-          },
-          "compatibility": {
-            "type": "string",
-            "description": "The compatibility level of the resource.",
-            "default": "none"
-          },
-          "defaultversionid": {
-            "type": "string",
-            "description": "The version id of the default version of the resource."
-          },
-          "defaultversionurl": {
-            "type": "string",
-            "format": "uri",
-            "description": "The URL of the default version of the resource."
-          },
-          "defaultversionsticky": {
-            "type": "boolean",
-            "description": "Indicates whether the default version is sticky.",
-            "default": false
-          }
-        }
-      },
       "document": {
         "type": "object",
         "properties": {
@@ -2212,6 +2128,9 @@
             "type": "string",
             "format": "date-time",
             "description": "Time of the object modification"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/schemaMeta"
           }
         },
         "oneOf": [
@@ -2301,6 +2220,1302 @@
             }
           }
         }
+      },
+      "schemaMeta": {
+        "type": "object",
+        "properties": {
+          "self": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "Meta URL, including a relative document-view reference."
+          },
+          "shortself": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "A shorter alternative URL for the meta sub-object.",
+            "nullable": true
+          },
+          "xid": {
+            "type": "string",
+            "description": "The relative URL (xid) for the meta sub-object.",
+            "format": "uri-reference",
+            "pattern": "^/(?!/)"
+          },
+          "xref": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "Registry-relative Resource XID. The server validates the effective model, same Resource type, visibility and target resolution.",
+            "pattern": "^/[^/?#]+/[^/?#]+/[^/?#]+/[^/?#]+$"
+          },
+          "epoch": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The epoch value for the meta sub-object."
+          },
+          "labels": {
+            "type": "object",
+            "description": "A map of label key/value pairs.",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The creation timestamp for the meta sub-object."
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The last modification timestamp for the meta sub-object."
+          },
+          "readonly": {
+            "type": "boolean",
+            "description": "Indicates whether the resource is readonly.",
+            "default": false
+          },
+          "compatibility": {
+            "type": "string",
+            "description": "The compatibility level of the resource.",
+            "default": "none"
+          },
+          "defaultversionid": {
+            "type": "string",
+            "description": "The version id of the default version of the resource."
+          },
+          "defaultversionurl": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "The URL of the default version of the resource."
+          },
+          "defaultversionsticky": {
+            "type": "boolean",
+            "description": "Indicates whether the default version is sticky.",
+            "default": false
+          },
+          "schemaid": {
+            "type": "string",
+            "description": "The resource identifier for the meta sub-object; usually the same as the resource id."
+          },
+          "deprecated": {
+            "type": "object",
+            "properties": {
+              "effective": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "removal": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "alternative": {
+                "type": "string",
+                "format": "uri-reference"
+              },
+              "documentation": {
+                "type": "string",
+                "format": "uri-reference"
+              }
+            }
+          }
+        },
+        "oneOf": [
+          {
+            "required": [
+              "self",
+              "xid",
+              "epoch",
+              "createdat",
+              "modifiedat",
+              "schemaid",
+              "readonly",
+              "defaultversionid",
+              "defaultversionurl",
+              "defaultversionsticky"
+            ]
+          },
+          {
+            "properties": {
+              "schemaid": {},
+              "self": {},
+              "shortself": {},
+              "xid": {},
+              "xref": {}
+            },
+            "required": [
+              "schemaid",
+              "self",
+              "xid",
+              "xref"
+            ],
+            "additionalProperties": false
+          }
+        ],
+        "description": "Completed Meta response, or the Core identity-only alias representation used for document views and inaccessible targets."
+      },
+      "schemaMetaWriteInput": {
+        "type": "object",
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "self": {
+                "description": "Server-controlled; ignored in normal requests."
+              },
+              "shortself": {
+                "description": "Server-controlled; ignored in normal requests."
+              },
+              "xid": {
+                "description": "Server-controlled; ignored in normal requests."
+              },
+              "xref": {
+                "type": "string",
+                "format": "uri-reference",
+                "description": "Registry-relative Resource XID. The server validates the effective model, same Resource type, visibility and target resolution.",
+                "pattern": "^/[^/?#]+/[^/?#]+/[^/?#]+/[^/?#]+$",
+                "nullable": true
+              },
+              "epoch": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "The epoch value for the meta sub-object."
+              },
+              "labels": {
+                "type": "object",
+                "description": "A map of label key/value pairs.",
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "nullable": true
+              },
+              "createdat": {
+                "type": "string",
+                "format": "date-time",
+                "description": "The creation timestamp for the meta sub-object.",
+                "nullable": true
+              },
+              "modifiedat": {
+                "type": "string",
+                "format": "date-time",
+                "description": "The last modification timestamp for the meta sub-object.",
+                "nullable": true
+              },
+              "readonly": {
+                "type": "boolean",
+                "description": "Indicates whether the resource is readonly.",
+                "default": false,
+                "nullable": true
+              },
+              "compatibility": {
+                "type": "string",
+                "description": "The compatibility level of the resource.",
+                "default": "none",
+                "nullable": true
+              },
+              "defaultversionid": {
+                "type": "string",
+                "description": "The version id of the default version of the resource.",
+                "nullable": true
+              },
+              "defaultversionurl": {
+                "description": "Server-controlled; ignored in normal requests."
+              },
+              "defaultversionsticky": {
+                "type": "boolean",
+                "description": "Indicates whether the default version is sticky.",
+                "default": false,
+                "nullable": true
+              },
+              "schemaid": {
+                "type": "string",
+                "description": "The resource identifier for the meta sub-object; usually the same as the resource id."
+              },
+              "deprecated": {
+                "type": "object",
+                "properties": {
+                  "effective": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "removal": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "alternative": {
+                    "type": "string",
+                    "format": "uri-reference"
+                  },
+                  "documentation": {
+                    "type": "string",
+                    "format": "uri-reference"
+                  }
+                },
+                "nullable": true
+              }
+            },
+            "description": "Structural request input. The server applies defaults, retained state, conditional model constraints and final creation validation.",
+            "allOf": [
+              {
+                "not": {
+                  "properties": {
+                    "xref": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "xref"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "schemaid": {
+                "type": "string",
+                "description": "The resource identifier for the meta sub-object; usually the same as the resource id."
+              },
+              "xref": {
+                "type": "string",
+                "format": "uri-reference",
+                "description": "Registry-relative Resource XID. The server validates the effective model, same Resource type, visibility and target resolution.",
+                "pattern": "^/[^/?#]+/[^/?#]+/[^/?#]+/[^/?#]+$"
+              },
+              "epoch": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "The epoch value for the meta sub-object."
+              }
+            },
+            "required": [
+              "xref"
+            ],
+            "additionalProperties": false,
+            "description": "Alias creation/update accepts only the Resource ID, xref and an applicable Meta epoch. Graph and transition checks are server-side."
+          }
+        ],
+        "description": "Structural request input. The server applies defaults, retained state, conditional model constraints and final creation validation."
+      },
+      "schemaMetaPatchInput": {
+        "type": "object",
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "self": {
+                "description": "Server-controlled; ignored in normal requests."
+              },
+              "shortself": {
+                "description": "Server-controlled; ignored in normal requests."
+              },
+              "xid": {
+                "description": "Server-controlled; ignored in normal requests."
+              },
+              "xref": {
+                "type": "string",
+                "format": "uri-reference",
+                "description": "Registry-relative Resource XID. The server validates the effective model, same Resource type, visibility and target resolution.",
+                "pattern": "^/[^/?#]+/[^/?#]+/[^/?#]+/[^/?#]+$",
+                "nullable": true
+              },
+              "epoch": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "The epoch value for the meta sub-object."
+              },
+              "labels": {
+                "type": "object",
+                "description": "A map of label key/value pairs.",
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "nullable": true
+              },
+              "createdat": {
+                "type": "string",
+                "format": "date-time",
+                "description": "The creation timestamp for the meta sub-object.",
+                "nullable": true
+              },
+              "modifiedat": {
+                "type": "string",
+                "format": "date-time",
+                "description": "The last modification timestamp for the meta sub-object.",
+                "nullable": true
+              },
+              "readonly": {
+                "type": "boolean",
+                "description": "Indicates whether the resource is readonly.",
+                "default": false,
+                "nullable": true
+              },
+              "compatibility": {
+                "type": "string",
+                "description": "The compatibility level of the resource.",
+                "default": "none",
+                "nullable": true
+              },
+              "defaultversionid": {
+                "type": "string",
+                "description": "The version id of the default version of the resource.",
+                "nullable": true
+              },
+              "defaultversionurl": {
+                "description": "Server-controlled; ignored in normal requests."
+              },
+              "defaultversionsticky": {
+                "type": "boolean",
+                "description": "Indicates whether the default version is sticky.",
+                "default": false,
+                "nullable": true
+              },
+              "schemaid": {
+                "type": "string",
+                "description": "The resource identifier for the meta sub-object; usually the same as the resource id."
+              },
+              "deprecated": {
+                "type": "object",
+                "properties": {
+                  "effective": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "removal": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "alternative": {
+                    "type": "string",
+                    "format": "uri-reference"
+                  },
+                  "documentation": {
+                    "type": "string",
+                    "format": "uri-reference"
+                  }
+                },
+                "nullable": true
+              }
+            },
+            "description": "Structural request input. The server applies defaults, retained state, conditional model constraints and final creation validation.",
+            "allOf": [
+              {
+                "not": {
+                  "properties": {
+                    "xref": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "xref"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "schemaid": {
+                "type": "string",
+                "description": "The resource identifier for the meta sub-object; usually the same as the resource id."
+              },
+              "xref": {
+                "type": "string",
+                "format": "uri-reference",
+                "description": "Registry-relative Resource XID. The server validates the effective model, same Resource type, visibility and target resolution.",
+                "pattern": "^/[^/?#]+/[^/?#]+/[^/?#]+/[^/?#]+$"
+              },
+              "epoch": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "The epoch value for the meta sub-object."
+              }
+            },
+            "required": [
+              "xref"
+            ],
+            "additionalProperties": false,
+            "description": "Alias creation/update accepts only the Resource ID, xref and an applicable Meta epoch. Graph and transition checks are server-side."
+          }
+        ],
+        "description": "Structural request input. The server applies defaults, retained state, conditional model constraints and final creation validation."
+      },
+      "schemaVersionWriteInput": {
+        "type": "object",
+        "properties": {
+          "schemaid": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object",
+            "nullable": true
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation",
+            "minimum": 0
+          },
+          "self": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "xid": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object",
+            "nullable": true
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri",
+            "description": "URI of the documentation of the object",
+            "nullable": true
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object",
+            "nullable": true
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation",
+            "nullable": true
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification",
+            "nullable": true
+          },
+          "shortself": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "format": {
+            "type": "string"
+          },
+          "versionid": {
+            "type": "string"
+          },
+          "schema": {},
+          "schemabase64": {
+            "type": "string"
+          },
+          "schemaurl": {
+            "type": "string",
+            "format": "uri-reference"
+          }
+        },
+        "description": "Structural request input. The server applies defaults, retained state, conditional model constraints and final creation validation.",
+        "required": [
+          "format"
+        ],
+        "additionalProperties": {
+          "nullable": true
+        }
+      },
+      "schemaWriteInput": {
+        "type": "object",
+        "properties": {
+          "schemaid": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object",
+            "nullable": true
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation",
+            "minimum": 0
+          },
+          "self": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "xid": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object",
+            "nullable": true
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri",
+            "description": "URI of the documentation of the object",
+            "nullable": true
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object",
+            "nullable": true
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation",
+            "nullable": true
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification",
+            "nullable": true
+          },
+          "shortself": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "format": {
+            "type": "string"
+          },
+          "versionid": {
+            "type": "string"
+          },
+          "schema": {},
+          "schemabase64": {
+            "type": "string"
+          },
+          "schemaurl": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "versions": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/schemaVersionWriteInput"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/schemaMetaWriteInput"
+          }
+        },
+        "description": "Structural request input. The server applies defaults, retained state, conditional model constraints and final creation validation.",
+        "additionalProperties": {
+          "nullable": true
+        },
+        "anyOf": [
+          {
+            "required": [
+              "versions"
+            ]
+          },
+          {
+            "properties": {
+              "meta": {
+                "properties": {
+                  "xref": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "xref"
+                ]
+              }
+            },
+            "required": [
+              "meta"
+            ]
+          },
+          {
+            "required": [
+              "format"
+            ]
+          }
+        ],
+        "allOf": [
+          {
+            "anyOf": [
+              {
+                "not": {
+                  "properties": {
+                    "meta": {
+                      "properties": {
+                        "xref": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "xref"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "meta"
+                  ]
+                }
+              },
+              {
+                "properties": {
+                  "schemaid": {},
+                  "meta": {}
+                },
+                "additionalProperties": false
+              }
+            ]
+          }
+        ]
+      },
+      "schemaVersionPatchInput": {
+        "type": "object",
+        "properties": {
+          "schemaid": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object",
+            "nullable": true
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation",
+            "minimum": 0
+          },
+          "self": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "xid": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object",
+            "nullable": true
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri",
+            "description": "URI of the documentation of the object",
+            "nullable": true
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object",
+            "nullable": true
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation",
+            "nullable": true
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification",
+            "nullable": true
+          },
+          "shortself": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "format": {
+            "type": "string"
+          },
+          "versionid": {
+            "type": "string"
+          },
+          "schema": {},
+          "schemabase64": {
+            "type": "string"
+          },
+          "schemaurl": {
+            "type": "string",
+            "format": "uri-reference"
+          }
+        },
+        "description": "Structural request input. The server applies defaults, retained state, conditional model constraints and final creation validation.",
+        "additionalProperties": {
+          "nullable": true
+        },
+        "nullable": true
+      },
+      "schemaPatchInput": {
+        "type": "object",
+        "properties": {
+          "schemaid": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object",
+            "nullable": true
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation",
+            "minimum": 0
+          },
+          "self": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "xid": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object",
+            "nullable": true
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri",
+            "description": "URI of the documentation of the object",
+            "nullable": true
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object",
+            "nullable": true
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation",
+            "nullable": true
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification",
+            "nullable": true
+          },
+          "shortself": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "format": {
+            "type": "string"
+          },
+          "versionid": {
+            "type": "string"
+          },
+          "schema": {},
+          "schemabase64": {
+            "type": "string"
+          },
+          "schemaurl": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "versions": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/schemaVersionPatchInput"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/schemaMetaPatchInput"
+          }
+        },
+        "description": "Structural request input. The server applies defaults, retained state, conditional model constraints and final creation validation.",
+        "additionalProperties": {
+          "nullable": true
+        },
+        "allOf": [
+          {
+            "anyOf": [
+              {
+                "not": {
+                  "properties": {
+                    "meta": {
+                      "properties": {
+                        "xref": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "xref"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "meta"
+                  ]
+                }
+              },
+              {
+                "properties": {
+                  "schemaid": {},
+                  "meta": {}
+                },
+                "additionalProperties": false
+              }
+            ]
+          }
+        ],
+        "nullable": true
+      },
+      "schemagroupWriteInput": {
+        "type": "object",
+        "properties": {
+          "schemagroupid": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object",
+            "nullable": true
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation",
+            "minimum": 0
+          },
+          "self": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "xid": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object",
+            "nullable": true
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri",
+            "description": "URI of the documentation of the object",
+            "nullable": true
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object",
+            "nullable": true
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation",
+            "nullable": true
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification",
+            "nullable": true
+          },
+          "shortself": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "format": {
+            "type": "string",
+            "nullable": true
+          },
+          "schemas": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/schemaWriteInput"
+            }
+          }
+        },
+        "description": "Structural request input. The server applies defaults, retained state, conditional model constraints and final creation validation.",
+        "additionalProperties": {
+          "nullable": true
+        }
+      },
+      "schemagroupPatchInput": {
+        "type": "object",
+        "properties": {
+          "schemagroupid": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object",
+            "nullable": true
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation",
+            "minimum": 0
+          },
+          "self": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "xid": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object",
+            "nullable": true
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri",
+            "description": "URI of the documentation of the object",
+            "nullable": true
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object",
+            "nullable": true
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation",
+            "nullable": true
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification",
+            "nullable": true
+          },
+          "shortself": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "format": {
+            "type": "string",
+            "nullable": true
+          },
+          "schemas": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/schemaPatchInput"
+            }
+          }
+        },
+        "description": "Structural request input. The server applies defaults, retained state, conditional model constraints and final creation validation.",
+        "additionalProperties": {
+          "nullable": true
+        },
+        "nullable": true
+      },
+      "RegistryWriteInput": {
+        "type": "object",
+        "description": "Structural request input. The server applies defaults, retained state, conditional model constraints and final creation validation.",
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "registryid": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string",
+                "description": "Name of the object",
+                "nullable": true
+              },
+              "epoch": {
+                "type": "integer",
+                "description": "Epoch time of the object creation",
+                "minimum": 0
+              },
+              "self": {
+                "description": "Server-controlled; ignored in requests."
+              },
+              "xid": {
+                "description": "Server-controlled; ignored in requests."
+              },
+              "description": {
+                "type": "string",
+                "description": "Description of the object",
+                "nullable": true
+              },
+              "documentation": {
+                "type": "string",
+                "format": "uri",
+                "description": "URI of the documentation of the object",
+                "nullable": true
+              },
+              "labels": {
+                "type": "object",
+                "description": "Labels for the object",
+                "nullable": true
+              },
+              "createdat": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Time of the object creation",
+                "nullable": true
+              },
+              "modifiedat": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Time of the object modification",
+                "nullable": true
+              },
+              "shortself": {
+                "description": "Server-controlled; ignored in requests."
+              },
+              "specversion": {
+                "description": "Server-controlled; ignored in requests."
+              },
+              "model": {
+                "description": "Server-controlled; ignored in requests."
+              },
+              "modelsource": {
+                "type": "object",
+                "nullable": true
+              },
+              "capabilities": {
+                "type": "object",
+                "nullable": true
+              },
+              "schemagroups": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/schemagroupWriteInput"
+                }
+              }
+            },
+            "description": "Structural request input. The server applies defaults, retained state, conditional model constraints and final creation validation.",
+            "allOf": [
+              {
+                "not": {
+                  "required": [
+                    "modelsource"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "registryid": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string",
+                "description": "Name of the object",
+                "nullable": true
+              },
+              "epoch": {
+                "type": "integer",
+                "description": "Epoch time of the object creation",
+                "minimum": 0
+              },
+              "self": {
+                "description": "Server-controlled; ignored in requests."
+              },
+              "xid": {
+                "description": "Server-controlled; ignored in requests."
+              },
+              "description": {
+                "type": "string",
+                "description": "Description of the object",
+                "nullable": true
+              },
+              "documentation": {
+                "type": "string",
+                "format": "uri",
+                "description": "URI of the documentation of the object",
+                "nullable": true
+              },
+              "labels": {
+                "type": "object",
+                "description": "Labels for the object",
+                "nullable": true
+              },
+              "createdat": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Time of the object creation",
+                "nullable": true
+              },
+              "modifiedat": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Time of the object modification",
+                "nullable": true
+              },
+              "shortself": {
+                "description": "Server-controlled; ignored in requests."
+              },
+              "specversion": {
+                "description": "Server-controlled; ignored in requests."
+              },
+              "model": {
+                "description": "Server-controlled; ignored in requests."
+              },
+              "modelsource": {
+                "type": "object",
+                "nullable": true
+              },
+              "capabilities": {
+                "type": "object",
+                "nullable": true
+              }
+            },
+            "required": [
+              "modelsource"
+            ],
+            "description": "The request changes or resets the model. The server validates all model-dependent data against the resulting model; the old generated model is not authoritative."
+          }
+        ]
+      },
+      "RegistryPatchInput": {
+        "type": "object",
+        "description": "Structural request input. The server applies defaults, retained state, conditional model constraints and final creation validation.",
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "registryid": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string",
+                "description": "Name of the object",
+                "nullable": true
+              },
+              "epoch": {
+                "type": "integer",
+                "description": "Epoch time of the object creation",
+                "minimum": 0
+              },
+              "self": {
+                "description": "Server-controlled; ignored in requests."
+              },
+              "xid": {
+                "description": "Server-controlled; ignored in requests."
+              },
+              "description": {
+                "type": "string",
+                "description": "Description of the object",
+                "nullable": true
+              },
+              "documentation": {
+                "type": "string",
+                "format": "uri",
+                "description": "URI of the documentation of the object",
+                "nullable": true
+              },
+              "labels": {
+                "type": "object",
+                "description": "Labels for the object",
+                "nullable": true
+              },
+              "createdat": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Time of the object creation",
+                "nullable": true
+              },
+              "modifiedat": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Time of the object modification",
+                "nullable": true
+              },
+              "shortself": {
+                "description": "Server-controlled; ignored in requests."
+              },
+              "specversion": {
+                "description": "Server-controlled; ignored in requests."
+              },
+              "model": {
+                "description": "Server-controlled; ignored in requests."
+              },
+              "modelsource": {
+                "type": "object",
+                "nullable": true
+              },
+              "capabilities": {
+                "type": "object",
+                "nullable": true
+              },
+              "schemagroups": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/schemagroupPatchInput"
+                }
+              }
+            },
+            "description": "Structural request input. The server applies defaults, retained state, conditional model constraints and final creation validation.",
+            "allOf": [
+              {
+                "not": {
+                  "required": [
+                    "modelsource"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "registryid": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string",
+                "description": "Name of the object",
+                "nullable": true
+              },
+              "epoch": {
+                "type": "integer",
+                "description": "Epoch time of the object creation",
+                "minimum": 0
+              },
+              "self": {
+                "description": "Server-controlled; ignored in requests."
+              },
+              "xid": {
+                "description": "Server-controlled; ignored in requests."
+              },
+              "description": {
+                "type": "string",
+                "description": "Description of the object",
+                "nullable": true
+              },
+              "documentation": {
+                "type": "string",
+                "format": "uri",
+                "description": "URI of the documentation of the object",
+                "nullable": true
+              },
+              "labels": {
+                "type": "object",
+                "description": "Labels for the object",
+                "nullable": true
+              },
+              "createdat": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Time of the object creation",
+                "nullable": true
+              },
+              "modifiedat": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Time of the object modification",
+                "nullable": true
+              },
+              "shortself": {
+                "description": "Server-controlled; ignored in requests."
+              },
+              "specversion": {
+                "description": "Server-controlled; ignored in requests."
+              },
+              "model": {
+                "description": "Server-controlled; ignored in requests."
+              },
+              "modelsource": {
+                "type": "object",
+                "nullable": true
+              },
+              "capabilities": {
+                "type": "object",
+                "nullable": true
+              }
+            },
+            "required": [
+              "modelsource"
+            ],
+            "description": "The request changes or resets the model. The server validates all model-dependent data against the resulting model; the old generated model is not authoritative."
+          }
+        ]
       }
     }
   }
