@@ -68,6 +68,11 @@ Avro (`document-schema.avsc`), and OpenAPI (`openapi.json`) in the
 [schema](schema/schemas/)). The core model has its own JSON Schema at
 [core/model.schema.json](core/model.schema.json).
 
+JSON Schema and OpenAPI projections preserve model-defined object closure.
+Known Core metadata and active conditional members remain admitted; explicit
+wildcards and `any` retain their openness. Collection and map keys remain
+open while their modeled object values are validated independently.
+
 Additional release related information:
   [Historical releases and changelogs](docs/RELEASES.md)
 

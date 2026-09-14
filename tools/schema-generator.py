@@ -149,7 +149,17 @@ def camel(string):
     return pascalString[0:1].lower() + pascalString[1:]
 
 
+def model_with_names(model_definition):
+    model = copy.deepcopy(model_definition)
+    for plural, group in model.get("groups", {}).items():
+        group.setdefault("plural", plural)
+        for resource_plural, resource in group.get("resources", {}).items():
+            resource.setdefault("plural", resource_plural)
+    return model
+
+
 def generate_openapi(model_definition):
+    model_definition = model_with_names(model_definition)
 
     # now recursively find all $ref attributes in the template and replace them with references to the appropriate schema
     def replace_refs(schema_fragment: dict, expression: str, reference: str):
@@ -358,6 +368,9 @@ def generate_openapi(model_definition):
             "nullable": True
             }
 
+        registry_entity_schema.setdefault("allOf", []).append({
+            "$ref": "#/components/schemas/document"
+        })
         return openapi
     except:
         print(f"Error opening template file {template_file_name}")
@@ -376,19 +389,18 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
     Returns:
         dict: The generated JSON schema.
     """
+    model_definition = model_with_names(model_definition)
 
     def handle_item(resource_schema, type, item, enum_values=None):
         if type == "object":
             resource_schema["type"] = "object"
-            if "attributes" in item:
-                handle_attributes(resource_schema,  item["attributes"])
+            handle_attributes(resource_schema, item.get("attributes", {}), closed=True)
         elif type == "map":
             resource_schema["type"] = "object"
             if "type" in item:
                 if item["type"] == "object":
                     attr_schema = {"type": "object", "description": "", "properties": {}}
-                    if "attributes" in item:
-                        handle_attributes(attr_schema, item["attributes"])
+                    handle_attributes(attr_schema, item.get("attributes", {}), closed=True)
                 else:
                     attr_schema = copy.deepcopy(json_type_mapping[item["type"]])
                 if "description" in item:
@@ -404,10 +416,7 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
             if "type" in item:
                 if item["type"] == "object":
                     attr_schema = {"type": "object", "description": "", "properties": {}}
-                    if "attributes" in item:
-                        handle_attributes(attr_schema, item["attributes"])
-                    else:
-                        attr_schema = copy.deepcopy(attr_schema)
+                    handle_attributes(attr_schema, item.get("attributes", {}), closed=True)
                 else:
                     attr_schema = copy.deepcopy(json_type_mapping[item["type"]])
                 if "description" in item:
@@ -422,20 +431,57 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                     if "item" in item:
                         handle_item(resource_schema["items"], item["type"], item["item"])
 
+    def declared_names(value):
+        names = set(value.get("properties", {}))
+        for keyword in ("allOf", "anyOf", "oneOf"):
+            for child in value.get(keyword, []):
+                names.update(declared_names(child))
+        return names
 
+    def together(left, right):
+        if not left:
+            return copy.deepcopy(right)
+        if not right:
+            return copy.deepcopy(left)
+        return {"allOf": [copy.deepcopy(left), copy.deepcopy(right)]}
 
-    def handle_attributes(resource_schema, attributes):
-        """
-        This function takes in a resource schema and a dictionary of attributes and their properties.
-        It iterates through each attribute and creates a JSON schema for it based on its properties.
-        The function also handles nested attributes and conditional attributes using the "ifvalues" property.
-        The resulting schema is added to the resource schema.
-        """
+    def close_object(value, names, wildcards):
+        # Draft 7 closure cannot see declarations in sibling allOf branches.
+        properties = value.setdefault("properties", {})
+        for name in names:
+            properties.setdefault(name, {})
+        if any(not condition and not rule for condition, rule in wildcards):
+            return
+        declarations = {name: {} for name in names}
+        if not wildcards:
+            value["additionalProperties"] = False
+        elif len(wildcards) == 1 and not wildcards[0][0]:
+            value["additionalProperties"] = copy.deepcopy(wildcards[0][1])
+        else:
+            choices = [{"properties": declarations, "additionalProperties": False}]
+            for condition, rule in wildcards:
+                choices.append(together(condition, {
+                    "properties": declarations, "additionalProperties": rule,
+                }))
+            value.setdefault("allOf", []).append({"anyOf": choices})
+        for name, conditions in names.items():
+            if any(not condition for condition in conditions):
+                continue
+            choices = [{"not": {"required": [name]}}, *conditions]
+            choices.extend(
+                together(condition, {"properties": {name: rule}})
+                for condition, rule in wildcards
+            )
+            value.setdefault("allOf", []).append({"anyOf": choices})
+
+    def handle_attributes(resource_schema, attributes, closed=False, partial=False):
+        names = {name: [{}] for name in sorted(declared_names(resource_schema))}
+        wildcards = []
+        resource_schema.setdefault("properties", {})
         for attr_name, attr_props in attributes.items():
             if attr_props["type"] == "object":
                 attr_schema = {"type": "object", "description": "", "properties": {}}
-                if "attributes" in attr_props:
-                    handle_attributes(attr_schema, attr_props["attributes"])
+                handle_attributes(attr_schema, attr_props.get("attributes", {}), closed=True)
             else:
                 attr_schema = copy.deepcopy(json_type_mapping[attr_props["type"]])
 
@@ -450,61 +496,63 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                     enum_values = attr_props.get("enum") if attr_props["type"] == "array" else None
                     handle_item(attr_schema, attr_props["type"], attr_props["item"], enum_values)
 
-            if "required" in attr_props and attr_props["required"] == True and not "default" in attr_props:
+            if attr_name == "*":
+                if "ifvalues" in attr_props:
+                    raise ValueError("Can't use wild card attribute name with ifvalues")
+                wildcards.append(({}, attr_schema))
+                continue
+
+            names.setdefault(attr_name, []).append({})
+            resource_schema["properties"][attr_name] = copy.deepcopy(attr_schema)
+            if not partial and attr_props.get("required") is True and "default" not in attr_props:
                 if "required" not in resource_schema:
                     resource_schema["required"] = []
-                resource_schema["required"].append(attr_name)
+                if attr_name not in resource_schema["required"]:
+                    resource_schema["required"].append(attr_name)
 
             if "ifvalues" in attr_props:
-                if attr_name == "*":
-                    raise Exception("Can't use wild card attribute name with ifvalues")
-
                 if for_openapi:
                     resource_schema["discriminator"] = {
                         "propertyName": attr_name,
                         "mapping": {}
                     }
 
-                if attr_name in resource_schema["properties"]:
-                    resource_schema["properties"].pop(attr_name)
-                    if "required" in resource_schema and attr_name in resource_schema["required"]:
-                        resource_schema["required"].remove(attr_name)
-
                 one_of = []
                 for condition_value, condition_props in attr_props["ifvalues"].items():
                     # create an identifier from condition_value, turning all spaces and special characters in to underscore
                     condition_schema_identifier = attr_name + "_" + "".join([c if c.isalnum() else "_" for c in condition_value])
-                    # for openapi, add a reference to this schema in the discriminator mapping
-                    if for_openapi:
-                        resource_schema["discriminator"]["mapping"][condition_value] = f"#/components/schemas/{condition_schema_identifier}"
-
                     conditional_attr_schema = copy.deepcopy(attr_schema)
                     conditional_attr_schema.update({
                                 "enum": [condition_value],
                             })
-                    if "siblingattributes" in condition_props:
-                        conditional_schema = {
-                                    "properties": {
-                                        attr_name: conditional_attr_schema
-                                    },
-                                    "required": [attr_name]
-                                }
-                        handle_attributes(conditional_schema,  condition_props.get("siblingattributes", {}))
-                    else:
+                    if "siblingattributes" not in condition_props:
                         conditional_attr_schema.update({
                             "default": condition_value
                         })
-                        conditional_schema = {
-                            "properties": {
-                                        attr_name: conditional_attr_schema
-                                    },
-                        }
+                    conditional_schema = {
+                        "properties": {attr_name: conditional_attr_schema},
+                        "required": [attr_name],
+                    }
+                    child_names, child_wildcards = handle_attributes(
+                        conditional_schema, condition_props.get("siblingattributes", {})
+                    )
+                    selected = {
+                        "properties": {attr_name: {"enum": [condition_value]}},
+                        "required": [attr_name],
+                    }
+                    for name, conditions in child_names.items():
+                        names.setdefault(name, []).extend(
+                            together(selected, condition) for condition in conditions
+                        )
+                    wildcards.extend(
+                        (together(selected, condition), rule)
+                        for condition, rule in child_wildcards
+                    )
 
                     if for_openapi:
                         resource_schema["discriminator"]["mapping"][condition_value] = f"#/components/schemas/{condition_schema_identifier}"
                         schema_definitions[condition_schema_identifier] = copy.deepcopy(conditional_schema)
-                    else:
-                        one_of.append(copy.deepcopy(conditional_schema))
+                    one_of.append(copy.deepcopy(conditional_schema))
                 if len(one_of) > 0:
                     one_of.append({
                         "anyOf": [
@@ -517,23 +565,10 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                             }
                         ]
                     })
-                    if "oneOf" in resource_schema:
-                        resource_schema["allOf"] = [{"oneOf" : resource_schema.pop("oneOf")}]
-                        resource_schema["allOf"].append({"oneOf": one_of})
-                    else:
-                        resource_schema["oneOf"] = one_of
-            else:
-                if attr_name == "*":
-                    if attr_props["type"] == "any":
-                        continue
-                    if "additionalProperties" in resource_schema:
-                        resource_schema["additionalProperties"].update(attr_schema)
-                    else:
-                        resource_schema["additionalProperties"] = copy.deepcopy(attr_schema)
-                else:
-                    if not "properties" in resource_schema:
-                        resource_schema["properties"] = {}
-                    resource_schema["properties"][attr_name] = copy.deepcopy(attr_schema)
+                    resource_schema.setdefault("allOf", []).append({"oneOf": one_of})
+        if closed:
+            close_object(resource_schema, names, wildcards)
+        return names, wildcards
 
     ## body of the core function starts here
     schema_group_names = []
@@ -566,6 +601,22 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
         schema_definitions = schema["definitions"]
 
 
+    common_properties = {
+        **copy.deepcopy(json_common_attributes), "shortself": {}, "icon": {},
+    }
+    version_properties = {name: {} for name in (
+        "versionid", "ancestorid", "isdefault", "contenttype", "format",
+        "formatvalidated", "formatvalidatedreason",
+        "compatibilityvalidated", "compatibilityvalidatedreason",
+    )}
+    root_schema = schema["components"]["schemas"]["document"] if for_openapi else schema
+    root_schema["type"] = "object"
+    document_properties.update(copy.deepcopy(common_properties))
+    document_properties.update({
+        "registryid": {"type": "string"}, "specversion": {"type": "string"},
+        "capabilities": {}, "model": {}, "modelsource": {},
+    })
+
     for key, group in model_definition.get("groups", {}).items():
         if "plural" not in group: group["plural"] = key
         groups_name = group["plural"]
@@ -583,6 +634,8 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
         }
 
         document_properties[groups_name] = groups_schema
+        document_properties[groups_name + "url"] = {"type": "string"}
+        document_properties[groups_name + "count"] = {"type": "integer"}
         resource_collection_properties = {}
 
         for rKey, resource in group.get("resources", {}).items():
@@ -591,7 +644,8 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
             resource_name = resource["singular"]
             props = {}
             props[resource_name+"id"] = {"type": "string", "description": f"ID of the {resource_name} object"}
-            props.update(copy.deepcopy(json_common_attributes))
+            props.update(copy.deepcopy(common_properties))
+            props.update(copy.deepcopy(version_properties))
 
             if resource.get("hasdocument", True):
                 resource_schema = {
@@ -641,8 +695,9 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                 props = {}
                 props["versionid"] = {"type": "string", "description": f"ID of the {resource_name} version"}
                 props.update(copy.deepcopy(resource_version_schema["properties"]))
+                props["versionid"] = {"type": "string", "description": f"ID of the {resource_name} version"}
                 resource_version_schema["properties"] = props
-                handle_attributes(resource_version_schema, attributes)
+                handle_attributes(resource_version_schema, attributes, closed=True)
 
                 resource_schema["oneOf"] = [
                         {
@@ -673,7 +728,37 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                         schema_definitions[f"{group_name}-schema"] = {}
                     schema_definitions[f"{group_name}-schema"][f"{resource_name}Version"] = resource_version_schema
             else:
-                handle_attributes(resource_schema, attributes)
+                resource_version_schema = copy.deepcopy(resource_schema)
+                handle_attributes(resource_version_schema, attributes, closed=True)
+                resource_schema["properties"].update({
+                    "versionsurl": {"type": "string"},
+                    "versionscount": {"type": "integer"},
+                    "versions": {
+                        "type": "object",
+                        "additionalProperties": resource_version_schema,
+                    },
+                })
+
+            meta_properties = {
+                name: copy.deepcopy(json_common_attributes[name])
+                for name in ("self", "xid", "epoch", "labels", "createdat", "modifiedat")
+            }
+            meta_properties.update({name: {} for name in (
+                resource_name + "id", "shortself", "xref", "readonly",
+                "compatibility", "deprecated", "defaultversionid",
+                "defaultversionurl", "defaultversionsticky",
+            )})
+            meta_schema = {"type": "object", "properties": meta_properties}
+            handle_attributes(
+                meta_schema, resource.get("metaattributes", {}), closed=True
+            )
+            resource_schema["properties"].update({
+                "meta": meta_schema, "metaurl": {"type": "string"},
+            })
+            handle_attributes(
+                resource_schema, attributes, closed=True,
+                partial=resource.get("maxversions", -1) != 1,
+            )
 
             # For OpenAPI: flat keys, for JSON Schema: nested structure
             if for_openapi:
@@ -708,15 +793,19 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
 
         props = {}
         props[group_name+"id"] = {"type": "string", "description": f"ID of the {group_name} object"}
-        props.update(copy.deepcopy(json_common_attributes))
+        props.update(copy.deepcopy(common_properties))
+        props["deprecated"] = {}
+        props["constraints"] = {}
         group_schema = {
             "type": "object",
             "properties": props
         }
-        attributes = group.get("attributes", {})
-        handle_attributes(group_schema, attributes)
         for resource_collection_name, resource_collection_schema in resource_collection_properties.items():
             group_schema["properties"][resource_collection_name] = resource_collection_schema
+            group_schema["properties"][resource_collection_name + "url"] = {"type": "string"}
+            group_schema["properties"][resource_collection_name + "count"] = {"type": "integer"}
+        attributes = group.get("attributes", {})
+        handle_attributes(group_schema, attributes, closed=True)
         # For OpenAPI: flat keys, for JSON Schema: nested structure
         if for_openapi:
             schema_definitions[group_name] = group_schema
@@ -724,6 +813,7 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
             if f"{group_name}-schema" not in schema_definitions:
                 schema_definitions[f"{group_name}-schema"] = {}
             schema_definitions[f"{group_name}-schema"][group_name] = group_schema
+    handle_attributes(root_schema, model_definition.get("attributes", {}), closed=True)
     return schema
 
 
@@ -1442,6 +1532,8 @@ def main():
             print(f"> {input_file} as '{args.type}'")
             input_definition = json.load(file)
             input_definition = resolve_imports(os.path.dirname(input_file), input_definition)
+            for name, definition in input_definition.get("attributes", {}).items():
+                model_definition.setdefault("attributes", {}).setdefault(name, definition)
             if "groups" in input_definition:
                 for group_name, group_definition in input_definition["groups"].items():
                     # convert file.name to using OS separators
@@ -1452,8 +1544,9 @@ def main():
     if (args.type == 'json-schema'):
         json_schema = generate_json_schema(model_definition, schema_id=args.schema_id)
         if args.output:
-            with open(args.output, 'w', encoding='utf-8') as of:
+            with open(args.output, 'w', encoding='utf-8', newline='\n') as of:
                 json.dump(json_schema, of, indent=2)
+                of.write('\n')
         else:
             print(json.dumps(json_schema, indent=2))
     elif (args.type == 'json-structure'):
@@ -1477,8 +1570,9 @@ def main():
     elif (args.type == 'openapi'):
         openapi = generate_openapi(model_definition)
         if args.output:
-            with open(args.output, 'w') as of:
+            with open(args.output, 'w', encoding='utf-8', newline='\n') as of:
                 json.dump(openapi, of, indent=2)
+                of.write('\n')
         else:
             print(json.dumps(openapi, indent=2))
 
