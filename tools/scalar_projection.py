@@ -659,13 +659,33 @@ def _validate_tree_definition(tree, limits, depth=0):
         raise ProfileMismatchError("Unknown scalar-tree contract")
 
 
-def _validate_schema_annotations(node, dialect, limits, depth=0):
+def _structure_map_max_entries(node, features, limits):
+    if "maxEntries" not in node:
+        return None
+    if not isinstance(features, list) or "JSONStructureValidation" not in features:
+        raise ProfileMismatchError("maxEntries requires JSONStructureValidation")
+    try:
+        bound = _number(node["maxEntries"], limits)
+    except ResourceLimitError:
+        raise
+    except ProjectionError as error:
+        raise ProfileMismatchError("maxEntries must be a nonnegative integer") from error
+    if not bound.is_integer or compare_numbers(bound, 0, limits=limits) < 0:
+        raise ProfileMismatchError("maxEntries must be a nonnegative integer")
+    return bound
+
+
+def _validate_schema_annotations(node, dialect, limits, depth=0, structure_features=None):
     if depth > limits.max_depth:
         raise ResourceLimitError("Writer schema exceeds the depth budget")
+    if structure_features is None:
+        structure_features = node.get("$uses", []) if isinstance(node, dict) else []
     if isinstance(node, list):
         for child in node:
-            _validate_schema_annotations(child, dialect, limits, depth + 1)
+            _validate_schema_annotations(child, dialect, limits, depth + 1, structure_features)
     elif isinstance(node, dict):
+        if dialect == "json-structure" and node.get("type") == "map":
+            _structure_map_max_entries(node, structure_features, limits)
         if SCALAR_KEY in node:
             contract = node[SCALAR_KEY]
             _validate_contract_definition(contract, limits)
@@ -696,7 +716,7 @@ def _validate_schema_annotations(node, dialect, limits, depth=0):
         if JSON_CARRIER_KEY in node and node[JSON_CARRIER_KEY] != "core-json/1":
             raise ProfileMismatchError("Unknown generic JSON carrier annotation")
         for child in node.values():
-            _validate_schema_annotations(child, dialect, limits, depth + 1)
+            _validate_schema_annotations(child, dialect, limits, depth + 1, structure_features)
 
 
 class ProjectionCodec:
@@ -977,6 +997,9 @@ class ProjectionCodec:
         if kind == "map":
             if type(value) is not dict or any(type(key) is not str for key in value):
                 raise ProjectionError("Expected a JSON Structure map")
+            maximum = _structure_map_max_entries(node, root.get("$uses", []), self._limits)
+            if maximum is not None and compare_numbers(len(value), maximum, limits=self._limits) > 0:
+                raise ProjectionError("JSON Structure map exceeds maxEntries")
             return {key: visit(node["values"], item)
                     for key, item in value.items()}
         if kind == "array":
@@ -1411,6 +1434,8 @@ class ProjectionCodec:
                     elif wire_name in value:
                         defaults(child, old_child, value[wire_name], depth + 1)
             elif kind == "map" and isinstance(value, dict):
+                if previous.get("type") != "map":
+                    raise MigrationError("Map representation changes require authoritative Core JSON")
                 for member in value.values():
                     defaults(current["values"], previous["values"], member, depth + 1)
             elif kind == "array" and isinstance(value, list):

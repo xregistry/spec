@@ -5,6 +5,7 @@
 <!-- words: py resourcelimiterror sdk xregistryabsent xregistryjsoncarrier -->
 <!-- words: xregistryprojection xregistryscalar xregistryscalartree -->
 <!-- words: projectioncodec -->
+<!-- words: jsonstructurevalidation maxentries migrationerror -->
 
 This profile is identified by
 `https://xregistry.io/profiles/scalar-projection/1`. It describes derived
@@ -147,6 +148,13 @@ the complete writer schema and immutable semantic profile. `read` requires
 the codec's pinned contract, validates identity and physical/semantic values,
 and restores exact Core scalar kinds.
 
+For JSON Structure maps, `maxEntries` requires the root `$uses` list to enable
+`JSONStructureValidation` and a nonnegative integer bound. Codec construction
+rejects invalid or unenabled limits. Valid limits are enforced on writes and
+reads, including referenced map definitions. A zero limit admits an empty
+object, not extra entries; an absent optional property remains absent. The
+limit and feature declaration remain part of the complete writer identity.
+
 `ProjectionCodec.from_artifact` verifies a retained artifact. Applications
 still have to obtain and pin that artifact through a trusted channel. Its
 SHA-256 identity covers the complete schema and profile, including semantic
@@ -214,6 +222,10 @@ Legacy fixed-width integer ranges/literal grammar are checked as properties
 of that old representation, not as new Core limits. Exact stored datetime
 text is retained. Unsafe old floating/decimal projections require the same
 explicit `authoritative_core_json` path.
+
+Changing a legacy object representation to a map also requires that explicit
+path, even for an empty object. Otherwise migration raises `MigrationError`;
+identical empty JSON does not establish a compatible writer contract.
 
 Migrated envelopes retain the complete old writer schema, its full
 fingerprint, and whether the strategy was retained-value migration or
