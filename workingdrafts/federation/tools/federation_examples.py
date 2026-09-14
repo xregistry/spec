@@ -134,7 +134,7 @@ def validate_profile(profile):
     if name == "opcua":
         if uri.scheme not in ("opc.tcp", "https", "opc.wss"):
             raise FederationError("unsupported_operation", "Unsupported UA transport")
-        from opcua_examples import validate_registry_root
+        from workingdrafts.bindings.tools.opcua_examples import validate_registry_root
 
         validate_registry_root(parameters.get("registryroot"))
         for parameter in ("applicationuri", "transportprofileuri"):

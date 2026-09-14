@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from typing import Callable, Sequence
 
-from federation_examples import FederationError, validate_xid
+from workingdrafts.federation.tools.federation_examples import FederationError, validate_xid
 
 
 @dataclass(frozen=True)

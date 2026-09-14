@@ -66,7 +66,7 @@ loadpython:
 
 testpython: loadpython
 	@echo "Testing our python tools:"
-	@pytest tools/
+	@python -m pytest
 
 links: loadpython
 	@echo "Verifying links in our docs:"

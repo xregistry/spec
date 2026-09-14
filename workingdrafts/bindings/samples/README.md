@@ -17,14 +17,16 @@ the collection indexes, entity records and exact document bytes. It includes
 explicit default Versions, local aliases, metadata-only Resources, a binary
 document and an empty document.
 
+Run from the repository root:
+
 ```text
-python -B tools\mapping_examples.py validate workingdrafts\bindings\samples\mapping
+python -B -m workingdrafts.bindings.tools.mapping_examples validate workingdrafts\bindings\samples\mapping
 ```
 
 The physical filenames in this generated example are storage allocations,
 not xRegistry IDs or mandatory directory names. Existing projects can instead
 add `registry.json` and metadata alongside their own files. See
-[the directory mapping tests](../../../tools/test_directory_mapping.py) for
+[the directory mapping tests](../tools/test_directory_mapping.py) for
 an existing project layout read through both File and Git without moving or
 modifying its content.
 

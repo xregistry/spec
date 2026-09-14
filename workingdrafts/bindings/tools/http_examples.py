@@ -6,7 +6,7 @@ import json
 import re
 from urllib.parse import quote, urljoin, urlsplit
 
-from federation_examples import (
+from workingdrafts.federation.tools.federation_examples import (
     FederationError, resource_type, select_label, validate_profile, validate_xid,
 )
 

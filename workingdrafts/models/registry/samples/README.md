@@ -177,7 +177,7 @@ properties.
 ## Shared Helper Interfaces
 
 This domain introduces no separate helper API. The
-[shared offline helpers](../../../../tools/federation_examples.py) provide
+[shared offline helpers](../../../federation/tools/federation_examples.py) provide
 `validate_xid`, `validate_profile`, `select_profile`, `select_label`,
 `resource_type`, `resolve_local_xref` and `select_version`.
 Failures expose a `FederationError.code` and a message.

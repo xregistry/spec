@@ -8,11 +8,11 @@ from unittest.mock import patch
 
 import pytest
 
-import opcua_examples as ua
-from federation_examples import FederationError
+from workingdrafts.bindings.tools import opcua_examples as ua
+from workingdrafts.federation.tools.federation_examples import FederationError
 
 
-ROOT = Path(__file__).resolve().parent.parent / "workingdrafts" / "federation" / "samples" / "opcua"
+ROOT = Path(__file__).resolve().parents[3] / "workingdrafts" / "federation" / "samples" / "opcua"
 REFERENCES = json.loads((ROOT / "references.json").read_text(encoding="utf-8"))
 SEQUENCES = json.loads((ROOT / "read-sequences.json").read_text(encoding="utf-8"))
 REF = {case["name"]: case for case in REFERENCES["cases"]}

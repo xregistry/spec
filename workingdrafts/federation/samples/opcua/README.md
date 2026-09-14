@@ -4,7 +4,8 @@
 
 These synthetic examples accompany the
 [OPC UA binding](../../../bindings/opcua.md). They use Python's standard
-library and the shared `tools\federation_examples.py` error/validation
+library and the shared
+[`federation_examples.py`](../../tools/federation_examples.py) error/validation
 interfaces. They do not connect to a UA server, install an SDK, discover
 endpoints or modify an external repository.
 
@@ -18,9 +19,9 @@ of OPC Foundation adoption or Server interoperability.
 Run from the repository root:
 
 ```powershell
-python -B tools\opcua_examples.py validate workingdrafts\federation\samples\opcua\references.json workingdrafts\federation\samples\opcua\read-sequences.json
-python -B tools\opcua_examples.py show workingdrafts\federation\samples\opcua\references.json reindexed-source-and-target
-python -B tools\opcua_examples.py show workingdrafts\federation\samples\opcua\read-sequences.json default-v1-short-chunks
+python -B -m workingdrafts.bindings.tools.opcua_examples validate workingdrafts\federation\samples\opcua\references.json workingdrafts\federation\samples\opcua\read-sequences.json
+python -B -m workingdrafts.bindings.tools.opcua_examples show workingdrafts\federation\samples\opcua\references.json reindexed-source-and-target
+python -B -m workingdrafts.bindings.tools.opcua_examples show workingdrafts\federation\samples\opcua\read-sequences.json default-v1-short-chunks
 ```
 
 `validate` executes every case and checks its exact result or expected error

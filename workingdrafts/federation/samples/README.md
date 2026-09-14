@@ -1,6 +1,6 @@
 # Federation Conformance Examples
 
-<!-- words: opcua py pytest readme -->
+<!-- words: opcua py pytest readme workingdrafts -->
 
 These examples accompany the unreleased
 [federation specification](../spec.md). They are synthetic, offline inputs,
@@ -14,7 +14,7 @@ not credentials or production endpoints.
 | [http](./http/README.md) | HTTP request/response and consistency examples. |
 | [opcua](opcua) | Native addressing and transfer examples. |
 | [Registry samples](../../models/registry/samples) | Base catalog and richer binding advertisements. |
-| [Source selection](../../../tools/federation_resolution_examples.py) | Local Resource shadows and ordered source misses, using in-memory reads. |
+| [Source selection](../tools/federation_resolution_examples.py) | Local Resource shadows and ordered source misses, using in-memory reads. |
 
 The source-selection helper's `Source` accepts the selected view's enabled
 capabilities. With `{"federation":{"resolution":"producer"}}`, it calls the
@@ -30,14 +30,16 @@ The binding formats define their complete record representations separately.
 Run the conformance suite from the repository root:
 
 ```console
-python -m pytest tools/test_registry_model.py tools/test_federation_examples.py tools/test_federation_resolution_examples.py tools/test_mapping_examples.py tools/test_git_examples.py tools/test_oci_examples.py tools/test_http_examples.py tools/test_opcua_examples.py -q
+python -B -m pytest workingdrafts -q
 ```
 
-The helper modules under `tools` exercise specified algorithms without
-implementing a production client or server. Tests construct negative cases
-in memory or temporary directories. Checked-in positive JSON examples have
-unique keys. Byte integrity, selected Version identity, full graph closure
-and selective fetch traces are different assertions.
+Each draft bundle keeps its helpers and tests in a sibling `tools` directory.
+The [shared helpers](../tools) and [binding helpers](../../bindings/tools)
+exercise specified algorithms without implementing a production client or
+server. Tests construct negative cases in memory or temporary directories.
+Checked-in positive JSON examples have unique keys. Byte integrity, selected
+Version identity, full graph closure and selective fetch traces are different
+assertions.
 
 OCI copying uses artifact-aware tooling and the format's standard containment
 edges. A parser accepting JSON is not evidence of whole-graph copy support.

@@ -1,4 +1,4 @@
-"""Regressions for the four actionable federation PR code-review findings."""
+"""Regressions for shared schema-generator behavior."""
 
 import copy
 import importlib.util
@@ -6,15 +6,11 @@ import io
 import json
 from datetime import datetime, timezone
 from pathlib import Path
-from unittest.mock import Mock
 
 import avro.io
 import avro.schema
 import jsonschema
 import pytest
-
-from federation_examples import FederationError, execute_selected, validate_profile
-
 
 ROOT = Path(__file__).resolve().parent.parent
 SPEC = importlib.util.spec_from_file_location("schema_generator_review", ROOT / "tools" / "schema-generator.py")
@@ -128,30 +124,3 @@ def test_version_metadata_schema_does_not_require_domain_content(format_name, co
         validator.validate(value)
     with pytest.raises(jsonschema.ValidationError):
         validator.validate({key: item for key, item in value.items() if key != "format"})
-
-
-@pytest.mark.parametrize("name", ["oci", "com.example.custom"])
-@pytest.mark.parametrize("extra", [{"reference": "sha256:" + "1" * 64}, {"endpointurl": "https://other.example.com"}])
-def test_advertisement_rejects_misplaced_envelope_fields_without_fallback(name, extra):
-    profile = {
-        "name": name, "endpoint": "oci://example.com/repo",
-        "parameters": {"reference": "stable"}, **extra,
-    }
-    with pytest.raises(FederationError) as error:
-        validate_profile(profile)
-    assert error.value.code == "invalid_package"
-    read = Mock()
-    with pytest.raises(FederationError) as error:
-        execute_selected({"federationprofiles": [profile]}, {name}, read)
-    assert error.value.code == "invalid_package"
-    read.assert_not_called()
-
-
-def test_extension_parameters_remain_extensible_with_closed_envelope():
-    profile = {
-        "name": "com.example.custom", "endpoint": "custom:registry",
-        "parameters": {"reference": "v1", "extra": {"mode": "pinned"}}
-    }
-    before = copy.deepcopy(profile)
-    validate_profile(profile)
-    assert profile == before
