@@ -731,6 +731,12 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
 def generate_json_structure(model_definition, schema_id='', schema_name='') -> dict:
     """Generate a native JSON Structure schema for an xRegistry document."""
     definitions = {}
+    requires_validation = False
+
+    def closed_empty_schema():
+        nonlocal requires_validation
+        requires_validation = True
+        return {"type": "map", "values": {"type": "any"}, "maxEntries": 0}
 
     def identifier(wire_name):
         words = [word for word in re.split(r'[^A-Za-z0-9]+', wire_name) if word]
@@ -812,13 +818,13 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
         return collected
 
     def object_schema(attributes, namespace, owner_name):
+        attributes = collect_attributes(attributes)
         properties = {}
         required = []
         used_names = {}
-        additional_properties = False
-        for wire_name, definition in collect_attributes(attributes).items():
+        wildcard = attributes.get("*")
+        for wire_name, definition in attributes.items():
             if wire_name == "*":
-                additional_properties = definition["type"] == "any"
                 continue
             logical_name = identifier(wire_name)
             if logical_name in used_names and used_names[logical_name] != wire_name:
@@ -835,6 +841,14 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
             properties[logical_name] = property_schema
             if definition.get("required") is True and "default" not in definition:
                 required.append(logical_name)
+        if not properties:
+            if wildcard is None:
+                return closed_empty_schema()
+            return {
+                "type": "map",
+                "values": value_schema(wildcard, namespace, owner_name + "Value", True),
+            }
+        additional_properties = wildcard is not None and wildcard["type"] == "any"
         schema = {
             "type": "object",
             "properties": properties,
@@ -972,14 +986,19 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
             "values": reference(namespace, group_type_name)
         }
 
+    root_schema = {
+        "type": "object", "properties": root_properties,
+        "additionalProperties": False,
+    } if root_properties else closed_empty_schema()
+    extensions = ["JSONStructureAlternateNames"]
+    if requires_validation:
+        extensions.append("JSONStructureValidation")
     return {
         "$schema": "https://json-structure.org/meta/extended/v0/#",
         "$id": schema_id or "https://xregistry.io/schemas/xregistry.struct.json",
-        "$uses": ["JSONStructureAlternateNames"],
+        "$uses": extensions,
         "name": type_identifier(schema_name or "xRegistryDocument"),
-        "type": "object",
-        "properties": root_properties,
-        "additionalProperties": False,
+        **root_schema,
         "definitions": definitions
     }
 
@@ -1463,7 +1482,7 @@ def main():
             schema_name=args.schema_name
         )
         if args.output:
-            with open(args.output, 'w', encoding='utf-8') as of:
+            with open(args.output, 'w', encoding='utf-8', newline='\n') as of:
                 json.dump(json_structure, of, indent=2)
         else:
             print(json.dumps(json_structure, indent=2))

@@ -68,6 +68,12 @@ Avro (`document-schema.avsc`), and OpenAPI (`openapi.json`) in the
 [schema](schema/schemas/)). The core model has its own JSON Schema at
 [core/model.schema.json](core/model.schema.json).
 
+JSON Structure uses maps for wildcard-only dynamic objects. Closed-empty
+objects use zero-entry maps with explicit validation-feature support; named
+objects retain their structured schemas. See the
+[dynamic object projection guidance](tools/json-structure-dynamic-maps.md)
+for the data, reader and Core parameter-name validation boundaries.
+
 Additional release related information:
   [Historical releases and changelogs](docs/RELEASES.md)
 
