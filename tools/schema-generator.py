@@ -371,14 +371,17 @@ def generate_openapi(model_definition):
             for plural, definition in resources.items():
                 resource = resolve_resource(group, definition)
                 base = f"/{group['plural']}/{{groupid}}/{plural}/{{resourceid}}"
-                version_type = resource["singular"]
-                if resource.get("maxversions", -1) != 1:
-                    version_type += "Version"
+                version_type = resource["singular"] + "Version"
                 reference = f"#/components/schemas/{version_type}"
                 versions = openapi["paths"][base + "/versions"]
                 version = openapi["paths"][base + "/versions/{versionid}"]
                 for item in (versions, version):
                     replace_refs(item, f"#/components/schemas/{resource['singular']}", reference)
+                if not resource.get("hasdocument", True):
+                    replace_refs(
+                        openapi["paths"][base]["post"],
+                        f"#/components/schemas/{resource['singular']}", reference
+                    )
                 versions["get"]["responses"]["200"]["content"]["application/json"]["schema"] = {
                     "type": "object", "additionalProperties": {"$ref": reference}
                 }
@@ -718,7 +721,7 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
             }
             resource_schema["properties"]["meta"] = meta_schema
             attributes = resource.get("attributes", {})
-            if resource.get("maxversions", -1) != 1:
+            if for_openapi or resource.get("maxversions", -1) != 1:
                 resource_version_schema = copy.deepcopy(resource_schema)
                 resource_version_schema["properties"].pop("meta")
                 resource_version_schema["properties"].pop("metaurl")
@@ -733,6 +736,24 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                 resource_version_schema["properties"] = props
                 handle_attributes(resource_version_schema, attributes)
 
+                # For OpenAPI: flat keys, for JSON Schema: nested structure
+                if for_openapi:
+                    resource_version_schema["not"] = {
+                        "anyOf": [
+                            {"required": [name]}
+                            for name in (
+                                "meta", "metaurl", "versions",
+                                "versionsurl", "versionscount",
+                            )
+                        ]
+                    }
+                    schema_definitions[f"{resource_name}Version"] = resource_version_schema
+                else:
+                    if f"{group_name}-schema" not in schema_definitions:
+                        schema_definitions[f"{group_name}-schema"] = {}
+                    schema_definitions[f"{group_name}-schema"][f"{resource_name}Version"] = resource_version_schema
+
+            if resource.get("maxversions", -1) != 1:
                 resource_schema.pop("oneOf", None)
                 resource_schema["properties"].update({
                     "versionsurl": {"type": "string", "format": "uri-reference"},
@@ -753,13 +774,6 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                         }
                     ]
 
-                # For OpenAPI: flat keys, for JSON Schema: nested structure
-                if for_openapi:
-                    schema_definitions[f"{resource_name}Version"] = resource_version_schema
-                else:
-                    if f"{group_name}-schema" not in schema_definitions:
-                        schema_definitions[f"{group_name}-schema"] = {}
-                    schema_definitions[f"{group_name}-schema"][f"{resource_name}Version"] = resource_version_schema
             else:
                 handle_attributes(resource_schema, attributes)
 

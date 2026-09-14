@@ -197,3 +197,169 @@ def test_openapi_document_version_metadata_does_not_require_content():
         validator.validate({"entryid": "e", "versionid": "v1", "entrybase64": 5})
     with pytest.raises(jsonschema.ValidationError):
         validator.validate({"entryid": "e", "versionid": "v1", "entry": {}, "entrybase64": ""})
+
+
+def generate_version_openapi(hasdocument, maxversions):
+    model = copy.deepcopy(MODEL)
+    resource = model["groups"]["catalogs"]["resources"]["entries"]
+    resource.update(hasdocument=hasdocument, maxversions=maxversions)
+    model["groups"]["mirrors"] = {
+        "singular": "mirror",
+        "ximportresources": ["/catalogs/entries"],
+    }
+    return GENERATOR.generate_openapi(model)
+
+
+def ordinary_version(group, hasdocument):
+    xid = f"/{group}/c/entries/e/versions/v1"
+    return {
+        "entryid": "e",
+        "versionid": "v1",
+        "self": "https://example.com" + xid + (
+            "$details" if hasdocument else ""
+        ),
+        "xid": xid,
+        "epoch": 1,
+        "createdat": "2026-01-01T00:00:00Z",
+        "modifiedat": "2026-01-01T00:00:00Z",
+        "ancestorid": "v1",
+        "isdefault": True,
+        "endpoints": [{"uri": "https://example.com", "priority": 0}],
+    }
+
+
+def assert_version_metadata(openapi, representation, version, collection=False):
+    validator = jsonschema.Draft7Validator(
+        {**representation, "components": openapi["components"]},
+        format_checker=jsonschema.FormatChecker(),
+    )
+
+    def body(value):
+        return {"v1": value} if collection else value
+
+    validator.validate(body(version))
+    for name, value in (
+        ("versionid", 7),
+        ("entryid", 7),
+        ("isdefault", "true"),
+        ("endpoints", "https://example.com"),
+    ):
+        with pytest.raises(jsonschema.ValidationError) as error:
+            validator.validate(body({**version, name: value}))
+        assert error.value.validator == "type"
+        assert list(error.value.absolute_path) == (
+            ["v1", name] if collection else [name]
+        )
+
+    for value in (7, [], "v1"):
+        with pytest.raises(jsonschema.ValidationError) as error:
+            validator.validate(body(value))
+        assert error.value.validator == "type"
+        assert list(error.value.absolute_path) == (["v1"] if collection else [])
+
+    for name, value in (
+        ("meta", {}),
+        ("metaurl", "https://example.com/catalogs/c/entries/e/meta"),
+        ("versions", {}),
+        ("versionsurl", "https://example.com/catalogs/c/entries/e/versions"),
+        ("versionscount", 1),
+    ):
+        with pytest.raises(jsonschema.ValidationError):
+            validator.validate(body({**version, name: value}))
+
+    if collection:
+        with pytest.raises(jsonschema.ValidationError) as error:
+            validator.validate([version])
+        assert error.value.validator == "type"
+
+
+@pytest.mark.parametrize("hasdocument", [False, True])
+@pytest.mark.parametrize("maxversions", [0, 1])
+@pytest.mark.parametrize("group", ["catalogs", "mirrors"])
+def test_openapi_version_routes_use_version_metadata(
+    hasdocument, maxversions, group
+):
+    schema = generate_version_openapi(hasdocument, maxversions)
+    validate(schema)
+    version = ordinary_version(group, hasdocument)
+    base = f"/{group}/{{groupid}}/entries/{{resourceid}}"
+    reference = {"$ref": "#/components/schemas/entryVersion"}
+    collection = {"type": "object", "additionalProperties": reference}
+    versions = schema["paths"][base + "/versions"]
+    for content in (
+        versions["get"]["responses"]["200"]["content"],
+        versions["post"]["requestBody"]["content"],
+        versions["post"]["responses"]["200"]["content"],
+    ):
+        assert set(content) == {"application/json"}
+        representation = content["application/json"]["schema"]
+        assert representation == collection
+        assert_version_metadata(schema, representation, version, collection=True)
+
+    for suffix in ("/versions/{versionid}", "/versions/{versionid}$details"):
+        path = schema["paths"][base + suffix]
+        assert all(
+            parameter.get("name") != "meta"
+            for parameter in path.get("parameters", [])
+        )
+        content = path["get"]["responses"]["200"]["content"]
+        if not hasdocument or suffix.endswith("$details"):
+            assert set(content) == {"application/json"}
+        representation = content["application/json"]["schema"]
+        assert representation == reference
+        assert_version_metadata(schema, representation, version)
+
+    properties = schema["components"]["schemas"]["entryVersion"]["properties"]
+    assert properties["versionid"]["type"] == "string"
+    assert not {
+        "meta", "metaurl", "versions", "versionsurl", "versionscount"
+    } & properties.keys()
+    resource_schema = schema["components"]["schemas"]["entry"]
+    assert {"meta", "metaurl"} <= resource_schema["properties"].keys()
+    resource = {
+        "entryid": "e",
+        "meta": {"defaultversionid": "v1", "deprecated": {}},
+        "metaurl": f"https://example.com/{group}/c/entries/e/meta",
+    }
+    if maxversions != 1:
+        resource["versionsurl"] = (
+            f"https://example.com/{group}/c/entries/e/versions"
+        )
+    jsonschema.Draft7Validator(resource_schema).validate(resource)
+    resource_path = schema["paths"][base]
+    resource_reference = {"$ref": "#/components/schemas/entry"}
+    assert resource_path["get"]["responses"]["200"]["content"][
+        "application/json"
+    ]["schema"] == resource_reference
+    if hasdocument:
+        post = resource_path["post"]
+        for content in (
+            post["requestBody"]["content"],
+            post["responses"]["201"]["content"],
+        ):
+            assert set(content) == {
+                "application/json", "application/octet-stream"
+            }
+            assert content["application/json"]["schema"] == resource_reference
+
+
+@pytest.mark.parametrize("message", ["request", "response"])
+@pytest.mark.parametrize("maxversions", [0, 1])
+@pytest.mark.parametrize("group", ["catalogs", "mirrors"])
+def test_openapi_metadata_only_resource_post_uses_version_metadata(
+    message, maxversions, group
+):
+    schema = generate_version_openapi(False, maxversions)
+    validate(schema)
+    base = f"/{group}/{{groupid}}/entries/{{resourceid}}"
+    post = schema["paths"][base]["post"]
+    content = (
+        post["requestBody"]["content"] if message == "request"
+        else post["responses"]["201"]["content"]
+    )
+    assert set(content) == {"application/json"}
+    representation = content["application/json"]["schema"]
+    assert_version_metadata(
+        schema, representation, ordinary_version(group, False)
+    )
+    assert representation == {"$ref": "#/components/schemas/entryVersion"}

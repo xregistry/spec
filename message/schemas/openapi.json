@@ -1187,7 +1187,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/message"
+                "$ref": "#/components/schemas/messageVersion"
               }
             }
           }
@@ -1227,7 +1227,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/message"
+                  "$ref": "#/components/schemas/messageVersion"
                 }
               }
             }
@@ -1348,7 +1348,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": {
-                    "$ref": "#/components/schemas/message"
+                    "$ref": "#/components/schemas/messageVersion"
                   }
                 }
               }
@@ -1404,7 +1404,7 @@
               "schema": {
                 "type": "object",
                 "additionalProperties": {
-                  "$ref": "#/components/schemas/message"
+                  "$ref": "#/components/schemas/messageVersion"
                 }
               }
             }
@@ -1418,7 +1418,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": {
-                    "$ref": "#/components/schemas/message"
+                    "$ref": "#/components/schemas/messageVersion"
                   }
                 }
               }
@@ -1478,7 +1478,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/message"
+                  "$ref": "#/components/schemas/messageVersion"
                 }
               }
             }
@@ -1573,7 +1573,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/message"
+                  "$ref": "#/components/schemas/messageVersion"
                 }
               }
             }
@@ -3132,6 +3132,136 @@
         "required": [
           "protocol"
         ]
+      },
+      "messageVersion": {
+        "type": "object",
+        "properties": {
+          "versionid": {
+            "type": "string",
+            "description": "ID of the message version"
+          },
+          "messageid": {
+            "type": "string",
+            "description": "ID of the message object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation"
+          },
+          "self": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "string",
+            "format": "xid",
+            "description": "Relative URL of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "URI of the documentation of the object"
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object"
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation"
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification"
+          },
+          "ancestorid": {
+            "type": "string"
+          },
+          "isdefault": {
+            "type": "boolean"
+          },
+          "contenttype": {
+            "type": "string"
+          },
+          "basemessageuri": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "Reference to a base definition for this definition. Relative references are XIDs within the same registry. Absolute URIs reference message definitions in external registries. The base definition is overridden by this definition. If not present, this definition does not override any base definition"
+          },
+          "dataschemaformat": {
+            "type": "string",
+            "description": "The schema format applicable to the message payload, equivalent to the 'format' attribute of the schema registry"
+          },
+          "dataschema": {
+            "description": "The inline schema for the message payload, equivalent to the 'schema' attribute of the schema registry"
+          },
+          "dataschemauri": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "The URI of the schema for the message payload, equivalent to the 'schemauri' attribute of the schema registry"
+          },
+          "dataschemaxid": {
+            "type": "string",
+            "format": "uri-reference",
+            "pattern": "^/",
+            "description": "Contains the xid of the xRegistry schema Resource entity associated with the dataschemauri referenced schema document. Note that this means the entity MUST be located within the same Registry."
+          },
+          "datacontenttype": {
+            "type": "string",
+            "description": "The content type for the message payload"
+          }
+        },
+        "discriminator": {
+          "propertyName": "protocol",
+          "mapping": {
+            "AMQP/1.0": "#/components/schemas/protocol_AMQP_1_0",
+            "MQTT/3.1.1": "#/components/schemas/protocol_MQTT_3_1_1",
+            "MQTT/5.0": "#/components/schemas/protocol_MQTT_5_0",
+            "KAFKA": "#/components/schemas/protocol_KAFKA",
+            "HTTP": "#/components/schemas/protocol_HTTP",
+            "NATS": "#/components/schemas/protocol_NATS"
+          }
+        },
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "meta"
+              ]
+            },
+            {
+              "required": [
+                "metaurl"
+              ]
+            },
+            {
+              "required": [
+                "versions"
+              ]
+            },
+            {
+              "required": [
+                "versionsurl"
+              ]
+            },
+            {
+              "required": [
+                "versionscount"
+              ]
+            }
+          ]
+        }
       },
       "message": {
         "type": "object",

@@ -2339,7 +2339,36 @@
         ],
         "required": [
           "format"
-        ]
+        ],
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "meta"
+              ]
+            },
+            {
+              "required": [
+                "metaurl"
+              ]
+            },
+            {
+              "required": [
+                "versions"
+              ]
+            },
+            {
+              "required": [
+                "versionsurl"
+              ]
+            },
+            {
+              "required": [
+                "versionscount"
+              ]
+            }
+          ]
+        }
       },
       "schema": {
         "type": "object",

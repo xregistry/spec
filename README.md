@@ -65,6 +65,12 @@ Avro (`document-schema.avsc`), and OpenAPI (`openapi.json`) in the
 [schema](schema/schemas/)). The core model has its own JSON Schema at
 [core/model.schema.json](core/model.schema.json).
 
+Generated OpenAPI descriptions keep Resource and Version metadata separate,
+including for Resource types with `maxversions: 1`. Resource navigation fields
+such as `meta` and `metaurl` do not belong in Version metadata. Metadata-only
+Resource POST requests and created responses use the Version representation;
+document-bearing request bodies are not reinterpreted as Version metadata.
+
 Additional release related information:
   [Historical releases and changelogs](docs/RELEASES.md)
 
