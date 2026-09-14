@@ -1,6 +1,6 @@
 # Working Drafts
 
-<!-- words: opc opcua readme ua -->
+<!-- words: opc opcua pytest readme ua workingdrafts -->
 <!-- words: namespace validators -->
 
 The specifications in this directory are under active development and can
@@ -53,3 +53,25 @@ The [Registry model artifacts](models/registry/README.md) and
 [conformance examples](federation/samples/README.md) accompany these drafts.
 Core `xref` remains a same-Registry, same-Resource-model-type mechanism.
 Federation does not redefine it as a remote URL.
+
+## Tools and Tests
+
+Draft-specific helpers and tests live with their owning specifications:
+
+| Bundle | Tools |
+| --- | --- |
+| Federation | [Shared validation and resolution](federation/tools) |
+| Bindings | [HTTP, Directory Mapping, Git, File, OCI and OPC UA](bindings/tools) |
+| Registry of Registries | [Catalog-model conformance](models/registry/tools) |
+
+Run the draft tests from the repository root, using the dependencies in
+[`tools/requirements.txt`](../tools/requirements.txt):
+
+```console
+python -B -m pytest workingdrafts -q
+```
+
+Omit `workingdrafts` to include the central repository tests as well.
+Helper command examples use `python -m` so imports resolve across bundles.
+Shared generators and documentation checkers remain in the repository's
+central [tools directory](../tools).

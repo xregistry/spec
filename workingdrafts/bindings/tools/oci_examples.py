@@ -21,20 +21,12 @@ from urllib.parse import urlsplit
 
 from jsonschema import Draft7Validator, Draft202012Validator, FormatChecker
 
-if __package__:
-    from .federation_examples import (
-        FederationError,
-        select_label,
-        validate_profile,
-        validate_xid,
-    )
-else:
-    from federation_examples import (
-        FederationError,
-        select_label,
-        validate_profile,
-        validate_xid,
-    )
+from workingdrafts.federation.tools.federation_examples import (
+    FederationError,
+    select_label,
+    validate_profile,
+    validate_xid,
+)
 
 
 INDEX_MEDIA_TYPE = "application/vnd.oci.image.index.v1+json"
@@ -53,7 +45,7 @@ ARTIFACT_TYPES = {
         "metadata", "version",
     )
 }
-_ROOT = Path(__file__).resolve().parent.parent
+_ROOT = Path(__file__).resolve().parents[3]
 _SCHEMAS = _ROOT / "workingdrafts" / "bindings" / "schemas"
 _DIGEST = re.compile(r"sha256:[0-9a-f]{64}\Z")
 _TAG = re.compile(r"[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}\Z")

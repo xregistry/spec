@@ -16,10 +16,10 @@ import jsonschema
 import pytest
 from openapi_spec_validator import validate_spec
 
-from federation_examples import FederationError, select_profile, select_version
+from workingdrafts.federation.tools.federation_examples import FederationError, select_profile, select_version
 
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[4]
 REGISTRY_DIR = ROOT / "workingdrafts" / "models" / "registry"
 MODEL_PATH = REGISTRY_DIR / "model.json"
 SCHEMA_BASE = "https://xregistry.io/workingdrafts/models/registry/schemas/"

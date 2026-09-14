@@ -8,8 +8,8 @@ from unittest.mock import Mock
 import pytest
 from jsonschema import Draft202012Validator
 
-from federation_examples import FederationError
-from federation_resolution_examples import Source, resolution_owner, resolve_resource_read
+from workingdrafts.federation.tools.federation_examples import FederationError
+from workingdrafts.federation.tools.federation_resolution_examples import Source, resolution_owner, resolve_resource_read
 
 
 XID = "/documents/main/assets/item"
@@ -18,7 +18,7 @@ RESOURCE = {"xid": XID, "assetid": "item"}
 
 @pytest.fixture(scope="module")
 def capability_validator():
-    root = Path(__file__).resolve().parent.parent / "workingdrafts" / "federation"
+    root = Path(__file__).resolve().parents[3] / "workingdrafts" / "federation"
     schema = json.loads((root / "schemas" / "capabilities.json").read_text(encoding="utf-8"))
     Draft202012Validator.check_schema(schema)
     return Draft202012Validator(schema)
@@ -216,7 +216,7 @@ def test_producer_mode_still_validates_returned_entity_identity(value):
 
 
 def test_published_resolution_signals_match_the_capability_schema(capability_validator):
-    root = Path(__file__).resolve().parent.parent / "workingdrafts" / "federation"
+    root = Path(__file__).resolve().parents[3] / "workingdrafts" / "federation"
     text = (root / "spec.md").read_text(encoding="utf-8")
     examples = [json.loads(block) for block in re.findall(r"```json\n(.*?)```", text, re.S)]
     capabilities = [value for value in examples if "federation" in value]
@@ -229,7 +229,7 @@ def test_published_resolution_signals_match_the_capability_schema(capability_val
 @pytest.mark.parametrize("binding", ["file", "oci"])
 def test_snapshot_capabilities_preserve_producer_resolution_without_catalog_reads(tmp_path, binding):
     if binding == "file":
-        from mapping_examples import DocumentTree, MemoryStore, encode_tree, sample_records
+        from workingdrafts.bindings.tools.mapping_examples import DocumentTree, MemoryStore, encode_tree, sample_records
         records, documents = sample_records()
         records[0]["entity"]["capabilities"]["federation"] = {"resolution": "producer"}
         reader = DocumentTree(MemoryStore(encode_tree(records, documents)))
@@ -238,7 +238,7 @@ def test_snapshot_capabilities_preserve_producer_resolution_without_catalog_read
         expected = b'{"hello":"world"}\n'
         read = Mock(side_effect=lambda operation, xid: reader.document(xid))
     else:
-        from oci_examples import FixtureLayout, build_layout, sample_records
+        from workingdrafts.bindings.tools.oci_examples import FixtureLayout, build_layout, sample_records
         records, documents = sample_records()
         records[0]["entity"]["capabilities"]["federation"] = {"resolution": "producer"}
         build_layout(tmp_path, records, documents)

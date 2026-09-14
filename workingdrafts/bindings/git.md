@@ -4,7 +4,7 @@
 <!-- words: submodule submodules lfs smudge checkout filesystem filenames -->
 <!-- words: modelsource hasdocument xids worktree refspec -->
 <!-- words: documenttree filestore gitattributes gitrepository gitrevisions -->
-<!-- words: gitstore href py scm ssh -->
+<!-- words: gitstore href py scm ssh workingdrafts -->
 
 ## Abstract
 
@@ -225,11 +225,12 @@ validation, commit pinning, object-only reads, the common operations and
 the rejection rules above. Offline-complete conformance additionally requires
 all declared document bytes locally in that snapshot.
 
-The shared [offline helper](../../tools/mapping_examples.py) accepts an
-explicit local Git object directory and a revision:
+The shared [offline helper](tools/mapping_examples.py) accepts an
+explicit local Git object directory and a revision. Run from the repository
+root:
 
 ```text
-python -B tools\mapping_examples.py validate --git-dir STORE --revision refs/heads/main --path xregistry
+python -B -m workingdrafts.bindings.tools.mapping_examples validate --git-dir STORE --revision refs/heads/main --path xregistry
 ```
 
 `GitStore(git_dir, revision, path="xregistry")` exposes the resolved `pin`,

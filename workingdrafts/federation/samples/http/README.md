@@ -77,14 +77,16 @@ actual `200` with an empty document and `Content-Length: 0`.
 ## Validation and Later Test Cases
 
 The fixtures use only JSON and can be loaded with Python's standard
-library. `tools\http_examples.py` supplies `request_url`, `literal_filter`
+library. [`http_examples.py`](../../../bindings/tools/http_examples.py)
+supplies `request_url`, `literal_filter`
 and `interpret_transcript` for offline mapping and exchange execution.
 The interpreter ignores `expected`, returns actual values and request
 traces, and raises the shared `FederationError` on failures. It supports
 contiguous range assembly and same-URL cache revalidation, not a complete
 HTTP cache. It performs no network I/O.
 
-Use `tools\federation_examples.py` for profile and literal-label selection.
+Use [`federation_examples.py`](../../tools/federation_examples.py) for profile
+and literal-label selection.
 Its `execute_selected` invokes one supplied read function. It does not catch
 a failure and try another advertisement. Tests exercise these helpers
 against the transcripts and separately assert their outcomes and traces.

@@ -802,15 +802,17 @@ not a containment edge or permission for Git readers to apply attributes.
 Existing projects do not need to replace their `.gitattributes` to add a
 mapping. Git readers obtain stored object bytes without checkout conversion.
 
-[`tools/mapping_examples.py`](../../tools/mapping_examples.py) provides
+[`mapping_examples.py`](tools/mapping_examples.py) provides
 offline parsing, schema/semantic validation, selective reads, document-view
 assembly and an OPTIONAL local Git object-store reader. It uses the common
 `FederationError`, XID validation, label selection and Resource type helper.
 It does not fetch repositories or external documents.
 
+Run from the repository root:
+
 ```text
-python -B tools\mapping_examples.py validate workingdrafts\bindings\samples\mapping
-python -B tools\mapping_examples.py entity workingdrafts\bindings\samples\mapping /documents/main/assets/item/versions/v1
+python -B -m workingdrafts.bindings.tools.mapping_examples validate workingdrafts\bindings\samples\mapping
+python -B -m workingdrafts.bindings.tools.mapping_examples entity workingdrafts\bindings\samples\mapping /documents/main/assets/item/versions/v1
 ```
 
 `read_record` exposes a storage fragment, not a Core response. `metadata`

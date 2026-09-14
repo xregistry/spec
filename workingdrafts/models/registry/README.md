@@ -1,6 +1,6 @@
 # Registry-of-Registries Service - Version 1.0-rc1
 
-<!-- words: federationprofiles readme registrytypes website weburl xregurl -->
+<!-- words: federationprofiles pytest readme registrytypes website weburl workingdrafts xregurl -->
 
 **Status:** Unreleased working draft using xRegistry Core 1.0-rc4. This
 domain is not part of a released xRegistry specification.
@@ -20,3 +20,10 @@ with reproducible generation commands and current generator limitations.
 after catalog selection.
 [Base and resolvable conformance](spec.md#10-conformance) are distinct.
 An advertisement does not establish reachability or trust.
+
+The [tools directory](tools) contains this model's conformance tests.
+Run them from the repository root:
+
+```console
+python -B -m pytest workingdrafts\models\registry\tools -q
+```

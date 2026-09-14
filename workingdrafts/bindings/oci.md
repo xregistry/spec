@@ -765,7 +765,7 @@ ranges, model semantics or graph completeness.
 The checked-in [OCI samples](../federation/samples/oci/README.md) contain
 real small layouts, exact digests, metadata-only and zero-byte documents,
 multiple roots, local aliases and forced multi-level shards. The helper
-[`tools/oci_examples.py`](../../tools/oci_examples.py) builds, validates
+[`oci_examples.py`](tools/oci_examples.py) builds, validates
 and selectively reads these offline fixtures. It records actual file
 fetches, distinguishes exhaustive validation from lookup, and performs
 no network requests or production publication.

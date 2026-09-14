@@ -3,12 +3,14 @@
 import json
 from copy import deepcopy
 from pathlib import Path
+from unittest.mock import Mock
 
 import pytest
 from jsonschema import Draft202012Validator
 
-from federation_examples import (
+from workingdrafts.federation.tools.federation_examples import (
     FederationError,
+    execute_selected,
     resolve_local_xref,
     resource_type,
     select_label,
@@ -19,7 +21,7 @@ from federation_examples import (
 )
 
 
-FIXTURE_ROOT = Path(__file__).parent.parent / "workingdrafts" / "federation"
+FIXTURE_ROOT = Path(__file__).resolve().parents[3] / "workingdrafts" / "federation"
 
 
 @pytest.fixture
@@ -1188,3 +1190,30 @@ def test_select_profile_does_not_fallback_after_selected_validation_error(select
     assert str(raised.value) == message
     assert entry == before
     assert alternate == {"name": "http", "endpoint": "https://alternate.example.test/registry", "priority": 5}
+
+
+@pytest.mark.parametrize("name", ["oci", "com.example.custom"])
+@pytest.mark.parametrize("extra", [{"reference": "sha256:" + "1" * 64}, {"endpointurl": "https://other.example.com"}])
+def test_advertisement_rejects_misplaced_envelope_fields_without_fallback(name, extra):
+    profile = {
+        "name": name, "endpoint": "oci://example.com/repo",
+        "parameters": {"reference": "stable"}, **extra,
+    }
+    with pytest.raises(FederationError) as error:
+        validate_profile(profile)
+    assert error.value.code == "invalid_package"
+    read = Mock()
+    with pytest.raises(FederationError) as error:
+        execute_selected({"federationprofiles": [profile]}, {name}, read)
+    assert error.value.code == "invalid_package"
+    read.assert_not_called()
+
+
+def test_extension_parameters_remain_extensible_with_closed_envelope():
+    profile = {
+        "name": "com.example.custom", "endpoint": "custom:registry",
+        "parameters": {"reference": "v1", "extra": {"mode": "pinned"}}
+    }
+    before = deepcopy(profile)
+    validate_profile(profile)
+    assert profile == before

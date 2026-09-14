@@ -19,7 +19,7 @@ from jsonschema import Draft202012Validator, FormatChecker
 from jsonschema.exceptions import ValidationError
 from referencing import Registry, Resource
 
-from federation_examples import (
+from workingdrafts.federation.tools.federation_examples import (
     FederationError,
     resource_type,
     select_label,
@@ -31,7 +31,7 @@ from federation_examples import (
 FORMAT = "xregistry-document-tree"
 FORMAT_VERSION = "1"
 CORE_VERSION = "1.0-rc4"
-_SCHEMAS = Path(__file__).parent.parent / "workingdrafts" / "bindings" / "schemas"
+_SCHEMAS = Path(__file__).resolve().parents[3] / "workingdrafts" / "bindings" / "schemas"
 _DEVICE = re.compile(r"(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)", re.I)
 _OID = re.compile(r"(?:[0-9a-fA-F]{40}|[0-9a-fA-F]{64})\Z")
 _STAMP_FIELDS = ("st_dev", "st_ino", "st_mode", "st_size", "st_mtime_ns")

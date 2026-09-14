@@ -10,15 +10,15 @@ from unittest.mock import Mock, call, patch
 import pytest
 from jsonschema import Draft7Validator, Draft202012Validator, FormatChecker
 
-import oci_examples as oci
-from mapping_examples import (
+from workingdrafts.bindings.tools import oci_examples as oci
+from workingdrafts.bindings.tools.mapping_examples import (
     DocumentTree, MemoryStore, encode_tree,
     sample_records as document_sample_records,
 )
-from federation_examples import FederationError
+from workingdrafts.federation.tools.federation_examples import FederationError
 
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[3]
 OCI_FIXTURES = ROOT / "workingdrafts" / "federation" / "samples" / "oci"
 DOCUMENT_FIXTURES = ROOT / "workingdrafts" / "bindings" / "samples" / "mapping"
 SCHEMAS = ROOT / "workingdrafts" / "bindings" / "schemas"

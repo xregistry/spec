@@ -7,11 +7,11 @@ from unittest.mock import Mock
 
 import pytest
 
-from federation_examples import FederationError, execute_selected, select_label
-from http_examples import interpret_transcript, literal_filter, request_url
+from workingdrafts.federation.tools.federation_examples import FederationError, execute_selected, select_label
+from workingdrafts.bindings.tools.http_examples import interpret_transcript, literal_filter, request_url
 
 
-FIXTURES = Path(__file__).resolve().parent.parent / "workingdrafts" / "federation" / "samples" / "http"
+FIXTURES = Path(__file__).resolve().parents[3] / "workingdrafts" / "federation" / "samples" / "http"
 MAPPING = json.loads((FIXTURES / "read-mapping.json").read_text(encoding="utf-8"))
 DATA = json.loads((FIXTURES / "transcripts.json").read_text(encoding="utf-8"))
 TRANSCRIPTS = {value["name"]: value for value in DATA["transcripts"]}
