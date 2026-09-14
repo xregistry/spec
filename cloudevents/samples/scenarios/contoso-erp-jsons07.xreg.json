@@ -111,13 +111,6 @@
             "protocol": "KAFKA",
             "protocoloptions": {
                 "deployed": false,
-                "endpoints": [
-                    {
-                        "bootstrap.servers": [
-                            "SSL://cediscoveryinterop.example.com:9093"
-                        ]
-                    }
-                ],
                 "topic": "mytopic",
                 "partition": 0
             },
@@ -139,13 +132,6 @@
             "protocol": "KAFKA",
             "protocoloptions": {
                 "deployed": false,
-                "endpoints": [
-                    {
-                        "bootstrap.servers": [
-                            "SSL://cediscoveryinterop.example.com:9093"
-                        ]
-                    }
-                ],
                 "topic": "mytopic",
                 "consumergroup": "mygroup"
             },
