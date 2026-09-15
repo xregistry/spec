@@ -2872,11 +2872,12 @@ source Resource. Recursive, or transitively, following of `xref` XIDs is not
 done.
 
 Both the source and target Resources MUST be of the same Resource model type,
-simply having similar Resource type definitions is not sufficient. This
-implies that the
-[`ximportresources`](./model.md#groupsstringximportresources) feature to
-reference a Resource type from another Group type definition MUST be
-used.
+simply having similar Resource type definitions is not sufficient. When the
+source and target Resources belong to different Group types, the
+[`ximportresources`](./model.md#groupsstringximportresources) feature MUST be
+used to share the Resource type definition. Resources in different instances
+of the same Group type already share the Resource type definition and do not
+require an import.
 
 An `xref` value that points to a non-existing Resource, either because
 it was deleted, never existed or the current client does not have permission
