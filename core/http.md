@@ -1743,6 +1743,9 @@ Link: <URL>;rel=next;count=<UINTEGER> ?
 
 **Examples:**
 
+This example assumes the `message` Resource type has `hasdocument` set to
+`false`.
+
 Retrieve all `messages` of an `endpoint` whose `<GROUP>id` is `ep1`:
 
 ```yaml
@@ -1993,6 +1996,9 @@ Where:
 
 **Examples:**
 
+This example assumes the `message` Resource type has `hasdocument` set to
+`true`.
+
 Retrieve a `message` Resource as xRegistry metadata:
 
 ```yaml
@@ -2002,12 +2008,12 @@ GET /endpoints/ep1/messages/msg1$details
 ```yaml
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
-Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1
+Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1$details
 
 {
   "messageid": "msg1",
   "versionid": "1",
-  "self": "https://example.com/endpoints/ep1/messages/msg1","
+  "self": "https://example.com/endpoints/ep1/messages/msg1$details","
   "xid": "/endpoints/ep1/messages/msg1",
   "epoch": 1,
   "name": "Blob Created",
@@ -2136,6 +2142,9 @@ Where:
 
 **Examples:**
 
+These examples assume the `message` Resource type has `hasdocument` set to
+`true`.
+
 Create a new Resource:
 
 ```yaml
@@ -2167,7 +2176,8 @@ Content-Disposition: msg1
 { ... Definition of "Blob Created" event (document) excluded for brevity ... }
 ```
 
-Update the default Version of a Resource as xRegistry metadata:
+Update the default Version of a Resource as xRegistry metadata. The document
+is included in the request, but is not requested inline in the response:
 
 ```yaml
 PUT /endpoints/ep1/messages/msg1$details
@@ -2187,12 +2197,12 @@ Content-Type: application/json; charset=utf-8
 ```yaml
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
-Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1
+Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1$details
 
 {
   "messageid": "msg1",
   "versionid": "1",
-  "self": "https://example.com/endpoints/ep1/messages/msg1",
+  "self": "https://example.com/endpoints/ep1/messages/msg1$details",
   "xid": "/endpoints/ep1/messages/msg1",
   "epoch": 2,
   "name": "Blob Created",
@@ -2201,10 +2211,6 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1
   "createdat": "2024-04-30T12:00:00Z",
   "modifiedat": "2024-04-30T12:00:01Z",
   "ancestorid": "1",
-
-  "message": {
-    # Updated definition of a "Blob Created" event excluded for brevity
-  },
 
   "metaurl": "https://example.com/endpoints/ep1/messages/msg1/meta",
 
@@ -2322,6 +2328,9 @@ Where:
 
 **Examples:**
 
+These examples assume the `message` Resource type has `hasdocument` set to
+`true`.
+
 Create a new Version:
 
 ```yaml
@@ -2350,10 +2359,11 @@ Content-Disposition: msg1
 { ... Definition of "Blob Created" event (document) excluded for brevity ... }
 ```
 
-Update a Version of a Resource as xRegistry metadata:
+Update a Version of a Resource as xRegistry metadata, and request the updated
+document inline in the response:
 
 ```yaml
-POST /endpoints/ep1/messages/msg1$details
+POST /endpoints/ep1/messages/msg1$details?inline=message
 Content-Type: application/json; charset=utf-8
 
 {
@@ -2371,12 +2381,12 @@ Content-Type: application/json; charset=utf-8
 ```yaml
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
-Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1
+Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1$details
 
 {
   "messageid": "msg1",
   "versionid": "1",
-  "self": "https://example.com/endpoints/ep1/messages/msg1/versions/1",
+  "self": "https://example.com/endpoints/ep1/messages/msg1/versions/1$details",
   "xid": "/endpoints/ep1/messages/msg1",
   "epoch": 2,
   "name": "Blob Created",
@@ -2463,6 +2473,9 @@ Content-Type: application/json; charset=utf-8
 
 **Examples:**
 
+This example assumes the `message` Resource type has `hasdocument` set to
+`true`.
+
 Retrieve a Resource's Meta entity:
 
 ```yaml
@@ -2480,9 +2493,10 @@ Content-Type: application/json; charset=utf-8
   "epoch": 2,
   "createdat": "2024-04-30T12:00:00Z",
   "modifiedat": "2024-04-30T12:00:01Z",
+  "readonly": false,
   "compatibility": "none",
   "defaultversionid": "v2.0",
-  "defaultversionurl": "https://example.com/endpoints/ep1/messages/msg1/versions/v2.0",
+  "defaultversionurl": "https://example.com/endpoints/ep1/messages/msg1/versions/v2.0$details",
   "defaultversionsticky": false
 }
 ```
@@ -2519,6 +2533,9 @@ Content-Type: application/json; charset=utf-8
 
 **Examples:**
 
+This example assumes the `message` Resource type has `hasdocument` set to
+`true`.
+
 Update a Resource's `defaultversionid` attribute:
 
 ```yaml
@@ -2541,9 +2558,10 @@ Content-Type: application/json; charset=utf-8
   "epoch": 2,
   "createdat": "2024-04-30T12:00:00Z",
   "modifiedat": "2024-04-30T12:00:01Z",
+  "readonly": false,
   "compatibility": "none",
   "defaultversionid": "v1.0",
-  "defaultversionurl": "https://example.com/endpoints/ep1/messages/msg1/versions/v1.0",
+  "defaultversionurl": "https://example.com/endpoints/ep1/messages/msg1/versions/v1.0$details",
   "defaultversionsticky": true
 }
 ```
@@ -2832,6 +2850,9 @@ Where:
 
 **Examples:**
 
+These examples assume the `schema` Resource type has `hasdocument` set to
+`true`.
+
 Retrieve a specific Version of a `schema` Resource as xRegistry metadata:
 
 ```yaml
@@ -2845,7 +2866,7 @@ Content-Type: application/json; charset=utf-8
 {
   "schemaid": "myschema",
   "versionid": "1.0",
-  "self": "https://example.com/schemagroups/g1/schemas/myschema/versions/1.0",
+  "self": "https://example.com/schemagroups/g1/schemas/myschema/versions/1.0$details",
   "xid": "/endpoints/ep1/messages/msg1/versions/1.0",
   "epoch": 2,
   "isdefault": true,
@@ -2984,6 +3005,9 @@ Content-Disposition: <STRING> ?
 
 **Examples:**
 
+These examples assume the `message` Resource type has `hasdocument` set to
+`true`.
+
 Create a new Version:
 
 ```yaml
@@ -3012,10 +3036,11 @@ Content-Disposition: msg1
 { ... Definition of "Blob Created" event (document) excluded for brevity ... }
 ```
 
-Update a Version of a Resource as metadata:
+Update a Version of a Resource as metadata, and request the updated document
+inline in the response:
 
 ```yaml
-PUT /endpoints/ep1/messages/msg1/versions/v2.0$details/
+PUT /endpoints/ep1/messages/msg1/versions/v2.0$details?inline=message
 Content-Type: application/json; charset=utf-8
 
 {
@@ -3030,12 +3055,12 @@ Content-Type: application/json; charset=utf-8
 ```yaml
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
-Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/v2.0
+Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/v2.0$details
 
 {
   "messageid": "msg1",
   "versionid": "1",
-  "self": "https://example.com/endpoints/ep1/messages/msg1/versions/v2.0",
+  "self": "https://example.com/endpoints/ep1/messages/msg1/versions/v2.0$details",
   "xid": "/endpoints/ep1/messages/msg1/versions/v2.0",
   "epoch": 2,
   "name": "Blob Created v2",
