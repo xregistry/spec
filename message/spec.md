@@ -1269,7 +1269,7 @@ sent over [MQTT 3.1.1][MQTT 3.1.1] or [MQTT 5.0][MQTT 5.0] connections. The
 format describes the [MQTT PUBLISH packet][MQTT 5.0] content.
 
 The [`protocoloptions`](#protocoloptions) object contains the elements of the
-MQTT PUBLISH packet directly, with the `user-properties` element corresponding
+MQTT PUBLISH packet directly, with the `user_properties` element corresponding
 to the application properties collection of other protocols.
 
 The following properties are defined. The MQTT 3.1.1 and MQTT 5.0 columns
@@ -1280,7 +1280,7 @@ indicate whether the property is supported for the respective MQTT version.
 | `qos`                     | `integer`     | yes        | yes      | Quality of Service level         |
 | `retain`                  | `boolean`     | yes        | yes      | Retain flag                      |
 | `topic_name`              | `uritemplate` | yes        | yes      | Topic name                       |
-| `payload_format`          | `integer`     | no         | yes      | Payload format indicator         |
+| `payload_format_indicator` | `integer`     | no         | yes      | Payload format indicator         |
 | `message_expiry_interval` | `integer`     | no         | yes      | Message expiry interval          |
 | `response_topic`          | `uritemplate` | no         | yes      | Response topic                   |
 | `correlation_data`        | `binary`      | no         | yes      | Correlation data                 |
