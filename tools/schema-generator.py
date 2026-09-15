@@ -208,11 +208,16 @@ def generate_openapi(model_definition):
             openapi["paths"][f"/{group['plural']}/{{groupid}}"] = group_template_copy
 
         openapi["paths"].pop(path)
+        document_resource_paths = set()
         path = "/{%-groupNamePlural-%}/{groupid}/{%-resourceNamePlural-%}"
         resource_template = openapi["paths"][path]
         for _, group in model_definition.get("groups", {}).items():
             for _, resource in group.get("resources", {}).items():
                 resource = resolve_resource(group, resource)
+                if resource.get("hasdocument", True):
+                    document_resource_paths.add(
+                        f"/{group['plural']}/{{groupid}}/{resource['plural']}/{{resourceid}}"
+                    )
                 resource_template_copy = copy.deepcopy(resource_template)
                 replace_refs(resource_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{resource['singular']}")
                 replace_refs(resource_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{group['singular']}")
@@ -220,6 +225,14 @@ def generate_openapi(model_definition):
                 openapi["paths"][f"/{group['plural']}/{{groupid}}/{resource['plural']}"]= resource_template_copy
             for ximportresources_xid in group.get("ximportresources", []):
                 xid_group_plural, xid_resource_plural = ximportresources_xid.split("/")[1:]
+                source_group = model_definition["groups"][xid_group_plural]
+                source_resource = resolve_resource(
+                    source_group, source_group["resources"][xid_resource_plural]
+                )
+                if source_resource.get("hasdocument", True):
+                    document_resource_paths.add(
+                        f"/{group['plural']}/{{groupid}}/{xid_resource_plural}/{{resourceid}}"
+                    )
                 xid_resource_singular = model_definition["groups"][xid_group_plural]["resources"][xid_resource_plural]["singular"]
                 xid_group_singular = model_definition["groups"][xid_group_plural]["singular"]
                 resource_template_copy = copy.deepcopy(resource_template)
@@ -334,6 +347,19 @@ def generate_openapi(model_definition):
                 openapi["paths"][f"/{group['plural']}/{{groupid}}/{xid_resource_plural}/{{resourceid}}/versions/{{versionid}}"]= versionid_template_copy
 
         openapi["paths"].pop(path)
+
+        for path, path_item in openapi["paths"].items():
+            for method in ("put", "post", "patch", "delete"):
+                if method not in path_item:
+                    continue
+                operation = path_item[method]
+                parameters = operation.setdefault("parameters", [])
+                ignore = {"$ref": "#/components/parameters/ignore"}
+                if ignore not in parameters:
+                    parameters.append(ignore)
+                resource_path = path.removesuffix("/versions/{versionid}")
+                if method in ("put", "post") and resource_path in document_resource_paths:
+                    parameters.append({"$ref": "#/components/parameters/version-epoch"})
 
         registry_entity_schema = openapi["components"]["schemas"]["RegistryEntity"]
         for _, group in model_definition.get("groups", {}).items():

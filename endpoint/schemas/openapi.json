@@ -73,6 +73,9 @@
           },
           {
             "$ref": "#/components/parameters/specversion"
+          },
+          {
+            "$ref": "#/components/parameters/ignore"
           }
         ],
         "requestBody": {
@@ -125,6 +128,9 @@
           },
           {
             "$ref": "#/components/parameters/specversion"
+          },
+          {
+            "$ref": "#/components/parameters/ignore"
           }
         ],
         "requestBody": {
@@ -212,6 +218,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/specversion"
+          },
+          {
+            "$ref": "#/components/parameters/ignore"
           }
         ],
         "requestBody": {
@@ -255,6 +264,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/specversion"
+          },
+          {
+            "$ref": "#/components/parameters/ignore"
           }
         ],
         "requestBody": {
@@ -342,6 +354,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/specversion"
+          },
+          {
+            "$ref": "#/components/parameters/ignore"
           }
         ],
         "requestBody": {
@@ -385,6 +400,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/specversion"
+          },
+          {
+            "$ref": "#/components/parameters/ignore"
           }
         ],
         "requestBody": {
@@ -518,18 +536,8 @@
         "tags": [
           "ResourceGroup"
         ],
-        "description": "Creates or updates a resource group. Supports query parameters for epoch checking and response configuration. (See spec: Creating or Updating Entities and Deleting Entities in a Registry Collection)",
+        "description": "Creates or updates a resource group. An update epoch guard belongs in the Group's JSON metadata, not a query parameter. A supplied non-null epoch must equal the current value; null or absence disables the check, and creation ignores it.",
         "parameters": [
-          {
-            "in": "query",
-            "name": "epoch",
-            "description": "The current epoch of the group for optimistic concurrency (see spec: Mismatched Epoch).",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
           {
             "$ref": "#/components/parameters/inline"
           },
@@ -541,6 +549,9 @@
           },
           {
             "$ref": "#/components/parameters/specversion"
+          },
+          {
+            "$ref": "#/components/parameters/ignore"
           }
         ],
         "requestBody": {
@@ -586,17 +597,21 @@
         "tags": [
           "ResourceGroup"
         ],
-        "description": "Deletes a resource group. Requires the current epoch. (See spec: Deleting Entities in a Registry Collection)",
+        "description": "Deletes a resource group. An optional epoch query guard checks equality with the Group's current epoch; unguarded deletion is allowed by the base API.",
         "parameters": [
           {
             "in": "query",
             "name": "epoch",
-            "description": "The current epoch of the group.",
-            "required": true,
+            "description": "Optional Group epoch guard; a supplied value must equal the current Group epoch.",
+            "required": false,
             "schema": {
               "type": "integer",
+              "minimum": 0,
               "format": "int64"
             }
+          },
+          {
+            "$ref": "#/components/parameters/ignore"
           }
         ],
         "responses": {
@@ -675,18 +690,8 @@
         "tags": [
           "ResourceGroup"
         ],
-        "description": "Creates or updates a resource group. Supports query parameters for epoch checking and response configuration. (See spec: Creating or Updating Entities and Deleting Entities in a Registry Collection)",
+        "description": "Creates or updates a resource group. An update epoch guard belongs in the Group's JSON metadata, not a query parameter. A supplied non-null epoch must equal the current value; null or absence disables the check, and creation ignores it.",
         "parameters": [
-          {
-            "in": "query",
-            "name": "epoch",
-            "description": "The current epoch of the group for optimistic concurrency (see spec: Mismatched Epoch).",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
           {
             "$ref": "#/components/parameters/inline"
           },
@@ -698,6 +703,9 @@
           },
           {
             "$ref": "#/components/parameters/specversion"
+          },
+          {
+            "$ref": "#/components/parameters/ignore"
           }
         ],
         "requestBody": {
@@ -743,17 +751,21 @@
         "tags": [
           "ResourceGroup"
         ],
-        "description": "Deletes a resource group. Requires the current epoch. (See spec: Deleting Entities in a Registry Collection)",
+        "description": "Deletes a resource group. An optional epoch query guard checks equality with the Group's current epoch; unguarded deletion is allowed by the base API.",
         "parameters": [
           {
             "in": "query",
             "name": "epoch",
-            "description": "The current epoch of the group.",
-            "required": true,
+            "description": "Optional Group epoch guard; a supplied value must equal the current Group epoch.",
+            "required": false,
             "schema": {
               "type": "integer",
+              "minimum": 0,
               "format": "int64"
             }
+          },
+          {
+            "$ref": "#/components/parameters/ignore"
           }
         ],
         "responses": {
@@ -943,16 +955,6 @@
         },
         {
           "$ref": "#/components/parameters/doc"
-        },
-        {
-          "in": "query",
-          "name": "epoch",
-          "description": "The current epoch of the resource metadata (meta sub-object). (See spec: Resource Attributes)",
-          "required": false,
-          "schema": {
-            "type": "integer",
-            "format": "int64"
-          }
         }
       ],
       "get": {
@@ -1025,7 +1027,12 @@
           "500": {
             "$ref": "#/components/responses/InternalServerError"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ignore"
+          }
+        ]
       },
       "patch": {
         "operationId": "patchMessagegroupMessageMeta",
@@ -1066,7 +1073,12 @@
           "500": {
             "$ref": "#/components/responses/InternalServerError"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ignore"
+          }
+        ]
       }
     },
     "/endpoints/{groupid}/messages/{resourceid}/meta": {
@@ -1088,16 +1100,6 @@
         },
         {
           "$ref": "#/components/parameters/doc"
-        },
-        {
-          "in": "query",
-          "name": "epoch",
-          "description": "The current epoch of the resource metadata (meta sub-object). (See spec: Resource Attributes)",
-          "required": false,
-          "schema": {
-            "type": "integer",
-            "format": "int64"
-          }
         }
       ],
       "get": {
@@ -1170,7 +1172,12 @@
           "500": {
             "$ref": "#/components/responses/InternalServerError"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ignore"
+          }
+        ]
       },
       "patch": {
         "operationId": "patchEndpointMessagesMeta",
@@ -1211,7 +1218,12 @@
           "500": {
             "$ref": "#/components/responses/InternalServerError"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ignore"
+          }
+        ]
       }
     },
     "/messagegroups/{groupid}/messages/{resourceid}$details": {
@@ -1342,42 +1354,6 @@
         },
         {
           "in": "query",
-          "name": "noepoch",
-          "description": "If true, epoch validation is ignored. (See spec: Creating or Updating Entities)",
-          "required": false,
-          "schema": {
-            "type": "boolean"
-          }
-        },
-        {
-          "in": "query",
-          "name": "nodefaultversionid",
-          "description": "If true, any provided defaultversionid is ignored. (See spec: Default Version of a Resource)",
-          "required": false,
-          "schema": {
-            "type": "boolean"
-          }
-        },
-        {
-          "in": "query",
-          "name": "nodefaultversionsticky",
-          "description": "If true, any provided defaultversionsticky value is ignored. (See spec: Default Version of a Resource)",
-          "required": false,
-          "schema": {
-            "type": "boolean"
-          }
-        },
-        {
-          "in": "query",
-          "name": "noreadonly",
-          "description": "If true, attempts to update readonly attributes are silently ignored. (See spec: Resource Attributes)",
-          "required": false,
-          "schema": {
-            "type": "boolean"
-          }
-        },
-        {
-          "in": "query",
           "name": "setdefaultversionid",
           "description": "Specifies the versionid to be set as the default version. (See spec: Default Version of a Resource)",
           "required": false,
@@ -1473,18 +1449,8 @@
         "tags": [
           "Resource"
         ],
-        "description": "Creates or updates a resource. Accepts either the raw document (when $details is not used) or a full xRegistry metadata serialization (when $details is used). (See spec: Creating or Updating Resources and Versions, Resource Metadata vs Resource Document)",
+        "description": "Creates or updates a resource. Epoch guards belong in JSON metadata for metadata-view writes or in the xRegistry-epoch header for document-view writes, not in the query string. Resource Meta guards use meta.epoch in Resource metadata; they are distinct from the selected Version's epoch.",
         "parameters": [
-          {
-            "in": "query",
-            "name": "epoch",
-            "description": "The current epoch value for concurrency control. (See spec: Mismatched Epoch)",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
           {
             "$ref": "#/components/parameters/inline"
           },
@@ -1496,6 +1462,9 @@
           },
           {
             "$ref": "#/components/parameters/specversion"
+          },
+          {
+            "$ref": "#/components/parameters/ignore"
           }
         ],
         "requestBody": {
@@ -1551,15 +1520,6 @@
         ],
         "parameters": [
           {
-            "$ref": "#/components/parameters/resource-description"
-          },
-          {
-            "$ref": "#/components/parameters/resource-documentation"
-          },
-          {
-            "$ref": "#/components/parameters/resource-labels"
-          },
-          {
             "in": "query",
             "name": "setdefaultversionid",
             "description": "Specifies the versionid to be set as the default version. (See spec: Default Version of a Resource)",
@@ -1579,6 +1539,9 @@
           },
           {
             "$ref": "#/components/parameters/specversion"
+          },
+          {
+            "$ref": "#/components/parameters/ignore"
           }
         ],
         "requestBody": {
@@ -1662,7 +1625,7 @@
       },
       "delete": {
         "summary": "Delete resource",
-        "description": "Deletes the resource and all of its versions. Requires the current epoch. (See spec: Deleting Resources)",
+        "description": "Deletes the resource and all of its versions. An optional epoch query guard checks the Resource Meta epoch, not the default Version's epoch; unguarded deletion is allowed by the base API.",
         "operationId": "deleteMessagegroupMessage",
         "tags": [
           "Resource"
@@ -1671,15 +1634,19 @@
           {
             "in": "query",
             "name": "epoch",
-            "description": "The current epoch of the resource.",
-            "required": true,
+            "description": "Optional Resource Meta epoch guard; a supplied value must equal the current meta.epoch, not the default Version epoch.",
+            "required": false,
             "schema": {
               "type": "integer",
+              "minimum": 0,
               "format": "int64"
             }
           },
           {
             "$ref": "#/components/parameters/specversion"
+          },
+          {
+            "$ref": "#/components/parameters/ignore"
           }
         ],
         "responses": {
@@ -1719,42 +1686,6 @@
           "in": "query",
           "name": "meta",
           "description": "If true, operate on the resource metadata sub-object (see spec: Resource Metadata vs Resource Document).",
-          "required": false,
-          "schema": {
-            "type": "boolean"
-          }
-        },
-        {
-          "in": "query",
-          "name": "noepoch",
-          "description": "If true, epoch validation is ignored. (See spec: Creating or Updating Entities)",
-          "required": false,
-          "schema": {
-            "type": "boolean"
-          }
-        },
-        {
-          "in": "query",
-          "name": "nodefaultversionid",
-          "description": "If true, any provided defaultversionid is ignored. (See spec: Default Version of a Resource)",
-          "required": false,
-          "schema": {
-            "type": "boolean"
-          }
-        },
-        {
-          "in": "query",
-          "name": "nodefaultversionsticky",
-          "description": "If true, any provided defaultversionsticky value is ignored. (See spec: Default Version of a Resource)",
-          "required": false,
-          "schema": {
-            "type": "boolean"
-          }
-        },
-        {
-          "in": "query",
-          "name": "noreadonly",
-          "description": "If true, attempts to update readonly attributes are silently ignored. (See spec: Resource Attributes)",
           "required": false,
           "schema": {
             "type": "boolean"
@@ -1857,18 +1788,8 @@
         "tags": [
           "Resource"
         ],
-        "description": "Creates or updates a resource. Accepts either the raw document (when $details is not used) or a full xRegistry metadata serialization (when $details is used). (See spec: Creating or Updating Resources and Versions, Resource Metadata vs Resource Document)",
+        "description": "Creates or updates a resource. Epoch guards belong in JSON metadata for metadata-view writes or in the xRegistry-epoch header for document-view writes, not in the query string. Resource Meta guards use meta.epoch in Resource metadata; they are distinct from the selected Version's epoch.",
         "parameters": [
-          {
-            "in": "query",
-            "name": "epoch",
-            "description": "The current epoch value for concurrency control. (See spec: Mismatched Epoch)",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
           {
             "$ref": "#/components/parameters/inline"
           },
@@ -1880,6 +1801,9 @@
           },
           {
             "$ref": "#/components/parameters/specversion"
+          },
+          {
+            "$ref": "#/components/parameters/ignore"
           }
         ],
         "requestBody": {
@@ -1935,15 +1859,6 @@
         ],
         "parameters": [
           {
-            "$ref": "#/components/parameters/resource-description"
-          },
-          {
-            "$ref": "#/components/parameters/resource-documentation"
-          },
-          {
-            "$ref": "#/components/parameters/resource-labels"
-          },
-          {
             "in": "query",
             "name": "setdefaultversionid",
             "description": "Specifies the versionid to be set as the default version. (See spec: Default Version of a Resource)",
@@ -1963,6 +1878,9 @@
           },
           {
             "$ref": "#/components/parameters/specversion"
+          },
+          {
+            "$ref": "#/components/parameters/ignore"
           }
         ],
         "requestBody": {
@@ -2046,7 +1964,7 @@
       },
       "delete": {
         "summary": "Delete resource",
-        "description": "Deletes the resource and all of its versions. Requires the current epoch. (See spec: Deleting Resources)",
+        "description": "Deletes the resource and all of its versions. An optional epoch query guard checks the Resource Meta epoch, not the default Version's epoch; unguarded deletion is allowed by the base API.",
         "operationId": "deleteEndpointMessages",
         "tags": [
           "Resource"
@@ -2055,15 +1973,19 @@
           {
             "in": "query",
             "name": "epoch",
-            "description": "The current epoch of the resource.",
-            "required": true,
+            "description": "Optional Resource Meta epoch guard; a supplied value must equal the current meta.epoch, not the default Version epoch.",
+            "required": false,
             "schema": {
               "type": "integer",
+              "minimum": 0,
               "format": "int64"
             }
           },
           {
             "$ref": "#/components/parameters/specversion"
+          },
+          {
+            "$ref": "#/components/parameters/ignore"
           }
         ],
         "responses": {
@@ -2187,6 +2109,9 @@
           },
           {
             "$ref": "#/components/parameters/specversion"
+          },
+          {
+            "$ref": "#/components/parameters/ignore"
           }
         ],
         "requestBody": {
@@ -2333,6 +2258,9 @@
           },
           {
             "$ref": "#/components/parameters/specversion"
+          },
+          {
+            "$ref": "#/components/parameters/ignore"
           }
         ],
         "requestBody": {
@@ -2456,17 +2384,21 @@
         "tags": [
           "ResourceVersion"
         ],
-        "description": "Deletes a specific version of a resource. Requires the current epoch. (See spec: Deleting a Version)",
+        "description": "Deletes a specific Version. An optional epoch query guard checks that Version's current epoch; unguarded deletion is allowed by the base API.",
         "parameters": [
           {
             "in": "query",
             "name": "epoch",
-            "description": "The current epoch of the version.",
-            "required": true,
+            "description": "Optional Version epoch guard; a supplied value must equal the current Version epoch.",
+            "required": false,
             "schema": {
               "type": "integer",
+              "minimum": 0,
               "format": "int64"
             }
+          },
+          {
+            "$ref": "#/components/parameters/ignore"
           }
         ],
         "responses": {
@@ -2567,17 +2499,21 @@
         "tags": [
           "ResourceVersion"
         ],
-        "description": "Deletes a specific version of a resource. Requires the current epoch. (See spec: Deleting a Version)",
+        "description": "Deletes a specific Version. An optional epoch query guard checks that Version's current epoch; unguarded deletion is allowed by the base API.",
         "parameters": [
           {
             "in": "query",
             "name": "epoch",
-            "description": "The current epoch of the version.",
-            "required": true,
+            "description": "Optional Version epoch guard; a supplied value must equal the current Version epoch.",
+            "required": false,
             "schema": {
               "type": "integer",
+              "minimum": 0,
               "format": "int64"
             }
+          },
+          {
+            "$ref": "#/components/parameters/ignore"
           }
         ],
         "responses": {
@@ -2639,33 +2575,40 @@
         },
         "description": "The unique identifier of the resource version."
       },
-      "resource-description": {
-        "name": "resource-description",
+      "ignore": {
+        "name": "ignore",
         "in": "query",
         "required": false,
+        "allowEmptyValue": true,
+        "style": "form",
+        "explode": true,
         "schema": {
-          "type": "string"
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
-        "description": "The description attribute for a resource."
+        "description": "Supported aspects to ignore on a write, such as epoch, id, readonly, capabilities, modelsource, defaultversionid or defaultversionsticky. Values can be comma-separated or supplied using repeated ignore parameters. A bare flag, empty value or * means all supported aspects; invalid or unsupported values are rejected."
       },
-      "resource-documentation": {
-        "name": "resource-documentation",
-        "in": "query",
+      "version-epoch": {
+        "name": "xRegistry-epoch",
+        "in": "header",
         "required": false,
         "schema": {
-          "type": "string",
-          "format": "uri"
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "string",
+              "enum": [
+                "null"
+              ]
+            }
+          ]
         },
-        "description": "The documentation URL for a resource."
-      },
-      "resource-labels": {
-        "name": "resource-labels",
-        "in": "query",
-        "required": false,
-        "schema": {
-          "type": "string"
-        },
-        "description": "The labels attribute for a resource."
+        "description": "Document-view Version epoch guard. An ordinary Resource write guards the default Version, not the Resource Meta; a POST naming a Version guards that Version instead. A supplied non-null value must equal the current Version epoch. An absent header or literal null disables the check; a create ignores it. Metadata-view writes carry epoch in JSON instead."
       },
       "specversion": {
         "name": "specversion",
@@ -2703,10 +2646,14 @@
         "name": "doc",
         "in": "query",
         "required": false,
+        "allowEmptyValue": true,
         "schema": {
-          "type": "boolean"
+          "type": "string",
+          "enum": [
+            ""
+          ]
         },
-        "description": "If true, returns the document view (with relative URLs and default version data removed). See spec: Doc."
+        "description": "Boolean presence flag: serialize as bare ?doc, not ?doc=true or ?doc=false. Omit it to disable document view. OpenAPI's empty-value representation does not mandate whether '=' is emitted; clients must preserve the bare wire form required by the HTTP binding."
       }
     },
     "headers": {
@@ -2801,7 +2748,7 @@
         }
       },
       "Conflict": {
-        "description": "Conflict - epoch not greater.",
+        "description": "Conflict - a supplied non-null epoch is not equal to the current epoch of the entity being updated or deleted.",
         "content": {
           "application/json": {
             "schema": {

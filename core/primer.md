@@ -961,10 +961,11 @@ variable or structure property names - they're usually just stored as
 - if/when we support serializing in non-json formats, we'll need to define
   the serialization rules. E.g. when attributes appear as xml attributes vs
   nested elements
-- when hasdocument=false, we might need to talk about when ?meta appears on the
-  various URLs (self, defaultversionurl, location,...). Right now its presence
-  will match what was used in the request (either explicitly or implicitly).
-  So GET resource?meta or GET group?inline both ask for metadata
+- When `hasdocument=true`, `$details` selects Resource metadata instead of
+  the domain-specific document. When `hasdocument=false`, requests already
+  select metadata; a `$details` suffix is treated as absent, and response
+  URLs MUST NOT include that suffix. `GET group?inline` can also request
+  nested metadata.
 - xRegistry- headers: first "-" separates xRegistry from attribute name,
   next "." separates attribute name from key, any subsequent "." is part
   of the key name. E.g. xRegistry-labels.abc.def:xxx => labels["abc.def"]=xxx
