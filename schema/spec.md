@@ -2,7 +2,7 @@
 
 <!-- words: formatvalidated compatibilityvalidated -->
 <!-- words: formatvalidatedreason compatibilityvalidatedreason -->
-<!-- words: jsonstructure jstruct namespace -->
+<!-- words: jsonstructure jstruct matchversions namespace -->
 
 ## Abstract
 
@@ -205,8 +205,8 @@ appropriate new schema to use following a breaking change.
 ### 2.3. Schema Group
 
 A Schema Group is a container for schemas that are related to each other in
-some application-defined way. This specification does not impose any
-restrictions on what schemas can be contained in a Schema Group.
+some application-defined way. Its OPTIONAL `format` attribute can constrain
+the formats of its schemas, as described in [Schema Groups](#41-schema-groups).
 
 ## 3. Schema Registry Model
 
@@ -270,7 +270,7 @@ this form:
           "modifiedat": "<TIMESTAMP>",
           "ancestorid": "<STRING>",
           "contenttype": "<STRING>", ?
-          "format": "<STRING>", ?
+          "format": "<STRING>",
           "formatvalidated": <BOOLEAN>, ?
           "formatvalidatedreason": "<STRING>", ?
           "compatibilityvalidated": <BOOLEAN>, ?
@@ -310,12 +310,14 @@ Resource Version objects are inherited from there.
 
 The Group (`<GROUP>`) name for the Schema Registry is `schemagroup` (singular).
 The plural, used as the collection name, is `schemagroups`. The Schema Group
-does not have any specific extension attributes.
+defines an OPTIONAL `format` extension attribute of type `string`.
 
 A schema group is a collection of schemas that are related to each other in
-some application-defined way. A Schema Group does not impose any restrictions
-on the contained schemas, meaning that a Schema Group MAY contain schemas of
-different formats.
+some application-defined way. Without a value for the Group's `format`, a
+Schema Group MAY contain Schema Resources of different formats. When the
+Group's `format` has a value, the model's `schemas.format` constraint (`equals`
+set to `format`) requires every Version of every Schema Resource in that
+Group to use that value.
 
 Every schema (i.e. the schema Resource) MUST reside inside a Schema Group.
 
@@ -346,6 +348,8 @@ containing 5 schemas.
 There might be cases where all schemas within a schemagroup need to have the
 same `format` value. To enable this, set the schemagroup's `format` value to
 the string that all schemas/Versions within that schemagroup need to use.
+
+This equality constraint does not itself define a default value.
 
 Additionally, if desired, a schemagroup-instance level constraint MAY be added:
 
@@ -402,6 +406,15 @@ This specification further refines the
 in a Schema Registry by defining a set of common schema format names that MUST
 be used for the given formats, but applications MAY define extensions for
 other formats on their own.
+
+Every completed Schema Version MUST have a non-null `format` value, including
+the default Version projection on a Schema Resource. The model sets
+`required` and `matchversions` to `true` for `format`, so all Versions of a
+Schema Resource MUST use the same `format` value.
+
+Client input MAY omit `format` when an applicable Group-instance default
+supplies it (see [Schema Groups](#41-schema-groups)). This does not make the
+completed value OPTIONAL: a completed Version without `format` is invalid.
 
 - Examples:
   - `JsonSchema/draft-07`

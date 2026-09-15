@@ -639,7 +639,7 @@ PUT /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "2020",
   "modifiedat": "now",
-  "ancestorid": "v0",
+  "ancestorid": "v1",
 
   "meta": {
     "epoch": 2,
@@ -1124,8 +1124,10 @@ PUT /dirs/d1/files/f1
 - While the current default is `v2`, setting `defaultversionsticky` to `true`
   only takes effect after the default Version is recalculated. This is due to
   the fact that `PUT` is a complete replacement and `meta.defaultversionid`
-  not being in the request is akin to setting it to `null` in the request. In
-  the next example we'll see how `PATCH` changes this semantics.
+  not being in the request is akin to setting it to `null` in the request.
+  However, the next example also recalculates the default for a `PATCH` that
+  changes `meta.defaultversionsticky` from `false` to `true` without an explicit
+  ID.
 - Ancestor order: `v2` (2020) <- `v1` (2025).
 
 <hr>
@@ -1192,10 +1194,10 @@ PATCH /dirs/d1/files/f1
 ```
 {
   "fileid": "f1",
-  "versionid": "v2",
+  "versionid": "v1",
   "epoch": 2,
   "isdefault": true,
-  "createdat": "2020",
+  "createdat": "2025",
   "modifiedat": "now",
   "ancestorid": "v2",
 
@@ -1203,17 +1205,17 @@ PATCH /dirs/d1/files/f1
     "epoch": 2,
     "createdat": "2025",
     "modifiedat": "now",
-    "defaultversionid": "v2",
+    "defaultversionid": "v1",
     "defaultversionsticky": true
   },
   "versions": {
-    "v1": {
+    "v1": { see Resource.* attrs },
+    "v2": {
       "epoch": 2,
-      "createdat": "2025",
+      "createdat": "2020",
       "modifiedat": "now",
       "ancestorid": "v2"
-    },
-    "v2": { see Resource.* attrs }
+    }
   }
 }
 ```
@@ -1222,12 +1224,13 @@ PATCH /dirs/d1/files/f1
 
 **Notes:**
 
-- Resource.name is ignored due to `v2` (the current default Version) being in
+- Resource.name is ignored due to `v2` (the initial default Version) being in
   the request's `versions` collection.
-- Since this is a `PATCH`, unlike the previous example where
-  `meta.defaultversionid` was implicitly set to `null`, in this case its value
-  remains unchanged. So, when `meta.defaultversionsticky` is set to `true` the
-  current default Version becomes "sticky".
+- Since this `PATCH` changes `meta.defaultversionsticky` from `false` to `true`
+  without specifying `meta.defaultversionid`, the default Version is
+  recalculated after the update using `versionmode`. Moving `v2`'s `createdat`
+  to `2020` makes `v1` (`2025`) the newest Version, so `v1` becomes the sticky
+  default.
 - Ancestor order: `v2` (2020) <- `v1` (2025).
 
 <hr>

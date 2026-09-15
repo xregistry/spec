@@ -120,11 +120,13 @@ interpreted as described in [RFC 2119](https://tools.ietf.org/html/rfc2119).
 For clarity, OPTIONAL attributes (specification-defined and extensions) are
 OPTIONAL for clients to use, but the servers' responsibility will vary.
 Server-unknown extension attributes MUST be silently stored in the backing
-datastore. Specification-defined attributes and server-known extension
-attributes MUST generate an error if the corresponding feature is not supported
-or enabled. However, as with all attributes, if accepting the attribute results
-in a bad state (such as exceeding a size limit or resulting in a security
-issue), then the server MAY choose to reject the request.
+datastore, provided they are permitted by the model and pass applicable
+validation (see [Extensions](#extensions)). Specification-defined attributes
+and server-known extension attributes MUST generate an error if the
+corresponding feature is not supported or enabled. However, as with all
+attributes, if accepting the attribute results in a bad state (such as
+exceeding a size limit or resulting in a security issue), then the server MAY
+choose to reject the request.
 
 In the pseudo JSON format snippets `?` means the preceding item is OPTIONAL,
 `*` means the preceding item MAY appear zero or more times, and `+` means the
@@ -705,8 +707,10 @@ its parent entities do not exist, then they MUST be implicitly created. Each of
 those entities MUST be created with the appropriate `<SINGULAR>id` as specified
 by the protocol-specific mechanism by which the nested entity is identified.
 For example, in HTTP the `<PATH>` would include the `<SINGULAR>id` values
-of the parent entities. If any of those entities have REQUIRED attributes,
-then they cannot be implicitly created, and would need to be created directly.
+of the parent entities. If any of those entities have applicable REQUIRED
+attributes whose non-null values cannot be populated by the server or by
+default values (see the `required` aspect in the [model](./model.md)), then
+they cannot be implicitly created, and would need to be created directly.
 This also means that the creation of the original entity would fail and
 generate an error
 ([required_attribute_missing](./spec.md#required_attribute_missing)) for the
@@ -2872,11 +2876,12 @@ source Resource. Recursive, or transitively, following of `xref` XIDs is not
 done.
 
 Both the source and target Resources MUST be of the same Resource model type,
-simply having similar Resource type definitions is not sufficient. This
-implies that the
-[`ximportresources`](./model.md#groupsstringximportresources) feature to
-reference a Resource type from another Group type definition MUST be
-used.
+simply having similar Resource type definitions is not sufficient. When the
+source and target Resources belong to different Group types, the
+[`ximportresources`](./model.md#groupsstringximportresources) feature MUST be
+used to share the Resource type definition. Resources in different instances
+of the same Group type already share the Resource type definition and do not
+require an import.
 
 An `xref` value that points to a non-existing Resource, either because
 it was deleted, never existed or the current client does not have permission
@@ -3572,29 +3577,33 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
 #### `<RESOURCE>` Attribute
 - Type: Resource Document
 - Description: This attribute is a serialization of the corresponding
-  Version's domain-specific document's contents. If the document's bytes
-  "as is" (without any additional processing such as escaping) allows for
-  them to appear as the value of this JSON attribute, then this attribute
-  MUST be used if the request asked for the document to be
-  [inlined](#inline-flag) in the response.
+  Version's domain-specific document's contents. For a non-empty document
+  [inlined](#inline-flag) in a response, the encoding of this attribute MUST
+  follow the Resource type's
+  [`typemap`](./model.md#groupsstringresourcesstringtypemap), including its
+  implicit mappings. The [Binary Flag](#binary-flag) MUST force the use of
+  `<RESOURCE>base64`.
 
-  This is a convenience (optimization) attribute to make it easier to view the
-  document when it happens to be in the same format as the serialization of
-  the Version.
+  When a `string` mapping is used to serialize the document under this
+  attribute, the string serialization rules of the metadata format MUST be
+  used, even when the original document bytes are not a JSON value. For
+  example, the bytes `Hello` with `contenttype` set to `text/plain` are
+  represented as `"file": "Hello"` for a `file` Resource.
 
-  The model Resource attribute
-  [`typemap`](./model.md#groupsstringresourcesstringtypemap)
-  MAY be used to help the server determine if the document is in the
-  same format. If a Version has a matching `contenttype` attribute but the
-  contents of the Version's document do not successfully parse (e.g. it's
-  `application/json` but the JSON is invalid), then `<RESOURCE>`
-  MUST NOT be used and `<RESOURCE>base64` MUST be used instead.
+  A `json` mapping represents valid JSON in this attribute. A document selected
+  as `json` that contains invalid JSON MUST use `<RESOURCE>base64` instead.
+  A `binary` mapping, including the result of conflicting matching entries,
+  MUST use `<RESOURCE>base64`.
+
+  If no explicit or implicit `typemap` mapping applies, this attribute MAY
+  be used if the document's bytes "as is" are a valid value in the metadata
+  format. Document bytes MUST NOT be converted to a string merely to fit the
+  metadata format when no `string` mapping applies.
 
 - Constraints
   - If the Version's document is to be serialized and is not empty,
     then either `<RESOURCE>` or `<RESOURCE>base64` MUST be present.
-  - MUST only be used if the Version's document (bytes) is in the same
-    format as the serialization of the Version entity.
+  - MUST only be used when permitted by the representation rules above.
   - MUST NOT be present if `<RESOURCE>base64` is also present.
   - MUST NOT be present if the Resource type's
     [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
@@ -3603,10 +3612,9 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
 #### `<RESOURCE>base64` Attribute
 - Type: String
 - Description: This attribute is a base64 encoding of the corresponding
-  Version's domain-specific document. If the Version's document (which is
-  stored as an array of bytes) is not conformant with the format being used
-  to serialize the Version (e.g. as a JSON value), then this attribute MUST be
-  used instead of the `<RESOURCE>` attribute.
+  Version's domain-specific document. If the document cannot be represented
+  using `<RESOURCE>` under the `typemap` and binary-flag rules above, then
+  this attribute MUST be used instead.
 
 - Constraints:
   - If the Version's document is to be serialized and it is not empty,
@@ -4310,7 +4318,7 @@ contents of all specified inlineable attributes. Inlineable attributes include:
 - The `<RESOURCE>` attribute in a Resource or Version.
 - The `meta` attribute in a Resource.
 
-Specifying the name of a non-inlineable attribute MUST generate an error
+Specifying the name of a known non-inlineable attribute MUST generate an error
 ([inline_noninlineable](#inline_noninlineable)).
 
 While the `<RESOURCE>` and `<RESOURCE>base64` attributes are defined as two
@@ -4386,8 +4394,8 @@ child appears, not all collections in the parent.
 When specifying a collection to be inlined, it MUST be specified using the
 plural name for the collection in its defined case.
 
-A request to inline an unknown, or non-inlineable, attribute MUST generate an
-error ([bad_inline](#bad_inline)).
+A malformed `<PATH>` value or a request to inline an unknown attribute MUST
+generate an error ([bad_inline](#bad_inline)).
 
 Note: If the Registry cannot return all expected data in one response because
 it is too large then it MUST generate an error ([too_large](#too_large)). In
