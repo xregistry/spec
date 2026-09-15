@@ -961,10 +961,11 @@ variable or structure property names - they're usually just stored as
 - if/when we support serializing in non-json formats, we'll need to define
   the serialization rules. E.g. when attributes appear as xml attributes vs
   nested elements
-- when hasdocument=false, we might need to talk about when ?meta appears on the
-  various URLs (self, defaultversionurl, location,...). Right now its presence
-  will match what was used in the request (either explicitly or implicitly).
-  So GET resource?meta or GET group?inline both ask for metadata
+- When `hasdocument=true`, `$details` selects Resource metadata instead of
+  the domain-specific document. When `hasdocument=false`, requests already
+  select metadata; a `$details` suffix is treated as absent, and response
+  URLs MUST NOT include that suffix. `GET group?inline` can also request
+  nested metadata.
 - xRegistry- headers: first "-" separates xRegistry from attribute name,
   next "." separates attribute name from key, any subsequent "." is part
   of the key name. E.g. xRegistry-labels.abc.def:xxx => labels["abc.def"]=xxx
@@ -1017,15 +1018,15 @@ where the first will delete a single entity, and the second can be used to
 delete multiple entities. In the second case there are a couple of design
 points worth noting:
 
-- if the HTTP body is empty, then the entire collection will be deleted.
+- if the HTTP body is absent, then the entire collection will be deleted.
   If the collection is `versions`, then the owning Resource must also be
   deleted since a Resource must always have at least one Version
-- if the HTTP contain an array, then an empty (zero item) array is valid,
-  but it will have no change on the server since there are not items listed
+- if the HTTP body contains an ID map, then an empty map (`{}`) is valid,
+  but it will have no effect on the server since there are no IDs listed
   to be deleted
-- if the array is not empty and one of the items in there is already deleted,
+- if the map is not empty and one of the specified IDs is already deleted,
   or never existed at all, then rather than generating an error (e.g. a `404`),
-  the server will ignore this condition and continue processing the list.
+  the server will ignore this condition and continue processing the map.
   This is because the net result will be what the user is asking for.
   Note, that this is different from `DELETE ../<ID>` case where if the
   referenced entity can not be found then a `404` must be generated.
@@ -1068,14 +1069,24 @@ initial placement into a Group of a new Resource.
 
 ### 11.8. Default Version and Maximum Versions
 
-Each Resource type can specify the maximum number of Versions that the
-server must save. Once that limit is reached then it must delete Versions
-to stay within the limit - by deleting oldest Versions first. However, since
-tagging a Version as "default" marks that Version as special, this pruning
-logic must skip the "default" Version. There is one exception to this rule.
-If the maximum Versions is set to 1 then when a new Version is created, that
-Version will become the "default" Version regardless of whether or not the
-user asked for it to be.
+Each Resource type can specify a
+[`maxversions`](model.md#groupsstringresourcesstringmaxversions) limit. When a
+positive limit is exceeded, the server prunes the oldest Versions according
+to the type's `versionmode`, retaining the default Version as specified by
+the model rules. A limit of 0 means no stated limit, not a guarantee that all
+Versions will be retained.
+
+The read-only [`isdefault`](spec.md#isdefault-attribute) attribute reports
+which Version is the default; it is not a selection control. Clients can
+select a sticky default through the Resource's Meta entity using
+[`defaultversionid`](spec.md#defaultversionid-attribute) and
+[`defaultversionsticky`](spec.md#defaultversionsticky-attribute).
+
+A type cannot be changed to `maxversions: 1` while any existing Resource of
+that type has `defaultversionsticky: true`. That model change is rejected
+without changing the model or pruning Versions. Once the Resources are
+non-sticky, a limit of 1 is allowed. With that limit, creating a new Version
+replaces the prior default as described by the model rules.
 
 In general, during an operation that creates, updates or deletes the Versions
 of a Resource, the following logic is applied:
@@ -1083,23 +1094,34 @@ of a Resource, the following logic is applied:
 - Modify the Versions collection as requested
 - Apply the "default" processing logic by setting (or not) which Version is the
   "default"
-- If the number of Versions exceeds the maximum allowed Versions then, starting
-  with the oldest, keep deleting until the collection is within the limit.
-  Except if the limit is 1, in which case if a new Version is created then it
-  it tagged as "default"
+- If the number of Versions exceeds a positive limit, prune according to the
+  model's oldest-Version and default-Version rules until within the limit
 
-Let's walk through a complex example:
+For this example, assume a single Resource of the type, using
+`versionmode: createdat`, with client-selected Version IDs allowed and
+stickiness configurable. Each new Version has a later `createdat` than the
+existing Versions. While the limit is 0, this implementation performs no
+optional pruning. The JSON actions are PATCH bodies sent to the Resource's
+Meta entity, for example `/dirs/d1/files/f1/meta`.
 
-- Max allowed Versions is 2
-- Initially the following Versions exist: v4, v2 (default)
-- Max allowed Versions is now set to 0 (meaning unlimited)
-- New Versions are created in this order: v5 (default=true), v6, v7
-- The resulting Versions are (newest to oldest): v7, v6, v5 (default), v4, v2
-- The maximum allowed Version is now set to 1, this will cause pruning
-- The result is: v5. Note that it is not v7 because v5 was tagged as "default"
-- A new Version (v8) is created
-- The result is: v8 regardless of whether v8 was created with isdefault=true or
-  not
+| Action | Result | Versions (newest first) | `defaultversionid` | `defaultversionsticky` | `maxversions` |
+| --- | --- | --- | --- | --- | --- |
+| Initial state | OK | v4, v2 | v2 | true | 2 |
+| Set `maxversions` to `0` | OK | v4, v2 | v2 | true | 0 |
+| Create `v5` | OK | v5, v4, v2 | v2 | true | 0 |
+| `{"defaultversionid":"v5","defaultversionsticky":true}` | OK | v5, v4, v2 | v5 | true | 0 |
+| Create `v6` | OK | v6, v5, v4, v2 | v5 | true | 0 |
+| Create `v7` | OK | v7, v6, v5, v4, v2 | v5 | true | 0 |
+| Set `maxversions` to `1` | `setdefaultversionsticky_false` | v7, v6, v5, v4, v2 | v5 | true | 0 |
+| `{"defaultversionsticky":false}` | OK | v7, v6, v5, v4, v2 | v7 | false | 0 |
+| Set `maxversions` to `1` | OK | v7 | v7 | false | 1 |
+| Create `v8` | OK | v8 | v8 | false | 1 |
+
+The rejected model change leaves every Version and the sticky selection
+unchanged. Explicitly clearing stickiness selects the newest Version, `v7`,
+without modifying the Versions themselves. Only the subsequent accepted model
+change prunes the older Versions. These Meta patches control
+`defaultversionsticky`; they do not write the read-only `isdefault` report.
 
 ### 11.9. Potential Extensions
 
@@ -1195,8 +1217,9 @@ sensitivity rules in the specification.
   entity, it is possible that one of those users would end up seeing an
   unexpected casing and could be confused or believe there was an error.
 
-  All of these concerns are avoided by requiring IDs to be stored and compared
-  in case insensitively.
+  All of these concerns are avoided by preserving the original case of IDs,
+  using case-sensitive lookups, and enforcing case-insensitive uniqueness
+  within the scope of the parent entity.
 
 ### 11.12. Why the lower character limit on some Group and Resource type names?
 
@@ -1443,18 +1466,51 @@ in the message.
 
 ### 11.25. Deprecation of entities in an xRegistry
 
-The core specification defines a `deprecated` attribute that may appear
-under a Resource's `meta` sub-object. This attribute was added to the Resource
-itself rather than to the Version because it was determined that the most
-likely usage of this feature is to express the intent to deprecate the entire
-Resource rather than just one Version (or subset of Versions). This is not say
-that the use of this feature might not be useful at the Version-level or even
-at the Group-level. However, for those cases, custom models may define
-an extension at the appropriate location in the model to meet their needs.
-When doing so it is recommended to use the same attribute definition as
-defined in the core specification for consistency. It is worth noting that
-the Endpoint [specification](../endpoint/spec.md) does exactly this to
-indicate when an Endpoint (i.e. a Group) is deprecated.
+The core specification defines built-in
+[`deprecated`](spec.md#deprecated-attribute) metadata for both Groups and
+Resources. A Group uses `deprecated` directly on the Group, while a Resource
+uses `meta.deprecated`. Neither requires a model extension, including when a
+Group represents an Endpoint.
+
+For example, these metadata excerpts show a deprecated Group and a Resource
+whose deprecation will take effect in the future. They are not complete
+response documents.
+
+```yaml
+{
+  "deprecated": {}
+}
+```
+
+```yaml
+{
+  "meta": {
+    "deprecated": {
+      "effective": "2030-12-19T00:00:00Z"
+    }
+  }
+}
+```
+
+An empty `deprecated` object means the entity is already deprecated. When
+`effective` is present, it identifies when the entity entered, or will enter,
+that state. Group deprecation does not by itself define the deprecation state
+of its Resources, or vice versa; Core does not define a propagation rule.
+
+The existing [Group](events.md#group-events) and
+[Resource](events.md#resource-events) deprecation events concern setting,
+changing, or removing this metadata. Each is accompanied by the corresponding
+`updated` event. For example, setting a future `effective` time notifies
+consumers when the metadata changes, even though the time has not yet arrived.
+The passage of time alone does not require another deprecation notification.
+Removing the metadata also generates the deprecation and update notifications;
+removal in production is discouraged by the Events specification.
+
+Resource-level deprecation expresses intent for the Resource as a whole,
+rather than for an individual Version. Version-level deprecation remains a
+possible custom-model extension or design choice, for which reusing the Core
+attribute shape is recommended. It is not built in and does not introduce a
+standard `io.xregistry.version.deprecated` event.
 
 ### 11.26. Relative Resource URLs in the File representation
 
@@ -1612,10 +1668,30 @@ clients to know that updating this particular instance of this
 the risk of clients assuming a non-error response meant the request was fully
 adhere to was considered more important.
 
-For example, if a Resource is defined with the `setdefaultversionsticky`
-aspect set to `false` then the `meta.defaultversionid` attribute of instances
-of that Resource becomes "read-only". And any attempt to update it will result
-in an error being generated.
+For the default-Version controls, the restriction is expressed through a
+model constraint, not a separate aspect that makes `defaultversionid`
+read-only. A Resource type can use the following `metaattributes`
+customization, as described by
+[`defaultversionsticky`](spec.md#defaultversionsticky-attribute):
+
+```yaml
+{
+  "metaattributes": {
+    "defaultversionsticky": {
+      "name": "defaultversionsticky",
+      "enum": [ false ],
+      "required": true,
+      "default": false
+    }
+  }
+}
+```
+
+An attempt to set `meta.defaultversionsticky` to `true` violates this model
+constraint and is rejected, rather than silently ignored. The default Version
+continues to be chosen automatically according to `versionmode`. This is
+different from `isdefault`, which remains an always-read-only report of the
+selection.
 
 ## 16. Why isn't `PUT` idempotent?
 

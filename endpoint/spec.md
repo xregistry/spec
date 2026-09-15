@@ -436,6 +436,7 @@ to the xRegistry-defined core
     - "consumer"
     - "producer"
   - MUST be an array of at least one value.
+  - MUST NOT contain duplicate values.
   - MUST declare exactly one usage value, except for the single combination
     permitted below.
   - MUST NOT combine `producer` with any other value.
@@ -450,6 +451,14 @@ to the xRegistry-defined core
     MUST be modeled as separate Endpoint resources.
   - Endpoints that jointly describe more than one role SHOULD be declared
     separately and correlated with a shared `channel` value.
+
+The Core model declares `usage` as a REQUIRED array of strings. Core's `enum`
+aspect applies only to scalar attributes; it does not define an array-member
+restriction. The nonempty, distinct-member, allowed-role and role-combination
+constraints above are domain constraints. Domain validation MUST check them
+in addition to Core model admission. Acceptance by a derived schema that
+checks only the REQUIRED array and its string items does not establish
+conformance to these Endpoint usage constraints.
 
 #### `channel`
 
@@ -794,10 +803,8 @@ Example:
     "myevent": {
       "envelope": "CloudEvents/1.0",
       "envelopemetadata": {
-        "attributes": {
-          "type": {
-            "value": "myevent"
-          }
+        "type": {
+          "value": "myevent"
         }
       }
     }
