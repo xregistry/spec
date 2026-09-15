@@ -124,6 +124,12 @@ class TestSchemaGenerator:
                 schema_data = json.load(schema_file)
             self.assert_json_structure(schema_data)
             assert set(schema_data['properties']) == {
+                'registryid', 'specversion', 'name', 'epoch', 'self', 'xid',
+                'description', 'documentation', 'labels', 'createdat', 'modifiedat',
+                'model', 'modelsource', 'capabilities',
+                'endpointsurl', 'endpointscount',
+                'messagegroupsurl', 'messagegroupscount',
+                'schemagroupsurl', 'schemagroupscount',
                 'endpoints', 'messagegroups', 'schemagroups'
             }
             assert set(schema_data['definitions']) == {
@@ -277,6 +283,10 @@ class TestSchemaGenerator:
         if dataschema_field:
             # Should be a reference to GenericRecord, not an inline definition
             field_type = dataschema_field['type']
+            assert len(field_type) == 2
+            assert field_type[0] == 'null'
+            assert dataschema_field['default'] is None
+            field_type = field_type[1]
             assert field_type == 'io.xregistry.GenericRecord', \
                 "'any' type should map to GenericRecord reference"
 
