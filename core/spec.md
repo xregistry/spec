@@ -3599,6 +3599,11 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
   - MUST NOT be present if the Resource type's
     [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
     is set to `false`.
+  - MUST NOT be used to represent a non-empty document as the JSON value
+    `null`. Instead, `<RESOURCE>base64` MUST carry the original document bytes
+    so that a subsequent request does not interpret the document as empty.
+    This exception applies even when a `json` mapping selects the
+    representation, and does not require the `binary` flag.
 
 #### `<RESOURCE>base64` Attribute
 - Type: String
@@ -3618,6 +3623,22 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
   - MUST NOT be present if the Resource type's
     [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
     is set to `false`.
+
+For example, the four document bytes `null` for a `file` Resource are represented
+by the following document field:
+
+<!-- words: bnvsba -->
+
+```json
+{
+  "filebase64": "bnVsbA=="
+}
+```
+
+An explicit `"file": null` in a request still requests an empty document, as
+defined in [`<RESOURCE>*` Attribute Processing](#resource-attribute-processing).
+A JSON string whose contents are `null` has the JSON value `"null"`, not
+`null`, so this exception does not apply to it.
 
 ---
 

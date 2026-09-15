@@ -1067,11 +1067,15 @@ Note that this feature has similar results to setting the Resource attribute's
   have the server potentially modify the document (e.g. "pretty-print" it).
 
   A value of `json` indicates that the Resource's document is JSON and MUST
-  be serialized under the `<RESOURCE>` attribute if it is valid JSON. Note
-  that if there is a syntax error in the JSON then the server MUST treat the
-  document as `binary` to avoid sending invalid JSON to the client. The
-  server MAY choose to modify the formatting of the document (e.g. to
-  "pretty-print" it).
+  be serialized under the `<RESOURCE>` attribute if it is valid JSON, except
+  when its value is `null`. In that case, the server MUST use
+  `<RESOURCE>base64` with the original document bytes, as specified by the
+  [Core document representation rules](./spec.md#resource-attribute), even
+  when the `binary` flag is absent. If there is a syntax error in the JSON,
+  the server MUST treat the document as `binary` to avoid sending invalid JSON
+  to the client.
+  When using `<RESOURCE>`, the server MAY choose to modify the formatting of
+  the document (e.g. to "pretty-print" it).
 
   A value of `string` indicates that the Resource's document is to be treated
   as a string and serialized using the default string serialization rules
