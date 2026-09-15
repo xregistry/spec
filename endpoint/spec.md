@@ -3,6 +3,7 @@
 <!-- words: cleanstart sessionexpiryinterval topicfilter retainhandling retainaspublished nolocal -->
 <!-- words: sharedsubscriptiongroup keyserializer valueserializer enableautocommit autooffsetreset -->
 <!-- words: serializer subjectfilter queuegroup usernames tenantid -->
+<!-- words: configs -->
 
 ## Abstract
 
@@ -1012,10 +1013,44 @@ defined as protocol options by this specification.
 
 ##### KAFKA options
 
-The [endpoint URIs](#protocoloptionsendpoints) for "Kafka" endpoints MUST be
-valid Kafka bootstrap server addresses. The scheme follows Kafka configuration
-usage as described in [Apache Kafka], e.g. `SSL://<HOST>:<PORT>` or
-`PLAINTEXT://<HOST>:<PORT>`.
+The [`bootstrap.servers`](#protocoloptionsendpoints) attribute for "Kafka"
+endpoints is a non-empty array of strings in `host:port` form, as specified
+by [Kafka client configuration]. An IPv6 literal MUST be enclosed in square
+brackets, for example `[2001:db8::1]:9093`. After placeholder resolution, each
+entry MUST contain a host and a decimal port and MUST NOT include a URI scheme,
+path, query or fragment. Broker listener URLs such as `SSL://host:9093` and
+`PLAINTEXT://host:9092` are not client bootstrap address declarations.
+
+The `security.protocol` member of the same endpoint-address object supplies
+the Kafka security protocol separately. For example, `SSL` selects TLS without
+SASL, while `SASL_SSL` selects SASL over TLS. Credentials and other
+deployment-specific security configuration are supplied separately. A port
+number does not imply a security protocol.
+
+For example:
+
+```json
+{
+  "bootstrap.servers": [
+    "broker1.example.com:9093",
+    "192.0.2.1:9093",
+    "[2001:db8::1]:9093"
+  ],
+  "security.protocol": "SSL"
+}
+```
+
+Unresolved authoring placeholders remain permitted as described in
+[Protocol Options](#protocol-options). Clients apply the address requirements
+after resolving placeholders out-of-band; storing these declarations does not
+require the Registry server to resolve names or acquire an endpoint.
+
+Existing declarations using listener-style URLs need an explicit migration.
+For example, an author replaces `SSL://host:9093` with `host:9093` and explicitly
+sets `security.protocol` to `SSL` in the same endpoint-address object.
+Consumers MUST NOT silently strip a scheme or infer security configuration
+from it. In particular, stripping `SSL://` while retaining the model's
+`PLAINTEXT` default would change the intended security configuration.
 
 The following options are defined for Kafka endpoints.
 
@@ -1098,6 +1133,7 @@ Addressing constraints:
 [CloudEvents Subscriptions API]: https://github.com/cloudevents/spec/blob/main/subscriptions/spec.md
 [NATS]: https://docs.nats.io/reference/protocols/client/
 [Apache Kafka]: https://kafka.apache.org/protocol
+[Kafka client configuration]: https://kafka.apache.org/41/configuration/producer-configs#producerconfigs_bootstrap.servers
 [Apache Kafka producer]: https://kafka.apache.org/31/javadoc/org/apache/kafka/clients/producer/ProducerRecord.html
 [Apache Kafka consumer]: https://kafka.apache.org/31/javadoc/org/apache/kafka/clients/consumer/ConsumerRecord.html
 [HTTP Message Format]: https://www.rfc-editor.org/rfc/rfc9110#section-6
