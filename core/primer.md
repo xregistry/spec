@@ -1068,14 +1068,24 @@ initial placement into a Group of a new Resource.
 
 ### 11.8. Default Version and Maximum Versions
 
-Each Resource type can specify the maximum number of Versions that the
-server must save. Once that limit is reached then it must delete Versions
-to stay within the limit - by deleting oldest Versions first. However, since
-tagging a Version as "default" marks that Version as special, this pruning
-logic must skip the "default" Version. There is one exception to this rule.
-If the maximum Versions is set to 1 then when a new Version is created, that
-Version will become the "default" Version regardless of whether or not the
-user asked for it to be.
+Each Resource type can specify a
+[`maxversions`](model.md#groupsstringresourcesstringmaxversions) limit. When a
+positive limit is exceeded, the server prunes the oldest Versions according
+to the type's `versionmode`, retaining the default Version as specified by
+the model rules. A limit of 0 means no stated limit, not a guarantee that all
+Versions will be retained.
+
+The read-only [`isdefault`](spec.md#isdefault-attribute) attribute reports
+which Version is the default; it is not a selection control. Clients can
+select a sticky default through the Resource's Meta entity using
+[`defaultversionid`](spec.md#defaultversionid-attribute) and
+[`defaultversionsticky`](spec.md#defaultversionsticky-attribute).
+
+A type cannot be changed to `maxversions: 1` while any existing Resource of
+that type has `defaultversionsticky: true`. That model change is rejected
+without changing the model or pruning Versions. Once the Resources are
+non-sticky, a limit of 1 is allowed. With that limit, creating a new Version
+replaces the prior default as described by the model rules.
 
 In general, during an operation that creates, updates or deletes the Versions
 of a Resource, the following logic is applied:
@@ -1083,23 +1093,34 @@ of a Resource, the following logic is applied:
 - Modify the Versions collection as requested
 - Apply the "default" processing logic by setting (or not) which Version is the
   "default"
-- If the number of Versions exceeds the maximum allowed Versions then, starting
-  with the oldest, keep deleting until the collection is within the limit.
-  Except if the limit is 1, in which case if a new Version is created then it
-  it tagged as "default"
+- If the number of Versions exceeds a positive limit, prune according to the
+  model's oldest-Version and default-Version rules until within the limit
 
-Let's walk through a complex example:
+For this example, assume a single Resource of the type, using
+`versionmode: createdat`, with client-selected Version IDs allowed and
+stickiness configurable. Each new Version has a later `createdat` than the
+existing Versions. While the limit is 0, this implementation performs no
+optional pruning. The JSON actions are PATCH bodies sent to the Resource's
+Meta entity, for example `/dirs/d1/files/f1/meta`.
 
-- Max allowed Versions is 2
-- Initially the following Versions exist: v4, v2 (default)
-- Max allowed Versions is now set to 0 (meaning unlimited)
-- New Versions are created in this order: v5 (default=true), v6, v7
-- The resulting Versions are (newest to oldest): v7, v6, v5 (default), v4, v2
-- The maximum allowed Version is now set to 1, this will cause pruning
-- The result is: v5. Note that it is not v7 because v5 was tagged as "default"
-- A new Version (v8) is created
-- The result is: v8 regardless of whether v8 was created with isdefault=true or
-  not
+| Action | Result | Versions (newest first) | `defaultversionid` | `defaultversionsticky` | `maxversions` |
+| --- | --- | --- | --- | --- | --- |
+| Initial state | OK | v4, v2 | v2 | true | 2 |
+| Set `maxversions` to `0` | OK | v4, v2 | v2 | true | 0 |
+| Create `v5` | OK | v5, v4, v2 | v2 | true | 0 |
+| `{"defaultversionid":"v5","defaultversionsticky":true}` | OK | v5, v4, v2 | v5 | true | 0 |
+| Create `v6` | OK | v6, v5, v4, v2 | v5 | true | 0 |
+| Create `v7` | OK | v7, v6, v5, v4, v2 | v5 | true | 0 |
+| Set `maxversions` to `1` | `setdefaultversionsticky_false` | v7, v6, v5, v4, v2 | v5 | true | 0 |
+| `{"defaultversionsticky":false}` | OK | v7, v6, v5, v4, v2 | v7 | false | 0 |
+| Set `maxversions` to `1` | OK | v7 | v7 | false | 1 |
+| Create `v8` | OK | v8 | v8 | false | 1 |
+
+The rejected model change leaves every Version and the sticky selection
+unchanged. Explicitly clearing stickiness selects the newest Version, `v7`,
+without modifying the Versions themselves. Only the subsequent accepted model
+change prunes the older Versions. These Meta patches control
+`defaultversionsticky`; they do not write the read-only `isdefault` report.
 
 ### 11.9. Potential Extensions
 
@@ -1612,10 +1633,30 @@ clients to know that updating this particular instance of this
 the risk of clients assuming a non-error response meant the request was fully
 adhere to was considered more important.
 
-For example, if a Resource is defined with the `setdefaultversionsticky`
-aspect set to `false` then the `meta.defaultversionid` attribute of instances
-of that Resource becomes "read-only". And any attempt to update it will result
-in an error being generated.
+For the default-Version controls, the restriction is expressed through a
+model constraint, not a separate aspect that makes `defaultversionid`
+read-only. A Resource type can use the following `metaattributes`
+customization, as described by
+[`defaultversionsticky`](spec.md#defaultversionsticky-attribute):
+
+```yaml
+{
+  "metaattributes": {
+    "defaultversionsticky": {
+      "name": "defaultversionsticky",
+      "enum": [ false ],
+      "required": true,
+      "default": false
+    }
+  }
+}
+```
+
+An attempt to set `meta.defaultversionsticky` to `true` violates this model
+constraint and is rejected, rather than silently ignored. The default Version
+continues to be chosen automatically according to `versionmode`. This is
+different from `isdefault`, which remains an always-read-only report of the
+selection.
 
 ## 16. Why isn't `PUT` idempotent?
 
