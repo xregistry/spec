@@ -474,7 +474,8 @@ events.
 ## Sample xRegistry Interactions
 
 In these examples, unless otherwise stated, assume that the Registry has
-the following model definition:
+the base URL `https://example.com` and the following model definition. The
+Resources are metadata-only, so metadata PATCH requests use unsuffixed URLs.
 
 ```yaml
 {
@@ -483,7 +484,8 @@ the following model definition:
       "singular": "dir",
       "resources": {
         "files": {
-          "singular": "file"
+          "singular": "file",
+          "hasdocument": false
         }
       }
     }
@@ -729,9 +731,11 @@ the following model definition:
 
 ### Creating a Group with a complete client HTTP message exchange
 
+Assume Group `d1` does not exist and the Registry's `epoch` is 1.
+
 Client Request:
 ```yaml
-PUT /dirs/d1
+PUT /dirs/d1 HTTP/1.1
 Host: example.com
 Content-Type: application/json
 
@@ -741,20 +745,21 @@ Content-Type: application/json
 xRegistry Response:
 
 ```yaml
-HTTP/1.1 200 OK
+HTTP/1.1 201 Created
+Location: https://example.com/dirs/d1
 Content-Type: application/json
 Date: Wed, 02 Jul 2025 12:00:01 GMT
 xRegistry-xregcorrelationid: B9282-129301
 
 {
   "dirid": "d1",
-  "self": "http://example.com/dirs/d1",
+  "self": "https://example.com/dirs/d1",
   "xid": "/dirs/d1",
   "epoch": 1,
   "createdat": "2025-07-02T12:00:01Z",
   "modifiedat": "2025-07-02T12:00:01Z",
 
-  "filesurl": "http://example.com/dirs/d1/files",
+  "filesurl": "https://example.com/dirs/d1/files",
   "filescount": 0
 }
 ```
@@ -785,7 +790,7 @@ Events Generated:
   "subject": "/dirs/d1",
   "id": "A432-4321-4321",
   "time": "2025-07-02T12:00:01Z",
-  "xregcorrelationid": "B9282-129301"
+  "xregcorrelationid": "B9282-129301",
   "data": {
     "epoch": 1
   }
