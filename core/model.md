@@ -769,6 +769,30 @@ Note that this feature has similar results to setting the Resource attribute's
   A special case for the pruning rules is that if `maxversions` is set to
   one (1), then the "default" Version is not skipped, which means it will be
   deleted and the new Version will become "default".
+
+  For `manual` mode when the default Version is to be skipped, pruning MUST
+  use an immutable snapshot of the current ancestry links. Initially, only
+  root Versions are eligible for traversal. From the eligible Versions,
+  select the one with the oldest `createdat` timestamp, then the lowest
+  case-insensitive `versionid` value for a tie. Each Version MUST be visited
+  at most once. Visiting a Version removes it from the eligible set and adds
+  its direct children from the snapshot. A visited non-default Version MUST
+  be scheduled for deletion. Repeat until the remaining Version count meets
+  the limit.
+
+  Visiting the default only advances this virtual ordering: it MUST NOT
+  delete it, change its ancestry, or count it toward the needed deletions.
+  Non-default Versions that cannot legally be deleted are not virtually
+  visited or selected, and their children do not become eligible merely
+  because that ancestor cannot be deleted. If no eligible Version remains
+  and the limit is still exceeded, the entire operation MUST be rejected
+  ([bad_request](./spec.md#bad_request)), without retaining partial changes.
+  Existing deletion restrictions and deprecation/removal promises MUST NOT
+  be weakened. Only actual deletions invoke the existing ancestry and
+  attribute-maintenance rules. The resulting Resource MUST still satisfy
+  all other model constraints, including
+  [`singleversionroot`](#groupsstringresourcesstringsingleversionroot);
+  violations MUST generate the existing errors and undo the entire request.
 - An attempt to change `maxversions` to `1` when there are existing Resource
   instances that have their `defaultversionsticky` attribute set to `true` MUST
   generate an error
