@@ -823,9 +823,14 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "available": [
-    "/capabilities", "/export", "/model", "/modelsource"
-  ],
+  "available": {
+    "capabilities": { "mutable": true },
+    "capabilitiesoffered": { "mutable": false },
+    "entities": { "mutable": true },
+    "export": { "mutable": false },
+    "model": { "mutable": false },
+    "modelsource": { "mutable": true }
+  },
   "flags": [
     "binary", "collections", "doc", "epoch", "filter", "ignore", "inline",
     "setdefaultversionid", "sort", "specversion"
@@ -875,12 +880,45 @@ Content-Type: application/json; charset=utf-8
 
 {
   "available": {
-    "type": "array",
-    "item": {
-      "type": "string"
-    },
-    "enum": [ "/capabilities", "/capabilitiesoffered", "/export", "/model",
-       "/modelsource" ]
+    "type": "object",
+    "attributes": {
+      "capabilities": {
+        "type": "object",
+        "attributes": {
+          "mutable": { "type": "boolean", "enum": [ false, true ] }
+        }
+      },
+      "capabilitiesoffered": {
+        "type": "object",
+        "attributes": {
+          "mutable": { "type": "boolean", "enum": [ false ] }
+        }
+      },
+      "entities": {
+        "type": "object",
+        "attributes": {
+          "mutable": { "type": "boolean", "enum": [ false, true ] }
+        }
+      },
+      "export": {
+        "type": "object",
+        "attributes": {
+          "mutable": { "type": "boolean", "enum": [ false ] }
+        }
+      },
+      "model": {
+        "type": "object",
+        "attributes": {
+          "mutable": { "type": "boolean", "enum": [ false ] }
+        }
+      },
+      "modelsource": {
+        "type": "object",
+        "attributes": {
+          "mutable": { "type": "boolean", "enum": [ false, true ] }
+        }
+      }
+    }
   },
   "flags": {
     "type": "array",
@@ -988,9 +1026,14 @@ PATCH /capabilities
 
 ```yaml
 {
-  "available": [
-    "/capabilities", "/export", "/model", "/modelsource"
-  ],
+  "available": {
+    "capabilities": { "mutable": true },
+    "capabilitiesoffered": { "mutable": false },
+    "entities": { "mutable": true },
+    "export": { "mutable": false },
+    "model": { "mutable": false },
+    "modelsource": { "mutable": true }
+  },
   "flags": [
     "binary", "collections", "doc", "epoch", "filter", "ignore", "inline",
     "setdefaultversionid", "sort", "specversion"
