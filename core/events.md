@@ -187,21 +187,35 @@ When present, and serialized in JSON, the `data` MUST be of the form:
 where:
 - The `epoch` attribute MUST be included in `created` and `updated` events
   for Registries, Groups, Resources and Versions; and it MUST be the `subject`
-  entity's `epoch` value as seen at the end of the interaction.
+  entity's `epoch` value as seen at the end of the interaction, subject to
+  the cross-reference Resource exception below.
 
   - MUST NOT be included in `deleted` events.
 
 - The `meta.epoch` attribute MUST be included in Resource `created` and
   `updated` events and it MUST be the `subject` Resource's `meta.epoch` value
-  as seen at the end of the interaction.
+  as seen at the end of the interaction, subject to the cross-reference
+  Resource exception below.
 
   - MUST only be included for Resource related events.
 
   - MUST NOT be included in Resource `deleted` events.
 
-  - Note that Resource `created` and `updated` events will include both
-    `epoch` and `meta.epoch` attributes even if one of them didn't change for
-    the interaction.
+  - Except for unavailable cross-reference projections, Resource `created`
+    and `updated` events will include both `epoch` and `meta.epoch` attributes
+    even if one of them didn't change for the interaction.
+
+- For a [cross-reference Resource](spec.md#cross-referencing-resources)
+  `created` or `updated` event that includes `data`, `epoch` and `meta.epoch`
+  are projected target values. Each MUST be included only if that value is
+  available through the Core-defined projection at the end of the interaction;
+  each unavailable value MUST be omitted. A value
+  MUST NOT be invented or replaced with zero or a previously stored local
+  epoch. This applies, for example, when the target is missing, inaccessible,
+  or itself a cross-reference Resource. Generating events does not require
+  additional target acquisition, recursive cross-reference resolution, or
+  rejection of a cross-reference that Core permits. Other available event
+  data MAY still be included.
 
 - The `changed` attribute MAY be included to indicate which attributes of the
   `subject` entity were modified. When present, has the following
@@ -242,6 +256,33 @@ RECOMMENDED.
 
 This section defines which `<ACTION>` values are applicable for each `<ENTITY>`
 value.
+
+### Local ownership and cross-reference Resources
+
+Version events describe locally owned Versions, not Versions projected through
+a Resource's `meta.xref`. Creating, changing or deleting a cross-reference
+Resource MUST NOT generate Version events for the target's Versions or for
+invented Versions beneath the source Resource. A projected target change alone
+MUST NOT be treated as a local creation, update or deletion at the source.
+Events for changes to the target use the target's own entity subjects.
+
+The [Core cross-reference rules](spec.md#cross-referencing-resources) determine
+which local entities change:
+- Converting a normal Resource to a cross-reference Resource generates a
+  Resource `updated` event and a Version `deleted` event for each formerly
+  owned Version.
+- Converting a cross-reference Resource to a normal Resource generates a
+  Resource `updated` event and Version `created` events for the locally
+  created Versions, including the new default Version.
+- Changing `meta.xref` from one target to another generates a Resource
+  `updated` event, not Version events for either target.
+- Deleting a cross-reference Resource generates a Resource `deleted` event,
+  not Version `deleted` events.
+
+When `changed` is included for a change to `meta.xref`, it MUST include
+`meta.xref`. The normal per-interaction event selection and coalescing rules
+still apply, including during Group or Registry deletion. These rules neither
+create local Versions for an alias nor require its target to be available.
 
 ### `registry` Events
 
@@ -379,8 +420,10 @@ events.
 - Action: `created`
   - MUST be generated when a new Resource is created.
 
-  - At least one `io.xregistry.version.created` event MUST also be
-    generated since at least one Version MUST also be created.
+  - For a normal Resource, an `io.xregistry.version.created` event MUST also
+    be generated for each locally created Version, including its default
+    Version. A cross-reference Resource has no locally owned Versions, so its
+    creation MUST NOT generate Version-created events.
 
   - An `io.xregistry.group.updated` event MUST also be generated where the
     `changed`, if present, MUST include `epoch`, `modifiedat`, `<RESOURCES>`
@@ -388,7 +431,8 @@ events.
 
 - Action: `updated`
   - MUST be generated when:
-    - A Resource's attribute (from the default Version entity) is updated,
+    - A Resource's attribute (from its locally owned default Version entity)
+      is updated,
       where `changed`, if present, MUST include each modified attribute. Note
       that a `io.xregistry.version.update` event MUST also be generated.
 
@@ -438,7 +482,8 @@ events.
   - MUST be generated when a Resource is deleted.
 
   - A `io.xregistry.version.deleted` event MUST also be generated for each
-    Version.
+    locally owned Version that is deleted. Deleting a cross-reference
+    Resource does not delete its target or the target's Versions.
 
   - An `io.xregistry.group.updated` event MUST also be generated where
     `changed`, if present, MUST include `epoch`, `modifiedat` and `<RESOURCES>`
@@ -790,4 +835,50 @@ Events Generated:
     "epoch": 1
   }
 }
+```
+
+### Create a cross-reference Resource with an unavailable target
+
+Assume Group `d1` already exists with `epoch` 6, an empty `files` collection,
+and no Resource named `missing`. This request creates only the local alias;
+it does not create a default Version or the missing target.
+
+Client Request:
+
+```yaml
+PATCH /dirs/d1
+Host: example.com
+Content-Type: application/json
+
+{
+  "files": {
+    "alias": {
+      "meta": {
+        "xref": "/dirs/d1/files/missing"
+      }
+    }
+  }
+}
+```
+
+The event excerpts below show `type`, `subject` and `data`; other context
+attributes are not shown. Empty Resource event data is permitted: neither
+projected epoch is available. There is no Version event.
+
+```yaml
+[
+  {
+    "type": "io.xregistry.group.updated",
+    "subject": "/dirs/d1",
+    "data": {
+      "epoch": 7,
+      "changed": [ "epoch", "modifiedat", "files", "filescount" ]
+    }
+  },
+  {
+    "type": "io.xregistry.resource.created",
+    "subject": "/dirs/d1/files/alias",
+    "data": {}
+  }
+]
 ```
