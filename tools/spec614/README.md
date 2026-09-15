@@ -3,10 +3,13 @@
 <!-- no verify-specs -->
 <!-- words: py pytest powershell -->
 
-[The focused regressions](test_events_exchange_614.py) parse the actual model,
+[The focused regressions](../test_events_exchange_614.py) parse the actual model,
 all three Resource/Version metadata PATCH examples, and the complete Group
 exchange in [Events](../../core/events.md). JSON parsing rejects duplicate keys
 using the existing sample-validation helper.
+The test is beside that helper so both the module and console forms of the
+test runner work without depending on the working directory being an import
+package.
 
 The narrow state captures exercise metadata updates under the declared model,
 compare event subjects and epochs with the affected default or other Version,
@@ -27,5 +30,6 @@ commit-publication proposals remain outside this correction.
 Run from the repository root:
 
 ```powershell
-python -B -m pytest tools\spec614\test_events_exchange_614.py -q
+python -B -m pytest tools\test_events_exchange_614.py -q
+pytest tools\test_events_exchange_614.py -q
 ```

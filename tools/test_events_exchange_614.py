@@ -8,10 +8,10 @@ from urllib.parse import urlsplit
 
 import pytest
 
-from tools.test_samples import _unique_json_object
+from test_samples import _unique_json_object
 
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[1]
 PATCH_EXAMPLES = (
     "Update a Resource attribute (a default Version attribute)",
     "Update a Version attribute (the default Version)",
