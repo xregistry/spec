@@ -1,0 +1,94 @@
+{
+    "thingdescriptiongroups": {
+        "Fabrikam.FactoryFloor.01": {
+            "description": "All Things deployed on Fabrikam factory floor #1",
+            "thingdescriptions": {
+                "urn.fabrikam.lamp.42": {
+                    "description": "Smart lamp instance #42 (above workbench A)",
+                    "format": "JSON-LD/1.1",
+                    "contenttype": "application/td+json",
+                    "wotid": "urn:fabrikam:lamp:42",
+                    "derivedfrom": [ "urn:fabrikam:lamp" ],
+                    "publisher": "Fabrikam",
+                    "maturity": "Vendor",
+                    "thingdescription": {
+                        "@context": [
+                            "https://www.w3.org/2022/wot/td/v1.1",
+                            { "fabrikam": "https://fabrikam.example/wot/v1#" }
+                        ],
+                        "@type": "Thing",
+                        "id": "urn:fabrikam:lamp:42",
+                        "title": "Lamp #42 (workbench A)",
+                        "version": { "instance": "1.0.0", "model": "1.0.0" },
+                        "links": [
+                            {
+                                "rel": "type",
+                                "href": "/thingmodelgroups/Fabrikam.Lighting/thingmodels/urn.fabrikam.lamp",
+                                "type": "application/tm+json"
+                            }
+                        ],
+                        "securityDefinitions": {
+                            "bearer_sc": { "scheme": "bearer", "format": "jwt" }
+                        },
+                        "security": [ "bearer_sc" ],
+                        "properties": {
+                            "status": {
+                                "type": "string",
+                                "enum": [ "on", "off" ],
+                                "readOnly": true,
+                                "forms": [
+                                    {
+                                        "href": "https://gw.fabrikam.example/floor01/lamp-42/status",
+                                        "contentType": "application/json",
+                                        "op": [ "readproperty" ]
+                                    }
+                                ]
+                            },
+                            "brightness": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 100,
+                                "unit": "percent",
+                                "forms": [
+                                    {
+                                        "href": "https://gw.fabrikam.example/floor01/lamp-42/brightness",
+                                        "contentType": "application/json",
+                                        "op": [ "readproperty", "writeproperty" ]
+                                    }
+                                ]
+                            }
+                        },
+                        "actions": {
+                            "toggle": {
+                                "synchronous": true,
+                                "forms": [
+                                    {
+                                        "href": "https://gw.fabrikam.example/floor01/lamp-42/actions/toggle",
+                                        "op": [ "invokeaction" ]
+                                    }
+                                ]
+                            }
+                        },
+                        "events": {
+                            "overheated": {
+                                "data": {
+                                    "type": "object",
+                                    "properties": {
+                                        "temperature": { "type": "number", "unit": "degC" }
+                                    }
+                                },
+                                "forms": [
+                                    {
+                                        "href": "mqtts://broker.fabrikam.example:8883/lamps/42/overheated",
+                                        "contentType": "application/cloudevents+json",
+                                        "op": [ "subscribeevent" ]
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
