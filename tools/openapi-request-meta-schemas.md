@@ -69,6 +69,10 @@ shared model-specific Meta response and separate `MetaWriteInput` and
 Resource metadata use the same response definition. Root write/patch graphs
 use the corresponding Meta input definition.
 
+The Core `deprecated` object remains closed in every role. Its defined members
+are checked when supplied; an empty object remains valid. This does not open
+unmodeled deprecation fields or change other model extension boundaries.
+
 The ID member is the actual Resource singular name plus `id`, with a string
 kind. The generic `RESOURCEid` placeholder is not exposed. Supplied request
 IDs remain optional where the route/map supplies identity, and the server

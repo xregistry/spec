@@ -201,6 +201,35 @@ def test_meta_completed_responses_keep_core_and_model_requirements(method):
             checker.validate(invalid)
 
 
+@pytest.mark.parametrize("method, role", [
+    ("get", "response"), ("put", "response"), ("patch", "response"),
+    ("put", "request"), ("patch", "request"), ("get", "nested"),
+])
+def test_meta_deprecation_rejects_unmodeled_members_in_every_role(method, role):
+    schema = generate()
+    if role == "request":
+        checker = request(schema, META_PATH, method)
+        value = {"owner": "team"} if method == "put" else {}
+    else:
+        checker = response(schema, META_PATH, method) if role == "response" else validator(
+            schema, schema["components"]["schemas"]["entry"]["properties"]["meta"],
+            read=True,
+        )
+        value = meta_response()
+    for deprecated in ({}, {
+        "effective": STAMP, "removal": "2027-01-01T00:00:00Z",
+        "alternative": "../replacement", "documentation": "https://example.com/docs",
+    }):
+        value["deprecated"] = deprecated
+        before = copy.deepcopy(value)
+        checker.validate(value)
+        invalid = copy.deepcopy(value)
+        invalid["deprecated"]["unmodeled"] = True
+        with pytest.raises(jsonschema.ValidationError):
+            checker.validate(invalid)
+        assert value == before
+
+
 def test_meta_put_retains_client_required_fields_and_server_default_obligations():
     schema = generate()
     checker = request(schema, META_PATH, "put")

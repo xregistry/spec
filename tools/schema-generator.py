@@ -694,6 +694,7 @@ def generate_json_schema(
                 "alternative": {"type": "string", "format": "uri-reference"},
                 "documentation": {"type": "string", "format": "uri-reference"},
             },
+            "additionalProperties": False,
         }
         for name in (
             identity, "readonly", "defaultversionid",

@@ -5458,7 +5458,8 @@
                 "type": "string",
                 "format": "uri-reference"
               }
-            }
+            },
+            "additionalProperties": false
           }
         },
         "oneOf": [
@@ -5592,6 +5593,7 @@
                     "format": "uri-reference"
                   }
                 },
+                "additionalProperties": false,
                 "nullable": true
               }
             },
@@ -5736,6 +5738,7 @@
                     "format": "uri-reference"
                   }
                 },
+                "additionalProperties": false,
                 "nullable": true
               }
             },
@@ -10717,7 +10720,8 @@
                 "type": "string",
                 "format": "uri-reference"
               }
-            }
+            },
+            "additionalProperties": false
           }
         },
         "oneOf": [
@@ -10851,6 +10855,7 @@
                     "format": "uri-reference"
                   }
                 },
+                "additionalProperties": false,
                 "nullable": true
               }
             },
@@ -10995,6 +11000,7 @@
                     "format": "uri-reference"
                   }
                 },
+                "additionalProperties": false,
                 "nullable": true
               }
             },
