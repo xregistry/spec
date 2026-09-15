@@ -2,6 +2,7 @@
 
 <!-- words: formatvalidated compatibilityvalidated -->
 <!-- words: formatvalidatedreason compatibilityvalidatedreason -->
+<!-- words: dayTimeDuration -->
 
 ## Abstract
 
@@ -880,7 +881,7 @@ the headers, properties or attributes defined for a message:
     - `any`: Any type of value, including `null`.
     - `binary`: CloudEvents "Binary" type.
     - `boolean`: CloudEvents "Boolean" type.
-    - `duration`: RFC3339 Duration.
+    - `duration`: [XML Schema dayTimeDuration][dayTimeDuration].
     - `integer`: CloudEvents "Integer" type (RFC 7159, Section 6).
     - `number`: IEEE754 Double.
     - `string`: CloudEvents "String" type.
@@ -889,6 +890,65 @@ the headers, properties or attributes defined for a message:
     - `timestamp`: CloudEvents "Timestamp" type (RFC3339 DateTime)
     - `uri`: CloudEvents URI type (RFC3986 URI).
     - `uritemplate`: [RFC6570][RFC6570] Level 1 URI Template.
+
+The `duration` type uses the XML Schema 1.1 `dayTimeDuration` lexical and value
+spaces, not an RFC3339 timestamp or an unrestricted ISO 8601 duration. Values
+MUST contain one or more day, hour, minute, or second components, in that order,
+with `P` and, before time components, `T`. A leading `-` is allowed and applies
+to the entire value; a leading `+` or a sign on an individual component is not
+allowed. Year and calendar-month components are not allowed, even when zero.
+`M` after `T` denotes minutes, not months.
+
+Only seconds can have a decimal fraction. The XML Schema unsigned decimal
+production permits `PT.5S` and `PT1.S` as well as `PT0.5S` and `PT1S`.
+Component values are non-negative and are not restricted to clock ranges:
+`PT24H`, `PT60M`, and `PT60S` are valid. At least one component is necessary;
+`P`, `PT`, and a trailing `T` without a time component are invalid. XML Schema
+whitespace collapse applies; it does not permit whitespace inside a component
+or between components.
+
+Duration comparisons and range checks MUST use the exact signed decimal
+number of seconds, with 60 seconds per minute, 3600 per hour, and 86400 per day.
+For example, `P1D` and `PT24H` have the same value; negative and positive zero
+also have the same value. Fractional seconds have no fixed precision limit in
+this profile. An implementation that cannot represent a value's precision or
+range MUST report that limitation rather than silently round or substitute a
+value. Calendar dates and time zones do not participate in these comparisons.
+
+A property's own definition can further restrict its duration range. For
+example, `-PT0.5S` is a valid duration but is invalid for a field that requires
+a non-negative value. Those field-specific constraints still apply. This type
+does not change fields already defined as integer counts, such as the AMQP
+`ttl` in milliseconds, and does not select a native wire encoding.
+
+The following examples describe the duration type before field-specific
+constraints:
+
+| Value             | Admission | Duration in seconds |
+| ----------------- | --------- | ------------------- |
+| `P1D`             | Valid     | 86400               |
+| `PT24H`           | Valid     | 86400               |
+| `PT60M`           | Valid     | 3600                |
+| `PT60S`           | Valid     | 60                  |
+| `-P1DT2H3M4.500S`  | Valid     | -93784.5            |
+| `PT0.5S`          | Valid     | 0.5                 |
+| `PT.5S`           | Valid     | 0.5                 |
+| `PT1.S`           | Valid     | 1                   |
+| `-PT0S`           | Valid     | 0                   |
+| `P1M`             | Invalid   | -                   |
+| `P0Y`             | Invalid   | -                   |
+| `P1W`             | Invalid   | -                   |
+| `+PT1S`           | Invalid   | -                   |
+| `P-1D`            | Invalid   | -                   |
+| `PT1.5H`          | Invalid   | -                   |
+| `PT1e3S`          | Invalid   | -                   |
+| `P`               | Invalid   | -                   |
+| `PT`              | Invalid   | -                   |
+| `P1DT`            | Invalid   | -                   |
+
+Declarations based on other interpretations of "duration", such as calendar
+months or timestamp syntax, need to be revised for this profile. A calendar
+month MUST NOT be silently converted to a fixed number of days.
 
 ##### `value`
 
@@ -1412,6 +1472,7 @@ Example:
 [Apache Kafka consumer]: https://kafka.apache.org/31/javadoc/org/apache/kafka/clients/consumer/ConsumerRecord.html
 [HTTP Message Format]: https://www.rfc-editor.org/rfc/rfc9110#section-6
 [RFC6570]: https://www.rfc-editor.org/rfc/rfc6570
+[dayTimeDuration]: https://www.w3.org/TR/xmlschema11-2#dayTimeDuration
 [rfc3339]: https://tools.ietf.org/html/rfc3339
 [message]: https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#message
 [SOAP]: https://www.w3.org/TR/soap12-part1/
