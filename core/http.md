@@ -1443,12 +1443,16 @@ Content-Type: application/json; charset=utf-8
 
 {
   "messages": {
-    "messageid": "msg1",
-    ... remainder of msg1 definition excluded for brevity ...
+    "msg1": {
+      "messageid": "msg1",
+      ... remainder of msg1 definition excluded for brevity ...
+    }
   },
   "schemas": {
-    "schemaid": "schema1",
-    ... remainder of schema1 definition excluded for brevity ...
+    "schema1": {
+      "schemaid": "schema1",
+      ... remainder of schema1 definition excluded for brevity ...
+    }
   }
 }
 ```
@@ -1459,12 +1463,16 @@ Content-Type: application/json; charset=utf-8
 
 {
   "messages": {
-    "messageid": "msg1",
-    ... remainder of msg1 definition excluded for brevity ...
+    "msg1": {
+      "messageid": "msg1",
+      ... remainder of msg1 definition excluded for brevity ...
+    }
   },
   "schemas": {
-    "schemaid": "schema1",
-    ... remainder of schema1 definition excluded for brevity ...
+    "schema1": {
+      "schemaid": "schema1",
+      ... remainder of schema1 definition excluded for brevity ...
+    }
   }
 }
 ```
