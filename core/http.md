@@ -2007,7 +2007,7 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1
 {
   "messageid": "msg1",
   "versionid": "1",
-  "self": "https://example.com/endpoints/ep1/messages/msg1","
+  "self": "https://example.com/endpoints/ep1/messages/msg1",
   "xid": "/endpoints/ep1/messages/msg1",
   "epoch": 1,
   "name": "Blob Created",
@@ -2696,7 +2696,7 @@ Content-Type: application/json; charset=utf-8
     "labels": { "customer": "abc" },
     # Remainder of Version entity excluded for brevity
   }
-]
+}
 ```
 
 Note that in this case, the new "label" replaces all existing labels; it is

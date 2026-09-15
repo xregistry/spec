@@ -1586,7 +1586,7 @@ PATCH /dirs/d1/files/f1
 PUT /dirs/d1/files/f1
 
 {
-  "meta: {
+  "meta": {
     "defaultversionsticky": true
   }
 }
@@ -1667,7 +1667,7 @@ PUT /dirs/d1/files/f1
 PATCH /dirs/d1/files/f1
 
 {
-  "meta: {
+  "meta": {
     "defaultversionsticky": true
   }
 }
@@ -1844,7 +1844,7 @@ PATCH /dirs/d1/files/f1/meta
 PATCH /dirs/d1/files/f1
 
 {
-  "meta: {
+  "meta": {
     "defaultversionid": "foo"
   }
 }
@@ -1907,7 +1907,7 @@ Error due to `foo` being an unknown Version.
 PUT /dirs/d1/files/f1
 
 {
-  "meta: {
+  "meta": {
     "defaultversionid": "foo",
     "defaultversionsticky": true
   }
@@ -1969,7 +1969,7 @@ PUT /dirs/d1/files/f1
 
 {
   "name": "foo",
-  "createdat": "1999"
+  "createdat": "1999",
   "meta": {
     "defaultversionsticky": true
   },
