@@ -68,6 +68,11 @@ Avro (`document-schema.avsc`), and OpenAPI (`openapi.json`) in the
 [schema](schema/schemas/)). The core model has its own JSON Schema at
 [core/model.schema.json](core/model.schema.json).
 
+Numeric and timestamp values in derived Avro and JSON Structure schemas use
+the [lossless scalar projection profile](tools/schema-projection-profile.md).
+Consumers need its semantic reader/writer adapters and explicit schema
+migration; Core JSON numeric values remain numbers.
+
 Additional release related information:
   [Historical releases and changelogs](docs/RELEASES.md)
 

@@ -3851,7 +3851,8 @@
           },
           "epoch": {
             "type": "integer",
-            "description": "Epoch time of the object creation"
+            "minimum": 0,
+            "description": "Optimistic concurrency update counter"
           },
           "self": {
             "type": "string",
@@ -3938,7 +3939,8 @@
           },
           "epoch": {
             "type": "integer",
-            "description": "Epoch time of the object creation"
+            "minimum": 0,
+            "description": "Optimistic concurrency update counter"
           },
           "self": {
             "type": "string",
@@ -4002,7 +4004,8 @@
           },
           "epoch": {
             "type": "integer",
-            "description": "Epoch time of the object creation"
+            "minimum": 0,
+            "description": "Optimistic concurrency update counter"
           },
           "self": {
             "type": "string",

@@ -42,11 +42,13 @@
                 ]
               }
             }
-          ]
+          ],
+          "x-xregistryJsonCarrier": "core-json/1"
         }
       },
       "default": [],
-      "doc": "Internal field to define GenericRecord type for use in extension attributes"
+      "doc": "Internal field to define GenericRecord type for use in extension attributes",
+      "x-xregistryInternal": true
     },
     {
       "name": "messagegroups",
@@ -72,10 +74,23 @@
             {
               "name": "epoch",
               "type": [
-                "int",
-                "null"
+                {
+                  "type": "record",
+                  "name": "io.xregistry.MessagegroupType_epoch_AbsentV1",
+                  "fields": [],
+                  "x-xregistryAbsent": "https://xregistry.io/profiles/scalar-projection/1"
+                },
+                "null",
+                "string"
               ],
-              "doc": "Epoch time of the object creation"
+              "x-xregistryScalar": {
+                "coreType": "uinteger",
+                "encoding": "json-number-token",
+                "constraints": {}
+              },
+              "x-xregistryOptional": true,
+              "doc": "Optimistic concurrency update counter",
+              "default": {}
             },
             {
               "name": "self",
@@ -118,23 +133,43 @@
               "name": "createdat",
               "type": [
                 {
-                  "type": "int",
-                  "logicalType": "time-millis"
+                  "type": "record",
+                  "name": "io.xregistry.MessagegroupType_createdat_AbsentV1",
+                  "fields": [],
+                  "x-xregistryAbsent": "https://xregistry.io/profiles/scalar-projection/1"
                 },
-                "null"
+                "null",
+                "string"
               ],
-              "doc": "Time of the object creation"
+              "x-xregistryScalar": {
+                "coreType": "timestamp",
+                "encoding": "rfc3339-text",
+                "constraints": {}
+              },
+              "x-xregistryOptional": true,
+              "doc": "Time of the object creation",
+              "default": {}
             },
             {
               "name": "modifiedat",
               "type": [
                 {
-                  "type": "int",
-                  "logicalType": "time-millis"
+                  "type": "record",
+                  "name": "io.xregistry.MessagegroupType_modifiedat_AbsentV1",
+                  "fields": [],
+                  "x-xregistryAbsent": "https://xregistry.io/profiles/scalar-projection/1"
                 },
-                "null"
+                "null",
+                "string"
               ],
-              "doc": "Time of the object modification"
+              "x-xregistryScalar": {
+                "coreType": "timestamp",
+                "encoding": "rfc3339-text",
+                "constraints": {}
+              },
+              "x-xregistryOptional": true,
+              "doc": "Time of the object modification",
+              "default": {}
             },
             {
               "type": "string",
@@ -181,10 +216,23 @@
                     {
                       "name": "epoch",
                       "type": [
-                        "int",
-                        "null"
+                        {
+                          "type": "record",
+                          "name": "io.xregistry.messagegroups.MessageType_epoch_AbsentV1",
+                          "fields": [],
+                          "x-xregistryAbsent": "https://xregistry.io/profiles/scalar-projection/1"
+                        },
+                        "null",
+                        "string"
                       ],
-                      "doc": "Epoch time of the object creation"
+                      "x-xregistryScalar": {
+                        "coreType": "uinteger",
+                        "encoding": "json-number-token",
+                        "constraints": {}
+                      },
+                      "x-xregistryOptional": true,
+                      "doc": "Optimistic concurrency update counter",
+                      "default": {}
                     },
                     {
                       "name": "self",
@@ -227,23 +275,43 @@
                       "name": "createdat",
                       "type": [
                         {
-                          "type": "int",
-                          "logicalType": "time-millis"
+                          "type": "record",
+                          "name": "io.xregistry.messagegroups.MessageType_createdat_AbsentV1",
+                          "fields": [],
+                          "x-xregistryAbsent": "https://xregistry.io/profiles/scalar-projection/1"
                         },
-                        "null"
+                        "null",
+                        "string"
                       ],
-                      "doc": "Time of the object creation"
+                      "x-xregistryScalar": {
+                        "coreType": "timestamp",
+                        "encoding": "rfc3339-text",
+                        "constraints": {}
+                      },
+                      "x-xregistryOptional": true,
+                      "doc": "Time of the object creation",
+                      "default": {}
                     },
                     {
                       "name": "modifiedat",
                       "type": [
                         {
-                          "type": "int",
-                          "logicalType": "time-millis"
+                          "type": "record",
+                          "name": "io.xregistry.messagegroups.MessageType_modifiedat_AbsentV1",
+                          "fields": [],
+                          "x-xregistryAbsent": "https://xregistry.io/profiles/scalar-projection/1"
                         },
-                        "null"
+                        "null",
+                        "string"
                       ],
-                      "doc": "Time of the object modification"
+                      "x-xregistryScalar": {
+                        "coreType": "timestamp",
+                        "encoding": "rfc3339-text",
+                        "constraints": {}
+                      },
+                      "x-xregistryOptional": true,
+                      "doc": "Time of the object modification",
+                      "default": {}
                     },
                     {
                       "type": "string",
@@ -265,6 +333,16 @@
                             },
                             {
                               "type": "io.xregistry.GenericRecord",
+                              "x-xregistryScalarTree": {
+                                "type": "object",
+                                "properties": {
+                                  "*": {
+                                    "type": "any",
+                                    "optional": true
+                                  }
+                                },
+                                "optional": true
+                              },
                               "name": "envelopeoptions",
                               "doc": "Envelope metadata constraints"
                             }
@@ -283,6 +361,44 @@
                           "fields": [
                             {
                               "type": "io.xregistry.GenericRecord",
+                              "x-xregistryScalarTree": {
+                                "type": "object",
+                                "properties": {
+                                  "header": {
+                                    "type": "object",
+                                    "properties": {
+                                      "priority": {
+                                        "scalar": {
+                                          "coreType": "integer",
+                                          "encoding": "json-number-token",
+                                          "constraints": {}
+                                        },
+                                        "optional": false,
+                                        "default": "4"
+                                      },
+                                      "ttl": {
+                                        "scalar": {
+                                          "coreType": "integer",
+                                          "encoding": "json-number-token",
+                                          "constraints": {}
+                                        },
+                                        "optional": true
+                                      },
+                                      "delivery-count": {
+                                        "scalar": {
+                                          "coreType": "integer",
+                                          "encoding": "json-number-token",
+                                          "constraints": {}
+                                        },
+                                        "optional": false,
+                                        "default": "0"
+                                      }
+                                    },
+                                    "optional": true
+                                  }
+                                },
+                                "optional": true
+                              },
                               "name": "protocoloptions",
                               "doc": "AMQP message metadata constraints"
                             }
@@ -295,6 +411,20 @@
                           "fields": [
                             {
                               "type": "io.xregistry.GenericRecord",
+                              "x-xregistryScalarTree": {
+                                "type": "object",
+                                "properties": {
+                                  "qos": {
+                                    "scalar": {
+                                      "coreType": "integer",
+                                      "encoding": "json-number-token",
+                                      "constraints": {}
+                                    },
+                                    "optional": true
+                                  }
+                                },
+                                "optional": true
+                              },
                               "name": "protocoloptions",
                               "doc": "MQTT message metadata constraints"
                             }
@@ -307,6 +437,41 @@
                           "fields": [
                             {
                               "type": "io.xregistry.GenericRecord",
+                              "x-xregistryScalarTree": {
+                                "type": "object",
+                                "properties": {
+                                  "qos": {
+                                    "scalar": {
+                                      "coreType": "integer",
+                                      "encoding": "json-number-token",
+                                      "constraints": {}
+                                    },
+                                    "optional": true
+                                  },
+                                  "payload_format_indicator": {
+                                    "scalar": {
+                                      "coreType": "integer",
+                                      "encoding": "json-number-token",
+                                      "constraints": {
+                                        "enum": [
+                                          "0",
+                                          "1"
+                                        ]
+                                      }
+                                    },
+                                    "optional": true
+                                  },
+                                  "message_expiry_interval": {
+                                    "scalar": {
+                                      "coreType": "integer",
+                                      "encoding": "json-number-token",
+                                      "constraints": {}
+                                    },
+                                    "optional": true
+                                  }
+                                },
+                                "optional": true
+                              },
                               "name": "protocoloptions",
                               "doc": "MQTT message metadata constraints"
                             }
@@ -319,6 +484,20 @@
                           "fields": [
                             {
                               "type": "io.xregistry.GenericRecord",
+                              "x-xregistryScalarTree": {
+                                "type": "object",
+                                "properties": {
+                                  "partition": {
+                                    "scalar": {
+                                      "coreType": "integer",
+                                      "encoding": "json-number-token",
+                                      "constraints": {}
+                                    },
+                                    "optional": true
+                                  }
+                                },
+                                "optional": true
+                              },
                               "name": "protocoloptions",
                               "doc": "Apache Kafka message metadata constraints"
                             }
@@ -358,6 +537,10 @@
                     },
                     {
                       "type": "io.xregistry.GenericRecord",
+                      "x-xregistryScalarTree": {
+                        "type": "any",
+                        "optional": true
+                      },
                       "doc": "The inline schema for the message payload, equivalent to the 'schema' attribute of the schema registry",
                       "name": "dataschema"
                     },
@@ -408,10 +591,23 @@
             {
               "name": "epoch",
               "type": [
-                "int",
-                "null"
+                {
+                  "type": "record",
+                  "name": "io.xregistry.EndpointType_epoch_AbsentV1",
+                  "fields": [],
+                  "x-xregistryAbsent": "https://xregistry.io/profiles/scalar-projection/1"
+                },
+                "null",
+                "string"
               ],
-              "doc": "Epoch time of the object creation"
+              "x-xregistryScalar": {
+                "coreType": "uinteger",
+                "encoding": "json-number-token",
+                "constraints": {}
+              },
+              "x-xregistryOptional": true,
+              "doc": "Optimistic concurrency update counter",
+              "default": {}
             },
             {
               "name": "self",
@@ -454,23 +650,43 @@
               "name": "createdat",
               "type": [
                 {
-                  "type": "int",
-                  "logicalType": "time-millis"
+                  "type": "record",
+                  "name": "io.xregistry.EndpointType_createdat_AbsentV1",
+                  "fields": [],
+                  "x-xregistryAbsent": "https://xregistry.io/profiles/scalar-projection/1"
                 },
-                "null"
+                "null",
+                "string"
               ],
-              "doc": "Time of the object creation"
+              "x-xregistryScalar": {
+                "coreType": "timestamp",
+                "encoding": "rfc3339-text",
+                "constraints": {}
+              },
+              "x-xregistryOptional": true,
+              "doc": "Time of the object creation",
+              "default": {}
             },
             {
               "name": "modifiedat",
               "type": [
                 {
-                  "type": "int",
-                  "logicalType": "time-millis"
+                  "type": "record",
+                  "name": "io.xregistry.EndpointType_modifiedat_AbsentV1",
+                  "fields": [],
+                  "x-xregistryAbsent": "https://xregistry.io/profiles/scalar-projection/1"
                 },
-                "null"
+                "null",
+                "string"
               ],
-              "doc": "Time of the object modification"
+              "x-xregistryScalar": {
+                "coreType": "timestamp",
+                "encoding": "rfc3339-text",
+                "constraints": {}
+              },
+              "x-xregistryOptional": true,
+              "doc": "Time of the object modification",
+              "default": {}
             },
             {
               "type": {
@@ -496,6 +712,32 @@
             },
             {
               "type": "io.xregistry.GenericRecord",
+              "x-xregistryScalarTree": {
+                "type": "object",
+                "properties": {
+                  "effective": {
+                    "scalar": {
+                      "coreType": "timestamp",
+                      "encoding": "rfc3339-text",
+                      "constraints": {}
+                    },
+                    "optional": true
+                  },
+                  "removal": {
+                    "scalar": {
+                      "coreType": "timestamp",
+                      "encoding": "rfc3339-text",
+                      "constraints": {}
+                    },
+                    "optional": true
+                  },
+                  "*": {
+                    "type": "any",
+                    "optional": true
+                  }
+                },
+                "optional": true
+              },
               "name": "deprecated",
               "doc": "Indicates whether the endpoint is deprecated"
             },
@@ -509,6 +751,16 @@
                   "fields": [
                     {
                       "type": "io.xregistry.GenericRecord",
+                      "x-xregistryScalarTree": {
+                        "type": "object",
+                        "properties": {
+                          "*": {
+                            "type": "any",
+                            "optional": true
+                          }
+                        },
+                        "optional": true
+                      },
                       "name": "envelopeoptions",
                       "doc": "Envelope metadata constraints"
                     }
@@ -527,6 +779,60 @@
                   "fields": [
                     {
                       "type": "io.xregistry.GenericRecord",
+                      "x-xregistryScalarTree": {
+                        "type": "object",
+                        "properties": {
+                          "endpoints": {
+                            "type": "array",
+                            "item": {
+                              "type": "object",
+                              "properties": {
+                                "*": {
+                                  "type": "any",
+                                  "optional": true
+                                }
+                              },
+                              "optional": false
+                            },
+                            "optional": true
+                          },
+                          "authorization": {
+                            "type": "array",
+                            "item": {
+                              "type": "object",
+                              "properties": {
+                                "*": {
+                                  "type": "any",
+                                  "optional": true
+                                }
+                              },
+                              "optional": false
+                            },
+                            "optional": true
+                          },
+                          "source-filters": {
+                            "type": "map",
+                            "item": {
+                              "type": "any",
+                              "optional": false
+                            },
+                            "optional": true
+                          },
+                          "timeout": {
+                            "scalar": {
+                              "coreType": "uinteger",
+                              "encoding": "json-number-token",
+                              "constraints": {}
+                            },
+                            "optional": true
+                          },
+                          "*": {
+                            "type": "any",
+                            "optional": true
+                          }
+                        },
+                        "optional": true
+                      },
                       "name": "protocoloptions",
                       "doc": "Configuration information for this endpoint"
                     }
@@ -539,6 +845,81 @@
                   "fields": [
                     {
                       "type": "io.xregistry.GenericRecord",
+                      "x-xregistryScalarTree": {
+                        "type": "object",
+                        "properties": {
+                          "endpoints": {
+                            "type": "array",
+                            "item": {
+                              "type": "object",
+                              "properties": {
+                                "*": {
+                                  "type": "any",
+                                  "optional": true
+                                }
+                              },
+                              "optional": false
+                            },
+                            "optional": true
+                          },
+                          "authorization": {
+                            "type": "array",
+                            "item": {
+                              "type": "object",
+                              "properties": {
+                                "*": {
+                                  "type": "any",
+                                  "optional": true
+                                }
+                              },
+                              "optional": false
+                            },
+                            "optional": true
+                          },
+                          "qos": {
+                            "scalar": {
+                              "coreType": "uinteger",
+                              "encoding": "json-number-token",
+                              "constraints": {
+                                "enum": [
+                                  "0",
+                                  "1",
+                                  "2"
+                                ]
+                              }
+                            },
+                            "optional": false,
+                            "default": "0"
+                          },
+                          "sessionexpiryinterval": {
+                            "scalar": {
+                              "coreType": "uinteger",
+                              "encoding": "json-number-token",
+                              "constraints": {}
+                            },
+                            "optional": true
+                          },
+                          "retainhandling": {
+                            "scalar": {
+                              "coreType": "uinteger",
+                              "encoding": "json-number-token",
+                              "constraints": {
+                                "enum": [
+                                  "0",
+                                  "1",
+                                  "2"
+                                ]
+                              }
+                            },
+                            "optional": true
+                          },
+                          "*": {
+                            "type": "any",
+                            "optional": true
+                          }
+                        },
+                        "optional": true
+                      },
                       "name": "protocoloptions",
                       "doc": "Configuration information for this endpoint"
                     }
@@ -551,6 +932,59 @@
                   "fields": [
                     {
                       "type": "io.xregistry.GenericRecord",
+                      "x-xregistryScalarTree": {
+                        "type": "object",
+                        "properties": {
+                          "endpoints": {
+                            "type": "array",
+                            "item": {
+                              "type": "object",
+                              "properties": {
+                                "*": {
+                                  "type": "any",
+                                  "optional": true
+                                }
+                              },
+                              "optional": false
+                            },
+                            "optional": true
+                          },
+                          "authorization": {
+                            "type": "array",
+                            "item": {
+                              "type": "object",
+                              "properties": {
+                                "*": {
+                                  "type": "any",
+                                  "optional": true
+                                }
+                              },
+                              "optional": false
+                            },
+                            "optional": true
+                          },
+                          "qos": {
+                            "scalar": {
+                              "coreType": "uinteger",
+                              "encoding": "json-number-token",
+                              "constraints": {
+                                "enum": [
+                                  "0",
+                                  "1",
+                                  "2"
+                                ]
+                              }
+                            },
+                            "optional": false,
+                            "default": "0"
+                          },
+                          "*": {
+                            "type": "any",
+                            "optional": true
+                          }
+                        },
+                        "optional": true
+                      },
                       "name": "protocoloptions",
                       "doc": "Configuration information for this endpoint"
                     }
@@ -563,6 +997,44 @@
                   "fields": [
                     {
                       "type": "io.xregistry.GenericRecord",
+                      "x-xregistryScalarTree": {
+                        "type": "object",
+                        "properties": {
+                          "endpoints": {
+                            "type": "array",
+                            "item": {
+                              "type": "object",
+                              "properties": {
+                                "*": {
+                                  "type": "any",
+                                  "optional": true
+                                }
+                              },
+                              "optional": false
+                            },
+                            "optional": true
+                          },
+                          "authorization": {
+                            "type": "array",
+                            "item": {
+                              "type": "object",
+                              "properties": {
+                                "*": {
+                                  "type": "any",
+                                  "optional": true
+                                }
+                              },
+                              "optional": false
+                            },
+                            "optional": true
+                          },
+                          "*": {
+                            "type": "any",
+                            "optional": true
+                          }
+                        },
+                        "optional": true
+                      },
                       "name": "protocoloptions",
                       "doc": "Configuration information for this endpoint"
                     }
@@ -575,6 +1047,61 @@
                   "fields": [
                     {
                       "type": "io.xregistry.GenericRecord",
+                      "x-xregistryScalarTree": {
+                        "type": "object",
+                        "properties": {
+                          "endpoints": {
+                            "type": "array",
+                            "item": {
+                              "type": "object",
+                              "properties": {
+                                "*": {
+                                  "type": "any",
+                                  "optional": true
+                                }
+                              },
+                              "optional": false
+                            },
+                            "optional": true
+                          },
+                          "authorization": {
+                            "type": "array",
+                            "item": {
+                              "type": "object",
+                              "properties": {
+                                "*": {
+                                  "type": "any",
+                                  "optional": true
+                                }
+                              },
+                              "optional": false
+                            },
+                            "optional": true
+                          },
+                          "acks": {
+                            "scalar": {
+                              "coreType": "integer",
+                              "encoding": "json-number-token",
+                              "constraints": {}
+                            },
+                            "optional": false,
+                            "default": "1"
+                          },
+                          "partition": {
+                            "scalar": {
+                              "coreType": "integer",
+                              "encoding": "json-number-token",
+                              "constraints": {}
+                            },
+                            "optional": true
+                          },
+                          "*": {
+                            "type": "any",
+                            "optional": true
+                          }
+                        },
+                        "optional": true
+                      },
                       "name": "protocoloptions",
                       "doc": "Configuration information for this endpoint"
                     }
@@ -587,6 +1114,44 @@
                   "fields": [
                     {
                       "type": "io.xregistry.GenericRecord",
+                      "x-xregistryScalarTree": {
+                        "type": "object",
+                        "properties": {
+                          "endpoints": {
+                            "type": "array",
+                            "item": {
+                              "type": "object",
+                              "properties": {
+                                "*": {
+                                  "type": "any",
+                                  "optional": true
+                                }
+                              },
+                              "optional": false
+                            },
+                            "optional": true
+                          },
+                          "authorization": {
+                            "type": "array",
+                            "item": {
+                              "type": "object",
+                              "properties": {
+                                "*": {
+                                  "type": "any",
+                                  "optional": true
+                                }
+                              },
+                              "optional": false
+                            },
+                            "optional": true
+                          },
+                          "*": {
+                            "type": "any",
+                            "optional": true
+                          }
+                        },
+                        "optional": true
+                      },
                       "name": "protocoloptions",
                       "doc": "Configuration information for this endpoint"
                     }
@@ -626,5 +1191,16 @@
         }
       }
     }
-  ]
+  ],
+  "x-xregistryProjection": {
+    "avroGenericValues": "GenericRecord.object.json contains exact Core JSON",
+    "avroOptionalScalars": "absent-record, null, or string",
+    "constraints": "typed enum and bounds; no lexical numeric comparison",
+    "defaults": "target-typed reader defaults; not implicit writer values",
+    "id": "https://xregistry.io/profiles/scalar-projection/1",
+    "identity": "sha256 of complete profile, dialect and writer schema",
+    "numbers": "exact-json-number-token; mathematical coefficient/exponent",
+    "timestamps": "rfc3339-text; exact fraction and explicit UTC normalization",
+    "version": "1"
+  }
 }
