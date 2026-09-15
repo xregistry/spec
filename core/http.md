@@ -1865,7 +1865,9 @@ DELETE /<GROUPS>/<GID>/<RESOURCES>
 
 {
   "<KEY>": {                            # <RESOURCE>id
-    "epoch": <UINTEGER> ?
+    "meta": {
+      "epoch": <UINTEGER> ?
+    } ?
   } *
 } ?
 ```
@@ -1887,7 +1889,9 @@ DELETE /endpoints/ep1/messages
 
 {
   "msg1": {
-    "epoch": 5
+    "meta": {
+      "epoch": 5
+    }
   },
   "msg2": {}
 }
@@ -1897,8 +1901,8 @@ DELETE /endpoints/ep1/messages
 HTTP/1.1 204 No Content
 ```
 
-Notice that the `epoch` value for `msg1` will be verified prior to the
-delete, but no such check will happen for `msg2`.
+Notice that the `meta.epoch` value for `msg1` will be verified prior to the
+delete, not the default Version's `epoch`. No such check will happen for `msg2`.
 
 #### `GET /<GROUPS>/<GID>/<RESOURCES>/<RID>`
 

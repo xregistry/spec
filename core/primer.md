@@ -1017,15 +1017,15 @@ where the first will delete a single entity, and the second can be used to
 delete multiple entities. In the second case there are a couple of design
 points worth noting:
 
-- if the HTTP body is empty, then the entire collection will be deleted.
+- if the HTTP body is absent, then the entire collection will be deleted.
   If the collection is `versions`, then the owning Resource must also be
   deleted since a Resource must always have at least one Version
-- if the HTTP contain an array, then an empty (zero item) array is valid,
-  but it will have no change on the server since there are not items listed
+- if the HTTP body contains an ID map, then an empty map (`{}`) is valid,
+  but it will have no effect on the server since there are no IDs listed
   to be deleted
-- if the array is not empty and one of the items in there is already deleted,
+- if the map is not empty and one of the specified IDs is already deleted,
   or never existed at all, then rather than generating an error (e.g. a `404`),
-  the server will ignore this condition and continue processing the list.
+  the server will ignore this condition and continue processing the map.
   This is because the net result will be what the user is asking for.
   Note, that this is different from `DELETE ../<ID>` case where if the
   referenced entity can not be found then a `404` must be generated.
