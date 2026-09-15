@@ -1472,7 +1472,7 @@ Example:
 [Apache Kafka consumer]: https://kafka.apache.org/31/javadoc/org/apache/kafka/clients/consumer/ConsumerRecord.html
 [HTTP Message Format]: https://www.rfc-editor.org/rfc/rfc9110#section-6
 [RFC6570]: https://www.rfc-editor.org/rfc/rfc6570
-[dayTimeDuration]: https://www.w3.org/TR/xmlschema11-2/#dayTimeDuration
+[dayTimeDuration]: https://www.w3.org/TR/xmlschema11-2#dayTimeDuration
 [rfc3339]: https://tools.ietf.org/html/rfc3339
 [message]: https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#message
 [SOAP]: https://www.w3.org/TR/soap12-part1/

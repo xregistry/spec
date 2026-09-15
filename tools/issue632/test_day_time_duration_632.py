@@ -25,7 +25,7 @@ def test_documented_duration_vectors_use_selected_grammar_and_value_space():
             with pytest.raises(ValueError, match="invalid XML Schema"):
                 parse_duration(literal)
     assert "RFC3339 Duration" not in source
-    assert "xmlschema11-2/#dayTimeDuration" in source
+    assert "xmlschema11-2#dayTimeDuration" in source
 
 
 @pytest.mark.parametrize(

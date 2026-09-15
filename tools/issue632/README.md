@@ -13,8 +13,8 @@ python -B -m pytest tools/issue632 -q -p no:cacheprovider
 ```
 
 The grammar follows the normative productions for
-[XML Schema duration](https://www.w3.org/TR/xmlschema11-2/#duration) and
-[dayTimeDuration](https://www.w3.org/TR/xmlschema11-2/#dayTimeDuration),
+[XML Schema duration](https://www.w3.org/TR/xmlschema11-2#duration) and
+[dayTimeDuration](https://www.w3.org/TR/xmlschema11-2#dayTimeDuration),
 including the unsigned decimal production for seconds. The reference model
 accepts fractional seconds with an omitted integer or fractional part, such as
 `PT.5S` and `PT1.S`, as those productions allow. It does not impose the
