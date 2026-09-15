@@ -10,7 +10,7 @@
 <!-- words: formatvalidated compatibilityvalidated formatvalidatedreason compatibilityvalidatedreason -->
 <!-- words: coap describedby integrators lifecycles modbus opc tds tms ua matchversions -->
 <!-- words: wotid wotids derivedfrom canonicalurl standardsbody submodel spdx openusd -->
-<!-- words: disambiguator toolchain userinfo byom contoso maturity publisher -->
+<!-- words: toolchain byom contoso maturity publisher -->
 
 ## Abstract
 
@@ -50,11 +50,9 @@ Registry allows for the storage, management and discovery of W3C
     - [4.6. Provenance and Selection Metadata](#46-provenance-and-selection-metadata)
   - [5. Identity and Resolution](#5-identity-and-resolution)
     - [5.1. WoT Identifiers and `xid`s](#51-wot-identifiers-and-xids)
-      - [5.1.1. The Symbolic Identifier Construction](#511-the-symbolic-identifier-construction)
-      - [5.1.2. Breaking Changes and Successor Identifiers](#512-breaking-changes-and-successor-identifiers)
+      - [5.1.1. Breaking Changes and Successor Identifiers](#511-breaking-changes-and-successor-identifiers)
     - [5.2. Preserving Customer Documents](#52-preserving-customer-documents)
     - [5.3. Lookup](#53-lookup)
-    - [5.4. Ambiguity and Errors](#54-ambiguity-and-errors)
   - [6. Relationships and Cross-References](#6-relationships-and-cross-references)
     - [6.1. Thing Description to Thing Model](#61-thing-description-to-thing-model)
     - [6.2. Thing Description to Endpoint Registry](#62-thing-description-to-endpoint-registry)
@@ -136,10 +134,10 @@ selection) apply unchanged. A breaking change to a TD or TM that violates the
 Resource's [`compatibility`][xRegistry compatibility] policy MUST result in a
 new Resource, not a new Version.
 
-Because a Resource's id is a function of its `wotid`, that successor Resource
+Because all Versions of a Resource share one `wotid`, that successor Resource
 is reached by authoring a *new* WoT identifier, and the superseded Resource
 records where the successor lives; see
-[Section 5.1.2](#512-breaking-changes-and-successor-identifiers).
+[Section 5.1.1](#511-breaking-changes-and-successor-identifiers).
 
 ### 1.4. Document Store
 
@@ -444,7 +442,7 @@ The `contenttype` of a `thingdescription` document SHOULD be `application/td+jso
 [WoT-TD 1.1][WoT-TD-1.1].
 
 The `wotid` attribute is REQUIRED and holds the document's authored WoT
-identifier; the `thingdescriptionid` is constructed from it. See
+identifier, which is distinct from the `thingdescriptionid`. See
 [Section 5.1](#51-wot-identifiers-and-xids). The OPTIONAL `derivedfrom`
 attribute lists the `wotid`s of the Thing Models this Thing Description
 extends or composes.
@@ -485,7 +483,7 @@ The same `compatibility`, `versionid`, and
 Resources apply to `thingmodel` Resources.
 
 The `wotid` attribute is REQUIRED on a `thingmodel` and holds the document's
-authored WoT identifier, from which the `thingmodelid` is constructed. Where a
+authored WoT identifier, which is distinct from the `thingmodelid`. Where a
 Thing Model extends another via `tm:extends`, or references one via `tm:ref`,
 the referenced Thing Models' `wotid`s SHOULD be listed in `derivedfrom`.
 
@@ -544,23 +542,15 @@ A Consumer choosing between candidate Thing Models SHOULD prefer, in order, a
 SHOULD prefer the document whose `canonicalurl` it already trusts.
 
 These attributes are **advisory**. They describe where a document came from
-and how established it is; they are not part of its semantic identity. In
-particular:
+and how established it is; they are not part of its semantic identity. A
+registry MUST NOT treat two documents as the same document because their
+provenance attributes agree, nor as different documents because they differ:
+identity is `wotid` alone ([Section 5.1](#51-wot-identifiers-and-xids)).
 
-- A registry MUST NOT treat two documents as the same document because their
-  provenance attributes agree, nor as different documents because they differ.
-  Identity is `wotid` alone ([Section 5.1](#51-wot-identifiers-and-xids)).
-- Changing a provenance attribute is not a change to the WoT document and
-  MUST NOT, by itself, require a new Version.
-
-Adoption signals such as download or reference counts are **registry
-operational data**, not document metadata: they describe the registry's
-observation of traffic rather than the document, they are not portable between
-registries, and a document copied to a second registry would acquire different
-values for the same bytes. This specification therefore does not model them.
-An implementation that publishes such signals SHOULD do so as extension
-attributes, and a Consumer MUST NOT rely on them being present or comparable
-across registries.
+They are Version attributes, carried on each Version alongside the document
+they describe, as `format` and `wotid` are. This specification defines no
+special update semantics for them; they are written and updated exactly as any
+other Version attribute is, under the xRegistry Core rules.
 
 ## 5. Identity and Resolution
 
@@ -578,16 +568,23 @@ The two express the same idea but are **not the same grammar**:
 `https://fabrikam.example/things/lamp-42` is not a valid `xid`, and an `xid`
 is not what a Thing author writes.
 
-This specification therefore does not equate them. It derives one from the
-other by a **closed-form, one-way construction**, and keeps the authored
-identifier as the authority:
+This specification therefore does not equate them, and does not define a
+mapping between them:
 
 > A `thingdescription`'s `wotid` MUST be the `id` member of its WoT document,
-> verbatim. Its `thingdescriptionid` MUST be the **symbolic identifier** of
-> that `wotid` ([Section 5.1.1](#511-the-symbolic-identifier-construction)).
-> The `wotid` attribute is REQUIRED and is the authority: an implementation
-> MUST NOT recover a WoT identifier by attempting to invert the construction.
-> The same rules apply to a `thingmodel`'s `wotid` and `thingmodelid`.
+> verbatim, and is the document's identity in the WoT identifier space. Its
+> `thingdescriptionid` is the Resource's id *within this registry* and is
+> chosen by the client that creates the Resource, subject to the xRegistry
+> Core id rules and to whatever further naming constraints the deployment
+> imposes. The same applies to a `thingmodel`'s `wotid` and `thingmodelid`.
+
+Because `wotid` is a first-party attribute, a Consumer holding a WoT
+identifier finds the Resource by querying on it ([Section 5.3](#53-lookup)),
+and never has to know or reconstruct the Resource's id. A deployment MAY
+derive its Resource ids from `wotid` values by a convention of its own — the
+[OpenUSD Artifact Registry][OpenUSD Draft] working draft defines one such
+construction — but no convention is required by this specification, and
+nothing may assume that an id it did not assign was produced by one.
 
 A `wotid` MUST NOT encode a revision of the document it names. Encoding one —
 for example as a `:v2` suffix appended when the document is edited — makes the
@@ -604,66 +601,14 @@ that may appear in one. A vendor who deliberately publishes a second,
 incompatible Thing alongside the first is naming a different Thing, and the
 identifier they author for it — which may well carry a `v2` token — is that
 Thing's own stable `wotid`; see
-[Section 5.1.2](#512-breaking-changes-and-successor-identifiers).
+[Section 5.1.1](#511-breaking-changes-and-successor-identifiers).
 
 Consequently, where a document is revised:
 
 - Its `wotid` is unchanged.
-- Its `thingdescriptionid` (or `thingmodelid`) is unchanged, because the
-  construction is a function of the `wotid` alone.
+- Its `thingdescriptionid` (or `thingmodelid`) is unchanged, because it is the
+  same Resource.
 - A new Version is created under the same Resource.
-
-#### 5.1.1. The Symbolic Identifier Construction
-
-A symbolic identifier is built from a source string as follows. The result is
-a dot-separated token in the alphabet `A-Z a-z 0-9 _ . -`, a strict subset of
-what xRegistry permits, so that it is simultaneously safe in a URL, on a
-command line and as a file name. The construction is deliberately identical to
-the one used by the [OpenUSD Artifact Registry][OpenUSD Draft] working draft,
-so that an implementation supporting both needs only one implementation of it.
-
-1. Split the source into an *authority* and a *path*. For an absolute URI with
-   an authority component the authority is the host together with its port
-   when present, and the path is the URI path; the scheme, userinfo, query and
-   fragment are discarded. For a URN the authority is empty and the path is
-   the URN split on `:`. Otherwise the authority is empty and the path is the
-   source split on `/`.
-2. Reverse the authority's `.`-separated labels (`fabrikam.example` becomes
-   `example`, `fabrikam`), appending the port, where present, as a further
-   label.
-3. Percent-decode each path segment and discard the empty ones.
-4. Normalize each label: replace every run of characters outside
-   `A-Z a-z 0-9 _ . -` with a single `-`; collapse runs of `-` and runs of
-   `.`; strip leading and trailing `-` and `.`; discard a label that becomes
-   empty. Letter case is preserved.
-5. Join the surviving labels with `.`. If no label survives, the identifier is
-   `_`.
-6. If the result is longer than 128 characters, drop trailing labels — never
-   the first — until it is at most 119 characters long; if that first label is
-   itself longer than 119 characters, truncate it to 119 and strip any
-   trailing `-` or `.`. Then append the disambiguator of step 7.
-7. Where step 6 truncated the result, or where the result would collide
-   case-insensitively with an existing sibling in the same collection, append
-   `.` followed by the first eight lower-case hexadecimal characters of the
-   SHA-256 of the UTF-8 encoding of the **exact source string**. The
-   disambiguator is a function of the identifier, not of any document, so it
-   does not change when a new Version is written.
-
-The construction is deterministic, so a Producer and a Consumer agree without
-a lookup table; it is lossy, so only the forward direction is defined:
-
-| Direction | Operation |
-|---|---|
-| authored `id` → registry location | apply the construction, append to the Group's `thingdescriptions`/`thingmodels` collection |
-| `thingdescriptionid` → authored `id` | read the Resource's `wotid` attribute |
-
-For example:
-
-| Authored `id` | `thingdescriptionid` |
-|---|---|
-| `urn:fabrikam:lamp:42` | `urn.fabrikam.lamp.42` |
-| `https://fabrikam.example/things/lamp-42` | `example.fabrikam.things.lamp-42` |
-| `urn:uuid:6ba7b810-9dad-11d1-80b4-00c04fd430c8` | `urn.uuid.6ba7b810-9dad-11d1-80b4-00c04fd430c8` |
 
 A `wotid` is REQUIRED. A document whose `id` member is absent — which
 [WoT-TD 1.1][WoT-TD-1.1] permits for TDs served from a fixed URL, and which is
@@ -673,20 +618,21 @@ registry MUST reject a write that supplies neither an `id` member nor a
 `wotid`, rather than inventing one, because an invented identifier is not
 stable across registries.
 
-#### 5.1.2. Breaking Changes and Successor Identifiers
+#### 5.1.1. Breaking Changes and Successor Identifiers
 
 [Section 1.3](#13-versioning) requires a breaking change to result in a new
-Resource rather than a new Version. Since a Resource's id is a function of its
-`wotid` alone, and a `wotid` does not change when its document is revised, a
-successor Resource cannot be produced by editing an existing document: it is
-produced by authoring a **new logical Thing** with its own `wotid`.
+Resource rather than a new Version. Since a `wotid` does not change when its
+document is revised, and every Version of a Resource carries the same one, a
+successor cannot be produced by editing an existing document: it is produced
+by authoring a **new logical Thing** with its own `wotid`, stored as a new
+Resource.
 
 - The successor's `wotid` is a new authored identifier, distinct from the
   predecessor's. It is that Thing's permanent identity and is itself never
   revised thereafter.
-- Its `thingdescriptionid` (or `thingmodelid`) follows from that `wotid` by the
-  construction in [Section 5.1.1](#511-the-symbolic-identifier-construction),
-  so the two Resources occupy distinct paths in the same Group.
+- The successor is a distinct Resource with its own `thingdescriptionid` (or
+  `thingmodelid`), so predecessor and successor occupy distinct paths and are
+  independently retrievable.
 - The predecessor's Versions are retained and remain retrievable. A breaking
   change does not remove history.
 - The predecessor SHOULD set [`deprecated`][xRegistry deprecated], naming the
@@ -742,10 +688,12 @@ document copied between two registries would acquire two different identities
 for the same bytes, so neither registry could tell the copies apart from
 genuinely distinct documents.
 
-The registry's own identifiers therefore live *outside* the document, in the
-`wotid`, `thingdescriptionid` and `derivedfrom` attributes. This keeps the
-authored identifier space and the registry identifier space separate and
-allows a document to round-trip unchanged.
+The registry's own identity for a document — its `thingdescriptionid` or
+`thingmodelid`, and the `xid` those form — therefore lives *outside* the
+document, and the identifiers the document itself authored are carried
+alongside it, unchanged, in the `wotid` and `derivedfrom` attributes. This
+keeps the authored identifier space and the registry identifier space
+separate and allows a document to round-trip unchanged.
 
 Where a registry wants the TD-to-TM link to be traversable without parsing the
 document, it records the referenced Thing Models' *authored* identifiers in
@@ -759,15 +707,17 @@ A Consumer holding a WoT identifier — typically taken from a `tm:extends`
 target, a `links[].href`, or a message attribute — resolves it to a stored
 document in one of two ways.
 
-**By construction.** Where the Consumer also knows the Group, it computes the
-Resource path directly, with no lookup:
+**By path.** Where the Consumer already knows the Resource's Group and id —
+because it was given them, or because it follows a stored `self` URL — it
+addresses the Resource directly:
 
 ```
-/thingmodelgroups/<thingmodelgroupid>/thingmodels/<symbolic-id-of(wotid)>
+/thingmodelgroups/<thingmodelgroupid>/thingmodels/<thingmodelid>
 ```
 
-**By query.** Otherwise it queries on the `wotid` attribute, which is the
-defined indexed path for identifier lookup:
+**By `wotid`.** Otherwise — the usual case, since WoT documents reference one
+another by authored identifier rather than by registry path — it queries on
+the `wotid` attribute:
 
 ```
 GET /thingmodels?filter=wotid=urn:fabrikam:lamp
@@ -775,14 +725,12 @@ GET /thingmodels?filter=wotid=urn:fabrikam:lamp
 
 An implementation SHOULD index `wotid` on both `thingdescriptions` and
 `thingmodels` such that this query is served without scanning the collection.
-The two forms are functionally equivalent from the Consumer's point of view
-and MUST return the same Resource where both are applicable.
 
-A `wotid` is expected to be unique within a Group; the construction of
-[Section 5.1.1](#511-the-symbolic-identifier-construction) guarantees it,
-since two Resources in one Group cannot share a `thingdescriptionid`. Across
-Groups a `wotid` MAY repeat — the same vendor TM legitimately appears in two
-tenants' Groups — so a registry-wide query MAY match more than one Resource.
+A `wotid` SHOULD be unique within a Group, so that a Group-scoped query for
+one identifies a single Resource. Across Groups a `wotid` MAY repeat — the
+same vendor TM legitimately appears in two tenants' Groups — so a
+registry-wide query MAY match more than one Resource, and a caller that needs
+exactly one narrows the query by naming the Group.
 
 Version selection is a second, separate step, and is never encoded in the
 identifier:
@@ -803,25 +751,6 @@ A caller that carries an identifier and a version through a transport — for
 example in message headers — SHOULD carry them as two separate values, so that
 the recipient resolves the document without parsing a compound string.
 
-### 5.4. Ambiguity and Errors
-
-Resolution behavior is deterministic:
-
-| Condition | Behavior |
-|---|---|
-| Identifier not found | `404 Not Found`. A registry MUST NOT substitute a near match |
-| Version not found on an existing Resource | `404 Not Found` |
-| Malformed version, or a `versionid` that violates the Resource's `versionmode` | `400 Bad Request` |
-| Malformed `wotid` on write — absent, empty, or not a URI where the document declares an `id` | `400 Bad Request` |
-| A registry-wide query matching more than one Resource | all matches are returned |
-
-A registry MUST NOT resolve an ambiguous match by returning an arbitrary
-first result. Where a caller requires a single document it MUST narrow the
-query — most simply by naming the Group — and where the query is
-Group-scoped a match is unique by construction. Returning an arbitrary
-member of a match set makes the result depend on storage order, which is not
-reproducible and cannot be relied on in production.
-
 ## 6. Relationships and Cross-References
 
 Sections [6.1](#61-thing-description-to-thing-model) through
@@ -833,12 +762,11 @@ Sections [6.1](#61-thing-description-to-thing-model) through
 A WoT-TD 1.1 document MAY declare that it conforms to one or more Thing Models
 using the `links` member with `"rel": "type"`, per
 [WoT-TD 1.1 §6.3.4][WoT-TD-1.1]. When the referenced Thing Model resides in
-the same WoT Registry, the `href` SHOULD point to that Thing Model's
-[`self`][xRegistry self] URL (or `shortself` URL). Because the Thing Model's
-Resource id is constructed from its `wotid`, a Producer computes that URL
-without a lookup; and because [Section 5.2](#52-preserving-customer-documents)
-forbids rewriting, a document that already carried an `href` in the WoT
-identifier space keeps it, and the link is recorded in `derivedfrom` instead.
+the same WoT Registry, the `href` MAY point to that Thing Model's
+[`self`][xRegistry self] URL (or `shortself` URL). Because
+[Section 5.2](#52-preserving-customer-documents) forbids rewriting, a document
+that already carried an `href` in the WoT identifier space keeps it, and the
+link is recorded in `derivedfrom` instead.
 
 For example:
 

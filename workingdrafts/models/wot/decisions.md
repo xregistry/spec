@@ -36,7 +36,7 @@ one. An author who publishes a second, incompatible Thing is naming a
 different Thing, and the identifier they choose for it may legitimately carry
 a `v2` token — that token is part of the new Thing's own permanent `wotid`,
 not a version appended to an existing one. See
-[Decision 10](#10-a-breaking-change-produces-a-new-logical-thing).
+[Decision 6](#6-a-breaking-change-produces-a-new-logical-thing).
 
 See [Section 1.3](spec.md#13-versioning),
 [Section 5.1](spec.md#51-wot-identifiers-and-xids) and
@@ -59,31 +59,40 @@ own path would make the link easy to follow inside this registry and useless
 outside it, because every other WoT tool resolves the reference in the WoT
 identifier space.
 
-**Consequence.** All registry-side identity lives outside the document, in
-`wotid` and `derivedfrom`.
+**Consequence.** The registry's own identity for a document — its Resource id
+— lives outside the document, and the identifiers the document itself authored
+are carried alongside it, unchanged, in `wotid` and `derivedfrom`. Neither of
+those attributes holds an `xid`.
 
 See [Section 5.2](spec.md#52-preserving-customer-documents).
 
-## 3. A one-way construction maps a WoT identifier to an xRegistry id
+## 3. The Resource id is chosen by the client, not derived by the registry
 
-**Decision.** `thingdescriptionid` and `thingmodelid` are the symbolic
-identifier constructed from `wotid`. The construction is deterministic,
-closed-form and lossy; implementations MUST NOT invert it, and recover the
-authored identifier by reading `wotid`.
+**Decision.** This specification does not define a mapping between a `wotid`
+and a `thingdescriptionid`/`thingmodelid`. The client that creates a Resource
+supplies both; the registry relates them by storing them together, not by
+computing one from the other.
 
 **Why.** A WoT identifier is a URI and an xRegistry id uses a much narrower
-grammar, so the two cannot be equated. A deterministic construction lets a
-Consumer work out a Resource path on its own, with no lookup table, while the
-stored attribute remains the authority. The construction is deliberately the
-same one the OpenUSD working draft uses, so an implementation that supports
-both needs only one copy of it.
+grammar, so the two cannot be equated — but mandating a particular
+construction buys little and costs portability. The point of a first-party
+`wotid` is precisely that a Consumer holding a WoT identifier does not need to
+know the Resource id: it queries on `wotid`. Hosting environments also differ
+in what they permit in a name, and a deployment whose ids are constrained more
+tightly than xRegistry's own rules — an ARM-backed registry, for example —
+would otherwise be unable to conform.
 
-**Example.** `urn:fabrikam:lamp:42` becomes `urn.fabrikam.lamp.42`. The URI
-scheme is discarded along the way, so two identifiers that differ only in
-their scheme produce the same symbolic identifier. That is what "lossy" means
-here, and it is why the construction is only ever run forwards.
+**Example.** A registry that stores `urn:fabrikam:lamp:42` under the Resource
+id `lamp-42` is conformant, and so is one that stores it under
+`urn.fabrikam.lamp.42`. Both answer `?filter=wotid=urn:fabrikam:lamp:42` with
+the same Resource.
 
-See [Section 5.1.1](spec.md#511-the-symbolic-identifier-construction).
+**Consequence.** A deployment MAY adopt a derivation convention of its own —
+the [OpenUSD Artifact Registry](../openusd/spec.md) working draft defines one
+— but it is a local convention, and nothing may assume an id was produced by
+it.
+
+See [Section 5.1](spec.md#51-wot-identifiers-and-xids).
 
 ## 4. `wotid` is a REQUIRED, indexed, first-party attribute
 
@@ -104,42 +113,31 @@ for that case is not yet settled.
 
 See [Section 5.3](spec.md#53-lookup).
 
-## 5. Ambiguous lookup is an explicit outcome, never an arbitrary pick
-
-**Decision.** A Group-scoped lookup is unique by construction. A
-registry-wide query that matches several Resources returns all of them; a
-registry MUST NOT return an arbitrary first result. Unknown identifier and
-unknown version are `404`; a malformed version or `wotid` is `400`.
-
-**Why.** Returning whichever match happens to come first makes the answer
-depend on storage order — not reproducible, and unusable in production.
-
-**Example.** Two tenants each hold the same vendor Thing Model in their own
-Group. A registry-wide query for its `wotid` matches both and returns both. A
-caller that needs exactly one narrows the query by naming the Group.
-
-See [Section 5.4](spec.md#54-ambiguity-and-errors).
-
-## 6. Provenance metadata is advisory and does not affect identity
+## 5. Provenance metadata is advisory and does not affect identity
 
 **Decision.** `license`, `publisher`, `standardsbody`, `canonicalurl` and
-`maturity` describe where a document came from. They never determine whether
-two documents are the same document, and changing one does not by itself
-require a new Version. Adoption counts are registry operational data and are
-not modeled.
+`maturity` describe where a document came from. They are Version attributes,
+carried on each Version alongside the document they describe, and they never
+determine whether two documents are the same document.
 
 **Why.** Agents need an explicit basis for preferring an official model over
-an obscure one, but a popularity count is an observation of one registry's
-traffic rather than a property of the document, and does not travel with it.
+an obscure one, and inferring it from a title or a naming convention is
+guesswork. Keeping the attributes on the Version keeps each stored document
+described by the provenance recorded with it; keeping them out of identity
+keeps two documents from collapsing into one because they happen to share a
+publisher.
 
 **Example.** An agent prefers a Thing Model marked `Standard` by a
 `standardsbody` over one marked `Community`. Two documents that share a
-`publisher` are still two documents, because identity is `wotid` alone, and
-correcting a misspelled `publisher` does not create a Version.
+`publisher` are still two documents, because identity is `wotid` alone.
+
+**Consequence.** Updating one of these attributes is an ordinary update of a
+Version attribute, governed by the Core rules for updating a Version. This
+specification grants it no exemption from them.
 
 See [Section 4.6](spec.md#46-provenance-and-selection-metadata).
 
-## 10. A breaking change produces a new logical Thing
+## 6. A breaking change produces a new logical Thing
 
 **Decision.** A breaking change creates a new Resource, and that Resource is
 reached by authoring a **new `wotid`** — not by revising the existing one. The
@@ -147,13 +145,14 @@ superseded Resource retains its Versions and SHOULD set `deprecated` naming
 the successor. Where a solution versions Things semantically, the authored
 identifier SHOULD carry a major-version token.
 
-**Why.** [Decision 1](#1-a-wot-identifier-never-encodes-a-version) makes a
-Resource's id a pure function of its `wotid`, and holds that `wotid` constant
-across revisions. Two Resources therefore require two `wotid`s, so the only
-place a successor can come from is a newly authored identifier. Stating this
+**Why.** [Decision 1](#1-identity-and-version-are-separate-values) holds a
+`wotid` constant across revisions, and `wotid` is declared `matchversions`, so
+every Version of a Resource carries the same one. A document incompatible with
+its predecessor therefore cannot be a Version of it, and the only place a
+successor can come from is a newly authored identifier. Stating this
 explicitly removes an apparent contradiction between the two rules: without
 it, a breaking change has no legal representation, since it may neither become
-a Version nor acquire an id.
+a Version of the existing Resource nor reuse its `wotid`.
 
 The major-version token is the convention the
 [Schema Registry](https://xregistry.io/xreg/xregistryspecs/schema-v1/docs/spec.html)
@@ -165,5 +164,5 @@ legible to anyone who knows the approved specifications.
 old Resource still resolves, still serves its documents, and points at the
 successor.
 
-See [Section 5.1.2](spec.md#512-breaking-changes-and-successor-identifiers).
+See [Section 5.1.1](spec.md#511-breaking-changes-and-successor-identifiers).
 

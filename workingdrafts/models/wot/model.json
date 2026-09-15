@@ -39,7 +39,7 @@
               "type": "string",
               "required": true,
               "matchversions": true,
-              "description": "The authored WoT identifier of this Thing Description - the value of the document's 'id' member, verbatim. It is the Resource source identity and the authority: the thingdescriptionid is a symbolic identifier constructed from it by a one-way construction that is never inverted. All Versions of a Thing Description share one wotid; it MUST NOT encode a revision of the document it names"
+              "description": "The authored WoT identifier of this Thing Description - the value of the document's 'id' member, verbatim. It is the document's identity in the WoT identifier space and is distinct from the thingdescriptionid, which is the Resource id within this registry and is chosen by the client. All Versions of a Thing Description share one wotid; it MUST NOT encode a revision of the document it names"
             },
             "derivedfrom": {
               "name": "derivedfrom",
@@ -123,7 +123,7 @@
               "type": "string",
               "required": true,
               "matchversions": true,
-              "description": "The authored WoT identifier of this Thing Model - the value of the document's 'id' member, verbatim. It is the Resource source identity and the authority: the thingmodelid is a symbolic identifier constructed from it by a one-way construction that is never inverted. All Versions of a Thing Model share one wotid; it MUST NOT encode a revision of the document it names"
+              "description": "The authored WoT identifier of this Thing Model - the value of the document's 'id' member, verbatim. It is the document's identity in the WoT identifier space and is distinct from the thingmodelid, which is the Resource id within this registry and is chosen by the client. All Versions of a Thing Model share one wotid; it MUST NOT encode a revision of the document it names"
             },
             "derivedfrom": {
               "name": "derivedfrom",

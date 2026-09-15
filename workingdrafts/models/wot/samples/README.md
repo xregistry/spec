@@ -8,9 +8,9 @@ WoT Registry model defined in [../model.json](../model.json):
 
 - [lamp-tm.xreg.json](lamp-tm.xreg.json) — a minimal `thingmodelgroups`
   document containing a single Thing Model for a generic dimmable lamp. Its
-  authored identifier `urn:fabrikam:lamp` is carried in `wotid`, and the
-  Resource id `urn.fabrikam.lamp` is the symbolic identifier constructed from
-  it.
+  authored identifier `urn:fabrikam:lamp` is carried in `wotid`, while
+  `urn.fabrikam.lamp` is the Resource id the client chose for it; a Consumer
+  holding the authored identifier finds the Resource by querying `wotid`.
 - [lamp-td.xreg.json](lamp-td.xreg.json) — a `thingdescriptiongroups` document
   containing a Thing Description (`urn:fabrikam:lamp:42`) that conforms to the
   lamp Thing Model above. Its `links[].rel = "type"` entry references the TM
@@ -19,8 +19,8 @@ WoT Registry model defined in [../model.json](../model.json):
 - [byom-pump-tm.xreg.json](byom-pump-tm.xreg.json) — a bring-your-own-model
   example. Two vendor-supplied Thing Models are stored exactly as authored:
   their `id` members and the `tm:extends` reference between them are
-  untouched, and all registry-side identity lives outside the documents in
-  `wotid` and `derivedfrom`. The pump has two Versions, with `2` as the
+  untouched, and the authored identifiers are carried alongside the documents
+  in `wotid` and `derivedfrom`. The pump has two Versions, with `2` as the
   default, so retrieving the Resource yields the latest while
   `.../versions/1` yields the earlier one. Because the pump supplies an
   explicit `versions` collection, its attributes — including the provenance
