@@ -390,7 +390,7 @@ events.
   - MUST be generated when:
     - A Resource's attribute (from the default Version entity) is updated,
       where `changed`, if present, MUST include each modified attribute. Note
-      that a `io.xregistry.version.update` event MUST also be generated.
+      that a `io.xregistry.version.updated` event MUST also be generated.
 
     - A Version is created or deleted, where `changed`, if present, MUST
       include `meta.epoch`, `meta.modifiedat`, `versions` and `versionscount`
@@ -406,7 +406,7 @@ events.
       `meta.`. For example, `meta.defaultversionid`.
 
       This MUST include any updates to the `deprecated` sub-object, even though
-      a `io.xregistry.deprecated` event is also generated. And in that
+      a `io.xregistry.resource.deprecated` event is also generated. And in that
       situation `meta.deprecated` MUST be included in the
       `io.xregistry.resource.updated` event's `changed` list, if present.
 
