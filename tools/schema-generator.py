@@ -3,6 +3,7 @@ import copy
 import json
 import os
 import re
+from functools import lru_cache
 from jsonpointer import resolve_pointer
 
 avro_generic_record_name = "GenericRecord"
@@ -364,6 +365,44 @@ def generate_openapi(model_definition):
         raise
 
 
+@lru_cache(maxsize=1)
+def _selector_case_variants():
+    variants = {}
+    for codepoint in range(0x110000):
+        character = chr(codepoint)
+        folded = character.casefold()
+        if folded != character:
+            variants.setdefault(folded, set()).add(character)
+    return variants
+
+
+def _ifvalue_guard(type_name, value):
+    scalar_type = json_type_mapping[type_name].get("type")
+    if scalar_type == "string":
+        variants = _selector_case_variants()
+        parts = []
+        for character in value:
+            folded = character.casefold()
+            spellings = {character} | variants.get(folded, set())
+            if len(folded) == 1:
+                spellings.add(folded)
+            alternatives = [
+                re.sub(r"([\\^$.|?*+(){}\[\]])", r"\\\1", spelling)
+                for spelling in sorted(spellings)
+            ]
+            parts.append(
+                alternatives[0] if len(alternatives) == 1
+                else "(?:" + "|".join(alternatives) + ")"
+            )
+        # Unlike $, this end assertion cannot match before a final newline.
+        return {"type": "string", "pattern": "^" + "".join(parts) + r"(?![\s\S])"}
+    if scalar_type == "boolean" and value.lower() in ("true", "false"):
+        return {"enum": [value.lower() == "true"]}
+    if scalar_type == "integer" and re.fullmatch(r"-?(?:0|[1-9][0-9]*)", value):
+        return {"enum": [int(value)]}
+    raise ValueError(f"Unsupported ifvalues key {value!r} for scalar type {type_name!r}")
+
+
 def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> dict:
     """
     Generate a JSON schema for the given model definition.
@@ -459,69 +498,35 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                 if attr_name == "*":
                     raise Exception("Can't use wild card attribute name with ifvalues")
 
-                if for_openapi:
-                    resource_schema["discriminator"] = {
-                        "propertyName": attr_name,
-                        "mapping": {}
-                    }
-
-                if attr_name in resource_schema["properties"]:
-                    resource_schema["properties"].pop(attr_name)
-                    if "required" in resource_schema and attr_name in resource_schema["required"]:
-                        resource_schema["required"].remove(attr_name)
-
+                resource_schema["properties"][attr_name] = copy.deepcopy(attr_schema)
                 one_of = []
+                guards = []
+                seen_values = set()
                 for condition_value, condition_props in attr_props["ifvalues"].items():
-                    # create an identifier from condition_value, turning all spaces and special characters in to underscore
-                    condition_schema_identifier = attr_name + "_" + "".join([c if c.isalnum() else "_" for c in condition_value])
-                    # for openapi, add a reference to this schema in the discriminator mapping
-                    if for_openapi:
-                        resource_schema["discriminator"]["mapping"][condition_value] = f"#/components/schemas/{condition_schema_identifier}"
-
+                    folded_value = tuple(character.casefold() for character in condition_value)
+                    if folded_value in seen_values:
+                        raise ValueError(f"Duplicate case-insensitive ifvalues key: {condition_value!r}")
+                    seen_values.add(folded_value)
+                    guard = _ifvalue_guard(attr_props["type"], condition_value)
+                    guards.append(guard)
                     conditional_attr_schema = copy.deepcopy(attr_schema)
-                    conditional_attr_schema.update({
-                                "enum": [condition_value],
-                            })
-                    if "siblingattributes" in condition_props:
-                        conditional_schema = {
-                                    "properties": {
-                                        attr_name: conditional_attr_schema
-                                    },
-                                    "required": [attr_name]
-                                }
-                        handle_attributes(conditional_schema,  condition_props.get("siblingattributes", {}))
-                    else:
-                        conditional_attr_schema.update({
-                            "default": condition_value
-                        })
-                        conditional_schema = {
-                            "properties": {
-                                        attr_name: conditional_attr_schema
-                                    },
-                        }
-
-                    if for_openapi:
-                        resource_schema["discriminator"]["mapping"][condition_value] = f"#/components/schemas/{condition_schema_identifier}"
-                        schema_definitions[condition_schema_identifier] = copy.deepcopy(conditional_schema)
-                    else:
-                        one_of.append(copy.deepcopy(conditional_schema))
-                if len(one_of) > 0:
+                    conditional_attr_schema.update(guard)
+                    conditional_schema = {
+                        "properties": {attr_name: conditional_attr_schema},
+                        "required": [attr_name]
+                    }
+                    handle_attributes(
+                        conditional_schema, condition_props.get("siblingattributes", {})
+                    )
+                    one_of.append(conditional_schema)
+                if one_of:
                     one_of.append({
-                        "anyOf": [
-                            { "not": { "required": [attr_name] } },
-                            {
-                                "properties": {
-                                    attr_name: { "not": { "enum": list(attr_props["ifvalues"].keys()) } }
-                                },
-                                "required": [attr_name]
-                            }
-                        ]
+                        "not": {
+                            "properties": {attr_name: {"anyOf": guards}},
+                            "required": [attr_name]
+                        }
                     })
-                    if "oneOf" in resource_schema:
-                        resource_schema["allOf"] = [{"oneOf" : resource_schema.pop("oneOf")}]
-                        resource_schema["allOf"].append({"oneOf": one_of})
-                    else:
-                        resource_schema["oneOf"] = one_of
+                    resource_schema.setdefault("allOf", []).append({"oneOf": one_of})
             else:
                 if attr_name == "*":
                     if attr_props["type"] == "any":
