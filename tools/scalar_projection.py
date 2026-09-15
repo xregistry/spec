@@ -987,12 +987,16 @@ class ProjectionCodec:
                 if member is not _MISSING:
                     result[wire_name] = member
             extra = value.keys() - known
-            if extra and not node.get("additionalProperties", False):
+            additional_properties = node.get("additionalProperties", False)
+            if extra and not additional_properties:
                 raise ProjectionError("Object contains properties absent from the writer schema")
             for name in extra:
-                result[name] = parse_core_json(
-                    dump_core_json(value[name], limits=self._limits), limits=self._limits
-                )
+                if isinstance(additional_properties, dict):
+                    result[name] = visit(additional_properties, value[name])
+                else:
+                    result[name] = parse_core_json(
+                        dump_core_json(value[name], limits=self._limits), limits=self._limits
+                    )
             return result
         if kind == "map":
             if type(value) is not dict or any(type(key) is not str for key in value):

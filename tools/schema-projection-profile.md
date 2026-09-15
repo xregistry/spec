@@ -5,7 +5,7 @@
 <!-- words: py resourcelimiterror sdk xregistryabsent xregistryjsoncarrier -->
 <!-- words: xregistryprojection xregistryscalar xregistryscalartree -->
 <!-- words: projectioncodec -->
-<!-- words: jsonstructurevalidation maxentries migrationerror -->
+<!-- words: additionalproperties jsonstructurevalidation maxentries migrationerror -->
 
 This profile is identified by
 `https://xregistry.io/profiles/scalar-projection/1`. It describes derived
@@ -154,6 +154,15 @@ rejects invalid or unenabled limits. Valid limits are enforced on writes and
 reads, including referenced map definitions. A zero limit admits an empty
 object, not extra entries; an absent optional property remains absent. The
 limit and feature declaration remain part of the complete writer identity.
+
+For named JSON Structure objects, schema-valued `additionalProperties` uses
+the same bounded value adapter as named fields and map values, on writes and
+reads. Numeric extras retain their Core numeric kind even when projected as
+strings; named string fields are not retyped. Referenced objects, arrays and
+maps traverse that adapter as well. Boolean open/closed boundaries remain
+unchanged. The complete additional value schema participates in writer identity,
+independently of map entry limits. This is not full JSON Structure SDK or
+validation-feature qualification.
 
 `ProjectionCodec.from_artifact` verifies a retained artifact. Applications
 still have to obtain and pin that artifact through a trusted channel. Its
