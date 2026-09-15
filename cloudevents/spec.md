@@ -124,7 +124,7 @@ endpoint with a single, embedded message definition using an embedded Protobuf
   "xid": "/",
   "epoch": 4,
   "createdat": "2024-04-30T12:00:00Z",
-  "modifiedat": "2024-04-31T12:00:00Z",
+  "modifiedat": "2024-05-01T12:00:00Z",
 
   "endpointsurl": "https://example.com/endpoints",
   "endpointscount": 1,
@@ -135,7 +135,7 @@ endpoint with a single, embedded message definition using an embedded Protobuf
       "xid": "/endpoints/com.example.telemetry",
       "epoch": 5,
       "createdat": "2024-04-30T12:00:00Z",
-      "modifiedat": "2024-04-31T12:00:00Z",
+      "modifiedat": "2024-05-01T12:00:00Z",
 
       "usage": "consumer",
       "format": "CloudEvents/1.0",
@@ -162,7 +162,7 @@ endpoint with a single, embedded message definition using an embedded Protobuf
           "isdefault": true,
           "description": "device telemetry event",
           "createdat": "2024-04-30T12:00:00Z",
-          "modifiedat": "2024-04-31T12:00:00Z",
+          "modifiedat": "2024-05-01T12:00:00Z",
           "ancestorid": "1.0",
 
           "format": "CloudEvents/1.0",
@@ -215,7 +215,7 @@ other scenarios:
   "xid": "/",
   "epoch": 4,
   "createdat": "2024-04-30T12:00:00Z",
-  "modifiedat": "2024-04-31T12:00:00Z",
+  "modifiedat": "2024-05-01T12:00:00Z",
 
   "endpointsurl": "https://example.com/endpoints",
   "endpointscount": 1,
@@ -226,7 +226,7 @@ other scenarios:
       "xid": "/endpoints/com.example.telemetry",
       "epoch": 5,
       "createdat": "2024-04-30T12:00:00Z",
-      "modifiedat": "2024-04-31T12:00:00Z",
+      "modifiedat": "2024-05-01T12:00:00Z",
 
       "usage": "consumer",
       "format": "CloudEvents/1.0",
@@ -257,7 +257,7 @@ other scenarios:
       "xid": "/messagegroups/com.example.telemetryEvents",
       "epoch": 3,
       "createdat": "2024-04-30T12:00:00Z",
-      "modifiedat": "2024-04-31T12:00:00Z",
+      "modifiedat": "2024-05-01T12:00:00Z",
 
       "messagesurl": "https://example.com/messagegroups/com.example.telemetryEvents/messages",
       "messagescount": 1,
@@ -271,7 +271,7 @@ other scenarios:
           "isdefault": true,
           "description": "device telemetry event",
           "createdat": "2024-04-30T12:00:00Z",
-          "modifiedat": "2024-04-31T12:00:00Z",
+          "modifiedat": "2024-05-01T12:00:00Z",
           "ancestorid": "1.0",
 
           "format": "CloudEvents/1.0",
@@ -318,7 +318,7 @@ other scenarios:
       "xid": "/schemagroups/com.example.telemetry",
       "epoch": 5,
       "createdat": "2024-04-30T12:00:00Z",
-      "modifiedat": "2024-04-31T12:00:00Z",
+      "modifiedat": "2024-05-01T12:00:00Z",
 
       "schemasurl": "https://example.com/schemagroups/com.example.telemetry/schemas",
       "schemascount": 1,
@@ -332,7 +332,7 @@ other scenarios:
           "isdefault": true,
           "description": "device telemetry event data",
           "createdat": "2024-04-30T12:00:00Z",
-          "modifiedat": "2024-04-31T12:00:00Z",
+          "modifiedat": "2024-05-01T12:00:00Z",
           "ancestorid": "1.0",
 
           "format": "Protobuf/3.0",
@@ -368,7 +368,7 @@ group with a deep link to the respective object in the service:
       "xid": "/endpoints/com.example.telemetry",
       "epoch": 5,
       "createdat": "2024-04-30T12:00:00Z",
-      "modifiedat": "2024-04-31T12:00:00Z",
+      "modifiedat": "2024-05-01T12:00:00Z",
 
       "usage": "consumer",
       "format": "CloudEvents/1.0",
@@ -403,7 +403,7 @@ link will first reference the file and then the object within the file, using
       "xid": "/endpoints/com.example.telemetry",
       "epoch": 5,
       "createdat": "2024-04-30T12:00:00Z",
-      "modifiedat": "2024-04-31T12:00:00Z",
+      "modifiedat": "2024-05-01T12:00:00Z",
 
       "usage": "consumer",
       "format": "CloudEvents/1.0",
