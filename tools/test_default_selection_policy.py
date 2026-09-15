@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SPEC = (ROOT / "core" / "spec.md").read_text(encoding="utf-8")
 GUIDE = (ROOT / "core" / "resource.md").read_text(encoding="utf-8")
 MODEL_SPEC = (ROOT / "core" / "model.md").read_text(encoding="utf-8")
+TOOL_NOTES = (ROOT / "tools" / "README.md").read_text(encoding="utf-8")
 SECTION = SPEC.split("#### `defaultversionid` Attribute\n", 1)[1].split(
     "#### `defaultversionurl` Attribute", 1
 )[0]
@@ -32,7 +33,14 @@ def test_source_limits_existence_validation_to_effective_sticky_selection():
         "flag MUST NOT cause an existence error."
     )
     assert "Any attempt to set `defaultversionid` to a non-existing Version" not in SECTION
-    assert "../tools/default_selection_contract.py" in SECTION
+    assert "default_selection_contract.py" not in SECTION
+    assert "py" not in SPEC.split("## Abstract", 1)[0].split()
+    assert "(default_selection_contract.py)" in TOOL_NOTES
+    assert "(../core/spec.md#defaultversionid-attribute)" in TOOL_NOTES
+    assert (
+        "It does not replace Meta processing, Version creation or default selection."
+        in " ".join(TOOL_NOTES.split())
+    )
 
 
 def test_source_keeps_syntax_creation_clues_and_whole_request_rollback():

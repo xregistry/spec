@@ -5,7 +5,7 @@
 <!-- words: compat formatvalidatedreason compatibilityvalidatedreason -->
 <!-- words: matchversions excludeall -->
 <!-- words: myarray myobject -->
-<!-- words: href schemaregistry missingschema webpage py -->
+<!-- words: href schemaregistry missingschema webpage -->
 
 ## Abstract
 
@@ -3118,11 +3118,6 @@ MUST NOT discard a candidate before the existing
 [Resource creation-clue processing](#resource-processing-algorithm). An invalid
 effective selection fails the whole operation under
 [Error Processing](#error-processing), without retaining partial changes.
-
-The [executable candidate-stage contract](../tools/default_selection_contract.py)
-illustrates this distinction after the surrounding processing has resolved
-whether a candidate is the effective sticky selection. It does not replace
-Meta processing, Version creation or default selection.
 
 See [`defaultversionsticky` Attribute](#defaultversionsticky-attribute) below
 for the relationship between these two attribute.
