@@ -1691,7 +1691,7 @@
         "schemas": {
             "ProblemDetails": {
                 "type": "object",
-                "required": ["type", "instance", "title"],
+                "required": ["type", "title"],
                 "properties": {
                     "type": {
                         "type": "string",

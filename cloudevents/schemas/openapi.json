@@ -3895,7 +3895,6 @@
         "type": "object",
         "required": [
           "type",
-          "instance",
           "title"
         ],
         "properties": {
