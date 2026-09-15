@@ -3073,7 +3073,8 @@ and the following Meta-level attributes:
 
 - Constraints:
   - REQUIRED.
-  - MUST be the `versionid` of the default Version of the Resource.
+  - In completed metadata, MUST be the `versionid` of the default Version of
+    the Resource.
 
 When a "patch" type of operation is used and this attribute is present in the
 request but `defaultversionsticky` is absent, then:
@@ -3103,9 +3104,20 @@ For clarity, when processing a request that results in
 value, or value specified in the request, MUST be ignored for the purpose of
 setting its final value.
 
-Any attempt to set `defaultversionid` to a non-existing Version, after all
-Version processing for the current operation is completed, MUST generate an
-error ([unknown_id](#unknown_id)).
+Existence validation MUST use the effective selection after applying Meta
+processing, model defaults, patch inference and flag overrides, and after all
+Version processing for the operation. A non-null candidate that remains the
+effective sticky selection MUST reference an existing Version; otherwise an
+error ([unknown_id](#unknown_id)) MUST be generated. A candidate discarded by
+non-sticky selection or superseded by a flag MUST NOT cause an existence error.
+
+Discarding a candidate affects only its existence obligation, not input-kind
+or identifier-syntax validation. A supplied non-null candidate MUST be a string
+with valid [Version identifier syntax](#singularid-id-attribute). This rule
+MUST NOT discard a candidate before the existing
+[Resource creation-clue processing](#resource-processing-algorithm). An invalid
+effective selection fails the whole operation under
+[Error Processing](#error-processing), without retaining partial changes.
 
 See [`defaultversionsticky` Attribute](#defaultversionsticky-attribute) below
 for the relationship between these two attribute.
