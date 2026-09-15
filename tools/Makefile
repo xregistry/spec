@@ -1,10 +1,11 @@
-all: models docker
+all: docker models
 	@git diff --name-status --exit-code */schemas > /dev/null 2>&1 || \
 		( echo "schema files have been updated, make sure you commit them" ; \
 		  exit 1 )
+	@echo "All good!"
 
 verify: spellcheck ticks badhrefs tabcheck errorcheck hrefs \
-	testpython links website
+	testpython links website makeschema
 
 spellcheck:
 	@echo "Checking for spelling mistakes:"
@@ -53,10 +54,10 @@ links: loadpython
 	@echo
 
 models:
-	@echo "Verifying the models are valid & regen the sample:"
+	@echo "Regen the sample:"
 	@# Note this will use a local 'xr' if available so that local build/test
 	@# of 'xr' can be done
-	if which xr ; then \
+	@if which xr > /dev/null ; then \
 	  echo Using local xr to regen sample-model-full.json ; \
 	  xr model verify core/sample-model.json --full-model | \
 		jq 'del(.groups.dirs.resources.files.attributes.fileproxyurl)' \
@@ -69,7 +70,9 @@ models:
 		jq 'del(.groups.dirs.resources.files.attributes.fileproxyurl)' \
 		> core/sample-model-full.json ; \
 	fi
-	@tools/modelscheck
+	@echo
+	@echo "Verifying the models are valid"
+	tools/modelscheck
 	@echo
 
 website:
@@ -100,7 +103,8 @@ makeschema: loadpython
 	@python tools/schema-generator.py --type json-structure --schema-id https://xregistry.io/xreg/xregistryspecs/cloudevents-v1/schemas/document-schema.struct.json --schema-name CloudEventsRegistryDocument --output cloudevents/schemas/document-schema.struct.json endpoint/model.json message/model.json schema/model.json
 	@python tools/schema-generator.py --type avro-schema --output cloudevents/schemas/document-schema.avsc endpoint/model.json message/model.json schema/model.json
 	@python tools/schema-generator.py --type openapi --output cloudevents/schemas/openapi.json endpoint/model.json message/model.json schema/model.json
+	@echo
 
 docker:
 	@docker run -t -v $(PWD):/tmp/spec -w /tmp/spec python:3.11 \
-	    make -f tools/Makefile verify makeschema
+	    make -f tools/Makefile verify
