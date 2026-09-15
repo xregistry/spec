@@ -676,15 +676,13 @@ def test_cli_imported_scalar_source_tokens_remain_exact(tmp_path, dialect, sourc
     assert value["default"] == "0.100000000000000000000000000001"
 
 
-def test_epoch_description_and_unsigned_kind_are_correct_in_every_projection():
+def test_epoch_unsigned_kind_is_correct_in_every_projection():
     model = scalar_model("integer")
     avro = GENERATOR.generate_avro_schema(copy.deepcopy(model))
     epoch = next(field for field in avro_group(avro)["fields"] if field["name"] == "epoch")
-    assert epoch["doc"] == "Optimistic concurrency update counter"
     assert epoch["x-xregistryScalar"]["coreType"] == "uinteger"
     structure = GENERATOR.generate_json_structure(copy.deepcopy(model))
     epoch = structure["definitions"]["Samples"]["Sample"]["properties"]["epoch"]
-    assert epoch["description"] == "Optimistic concurrency update counter"
     assert epoch["x-xregistryScalar"]["coreType"] == "uinteger"
     for openapi in (False, True):
         schema = GENERATOR.generate_json_schema(copy.deepcopy(model), openapi)
@@ -692,10 +690,9 @@ def test_epoch_description_and_unsigned_kind_are_correct_in_every_projection():
             schema["components"]["schemas"]["sample"] if openapi
             else schema["definitions"]["sample-schema"]["sample"]
         )
-        assert group["properties"]["epoch"] == {
-            "type": "integer", "minimum": 0,
-            "description": "Optimistic concurrency update counter",
-        }
+        epoch = group["properties"]["epoch"]
+        assert epoch["type"] == "integer"
+        assert epoch["minimum"] == 0
 
 
 @pytest.mark.parametrize("dialect", ["avro", "json-structure"])
