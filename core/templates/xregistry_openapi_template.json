@@ -158,17 +158,8 @@
             "get": {
                 "operationId": "getCapabilities",
                 "tags": ["Capabilities"],
-                "description": "Retrieves the registry capabilities. Query parameter 'offered' may be used to return the offered values. (See spec: Registry Capabilities)",
+                "description": "When supported, retrieves the currently enabled registry capabilities. Offered values are retrieved separately from /capabilitiesoffered. Availability and mutability remain subject to the server's advertised capabilities.",
                 "parameters": [
-                    {
-                        "in": "query",
-                        "name": "offered",
-                        "description": "If true, returns the offered values (enumeration, min, max, etc.) for each capability.",
-                        "required": false,
-                        "schema": {
-                            "type": "boolean"
-                        }
-                    },
                     {
                         "$ref": "#/components/parameters/specversion"
                     }
@@ -179,7 +170,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                   "$ref": "#/components/schemas/RegistryCapabilities"
+                                   "$ref": "#/components/schemas/RegistryCapabilitiesResponse"
                                 }
                             }
                         }
@@ -198,7 +189,7 @@
             "put": {
                 "operationId": "updateCapabilities",
                 "tags": ["Capabilities"],
-                "description": "Updates the registry capabilities. (See spec: Registry Capabilities, Updating the Capabilities of a Server)",
+                "description": "When capability updates are supported, replaces the capabilities map. Missing capabilities reset to their default values; unsupported changes are rejected without applying partial changes.",
                 "parameters": [
                     {
                         "$ref": "#/components/parameters/specversion"
@@ -206,6 +197,7 @@
                 ],
                 "requestBody": {
                     "description": "The full capabilities map to update.",
+                    "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
@@ -220,7 +212,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/RegistryCapabilities"
+                                    "$ref": "#/components/schemas/RegistryCapabilitiesResponse"
                                 }
                             }
                         }
@@ -239,7 +231,7 @@
             "patch": {
                 "operationId": "patchCapabilities",
                 "tags": ["Capabilities"],
-                "description": "Patches one or more capabilities. (See spec: Updating the Capabilities of a Server)",
+                "description": "When capability updates are supported, replaces each included capability as a whole. This is not a recursive merge of nested capability values; omitted capabilities are unchanged.",
                 "parameters": [
                     {
                         "$ref": "#/components/parameters/specversion"
@@ -247,6 +239,7 @@
                 ],
                 "requestBody": {
                     "description": "A partial capabilities map.",
+                    "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
@@ -261,7 +254,40 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/RegistryCapabilities"
+                                    "$ref": "#/components/schemas/RegistryCapabilitiesResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequest"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalServerError"
+                    }
+                }
+            }
+        },
+        "/capabilitiesoffered": {
+            "get": {
+                "operationId": "getCapabilitiesOffered",
+                "tags": ["Capabilities"],
+                "description": "When supported, retrieves capability definitions describing the values the server offers to authorized clients. These definitions are distinct from the currently enabled capability values.",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/specversion"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The offered capability definition map.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RegistryCapabilitiesOffered"
                                 }
                             }
                         }
@@ -282,15 +308,8 @@
             "get": {
                 "operationId": "getRegistryModel",
                 "tags": ["Model"],
-                "description": "Retrieves the full registry model. Query parameter 'schema' may be used to request a specific model schema format. (See spec: Retrieving the Registry Model)",
+                "description": "Retrieves the full registry model, including automatically added specification-defined metadata. This API is read-only; model updates use /modelsource when supported.",
                 "parameters": [
-                    {
-                        "in": "query",
-                        "name": "schema",
-                        "description": "The model schema format (e.g. xRegistry-json/1.0-rc4).",
-                        "required": false,
-                        "schema": { "type": "string" }
-                    },
                     {
                         "$ref": "#/components/parameters/specversion"
                     }
@@ -314,27 +333,21 @@
                         "$ref": "#/components/responses/InternalServerError"
                     }
                 }
-            },
-            "put": {
-                "operationId": "putRegistryModel",
+            }
+        },
+        "/modelsource": {
+            "get": {
+                "operationId": "getRegistryModelSource",
                 "tags": ["Model"],
-                "description": "Updates the registry model. (See spec: Updating the Registry Model)",
+                "description": "This optional API retrieves only the client-provided model source, without automatically added specification metadata. If no model source has been provided, the response is {} rather than an empty body.",
                 "parameters": [
                     {
                         "$ref": "#/components/parameters/specversion"
                     }
                 ],
-                "requestBody": {
-                    "description": "The complete updated registry model.",
-                    "content": {
-                        "application/json": {
-                            "schema": { "type": "object" }
-                        }
-                    }
-                },
                 "responses": {
                     "200": {
-                        "description": "The updated registry model.",
+                        "description": "The stored client-provided model source.",
                         "content": {
                             "application/json": {
                                 "schema": { "type": "object" }
@@ -352,17 +365,18 @@
                     }
                 }
             },
-            "patch": {
-                "operationId": "patchRegistryModel",
+            "put": {
+                "operationId": "putRegistryModelSource",
                 "tags": ["Model"],
-                "description": "Patches the registry model. (PATCH is only supported on the /model endpoint.) (See spec: Updating the Registry Model)",
+                "description": "This optional API replaces the client-provided model source when available.modelsource.mutable is true. The server validates the model and rejects invalid updates atomically; the completed model is retrieved through /model.",
                 "parameters": [
                     {
                         "$ref": "#/components/parameters/specversion"
                     }
                 ],
                 "requestBody": {
-                    "description": "The partial registry model update.",
+                    "description": "The complete model source as a JSON object. Use {} for an empty model; an absent body is invalid.",
+                    "required": true,
                     "content": {
                         "application/json": {
                             "schema": { "type": "object" }
@@ -371,7 +385,7 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "The patched registry model.",
+                        "description": "The stored client-provided model source after the update.",
                         "content": {
                             "application/json": {
                                 "schema": { "type": "object" }
@@ -394,7 +408,7 @@
             "get": {
                 "operationId": "exportRegistry",
                 "tags": ["Export"],
-                "description": "Exports the entire registry as a single document (alias for GET /?doc&inline=*,model,capabilities). (See spec: Exporting)",
+                "description": "When supported, exports the registry as a single document (alias for GET /?doc&inline=*,capabilities,modelsource). An explicit inline flag can override the default expansion. This path is read-only.",
                 "parameters": [
                     {
                         "$ref": "#/components/parameters/doc"
@@ -528,18 +542,8 @@
             "put": {
                 "operationId": "put{%-groupNameSingular-%}",
                 "tags": ["ResourceGroup"],
-                "description": "Creates or updates a resource group. Supports query parameters for epoch checking and response configuration. (See spec: Creating or Updating Entities and Deleting Entities in a Registry Collection)",
+                "description": "Creates or updates a resource group. An update epoch guard belongs in the Group's JSON metadata, not a query parameter. A supplied non-null epoch must equal the current value; null or absence disables the check, and creation ignores it.",
                 "parameters": [
-                    {
-                        "in": "query",
-                        "name": "epoch",
-                        "description": "The current epoch of the group for optimistic concurrency (see spec: Mismatched Epoch).",
-                        "required": false,
-                        "schema": {
-                            "type": "integer",
-                            "format": "int64"
-                        }
-                    },
                     {
                         "$ref": "#/components/parameters/inline"
                     },
@@ -590,15 +594,16 @@
             "delete": {
                 "operationId": "delete{%-groupNameSingular-%}",
                 "tags": ["ResourceGroup"],
-                "description": "Deletes a resource group. Requires the current epoch. (See spec: Deleting Entities in a Registry Collection)",
+                "description": "Deletes a resource group. An optional epoch query guard checks equality with the Group's current epoch; unguarded deletion is allowed by the base API.",
                 "parameters": [
                     {
                         "in": "query",
                         "name": "epoch",
-                        "description": "The current epoch of the group.",
-                        "required": true,
+                        "description": "Optional Group epoch guard; a supplied value must equal the current Group epoch.",
+                        "required": false,
                         "schema": {
                             "type": "integer",
+                            "minimum": 0,
                             "format": "int64"
                         }
                     }
@@ -712,34 +717,6 @@
                 },
                 {
                     "in": "query",
-                    "name": "noepoch",
-                    "description": "If true, epoch validation is ignored. (See spec: Creating or Updating Entities)",
-                    "required": false,
-                    "schema": { "type": "boolean" }
-                },
-                {
-                    "in": "query",
-                    "name": "nodefaultversionid",
-                    "description": "If true, any provided defaultversionid is ignored. (See spec: Default Version of a Resource)",
-                    "required": false,
-                    "schema": { "type": "boolean" }
-                },
-                {
-                    "in": "query",
-                    "name": "nodefaultversionsticky",
-                    "description": "If true, any provided defaultversionsticky value is ignored. (See spec: Default Version of a Resource)",
-                    "required": false,
-                    "schema": { "type": "boolean" }
-                },
-                {
-                    "in": "query",
-                    "name": "noreadonly",
-                    "description": "If true, attempts to update readonly attributes are silently ignored. (See spec: Resource Attributes)",
-                    "required": false,
-                    "schema": { "type": "boolean" }
-                },
-                {
-                    "in": "query",
                     "name": "setdefaultversionid",
                     "description": "Specifies the versionid to be set as the default version. (See spec: Default Version of a Resource)",
                     "required": false,
@@ -829,18 +806,8 @@
             "put": {
                 "operationId": "put{%-resourceNameSingular-%}",
                 "tags": ["Resource"],
-                "description": "Creates or updates a resource. Accepts either the raw document (when $details is not used) or a full xRegistry metadata serialization (when $details is used). (See spec: Creating or Updating Resources and Versions, Resource Metadata vs Resource Document)",
+                "description": "Creates or updates a resource. Epoch guards belong in JSON metadata for metadata-view writes or in the xRegistry-epoch header for document-view writes, not in the query string. Resource Meta guards use meta.epoch in Resource metadata; they are distinct from the selected Version's epoch.",
                 "parameters": [
-                    {
-                        "in": "query",
-                        "name": "epoch",
-                        "description": "The current epoch value for concurrency control. (See spec: Mismatched Epoch)",
-                        "required": false,
-                        "schema": {
-                            "type": "integer",
-                            "format": "int64"
-                        }
-                    },
                     {
                         "$ref": "#/components/parameters/inline"
                     },
@@ -902,15 +869,6 @@
                 "operationId": "post{%-resourceNameSingular-%}",
                 "tags": ["Resource"],
                 "parameters": [
-                    {
-                        "$ref": "#/components/parameters/resource-description"
-                    },
-                    {
-                        "$ref": "#/components/parameters/resource-documentation"
-                    },
-                    {
-                        "$ref": "#/components/parameters/resource-labels"
-                    },
                     {
                         "in": "query",
                         "name": "setdefaultversionid",
@@ -1010,17 +968,18 @@
             },
             "delete": {
                 "summary": "Delete resource",
-                "description": "Deletes the resource and all of its versions. Requires the current epoch. (See spec: Deleting Resources)",
+                "description": "Deletes the resource and all of its versions. An optional epoch query guard checks the Resource Meta epoch, not the default Version's epoch; unguarded deletion is allowed by the base API.",
                 "operationId": "delete{%-resourceNameSingular-%}",
                 "tags": ["Resource"],
                 "parameters": [
                     {
                         "in": "query",
                         "name": "epoch",
-                        "description": "The current epoch of the resource.",
-                        "required": true,
+                        "description": "Optional Resource Meta epoch guard; a supplied value must equal the current meta.epoch, not the default Version epoch.",
+                        "required": false,
                         "schema": {
                             "type": "integer",
+                            "minimum": 0,
                             "format": "int64"
                         }
                     },
@@ -1120,16 +1079,6 @@
                 },
                 {
                     "$ref": "#/components/parameters/doc"
-                },
-                {
-                    "in": "query",
-                    "name": "epoch",
-                    "description": "The current epoch of the resource metadata (meta sub-object). (See spec: Resource Attributes)",
-                    "required": false,
-                    "schema": {
-                        "type": "integer",
-                        "format": "int64"
-                    }
                 }
             ],
             "get": {
@@ -1446,15 +1395,16 @@
             "delete" : {
                 "operationId": "delete{%-resourceNameSingular-%}Version",
                 "tags": ["ResourceVersion"],
-                "description": "Deletes a specific version of a resource. Requires the current epoch. (See spec: Deleting a Version)",
+                "description": "Deletes a specific Version. An optional epoch query guard checks that Version's current epoch; unguarded deletion is allowed by the base API.",
                 "parameters": [
                     {
                         "in": "query",
                         "name": "epoch",
-                        "description": "The current epoch of the version.",
-                        "required": true,
+                        "description": "Optional Version epoch guard; a supplied value must equal the current Version epoch.",
+                        "required": false,
                         "schema": {
                             "type": "integer",
+                            "minimum": 0,
                             "format": "int64"
                         }
                     }
@@ -1518,29 +1468,30 @@
                 },
                 "description": "The unique identifier of the resource version."
             },
-            "resource-description": {
-                "name": "resource-description",
+            "ignore": {
+                "name": "ignore",
                 "in": "query",
                 "required": false,
-                "schema": { "type": "string" },
-                "description": "The description attribute for a resource."
+                "allowEmptyValue": true,
+                "style": "form",
+                "explode": true,
+                "schema": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                },
+                "description": "Supported aspects to ignore on a write, such as epoch, id, readonly, capabilities, modelsource, defaultversionid or defaultversionsticky. Values can be comma-separated or supplied using repeated ignore parameters. A bare flag, empty value or * means all supported aspects; invalid or unsupported values are rejected."
             },
-            "resource-documentation": {
-                "name": "resource-documentation",
-                "in": "query",
+            "version-epoch": {
+                "name": "xRegistry-epoch",
+                "in": "header",
                 "required": false,
                 "schema": {
-                    "type": "string",
-                    "format": "uri"
+                    "oneOf": [
+                        { "type": "integer", "minimum": 0 },
+                        { "type": "string", "enum": ["null"] }
+                    ]
                 },
-                "description": "The documentation URL for a resource."
-            },
-            "resource-labels": {
-                "name": "resource-labels",
-                "in": "query",
-                "required": false,
-                "schema": { "type": "string" },
-                "description": "The labels attribute for a resource."
+                "description": "Document-view Version epoch guard. An ordinary Resource write guards the default Version, not the Resource Meta; a POST naming a Version guards that Version instead. A supplied non-null value must equal the current Version epoch. An absent header or literal null disables the check; a create ignores it. Metadata-view writes carry epoch in JSON instead."
             },
             "specversion": {
                 "name": "specversion",
@@ -1572,8 +1523,9 @@
                 "name": "doc",
                 "in": "query",
                 "required": false,
-                "schema": { "type": "boolean" },
-                "description": "If true, returns the document view (with relative URLs and default version data removed). See spec: Doc."
+                "allowEmptyValue": true,
+                "schema": { "type": "string", "enum": [""] },
+                "description": "Boolean presence flag: serialize as bare ?doc, not ?doc=true or ?doc=false. Omit it to disable document view. OpenAPI's empty-value representation does not mandate whether '=' is emitted; clients must preserve the bare wire form required by the HTTP binding."
             }
         },
         "headers": {
@@ -1668,7 +1620,7 @@
                 }
             },
             "Conflict" : {
-                "description": "Conflict - epoch not greater.",
+                "description": "Conflict - a supplied non-null epoch is not equal to the current epoch of the entity being updated or deleted.",
                 "content": {
                     "application/json": {
                         "schema": {
@@ -1691,7 +1643,7 @@
         "schemas": {
             "ProblemDetails": {
                 "type": "object",
-                "required": ["type", "instance", "title"],
+                "required": ["type", "title"],
                 "properties": {
                     "type": {
                         "type": "string",
@@ -1715,11 +1667,28 @@
             },
             "RegistryCapabilities": {
                 "type": "object",
+                "description": "A complete or partial capability update. Supported extension capabilities are allowed; capability support, mandatory values and authorization are checked by the server.",
                 "properties": {
-                    "enforcecompatibility": {
-                        "type": "boolean",
-                        "default": false,
-                        "description": "Indicates whether the server will enforce the compatibility rules."
+                    "available": {
+                        "type": "object",
+                        "description": "Case-insensitive metadata names mapped to availability details. Supported responses include capabilities, entities and model; model is read-only. Optional APIs must not be inferred merely from this OpenAPI description.",
+                        "additionalProperties": {
+                            "$ref": "#/components/schemas/AvailableMetadata"
+                        },
+                        "default": {
+                            "capabilities": { "mutable": false },
+                            "entities": { "mutable": true },
+                            "model": { "mutable": false }
+                        }
+                    },
+                    "compatibilities": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "array",
+                            "items": { "type": "string" }
+                        },
+                        "default": {},
+                        "description": "Supported compatibility rules for each case-insensitive format or format pattern."
                     },
                     "flags": {
                         "type": "array",
@@ -1730,7 +1699,13 @@
                         "default": [],
                         "description": "List of supported flags (query parameters)."
                     },
-                    "ignore": {
+                    "formats": {
+                        "type": "array",
+                        "items": { "type": "string" },
+                        "default": [],
+                        "description": "Case-insensitive Version formats that can be validated."
+                    },
+                    "ignores": {
                         "type": "array",
                         "items": {
                             "type": "string",
@@ -1743,8 +1718,7 @@
                         "type": "array",
                         "items": {
                             "type": "string",
-                            "pattern": "^(?i:(capabilities|entities|model))$",
-                            "description": "Supported mutable items are 'capabilities', 'entities', or 'model'."
+                            "description": "A mutable metadata item such as capabilities, entities or modelsource."
                         },
                         "default": [],
                         "description": "List of Registry items that can be edited by the client."
@@ -1753,15 +1727,6 @@
                         "type": "boolean",
                         "default": false,
                         "description": "Indicates whether the server supports pagination."
-                    },
-                    "schemas": {
-                        "type": "array",
-                        "items": {
-                            "type": "string",
-                            "description": "A schema document format name, e.g. 'jsonSchema/2020-12' or 'xRegistry-json/1.0-rc4'."
-                        },
-                        "default": ["xRegistry-json/1.0-rc4"],
-                        "description": "List of schema formats supported by the server."
                     },
                     "shortself": {
                         "type": "boolean",
@@ -1777,12 +1742,89 @@
                         "default": ["1.0-rc4"],
                         "description": "List of xRegistry specification versions supported by the server."
                     },
-                    "sticky": {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Indicates whether the server supports clients choosing which version is the default."
+                    "versionmodes": {
+                        "type": "array",
+                        "items": { "type": "string" },
+                        "description": "Supported case-insensitive Version ordering algorithms, including extension algorithms."
                     }
                 },
+                "additionalProperties": true
+            },
+            "RegistryCapabilitiesResponse": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/RegistryCapabilities"
+                    },
+                    {
+                        "type": "object",
+                        "required": ["available"]
+                    }
+                ],
+                "description": "Currently enabled capabilities. All supported capabilities are included, including supported default or empty values; the server's capability rules still apply."
+            },
+            "AvailableMetadata": {
+                "type": "object",
+                "required": ["mutable"],
+                "properties": {
+                    "mutable": { "type": "boolean" }
+                },
+                "additionalProperties": true
+            },
+            "RegistryCapabilitiesOffered": {
+                "type": "object",
+                "additionalProperties": {
+                    "$ref": "#/components/schemas/CapabilityDefinition"
+                },
+                "description": "Capability names mapped to recursive definitions, not current values. Supported capabilities are described even when their values cannot vary."
+            },
+            "CapabilityDefinition": {
+                "type": "object",
+                "required": ["type"],
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "A Core data type. The offering's semantic type, enum and numeric bound constraints remain governed by Core."
+                    },
+                    "enum": {
+                        "type": "array",
+                        "items": {}
+                    },
+                    "min": { "type": "number" },
+                    "max": { "type": "number" },
+                    "documentation": {
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "attributes": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "$ref": "#/components/schemas/CapabilityDefinition"
+                        }
+                    },
+                    "item": {
+                        "$ref": "#/components/schemas/CapabilityDefinition"
+                    }
+                },
+                "oneOf": [
+                    {
+                        "properties": {
+                            "type": {
+                                "pattern": "^(?:[aA][rR][rR][aA][yY]|[mM][aA][pP])(?![\\s\\S])"
+                            }
+                        },
+                        "required": ["item"]
+                    },
+                    {
+                        "properties": {
+                            "type": {
+                                "not": {
+                                    "pattern": "^(?:[aA][rR][rR][aA][yY]|[mM][aA][pP])(?![\\s\\S])"
+                                }
+                            }
+                        }
+                    }
+                ],
                 "additionalProperties": true
             },
             "RegistryEntity": {

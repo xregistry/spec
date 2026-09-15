@@ -68,6 +68,23 @@ Avro (`document-schema.avsc`), and OpenAPI (`openapi.json`) in the
 [schema](schema/schemas/)). The core model has its own JSON Schema at
 [core/model.schema.json](core/model.schema.json).
 
+JSON Schema and OpenAPI projections preserve model-defined object closure.
+Known Core metadata and active conditional members remain admitted; explicit
+wildcards and `any` retain their openness. Collection and map keys remain
+open while their modeled object values are validated independently.
+
+Generated OpenAPI request types distinguish replacement and partial inputs
+from completed responses, and Resource Meta types use model-specific IDs.
+See the [request and Meta guidance](tools/openapi-request-meta-schemas.md)
+for default/server obligations, alias forms and structural validation limits.
+
+JSON Structure uses maps for wildcard-only dynamic objects and zero-entry maps
+with explicit validation-feature support for closed-empty objects. Named
+objects retain their structured schemas and typed wildcard value constraints.
+See the [dynamic object guidance](tools/json-structure-dynamic-maps.md) and
+[typed wildcard semantics](tools/json-structure-typed-wildcards.md) for data,
+reader and Core parameter-name validation boundaries.
+
 Additional release related information:
   [Historical releases and changelogs](docs/RELEASES.md)
 

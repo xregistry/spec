@@ -35,8 +35,8 @@
             "description": "Name of the object"
           },
           "epoch": {
-            "type": "integer",
-            "description": "Epoch of the object"
+            "type": "uint32",
+            "description": "Optimistic concurrency update counter"
           },
           "self": {
             "type": "uri",
@@ -98,8 +98,8 @@
             "description": "Name of the object"
           },
           "epoch": {
-            "type": "integer",
-            "description": "Epoch of the object"
+            "type": "uint32",
+            "description": "Optimistic concurrency update counter"
           },
           "self": {
             "type": "uri",
@@ -172,8 +172,8 @@
             "description": "Name of the object"
           },
           "epoch": {
-            "type": "integer",
-            "description": "Epoch of the object"
+            "type": "uint32",
+            "description": "Optimistic concurrency update counter"
           },
           "self": {
             "type": "uri",
