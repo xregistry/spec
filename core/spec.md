@@ -705,8 +705,10 @@ its parent entities do not exist, then they MUST be implicitly created. Each of
 those entities MUST be created with the appropriate `<SINGULAR>id` as specified
 by the protocol-specific mechanism by which the nested entity is identified.
 For example, in HTTP the `<PATH>` would include the `<SINGULAR>id` values
-of the parent entities. If any of those entities have REQUIRED attributes,
-then they cannot be implicitly created, and would need to be created directly.
+of the parent entities. If any of those entities have applicable REQUIRED
+attributes whose non-null values cannot be populated by the server or by
+default values (see the `required` aspect in the [model](./model.md)), then
+they cannot be implicitly created, and would need to be created directly.
 This also means that the creation of the original entity would fail and
 generate an error
 ([required_attribute_missing](./spec.md#required_attribute_missing)) for the
