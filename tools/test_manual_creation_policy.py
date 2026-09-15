@@ -11,6 +11,7 @@ from manual_creation_contract import manual_newest, plan_automatic_creations, pl
 ROOT = Path(__file__).resolve().parents[1]
 MODEL = (ROOT / "core" / "model.md").read_text(encoding="utf-8")
 SPEC = (ROOT / "core" / "spec.md").read_text(encoding="utf-8")
+TOOL_NOTES = (ROOT / "tools" / "README.md").read_text(encoding="utf-8")
 MANUAL = MODEL.split("  - `manual`\n", 1)[1].split("\n  - `createdat`\n", 1)[0]
 
 
@@ -37,7 +38,14 @@ def test_source_preserves_selector_and_newest_claim_but_adds_atomic_admission():
         'rejected ([bad_request](./spec.md#bad_request)), without retaining partial '
         'state or changing the supplied timestamp.'
     ) in text
-    assert "../tools/manual_creation_contract.py" in MANUAL
+    assert "manual_creation_contract.py" not in MANUAL
+    assert "py" not in MODEL.split("## Abstract", 1)[0].split()
+    assert "(manual_creation_contract.py)" in TOOL_NOTES
+    assert "(../core/model.md#groupsstringresourcesstringversionmode)" in TOOL_NOTES
+    assert (
+        "It does not implement a server, the surrounding request pipeline, "
+        "retention, or timestamp parsing."
+    ) in " ".join(TOOL_NOTES.split())
     assert (
         "The check belongs to each existing creation step in the case-insensitive "
         "Version-ID order above, not JSON member order, and precedes subsequent "

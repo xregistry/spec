@@ -2,7 +2,7 @@
 
 <!-- words: compat validatecompatibility validateformat strictvalidation -->
 <!-- words: compatibilityvalidated formatvalidated -->
-<!-- words: validators matchversions py -->
+<!-- words: validators matchversions -->
 
 ## Abstract
 
@@ -873,10 +873,6 @@ Note that this feature has similar results to setting the Resource attribute's
       automatic-creation admission check. Backdated timestamps are not
       categorically rejected.
 
-      The [executable creation-stage contract](../tools/manual_creation_contract.py)
-      illustrates these scoped checks and atomic automatic-creation plans;
-      surrounding request processing remains governed by the existing
-      Resource processing rules.
     - Deleted Ancestor: if a Version's ancestor is deleted, then this Version
       MUST become a root, and its `ancestorid` value MUST be set to its own
       `versionid` value.
