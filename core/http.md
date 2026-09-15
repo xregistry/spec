@@ -2717,7 +2717,7 @@ The processing of this API is defined in the
 The request MUST be of the form:
 
 ```yaml
-DELETE /<GROUPS>/<GID>/<RESOURCES>/versions
+DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions
 
 {
   "<KEY>": {                            # versionid
@@ -3088,10 +3088,10 @@ DELETE /endpoints/ep1/messages/msg1/versions/1.0
 HTTP/1.1 204 No Content
 ```
 
-Delete a Resource, verifying its `epoch` value:
+Delete a Version, verifying its `epoch` value:
 
 ```yaml
-DELETE /endpoints/ep1/messages/msg1/versions?epoch=5
+DELETE /endpoints/ep1/messages/msg1/versions/1.0?epoch=5
 ```
 
 ```
