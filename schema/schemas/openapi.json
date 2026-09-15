@@ -166,17 +166,8 @@
         "tags": [
           "Capabilities"
         ],
-        "description": "Retrieves the registry capabilities. Query parameter 'offered' may be used to return the offered values. (See spec: Registry Capabilities)",
+        "description": "When supported, retrieves the currently enabled registry capabilities. Offered values are retrieved separately from /capabilitiesoffered. Availability and mutability remain subject to the server's advertised capabilities.",
         "parameters": [
-          {
-            "in": "query",
-            "name": "offered",
-            "description": "If true, returns the offered values (enumeration, min, max, etc.) for each capability.",
-            "required": false,
-            "schema": {
-              "type": "boolean"
-            }
-          },
           {
             "$ref": "#/components/parameters/specversion"
           }
@@ -187,7 +178,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/RegistryCapabilities"
+                  "$ref": "#/components/schemas/RegistryCapabilitiesResponse"
                 }
               }
             }
@@ -208,7 +199,7 @@
         "tags": [
           "Capabilities"
         ],
-        "description": "Updates the registry capabilities. (See spec: Registry Capabilities, Updating the Capabilities of a Server)",
+        "description": "When capability updates are supported, replaces the capabilities map. Missing capabilities reset to their default values; unsupported changes are rejected without applying partial changes.",
         "parameters": [
           {
             "$ref": "#/components/parameters/specversion"
@@ -216,6 +207,7 @@
         ],
         "requestBody": {
           "description": "The full capabilities map to update.",
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
@@ -230,7 +222,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/RegistryCapabilities"
+                  "$ref": "#/components/schemas/RegistryCapabilitiesResponse"
                 }
               }
             }
@@ -251,7 +243,7 @@
         "tags": [
           "Capabilities"
         ],
-        "description": "Patches one or more capabilities. (See spec: Updating the Capabilities of a Server)",
+        "description": "When capability updates are supported, replaces each included capability as a whole. This is not a recursive merge of nested capability values; omitted capabilities are unchanged.",
         "parameters": [
           {
             "$ref": "#/components/parameters/specversion"
@@ -259,6 +251,7 @@
         ],
         "requestBody": {
           "description": "A partial capabilities map.",
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
@@ -273,7 +266,42 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/RegistryCapabilities"
+                  "$ref": "#/components/schemas/RegistryCapabilitiesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/capabilitiesoffered": {
+      "get": {
+        "operationId": "getCapabilitiesOffered",
+        "tags": [
+          "Capabilities"
+        ],
+        "description": "When supported, retrieves capability definitions describing the values the server offers to authorized clients. These definitions are distinct from the currently enabled capability values.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/specversion"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The offered capability definition map.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegistryCapabilitiesOffered"
                 }
               }
             }
@@ -296,17 +324,8 @@
         "tags": [
           "Model"
         ],
-        "description": "Retrieves the full registry model. Query parameter 'schema' may be used to request a specific model schema format. (See spec: Retrieving the Registry Model)",
+        "description": "Retrieves the full registry model, including automatically added specification-defined metadata. This API is read-only; model updates use /modelsource when supported.",
         "parameters": [
-          {
-            "in": "query",
-            "name": "schema",
-            "description": "The model schema format (e.g. xRegistry-json/1.0-rc4).",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "$ref": "#/components/parameters/specversion"
           }
@@ -332,31 +351,23 @@
             "$ref": "#/components/responses/InternalServerError"
           }
         }
-      },
-      "put": {
-        "operationId": "putRegistryModel",
+      }
+    },
+    "/modelsource": {
+      "get": {
+        "operationId": "getRegistryModelSource",
         "tags": [
           "Model"
         ],
-        "description": "Updates the registry model. (See spec: Updating the Registry Model)",
+        "description": "This optional API retrieves only the client-provided model source, without automatically added specification metadata. If no model source has been provided, the response is {} rather than an empty body.",
         "parameters": [
           {
             "$ref": "#/components/parameters/specversion"
           }
         ],
-        "requestBody": {
-          "description": "The complete updated registry model.",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
-            "description": "The updated registry model.",
+            "description": "The stored client-provided model source.",
             "content": {
               "application/json": {
                 "schema": {
@@ -376,19 +387,20 @@
           }
         }
       },
-      "patch": {
-        "operationId": "patchRegistryModel",
+      "put": {
+        "operationId": "putRegistryModelSource",
         "tags": [
           "Model"
         ],
-        "description": "Patches the registry model. (PATCH is only supported on the /model endpoint.) (See spec: Updating the Registry Model)",
+        "description": "This optional API replaces the client-provided model source when available.modelsource.mutable is true. The server validates the model and rejects invalid updates atomically; the completed model is retrieved through /model.",
         "parameters": [
           {
             "$ref": "#/components/parameters/specversion"
           }
         ],
         "requestBody": {
-          "description": "The partial registry model update.",
+          "description": "The complete model source as a JSON object. Use {} for an empty model; an absent body is invalid.",
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
@@ -399,7 +411,7 @@
         },
         "responses": {
           "200": {
-            "description": "The patched registry model.",
+            "description": "The stored client-provided model source after the update.",
             "content": {
               "application/json": {
                 "schema": {
@@ -426,7 +438,7 @@
         "tags": [
           "Export"
         ],
-        "description": "Exports the entire registry as a single document (alias for GET /?doc&inline=*,model,capabilities). (See spec: Exporting)",
+        "description": "When supported, exports the registry as a single document (alias for GET /?doc&inline=*,capabilities,modelsource). An explicit inline flag can override the default expansion. This path is read-only.",
         "parameters": [
           {
             "$ref": "#/components/parameters/doc"
@@ -1783,11 +1795,36 @@
       },
       "RegistryCapabilities": {
         "type": "object",
+        "description": "A complete or partial capability update. Supported extension capabilities are allowed; capability support, mandatory values and authorization are checked by the server.",
         "properties": {
-          "enforcecompatibility": {
-            "type": "boolean",
-            "default": false,
-            "description": "Indicates whether the server will enforce the compatibility rules."
+          "available": {
+            "type": "object",
+            "description": "Case-insensitive metadata names mapped to availability details. Supported responses include capabilities, entities and model; model is read-only. Optional APIs must not be inferred merely from this OpenAPI description.",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AvailableMetadata"
+            },
+            "default": {
+              "capabilities": {
+                "mutable": false
+              },
+              "entities": {
+                "mutable": true
+              },
+              "model": {
+                "mutable": false
+              }
+            }
+          },
+          "compatibilities": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "default": {},
+            "description": "Supported compatibility rules for each case-insensitive format or format pattern."
           },
           "flags": {
             "type": "array",
@@ -1798,7 +1835,15 @@
             "default": [],
             "description": "List of supported flags (query parameters)."
           },
-          "ignore": {
+          "formats": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Case-insensitive Version formats that can be validated."
+          },
+          "ignores": {
             "type": "array",
             "items": {
               "type": "string",
@@ -1811,8 +1856,7 @@
             "type": "array",
             "items": {
               "type": "string",
-              "pattern": "^(?i:(capabilities|entities|model))$",
-              "description": "Supported mutable items are 'capabilities', 'entities', or 'model'."
+              "description": "A mutable metadata item such as capabilities, entities or modelsource."
             },
             "default": [],
             "description": "List of Registry items that can be edited by the client."
@@ -1821,17 +1865,6 @@
             "type": "boolean",
             "default": false,
             "description": "Indicates whether the server supports pagination."
-          },
-          "schemas": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "description": "A schema document format name, e.g. 'jsonSchema/2020-12' or 'xRegistry-json/1.0-rc4'."
-            },
-            "default": [
-              "xRegistry-json/1.0-rc4"
-            ],
-            "description": "List of schema formats supported by the server."
           },
           "shortself": {
             "type": "boolean",
@@ -1849,12 +1882,105 @@
             ],
             "description": "List of xRegistry specification versions supported by the server."
           },
-          "sticky": {
-            "type": "boolean",
-            "default": true,
-            "description": "Indicates whether the server supports clients choosing which version is the default."
+          "versionmodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Supported case-insensitive Version ordering algorithms, including extension algorithms."
           }
         },
+        "additionalProperties": true
+      },
+      "RegistryCapabilitiesResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/RegistryCapabilities"
+          },
+          {
+            "type": "object",
+            "required": [
+              "available"
+            ]
+          }
+        ],
+        "description": "Currently enabled capabilities. All supported capabilities are included, including supported default or empty values; the server's capability rules still apply."
+      },
+      "AvailableMetadata": {
+        "type": "object",
+        "required": [
+          "mutable"
+        ],
+        "properties": {
+          "mutable": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": true
+      },
+      "RegistryCapabilitiesOffered": {
+        "type": "object",
+        "additionalProperties": {
+          "$ref": "#/components/schemas/CapabilityDefinition"
+        },
+        "description": "Capability names mapped to recursive definitions, not current values. Supported capabilities are described even when their values cannot vary."
+      },
+      "CapabilityDefinition": {
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "minLength": 1,
+            "description": "A Core data type. The offering's semantic type, enum and numeric bound constraints remain governed by Core."
+          },
+          "enum": {
+            "type": "array",
+            "items": {}
+          },
+          "min": {
+            "type": "number"
+          },
+          "max": {
+            "type": "number"
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri"
+          },
+          "attributes": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/CapabilityDefinition"
+            }
+          },
+          "item": {
+            "$ref": "#/components/schemas/CapabilityDefinition"
+          }
+        },
+        "oneOf": [
+          {
+            "properties": {
+              "type": {
+                "pattern": "^(?:[aA][rR][rR][aA][yY]|[mM][aA][pP])(?![\\s\\S])"
+              }
+            },
+            "required": [
+              "item"
+            ]
+          },
+          {
+            "properties": {
+              "type": {
+                "not": {
+                  "pattern": "^(?:[aA][rR][rR][aA][yY]|[mM][aA][pP])(?![\\s\\S])"
+                }
+              }
+            }
+          }
+        ],
         "additionalProperties": true
       },
       "RegistryEntity": {
