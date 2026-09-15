@@ -412,12 +412,12 @@
             "1.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/azure-iot-edge-deployment-1.0.json",
               "description": "Schema for azure-iot-edge-deployment-1.0.json",
-              "format": "JSONSchema/Draft-07"
+              "format": "JSONSchema"
             },
             "2.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/azure-iot-edge-deployment-2.0.json",
               "description": "Schema for azure-iot-edge-deployment-2.0.json",
-              "format": "JSONSchema/Draft-04"
+              "format": "JSONSchema"
             }
           }
         },
@@ -426,22 +426,22 @@
             "1.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/azure-iot-edge-deployment-template-1.0.json",
               "description": "Schema for azure-iot-edge-deployment-template-1.0.json",
-              "format": "JSONSchema/Draft-07"
+              "format": "JSONSchema"
             },
             "2.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/azure-iot-edge-deployment-template-2.0.json",
               "description": "Schema for azure-iot-edge-deployment-template-2.0.json",
-              "format": "JSONSchema/Draft-04"
+              "format": "JSONSchema"
             },
             "3.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/azure-iot-edge-deployment-template-3.0.json",
               "description": "Schema for azure-iot-edge-deployment-template-3.0.json",
-              "format": "JSONSchema/Draft-04"
+              "format": "JSONSchema"
             },
             "4.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/azure-iot-edge-deployment-template-4.0.json",
               "description": "Schema for azure-iot-edge-deployment-template-4.0.json",
-              "format": "JSONSchema/Draft-04"
+              "format": "JSONSchema"
             }
           }
         },
@@ -450,12 +450,12 @@
             "1.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/azure-iot-edgeagent-deployment-1.0.json",
               "description": "Schema for azure-iot-edgeagent-deployment-1.0.json",
-              "format": "JSONSchema/Draft-07"
+              "format": "JSONSchema"
             },
             "1.1": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/azure-iot-edgeagent-deployment-1.1.json",
               "description": "Schema for azure-iot-edgeagent-deployment-1.1.json",
-              "format": "JSONSchema/Draft-04"
+              "format": "JSONSchema"
             }
           }
         },
@@ -464,17 +464,17 @@
             "1.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/azure-iot-edgehub-deployment-1.0.json",
               "description": "Schema for azure-iot-edgehub-deployment-1.0.json",
-              "format": "JSONSchema/Draft-07"
+              "format": "JSONSchema"
             },
             "1.1": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/azure-iot-edgehub-deployment-1.1.json",
               "description": "Schema for azure-iot-edgehub-deployment-1.1.json",
-              "format": "JSONSchema/Draft-04"
+              "format": "JSONSchema"
             },
             "1.2": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/azure-iot-edgehub-deployment-1.2.json",
               "description": "Schema for azure-iot-edgehub-deployment-1.2.json",
-              "format": "JSONSchema/Draft-04"
+              "format": "JSONSchema"
             }
           }
         },
@@ -519,12 +519,12 @@
             "04": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/base-04.json",
               "description": "Schema for base-04.json",
-              "format": "JSONSchema/Draft-04"
+              "format": "JSONSchema"
             },
             "1.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/base.json",
               "description": "Schema for base.json",
-              "format": "JSONSchema/Draft-07"
+              "format": "JSONSchema"
             }
           }
         },
@@ -596,7 +596,7 @@
             "1.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/block.json",
               "description": "Schema for block.json",
-              "format": "JSONSchema/Unknown"
+              "format": "JSONSchema"
             }
           }
         },
@@ -1335,12 +1335,12 @@
             "1.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/dependabot.json",
               "description": "Schema for dependabot.json",
-              "format": "JSONSchema/Draft-04"
+              "format": "JSONSchema"
             },
             "2.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/dependabot-2.0.json",
               "description": "Schema for dependabot-2.0.json",
-              "format": "JSONSchema/Draft-07"
+              "format": "JSONSchema"
             }
           }
         },
@@ -1730,47 +1730,47 @@
             "37.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/expo-37.0.0.json",
               "description": "Schema for expo-37.0.0.json",
-              "format": "JSONSchema/Draft-04"
+              "format": "JSONSchema"
             },
             "38.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/expo-38.0.0.json",
               "description": "Schema for expo-38.0.0.json",
-              "format": "JSONSchema/Draft-04"
+              "format": "JSONSchema"
             },
             "39.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/expo-39.0.0.json",
               "description": "Schema for expo-39.0.0.json",
-              "format": "JSONSchema/Draft-04"
+              "format": "JSONSchema"
             },
             "40.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/expo-40.0.0.json",
               "description": "Schema for expo-40.0.0.json",
-              "format": "JSONSchema/Draft-04"
+              "format": "JSONSchema"
             },
             "41.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/expo-41.0.0.json",
               "description": "Schema for expo-41.0.0.json",
-              "format": "JSONSchema/Draft-04"
+              "format": "JSONSchema"
             },
             "42.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/expo-42.0.0.json",
               "description": "Schema for expo-42.0.0.json",
-              "format": "JSONSchema/Draft-04"
+              "format": "JSONSchema"
             },
             "46.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/expo-46.0.0.json",
               "description": "Schema for expo-46.0.0.json",
-              "format": "JSONSchema/Draft-04"
+              "format": "JSONSchema"
             },
             "50.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/expo-50.0.0.json",
               "description": "Schema for expo-50.0.0.json",
-              "format": "JSONSchema/Draft-04"
+              "format": "JSONSchema"
             },
             "52.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/expo-52.0.0.json",
               "description": "Schema for expo-52.0.0.json",
-              "format": "JSONSchema/Draft-07"
+              "format": "JSONSchema"
             }
           }
         },
@@ -2194,7 +2194,7 @@
             "1.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/haxelib.json",
               "description": "Schema for haxelib.json",
-              "format": "JSONSchema/Unknown"
+              "format": "JSONSchema"
             }
           }
         },
@@ -2634,7 +2634,7 @@
             "1.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/ksp-avc.json",
               "description": "Schema for ksp-avc.json",
-              "format": "JSONSchema/Unknown"
+              "format": "JSONSchema"
             }
           }
         },
@@ -2643,7 +2643,7 @@
             "1.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/ksp-ckan.json",
               "description": "Schema for ksp-ckan.json",
-              "format": "JSONSchema/Unknown"
+              "format": "JSONSchema"
             }
           }
         },
@@ -2951,7 +2951,7 @@
             "1.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/markdownlint.json",
               "description": "Schema for markdownlint.json",
-              "format": "JSONSchema/Unknown"
+              "format": "JSONSchema"
             }
           }
         },
@@ -3208,12 +3208,12 @@
             "1.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/mkdocs-1.0.json",
               "description": "Schema for mkdocs-1.0.json",
-              "format": "JSONSchema/Draft-04"
+              "format": "JSONSchema"
             },
             "1.6": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/mkdocs-1.6.json",
               "description": "Schema for mkdocs-1.6.json",
-              "format": "JSONSchema/Draft-07"
+              "format": "JSONSchema"
             }
           }
         },
@@ -3312,7 +3312,7 @@
             "1.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/neoload.json",
               "description": "Schema for neoload.json",
-              "format": "JSONSchema/Unknown"
+              "format": "JSONSchema"
             }
           }
         },
@@ -3348,32 +3348,32 @@
             "1.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/ninjs-1.0.json",
               "description": "Schema for ninjs-1.0.json",
-              "format": "JSONSchema/Draft-04"
+              "format": "JSONSchema"
             },
             "1.1": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/ninjs-1.1.json",
               "description": "Schema for ninjs-1.1.json",
-              "format": "JSONSchema/Draft-04"
+              "format": "JSONSchema"
             },
             "1.2": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/ninjs-1.2.json",
               "description": "Schema for ninjs-1.2.json",
-              "format": "JSONSchema/Draft-04"
+              "format": "JSONSchema"
             },
             "1.3": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/ninjs-1.3.json",
               "description": "Schema for ninjs-1.3.json",
-              "format": "JSONSchema/Draft-04"
+              "format": "JSONSchema"
             },
             "1.4": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/ninjs-1.4.json",
               "description": "Schema for ninjs-1.4.json",
-              "format": "JSONSchema/Draft-04"
+              "format": "JSONSchema"
             },
             "2.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/ninjs-2.0.json",
               "description": "Schema for ninjs-2.0.json",
-              "format": "JSONSchema/Draft-07"
+              "format": "JSONSchema"
             }
           }
         },
@@ -3996,17 +3996,17 @@
             "1.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/prettierrc.json",
               "description": "Schema for prettierrc.json",
-              "format": "JSONSchema/Draft-07"
+              "format": "JSONSchema"
             },
             "1.8.2": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/prettierrc-1.8.2.json",
               "description": "Schema for prettierrc-1.8.2.json",
-              "format": "JSONSchema/Draft-04"
+              "format": "JSONSchema"
             },
             "2.8.8": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/prettierrc-2.8.8.json",
               "description": "Schema for prettierrc-2.8.8.json",
-              "format": "JSONSchema/Draft-04"
+              "format": "JSONSchema"
             }
           }
         },
@@ -4177,12 +4177,12 @@
             "1.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/pull-request-labeler.json",
               "description": "Schema for pull-request-labeler.json",
-              "format": "JSONSchema/Draft-04"
+              "format": "JSONSchema"
             },
             "5": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/pull-request-labeler-5.json",
               "description": "Schema for pull-request-labeler-5.json",
-              "format": "JSONSchema/Draft-07"
+              "format": "JSONSchema"
             }
           }
         },
@@ -4340,7 +4340,7 @@
             "1.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/renovate.json",
               "description": "Schema for renovate.json",
-              "format": "JSONSchema/Unknown"
+              "format": "JSONSchema"
             }
           }
         },
@@ -4448,17 +4448,17 @@
             "1.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/sarif.json",
               "description": "Schema for sarif.json",
-              "format": "JSONSchema/Draft-04"
+              "format": "JSONSchema"
             },
             "2.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/sarif-2.0.0.json",
               "description": "Schema for sarif-2.0.0.json",
-              "format": "JSONSchema/Draft-04"
+              "format": "JSONSchema"
             },
             "2.1.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/sarif-2.1.0.json",
               "description": "Schema for sarif-2.1.0.json",
-              "format": "JSONSchema/Draft-07"
+              "format": "JSONSchema"
             }
           }
         },
@@ -4693,7 +4693,7 @@
             "1.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/semgrep.json",
               "description": "Schema for semgrep.json",
-              "format": "JSONSchema/Unknown"
+              "format": "JSONSchema"
             }
           }
         },
@@ -4837,12 +4837,12 @@
             "0.41.2": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/sourcehut-build-0.41.2.json",
               "description": "Schema for sourcehut-build-0.41.2.json",
-              "format": "JSONSchema/Draft-04"
+              "format": "JSONSchema"
             },
             "0.65.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/sourcehut-build-0.65.0.json",
               "description": "Schema for sourcehut-build-0.65.0.json",
-              "format": "JSONSchema/Draft-07"
+              "format": "JSONSchema"
             }
           }
         },
@@ -4869,12 +4869,12 @@
             "1.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/specif-1.0.json",
               "description": "Schema for specif-1.0.json",
-              "format": "JSONSchema/Draft-04"
+              "format": "JSONSchema"
             },
             "1.1": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/specif-1.1.json",
               "description": "Schema for specif-1.1.json",
-              "format": "JSONSchema/Draft/2019-09"
+              "format": "JSONSchema"
             }
           }
         },
@@ -5000,7 +5000,7 @@
             "1.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/taskfile.json",
               "description": "Schema for taskfile.json",
-              "format": "JSONSchema/Unknown"
+              "format": "JSONSchema"
             }
           }
         },
@@ -5045,7 +5045,7 @@
             "1.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/theme-v1.json",
               "description": "Schema for theme-v1.json",
-              "format": "JSONSchema/Unknown"
+              "format": "JSONSchema"
             }
           }
         },
@@ -5839,12 +5839,12 @@
             "2.2": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/xunit-2.2.json",
               "description": "Schema for xunit-2.2.json",
-              "format": "JSONSchema/Unknown"
+              "format": "JSONSchema"
             },
             "2.3": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/xunit-2.3.json",
               "description": "Schema for xunit-2.3.json",
-              "format": "JSONSchema/Unknown"
+              "format": "JSONSchema"
             }
           }
         },
@@ -5853,7 +5853,7 @@
             "1.0.0": {
               "schemaurl": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/xunit.runner.schema.json",
               "description": "Schema for xunit.runner.schema.json",
-              "format": "JSONSchema/Unknown"
+              "format": "JSONSchema"
             }
           }
         },
