@@ -1133,7 +1133,7 @@ Addressing constraints:
 [CloudEvents Subscriptions API]: https://github.com/cloudevents/spec/blob/main/subscriptions/spec.md
 [NATS]: https://docs.nats.io/reference/protocols/client/
 [Apache Kafka]: https://kafka.apache.org/protocol
-[Kafka client configuration]: https://kafka.apache.org/41/configuration/producer-configs/#producerconfigs_bootstrap.servers
+[Kafka client configuration]: https://kafka.apache.org/41/configuration/producer-configs#producerconfigs_bootstrap.servers
 [Apache Kafka producer]: https://kafka.apache.org/31/javadoc/org/apache/kafka/clients/producer/ProducerRecord.html
 [Apache Kafka consumer]: https://kafka.apache.org/31/javadoc/org/apache/kafka/clients/consumer/ConsumerRecord.html
 [HTTP Message Format]: https://www.rfc-editor.org/rfc/rfc9110#section-6
