@@ -3,7 +3,9 @@ import copy
 import json
 import os
 import re
-from jsonpointer import resolve_pointer
+from urllib.parse import unquote, urlsplit
+
+from jsonpointer import EndOfList, JsonPointerException, resolve_pointer
 
 avro_generic_record_name = "GenericRecord"
 avro_generic_record_qualified_name = "io.xregistry.GenericRecord"
@@ -1390,36 +1392,81 @@ model_definition = {
 
 
 def resolve_imports(basedir, node):
-    """
-    recursively resolve all $includes in the model definition.
-    This code handles two cases. The legacy case where the $include is
-    relative file path (URL)
-    """
+    """Expand local includes without mutating source data; limit chains to 64."""
+    documents = {}
 
-    if isinstance(node, dict):
-        if "$include" in node:
-            obj_ref = ''
-            file_ref = node["$include"]
-            # strip # anchor portion from the file reference
-            if "#" in file_ref:
-                fr = file_ref.split("#")
-                file_ref = fr[0]
-                obj_ref = fr[1]
-            file_ref = file_ref.replace('/', os.sep)
-            import_file = os.path.join(basedir, file_ref)
-            with open(import_file, encoding='utf-8') as file:
-                import_definition = json.load(file)
-            del node["$include"]
-            if obj_ref:
-                node.update(resolve_pointer(import_definition, obj_ref))
-            else:
-                node.update(import_definition)
-        for k,v in node.items():
-            node[k] = resolve_imports(basedir, v)
-    elif isinstance(node, list):
-        for i, item in enumerate(node):
-            node[i] = resolve_imports(basedir, item)
-    return node
+    def expand(value, directory, document, document_id, active):
+        if isinstance(value, list):
+            return [
+                expand(item, directory, document, document_id, active)
+                for item in value
+            ]
+        if not isinstance(value, dict):
+            return value
+
+        if "$include" in value and "$includes" in value:
+            raise ValueError("$include and $includes cannot be used together")
+        references = []
+        if "$include" in value:
+            references = [value["$include"]]
+        elif "$includes" in value:
+            references = value["$includes"]
+            if not isinstance(references, list):
+                raise ValueError("$includes must be an array of local references")
+        if any(not isinstance(reference, str) for reference in references):
+            raise ValueError("Each include reference must be a string")
+
+        result = {
+            key: expand(item, directory, document, document_id, active)
+            for key, item in value.items()
+            if key not in ("$include", "$includes")
+        }
+        for reference in references:
+            file_ref, _, fragment = reference.partition("#")
+            # URI schemes and UNC paths would leave the local-file environment.
+            drive, _ = os.path.splitdrive(file_ref)
+            if (file_ref.startswith(("//", "\\\\"))
+                    or (not drive and urlsplit(file_ref).scheme)):
+                raise ValueError(f"Include requires a local file: {reference!r}")
+            target_document = document
+            target_id = document_id
+            target_directory = directory
+            if file_ref:
+                target_id = os.path.normcase(os.path.realpath(
+                    os.path.join(directory, file_ref.replace("/", os.sep))
+                ))
+                target_directory = os.path.dirname(target_id)
+                if target_id not in documents:
+                    with open(target_id, encoding="utf-8") as source:
+                        documents[target_id] = json.load(source)
+                target_document = documents[target_id]
+            try:
+                if re.search(r"%(?![0-9A-Fa-f]{2})", fragment):
+                    raise ValueError("Invalid percent escape")
+                pointer = unquote(fragment, encoding="utf-8", errors="strict")
+                target = resolve_pointer(target_document, pointer)
+                if isinstance(target, EndOfList):
+                    raise ValueError("Array append position is not a value")
+            except (JsonPointerException, ValueError) as error:
+                raise ValueError(
+                    f"Invalid include pointer in {reference!r}: {error}"
+                ) from error
+            if not isinstance(target, dict):
+                raise ValueError(f"Include target must be an object: {reference!r}")
+            key = (target_id, pointer)
+            if key in active:
+                raise ValueError(f"Include cycle at {reference!r}")
+            if len(active) >= 64:
+                raise ValueError(f"Maximum include depth of 64 exceeded: {reference!r}")
+            included = expand(
+                target, target_directory, target_document, target_id,
+                active + (key,),
+            )
+            for name, item in included.items():
+                result.setdefault(name, item)
+        return result
+
+    return expand(node, os.path.realpath(basedir), node, None, ())
 
 
 # read model definition from file ../schema/model.json
