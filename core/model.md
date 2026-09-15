@@ -997,11 +997,16 @@ Note that this feature has similar results to setting the Resource attribute's
 - When not specified, the default value MUST be `false`.
 - A value of `true` indicates that:
   - The `format` validation logic MUST generate an error
-    ([format_violation](spec.md#format_violation)) if the Version's `format`
+    ([format_unknown](spec.md#format_unknown)) if the Version's `format`
     is an unsupported value.
   - The `compatibility` validation logic MUST generate an error
-    ([compatibility_violation](spec.md#compatibility_violation)) if the
+    ([compatibility_unknown](spec.md#compatibility_unknown)) if the
     Resource's `meta.compatibility` value is an unsupported value.
+  - If validation cannot be performed because the Version uses a
+    `<RESOURCE>url` to reference a document stored outside of the Registry,
+    see the [`formatvalidated`](spec.md#formatvalidated-attribute) and
+    [`compatibilityvalidated`](spec.md#compatibilityvalidated-attribute)
+    rules ([format_external](spec.md#format_external)).
 - A value of `false` indicates that:
   - If the Version's `format` value is absent, then format and compatibility
     validation logic MUST NOT be performed for that Version.
