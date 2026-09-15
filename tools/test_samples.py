@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -100,3 +101,93 @@ def test_contoso_crm_samples_use_current_model():
         assert schema["format"] == "JSONSchema/draft-07"
         for version in schema["versions"].values():
             assert version["format"] == schema["format"]
+
+
+@pytest.fixture
+def xref_examples():
+    spec = (ROOT / "core" / "spec.md").read_text(encoding="utf-8")
+    section = spec.split("#### Cross Referencing Resources\n", 1)[1].split(
+        "\n### Meta Entity\n", 1
+    )[0]
+    markers = {
+        "target": "So, if the target Resource (`sharedSchema`) is defined as:",
+        "source": "then the resulting serialization of the source Resource would be:",
+    }
+    examples = {}
+    for name, marker in markers.items():
+        block = section.split(marker, 1)[1].split("```yaml\n", 1)[1].split(
+            "\n```", 1
+        )[0]
+        # Only these two concrete examples are JSON, not every pseudo-JSON sketch.
+        examples[name] = json.loads(block, object_pairs_hook=_unique_json_object)
+    examples["meta"] = examples["source"]["meta"]
+    return examples
+
+
+@pytest.mark.parametrize(
+    "entity, attribute, minute",
+    [
+        ("target", "createdat", 0),
+        ("target", "modifiedat", 1),
+        ("source", "createdat", 0),
+        ("source", "modifiedat", 1),
+        ("meta", "createdat", 0),
+        ("meta", "modifiedat", 1),
+    ],
+)
+def test_xref_example_timestamp_literals(xref_examples, entity, attribute, minute):
+    value = xref_examples[entity][attribute]
+    parsed = datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
+    assert parsed == datetime(2024, 1, 1, 12, minute, 0)
+    assert value == parsed.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+@pytest.mark.parametrize(
+    "entity, schema_id",
+    [("target", "sharedSchema"), ("source", "mySchema"), ("meta", "mySchema")],
+)
+def test_xref_example_schema_id_keys_match_paths(xref_examples, entity, schema_id):
+    document = xref_examples[entity]
+    assert "resourceid" not in document
+    assert document["schemaid"] == schema_id
+    assert document["xid"].split("/schemas/", 1)[1].split("/", 1)[0] == schema_id
+
+
+def test_xref_example_alias_relationships_are_preserved(xref_examples):
+    target = xref_examples["target"]
+    source = xref_examples["source"]
+    meta = xref_examples["meta"]
+    target_xid = "/schemagroups/group2/schemas/sharedSchema"
+    source_xid = "/schemagroups/group1/schemas/mySchema"
+    assert target["xid"] == meta["xref"] == target_xid
+    assert source["xid"] == source_xid
+    for document, xid in [(target, target_xid), (source, source_xid)]:
+        assert document["self"] == "http://example.com" + xid
+        assert document["metaurl"] == document["self"] + "/meta"
+        assert document["versionsurl"] == document["self"] + "/versions"
+        assert {
+            key: document[key]
+            for key in ["versionid", "epoch", "isdefault", "ancestorid", "versionscount"]
+        } == {
+            "versionid": "v1",
+            "epoch": 2,
+            "isdefault": True,
+            "ancestorid": "v1",
+            "versionscount": 1,
+        }
+    assert meta["self"] == source["metaurl"]
+    assert meta["xid"] == source_xid + "/meta"
+    assert meta["defaultversionid"] == source["versionid"]
+    assert meta["defaultversionurl"] == source["versionsurl"] + "/v1"
+    assert meta["defaultversionsticky"] is False
+    assert meta["readonly"] is False
+
+
+@pytest.mark.parametrize(
+    "old, invalid",
+    [("T", "-T"), ("2024-01-01", "2024-02-30")],
+)
+def test_xref_timestamp_parser_rejects_malformed_literals(xref_examples, old, invalid):
+    value = xref_examples["target"]["createdat"].replace(old, invalid, 1)
+    with pytest.raises(ValueError):
+        datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
