@@ -1443,18 +1443,51 @@ in the message.
 
 ### 11.25. Deprecation of entities in an xRegistry
 
-The core specification defines a `deprecated` attribute that may appear
-under a Resource's `meta` sub-object. This attribute was added to the Resource
-itself rather than to the Version because it was determined that the most
-likely usage of this feature is to express the intent to deprecate the entire
-Resource rather than just one Version (or subset of Versions). This is not say
-that the use of this feature might not be useful at the Version-level or even
-at the Group-level. However, for those cases, custom models may define
-an extension at the appropriate location in the model to meet their needs.
-When doing so it is recommended to use the same attribute definition as
-defined in the core specification for consistency. It is worth noting that
-the Endpoint [specification](../endpoint/spec.md) does exactly this to
-indicate when an Endpoint (i.e. a Group) is deprecated.
+The core specification defines built-in
+[`deprecated`](spec.md#deprecated-attribute) metadata for both Groups and
+Resources. A Group uses `deprecated` directly on the Group, while a Resource
+uses `meta.deprecated`. Neither requires a model extension, including when a
+Group represents an Endpoint.
+
+For example, these metadata excerpts show a deprecated Group and a Resource
+whose deprecation will take effect in the future. They are not complete
+response documents.
+
+```yaml
+{
+  "deprecated": {}
+}
+```
+
+```yaml
+{
+  "meta": {
+    "deprecated": {
+      "effective": "2030-12-19T00:00:00Z"
+    }
+  }
+}
+```
+
+An empty `deprecated` object means the entity is already deprecated. When
+`effective` is present, it identifies when the entity entered, or will enter,
+that state. Group deprecation does not by itself define the deprecation state
+of its Resources, or vice versa; Core does not define a propagation rule.
+
+The existing [Group](events.md#group-events) and
+[Resource](events.md#resource-events) deprecation events concern setting,
+changing, or removing this metadata. Each is accompanied by the corresponding
+`updated` event. For example, setting a future `effective` time notifies
+consumers when the metadata changes, even though the time has not yet arrived.
+The passage of time alone does not require another deprecation notification.
+Removing the metadata also generates the deprecation and update notifications;
+removal in production is discouraged by the Events specification.
+
+Resource-level deprecation expresses intent for the Resource as a whole,
+rather than for an individual Version. Version-level deprecation remains a
+possible custom-model extension or design choice, for which reusing the Core
+attribute shape is recommended. It is not built in and does not introduce a
+standard `io.xregistry.version.deprecated` event.
 
 ### 11.26. Relative Resource URLs in the File representation
 
