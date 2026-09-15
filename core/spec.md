@@ -4310,7 +4310,7 @@ contents of all specified inlineable attributes. Inlineable attributes include:
 - The `<RESOURCE>` attribute in a Resource or Version.
 - The `meta` attribute in a Resource.
 
-Specifying the name of a non-inlineable attribute MUST generate an error
+Specifying the name of a known non-inlineable attribute MUST generate an error
 ([inline_noninlineable](#inline_noninlineable)).
 
 While the `<RESOURCE>` and `<RESOURCE>base64` attributes are defined as two
@@ -4386,8 +4386,8 @@ child appears, not all collections in the parent.
 When specifying a collection to be inlined, it MUST be specified using the
 plural name for the collection in its defined case.
 
-A request to inline an unknown, or non-inlineable, attribute MUST generate an
-error ([bad_inline](#bad_inline)).
+A malformed `<PATH>` value or a request to inline an unknown attribute MUST
+generate an error ([bad_inline](#bad_inline)).
 
 Note: If the Registry cannot return all expected data in one response because
 it is too large then it MUST generate an error ([too_large](#too_large)). In
