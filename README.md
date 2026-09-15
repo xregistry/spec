@@ -68,6 +68,10 @@ Avro (`document-schema.avsc`), and OpenAPI (`openapi.json`) in the
 [schema](schema/schemas/)). The core model has its own JSON Schema at
 [core/model.schema.json](core/model.schema.json).
 
+JSON Structure projections preserve typed wildcards on named objects.
+See [typed wildcard semantics](tools/json-structure-typed-wildcards.md) for
+generated value constraints and validation boundaries.
+
 Additional release related information:
   [Historical releases and changelogs](docs/RELEASES.md)
 

@@ -816,9 +816,14 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
         required = []
         used_names = {}
         additional_properties = False
-        for wire_name, definition in collect_attributes(attributes).items():
+        collected = collect_attributes(attributes)
+        for wire_name, definition in collected.items():
             if wire_name == "*":
                 additional_properties = definition["type"] == "any"
+                if not additional_properties and len(collected) > 1:
+                    additional_properties = value_schema(
+                        definition, namespace, owner_name + "AdditionalProperty", True
+                    )
                 continue
             logical_name = identifier(wire_name)
             if logical_name in used_names and used_names[logical_name] != wire_name:
