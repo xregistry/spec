@@ -119,12 +119,12 @@ endpoint with a single, embedded message definition using an embedded Protobuf
 {
   "$schema": "https://cloudevents.io/schemas/registry",
   "specversion": "1.0-rc4",
-  "registryid": "Example Registry",
-  "self": "http://example.com",
+  "registryid": "example-registry",
+  "self": "https://example.com",
   "xid": "/",
   "epoch": 4,
   "createdat": "2024-04-30T12:00:00Z",
-  "modifiedat": "2024-04-31T12:00:00Z",
+  "modifiedat": "2024-05-01T12:00:00Z",
 
   "endpointsurl": "https://example.com/endpoints",
   "endpointscount": 1,
@@ -135,7 +135,7 @@ endpoint with a single, embedded message definition using an embedded Protobuf
       "xid": "/endpoints/com.example.telemetry",
       "epoch": 5,
       "createdat": "2024-04-30T12:00:00Z",
-      "modifiedat": "2024-04-31T12:00:00Z",
+      "modifiedat": "2024-05-01T12:00:00Z",
 
       "usage": "consumer",
       "format": "CloudEvents/1.0",
@@ -162,7 +162,7 @@ endpoint with a single, embedded message definition using an embedded Protobuf
           "isdefault": true,
           "description": "device telemetry event",
           "createdat": "2024-04-30T12:00:00Z",
-          "modifiedat": "2024-04-31T12:00:00Z",
+          "modifiedat": "2024-05-01T12:00:00Z",
           "ancestorid": "1.0",
 
           "format": "CloudEvents/1.0",
@@ -210,12 +210,12 @@ other scenarios:
 {
   "$schema": "https://cloudevents.io/schemas/registry",
   "specversion": "1.0-rc4",
-  "registryid": "Example Registry",
-  "self": "http://example.com",
+  "registryid": "example-registry",
+  "self": "https://example.com",
   "xid": "/",
   "epoch": 4,
   "createdat": "2024-04-30T12:00:00Z",
-  "modifiedat": "2024-04-31T12:00:00Z",
+  "modifiedat": "2024-05-01T12:00:00Z",
 
   "endpointsurl": "https://example.com/endpoints",
   "endpointscount": 1,
@@ -226,7 +226,7 @@ other scenarios:
       "xid": "/endpoints/com.example.telemetry",
       "epoch": 5,
       "createdat": "2024-04-30T12:00:00Z",
-      "modifiedat": "2024-04-31T12:00:00Z",
+      "modifiedat": "2024-05-01T12:00:00Z",
 
       "usage": "consumer",
       "format": "CloudEvents/1.0",
@@ -257,7 +257,7 @@ other scenarios:
       "xid": "/messagegroups/com.example.telemetryEvents",
       "epoch": 3,
       "createdat": "2024-04-30T12:00:00Z",
-      "modifiedat": "2024-04-31T12:00:00Z",
+      "modifiedat": "2024-05-01T12:00:00Z",
 
       "messagesurl": "https://example.com/messagegroups/com.example.telemetryEvents/messages",
       "messagescount": 1,
@@ -265,13 +265,13 @@ other scenarios:
         "com.example.telemetry": {
           "messageid": "com.example.telemetry",
           "versionid": "1.0",
-          "self": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry",
-          "xid": "/endpoints/com.example.telemetry/messages/com.example.telemetry",
+          "self": "https://example.com/messagegroups/com.example.telemetryEvents/messages/com.example.telemetry",
+          "xid": "/messagegroups/com.example.telemetryEvents/messages/com.example.telemetry",
           "epoch": 5,
           "isdefault": true,
           "description": "device telemetry event",
           "createdat": "2024-04-30T12:00:00Z",
-          "modifiedat": "2024-04-31T12:00:00Z",
+          "modifiedat": "2024-05-01T12:00:00Z",
           "ancestorid": "1.0",
 
           "format": "CloudEvents/1.0",
@@ -300,9 +300,9 @@ other scenarios:
           "dataschemauri": "#/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions/1.0",
           "datacontenttype": "application/x-protobuf",
 
-          "metaurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/meta",
+          "metaurl": "https://example.com/messagegroups/com.example.telemetryEvents/messages/com.example.telemetry/meta",
 
-          "versionsurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/versions",
+          "versionsurl": "https://example.com/messagegroups/com.example.telemetryEvents/messages/com.example.telemetry/versions",
           "versionscount": 1
         }
       }
@@ -318,7 +318,7 @@ other scenarios:
       "xid": "/schemagroups/com.example.telemetry",
       "epoch": 5,
       "createdat": "2024-04-30T12:00:00Z",
-      "modifiedat": "2024-04-31T12:00:00Z",
+      "modifiedat": "2024-05-01T12:00:00Z",
 
       "schemasurl": "https://example.com/schemagroups/com.example.telemetry/schemas",
       "schemascount": 1,
@@ -332,7 +332,7 @@ other scenarios:
           "isdefault": true,
           "description": "device telemetry event data",
           "createdat": "2024-04-30T12:00:00Z",
-          "modifiedat": "2024-04-31T12:00:00Z",
+          "modifiedat": "2024-05-01T12:00:00Z",
           "ancestorid": "1.0",
 
           "format": "Protobuf/3.0",
@@ -351,13 +351,15 @@ other scenarios:
 
 If we assume the message definitions and schemas to reside at an API endpoint,
 an endpoint definition might just reference the associated message definition
-group with a deep link to the respective object in the service:
+group with a deep link to the respective object in the service. This
+illustration abbreviates the protocol options using the comment notation
+defined above:
 
 ```json
 {
   "$schema": "https://cloudevents.io/schemas/registry",
   "specversion": "1.0-rc4",
-  "registryid": "Example Registry",
+  "registryid": "example-registry",
 
   "endpointsurl": "https://example.com/endpoints",
   "endpointscount": 1,
@@ -368,7 +370,7 @@ group with a deep link to the respective object in the service:
       "xid": "/endpoints/com.example.telemetry",
       "epoch": 5,
       "createdat": "2024-04-30T12:00:00Z",
-      "modifiedat": "2024-04-31T12:00:00Z",
+      "modifiedat": "2024-05-01T12:00:00Z",
 
       "usage": "consumer",
       "format": "CloudEvents/1.0",
@@ -386,13 +388,13 @@ group with a deep link to the respective object in the service:
 If the message definitions and schemas are stored in a file-based registry,
 including files shared via public version control repositories, the reference
 link will first reference the file and then the object within the file, using
-[JSON Pointer][JSON Pointer] syntax:
+[JSON Pointer][JSON Pointer] syntax. Protocol options are again abbreviated:
 
 ```yaml
 {
   "$schema": "https://cloudevents.io/schemas/registry",
   "specversion": "1.0-rc4",
-  "registryid": "Example Registry",
+  "registryid": "example-registry",
 
   "endpointsurl": "https://example.com/endpoints",
   "endpointscount": 1,
@@ -403,7 +405,7 @@ link will first reference the file and then the object within the file, using
       "xid": "/endpoints/com.example.telemetry",
       "epoch": 5,
       "createdat": "2024-04-30T12:00:00Z",
-      "modifiedat": "2024-04-31T12:00:00Z",
+      "modifiedat": "2024-05-01T12:00:00Z",
 
       "usage": "consumer",
       "format": "CloudEvents/1.0",
