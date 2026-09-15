@@ -41,9 +41,11 @@ def documents(request, tmp_path_factory):
 
 
 def _validators(documents):
+    checker = jsonschema.FormatChecker()
+    assert "uri" in checker.checkers, "Install the format dependencies from tools/requirements.txt"
     for document in documents:
         schema = document["components"]["schemas"]["ProblemDetails"]
-        yield jsonschema.Draft7Validator(schema, format_checker=jsonschema.FormatChecker())
+        yield jsonschema.Draft7Validator(schema, format_checker=checker)
 
 
 def test_published_openapi_matches_the_generator(documents):
