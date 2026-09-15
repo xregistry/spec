@@ -1670,8 +1670,8 @@ attributes, and MUST be of the form:
 
 ```yaml
 Content-Type: <STRING> ?
-xRegistry-<RESOURCE>id: <STRING>           # ID of Resource, not default Version
-xRegistry-versionid: <STRING>              # ID of the default Version
+xRegistry-<RESOURCE>id: <STRING>           # ID of the owning Resource
+xRegistry-versionid: <STRING>              # ID of the requested Version
 xRegistry-self: <URL>                      # Version URL
 xRegistry-xid: <URI>                       # Relative Version URI
 xRegistry-epoch: <UINTEGER>
@@ -1689,7 +1689,7 @@ xRegistry-formatvalidated: <BOOLEAN> ?
 xRegistry-formatvalidatedreason: <STRING> ?
 xRegistry-compatibilityvalidated: <BOOLEAN> ?
 xRegistry-compatibilityvalidatedreason: <STRING> ?
-xRegistry-<RESOURCE>url: <URL> ?           # End of default Version attributes
+xRegistry-<RESOURCE>url: <URL> ?           # If Version is not in body
 Location: <URL> ?
 Content-Location: <URL> ?
 Content-Disposition: <STRING> ?
@@ -1702,7 +1702,7 @@ Where:
   value. This allows for HTTP tooling that is not aware of xRegistry to know
   the desired filename to use if the HTTP body were to be written to a file.
 
-Scalar default Version extension attributes MUST also appear as
+Scalar extension attributes of the serialized Version MUST also appear as
 `xRegistry-` HTTP headers.
 
 Notice that for Resources, the `meta` and `versions` attributes are not
@@ -1821,11 +1821,11 @@ Content-Type: application/json; charset=utf-8
 
 {
   "msg1": {
-    "endpointid": "msg1",
+    "messageid": "msg1",
     ... remainder of msg1 definition excluded for brevity ...
   },
   "msg2": {
-    "endpointid": "msg2",
+    "messageid": "msg2",
     ... remainder of msg2 definition excluded for brevity ...
   }
 }
@@ -1837,11 +1837,11 @@ Content-Type: application/json; charset=utf-8
 
 {
   "msg1": {
-    "endpointid": "msg1",
+    "messageid": "msg1",
     ... remainder of msg1 definition excluded for brevity ...
   },
   "msg2": {
-    "endpointid": "msg2",
+    "messageid": "msg2",
     ... remainder of msg2 definition excluded for brevity ...
   }
 }
@@ -2377,7 +2377,7 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1
   "messageid": "msg1",
   "versionid": "1",
   "self": "https://example.com/endpoints/ep1/messages/msg1/versions/1",
-  "xid": "/endpoints/ep1/messages/msg1",
+  "xid": "/endpoints/ep1/messages/msg1/versions/1",
   "epoch": 2,
   "name": "Blob Created",
   "isdefault": true,
@@ -2599,8 +2599,8 @@ Link: <https://example.com/endpoints/ep1/messages/msg1/versions&page=2>;rel=next
   "1.0": {
     "messageid": "msg1",
     "versionid": "1.0",
-    "self": "https://example.com/endpoints/ep1/messages/msg1",
-    "xid": "/endpoints/ep1/messages/msg1",
+    "self": "https://example.com/endpoints/ep1/messages/msg1/versions/1.0",
+    "xid": "/endpoints/ep1/messages/msg1/versions/1.0",
     "epoch": 1,
     "name": "Blob Created",
     "isdefault": true,
@@ -2633,7 +2633,7 @@ POST /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions
 Content-Type: application/json; charset=utf-8
 
 {
-  "<KEY>": {                                      # <GROUP>id
+  "<KEY>": {                                      # versionid
      ... Version entity excluded for brevity ...
   } *
 }
@@ -2646,7 +2646,7 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "<KEY>": {                                      # <GROUP>id
+  "<KEY>": {                                      # versionid
      ... Version entity excluded for brevity ...
   } *
 }
@@ -2846,7 +2846,7 @@ Content-Type: application/json; charset=utf-8
   "schemaid": "myschema",
   "versionid": "1.0",
   "self": "https://example.com/schemagroups/g1/schemas/myschema/versions/1.0",
-  "xid": "/endpoints/ep1/messages/msg1/versions/1.0",
+  "xid": "/schemagroups/g1/schemas/myschema/versions/1.0",
   "epoch": 2,
   "isdefault": true,
   "createdat": "2024-04-30T12:00:00Z",
@@ -3034,7 +3034,7 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/v2.0
 
 {
   "messageid": "msg1",
-  "versionid": "1",
+  "versionid": "v2.0",
   "self": "https://example.com/endpoints/ep1/messages/msg1/versions/v2.0",
   "xid": "/endpoints/ep1/messages/msg1/versions/v2.0",
   "epoch": 2,

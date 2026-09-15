@@ -1195,8 +1195,9 @@ sensitivity rules in the specification.
   entity, it is possible that one of those users would end up seeing an
   unexpected casing and could be confused or believe there was an error.
 
-  All of these concerns are avoided by requiring IDs to be stored and compared
-  in case insensitively.
+  All of these concerns are avoided by preserving the original case of IDs,
+  using case-sensitive lookups, and enforcing case-insensitive uniqueness
+  within the scope of the parent entity.
 
 ### 11.12. Why the lower character limit on some Group and Resource type names?
 
