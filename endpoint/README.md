@@ -18,8 +18,8 @@ not converted into a client address or a security configuration. Security
 configuration remains a separate declaration.
 
 The [focused regressions](../tools/test_issue_625_kafka_bootstrap.py) exercise
-the real Contoso sample, the specification's address example, and generated
-Endpoint and CloudEvents schemas. Run them from the repository root:
+the real Contoso sample and generated Endpoint and CloudEvents schemas.
+Run them from the repository root:
 
 ```console
 python -B -m pytest tools/test_issue_625_kafka_bootstrap.py -q

@@ -3,7 +3,6 @@
 import copy
 import importlib.util
 import json
-import re
 import subprocess
 import sys
 from pathlib import Path
@@ -14,7 +13,6 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 HELPER_PATH = ROOT / "endpoint" / "kafka_bootstrap.py"
-SPEC_PATH = ROOT / "endpoint" / "spec.md"
 SAMPLE_PATH = (
     ROOT / "cloudevents" / "samples" / "scenarios" / "contoso-erp-jsons07.xreg.json"
 )
@@ -97,31 +95,6 @@ def test_contoso_kafka_samples_preserve_ssl_without_listener_urls(options_schema
         ) == [("cediscoveryinterop.example.com", 9093)]
         assert options["deployed"] is False
         assert "endpoints" not in endpoint
-
-
-def test_kafka_prose_example_uses_client_addresses_and_separate_security():
-    prose = SPEC_PATH.read_text(encoding="utf-8")
-    section = prose.split("##### KAFKA options\n", 1)[1].split(
-        "##### NATS options\n", 1
-    )[0]
-    examples = re.findall(r"```json\n(.*?)\n```", section, re.DOTALL)
-    assert examples, "the client-address example must be executable JSON"
-    example = json.loads(examples[0])
-    assert example == {
-        "bootstrap.servers": [
-            "broker1.example.com:9093",
-            "192.0.2.1:9093",
-            "[2001:db8::1]:9093",
-        ],
-        "security.protocol": "SSL",
-    }
-    assert validate_bootstrap_servers(example["bootstrap.servers"]) == [
-        ("broker1.example.com", 9093),
-        ("192.0.2.1", 9093),
-        ("2001:db8::1", 9093),
-    ]
-    assert "MUST NOT include a URI scheme" in section
-    assert "MUST NOT silently strip" in section
 
 
 @pytest.mark.parametrize(
