@@ -3,16 +3,12 @@ all: models docker
 		( echo "schema files have been updated, make sure you commit them" ; \
 		  exit 1 )
 
-verify: spellcheck ticks badhrefs tabcheck errorcheck samplescheck hrefs \
+verify: spellcheck ticks badhrefs tabcheck errorcheck hrefs \
 	testpython links website
 
 spellcheck:
 	@echo "Checking for spelling mistakes:"
-	tools/spellcheck */README.md */spec.md core/*.md \
-		workingdrafts/bindings/*.md \
-		workingdrafts/models/*/README.md workingdrafts/models/*/spec.md \
-		workingdrafts/models/*/samples/README.md \
-		docs/share/README.md */samples/README.md */samples/*/README.md
+	tools/spellcheck `find . -name \*.md`
 	@echo
 
 tabcheck:
@@ -22,7 +18,7 @@ tabcheck:
 
 ticks:
 	@echo "Checking for uneven back-ticks:"
-	@(! grep '^[^`]*`[^`]*$$' core/*.md workingdrafts/bindings/*.md)
+	@(! grep '^[^`]*`[^`]*$$' `find . -name \*.md`)
 	@echo
 
 badhrefs:
@@ -33,13 +29,6 @@ badhrefs:
 errorcheck:
 	@echo "Validating the errors in the specs:"
 	tools/errorcheck core/spec.md core/model.md core/http.md
-	@echo
-
-samplescheck:
-	@echo "Check for too verbose samples:"
-	tools/samplescheck */model.json workingdrafts/models/*/model.json \
-		*/samples/*json */samples/*/*json \
-		workingdrafts/models/*/samples/*json
 	@echo
 
 hrefs:
@@ -68,23 +57,19 @@ models:
 	@# Note this will use a local 'xr' if available so that local build/test
 	@# of 'xr' can be done
 	if which xr ; then \
-	  echo Using local xr ; \
-	  xr model verify */model.json workingdrafts/models/*/model.json -v && \
+	  echo Using local xr to regen sample-model-full.json ; \
 	  xr model verify core/sample-model.json --full-model | \
 		jq 'del(.groups.dirs.resources.files.attributes.fileproxyurl)' \
 		> core/sample-model-full.json ; \
 	else \
-	  echo Using docker ghcr.io/xregistry/xr && \
-	  docker run -t -v $$PWD:/xreg -w /xreg --entrypoint /bin/sh \
-		ghcr.io/xregistry/xr -c \
-			"/xr model verify */model.json \
-			workingdrafts/models/*/model.json -v" && \
+	  echo Using ghcr.io/xregistry/xr to regen sample-model-full.json && \
 	  docker run -t -v $$PWD:/xreg -w /xreg --entrypoint /bin/sh \
 		ghcr.io/xregistry/xr -c "/xr model verify core/sample-model.json \
 		--full-model" | \
 		jq 'del(.groups.dirs.resources.files.attributes.fileproxyurl)' \
 		> core/sample-model-full.json ; \
 	fi
+	@tools/modelscheck
 	@echo
 
 website:
