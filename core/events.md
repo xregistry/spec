@@ -83,6 +83,56 @@ following constraints apply:
 - Only one event with the same `type` and `subject` combination MUST be
   generated.
 
+### Commitment and publication
+
+The events defined here describe changes from committed interactions. An
+implementation MAY prepare candidate events while processing an interaction,
+but MUST NOT expose them as successful-state notifications before the
+interaction commits. If an interaction is rejected or undone, its candidate
+events MUST NOT be exposed as notifications of successful changes.
+
+Commitment is determined by the applicable Core and protocol processing rules,
+including [Core error processing](spec.md#error-processing) and
+[HTTP request processing](http.md#entity-processing-rules). In particular,
+response-generation work that can still cause the request to be undone, such
+as response inlining, MUST succeed before successful-state notifications become
+observable. The same boundary applies to validation errors, response-size
+errors, and cancellation when these prevent commitment under the applicable
+protocol. Preparing an event does not change those failure or rollback rules.
+
+The following are distinct:
+- Event occurrence: the logical change within an interaction, identified by
+  its entity, action, and interaction context.
+- Commitment: completion of the interaction's state changes under the
+  applicable processing rules.
+- Enqueue: recording an event for subsequent publication or delivery.
+- Delivery: making an event available to a particular consumer through a
+  transport.
+
+The event's `time` describes the interaction, not the later enqueue or delivery
+time. Event data describes the state at the end of that committed interaction,
+not a later state obtained when a queue is drained. Per-interaction event
+selection and coalescing still apply to implicit parent creation, cascading
+changes, and multiple changes to the same entity. The order of events in an
+example is not a transport delivery order.
+
+This specification does not require durable enqueue to be part of commitment.
+Any guarantee that state changes and durable event recording occur atomically
+MUST be defined by an explicit profile. Such a profile MUST specify its
+recording boundary, which enqueue failures prevent commitment, and how events
+are recovered or retried after commitment. An implementation can, for example,
+use a transactional event record, but a temporary candidate event is not
+evidence of durable recording.
+
+This specification does not define transport delivery guarantees, including
+exactly-once delivery, durable replay, ordering between parent and child events,
+or a transaction with every consumer. Any such guarantees MUST be defined by
+an explicit profile; they MUST NOT be inferred from the number of events
+generated. Neither client receipt of a response nor event delivery defines the
+commit point here. A later enqueue or transport failure is not, by itself,
+evidence that the interaction was undone; the applicable processing rules and
+any explicit profile determine the outcome.
+
 The following sections specify the metadata defined for xRegistry events.
 Implementations MAY define additional metadata.
 
