@@ -3584,16 +3584,9 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
   implicit mappings. The [Binary Flag](#binary-flag) MUST force the use of
   `<RESOURCE>base64`.
 
-  When a `string` mapping is used to serialize the document under this
-  attribute, the string serialization rules of the metadata format MUST be
-  used, even when the original document bytes are not a JSON value. For
-  example, the bytes `Hello` with `contenttype` set to `text/plain` are
-  represented as `"file": "Hello"` for a `file` Resource.
-
-  A `json` mapping represents valid JSON in this attribute. A document selected
-  as `json` that contains invalid JSON MUST use `<RESOURCE>base64` instead.
-  A `binary` mapping, including the result of conflicting matching entries,
-  MUST use `<RESOURCE>base64`.
+  See [`typemap`](./model.md#groupsstringresourcesstringtypemap) for how mapping
+  values are processed. For example, the default `text/plain` string mapping
+  represents the bytes `Hello` as `"file": "Hello"` for a `file` Resource.
 
   If no explicit or implicit `typemap` mapping applies, this attribute MAY
   be used if the document's bytes "as is" are a valid value in the metadata

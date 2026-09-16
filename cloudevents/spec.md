@@ -339,7 +339,7 @@ other scenarios:
           "versions": {
             "1.0": {
               "versionid": "1.0",
-              "self": "https://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions/1.0",
+              "self": "https://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions/1.0$details",
               "xid": "/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions/1.0",
               "format": "Protobuf/3",
               "schema": "syntax = \"proto3\"; message Metrics { float metric = 1;}"
