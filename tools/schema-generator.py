@@ -86,9 +86,9 @@ json_type_mapping = {
 
 json_structure_type_mapping = {
     "string": "string",
-    "uri": "string",
-    "url": "string",
-    "xid": "string",
+    "uri": "uri",
+    "url": "uri",
+    "xid": "uri",
     "datetime": "datetime",
     "integer": "integer",
     "uinteger": "uint32",
@@ -996,9 +996,9 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
             "registryid": {"type": "string"},
             "specversion": {"type": "string"},
             **common_attributes,
-            "model": {"type": "any"},
-            "modelsource": {"type": "any"},
-            "capabilities": {"type": "any"},
+            "model": {"type": "map", "item": {"type": "any"}},
+            "modelsource": {"type": "map", "item": {"type": "any"}},
+            "capabilities": {"type": "map", "item": {"type": "any"}},
             **model_definition.get("attributes", {}),
         },
         "Registry",
@@ -1040,7 +1040,7 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
                 resource_type_name + "Meta",
             )
             resource_schema["properties"].update({
-                "metaurl": {"type": "string"},
+                "metaurl": {"type": "uri"},
                 "meta": meta_schema,
             })
             if resource.get("hasdocument", True):
@@ -1054,7 +1054,7 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
                         "description": f"Base64-encoded {resource_singular} document"
                     },
                     resource_singular + "url": {
-                        "type": "string",
+                        "type": "uri",
                         "description": f"URL of the {resource_singular} document"
                     }
                 })
@@ -1070,9 +1070,6 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
                         "isdefault": {"type": "boolean"},
                         "ancestorid": {"type": "string"},
                         "contenttype": {"type": "string"},
-                        "readonly": {"type": "boolean"},
-                        "compatibility": {"type": "string"},
-                        "deprecated": {"type": "any"},
                         **resource.get("attributes", {})
                     },
                     namespace,
@@ -1082,11 +1079,11 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
                     version_schema["properties"].update({
                         resource_singular: {"type": "any"},
                         resource_singular + "base64": {"type": "binary"},
-                        resource_singular + "url": {"type": "string"}
+                        resource_singular + "url": {"type": "uri"}
                     })
                 add_definition(namespace, version_type_name, version_schema)
                 resource_schema["properties"].update({
-                    "versionsurl": {"type": "string"},
+                    "versionsurl": {"type": "uri"},
                     "versionscount": {"type": "uint32"},
                     "versions": {
                         "type": "map",
@@ -1139,14 +1136,14 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
             xid.split("/")[2] for xid in group.get("ximportresources", [])
         )
         for collection_name in sorted(collection_names):
-            group_schema["properties"][collection_name + "url"] = {"type": "string"}
+            group_schema["properties"][collection_name + "url"] = {"type": "uri"}
             group_schema["properties"][collection_name + "count"] = {"type": "uint32"}
         add_definition(namespace, group_type_name, group_schema)
         root_properties[group_plural] = {
             "type": "map",
             "values": reference(namespace, group_type_name)
         }
-        root_properties[group_plural + "url"] = {"type": "string"}
+        root_properties[group_plural + "url"] = {"type": "uri"}
         root_properties[group_plural + "count"] = {"type": "uint32"}
 
     return {

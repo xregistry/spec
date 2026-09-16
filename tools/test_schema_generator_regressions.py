@@ -731,3 +731,157 @@ def test_avro_registry_ifvalues_uses_root_namespace(later_groups):
         assert not avro.io.validate(conditional, {"location": 7})
         assert not avro.io.validate(conditional, {"settings": {"enabled": "true"}})
     assert len(set(fullnames)) == len(owners)
+
+
+@pytest.mark.parametrize("maxversions", [0, 1])
+@pytest.mark.parametrize("hasdocument", [False, True])
+@pytest.mark.parametrize("uri_type", ["uri", "url", "xid"])
+def test_jsonstructure_uri_fields_use_native_reference_type(
+    maxversions, hasdocument, uri_type,
+):
+    """Check emitted native types and RFC3986 controls, not full SDK/XID validation."""
+    attributes = {
+        "location": {"type": uri_type},
+        "note": {"type": "string"},
+    }
+    model = copy.deepcopy(MODEL)
+    model["attributes"] = copy.deepcopy(attributes)
+    group = model["groups"]["catalogs"]
+    group["attributes"] = copy.deepcopy(attributes)
+    group["resources"]["entries"].update({
+        "maxversions": maxversions, "hasdocument": hasdocument,
+        "attributes": copy.deepcopy(attributes),
+        "metaattributes": copy.deepcopy(attributes),
+    })
+    model["groups"]["mirrors"] = {
+        "plural": "mirrors", "singular": "mirror",
+        "ximportresources": ["/catalogs/entries"],
+    }
+    validate_model(model)
+    schema = GENERATOR.generate_json_structure(model)
+    root = schema["properties"]
+    catalog = schema["definitions"]["Catalogs"]["Catalog"]["properties"]
+    mirror = schema["definitions"]["Mirrors"]["Mirror"]["properties"]
+    resource = schema["definitions"]["Catalogs"]["Entry"]["properties"]
+    meta = resource["meta"]["properties"]
+    version = resource if maxversions == 1 else schema["definitions"]["Catalogs"][
+        "EntryVersion"
+    ]["properties"]
+    for properties in (root, catalog, version, meta):
+        assert properties["location"] == {"type": "uri"}
+        assert properties["note"] == {"type": "string"}
+    for properties in (root, catalog, mirror, resource, version, meta):
+        for name in ("self", "xid", "documentation"):
+            assert properties[name]["type"] == "uri"
+    navigation = [
+        root["catalogsurl"], root["mirrorsurl"],
+        catalog["entriesurl"], mirror["entriesurl"], resource["metaurl"],
+        meta["xref"], meta["defaultversionurl"],
+        meta["deprecated"]["properties"]["alternative"],
+        meta["deprecated"]["properties"]["documentation"],
+    ]
+    if maxversions != 1:
+        navigation.append(resource["versionsurl"])
+    if hasdocument:
+        navigation.extend((resource["entryurl"], version["entryurl"]))
+    assert all(value["type"] == "uri" for value in navigation)
+
+    checker = jsonschema.FormatChecker()
+    for value in ("#/catalogs/c", "../service", "https://example.com", ""):
+        checker.check(value, "uri-reference")
+    for value in ("not a uri", "https://example.com/%zz"):
+        with pytest.raises(jsonschema.exceptions.FormatError):
+            checker.check(value, "uri-reference")
+        jsonschema.Draft7Validator({"type": "string"}).validate(value)
+
+
+@pytest.mark.parametrize("maxversions", [0, 1])
+def test_jsonstructure_versions_keep_meta_controls_separate(maxversions):
+    model = copy.deepcopy(MODEL)
+    model["groups"]["catalogs"]["resources"]["entries"].update({
+        "maxversions": maxversions,
+        "attributes": {"title": {"type": "string", "required": True}},
+    })
+    validate_model(model)
+    schema = GENERATOR.generate_json_structure(model)
+    resource = schema["definitions"]["Catalogs"]["Entry"]
+    version = resource if maxversions == 1 else schema["definitions"]["Catalogs"]["EntryVersion"]
+    assert version["additionalProperties"] is False
+    assert version["required"] == ["title"]
+    properties = version["properties"]
+    assert not {"readonly", "compatibility", "deprecated"} & properties.keys()
+    assert properties["title"] == {"type": "string"}
+    assert properties["entryid"]["type"] == "string"
+    assert properties["createdat"]["type"] == "datetime"
+    assert properties["modifiedat"]["type"] == "datetime"
+    if maxversions != 1:
+        assert {name: properties[name]["type"] for name in (
+            "versionid", "ancestorid", "isdefault", "contenttype",
+        )} == {
+            "versionid": "string", "ancestorid": "string",
+            "isdefault": "boolean", "contenttype": "string",
+        }
+    meta = resource["properties"]["meta"]["properties"]
+    assert meta["readonly"] == {"type": "boolean"}
+    assert meta["compatibility"] == {"type": "string"}
+    assert meta["deprecated"]["type"] == "object"
+    assert meta["deprecated"]["additionalProperties"] is False
+    assert set(meta["deprecated"]["properties"]) == {
+        "effective", "removal", "alternative", "documentation",
+    }
+
+
+@pytest.mark.parametrize("maxversions", [0, 1])
+def test_jsonstructure_versions_retain_explicit_custom_extensions(maxversions):
+    model = copy.deepcopy(MODEL)
+    model["groups"]["catalogs"]["resources"]["entries"].update({
+        "maxversions": maxversions,
+        "attributes": {
+            "readonly": {"type": "boolean", "description": "Explicit Version extension"},
+            "compatibility": {"type": "string", "description": "Explicit Version extension"},
+            "deprecated": {
+                "type": "object",
+                "attributes": {"note": {"type": "string", "required": True}},
+            },
+        },
+    })
+    validate_model(model)
+    schema = GENERATOR.generate_json_structure(model)
+    resource = schema["definitions"]["Catalogs"]["Entry"]
+    version = resource if maxversions == 1 else schema["definitions"]["Catalogs"]["EntryVersion"]
+    assert version["additionalProperties"] is False
+    properties = version["properties"]
+    assert properties["readonly"] == {
+        "type": "boolean", "description": "Explicit Version extension",
+    }
+    assert properties["compatibility"] == {
+        "type": "string", "description": "Explicit Version extension",
+    }
+    assert properties["deprecated"] == {
+        "type": "object", "properties": {"note": {"type": "string"}},
+        "additionalProperties": False, "required": ["note"],
+    }
+    meta = resource["properties"]["meta"]["properties"]
+    assert meta["readonly"] == {"type": "boolean"}
+    assert meta["compatibility"] == {"type": "string"}
+    assert "note" not in meta["deprecated"]["properties"]
+
+
+@pytest.mark.parametrize("name", ["model", "modelsource", "capabilities"])
+@pytest.mark.parametrize(
+    "value,is_object",
+    [
+        ({}, True),
+        ({"opaque": {"nested": [None, False, 7, "x", {}]}, "unknown": None}, True),
+        (False, False), ("not an object", False), ([], False), (None, False), (7, False),
+    ],
+    ids=["empty", "nested", "boolean", "string", "array", "null", "number"],
+)
+def test_jsonstructure_root_slots_require_objects(name, value, is_object):
+    """Prove native map/any output kinds with independent JSON kind controls."""
+    model = {"groups": {"catalogs": {"plural": "catalogs", "singular": "catalog"}}}
+    validate_model(model)
+    schema = GENERATOR.generate_json_structure(model)
+    assert schema["properties"][name] == {"type": "map", "values": {"type": "any"}}
+    assert name not in schema.get("required", [])
+    assert jsonschema.Draft7Validator.TYPE_CHECKER.is_type(value, "object") is is_object
