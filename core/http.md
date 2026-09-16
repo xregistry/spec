@@ -1621,8 +1621,8 @@ request to delete that attribute.
 For `xRegistry-` metadata headers, this test MUST be applied after the decoding
 in [HTTP Header Values](#http-header-values), not to the original wire spelling.
 Existing attribute-specific rules for `null` still apply. In particular,
-quoting or percent-encoding the four-character string `null` does not distinguish
-it from deletion.
+quoting or percent-encoding the four-character string `null` does not
+distinguish it from deletion.
 
 For example, for the OPTIONAL string attribute `name`:
 
@@ -3430,8 +3430,8 @@ decode it first; the raw field value is not the URI whenever the attribute
 contains percent escapes.
 
 xRegistry clients MUST obtain the Resource identity from the `<RESOURCE>id`
-metadata, normally the `xRegistry-<RESOURCE>id` header in document mode, not from
-the entire `Content-Disposition` value. The filename is advisory for HTTP
+metadata, normally the `xRegistry-<RESOURCE>id` header in document mode, not
+from the entire `Content-Disposition` value. The filename is advisory for HTTP
 tooling; recipients still need the filesystem safety precautions in
 [RFC6266, section 4.3](https://www.rfc-editor.org/rfc/rfc6266#section-4.3).
 
