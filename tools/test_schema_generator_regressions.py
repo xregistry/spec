@@ -787,6 +787,9 @@ def test_jsonstructure_uri_fields_use_native_reference_type(
     assert all(value["type"] == "uri" for value in navigation)
 
     checker = jsonschema.FormatChecker()
+    assert "uri-reference" in checker.checkers, (
+        "URI-reference checks require the declared jsonschema format dependencies"
+    )
     for value in ("#/catalogs/c", "../service", "https://example.com", ""):
         checker.check(value, "uri-reference")
     for value in ("not a uri", "https://example.com/%zz"):
