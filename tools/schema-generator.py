@@ -204,6 +204,22 @@ def generate_openapi(model_definition):
             for child in value:
                 metadata_content(child)
 
+    def document_content(path_item):
+        for method in ("get", "put", "post", "patch"):
+            operation = path_item.get(method, {})
+            messages = [
+                response for status, response in operation.get("responses", {}).items()
+                if status.startswith("2")
+            ]
+            if "requestBody" in operation:
+                messages.append(operation["requestBody"])
+            for message in messages:
+                content = message.get("content", {})
+                if "application/json" in content:
+                    content["application/json"]["schema"] = {
+                        "description": "Domain-specific JSON content, not xRegistry metadata."
+                    }
+
     try:
         template_file_name = os.path.join(os.path.dirname(__file__), '..', 'core', 'templates', 'xregistry_openapi_template.json')
         with open(template_file_name, encoding='utf-8') as file:
@@ -378,10 +394,12 @@ def generate_openapi(model_definition):
                 for item in (versions, version):
                     replace_refs(item, f"#/components/schemas/{resource['singular']}", reference)
                 if not resource.get("hasdocument", True):
+                    post = openapi["paths"][base]["post"]
                     replace_refs(
-                        openapi["paths"][base]["post"],
+                        post,
                         f"#/components/schemas/{resource['singular']}", reference
                     )
+                    replace_refs(post["requestBody"], reference, reference + "Input")
                 versions["get"]["responses"]["200"]["content"]["application/json"]["schema"] = {
                     "type": "object", "additionalProperties": {"$ref": reference}
                 }
@@ -401,6 +419,9 @@ def generate_openapi(model_definition):
                     if method in version_details:
                         version_details[method]["operationId"] += "Metadata"
                 openapi["paths"][base + "/versions/{versionid}$details"] = version_details
+                if resource.get("hasdocument", True):
+                    document_content(openapi["paths"][base])
+                    document_content(version)
 
         registry_entity_schema = openapi["components"]["schemas"]["RegistryEntity"]
         for _, group in model_definition.get("groups", {}).items():
@@ -738,13 +759,20 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
 
                 # For OpenAPI: flat keys, for JSON Schema: nested structure
                 if for_openapi:
+                    resource_only_names = (
+                        "meta", "metaurl", "versions", "versionsurl", "versionscount",
+                    )
+                    if not resource.get("hasdocument", True):
+                        # Core HTTP permits ignored Resource fields on Resource POST.
+                        version_input_schema = copy.deepcopy(resource_version_schema)
+                        version_input_schema["properties"].update({
+                            name: {} for name in resource_only_names
+                        })
+                        schema_definitions[f"{resource_name}VersionInput"] = version_input_schema
                     resource_version_schema["not"] = {
                         "anyOf": [
                             {"required": [name]}
-                            for name in (
-                                "meta", "metaurl", "versions",
-                                "versionsurl", "versionscount",
-                            )
+                            for name in resource_only_names
                         ]
                     }
                     schema_definitions[f"{resource_name}Version"] = resource_version_schema

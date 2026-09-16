@@ -70,9 +70,11 @@ Avro (`document-schema.avsc`), and OpenAPI (`openapi.json`) in the
 
 Generated OpenAPI descriptions keep Resource and Version metadata separate,
 including for Resource types with `maxversions: 1`. Resource navigation fields
-such as `meta` and `metaurl` do not belong in Version metadata. Metadata-only
-Resource POST requests and created responses use the Version representation;
-document-bearing request bodies are not reinterpreted as Version metadata.
+such as `meta` and `metaurl` do not belong in Version responses. Metadata-only
+Resource POST inputs permit these ignored read-only fields, as required by
+[Core HTTP](core/http.md#creating-or-updating-entities), without constraining
+their values. Bare document-bearing request and response bodies describe domain
+content; collections and `$details` retain metadata schemas.
 
 Additional release related information:
   [Historical releases and changelogs](docs/RELEASES.md)
