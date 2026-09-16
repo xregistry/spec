@@ -1701,7 +1701,7 @@ xRegistry-versionsurl: <URL>
 xRegistry-versionscount: <UINTEGER>
 Location: <URL> ?
 Content-Location: <URL> ?
-Content-Disposition: attachment; filename="<RID>" ?
+Content-Disposition: <DISPOSITION-TYPE>; filename="<RID>" ?
 
 ... Resource document excluded for brevity ... ?
 ```
@@ -1748,7 +1748,7 @@ xRegistry-compatibilityvalidatedreason: <STRING> ?
 xRegistry-<RESOURCE>url: <URL> ?           # End of default Version attributes
 Location: <URL> ?
 Content-Location: <URL> ?
-Content-Disposition: attachment; filename="<RID>" ?
+Content-Disposition: <DISPOSITION-TYPE>; filename="<RID>" ?
 
 ... Version document excluded for brevity ... ?
 ```
@@ -2034,7 +2034,7 @@ xRegistry-versionsurl: <URL>
 xRegistry-versionscount: <UINTEGER>
 Location: <URL> ?                      # If 303 is returned
 Content-Location: <URL> ?
-Content-Disposition: attachment; filename="<RID>" ?
+Content-Disposition: <DISPOSITION-TYPE>; filename="<RID>" ?
 
 ... Resource document ...              # If <RESOURCE>url is not set
 ```
@@ -2180,7 +2180,7 @@ xRegistry-versionsurl: <URL>
 xRegistry-versionscount: <UINTEGER>
 Location: <URL> ?                      # If 201 or 303 is returned
 Content-Location: <URL> ?
-Content-Disposition: attachment; filename="<RID>" ?
+Content-Disposition: <DISPOSITION-TYPE>; filename="<RID>" ?
 
 ... Resource document ...              # If <RESOURCE>url is not set
 ```
@@ -2366,7 +2366,7 @@ xRegistry-compatibilityvalidatedreason: <STRING> ?
 xRegistry-<RESOURCE>url: <URL> ?       # If Resource is not in body
 Location: <URL> ?                      # If 201 or 303 is returned
 Content-Location: <URL> ?
-Content-Disposition: attachment; filename="<RID>" ?
+Content-Disposition: <DISPOSITION-TYPE>; filename="<RID>" ?
 
 ... Version document excluded for brevity ...  # If <RESOURCE>url is not set
 ```
@@ -2875,7 +2875,7 @@ xRegistry-formatvalidatedreason: <STRING> ?
 xRegistry-compatibilityvalidated: <BOOLEAN> ?
 xRegistry-compatibilityvalidatedreason: <STRING> ?
 Location: <URL> ?                        # If 303 is returned
-Content-Disposition: attachment; filename="<RID>" ?
+Content-Disposition: <DISPOSITION-TYPE>; filename="<RID>" ?
 
 ... Version document ...                 # If <RESOURCE>url is not set
 ```
@@ -3033,7 +3033,7 @@ xRegistry-compatibilityvalidatedreason: <STRING> ?
 xRegistry-<RESOURCE>url: <URL> ?       # If Resource is not in body
 Location: <URL> ?                      # If 201 or 303 is returned
 Content-Location: <URL> ?
-Content-Disposition: attachment; filename="<RID>" ?
+Content-Disposition: <DISPOSITION-TYPE>; filename="<RID>" ?
 
 ... Version document ...               # If <RESOURCE>url is not set
 ```
@@ -3407,11 +3407,13 @@ MUST use their own grammars:
   use the grammar in
   [RFC6266, section 4](https://www.rfc-editor.org/rfc/rfc6266#section-4).
   It MUST contain a disposition type and a `filename` parameter whose value is
-  the Resource's `<RESOURCE>id`, serialized as a quoted-string. For example,
-  `attachment; filename="doc.txt"` suggests the filename `doc.txt`; the bare
-  value `doc.txt` would instead be a disposition type. Core Resource IDs are
-  ASCII, including permitted dots, colons and `@`, and need no private encoding
-  in a quoted filename.
+  the Resource's `<RESOURCE>id`, serialized as a quoted-string. The
+  serialization templates write that disposition type as `<DISPOSITION-TYPE>`;
+  this specification does not mandate a particular one, and its examples use
+  `attachment`. For example, `attachment; filename="doc.txt"` suggests the
+  filename `doc.txt`; the bare value `doc.txt` would instead be a disposition
+  type. Core Resource IDs are ASCII, including permitted dots, colons and `@`,
+  and need no private encoding in a quoted filename.
 
 Every `xRegistry-` metadata header value uses the private encoding below,
 including the `<URL>`- and `<XID>`-typed attributes that the serialization
