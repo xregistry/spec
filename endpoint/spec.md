@@ -542,12 +542,9 @@ This specification defines the following envelope options for the indicated
   mode. This attribute MUST NOT be specified when `mode` is `binary`. The value
   is the serialized envelope's media type, for example
   `application/cloudevents+json`, and MUST match the content type of that
-  envelope in the protocol body (e.g. the HTTP `Content-Type` header).
-  The Message [`datacontenttype`](../message/spec.md#datacontenttype) and the
-  CloudEvents `datacontenttype` instead describe the event data. They need not
-  equal `format`: a structured JSON envelope can carry XML or binary data.
-  In binary mode the HTTP `Content-Type` describes the event data and there
-  is no separate structured-envelope `format`.
+  envelope in the protocol body (e.g. the HTTP `Content-Type` header). For how
+  the envelope, the event data and the protocol content type relate, see the
+  Message [`datacontenttype`](../message/spec.md#datacontenttype) attribute.
 
 #### `protocol`
 
@@ -840,10 +837,14 @@ would be the same for both runtime messages), so the `messageid` value of one
 message definition (or the values of both) might not match the runtime
 message's `type` value. In those cases, finding the appropriate message
 definition will need to be done via examination of some other metadata - such
-as the message's
-`envelopemetadata.type` value along with its `envelopeoptions.format` value.
-These details are out of scope for this specification to define and are left as
-an implementation detail.
+as the message's `envelopemetadata.type` value along with the media type of
+the payload data, given by the Message
+[`datacontenttype`](../message/spec.md#datacontenttype) or by
+`envelopemetadata.datacontenttype.value`. The payload media type distinguishes
+the two serializations in both `binary` and `structured` mode, whereas
+`envelopeoptions.format` describes only the serialized envelope and is absent
+in `binary` mode. These details are out of scope for this specification to
+define and are left as an implementation detail.
 
 Implementations MAY choose to generate an error if they detect duplicate
 `messageid` values across the `messages` collection message definitions and
@@ -1062,11 +1063,11 @@ after resolving placeholders out-of-band; storing these declarations does not
 require the Registry server to resolve names or acquire an endpoint.
 
 Existing declarations using listener-style URLs need an explicit migration.
-For example, an author replaces `SSL://host:9093` with `host:9093` and explicitly
-sets `security.protocol` to `SSL` in the same endpoint-address object.
-Consumers MUST NOT silently strip a scheme or infer security configuration
-from it. In particular, stripping `SSL://` while retaining the model's
-`PLAINTEXT` default would change the intended security configuration.
+For example, an author replaces `SSL://host:9093` with `host:9093` and
+explicitly sets `security.protocol` to `SSL` in the same endpoint-address
+object. Consumers MUST NOT silently strip a scheme or infer security
+configuration from it. In particular, stripping `SSL://` while retaining the
+model's `PLAINTEXT` default would change the intended security configuration.
 
 The following options are defined for Kafka endpoints.
 
