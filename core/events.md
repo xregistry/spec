@@ -124,14 +124,12 @@ are recovered or retried after commitment. An implementation can, for example,
 use a transactional event record, but a temporary candidate event is not
 evidence of durable recording.
 
-This specification does not define transport delivery guarantees, including
-exactly-once delivery, durable replay, ordering between parent and child events,
-or a transaction with every consumer. Any such guarantees MUST be defined by
-an explicit profile; they MUST NOT be inferred from the number of events
-generated. Neither client receipt of a response nor event delivery defines the
-commit point here. A later enqueue or transport failure is not, by itself,
-evidence that the interaction was undone; the applicable processing rules and
-any explicit profile determine the outcome.
+This specification does not define transport delivery guarantees such as
+exactly-once delivery, durable replay, or parent/child ordering; an explicit
+profile MUST define any such guarantee, and it MUST NOT be inferred from the
+number of events generated. Delivery, client receipt, and later enqueue or
+transport failures do not by themselves determine whether an interaction
+committed.
 
 The following sections specify the metadata defined for xRegistry events.
 Implementations MAY define additional metadata.
@@ -244,28 +242,28 @@ where:
 
 - The `meta.epoch` attribute MUST be included in Resource `created` and
   `updated` events and it MUST be the `subject` Resource's `meta.epoch` value
-  as seen at the end of the interaction, subject to the cross-reference
-  Resource exception below.
+  as seen at the end of the interaction, except for cross-reference Resources
+  as described below.
 
   - MUST only be included for Resource related events.
 
   - MUST NOT be included in Resource `deleted` events.
 
-  - Except for unavailable cross-reference projections, Resource `created`
-    and `updated` events will include both `epoch` and `meta.epoch` attributes
-    even if one of them didn't change for the interaction.
+  - For non-cross-reference Resources, `created` and `updated` events include
+    both `epoch` and `meta.epoch`, even if one did not change.
 
 - For a [cross-reference Resource](spec.md#cross-referencing-resources)
-  `created` or `updated` event that includes `data`, `epoch` and `meta.epoch`
-  are projected target values. Each MUST be included only if that value is
-  available through the Core-defined projection at the end of the interaction;
-  each unavailable value MUST be omitted. A value
-  MUST NOT be invented or replaced with zero or a previously stored local
-  epoch. This applies, for example, when the target is missing, inaccessible,
-  or itself a cross-reference Resource. Generating events does not require
-  additional target acquisition, recursive cross-reference resolution, or
-  rejection of a cross-reference that Core permits. Other available event
-  data MAY still be included.
+  `created` or `updated` event that includes `data`, the Resource-level `epoch`
+  MUST be its value from the Core-defined target projection at the end of the
+  interaction, if available. Otherwise, `epoch` MUST be omitted, not replaced
+  with zero or a previously stored local value.
+
+  `meta.epoch` MUST always be omitted: Core excludes this attribute from the
+  source Resource's `meta` when `xref` is set, even when the target is available.
+
+  Generating events does not require additional target acquisition, recursive
+  cross-reference resolution, or rejection of a cross-reference that Core
+  permits. Other available event data MAY still be included.
 
 - The `changed` attribute MAY be included to indicate which attributes of the
   `subject` entity were modified. When present, has the following
@@ -330,9 +328,9 @@ which local entities change:
   not Version `deleted` events.
 
 When `changed` is included for a change to `meta.xref`, it MUST include
-`meta.xref`. The normal per-interaction event selection and coalescing rules
-still apply, including during Group or Registry deletion. These rules neither
-create local Versions for an alias nor require its target to be available.
+`meta.xref`. The [per-interaction event constraints](#event-definition) apply,
+including during Group or Registry deletion. These rules neither create local
+Versions for an alias nor require its target to be available.
 
 ### `registry` Events
 
