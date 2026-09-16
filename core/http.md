@@ -1632,7 +1632,7 @@ For example, for the OPTIONAL string attribute `name`:
 | `xRegistry-name: null` | `null` | Delete `name` |
 | `xRegistry-name: "null"` | `null` | Delete `name` |
 | `xRegistry-name: %6E%75%6C%6C` | `null` | Delete `name` |
-| `xRegistry-name:` | Empty string | Set `name` to the empty string |
+| `xRegistry-name:` | Empty string | Reject: `name` MUST be non-empty |
 | `xRegistry-name: Null` | `Null` | Set `name` to `Null` |
 | `xRegistry-name: %22null%22` | `"null"` | Set `name` to a six-character string |
 
