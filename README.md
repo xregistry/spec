@@ -68,27 +68,11 @@ Avro (`document-schema.avsc`), and OpenAPI (`openapi.json`) in the
 [schema](schema/schemas/)). The core model has its own JSON Schema at
 [core/model.schema.json](core/model.schema.json).
 
-Generated OpenAPI descriptions keep Resource and Version metadata separate,
-including for Resource types with `maxversions: 1`. Resource navigation fields
-such as `meta` and `metaurl` do not belong in Version responses. Metadata-only
-Resource POST inputs permit these ignored read-only fields, as required by
-[Core HTTP](core/http.md#creating-or-updating-entities), without constraining
-their values. Bare document-bearing request and response bodies describe domain
-content; collections and `$details` retain metadata schemas.
-
-Avro object and conditional record names include their owning entity and path;
-structured wildcard values retain their record definitions. These repairs change
-generated qualified names and layouts. Regenerate bindings and check writer/reader
-compatibility under the
-[Avro naming rules](https://avro.apache.org/docs/1.12.0/specification#names);
-compatibility with older generated readers is not guaranteed.
-
-JSON Structure uses its native
-[`uri` type](https://json-structure.github.io/core/draft-vasters-json-structure-core.html#section-3.2.2.21)
-for relative and absolute URI references. Inlined model and capability values
-are opaque maps, and Version definitions do not implicitly include Meta controls.
-These output contracts do not define input reset behavior. Tests check emitted
-types and bounded URI/object rules, not full native validation.
+Generated schema artifacts are regenerated from the models whenever the
+generator changes. Regenerating them can change Avro record names and
+layouts, so check writer/reader compatibility before upgrading generated
+bindings; see the [release notes](docs/RELEASE_NOTES.md) for the per-change
+detail.
 
 Additional release related information:
   [Historical releases and changelogs](docs/RELEASES.md)
