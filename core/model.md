@@ -518,7 +518,13 @@ The following describes the attributes of the Registry model:
 - MUST be unique across all Group types (plural and singular names) in the
   Registry.
 - MUST be non-empty and MUST be a valid attribute name. For clarity, it
-  MUST NOT exceed 63 characters.
+  MUST NOT exceed 61 characters.
+
+This limit leaves room for the `id` suffix in the `<GROUP>id` attribute within
+the [63-character attribute-name limit](./spec.md#attributes). Models using the
+previously stated 62- or 63-character Group singular names do not satisfy this
+bound. Existing immutable Group types MUST NOT be silently truncated or
+renamed; adopting this bound requires an explicit migration.
 
 ### `groups.<STRING>.description`
 - Type: String.
