@@ -1089,6 +1089,12 @@ Note that this feature has similar results to setting the Resource attribute's
   The `typemap` attribute allows for this by defining a mapping of
   `contenttype` values to well-known xRegistry format types.
 
+  For responses, the [binary flag](./spec.md#binary-flag) MUST take precedence
+  over every `typemap` selection. Otherwise, the effective mapping, including
+  the implicit mappings below, MUST determine the document representation.
+  The [empty-document rule](./spec.md#resourcebase64-attribute) still applies.
+  A server preference for base64 MUST NOT override a `json` or `string` mapping.
+
   Since the `contenttype` value is a "media-type" per
   [RFC9110](https://datatracker.ietf.org/doc/html/rfc9110#media.type),
   for purposes of looking it up in the `typemap`, just the `type/subtype`
@@ -1123,10 +1129,15 @@ Note that this feature has similar results to setting the Resource attribute's
   server MAY choose to modify the formatting of the document (e.g. to
   "pretty-print" it).
 
-  A value of `string` indicates that the Resource's document is to be treated
-  as a string and serialized using the default string serialization rules
-  for the format being used to serialize the Resource's metadata. For
-  example, when using JSON, this means escaping all non-printable characters.
+  A value of `string` indicates that the Resource's document MUST be
+  serialized under the `<RESOURCE>` attribute as a string, using the default
+  string serialization rules for the Resource's metadata format. The document
+  bytes do not need to already be a valid value in that format. For example,
+  when using JSON, this means quoting the string and escaping characters such
+  as quotation marks, backslashes, and non-printable characters.
+  If the bytes cannot be represented as a string without loss, the server
+  MUST treat the document as `binary`. It MUST NOT replace or discard invalid
+  bytes to force a string representation.
 
   Specifying an unknown (or unsupported) value MUST generate an error
   ([model_error](./spec.md#model_error)) during the update of the xRegistry

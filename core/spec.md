@@ -3605,29 +3605,35 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
 #### `<RESOURCE>` Attribute
 - Type: Resource Document
 - Description: This attribute is a serialization of the corresponding
-  Version's domain-specific document's contents. If the document's bytes
-  "as is" (without any additional processing such as escaping) allows for
-  them to appear as the value of this JSON attribute, then this attribute
-  MUST be used if the request asked for the document to be
-  [inlined](#inline-flag) in the response.
+  Version's domain-specific document's contents. For a non-empty document
+  [inlined](#inline-flag) in a response, the selection and encoding of this
+  attribute MUST follow the Resource type's
+  [`typemap`](./model.md#groupsstringresourcesstringtypemap), including its
+  implicit mappings, except that the [Binary Flag](#binary-flag) MUST force
+  the use of `<RESOURCE>base64`.
 
-  This is a convenience (optimization) attribute to make it easier to view the
-  document when it happens to be in the same format as the serialization of
-  the Version.
+  A `string` mapping MUST use this attribute with the string serialization
+  rules of the metadata format, even when the original document bytes are
+  not a JSON value. For example, the bytes `Hello` with `contenttype` set to
+  `text/plain` are represented as `"file": "Hello"` for a `file` Resource.
+  If the bytes cannot be represented as a string without loss, then
+  `<RESOURCE>base64` MUST be used instead.
 
-  The model Resource attribute
-  [`typemap`](./model.md#groupsstringresourcesstringtypemap)
-  MAY be used to help the server determine if the document is in the
-  same format. If a Version has a matching `contenttype` attribute but the
-  contents of the Version's document do not successfully parse (e.g. it's
-  `application/json` but the JSON is invalid), then `<RESOURCE>`
-  MUST NOT be used and `<RESOURCE>base64` MUST be used instead.
+  A `json` mapping MUST use this attribute for valid JSON. A document selected
+  as `json` that contains invalid JSON MUST use `<RESOURCE>base64` instead.
+  A `binary` mapping, including the result of conflicting matching entries,
+  MUST use `<RESOURCE>base64`.
+
+  If no explicit or implicit `typemap` mapping applies, this attribute MAY
+  be used if the document's bytes "as is" are a valid value in the metadata
+  format. In this case, the server MAY prefer `<RESOURCE>base64` even for a
+  valid JSON document. Document bytes MUST NOT be converted to a string merely
+  to fit the metadata format when no `string` mapping applies.
 
 - Constraints
   - If the Version's document is to be serialized and is not empty,
     then either `<RESOURCE>` or `<RESOURCE>base64` MUST be present.
-  - MUST only be used if the Version's document (bytes) is in the same
-    format as the serialization of the Version entity.
+  - MUST only be used when permitted by the representation rules above.
   - MUST NOT be present if `<RESOURCE>base64` is also present.
   - MUST NOT be present if the Resource type's
     [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
@@ -3636,10 +3642,9 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
 #### `<RESOURCE>base64` Attribute
 - Type: String
 - Description: This attribute is a base64 encoding of the corresponding
-  Version's domain-specific document. If the Version's document (which is
-  stored as an array of bytes) is not conformant with the format being used
-  to serialize the Version (e.g. as a JSON value), then this attribute MUST be
-  used instead of the `<RESOURCE>` attribute.
+  Version's domain-specific document. If the document cannot be represented
+  using `<RESOURCE>` under the `typemap` and binary-flag rules above, then
+  this attribute MUST be used instead.
 
 - Constraints:
   - If the Version's document is to be serialized and it is not empty,
@@ -3674,7 +3679,9 @@ attributes to be used. In the case of `<RESOURCE>` or `<RESOURCE>base64`,
 implementations can not assume that a previous use of one means that all
 subsequent interactions with that entity will use the same attribute. For
 example, a client can use `<RESOURCE>` to populate the value, but the server
-is free to use `<RESOURCE>base64` when returning the data.
+MUST select the response representation according to the rules above. It can
+return `<RESOURCE>base64` when those rules require it or, when no `typemap`
+mapping applies, when it prefers that form.
 
 #### Version IDs
 
