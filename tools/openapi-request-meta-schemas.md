@@ -16,7 +16,8 @@ Root `PUT` uses `RegistryWriteInput`; root `PATCH` uses
 `RegistryPatchInput`. Root GET and update responses continue to use the
 completed `RegistryEntity` response requirements. Existing Group and
 metadata-only Resource writes also use input roles; Version collection writes
-use Version inputs, not completed response schemas. No new routes are added.
+use Version inputs, not completed response schemas. The only added routes are
+the Resource metadata writes described below.
 
 A normal replacement/write request retains genuinely client-required model
 attributes: required, writable attributes without a declared default.
@@ -57,8 +58,8 @@ selectors and final conditional/model constraints require server state.
 A supplied writable selector constrains its active conditional members;
 inactive names need an applicable wildcard. Omitted, reset or read-only
 selectors admit possible conditional/wildcard alternatives without inventing
-retained state. The server checks final activation and required attributes against
-the [effective model](../core/model.md#attributesstringifvalues).
+retained state. The server checks final activation and required attributes
+against the [effective model](../core/model.md#attributesstringifvalues).
 
 A request that supplies `modelsource` can replace/reset the model before
 other attributes are processed. That request takes an explicit model-change
@@ -70,6 +71,37 @@ Response model constraints describe the model used for generation. A client
 changing the model must obtain the corresponding updated description or
 validate model-dependent response data against that effective model. The
 generator cannot infer a future model or silently certify graph semantics.
+
+## Resource routes, metadata and domain documents
+
+The `$details` suffix, not the media type, selects a Resource's xRegistry
+metadata. When a Resource type has `hasdocument` true, the bare Resource URL
+addresses its domain-specific document and `$details` addresses the metadata.
+When `hasdocument` is false the suffix is optional, so the bare URL and the
+`$details` URL are the same metadata route. An `application/json` body on a
+document-bearing bare URL is therefore business content, not metadata: a
+document whose members happen to be spelled `versionid` or `meta` is admitted
+unchanged. Those requests and responses keep `application/octet-stream`, the
+`xRegistry-*` metadata headers and the `xRegistry-epoch` document-view guard.
+See Core's rules for
+[metadata views](../core/http.md#resource-metadata-vs-resource-document).
+
+Because metadata writes need a route, the generator emits Resource `PUT` and
+`POST` operations on `$details` in addition to the existing read operation.
+`PUT` replaces the Resource and uses the Resource write input. `POST` creates
+or updates one Version and uses a Version write input; Core allows that body
+to carry Resource-level read-only attributes such as `versionscount`, so they
+are admitted and described as ignored, while Resource-only mutable members
+such as `versions` and `meta` are not part of it. The `POST` response is the
+Version definition, or the Resource definition for a single-Version type that
+has none. Metadata epoch guards travel in the JSON body, so the document-view
+`xRegistry-epoch` header is not added to these operations.
+
+Metadata-only Resource types keep typed inputs on the bare URL as well, since
+that URL is their metadata route. Meta routes, Version collections, nested
+collection maps and every completed response stay typed; no route gains a
+`PATCH` operation it did not already have, and existing metadata `PATCH`
+operations keep their distinct partial-input role.
 
 ## Model-specific Meta types
 
@@ -122,9 +154,10 @@ Generated schemas do not decide these transitions from shape alone.
 
 ## Scope
 
-These input-role corrections do not add routes or change document media
-handling, scalar encodings, native headers, administrative APIs, concurrency
-flags or Problem Details.
+Apart from the Resource `$details` writes above, these corrections do not add
+routes, and they do not change scalar encodings, native headers,
+administrative APIs, concurrency flags or Problem Details. Domain document
+media handling is clarified by route, not rewritten by content type.
 Tests exercise actual generator route schemas, not only selected fragments.
 
 For JSON Structure typed-wildcard handling, see
