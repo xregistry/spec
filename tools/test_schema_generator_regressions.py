@@ -888,3 +888,424 @@ def test_jsonstructure_root_slots_require_objects(name, value, is_object):
     assert schema["properties"][name] == {"type": "map", "values": {"type": "any"}}
     assert name not in schema.get("required", [])
     assert jsonschema.Draft7Validator.TYPE_CHECKER.is_type(value, "object") is is_object
+
+
+PARITY_ATTRIBUTES = {
+    "format": {
+        "type": "string", "required": True, "description": "Modeled format",
+    },
+    "settings": {
+        "type": "object", "required": True,
+        "attributes": {
+            "retries": {"type": "uinteger", "required": True},
+            "profile": {
+                "type": "object", "required": True,
+                "attributes": {"mode": {"type": "string", "required": True}},
+            },
+        },
+    },
+    "aliases": {"type": "map", "item": {"type": "string"}},
+    "*": {
+        "name": "*", "type": "object",
+        "attributes": {"note": {"type": "string", "required": True}},
+    },
+}
+
+
+def parity_model(maxversions, attributes=None):
+    resource = {
+        "plural": "entries", "singular": "entry", "hasdocument": False,
+        "attributes": copy.deepcopy(
+            PARITY_ATTRIBUTES if attributes is None else attributes
+        ),
+    }
+    if maxversions is not None:
+        resource["maxversions"] = maxversions
+    model = {
+        "groups": {
+            "catalogs": {
+                "plural": "catalogs", "singular": "catalog",
+                "resources": {"entries": resource},
+            }
+        }
+    }
+    validate_model(model)
+    return model
+
+
+def avro_resource_records(schema):
+    parsed = avro.schema.parse(json.dumps(schema))
+    resource = parsed.fields_dict["catalogs"].type.values.fields_dict["entries"].type.values
+    versioned = "versions" in resource.fields_dict
+    version = resource.fields_dict["versions"].type.values if versioned else resource
+    return resource, version
+
+
+def avro_round_trip(record, data):
+    output = io.BytesIO()
+    avro.io.DatumWriter(record).write(data, avro.io.BinaryEncoder(output))
+    output.seek(0)
+    return avro.io.DatumReader(record).read(avro.io.BinaryDecoder(output))
+
+
+def avro_shape(schema):
+    """Structural shape of a schema, ignoring owner-specific record names."""
+    nullable = isinstance(schema, avro.schema.UnionSchema) and any(
+        branch.type == "null" for branch in schema.schemas
+    )
+    schema = avro_nonnullable(schema)
+    if schema.type == "record":
+        shape = ("record", tuple(
+            (name, avro_shape(item.type))
+            for name, item in schema.fields_dict.items()
+        ))
+    elif schema.type == "map":
+        shape = ("map", avro_shape(schema.values))
+    elif schema.type == "array":
+        shape = ("array", avro_shape(schema.items))
+    else:
+        shape = (schema.type, schema.get_prop("logicalType"))
+    return (shape, nullable)
+
+
+def parity_datum(**overrides):
+    stamp = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    data = {
+        "entryid": "e", "name": None, "epoch": 1,
+        "self": "https://example.com/catalogs/c/entries/e",
+        "xid": "/catalogs/c/entries/e", "description": None, "documentation": None,
+        "labels": {}, "createdat": stamp, "modifiedat": stamp,
+        "format": "JSON/1.0",
+        "settings": {"retries": 2, "profile": {"mode": "strict"}},
+        "aliases": None, "Extensions": {"custom": {"note": "kept"}},
+    }
+    data.update(overrides)
+    return data
+
+
+def core_version_datum(**overrides):
+    return parity_datum(
+        versionid="v1", ancestorid="v1", isdefault=True, contenttype=None, **overrides
+    )
+
+
+@pytest.mark.parametrize(
+    "maxversions", [None, 0, 2, 1],
+    ids=["default", "unlimited", "ordinary", "singleton"],
+)
+def test_avro_resource_record_keeps_modelled_default_version_attributes(maxversions):
+    """A Resource record must still declare the attributes it models."""
+    schema = GENERATOR.generate_avro_schema(parity_model(maxversions))
+    resource, version = avro_resource_records(schema)
+    modelled = {"format", "settings", "aliases", "Extensions"}
+    assert modelled <= set(resource.fields_dict)
+    for name in modelled:
+        assert [item.name for item in resource.fields].count(name) == 1
+        assert [item.name for item in version.fields].count(name) == 1
+        assert str(avro_shape(resource.fields_dict[name].type)) == str(
+            avro_shape(version.fields_dict[name].type)
+        )
+    assert resource.fields_dict["format"].get_prop("doc") == "Modeled format"
+    assert not avro.io.validate(resource.fields_dict["format"].type, None)
+    assert not avro.io.validate(resource.fields_dict["format"].type, 7)
+    assert ("versions" in resource.fields_dict) is (maxversions != 1)
+    if maxversions == 1:
+        assert resource is version
+        return
+    assert resource is not version
+    assert resource.fullname != version.fullname
+    core = {"versionid": "string", "ancestorid": "string", "isdefault": "boolean"}
+    for name, kind in core.items():
+        assert resource.fields_dict[name].type.type == kind
+        assert not avro.io.validate(resource.fields_dict[name].type, None)
+    assert avro.io.validate(resource.fields_dict["contenttype"].type, None)
+    navigation = {"versions", "versionsurl", "versionscount", "metaurl", "meta"}
+    assert set(resource.fields_dict) == set(version.fields_dict) | navigation
+
+
+@pytest.mark.parametrize(
+    "maxversions", [None, 0, 2], ids=["default", "unlimited", "ordinary"],
+)
+def test_avro_resource_record_round_trips_its_default_version_values(maxversions):
+    """The regained Resource fields carry real values through Avro encoding."""
+    schema = GENERATOR.generate_avro_schema(parity_model(maxversions))
+    resource, version = avro_resource_records(schema)
+    inlined = core_version_datum()
+    data = core_version_datum(
+        versions={"v1": inlined}, versionsurl=None, versionscount=1,
+        metaurl=None, meta=None,
+    )
+    assert avro.io.validate(version, inlined)
+    assert avro.io.validate(resource, data)
+    decoded = avro_round_trip(resource, data)
+    assert decoded["format"] == "JSON/1.0"
+    assert decoded["settings"] == {"retries": 2, "profile": {"mode": "strict"}}
+    assert decoded["Extensions"] == {"custom": {"note": "kept"}}
+    assert decoded["versionid"] == "v1"
+    assert decoded["isdefault"] is True
+    assert decoded["versions"]["v1"]["format"] == "JSON/1.0"
+    for broken in (
+        {"format": 7}, {"format": None}, {"settings": {"retries": 2}},
+        {"settings": {"retries": "two", "profile": {"mode": "strict"}}},
+        {"Extensions": {"custom": {"note": 7}}}, {"isdefault": "true"},
+        {"versionid": None},
+    ):
+        assert not avro.io.validate(resource, {**data, **broken})
+
+
+@pytest.mark.parametrize(
+    "maxversions", [None, 0, 2, 1],
+    ids=["default", "unlimited", "ordinary", "singleton"],
+)
+def test_avro_resource_and_version_own_their_structured_records(maxversions):
+    """Resource and Version overlays must not redefine one another's records."""
+    attributes = copy.deepcopy(PARITY_ATTRIBUTES)
+    attributes["kind"] = {
+        "type": "string",
+        "ifvalues": {
+            "external": {
+                "siblingattributes": {
+                    "location": {
+                        "type": "object", "required": True,
+                        "attributes": {"host": {"type": "string", "required": True}},
+                    }
+                }
+            }
+        },
+    }
+    schema = GENERATOR.generate_avro_schema(parity_model(maxversions, attributes))
+    resource, version = avro_resource_records(schema)
+    names = {}
+    for label, record in (("resource", resource), ("version", version)):
+        settings = record.fields_dict["settings"].type
+        extensions = record.fields_dict["Extensions"].type.values
+        conditional = record.fields_dict["kind"].type.schemas[0]
+        for part, nested in (
+            ("settings", settings), ("extensions", extensions),
+            ("conditional", conditional),
+        ):
+            assert nested.type == "record"
+            assert nested.namespace == "io.xregistry.catalogs"
+            names[(label, part)] = nested.fullname
+        assert set(settings.fields_dict) == {"retries", "profile"}
+        assert avro.io.validate(settings, {"retries": 1, "profile": {"mode": "strict"}})
+        assert not avro.io.validate(settings, {"retries": 1})
+        assert set(extensions.fields_dict) == {"note"}
+        assert set(conditional.fields_dict) == {"location"}
+        assert avro.io.validate(conditional, {"location": {"host": "example.com"}})
+        assert not avro.io.validate(conditional, {"location": {"host": 7}})
+    owned = [names[key] for key in names if key[0] == "resource"]
+    assert len(set(names.values())) == (3 if maxversions == 1 else 6)
+    assert all(name.startswith("io.xregistry.catalogs.Entry") for name in owned)
+    if maxversions != 1:
+        for part in ("settings", "extensions", "conditional"):
+            assert names[("version", part)].startswith(
+                "io.xregistry.catalogs.EntryVersion"
+            )
+
+
+@pytest.mark.parametrize(
+    "maxversions", [None, 0, 2, 1],
+    ids=["default", "unlimited", "ordinary", "singleton"],
+)
+def test_jsonstructure_resource_keeps_modelled_default_version_attributes(maxversions):
+    """The closed JSON Structure Resource object must admit its own attributes."""
+    schema = GENERATOR.generate_json_structure(parity_model(maxversions))
+    definitions = schema["definitions"]["Catalogs"]
+    resource = definitions["Entry"]
+    version = definitions["EntryVersion"] if maxversions != 1 else resource
+    assert resource["additionalProperties"] is False
+    for name in ("format", "settings", "aliases"):
+        assert resource["properties"][name] == version["properties"][name]
+    assert resource["properties"]["format"] == {
+        "type": "string", "description": "Modeled format",
+    }
+    assert resource["properties"]["settings"]["properties"]["profile"]["properties"] == {
+        "mode": {"type": "string"}
+    }
+    assert "format" in resource["required"]
+    assert ("versions" in resource["properties"]) is (maxversions != 1)
+    if maxversions == 1:
+        return
+    assert {
+        name: resource["properties"][name]["type"] for name in (
+            "versionid", "isdefault", "ancestorid", "contenttype",
+        )
+    } == {
+        "versionid": "string", "isdefault": "boolean",
+        "ancestorid": "string", "contenttype": "string",
+    }
+    assert not {"versionid", "isdefault", "ancestorid", "contenttype"} & set(
+        resource["required"]
+    )
+    assert set(resource["properties"]) == set(version["properties"]) | {
+        "versions", "versionsurl", "versionscount", "metaurl", "meta",
+    }
+
+def document_validator(schema):
+    return jsonschema.Draft7Validator(
+        schema, format_checker=jsonschema.FormatChecker()
+    )
+
+
+def catalog_document(entry):
+    return {"catalogs": {"c": {"entries": {"e": entry}}}}
+
+
+ORDINARY_VERSION_VALUE = {"endpoints": [{"uri": "https://example.com", "priority": 0}]}
+
+
+@pytest.mark.parametrize(
+    "entry,accepted",
+    [
+        ({}, True),
+        ({"entryid": "e"}, True),
+        ({"entryid": "e", **ORDINARY_VERSION_VALUE}, True),
+        ({"meta": {"xref": "/catalogs/c2/entries/e2"}}, True),
+        ({"versionsurl": "#/catalogs/c/entries/e/versions"}, True),
+        ({"versions": {"v1": ORDINARY_VERSION_VALUE}, "versionscount": 1}, True),
+        ({"versionscount": -1}, False),
+        ({"versionscount": "1"}, False),
+        ({"versionsurl": 7}, False),
+        ({"versions": []}, False),
+        ({"versions": {"v1": {"endpoints": "https://example.com"}}}, False),
+        ({"versions": {"v1": {"endpoints": [{"priority": -1}]}}}, False),
+        ({"entryid": 7}, False),
+        ({"meta": {"xref": 7}}, False),
+    ],
+    ids=[
+        "empty", "identity-only", "plain-attributes", "xref", "navigation-url",
+        "inlined-versions", "negative-count", "string-count", "url-type",
+        "versions-array", "bad-nested-type", "bad-nested-value", "bad-identity",
+        "bad-xref",
+    ],
+)
+def test_jsonschema_document_admits_resources_without_versions_navigation(
+    entry, accepted,
+):
+    """Core makes the collection attributes OPTIONAL in a document."""
+    validator = document_validator(generate("json"))
+    document = catalog_document(entry)
+    if accepted:
+        validator.validate(document)
+    else:
+        with pytest.raises(jsonschema.ValidationError):
+            validator.validate(document)
+
+
+@pytest.mark.parametrize(
+    "model_name,data_name,group,resource",
+    [
+        ("doc-store-model.json", "doc-store-data.json", "dirs", "files"),
+        (
+            "formatted-doc-store-model.json", "formatted-doc-store-data.json",
+            "docs", "renditions",
+        ),
+    ],
+    ids=["doc-store", "formatted-doc-store"],
+)
+def test_jsonschema_document_admits_core_doc_store_samples(
+    model_name, data_name, group, resource,
+):
+    """The repository's own Core samples must validate against the projection."""
+    samples = ROOT / "core" / "samples"
+    model = json.loads((samples / model_name).read_text(encoding="utf-8"))
+    data = json.loads((samples / data_name).read_text(encoding="utf-8"))
+    validate_model(model)
+    validator = document_validator(GENERATOR.generate_json_schema(model))
+    assert list(validator.iter_errors(data)) == []
+    first = next(iter(data[group]))
+    rejected = copy.deepcopy(data)
+    rejected[group][first][resource][
+        next(iter(data[group][first][resource]))
+    ]["versionscount"] = -1
+    assert [error.validator for error in validator.iter_errors(rejected)] == ["minimum"]
+
+
+@pytest.mark.parametrize("group", ["catalogs", "mirrors"])
+@pytest.mark.parametrize(
+    "entry,accepted",
+    [
+        ({"entryid": "e"}, True),
+        ({"versionsurl": "#/x", **ORDINARY_VERSION_VALUE}, True),
+        ({"versions": {"v1": {"endpoints": [{"uri": "https://example.com"}]}}}, True),
+        ({"versions": {"v1": {"endpoints": [{"priority": 0}]}}}, False),
+        ({"versionscount": -1}, False),
+    ],
+    ids=["plain", "navigation", "optional-item", "missing-item", "negative-count"],
+)
+def test_jsonschema_document_admits_imported_resource_collections(
+    group, entry, accepted,
+):
+    """Imported (aliased) collections reuse the same Resource admission."""
+    model = copy.deepcopy(MODEL)
+    model["groups"]["mirrors"] = {
+        "singular": "mirror", "ximportresources": ["/catalogs/entries"],
+    }
+    validate_model(model)
+    validator = document_validator(GENERATOR.generate_json_schema(model))
+    document = {group: {"g": {"entries": {"e": entry}}}}
+    if accepted:
+        validator.validate(document)
+    else:
+        with pytest.raises(jsonschema.ValidationError):
+            validator.validate(document)
+
+
+@pytest.mark.parametrize("maxversions", [0, 2, 1], ids=["unlimited", "ordinary", "singleton"])
+def test_openapi_resource_response_keeps_versions_navigation_requirement(maxversions):
+    """Relaxing the document projection must not weaken completed responses."""
+    openapi = generate_version_openapi(False, maxversions)
+    validate(openapi)
+    base = "/catalogs/{groupid}/entries/{resourceid}"
+    response = openapi["paths"][base]["get"]["responses"]["200"]
+    representation = response["content"]["application/json"]["schema"]
+    assert representation == {"$ref": "#/components/schemas/entry"}
+    read = operation_validator(openapi, representation)
+    complete = {"entryid": "e", "versionsurl": "https://example.com/versions"}
+    read.validate(complete)
+    read.validate({"entryid": "e", "meta": {"xref": "/catalogs/c2/entries/e2"}})
+    requirement = "anyOf" in openapi["components"]["schemas"]["entry"]
+    assert requirement is (maxversions != 1)
+    if not requirement:
+        assert "entryInput" not in openapi["components"]["schemas"]
+        return
+    with pytest.raises(jsonschema.ValidationError) as error:
+        read.validate({"entryid": "e"})
+    assert error.value.validator == "anyOf"
+    with pytest.raises(jsonschema.ValidationError):
+        read.validate({**complete, "versionscount": -1})
+
+
+@pytest.mark.parametrize("maxversions", [0, 2], ids=["unlimited", "ordinary"])
+def test_openapi_metadata_only_resource_put_admits_plain_input(maxversions):
+    """Resource writes do not have to carry the versions navigation."""
+    openapi = generate_version_openapi(False, maxversions)
+    validate(openapi)
+    base = "/catalogs/{groupid}/entries/{resourceid}"
+    representation = (
+        openapi["paths"][base]["put"]["requestBody"]["content"]["application/json"]["schema"]
+    )
+    assert representation == {"$ref": "#/components/schemas/entryInput"}
+    write = operation_validator(openapi, representation, request=True)
+    write.validate({"entryid": "e"})
+    write.validate({"entryid": "e", **ORDINARY_VERSION_VALUE})
+    write.validate({"entryid": "e", "meta": {"xref": "/catalogs/c2/entries/e2"}})
+    write.validate({"entryid": "e", "versionsurl": "https://example.com/versions"})
+    for name, value in (
+        ("entryid", 7), ("versionscount", -1), ("versionsurl", 7),
+    ):
+        with pytest.raises(jsonschema.ValidationError) as error:
+            write.validate({"entryid": "e", name: value})
+        assert list(error.value.absolute_path) == [name]
+    with pytest.raises(jsonschema.ValidationError) as error:
+        write.validate({
+            "entryid": "e",
+            "versions": {"v1": {"endpoints": "https://example.com"}},
+        })
+    assert list(error.value.absolute_path) == ["versions", "v1", "endpoints"]
+    input_schema = copy.deepcopy(openapi["components"]["schemas"]["entryInput"])
+    response_schema = copy.deepcopy(openapi["components"]["schemas"]["entry"])
+    assert "anyOf" not in input_schema
+    assert response_schema.pop("anyOf")
+    assert input_schema == response_schema

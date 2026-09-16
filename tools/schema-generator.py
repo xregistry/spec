@@ -182,6 +182,17 @@ def generate_openapi(model_definition):
                     if isinstance(item, dict):
                         replace_refs(item, expression, reference)
 
+    def replace_exact_refs(schema_fragment: dict, expression: str, reference: str):
+        for k, v in schema_fragment.items():
+            if k == "$ref" and v == expression:
+                schema_fragment[k] = reference
+            if isinstance(v, dict):
+                replace_exact_refs(v, expression, reference)
+            elif isinstance(v, list):
+                for item in v:
+                    if isinstance(item, dict):
+                        replace_exact_refs(item, expression, reference)
+
     def replace_ops(schema_fragment: dict, expression: str, reference: str):
         for k,v in schema_fragment.items():
             if k == "operationId":
@@ -400,6 +411,13 @@ def generate_openapi(model_definition):
                         f"#/components/schemas/{resource['singular']}", reference
                     )
                     replace_refs(post["requestBody"], reference, reference + "Input")
+                    resource_input = f"{resource['singular']}Input"
+                    if resource_input in openapi["components"]["schemas"]:
+                        replace_exact_refs(
+                            openapi["paths"][base]["put"]["requestBody"],
+                            f"#/components/schemas/{resource['singular']}",
+                            f"#/components/schemas/{resource_input}",
+                        )
                 versions["get"]["responses"]["200"]["content"]["application/json"]["schema"] = {
                     "type": "object", "additionalProperties": {"$ref": reference}
                 }
@@ -793,7 +811,13 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                         }
                     },
                 })
-                resource_schema["anyOf"] = [
+                if for_openapi:
+                    # A completed response always carries versions navigation
+                    # unless the Resource is a cross-reference. The document
+                    # projection also describes inputs, where the collection
+                    # attributes are OPTIONAL, so it admits a plain Resource
+                    # that carries no versions navigation at all.
+                    resource_schema["anyOf"] = [
                         {"required": ["versionsurl"]},
                         {"required": ["versions"]},
                         {
@@ -808,6 +832,12 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
             # For OpenAPI: flat keys, for JSON Schema: nested structure
             if for_openapi:
                 schema_definitions[resource_name] = resource_schema
+                if "anyOf" in resource_schema and not resource.get("hasdocument", True):
+                    # Metadata-only Resource writes carry the same properties
+                    # without the completed-response navigation requirement.
+                    resource_input_schema = copy.deepcopy(resource_schema)
+                    resource_input_schema.pop("anyOf")
+                    schema_definitions[f"{resource_name}Input"] = resource_input_schema
             else:
                 if f"{group_name}-schema" not in schema_definitions:
                     schema_definitions[f"{group_name}-schema"] = {}
@@ -1025,8 +1055,19 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
                 **common_attributes
             }
             resource_attributes = dict(identity_attributes)
-            if resource.get("maxversions", -1) == 1:
-                resource_attributes.update(resource.get("attributes", {}))
+            if resource.get("maxversions", -1) != 1:
+                # A Resource serialization carries its default Version's
+                # attributes, so the Resource object declares them too.
+                resource_attributes.update({
+                    "versionid": {
+                        "type": "string",
+                        "description": f"ID of the default {resource_singular} version"
+                    },
+                    "isdefault": {"type": "boolean"},
+                    "ancestorid": {"type": "string"},
+                    "contenttype": {"type": "string"},
+                })
+            resource_attributes.update(resource.get("attributes", {}))
             resource_schema = object_schema(
                 resource_attributes, namespace, resource_type_name
             )
@@ -1383,17 +1424,27 @@ def generate_avro_schema(model_definition) -> dict:
                 }
                 attributes = resource.get("attributes", {})
                 if resource.get("maxversions", -1) != 1:
-                    resource_version_schema = copy.deepcopy(resource_schema)
-                    resource_version_schema["fields"].insert(0, {"name" : "versionid", "type": "string", "description": f"ID of the {resource_name} version"})
-                    resource_version_schema["name"] = pascal(resource_name)+"VersionType"
-                    resource_version_schema["fields"].extend([
+                    # A Resource serialization carries its default Version's
+                    # attributes, so seed the shared Core fields before the
+                    # model overlay is applied to each record under its own
+                    # owning name prefix.
+                    resource_schema["fields"].extend([
+                        {"name": "versionid", "type": "string", "description": f"ID of the default {resource_name} version"},
                         {"name": "ancestorid", "type": "string"},
                         {"name": "isdefault", "type": "boolean"},
                         {"name": "contenttype", "type": ["null", "string"], "default": None},
                     ])
+                    resource_version_schema = copy.deepcopy(resource_schema)
+                    resource_version_schema["name"] = pascal(resource_name)+"VersionType"
+                    for version_field in resource_version_schema["fields"]:
+                        if version_field["name"] == "versionid":
+                            version_field["description"] = f"ID of the {resource_name} version"
                     handle_attributes(
                         resource_version_schema, attributes,
                         pascal(resource_name) + "Version", group_namespace,
+                    )
+                    handle_attributes(
+                        resource_schema, attributes, pascal(resource_name), group_namespace
                     )
                     resource_schema["fields"].append(
                         {
