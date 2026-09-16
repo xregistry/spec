@@ -864,7 +864,8 @@ be one of the following data types:
 - `timestamp` - an [RFC3339](https://tools.ietf.org/html/rfc3339) timestamp.
   Use of a `time-zone` notation is RECOMMENDED. All timestamps returned by
   a server MUST be normalized to UTC to allow for easy (and consistent)
-  comparisons.
+  comparisons. Timestamp comparisons MUST use the
+  [instant comparison rules](#filter-flag).
 - `uinteger` - unsigned integer.
 - `uri` - an absolute URI ( `uriabsolute`) or relative URI (`urirelative`).
 - `uriabsolute` - absolute URI as defined in [RFC 3986 Section
@@ -4076,8 +4077,19 @@ impacts how the comparisons are done:
   - The strings MUST be compared in a case-insensitive manner.
   - It is STRONGLY RECOMMENDED to use Unicode collation based on en-US.
   - See the next paragraph for information about use of wildcards.
-- For timestamp attributes, after the values have been normalized to UTC,
-  these follow the same rules as "strings" above.
+- For timestamp attributes, timestamps MUST be compared by the instants they
+  represent after normalization to UTC, not by string collation. Comparisons
+  MUST preserve arbitrary permitted fractional-second precision and MUST NOT
+  round or truncate fractions for comparison. An absent fraction is zero,
+  and trailing fractional zeroes do not change the instant.
+  For example, `2030-01-01T00:00:00.0Z` and `2030-01-01T00:00:00Z` compare
+  equal, and `2030-01-01T00:00:00.1Z` compares greater than either one.
+  RFC3339 offset and leap-second semantics remain applicable. This rule does
+  not impose a uniform number of fractional digits on stored or returned
+  values.
+  Presence, `null`, and whole-value `*` existence tests retain their existing
+  semantics. Outside those tests, operands MUST be RFC3339 timestamps.
+  Other string-wildcard patterns are not timestamp operands.
 - For URI/URL variants, these follow the same rules as "strings" above.
 
 See the [`Sort`](#sort-flag) section for more details concerning sorting.
@@ -4500,6 +4512,8 @@ the same as if they had the "lowest" possible value for that attribute. If
 more than one entity shares the same attribute value then the `<SINGULAR>id`
 MUST be used as a secondary sorting key, using the same `asc`/`desc` value
 specified for the primary sorting key.
+Different timestamp representations of the same instant MUST use this
+secondary key, not their serialized spellings.
 
 An invalid usage of, or value for, the `sort` flag MUST generate an error
 ([bad_sort](#bad_sort)).
