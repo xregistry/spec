@@ -2531,31 +2531,7 @@
               "$ref": "#/definitions/schemagroup-schema/schemaVersion"
             }
           }
-        },
-        "anyOf": [
-          {
-            "required": [
-              "versionsurl"
-            ]
-          },
-          {
-            "required": [
-              "versions"
-            ]
-          },
-          {
-            "properties": {
-              "meta": {
-                "required": [
-                  "xref"
-                ]
-              }
-            },
-            "required": [
-              "meta"
-            ]
-          }
-        ]
+        }
       },
       "schemagroup": {
         "type": "object",

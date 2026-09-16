@@ -1275,6 +1275,22 @@
             "type": "datetime",
             "description": "Modification time"
           },
+          "versionid": {
+            "type": "string",
+            "description": "ID of the default schema version"
+          },
+          "isdefault": {
+            "type": "boolean"
+          },
+          "ancestorid": {
+            "type": "string"
+          },
+          "contenttype": {
+            "type": "string"
+          },
+          "format": {
+            "type": "string"
+          },
           "metaurl": {
             "type": "uri"
           },
@@ -1389,7 +1405,10 @@
             }
           }
         },
-        "additionalProperties": false
+        "additionalProperties": true,
+        "required": [
+          "format"
+        ]
       },
       "Schemagroup": {
         "type": "object",

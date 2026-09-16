@@ -350,6 +350,40 @@
                       "doc": "Time of the object modification"
                     },
                     {
+                      "name": "versionid",
+                      "type": "string",
+                      "description": "ID of the default schema version"
+                    },
+                    {
+                      "name": "ancestorid",
+                      "type": "string"
+                    },
+                    {
+                      "name": "isdefault",
+                      "type": "boolean"
+                    },
+                    {
+                      "name": "contenttype",
+                      "type": [
+                        "null",
+                        "string"
+                      ],
+                      "default": null
+                    },
+                    {
+                      "type": "string",
+                      "name": "format"
+                    },
+                    {
+                      "name": "Extensions",
+                      "type": {
+                        "type": "map",
+                        "name": "SchemaExtensionsType",
+                        "default": {},
+                        "values": "io.xregistry.GenericRecord"
+                      }
+                    },
+                    {
                       "name": "versions",
                       "type": {
                         "type": "map",
@@ -358,11 +392,6 @@
                           "name": "SchemaVersionType",
                           "namespace": "io.xregistry.schemagroups",
                           "fields": [
-                            {
-                              "name": "versionid",
-                              "type": "string",
-                              "description": "ID of the schema version"
-                            },
                             {
                               "name": "schemaid",
                               "type": "string",
@@ -442,6 +471,11 @@
                                 "null"
                               ],
                               "doc": "Time of the object modification"
+                            },
+                            {
+                              "name": "versionid",
+                              "type": "string",
+                              "description": "ID of the schema version"
                             },
                             {
                               "name": "ancestorid",
