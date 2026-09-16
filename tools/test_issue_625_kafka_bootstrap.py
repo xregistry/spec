@@ -23,24 +23,34 @@ validate_bootstrap_servers = _helper.validate_bootstrap_servers
 
 
 def _kafka_options(node):
-    if isinstance(node, dict):
-        properties = node.get("properties", {})
-        if properties.get("protocol", {}).get("enum") == ["KAFKA"]:
-            return properties["protocoloptions"]
-        for child in node.values():
-            found = _kafka_options(child)
-            if found is not None:
-                return found
-    elif isinstance(node, list):
-        for child in node:
-            found = _kafka_options(child)
-            if found is not None:
-                return found
-    return None
+    matches = []
+
+    def visit(branch):
+        if not isinstance(branch, dict):
+            return
+        properties = branch.get("properties", {})
+        guard = properties.get("protocol")
+        if (
+            "protocol" in branch.get("required", [])
+            and "protocoloptions" in properties
+            and guard is not None
+            and jsonschema.Draft7Validator(guard).is_valid("KAFKA")
+        ):
+            matches.append(properties["protocoloptions"])
+        for keyword in ("allOf", "anyOf", "oneOf"):
+            for child in branch.get(keyword, []):
+                visit(child)
+
+    visit(node)
+    if len(matches) != 1:
+        raise ValueError(
+            f"Expected one Kafka protocoloptions branch, found {len(matches)}"
+        )
+    return matches[0]
 
 
 @pytest.fixture(params=["endpoint", "cloudevents"])
-def options_schema(request, tmp_path):
+def endpoint_schema(request, tmp_path):
     output = tmp_path / "document-schema.json"
     models = [ROOT / "endpoint" / "model.json"]
     if request.param == "cloudevents":
@@ -64,10 +74,125 @@ def options_schema(request, tmp_path):
     )
     assert result.returncode == 0, result.stdout + result.stderr
     schema = json.loads(output.read_text(encoding="utf-8"))
-    options = _kafka_options(schema["definitions"]["endpoint-schema"]["endpoint"])
-    assert options is not None
+    return schema["definitions"]["endpoint-schema"]["endpoint"]
+
+
+@pytest.fixture
+def options_schema(endpoint_schema):
+    options = _kafka_options(endpoint_schema)
     jsonschema.Draft7Validator.check_schema(options)
     return options
+
+
+@pytest.fixture(params=["enum", "pattern"])
+def kafka_artifact(request, endpoint_schema):
+    endpoint = copy.deepcopy(endpoint_schema)
+    candidates = []
+    for part in endpoint["allOf"]:
+        for branch in part.get("oneOf", []):
+            options = branch.get("properties", {}).get("protocoloptions", {})
+            addresses = options.get("properties", {}).get("endpoints", {})
+            fields = addresses.get("items", {}).get("properties", {})
+            if "bootstrap.servers" in fields:
+                candidates.append(branch)
+    assert len(candidates) == 1
+    branch = candidates[0]
+    if request.param == "enum":
+        guard = {"type": "string", "enum": ["KAFKA"]}
+    else:
+        guard = {
+            "type": "string",
+            "pattern": r"^[Kk][Aa][Ff][Kk][Aa](?![\s\S])",
+        }
+    branch["properties"]["protocol"] = guard
+    jsonschema.Draft7Validator.check_schema(endpoint)
+    return endpoint, branch
+
+
+def test_kafka_selector_selects_matching_generated_branch(kafka_artifact):
+    endpoint, branch = kafka_artifact
+    options = _kafka_options(endpoint)
+    assert options is branch["properties"]["protocoloptions"]
+    validator = jsonschema.Draft7Validator(options)
+    sample = json.loads(SAMPLE_PATH.read_text(encoding="utf-8"))
+    for entry in sample["endpoints"].values():
+        if entry["protocol"] == "KAFKA":
+            validator.validate(entry["protocoloptions"])
+    assert not validator.is_valid(
+        {"endpoints": [{"bootstrap.servers": [9092]}]}
+    )
+
+
+def test_kafka_selector_ignores_unguarded_options(kafka_artifact):
+    endpoint, branch = kafka_artifact
+    endpoint["properties"]["protocol"] = {"type": "string"}
+    endpoint["properties"]["protocoloptions"] = {"not": {}}
+    assert _kafka_options(endpoint) is branch["properties"]["protocoloptions"]
+
+
+@pytest.mark.parametrize("position", ["first", "last"])
+def test_kafka_selector_is_independent_of_branch_order(kafka_artifact, position):
+    endpoint, branch = kafka_artifact
+    alternatives = next(
+        part["oneOf"]
+        for part in endpoint["allOf"]
+        if any(candidate is branch for candidate in part.get("oneOf", []))
+    )
+    alternatives.remove(branch)
+    alternatives.insert(0 if position == "first" else len(alternatives), branch)
+    assert _kafka_options(endpoint) is branch["properties"]["protocoloptions"]
+
+
+def test_kafka_selector_rejects_missing_branch(kafka_artifact):
+    endpoint, branch = kafka_artifact
+    branch.clear()
+    with pytest.raises(ValueError, match="found 0"):
+        _kafka_options(endpoint)
+
+
+def test_kafka_selector_rejects_ambiguous_branches(kafka_artifact):
+    endpoint, branch = kafka_artifact
+    endpoint["allOf"].append(copy.deepcopy(branch))
+    with pytest.raises(ValueError, match="found 2"):
+        _kafka_options(endpoint)
+
+
+@pytest.mark.parametrize(
+    "guard",
+    [
+        {"type": "string", "enum": ["HTTP"]},
+        {"type": "string", "pattern": r"^HTTP(?![\s\S])"},
+        {"not": {"enum": ["KAFKA"]}},
+    ],
+    ids=["other-enum", "other-pattern", "fallback"],
+)
+def test_kafka_selector_rejects_nonmatching_guards(kafka_artifact, guard):
+    endpoint, branch = kafka_artifact
+    branch["properties"]["protocol"] = guard
+    with pytest.raises(ValueError, match="found 0"):
+        _kafka_options(endpoint)
+
+
+def test_kafka_selector_requires_protocol_discriminator(kafka_artifact):
+    endpoint, branch = kafka_artifact
+    branch["required"].remove("protocol")
+    with pytest.raises(ValueError, match="found 0"):
+        _kafka_options(endpoint)
+
+
+def test_kafka_selector_ignores_negated_branches(kafka_artifact):
+    endpoint, branch = kafka_artifact
+    endpoint["not"] = copy.deepcopy(branch)
+    branch.clear()
+    with pytest.raises(ValueError, match="found 0"):
+        _kafka_options(endpoint)
+
+
+def test_kafka_selector_requires_protocol_options(kafka_artifact):
+    endpoint, branch = kafka_artifact
+    del branch["properties"]["protocoloptions"]
+    with pytest.raises(ValueError, match="found 0"):
+        _kafka_options(endpoint)
 
 
 def test_contoso_kafka_samples_preserve_ssl_without_listener_urls(options_schema):

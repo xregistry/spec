@@ -19,6 +19,9 @@ configuration remains a separate declaration.
 
 The [focused regressions](../tools/test_issue_625_kafka_bootstrap.py) exercise
 the real Contoso sample and generated Endpoint and CloudEvents schemas.
+The selector regressions use real generated options with controlled literal
+and case-insensitive pattern guards. Missing or ambiguous Kafka branches are
+errors; they do not skip sample validation.
 Run them from the repository root:
 
 ```console
