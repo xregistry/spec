@@ -1032,6 +1032,10 @@ Note that this feature has similar results to setting the Resource attribute's
   attribute MUST also be `true`.
 - A value of `false` indicates that the server MUST NOT perform any
   `compatibility` checking for instances of this Resource type.
+- These checks validate the stored
+  [`meta.compatibility` claim](spec.md#compatibility-attribute); they do not
+  replace the Resource model's attribute constraints. When disabled, lack of
+  checker support MUST NOT by itself reject a stored claim.
 - In cases where this attribute is `false`, but there is a desire to advertise
   the external entity that has performed the validation, a `label` MAY be
   added to the Resource's model or to the Resource instance itself with this

@@ -1978,12 +1978,17 @@ The following defines the specification-defined capabilities:
   character at that location in the string. Similar to a `.*` in regular
   expressions.
 
-  An error
+  When configuring this capability, an error
   ([capability_error](#capability_error)) MUST be generated if a specified
   key/format isn't in Capabilities `formats` list or the compatibility rule
   specified is not supported for that `format` (i.e. that combination of
   `format`/`compatibility` is not listed in the `compatibilities` offered
   capabilities).
+
+  This map describes available validation support, not an unconditional list
+  of allowed stored claims. Admission and validation of a Resource's
+  [`compatibility`](#compatibility-attribute) claim follow that attribute's
+  rules.
 
   Compatibility rules are semantic requirements that define how Versions of a
   Resource are allowed to change over time. For example, the compatibility rule
@@ -3056,16 +3061,30 @@ and the following Meta-level attributes:
   relationship between the Resource's Versions and the server MUST NOT perform
   any `compatibility` checking.
 
+  A stored value is a compatibility claim, not a statement that the server has
+  verified it. The per-Version
+  [`compatibilityvalidated`](#compatibilityvalidated-attribute) attribute
+  reports whether the applicable checks were performed successfully.
+
 - Constraints:
   - OPTIONAL.
-  - If present, MUST be a case-insensitive non-empty value from the Registry's
+  - If present, MUST be a case-insensitive non-empty string that satisfies the
+    Resource's model constraints, including any applicable enumeration
+    restrictions.
+  - The Registry's
     [`capabilities.compatibilities`](#compatibilities-capability) values
-    for the set of `format` values used by the Versions of the Resource.
-  - When changing the value of this attribute, it MUST be applied to all
-    Versions of the Resource, and an error
-    ([compatibility_violation](#compatibility_violation)) MUST be generated
-    if any Version can not conform to the requirements of the specified
-    compatibility value.
+    describe which format/compatibility checks are available. Lack of an
+    applicable checker MUST NOT by itself reject a model-permitted claim
+    when compatibility checking is disabled or `strictvalidation` is `false`.
+    An enabled applicable check that is unavailable MUST follow the existing
+    [`compatibilityvalidated`](#compatibilityvalidated-attribute) rules for
+    strict rejection or an unchecked result with an explanation. Validation
+    status and reason attributes MUST follow their existing presence rules.
+  - When changing this attribute, the new claim applies to all Versions of
+    the Resource. Its enabled checks MUST be evaluated for all applicable
+    Versions, not only changed Versions. An actual failed check MUST generate
+    an error ([compatibility_violation](#compatibility_violation)) and reject
+    the entire operation, regardless of `strictvalidation`.
 
 #### `defaultversionid` Attribute
 - Type: String
@@ -3491,7 +3510,7 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
 #### `compatibilityvalidated` Attribute
 - Type: Boolean
 - Description: When [`compatibility`
-  validation](./model.md#groupsstringresourcesstringvalidateformat)
+  validation](./model.md#groupsstringresourcesstringvalidatecompatibility)
   is enabled, this attribute will indicate whether or not the server has
   performed validation to ensure the Version conforms to the rules defined by
   its Resource's `meta.compatibility` attribute's value.
@@ -3548,7 +3567,7 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
 - Description: When
   [`compatibilityvalidated`](#compatibilityvalidated-attribute) has a
   value of `false`, this attribute MUST provide information as to why the
-  format validation check was not performed.
+  compatibility validation check was not performed.
 
 - Constraints:
   - OPTIONAL
