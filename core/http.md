@@ -3411,6 +3411,12 @@ MUST use their own grammars:
   type. Core Resource IDs are ASCII, including permitted dots, colons and `@`,
   and need no private encoding in a quoted filename.
 
+xRegistry clients MUST obtain the Resource identity from the `<RESOURCE>id`
+metadata, normally the `xRegistry-<RESOURCE>id` header in document mode, not
+from the entire `Content-Disposition` value. The filename is advisory for HTTP
+tooling; recipients still need the filesystem safety precautions in
+[RFC6266, section 4.3](https://www.rfc-editor.org/rfc/rfc6266#section-4.3).
+
 Every `xRegistry-` metadata header value uses the private encoding below,
 including the `<URL>`- and `<XID>`-typed attributes that the serialization
 templates declare, such as `xRegistry-self`, `xRegistry-xid`,
@@ -3428,12 +3434,6 @@ attribute value and the native field value, not between the two wire
 spellings. A client that dereferences a `<URL>`-typed metadata header MUST
 decode it first; the raw field value is not the URI whenever the attribute
 contains percent escapes.
-
-xRegistry clients MUST obtain the Resource identity from the `<RESOURCE>id`
-metadata, normally the `xRegistry-<RESOURCE>id` header in document mode, not
-from the entire `Content-Disposition` value. The filename is advisory for HTTP
-tooling; recipients still need the filesystem safety precautions in
-[RFC6266, section 4.3](https://www.rfc-editor.org/rfc/rfc6266#section-4.3).
 
 For example, these field values preserve native HTTP syntax while the
 `xRegistry-` values carry the private encoding:
