@@ -30,8 +30,8 @@ python -B -m pytest tools/test_schema_generator_ifvalues_644.py -q
 
 The tests use actual JSON Schema and OpenAPI schema validators, not a translated
 schema or a replacement selector matcher. This change does not implement source
-aliases, strict scalar enums, missing scalar kinds, lossless alternate encodings,
-object closure, or client SDK codecs.
+aliases, strict scalar enums, missing scalar kinds, lossless alternate
+encodings, object closure, or client SDK codecs.
 
 Published Message, Endpoint, and CloudEvents validators are also checked against
 valid and invalid HTTP query values and MQTT expiry intervals with different
