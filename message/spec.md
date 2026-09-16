@@ -705,7 +705,9 @@ Illustrating example:
 - Type: Map
 - Description: Configuration details of the Message with respect to the
   envelope format used to format the messages. See
-  [Metadata Envelopes](#metadata-envelopes) for more details.
+  [Metadata Envelopes](#metadata-envelopes) for more details. For
+  `CloudEvents/1.0`, `mode` and `format` have the meanings defined by the
+  [Endpoint envelope options](../endpoint/spec.md#cloudevents10).
 - Constraints:
   - OPTIONAL.
 
@@ -786,19 +788,27 @@ Illustrating example:
 #### `datacontenttype`
 
 - Type: `String` per [RFC 2046](https://tools.ietf.org/html/rfc2046)
-- Description: Content type of the message payload. This attribute MAY be
-  duplicative with some other metadata within the message definition. For
-  example, in the case of using CloudEvents, the `envelopemetadata` attribute
-  might include the `datacontenttype` attribute. This possible duplication
-  of data is expected so as to allow for easy, more consistent discovery
-  of the message's format. This means that if this information does appear in
-  more than one location within the message metadata, all occurrences MUST
-  have the same value.
+- Description: Content type of the message payload data, whether or not that
+  data is nested within an envelope. For CloudEvents, it describes the event
+  data, as does the CloudEvents
+  [`datacontenttype`](https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/spec.md#datacontenttype)
+  attribute. If both the Message `datacontenttype` and
+  `envelopemetadata.datacontenttype.value` specify a value, they MUST agree.
+  Consistency checks apply only to values describing this same data layer.
 
-  Note that when an `envelope` is defined for a message and the data of
-  interest is serialized as being nested within the envelope (e.g.
-  CloudEvents "structured" mode), then this attribute MUST be the content type
-  of the message envelope and not of the data nested within the envelope.
+  In CloudEvents structured mode, `envelopeoptions.format` identifies the
+  media type of the serialized envelope, for example
+  `application/cloudevents+json`. It does not describe the nested event data
+  and MUST NOT be substituted for the Message `datacontenttype`. The event
+  format determines how the data is represented inside the envelope; encoding
+  binary data as base64 does not change the media type of the original data.
+
+  A protocol's content type describes the bytes in that protocol's body.
+  Under the CloudEvents
+  [HTTP binding](https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/bindings/http-protocol-binding.md),
+  HTTP `Content-Type` therefore describes the event data in binary mode, but
+  the serialized envelope in structured mode. It MUST agree with the
+  corresponding layer, not unconditionally with the Message `datacontenttype`.
 
   As specified in [RFC 2045](https://tools.ietf.org/html/rfc2045), the media
   type part of the content type MUST be treated in a case-insensitive manner
@@ -811,6 +821,59 @@ Illustrating example:
     [RFC 2046](https://tools.ietf.org/html/rfc2046). For Media Type examples
     see [IANA Media
     Types](http://www.iana.org/assignments/media-types/media-types.xhtml)
+
+For binary mode or a structured JSON envelope, the following combinations
+are valid:
+
+| Mode         | Payload data type          | HTTP Content-Type              |
+| ------------ | -------------------------- | ------------------------------ |
+| `binary`     | `application/json`         | `application/json`             |
+| `binary`     | `application/xml`          | `application/xml`              |
+| `binary`     | `application/octet-stream` | `application/octet-stream`     |
+| `structured` | `application/json`         | `application/cloudevents+json` |
+| `structured` | `application/xml`          | `application/cloudevents+json` |
+| `structured` | `application/octet-stream` | `application/cloudevents+json` |
+
+For example, this Message declares XML event data in a structured JSON
+envelope:
+
+```json
+{
+  "envelope": "CloudEvents/1.0",
+  "envelopeoptions": {
+    "mode": "structured",
+    "format": "application/cloudevents+json"
+  },
+  "datacontenttype": "application/xml",
+  "envelopemetadata": {
+    "type": { "value": "com.example.order" },
+    "datacontenttype": { "value": "application/xml" }
+  }
+}
+```
+
+The relevant HTTP content type and body are shown below; other HTTP fields
+and transport framing are omitted:
+
+```http
+Content-Type: application/cloudevents+json
+
+{
+  "specversion": "1.0",
+  "id": "42",
+  "source": "https://example.com/orders",
+  "type": "com.example.order",
+  "datacontenttype": "application/xml",
+  "data": "<order id=\"42\"/>"
+}
+```
+
+An absent data media type is not inferred from the envelope media type or
+from a schema language name alone. Defaults defined by a particular
+CloudEvents event format or protocol binding still apply to that format or
+binding; they are not universal Message defaults. Declarations that formerly
+used `datacontenttype` for the outer envelope need to move that constraint to
+`envelopeoptions.format` and describe the payload separately.
 
 ### Metadata Envelopes and Message Protocols
 
@@ -1019,9 +1082,10 @@ The following rules apply to the attribute declarations:
 - The `id` attribute's `value` SHOULD NOT be defined.
 - The `time` attribute's `value` MUST default to `0000-01-01T00:00:00Z`
   ("current time") and SHOULD NOT be declared with a different value.
-- The `datacontenttype` attribute's `value` is inferred from the
-  [`dataschemaformat`](#dataschemaformat) attribute of the message definition
-  if absent.
+- An explicit Message [`datacontenttype`](#datacontenttype) supplies the
+  CloudEvents data media type when this attribute's `value` is absent. If
+  both are specified, they MUST agree. Explicit and inferred values describe
+  the same data layer, never the serialized envelope's media type.
 - The `dataschema` attribute's `value` is inferred from the
   [`dataschemauri`](#dataschemauri) attribute or
   [`dataschema`](#dataschema) attribute of the message definition if
@@ -1086,9 +1150,10 @@ The following example declares a CloudEvent with a JSON payload. The attribute
 spite of such a declaration being absent here; the `type` of the `type`
 attribute is `string` and the attribute is `required` even though the
 declarations are absent. The `time` attribute is made `required` contrary to
-the CloudEvents base specification. The implied CloudEvents `datacontenttype`
-attribute value is `application/json` and the implied CloudEvents `dataschema`
-attribute value is `https://example.com/schemas/com.example.myevent.json`:
+the CloudEvents base specification. The explicit Message `datacontenttype`
+supplies the CloudEvents value `application/json`; the implied CloudEvents
+`dataschema` attribute value is
+`https://example.com/schemas/com.example.myevent.json`:
 
 ```yaml
 {
@@ -1108,6 +1173,7 @@ attribute value is `https://example.com/schemas/com.example.myevent.json`:
       "required": true
     },
   },
+  "datacontenttype": "application/json",
   "dataschemaformat": "JsonSchema/draft-07",
   "dataschemauri": "https://example.com/schemas/com.example.myevent.json"
 }

@@ -525,7 +525,7 @@ to the xRegistry-defined core
   - OPTIONAL.
 - Examples:
   - For an endpoint using an `envelope` value of `CloudEvents/1.0`:
-    `{ "mode": "binary", "format": "application/json" }`
+    `{ "mode": "structured", "format": "application/cloudevents+json" }`
 
 This specification defines the following envelope options for the indicated
 `envelope` values:
@@ -539,8 +539,14 @@ This specification defines the following envelope options for the indicated
   is acceptable.
 - `format` : indicates the format of the CloudEvent when sent in `structured`
   mode. This attribute MUST NOT be specified when `mode` is `binary`. The value
-  used MUST match the expected content type of the message (e.g. for HTTP the
-  `Content-Type` header value).
+  is the serialized envelope's media type, for example
+  `application/cloudevents+json`, and MUST match the content type of that
+  envelope in the protocol body (e.g. the HTTP `Content-Type` header).
+  The Message [`datacontenttype`](../message/spec.md#datacontenttype) and the
+  CloudEvents `datacontenttype` instead describe the event data. They need not
+  equal `format`: a structured JSON envelope can carry XML or binary data.
+  In binary mode the HTTP `Content-Type` describes the event data and there
+  is no separate structured-envelope `format`.
 
 #### `protocol`
 
