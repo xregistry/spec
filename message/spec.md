@@ -291,8 +291,9 @@ situations, this specification provides the following guidance:
   definitions.
 - Message definitions SHOULD have a `messageid` value that is the same as the
   CloudEvents' `type` context attribute defined for that Message. This will
-  allow for an exact mapping from the incoming Message's `type` attribute to
-  its related Message definition.
+  allow for a mapping from the incoming Message's `type` attribute to its
+  related Message Resource. If the Resource retains multiple Versions, the
+  `type` value alone does not necessarily distinguish those Versions.
 - Message Resource types SHOULD be defined with a `maxversions` of `1`. This
   eliminates the need for each incoming Message to include some unique
   Version discriminator.
@@ -306,6 +307,13 @@ Implementations and Registry model authors MAY deviate from these
 recommendations; however, they are then responsible for defining the
 mechanisms by which a unique Message definition is matched to incoming
 messages.
+
+A customized history-enabled model can use an explicit Version reference,
+a runtime Version discriminator, or another explicitly defined matching
+policy. If more than one Version matches the available evidence, that result
+MUST NOT be reported as a unique match without such a selection. This
+specification does not prescribe a matching algorithm or make the default
+Version an implicit discriminator for all historical messages.
 
 ## Message Groups
 
@@ -571,9 +579,62 @@ to the xRegistry-defined core
 The Resource plural name (`<RESOURCES>`) is `messages`, and the Resource
 singular name (`<RESOURCE>`) is `message`.
 
-Different from schemas, message definitions do not contain a
-version history. If the metadata of two messages differs, they are considered
-different messages.
+In the RECOMMENDED and default Message profile, Resource types have
+`maxversions` set to `1` and do not retain a Version history. Wire-visible
+metadata changes are instead represented by different Message Resources as
+RECOMMENDED in [Message Definition Matching](#message-definition-matching).
+This describes a profile, not a prohibition on Message histories.
+
+Customized models MAY retain multiple Versions of a Message by selecting a
+larger `maxversions`, or `0` for no stated limit, subject to the Core
+[`maxversions` rules](../core/model.md#groupsstringresourcesstringmaxversions).
+Different metadata in those Versions does not require a different
+`messageid` in this customized profile. Core Version operations, default
+Version selection, and retention rules continue to apply; a limit of `0`
+does not promise indefinite retention.
+
+A Message Resource reference selects its
+[default Version](../core/spec.md#default-version-of-a-resource). A precise
+Version reference, including one used by `basemessage`, selects that Version
+independently of the current default. A precise reference does not imply
+immutable contents or guarantee that the Version remains available. If the
+referenced Version is unavailable, a consumer MUST NOT silently substitute
+the default Version and claim to have resolved the precise reference.
+
+A customized model with `maxversions` set to `2` can expose the following
+Message projection (other server-managed attributes are omitted):
+
+```json
+{
+  "messageid": "com.example.order",
+  "xid": "/messagegroups/orders/messages/com.example.order",
+  "meta": { "defaultversionid": "v2" },
+  "versions": {
+    "v1": {
+      "versionid": "v1",
+      "envelope": "CloudEvents/1.0",
+      "envelopemetadata": {
+        "type": { "value": "com.example.order" }
+      },
+      "datacontenttype": "application/json"
+    },
+    "v2": {
+      "versionid": "v2",
+      "envelope": "CloudEvents/1.0",
+      "envelopemetadata": {
+        "type": { "value": "com.example.order" }
+      },
+      "datacontenttype": "application/xml"
+    }
+  }
+}
+```
+
+Here `/messagegroups/orders/messages/com.example.order` selects `v2`, while
+`/messagegroups/orders/messages/com.example.order/versions/v1` selects `v1`.
+Matching only the runtime CloudEvents `type` yields two candidates. A matching
+policy that also examines the payload content type can distinguish these
+particular Versions. No general matching policy is implied by this example.
 
 When [CloudEvents](https://cloudevents.io) is used for a particular
 message, it is RECOMMENDED that the message's `messageid` attribute be the
