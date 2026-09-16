@@ -1081,15 +1081,16 @@ of the existing entity. Then the existing entity would be deleted.
 ##### `self` Attribute
 
 - Type: URL
-- Description: A server-generated unique URL referencing the current entity.
-  - Each entity in the Registry MUST have a unique `self` URL value that
-    locates the entity in the Registry hierarchy and from where the entity can
-    be retrieved.
+- Description: A server-generated URL referencing the current entity.
+  - In API view, each entity in the Registry MUST have a unique `self` URL
+    value that locates the entity in the Registry hierarchy and from where the
+    entity can be retrieved.
   - When specified as an absolute URL, it MUST be based on the URL of the
     Registry root appended with the hierarchy path of the Registry
     entities/collections leading to the entity (its `xid` value).
-  - When specified as a relative URL, it MUST end with the entity's `xid`
-    value.
+  - When specified as a relative URL other than a document-view fragment
+    pointer, it MUST end with the entity's `xid` value. Document-view fragment
+    pointers are response-local and are not subject to this suffix requirement.
 
 - API View Constraints:
   - REQUIRED.
@@ -1107,7 +1108,7 @@ of the existing entity. Then the existing entity would be deleted.
 
 - Document View Constraints:
   - REQUIRED.
-  - MUST be immutable.
+  - Its value MAY differ between responses with different document roots.
   - MUST be a relative URL of the form `#JSON-POINTER` where the `JSON-POINTER`
     locates this entity within the current document. See [Doc Flag](#doc-flag)
     for more information.
@@ -3927,6 +3928,13 @@ relative and reference a Resource or Version, any protocol-specific
 modifications to the URLs (e.g. the HTTP `$details` suffix) MUST NOT be
 present despite the semantics of the suffix being applied (as noted below).
 
+Each pointer MUST use the
+[URI fragment identifier representation of RFC6901](https://datatracker.ietf.org/doc/html/rfc6901#section-6):
+escape `~` as `~0` and `/` as `~1` within each reference token, then perform
+the UTF-8 and URI-fragment percent-encoding from that section. A pointer to the
+response root MUST be `#` (an empty JSON Pointer); `#/` instead refers to a
+member whose name is the empty string.
+
 For clarity, if a Registry has a Schema Resource at
 `/schemagroups/g1/schemas/s1`, then this entity's `self` URL (when serialized
 in document view) would change based on the path specified on the `GET`
@@ -3938,7 +3946,7 @@ request:
 | `http://example.com/myreg/schemagroups` | `#/g1/schemas/s1` |
 | `http://example.com/myreg/schemagroups/g1/ ` | `#/schemas/s1` |
 | `http://example.com/myreg/schemagroups/g1/schemas ` | `#/s1` |
-| `http://example.com/myreg/schemagroups/g1/schemas/s1` | `#/` |
+| `http://example.com/myreg/schemagroups/g1/schemas/s1` | `#` |
 
 This feature is useful when a client wants to minimize the amount of data
 returned by a server because the duplication of that data (typically used for
