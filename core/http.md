@@ -3,6 +3,7 @@
 <!-- words: validatecompatibility validateformat -->
 <!-- words: compat formatvalidated compatibilityvalidated -->
 <!-- words: compat formatvalidatedreason compatibilityvalidatedreason multipart -->
+<!-- words: caf custommap hh tchar -->
 
 ## Abstract
 
@@ -65,6 +66,7 @@ model and semantics that apply to all protocols.
     - [`DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`](#delete-groupsgidresourcesridversionsvid)
   - [xRegistry Discovery](#xregistry-discovery)
 - [Request Flags / Query Parameters](#request-flags--query-parameters)
+- [HTTP Header Names](#http-header-names)
 - [HTTP Header Values](#http-header-values)
 - [Error Processing](#error-processing)
 
@@ -425,7 +427,9 @@ apply:
 - When `labels` is serialized as an HTTP header, see
   [Serializing Resource Domain-Specific Documents](#serializing-resource-domain-specific-documents), then
   each map entry MUST appear as a separate HTTP header using a name of
-  `xRegistry-labels.<KEYNAME>`.
+  `xRegistry-labels.<ENCODED_KEY>`, where `<ENCODED_KEY>` is the map key encoded
+  according to [HTTP Header Names](#http-header-names), not the key copied
+  literally into the field name.
 
 ##### `contenttype` Attribute
 
@@ -1576,8 +1580,11 @@ with some of the Resource's xRegistry metadata. To support this, some of the
 Resource's xRegistry metadata MAY appear as HTTP headers in messages.
 
 On responses, unless otherwise stated, all top-level scalar attributes of the
-Resource SHOULD appear as HTTP headers where the header name is the name of the
-attribute prefixed with `xRegistry-`. Note, the optionality of this requirement
+Resource SHOULD appear as HTTP headers where the header name is the encoded
+attribute name prefixed with `xRegistry-`, as defined in
+[HTTP Header Names](#http-header-names). Core attribute names that use the
+default character set are unchanged by this encoding.
+Note, the optionality of this requirement
 is not to allow for servers to decide whether or not to do so, rather it is to
 allow for [No-Code Servers](#no-code-servers) that might not be
 able to control the HTTP response headers.
@@ -1588,11 +1595,12 @@ values will appear in the HTTP body.
 
 Top-level map attributes whose values are of scalar types SHOULD also appear as
 HTTP headers (each key having its own HTTP header) and in those cases the
-HTTP header names will be of the form: `xRegistry-<MAPNAME>.<KEYNAME>`.
-Note that map keys MAY contain the `.` character, so any `.` after the
-`<MAPNAME>.` is part of the key name. See
-[HTTP Header Values](#http-header-values) for additional information and
-[`labels`](#labels-attribute) for an example of one such attribute.
+HTTP header names will be of the form:
+`xRegistry-<ENCODED_MAPNAME>.<ENCODED_KEY>`. Both name components MUST use
+[HTTP Header Names](#http-header-names). The first literal `.` separates the
+map name from the key; any later dots belong to the key and do not indicate
+nested attributes. See [HTTP Header Values](#http-header-values) for the
+separate field-value encoding and [`labels`](#labels-attribute) for an example.
 
 Certain attributes do not follow this rule if a standard HTTP header name
 is defined for that semantic purpose. See the
@@ -1633,7 +1641,7 @@ xRegistry-isdefault: true
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
-xRegistry-labels.<KEY>: <STRING> *
+xRegistry-labels.<ENCODED_KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
 xRegistry-ancestorid: <STRING>
@@ -1683,7 +1691,7 @@ xRegistry-isdefault: <BOOLEAN>
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
-xRegistry-labels.<KEY>: <STRING> *
+xRegistry-labels.<ENCODED_KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
 xRegistry-ancestorid: <STRING>
@@ -1966,7 +1974,7 @@ xRegistry-isdefault: true
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
-xRegistry-labels.<KEY>: <STRING> *
+xRegistry-labels.<ENCODED_KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
 xRegistry-ancestorid: <STRING>
@@ -2076,7 +2084,7 @@ xRegistry-name: <STRING> ?
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
-xRegistry-labels.<KEY>: <STRING> *
+xRegistry-labels.<ENCODED_KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP> ?
 xRegistry-modifiedat: <TIMESTAMP> ?
 xRegistry-ancestorid: <STRING> ?
@@ -2112,7 +2120,7 @@ xRegistry-isdefault: true
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
-xRegistry-labels.<KEY>: <STRING> *
+xRegistry-labels.<ENCODED_KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
 xRegistry-ancestorid: <STRING>
@@ -2268,7 +2276,7 @@ xRegistry-name: <STRING> ?
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
-xRegistry-labels.<KEY>: <STRING> *
+xRegistry-labels.<ENCODED_KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP> ?
 xRegistry-modifiedat: <TIMESTAMP> ?
 xRegistry-ancestorid: <STRING> ?
@@ -2301,7 +2309,7 @@ xRegistry-isdefault: <BOOLEAN>
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
-xRegistry-labels.<KEY>: <STRING> *
+xRegistry-labels.<ENCODED_KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
 xRegistry-ancestorid: <STRING>
@@ -2812,7 +2820,7 @@ xRegistry-isdefault: <BOOLEAN>
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
-xRegistry-labels.<KEY>: <STRING> *
+xRegistry-labels.<ENCODED_KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
 xRegistry-ancestorid: <STRING>
@@ -2932,7 +2940,7 @@ xRegistry-isdefault: <BOOLEAN>
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
-xRegistry-labels.<KEY>: <STRING> *
+xRegistry-labels.<ENCODED_KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP> ?
 xRegistry-modifiedat: <TIMESTAMP> ?
 xRegistry-ancestorid: <STRING> ?
@@ -2968,7 +2976,7 @@ xRegistry-isdefault: <BOOLEAN>
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
-xRegistry-labels.<KEY>: <STRING> *
+xRegistry-labels.<ENCODED_KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
 xRegistry-ancestorid: <STRING>
@@ -3227,6 +3235,112 @@ This query parameter MUST be serialized as:
 ```yaml
 ?sort=<ATTRIBUTE>[=asc|desc]
 ```
+
+## HTTP Header Names
+
+HTTP field names are case-insensitive
+([RFC9110, section 5.1](https://www.rfc-editor.org/rfc/rfc9110#section-5.1))
+and MUST follow its
+[`token` grammar](https://www.rfc-editor.org/rfc/rfc9110#section-5.6.2).
+In particular, a colon is a field delimiter, not part of a field name. Therefore
+a logical metadata map key MUST NOT simply be appended to an HTTP field name.
+This section defines the reversible encoding of `xRegistry-` name components;
+it is separate from the [field-value encoding](#http-header-values).
+
+The forms are `xRegistry-<ENCODED_ATTRIBUTE>` for a scalar attribute and
+`xRegistry-<ENCODED_MAPNAME>.<ENCODED_KEY>` for a scalar-valued map entry. The
+`xRegistry-` prefix is matched case-insensitively. The first literal `.` after
+that prefix is the map-name separator. Dots within an attribute or map name
+MUST be encoded so that they cannot be confused with this separator. Further
+literal or encoded dots belong to the map key, not to a nested path.
+
+Each logical name component MUST be encoded independently as follows:
+
+- Encode the original Unicode string as UTF-8, without case changes or Unicode
+  normalization. Invalid Unicode MUST generate an error
+  ([header_error](#header_error)), not replacement characters.
+- Emit lowercase ASCII letters, digits and the punctuation allowed by the HTTP
+  `tchar` grammar unchanged, except for `%`. In an attribute or map-name
+  component, also exclude `.` from this unchanged set.
+- Encode every other byte as `%HH`, using exactly two hexadecimal digits for
+  the byte. This includes literal `%`, uppercase ASCII letters, colons and all
+  non-ASCII bytes. Hexadecimal letters SHOULD be uppercase.
+  A literal percent sequence in the logical name is data, not a pre-encoded
+  sequence to reuse.
+
+The result contains only HTTP field-name characters. Existing unambiguous
+lowercase names such as `xRegistry-labels.owner` and `xRegistry-labels.a.b` keep
+their spelling. Logical uppercase characters are always escaped; otherwise
+an HTTP implementation changing field-name casing would lose their identity.
+
+For example, `{"labels":{"a:b":"value","a.b":"other"}}` uses these fields:
+
+```http
+xRegistry-labels.a%3Ab: value
+xRegistry-labels.a.b: other
+```
+
+The following table shows preferred encodings. Keys are written as JSON strings
+so that their Unicode characters and literal percent signs are explicit. Rows
+using `custommap` illustrate additional characters only where an applicable
+model or extension admits those keys; this encoding does not itself permit them.
+
+| Logical key (JSON string) | HTTP field name |
+| --- | --- |
+| `"owner"` | `xRegistry-labels.owner` |
+| `"a:b"` | `xRegistry-labels.a%3Ab` |
+| `"a.b"` | `xRegistry-labels.a.b` |
+| `"A"` | `xRegistry-custommap.%41` |
+| `"a%3a"` | `xRegistry-custommap.a%253a` |
+| `"a%3A"` | `xRegistry-custommap.a%253%41` |
+| `"caf\u00e9"` | `xRegistry-custommap.caf%C3%A9` |
+| `"face\ud83d\ude00"` | `xRegistry-custommap.face%F0%9F%98%80` |
+
+Similarly, if an attribute name `custom.map` is admitted, it is encoded as
+`custom%2Emap`. The field `xRegistry-custom%2Emap.a.b` then represents key `a.b`
+in that map; it does not represent key `map.a.b` in a map named `custom`.
+
+Receivers MUST decode these field names in this order:
+
+1. Validate HTTP field-name syntax and match the `xRegistry-` prefix. Split at
+   the first literal `.` before decoding either component. Name components
+   MUST NOT be empty.
+2. Treat unescaped ASCII letters case-insensitively, using their lowercase
+   form. This handles HTTP field-name case changes, not logical key
+   normalization. Decode each component's percent escapes exactly once, then
+   decode the resulting bytes as UTF-8. Hexadecimal digits of either case and
+   valid but unnecessary escapes MUST be accepted. Malformed escapes or invalid
+   UTF-8 MUST generate an error ([header_error](#header_error)); they MUST NOT
+   be treated as literal names. A plus sign is not a space.
+3. Preserve decoded characters exactly, including uppercase letters, percent
+   signs and Unicode normalization differences. Do not lowercase the decoded
+   names or decode them again. For example, `%41` decodes to `A`, while a raw
+   `A` is the HTTP case variant of raw `a`. `a%253%41` decodes to `a%3A`, not
+   `a:` or `a%3a`.
+4. Apply the Core and applicable model constraints to the decoded names,
+   including their length, character set and map-key uniqueness. Encoding does
+   not relax these constraints. Name length limits apply to the decoded names;
+   HTTP transport size limits still apply to the encoded fields.
+
+Within each map, duplicate decoded keys MUST generate an error
+([header_error](#header_error)), even if their field names use different casing
+or different valid escape spellings, or their values are identical. For example,
+`xRegistry-labels.a` and `xRegistry-labels.%61` both address key `a`. Receivers
+MUST retain separate field occurrences for this check rather than overwrite
+them or combine their values first. These metadata fields do not define a
+comma-separated list of map entries; commas in a value cannot be used to
+reconstruct combined field occurrences. A server unable to perform this check
+MUST reject a header-mode map update rather than silently accept ambiguous data.
+Clients can use JSON metadata instead.
+
+This profile replaces literal map-key suffix construction. Deployments using
+older peers MUST coordinate support for the encoding before exchanging names
+that require it, or use the JSON metadata view via `$details`. Receivers MUST
+NOT guess between literal and encoded interpretations or fall back to literal
+names after a decoding error. Implementations MUST NOT truncate, change case
+or otherwise lose logical name data to fit a transport limit. JSON metadata
+is the fallback when the header transport cannot carry the complete names.
+Standard HTTP field names and all field-value grammars are unaffected.
 
 ## HTTP Header Values
 
