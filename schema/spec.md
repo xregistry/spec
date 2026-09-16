@@ -403,6 +403,21 @@ in a Schema Registry by defining a set of common schema format names that MUST
 be used for the given formats, but applications MAY define extensions for
 other formats on their own.
 
+These names do not require a Registry to support every format or version. For
+each format and version it supports, a Registry MUST admit the root categories
+allowed by that format, rather than imposing an object-only restriction. Other
+applicable validation and compatibility requirements still apply. Parsing a
+document alone does not establish support for all of its semantics.
+
+The native document representations described below do not override Core's
+[`<RESOURCE>`](../core/spec.md#resource-attribute) and
+[`<RESOURCE>base64`](../core/spec.md#resourcebase64-attribute) rules. In
+particular, JSON schema documents retain their native JSON value kind when
+inlined in JSON metadata; they MUST NOT be wrapped in an object or converted
+to a string containing JSON text. The document view exposes the document,
+not its surrounding xRegistry metadata. A base64 representation encodes the
+document's bytes, not a different schema representation.
+
 - Examples:
   - `JsonSchema/draft-07`
   - `Protobuf/3`
@@ -489,19 +504,25 @@ Versions for a schema named `com.example.telemetrydata`:
 The [`format`](../core/spec.md#format-attribute) identifier for JSON Schema is
 `JsonSchema`.
 
-When the `format` attribute is set to `JsonSchema`, the `schema` attribute of
-the schema Resource is a JSON object representing a JSON Schema document
-conformant with the declared version.
+When the `format` attribute is set to `JsonSchema`, the schema Resource's
+document is a JSON Schema conformant with the declared version. For the
+versions listed below, its root is a JSON object or a JSON boolean, `true` or
+`false`, as defined by [JSON Schema][JSON Schema Core]. Both boolean values are
+valid schemas: `true` accepts every instance and `false` rejects every instance.
+An array, string, number or JSON `null` is not a JSON Schema root.
 
 When a URI, like the Message Registry's
 [`dataschemauri`](../message/spec.md#dataschemauri), points to a JSON Schema
 document, it MAY use a [JSON pointer][JSON pointer] expression to deep link into
 the schema document to reference a particular type definition. Otherwise the
-top-level object definition of the schema is used.
+entire root schema is used, including a boolean root. A selected subschema can
+also be an object or boolean; selecting a non-schema value or a location that
+does not exist is an error.
 
-The version of the JSON Schema format is the version of the JSON Schema
-specification that is used to define the schema. The version of the JSON Schema
-specification is defined in the `$schema` attribute of the schema document.
+The `format` value identifies the version of the JSON Schema specification
+used to define the schema. If a schema object includes `$schema`, the version
+it identifies MUST agree with `format`. Boolean roots cannot carry `$schema`;
+their version is supplied by `format`.
 
 The identifiers for the following JSON Schema versions
 
@@ -518,6 +539,16 @@ are defined as follows:
 which follows the exact convention as defined for JSON schema and expecting an
 eventually released version 1.0 of the JSON Schema specification using a plain
 version number.
+
+These examples show complete UTF-8 JSON documents and their document media
+types. When inlined in JSON metadata, `schema` has the same JSON value shown
+in the last column, without an extra layer of JSON quoting.
+
+| Format | Document `contenttype` | Document |
+| --- | --- | --- |
+| `JsonSchema/draft/2020-12` | `application/schema+json` | `true` |
+| `JsonSchema/draft/2020-12` | `application/schema+json` | `false` |
+| `JsonSchema/draft/2020-12` | `application/schema+json` | `{"type":"string"}` |
 
 #### 4.3.2. XML Schema
 
@@ -551,9 +582,15 @@ The [`format`](../core/spec.md#format-attribute) identifier for Apache Avro
 Schema is `Avro`. The version of the Apache Avro Schema format is the version
 of the Apache Avro Schema release that is used to define the schema.
 
-When the `format` attribute is set to `Avro`, the `schema` attribute of the
-schema Resource is a JSON object representing an Avro schema document conformant
-with the declared version.
+When the `format` attribute is set to `Avro`, the schema Resource's document
+is an Avro schema conformant with the declared version. As defined by
+[Apache Avro][Avro Specification], its JSON representation is a string naming
+a defined type, an object defining a type, or an array defining a union.
+This includes primitive schemas, named record, enum and fixed schemas, and
+array, map and union schemas. A named type reference still requires that type
+to be defined in the applicable Avro name context; admission of string roots
+does not make an undefined name valid. JSON booleans, numbers and `null` are
+not Avro schemas. The JSON string `"null"` is the schema for Avro's null type.
 
 Examples:
 
@@ -564,8 +601,25 @@ When a URI, like the Message Registry's
 [`dataschemauri`](../message/spec.md#dataschemauri), points to an Avro Schema
 document, it MAY use a URI fragment suffix `[:]{record-name}` to deep link into
 the schema document to reference a particular type definition. Otherwise the
-top-level object definition of the schema is used. The ':' character is used as
-a separator when the URI already contains a fragment.
+entire root schema is used, including primitive, array, map and union schemas.
+A union is not an implicit selection of its first branch. The ':' character
+is used as a separator when the URI already contains a fragment.
+
+These examples show complete UTF-8 JSON documents. Their document media type
+is `application/json`; it does not describe the encoding of data governed by
+the schema. In particular, the primitive string schema's document bytes include
+the JSON quotation marks in `"string"`, unlike a plain text document containing
+`string`. In JSON metadata its `schema` value is the JSON string `"string"`.
+
+| Format | Document `contenttype` | Document |
+| --- | --- | --- |
+| `Avro/1.12.0` | `application/json` | `"string"` |
+| `Avro/1.12.0` | `application/json` | `["null","string"]` |
+| `Avro/1.12.0` | `application/json` | `{"type":"record","name":"Reading","fields":[{"name":"value","type":"long"}]}` |
+
+Clients that previously assumed every schema was a JSON object need to preserve
+these native root kinds. They MUST NOT convert a primitive or union root to
+a record merely to fit an object-only representation.
 
 Examples:
 
@@ -663,6 +717,8 @@ a schema, allowing for fine-grained access control.
 ---
 
 [JSON Pointer]: https://www.rfc-editor.org/rfc/rfc6901
+[JSON Schema Core]: https://json-schema.org/draft/2020-12/json-schema-core#section-4.3
+[Avro Specification]: https://avro.apache.org/docs/1.12.0/specification/
 [JSTRUCT-CORE]: https://json-structure.github.io/core/draft-vasters-json-structure-core.html
 [CloudEvents dataschema]: https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#dataschema
 [xRegistry Core]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html
