@@ -551,7 +551,7 @@ PUT /dirs/d1/files/f1
   "versions": {
     "v0": {
       "epoch": 1,
-      "name": "foo"
+      "name": "foo",
       "createdat": "now",
       "modifiedat": "now",
       "ancestorid": "v1"
@@ -587,7 +587,7 @@ PUT /dirs/d1/files/f1
 {
   "fileid": "f1",
   "versionid": "v0",
-  "epoch": 1
+  "epoch": 1,
   "isdefault": true,
   "createdat": "2021",
   "modifiedat": "2021",
@@ -744,7 +744,7 @@ PUT /dirs/d1/files/f1
       "modifiedat": "now",
       "ancestorid": "v1"
     },
-    "v1": { see Resource.* attrs }
+    "v1": { see Resource.* attrs },
     "v2": {
       "epoch": 1,
       "createdat": "now",
@@ -1162,7 +1162,6 @@ PUT /dirs/d1/files/f1
       "ancestorid": "v1"
     },
     "v2": { see Resource.* attrs }
-    }
   }
 }
 ```
