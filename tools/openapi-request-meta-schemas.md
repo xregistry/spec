@@ -14,7 +14,9 @@ server fields to satisfy a response schema.
 
 Root `PUT` uses `RegistryWriteInput`; root `PATCH` uses
 `RegistryPatchInput`. Root GET and update responses continue to use the
-completed `RegistryEntity` response requirements.
+completed `RegistryEntity` response requirements. Existing Group and
+metadata-only Resource writes also use input roles; Version collection writes
+use Version inputs, not completed response schemas. No new routes are added.
 
 A normal replacement/write request retains genuinely client-required model
 attributes: required, writable attributes without a declared default.
@@ -27,14 +29,21 @@ This is not a recursive "make everything optional" projection. An ordinary
 object, map or array attribute present in PATCH is a full replacement value.
 Required nested members remain required unless supplied by a declared default
 or server-controlled model attribute. Nested registry collection entities use
-their appropriate write/patch roles; PATCH collection entries can represent
-deletion with null.
+their appropriate write/patch roles and remain non-null objects. Attribute
+resets do not delete collection entities; see
+[updating nested collections](../core/spec.md#updating-nested-registry-collections).
 
 Ignored read-only inputs are described without falsely type-checking their
 discarded values. IDs and epoch are exceptions: if supplied, their structural
 kinds remain checked and the server performs identity/concurrency validation.
 The client can supply `createdat`/`modifiedat`; their Core null/reset behavior
 is not confused with an ignored read-only field.
+
+The input envelopes include applicable Core members before closure, including
+collection URL/count fields, `icon` and Version `contenttype`. Ignored
+navigation values do not constrain writes; supplied mutable values retain
+their types. A [schema hint](../core/spec.md#design-json-schema-keyword) is
+allowed on a single-entity message, not nested entities or collection maps.
 
 Completed response schemas keep the existing mandatory Core fields and add
 required model attributes, including required defaulted and read-only values.
@@ -45,10 +54,11 @@ Use an OpenAPI read validator when checking those read-only requirements.
 Request schemas are structural descriptions, not full Core validators.
 Creation after PATCH, server provisioning, defaults, permissions, retained
 selectors and final conditional/model constraints require server state.
-Potential conditional members have structural input descriptions without
-inventing the value of an omitted retained selector.
-Their deletion requests are not rejected on a guessed conditional required
-state; the server checks whether deletion is legal in the active model.
+A supplied writable selector constrains its active conditional members;
+inactive names need an applicable wildcard. Omitted, reset or read-only
+selectors admit possible conditional/wildcard alternatives without inventing
+retained state. The server checks final activation and required attributes against
+the [effective model](../core/model.md#attributesstringifvalues).
 
 A request that supplies `modelsource` can replace/reset the model before
 other attributes are processed. That request takes an explicit model-change
@@ -92,10 +102,11 @@ not fabricated into resolved resources.
 ## Alias and complete response forms
 
 A normal or expanded Meta response requires its complete Core and model
-fields. Core also permits an identity-only alias representation in document
-views and for inaccessible targets. That separate branch contains the actual
-Resource ID, self/XID, `xref`, and optional short self. It does not allow an
-incomplete expanded response to evade its requirements.
+fields. The separate identity-only alias branch also applies to the enclosing
+Resource, including single-Version Resources with required defaulted target
+fields. It contains only the applicable identity/navigation members and
+`meta.xref`; incomplete expanded responses cannot evade their requirements.
+See [cross references](../core/spec.md#cross-referencing-resources).
 
 Alias write requests differ from read responses. An explicit non-null `xref`
 request admits only the Resource ID, `xref`, and an applicable Meta epoch.
@@ -111,13 +122,13 @@ Generated schemas do not decide these transitions from shape alone.
 
 ## Scope
 
-This work does not change Version routes, document media handling, generic
-enum/case matching, object closure, scalar encodings, dynamic maps, native
-headers, administrative APIs, concurrency flags or Problem Details.
+These input-role corrections do not add routes or change document media
+handling, scalar encodings, native headers, administrative APIs, concurrency
+flags or Problem Details.
 Tests exercise actual generator route schemas, not only selected fragments.
 
-The independent JSON Structure typed-wildcard admission finding is tracked
-separately as xregistry/spec#660 and is not implemented here.
+For JSON Structure typed-wildcard handling, see
+[Typed wildcards on named JSON Structure objects](json-structure-typed-wildcards.md).
 
 ## Core references
 

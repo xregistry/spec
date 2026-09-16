@@ -9,6 +9,7 @@ from pathlib import Path
 
 import jsonschema
 import pytest
+from openapi_schema_validator import OAS30ReadValidator, OAS30WriteValidator
 from openapi_spec_validator import validate
 
 
@@ -581,3 +582,102 @@ def test_group_and_version_wildcards_do_not_reopen_nested_closed_objects(
         target["unmodeled"] = True
         with pytest.raises(jsonschema.ValidationError):
             validator.validate(invalid)
+
+
+@pytest.mark.parametrize("dialect", ["json-schema", "openapi"])
+def test_published_root_schema_hint_is_a_message_member(dialect):
+    filename = "openapi.json" if dialect == "openapi" else "document-schema.json"
+    schema = json.loads((ROOT / "schema" / "schemas" / filename).read_text(encoding="utf-8"))
+    if dialect == "openapi":
+        reference = schema["paths"]["/"]["get"]["responses"]["200"]["content"][
+            "application/json"
+        ]["schema"]
+        checker = OAS30ReadValidator({
+            **reference, "components": schema["components"],
+        }, format_checker=OAS30ReadValidator.FORMAT_CHECKER)
+    else:
+        checker = jsonschema.Draft7Validator(schema, format_checker=jsonschema.FormatChecker())
+    value = document({})
+    del value["catalogs"]
+    value["$schema"] = "https://example.com/schema.json"
+    before = copy.deepcopy(value)
+    checker.validate(value)
+    with pytest.raises(jsonschema.ValidationError):
+        checker.validate({**value, "$schema": 7})
+    assert value == before
+
+
+@pytest.mark.parametrize("method", ["get", "put"])
+def test_schema_hints_follow_single_entity_message_boundaries_not_nested_objects(method):
+    definition = {"groups": {"catalogs": {
+        "singular": "catalog",
+        "attributes": {"settings": {"type": "object", "attributes": {}}},
+        "resources": {"entries": {"singular": "entry", "hasdocument": False, "maxversions": 1}},
+    }}}
+    jsonschema.Draft7Validator(json.loads(
+        (ROOT / "core" / "model.schema.json").read_text(encoding="utf-8")
+    )).validate(definition)
+    schema = GENERATOR.generate_openapi(copy.deepcopy(definition))
+    values = [
+        ("/", {key: value for key, value in document({}).items() if key != "catalogs"}),
+        ("/catalogs/{groupid}", {"settings": {}}),
+        ("/catalogs/{groupid}/entries/{resourceid}", {}),
+        ("/catalogs/{groupid}/entries/{resourceid}/meta", entry_meta() if method == "get" else {}),
+    ]
+    if method == "get":
+        values.append(("/catalogs/{groupid}/entries/{resourceid}/versions/{versionid}", {}))
+    implementation = OAS30ReadValidator if method == "get" else OAS30WriteValidator
+    for path, value in values:
+        operation = schema["paths"][path][method]
+        message = operation["responses"]["200"] if method == "get" else operation["requestBody"]
+        checker = implementation({
+            **message["content"]["application/json"]["schema"], "components": schema["components"],
+        }, format_checker=implementation.FORMAT_CHECKER)
+        value["$schema"] = "https://example.com/message.json"
+        before = copy.deepcopy(value)
+        checker.validate(value)
+        with pytest.raises(jsonschema.ValidationError):
+            checker.validate({**value, "$schema": False})
+        assert value == before
+    root = values[0][1]
+    root["catalogs"] = {"c": {"entries": {"e": {
+        "versions": {"v1": {}}, "meta": entry_meta() if method == "get" else {},
+    }}}}
+    operation = schema["paths"]["/"][method]
+    message = operation["responses"]["200"] if method == "get" else operation["requestBody"]
+    checker = implementation({
+        **message["content"]["application/json"]["schema"], "components": schema["components"],
+    })
+    checker.validate(root)
+    for path in (
+        ("catalogs", "c"), ("catalogs", "c", "entries", "e"),
+        ("catalogs", "c", "entries", "e", "versions", "v1"),
+        ("catalogs", "c", "entries", "e", "meta"),
+    ):
+        invalid = copy.deepcopy(root)
+        owner = invalid
+        for part in path:
+            owner = owner[part]
+        owner["$schema"] = "https://example.com/not-a-message.json"
+        with pytest.raises(jsonschema.ValidationError):
+            checker.validate(invalid)
+    invalid = copy.deepcopy(root)
+    invalid["catalogs"]["c"]["settings"] = {"$schema": "https://example.com/not-a-message.json"}
+    with pytest.raises(jsonschema.ValidationError):
+        checker.validate(invalid)
+    invalid = copy.deepcopy(root)
+    invalid["catalogs"]["$schema"] = "https://example.com/not-a-message.json"
+    with pytest.raises(jsonschema.ValidationError):
+        checker.validate(invalid)
+    collection = schema["paths"]["/catalogs/{groupid}/entries/{resourceid}/versions"]["post"]
+    checker = OAS30WriteValidator({
+        **collection["requestBody"]["content"]["application/json"]["schema"],
+        "components": schema["components"],
+    })
+    checker.validate({"v1": {}})
+    for invalid in (
+        {"$schema": "https://example.com/not-a-message.json"},
+        {"v1": {"$schema": "https://example.com/not-a-message.json"}},
+    ):
+        with pytest.raises(jsonschema.ValidationError):
+            checker.validate(invalid)

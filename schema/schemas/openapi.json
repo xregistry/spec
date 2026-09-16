@@ -568,7 +568,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/schemagroup"
+                "$ref": "#/components/schemas/schemagroupWriteInput"
               }
             }
           }
@@ -1372,7 +1372,18 @@
               "schema": {
                 "type": "object",
                 "additionalProperties": {
-                  "$ref": "#/components/schemas/schema"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/schemaVersionWriteInput"
+                    },
+                    {
+                      "not": {
+                        "required": [
+                          "$schema"
+                        ]
+                      }
+                    }
+                  ]
                 }
               }
             }
@@ -2076,7 +2087,18 @@
             "type": "object",
             "description": "A map of schemagroups in the registry, keyed by schemagroup identifier. Present only if inlined.",
             "additionalProperties": {
-              "$ref": "#/components/schemas/schemagroup"
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/schemagroup"
+                },
+                {
+                  "not": {
+                    "required": [
+                      "$schema"
+                    ]
+                  }
+                }
+              ]
             },
             "nullable": true
           }
@@ -2133,7 +2155,14 @@
             "description": "Time of the object modification"
           },
           "shortself": {},
-          "icon": {},
+          "icon": {
+            "type": "string",
+            "format": "uri"
+          },
+          "$schema": {
+            "type": "string",
+            "format": "uri-reference"
+          },
           "registryid": {
             "type": "string"
           },
@@ -2146,7 +2175,18 @@
           "schemagroups": {
             "type": "object",
             "additionalProperties": {
-              "$ref": "#/components/schemas/schemagroup"
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/schemagroup"
+                },
+                {
+                  "not": {
+                    "required": [
+                      "$schema"
+                    ]
+                  }
+                }
+              ]
             }
           },
           "schemagroupsurl": {
@@ -2212,17 +2252,38 @@
             "description": "Time of the object modification"
           },
           "shortself": {},
-          "icon": {},
-          "ancestorid": {},
-          "isdefault": {},
-          "contenttype": {},
+          "icon": {
+            "type": "string",
+            "format": "uri"
+          },
+          "$schema": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "ancestorid": {
+            "type": "string"
+          },
+          "isdefault": {
+            "type": "boolean"
+          },
+          "contenttype": {
+            "type": "string"
+          },
           "format": {
             "type": "string"
           },
-          "formatvalidated": {},
-          "formatvalidatedreason": {},
-          "compatibilityvalidated": {},
-          "compatibilityvalidatedreason": {},
+          "formatvalidated": {
+            "type": "boolean"
+          },
+          "formatvalidatedreason": {
+            "type": "string"
+          },
+          "compatibilityvalidated": {
+            "type": "boolean"
+          },
+          "compatibilityvalidatedreason": {
+            "type": "string"
+          },
           "schema": {},
           "schemabase64": {},
           "schemaurl": {}
@@ -2325,20 +2386,54 @@
             "description": "Time of the object modification"
           },
           "shortself": {},
-          "icon": {},
-          "versionid": {},
-          "ancestorid": {},
-          "isdefault": {},
-          "contenttype": {},
+          "icon": {
+            "type": "string",
+            "format": "uri"
+          },
+          "$schema": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "versionid": {
+            "type": "string"
+          },
+          "ancestorid": {
+            "type": "string"
+          },
+          "isdefault": {
+            "type": "boolean"
+          },
+          "contenttype": {
+            "type": "string"
+          },
           "format": {
             "type": "string"
           },
-          "formatvalidated": {},
-          "formatvalidatedreason": {},
-          "compatibilityvalidated": {},
-          "compatibilityvalidatedreason": {},
+          "formatvalidated": {
+            "type": "boolean"
+          },
+          "formatvalidatedreason": {
+            "type": "string"
+          },
+          "compatibilityvalidated": {
+            "type": "boolean"
+          },
+          "compatibilityvalidatedreason": {
+            "type": "string"
+          },
           "meta": {
-            "$ref": "#/components/schemas/schemaMeta"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/schemaMeta"
+              },
+              {
+                "not": {
+                  "required": [
+                    "$schema"
+                  ]
+                }
+              }
+            ]
           },
           "metaurl": {
             "type": "string"
@@ -2347,32 +2442,82 @@
           "versionscount": {},
           "versionsurl": {}
         },
-        "oneOf": [
+        "anyOf": [
           {
-            "properties": {
-              "versionsurl": {
-                "type": "string"
+            "oneOf": [
+              {
+                "properties": {
+                  "versionsurl": {
+                    "type": "string"
+                  },
+                  "versionscount": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "versionsurl"
+                ]
               },
-              "versionscount": {
-                "type": "integer"
+              {
+                "properties": {
+                  "versions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/schemaVersion"
+                        },
+                        {
+                          "not": {
+                            "required": [
+                              "$schema"
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "versions"
+                ]
               }
-            },
-            "required": [
-              "versionsurl"
             ]
           },
           {
             "properties": {
-              "versions": {
-                "type": "object",
-                "additionalProperties": {
-                  "$ref": "#/components/schemas/schemaVersion"
-                }
+              "schemaid": {},
+              "self": {},
+              "shortself": {},
+              "xid": {},
+              "metaurl": {},
+              "$schema": {},
+              "meta": {
+                "properties": {
+                  "schemaid": {},
+                  "self": {},
+                  "shortself": {},
+                  "xid": {},
+                  "xref": {},
+                  "$schema": {}
+                },
+                "required": [
+                  "schemaid",
+                  "self",
+                  "xid",
+                  "xref"
+                ],
+                "additionalProperties": false
               }
             },
             "required": [
-              "versions"
-            ]
+              "schemaid",
+              "self",
+              "xid",
+              "metaurl",
+              "meta"
+            ],
+            "additionalProperties": false
           }
         ]
       },
@@ -2426,13 +2571,54 @@
             "description": "Time of the object modification"
           },
           "shortself": {},
-          "icon": {},
-          "deprecated": {},
-          "constraints": {},
+          "icon": {
+            "type": "string",
+            "format": "uri"
+          },
+          "$schema": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "deprecated": {
+            "type": "object",
+            "properties": {
+              "effective": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "removal": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "alternative": {
+                "type": "string",
+                "format": "uri-reference"
+              },
+              "documentation": {
+                "type": "string",
+                "format": "uri-reference"
+              }
+            },
+            "additionalProperties": false
+          },
+          "constraints": {
+            "type": "object"
+          },
           "schemas": {
             "type": "object",
             "additionalProperties": {
-              "$ref": "#/components/schemas/schema"
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/schema"
+                },
+                {
+                  "not": {
+                    "required": [
+                      "$schema"
+                    ]
+                  }
+                }
+              ]
             }
           },
           "schemasurl": {
@@ -2523,6 +2709,10 @@
             "type": "string",
             "description": "The resource identifier for the meta sub-object; usually the same as the resource id."
           },
+          "$schema": {
+            "type": "string",
+            "format": "uri-reference"
+          },
           "deprecated": {
             "type": "object",
             "properties": {
@@ -2568,7 +2758,8 @@
               "self": {},
               "shortself": {},
               "xid": {},
-              "xref": {}
+              "xref": {},
+              "$schema": {}
             },
             "required": [
               "schemaid",
@@ -2588,13 +2779,13 @@
             "type": "object",
             "properties": {
               "self": {
-                "description": "Server-controlled; ignored in normal requests."
+                "description": "Server-controlled; ignored in requests."
               },
               "shortself": {
-                "description": "Server-controlled; ignored in normal requests."
+                "description": "Server-controlled; ignored in requests."
               },
               "xid": {
-                "description": "Server-controlled; ignored in normal requests."
+                "description": "Server-controlled; ignored in requests."
               },
               "xref": {
                 "type": "string",
@@ -2646,7 +2837,7 @@
                 "nullable": true
               },
               "defaultversionurl": {
-                "description": "Server-controlled; ignored in normal requests."
+                "description": "Server-controlled; ignored in requests."
               },
               "defaultversionsticky": {
                 "type": "boolean",
@@ -2657,6 +2848,10 @@
               "schemaid": {
                 "type": "string",
                 "description": "The resource identifier for the meta sub-object; usually the same as the resource id."
+              },
+              "$schema": {
+                "type": "string",
+                "format": "uri-reference"
               },
               "deprecated": {
                 "type": "object",
@@ -2716,6 +2911,10 @@
                 "type": "integer",
                 "minimum": 0,
                 "description": "The epoch value for the meta sub-object."
+              },
+              "$schema": {
+                "type": "string",
+                "format": "uri-reference"
               }
             },
             "required": [
@@ -2734,13 +2933,13 @@
             "type": "object",
             "properties": {
               "self": {
-                "description": "Server-controlled; ignored in normal requests."
+                "description": "Server-controlled; ignored in requests."
               },
               "shortself": {
-                "description": "Server-controlled; ignored in normal requests."
+                "description": "Server-controlled; ignored in requests."
               },
               "xid": {
-                "description": "Server-controlled; ignored in normal requests."
+                "description": "Server-controlled; ignored in requests."
               },
               "xref": {
                 "type": "string",
@@ -2792,7 +2991,7 @@
                 "nullable": true
               },
               "defaultversionurl": {
-                "description": "Server-controlled; ignored in normal requests."
+                "description": "Server-controlled; ignored in requests."
               },
               "defaultversionsticky": {
                 "type": "boolean",
@@ -2803,6 +3002,10 @@
               "schemaid": {
                 "type": "string",
                 "description": "The resource identifier for the meta sub-object; usually the same as the resource id."
+              },
+              "$schema": {
+                "type": "string",
+                "format": "uri-reference"
               },
               "deprecated": {
                 "type": "object",
@@ -2862,6 +3065,10 @@
                 "type": "integer",
                 "minimum": 0,
                 "description": "The epoch value for the meta sub-object."
+              },
+              "$schema": {
+                "type": "string",
+                "format": "uri-reference"
               }
             },
             "required": [
@@ -2926,8 +3133,42 @@
           "shortself": {
             "description": "Server-controlled; ignored in requests."
           },
+          "icon": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "$schema": {
+            "type": "string",
+            "format": "uri-reference"
+          },
           "versionid": {
             "type": "string"
+          },
+          "ancestorid": {
+            "type": "string"
+          },
+          "isdefault": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "contenttype": {
+            "type": "string",
+            "nullable": true
+          },
+          "format": {
+            "type": "string"
+          },
+          "formatvalidated": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "formatvalidatedreason": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "compatibilityvalidated": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "compatibilityvalidatedreason": {
+            "description": "Server-controlled; ignored in requests."
           },
           "schema": {},
           "schemabase64": {
@@ -2936,9 +3177,6 @@
           "schemaurl": {
             "type": "string",
             "format": "uri-reference"
-          },
-          "format": {
-            "type": "string"
           }
         },
         "description": "Structural request input. The server applies defaults, retained state, conditional model constraints and final creation validation.",
@@ -3002,8 +3240,42 @@
           "shortself": {
             "description": "Server-controlled; ignored in requests."
           },
+          "icon": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "$schema": {
+            "type": "string",
+            "format": "uri-reference"
+          },
           "versionid": {
             "type": "string"
+          },
+          "ancestorid": {
+            "type": "string"
+          },
+          "isdefault": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "contenttype": {
+            "type": "string",
+            "nullable": true
+          },
+          "format": {
+            "type": "string"
+          },
+          "formatvalidated": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "formatvalidatedreason": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "compatibilityvalidated": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "compatibilityvalidatedreason": {
+            "description": "Server-controlled; ignored in requests."
           },
           "schema": {},
           "schemabase64": {
@@ -3016,14 +3288,42 @@
           "versions": {
             "type": "object",
             "additionalProperties": {
-              "$ref": "#/components/schemas/schemaVersionWriteInput"
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/schemaVersionWriteInput"
+                },
+                {
+                  "not": {
+                    "required": [
+                      "$schema"
+                    ]
+                  }
+                }
+              ]
             }
           },
-          "meta": {
-            "$ref": "#/components/schemas/schemaMetaWriteInput"
+          "versionsurl": {
+            "description": "Server-controlled; ignored in requests."
           },
-          "format": {
-            "type": "string"
+          "versionscount": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "metaurl": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "meta": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/schemaMetaWriteInput"
+              },
+              {
+                "not": {
+                  "required": [
+                    "$schema"
+                  ]
+                }
+              }
+            ]
           }
         },
         "description": "Structural request input. The server applies defaults, retained state, conditional model constraints and final creation validation.",
@@ -3084,7 +3384,8 @@
               {
                 "properties": {
                   "schemaid": {},
-                  "meta": {}
+                  "meta": {},
+                  "$schema": {}
                 },
                 "additionalProperties": false
               }
@@ -3145,8 +3446,42 @@
           "shortself": {
             "description": "Server-controlled; ignored in requests."
           },
+          "icon": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "$schema": {
+            "type": "string",
+            "format": "uri-reference"
+          },
           "versionid": {
             "type": "string"
+          },
+          "ancestorid": {
+            "type": "string"
+          },
+          "isdefault": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "contenttype": {
+            "type": "string",
+            "nullable": true
+          },
+          "format": {
+            "type": "string"
+          },
+          "formatvalidated": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "formatvalidatedreason": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "compatibilityvalidated": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "compatibilityvalidatedreason": {
+            "description": "Server-controlled; ignored in requests."
           },
           "schema": {},
           "schemabase64": {
@@ -3155,16 +3490,12 @@
           "schemaurl": {
             "type": "string",
             "format": "uri-reference"
-          },
-          "format": {
-            "type": "string"
           }
         },
         "description": "Structural request input. The server applies defaults, retained state, conditional model constraints and final creation validation.",
         "additionalProperties": {
           "nullable": true
-        },
-        "nullable": true
+        }
       },
       "schemaPatchInput": {
         "type": "object",
@@ -3219,8 +3550,42 @@
           "shortself": {
             "description": "Server-controlled; ignored in requests."
           },
+          "icon": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "$schema": {
+            "type": "string",
+            "format": "uri-reference"
+          },
           "versionid": {
             "type": "string"
+          },
+          "ancestorid": {
+            "type": "string"
+          },
+          "isdefault": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "contenttype": {
+            "type": "string",
+            "nullable": true
+          },
+          "format": {
+            "type": "string"
+          },
+          "formatvalidated": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "formatvalidatedreason": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "compatibilityvalidated": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "compatibilityvalidatedreason": {
+            "description": "Server-controlled; ignored in requests."
           },
           "schema": {},
           "schemabase64": {
@@ -3233,14 +3598,42 @@
           "versions": {
             "type": "object",
             "additionalProperties": {
-              "$ref": "#/components/schemas/schemaVersionPatchInput"
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/schemaVersionPatchInput"
+                },
+                {
+                  "not": {
+                    "required": [
+                      "$schema"
+                    ]
+                  }
+                }
+              ]
             }
           },
-          "meta": {
-            "$ref": "#/components/schemas/schemaMetaPatchInput"
+          "versionsurl": {
+            "description": "Server-controlled; ignored in requests."
           },
-          "format": {
-            "type": "string"
+          "versionscount": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "metaurl": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "meta": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/schemaMetaPatchInput"
+              },
+              {
+                "not": {
+                  "required": [
+                    "$schema"
+                  ]
+                }
+              }
+            ]
           }
         },
         "description": "Structural request input. The server applies defaults, retained state, conditional model constraints and final creation validation.",
@@ -3272,14 +3665,14 @@
               {
                 "properties": {
                   "schemaid": {},
-                  "meta": {}
+                  "meta": {},
+                  "$schema": {}
                 },
                 "additionalProperties": false
               }
             ]
           }
-        ],
-        "nullable": true
+        ]
       },
       "schemagroupWriteInput": {
         "type": "object",
@@ -3334,11 +3727,64 @@
           "shortself": {
             "description": "Server-controlled; ignored in requests."
           },
+          "icon": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "$schema": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "deprecated": {
+            "type": "object",
+            "properties": {
+              "effective": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "removal": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "alternative": {
+                "type": "string",
+                "format": "uri-reference"
+              },
+              "documentation": {
+                "type": "string",
+                "format": "uri-reference"
+              }
+            },
+            "additionalProperties": false,
+            "nullable": true
+          },
+          "constraints": {
+            "type": "object",
+            "nullable": true
+          },
           "schemas": {
             "type": "object",
             "additionalProperties": {
-              "$ref": "#/components/schemas/schemaWriteInput"
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/schemaWriteInput"
+                },
+                {
+                  "not": {
+                    "required": [
+                      "$schema"
+                    ]
+                  }
+                }
+              ]
             }
+          },
+          "schemasurl": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "schemascount": {
+            "description": "Server-controlled; ignored in requests."
           },
           "format": {
             "type": "string",
@@ -3403,11 +3849,64 @@
           "shortself": {
             "description": "Server-controlled; ignored in requests."
           },
+          "icon": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "$schema": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "deprecated": {
+            "type": "object",
+            "properties": {
+              "effective": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "removal": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "alternative": {
+                "type": "string",
+                "format": "uri-reference"
+              },
+              "documentation": {
+                "type": "string",
+                "format": "uri-reference"
+              }
+            },
+            "additionalProperties": false,
+            "nullable": true
+          },
+          "constraints": {
+            "type": "object",
+            "nullable": true
+          },
           "schemas": {
             "type": "object",
             "additionalProperties": {
-              "$ref": "#/components/schemas/schemaPatchInput"
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/schemaPatchInput"
+                },
+                {
+                  "not": {
+                    "required": [
+                      "$schema"
+                    ]
+                  }
+                }
+              ]
             }
+          },
+          "schemasurl": {
+            "description": "Server-controlled; ignored in requests."
+          },
+          "schemascount": {
+            "description": "Server-controlled; ignored in requests."
           },
           "format": {
             "type": "string",
@@ -3417,8 +3916,7 @@
         "description": "Structural request input. The server applies defaults, retained state, conditional model constraints and final creation validation.",
         "additionalProperties": {
           "nullable": true
-        },
-        "nullable": true
+        }
       },
       "RegistryWriteInput": {
         "type": "object",
@@ -3477,6 +3975,15 @@
               "shortself": {
                 "description": "Server-controlled; ignored in requests."
               },
+              "icon": {
+                "type": "string",
+                "format": "uri",
+                "nullable": true
+              },
+              "$schema": {
+                "type": "string",
+                "format": "uri-reference"
+              },
               "specversion": {
                 "description": "Server-controlled; ignored in requests."
               },
@@ -3494,8 +4001,25 @@
               "schemagroups": {
                 "type": "object",
                 "additionalProperties": {
-                  "$ref": "#/components/schemas/schemagroupWriteInput"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/schemagroupWriteInput"
+                    },
+                    {
+                      "not": {
+                        "required": [
+                          "$schema"
+                        ]
+                      }
+                    }
+                  ]
                 }
+              },
+              "schemagroupsurl": {
+                "description": "Server-controlled; ignored in requests."
+              },
+              "schemagroupscount": {
+                "description": "Server-controlled; ignored in requests."
               }
             },
             "description": "Structural request input. The server applies defaults, retained state, conditional model constraints and final creation validation.",
@@ -3562,6 +4086,15 @@
               },
               "shortself": {
                 "description": "Server-controlled; ignored in requests."
+              },
+              "icon": {
+                "type": "string",
+                "format": "uri",
+                "nullable": true
+              },
+              "$schema": {
+                "type": "string",
+                "format": "uri-reference"
               },
               "specversion": {
                 "description": "Server-controlled; ignored in requests."
@@ -3642,6 +4175,15 @@
               "shortself": {
                 "description": "Server-controlled; ignored in requests."
               },
+              "icon": {
+                "type": "string",
+                "format": "uri",
+                "nullable": true
+              },
+              "$schema": {
+                "type": "string",
+                "format": "uri-reference"
+              },
               "specversion": {
                 "description": "Server-controlled; ignored in requests."
               },
@@ -3659,8 +4201,25 @@
               "schemagroups": {
                 "type": "object",
                 "additionalProperties": {
-                  "$ref": "#/components/schemas/schemagroupPatchInput"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/schemagroupPatchInput"
+                    },
+                    {
+                      "not": {
+                        "required": [
+                          "$schema"
+                        ]
+                      }
+                    }
+                  ]
                 }
+              },
+              "schemagroupsurl": {
+                "description": "Server-controlled; ignored in requests."
+              },
+              "schemagroupscount": {
+                "description": "Server-controlled; ignored in requests."
               }
             },
             "description": "Structural request input. The server applies defaults, retained state, conditional model constraints and final creation validation.",
@@ -3727,6 +4286,15 @@
               },
               "shortself": {
                 "description": "Server-controlled; ignored in requests."
+              },
+              "icon": {
+                "type": "string",
+                "format": "uri",
+                "nullable": true
+              },
+              "$schema": {
+                "type": "string",
+                "format": "uri-reference"
               },
               "specversion": {
                 "description": "Server-controlled; ignored in requests."

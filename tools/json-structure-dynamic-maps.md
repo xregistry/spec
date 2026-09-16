@@ -19,10 +19,9 @@ For a wildcard of type `any`, the physical schema is:
 
 Typed wildcards use their projected value schema instead. Nested object
 values use the generator's existing reusable definition/reference mechanism.
-Named objects remain structured objects: their existing properties, required
-members, alternate names and wildcard projection are retained. This change
-does not repair the separate admission behavior of typed wildcards on named
-objects; it does not claim that existing behavior fully implements Core.
+Named objects retain their properties, required members and alternate names;
+their typed wildcard behavior is described in
+[Typed wildcards on named JSON Structure objects](json-structure-typed-wildcards.md).
 
 ## Closed-empty objects
 

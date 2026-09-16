@@ -8,8 +8,8 @@ from pathlib import Path
 
 import jsonschema
 import pytest
-from openapi_schema_validator import OAS30Validator
-from openapi_spec_validator import validate_spec
+from openapi_schema_validator import OAS30ReadValidator, OAS30Validator, OAS30WriteValidator
+from openapi_spec_validator import OpenAPIV30SpecValidator, validate_spec
 
 
 @pytest.fixture(scope="module")
@@ -268,3 +268,204 @@ def test_published_case_variant_options(
     with_options = {**unknown, "protocoloptions": invalid}
     assert validator.is_valid(with_options) is (target == "endpoint")
     assert unknown["protocol"] == "CUSTOM/99"
+
+
+def request_checkers(generator, attributes, method="patch", scope="group"):
+    root = Path(__file__).resolve().parent.parent
+    model = ({"attributes": attributes, "groups": {}} if scope == "root" else
+             {"groups": {"catalogs": {"singular": "catalog", "attributes": attributes}}})
+    jsonschema.Draft7Validator(json.loads(
+        (root / "core" / "model.schema.json").read_text(encoding="utf-8")
+    )).validate(model)
+    original = copy.deepcopy(model)
+    schema = generator.generate_openapi(model)
+    assert model == original
+    assert not list(OpenAPIV30SpecValidator(schema).iter_errors())
+    operation = schema["paths"]["/"]
+    request_schema = operation[method]["requestBody"]["content"]["application/json"]["schema"]
+    response_schema = operation["get"]["responses"]["200"]["content"]["application/json"]["schema"]
+    return (
+        OAS30WriteValidator({**request_schema, "components": schema["components"]}),
+        OAS30ReadValidator({**response_schema, "components": schema["components"]}),
+    )
+
+
+def conditional_request(value, scope="group"):
+    root = {
+        "registryid": "r", "specversion": "1.0-rc4",
+        "self": "https://example.com/", "xid": "/", "epoch": 1,
+        "createdat": "2026-01-01T00:00:00Z", "modifiedat": "2026-01-01T00:00:00Z",
+    }
+    if scope == "root":
+        root.update(value)
+    else:
+        root["catalogs"] = {"c": value}
+    return root
+
+
+@pytest.mark.parametrize("method", ["put", "patch"])
+@pytest.mark.parametrize("scope", ["root", "group"])
+def test_readonly_selectors_keep_writable_conditional_siblings(generator, method, scope):
+    attributes = {"mode": {
+        "type": "string", "readonly": True,
+        "ifvalues": {"limited": {"siblingattributes": {"limit": {"type": "integer"}}}},
+    }}
+    checker, read = request_checkers(generator, attributes, method, scope)
+    read.validate(conditional_request({"mode": "limited", "limit": 7}, scope))
+    for value in (
+        {"limit": 7}, {"mode": False, "limit": 7}, {"mode": {"ignored": True}, "limit": 7},
+        {"mode": "other", "limit": 7}, {},
+    ):
+        payload = conditional_request(value, scope)
+        before = copy.deepcopy(payload)
+        checker.validate(payload)
+        assert payload == before
+    for value in ({"limit": "wrong"}, {"mode": False, "limit": "wrong"}, {"unmodeled": 7}):
+        with pytest.raises(jsonschema.ValidationError):
+            checker.validate(conditional_request(value, scope))
+    with pytest.raises(jsonschema.ValidationError):
+        read.validate(conditional_request({"mode": "other", "limit": 7}, scope))
+
+
+@pytest.mark.parametrize("method", ["put", "patch"])
+@pytest.mark.parametrize("wildcard", [None, "string", "any"])
+def test_request_conditional_names_select_active_or_inactive_wildcard_contract(
+    generator, method, wildcard
+):
+    attributes = {
+        "mode": {"type": "string", "ifvalues": {
+            "number": {"siblingattributes": {"value": {"type": "integer"}}},
+        }},
+    }
+    if wildcard:
+        attributes["*"] = {"type": wildcard}
+    checker, read = request_checkers(generator, attributes, method)
+    cases = [
+        ({"mode": "NuMbEr", "value": 7}, True),
+        ({"mode": "number", "value": "extension"}, False),
+        ({"mode": "other"}, True),
+        ({"mode": "other", "value": "extension"}, wildcard is not None),
+        ({"mode": "other", "value": 7}, wildcard == "any"),
+        ({"value": 7}, True),
+        ({"value": "extension"}, wildcard is not None),
+        ({"value": {"nested": True}}, wildcard == "any"),
+        ({"mode": False}, False),
+        ({"unmodeled": True}, wildcard == "any"),
+        ({"unmodeled": "extension"}, wildcard is not None),
+    ]
+    for value, accepted in cases:
+        payload = conditional_request(value)
+        before = copy.deepcopy(payload)
+        assert checker.is_valid(payload) is accepted, value
+        assert payload == before
+    if wildcard == "string":
+        read.validate(conditional_request({"mode": "other", "value": "extension"}))
+
+
+@pytest.mark.parametrize("selector", [
+    {"type": "string", "required": True, "default": "number"},
+    {"type": "string", "readonly": True},
+])
+def test_unknown_server_selectors_admit_conditional_and_wildcard_alternatives(
+    generator, selector
+):
+    attributes = {"*": {"type": "string"}, "mode": {
+        **selector, "ifvalues": {"number": {"siblingattributes": {
+            "value": {"type": "integer", "required": True},
+        }}},
+    }}
+    checker, _ = request_checkers(generator, attributes)
+    for value in ({"value": 7}, {"value": "extension"}, {"value": None}, {}):
+        payload = conditional_request(value)
+        before = copy.deepcopy(payload)
+        checker.validate(payload)
+        assert payload == before
+    with pytest.raises(jsonschema.ValidationError):
+        checker.validate(conditional_request({"value": {"wrong": True}}))
+
+
+def test_request_conditional_wildcards_remain_guarded_for_known_selectors(generator):
+    attributes = {"fixed": {"type": "string"}, "mode": {
+        "type": "string", "ifvalues": {
+            "open": {"siblingattributes": {"*": {"type": "integer"}}},
+            "closed": {"siblingattributes": {}},
+        },
+    }}
+    checker, _ = request_checkers(generator, attributes)
+    for value, accepted in (
+        ({"mode": "open", "extra": 7}, True),
+        ({"mode": "open", "extra": "wrong"}, False),
+        ({"mode": "closed", "extra": 7}, False),
+        ({"mode": "other", "extra": 7}, False),
+        ({"extra": 7}, True),
+        ({"extra": "wrong"}, False),
+        ({"fixed": 7}, False),
+    ):
+        payload = conditional_request(value)
+        before = copy.deepcopy(payload)
+        assert checker.is_valid(payload) is accepted, value
+        assert payload == before
+
+
+def test_colliding_request_conditions_preserve_known_constraints_and_unknown_alternatives(generator):
+    attributes = {
+        "fixed": {"type": "string"},
+        "mode": {"type": "string", "ifvalues": {
+            "number": {"siblingattributes": {"value": {"type": "integer"}}},
+            "text": {"siblingattributes": {"value": {"type": "string"}}},
+        }},
+        "other": {"type": "string", "ifvalues": {
+            "number": {"siblingattributes": {"value": {"type": "integer"}}},
+        }},
+    }
+    checker, _ = request_checkers(generator, attributes)
+    for value, accepted in (
+        ({"mode": "number", "other": "off", "value": 7}, True),
+        ({"mode": "text", "other": "off", "value": "text"}, True),
+        ({"mode": "number", "value": "wrong"}, False),
+        ({"mode": "text", "value": 7}, False),
+        ({"value": 7}, True),
+        ({"value": "text"}, True),
+        ({"value": False}, False),
+        ({"mode": "off", "other": "off", "value": 7}, False),
+        ({"mode": "number", "other": "number", "value": 7}, False),
+        ({"fixed": 7}, False),
+        ({"unmodeled": "text"}, False),
+    ):
+        payload = conditional_request(value)
+        before = copy.deepcopy(payload)
+        assert checker.is_valid(payload) is accepted, value
+        assert payload == before
+
+
+@pytest.mark.parametrize("readonly_second", [False, True])
+def test_known_conditional_wildcards_are_not_widened_by_unknown_or_colliding_selectors(
+    generator, readonly_second
+):
+    attributes = {
+        "fixed": {"type": "string"},
+        "text": {"type": "boolean", "ifvalues": {
+            "true": {"siblingattributes": {"*": {"type": "string"}}},
+        }},
+        "number": {"type": "boolean", "ifvalues": {
+            "true": {"siblingattributes": {"*": {"type": "integer"}}},
+        }},
+    }
+    if readonly_second:
+        attributes["number"]["readonly"] = True
+    checker, _ = request_checkers(generator, attributes)
+    for value, accepted in (
+        ({"text": True, "extra": "text"}, True),
+        ({"text": True, "extra": 7}, False),
+        ({"text": False, "number": True, "extra": 7}, True),
+        ({"text": True, "number": True, "extra": "text"}, readonly_second),
+        ({"text": True, "number": True, "extra": 7}, False),
+        ({"extra": "text"}, True),
+        ({"extra": 7}, True),
+        ({"extra": False}, False),
+        ({"fixed": 7}, False),
+    ):
+        payload = conditional_request(value)
+        before = copy.deepcopy(payload)
+        assert checker.is_valid(payload) is accepted, value
+        assert payload == before

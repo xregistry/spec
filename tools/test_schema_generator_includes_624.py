@@ -252,7 +252,7 @@ def test_cli_generates_the_selected_model_in_all_formats(tmp_path, output_type):
     if output_type == "json-schema":
         jsonschema.Draft7Validator.check_schema(output)
         assert set(output["properties"]) == {
-            "registryid", "specversion", "self", "shortself", "xid", "epoch",
+            "$schema", "registryid", "specversion", "self", "shortself", "xid", "epoch",
             "name", "description", "documentation", "icon", "labels",
             "createdat", "modifiedat", "capabilities", "model", "modelsource",
             "items", "itemsurl", "itemscount",
