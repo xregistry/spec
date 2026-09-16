@@ -94,6 +94,11 @@ the JSON snippets are used for readability and are not normative.
 When HTTP query parameters are discussed, they are presented as `?<NAME>` where
 `<NAME>` is the name of the query parameter.
 
+Unless an example states otherwise, the `message` and `schema` Resource types
+used in the examples in this document have their
+[`hasdocument`](./model.md#groupsstringresourcesstringhasdocument) model aspect
+set to `true`.
+
 See the [core specification](./spec.md#notational-conventions) for details
 about the use of `<...>` substitution values.
 
@@ -1794,8 +1799,8 @@ Link: <URL>;rel=next;count=<UINTEGER> ?
 
 **Examples:**
 
-This example assumes the `message` Resource type has `hasdocument` set to
-`false`.
+Unlike the other examples in this document, this example assumes the `message`
+Resource type has `hasdocument` set to `false`.
 
 Retrieve all `messages` of an `endpoint` whose `<GROUP>id` is `ep1`:
 
@@ -2051,9 +2056,6 @@ Where:
 
 **Examples:**
 
-This example assumes the `message` Resource type has `hasdocument` set to
-`true`.
-
 Retrieve a `message` Resource as xRegistry metadata:
 
 ```yaml
@@ -2068,7 +2070,7 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1$det
 {
   "messageid": "msg1",
   "versionid": "1",
-  "self": "https://example.com/endpoints/ep1/messages/msg1$details","
+  "self": "https://example.com/endpoints/ep1/messages/msg1$details",
   "xid": "/endpoints/ep1/messages/msg1",
   "epoch": 1,
   "name": "Blob Created",
@@ -2196,9 +2198,6 @@ Where:
   the desired filename to use if the HTTP body were to be written to a file.
 
 **Examples:**
-
-These examples assume the `message` Resource type has `hasdocument` set to
-`true`.
 
 Create a new Resource:
 
@@ -2383,9 +2382,6 @@ Where:
 
 **Examples:**
 
-These examples assume the `message` Resource type has `hasdocument` set to
-`true`.
-
 Create a new Version:
 
 ```yaml
@@ -2442,7 +2438,7 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1$det
   "messageid": "msg1",
   "versionid": "1",
   "self": "https://example.com/endpoints/ep1/messages/msg1/versions/1$details",
-  "xid": "/endpoints/ep1/messages/msg1",
+  "xid": "/endpoints/ep1/messages/msg1/versions/1",
   "epoch": 2,
   "name": "Blob Created",
   "isdefault": true,
@@ -2528,9 +2524,6 @@ Content-Type: application/json; charset=utf-8
 
 **Examples:**
 
-This example assumes the `message` Resource type has `hasdocument` set to
-`true`.
-
 Retrieve a Resource's Meta entity:
 
 ```yaml
@@ -2587,9 +2580,6 @@ Content-Type: application/json; charset=utf-8
 ```
 
 **Examples:**
-
-This example assumes the `message` Resource type has `hasdocument` set to
-`true`.
 
 Update a Resource's `defaultversionid` attribute:
 
@@ -2905,9 +2895,6 @@ Where:
 
 **Examples:**
 
-These examples assume the `schema` Resource type has `hasdocument` set to
-`true`.
-
 Retrieve a specific Version of a `schema` Resource as xRegistry metadata:
 
 ```yaml
@@ -2922,7 +2909,7 @@ Content-Type: application/json; charset=utf-8
   "schemaid": "myschema",
   "versionid": "1.0",
   "self": "https://example.com/schemagroups/g1/schemas/myschema/versions/1.0$details",
-  "xid": "/endpoints/ep1/messages/msg1/versions/1.0",
+  "xid": "/schemagroups/g1/schemas/myschema/versions/1.0",
   "epoch": 2,
   "isdefault": true,
   "createdat": "2024-04-30T12:00:00Z",
@@ -3060,9 +3047,6 @@ Content-Disposition: <STRING> ?
 
 **Examples:**
 
-These examples assume the `message` Resource type has `hasdocument` set to
-`true`.
-
 Create a new Version:
 
 ```yaml
@@ -3095,7 +3079,7 @@ Update a Version of a Resource as metadata, and request the updated document
 inline in the response:
 
 ```yaml
-PUT /endpoints/ep1/messages/msg1/versions/v2.0$details/?inline=message
+PUT /endpoints/ep1/messages/msg1/versions/v2.0$details?inline=message
 Content-Type: application/json; charset=utf-8
 
 {
@@ -3114,7 +3098,7 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/v2.0$
 
 {
   "messageid": "msg1",
-  "versionid": "1",
+  "versionid": "v2.0",
   "self": "https://example.com/endpoints/ep1/messages/msg1/versions/v2.0$details",
   "xid": "/endpoints/ep1/messages/msg1/versions/v2.0",
   "epoch": 2,

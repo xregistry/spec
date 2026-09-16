@@ -4,13 +4,9 @@
 <!-- words: py pytest -->
 
 The [Endpoint specification](../spec.md#usage) defines the domain role
-constraints. The source model and generated artifacts describe only the
-structural portion of that contract.
-
-The Core model requires an array of strings. Its scalar enum aspect cannot
-express this array's member restrictions, nonempty requirement, uniqueness or
-protocol-dependent combinations. Generated schema admission alone is therefore
-not a complete domain check.
+constraints, and explains why generated schema admission alone is not a
+complete domain check. The source model and generated artifacts describe only
+the structural portion of that contract.
 
 Readers generated from the old artifacts need to migrate Avro enum items to
 string items and honor the now-required `usage` array. They must apply the

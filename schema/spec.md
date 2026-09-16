@@ -314,10 +314,7 @@ defines an OPTIONAL `format` extension attribute of type `string`.
 
 A schema group is a collection of schemas that are related to each other in
 some application-defined way. Without a value for the Group's `format`, a
-Schema Group MAY contain Schema Resources of different formats. When the
-Group's `format` has a value, the model's `schemas.format` constraint (`equals`
-set to `format`) requires every Version of every Schema Resource in that
-Group to use that value.
+Schema Group MAY contain Schema Resources of different formats.
 
 Every schema (i.e. the schema Resource) MUST reside inside a Schema Group.
 
@@ -347,7 +344,9 @@ containing 5 schemas.
 
 There might be cases where all schemas within a schemagroup need to have the
 same `format` value. To enable this, set the schemagroup's `format` value to
-the string that all schemas/Versions within that schemagroup need to use.
+the string that all schemas/Versions within that schemagroup need to use; the
+model expresses this as the `schemas.format` constraint with `equals` set to
+`format`.
 
 This equality constraint does not itself define a default value.
 
@@ -412,9 +411,10 @@ the default Version projection on a Schema Resource. The model sets
 `required` and `matchversions` to `true` for `format`, so all Versions of a
 Schema Resource MUST use the same `format` value.
 
-Client input MAY omit `format` when an applicable Group-instance default
-supplies it (see [Schema Groups](#41-schema-groups)). This does not make the
-completed value OPTIONAL: a completed Version without `format` is invalid.
+Client input MAY omit `format` when the Schema Group declares a
+`constraints.schemas.format` default (see [Schema Groups](#41-schema-groups)).
+This does not make the completed value OPTIONAL: a completed Version without
+`format` is invalid.
 
 - Examples:
   - `JsonSchema/draft-07`
