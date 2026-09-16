@@ -1622,8 +1622,7 @@ For `xRegistry-` metadata headers, this test MUST be applied after the decoding
 in [HTTP Header Values](#http-header-values), not to the original wire spelling.
 Existing attribute-specific rules for `null` still apply. In particular,
 quoting or percent-encoding the four-character string `null` does not distinguish
-it from deletion. There is no separate header spelling for assigning that
-literal string.
+it from deletion.
 
 For example, for the OPTIONAL string attribute `name`:
 
@@ -1659,9 +1658,8 @@ A response header can contain `xRegistry-name: null` when the stored string is
 `null`. Copying that header into an update would request deletion, not preserve
 the string. Clients MUST account for this when copying response metadata into
 requests: an unchanged top-level scalar attribute can be omitted under the
-normal update rules, while assigning the literal string requires JSON metadata.
-Adding quotes or another percent-encoding layer MUST NOT be treated as a
-literal-string escape; decoding still occurs exactly once.
+normal update rules. Adding quotes or another percent-encoding layer MUST NOT
+be treated as a literal-string escape; decoding still occurs exactly once.
 
 Any top-level map attributes that appear as HTTP headers MUST be included
 in their entirety and any missing keys MUST be interpreted as a request to
@@ -3376,16 +3374,14 @@ them or combine their values first. These metadata fields do not define a
 comma-separated list of map entries; commas in a value cannot be used to
 reconstruct combined field occurrences. A server unable to perform this check
 MUST reject a header-mode map update rather than silently accept ambiguous data.
-Clients can use JSON metadata instead.
 
 This profile replaces literal map-key suffix construction. Deployments using
 older peers MUST coordinate support for the encoding before exchanging names
 that require it, or use the JSON metadata view via `$details`. Receivers MUST
 NOT guess between literal and encoded interpretations or fall back to literal
 names after a decoding error. Implementations MUST NOT truncate, change case
-or otherwise lose logical name data to fit a transport limit. JSON metadata
-is the fallback when the header transport cannot carry the complete names.
-Standard HTTP field names and all field-value grammars are unaffected.
+or otherwise lose logical name data to fit a transport limit. Standard HTTP
+field names and all field-value grammars are unaffected.
 
 ## HTTP Header Values
 
