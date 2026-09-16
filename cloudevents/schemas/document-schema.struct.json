@@ -1405,10 +1405,7 @@
             }
           }
         },
-        "additionalProperties": true,
-        "required": [
-          "format"
-        ]
+        "additionalProperties": true
       },
       "Schemagroup": {
         "type": "object",

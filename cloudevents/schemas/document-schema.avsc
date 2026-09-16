@@ -4579,16 +4579,28 @@
                     },
                     {
                       "name": "versionid",
-                      "type": "string",
-                      "description": "ID of the default schema version"
+                      "type": [
+                        "null",
+                        "string"
+                      ],
+                      "description": "ID of the default schema version",
+                      "default": null
                     },
                     {
                       "name": "ancestorid",
-                      "type": "string"
+                      "type": [
+                        "null",
+                        "string"
+                      ],
+                      "default": null
                     },
                     {
                       "name": "isdefault",
-                      "type": "boolean"
+                      "type": [
+                        "null",
+                        "boolean"
+                      ],
+                      "default": null
                     },
                     {
                       "name": "contenttype",
@@ -4599,17 +4611,25 @@
                       "default": null
                     },
                     {
-                      "type": "string",
-                      "name": "format"
+                      "type": [
+                        "null",
+                        "string"
+                      ],
+                      "name": "format",
+                      "default": null
                     },
                     {
                       "name": "Extensions",
-                      "type": {
-                        "type": "map",
-                        "name": "SchemaExtensionsType",
-                        "default": {},
-                        "values": "io.xregistry.GenericRecord"
-                      }
+                      "type": [
+                        "null",
+                        {
+                          "type": "map",
+                          "name": "SchemaExtensionsType",
+                          "default": {},
+                          "values": "io.xregistry.GenericRecord"
+                        }
+                      ],
+                      "default": null
                     },
                     {
                       "name": "versions",
