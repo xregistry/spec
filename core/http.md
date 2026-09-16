@@ -3413,28 +3413,51 @@ MUST use their own grammars:
   ASCII, including permitted dots, colons and `@`, and need no private encoding
   in a quoted filename.
 
+Every `xRegistry-` metadata header value uses the private encoding below,
+including the `<URL>`- and `<XID>`-typed attributes that the serialization
+templates declare, such as `xRegistry-self`, `xRegistry-xid`,
+`xRegistry-metaurl`, `xRegistry-versionsurl`, `xRegistry-<RESOURCE>url`,
+`xRegistry-documentation` and `xRegistry-icon`. A percent sign in those values
+is encoded as `%25` like any other percent sign, so a URI that already contains
+`%20` is carried as `%2520`. The single round of decoding restores the URI with
+its own escapes intact: `%2520` decodes to `%20`, not to a space. The decoded
+value is the URI and MUST NOT be decoded again.
+
+Where this specification requires a metadata attribute and a standard HTTP
+field to have the same value - for example `self` and `Location`, or
+`<RESOURCE>url` and `Location` - the comparison is between the decoded
+attribute value and the native field value, not between the two wire
+spellings. A client that dereferences a `<URL>`-typed metadata header MUST
+decode it first; the raw field value is not the URI whenever the attribute
+contains percent escapes.
+
 xRegistry clients MUST obtain the Resource identity from the `<RESOURCE>id`
 metadata, normally the `xRegistry-<RESOURCE>id` header in document mode, not from
 the entire `Content-Disposition` value. The filename is advisory for HTTP
 tooling; recipients still need the filesystem safety precautions in
 [RFC6266, section 4.3](https://www.rfc-editor.org/rfc/rfc6266#section-4.3).
 
-For example, these field values preserve native HTTP syntax while encoding only
-the private description value:
+For example, these field values preserve native HTTP syntax while the
+`xRegistry-` values carry the private encoding:
 
 ```http
 Content-Type: multipart/mixed; boundary="a b"
 Location: https://example.com/docs/doc.txt?name=a%20b
 Content-Location: https://example.com/docs/doc.txt/versions/1?name=a%20b
 Content-Disposition: attachment; filename="doc.txt"
+xRegistry-self: https://example.com/docs/doc.txt?name=a%2520b
 xRegistry-description: a%20%22quote%22%20and%20100%25
 ```
 
 A native MIME parser sees the boundary `a b`, and a URI parser retains `a%20b`
-in each URI's query. Only `xRegistry-description` is privately decoded, to
-`a "quote" and 100%`. Applying the private encoding to the `Content-Type` value
-would instead produce `multipart/mixed;%20boundary=%22a%20b%22`, which does not
-declare that MIME boundary.
+in each URI's query. Each `xRegistry-` value is decoded exactly once:
+`xRegistry-self` decodes to `https://example.com/docs/doc.txt?name=a%20b`,
+which is the same URI as `Location`, and `xRegistry-description` decodes to
+`a "quote" and 100%`. Decoding `xRegistry-self` a second time would corrupt
+the URI by turning `%20` into a space. Applying the private encoding to the
+`Content-Type` value would instead produce
+`multipart/mixed;%20boundary=%22a%20b%22`, which does not declare that MIME
+boundary.
 
 Some xRegistry attributes can contain arbitrary UTF-8 string content. The
 private encoding below represents that content using printable US-ASCII field
