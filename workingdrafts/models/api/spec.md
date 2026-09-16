@@ -17,22 +17,17 @@
 
 This document defines an API Registry extension to the xRegistry
 document format and API. An API Registry stores and manages versioned API
-definition documents for synchronous request-response interfaces. Clients use
-the registry to discover those documents.
+definition documents for synchronous request-response interfaces.
 
-This document is an xRegistry working draft, dated 15 September 2026. It is
-under active development and can change independently of released xRegistry
-specifications. It is included for discussion and review and is not part of a
-released xRegistry specification.
+This working draft is dated 15 September 2026 and is not part of a released
+xRegistry specification.
 
 ## Table of Contents
 
 - [Abstract](#abstract)
 - [Table of Contents](#table-of-contents)
 - [Overview](#overview)
-  - [Synchronous APIs](#synchronous-apis)
   - [API Documents and Schemas](#api-documents-and-schemas)
-  - [Document Store](#document-store)
   - [Versioning](#versioning)
 - [Notations and Terminology](#notations-and-terminology)
   - [Notational Conventions](#notational-conventions)
@@ -66,33 +61,21 @@ released xRegistry specification.
     - [Smithy](#smithy)
 - [Example](#example)
 - [Security Considerations](#security-considerations)
-- [Conformance and Open Issues](#conformance-and-open-issues)
+- [Conformance](#conformance)
 - [References](#references)
   - [Normative References](#normative-references)
   - [Informative References](#informative-references)
 
 ## Overview
 
-An API Registry is a registry of interface contract documents. Each document
-describes operations that receive a request and yield a response, fault, or
-other declared result. The registry makes those documents discoverable, assigns
-them stable xRegistry resource identities, and preserves their version history.
+This extension applies to interfaces whose callers address operations and
+receive correlated results, including HTTP APIs, gRPC and SOAP services,
+Thrift services, and JSON-RPC servers.
 
 The registry does not translate API documents into a common operation model.
 The native API document is authoritative for operation names, request and
 response contracts, protocol bindings, security requirements, and other
 format-specific metadata.
-
-### Synchronous APIs
-
-This model applies to an interface whose caller addresses an operation and
-expects a correlated outcome. HTTP APIs, gRPC services, SOAP services, Thrift
-services, and JSON-RPC servers are common examples.
-
-The model does not replace the [Endpoint Registry][endpoint] or
-[Message Registry][message] for asynchronous delivery contracts. Those models
-describe message sources, sinks, and subscription interfaces. The same service
-can also expose an API described here, including subscription-management APIs.
 
 Request-response is the primary use case, not a restriction on every operation
 in a stored document. Native descriptions can include streaming, one-way, and
@@ -102,67 +85,41 @@ Registration does not assert that a service is deployed or reachable. Its
 invocation addresses, where present, come from the native description or from
 separate deployment configuration, not from the registry's `self` URL.
 
+API Resources are xRegistry document Resources with `hasdocument: true` and
+follow the [Core document and metadata rules][core]. The [Endpoint
+Registry][endpoint] and [Message Registry][message] cover asynchronous delivery
+and message contracts.
+
 ### API Documents and Schemas
 
-API documents commonly define data shapes inline. They can also reference
-schemas in a Schema Registry through ordinary document references. A registry
-server does not need to resolve those references to store the API document.
-
-For example, an OpenAPI 3.1 document can reference a JSON Schema resource
-version in a [Schema Registry][schema]:
-
-```yaml
-components:
-  schemas:
-    UserProfile:
-      $ref: https://registry.example.com/schemagroups/users/schemas/UserProfile/versions/3
-```
+API documents can define data shapes inline or reference documents in a
+[Schema Registry][schema]. A registry server does not need to resolve such
+references to store the API document.
 
 Referenced schemas MUST be compatible with the description language's schema
 dialect. In particular, OpenAPI 3.0 and Swagger 2.0 Schema Objects are not
 interchangeable with arbitrary JSON Schema documents. Storing schemas in the
 same registry does not make their type systems interchangeable.
 
-An API Version identifies an entry document. Dependencies remain in native
-`$ref`, import, include, or other language-defined constructs; the registry
-does not add a second dependency list. Resolvers MUST apply the description
-language's base-URI and import rules. An embedded document uses its document
-retrieval URL as the initial base where the language uses such a base; an
-external document uses its effective retrieval URL. Native identifiers such as
-JSON Schema `$id` can establish a different base. Publishers MUST account for
-changed relative references when relocating documents. A protobuf or Thrift
-include path requires an explicit resolver configuration, not an assumed HTTP
-translation. Namespace names and Smithy shape IDs are not download requests.
+An API Version identifies an entry document. Dependencies use the native
+language's `$ref`, import, include, or equivalent constructs. Resolvers MUST
+apply that language's base-URI and import rules. The initial base is the
+document retrieval URL for an embedded document and the effective retrieval
+URL after redirects for an external document, unless a native identifier
+establishes another base. Publishers MUST account for relative references when
+relocating documents. Protobuf and Thrift include paths require explicit
+resolver configuration; namespace names and Smithy shape IDs are not retrieval
+URLs.
 
 For reproducible resolution, publishers SHOULD reference explicit dependency
 versions. An explicit API `versionid` does not freeze an externally hosted
 document or its unversioned dependencies.
 
-### Document Store
-
-An API Resource has `hasdocument: true`. A GET of an API Resource's `self` URL
-returns the default API document version using its stored content type. The
-resource metadata is returned in HTTP headers as defined by xRegistry Core.
-
-A client can retrieve xRegistry metadata instead of the document by appending
-the `$details` suffix to a resource or version URL:
-
-```text
-https://registry.example.com/apigroups/users/apis/UserProfileService$details
-https://registry.example.com/apigroups/users/apis/UserProfileService/versions/2$details
-```
-
-The default-version document can be replaced or a new version can be created
-using xRegistry document-store operations. This specification defines no
-API-specific write protocol.
-
 ### Versioning
 
-An API Resource contains revisions of a logical API contract. Its
-`meta.compatibility` attribute selects a compatibility policy as defined by
-[xRegistry Core][core]. Without that attribute, no compatibility checking is
-performed. Changes that violate a declared policy MUST be rejected; publishers
-can use a new API Resource for an incompatible contract.
+API Resources use the version and compatibility rules in [xRegistry Core][core].
+When the server generates a `versionid`, API Registry implementations SHOULD
+use Core's default generation algorithm.
 
 This draft does not define format-specific API compatibility algorithms. An
 implementation claiming support for a policy MUST document its comparison
@@ -172,15 +129,6 @@ not establish API compatibility. An unsupported policy MUST NOT be reported as
 successfully checked. Supported format/policy combinations are announced through
 Core's capabilities, as described in
 [Validation Capabilities and Results](#validation-capabilities-and-results).
-
-Implementations SHOULD use xRegistry Core's default version identifier
-algorithm: monotonically increasing unsigned integers starting at `1`. A
-publisher using semantic versioning can include the major version in `apiid`,
-such as `UserProfileService.v1`; the xRegistry `versionid` then identifies the
-compatible document revisions of that API Resource.
-
-The core `ancestorid` attribute can identify version branches where an
-implementation supports them.
 
 ## Notations and Terminology
 
@@ -228,64 +176,23 @@ not constrain how resources are grouped.
 
 The xRegistry extension model resides in [model.json](model.json).
 
-The following pseudo-JSON shows the API view with embedded collections. Core
-defines collection expansion and pagination. In document view, default-Version
-attributes are not duplicated at Resource level. The three document members
-shown below are alternatives, not independent OPTIONAL values.
+The following pseudo-JSON omits Core attributes and collection metadata. The
+three document members are alternatives, not independent OPTIONAL values.
 
 ```yaml
 {
-  "specversion": "<STRING>",                    # xRegistry core attributes
-  "registryid": "<STRING>",
-  "self": "<URL>",
-  "xid": "<XID>",
-  "epoch": <UINTEGER>,
-  "name": "<STRING>", ?
-  "description": "<STRING>", ?
-  "documentation": "<URL>", ?
-  "labels": { "<STRING>": "<STRING>" * }, ?
-  "createdat": "<TIMESTAMP>",
-  "modifiedat": "<TIMESTAMP>",
-
-  "model": { ... }, ?
-
-  "apigroupsurl": "<URL>",
-  "apigroupscount": <UINTEGER>,
   "apigroups": {
     "<KEY>": {
       "apigroupid": "<STRING>",
-      "self": "<URL>",
-      "xid": "<XID>",
-      "epoch": <UINTEGER>,
-      "name": "<STRING>", ?
-      "description": "<STRING>", ?
-      "documentation": "<URL>", ?
-      "labels": { "<STRING>": "<STRING>" * }, ?
-      "createdat": "<TIMESTAMP>",
-      "modifiedat": "<TIMESTAMP>",
-      "deprecated": { ... }, ?
+      # Core Group attributes
+      ...
       "format": "<STRING>", ?
 
-      "apisurl": "<URL>",
-      "apiscount": <UINTEGER>,
       "apis": {
         "<KEY>": {
           "apiid": "<STRING>",
-          "versionid": "<STRING>",
-          "self": "<URL>",
-          "xid": "<XID>",
-
           # Default Version attributes
-          "epoch": <UINTEGER>,
-          "name": "<STRING>", ?
-          "description": "<STRING>", ?
-          "documentation": "<URL>", ?
-          "labels": { "<STRING>": "<STRING>" * }, ?
-          "createdat": "<TIMESTAMP>",
-          "modifiedat": "<TIMESTAMP>",
-          "ancestorid": "<STRING>",
-          "isdefault": true,
-          "contenttype": "<STRING>", ?
+          ...
           "format": "<STRING>",
           "formatvalidated": <BOOLEAN>,
           "formatvalidatedreason": "<STRING>", ?
@@ -295,12 +202,8 @@ shown below are alternatives, not independent OPTIONAL values.
           "api": <ANY>, ?
           "apibase64": "<STRING>", ?
 
-          # Resource attributes
-          "metaurl": "<URL>",
-          "meta": { ... }, ?
-          "versionsurl": "<URL>",
-          "versionscount": <UINTEGER>,
-          "versions": { ... } ?
+          # Core Resource attributes and Versions collection
+          ...
         } *
       } ?
     } *
@@ -310,19 +213,16 @@ shown below are alternatives, not independent OPTIONAL values.
 
 ## API Registry
 
-The API Registry is a document store for versioned API definitions. It inherits
-all group, resource, version, compatibility, and extension behavior from
-[xRegistry Core][core]. Server-unknown extension attributes MUST be stored,
-subject to Core's size, security, and other rejection conditions. Unsupported
-server-known attributes MUST produce an error as specified by Core.
+The API Registry uses the group, resource, version, document, compatibility,
+and extension rules defined by [xRegistry Core][core].
 
 ### API Groups
 
 The singular Group name is `apigroup`; the plural collection name is
 `apigroups`. Every API Resource MUST belong to an API Group.
 
-Applications determine how API Resources are grouped. A group MAY contain
-documents in different formats when it has no `format` attribute.
+A group MAY contain documents in different formats when it has no `format`
+attribute.
 
 #### API Group `format`
 
@@ -340,22 +240,18 @@ Example:
 ```json
 {
   "apigroupid": "com.example.users",
-  "format": "OpenAPI/3.1",
-  "apisurl": "https://registry.example.com/apigroups/com.example.users/apis",
-  "apiscount": 1
+  "format": "OpenAPI/3.1"
 }
 ```
 
 ### API Resources
 
-The singular Resource name is `api`; the plural collection name is `apis`. An
-API Resource contains one or more document Versions.
+The singular Resource name is `api`; the plural collection name is `apis`.
 
 API Resources use `maxversions: 0`, `setversionid: true`, `hasdocument: true`,
 `validateformat: true`, `validatecompatibility: true`, and
-`strictvalidation: false` in the working-draft model. These settings mean that
-Versions are not limited by the model, publishers can assign version IDs, and
-the Resource has a document. Validation follows [xRegistry Model][model].
+`strictvalidation: false` in the working-draft model. Their semantics are
+defined by [xRegistry Model][model].
 
 #### API Version `format`
 
@@ -376,21 +272,11 @@ the Resource has a document. Validation follows [xRegistry Model][model].
 
 #### API Document Representation
 
-Core derives document member names from the singular Resource name. For an API
-Version these are `api`, `apiurl`, and `apibase64`. At most one of these members
-MAY appear in a representation. They are not extension attributes.
-
-- `api` holds embedded JSON content or a string containing a text document,
-  according to Core's serialization rules and the document's `contenttype`.
-- `apibase64` holds base64-encoded document bytes under Core's rules.
-- `apiurl` references an externally hosted document. It is distinct from the
-  Resource's `self` URL and the API's invocation address. Retrieval and
-  redirection follow Core's external-document behavior.
-
-The model maps textual API media types to Core's `string` representation.
-This permits YAML, XML, GraphQL, Smithy, and other `text/*` API documents to
-appear in `api`; binary documents, including gRPC descriptor sets, use
-`apibase64`.
+Core derives the API document members `api`, `apiurl`, and `apibase64`; at most
+one MAY appear in a representation. Textual API media types map to Core's
+`string` representation and can appear in `api`. Binary documents, including
+gRPC descriptor sets, use `apibase64`. An `apiurl` identifies an externally
+hosted document, not the Resource `self` URL or an API invocation address.
 
 The server MUST retain the native document language. It MUST NOT silently
 translate the document to another API description language. This does not add
@@ -398,72 +284,52 @@ a byte-for-byte preservation requirement beyond Core's serialization rules.
 
 #### Validation Capabilities and Results
 
-Validation support is announced through [Core's Registry Capabilities][capabilities].
-`capabilities.formats` lists the API document `format` values the server can
-validate. `capabilities.compatibilities` maps those formats to their supported
-compatibility rules. The API format identifiers defined below are used in these
-capabilities under Core's matching rules. Listing a format in this specification
-does not imply that every implementation can validate it.
-
-[Core's Offered Capabilities][capabilitiesoffered], when exposed, describe the
-available configuration choices. Their `documentation` links can identify the
-implementation's API-specific compatibility comparison rules. Where capability
-updates are supported and authorized, clients can configure validation support
-using [Core's capability update mechanisms][capabilities-update]. This configures
-the registry; it is not per-document negotiation.
-
-Clients use the advertised capabilities to discover validation support and the
-Resource model's `validateformat`, `validatecompatibility`, and `strictvalidation`
-settings to determine enforcement. The Version attributes below report whether
-checks were actually performed. Acceptance into storage alone does not establish
-that a document was validated.
+Servers advertise validation support through [Core's Registry
+Capabilities][capabilities]. `capabilities.formats` uses the API `format` values
+defined below, and `capabilities.compatibilities` maps them to supported
+compatibility rules. A format listed in this specification is not necessarily
+supported by an implementation.
 
 For embedded documents in a supported format, `validateformat: true` requires
-format validation. A malformed or invalid document MUST be rejected. A
-successful check sets `formatvalidated: true`; parsing JSON or XML alone does
-not establish conformance to the API description language.
+validation against the selected API profile. Parsing JSON or XML alone does
+not establish conformance. Malformed or invalid documents MUST be rejected;
+successful checks set `formatvalidated: true` under Core's result rules.
 
 With `strictvalidation: false`, unsupported formats and external documents can
-be accepted without format checking. Core requires `formatvalidated: false`
-and a `formatvalidatedreason` explaining why checking was skipped. False means
-not checked, not invalid-but-accepted. A reason MUST NOT accompany a true or
-absent status.
+be accepted without format checking. They use `formatvalidated: false` and
+`formatvalidatedreason` as defined by Core; `false` means not checked, not
+invalid-but-accepted.
 
 When `meta.compatibility` is present, supported compatibility policies MUST be
 checked under Core's rules. Violations MUST be rejected even with
 `strictvalidation: false`. Skipped checks use `compatibilityvalidated: false`
-and `compatibilityvalidatedreason`; successful checks use true without a
-reason. When no compatibility policy is specified, these compatibility result
-attributes MUST be absent. Result attributes are maintained by the server.
+and `compatibilityvalidatedreason`; successful checks use `true` without a
+reason. Without a compatibility policy, these result attributes MUST be absent.
 
 ### API References and Operation Locators
 
-The entity portion of an API reference is a Core XID within a known registry
-or an absolute URL for an API Resource or Version. XIDs start with `/`. A
-Resource reference resolves to its default Version; an explicit Version path
-selects that Version:
+An API Resource or Version reference identifies the API contract as a whole.
+Other documents often need to reference a specific interface or operation, so
+this specification also defines deep-reference locators for those elements,
+similar to the [Schema Registry][schema] locators for individual type
+definitions. These locators can also be used wherever a consumer needs to
+identify part of an API precisely.
 
-```text
-/apigroups/users/apis/UserProfileService
-/apigroups/users/apis/UserProfileService/versions/2
-```
-
-An operation locator selects an operation inside that resolved document:
+An API reference combines a Core Resource or Version XID or absolute URL with
+an operation locator. A Resource reference selects its default Version; a
+Version reference is explicit:
 
 ```text
 /apigroups/users/apis/UserProfileService#operations/GetUserProfile
 /apigroups/users/apis/UserProfileService/versions/2#operations/GetUserProfile
 ```
 
-The composite API-and-operation reference is defined by this extension. It is
-not itself a Core XID. `#` separates a document retrieval reference from its
-operation locator. These registry-defined fragments require an API-aware
-resolver; ordinary HTTP GET does not send the fragment to the server, and
-native document viewers do not need to understand it.
+This composite reference is not a Core XID. `#` separates the entity reference
+from the locator. Resolution requires an API-aware resolver; HTTP does not send
+the fragment to the server.
 
 For a document-view reference that already uses a JSON Pointer fragment, this
-draft defines a colon-suffix convention, following the Schema Registry's
-reference examples:
+extension defines a colon-suffix convention:
 
 ```text
 #/apigroups/users/apis/UserProfileService:operations/GetUserProfile
@@ -484,9 +350,7 @@ xRegistry operation Resource. This draft defines no `operations` collection.
 
 #### Locator Syntax and Encoding
 
-The following templates summarize the supported selectors. Angle-bracketed
-names are tokens, not literal characters. The rules below, not an incomplete
-ABNF, define token encoding and evaluation.
+The supported selectors are shown below. Angle-bracketed names are tokens.
 
 ```text
 operations/<operation-name>
@@ -530,12 +394,9 @@ introduce a server-side locator endpoint.
 
 ### API Formats
 
-The following sections define this draft's document profiles and their
-`format` identifiers. They do not assert that the API-language specifications
-define these registry identifiers. An implementation MAY support additional
-profiles. Unknown profiles can be stored under Core's non-strict validation
-rules, subject to registry policy; resolvers MUST report them as unsupported
-rather than guess their syntax.
+The following profiles define registry `format` identifiers and operation
+selectors. Implementations MAY support additional profiles. Resolvers MUST
+report unknown profiles as unsupported rather than infer their syntax.
 
 Format-specific operation locators use the shared
 [syntax and encoding rules](#locator-syntax-and-encoding) and
@@ -712,8 +573,8 @@ semantics.
 The `format` identifier for WSDL is `WSDL`. The version identifies the WSDL
 specification used to define the XML document:
 
-- `WSDL/1.1` identifies [WSDL 1.1][wsdl11], a W3C Note.
-- `WSDL/2.0` identifies [WSDL 2.0 Part 1][wsdl20], a W3C Recommendation.
+- `WSDL/1.1` identifies [WSDL 1.1][wsdl11].
+- `WSDL/2.0` identifies [WSDL 2.0 Part 1][wsdl20].
 
 WSDL versions are identified by their document element and WSDL namespace:
 `definitions` in `http://schemas.xmlsoap.org/wsdl/` for 1.1 and `description` in
@@ -751,9 +612,6 @@ The `format` identifier for OpenRPC is `OpenRPC`. `OpenRPC/1.4` identifies an
 [OpenRPC][openrpc] JSON document whose root `openrpc` value is `1.4.*`,
 independent of `info.version`.
 
-OpenRPC describes [JSON-RPC 2.0][jsonrpc] methods. JSON-RPC itself does not
-define a method-contract document format.
-
 The locator uses the method name:
 
 ```text
@@ -786,48 +644,22 @@ that operation. Input, output, errors, and traits retain their Smithy meaning.
 
 ## Example
 
-The following abbreviated registry contains an OpenAPI 3.1 API document. It
-uses a group-level format restriction and stores the document in the default
-version of an API Resource. The mock server does not support OpenAPI validation,
-so its validation status records a skipped check, not an invalid document.
+This abbreviated registry shows the API-specific fields for an OpenAPI 3.1
+document; Core metadata and collection fields are omitted. The server does not
+support OpenAPI validation, so `formatvalidated: false` records a skipped check.
 
 ```jsonc
 {
   "specversion": "1.0-rc3",
   "registryid": "example-registry",
-  "self": "https://registry.example.com",
-  "xid": "/",
-  "epoch": 1,
-  "createdat": "2026-09-14T00:00:00Z",
-  "modifiedat": "2026-09-14T00:00:00Z",
-  "modelsource": {
-    // The complete model source is specification/models/api-model.json.
-    // It is omitted here for brevity.
-  },
-  "apigroupsurl": "https://registry.example.com/apigroups",
-  "apigroupscount": 1,
   "apigroups": {
     "com.example.users": {
       "apigroupid": "com.example.users",
-      "self": "https://registry.example.com/apigroups/com.example.users",
-      "xid": "/apigroups/com.example.users",
-      "epoch": 1,
-      "createdat": "2026-09-14T00:00:00Z",
-      "modifiedat": "2026-09-14T00:00:00Z",
       "format": "OpenAPI/3.1",
-      "apisurl": "https://registry.example.com/apigroups/com.example.users/apis",
-      "apiscount": 1,
       "apis": {
         "UserProfileService.v1": {
           "apiid": "UserProfileService.v1",
           "versionid": "1",
-          "self": "https://registry.example.com/apigroups/com.example.users/apis/UserProfileService.v1",
-          "xid": "/apigroups/com.example.users/apis/UserProfileService.v1",
-          "epoch": 1,
-          "createdat": "2026-09-14T00:00:00Z",
-          "modifiedat": "2026-09-14T00:00:00Z",
-          "ancestorid": "1",
-          "isdefault": true,
           "contenttype": "application/json",
           "format": "OpenAPI/3.1",
           "formatvalidated": false,
@@ -839,37 +671,17 @@ so its validation status records a skipped check, not an invalid document.
               "version": "1.0.0"
             },
             "paths": {
-              "/users/{userId}": {
+              "/users/current": {
                 "get": {
                   "operationId": "GetUserProfile",
-                  "parameters": [
-                    {
-                      "name": "userId",
-                      "in": "path",
-                      "required": true,
-                      "schema": { "type": "string" }
-                    }
-                  ],
                   "responses": {
-                    "200": {
-                      "description": "The user profile",
-                      "content": {
-                        "application/json": {
-                          "schema": {
-                            "$ref": "https://registry.example.com/schemagroups/users/schemas/UserProfile/versions/3"
-                          }
-                        }
-                      }
-                    },
+                    "200": { "description": "The user profile" },
                     "404": { "description": "No matching user" }
                   }
                 }
               }
             }
-          },
-          "metaurl": "https://registry.example.com/apigroups/com.example.users/apis/UserProfileService.v1/meta",
-          "versionsurl": "https://registry.example.com/apigroups/com.example.users/apis/UserProfileService.v1/versions",
-          "versionscount": 1
+          }
         }
       }
     }
@@ -903,7 +715,7 @@ requirements. API documents SHOULD describe security schemes without embedding
 passwords, access tokens, or private keys. Consumers MUST apply their own trust
 policy to servers and authorization URLs found in a document.
 
-## Conformance and Open Issues
+## Conformance
 
 A registry implementing this extension MUST implement the group/resource model
 and the applicable Core document, metadata, and validation rules. It is not
@@ -911,35 +723,17 @@ REQUIRED to implement every language parser or an operation resolver. A resolver
 claiming support for a profile MUST implement that profile's identity, escaping,
 dependency, and failure rules; storage support alone is not locator support.
 
-This draft introduces registry-specific format profiles and selectors. The
-referenced language standards remain authoritative for the document contents.
-Native fragment schemes are not redefined. A consumer unaware of this extension
-cannot be assumed to interpret a registry selector correctly.
+At the pinned Core revision, the model JSON Schema does not allow the
+`validateformat`, `validatecompatibility`, or `strictvalidation` Resource
+aspects used by this model. Consequently, the API model does not validate
+against that normative schema.
 
-The following matters remain provisional:
-
-- Format-specific compatibility algorithms are not standardized here. Registry
-  implementations MUST publish the algorithms they claim to support.
-- The unversioned Thrift grammar and the protobuf descriptor schema need stable
-  revision pins before this draft can serve as a reproducible conformance target.
-- The GraphQL introspection profile needs a published canonical introspection
-  query and fixtures for complete reconstruction, including deprecated members.
-- The referenced xRegistry model JSON Schema omits `validateformat`,
-  `validatecompatibility`, and `strictvalidation` from its closed Resource
-  definition, although the Model specification defines them and the upstream
-  Schema Registry model uses them. Validation against that JSON Schema fails
-  for both models. This draft retains the normative model flags pending an
-  upstream schema correction.
+The referenced language standards remain authoritative for API document
+contents. This extension defines only the registry profiles and selectors.
 
 ## References
 
 ### Normative References
-
-The xRegistry references below are pinned to source revision
-`adf5b6a63e60c3baa78e844da8b7ce2a0d60c179`, reviewed for this draft. Native
-language requirements apply when the corresponding profile is implemented.
-Unversioned publisher pages are identified as such rather than presented as
-immutable specifications.
 
 - [xRegistry Core][core] and [xRegistry Model][model], including the Core
   [model JSON Schema][modelschema].
@@ -952,8 +746,7 @@ immutable specifications.
 - [Apache Thrift IDL][thrift], unversioned publisher language reference.
 - [Apache Avro 1.12.0 specification][avro] and [IDL reference][avroidl].
 - [GraphQL September 2025][graphql], type system, introspection, and responses.
-- [WSDL 1.1][wsdl11], W3C Note, 15 March 2001; [WSDL 2.0 Part 1][wsdl20],
-  W3C Recommendation, 26 June 2007.
+- [WSDL 1.1][wsdl11] and [WSDL 2.0 Part 1][wsdl20].
 - [OpenRPC specification][openrpc], publisher's 1.4.x page.
 - [Smithy 2.0 IDL][smithyidl], [JSON AST][smithyast], and
   [model specification][smithymodel], publisher's maintained 2.0 references.
@@ -967,8 +760,6 @@ immutable specifications.
 
 [core]: https://github.com/xregistry/spec/blob/adf5b6a63e60c3baa78e844da8b7ce2a0d60c179/core/spec.md
 [capabilities]: https://github.com/xregistry/spec/blob/adf5b6a63e60c3baa78e844da8b7ce2a0d60c179/core/spec.md#registry-capabilities
-[capabilitiesoffered]: https://github.com/xregistry/spec/blob/adf5b6a63e60c3baa78e844da8b7ce2a0d60c179/core/spec.md#offered-capabilities
-[capabilities-update]: https://github.com/xregistry/spec/blob/adf5b6a63e60c3baa78e844da8b7ce2a0d60c179/core/spec.md#updating-the-capabilities-of-a-server
 [model]: https://github.com/xregistry/spec/blob/adf5b6a63e60c3baa78e844da8b7ce2a0d60c179/core/model.md
 [modelschema]: https://github.com/xregistry/spec/blob/adf5b6a63e60c3baa78e844da8b7ce2a0d60c179/core/model.schema.json
 [schema]: https://github.com/xregistry/spec/blob/adf5b6a63e60c3baa78e844da8b7ce2a0d60c179/schema/spec.md
