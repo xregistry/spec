@@ -3609,8 +3609,8 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
   [inlined](#inline-flag) in a response, the selection and encoding of this
   attribute MUST follow the Resource type's
   [`typemap`](./model.md#groupsstringresourcesstringtypemap), including its
-  implicit mappings, except that the [Binary Flag](#binary-flag) MUST force
-  the use of `<RESOURCE>base64`.
+  implicit mappings, subject to the JSON `null` exception below. The
+  [Binary Flag](#binary-flag) MUST force the use of `<RESOURCE>base64`.
 
   A `string` mapping MUST use this attribute with the string serialization
   rules of the metadata format, even when the original document bytes are
@@ -3619,8 +3619,10 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
   If the bytes cannot be represented as a string without loss, then
   `<RESOURCE>base64` MUST be used instead.
 
-  A `json` mapping MUST use this attribute for valid JSON. A document selected
-  as `json` that contains invalid JSON MUST use `<RESOURCE>base64` instead.
+  A `json` mapping MUST use this attribute for valid JSON, except when the
+  decoded value is `null`. In that case, `<RESOURCE>base64` MUST carry the
+  original document bytes. A document selected as `json` that contains
+  invalid JSON MUST use `<RESOURCE>base64` instead.
   A `binary` mapping, including the result of conflicting matching entries,
   MUST use `<RESOURCE>base64`.
 
@@ -3638,12 +3640,17 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
   - MUST NOT be present if the Resource type's
     [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
     is set to `false`.
+  - MUST NOT be used to represent a non-empty document as the JSON value
+    `null`. Instead, `<RESOURCE>base64` MUST carry the original document bytes
+    so that a subsequent request does not interpret the document as empty.
+    This exception applies even when a `json` mapping selects the
+    representation, and does not require the `binary` flag.
 
 #### `<RESOURCE>base64` Attribute
 - Type: String
 - Description: This attribute is a base64 encoding of the corresponding
   Version's domain-specific document. If the document cannot be represented
-  using `<RESOURCE>` under the `typemap` and binary-flag rules above, then
+  using `<RESOURCE>` under the representation rules above, then
   this attribute MUST be used instead.
 
 - Constraints:
@@ -3656,6 +3663,22 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
   - MUST NOT be present if the Resource type's
     [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
     is set to `false`.
+
+For example, the four document bytes `null` for a `file` Resource are represented
+by the following document field:
+
+<!-- words: bnvsba -->
+
+```json
+{
+  "filebase64": "bnVsbA=="
+}
+```
+
+An explicit `"file": null` in a request still requests an empty document, as
+defined in [`<RESOURCE>*` Attribute Processing](#resource-attribute-processing).
+A JSON string whose contents are `null` has the JSON value `"null"`, not
+`null`, so this exception does not apply to it.
 
 ---
 
