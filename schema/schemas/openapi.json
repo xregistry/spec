@@ -1062,7 +1062,7 @@
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/schema"
+                  "description": "Domain-specific JSON content, not xRegistry metadata."
                 }
               }
             }
@@ -1122,7 +1122,7 @@
             },
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/schema"
+                "description": "Domain-specific JSON content, not xRegistry metadata."
               }
             }
           }
@@ -1133,7 +1133,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/schema"
+                  "description": "Domain-specific JSON content, not xRegistry metadata."
                 }
               }
             }
@@ -1205,7 +1205,7 @@
             },
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/schema"
+                "description": "Domain-specific JSON content, not xRegistry metadata."
               }
             }
           }
@@ -1251,7 +1251,7 @@
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/schema"
+                  "description": "Domain-specific JSON content, not xRegistry metadata."
                 }
               }
             }
@@ -1508,7 +1508,7 @@
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/schemaVersion"
+                  "description": "Domain-specific JSON content, not xRegistry metadata."
                 }
               }
             }

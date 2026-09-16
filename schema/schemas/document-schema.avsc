@@ -255,7 +255,7 @@
               "name": "Extensions",
               "type": {
                 "type": "map",
-                "name": "ExtensionsType",
+                "name": "SchemagroupExtensionsType",
                 "default": {},
                 "values": "io.xregistry.GenericRecord"
               }
@@ -444,19 +444,6 @@
                               "doc": "Time of the object modification"
                             },
                             {
-                              "type": "string",
-                              "name": "format"
-                            },
-                            {
-                              "name": "Extensions",
-                              "type": {
-                                "type": "map",
-                                "name": "ExtensionsType",
-                                "default": {},
-                                "values": "io.xregistry.GenericRecord"
-                              }
-                            },
-                            {
                               "name": "ancestorid",
                               "type": "string"
                             },
@@ -471,6 +458,19 @@
                                 "string"
                               ],
                               "default": null
+                            },
+                            {
+                              "type": "string",
+                              "name": "format"
+                            },
+                            {
+                              "name": "Extensions",
+                              "type": {
+                                "type": "map",
+                                "name": "SchemaVersionExtensionsType",
+                                "default": {},
+                                "values": "io.xregistry.GenericRecord"
+                              }
                             }
                           ]
                         }
@@ -618,6 +618,7 @@
                                 "null",
                                 {
                                   "type": "record",
+                                  "namespace": "io.xregistry.schemagroups",
                                   "name": "SchemaMetaDeprecatedType",
                                   "fields": [
                                     {

@@ -22,11 +22,11 @@
       "description": "Epoch of the object"
     },
     "self": {
-      "type": "string",
+      "type": "uri",
       "description": "URL of the object"
     },
     "xid": {
-      "type": "string",
+      "type": "uri",
       "description": "XID of the object"
     },
     "description": {
@@ -34,7 +34,7 @@
       "description": "Description of the object"
     },
     "documentation": {
-      "type": "string",
+      "type": "uri",
       "description": "Documentation URL"
     },
     "labels": {
@@ -52,13 +52,22 @@
       "description": "Modification time"
     },
     "model": {
-      "type": "any"
+      "type": "map",
+      "values": {
+        "type": "any"
+      }
     },
     "modelsource": {
-      "type": "any"
+      "type": "map",
+      "values": {
+        "type": "any"
+      }
     },
     "capabilities": {
-      "type": "any"
+      "type": "map",
+      "values": {
+        "type": "any"
+      }
     },
     "schemagroups": {
       "type": "map",
@@ -69,7 +78,7 @@
       }
     },
     "schemagroupsurl": {
-      "type": "string"
+      "type": "uri"
     },
     "schemagroupscount": {
       "type": "uint32"
@@ -98,11 +107,11 @@
             "description": "Epoch of the object"
           },
           "self": {
-            "type": "string",
+            "type": "uri",
             "description": "URL of the object"
           },
           "xid": {
-            "type": "string",
+            "type": "uri",
             "description": "XID of the object"
           },
           "description": {
@@ -110,7 +119,7 @@
             "description": "Description of the object"
           },
           "documentation": {
-            "type": "string",
+            "type": "uri",
             "description": "Documentation URL"
           },
           "labels": {
@@ -136,15 +145,6 @@
           "contenttype": {
             "type": "string"
           },
-          "readonly": {
-            "type": "boolean"
-          },
-          "compatibility": {
-            "type": "string"
-          },
-          "deprecated": {
-            "type": "any"
-          },
           "format": {
             "type": "string"
           },
@@ -155,7 +155,7 @@
             "type": "binary"
           },
           "schemaurl": {
-            "type": "string"
+            "type": "uri"
           }
         },
         "additionalProperties": true,
@@ -179,11 +179,11 @@
             "description": "Epoch of the object"
           },
           "self": {
-            "type": "string",
+            "type": "uri",
             "description": "URL of the object"
           },
           "xid": {
-            "type": "string",
+            "type": "uri",
             "description": "XID of the object"
           },
           "description": {
@@ -191,7 +191,7 @@
             "description": "Description of the object"
           },
           "documentation": {
-            "type": "string",
+            "type": "uri",
             "description": "Documentation URL"
           },
           "labels": {
@@ -209,7 +209,7 @@
             "description": "Modification time"
           },
           "metaurl": {
-            "type": "string"
+            "type": "uri"
           },
           "meta": {
             "type": "object",
@@ -227,11 +227,11 @@
                 "description": "Epoch of the object"
               },
               "self": {
-                "type": "string",
+                "type": "uri",
                 "description": "URL of the object"
               },
               "xid": {
-                "type": "string",
+                "type": "uri",
                 "description": "XID of the object"
               },
               "description": {
@@ -239,7 +239,7 @@
                 "description": "Description of the object"
               },
               "documentation": {
-                "type": "string",
+                "type": "uri",
                 "description": "Documentation URL"
               },
               "labels": {
@@ -257,7 +257,7 @@
                 "description": "Modification time"
               },
               "xref": {
-                "type": "string"
+                "type": "uri"
               },
               "readonly": {
                 "type": "boolean"
@@ -275,10 +275,10 @@
                     "type": "datetime"
                   },
                   "alternative": {
-                    "type": "string"
+                    "type": "uri"
                   },
                   "documentation": {
-                    "type": "string"
+                    "type": "uri"
                   }
                 },
                 "additionalProperties": false
@@ -287,7 +287,7 @@
                 "type": "string"
               },
               "defaultversionurl": {
-                "type": "string"
+                "type": "uri"
               },
               "defaultversionsticky": {
                 "type": "boolean"
@@ -304,11 +304,11 @@
             "description": "Base64-encoded schema document"
           },
           "schemaurl": {
-            "type": "string",
+            "type": "uri",
             "description": "URL of the schema document"
           },
           "versionsurl": {
-            "type": "string"
+            "type": "uri"
           },
           "versionscount": {
             "type": "uint32"
@@ -340,11 +340,11 @@
             "description": "Epoch of the object"
           },
           "self": {
-            "type": "string",
+            "type": "uri",
             "description": "URL of the object"
           },
           "xid": {
-            "type": "string",
+            "type": "uri",
             "description": "XID of the object"
           },
           "description": {
@@ -352,7 +352,7 @@
             "description": "Description of the object"
           },
           "documentation": {
-            "type": "string",
+            "type": "uri",
             "description": "Documentation URL"
           },
           "labels": {
@@ -381,7 +381,7 @@
             }
           },
           "schemasurl": {
-            "type": "string"
+            "type": "uri"
           },
           "schemascount": {
             "type": "uint32"

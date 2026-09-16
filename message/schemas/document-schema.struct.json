@@ -22,11 +22,11 @@
       "description": "Epoch of the object"
     },
     "self": {
-      "type": "string",
+      "type": "uri",
       "description": "URL of the object"
     },
     "xid": {
-      "type": "string",
+      "type": "uri",
       "description": "XID of the object"
     },
     "description": {
@@ -34,7 +34,7 @@
       "description": "Description of the object"
     },
     "documentation": {
-      "type": "string",
+      "type": "uri",
       "description": "Documentation URL"
     },
     "labels": {
@@ -52,13 +52,22 @@
       "description": "Modification time"
     },
     "model": {
-      "type": "any"
+      "type": "map",
+      "values": {
+        "type": "any"
+      }
     },
     "modelsource": {
-      "type": "any"
+      "type": "map",
+      "values": {
+        "type": "any"
+      }
     },
     "capabilities": {
-      "type": "any"
+      "type": "map",
+      "values": {
+        "type": "any"
+      }
     },
     "messagegroups": {
       "type": "map",
@@ -69,7 +78,7 @@
       }
     },
     "messagegroupsurl": {
-      "type": "string"
+      "type": "uri"
     },
     "messagegroupscount": {
       "type": "uint32"
@@ -206,11 +215,11 @@
             "description": "Epoch of the object"
           },
           "self": {
-            "type": "string",
+            "type": "uri",
             "description": "URL of the object"
           },
           "xid": {
-            "type": "string",
+            "type": "uri",
             "description": "XID of the object"
           },
           "description": {
@@ -218,7 +227,7 @@
             "description": "Description of the object"
           },
           "documentation": {
-            "type": "string",
+            "type": "uri",
             "description": "Documentation URL"
           },
           "labels": {
@@ -236,7 +245,7 @@
             "description": "Modification time"
           },
           "basemessageuri": {
-            "type": "string",
+            "type": "uri",
             "description": "Reference to a base definition for this definition. Relative references are XIDs within the same registry. Absolute URIs reference message definitions in external registries. The base definition is overridden by this definition. If not present, this definition does not override any base definition"
           },
           "envelope": {
@@ -256,11 +265,11 @@
             "description": "The inline schema for the message payload, equivalent to the 'schema' attribute of the schema registry"
           },
           "dataschemauri": {
-            "type": "string",
+            "type": "uri",
             "description": "The URI of the schema for the message payload, equivalent to the 'schemauri' attribute of the schema registry"
           },
           "dataschemaxid": {
-            "type": "string",
+            "type": "uri",
             "description": "Contains the xid of the xRegistry schema Resource entity associated with the dataschemauri referenced schema document. Note that this means the entity MUST be located within the same Registry."
           },
           "datacontenttype": {
@@ -956,7 +965,7 @@
             "description": "AMQP message metadata constraints"
           },
           "metaurl": {
-            "type": "string"
+            "type": "uri"
           },
           "meta": {
             "type": "object",
@@ -974,11 +983,11 @@
                 "description": "Epoch of the object"
               },
               "self": {
-                "type": "string",
+                "type": "uri",
                 "description": "URL of the object"
               },
               "xid": {
-                "type": "string",
+                "type": "uri",
                 "description": "XID of the object"
               },
               "description": {
@@ -986,7 +995,7 @@
                 "description": "Description of the object"
               },
               "documentation": {
-                "type": "string",
+                "type": "uri",
                 "description": "Documentation URL"
               },
               "labels": {
@@ -1004,7 +1013,7 @@
                 "description": "Modification time"
               },
               "xref": {
-                "type": "string"
+                "type": "uri"
               },
               "readonly": {
                 "type": "boolean"
@@ -1022,10 +1031,10 @@
                     "type": "datetime"
                   },
                   "alternative": {
-                    "type": "string"
+                    "type": "uri"
                   },
                   "documentation": {
-                    "type": "string"
+                    "type": "uri"
                   }
                 },
                 "additionalProperties": false
@@ -1034,7 +1043,7 @@
                 "type": "string"
               },
               "defaultversionurl": {
-                "type": "string"
+                "type": "uri"
               },
               "defaultversionsticky": {
                 "type": "boolean"
@@ -1061,11 +1070,11 @@
             "description": "Epoch of the object"
           },
           "self": {
-            "type": "string",
+            "type": "uri",
             "description": "URL of the object"
           },
           "xid": {
-            "type": "string",
+            "type": "uri",
             "description": "XID of the object"
           },
           "description": {
@@ -1073,7 +1082,7 @@
             "description": "Description of the object"
           },
           "documentation": {
-            "type": "string",
+            "type": "uri",
             "description": "Documentation URL"
           },
           "labels": {
@@ -1107,7 +1116,7 @@
             }
           },
           "messagesurl": {
-            "type": "string"
+            "type": "uri"
           },
           "messagescount": {
             "type": "uint32"

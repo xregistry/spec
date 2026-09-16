@@ -78,8 +78,9 @@ content; collections and `$details` retain metadata schemas.
 
 Avro object and conditional record names include their owning entity and path;
 structured wildcard values retain their record definitions. These repairs change
-generated fullnames and layouts. Regenerate bindings and check writer/reader
-compatibility under the [Avro naming rules](https://avro.apache.org/docs/1.12.0/specification/#names);
+generated qualified names and layouts. Regenerate bindings and check writer/reader
+compatibility under the
+[Avro naming rules](https://avro.apache.org/docs/1.12.0/specification#names);
 compatibility with older generated readers is not guaranteed.
 
 JSON Structure uses its native
@@ -87,7 +88,7 @@ JSON Structure uses its native
 for relative and absolute URI references. Inlined model and capability values
 are opaque maps, and Version definitions do not implicitly include Meta controls.
 These output contracts do not define input reset behavior. Tests check emitted
-types and bounded URI/object rules, not full native SDK conformance.
+types and bounded URI/object rules, not full native validation.
 
 Additional release related information:
   [Historical releases and changelogs](docs/RELEASES.md)

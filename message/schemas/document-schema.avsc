@@ -265,7 +265,7 @@
               "name": "Extensions",
               "type": {
                 "type": "map",
-                "name": "ExtensionsType",
+                "name": "MessagegroupExtensionsType",
                 "default": {},
                 "values": "io.xregistry.GenericRecord"
               },
@@ -375,21 +375,23 @@
                         {
                           "type": "record",
                           "namespace": "io.xregistry.messagegroups",
-                          "name": "EnvelopeCloudevents10Type",
+                          "name": "MessageEnvelopeCloudevents10Type",
                           "fields": [
                             {
                               "type": [
                                 "null",
                                 {
                                   "type": "record",
-                                  "name": "EnvelopeCloudevents10EnvelopemetadataType",
+                                  "namespace": "io.xregistry.messagegroups",
+                                  "name": "MessageEnvelopeCloudevents10EnvelopemetadataType",
                                   "fields": [
                                     {
                                       "type": [
                                         "null",
                                         {
                                           "type": "record",
-                                          "name": "EnvelopeCloudevents10EnvelopemetadataSpecversionType",
+                                          "namespace": "io.xregistry.messagegroups",
+                                          "name": "MessageEnvelopeCloudevents10EnvelopemetadataSpecversionType",
                                           "fields": [
                                             {
                                               "type": [
@@ -437,7 +439,8 @@
                                         "null",
                                         {
                                           "type": "record",
-                                          "name": "EnvelopeCloudevents10EnvelopemetadataIdType",
+                                          "namespace": "io.xregistry.messagegroups",
+                                          "name": "MessageEnvelopeCloudevents10EnvelopemetadataIdType",
                                           "fields": [
                                             {
                                               "type": [
@@ -485,7 +488,8 @@
                                         "null",
                                         {
                                           "type": "record",
-                                          "name": "EnvelopeCloudevents10EnvelopemetadataTypeType",
+                                          "namespace": "io.xregistry.messagegroups",
+                                          "name": "MessageEnvelopeCloudevents10EnvelopemetadataTypeType",
                                           "fields": [
                                             {
                                               "type": [
@@ -533,7 +537,8 @@
                                         "null",
                                         {
                                           "type": "record",
-                                          "name": "EnvelopeCloudevents10EnvelopemetadataSourceType",
+                                          "namespace": "io.xregistry.messagegroups",
+                                          "name": "MessageEnvelopeCloudevents10EnvelopemetadataSourceType",
                                           "fields": [
                                             {
                                               "type": [
@@ -581,7 +586,8 @@
                                         "null",
                                         {
                                           "type": "record",
-                                          "name": "EnvelopeCloudevents10EnvelopemetadataSubjectType",
+                                          "namespace": "io.xregistry.messagegroups",
+                                          "name": "MessageEnvelopeCloudevents10EnvelopemetadataSubjectType",
                                           "fields": [
                                             {
                                               "type": [
@@ -629,7 +635,8 @@
                                         "null",
                                         {
                                           "type": "record",
-                                          "name": "EnvelopeCloudevents10EnvelopemetadataTimeType",
+                                          "namespace": "io.xregistry.messagegroups",
+                                          "name": "MessageEnvelopeCloudevents10EnvelopemetadataTimeType",
                                           "fields": [
                                             {
                                               "type": [
@@ -676,7 +683,8 @@
                                         "null",
                                         {
                                           "type": "record",
-                                          "name": "EnvelopeCloudevents10EnvelopemetadataDataschemaType",
+                                          "namespace": "io.xregistry.messagegroups",
+                                          "name": "MessageEnvelopeCloudevents10EnvelopemetadataDataschemaType",
                                           "fields": [
                                             {
                                               "type": [
@@ -723,7 +731,8 @@
                                         "null",
                                         {
                                           "type": "record",
-                                          "name": "EnvelopeCloudevents10EnvelopemetadataDatacontenttypeType",
+                                          "namespace": "io.xregistry.messagegroups",
+                                          "name": "MessageEnvelopeCloudevents10EnvelopemetadataDatacontenttypeType",
                                           "fields": [
                                             {
                                               "type": [
@@ -769,9 +778,50 @@
                                       "name": "Extensions",
                                       "type": {
                                         "type": "map",
-                                        "name": "EnvelopeCloudevents10EnvelopemetadataExtensionsType",
+                                        "name": "MessageEnvelopeCloudevents10EnvelopemetadataExtensionsType",
                                         "default": {},
-                                        "values": "EnvelopeCloudevents10EnvelopemetadataType"
+                                        "values": {
+                                          "type": "record",
+                                          "namespace": "io.xregistry.messagegroups",
+                                          "name": "MessageEnvelopeCloudevents10EnvelopemetadataExtensionsType",
+                                          "fields": [
+                                            {
+                                              "type": [
+                                                "null",
+                                                "string"
+                                              ],
+                                              "name": "description",
+                                              "default": null
+                                            },
+                                            {
+                                              "type": [
+                                                "null",
+                                                "string"
+                                              ],
+                                              "doc": "The value type",
+                                              "name": "type",
+                                              "default": null
+                                            },
+                                            {
+                                              "type": [
+                                                "null",
+                                                "string"
+                                              ],
+                                              "doc": "The value constraint",
+                                              "name": "value",
+                                              "default": null
+                                            },
+                                            {
+                                              "type": [
+                                                "null",
+                                                "boolean"
+                                              ],
+                                              "doc": "Whether the extension is required",
+                                              "name": "required",
+                                              "default": null
+                                            }
+                                          ]
+                                        }
                                       },
                                       "doc": "CloudEvent extension property"
                                     }
@@ -787,7 +837,8 @@
                                 "null",
                                 {
                                   "type": "record",
-                                  "name": "EnvelopeCloudevents10EnvelopeoptionsType",
+                                  "namespace": "io.xregistry.messagegroups",
+                                  "name": "MessageEnvelopeCloudevents10EnvelopeoptionsType",
                                   "fields": [
                                     {
                                       "type": [
@@ -811,7 +862,7 @@
                                       "name": "Extensions",
                                       "type": {
                                         "type": "map",
-                                        "name": "EnvelopeCloudevents10EnvelopeoptionsExtensionsType",
+                                        "name": "MessageEnvelopeCloudevents10EnvelopeoptionsExtensionsType",
                                         "default": {},
                                         "values": "io.xregistry.GenericRecord"
                                       }
@@ -834,28 +885,31 @@
                         {
                           "type": "record",
                           "namespace": "io.xregistry.messagegroups",
-                          "name": "ProtocolAmqp10Type",
+                          "name": "MessageProtocolAmqp10Type",
                           "fields": [
                             {
                               "type": [
                                 "null",
                                 {
                                   "type": "record",
-                                  "name": "ProtocolAmqp10ProtocoloptionsType",
+                                  "namespace": "io.xregistry.messagegroups",
+                                  "name": "MessageProtocolAmqp10ProtocoloptionsType",
                                   "fields": [
                                     {
                                       "type": [
                                         "null",
                                         {
                                           "type": "record",
-                                          "name": "ProtocolAmqp10ProtocoloptionsPropertiesType",
+                                          "namespace": "io.xregistry.messagegroups",
+                                          "name": "MessageProtocolAmqp10ProtocoloptionsPropertiesType",
                                           "fields": [
                                             {
                                               "type": [
                                                 "null",
                                                 {
                                                   "type": "record",
-                                                  "name": "ProtocolAmqp10ProtocoloptionsPropertiesMessageIdType",
+                                                  "namespace": "io.xregistry.messagegroups",
+                                                  "name": "MessageProtocolAmqp10ProtocoloptionsPropertiesMessageIdType",
                                                   "fields": [
                                                     {
                                                       "type": [
@@ -904,7 +958,8 @@
                                                 "null",
                                                 {
                                                   "type": "record",
-                                                  "name": "ProtocolAmqp10ProtocoloptionsPropertiesUserIdType",
+                                                  "namespace": "io.xregistry.messagegroups",
+                                                  "name": "MessageProtocolAmqp10ProtocoloptionsPropertiesUserIdType",
                                                   "fields": [
                                                     {
                                                       "type": [
@@ -953,7 +1008,8 @@
                                                 "null",
                                                 {
                                                   "type": "record",
-                                                  "name": "ProtocolAmqp10ProtocoloptionsPropertiesToType",
+                                                  "namespace": "io.xregistry.messagegroups",
+                                                  "name": "MessageProtocolAmqp10ProtocoloptionsPropertiesToType",
                                                   "fields": [
                                                     {
                                                       "type": [
@@ -1002,7 +1058,8 @@
                                                 "null",
                                                 {
                                                   "type": "record",
-                                                  "name": "ProtocolAmqp10ProtocoloptionsPropertiesSubjectType",
+                                                  "namespace": "io.xregistry.messagegroups",
+                                                  "name": "MessageProtocolAmqp10ProtocoloptionsPropertiesSubjectType",
                                                   "fields": [
                                                     {
                                                       "type": [
@@ -1051,7 +1108,8 @@
                                                 "null",
                                                 {
                                                   "type": "record",
-                                                  "name": "ProtocolAmqp10ProtocoloptionsPropertiesReplyToType",
+                                                  "namespace": "io.xregistry.messagegroups",
+                                                  "name": "MessageProtocolAmqp10ProtocoloptionsPropertiesReplyToType",
                                                   "fields": [
                                                     {
                                                       "type": [
@@ -1100,7 +1158,8 @@
                                                 "null",
                                                 {
                                                   "type": "record",
-                                                  "name": "ProtocolAmqp10ProtocoloptionsPropertiesCorrelationIdType",
+                                                  "namespace": "io.xregistry.messagegroups",
+                                                  "name": "MessageProtocolAmqp10ProtocoloptionsPropertiesCorrelationIdType",
                                                   "fields": [
                                                     {
                                                       "type": [
@@ -1149,7 +1208,8 @@
                                                 "null",
                                                 {
                                                   "type": "record",
-                                                  "name": "ProtocolAmqp10ProtocoloptionsPropertiesContentTypeType",
+                                                  "namespace": "io.xregistry.messagegroups",
+                                                  "name": "MessageProtocolAmqp10ProtocoloptionsPropertiesContentTypeType",
                                                   "fields": [
                                                     {
                                                       "type": [
@@ -1198,7 +1258,8 @@
                                                 "null",
                                                 {
                                                   "type": "record",
-                                                  "name": "ProtocolAmqp10ProtocoloptionsPropertiesContentEncodingType",
+                                                  "namespace": "io.xregistry.messagegroups",
+                                                  "name": "MessageProtocolAmqp10ProtocoloptionsPropertiesContentEncodingType",
                                                   "fields": [
                                                     {
                                                       "type": [
@@ -1247,7 +1308,8 @@
                                                 "null",
                                                 {
                                                   "type": "record",
-                                                  "name": "ProtocolAmqp10ProtocoloptionsPropertiesAbsoluteExpiryTimeType",
+                                                  "namespace": "io.xregistry.messagegroups",
+                                                  "name": "MessageProtocolAmqp10ProtocoloptionsPropertiesAbsoluteExpiryTimeType",
                                                   "fields": [
                                                     {
                                                       "type": [
@@ -1296,7 +1358,8 @@
                                                 "null",
                                                 {
                                                   "type": "record",
-                                                  "name": "ProtocolAmqp10ProtocoloptionsPropertiesCreationTimeType",
+                                                  "namespace": "io.xregistry.messagegroups",
+                                                  "name": "MessageProtocolAmqp10ProtocoloptionsPropertiesCreationTimeType",
                                                   "fields": [
                                                     {
                                                       "type": [
@@ -1345,7 +1408,8 @@
                                                 "null",
                                                 {
                                                   "type": "record",
-                                                  "name": "ProtocolAmqp10ProtocoloptionsPropertiesGroupIdType",
+                                                  "namespace": "io.xregistry.messagegroups",
+                                                  "name": "MessageProtocolAmqp10ProtocoloptionsPropertiesGroupIdType",
                                                   "fields": [
                                                     {
                                                       "type": [
@@ -1394,7 +1458,8 @@
                                                 "null",
                                                 {
                                                   "type": "record",
-                                                  "name": "ProtocolAmqp10ProtocoloptionsPropertiesGroupSequenceType",
+                                                  "namespace": "io.xregistry.messagegroups",
+                                                  "name": "MessageProtocolAmqp10ProtocoloptionsPropertiesGroupSequenceType",
                                                   "fields": [
                                                     {
                                                       "type": [
@@ -1443,7 +1508,8 @@
                                                 "null",
                                                 {
                                                   "type": "record",
-                                                  "name": "ProtocolAmqp10ProtocoloptionsPropertiesReplyToGroupIdType",
+                                                  "namespace": "io.xregistry.messagegroups",
+                                                  "name": "MessageProtocolAmqp10ProtocoloptionsPropertiesReplyToGroupIdType",
                                                   "fields": [
                                                     {
                                                       "type": [
@@ -1499,10 +1565,11 @@
                                         "null",
                                         {
                                           "type": "map",
-                                          "name": "ProtocolAmqp10ProtocoloptionsApplicationPropertiesType",
+                                          "name": "MessageProtocolAmqp10ProtocoloptionsApplicationPropertiesType",
                                           "values": {
                                             "type": "record",
-                                            "name": "ProtocolAmqp10ProtocoloptionsApplicationPropertiesItemType",
+                                            "namespace": "io.xregistry.messagegroups",
+                                            "name": "MessageProtocolAmqp10ProtocoloptionsApplicationPropertiesItemType",
                                             "fields": [
                                               {
                                                 "type": [
@@ -1552,10 +1619,11 @@
                                         "null",
                                         {
                                           "type": "map",
-                                          "name": "ProtocolAmqp10ProtocoloptionsMessageAnnotationsType",
+                                          "name": "MessageProtocolAmqp10ProtocoloptionsMessageAnnotationsType",
                                           "values": {
                                             "type": "record",
-                                            "name": "ProtocolAmqp10ProtocoloptionsMessageAnnotationsItemType",
+                                            "namespace": "io.xregistry.messagegroups",
+                                            "name": "MessageProtocolAmqp10ProtocoloptionsMessageAnnotationsItemType",
                                             "fields": [
                                               {
                                                 "type": [
@@ -1605,10 +1673,11 @@
                                         "null",
                                         {
                                           "type": "map",
-                                          "name": "ProtocolAmqp10ProtocoloptionsDeliveryAnnotationsType",
+                                          "name": "MessageProtocolAmqp10ProtocoloptionsDeliveryAnnotationsType",
                                           "values": {
                                             "type": "record",
-                                            "name": "ProtocolAmqp10ProtocoloptionsDeliveryAnnotationsItemType",
+                                            "namespace": "io.xregistry.messagegroups",
+                                            "name": "MessageProtocolAmqp10ProtocoloptionsDeliveryAnnotationsItemType",
                                             "fields": [
                                               {
                                                 "type": [
@@ -1658,7 +1727,8 @@
                                         "null",
                                         {
                                           "type": "record",
-                                          "name": "ProtocolAmqp10ProtocoloptionsHeaderType",
+                                          "namespace": "io.xregistry.messagegroups",
+                                          "name": "MessageProtocolAmqp10ProtocoloptionsHeaderType",
                                           "fields": [
                                             {
                                               "type": [
@@ -1717,10 +1787,11 @@
                                         "null",
                                         {
                                           "type": "map",
-                                          "name": "ProtocolAmqp10ProtocoloptionsFooterType",
+                                          "name": "MessageProtocolAmqp10ProtocoloptionsFooterType",
                                           "values": {
                                             "type": "record",
-                                            "name": "ProtocolAmqp10ProtocoloptionsFooterItemType",
+                                            "namespace": "io.xregistry.messagegroups",
+                                            "name": "MessageProtocolAmqp10ProtocoloptionsFooterItemType",
                                             "fields": [
                                               {
                                                 "type": [
@@ -1777,14 +1848,15 @@
                         {
                           "type": "record",
                           "namespace": "io.xregistry.messagegroups",
-                          "name": "ProtocolMqtt311Type",
+                          "name": "MessageProtocolMqtt311Type",
                           "fields": [
                             {
                               "type": [
                                 "null",
                                 {
                                   "type": "record",
-                                  "name": "ProtocolMqtt311ProtocoloptionsType",
+                                  "namespace": "io.xregistry.messagegroups",
+                                  "name": "MessageProtocolMqtt311ProtocoloptionsType",
                                   "fields": [
                                     {
                                       "type": [
@@ -1825,14 +1897,15 @@
                         {
                           "type": "record",
                           "namespace": "io.xregistry.messagegroups",
-                          "name": "ProtocolMqtt50Type",
+                          "name": "MessageProtocolMqtt50Type",
                           "fields": [
                             {
                               "type": [
                                 "null",
                                 {
                                   "type": "record",
-                                  "name": "ProtocolMqtt50ProtocoloptionsType",
+                                  "namespace": "io.xregistry.messagegroups",
+                                  "name": "MessageProtocolMqtt50ProtocoloptionsType",
                                   "fields": [
                                     {
                                       "type": [
@@ -1911,10 +1984,11 @@
                                         "null",
                                         {
                                           "type": "array",
-                                          "name": "ProtocolMqtt50ProtocoloptionsUserPropertiesArrayType",
+                                          "name": "MessageProtocolMqtt50ProtocoloptionsUserPropertiesArrayType",
                                           "items": {
                                             "type": "record",
-                                            "name": "ProtocolMqtt50ProtocoloptionsUserPropertiesItemType",
+                                            "namespace": "io.xregistry.messagegroups",
+                                            "name": "MessageProtocolMqtt50ProtocoloptionsUserPropertiesItemType",
                                             "fields": [
                                               {
                                                 "type": "string",
@@ -1958,14 +2032,15 @@
                         {
                           "type": "record",
                           "namespace": "io.xregistry.messagegroups",
-                          "name": "ProtocolKAFKAType",
+                          "name": "MessageProtocolKAFKAType",
                           "fields": [
                             {
                               "type": [
                                 "null",
                                 {
                                   "type": "record",
-                                  "name": "ProtocolKAFKAProtocoloptionsType",
+                                  "namespace": "io.xregistry.messagegroups",
+                                  "name": "MessageProtocolKAFKAProtocoloptionsType",
                                   "fields": [
                                     {
                                       "type": [
@@ -2008,10 +2083,11 @@
                                         "null",
                                         {
                                           "type": "map",
-                                          "name": "ProtocolKAFKAProtocoloptionsHeadersType",
+                                          "name": "MessageProtocolKAFKAProtocoloptionsHeadersType",
                                           "values": {
                                             "type": "record",
-                                            "name": "ProtocolKAFKAProtocoloptionsHeadersItemType",
+                                            "namespace": "io.xregistry.messagegroups",
+                                            "name": "MessageProtocolKAFKAProtocoloptionsHeadersItemType",
                                             "fields": [
                                               {
                                                 "type": "string",
@@ -2064,24 +2140,26 @@
                         {
                           "type": "record",
                           "namespace": "io.xregistry.messagegroups",
-                          "name": "ProtocolHTTPType",
+                          "name": "MessageProtocolHTTPType",
                           "fields": [
                             {
                               "type": [
                                 "null",
                                 {
                                   "type": "record",
-                                  "name": "ProtocolHTTPProtocoloptionsType",
+                                  "namespace": "io.xregistry.messagegroups",
+                                  "name": "MessageProtocolHTTPProtocoloptionsType",
                                   "fields": [
                                     {
                                       "type": [
                                         "null",
                                         {
                                           "type": "array",
-                                          "name": "ProtocolHTTPProtocoloptionsHeadersArrayType",
+                                          "name": "MessageProtocolHTTPProtocoloptionsHeadersArrayType",
                                           "items": {
                                             "type": "record",
-                                            "name": "ProtocolHTTPProtocoloptionsHeadersItemType",
+                                            "namespace": "io.xregistry.messagegroups",
+                                            "name": "MessageProtocolHTTPProtocoloptionsHeadersItemType",
                                             "fields": [
                                               {
                                                 "type": "string",
@@ -2127,10 +2205,11 @@
                                         "null",
                                         {
                                           "type": "array",
-                                          "name": "ProtocolHTTPProtocoloptionsQueryArrayType",
+                                          "name": "MessageProtocolHTTPProtocoloptionsQueryArrayType",
                                           "items": {
                                             "type": "record",
-                                            "name": "ProtocolHTTPProtocoloptionsQueryItemType",
+                                            "namespace": "io.xregistry.messagegroups",
+                                            "name": "MessageProtocolHTTPProtocoloptionsQueryItemType",
                                             "fields": [
                                               {
                                                 "type": "string",
@@ -2201,14 +2280,15 @@
                         {
                           "type": "record",
                           "namespace": "io.xregistry.messagegroups",
-                          "name": "ProtocolNATSType",
+                          "name": "MessageProtocolNATSType",
                           "fields": [
                             {
                               "type": [
                                 "null",
                                 {
                                   "type": "record",
-                                  "name": "ProtocolNATSProtocoloptionsType",
+                                  "namespace": "io.xregistry.messagegroups",
+                                  "name": "MessageProtocolNATSProtocoloptionsType",
                                   "fields": [
                                     {
                                       "type": [
@@ -2233,10 +2313,11 @@
                                         "null",
                                         {
                                           "type": "array",
-                                          "name": "ProtocolNATSProtocoloptionsHeadersArrayType",
+                                          "name": "MessageProtocolNATSProtocoloptionsHeadersArrayType",
                                           "items": {
                                             "type": "record",
-                                            "name": "ProtocolNATSProtocoloptionsHeadersItemType",
+                                            "namespace": "io.xregistry.messagegroups",
+                                            "name": "MessageProtocolNATSProtocoloptionsHeadersItemType",
                                             "fields": [
                                               {
                                                 "type": [
@@ -2463,6 +2544,7 @@
                                 "null",
                                 {
                                   "type": "record",
+                                  "namespace": "io.xregistry.messagegroups",
                                   "name": "MessageMetaDeprecatedType",
                                   "fields": [
                                     {
