@@ -786,6 +786,16 @@ Endpoints are supersets of
 MAY contain inlined messages. See
 [Message Definitions](../message/spec.md#message-definitions).
 
+An Endpoint's [`envelope`](#envelope) constraint applies to the effective
+Messages used by that Endpoint, whether inlined, borrowed, or reached through
+[`messagegroups`](#messagegroups). Each available effective Message MUST
+satisfy that constraint under the Message
+[binding-context rules](../message/spec.md#envelope). An Endpoint without an
+envelope constraint does not by itself require an envelope on those Messages.
+These checks do not copy the Endpoint selector into a Message and do not
+require the server to acquire external definitions. If the effective
+definition is unavailable, its compatibility with the Endpoint is unresolved.
+
 Example:
 
 ```yaml

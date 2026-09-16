@@ -159,8 +159,10 @@ Any message definition covers up to three aspects:
    others) that is embedded at or referenced by the chosen `dataschema*`
    attribute.
 
-A `message` definition MAY contain any combination of `envelope`, `protocol`,
-and data payload declarations. A payload-only declaration can be useful if
+An unbound `message` definition MAY contain any combination of `envelope`,
+`protocol`, and data payload declarations. Binding-context requirements are
+described by the [`envelope`](#envelope) attribute below.
+A payload-only declaration can be useful if
 messages are sent through varying protocols without a fixed envelope model and
 are distinguished by content-type (including parameters) or even only through
 whether payload schema definitions match an incoming message.
@@ -544,8 +546,10 @@ to the xRegistry-defined core
   version as `<NAME>/<VERSION>`. This specification defines a set of common
   [metadata envelope names](#metadata-envelopes) that MUST be used for the
   given envelopes, but applications MAY define extensions for other envelopes
-  on their own. All messages inside a group MUST use this same envelope.
+  on their own. If the Group declares this attribute, all messages used in
+  that Group MUST satisfy its envelope constraint.
 - Constraints:
+  - OPTIONAL.
   - If present, MUST be a non-empty case-insensitive string.
   - If present, MUST follow the naming convention `<NAME>/<VERSION>`, whereby
     `<NAME>` is the name of the metadata envelope and `<VERSION>` is the
@@ -703,10 +707,54 @@ the core xRegistry Resource
 Same as the [`envelope`](#envelope-message-group) attribute of the
 `messagegroup` object.
 
-Since messages MAY be cross-referenced ("borrowed") across message group
-boundaries, this attribute is also REQUIRED and MUST be the same as the
-`envelope` attribute of the `messagegroup` object into which the message is
-embedded or referenced.
+The attribute is OPTIONAL for an unbound Message definition. In particular,
+payload-only and protocol-only definitions are valid when no applicable
+owning or referencing Message Group or Endpoint declares an envelope
+constraint. An unbound context does not prohibit a Message from declaring
+its own envelope.
+
+When a Message is used in a context that declares an `envelope`, its
+effective definition MUST have an `envelope` that satisfies that context.
+For a Message Group, the selector MUST be the same, using the case-insensitive
+comparison defined above. For an Endpoint, it MUST satisfy the Endpoint's
+[`envelope` constraints](../endpoint/spec.md#envelope), including permitted
+version refinement rather than requiring identical text for a less specific
+selector. Version refinement follows the envelope's version rules; a generic
+string prefix does not establish compatibility.
+
+These checks apply to the effective Message after available `basemessage`
+inheritance or cross-reference resolution, not just to the attributes written
+on a derived declaration. An owning or referencing Group's selector is not
+automatically copied into a Message. A borrowed Message MUST satisfy each
+context in which it is used; matching its original Group alone is not enough.
+If an effective definition is unavailable, compatibility cannot be asserted.
+This does not introduce a Registry-side target-existence requirement or force
+acquisition of unavailable definitions.
+
+An unbound Message Group can contain these payload-only and protocol-only
+definitions (other server-managed attributes are omitted):
+
+```json
+{
+  "messagegroupid": "unbound",
+  "messages": {
+    "payload": {
+      "messageid": "payload",
+      "dataschemaformat": "JSONSchema/draft-07",
+      "dataschema": { "type": "object" }
+    },
+    "protocol": {
+      "messageid": "protocol",
+      "protocol": "HTTP/1.1",
+      "protocoloptions": {}
+    }
+  }
+}
+```
+
+Using either definition unchanged in a Group requiring `CloudEvents/1.0`
+would leave that binding requirement unsatisfied. It does not make the
+unbound declaration itself invalid.
 
 Illustrating example:
 
