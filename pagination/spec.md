@@ -195,10 +195,9 @@ Each successful response from the server MUST adhere to the following:
 Additionally, Links MUST appear in the HTTP response as HTTP headers using
 the format described in [RFC8288](https://www.rfc-editor.org/rfc/rfc8288#section-3).
 
-In this binding, `next` is the only relation REQUIRED when more records remain.
-The `prev`, `first` and `last` relations remain OPTIONAL subject to the boundary
-rules above. No `self`, `first` or `last` Link is REQUIRED solely to carry a
-count, and no separate HTTP count header is defined.
+No `self`, `first` or `last` Link is REQUIRED solely to carry a count, and no
+separate HTTP count header is defined. Which Links are present follows the
+constraints in [Server Attributes](#server-attributes) and the bullets above.
 
 When supplied, `count` is a Link extension parameter containing an unsigned
 decimal integer, either as a token or an equivalent quoted-string under the
@@ -274,7 +273,6 @@ indicating that it has reached the end.
 Absence of `count`, or an empty current page, MUST NOT be interpreted as the end
 when a `next` Link is present. Conversely, OPTIONAL `prev`, `first` or `last`
 Links do not require continued forward traversal when `next` is absent.
-Omitting a count does not change any count already supplied for the same set.
 
 However, if other Links are provided by the server, then the client MAY
 use those Links instead to follow a different traversal path through the
