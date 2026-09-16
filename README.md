@@ -2,6 +2,9 @@
 <span style="font-size:3px">(<a href="https://github.com/cncf/artwork/tree/main/projects/xregistry">more logos</a>)</span>
 
 <!-- no verify-specs -->
+<!-- words: bestpractices changelogs clomonitor codegen coreinfrastructure -->
+<!-- words: emails href mailto mcp nuget openssf pypi readme roadmap -->
+<!-- words: thetimezoneconverter tz usp workingdrafts xrcg -->
 
 [![CLOMonitor](https://img.shields.io/endpoint?url=https://clomonitor.io/api/projects/cncf/cloudevents/badge)](https://clomonitor.io/projects/cncf/cloudevents)
 [![OpenSSF Best Practices](https://bestpractices.coreinfrastructure.org/projects/7295/badge)](https://bestpractices.coreinfrastructure.org/projects/7295)

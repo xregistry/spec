@@ -1,6 +1,7 @@
 # Governance
 
 <!-- no verify-specs -->
+<!-- words: administrivia admins lgtms rebases vx -->
 
 This document describes the governance process under which the xRegistry
 project will manage this repository.

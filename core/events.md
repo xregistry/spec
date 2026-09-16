@@ -107,7 +107,6 @@ where:
   - `created`
   - `updated`
   - `deprecated`
-  - `undeprecated`
   - `deleted`
 
   Not all `<ACTION>` values are applicable to all entities. See the
@@ -211,8 +210,8 @@ where:
   - MUST be a list of the top-level attribute names (not values) that were
     added, modified, or deleted for the `subject` entity.
 
-  - This attribute MUST NOT appear on the `created`, `deleted`, `deprecated`,
-    or `undeprecated` events.
+  - This attribute MUST NOT appear on the `created`, `deleted`, or `deprecated`
+    events.
 
   - This specification does not mandate any particular order for the attribute
     names in the array.
@@ -354,21 +353,15 @@ events.
     events would need to be examined.
 
     This MUST include any updates to the `deprecated` sub-object, even
-    though a `io.xregistry.group.(un)deprecated` event is also generated. And
+    though a `io.xregistry.group.deprecated` event is also generated. And
     in that situation `deprecated` MUST be included in the
     `io.xregistry.group.updated` event's `changed` list, if present.
 
 - Action: `deprecated`
-  - MUST be generated when a Group's `deprecated` sub-object is set or
+  - MUST be generated when a Group's `deprecated` sub-object is set, deleted or
     any of its attributes are updated. Note, a `changed` list MUST NOT be
-    included.
-
-  - An `io.xregistry.group.updated` event MUST also be generated where
-    `changed`, if present, MUST include `epoch`, `modifiedat` and
-    `deprecated` attribute names.
-
-- Action: `undeprecated`
-  - MUST be generated when a Group's `deprecated` sub-object is deleted.
+    included. Note, deleting the `deprecated` sub-object in a production
+    environment is discouraged.
 
   - An `io.xregistry.group.updated` event MUST also be generated where
     `changed`, if present, MUST include `epoch`, `modifiedat` and
@@ -413,7 +406,7 @@ events.
       `meta.`. For example, `meta.defaultversionid`.
 
       This MUST include any updates to the `deprecated` sub-object, even though
-      a `io.xregistry.(un)deprecated` event is also generated. And in that
+      a `io.xregistry.deprecated` event is also generated. And in that
       situation `meta.deprecated` MUST be included in the
       `io.xregistry.resource.updated` event's `changed` list, if present.
 
@@ -432,17 +425,10 @@ events.
     is used during serialization of the Resource.
 
 - Action: `deprecated`
-  - MUST be generated when a Resource's `meta.deprecated` sub-object is set
-    or deleted, or when any of its attributes are updated. Note that a
-    `changed` attribute MUST be be included.
-
-  - An `io.xregistry.resource.updated` event MUST also be generated where
-    `changed`, if present, MUST include `meta.epoch`, `meta.modifiedat` and
-    `meta.deprecated` attribute names.
-
-- Action: `undeprecated`
-  - MUST be generated when a Resource's `meta.deprecated` sub-object is
-    deleted.
+  - MUST be generated when a Resource's `meta.deprecated` sub-object is set,
+    deleted, or when any of its attributes are updated. Note that a `changed`
+    attribute MUST NOT be be included. Note, deleting the `meta.deprecated`
+    sub-object in a production environment is discouraged.
 
   - An `io.xregistry.resource.updated` event MUST also be generated where
     `changed`, if present, MUST include `meta.epoch`, `meta.modifiedat` and

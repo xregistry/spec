@@ -620,6 +620,7 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "defaultversionurl": "<URL>",
             "defaultversionsticky": <BOOLEAN> ?    # Default=false
           }, ?
+
           "versionsurl": "<URL>",
           "versionscount": <UINTEGER>,
           "versions": {                            # Only if inlined
@@ -790,6 +791,16 @@ this specification does not address authentication or authorization levels of
 users, nor how to securely protect the APIs, clients or servers, from attacks.
 Implementations of this specification are expected to add these various
 features as needed.
+
+Any feature, whether it is specification-defined or not, that has not been
+explicitly defined as REQUIRED is OPTIONAL (but RECOMMENDED) to be supported
+by implementations. Implementations SHOULD document which features they do not
+support. For example, the specification defines a `createdat` attribute for
+the entities within a Registry. The specification is written such that it is
+assumed that if the entity is mutable, then the `createdat` attribute is
+mutable as well. However, it is permissible for implementations to ban updating
+of this attribute once the entity is created, if their requirements mandate
+this behaviour.
 
 Additionally, implementations MAY choose to customize the data and behavior on
 a per-user basis as needed. For example, the following non-exhaustive list of
@@ -993,7 +1004,7 @@ attributes. However, they MUST adhere to the following rules:
   For example, use of a model (or domain) specific prefix could be used to help
   avoid possible future conflicts.
 
-Use of an attribute (specification defined, or extension) that does not
+Use of an attribute (specification-defined, or extension) that does not
 conform to this specification MUST generate an error
 ([invalid_attribute](#invalid_attribute)).
 
@@ -2397,6 +2408,7 @@ it MUST adhere to the following:
 
   "metaurl": "<URL>",                        # URL to 'meta' entity
   "meta": { meta entity }, ?                 # Only if inlined
+
   "versionsurl": "<URL>",                    # Absolute URL to versions
   "versionscount": <UINTEGER>,               # Size of versions collection
   "versions": { map of Versions }            # Only if inlined
@@ -2432,6 +2444,7 @@ it MUST adhere to the following:
                                              # End of default Ver attributes
   "metaurl": "<URL>",
   "meta": { meta entity }, ?                 # Only if inlined
+
   "versionsurl": "<URL>",
   "versionscount": <UINTEGER>,
   "versions": { map of Versions } ?          # Only if inlined
@@ -2744,6 +2757,7 @@ So, if the target Resource (`sharedSchema`) is defined as:
   "ancestorid": "v1",
 
   "metaurl": "http://example.com/schemagroups/group2/schemas/sharedSchema/meta",
+
   "versionscount": 1,
   "versionsurl": "http://example.com/schemagroups/group2/schemas/sharedSchema/versions"
 }
@@ -2776,6 +2790,7 @@ then the resulting serialization of the source Resource would be:
     "defaultversionurl": "http://example.com/schemagroups/group1/schemas/mySchema/versions/v1",
     "defaultversionsticky": false
   },
+
   "versionscount": 1,
   "versionsurl": "http://example.com/schemagroups/group1/schemas/mySchema/versions"
 }
