@@ -862,6 +862,22 @@ Note that this feature has similar results to setting the Resource attribute's
       each new Version is created, it MUST become the "newest". If there
       is no existing Version then the new Version becomes a root and its
       `ancestorid` value MUST be its own `versionid` attribute value.
+
+      Immediately after each automatically linked creation, the "Newest
+      Version" selector MUST be evaluated on the resulting staged Versions.
+      If it does not select that new Version, the entire operation MUST be
+      rejected ([bad_request](./spec.md#bad_request)), without retaining
+      partial state or changing the supplied timestamp.
+
+      The check belongs to each existing creation step in the case-insensitive
+      Version-ID order above, not JSON member order, and precedes subsequent
+      retention and default processing. Earlier new Versions need not remain
+      newest after later creations. The invariant concerns "newest", not which
+      Version is the final default. Explicitly supplied `ancestorid` values
+      retain their existing semantics and are not subject to this additional
+      automatic-creation admission check. Backdated timestamps are not
+      categorically rejected.
+
     - Deleted Ancestor: if a Version's ancestor is deleted, then this Version
       MUST become a root, and its `ancestorid` value MUST be set to its own
       `versionid` value.
