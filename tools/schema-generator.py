@@ -194,6 +194,34 @@ def generate_openapi(model_definition):
                     if isinstance(item, dict):
                         replace_ops(item, expression, reference)
 
+    def version_type_reference(resource):
+        # A single-Version Resource has no separate Version response definition.
+        name = resource["singular"]
+        suffix = "" if resource.get("maxversions", -1) == 1 else "Version"
+        return f"#/components/schemas/{name}{suffix}"
+
+    def document_body(path_item, name):
+        # Core routes the domain-specific document through the bare Resource URL;
+        # `$details` selects the xRegistry metadata. See core/http.md, "Resource
+        # Metadata vs Resource Document".
+        description = (
+            f"The domain-specific {name} document. Any JSON value here is "
+            "business content, not xRegistry metadata; metadata is addressed "
+            "through the $details suffix."
+        )
+        for method in ("get", "put", "post"):
+            operation = path_item.get(method, {})
+            messages = [
+                message for status, message in operation.get("responses", {}).items()
+                if status.startswith("2")
+            ]
+            if "requestBody" in operation:
+                messages.append(operation["requestBody"])
+            for message in messages:
+                content = message.get("content", {})
+                if "application/json" in content:
+                    content["application/json"]["schema"] = {"description": description}
+
     try:
         template_file_name = os.path.join(os.path.dirname(__file__), '..', 'core', 'templates', 'xregistry_openapi_template.json')
         with open(template_file_name, encoding='utf-8') as file:
@@ -290,15 +318,21 @@ def generate_openapi(model_definition):
             for _, resource in group.get("resources", {}).items():
                 resource = resolve_resource(group, resource)
                 details_template_copy = copy.deepcopy(details_template)
+                replace_refs(details_template_copy, "{%-resourceVersionTypeReference-%}", version_type_reference(resource))
                 replace_refs(details_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{resource['singular']}")
                 replace_refs(details_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{group['singular']}")
                 replace_ops(details_template_copy, "{%-resourceNameSingular-%}", f"{pascal(group['singular'])}{pascal(resource['singular'])}")
                 openapi["paths"][f"/{group['plural']}/{{groupid}}/{resource['plural']}/{{resourceid}}$details"]= details_template_copy
             for ximportresources_xid in group.get("ximportresources", []):
                 xid_group_plural, xid_resource_plural = ximportresources_xid.split("/")[1:]
-                xid_resource_singular = model_definition["groups"][xid_group_plural]["resources"][xid_resource_plural]["singular"]
-                xid_group_singular = model_definition["groups"][xid_group_plural]["singular"]
+                source_group = model_definition["groups"][xid_group_plural]
+                source_resource = resolve_resource(
+                    source_group, source_group["resources"][xid_resource_plural]
+                )
+                xid_resource_singular = source_resource["singular"]
+                xid_group_singular = source_group["singular"]
                 details_template_copy = copy.deepcopy(details_template)
+                replace_refs(details_template_copy, "{%-resourceVersionTypeReference-%}", version_type_reference(source_resource))
                 replace_refs(details_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{xid_resource_singular}")
                 replace_refs(details_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{xid_group_singular}")
                 replace_ops(details_template_copy, "{%-resourceNameSingular-%}", f"{pascal(group['singular'])}{pascal(xid_resource_plural)}")
@@ -438,11 +472,21 @@ def generate_openapi(model_definition):
                         "$ref": f"#/components/schemas/{name}Meta{suffix}"
                     }
                 resource_path = f"{group_path}/{plural}/{{resourceid}}"
-                if not resource.get("hasdocument", True):
-                    for method in ("put", "post"):
-                        openapi["paths"][resource_path][method]["requestBody"]["content"]["application/json"]["schema"] = {
-                            "$ref": f"#/components/schemas/{name}WriteInput"
+                has_document = resource.get("hasdocument", True)
+                metadata_paths = [resource_path + "$details"]
+                if not has_document:
+                    # Core treats the suffix as absent for metadata-only types.
+                    metadata_paths.append(resource_path)
+                for metadata_path in metadata_paths:
+                    metadata_operations = openapi["paths"][metadata_path]
+                    for method, role_suffix in (
+                        ("put", "WriteInput"), ("post", "ResourceVersionWriteInput"),
+                    ):
+                        metadata_operations[method]["requestBody"]["content"]["application/json"]["schema"] = {
+                            "$ref": f"#/components/schemas/{name}{role_suffix}"
                         }
+                if has_document:
+                    document_body(openapi["paths"][resource_path], name)
                 versions = openapi["paths"][resource_path + "/versions"]["post"]
                 replace_refs(
                     versions["requestBody"],
@@ -1269,6 +1313,25 @@ def generate_json_schema(
                     )
                     omit_required(version, {"versionid"})
                     schema_definitions[name + "Version" + suffix] = version
+                    if role == "write":
+                        # A POST directed at a Resource carries a single Version,
+                        # but Core permits Resource-level read-only attributes in
+                        # that body and requires the server to ignore them.
+                        posted = copy.deepcopy(properties)
+                        posted["metaurl"] = ignored_input()
+                        posted["versionsurl"] = ignored_input()
+                        posted["versionscount"] = ignored_input()
+                        posted_version = entity_input(
+                            posted, attributes, role, identity=name + "id"
+                        )
+                        omit_required(posted_version, {"versionid"})
+                        posted_version["description"] = (
+                            "Version input for a POST directed at the Resource. "
+                            "Resource-level read-only attributes MAY be supplied "
+                            "and are ignored; Resource-only mutable members are not "
+                            "part of this body."
+                        )
+                        schema_definitions[name + "ResourceVersion" + suffix] = posted_version
                     properties.update(collection_properties(
                         "versions", {"$ref": f"{reference_prefix}{name}Version{suffix}"}, role
                     ))

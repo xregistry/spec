@@ -1058,6 +1058,103 @@
                         "$ref": "#/components/responses/InternalServerError"
                     }
                 }
+            },
+            "put": {
+                "summary": "Create or update resource metadata",
+                "operationId": "put{%-resourceNameSingular-%}Details",
+                "tags": ["Resource"],
+                "description": "Creates or updates the resource through its xRegistry metadata view. The $details suffix selects the metadata; when the resource type has 'hasdocument' false the suffix is optional and the bare path behaves identically. An epoch guard travels in the JSON body, not in a header or the query string. (See spec: Resource Metadata vs Resource Document)",
+                "requestBody": {
+                    "description": "The xRegistry metadata of the resource.",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "{%-resourceTypeReference-%}"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The updated resource metadata document.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "{%-resourceTypeReference-%}"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequest"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "409": {
+                        "$ref": "#/components/responses/Conflict"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalServerError"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create or update a version through the resource metadata view",
+                "operationId": "post{%-resourceNameSingular-%}Details",
+                "tags": ["Resource"],
+                "description": "Creates or updates a single version of the resource through its xRegistry metadata view. The body is a version serialization; resource-level read-only attributes such as 'versionscount' MAY be present and MUST be silently ignored. (See spec: Creating or Updating Entities)",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "setdefaultversionid",
+                        "description": "Specifies the versionid to be set as the default version. (See spec: Default Version of a Resource)",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "The xRegistry metadata of the version to create or update.",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "{%-resourceTypeReference-%}"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The created or updated version metadata document.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "{%-resourceVersionTypeReference-%}"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/BadRequest"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "409": {
+                        "$ref": "#/components/responses/Conflict"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalServerError"
+                    }
+                }
             }
         },
         "/{%-groupNamePlural-%}/{groupid}/{%-resourceNamePlural-%}/{resourceid}/meta": {

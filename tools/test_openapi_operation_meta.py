@@ -828,9 +828,10 @@ def test_document_bearing_raw_requests_are_not_rewired_as_metadata_inputs():
         path = f"/{group}/{{groupid}}/entries/{{resourceid}}"
         for method in ("put", "post"):
             content = schema["paths"][path][method]["requestBody"]["content"]
-            assert content["application/json"]["schema"] == {
-                "$ref": "#/components/schemas/entry",
-            }
+            document = content["application/json"]["schema"]
+            assert "$ref" not in document
+            for reference in ("entry", "entryWriteInput", "entryResourceVersionWriteInput"):
+                assert f"#/components/schemas/{reference}" not in json.dumps(document)
             assert content["application/octet-stream"]["schema"] == {
                 "type": "string", "format": "binary",
             }
@@ -887,3 +888,294 @@ def test_identity_only_resource_aliases_do_not_require_target_defaults(
     root = {**core_registry(), group: {"c": {"entries": {"alias": alias}}}}
     response(schema, "/").validate(root)
     assert alias == before
+
+
+# --- Route-aware Resource metadata/document contracts (R9-724-C01) ---------
+#
+# Core `http.md` "Resource Metadata vs Resource Document" makes `$details` --
+# not the media type -- the selector between Resource metadata and the
+# domain-specific document when `hasdocument` is true. The optional
+# `[$details]` notation in the request templates is optional only because a
+# metadata-only Resource type ignores the suffix, not because a bare
+# `application/json` body is metadata.
+
+DOMAIN_DOCUMENTS = [
+    {"versionid": 7},
+    {"meta": "text", "versionsurl": 12, "epoch": "not a number"},
+    {"unmodeled": {"nested": [1, 2]}},
+    [1, 2, 3],
+    "plain text",
+    42,
+    True,
+]
+
+IGNORED_RESOURCE_VALUES = [
+    {"versionscount": 2},
+    {"versionsurl": "https://example.com/catalogs/c/entries/e/versions"},
+    {"metaurl": "https://example.com/catalogs/c/entries/e/meta"},
+    {"versionscount": "not an integer", "versionsurl": 7, "metaurl": False},
+]
+
+
+def body_content(openapi, path, method):
+    return openapi["paths"][path][method]["requestBody"]["content"]
+
+
+def response_content(openapi, path, method, status):
+    return openapi["paths"][path][method]["responses"][status]["content"]
+
+
+def body_checker(openapi, path, method):
+    return validator(openapi, body_content(openapi, path, method)["application/json"]["schema"])
+
+
+def response_checker(openapi, path, method, status):
+    return validator(
+        openapi,
+        response_content(openapi, path, method, status)["application/json"]["schema"],
+        read=True,
+    )
+
+
+def route_model(group, maxversions, hasdocument):
+    model = envelope_model(maxversions, hasdocument)
+    if group == "catalogs":
+        del model["groups"]["mirrors"]
+    return model
+
+
+def parameter_refs(openapi, path, method):
+    return {
+        parameter.get("$ref")
+        for parameter in openapi["paths"][path][method].get("parameters", [])
+    }
+
+
+def version_response_reference(maxversions):
+    return "#/components/schemas/entry" + ("" if maxversions == 1 else "Version")
+
+
+def core_version(maxversions, hasdocument, versionid="v1"):
+    value = {
+        "entryid": "e", "versionid": versionid,
+        "self": "https://example.com/catalogs/c/entries/e/versions/v1",
+        "xid": "/catalogs/c/entries/e/versions/v1",
+        "epoch": 1, "isdefault": True, "ancestorid": versionid,
+        "createdat": STAMP, "modifiedat": STAMP,
+    }
+    if hasdocument:
+        value["entry"] = {"example": 1}
+    return value
+
+
+ROUTE_CASES = [
+    (group, maxversions, hasdocument)
+    for group in ("catalogs", "mirrors")
+    for maxversions in (0, 1)
+    for hasdocument in (False, True)
+]
+
+
+@pytest.mark.parametrize("group, maxversions, hasdocument", ROUTE_CASES)
+def test_details_routes_expose_metadata_write_operations(group, maxversions, hasdocument):
+    schema = generate(route_model(group, maxversions, hasdocument))
+    assert not list(OpenAPIV30SpecValidator(schema).iter_errors())
+    details = schema["paths"][f"/{group}/{{groupid}}/entries/{{resourceid}}$details"]
+    assert {"get", "put", "post"} <= set(details)
+    assert "patch" not in details and "delete" not in details
+    identifiers = [
+        operation["operationId"]
+        for item in schema["paths"].values()
+        for method, operation in item.items()
+        if method in ("get", "put", "post", "patch", "delete")
+    ]
+    assert len(identifiers) == len(set(identifiers))
+    name = operation_name(group)
+    for method in ("put", "post"):
+        assert details[method]["operationId"] == f"{method}{name}Details"
+        assert "#/components/parameters/ignore" in parameter_refs(schema, details_path(group), method)
+        assert "#/components/parameters/version-epoch" not in parameter_refs(
+            schema, details_path(group), method
+        )
+        assert "application/octet-stream" not in body_content(schema, details_path(group), method)
+
+
+def operation_name(group):
+    # Declared routes are named from the Resource singular; imported routes keep
+    # the generator's existing plural-based naming.
+    return "CatalogEntry" if group == "catalogs" else "MirrorEntries"
+
+
+def details_path(group):
+    return f"/{group}/{{groupid}}/entries/{{resourceid}}$details"
+
+
+def bare_path(group):
+    return f"/{group}/{{groupid}}/entries/{{resourceid}}"
+
+
+@pytest.mark.parametrize("group, maxversions, hasdocument", ROUTE_CASES)
+def test_details_put_uses_resource_metadata_input(group, maxversions, hasdocument):
+    schema = generate(route_model(group, maxversions, hasdocument))
+    path = details_path(group)
+    assert body_content(schema, path, "put")["application/json"]["schema"] == {
+        "$ref": "#/components/schemas/entryWriteInput",
+    }
+    checker = body_checker(schema, path, "put")
+    checker.validate({})
+    checker.validate({"entryid": "e", "name": "entry", "epoch": 1})
+    checker.validate({
+        "self": 7, "xid": False, "metaurl": [], "versionsurl": {}, "versionscount": "x",
+        "isdefault": "ignored", "formatvalidated": 7,
+    })
+    for invalid in ({"name": 7}, {"contenttype": 7}, {"versionid": 7}, {"unmodeled": 1}):
+        with pytest.raises(jsonschema.ValidationError):
+            checker.validate(invalid)
+
+
+@pytest.mark.parametrize("group, maxversions, hasdocument", ROUTE_CASES)
+def test_details_post_creates_a_version_with_core_ignored_resource_values(
+    group, maxversions, hasdocument
+):
+    schema = generate(route_model(group, maxversions, hasdocument))
+    path = details_path(group)
+    assert body_content(schema, path, "post")["application/json"]["schema"] == {
+        "$ref": "#/components/schemas/entryResourceVersionWriteInput",
+    }
+    checker = body_checker(schema, path, "post")
+    checker.validate({})
+    checker.validate({"versionid": "1", "ancestorid": "1", "contenttype": "application/json"})
+    for ignored in IGNORED_RESOURCE_VALUES:
+        checker.validate({"versionid": "1", **ignored})
+    for invalid in (
+        {"versions": {"v1": {}}}, {"meta": {"defaultversionid": "v1"}},
+        {"contenttype": 7}, {"versionid": 7}, {"unmodeled": 1},
+    ):
+        with pytest.raises(jsonschema.ValidationError):
+            checker.validate(invalid)
+
+
+@pytest.mark.parametrize("group, maxversions, hasdocument", ROUTE_CASES)
+def test_details_post_returns_version_fields_not_resource_navigation(
+    group, maxversions, hasdocument
+):
+    schema = generate(route_model(group, maxversions, hasdocument))
+    path = details_path(group)
+    assert response_content(schema, path, "post", "200")["application/json"]["schema"] == {
+        "$ref": version_response_reference(maxversions),
+    }
+    checker = response_checker(schema, path, "post", "200")
+    version = core_version(maxversions, hasdocument)
+    checker.validate(version)
+    for invalid in ({"versionid": 7}, {"unmodeled": True}):
+        with pytest.raises(jsonschema.ValidationError):
+            checker.validate({**version, **invalid})
+    assert response_content(schema, path, "put", "200")["application/json"]["schema"] == {
+        "$ref": "#/components/schemas/entry",
+    }
+
+
+@pytest.mark.parametrize("group", ["catalogs", "mirrors"])
+@pytest.mark.parametrize("maxversions", [0, 1])
+def test_bare_document_routes_carry_domain_documents_not_metadata(group, maxversions):
+    schema = generate(route_model(group, maxversions, True))
+    path = bare_path(group)
+    messages = [
+        body_content(schema, path, "put"), body_content(schema, path, "post"),
+        response_content(schema, path, "get", "200"),
+        response_content(schema, path, "put", "200"),
+        response_content(schema, path, "post", "201"),
+    ]
+    for content in messages:
+        assert "$ref" not in content["application/json"]["schema"]
+        checker = validator(schema, content["application/json"]["schema"])
+        for document in DOMAIN_DOCUMENTS:
+            checker.validate(document)
+    binary = [message for message in messages if "application/octet-stream" in message]
+    assert len(binary) == 4
+    for content in binary:
+        assert content["application/octet-stream"]["schema"] == {
+            "type": "string", "format": "binary",
+        }
+    for method in ("put", "post"):
+        assert "#/components/parameters/version-epoch" in parameter_refs(schema, path, method)
+    assert "resource-id" in schema["paths"][path]["get"]["responses"]["200"]["headers"]
+    assert "resource-version" in schema["paths"][path]["post"]["responses"]["201"]["headers"]
+
+
+@pytest.mark.parametrize("group", ["catalogs", "mirrors"])
+@pytest.mark.parametrize("maxversions", [0, 1])
+def test_metadata_only_resources_treat_the_bare_route_as_metadata(group, maxversions):
+    schema = generate(route_model(group, maxversions, False))
+    path = bare_path(group)
+    assert body_content(schema, path, "put")["application/json"]["schema"] == {
+        "$ref": "#/components/schemas/entryWriteInput",
+    }
+    assert body_content(schema, path, "post")["application/json"]["schema"] == {
+        "$ref": "#/components/schemas/entryResourceVersionWriteInput",
+    }
+    for method in ("put", "post"):
+        checker = body_checker(schema, path, method)
+        with pytest.raises(jsonschema.ValidationError):
+            checker.validate({"versionid": 7})
+        with pytest.raises(jsonschema.ValidationError):
+            checker.validate({"unmodeled": True})
+
+
+@pytest.mark.parametrize("group, maxversions, hasdocument", ROUTE_CASES)
+def test_metadata_routes_and_collections_remain_typed(group, maxversions, hasdocument):
+    schema = generate(route_model(group, maxversions, hasdocument))
+    details = details_path(group)
+    meta = bare_path(group) + "/meta"
+    versions = bare_path(group) + "/versions"
+    assert response_content(schema, details, "get", "200")["application/json"]["schema"] == {
+        "$ref": "#/components/schemas/entry",
+    }
+    assert body_content(schema, meta, "put")["application/json"]["schema"] == {
+        "$ref": "#/components/schemas/entryMetaWriteInput",
+    }
+    assert body_content(schema, meta, "patch")["application/json"]["schema"] == {
+        "$ref": "#/components/schemas/entryMetaPatchInput",
+    }
+    body_checker(schema, meta, "patch").validate({})
+    with pytest.raises(jsonschema.ValidationError):
+        body_checker(schema, meta, "patch").validate({"defaultversionsticky": "true"})
+    assert body_content(schema, versions, "post")["application/json"]["schema"][
+        "additionalProperties"
+    ] == nested_reference("#/components/schemas/entryVersionWriteInput")
+    with pytest.raises(jsonschema.ValidationError):
+        body_checker(schema, details, "put").validate({"versionid": 7})
+
+
+def nested_reference(reference):
+    return GENERATOR.nested_entity_schema({"$ref": reference})
+
+
+@pytest.mark.parametrize("artifact, plural, singular, document, metadata_paths", [
+    ("schema", "schemas", "schema", True, ["/schemagroups/{groupid}/schemas/{resourceid}$details"]),
+    ("message", "messages", "message", False, [
+        "/messagegroups/{groupid}/messages/{resourceid}",
+        "/messagegroups/{groupid}/messages/{resourceid}$details",
+    ]),
+])
+def test_published_artifacts_expose_route_aware_resource_writes(
+    artifact, plural, singular, document, metadata_paths
+):
+    schema = json.loads((ROOT / artifact / "schemas" / "openapi.json").read_text(
+        encoding="utf-8"
+    ))
+    for path in metadata_paths:
+        assert body_content(schema, path, "put")["application/json"]["schema"] == {
+            "$ref": f"#/components/schemas/{singular}WriteInput",
+        }
+        assert body_content(schema, path, "post")["application/json"]["schema"] == {
+            "$ref": f"#/components/schemas/{singular}ResourceVersionWriteInput",
+        }
+    if document:
+        bare = metadata_paths[0].removesuffix("$details")
+        content = body_content(schema, bare, "put")
+        assert "$ref" not in content["application/json"]["schema"]
+        assert content["application/octet-stream"]["schema"] == {
+            "type": "string", "format": "binary",
+        }
+        validator(schema, content["application/json"]["schema"]).validate({"versionid": 7})
