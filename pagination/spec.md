@@ -95,10 +95,10 @@ this specification.
 - Type: `String`
 - Description: A string representing the relationship between the records
   available via the `link` URI-Reference and the current subset of records.
-  This attribute adheres to the Relation Type as defined in section 5.3
-  of [RFC5988](https://tools.ietf.org/html/rfc5988).
-  This specification uses the following values as defined by section 6.2.2
-  in [RFC5988](https://tools.ietf.org/html/rfc5988):
+  This attribute adheres to the relation type as defined in section 3.3
+  of [RFC8288](https://www.rfc-editor.org/rfc/rfc8288#section-3.3).
+  This specification uses the following values, which are registered in the
+  [IANA Link Relation Types registry](https://www.iana.org/assignments/link-relations/link-relations.xhtml):
   - `next` - indicates the next subset of records in the sequence of records
     being returned.
   - `prev` - indicates the previous subset of records in the sequence of
@@ -111,8 +111,8 @@ this specification.
   specification, additional values MAY be defined.
 - Constraints:
   - REQUIRED if the `link` attribute is present.
-  - MUST be a string as defined by `relation-types` in
-   [RFC5988](https://tools.ietf.org/html/rfc5988).
+  - MUST be a string as defined by `relation-type` in
+   [RFC8288](https://www.rfc-editor.org/rfc/rfc8288#section-3.3).
 
 #### expires
 
@@ -183,8 +183,10 @@ Each successful response from the server MUST adhere to the following:
   `next` Link MUST be included in the response.
 - The response MAY include the `last` Link in any response.
 - The response MAY include the `expires` attribute in any response as an
-  HTTP "Expires" header. If present, it MUST adhere to the format specified in
-  [RFC3339](https://tools.ietf.org/html/rfc7234#section-5.3).
+  HTTP "Expires" header. The generic attribute is a `Timestamp`; in this
+  binding its value MUST be converted to an HTTP-date, as defined in
+  [RFC9111, section 5.3](https://www.rfc-editor.org/rfc/rfc9111#section-5.3)
+  and [RFC9110, section 5.6.7](https://www.rfc-editor.org/rfc/rfc9110#section-5.6.7).
 - When a pagination Link is included, it is STRONGLY RECOMMENDED that the
   response include the `count` attribute as a parameter on a pagination Link.
 - When no pagination Link is included, the response MAY omit `count`, even
