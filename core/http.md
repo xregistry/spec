@@ -1618,6 +1618,51 @@ in request messages MUST be interpreted as a request to leave their values
 unchanged. Using a value of `null` (case-sensitive) MUST be processed as a
 request to delete that attribute.
 
+For `xRegistry-` metadata headers, this test MUST be applied after the decoding
+in [HTTP Header Values](#http-header-values), not to the original wire spelling.
+Existing attribute-specific rules for `null` still apply. In particular,
+quoting or percent-encoding the four-character string `null` does not distinguish
+it from deletion. There is no separate header spelling for assigning that
+literal string.
+
+For example, for the OPTIONAL string attribute `name`:
+
+| Header field line | Decoded string | Update effect |
+| --- | --- | --- |
+| `xRegistry-name: null` | `null` | Delete `name` |
+| `xRegistry-name: "null"` | `null` | Delete `name` |
+| `xRegistry-name: %6E%75%6C%6C` | `null` | Delete `name` |
+| `xRegistry-name:` | Empty string | Set `name` to the empty string |
+| `xRegistry-name: Null` | `Null` | Set `name` to `Null` |
+| `xRegistry-name: %22null%22` | `"null"` | Set `name` to a six-character string |
+
+To assign the four-character string `null` to a string attribute,
+clients MUST use the JSON metadata view, via the `$details` URL suffix, rather
+than a metadata header. For example, this JSON metadata update assigns the
+literal string:
+
+```json
+{"name":"null"}
+```
+
+In contrast, this JSON metadata update requests deletion:
+
+```json
+{"name":null}
+```
+
+Attribute validation still applies in either representation. This header-write
+limitation does not restrict Core string values or change the meaning of JSON
+`null`, attribute-specific null processing, or Resource document bytes.
+
+A response header can contain `xRegistry-name: null` when the stored string is
+`null`. Copying that header into an update would request deletion, not preserve
+the string. Clients MUST account for this when copying response metadata into
+requests: an unchanged top-level scalar attribute can be omitted under the
+normal update rules, while assigning the literal string requires JSON metadata.
+Adding quotes or another percent-encoding layer MUST NOT be treated as a
+literal-string escape; decoding still occurs exactly once.
+
 Any top-level map attributes that appear as HTTP headers MUST be included
 in their entirety and any missing keys MUST be interpreted as a request to
 delete those keys from the map.
@@ -3419,6 +3464,11 @@ percent-encoding described here will never include double-quoted
 values, but they MUST be supported when receiving events, for
 compatibility with older versions of this specification which did
 not require double-quote and space characters to be percent-encoded.
+
+After decoding, metadata update values MUST be interpreted according to the
+[document metadata update rules](#serializing-resource-domain-specific-documents).
+In particular, a decoded `null` retains its deletion meaning; quoting and
+percent-encoding do not provide an escape for the literal string.
 
 Percent encoding is performed by considering each Unicode character
 within the attribute's canonical string representation. Any
