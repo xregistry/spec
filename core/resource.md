@@ -420,7 +420,7 @@ PUT /dirs/d1/files/f1
       "modifiedat": "now",
       "ancestorid": "v1"
     },
-    "v3": { see Resource.* attrs },
+    "v3": { see Resource.* attrs }
   }
 }
 ```
@@ -2288,7 +2288,7 @@ PUT /dirs/d1/files/f1?setdefaultversionid=v1
       "createdat": "now",
       "modifiedat": "now",
       "ancestorid": "v1"
-    },
+    }
   }
 }
 ```
@@ -2350,7 +2350,7 @@ POST /dirs/d1/files/f1/versions?setdefaultversionid=v1
       "createdat": "now",
       "modifiedat": "now",
       "ancestorid": "v1"
-    },
+    }
   }
 }
 ```
