@@ -517,14 +517,17 @@ The following describes the attributes of the Registry model:
 - The singular name of a Group type e.g. `endpoint` (`<GROUP>`).
 - MUST be unique across all Group types (plural and singular names) in the
   Registry.
-- MUST be non-empty and MUST be a valid attribute name. For clarity, it
-  MUST NOT exceed 61 characters.
+- MUST be non-empty and MUST be a valid attribute name with the exception
+  that it MUST NOT exceed 61 characters (not 63).
 
 This limit leaves room for the `id` suffix in the `<GROUP>id` attribute within
-the [63-character attribute-name limit](./spec.md#attributes). Models using the
-previously stated 62- or 63-character Group singular names do not satisfy this
-bound. Existing immutable Group types MUST NOT be silently truncated or
-renamed; adopting this bound requires an explicit migration.
+the [63-character attribute-name limit](./spec.md#attributes). `<GROUP>id` is
+the only Core attribute name derived from a Group type's singular name, which
+is why this bound is 61 rather than the 57 characters that apply to the Group
+type's plural name and to a Resource type's names. Models using the previously
+stated 63-character Group singular names do not satisfy this bound. Existing
+immutable Group types MUST NOT be silently truncated or renamed; adopting
+this bound requires an explicit migration.
 
 ### `groups.<STRING>.description`
 - Type: String.
@@ -782,28 +785,57 @@ Note that this feature has similar results to setting the Resource attribute's
   deleted and the new Version will become "default".
 
   For `manual` mode when the default Version is to be skipped, pruning MUST
-  use an immutable snapshot of the current ancestry links. Initially, only
-  root Versions are eligible for traversal. From the eligible Versions,
-  select the one with the oldest `createdat` timestamp, then the lowest
-  case-insensitive `versionid` value for a tie. Each Version MUST be visited
-  at most once. Visiting a Version removes it from the eligible set and adds
-  its direct children from the snapshot. A visited non-default Version MUST
-  be scheduled for deletion. Repeat until the remaining Version count meets
-  the limit.
+  proceed in rounds, and rounds MUST be repeated until the remaining Version
+  count meets the limit. Each round MUST use an immutable snapshot of the
+  ancestry links as they exist at the start of that round, and each round
+  deletes exactly one Version. Taking a fresh snapshot for each round is what
+  lets a reduction by more than one Version keep making progress: the
+  children of a deleted Version are roots in the next round, and a Version
+  that one round had to skip can become a deletion candidate in a later one.
 
-  Visiting the default only advances this virtual ordering: it MUST NOT
-  delete it, change its ancestry, or count it toward the needed deletions.
-  Non-default Versions that cannot legally be deleted are not virtually
-  visited or selected, and their children do not become eligible merely
-  because that ancestor cannot be deleted. If no eligible Version remains
-  and the limit is still exceeded, the entire operation MUST be rejected
-  ([bad_request](./spec.md#bad_request)), without retaining partial changes.
-  Existing deletion restrictions and deprecation/removal promises MUST NOT
-  be weakened. Only actual deletions invoke the existing ancestry and
-  attribute-maintenance rules. The resulting Resource MUST still satisfy
-  all other model constraints, including
-  [`singleversionroot`](#groupsstringresourcesstringsingleversionroot);
-  violations MUST generate the existing errors and undo the entire request.
+  Within a round, only root Versions are initially eligible for traversal.
+  From the eligible Versions, the server MUST select the one with the oldest
+  `createdat` timestamp, then the lowest case-insensitive `versionid` value
+  for a tie. Each Version MUST be visited at most once per round. Visiting a
+  Version removes it from the eligible set and adds its direct children from
+  the snapshot. The round MUST delete the first visited Version that is a
+  deletion candidate, and MUST then end.
+
+  Visiting a Version that is not a deletion candidate, including the default
+  Version, only advances this traversal: the server MUST NOT delete that
+  Version, change its ancestry, or count it toward the needed deletions, and
+  the traversal MUST still make that Version's direct children eligible. A
+  deletion candidate is a visited Version for which both of the following
+  hold:
+
+  - It is not the Version marked as "default".
+  - Deleting it does not increase the number of root Versions, when the
+    Resource type's
+    [`singleversionroot`](#groupsstringresourcesstringsingleversionroot)
+    aspect is `true`. Because deleting a Version makes each of its direct
+    children a root (see "Deleted Ancestor" below), this admits exactly those
+    Versions that have no children in the snapshot, together with a root
+    Version that has at most one child in the snapshot. When
+    `singleversionroot` is `false`, this condition places no restriction on
+    the choice, so the round deletes the first Version the traversal reaches
+    that is not the default.
+
+  A deletion candidate always exists while the limit is exceeded. The
+  traversal reaches every Version in the snapshot unless it deletes one
+  first; an ancestor tree always has at least as many childless Versions as
+  it has roots; and exceeding a limit of two or more Versions means that at
+  least two Versions are not the default.
+
+  Only actual deletions invoke the existing ancestry and
+  attribute-maintenance rules. The resulting Resource MUST still satisfy all
+  other model constraints; any violation MUST generate the existing errors
+  and undo the entire request.
+
+  For example, with `versionmode` set to `manual`, `singleversionroot` set to
+  `true`, `maxversions` set to `2`, Versions `a <- b <- c` and `a` as a sticky
+  default, the round visits `a` (the default), then `b` (deleting it would
+  make `c` a second root), then deletes `c`, which has no children.
+  Retention can therefore delete a Version that a request just created.
 - An attempt to change `maxversions` to `1` when there are existing Resource
   instances that have their `defaultversionsticky` attribute set to `true` MUST
   generate an error
@@ -905,8 +937,8 @@ Note that this feature has similar results to setting the Resource attribute's
       newest after later creations. The invariant concerns "newest", not which
       Version is the final default. Explicitly supplied `ancestorid` values
       retain their existing semantics and are not subject to this additional
-      automatic-creation admission check. Backdated timestamps are not
-      categorically rejected.
+      automatic-creation admission check. A backdated `createdat` timestamp
+      is rejected only when it causes this check to fail.
 
     - Deleted Ancestor: if a Version's ancestor is deleted, then this Version
       MUST become a root, and its `ancestorid` value MUST be set to its own
@@ -1089,12 +1121,12 @@ Note that this feature has similar results to setting the Resource attribute's
   The `typemap` attribute allows for this by defining a mapping of
   `contenttype` values to well-known xRegistry format types.
 
-  For responses, the [binary flag](./spec.md#binary-flag) MUST take precedence
-  over every `typemap` selection. Otherwise, the effective mapping, including
-  the implicit mappings below, MUST determine the document representation,
-  subject to the JSON `null` exception below.
-  The [empty-document rule](./spec.md#resourcebase64-attribute) still applies.
-  A server preference for base64 MUST NOT override a `json` or `string` mapping.
+  How an effective mapping, including the implicit mappings below, selects
+  and encodes a Version's document in a response is defined by the
+  [Core document representation rules](./spec.md#resource-attribute). Those
+  rules also define the precedence of the
+  [binary flag](./spec.md#binary-flag), the JSON `null` constraint and the
+  [empty-document rule](./spec.md#resourcebase64-attribute).
 
   Since the `contenttype` value is a "media-type" per
   [RFC9110](https://datatracker.ietf.org/doc/html/rfc9110#media.type),
@@ -1123,26 +1155,20 @@ Note that this feature has similar results to setting the Resource attribute's
   (e.g. `application/json`). This is useful when it is desirable to not
   have the server potentially modify the document (e.g. "pretty-print" it).
 
-  A value of `json` indicates that the Resource's document is JSON and MUST
-  be serialized under the `<RESOURCE>` attribute if it is valid JSON, except
-  when its value is `null`. In that case, the server MUST use
-  `<RESOURCE>base64` with the original document bytes, as specified by the
-  [Core document representation rules](./spec.md#resource-attribute), even
-  when the `binary` flag is absent. If there is a syntax error in the JSON,
-  the server MUST treat the document as `binary` to avoid sending invalid JSON
-  to the client.
-  When using `<RESOURCE>`, the server MAY choose to modify the formatting of
-  the document (e.g. to "pretty-print" it).
+  A value of `json` indicates that the Resource's document is JSON. Under the
+  [Core document representation rules](./spec.md#resource-attribute) this
+  selects the `<RESOURCE>` attribute for a response. When using `<RESOURCE>`,
+  the server MAY choose to modify the formatting of the document (e.g. to
+  "pretty-print" it).
 
-  A value of `string` indicates that the Resource's document MUST be
-  serialized under the `<RESOURCE>` attribute as a string, using the default
-  string serialization rules for the Resource's metadata format. The document
-  bytes do not need to already be a valid value in that format. For example,
-  when using JSON, this means quoting the string and escaping characters such
-  as quotation marks, backslashes, and non-printable characters.
-  If the bytes cannot be represented as a string without loss, the server
-  MUST treat the document as `binary`. It MUST NOT replace or discard invalid
-  bytes to force a string representation.
+  A value of `string` indicates that the Resource's document is to be treated
+  as a string. Under the
+  [Core document representation rules](./spec.md#resource-attribute) this
+  selects the `<RESOURCE>` attribute for a response, using the default string
+  serialization rules for the Resource's metadata format. The document bytes
+  do not need to already be a valid value in that format. For example, when
+  using JSON, this means quoting the string and escaping characters such as
+  quotation marks, backslashes, and non-printable characters.
 
   Specifying an unknown (or unsupported) value MUST generate an error
   ([model_error](./spec.md#model_error)) during the update of the xRegistry

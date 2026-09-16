@@ -1202,11 +1202,22 @@ sensitivity rules in the specification.
 
 Attribute names and key names are limited to 63 characters, so why are some
 Group and Resource names limited to less? Because when they appear as part of
-attribute names and they can be appended with phrases like `url`, `count`
-or `base64`, and they still have to fit within the 63-character limit, and so
-we need to take into account the length of those phrases. As a result, both
-Group and Resource type names (both singular and plural) are limited to
-57 characters.
+attribute names and they can be appended with phrases like `url`, `count`,
+`base64` or `id`, and they still have to fit within the 63-character limit,
+and so we need to take into account the length of those phrases. How much
+room has to be reserved depends on which phrases are appended to that
+particular kind of name, so exactly one bound is stated for each kind:
+
+- A Group type's singular name (`<GROUP>`) is limited to 61 characters. The
+  only Core attribute name derived from it is `<GROUP>id`, so only the
+  two-character `id` phrase has to be accounted for.
+- A Group type's plural name (`<GROUPS>`), and both the singular and plural
+  names of a Resource type (`<RESOURCE>` and `<RESOURCES>`), are limited to
+  57 characters, because longer phrases are appended to them, for example in
+  `<RESOURCE>base64`.
+
+The [Registry Model](./model.md#registry-model) states these same bounds
+normatively.
 
 ### 11.13. Why must Group type and Resource type names be valid attribute names?
 
@@ -1330,23 +1341,34 @@ example, this can happen when attempting to create a new Version that would
 exceed the value set on the `groups.resources.maxversions` attribute of the
 [Resource Model](./model.md#registry-model), or when adjusting this attribute's
 value that is smaller than the number of existing Versions. In such
-scenarios, the server may be unable to prune Versions, when the
+scenarios, the server cannot delete just any Version, because deleting a
+Version makes each of its children a root, and the
 `groups.resources.singleversionroot` attribute of the
-[Resource Model](./model.md#registry-model) is set to `true` and the request
-must be rejected.
+[Resource Model](./model.md#registry-model), when set to `true`, allows only
+one root.
 
 Consider a scenario in which 3 Versions exist: v1 is the root (and therefore
 has its `ancestorid` attribute set to v1), and v2 and v3 both have
 their `ancestorid` attribute set to v1. In addition, the
-`groups.resources.maxversions` is set to 3. When creating a new Version, the
-server will find the oldest Version (v1) and attempt to prune it. However,
-deleting v1 would mean that v2 and v3 would become roots, as both of them
-would need to point to themselves. This is exactly the behavior that the
+`groups.resources.maxversions` is set to 3, and a new Version v4 is created
+as a child of v3. The oldest Version is v1, but deleting v1 would mean that
+v2 and v3 would become roots, as both of them would need to point to
+themselves. This is exactly the behavior that the
 `groups.resources.singleversionroot` attribute prevents when set to `true`.
-Therefore, the server is unable to prune Versions and will block the
-creation of a new Version. To resolve this, the user will have to manually
-delete v2 or v3 to allow the server to prune the oldest Version (v1) before
-creating a new Version.
+For `manual` mode, the pruning traversal therefore continues past v1 and
+deletes the first Version it reaches whose deletion keeps a single root. In
+this example that is v2, because v2 has no children of its own, and v1
+remains the only root.
+
+Note that this means pruning can delete a Version that is newer than the
+oldest one, and it can even delete the Version that the request just
+created, when that is the only Version whose deletion preserves the single
+root. For example, for the chain `v1 <- v2 <- v3` with a sticky default of v1
+and `groups.resources.maxversions` set to 2, the server prunes v3: v1 is the
+protected default, and deleting v2 would turn v3 into a second root. Since
+each deletion is followed by a fresh evaluation, a reduction that needs more
+than one deletion keeps making progress rather than stopping at the first
+Version that has to be skipped.
 
 ### 11.21. What's the oldest/newest Version of a Resource?
 

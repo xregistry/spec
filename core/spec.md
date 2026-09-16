@@ -3094,8 +3094,8 @@ and the following Meta-level attributes:
 
 - Constraints:
   - REQUIRED.
-  - In completed metadata, MUST be the `versionid` of the default Version of
-    the Resource.
+  - At the end of the operation, MUST be the `versionid` of the default
+    Version of the Resource.
 
 When a "patch" type of operation is used and this attribute is present in the
 request but `defaultversionsticky` is absent, then:
@@ -3132,10 +3132,10 @@ effective sticky selection MUST reference an existing Version; otherwise an
 error ([unknown_id](#unknown_id)) MUST be generated. A candidate discarded by
 non-sticky selection or superseded by a flag MUST NOT cause an existence error.
 
-Discarding a candidate affects only its existence obligation, not input-kind
-or identifier-syntax validation. A supplied non-null candidate MUST be a string
-with valid [Version identifier syntax](#singularid-id-attribute). This rule
-MUST NOT discard a candidate before the existing
+Discarding a candidate affects only its existence obligation, not its JSON
+type or identifier-syntax validation. A supplied non-null candidate MUST be a
+string with valid [Version identifier syntax](#singularid-id-attribute). This
+rule MUST NOT discard a candidate before the existing
 [Resource creation-clue processing](#resource-processing-algorithm). An invalid
 effective selection fails the whole operation under
 [Error Processing](#error-processing), without retaining partial changes.
@@ -3605,11 +3605,13 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
 #### `<RESOURCE>` Attribute
 - Type: Resource Document
 - Description: This attribute is a serialization of the corresponding
-  Version's domain-specific document's contents. For a non-empty document
+  Version's domain-specific document's contents. The rules in this section
+  are the document representation rules for responses, and the Resource
+  type's [`typemap`](./model.md#groupsstringresourcesstringtypemap) defines
+  the mappings that they consume. For a non-empty document
   [inlined](#inline-flag) in a response, the selection and encoding of this
-  attribute MUST follow the Resource type's
-  [`typemap`](./model.md#groupsstringresourcesstringtypemap), including its
-  implicit mappings, subject to the JSON `null` exception below. The
+  attribute MUST follow that `typemap`, including its implicit mappings,
+  subject to the JSON `null` constraint below. The
   [Binary Flag](#binary-flag) MUST force the use of `<RESOURCE>base64`.
 
   A `string` mapping MUST use this attribute with the string serialization
@@ -3617,11 +3619,11 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
   not a JSON value. For example, the bytes `Hello` with `contenttype` set to
   `text/plain` are represented as `"file": "Hello"` for a `file` Resource.
   If the bytes cannot be represented as a string without loss, then
-  `<RESOURCE>base64` MUST be used instead.
+  `<RESOURCE>base64` MUST be used instead; the server MUST NOT replace or
+  discard invalid bytes to force a string representation.
 
-  A `json` mapping MUST use this attribute for valid JSON, except when the
-  decoded value is `null`. In that case, `<RESOURCE>base64` MUST carry the
-  original document bytes. A document selected as `json` that contains
+  A `json` mapping MUST use this attribute for valid JSON, subject to the
+  JSON `null` constraint below. A document selected as `json` that contains
   invalid JSON MUST use `<RESOURCE>base64` instead.
   A `binary` mapping, including the result of conflicting matching entries,
   MUST use `<RESOURCE>base64`.
@@ -3629,8 +3631,10 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
   If no explicit or implicit `typemap` mapping applies, this attribute MAY
   be used if the document's bytes "as is" are a valid value in the metadata
   format. In this case, the server MAY prefer `<RESOURCE>base64` even for a
-  valid JSON document. Document bytes MUST NOT be converted to a string merely
-  to fit the metadata format when no `string` mapping applies.
+  valid JSON document. A server preference for `<RESOURCE>base64` MUST NOT
+  override a `json` or `string` mapping. Document bytes MUST NOT be converted
+  to a string merely to fit the metadata format when no `string` mapping
+  applies.
 
 - Constraints
   - If the Version's document is to be serialized and is not empty,
@@ -3643,7 +3647,7 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
   - MUST NOT be used to represent a non-empty document as the JSON value
     `null`. Instead, `<RESOURCE>base64` MUST carry the original document bytes
     so that a subsequent request does not interpret the document as empty.
-    This exception applies even when a `json` mapping selects the
+    This constraint applies even when a `json` mapping selects the
     representation, and does not require the `binary` flag.
 
 #### `<RESOURCE>base64` Attribute
@@ -3664,8 +3668,8 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
     [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
     is set to `false`.
 
-For example, the four document bytes `null` for a `file` Resource are represented
-by the following document field:
+For example, the four document bytes `null` for a `file` Resource are
+represented by the following document field:
 
 <!-- words: bnvsba -->
 
