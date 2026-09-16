@@ -5,7 +5,8 @@
 <!-- words: py resourcelimiterror sdk xregistryabsent xregistryjsoncarrier -->
 <!-- words: xregistryprojection xregistryscalar xregistryscalartree -->
 <!-- words: projectioncodec -->
-<!-- words: additionalproperties jsonstructurevalidation maxentries migrationerror -->
+<!-- words: additionalproperties jsonstructurevalidation maxentries -->
+<!-- words: migrationerror -->
 
 This profile is identified by
 `https://xregistry.io/profiles/scalar-projection/1`. It describes derived

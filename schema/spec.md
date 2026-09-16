@@ -518,11 +518,11 @@ When a URI, like the Message Registry's
 document, it MAY use a [JSON pointer][JSON pointer] expression to deep link into
 the schema document to reference a particular type definition. Otherwise the
 entire root schema is used, including a boolean root. A selected subschema can
-also be an object or boolean; selecting a non-schema value or a location that
-does not exist is an error.
+also be an object or boolean.
 
 JSON Pointer selectors are relative to the schema document, not its surrounding
-xRegistry metadata. Their encoding and document boundary follow
+xRegistry metadata. Their encoding, document boundary, and the handling of
+missing, invalid and ambiguous selectors follow
 [Schema Object Selection](#436-schema-object-selection). An empty JSON Pointer
 selects the root; a pointer to a value that is not a schema is an error. Other
 fragment forms, such as anchors, retain the meaning assigned by the declared
@@ -586,14 +586,15 @@ The document's default namespace does not apply to unprefixed XPath names.
 This context is fixed for the expression; it does not depend on the prefixes
 chosen by the caller or on namespace declarations below the `schema` element.
 The expression is encoded as specified in
-[Schema Object Selection](#436-schema-object-selection).
+[Schema Object Selection](#436-schema-object-selection), which also governs
+missing, invalid and ambiguous selectors.
 
 The result MUST contain exactly one node representing an element declaration,
-simple type definition or complex type definition. A scalar result, a different
-kind of node, or zero or multiple matching declarations is an error. Without
-a selector, the document MUST contain exactly one such declaration directly
-under its `schema` element; otherwise an explicit selector MUST be supplied. This
-does not make a schema with multiple declarations invalid.
+simple type definition or complex type definition; a scalar result or any
+other kind of node does not satisfy this requirement. Without a selector, the
+document MUST contain exactly one such declaration directly under its `schema`
+element; otherwise an explicit selector MUST be supplied. This does not make a
+schema with multiple declarations invalid.
 
 For example, this schema requires an explicit selector:
 
@@ -652,10 +653,12 @@ The selected declaration can be a record, enum or fixed type. Its identity is
 its case-sensitive [Avro full name][Avro Names], including the namespace
 determined by Avro's name rules. A qualified selector MUST match that full name
 exactly. An unqualified selector is accepted only when exactly one named
-declaration in the document has that simple name. Aliases do not participate
-in this lookup. A missing or ambiguous name is an error; no namespace or first
-union branch is guessed. This does not change selection of the root when no
-name is supplied, or turn an unnamed schema into a named declaration.
+declaration in the document has that simple name, and no namespace is inferred
+for it. Aliases do not participate in this lookup. Missing, invalid and
+ambiguous names are handled as defined in
+[Schema Object Selection](#436-schema-object-selection). This does not change
+selection of the root when no name is supplied, or turn an unnamed schema into
+a named declaration.
 
 These examples show complete UTF-8 JSON documents. Their document media type
 is `application/json`; it does not describe the encoding of data governed by
@@ -710,11 +713,12 @@ The selected declaration MUST be a message, not an enum, service or field.
 Its full name includes the Protobuf package and enclosing message names. A
 qualified selector, with or without Protobuf's leading `.`, MUST match the full
 name exactly. An unqualified selector is accepted only when exactly one message
-declaration in the document has that simple name. Partial suffix matching,
-choosing the first message, and guessing a package are not permitted. Missing
-or ambiguous names are errors. These name rules follow the
-[Protobuf language's scope rules][Protobuf Names]; the document and selector
-encoding rules below apply without changing the `#` and `:` separators.
+declaration in the document has that simple name; partial suffix matching does
+not apply and no package is inferred for it. These name rules follow the
+[Protobuf language's scope rules][Protobuf Names]. Missing, invalid and
+ambiguous names are handled as defined in
+[Schema Object Selection](#436-schema-object-selection), whose document and
+selector encoding rules apply without changing the `#` and `:` separators.
 
 Examples:
 
