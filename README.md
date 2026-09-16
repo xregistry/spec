@@ -76,6 +76,12 @@ Resource POST inputs permit these ignored read-only fields, as required by
 their values. Bare document-bearing request and response bodies describe domain
 content; collections and `$details` retain metadata schemas.
 
+Avro object and conditional record names include their owning entity and path;
+structured wildcard values retain their record definitions. These repairs change
+generated fullnames and layouts. Regenerate bindings and check writer/reader
+compatibility under the [Avro naming rules](https://avro.apache.org/docs/1.12.0/specification/#names);
+compatibility with older generated readers is not guaranteed.
+
 Additional release related information:
   [Historical releases and changelogs](docs/RELEASES.md)
 

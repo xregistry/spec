@@ -78,6 +78,12 @@ def operation_validator(openapi, representation, request=False):
     )
 
 
+def avro_nonnullable(schema):
+    if isinstance(schema, avro.schema.UnionSchema):
+        return next(branch for branch in schema.schemas if branch.type != "null")
+    return schema
+
+
 @pytest.mark.parametrize("mutation", ["valid", "negative-priority", "bad-versions", "bad-url", "negative-count"])
 def test_jsonschema_validates_inlined_versions_and_navigation_independently(mutation):
     schema = generate("json")
@@ -469,3 +475,259 @@ def test_openapi_document_routes_keep_json_domain_content(
         "parameters", "get", "delete",
     }
     assert set(schema["paths"][base + "$details"]) == {"parameters", "get"}
+
+
+@pytest.mark.parametrize("maxversions", [0, 1])
+@pytest.mark.parametrize("distinct_fields", [False, True], ids=["same-fields", "different-fields"])
+@pytest.mark.parametrize(
+    "containers",
+    [(), ("array",), ("map",), ("array", "map"), ("map", "array"), ("object",)],
+    ids=["direct", "array", "map", "array-map", "map-array", "nested-object"],
+)
+def test_avro_structured_records_keep_resource_ownership(
+    maxversions, distinct_fields, containers,
+):
+    model = {
+        "groups": {
+            "catalogs": {
+                "plural": "catalogs", "singular": "catalog",
+                "attributes": {"*": {"name": "*", "type": "any"}},
+                "resources": {},
+            },
+            "mirrors": {
+                "plural": "mirrors", "singular": "mirror",
+                "ximportresources": ["/catalogs/entries", "/catalogs/pages"],
+            },
+        }
+    }
+    samples = {}
+    for plural, singular in (("entries", "entry"), ("pages", "page")):
+        different = distinct_fields and plural == "pages"
+        definition = {
+            "type": "object",
+            "attributes": {
+                "enabled" if different else "value": {
+                    "type": "boolean" if different else "string", "required": True,
+                }
+            },
+        }
+        sample = {"enabled": True} if different else {"value": "owner value"}
+        for container in reversed(containers):
+            if container == "object":
+                definition = {
+                    "type": "object",
+                    "attributes": {"nested": {**definition, "required": True}},
+                }
+                sample = {"nested": sample}
+            else:
+                definition = {"type": container, "item": definition}
+                sample = [sample] if container == "array" else {"primary": sample}
+        model["groups"]["catalogs"]["resources"][plural] = {
+            "plural": plural, "singular": singular,
+            "hasdocument": False, "maxversions": maxversions,
+            "attributes": {"settings": {**definition, "required": True}},
+        }
+        samples[plural] = sample
+    validate_model(model)
+    schema = GENERATOR.generate_avro_schema(copy.deepcopy(model))
+    parsed = avro.schema.parse(json.dumps(schema))
+    assert schema == GENERATOR.generate_avro_schema(copy.deepcopy(model))
+    catalog = parsed.fields_dict["catalogs"].type.values
+    mirror = parsed.fields_dict["mirrors"].type.values
+    fullnames = []
+    for plural in ("entries", "pages"):
+        resource = catalog.fields_dict[plural].type.values
+        assert mirror.fields_dict[plural].type.values is resource
+        version = resource if maxversions == 1 else resource.fields_dict["versions"].type.values
+        settings = version.fields_dict["settings"].type
+        assert avro.io.validate(settings, samples[plural])
+        assert not avro.io.validate(settings, None)
+        leaf = settings
+        for container in containers:
+            if container == "object":
+                assert leaf.type == "record"
+                leaf = leaf.fields_dict["nested"].type
+            elif container == "array":
+                assert leaf.type == "array"
+                leaf = leaf.items
+            else:
+                assert leaf.type == "map"
+                leaf = leaf.values
+        assert leaf.type == "record"
+        assert leaf.namespace == "io.xregistry.catalogs"
+        fullnames.append(leaf.fullname)
+        if distinct_fields and plural == "pages":
+            assert set(leaf.fields_dict) == {"enabled"}
+            assert leaf.fields_dict["enabled"].type.type == "boolean"
+            assert not avro.io.validate(leaf, {"value": "wrong owner"})
+        else:
+            assert set(leaf.fields_dict) == {"value"}
+            assert leaf.fields_dict["value"].type.type == "string"
+            assert not avro.io.validate(leaf, {"value": 7})
+    assert len(set(fullnames)) == 2
+
+
+@pytest.mark.parametrize("owner", ["registry", "group", "singleton", "version", "meta"])
+@pytest.mark.parametrize("container", ["object", "array", "map"])
+def test_avro_structured_wildcards_keep_value_definitions(owner, container):
+    leaf = {
+        "type": "object",
+        "attributes": {
+            "value": {"type": "string", "required": True},
+            "options": {
+                "type": "object", "required": True,
+                "attributes": {"enabled": {"type": "boolean", "required": True}},
+            },
+        },
+    }
+    wildcard = leaf if container == "object" else {"type": container, "item": leaf}
+    attributes = {"*": {"name": "*", **wildcard}}
+    model = {"groups": {}}
+    if owner == "registry":
+        model["attributes"] = attributes
+    else:
+        group = {"plural": "catalogs", "singular": "catalog", "resources": {}}
+        model["groups"]["catalogs"] = group
+        if owner == "group":
+            group["attributes"] = attributes
+        else:
+            resource = {
+                "plural": "entries", "singular": "entry", "hasdocument": False,
+                "maxversions": 1 if owner == "singleton" else 0,
+            }
+            group["resources"]["entries"] = resource
+            resource["metaattributes" if owner == "meta" else "attributes"] = attributes
+    validate_model(model)
+    parsed = avro.schema.parse(json.dumps(GENERATOR.generate_avro_schema(model)))
+    record = parsed
+    if owner != "registry":
+        record = record.fields_dict["catalogs"].type.values
+    if owner in ("singleton", "version", "meta"):
+        record = record.fields_dict["entries"].type.values
+    if owner == "version":
+        record = record.fields_dict["versions"].type.values
+    elif owner == "meta":
+        record = avro_nonnullable(record.fields_dict["meta"].type)
+    extensions = record.fields_dict["Extensions"].type
+    value = extensions.values
+    if container == "array":
+        value = value.items
+    elif container == "map":
+        value = value.values
+    assert value.type == "record"
+    assert set(value.fields_dict) == {"value", "options"}
+    assert value.namespace == ("io.xregistry" if owner == "registry" else "io.xregistry.catalogs")
+    assert value.fields_dict["value"].type.type == "string"
+    options = value.fields_dict["options"].type
+    assert set(options.fields_dict) == {"enabled"}
+    assert options.fields_dict["enabled"].type.type == "boolean"
+    good = {"value": "x", "options": {"enabled": True}}
+    bad = {"value": 7, "options": {"enabled": True}}
+    if container == "array":
+        good, bad = [good], [bad]
+    elif container == "map":
+        good, bad = {"primary": good}, {"primary": bad}
+    assert avro.io.validate(extensions, {"settings": good})
+    assert not avro.io.validate(extensions, {"settings": bad})
+    assert not avro.io.validate(options, {"enabled": "true"})
+
+
+@pytest.mark.parametrize("maxversions", [0, 1, 2])
+@pytest.mark.parametrize(
+    "name,type_name,required,good,bad",
+    [
+        ("isdefault", "boolean", True, True, "true"),
+        ("ancestorid", "string", False, "v1", 7),
+        ("contenttype", "string", True, "application/json", []),
+    ],
+    ids=["isdefault", "ancestorid", "contenttype"],
+)
+def test_avro_version_core_overlays_emit_one_field(
+    maxversions, name, type_name, required, good, bad,
+):
+    model = copy.deepcopy(MODEL)
+    model["groups"]["catalogs"]["resources"]["entries"].update({
+        "maxversions": maxversions,
+        "attributes": {
+            name: {
+                "name": name, "type": type_name, "required": required,
+                "readonly": True, "description": "Modeled Core field",
+            }
+        },
+    })
+    validate_model(model)
+    parsed = avro.schema.parse(json.dumps(GENERATOR.generate_avro_schema(model)))
+    resource = parsed.fields_dict["catalogs"].type.values.fields_dict["entries"].type.values
+    version = resource if maxversions == 1 else resource.fields_dict["versions"].type.values
+    assert [item.name for item in version.fields].count(name) == 1
+    overlay = version.fields_dict[name]
+    assert overlay.get_prop("doc") == "Modeled Core field"
+    assert avro_nonnullable(overlay.type).type == type_name
+    assert avro.io.validate(overlay.type, good)
+    assert not avro.io.validate(overlay.type, bad)
+    assert avro.io.validate(overlay.type, None) is (not required)
+
+
+@pytest.mark.parametrize("later_groups", [False, True], ids=["no-groups", "later-groups"])
+def test_avro_registry_ifvalues_uses_root_namespace(later_groups):
+    attributes = {
+        "kind": {
+            "name": "kind", "type": "string",
+            "ifvalues": {
+                "external": {
+                    "siblingattributes": {
+                        "location": {"name": "location", "type": "uri"},
+                        "settings": {
+                            "type": "object",
+                            "attributes": {"enabled": {"type": "boolean", "required": True}},
+                        },
+                    }
+                }
+            },
+        }
+    }
+    model = {"attributes": copy.deepcopy(attributes), "groups": {}}
+    if later_groups:
+        model["groups"]["catalogs"] = {
+            "plural": "catalogs", "singular": "catalog",
+            "attributes": copy.deepcopy(attributes),
+            "resources": {
+                "entries": {
+                    "plural": "entries", "singular": "entry",
+                    "hasdocument": False, "maxversions": 0,
+                    "attributes": copy.deepcopy(attributes),
+                    "metaattributes": copy.deepcopy(attributes),
+                },
+                "pages": {
+                    "plural": "pages", "singular": "page",
+                    "hasdocument": False, "maxversions": 1,
+                    "attributes": copy.deepcopy(attributes),
+                },
+            },
+        }
+    validate_model(model)
+    parsed = avro.schema.parse(json.dumps(GENERATOR.generate_avro_schema(model)))
+    owners = [(parsed, "io.xregistry")]
+    if later_groups:
+        group = parsed.fields_dict["catalogs"].type.values
+        resource = group.fields_dict["entries"].type.values
+        owners.extend((record, "io.xregistry.catalogs") for record in (
+            group,
+            resource.fields_dict["versions"].type.values,
+            avro_nonnullable(resource.fields_dict["meta"].type),
+            group.fields_dict["pages"].type.values,
+        ))
+    fullnames = []
+    for owner, namespace in owners:
+        conditional = owner.fields_dict["kind"].type.schemas[0]
+        assert conditional.type == "record"
+        assert conditional.namespace == namespace
+        fullnames.append(conditional.fullname)
+        settings = avro_nonnullable(conditional.fields_dict["settings"].type)
+        assert settings.namespace == namespace
+        assert avro.io.validate(conditional, {
+            "location": "https://example.com/catalog", "settings": {"enabled": True},
+        })
+        assert not avro.io.validate(conditional, {"location": 7})
+        assert not avro.io.validate(conditional, {"settings": {"enabled": "true"}})
+    assert len(set(fullnames)) == len(owners)
