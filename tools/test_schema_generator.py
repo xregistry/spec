@@ -1,11 +1,13 @@
 """
 Tests for schema-generator.py to validate JSON Schema and Avro output conformance.
 """
+import io
 import json
 import os
 import re
 import subprocess
 import tempfile
+from datetime import datetime, timezone
 from pathlib import Path
 
 import avro.io
@@ -531,8 +533,19 @@ class TestSchemaGenerator:
         }
         assert set(record.fields_dict) == set(version.fields_dict) | navigation
         for name in ('versionid', 'ancestorid', 'isdefault'):
-            assert record.fields_dict[name].type.type == version.fields_dict[name].type.type
+            assert self.nonnullable(record.fields_dict[name].type).type == (
+                version.fields_dict[name].type.type
+            )
+            # The Version requires them; a cross-referenced Resource has none.
+            assert not avro.io.validate(version.fields_dict[name].type, None)
+            assert avro.io.validate(record.fields_dict[name].type, None)
         return record, version
+
+    @staticmethod
+    def nonnullable(schema):
+        if isinstance(schema, avro.schema.UnionSchema):
+            return next(part for part in schema.schemas if part.type != 'null')
+        return schema
 
     def test_schema_model_avro_resource_keeps_format_and_extensions(
         self, schema_model, tools_dir
@@ -543,13 +556,63 @@ class TestSchemaGenerator:
             schema_data, 'schemagroups', 'schemas'
         )
         assert {'format', 'Extensions'} <= set(record.fields_dict)
-        assert record.fields_dict['format'].type.type == 'string'
-        assert not avro.io.validate(record.fields_dict['format'].type, None)
+        assert self.nonnullable(record.fields_dict['format'].type).type == 'string'
         assert avro.io.validate(record.fields_dict['format'].type, 'JSON Schema/draft-07')
-        extensions = record.fields_dict['Extensions'].type
+        assert not avro.io.validate(record.fields_dict['format'].type, 7)
+        assert version.fields_dict['format'].type.type == 'string'
+        assert not avro.io.validate(version.fields_dict['format'].type, None)
+        extensions = self.nonnullable(record.fields_dict['Extensions'].type)
         assert extensions.type == 'map'
         assert extensions.values.fullname == 'io.xregistry.GenericRecord'
-        assert record.fields_dict['format'].type.type == version.fields_dict['format'].type.type
+
+    @staticmethod
+    def fill_absent(record, data):
+        """Complete a datum with null, or an empty map where null is not allowed."""
+        for name, item in record.fields_dict.items():
+            if name not in data:
+                data[name] = None if avro.io.validate(item.type, None) else {}
+        return data
+
+    def test_schema_model_avro_resource_admits_a_cross_reference(
+        self, schema_model, tools_dir
+    ):
+        """A Core cross-referenced Resource carries no default Version values."""
+        schema_data = self.generate_schema(schema_model, 'avro-schema', tools_dir)
+        parsed = avro.schema.parse(json.dumps(schema_data))
+        record = parsed.fields_dict['schemagroups'].type.values.fields_dict[
+            'schemas'
+        ].type.values
+        stamp = datetime(2026, 1, 1, tzinfo=timezone.utc)
+        identity = {
+            'schemaid': 's', 'name': None, 'epoch': 1, 'description': None,
+            'documentation': None, 'labels': {}, 'createdat': stamp,
+            'modifiedat': stamp,
+        }
+        meta = self.fill_absent(self.nonnullable(record.fields_dict['meta'].type), {
+            **identity,
+            'self': 'https://example.com/schemagroups/g/schemas/s/meta',
+            'xid': '/schemagroups/g/schemas/s/meta',
+            'xref': '/schemagroups/g2/schemas/s2',
+        })
+        datum = self.fill_absent(record, {
+            **identity,
+            'self': 'https://example.com/schemagroups/g/schemas/s',
+            'xid': '/schemagroups/g/schemas/s',
+            'metaurl': 'https://example.com/schemagroups/g/schemas/s/meta',
+            'meta': meta,
+        })
+        assert datum['format'] is None
+        assert datum['versionid'] is None
+        assert avro.io.validate(record, datum)
+
+        output = io.BytesIO()
+        avro.io.DatumWriter(record).write(datum, avro.io.BinaryEncoder(output))
+        output.seek(0)
+        decoded = avro.io.DatumReader(record).read(avro.io.BinaryDecoder(output))
+        assert decoded['meta']['xref'] == '/schemagroups/g2/schemas/s2'
+        assert decoded['format'] is None
+        assert decoded['schemaid'] == 's'
+        assert not avro.io.validate(record, {**datum, 'format': 7})
 
     def test_cloudevents_multi_model_avro_resource_keeps_format_and_extensions(
         self, endpoint_model, message_model, schema_model, tools_dir
@@ -576,7 +639,7 @@ class TestSchemaGenerator:
                 schema_data, 'schemagroups', 'schemas'
             )
             assert {'format', 'Extensions'} <= set(record.fields_dict)
-            assert record.fields_dict['format'].type.type == 'string'
+            assert self.nonnullable(record.fields_dict['format'].type).type == 'string'
             parsed = avro.schema.parse(json.dumps(schema_data))
             groups = parsed.fields_dict['messagegroups'].type.values
             singleton = groups.fields_dict['messages'].type.values

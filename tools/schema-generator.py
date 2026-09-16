@@ -967,6 +967,24 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
         apply_annotations(schema, definition)
         return schema
 
+    def optional_attributes(attributes):
+        """Copy attribute definitions with their required constraint removed."""
+        relaxed = {}
+        for name, definition in attributes.items():
+            definition = {**definition, "required": False}
+            if "ifvalues" in definition:
+                definition["ifvalues"] = {
+                    value: {
+                        **condition,
+                        "siblingattributes": optional_attributes(
+                            condition.get("siblingattributes", {})
+                        ),
+                    }
+                    for value, condition in definition["ifvalues"].items()
+                }
+            relaxed[name] = definition
+        return relaxed
+
     def collect_attributes(attributes):
         collected = dict(attributes)
         for definition in attributes.values():
@@ -1057,8 +1075,9 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
             resource_attributes = dict(identity_attributes)
             if resource.get("maxversions", -1) != 1:
                 # A Resource serialization carries its default Version's
-                # attributes, so the Resource object declares them too.
-                resource_attributes.update({
+                # attributes, but a Resource that is only a cross-reference
+                # carries none of them, so the Resource's copies are optional.
+                resource_attributes.update(optional_attributes({
                     "versionid": {
                         "type": "string",
                         "description": f"ID of the default {resource_singular} version"
@@ -1066,8 +1085,10 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
                     "isdefault": {"type": "boolean"},
                     "ancestorid": {"type": "string"},
                     "contenttype": {"type": "string"},
-                })
-            resource_attributes.update(resource.get("attributes", {}))
+                    **resource.get("attributes", {}),
+                }))
+            else:
+                resource_attributes.update(resource.get("attributes", {}))
             resource_schema = object_schema(
                 resource_attributes, namespace, resource_type_name
             )
@@ -1212,6 +1233,20 @@ def generate_avro_schema(model_definition) -> dict:
     """
 
     record_types = set()
+
+    def emit_optional(record, field):
+        """Add a field to a record as an optional copy of the given field."""
+        field = copy.deepcopy(field)
+        branches = field["type"] if isinstance(field["type"], list) else [field["type"]]
+        if "null" not in branches:
+            field["type"] = ["null", *branches]
+        if field["type"][0] == "null":
+            field["default"] = None
+        for index, existing in enumerate(record["fields"]):
+            if existing["name"] == field["name"]:
+                record["fields"][index] = field
+                return
+        record["fields"].append(field)
 
     def handle_item(resource_schema, type, item, name, prefix, namespace, enum_values=None):
         if type == "object":
@@ -1424,28 +1459,33 @@ def generate_avro_schema(model_definition) -> dict:
                 }
                 attributes = resource.get("attributes", {})
                 if resource.get("maxversions", -1) != 1:
-                    # A Resource serialization carries its default Version's
-                    # attributes, so seed the shared Core fields before the
-                    # model overlay is applied to each record under its own
-                    # owning name prefix.
-                    resource_schema["fields"].extend([
-                        {"name": "versionid", "type": "string", "description": f"ID of the default {resource_name} version"},
+                    core_version_fields = [
+                        {"name": "versionid", "type": "string", "description": f"ID of the {resource_name} version"},
                         {"name": "ancestorid", "type": "string"},
                         {"name": "isdefault", "type": "boolean"},
                         {"name": "contenttype", "type": ["null", "string"], "default": None},
-                    ])
+                    ]
                     resource_version_schema = copy.deepcopy(resource_schema)
                     resource_version_schema["name"] = pascal(resource_name)+"VersionType"
-                    for version_field in resource_version_schema["fields"]:
-                        if version_field["name"] == "versionid":
-                            version_field["description"] = f"ID of the {resource_name} version"
+                    resource_version_schema["fields"].extend(copy.deepcopy(core_version_fields))
                     handle_attributes(
                         resource_version_schema, attributes,
                         pascal(resource_name) + "Version", group_namespace,
                     )
+                    # A Resource serialization carries its default Version's
+                    # attributes, but a Resource that is only a cross-reference
+                    # carries none of them, so the Resource's copies are
+                    # optional. They are built under the Resource's own owning
+                    # name prefix, never by copying the Version's records.
+                    resource_overlay = {"fields": copy.deepcopy(core_version_fields)}
+                    for overlay_field in resource_overlay["fields"]:
+                        if overlay_field["name"] == "versionid":
+                            overlay_field["description"] = f"ID of the default {resource_name} version"
                     handle_attributes(
-                        resource_schema, attributes, pascal(resource_name), group_namespace
+                        resource_overlay, attributes, pascal(resource_name), group_namespace
                     )
+                    for overlay_field in resource_overlay["fields"]:
+                        emit_optional(resource_schema, overlay_field)
                     resource_schema["fields"].append(
                         {
                             "name": "versions",

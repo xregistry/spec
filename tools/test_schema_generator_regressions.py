@@ -948,7 +948,7 @@ def avro_round_trip(record, data):
     return avro.io.DatumReader(record).read(avro.io.BinaryDecoder(output))
 
 
-def avro_shape(schema):
+def avro_shape(schema, strip_null=False):
     """Structural shape of a schema, ignoring owner-specific record names."""
     nullable = isinstance(schema, avro.schema.UnionSchema) and any(
         branch.type == "null" for branch in schema.schemas
@@ -956,16 +956,16 @@ def avro_shape(schema):
     schema = avro_nonnullable(schema)
     if schema.type == "record":
         shape = ("record", tuple(
-            (name, avro_shape(item.type))
+            (name, avro_shape(item.type, strip_null))
             for name, item in schema.fields_dict.items()
         ))
     elif schema.type == "map":
-        shape = ("map", avro_shape(schema.values))
+        shape = ("map", avro_shape(schema.values, strip_null))
     elif schema.type == "array":
-        shape = ("array", avro_shape(schema.items))
+        shape = ("array", avro_shape(schema.items, strip_null))
     else:
         shape = (schema.type, schema.get_prop("logicalType"))
-    return (shape, nullable)
+    return shape if strip_null else (shape, nullable)
 
 
 def parity_datum(**overrides):
@@ -981,6 +981,37 @@ def parity_datum(**overrides):
     }
     data.update(overrides)
     return data
+
+
+def fill_absent(record, data):
+    """Complete a datum with null, or an empty map where null is not allowed."""
+    for name, item in record.fields_dict.items():
+        if name not in data:
+            data[name] = None if avro.io.validate(item.type, None) else {}
+    return data
+
+
+def xref_resource_datum(resource):
+    """A Core cross-referenced Resource carries no default Version attributes."""
+    stamp = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    identity = {
+        "entryid": "e", "name": None, "epoch": 1, "description": None,
+        "documentation": None, "labels": {}, "createdat": stamp, "modifiedat": stamp,
+    }
+    meta_record = avro_nonnullable(resource.fields_dict["meta"].type)
+    meta = fill_absent(meta_record, {
+        **identity,
+        "self": "https://example.com/catalogs/c/entries/e/meta",
+        "xid": "/catalogs/c/entries/e/meta",
+        "xref": "/catalogs/c2/entries/e2",
+    })
+    return fill_absent(resource, {
+        **identity,
+        "self": "https://example.com/catalogs/c/entries/e",
+        "xid": "/catalogs/c/entries/e",
+        "metaurl": "https://example.com/catalogs/c/entries/e/meta",
+        "meta": meta,
+    })
 
 
 def core_version_datum(**overrides):
@@ -1002,22 +1033,29 @@ def test_avro_resource_record_keeps_modelled_default_version_attributes(maxversi
     for name in modelled:
         assert [item.name for item in resource.fields].count(name) == 1
         assert [item.name for item in version.fields].count(name) == 1
-        assert str(avro_shape(resource.fields_dict[name].type)) == str(
-            avro_shape(version.fields_dict[name].type)
+        assert str(avro_shape(resource.fields_dict[name].type, strip_null=True)) == str(
+            avro_shape(version.fields_dict[name].type, strip_null=True)
         )
     assert resource.fields_dict["format"].get_prop("doc") == "Modeled format"
-    assert not avro.io.validate(resource.fields_dict["format"].type, None)
     assert not avro.io.validate(resource.fields_dict["format"].type, 7)
+    assert avro.io.validate(resource.fields_dict["format"].type, "JSON/1.0")
     assert ("versions" in resource.fields_dict) is (maxversions != 1)
     if maxversions == 1:
         assert resource is version
+        assert not avro.io.validate(resource.fields_dict["format"].type, None)
         return
     assert resource is not version
     assert resource.fullname != version.fullname
     core = {"versionid": "string", "ancestorid": "string", "isdefault": "boolean"}
     for name, kind in core.items():
-        assert resource.fields_dict[name].type.type == kind
-        assert not avro.io.validate(resource.fields_dict[name].type, None)
+        assert avro_nonnullable(resource.fields_dict[name].type).type == kind
+        assert version.fields_dict[name].type.type == kind
+        # The Version requires them; the Resource's copies are optional
+        # because a cross-referenced Resource carries none of them.
+        assert not avro.io.validate(version.fields_dict[name].type, None)
+        assert avro.io.validate(resource.fields_dict[name].type, None)
+    assert not avro.io.validate(version.fields_dict["format"].type, None)
+    assert avro.io.validate(resource.fields_dict["format"].type, None)
     assert avro.io.validate(resource.fields_dict["contenttype"].type, None)
     navigation = {"versions", "versionsurl", "versionscount", "metaurl", "meta"}
     assert set(resource.fields_dict) == set(version.fields_dict) | navigation
@@ -1045,12 +1083,43 @@ def test_avro_resource_record_round_trips_its_default_version_values(maxversions
     assert decoded["isdefault"] is True
     assert decoded["versions"]["v1"]["format"] == "JSON/1.0"
     for broken in (
-        {"format": 7}, {"format": None}, {"settings": {"retries": 2}},
+        {"format": 7}, {"settings": {"retries": 2}},
         {"settings": {"retries": "two", "profile": {"mode": "strict"}}},
         {"Extensions": {"custom": {"note": 7}}}, {"isdefault": "true"},
-        {"versionid": None},
+        {"versionid": 7}, {"versions": {"v1": {**inlined, "format": None}}},
     ):
         assert not avro.io.validate(resource, {**data, **broken})
+
+
+@pytest.mark.parametrize(
+    "maxversions", [None, 0, 2], ids=["default", "unlimited", "ordinary"],
+)
+def test_avro_resource_record_admits_a_cross_referenced_resource(maxversions):
+    """A Resource that is only a cross-reference carries no Version values."""
+    schema = GENERATOR.generate_avro_schema(parity_model(maxversions))
+    resource, version = avro_resource_records(schema)
+    data = xref_resource_datum(resource)
+    assert data["meta"]["xref"] == "/catalogs/c2/entries/e2"
+    assert all(
+        data[name] is None
+        for name in ("versionid", "ancestorid", "isdefault", "contenttype", "format")
+    )
+    assert avro.io.validate(resource, data)
+    decoded = avro_round_trip(resource, data)
+    assert decoded["meta"]["xref"] == "/catalogs/c2/entries/e2"
+    assert decoded["entryid"] == "e"
+    assert decoded["format"] is None
+    assert decoded["versions"] == {}
+    # The Version record keeps the model's own constraints.
+    assert not avro.io.validate(version, {**data, "meta": None, "metaurl": None})
+    for name in ("versionid", "ancestorid", "isdefault", "format"):
+        assert not avro.io.validate(version.fields_dict[name].type, None)
+    # Optional does not mean untyped on the Resource either.
+    for name, wrong in (
+        ("format", 7), ("versionid", 7), ("isdefault", "true"),
+        ("settings", {"retries": "two", "profile": {"mode": "strict"}}),
+    ):
+        assert not avro.io.validate(resource, {**data, name: wrong})
 
 
 @pytest.mark.parametrize(
@@ -1077,9 +1146,12 @@ def test_avro_resource_and_version_own_their_structured_records(maxversions):
     resource, version = avro_resource_records(schema)
     names = {}
     for label, record in (("resource", resource), ("version", version)):
-        settings = record.fields_dict["settings"].type
-        extensions = record.fields_dict["Extensions"].type.values
-        conditional = record.fields_dict["kind"].type.schemas[0]
+        settings = avro_nonnullable(record.fields_dict["settings"].type)
+        extensions = avro_nonnullable(record.fields_dict["Extensions"].type).values
+        conditional = next(
+            branch for branch in record.fields_dict["kind"].type.schemas
+            if branch.type == "record"
+        )
         for part, nested in (
             ("settings", settings), ("extensions", extensions),
             ("conditional", conditional),
@@ -1123,10 +1195,14 @@ def test_jsonstructure_resource_keeps_modelled_default_version_attributes(maxver
     assert resource["properties"]["settings"]["properties"]["profile"]["properties"] == {
         "mode": {"type": "string"}
     }
-    assert "format" in resource["required"]
+    assert sorted(version["required"]) == ["format", "settings"]
     assert ("versions" in resource["properties"]) is (maxversions != 1)
     if maxversions == 1:
+        assert sorted(resource["required"]) == ["format", "settings"]
         return
+    # A cross-referenced Resource carries no default Version attributes, so
+    # the Resource's copies are declared but not required.
+    assert "required" not in resource
     assert {
         name: resource["properties"][name]["type"] for name in (
             "versionid", "isdefault", "ancestorid", "contenttype",
@@ -1135,12 +1211,38 @@ def test_jsonstructure_resource_keeps_modelled_default_version_attributes(maxver
         "versionid": "string", "isdefault": "boolean",
         "ancestorid": "string", "contenttype": "string",
     }
-    assert not {"versionid", "isdefault", "ancestorid", "contenttype"} & set(
-        resource["required"]
-    )
+    assert resource["properties"]["meta"]["properties"]["xref"]["type"] == "uri"
     assert set(resource["properties"]) == set(version["properties"]) | {
         "versions", "versionsurl", "versionscount", "metaurl", "meta",
     }
+
+
+@pytest.mark.parametrize(
+    "maxversions", [None, 0, 2], ids=["default", "unlimited", "ordinary"],
+)
+def test_jsonstructure_resource_requires_nothing_a_cross_reference_omits(maxversions):
+    """Required model attributes stay required on the Version only."""
+    attributes = {
+        "format": {"type": "string", "required": True},
+        "kind": {
+            "type": "string", "required": True,
+            "ifvalues": {
+                "external": {
+                    "siblingattributes": {
+                        "location": {"type": "string", "required": True}
+                    }
+                }
+            },
+        },
+    }
+    schema = GENERATOR.generate_json_structure(parity_model(maxversions, attributes))
+    definitions = schema["definitions"]["Catalogs"]
+    resource, version = definitions["Entry"], definitions["EntryVersion"]
+    assert sorted(version["required"]) == ["format", "kind", "location"]
+    assert "required" not in resource
+    for name in ("format", "kind", "location"):
+        assert resource["properties"][name] == version["properties"][name]
+    assert resource["additionalProperties"] is False
 
 def document_validator(schema):
     return jsonschema.Draft7Validator(
