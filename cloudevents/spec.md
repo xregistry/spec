@@ -351,9 +351,7 @@ other scenarios:
 
 If we assume the message definitions and schemas to reside at an API endpoint,
 an endpoint definition might just reference the associated message definition
-group with a deep link to the respective object in the service. This
-illustration abbreviates the protocol options using the comment notation
-defined above:
+group with a deep link to the respective object in the service:
 
 ```json
 {
@@ -388,7 +386,7 @@ defined above:
 If the message definitions and schemas are stored in a file-based registry,
 including files shared via public version control repositories, the reference
 link will first reference the file and then the object within the file, using
-[JSON Pointer][JSON Pointer] syntax. Protocol options are again abbreviated:
+[JSON Pointer][JSON Pointer] syntax:
 
 ```yaml
 {
