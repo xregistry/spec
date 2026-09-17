@@ -767,11 +767,12 @@ Note that this feature has similar results to setting the Resource attribute's
   it is valid for an implementation to only support one (`1`) Version when
   `maxversions` is set to `0`.
 - When the limit is exceeded, implementations MUST prune Versions by
-  deleting the [oldest Version](#groupsstringresourcesstringversionmode) first.
-  If the oldest Version is the current default Version, then for the purposes
-  of determining the "next oldest Version", the default Version is removed from
-  the collection of Versions, then the list of "root" ancestors is recalculated
-  and the normal "oldest" Version algorithm is reapplied.
+  deleting the oldest root Version first (see the
+  [`versionmode`](#groupsstringresourcesstringversionmode) section for how
+  oldest is determined). If the chosen Version is the current default Version,
+  then for the purposes of determining which to delete, the default Version is
+  removed from the collection of Versions, the list of "root" ancestors is
+  recalculated and the "oldest root Version" algorithm is reapplied.
 - A special case for the pruning rules is that if `maxversions` is set to
   one (1), then the "default" Version is not skipped, which means it will be
   deleted and the new Version will become "default".
@@ -843,16 +844,16 @@ Note that this feature has similar results to setting the Resource attribute's
 
 - Regardless of which algorithm is used, the following rules apply with
   respect to choosing the "newest" or "oldest" Version:
-  - The "newest" Version MUST be determined by finding all Versions that
-    are not referenced as an `ancestor` of another Version and choosing the
-    one with the newest `createdat` timestamp. If there is more than one, then
-    the one with the highest alphabetically case-insensitive `versionid` value
-    MUST be chosen.
-  - The "oldest" Version MUST be determined by finding all root Versions (ones
-    that have an `ancestorid` value that points to itself), and then choosing
-    the one with the oldest `createdat` timestamp. If there is more than one,
-    then the one with the lowest alphabetically case-insensitive `versionid`
-    value MUST be chosen.
+  - The "newest" Version MUST be determined by finding all "leaf" Versions
+    (ones that are not referenced as an ancestor of any other Version), and
+    choosing the one with the newest `createdat` timestamp. If there is more
+    than one, then the one with the highest alphabetically case-insensitive
+    `versionid` value MUST be chosen.
+  - The "oldest" Version MUST be determined by finding all "root" Versions
+    (ones that have an `ancestorid` value that points to itself), and then
+    choosing the one with the oldest `createdat` timestamp. If there is more
+    than one, then the one with the lowest alphabetically case-insensitive
+    `versionid` value MUST be chosen.
 
 - This specification defines the following `versionmode` algorithms:
   - `manual`
