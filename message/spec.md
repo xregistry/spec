@@ -248,6 +248,10 @@ All aspects of the collected base message are "shadowed" by the definitions of
 the message that references it. If the base message defines an "envelope" but
 no "protocol", the new definition can add the aforementioned MQTT aspects with
 a new "protocol" selector and corresponding options.
+[Merging a base message](#merging-a-base-message) defines that shadowing
+exactly, and
+[Unavailable bases](#unavailable-bases-and-incomplete-materialization) defines
+the outcome when a base cannot be obtained.
 
 ```mermaid
 flowchart TB
@@ -672,18 +676,15 @@ the core xRegistry Resource
 
   The process that a client SHOULD follow to materialize the message is
   to follow the `basemessage` references to the end of the chain of messages,
-  get that message's attributes, and then walk back up the chain performing a
-  "merge" operation of the next message's attributes. Note that if an
-  inherited attribute is a complex type (e.g. map, object) and the overlaying
-  attribute is scalar, then the entire inherited attribute (and nested
-  values) are replaced by that scalar value. For complex types, the
-  merge is "deep", meaning each level of the complex type is merged
-  appropriately rather than it being a complete replacement of the entire
-  complex type.
+  get that message's attributes, and then walk back up the chain applying the
+  merge defined in [Merging a base message](#merging-a-base-message) at each
+  step.
 
   If the referenced message can not be found, whether due to a dangling
   reference, an unreachable external registry, or insufficient permissions,
-  an error MUST NOT be generated. Dangling references are permitted.
+  an error MUST NOT be generated. Dangling references are permitted, and the
+  outcome is defined in
+  [Unavailable bases](#unavailable-bases-and-incomplete-materialization).
 
   Resolution of absolute URIs is a client responsibility. The server stores
   the URI value but is not mandated to fetch, validate, or cache external
@@ -700,6 +701,85 @@ the core xRegistry Resource
   - `/messagegroups/group1/messages/msg1`
   - `/messagegroups/group1/messages/msg1/versions/v1.0`
   - `https://catalog.example.com/messagegroups/shared/messages/base-event`
+
+##### Merging a base message
+
+One merge rule set applies at every step of the chain. The *base* is the
+already-materialized result of everything below the current message, and the
+*overlay* is the current message. The table is exhaustive for the JSON values
+that a message definition can hold.
+
+| Overlay value | Base value | Result |
+| --- | --- | --- |
+| Member absent from the overlay | Anything | The base value is retained unchanged |
+| Object | Object | Deep merge: apply this table member by member |
+| Object | Array, scalar, literal `null`, or absent | The overlay object replaces the base value |
+| Array | Anything | The overlay array replaces the base array entirely. Entries are neither concatenated nor merged by index |
+| Scalar | Anything | The overlay scalar replaces the base value |
+| Literal `null` | Anything | The overlay `null` replaces the base value |
+
+Deep merge applies to every JSON object, including a
+[native-name map](#declaration-containers), whose keys are merged as object
+members. It does not apply inside an
+[ordered array](#declaration-containers): an overlay `headers`, `query` or
+`user_properties` array replaces the inherited one, so an overlay that means
+to keep inherited entries MUST restate them.
+
+A member that is absent from the overlay is inherited. A member that the
+overlay sets to a literal `null` is not absent: it is an explicit value.
+Inside a [declaration record](#declaration-records) that `null` is the
+declared data described in that section and it replaces the inherited value,
+it does not delete the surrounding declaration. Outside a declaration record,
+the ordinary Core treatment of a `null` attribute in a request is unchanged;
+merging is a client-side materialization step and is not a Registry write.
+
+Two attributes select which inherited options remain meaningful.
+
+- If the overlay specifies an [`envelope`](#envelope) that differs from the
+  base's, the inherited [`envelopemetadata`](#envelopemetadata) and
+  [`envelopeoptions`](#envelopeoptions) MUST be discarded before the merge,
+  and only the overlay's own values apply.
+- If the overlay specifies a [`protocol`](#protocol) that differs from the
+  base's, the inherited [`protocoloptions`](#protocoloptions) MUST be
+  discarded before the merge, and only the overlay's own values apply.
+
+Both comparisons use the case-insensitive selector comparison defined for
+those attributes. No other attribute is reset by a selector change, and an
+overlay that does not state a selector inherits the base's selector together
+with its options.
+
+For example, a base declaring `"headers": [ { "name": "A" } ]` and an overlay
+declaring `"headers": [ { "name": "B" } ]` materializes to
+`[ { "name": "B" } ]`, never to `[ { "name": "A" }, { "name": "B" } ]`. A base
+declaring `"protocol": "AMQP/1.0"` with AMQP `protocoloptions` and an overlay
+declaring `"protocol": "KAFKA"` materializes with the overlay's Kafka options
+only; the AMQP options are not carried into the Kafka contract.
+
+##### Unavailable bases and incomplete materialization
+
+A base is *unavailable* when it cannot be obtained: a dangling relative
+reference, an unreachable or unauthorized external registry, or a client that
+does not resolve external references at all.
+
+- An unavailable base MUST NOT generate an error, and MUST NOT cause a client
+  or server to acquire the base in order to complete the merge.
+- The result of the materialization is *incomplete*: it consists of the
+  attributes that were actually merged, and the client MUST treat the
+  contribution of the unavailable base and of everything below it in the
+  chain as unknown rather than as absent.
+- A client MUST NOT report an incomplete result as a complete effective
+  definition, and MUST NOT conclude from it that an attribute is undeclared,
+  that a constraint does not apply, or that a message fails to conform.
+- Where this specification requires an effective definition to satisfy a
+  context, an incomplete result leaves that check unresolved, in the same way
+  as the unresolved outcomes defined for
+  [`envelope`](#envelope) and [`protocol`](#protocol).
+
+This is a property of one materialization attempt by one client at one time.
+This specification defines no attribute that records completeness, no error
+code reserved for unavailability, and no retry or caching obligation. A later
+attempt by a client that can reach the base produces a complete result from
+the same stored definitions.
 
 #### `envelope`
 
@@ -1111,6 +1191,80 @@ preserved, the same `name` MAY appear in more than one entry, and the array
 MUST NOT be converted into a keyed map. This specification does not define
 wire de-duplication semantics for repeated names.
 
+##### Refinements
+
+A *refinement* narrows the value space that a declaration accepts. A
+refinement MUST NOT change the JSON kind in which the `value` is stored, and
+it MUST NOT be read as a conversion instruction.
+
+- A refinement MAY replace a declared `type` with a narrower one over the same
+  JSON kind. `string` MAY be refined to `uri`, `uritemplate`, `symbol` or
+  `timestamp`, all of which are stored as JSON strings.
+- A refinement MUST NOT widen a type, and MUST NOT cross JSON kinds. A
+  declaration of `integer` MUST NOT be refined to `string`, and a declaration
+  of `string` MUST NOT be refined to `integer`.
+- A declared `value` that does not satisfy the refined type is invalid. It is
+  not silently converted: the number `42` does not become the string `"42"`,
+  and the string `"42"` does not become the number `42`.
+- A declaration MAY state a range, precision or lexical restriction in its
+  `description` or by `specurl`. Such a restriction further narrows an
+  already-valid value space; it never admits a value the declared type
+  excludes.
+
+Earlier revisions of this specification used the undefined name
+`stringified integer` for a decimal integer carried as text. That is a
+`string` refined to the lexical form defined by the owning protocol, and
+authors SHOULD state that lexical form explicitly. `stringified integer` is
+not a type name of this specification and MUST NOT be used as one.
+
+##### Wire encoding
+
+A refinement describes the stored declaration. It does not determine how the
+value appears on a protocol. The encoding contract below is the only mapping
+this specification defines, and each row defers to the standard that owns the
+protocol.
+
+| Family | Property value space | Encoding of a declared value |
+| --- | --- | --- |
+| HTTP `headers`, HTTP `query` | Text | The field or parameter value, as defined by [HTTP][HTTP Message Format] |
+| NATS `headers` | Text | The header value, as defined by [NATS][NATS] |
+| MQTT `user_properties` | UTF-8 text pairs | The user property value, as defined by [MQTT 5.0][MQTT 5.0] |
+| Kafka `headers` | Byte sequence | The header value bytes, as defined by [Apache Kafka][Apache Kafka] |
+| AMQP `properties`, `application-properties`, `message-annotations`, `delivery-annotations`, `footer` | The AMQP type system | The AMQP typed value, as defined by [AMQP 1.0][AMQP 1.0] |
+| CloudEvents `envelopemetadata` | The CloudEvents type system | The value in the applicable CloudEvents binding |
+
+The following rules apply across those families:
+
+- A numeric value MUST keep its exact value. An implementation that cannot
+  represent the range or precision of a declared number MUST report that
+  limitation rather than round, truncate or substitute. `uuid` values use the
+  lexical form defined by [RFC 9562][RFC9562], `timestamp` values use
+  [RFC 3339][rfc3339], and `duration` values use
+  [ISO 8601-1:2019][ISO 8601-1] as stated under [`type`](#type).
+- The range of a numeric property is the range of the protocol type that
+  carries it, not a range invented here. An AMQP `ulong` is an unsigned
+  64-bit integer and `properties.group-sequence` is an unsigned 32-bit
+  integer, both as defined by AMQP; a declared value outside that range is
+  invalid.
+- Byte data and text are distinct. A `binary` value is a sequence of bytes
+  and MUST be written in JSON as a [RFC 4648][RFC4648] section 4 base64
+  string; that base64 string is the JSON representation of the bytes and is
+  not itself the value. A Kafka header value is bytes, so a declared `string`
+  is encoded to bytes using the encoding the definition states. A text-valued
+  header in HTTP, NATS or MQTT MUST NOT be filled with raw bytes.
+- A declaration whose `value` is the literal `null` requires the property to
+  carry the protocol's own representation of no value, such as the AMQP
+  `null` type. Where a protocol has no such representation, the declaration
+  cannot be satisfied and MUST be reported as unsatisfiable. The strings
+  `""` and `"null"` MUST NOT be substituted for it.
+- The property name that reaches the wire is the one defined in
+  [Declared property names](#declared-property-names). For Kafka that is the
+  outer map key, and no inner `name` participates in encoding.
+- Admitting a declaration proves only that it was stored. It is not evidence
+  that a codec exists for it, and a schema-admission result MUST NOT be
+  turned into one. The scalar projection profile used by derived carriers is
+  a separate contract and is not a native protocol codec.
+
 ##### Conformance evidence and limits
 
 The obligations above are conformance requirements on authors and on clients
@@ -1283,17 +1437,41 @@ The following rules apply to the attribute declarations:
   CloudEvents data media type when this attribute's `value` is absent. If
   both are specified, they MUST agree. Explicit and inferred values describe
   the same data layer, never the serialized envelope's media type.
+  [`dataschemaformat`](#dataschemaformat) identifies a schema language, not a
+  media type, and MUST NOT be used to infer this value: `JSONSchema/draft-07`
+  determines neither `application/json` nor any other concrete media type for
+  the payload. When no explicit Message `datacontenttype` and no declared
+  `value` exist, this attribute's value is unresolved; the author MUST supply
+  it explicitly if the definition is to constrain it.
 - The `dataschema` attribute's `value` is inferred from the
-  [`dataschemauri`](#dataschemauri) attribute or
-  [`dataschema`](#dataschema) attribute of the message definition if
-  absent. If present, the value MUST match the `dataschemauri` attribute of the
-  message definition.
+  [`dataschemauri`](#dataschemauri) attribute of the message definition when
+  this attribute's `value` is absent. An inline
+  [`dataschema`](#dataschema) has no retrieval URI, so it MUST NOT be used to
+  infer this value and a locator MUST NOT be synthesized for it: a definition
+  that carries only an inline schema leaves the CloudEvents `dataschema`
+  attribute unresolved unless the author declares its `value` explicitly.
+  Publishing the inline schema in order to obtain a URI is out of scope for
+  this specification.
+- When both this attribute's `value` and the message definition's
+  `dataschemauri` are present, they MUST identify the same schema object:
+  their resolved owning Schema Resource or Version MUST be the same entity,
+  compared separately from the format-defined object selector described in
+  [Schema Formats](../schema/spec.md#43-schema-formats) and applied by
+  [`dataschemaxid`](#dataschemaxid). Literal string equality of the two URIs
+  is neither REQUIRED nor sufficient, and an owner MUST NOT be inferred by
+  stripping fragments, queries or selector suffixes.
+- An inference produces a value only where the inputs above determine one.
+  Where they do not, the outcome is an unresolved obligation on the author,
+  not a value chosen by the reader. Two readers of the same definition MUST
+  therefore produce the same inferred values.
 - The `type` of the property definition defaults to the CloudEvents type
   definition for the attribute, if any. The `type` of an attribute MAY be
-  modified to be further constrained. For instance, the `source` type
-  `uri` MAY be changed to `uritemplate` or the `subject` type `string` MAY be
-  constrained to a `uri` or `stringified integer`. If no CloudEvents type
-  definition exists, the default value MUST be `string`.
+  modified to be further constrained, subject to
+  [Refinements](#refinements). For instance, the `source` type `uri` MAY be
+  changed to `uritemplate`, and the `subject` type `string` MAY be
+  constrained to a `uri` or to a `string` carrying a decimal integer in a
+  stated lexical form. If no CloudEvents type definition exists, the default
+  value MUST be `string`.
 
 The values of all `string` and `uritemplate`-typed attributes MAY contain
 placeholders using the [RFC6570][RFC6570] Level 1 URI Template syntax. When the
@@ -1650,6 +1828,19 @@ user properties MAY contain placeholders using the [RFC6570][RFC6570] Level 1
 URI Template syntax. When the same placeholder is used in multiple properties,
 the value of the placeholder is assumed to be identical.
 
+`correlation_data` is binary data, as defined by [MQTT 5.0][MQTT 5.0]. Its
+JSON representation is an [RFC 4648][RFC4648] section 4 base64 string, and the
+encoding rules in [Wire encoding](#wire-encoding) apply to it. It is not a URI
+template and MUST NOT carry placeholders: a placeholder would be part of the
+decoded bytes rather than a substitution point.
+
+Migration: an earlier revision of the model typed `correlation_data` as
+`uritemplate`. A declaration that relied on that typing MUST be rewritten so
+that its value is the base64 representation of the intended bytes. A value
+that was a UTF-8 identifier MUST be encoded to bytes first and then base64
+encoded; it MUST NOT be carried over unchanged, because the stored string was
+previously interpreted as text rather than as the base64 form of bytes.
+
 The following example shows a message with the "MQTT/5.0" protocol, asking for
 QoS 1 delivery, with a topic name of "mytopic", and a user property of
 "my-application-property" with a value of "my-application-property-value":
@@ -1777,6 +1968,8 @@ Example:
 [Apache Kafka consumer]: https://kafka.apache.org/31/javadoc/org/apache/kafka/clients/consumer/ConsumerRecord.html
 [HTTP Message Format]: https://www.rfc-editor.org/rfc/rfc9110#section-6
 [RFC6570]: https://www.rfc-editor.org/rfc/rfc6570
+[RFC4648]: https://www.rfc-editor.org/rfc/rfc4648
+[RFC9562]: https://www.rfc-editor.org/rfc/rfc9562
 [ISO 8601-1]: https://www.iso.org/standard/70907.html
 [rfc3339]: https://tools.ietf.org/html/rfc3339
 [message]: https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#message
