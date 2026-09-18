@@ -257,7 +257,7 @@ this form:
         # Common protocol options
         "endpoints": [
           {                                     # entry shape is protocol
-            "uri": "<URI>", ?                   #   specific: "uri" for all
+            "uri": "<URITEMPLATE>", ?           #   specific: "uri" for all
             "bootstrap.servers":                #   protocols except "KAFKA",
               [ "<STRING>" * ], ?               #   which has no "uri" and
             "<STRING>": <JSON-VALUE> *          #   uses "bootstrap.servers"
@@ -267,8 +267,8 @@ this form:
           {
             "type": "<STRING>", ?
             "mechanism": "<STRING>", ?
-            "resourceuri": "<URI>", ?
-            "authorityuri": "<URI>" ?
+            "resourceuri": "<URITEMPLATE>", ?
+            "authorityuri": "<URITEMPLATE>" ?
           } *
         ], ?
         "deployed": <BOOLEAN>, ?
@@ -617,10 +617,13 @@ This specification defines the following envelope options for the indicated
   - Each object MUST carry the endpoint address in the attribute that the
     endpoint's protocol defines for that purpose. Of the protocols defined in
     this specification, `HTTP`, `AMQP/1.0`, `MQTT/3.1.1`, `MQTT/5.0`, and
-    `NATS` use a `uri` attribute holding a valid, absolute URI (URL), and
-    `KAFKA` uses a non-empty `bootstrap.servers` attribute. A protocol
-    defined outside of this specification MAY define a different addressing
-    attribute.
+    `NATS` use a `uri` attribute, and `KAFKA` uses a non-empty
+    `bootstrap.servers` attribute. A protocol defined outside of this
+    specification MAY define a different addressing attribute.
+  - The `uri` attribute is a URI Template. It MAY contain unresolved
+    placeholders as described in [Protocol Options](#protocol-options). After
+    placeholder resolution the value MUST be a valid, absolute URI (URL) that
+    satisfies the scheme requirements stated for the endpoint's protocol.
 - Examples:
   - `[ {"uri": "https://example.com" } ]`
   - ```
@@ -722,24 +725,30 @@ This specification defines the following envelope options for the indicated
 
 ###### `protocoloptions.authorization.resourceuri`
 
-- Type: URI
+- Type: URI Template
 - Description: The URI of the resource for which the authorization is
   requested. The format of the URI depends on the authorization type.
 
 - Constraints:
   - OPTIONAL.
-  - MUST be a non-empty URI if used.
+  - MUST be a non-empty string if used.
+  - MAY contain unresolved placeholders as described in
+    [Protocol Options](#protocol-options). After placeholder resolution the
+    value MUST be a non-empty URI.
 
 ###### `protocoloptions.authorization.authorityuri`
 
-- Type: URI
+- Type: URI Template
 - Description: The URI of the authorization authority from which the
   authorization is requested. The format of the URI depends on the
   authorization type.
 
 - Constraints:
   - OPTIONAL.
-  - MUST be a non-empty URI if used.
+  - MUST be a non-empty string if used.
+  - MAY contain unresolved placeholders as described in
+    [Protocol Options](#protocol-options). After placeholder resolution the
+    value MUST be a non-empty URI.
 
 ##### `protocoloptions.deployed`
 
@@ -880,6 +889,78 @@ the values are supplied. When the same placeholder name occurs in more than
 one value of the same endpoint, all of its occurrences MUST resolve to the
 same value.
 
+##### Authoring and resolved protocol option values
+
+Protocol options are authored before the values they carry are resolved, so
+this specification separates two stages. The option tables in the following
+sections state the requirements of the resolved stage.
+
+- *Authoring stage*: the declaration is stored in a Registry. Every string
+  value, every string array item, and every key and value of a native-name
+  container listed below MAY be an unresolved URI Template. Examples that MUST
+  be accepted are the endpoint `{ "uri": "https://{tenant}.example.test" }`,
+  the HTTP query key `{parameter}`, the Kafka option
+  `"autooffsetreset": "{mode}"`, and the string array item
+  `"bootstrap.servers": [ "{broker}:9093" ]`. The stored data is preserved
+  exactly as authored.
+- *Resolved stage*: a client has replaced every placeholder out-of-band. The
+  syntax requirements stated in the following sections - valid URI schemes,
+  `host:port` bootstrap addresses, and the listed values of an enumerated
+  option - apply to the resolved value, and a client MUST treat a violation as
+  an error. A Registry server is not obligated to resolve placeholders,
+  acquire an endpoint, or check these rules.
+
+Two model aspects carry this distinction. An address or authorization
+reference is typed as a URI Template rather than as a URI, and an enumerated
+string option lists its values advisorily rather than strictly. An unresolved
+placeholder therefore does not fail authoring validation, and it is also not
+evidence that the resolved value is valid for the protocol.
+
+The following options are native-name containers. Their keys are names of the
+owning protocol rather than xRegistry map keys, so the whole container is
+stored as opaque JSON data:
+
+| Protocol | Option | Key space | Value space |
+| --- | --- | --- | --- |
+| `AMQP/1.0` | `link-properties` | AMQP symbol | string |
+| `AMQP/1.0` | `connection-properties` | AMQP symbol | string |
+| `AMQP/1.0` | `source-filters` | AMQP filter symbol | any JSON value, including a literal `null` |
+| `HTTP` | `query` | HTTP query parameter name | string |
+| `KAFKA` | `headers` | Kafka header name | string |
+
+Opacity is a storage boundary, not a statement of protocol validity. Within
+each container an author MUST satisfy, and a client MUST check, all of the
+following. A generic schema generated from the model admits any JSON value
+here, so it MUST NOT be read as proof that a declaration is valid:
+
+- The container MUST be a JSON object.
+- Each key MUST be a non-empty name that is valid for the owning protocol,
+  or a name carrying unresolved placeholders that resolves to one.
+- Each key MUST be unique within its container. Two keys that differ only in
+  the placeholders they contain are not thereby distinct.
+- Each value MUST have the kind listed above. A value of a different kind,
+  and a member that is not described here, is invalid even though it
+  serializes as well-formed JSON.
+
+Everything outside those containers keeps the structure and kind that the
+following sections define. The fixed option objects and their member names,
+the `endpoints` and `authorization` arrays, the Kafka `bootstrap.servers`
+string array together with the separate `security.protocol` and
+`sasl.mechanism` members of the same object, and every native Boolean,
+integer and unsigned-integer option are unchanged. A Boolean option MUST NOT
+be written as the string `"true"`, and a numeric option such as `qos`,
+`acks`, `partition` or `timeout` MUST NOT carry a placeholder, because a
+placeholder is a string and those options are not strings.
+
+Migration: declarations keep their stored data unchanged. What moves is the
+stage at which a constraint is checked. A consumer that relied on the
+Registry rejecting an invalid endpoint URI, an unlisted enumeration value, or
+a non-string value inside one of the containers above MUST now perform that
+check itself after resolving placeholders. Schemas generated from the model
+lose the nested validation precision of the opaque containers, and the
+enumerations listed above are emitted as advisory documentation rather than
+as generated constraints.
+
 ##### HTTP options
 
 The [endpoint URIs](#protocoloptionsendpoints) for "HTTP" endpoints MUST be
@@ -920,7 +1001,7 @@ Constraints:
 |---|---|---|---|---|---|
 | `method` | string (HTTP method), default `POST` | ✓ | ✓ | ✓ | HTTP method for the concrete operation represented by the endpoint. |
 | `headers` | array of `{name: string, value: string}` | ✓ | ✓ | ✓ | HTTP request headers. Duplicate names are allowed. |
-| `query` | map of string to string | ✓ | ✓ | ✓ | HTTP query parameters for the operation. |
+| `query` | native-name map of string to string | ✓ | ✓ | ✓ | HTTP query parameters for the operation. See [Authoring and resolved protocol option values](#authoring-and-resolved-protocol-option-values). |
 | `apikeyname` | string | ✓ | ✓ | ✓ | Name of the API key carrier when `authorization.type` is `APIKey` (for example `x-api-key`). |
 | `apikeyin` | enum: `header`, `query`, default `header` | ✓ | ✓ | ✓ | Placement of API key metadata when `authorization.type` is `APIKey`. `header` SHOULD be used; `query` SHOULD only be used when header placement is not possible. |
 | `plainscheme` | enum: `basic`, `form`, `query`, default `basic` | ✓ | ✓ | ✓ | Transport pattern for `authorization.type` = `Plain`. `basic` refers to HTTP Basic authentication ([RFC7617][RFC7617]). |
@@ -944,12 +1025,12 @@ The following options are defined for AMQP endpoints.
 |---|---|---|---|---|---|
 | `node` | string | ✓ | ✓ | ✓ | AMQP node (address). When set, it overrides the URI path. |
 | `durable` | boolean, default `false` | ✓ | - | - | Whether the node identified by `node` is a durable node rather than a transient one. This is a property of the node. It is not the AMQP message header field of the same name and it is not terminus durability, which is expressed by `terminus-durability`. It does not by itself imply a delivery guarantee. |
-| `link-properties` | map of string to string | ✓ | ✓ | ✓ | AMQP link properties. |
-| `connection-properties` | map of string to string | ✓ | ✓ | ✓ | AMQP connection properties. |
+| `link-properties` | native-name map of string to string | ✓ | ✓ | ✓ | AMQP link properties. See [Authoring and resolved protocol option values](#authoring-and-resolved-protocol-option-values). |
+| `connection-properties` | native-name map of string to string | ✓ | ✓ | ✓ | AMQP connection properties. See [Authoring and resolved protocol option values](#authoring-and-resolved-protocol-option-values). |
 | `distribution-mode` | enum: `move`, `copy`, default `move` | - | ✓ | ✓ | AMQP source distribution mode. `move` means a transferred message is removed from the node and is therefore transferred to at most one receiver. `copy` means the message remains at the node after transfer and can also be transferred to other receivers. This describes distribution between the node and its receivers; it does not describe message locking. |
 | `connection-capabilities` | array of string | ✓ | ✓ | ✓ | AMQP connection capabilities. |
 | `node-capabilities` | array of string | ✓ | ✓ | ✓ | AMQP node capabilities. |
-| `source-filters` | map of string to any | - | ✓ | ✓ | AMQP source filter expressions/descriptor keys for receive setup. |
+| `source-filters` | native-name map of string to any | - | ✓ | ✓ | AMQP source filter expressions/descriptor keys for receive setup. A value MAY be a literal `null`. See [Authoring and resolved protocol option values](#authoring-and-resolved-protocol-option-values). |
 | `dynamic` | boolean | ✓ | ✓ | ✓ | Dynamic node creation for source/target setup, depending on role. |
 | `terminus-durability` | enum: `none`, `configuration`, `unsettled-state` | ✓ | ✓ | ✓ | Durability mode for the applicable source or target terminus. For a `producer` endpoint this is the target terminus; for a `consumer` or `subscriber` endpoint it is the source terminus. |
 | `expiry-policy` | enum: `link-detach`, `session-end`, `connection-close`, `never` | ✓ | ✓ | ✓ | Expiry policy for the applicable terminus, selected as for `terminus-durability`. |
@@ -1078,7 +1159,7 @@ The following options are defined for Kafka endpoints.
 | `key` | string | ✓ | - | - | Producer record key. |
 | `partition` | integer | ✓ | ✓ | - | Fixed producer partition target or explicit consumer partition selection. |
 | `consumergroup` | string | - | ✓ | - | Consumer group identifier for group-based consumption. |
-| `headers` | map of string to string | ✓ | - | - | Producer record headers. |
+| `headers` | native-name map of string to string | ✓ | - | - | Producer record headers. See [Authoring and resolved protocol option values](#authoring-and-resolved-protocol-option-values). |
 | `keyserializer` | string | ✓ | - | - | Producer key serializer class/name. |
 | `valueserializer` | string | ✓ | - | - | Producer value serializer class/name. |
 | `autooffsetreset` | enum: `earliest`, `latest`, `none` | - | ✓ | - | Consumer offset reset behavior when no valid committed offset exists. |

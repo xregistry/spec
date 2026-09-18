@@ -1362,8 +1362,8 @@
                           "properties": {
                             "uri": {
                               "type": "string",
-                              "format": "uri",
-                              "description": "AMQP Addressing URI"
+                              "format": "uri-template",
+                              "description": "AMQP Addressing URI. Authored values MAY carry RFC6570 Level 1 placeholders; the resolved value MUST satisfy the AMQP address requirements"
                             }
                           }
                         }
@@ -1384,13 +1384,13 @@
                             },
                             "resourceuri": {
                               "type": "string",
-                              "format": "uri",
-                              "description": "The resource uri for which authorization shall be granted (if applicable)"
+                              "format": "uri-template",
+                              "description": "The resource uri for which authorization shall be granted (if applicable). Authored values MAY carry RFC6570 Level 1 placeholders; the resolved value MUST be a valid URI"
                             },
                             "authorityuri": {
                               "type": "string",
-                              "format": "uri",
-                              "description": "The authority uri where authorization shall be requested (if applicable)"
+                              "format": "uri-template",
+                              "description": "The authority uri where authorization shall be requested (if applicable). Authored values MAY carry RFC6570 Level 1 placeholders; the resolved value MUST be a valid URI"
                             }
                           }
                         }
@@ -1408,22 +1408,14 @@
                         "description": "Whether the AMQP node identified by 'node' is durable rather than transient. This is a property of the node, not of the link terminus and not of the message header field of the same name. Terminus durability is expressed by 'terminus-durability'"
                       },
                       "link-properties": {
-                        "type": "object",
-                        "description": "An optional map of AMQP link properties to use with the endpoint",
-                        "additionalProperties": {
-                          "type": "string"
-                        }
+                        "description": "An optional map of AMQP link properties to use with the endpoint. This is an opaque native-name map: its keys are AMQP symbols and are not constrained by the xRegistry map key character set. See the Protocol Options authoring boundary for the obligations that apply"
                       },
                       "connection-properties": {
-                        "type": "object",
-                        "description": "An optional map of AMQP connection properties to use with the endpoint",
-                        "additionalProperties": {
-                          "type": "string"
-                        }
+                        "description": "An optional map of AMQP connection properties to use with the endpoint. This is an opaque native-name map: its keys are AMQP symbols and are not constrained by the xRegistry map key character set. See the Protocol Options authoring boundary for the obligations that apply"
                       },
                       "distribution-mode": {
                         "type": "string",
-                        "description": "The AMQP source distribution mode. 'move' means a transferred message is removed from the node and is therefore seen by only one receiver. 'copy' means the message remains at the node after transfer and may also be transferred to other receivers. This does not describe message locking"
+                        "description": "The AMQP source distribution mode. 'move' means a transferred message is removed from the node and is therefore seen by only one receiver. 'copy' means the message remains at the node after transfer and may also be transferred to other receivers. This does not describe message locking. The enum is advisory at authoring time so that an unresolved placeholder is permitted; the resolved value MUST be one of the listed values"
                       },
                       "connection-capabilities": {
                         "type": "array",
@@ -1440,9 +1432,7 @@
                         }
                       },
                       "source-filters": {
-                        "type": "object",
-                        "description": "AMQP source filters used for subscription/receive setup",
-                        "additionalProperties": {}
+                        "description": "AMQP source filters used for subscription/receive setup. This is an opaque native-name map: its keys are AMQP filter symbols and its values keep their authored JSON kind, including a literal null. See the Protocol Options authoring boundary for the obligations that apply"
                       },
                       "dynamic": {
                         "type": "boolean",
@@ -1450,11 +1440,11 @@
                       },
                       "terminus-durability": {
                         "type": "string",
-                        "description": "Durability mode for the applicable source/target terminus"
+                        "description": "Durability mode for the applicable source/target terminus. The enum is advisory at authoring time so that an unresolved placeholder is permitted; the resolved value MUST be one of the listed values"
                       },
                       "expiry-policy": {
                         "type": "string",
-                        "description": "Expiry policy for the applicable source/target terminus"
+                        "description": "Expiry policy for the applicable source/target terminus. The enum is advisory at authoring time so that an unresolved placeholder is permitted; the resolved value MUST be one of the listed values"
                       },
                       "timeout": {
                         "type": "integer",
@@ -1463,11 +1453,11 @@
                       },
                       "sender-settle-mode": {
                         "type": "string",
-                        "description": "AMQP sender settle mode requested for the link. It constrains the party that sends transfers over the link: the client for a producer endpoint, the remote node for a consumer endpoint"
+                        "description": "AMQP sender settle mode requested for the link. It constrains the party that sends transfers over the link: the client for a producer endpoint, the remote node for a consumer endpoint. The enum is advisory at authoring time so that an unresolved placeholder is permitted; the resolved value MUST be one of the listed values"
                       },
                       "receiver-settle-mode": {
                         "type": "string",
-                        "description": "AMQP receiver settle mode requested for the link. It constrains the party that receives transfers over the link: the remote node for a producer endpoint, the client for a consumer endpoint"
+                        "description": "AMQP receiver settle mode requested for the link. It constrains the party that receives transfers over the link: the remote node for a producer endpoint, the client for a consumer endpoint. The enum is advisory at authoring time so that an unresolved placeholder is permitted; the resolved value MUST be one of the listed values"
                       }
                     }
                   }
@@ -1497,8 +1487,8 @@
                           "properties": {
                             "uri": {
                               "type": "string",
-                              "format": "uri",
-                              "description": "MQTT URI (mqtt, mqtts, or ws scheme)"
+                              "format": "uri-template",
+                              "description": "MQTT URI (mqtt, mqtts, or ws scheme). Authored values MAY carry RFC6570 Level 1 placeholders; the resolved value MUST use one of those schemes"
                             }
                           }
                         }
@@ -1519,13 +1509,13 @@
                             },
                             "resourceuri": {
                               "type": "string",
-                              "format": "uri",
-                              "description": "The resource uri for which authorization shall be granted (if applicable)"
+                              "format": "uri-template",
+                              "description": "The resource uri for which authorization shall be granted (if applicable). Authored values MAY carry RFC6570 Level 1 placeholders; the resolved value MUST be a valid URI"
                             },
                             "authorityuri": {
                               "type": "string",
-                              "format": "uri",
-                              "description": "The authority uri where authorization shall be requested (if applicable)"
+                              "format": "uri-template",
+                              "description": "The authority uri where authorization shall be requested (if applicable). Authored values MAY carry RFC6570 Level 1 placeholders; the resolved value MUST be a valid URI"
                             }
                           }
                         }
@@ -1614,8 +1604,8 @@
                           "properties": {
                             "uri": {
                               "type": "string",
-                              "format": "uri",
-                              "description": "MQTT URI (mqtt, mqtts, or ws scheme)"
+                              "format": "uri-template",
+                              "description": "MQTT URI (mqtt, mqtts, or ws scheme). Authored values MAY carry RFC6570 Level 1 placeholders; the resolved value MUST use one of those schemes"
                             }
                           }
                         }
@@ -1636,13 +1626,13 @@
                             },
                             "resourceuri": {
                               "type": "string",
-                              "format": "uri",
-                              "description": "The resource uri for which authorization shall be granted (if applicable)"
+                              "format": "uri-template",
+                              "description": "The resource uri for which authorization shall be granted (if applicable). Authored values MAY carry RFC6570 Level 1 placeholders; the resolved value MUST be a valid URI"
                             },
                             "authorityuri": {
                               "type": "string",
-                              "format": "uri",
-                              "description": "The authority uri where authorization shall be requested (if applicable)"
+                              "format": "uri-template",
+                              "description": "The authority uri where authorization shall be requested (if applicable). Authored values MAY carry RFC6570 Level 1 placeholders; the resolved value MUST be a valid URI"
                             }
                           }
                         }
@@ -1709,8 +1699,8 @@
                           "properties": {
                             "uri": {
                               "type": "string",
-                              "format": "uri",
-                              "description": "HTTP URI"
+                              "format": "uri-template",
+                              "description": "HTTP URI. Authored values MAY carry RFC6570 Level 1 placeholders; the resolved value MUST be a valid 'http' or 'https' URI"
                             }
                           }
                         }
@@ -1731,13 +1721,13 @@
                             },
                             "resourceuri": {
                               "type": "string",
-                              "format": "uri",
-                              "description": "The resource uri for which authorization shall be granted (if applicable)"
+                              "format": "uri-template",
+                              "description": "The resource uri for which authorization shall be granted (if applicable). Authored values MAY carry RFC6570 Level 1 placeholders; the resolved value MUST be a valid URI"
                             },
                             "authorityuri": {
                               "type": "string",
-                              "format": "uri",
-                              "description": "The authority uri where authorization shall be requested (if applicable)"
+                              "format": "uri-template",
+                              "description": "The authority uri where authorization shall be requested (if applicable). Authored values MAY carry RFC6570 Level 1 placeholders; the resolved value MUST be a valid URI"
                             }
                           }
                         }
@@ -1771,11 +1761,7 @@
                         }
                       },
                       "query": {
-                        "type": "object",
-                        "description": "HTTP query parameters",
-                        "additionalProperties": {
-                          "type": "string"
-                        }
+                        "description": "HTTP query parameters. This is an opaque native-name map: its keys are HTTP query parameter names and are not constrained by the xRegistry map key character set. Keys and values are strings that MAY carry RFC6570 Level 1 placeholders. See the Protocol Options authoring boundary for the obligations that apply"
                       },
                       "apikeyname": {
                         "type": "string",
@@ -1857,13 +1843,13 @@
                             },
                             "resourceuri": {
                               "type": "string",
-                              "format": "uri",
-                              "description": "The resource uri for which authorization shall be granted (if applicable)"
+                              "format": "uri-template",
+                              "description": "The resource uri for which authorization shall be granted (if applicable). Authored values MAY carry RFC6570 Level 1 placeholders; the resolved value MUST be a valid URI"
                             },
                             "authorityuri": {
                               "type": "string",
-                              "format": "uri",
-                              "description": "The authority uri where authorization shall be requested (if applicable)"
+                              "format": "uri-template",
+                              "description": "The authority uri where authorization shall be requested (if applicable). Authored values MAY carry RFC6570 Level 1 placeholders; the resolved value MUST be a valid URI"
                             }
                           }
                         }
@@ -1893,11 +1879,7 @@
                         "description": "The Apache Kafka consumer group name. It MUST be present and non-empty on a 'consumer' endpoint and MUST be absent on a 'subscriber' endpoint"
                       },
                       "headers": {
-                        "type": "object",
-                        "description": "The Apache Kafka headers for publishers on this endpoint",
-                        "additionalProperties": {
-                          "type": "string"
-                        }
+                        "description": "The Apache Kafka headers for publishers on this endpoint. This is an opaque native-name map: its keys are Kafka header names and are not constrained by the xRegistry map key character set. Keys and values are strings that MAY carry RFC6570 Level 1 placeholders. See the Protocol Options authoring boundary for the obligations that apply"
                       },
                       "keyserializer": {
                         "type": "string",
@@ -1909,7 +1891,7 @@
                       },
                       "autooffsetreset": {
                         "type": "string",
-                        "description": "Consumer offset reset behavior when no valid committed offset exists"
+                        "description": "Consumer offset reset behavior when no valid committed offset exists. The enum is advisory at authoring time so that an unresolved placeholder such as '{mode}' is permitted; the resolved value MUST be one of the listed values"
                       },
                       "enableautocommit": {
                         "type": "boolean",
@@ -1943,8 +1925,8 @@
                           "properties": {
                             "uri": {
                               "type": "string",
-                              "format": "uri",
-                              "description": "NATS URI"
+                              "format": "uri-template",
+                              "description": "NATS URI. Authored values MAY carry RFC6570 Level 1 placeholders; the resolved value MUST be a valid NATS URI"
                             }
                           }
                         }
@@ -1965,13 +1947,13 @@
                             },
                             "resourceuri": {
                               "type": "string",
-                              "format": "uri",
-                              "description": "The resource uri for which authorization shall be granted (if applicable)"
+                              "format": "uri-template",
+                              "description": "The resource uri for which authorization shall be granted (if applicable). Authored values MAY carry RFC6570 Level 1 placeholders; the resolved value MUST be a valid URI"
                             },
                             "authorityuri": {
                               "type": "string",
-                              "format": "uri",
-                              "description": "The authority uri where authorization shall be requested (if applicable)"
+                              "format": "uri-template",
+                              "description": "The authority uri where authorization shall be requested (if applicable). Authored values MAY carry RFC6570 Level 1 placeholders; the resolved value MUST be a valid URI"
                             }
                           }
                         }

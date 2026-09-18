@@ -977,8 +977,8 @@
         "type": "object",
         "properties": {
           "uri": {
-            "type": "uri",
-            "description": "AMQP Addressing URI"
+            "type": "string",
+            "description": "AMQP Addressing URI. Authored values MAY carry RFC6570 Level 1 placeholders; the resolved value MUST satisfy the AMQP address requirements"
           }
         },
         "additionalProperties": true
@@ -995,12 +995,12 @@
             "description": "The SASL mechanism name when authorization.type is SASL (for example PLAIN, SCRAM-SHA-256, SCRAM-SHA-512, OAUTHBEARER, or EXTERNAL)"
           },
           "resourceuri": {
-            "type": "uri",
-            "description": "The resource uri for which authorization shall be granted (if applicable)"
+            "type": "string",
+            "description": "The resource uri for which authorization shall be granted (if applicable). Authored values MAY carry RFC6570 Level 1 placeholders; the resolved value MUST be a valid URI"
           },
           "authorityuri": {
-            "type": "uri",
-            "description": "The authority uri where authorization shall be requested (if applicable)"
+            "type": "string",
+            "description": "The authority uri where authorization shall be requested (if applicable). Authored values MAY carry RFC6570 Level 1 placeholders; the resolved value MUST be a valid URI"
           }
         },
         "additionalProperties": true
@@ -1160,32 +1160,22 @@
                 "description": "Whether the AMQP node identified by 'node' is durable rather than transient. This is a property of the node, not of the link terminus and not of the message header field of the same name. Terminus durability is expressed by 'terminus-durability'"
               },
               "linkProperties": {
-                "type": "map",
-                "values": {
-                  "type": "string"
-                },
-                "description": "An optional map of AMQP link properties to use with the endpoint",
+                "type": "any",
+                "description": "An optional map of AMQP link properties to use with the endpoint. This is an opaque native-name map: its keys are AMQP symbols and are not constrained by the xRegistry map key character set. See the Protocol Options authoring boundary for the obligations that apply",
                 "altnames": {
                   "json": "link-properties"
                 }
               },
               "connectionProperties": {
-                "type": "map",
-                "values": {
-                  "type": "string"
-                },
-                "description": "An optional map of AMQP connection properties to use with the endpoint",
+                "type": "any",
+                "description": "An optional map of AMQP connection properties to use with the endpoint. This is an opaque native-name map: its keys are AMQP symbols and are not constrained by the xRegistry map key character set. See the Protocol Options authoring boundary for the obligations that apply",
                 "altnames": {
                   "json": "connection-properties"
                 }
               },
               "distributionMode": {
                 "type": "string",
-                "description": "The AMQP source distribution mode. 'move' means a transferred message is removed from the node and is therefore seen by only one receiver. 'copy' means the message remains at the node after transfer and may also be transferred to other receivers. This does not describe message locking",
-                "enum": [
-                  "move",
-                  "copy"
-                ],
+                "description": "The AMQP source distribution mode. 'move' means a transferred message is removed from the node and is therefore seen by only one receiver. 'copy' means the message remains at the node after transfer and may also be transferred to other receivers. This does not describe message locking. The enum is advisory at authoring time so that an unresolved placeholder is permitted; the resolved value MUST be one of the listed values",
                 "altnames": {
                   "json": "distribution-mode"
                 }
@@ -1211,11 +1201,8 @@
                 }
               },
               "sourceFilters": {
-                "type": "map",
-                "values": {
-                  "type": "any"
-                },
-                "description": "AMQP source filters used for subscription/receive setup",
+                "type": "any",
+                "description": "AMQP source filters used for subscription/receive setup. This is an opaque native-name map: its keys are AMQP filter symbols and its values keep their authored JSON kind, including a literal null. See the Protocol Options authoring boundary for the obligations that apply",
                 "altnames": {
                   "json": "source-filters"
                 }
@@ -1226,25 +1213,14 @@
               },
               "terminusDurability": {
                 "type": "string",
-                "description": "Durability mode for the applicable source/target terminus",
-                "enum": [
-                  "none",
-                  "configuration",
-                  "unsettled-state"
-                ],
+                "description": "Durability mode for the applicable source/target terminus. The enum is advisory at authoring time so that an unresolved placeholder is permitted; the resolved value MUST be one of the listed values",
                 "altnames": {
                   "json": "terminus-durability"
                 }
               },
               "expiryPolicy": {
                 "type": "string",
-                "description": "Expiry policy for the applicable source/target terminus",
-                "enum": [
-                  "link-detach",
-                  "session-end",
-                  "connection-close",
-                  "never"
-                ],
+                "description": "Expiry policy for the applicable source/target terminus. The enum is advisory at authoring time so that an unresolved placeholder is permitted; the resolved value MUST be one of the listed values",
                 "altnames": {
                   "json": "expiry-policy"
                 }
@@ -1255,23 +1231,14 @@
               },
               "senderSettleMode": {
                 "type": "string",
-                "description": "AMQP sender settle mode requested for the link. It constrains the party that sends transfers over the link: the client for a producer endpoint, the remote node for a consumer endpoint",
-                "enum": [
-                  "unsettled",
-                  "settled",
-                  "mixed"
-                ],
+                "description": "AMQP sender settle mode requested for the link. It constrains the party that sends transfers over the link: the client for a producer endpoint, the remote node for a consumer endpoint. The enum is advisory at authoring time so that an unresolved placeholder is permitted; the resolved value MUST be one of the listed values",
                 "altnames": {
                   "json": "sender-settle-mode"
                 }
               },
               "receiverSettleMode": {
                 "type": "string",
-                "description": "AMQP receiver settle mode requested for the link. It constrains the party that receives transfers over the link: the remote node for a producer endpoint, the client for a consumer endpoint",
-                "enum": [
-                  "first",
-                  "second"
-                ],
+                "description": "AMQP receiver settle mode requested for the link. It constrains the party that receives transfers over the link: the remote node for a producer endpoint, the client for a consumer endpoint. The enum is advisory at authoring time so that an unresolved placeholder is permitted; the resolved value MUST be one of the listed values",
                 "altnames": {
                   "json": "receiver-settle-mode"
                 }
