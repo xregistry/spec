@@ -1026,8 +1026,8 @@ determines how the declared property is named.
 | Container shape | Used by | Property name |
 | --- | --- | --- |
 | Flat object with defined member names | CloudEvents `envelopemetadata`, AMQP `properties` | The member name |
-| Native-name map | AMQP `application-properties`, `message-annotations`, `delivery-annotations` and `footer`; Kafka `headers` | The map key |
-| Ordered array | HTTP `headers` and `query`; NATS `headers`; MQTT `user_properties` | The entry's `name` member |
+| Native-name map | AMQP `application-properties`, `message-annotations`, `delivery-annotations` and `footer`; Kafka `headers`; HTTP `query` | The map key |
+| Ordered array | HTTP `headers`; NATS `headers`; MQTT `user_properties` | The entry's `name` member |
 
 CloudEvents `envelopemetadata` is a flat object whose members are the
 CloudEvents context attributes themselves; it does not nest them inside a
@@ -1098,10 +1098,13 @@ rule, which stays lower-case alphanumeric without separators.
 
 In a native-name map the key is the sole canonical name of the property, and a
 declaration in such a map MUST NOT carry a `name` member. Earlier revisions of
-the Kafka `headers` model additionally mandated an inner `name`; a declaration
-that still carries one MUST be migrated by deleting that member and keeping
-the outer key. This specification defines no precedence between an outer key
-and an inner name, and defines no alias for the case in which the two agree.
+the Kafka `headers` and HTTP `query` models additionally mandated an inner
+`name`, and HTTP `query` was additionally modelled as an array; a declaration
+that still carries an inner `name` MUST be migrated by deleting that member
+and keeping the outer key, and an HTTP `query` written as an array MUST be
+migrated to a map keyed by the parameter name. This specification defines no
+precedence between an outer key and an inner name, and defines no alias for
+the case in which the two agree.
 
 In an ordered array the order of the entries is significant and MUST be
 preserved, the same `name` MAY appear in more than one entry, and the array
@@ -1409,7 +1412,13 @@ therefore an ordered array of declaration records, each carrying a REQUIRED
 Entry order and repeated names are preserved, and the `name` of each entry
 MUST be a valid HTTP header name.
 
-The `query` property is a map of string keys to string values.
+The `query` property is a map of string keys to string values. It is a
+native-name map of declaration records as defined in
+[Property Definitions](#property-definitions): its map key is the sole
+canonical query parameter name, its key character set is not constrained by
+the xRegistry map key rules, and a declaration MUST NOT carry an inner `name`
+member. A `query` written as an array of records needs the migration described
+in [Declared property names](#declared-property-names).
 
 The `path` property is a URI template.
 
@@ -1436,12 +1445,11 @@ The following example defines a message that is sent over HTTP/1.1:
         "value": "application/json"
       }
     ],
-    "query": [
-      {
-        "name": "foo",
+    "query": {
+      "foo": {
         "value": "bar"
       }
-    ],
+    },
     "path": "/foo/{bar}",
     "method": "POST"
   },

@@ -445,9 +445,7 @@
                         "items": {}
                       },
                       "query": {
-                        "type": "array",
-                        "description": "The HTTP query parameters. This is an ordered array: entry order is preserved and the same 'name' MAY appear more than once. Each entry is an opaque declaration record with an additional REQUIRED 'name' member, defined by the common Property Definitions contract",
-                        "items": {}
+                        "description": "The HTTP query parameters. The whole section is an opaque native-name map: each key is an HTTP query parameter name and is the sole canonical name of that parameter, and its key character set is not constrained by the xRegistry map key rules. Each value is a declaration record defined by the common Property Definitions contract and MUST NOT carry a redundant inner 'name' member. Keys and values MAY carry RFC6570 Level 1 placeholders"
                       },
                       "path": {
                         "type": "string",

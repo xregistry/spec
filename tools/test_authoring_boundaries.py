@@ -49,11 +49,11 @@ MESSAGE_NATIVE_NAME_CONTAINERS = [
     ("AMQP/1.0", "delivery-annotations"),
     ("AMQP/1.0", "footer"),
     ("KAFKA", "headers"),
+    ("HTTP", "query"),
 ]
 
 MESSAGE_ORDERED_ARRAYS = [
     ("HTTP", "headers"),
-    ("HTTP", "query"),
     ("NATS", "headers"),
     ("MQTT/5.0", "user_properties"),
 ]
@@ -685,3 +685,29 @@ def test_opaque_containers_admit_structurally_invalid_data(
         "headers"
     ]
     assert _accepts(container, structurally_invalid)
+
+
+def test_legacy_http_query_array_is_prohibited_only_by_the_normative_text():
+    """The array form of HTTP `query` cannot be rejected by a generated schema.
+
+    `protocoloptions.query` is an opaque native-name map, so the generated
+    schema admits any JSON value there, including the obsolete array of
+    records. Requiring the map form is therefore a normative obligation on
+    authors and clients, and the migration is stated in the specification's
+    Declared property names section.
+    """
+    model = _load(MESSAGE_MODEL)
+    declared = message_options(model, "HTTP")["query"]
+    assert declared["type"] == "any"
+    assert "item" not in declared
+    assert "attributes" not in declared
+
+    document = json.loads(
+        (ROOT / "message" / "schemas" / "document-schema.json").read_text("utf-8")
+    )
+    container = _guarded_options(
+        document["definitions"]["messagegroup-schema"]["message"], "protocol", "HTTP"
+    )["properties"]["query"]
+    legacy = [{"name": "foo", "value": "bar"}]
+    assert _accepts(container, legacy)
+    assert _accepts(container, {"foo": {"value": "bar"}})
