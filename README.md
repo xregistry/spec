@@ -78,6 +78,9 @@ below explains each change.
 Generated OpenAPI request types distinguish replacement and partial inputs
 from completed responses, Resource Meta types use model-specific IDs, and the
 `$details` suffix rather than the media type selects Resource metadata.
+Strict scalar `enum` value sets and statically resolvable Group constraints
+are now expressed in both generated dialects, so data that previously passed
+validation may start failing it.
 See the [request and Meta guidance](tools/openapi-request-meta-schemas.md)
 for default/server obligations, alias forms, document routes and structural
 validation limits.

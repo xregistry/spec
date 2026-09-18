@@ -465,16 +465,21 @@ def test_root_wildcard_does_not_apply_to_core_or_declared_group_members(dialect)
 @pytest.mark.parametrize("dialect", ["json-schema", "openapi"])
 def test_closure_keeps_enum_scope_and_case_insensitive_selection(dialect):
     definition = conditional_definition()
+    # Selector activation is a separate rule from enum membership, so this
+    # fixture uses an advisory value set. Strict scalar membership itself is
+    # covered by test_schema_generator_scalar_enums.py.
     definition["attributes"]["kind"]["enum"] = ["alpha"]
-    definition["attributes"]["kind"]["strict"] = True
+    definition["attributes"]["kind"]["strict"] = False
     definition["attributes"]["kind"]["ifvalues"].pop("beta")
     validator = generated_validator(model(definition), dialect)
-    # Scalar enum enforcement is outside these combined fixes.
     validator.validate(document({"kind": "other"}))
     validator.validate(document({"kind": "ALPHA"}))
     validator.validate(document({"kind": "ALPHA", "alpha": {"name": "http"}}))
     with pytest.raises(jsonschema.ValidationError):
         validator.validate(document({"kind": "ALPHAX", "alpha": {"name": "http"}}))
+    with pytest.raises(jsonschema.ValidationError):
+        validator.validate(document({"kind": "alpha", "alpha": {"name": "http"},
+                                     "unmodeled": True}))
 
 
 @pytest.mark.parametrize("dialect", ["json-schema", "openapi"])

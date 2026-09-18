@@ -152,6 +152,38 @@ resolved alias. Default-Version creation, sticky/default selection, readonly
 admin permissions and other state transitions remain server obligations.
 Generated schemas do not decide these transitions from shape alone.
 
+## Scalar value sets and Group constraints
+
+A scalar attribute whose `enum` is nonempty and whose effective `strict` is
+true now projects that value set into both dialects, at every entity, nested
+object, map/array-of-object, typed scalar wildcard and active conditional
+sibling leaf. An advisory (`strict: false`), empty or absent `enum` still
+admits any otherwise-valid scalar, and the scalar type check is unchanged, so
+a Boolean is not an integer and `"1"` is not an integer.
+
+The value set is an independent restriction from `ifvalues` selection.
+Selector activation stays case-insensitive; it never makes a non-member legal.
+A source model whose selector key or non-null `default` falls outside an
+effective strict value set is rejected at generation.
+
+Request roles keep their reset behavior: where a writable field is nullable,
+the emitted value set also admits `null`, so `nullable: true` never has to be
+read as an override of membership. Read-only request values remain ignored
+rather than checked, and completed responses still require an applicable
+member.
+
+A Group `constraints` entry that reaches a scalar attribute through
+statically defined object attributes narrows that Group's own projection, and
+the effective default is checked against the effective set. Map, array,
+wildcard and `ifvalues`-defined targets are rejected. An imported Resource is
+narrowed through the importing Group's reference only, so the shared Resource
+definition is never altered and one Group's restrictions never reach another.
+The dynamic `equals` comparison against actual Group instance values, and
+xref graph enforcement, stay outside static schema generation.
+
+Array-level `enum` keeps its existing item projection, and no `item.enum`
+vocabulary is introduced.
+
 ## Scope
 
 Apart from the Resource `$details` writes above, these corrections do not add
@@ -170,3 +202,5 @@ For JSON Structure typed-wildcard handling, see
 - [Cross references](../core/spec.md#cross-referencing-resources)
 - [Required model attributes](../core/model.md#attributesstringrequired)
 - [Model defaults](../core/model.md#attributesstringdefault)
+- [Scalar value sets](../core/model.md#attributesstringenum)
+- [Group constraints](../core/model.md#groupsstringconstraints)

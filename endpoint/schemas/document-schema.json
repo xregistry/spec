@@ -351,14 +351,23 @@
                                       "type": "string"
                                     },
                                     "type": {
-                                      "type": "string"
+                                      "type": "string",
+                                      "enum": [
+                                        "string"
+                                      ]
                                     },
                                     "value": {
                                       "type": "string",
+                                      "enum": [
+                                        "1.0"
+                                      ],
                                       "description": "CloudEvents spec version (fixed to '1.0')"
                                     },
                                     "required": {
                                       "type": "boolean",
+                                      "enum": [
+                                        true
+                                      ],
                                       "description": "CloudEvents specversion is always required"
                                     }
                                   },
@@ -372,7 +381,11 @@
                                       "type": "string"
                                     },
                                     "type": {
-                                      "type": "string"
+                                      "type": "string",
+                                      "enum": [
+                                        "uritemplate",
+                                        "string"
+                                      ]
                                     },
                                     "value": {
                                       "type": "string",
@@ -380,6 +393,9 @@
                                     },
                                     "required": {
                                       "type": "boolean",
+                                      "enum": [
+                                        true
+                                      ],
                                       "description": "CloudEvents id is always required"
                                     }
                                   },
@@ -401,6 +417,9 @@
                                     },
                                     "required": {
                                       "type": "boolean",
+                                      "enum": [
+                                        true
+                                      ],
                                       "description": "CloudEvents type is always required"
                                     }
                                   },
@@ -414,7 +433,11 @@
                                       "type": "string"
                                     },
                                     "type": {
-                                      "type": "string"
+                                      "type": "string",
+                                      "enum": [
+                                        "uritemplate",
+                                        "string"
+                                      ]
                                     },
                                     "value": {
                                       "type": "string",
@@ -422,6 +445,9 @@
                                     },
                                     "required": {
                                       "type": "boolean",
+                                      "enum": [
+                                        true
+                                      ],
                                       "description": "CloudEvents source is always required"
                                     }
                                   },
@@ -435,7 +461,11 @@
                                       "type": "string"
                                     },
                                     "type": {
-                                      "type": "string"
+                                      "type": "string",
+                                      "enum": [
+                                        "uritemplate",
+                                        "string"
+                                      ]
                                     },
                                     "value": {
                                       "type": "string",
@@ -456,7 +486,10 @@
                                       "type": "string"
                                     },
                                     "type": {
-                                      "type": "string"
+                                      "type": "string",
+                                      "enum": [
+                                        "timestamp"
+                                      ]
                                     },
                                     "value": {
                                       "type": "string",
@@ -539,6 +572,10 @@
                               "properties": {
                                 "mode": {
                                   "type": "string",
+                                  "enum": [
+                                    "binary",
+                                    "structured"
+                                  ],
                                   "description": "Whether CloudEvents 'binary' or 'structured' mode will be used"
                                 },
                                 "format": {
@@ -597,6 +634,13 @@
                                         },
                                         "type": {
                                           "type": "string",
+                                          "enum": [
+                                            "ulong",
+                                            "uuid",
+                                            "binary",
+                                            "string",
+                                            "uritemplate"
+                                          ],
                                           "description": "AMQP properties.message-id type constraint. The type values refer to the AMQP type model` and the defined message-id types"
                                         },
                                         "value": {
@@ -619,6 +663,11 @@
                                         },
                                         "type": {
                                           "type": "string",
+                                          "enum": [
+                                            "binary",
+                                            "string",
+                                            "uritemplate"
+                                          ],
                                           "description": "AMQP properties.user-id value type"
                                         },
                                         "value": {
@@ -641,6 +690,10 @@
                                         },
                                         "type": {
                                           "type": "string",
+                                          "enum": [
+                                            "string",
+                                            "uritemplate"
+                                          ],
                                           "description": "AMQP properties.to value type"
                                         },
                                         "value": {
@@ -663,6 +716,10 @@
                                         },
                                         "type": {
                                           "type": "string",
+                                          "enum": [
+                                            "string",
+                                            "uritemplate"
+                                          ],
                                           "description": "AMQP properties.subject value type"
                                         },
                                         "value": {
@@ -685,6 +742,10 @@
                                         },
                                         "type": {
                                           "type": "string",
+                                          "enum": [
+                                            "string",
+                                            "uritemplate"
+                                          ],
                                           "description": "AMQP properties.reply-to value type"
                                         },
                                         "value": {
@@ -707,6 +768,11 @@
                                         },
                                         "type": {
                                           "type": "string",
+                                          "enum": [
+                                            "binary",
+                                            "string",
+                                            "uritemplate"
+                                          ],
                                           "description": "AMQP correlation-id value type"
                                         },
                                         "value": {
@@ -729,6 +795,10 @@
                                         },
                                         "type": {
                                           "type": "string",
+                                          "enum": [
+                                            "string",
+                                            "uritemplate"
+                                          ],
                                           "description": "AMQP properties.content-type value type"
                                         },
                                         "value": {
@@ -751,6 +821,9 @@
                                         },
                                         "type": {
                                           "type": "string",
+                                          "enum": [
+                                            "string"
+                                          ],
                                           "description": "AMQP properties.content-encoding value type"
                                         },
                                         "value": {
@@ -773,6 +846,9 @@
                                         },
                                         "type": {
                                           "type": "string",
+                                          "enum": [
+                                            "timestamp"
+                                          ],
                                           "description": "AMQP properties.absolute-expiry-time value type"
                                         },
                                         "value": {
@@ -795,6 +871,9 @@
                                         },
                                         "type": {
                                           "type": "string",
+                                          "enum": [
+                                            "timestamp"
+                                          ],
                                           "description": "AMQP properties.creation-time value type"
                                         },
                                         "value": {
@@ -817,6 +896,10 @@
                                         },
                                         "type": {
                                           "type": "string",
+                                          "enum": [
+                                            "string",
+                                            "uritemplate"
+                                          ],
                                           "description": "AMQP properties.group-id value type"
                                         },
                                         "value": {
@@ -839,6 +922,9 @@
                                         },
                                         "type": {
                                           "type": "string",
+                                          "enum": [
+                                            "integer"
+                                          ],
                                           "description": "AMQP group-sequence value type"
                                         },
                                         "value": {
@@ -861,6 +947,10 @@
                                         },
                                         "type": {
                                           "type": "string",
+                                          "enum": [
+                                            "string",
+                                            "uritemplate"
+                                          ],
                                           "description": "AMQP properties.reply-to-group-id value type"
                                         },
                                         "value": {
@@ -888,6 +978,13 @@
                                       },
                                       "type": {
                                         "type": "string",
+                                        "enum": [
+                                          "string",
+                                          "uritemplate",
+                                          "integer",
+                                          "number",
+                                          "boolean"
+                                        ],
                                         "description": "The application property type"
                                       },
                                       "value": {
@@ -913,6 +1010,13 @@
                                       },
                                       "type": {
                                         "type": "string",
+                                        "enum": [
+                                          "string",
+                                          "uritemplate",
+                                          "integer",
+                                          "number",
+                                          "boolean"
+                                        ],
                                         "description": "The message annotation type"
                                       },
                                       "value": {
@@ -938,6 +1042,13 @@
                                       },
                                       "type": {
                                         "type": "string",
+                                        "enum": [
+                                          "string",
+                                          "uritemplate",
+                                          "integer",
+                                          "number",
+                                          "boolean"
+                                        ],
                                         "description": "The annotation type"
                                       },
                                       "value": {
@@ -990,6 +1101,13 @@
                                       },
                                       "type": {
                                         "type": "string",
+                                        "enum": [
+                                          "string",
+                                          "uritemplate",
+                                          "integer",
+                                          "number",
+                                          "boolean"
+                                        ],
                                         "description": "AMQP footer type"
                                       },
                                       "value": {
@@ -1070,6 +1188,10 @@
                                 },
                                 "payload_format_indicator": {
                                   "type": "integer",
+                                  "enum": [
+                                    0,
+                                    1
+                                  ],
                                   "description": "MQTT payload format indicator"
                                 },
                                 "message_expiry_interval": {
@@ -1621,14 +1743,23 @@
                             "type": "string"
                           },
                           "type": {
-                            "type": "string"
+                            "type": "string",
+                            "enum": [
+                              "string"
+                            ]
                           },
                           "value": {
                             "type": "string",
+                            "enum": [
+                              "1.0"
+                            ],
                             "description": "CloudEvents spec version (fixed to '1.0')"
                           },
                           "required": {
                             "type": "boolean",
+                            "enum": [
+                              true
+                            ],
                             "description": "CloudEvents specversion is always required"
                           }
                         },
@@ -1642,7 +1773,11 @@
                             "type": "string"
                           },
                           "type": {
-                            "type": "string"
+                            "type": "string",
+                            "enum": [
+                              "uritemplate",
+                              "string"
+                            ]
                           },
                           "value": {
                             "type": "string",
@@ -1650,6 +1785,9 @@
                           },
                           "required": {
                             "type": "boolean",
+                            "enum": [
+                              true
+                            ],
                             "description": "CloudEvents id is always required"
                           }
                         },
@@ -1671,6 +1809,9 @@
                           },
                           "required": {
                             "type": "boolean",
+                            "enum": [
+                              true
+                            ],
                             "description": "CloudEvents type is always required"
                           }
                         },
@@ -1684,7 +1825,11 @@
                             "type": "string"
                           },
                           "type": {
-                            "type": "string"
+                            "type": "string",
+                            "enum": [
+                              "uritemplate",
+                              "string"
+                            ]
                           },
                           "value": {
                             "type": "string",
@@ -1692,6 +1837,9 @@
                           },
                           "required": {
                             "type": "boolean",
+                            "enum": [
+                              true
+                            ],
                             "description": "CloudEvents source is always required"
                           }
                         },
@@ -1705,7 +1853,11 @@
                             "type": "string"
                           },
                           "type": {
-                            "type": "string"
+                            "type": "string",
+                            "enum": [
+                              "uritemplate",
+                              "string"
+                            ]
                           },
                           "value": {
                             "type": "string",
@@ -1726,7 +1878,10 @@
                             "type": "string"
                           },
                           "type": {
-                            "type": "string"
+                            "type": "string",
+                            "enum": [
+                              "timestamp"
+                            ]
                           },
                           "value": {
                             "type": "string",
@@ -1809,6 +1964,10 @@
                     "properties": {
                       "mode": {
                         "type": "string",
+                        "enum": [
+                          "binary",
+                          "structured"
+                        ],
                         "description": "Whether CloudEvents 'binary' or 'structured' mode will be used"
                       },
                       "format": {
@@ -1867,6 +2026,13 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "ulong",
+                                  "uuid",
+                                  "binary",
+                                  "string",
+                                  "uritemplate"
+                                ],
                                 "description": "AMQP properties.message-id type constraint. The type values refer to the AMQP type model` and the defined message-id types"
                               },
                               "value": {
@@ -1889,6 +2055,11 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "binary",
+                                  "string",
+                                  "uritemplate"
+                                ],
                                 "description": "AMQP properties.user-id value type"
                               },
                               "value": {
@@ -1911,6 +2082,10 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "string",
+                                  "uritemplate"
+                                ],
                                 "description": "AMQP properties.to value type"
                               },
                               "value": {
@@ -1933,6 +2108,10 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "string",
+                                  "uritemplate"
+                                ],
                                 "description": "AMQP properties.subject value type"
                               },
                               "value": {
@@ -1955,6 +2134,10 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "string",
+                                  "uritemplate"
+                                ],
                                 "description": "AMQP properties.reply-to value type"
                               },
                               "value": {
@@ -1977,6 +2160,11 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "binary",
+                                  "string",
+                                  "uritemplate"
+                                ],
                                 "description": "AMQP correlation-id value type"
                               },
                               "value": {
@@ -1999,6 +2187,10 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "string",
+                                  "uritemplate"
+                                ],
                                 "description": "AMQP properties.content-type value type"
                               },
                               "value": {
@@ -2021,6 +2213,9 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "string"
+                                ],
                                 "description": "AMQP properties.content-encoding value type"
                               },
                               "value": {
@@ -2043,6 +2238,9 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "timestamp"
+                                ],
                                 "description": "AMQP properties.absolute-expiry-time value type"
                               },
                               "value": {
@@ -2065,6 +2263,9 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "timestamp"
+                                ],
                                 "description": "AMQP properties.creation-time value type"
                               },
                               "value": {
@@ -2087,6 +2288,10 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "string",
+                                  "uritemplate"
+                                ],
                                 "description": "AMQP properties.group-id value type"
                               },
                               "value": {
@@ -2109,6 +2314,9 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "integer"
+                                ],
                                 "description": "AMQP group-sequence value type"
                               },
                               "value": {
@@ -2131,6 +2339,10 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "string",
+                                  "uritemplate"
+                                ],
                                 "description": "AMQP properties.reply-to-group-id value type"
                               },
                               "value": {
@@ -2158,6 +2370,13 @@
                             },
                             "type": {
                               "type": "string",
+                              "enum": [
+                                "string",
+                                "uritemplate",
+                                "integer",
+                                "number",
+                                "boolean"
+                              ],
                               "description": "The application property type"
                             },
                             "value": {
@@ -2183,6 +2402,13 @@
                             },
                             "type": {
                               "type": "string",
+                              "enum": [
+                                "string",
+                                "uritemplate",
+                                "integer",
+                                "number",
+                                "boolean"
+                              ],
                               "description": "The message annotation type"
                             },
                             "value": {
@@ -2208,6 +2434,13 @@
                             },
                             "type": {
                               "type": "string",
+                              "enum": [
+                                "string",
+                                "uritemplate",
+                                "integer",
+                                "number",
+                                "boolean"
+                              ],
                               "description": "The annotation type"
                             },
                             "value": {
@@ -2260,6 +2493,13 @@
                             },
                             "type": {
                               "type": "string",
+                              "enum": [
+                                "string",
+                                "uritemplate",
+                                "integer",
+                                "number",
+                                "boolean"
+                              ],
                               "description": "AMQP footer type"
                             },
                             "value": {
@@ -2340,6 +2580,10 @@
                       },
                       "payload_format_indicator": {
                         "type": "integer",
+                        "enum": [
+                          0,
+                          1
+                        ],
                         "description": "MQTT payload format indicator"
                       },
                       "message_expiry_interval": {
@@ -3040,7 +3284,11 @@
                     "description": "Envelope metadata constraints",
                     "properties": {
                       "mode": {
-                        "type": "string"
+                        "type": "string",
+                        "enum": [
+                          "binary",
+                          "structured"
+                        ]
                       },
                       "format": {
                         "type": "string"
@@ -3153,6 +3401,10 @@
                       },
                       "distribution-mode": {
                         "type": "string",
+                        "enum": [
+                          "move",
+                          "copy"
+                        ],
                         "description": "The AMQP source distribution mode. 'move' means a transferred message is removed from the node and is therefore seen by only one receiver. 'copy' means the message remains at the node after transfer and may also be transferred to other receivers. This does not describe message locking"
                       },
                       "connection-capabilities": {
@@ -3180,10 +3432,21 @@
                       },
                       "terminus-durability": {
                         "type": "string",
+                        "enum": [
+                          "none",
+                          "configuration",
+                          "unsettled-state"
+                        ],
                         "description": "Durability mode for the applicable source/target terminus"
                       },
                       "expiry-policy": {
                         "type": "string",
+                        "enum": [
+                          "link-detach",
+                          "session-end",
+                          "connection-close",
+                          "never"
+                        ],
                         "description": "Expiry policy for the applicable source/target terminus"
                       },
                       "timeout": {
@@ -3193,10 +3456,19 @@
                       },
                       "sender-settle-mode": {
                         "type": "string",
+                        "enum": [
+                          "unsettled",
+                          "settled",
+                          "mixed"
+                        ],
                         "description": "AMQP sender settle mode requested for the link. It constrains the party that sends transfers over the link: the client for a producer endpoint, the remote node for a consumer endpoint"
                       },
                       "receiver-settle-mode": {
                         "type": "string",
+                        "enum": [
+                          "first",
+                          "second"
+                        ],
                         "description": "AMQP receiver settle mode requested for the link. It constrains the party that receives transfers over the link: the remote node for a producer endpoint, the client for a consumer endpoint"
                       }
                     }
@@ -3269,6 +3541,11 @@
                       "qos": {
                         "type": "integer",
                         "minimum": 0,
+                        "enum": [
+                          0,
+                          1,
+                          2
+                        ],
                         "description": "The MQTT QoS level. May be 0, 1, or 2"
                       },
                       "retain": {
@@ -3303,6 +3580,11 @@
                       "retainhandling": {
                         "type": "integer",
                         "minimum": 0,
+                        "enum": [
+                          0,
+                          1,
+                          2
+                        ],
                         "description": "MQTT 5 retain-handling subscription mode"
                       },
                       "willtopic": {
@@ -3384,6 +3666,11 @@
                       "qos": {
                         "type": "integer",
                         "minimum": 0,
+                        "enum": [
+                          0,
+                          1,
+                          2
+                        ],
                         "description": "The MQTT QoS level. May be 0, 1, or 2"
                       },
                       "retain": {
@@ -3632,6 +3919,11 @@
                       },
                       "autooffsetreset": {
                         "type": "string",
+                        "enum": [
+                          "earliest",
+                          "latest",
+                          "none"
+                        ],
                         "description": "Consumer offset reset behavior when no valid committed offset exists"
                       },
                       "enableautocommit": {

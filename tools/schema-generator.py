@@ -166,6 +166,257 @@ def nested_entity_schema(value):
     return {"allOf": [value, {"not": {"required": ["$schema"]}}]}
 
 
+# The Core "scalar" data types; `any` is excluded because its runtime value may
+# be a complex type. Only these carry an `enum` value set.
+core_scalar_types = frozenset({
+    "boolean", "decimal", "integer", "string", "timestamp", "uinteger",
+    "uri", "uriabsolute", "urirelative", "uritemplate",
+    "url", "urlabsolute", "urlrelative", "xid", "xidtype",
+})
+
+
+def _same_json_type(left, right):
+    """JSON type identity that keeps Boolean distinct from integer."""
+    if isinstance(left, bool) != isinstance(right, bool):
+        return False
+    if not isinstance(left, bool) and isinstance(left, (int, float)):
+        return isinstance(right, (int, float))
+    return type(left) is type(right)
+
+
+def _enum_contains(values, value):
+    return any(
+        _same_json_type(member, value) and member == value for member in values
+    )
+
+
+def _is_scalar_value(type_name, value):
+    if type_name == "boolean":
+        return isinstance(value, bool)
+    if type_name in ("integer", "uinteger"):
+        return isinstance(value, int) and not isinstance(value, bool)
+    if type_name == "decimal":
+        return isinstance(value, (int, float)) and not isinstance(value, bool)
+    return isinstance(value, str)
+
+
+def _selector_spelling(value):
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    return str(value)
+
+
+def effective_enum(definition):
+    """The value set a Core scalar attribute actually restricts, if any.
+
+    An absent or empty `enum`, a non-scalar type, or `strict` other than true
+    leaves the attribute unrestricted; `strict` defaults to true.
+    """
+    if not isinstance(definition, dict):
+        return None
+    if definition.get("type") not in core_scalar_types:
+        return None
+    values = definition.get("enum")
+    if not isinstance(values, list) or not values:
+        return None
+    if definition.get("strict", True) is not True:
+        return None
+    return values
+
+
+def validate_scalar_enum_aspects(name, definition):
+    """Check the source aspects an effective strict enum governs."""
+    values = effective_enum(definition)
+    if values is None:
+        return None
+    type_name = definition["type"]
+    for value in values:
+        if not _is_scalar_value(type_name, value):
+            raise ValueError(
+                f"enum value {value!r} of attribute {name!r} is not a valid "
+                f"{type_name}"
+            )
+    if definition.get("default") is not None and not _enum_contains(
+        values, definition["default"]
+    ):
+        raise ValueError(
+            f"default {definition['default']!r} of attribute {name!r} is not one "
+            "of its strict enum values"
+        )
+    spellings = {_selector_spelling(value).casefold() for value in values}
+    for selector in definition.get("ifvalues", {}):
+        if selector.casefold() not in spellings:
+            raise ValueError(
+                f"ifvalues selector {selector!r} of attribute {name!r} is not one "
+                "of its strict enum values"
+            )
+    return values
+
+
+def _static_scalar_attribute(attributes, path, where):
+    """Walk a constraint path through statically defined object attributes."""
+    node = attributes
+    for index, segment in enumerate(path):
+        if segment == "*" or not isinstance(node, dict) or segment not in node:
+            raise ValueError(
+                f"Group constraint {where} does not reference a statically "
+                "defined attribute"
+            )
+        definition = node[segment]
+        if index == len(path) - 1:
+            if definition.get("type") not in core_scalar_types:
+                raise ValueError(
+                    f"Group constraint {where} must reference a scalar attribute"
+                )
+            return definition
+        if definition.get("type") != "object":
+            raise ValueError(
+                f"Group constraint {where} may only traverse object attributes"
+            )
+        node = definition.get("attributes", {})
+    raise ValueError(f"Group constraint {where} has an empty attribute path")
+
+
+def _constraint_overlay(attribute, constraint, where):
+    """The static restriction a single Group constraint adds, if any."""
+    type_name = attribute["type"]
+    strict_base = effective_enum(attribute) or []
+    values = constraint.get("enum")
+    values = list(values) if isinstance(values, list) else []
+    for value in values:
+        if not _is_scalar_value(type_name, value):
+            raise ValueError(
+                f"Group constraint {where} enum value {value!r} has the wrong "
+                f"type for {type_name}"
+            )
+    if values and strict_base:
+        for value in values:
+            if not _enum_contains(strict_base, value):
+                raise ValueError(
+                    f"Group constraint {where} enum must be a subset of the "
+                    "attribute's strict enum"
+                )
+    overlay = {}
+    if values:
+        overlay["enum"] = values
+    if "default" in constraint:
+        default = constraint["default"]
+        if default is not None and not _is_scalar_value(type_name, default):
+            raise ValueError(
+                f"Group constraint {where} default {default!r} has the wrong "
+                f"type for {type_name}"
+            )
+        overlay["default"] = default
+    effective_values = values or strict_base
+    effective_default = (
+        constraint["default"] if "default" in constraint
+        else attribute.get("default")
+    )
+    if (effective_values and effective_default is not None
+            and not _enum_contains(effective_values, effective_default)):
+        raise ValueError(
+            f"Group constraint {where} leaves default {effective_default!r} "
+            "outside the effective enum"
+        )
+    return overlay
+
+
+def _group_resource_by_plural(group, model_definition, plural):
+    for key, resource in group.get("resources", {}).items():
+        if resource.get("plural", key) == plural:
+            return resolve_resource(group, resource)
+    for imported in group.get("ximportresources", []):
+        parts = imported.split("/")[1:]
+        if len(parts) == 2 and parts[1] == plural:
+            source_group = model_definition.get("groups", {}).get(parts[0], {})
+            source = source_group.get("resources", {}).get(parts[1])
+            if source is not None:
+                return resolve_resource(source_group, source)
+    return None
+
+
+def static_group_constraints(group, model_definition):
+    """Statically resolvable Group constraint overlays, keyed by Resource plural.
+
+    Only scalar attributes reached through statically defined object attributes
+    are eligible. The dynamic `equals` comparison against actual Group instance
+    values, and xref graph enforcement, stay outside static schema generation.
+    """
+    overlays = {}
+    for key, constraint in (group.get("constraints") or {}).items():
+        plural, _, dotted = key.partition(".")
+        where = repr(key)
+        if not dotted:
+            raise ValueError(f"Group constraint {where} has no attribute path")
+        resource = _group_resource_by_plural(group, model_definition, plural)
+        if resource is None:
+            raise ValueError(
+                f"Group constraint {where} does not reference a Resource type of "
+                "this Group"
+            )
+        path = tuple(dotted.split("."))
+        attribute = _static_scalar_attribute(
+            resource.get("attributes", {}), path, where
+        )
+        overlay = _constraint_overlay(attribute, constraint, where)
+        if overlay:
+            overlays.setdefault(plural, {})[path] = overlay
+    return overlays
+
+
+def constraint_overlay_schema(overlays, nullable=False):
+    """A narrowing schema for constrained paths of one Resource entity."""
+    root = {}
+    for path, overlay in overlays.items():
+        node = root
+        for segment in path[:-1]:
+            node = node.setdefault("properties", {}).setdefault(segment, {})
+        leaf = node.setdefault("properties", {}).setdefault(path[-1], {})
+        if "enum" in overlay:
+            values = copy.deepcopy(overlay["enum"])
+            if nullable and None not in values:
+                values.append(None)
+            leaf["enum"] = values
+        if "default" in overlay:
+            leaf["default"] = copy.deepcopy(overlay["default"])
+    return root
+
+
+def apply_constraint_overlays(schema, overlays):
+    """Narrow an entity schema this Group alone owns, in place."""
+    for path, overlay in overlays.items():
+        node = schema
+        for segment in path:
+            properties = node.get("properties")
+            if not isinstance(properties, dict) or segment not in properties:
+                node = None
+                break
+            node = properties[segment]
+        if node is None:
+            continue
+        if "enum" in overlay:
+            values = copy.deepcopy(overlay["enum"])
+            if node.get("nullable") is True and None not in values:
+                values.append(None)
+            node["enum"] = values
+        if "default" in overlay and "default" in node:
+            node["default"] = copy.deepcopy(overlay["default"])
+
+
+def constrained_reference(reference, overlays, nullable=False):
+    """Reference a shared Resource definition without altering it."""
+    if not overlays:
+        return reference
+    return {"allOf": [
+        reference,
+        constraint_overlay_schema(overlays, nullable=nullable),
+        {"properties": {"versions": {"additionalProperties": constraint_overlay_schema(
+            overlays, nullable=nullable
+        )}}},
+    ]}
+
+
+
 def generate_openapi(model_definition):
     model_definition = model_with_names(model_definition)
 
@@ -654,6 +905,7 @@ def generate_json_schema(
         resource_schema.setdefault("properties", {})
         request_role = role in ("write", "patch")
         for attr_name, attr_props in attributes.items():
+            restriction = validate_scalar_enum_aspects(attr_name, attr_props)
             ignored = request_role and attr_props.get("readonly", False)
             if ignored:
                 attr_schema = ignored_input()
@@ -664,6 +916,9 @@ def generate_json_schema(
                 )
             else:
                 attr_schema = copy.deepcopy(json_type_mapping[attr_props["type"]])
+
+            if restriction is not None and not ignored:
+                attr_schema["enum"] = copy.deepcopy(restriction)
 
             if not ignored and "description" in attr_props:
                 attr_schema["description"] = attr_props["description"]
@@ -684,6 +939,9 @@ def generate_json_schema(
                 not attr_props.get("required", False) or "default" in attr_props
             ):
                 attr_schema["nullable"] = True
+                # A permitted reset must stay expressible next to the value set.
+                if "enum" in attr_schema and None not in attr_schema["enum"]:
+                    attr_schema["enum"] = attr_schema["enum"] + [None]
             if attr_name == "*":
                 if "ifvalues" in attr_props:
                     raise ValueError("Can't use wild card attribute name with ifvalues")
@@ -1068,6 +1326,7 @@ def generate_json_schema(
         if "plural" not in group: group["plural"] = key
         groups_name = group["plural"]
         group_name = group["singular"]
+        group_constraints = static_group_constraints(group, model_definition)
         # Create a namespace folder for this group's definitions
         # For OpenAPI: use flat keys without -schema suffix
         # For JSON Schema: use nested structure with -schema suffix
@@ -1132,6 +1391,7 @@ def generate_json_schema(
                 }
 
             attributes = resource.get("attributes", {})
+            resource_overlays = group_constraints.get(resource["plural"], {})
             if resource.get("maxversions", -1) != 1:
                 resource_version_schema = copy.deepcopy(resource_schema)
                 props = {}
@@ -1140,6 +1400,7 @@ def generate_json_schema(
                 props["versionid"] = {"type": "string", "description": f"ID of the {resource_name} version"}
                 resource_version_schema["properties"] = props
                 handle_attributes(resource_version_schema, attributes, closed=True, role=output_role)
+                apply_constraint_overlays(resource_version_schema, resource_overlays)
 
                 resource_schema["oneOf"] = [
                         {
@@ -1172,6 +1433,7 @@ def generate_json_schema(
             else:
                 resource_version_schema = copy.deepcopy(resource_schema)
                 handle_attributes(resource_version_schema, attributes, closed=True, role=output_role)
+                apply_constraint_overlays(resource_version_schema, resource_overlays)
                 resource_schema["properties"].update({
                     "versionsurl": {"type": "string"},
                     "versionscount": {"type": "integer"},
@@ -1202,6 +1464,7 @@ def generate_json_schema(
                 resource_schema, attributes, closed=True, role=output_role,
                 partial=resource.get("maxversions", -1) != 1,
             )
+            apply_constraint_overlays(resource_schema, resource_overlays)
 
             # For OpenAPI: flat keys, for JSON Schema: nested structure
             if for_openapi:
@@ -1229,9 +1492,10 @@ def generate_json_schema(
                 xid_group_definition_prefix = f"{reference_prefix}{xid_group_singular}-schema/"
             resource_collection_properties[xid_resource_plural] = {
                     "type": "object",
-                    "additionalProperties": nested_entity_schema({
-                        "$ref": f"{xid_group_definition_prefix}{xid_resource_singular}",
-                    })
+                    "additionalProperties": nested_entity_schema(constrained_reference(
+                        {"$ref": f"{xid_group_definition_prefix}{xid_resource_singular}"},
+                        group_constraints.get(xid_resource_plural, {}),
+                    ))
                 }
 
         props = {}
@@ -1268,10 +1532,12 @@ def generate_json_schema(
             with open(path, encoding="utf-8") as source:
                 meta_template = json.load(source)["components"]["schemas"]["Meta"]
         for group in model_definition.get("groups", {}).values():
+            group_constraints = static_group_constraints(group, model_definition)
             for resource in group.get("resources", {}).values():
                 resource = resolve_resource(group, resource)
                 name = resource["singular"]
                 attributes = resource.get("attributes", {})
+                resource_overlays = group_constraints.get(resource["plural"], {})
                 for suffix, definition in meta_schemas(resource).items():
                     schema_definitions[name + "Meta" + suffix] = definition
                 resource_response = schema_definitions[name]
@@ -1312,6 +1578,7 @@ def generate_json_schema(
                         copy.deepcopy(properties), attributes, role, identity=name + "id"
                     )
                     omit_required(version, {"versionid"})
+                    apply_constraint_overlays(version, resource_overlays)
                     schema_definitions[name + "Version" + suffix] = version
                     if role == "write":
                         # A POST directed at a Resource carries a single Version,
@@ -1325,6 +1592,7 @@ def generate_json_schema(
                             posted, attributes, role, identity=name + "id"
                         )
                         omit_required(posted_version, {"versionid"})
+                        apply_constraint_overlays(posted_version, resource_overlays)
                         posted_version["description"] = (
                             "Version input for a POST directed at the Resource. "
                             "Resource-level read-only attributes MAY be supplied "
@@ -1341,6 +1609,7 @@ def generate_json_schema(
                     })
                     value = entity_input(properties, attributes, role, identity=name + "id")
                     value.pop("required", None)
+                    apply_constraint_overlays(value, resource_overlays)
                     alias_selected = {
                         "properties": {"meta": {
                             "properties": {"xref": {"type": "string"}},
@@ -1368,19 +1637,25 @@ def generate_json_schema(
                     schema_definitions[name + suffix] = value
 
         for group in model_definition.get("groups", {}).values():
+            group_constraints = static_group_constraints(group, model_definition)
             resources = dict(group.get("resources", {}))
+            imported_plurals = set()
             for imported in group.get("ximportresources", []):
                 source_group, plural = imported.split("/")[1:]
                 resources[plural] = model_definition["groups"][source_group]["resources"][plural]
+                imported_plurals.add(plural)
             for role, suffix in (("write", "WriteInput"), ("patch", "PatchInput")):
                 properties = input_core(group["singular"] + "id")
                 properties["deprecated"] = {**deprecated_schema(), "nullable": True}
                 properties["constraints"] = {"type": "object", "nullable": True}
                 for plural, definition in resources.items():
                     resource = resolve_resource(group, definition)
-                    properties.update(collection_properties(
-                        plural, {"$ref": f"{reference_prefix}{resource['singular']}{suffix}"}, role
-                    ))
+                    reference = {"$ref": f"{reference_prefix}{resource['singular']}{suffix}"}
+                    if plural in imported_plurals:
+                        reference = constrained_reference(
+                            reference, group_constraints.get(plural, {}), nullable=True
+                        )
+                    properties.update(collection_properties(plural, reference, role))
                 value = entity_input(
                     properties, group.get("attributes", {}), role,
                     identity=group["singular"] + "id",
