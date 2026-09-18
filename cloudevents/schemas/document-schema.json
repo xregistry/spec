@@ -365,8 +365,8 @@
                       },
                       "correlation_data": {
                         "type": "string",
-                        "format": "uri-template",
-                        "description": "MQTT correlation data"
+                        "format": "base64",
+                        "description": "MQTT correlation data. This is binary data: its JSON representation is an RFC4648 section 4 base64 string, not a URI template. A declaration written against the earlier uritemplate typing needs the migration described in the MQTT protocol section"
                       },
                       "content_type": {
                         "type": "string",
