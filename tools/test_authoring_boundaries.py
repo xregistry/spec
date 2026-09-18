@@ -363,6 +363,20 @@ def test_kafka_options_have_no_json_structure_projection(endpoint_structure):
     assert _named_nodes(endpoint_structure, "bootstrap.servers") == []
 
 
+def test_mqtt_branch_has_no_json_structure_or_avro_projection():
+    """Record the second emitter gap, which bounds the W17 evidence.
+
+    The MQTT protocol branch is absent from the JSON Structure and Avro
+    outputs, so the `correlation_data` kind correction is observable only in
+    the JSON Schema and OpenAPI dialects.
+    """
+    structure = _load(ROOT / "message" / "schemas" / "document-schema.struct.json")
+    assert _named_nodes(structure, "correlation_data") == []
+    assert _named_nodes(structure, "topic_name") == []
+    avro = (ROOT / "message" / "schemas" / "document-schema.avsc").read_text("utf-8")
+    assert "correlation_data" not in avro
+
+
 @pytest.mark.parametrize(
     ("protocol", "option", "rejected"),
     [
@@ -646,6 +660,7 @@ def test_samples_carry_no_redundant_kafka_inner_header_name(sample):
         ("KAFKA", "key_base64", "string"),
         ("MQTT/5.0", "qos", "integer"),
         ("MQTT/5.0", "retain", "boolean"),
+        ("MQTT/5.0", "correlation_data", "binary"),
         ("HTTP", "path", "uritemplate"),
         ("NATS", "subject", "uritemplate"),
     ],
@@ -654,12 +669,47 @@ def test_samples_carry_no_redundant_kafka_inner_header_name(sample):
         "kafka-key-base64",
         "mqtt-qos",
         "mqtt-retain",
+        "mqtt-correlation-data",
         "http-path",
         "nats-subject",
     ],
 )
 def test_scalar_protocol_options_stay_scalar(message_model, protocol, option, kind):
     assert message_options(message_model, protocol)[option]["type"] == kind
+
+
+def test_mqtt_correlation_data_is_binary_not_a_template(
+    message_model, message_schema
+):
+    """W17: binary correlation data is base64 in JSON, not a URI template."""
+    declared = message_options(message_model, "MQTT/5.0")["correlation_data"]
+    assert declared["type"] == "binary"
+
+    emitted = _guarded_options(message_schema, "protocol", "MQTT/5.0")["properties"][
+        "correlation_data"
+    ]
+    assert emitted["type"] == "string"
+    assert emitted["format"] == "base64"
+    assert "uri-template" not in json.dumps(emitted)
+
+
+def test_no_message_option_is_typed_as_a_stringified_integer(message_model):
+    """W17: `stringified integer` is not a type name of this specification."""
+    found = []
+
+    def visit(node, path):
+        if isinstance(node, dict):
+            declared = node.get("type")
+            if isinstance(declared, str) and "stringified" in declared.lower():
+                found.append(path)
+            for key, value in node.items():
+                visit(value, f"{path}/{key}")
+        elif isinstance(node, list):
+            for index, value in enumerate(node):
+                visit(value, f"{path}[{index}]")
+
+    visit(message_model, "")
+    assert found == []
 
 
 # --- Declared coverage limit -------------------------------------------------
