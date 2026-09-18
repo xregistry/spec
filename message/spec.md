@@ -761,10 +761,9 @@ Illustrating example:
 - Description: Contains a relative or absolute URI that points to the schema
   object to use for the message payload. The schema format is identified by the
   `dataschemaformat` attribute. See
-  [Schema Formats](../schema/spec.md#43-schema-formats) for details on
-  how to reference specific schema objects for the message payload. It is not
-  sufficient for the URI to point to a schema document; it MUST resolve to a
-  concrete schema object.
+  [Schema Object Selection](../schema/spec.md#436-schema-object-selection)
+  for the document locator, format-defined object selector, and treatment of
+  unavailable or ambiguous references.
 - Constraints:
   - OPTIONAL.
   - Mutually exclusive with the `dataschema` attribute.
@@ -773,14 +772,30 @@ Illustrating example:
 #### `dataschemaxid`
 
 - Type: XID
-- Description: Contains the `xid` of the xRegistry `schema` Resource entity
-  associated with the schema document referenced by `dataschemauri`. Note that
-  this means the entity MUST be located within the same Registry.
+- Description: Contains the `xid` of the xRegistry Schema Resource or Version
+  that owns the schema document referenced by `dataschemauri`. This entity
+  MUST be located within the same Registry.
 - Constraints:
   - OPTIONAL.
-  - If `dataschemauri` is also present then its value MUST be the `self`
-    URL of the entity referenced by this attribute.
+  - If `dataschemauri` is also present, its resolved owning entity MUST be
+    the entity identified by this attribute, using
+    [Schema Object Selection](../schema/spec.md#436-schema-object-selection).
+    Selecting an object within a document does not change its owning entity.
+  - A Schema Resource identifies its default Version's document; a Schema
+    Version identifies that particular Version's document. These owner
+    identities MUST NOT be treated as interchangeable, even when that Version
+    is currently the default.
 
+For example, `/schemagroups/g/schemas/s/versions/1` can be paired with
+`https://example.com/schemagroups/g/schemas/s/versions/1#Metrics` when that
+locator identifies the same Registry's Version and selects its `Metrics`
+declaration. A URI selecting `Metrics` in Version `2` does not match that XID.
+The entity's metadata `self` URL and the schema document's URI need not be
+identical; the applicable binding's metadata/document rules still apply.
+
+Consumers that compared `dataschemauri` literally with `self` need to compare
+the resolved owner and validate object selection separately. Do not infer an
+owner by indiscriminately stripping fragments or selector suffixes.
 
 #### `datacontenttype`
 
