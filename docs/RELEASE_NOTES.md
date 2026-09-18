@@ -39,6 +39,31 @@
   constraining their values.
 - Bare document-bearing request and response bodies describe domain
   content; collections and `$details` retain metadata schemas.
+- Generated OpenAPI document routes use the current xRegistry wire headers.
+  The obsolete `resource-id`, `resource-version` and `resource-labels` style
+  names and the `resource-*` query parameters are replaced by
+  `xRegistry-<SINGULAR>id`, `xRegistry-versionid` and the other scalar
+  metadata headers of
+  [Core HTTP](../core/http.md#serializing-resource-domain-specific-documents),
+  using the Resource's effective singular even when the Resource is imported
+  into another Group. Map attributes such as `labels` are described as a
+  per-key header family rather than one serialized aggregate, `contenttype`
+  stays on the native `Content-Type` header, and the document bytes,
+  `meta` and `versions` never become headers. Generated clients see new
+  header names; document bytes are unaffected.
+- Generated OpenAPI document routes describe the Core status and location
+  contracts: `GET` and `PUT` add `303 See Other` with `Location` and no
+  document body, `PUT` adds `201 Created` with the created entity's
+  `Location`, creation and update responses carry `Content-Location` for
+  the affected Version, and a content-bearing `PUT` success also offers the
+  binary document media type. Metadata-only Resources gain the `201`
+  creation contract but are never redirected, and `$details` and `meta`
+  routes stay metadata-only. `Location`, `Content-Location` and
+  `Content-Disposition` keep their native grammars; entity identity comes
+  from the xRegistry identifier header, not from a disposition string.
+  OpenAPI cannot enumerate header names that depend on runtime map keys or
+  undeclared extension attributes, so those families are described rather
+  than listed, and the description is not a complete wire codec.
 - Avro object and conditional record names include their owning entity and
   path; structured wildcard values retain their record definitions. The
   generated qualified names follow the

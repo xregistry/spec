@@ -142,6 +142,56 @@ core_meta_attributes = {
     "defaultversionsticky": {"type": "boolean"},
 }
 
+# Projection of xRegistry metadata onto HTTP headers for Resource types that
+# carry a domain-specific document. See core/http.md, "Serializing Resource
+# Domain-Specific Documents". Private xRegistry header values are percent
+# encoded wire strings, so URI-typed attributes do not claim a native URI
+# format here; `Location`, `Content-Location` and `Content-Disposition` keep
+# their own native grammars as template components.
+xregistry_header_prefix = "xRegistry-"
+
+header_type_mapping = {
+    "string": {"type": "string"},
+    "uri": {"type": "string"},
+    "url": {"type": "string"},
+    "uritemplate": {"type": "string"},
+    "xid": {"type": "string"},
+    "binary": {"type": "string", "format": "byte"},
+    "datetime": {"type": "string", "format": "date-time"},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "integer": {"type": "integer", "format": "int64"},
+    "uinteger": {"type": "integer", "format": "int64", "minimum": 0},
+    "boolean": {"type": "boolean"},
+}
+
+# Version-level attributes every document serialization carries, in the order
+# used by core/http.md. The Resource identifier and document URL depend on the
+# Resource singular and are added by the generator.
+core_document_header_attributes = [
+    ("versionid", "string"),
+    ("self", "url"),
+    ("xid", "xid"),
+    ("epoch", "uinteger"),
+    ("name", "string"),
+    ("isdefault", "boolean"),
+    ("description", "string"),
+    ("documentation", "url"),
+    ("labels", ("map", "string")),
+    ("createdat", "timestamp"),
+    ("modifiedat", "timestamp"),
+    ("ancestorid", "string"),
+]
+
+# Server-assigned attributes a client cannot send on a document write request.
+readonly_document_header_attributes = ("self", "xid", "isdefault")
+
+# Resource-level scalar navigation, carried only by Resource serializations.
+resource_document_header_attributes = [
+    ("metaurl", "url"),
+    ("versionsurl", "url"),
+    ("versionscount", "uinteger"),
+]
+
 
 def pascal(string):
     if not string or len(string) == 0:
@@ -230,6 +280,222 @@ def generate_openapi(model_definition):
                     content["application/json"]["schema"] = {
                         "description": "Domain-specific JSON content, not xRegistry metadata."
                     }
+
+    def modelled_header_attributes(attributes):
+        """Top-level model attributes that Core serializes as HTTP headers."""
+        projected = []
+        for name, definition in attributes.items():
+            if name == "*":
+                continue
+            kind = definition.get("type")
+            if kind in header_type_mapping:
+                projected.append((name, kind))
+            elif kind == "map":
+                item_kind = definition.get("item", {}).get("type")
+                if item_kind in header_type_mapping:
+                    projected.append((name, ("map", item_kind)))
+            for condition in definition.get("ifvalues", {}).values():
+                projected.extend(modelled_header_attributes(
+                    condition.get("siblingattributes", {})
+                ))
+        return projected
+
+    def document_header_attributes(resource, singular, level, request=False):
+        projected = [(singular + "id", "string")]
+        projected.extend(core_document_header_attributes)
+        projected.extend(modelled_header_attributes(resource.get("attributes", {})))
+        if resource.get("hasdocument", True):
+            projected.append((singular + "url", "url"))
+        if request:
+            projected = [
+                entry for entry in projected
+                if entry[0] not in readonly_document_header_attributes
+            ]
+        elif level == "resource":
+            projected.extend(
+                entry for entry in resource_document_header_attributes
+                if entry[0] == "metaurl" or resource.get("maxversions", -1) != 1
+            )
+        # The document itself travels in the HTTP body and `contenttype` uses
+        # the native `Content-Type` header, so neither is projected here.
+        excluded = {"contenttype", singular, singular + "base64", "meta", "versions"}
+        ordered = []
+        for name, kind in projected:
+            if name in excluded:
+                continue
+            excluded.add(name)
+            ordered.append((name, kind))
+        return ordered
+
+    def header_name(attribute, kind):
+        if isinstance(kind, tuple):
+            return f"{xregistry_header_prefix}{attribute}.<KEY>"
+        return xregistry_header_prefix + attribute
+
+    def component_name(attribute):
+        # OpenAPI component keys are restricted to `^[a-zA-Z0-9.\-_]+$`, so the
+        # map-family placeholder only appears in the header or parameter name.
+        return xregistry_header_prefix + attribute
+
+    def header_description(attribute, kind):
+        if isinstance(kind, tuple):
+            return (
+                f"The xRegistry '{attribute}' map, sent as one header per key named "
+                f"'{xregistry_header_prefix}{attribute}.<KEYNAME>' with a {kind[1]} "
+                "value. Key names are known only at runtime, so this entry describes "
+                "the family rather than an individual header name. Values are "
+                "percent-encoded per the spec's HTTP Header Values rules."
+            )
+        return (
+            f"The xRegistry '{attribute}' attribute ({kind}), percent-encoded per the "
+            "spec's HTTP Header Values rules."
+        )
+
+    def component(container, name, definition):
+        components = openapi["components"].setdefault(container, {})
+        if components.setdefault(name, definition) == definition:
+            return {"$ref": f"#/components/{container}/{name}"}
+        return copy.deepcopy(definition)
+
+    def header_schema(kind):
+        return copy.deepcopy(
+            header_type_mapping[kind[1] if isinstance(kind, tuple) else kind]
+        )
+
+    def document_headers(resource, singular, level, *native):
+        headers = {}
+        for attribute, kind in document_header_attributes(resource, singular, level):
+            name = header_name(attribute, kind)
+            headers[name] = component("headers", component_name(attribute), {
+                "description": header_description(attribute, kind),
+                "schema": header_schema(kind),
+            })
+        for name in native:
+            headers[name] = {"$ref": f"#/components/headers/{name}"}
+        return headers
+
+    def document_header_parameters(resource, singular):
+        parameters = []
+        for attribute, kind in document_header_attributes(
+            resource, singular, "version", request=True
+        ):
+            name = header_name(attribute, kind)
+            parameters.append(component("parameters", component_name(attribute), {
+                "name": name,
+                "in": "header",
+                "required": False,
+                "schema": header_schema(kind),
+                "description": header_description(attribute, kind),
+            }))
+        return parameters
+
+    def sorted_responses(operation):
+        operation["responses"] = {
+            status: operation["responses"][status]
+            for status in sorted(operation["responses"])
+        }
+
+    def ordered_response(response):
+        ordered = {
+            key: response[key] for key in ("description", "headers", "content")
+            if key in response
+        }
+        ordered.update(response)
+        return ordered
+
+    def redirect_response(description, headers):
+        return {"description": description, "headers": headers}
+
+    def document_contracts(resource_item, version_item, resource, singular):
+        """Apply the document status, native and metadata header contracts."""
+        resource_get = resource_item["get"]
+        resource_get["responses"]["200"]["headers"] = document_headers(
+            resource, singular, "resource", "Content-Location", "Content-Disposition"
+        )
+        resource_get["responses"]["303"] = redirect_response(
+            "The resource document is stored externally. The body is empty and "
+            "Location carries the RESOURCEurl value.",
+            document_headers(
+                resource, singular, "resource",
+                "Location", "Content-Location", "Content-Disposition",
+            ),
+        )
+        sorted_responses(resource_get)
+
+        put = resource_item["put"]
+        put["parameters"].extend(document_header_parameters(resource, singular))
+        success = put["responses"]["200"]
+        success["description"] = "The updated resource. No entity was created."
+        success["content"] = document_media(success["content"])
+        success["headers"] = document_headers(
+            resource, singular, "resource", "Content-Location", "Content-Disposition"
+        )
+        put["responses"]["200"] = ordered_response(success)
+        put["responses"]["201"] = {
+            "description": "The created resource.",
+            "headers": document_headers(
+                resource, singular, "resource",
+                "Location", "Content-Location", "Content-Disposition",
+            ),
+            "content": copy.deepcopy(success["content"]),
+        }
+        put["responses"]["303"] = redirect_response(
+            "The resource document is stored externally. The body is empty and "
+            "Location carries the RESOURCEurl value.",
+            document_headers(
+                resource, singular, "resource",
+                "Location", "Content-Location", "Content-Disposition",
+            ),
+        )
+        sorted_responses(put)
+
+        post = resource_item["post"]
+        post["parameters"].extend(document_header_parameters(resource, singular))
+        post["responses"]["201"]["headers"] = document_headers(
+            resource, singular, "version",
+            "Location", "Content-Location", "Content-Disposition",
+        )
+        post["responses"]["201"] = ordered_response(post["responses"]["201"])
+
+        version_get = version_item["get"]
+        version_get["responses"]["200"]["headers"] = document_headers(
+            resource, singular, "version", "Content-Disposition"
+        )
+        version_get["responses"]["200"] = ordered_response(
+            version_get["responses"]["200"]
+        )
+        version_get["responses"]["303"] = redirect_response(
+            "The version document is stored externally. The body is empty and "
+            "Location carries the RESOURCEurl value.",
+            document_headers(
+                resource, singular, "version", "Location", "Content-Disposition"
+            ),
+        )
+        sorted_responses(version_get)
+
+    def document_media(content):
+        media = {"application/octet-stream": {
+            "schema": {"type": "string", "format": "binary"}
+        }}
+        media.update(content)
+        return media
+
+    def creation_contracts(resource_item):
+        """A newly created entity answers 201 with its own Location."""
+        for method in ("put", "post"):
+            operation = resource_item.get(method, {})
+            responses = operation.get("responses", {})
+            if "201" not in responses:
+                responses["201"] = {
+                    "description": "The created resource.",
+                    "content": copy.deepcopy(responses["200"]["content"]),
+                }
+            responses["201"]["headers"] = {
+                name: {"$ref": f"#/components/headers/{name}"}
+                for name in ("Location", "Content-Location")
+            }
+            responses["201"] = ordered_response(responses["201"])
+            sorted_responses(operation)
 
     try:
         template_file_name = os.path.join(os.path.dirname(__file__), '..', 'core', 'templates', 'xregistry_openapi_template.json')
@@ -440,6 +706,11 @@ def generate_openapi(model_definition):
                 if resource.get("hasdocument", True):
                     document_content(openapi["paths"][base])
                     document_content(version)
+                    document_contracts(
+                        openapi["paths"][base], version, resource, resource["singular"]
+                    )
+                else:
+                    creation_contracts(openapi["paths"][base])
 
         registry_entity_schema = openapi["components"]["schemas"]["RegistryEntity"]
         for _, group in model_definition.get("groups", {}).items():

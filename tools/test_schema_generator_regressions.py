@@ -1411,3 +1411,265 @@ def test_openapi_metadata_only_resource_put_admits_plain_input(maxversions):
     assert "anyOf" not in input_schema
     assert response_schema.pop("anyOf")
     assert input_schema == response_schema
+
+DOCUMENT_HEADER_ATTRIBUTES = {
+    "region": {"type": "string"},
+    "tags": {"type": "map", "item": {"type": "string"}},
+    "revision": {"type": "uinteger"},
+}
+# The Resource document serialization of core/http.md, including the two map
+# families and the three modelled extensions above.
+DOCUMENT_HEADERS = (
+    "xRegistry-entryid", "xRegistry-versionid", "xRegistry-self", "xRegistry-xid",
+    "xRegistry-epoch", "xRegistry-name", "xRegistry-isdefault",
+    "xRegistry-description", "xRegistry-documentation", "xRegistry-labels.<KEY>",
+    "xRegistry-createdat", "xRegistry-modifiedat", "xRegistry-ancestorid",
+    "xRegistry-region", "xRegistry-tags.<KEY>", "xRegistry-revision",
+    "xRegistry-entryurl",
+)
+LEGACY_HEADERS = (
+    "resource-id", "resource-version", "resource-name", "resource-self",
+    "resource-description", "resource-documentation", "resource-labels",
+    "resource-createdat", "resource-modifiedat",
+)
+NAVIGATION_HEADERS = ("xRegistry-versionsurl", "xRegistry-versionscount")
+DOCUMENT_MESSAGES = [
+    ("", "get", "200"), ("", "get", "303"), ("", "put", "200"), ("", "put", "201"),
+    ("", "put", "303"), ("", "post", "201"),
+    ("/versions/{versionid}", "get", "200"), ("/versions/{versionid}", "get", "303"),
+]
+DOCUMENT_MESSAGE_IDS = [
+    "resource-get", "resource-get-redirect", "resource-put-update",
+    "resource-put-create", "resource-put-redirect", "resource-post-create",
+    "version-get", "version-get-redirect",
+]
+
+
+def generate_document_openapi(maxversions):
+    """A document-bearing Resource reached through its own and an importing group."""
+    model = copy.deepcopy(MODEL)
+    resource = model["groups"]["catalogs"]["resources"]["entries"]
+    resource.update(hasdocument=True, maxversions=maxversions)
+    resource["attributes"].update(copy.deepcopy(DOCUMENT_HEADER_ATTRIBUTES))
+    model["groups"]["mirrors"] = {
+        "singular": "mirror",
+        "ximportresources": ["/catalogs/entries"],
+    }
+    validate_model(model)
+    return GENERATOR.generate_openapi(model)
+
+
+def resolve(openapi, node):
+    if "$ref" not in node:
+        return node
+    container, name = node["$ref"].rsplit("/", 2)[-2:]
+    return openapi["components"][container][name]
+
+
+def native(name):
+    return {"$ref": f"#/components/headers/{name}"}
+
+
+@pytest.mark.parametrize("group", ["catalogs", "mirrors"])
+@pytest.mark.parametrize("maxversions", [0, 1])
+@pytest.mark.parametrize(
+    "suffix,method,status", DOCUMENT_MESSAGES, ids=DOCUMENT_MESSAGE_IDS
+)
+def test_openapi_document_messages_use_current_wire_header_names(
+    group, maxversions, suffix, method, status,
+):
+    """Document routes carry xRegistry- metadata, not the obsolete resource- names."""
+    openapi = generate_document_openapi(maxversions)
+    validate(openapi)
+    base = f"/{group}/{{groupid}}/entries/{{resourceid}}"
+    headers = openapi["paths"][base + suffix][method]["responses"][status]["headers"]
+    assert set(DOCUMENT_HEADERS) <= set(headers)
+    assert not set(LEGACY_HEADERS) & set(headers)
+    for absent in (
+        "xRegistry-mirrorid", "xRegistry-catalogid", "xRegistry-contenttype",
+        "Content-Type", "xRegistry-entry", "xRegistry-entrybase64",
+        "xRegistry-meta", "xRegistry-versions", "xRegistry-endpoints",
+        "xRegistry-labels", "xRegistry-tags",
+    ):
+        assert absent not in headers
+    family = "xRegistry-labels."
+    assert [name for name in headers if name.startswith(family)] == [family + "<KEY>"]
+    assert "xRegistry-labels.region".startswith(family)
+    assert resolve(openapi, headers[family + "<KEY>"])["schema"] == {"type": "string"}
+    assert resolve(openapi, headers["xRegistry-epoch"])["schema"] == {
+        "type": "integer", "format": "int64", "minimum": 0,
+    }
+    assert resolve(openapi, headers["xRegistry-revision"])["schema"] == {
+        "type": "integer", "format": "int64", "minimum": 0,
+    }
+    assert resolve(openapi, headers["xRegistry-isdefault"])["schema"] == {
+        "type": "boolean",
+    }
+    assert resolve(openapi, headers["xRegistry-createdat"])["schema"] == {
+        "type": "string", "format": "date-time",
+    }
+
+
+@pytest.mark.parametrize("group", ["catalogs", "mirrors"])
+@pytest.mark.parametrize("maxversions", [0, 1])
+def test_openapi_document_headers_keep_resource_and_version_context_apart(
+    group, maxversions,
+):
+    """Only a Resource serialization carries the Resource-level navigation."""
+    openapi = generate_document_openapi(maxversions)
+    validate(openapi)
+    base = f"/{group}/{{groupid}}/entries/{{resourceid}}"
+    paths = openapi["paths"]
+    for operation in (paths[base]["get"]["responses"]["200"],
+                      paths[base]["put"]["responses"]["201"]):
+        headers = operation["headers"]
+        assert "xRegistry-metaurl" in headers
+        assert (set(NAVIGATION_HEADERS) <= set(headers)) is (maxversions != 1)
+    for operation in (paths[base]["post"]["responses"]["201"],
+                      paths[base + "/versions/{versionid}"]["get"]["responses"]["200"]):
+        headers = operation["headers"]
+        assert "xRegistry-metaurl" not in headers
+        assert not set(NAVIGATION_HEADERS) & set(headers)
+        assert "xRegistry-entryid" in headers and "xRegistry-versionid" in headers
+
+
+@pytest.mark.parametrize("group", ["catalogs", "mirrors"])
+@pytest.mark.parametrize("method", ["put", "post"])
+def test_openapi_document_write_headers_replace_legacy_query_parameters(group, method):
+    """Document writes offer the optional metadata headers, not resource- queries."""
+    openapi = generate_document_openapi(0)
+    validate(openapi)
+    base = f"/{group}/{{groupid}}/entries/{{resourceid}}"
+    parameters = [resolve(openapi, item)
+                  for item in openapi["paths"][base][method]["parameters"]]
+    headers = {item["name"]: item for item in parameters if item["in"] == "header"}
+    assert set(headers) == set(DOCUMENT_HEADERS) - {
+        "xRegistry-self", "xRegistry-xid", "xRegistry-isdefault",
+    }
+    assert all(item["required"] is False for item in headers.values())
+    assert headers["xRegistry-entryurl"]["schema"] == {"type": "string"}
+    for name in ("xRegistry-metaurl",) + NAVIGATION_HEADERS:
+        assert name not in headers
+    assert not [item for item in parameters if item["name"].startswith("resource-")]
+    for container in ("parameters", "headers"):
+        assert not [name for name in openapi["components"][container]
+                    if name.startswith("resource-")]
+
+
+@pytest.mark.parametrize("group", ["catalogs", "mirrors"])
+def test_openapi_document_routes_keep_native_header_grammars(group):
+    """Native URI, MIME and disposition fields stay outside the private encoding."""
+    openapi = generate_document_openapi(0)
+    validate(openapi)
+    base = f"/{group}/{{groupid}}/entries/{{resourceid}}"
+    responses = openapi["paths"][base]["get"]["responses"]
+    for status, name in (("200", "Content-Location"), ("303", "Location"),
+                         ("303", "Content-Location")):
+        assert responses[status]["headers"][name] == native(name)
+        assert resolve(openapi, native(name))["schema"] == {
+            "type": "string", "format": "uri-reference",
+        }
+    disposition = resolve(openapi, native("Content-Disposition"))
+    assert disposition["schema"] == {"type": "string"}
+    assert "filename" in disposition["description"]
+    for name in ("xRegistry-self", "xRegistry-documentation", "xRegistry-entryurl",
+                 "xRegistry-metaurl"):
+        assert resolve(openapi, responses["200"]["headers"][name])["schema"] == {
+            "type": "string",
+        }
+    assert set(responses["200"]["content"]) == {
+        "application/octet-stream", "application/json",
+    }
+
+
+@pytest.mark.parametrize("group", ["catalogs", "mirrors"])
+@pytest.mark.parametrize("maxversions", [0, 1])
+def test_openapi_document_get_redirects_without_a_body(group, maxversions):
+    """A 303 names the external document and returns no document body."""
+    openapi = generate_document_openapi(maxversions)
+    validate(openapi)
+    base = f"/{group}/{{groupid}}/entries/{{resourceid}}"
+    for suffix in ("", "/versions/{versionid}"):
+        responses = openapi["paths"][base + suffix]["get"]["responses"]
+        assert "content" in responses["200"]
+        assert "content" not in responses["303"]
+        assert responses["303"]["headers"]["Location"] == native("Location")
+    for suffix in ("$details", "/versions/{versionid}$details", "/meta"):
+        assert "303" not in openapi["paths"][base + suffix]["get"]["responses"]
+    metadata_only = generate_version_openapi(False, maxversions)
+    for suffix in ("", "/versions/{versionid}"):
+        responses = metadata_only["paths"][base + suffix]["get"]["responses"]
+        assert "303" not in responses
+        assert "headers" not in responses["200"] or (
+            "Location" not in responses["200"]["headers"]
+        )
+
+
+@pytest.mark.parametrize("group", ["catalogs", "mirrors"])
+def test_openapi_document_writes_separate_creation_update_and_redirect(group):
+    """Creation reports 201 with Location; an ordinary update reports a plain 200."""
+    openapi = generate_document_openapi(0)
+    validate(openapi)
+    base = f"/{group}/{{groupid}}/entries/{{resourceid}}"
+    put = openapi["paths"][base]["put"]["responses"]
+    assert set(put) == {"200", "201", "303", "400", "401", "404", "409", "500"}
+    assert "Location" not in put["200"]["headers"]
+    assert put["200"]["headers"]["Content-Location"] == native("Content-Location")
+    for status in ("201", "303"):
+        assert put[status]["headers"]["Location"] == native("Location")
+        assert put[status]["headers"]["Content-Location"] == native("Content-Location")
+    assert "content" not in put["303"]
+    post = openapi["paths"][base]["post"]["responses"]["201"]
+    assert post["headers"]["Location"] == native("Location")
+    assert post["headers"]["Content-Location"] == native("Content-Location")
+
+
+@pytest.mark.parametrize("maxversions", [0, 1])
+def test_openapi_metadata_only_writes_report_creation_without_redirect(maxversions):
+    """Metadata-only Resources gain the creation contract but are never redirected."""
+    openapi = generate_version_openapi(False, maxversions)
+    validate(openapi)
+    base = "/catalogs/{groupid}/entries/{resourceid}"
+    for method in ("put", "post"):
+        responses = openapi["paths"][base][method]["responses"]
+        created = responses["201"]
+        assert created["headers"]["Location"] == native("Location")
+        assert created["headers"]["Content-Location"] == native("Content-Location")
+        assert set(created["content"]) == {"application/json"}
+        assert "303" not in responses
+        assert "Location" not in responses.get("200", {}).get("headers", {})
+    assert openapi["paths"][base]["put"]["responses"]["201"]["content"][
+        "application/json"
+    ]["schema"] == {"$ref": "#/components/schemas/entry"}
+
+
+@pytest.mark.parametrize("group", ["catalogs", "mirrors"])
+@pytest.mark.parametrize("status", ["200", "201"])
+def test_openapi_document_put_success_carries_binary_and_domain_json(group, status):
+    """A content-bearing write answers with the same representation it accepts."""
+    openapi = generate_document_openapi(0)
+    validate(openapi)
+    base = f"/{group}/{{groupid}}/entries/{{resourceid}}"
+    put = openapi["paths"][base]["put"]
+    assert set(put["requestBody"]["content"]) == {
+        "application/octet-stream", "application/json",
+    }
+    content = put["responses"][status]["content"]
+    assert set(content) == {"application/octet-stream", "application/json"}
+    assert content["application/octet-stream"]["schema"] == {
+        "type": "string", "format": "binary",
+    }
+    representation = content["application/json"]["schema"]
+    assert "$ref" not in representation
+    read = operation_validator(openapi, representation)
+    for value in ({"entry": "opaque business field", "versionid": 7}, {},
+                  [{"versionid": 7}], "text", 7, False, None):
+        read.validate(value)
+    details = openapi["paths"][base + "/versions/{versionid}$details"]["get"]
+    metadata = operation_validator(
+        openapi, details["responses"]["200"]["content"]["application/json"]["schema"]
+    )
+    metadata.validate(ordinary_version(group, True))
+    with pytest.raises(jsonschema.ValidationError) as error:
+        metadata.validate({**ordinary_version(group, True), "versionid": 7})
+    assert error.value.validator == "type"
