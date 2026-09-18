@@ -180,7 +180,7 @@
                   },
                   "subject": {
                     "type": "any",
-                    "description": "AMQP properties.subject declaration. AMQP declarations are OPTIONAL and the common contract defaults 'required' to false. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract"
+                    "description": "AMQP properties.subject declaration. AMQP declarations are OPTIONAL and the common contract does not mark this one as mandatory. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract"
                   },
                   "replyTo": {
                     "type": "any",
