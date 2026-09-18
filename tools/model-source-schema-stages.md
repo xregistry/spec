@@ -19,12 +19,13 @@ The root schema validates the document as written:
   `labels`, `typemap`, and the Group `constraints` map and its entries. The two
   directives are typed and mutually exclusive at any one level, and an
   include-only Group or Resource definition needs no local `singular`.
-- A definition may omit `type`, because the type can arrive from an include or
-  from the specification-defined attribute it overlays. `{"attributes":
-  {"name": {"required": true}}}` is a legal source overlay.
-- Attribute names use the strict character set (`[a-z_][a-z0-9_]{0,62}`) unless
-  the owning `object` or `item` declares `namecharset: extended`, which selects
-  the map key character set (`[a-z0-9][a-z0-9_:.-]{0,62}`). The owning object's
+- A definition MAY omit `type`, because the type can arrive from an include or
+  from the specification-defined attribute it overlays. For example,
+  `{"attributes": {"name": {"required": true}}}` is a legal source overlay.
+- Attribute names use the strict character set, lowercase letters, digits and
+  underscore, not starting with a digit, unless the owning `object` or `item`
+  declares `namecharset: extended`, which selects the map key character set
+  described in `core/spec.md`. The owning object's
   character set also applies to the top-level `siblingattributes` of its
   attributes' `ifvalues`; it does not change a nested object's own character
   set.
@@ -39,8 +40,8 @@ The root schema validates the document as written:
 `#/definitions/ExpandedModel` validates the same document after
 `tools/schema-generator.py::resolve_imports` - the real resolver, with its
 existing local-file-only, cycle, depth, precedence and non-mutation behavior -
-has resolved the directives. At that stage no directive may remain and every
-attribute, wildcard and item definition must carry a `type`.
+has resolved the directives. At that stage no directive MAY remain and every
+attribute, wildcard and item definition MUST carry a `type`.
 
 Admission at the source stage therefore does not imply that a definition is
 complete, and admission at the expanded stage does not imply that the model is
