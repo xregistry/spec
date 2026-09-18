@@ -2240,7 +2240,7 @@ def main():
     elif (args.type == 'avro-schema'):
         avro_schema = generate_avro_schema(model_definition)
         if args.output:
-            with open(args.output, 'w') as of:
+            with open(args.output, 'w', encoding='utf-8', newline='\n') as of:
                 json.dump(avro_schema, of, indent=2)
         else:
             print(json.dumps(avro_schema, indent=2))
