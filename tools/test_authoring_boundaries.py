@@ -231,6 +231,12 @@ def _named_nodes(document, name):
 def _accepts(schema, instance, check_format=False):
     original = copy.deepcopy(instance)
     checker = jsonschema.FormatChecker() if check_format else None
+    if checker is not None:
+        assert "uri" in checker.checkers, (
+            "the optional URI format checker is not registered, so a format "
+            "assertion would pass vacuously; tools/requirements.txt declares "
+            "jsonschema[format-nongpl] to make these checks meaningful"
+        )
     valid = jsonschema.Draft7Validator(schema, format_checker=checker).is_valid(
         instance
     )
