@@ -66,7 +66,10 @@ Avro (`document-schema.avsc`), and OpenAPI (`openapi.json`) in the
 `schemas/` subdirectory of each domain spec
 ([endpoint](endpoint/schemas/), [message](message/schemas/),
 [schema](schema/schemas/)). The core model has its own JSON Schema at
-[core/model.schema.json](core/model.schema.json).
+[core/model.schema.json](core/model.schema.json), which describes the
+`modelsource` document. See the [model source schema
+stages](tools/model-source-schema-stages.md) for what the source and expanded
+structural stages prove and what they leave to a real implementation.
 
 Generated request, response and JSON Structure types changed, so consumers
 should regenerate any bindings built from these schemas. The guidance linked

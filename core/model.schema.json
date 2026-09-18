@@ -5,59 +5,92 @@
   "description": "JSON Schema defining the structure of an xRegistry model",
   "type": "object",
   "properties": {
+    "$include": { "$ref": "#/definitions/IncludeReference" },
+    "$includes": { "$ref": "#/definitions/IncludeReferences" },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of the Registry model"
+    },
+    "documentation": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL of the documentation for the Registry model"
+    },
     "labels": {
       "$ref": "#/definitions/Labels"
     },
     "attributes": {
-      "$ref": "#/definitions/AttributeDefinitions",
+      "$ref": "#/definitions/StrictAttributeDefinitions",
       "description": "Registry level extensions"
     },
     "groups": {
       "type": "object",
       "description": "Collection of group definitions",
+      "properties": {
+        "$include": { "$ref": "#/definitions/IncludeReference" },
+        "$includes": { "$ref": "#/definitions/IncludeReferences" }
+      },
       "patternProperties": {
-        "^\\$includes$": {
-          "type": "array",
-          "items": { "type": "string" }
-        },
-        "^[a-z][a-z0-9_]*$": {
+        "^[a-z_][a-z0-9_]{0,56}$": {
           "$ref": "#/definitions/GroupDefinition"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [ { "$ref": "#/definitions/IncludeExclusivity" } ]
     }
   },
   "additionalProperties": true,
+  "allOf": [ { "$ref": "#/definitions/IncludeExclusivity" } ],
   "definitions": {
+    "IncludeReference": {
+      "type": "string",
+      "description": "Single include reference: <PATH-TO-DOCUMENT>#<JSON-POINTER>"
+    },
+    "IncludeReferences": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Ordered include references; earlier entries take precedence"
+    },
+    "IncludeExclusivity": {
+      "not": { "required": ["$include", "$includes"] },
+      "description": "$include and $includes MUST NOT appear at the same level"
+    },
+    "NoIncludeDirective": {
+      "not": {
+        "anyOf": [
+          { "required": ["$include"] },
+          { "required": ["$includes"] }
+        ]
+      }
+    },
     "GroupDefinition": {
-      "oneOf": [
-        {
-          "type": "object",
-          "properties": {
-            "$include": { "type": "string" }
-          },
-          "required": ["$include"],
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": ["singular"],
-          "properties": {
+      "type": "object",
+      "properties": {
+            "$include": { "$ref": "#/definitions/IncludeReference" },
+            "$includes": { "$ref": "#/definitions/IncludeReferences" },
             "singular": {
               "type": "string",
-              "pattern": "^[a-z][a-z0-9_]*$",
-              "maxLength": 58,
-              "description": "Singular name of the group type"
+              "pattern": "^[a-z_][a-z0-9_]{0,62}$",
+              "description": "Singular name of the group type (<=63 per core/model.md; the proposed 61 bound depends on xregistry/spec#677)"
             },
             "plural": {
               "type": "string",
-              "pattern": "^[a-z][a-z0-9_]*$",
-              "maxLength": 58,
-              "description": "Plural name of the group type"
+              "pattern": "^[a-z_][a-z0-9_]{0,56}$",
+              "description": "Plural name of the group type (<=57)"
             },
             "description": {
               "type": "string",
               "description": "Human-readable description of the group type"
+            },
+            "documentation": {
+              "type": "string",
+              "format": "uri",
+              "description": "URL of the documentation for the group type"
+            },
+            "icon": {
+              "type": "string",
+              "format": "uri",
+              "description": "URL of the icon for the group type"
             },
             "modelversion": {
               "type": "string",
@@ -72,87 +105,110 @@
               "$ref": "#/definitions/Labels"
             },
             "attributes": {
-              "$ref": "#/definitions/AttributeDefinitions",
+              "$ref": "#/definitions/StrictAttributeDefinitions",
               "description": "Custom attributes for this group type"
             },
             "ximportresources": {
               "type": "array",
               "items": {
                 "type": "string",
-                "pattern": "^/[a-z][a-z0-9_]*/[a-z][a-z0-9_]*$"
+                "pattern": "^/[a-z_][a-z0-9_]{0,56}/[a-z_][a-z0-9_]{0,56}$"
               },
               "description": "Include these Resources"
             },
             "constraints": {
-              "type": "object",
-              "patternProperties": {
-                "^[a-z][a-z0-9_]*\\..+$": {
-                  "type": "object",
-                  "properties": {
-                    "default": {
-                      "type": [ "string", "number", "integer", "boolean" ]
-                    },
-                    "enum": {
-                      "type": "array",
-                      "items": {
-                        "type": [ "string", "number", "integer", "boolean" ]
-                      },
-                      "minItems": 1
-                    },
-                    "equals": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              },
-              "additionalProperties": false,
-              "description": "Group level constraints over resources"
+              "$ref": "#/definitions/GroupConstraints"
             },
             "resources": {
               "type": "object",
               "description": "Resource types within this group",
+              "properties": {
+                "$include": { "$ref": "#/definitions/IncludeReference" },
+                "$includes": { "$ref": "#/definitions/IncludeReferences" }
+              },
               "patternProperties": {
-                "^[a-z][a-z0-9_]*$": {
+                "^[a-z_][a-z0-9_]{0,56}$": {
                   "$ref": "#/definitions/ResourceDefinition"
                 }
               },
-              "additionalProperties": false
+              "additionalProperties": false,
+              "allOf": [ { "$ref": "#/definitions/IncludeExclusivity" } ]
             }
-          },
-          "additionalProperties": false
+      },
+      "additionalProperties": false,
+      "allOf": [
+        { "$ref": "#/definitions/IncludeExclusivity" },
+        {
+          "if": { "$ref": "#/definitions/NoIncludeDirective" },
+          "then": { "required": ["singular"] }
         }
       ]
     },
-    "ResourceDefinition": {
-      "oneOf": [
-        {
-          "type": "object",
-          "properties": {
-            "$include": { "type": "string" }
-          },
-          "required": ["$include"],
-          "additionalProperties": false
+    "GroupConstraints": {
+      "type": "object",
+      "description": "Group level constraints over resources",
+      "properties": {
+        "$include": { "$ref": "#/definitions/IncludeReference" },
+        "$includes": { "$ref": "#/definitions/IncludeReferences" }
+      },
+      "patternProperties": {
+        "^[a-z_][a-z0-9_]{0,56}\\..+$": {
+          "$ref": "#/definitions/GroupConstraint"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [ { "$ref": "#/definitions/IncludeExclusivity" } ]
+    },
+    "GroupConstraint": {
+      "type": "object",
+      "properties": {
+        "$include": { "$ref": "#/definitions/IncludeReference" },
+        "$includes": { "$ref": "#/definitions/IncludeReferences" },
+        "default": {
+          "type": [ "string", "number", "integer", "boolean" ]
         },
-        {
-          "type": "object",
-          "required": ["singular"],
-          "properties": {
+        "enum": {
+          "type": "array",
+          "items": {
+            "type": [ "string", "number", "integer", "boolean" ]
+          },
+          "description": "An empty list adds no further restriction"
+        },
+        "equals": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [ { "$ref": "#/definitions/IncludeExclusivity" } ]
+    },
+    "ResourceDefinition": {
+      "type": "object",
+      "properties": {
+            "$include": { "$ref": "#/definitions/IncludeReference" },
+            "$includes": { "$ref": "#/definitions/IncludeReferences" },
             "singular": {
               "type": "string",
-              "pattern": "^[a-z][a-z0-9_]*$",
-              "maxLength": 58,
-              "description": "Singular name of the resource type"
+              "pattern": "^[a-z_][a-z0-9_]{0,56}$",
+              "description": "Singular name of the resource type (<=57)"
             },
             "plural": {
               "type": "string",
-              "pattern": "^[a-z][a-z0-9_]*$",
-              "maxLength": 58,
-              "description": "Plural name of the resource type"
+              "pattern": "^[a-z_][a-z0-9_]{0,56}$",
+              "description": "Plural name of the resource type (<=57)"
             },
             "description": {
               "type": "string",
               "description": "Human-readable description of the resource type"
+            },
+            "documentation": {
+              "type": "string",
+              "format": "uri",
+              "description": "URL of the documentation for the resource type"
+            },
+            "icon": {
+              "type": "string",
+              "format": "uri",
+              "description": "URL of the icon for the resource type"
             },
             "maxversions": {
               "type": "integer",
@@ -172,9 +228,9 @@
             },
             "versionmode": {
               "type": "string",
-              "enum": ["manual", "createdat", "modifiedat", "semver"],
+              "pattern": "^([mM][aA][nN][uU][aA][lL]|[cC][rR][eE][aA][tT][eE][dD][aA][tT]|[mM][oO][dD][iI][fF][iI][eE][dD][aA][tT]|[sS][eE][mM][vV][eE][rR])$",
               "default": "manual",
-              "description": "Algorithm for Version management"
+              "description": "Algorithm for Version management; the value is case-insensitive"
             },
             "singleversionroot": {
               "type": "boolean",
@@ -198,14 +254,19 @@
             },
             "typemap": {
               "type": "object",
+              "properties": {
+                "$include": { "$ref": "#/definitions/IncludeReference" },
+                "$includes": { "$ref": "#/definitions/IncludeReferences" }
+              },
               "patternProperties": {
-                "^.+$": {
+                "^(?!\\$includes?$).+$": {
                   "type": "string",
-                  "enum": ["binary", "json", "string"]
+                  "pattern": "^([bB][iI][nN][aA][rR][yY]|[jJ][sS][oO][nN]|[sS][tT][rR][iI][nN][gG])$"
                 }
               },
               "additionalProperties": false,
-              "description": "Content type mappings"
+              "allOf": [ { "$ref": "#/definitions/IncludeExclusivity" } ],
+              "description": "Content type mappings; keys and values are case-insensitive"
             },
             "modelversion": {
               "type": "string",
@@ -220,45 +281,129 @@
               "$ref": "#/definitions/Labels"
             },
             "attributes": {
-              "$ref": "#/definitions/AttributeDefinitions",
+              "$ref": "#/definitions/StrictAttributeDefinitions",
               "description": "Version attributes/extensions"
             },
             "resourceattributes": {
-              "$ref": "#/definitions/AttributeDefinitions",
+              "$ref": "#/definitions/StrictAttributeDefinitions",
               "description": "Resource attributes/extensions"
             },
             "metaattributes": {
-              "$ref": "#/definitions/AttributeDefinitions",
+              "$ref": "#/definitions/StrictAttributeDefinitions",
               "description": "Meta attributes/extensions"
             }
-          },
-          "additionalProperties": false
+      },
+      "additionalProperties": false,
+      "allOf": [
+        { "$ref": "#/definitions/IncludeExclusivity" },
+        {
+          "if": { "$ref": "#/definitions/NoIncludeDirective" },
+          "then": { "required": ["singular"] }
         }
       ]
     },
-    "AttributeDefinitions": {
+    "StrictAttributeDefinitions": {
       "type": "object",
+      "description": "Attribute map whose names use the strict character set",
       "properties": {
+        "$include": { "$ref": "#/definitions/IncludeReference" },
+        "$includes": { "$ref": "#/definitions/IncludeReferences" },
         "*": {
           "$ref": "#/definitions/WildcardAttributeDefinition"
         }
       },
       "patternProperties": {
-        "^[a-z][a-z0-9_]*$": {
-          "$ref": "#/definitions/AttributeDefinition",
-          "description": "Strict character set: lowercase alphanumeric and underscore, must start with letter"
-        },
-        "^[a-z0-9][a-z0-9_:.\\-]*$": {
-          "$ref": "#/definitions/AttributeDefinition",
-          "description": "Extended character set: includes colon, dash, underscore, and dot for objects with namecharset=extended"
+        "^[a-z_][a-z0-9_]{0,62}$": {
+          "allOf": [
+            { "$ref": "#/definitions/AttributeDefinition" },
+            { "$ref": "#/definitions/StrictNameScope" }
+          ]
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [ { "$ref": "#/definitions/IncludeExclusivity" } ]
+    },
+    "ExtendedAttributeDefinitions": {
+      "type": "object",
+      "description": "Attribute map of an object whose namecharset is extended",
+      "properties": {
+        "$include": { "$ref": "#/definitions/IncludeReference" },
+        "$includes": { "$ref": "#/definitions/IncludeReferences" },
+        "*": {
+          "$ref": "#/definitions/WildcardAttributeDefinition"
+        }
+      },
+      "patternProperties": {
+        "^[a-z0-9][a-z0-9_:.\\-]{0,62}$": {
+          "allOf": [
+            { "$ref": "#/definitions/AttributeDefinition" },
+            { "$ref": "#/definitions/ExtendedNameScope" }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [ { "$ref": "#/definitions/IncludeExclusivity" } ]
+    },
+    "AnyAttributeDefinitions": {
+      "type": "object",
+      "description": "Attribute map before its owning object's character set is applied",
+      "properties": {
+        "$include": { "$ref": "#/definitions/IncludeReference" },
+        "$includes": { "$ref": "#/definitions/IncludeReferences" },
+        "*": {
+          "$ref": "#/definitions/WildcardAttributeDefinition"
+        }
+      },
+      "patternProperties": {
+        "^[a-z_][a-z0-9_]{0,62}$": {
+          "$ref": "#/definitions/AttributeDefinition"
+        },
+        "^[a-z0-9][a-z0-9_:.\\-]{0,62}$": {
+          "$ref": "#/definitions/AttributeDefinition"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [ { "$ref": "#/definitions/IncludeExclusivity" } ]
+    },
+    "StrictNameScope": {
+      "description": "Strict names for this definition and its conditional siblings",
+      "properties": {
+        "name": {
+          "pattern": "^[a-z_][a-z0-9_]{0,62}$"
+        },
+        "ifvalues": {
+          "additionalProperties": {
+            "properties": {
+              "siblingattributes": {
+                "$ref": "#/definitions/StrictAttributeDefinitions"
+              }
+            }
+          }
+        }
+      }
+    },
+    "ExtendedNameScope": {
+      "description": "Extended names for this definition and its conditional siblings",
+      "properties": {
+        "name": {
+          "pattern": "^[a-z0-9][a-z0-9_:.\\-]{0,62}$"
+        },
+        "ifvalues": {
+          "additionalProperties": {
+            "properties": {
+              "siblingattributes": {
+                "$ref": "#/definitions/ExtendedAttributeDefinitions"
+              }
+            }
+          }
+        }
+      }
     },
     "WildcardAttributeDefinition": {
       "type": "object",
-      "required": ["type"],
       "properties": {
+        "$include": { "$ref": "#/definitions/IncludeReference" },
+        "$includes": { "$ref": "#/definitions/IncludeReferences" },
         "name": {
           "const": "*",
           "description": "Name of wildcard attribute (must be '*')"
@@ -269,7 +414,7 @@
             "boolean", "string", "integer", "uinteger", "decimal",
             "uri", "uriabsolute", "urirelative", "uritemplate",
             "url", "urlabsolute", "urlrelative",
-            "timestamp", "binary", "xid", "xidtype",
+            "timestamp", "xid", "xidtype",
             "array", "map", "object", "any"
           ]
         },
@@ -289,27 +434,28 @@
           "description": "Wildcard: no conditional attributes"
         }
       },
-      "additionalProperties": true
-    },
-    "AttributeDefinition": {
-      "oneOf": [
+      "additionalProperties": true,
+      "allOf": [
+        { "$ref": "#/definitions/IncludeExclusivity" },
         {
-          "type": "string",
-          "description": "Shorthand: just the type name"
-        },
-        {
-          "$ref": "#/definitions/FullAttributeDefinition"
+          "if": { "$ref": "#/definitions/NoIncludeDirective" },
+          "then": { "required": ["type"] }
         }
       ]
     },
+    "AttributeDefinition": {
+      "$ref": "#/definitions/FullAttributeDefinition"
+    },
     "FullAttributeDefinition": {
       "type": "object",
-      "required": ["type"],
+      "description": "Source attribute definition; a completed definition also requires 'type' (see ExpandedModel)",
       "properties": {
+        "$include": { "$ref": "#/definitions/IncludeReference" },
+        "$includes": { "$ref": "#/definitions/IncludeReferences" },
         "name": {
           "type": "string",
-          "pattern": "^[a-z0-9][a-z0-9_:.\\-]*$",
-          "description": "Name of the attribute (must match the key). Supports both strict ([a-z][a-z0-9_]*) and extended ([a-z0-9][a-z0-9_:.-]*) character sets as defined in the xRegistry spec sections on Attributes and Extensions."
+          "pattern": "^([a-z_][a-z0-9_]{0,62}|[a-z0-9][a-z0-9_:.\\-]{0,62})$",
+          "description": "Name of the attribute (must match the key). The applicable character set is strict ([a-z_][a-z0-9_]*) unless the owning object declares namecharset extended ([a-z0-9][a-z0-9_:.-]*); both are limited to 63 characters."
         },
         "type": {
           "type": "string",
@@ -317,21 +463,21 @@
             "boolean", "string", "integer", "uinteger", "decimal",
             "uri", "uriabsolute", "urirelative", "uritemplate",
             "url", "urlabsolute", "urlrelative",
-            "timestamp", "binary", "xid", "xidtype",
+            "timestamp", "xid", "xidtype",
             "array", "map", "object", "any"
           ],
           "description": "Data type of the attribute"
         },
         "target": {
           "type": "string",
-          "pattern": "^/[a-z][a-z0-9_]*(/[a-z][a-z0-9_]*(\\[/versions\\]|/versions)?)?$",
-          "description": "Target entity type for xid/url/uri types. Uses strict character set as defined in the xRegistry spec."
+          "pattern": "^/[a-z_][a-z0-9_]{0,56}(/[a-z_][a-z0-9_]{0,56}(\\[/versions\\]|/versions)?)?$",
+          "description": "Target entity type for xid/url/uri types. Uses the Group/Resource plural type-name grammar; existence and depth of the referenced type is semantic validation."
         },
         "namecharset": {
           "type": "string",
-          "enum": ["strict", "extended"],
+          "pattern": "^([sS][tT][rR][iI][cC][tT]|[eE][xX][tT][eE][nN][dD][eE][dD])$",
           "default": "strict",
-          "description": "Character set for object attribute names. 'strict' allows [a-z0-9_] starting with letter; 'extended' allows [a-z0-9_:.-] starting with alphanumeric. See xRegistry spec section on Registry Model namecharset."
+          "description": "Character set for object attribute names; the value is case-insensitive. 'strict' allows [a-z_][a-z0-9_]*; 'extended' allows the map key character set [a-z0-9][a-z0-9_:.-]*."
         },
         "description": {
           "type": "string",
@@ -370,8 +516,7 @@
           "description": "Default value for scalar attributes"
         },
         "attributes": {
-          "$ref": "#/definitions/AttributeDefinitions",
-          "description": "Nested attributes for object types"
+          "description": "Nested attributes for object types; the applicable character set is selected by this definition's namecharset"
         },
         "item": {
           "$ref": "#/definitions/ItemDefinition",
@@ -379,28 +524,29 @@
         },
         "ifvalues": {
           "type": "object",
+          "properties": {
+            "$include": { "$ref": "#/definitions/IncludeReference" },
+            "$includes": { "$ref": "#/definitions/IncludeReferences" }
+          },
           "patternProperties": {
-            "^[^\\^].*$": {
-              "type": "object",
-              "properties": {
-                "siblingattributes": {
-                  "$ref": "#/definitions/AttributeDefinitions"
-                }
-              },
-              "required": ["siblingattributes"]
+            "^(?!\\$includes?$)[^\\^].*$": {
+              "$ref": "#/definitions/IfValueBranch"
             }
           },
           "additionalProperties": false,
+          "allOf": [ { "$ref": "#/definitions/IncludeExclusivity" } ],
           "description": "Conditional attributes based on values"
         }
       },
       "additionalProperties": false,
       "allOf": [
+        { "$ref": "#/definitions/IncludeExclusivity" },
         {
           "if": {
             "properties": {
               "type": { "enum": ["array", "map"] }
-            }
+            },
+            "required": ["type"]
           },
           "then": {
             "required": ["item"]
@@ -418,34 +564,73 @@
               "required": { "const": true }
             }
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "namecharset": {
+                "pattern": "^[eE][xX][tT][eE][nN][dD][eE][dD]$"
+              }
+            },
+            "required": ["namecharset"]
+          },
+          "then": {
+            "properties": {
+              "attributes": { "$ref": "#/definitions/ExtendedAttributeDefinitions" }
+            }
+          },
+          "else": {
+            "properties": {
+              "attributes": { "$ref": "#/definitions/StrictAttributeDefinitions" }
+            }
+          }
+        }
+      ]
+    },
+    "IfValueBranch": {
+      "type": "object",
+      "properties": {
+        "$include": { "$ref": "#/definitions/IncludeReference" },
+        "$includes": { "$ref": "#/definitions/IncludeReferences" },
+        "siblingattributes": {
+          "$ref": "#/definitions/AnyAttributeDefinitions"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        { "$ref": "#/definitions/IncludeExclusivity" },
+        {
+          "if": { "$ref": "#/definitions/NoIncludeDirective" },
+          "then": { "required": ["siblingattributes"] }
         }
       ]
     },
     "ItemDefinition": {
       "type": "object",
-      "required": ["type"],
       "properties": {
+        "$include": { "$ref": "#/definitions/IncludeReference" },
+        "$includes": { "$ref": "#/definitions/IncludeReferences" },
         "type": {
           "type": "string",
           "enum": [
             "boolean", "string", "integer", "uinteger", "decimal",
             "uri", "uriabsolute", "urirelative", "uritemplate",
             "url", "urlabsolute", "urlrelative",
-            "timestamp", "binary", "xid", "xidtype",
+            "timestamp", "xid", "xidtype",
             "array", "map", "object", "any"
           ]
         },
         "target": {
           "type": "string",
-          "pattern": "^/[a-z]([a-z0-9]*[a-z0-9])?(/[a-z]([a-z0-9]*[a-z0-9])?(\\[/versions\\]|/versions)?)?$"
+          "pattern": "^/[a-z_][a-z0-9_]{0,56}(/[a-z_][a-z0-9_]{0,56}(\\[/versions\\]|/versions)?)?$"
         },
         "namecharset": {
           "type": "string",
-          "enum": ["strict", "extended"],
+          "pattern": "^([sS][tT][rR][iI][cC][tT]|[eE][xX][tT][eE][nN][dD][eE][dD])$",
           "default": "strict"
         },
         "attributes": {
-          "$ref": "#/definitions/AttributeDefinitions"
+          "description": "Nested attributes for object items; the applicable character set is selected by this item's namecharset"
         },
         "item": {
           "$ref": "#/definitions/ItemDefinition"
@@ -453,27 +638,136 @@
       },
       "additionalProperties": false,
       "allOf": [
+        { "$ref": "#/definitions/IncludeExclusivity" },
+        {
+          "if": { "$ref": "#/definitions/NoIncludeDirective" },
+          "then": { "required": ["type"] }
+        },
         {
           "if": {
             "properties": {
               "type": { "enum": ["array", "map"] }
-            }
+            },
+            "required": ["type"]
           },
           "then": {
             "required": ["item"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "namecharset": {
+                "pattern": "^[eE][xX][tT][eE][nN][dD][eE][dD]$"
+              }
+            },
+            "required": ["namecharset"]
+          },
+          "then": {
+            "properties": {
+              "attributes": { "$ref": "#/definitions/ExtendedAttributeDefinitions" }
+            }
+          },
+          "else": {
+            "properties": {
+              "attributes": { "$ref": "#/definitions/StrictAttributeDefinitions" }
+            }
           }
         }
       ]
     },
     "Labels": {
       "type": "object",
+      "properties": {
+        "$include": { "$ref": "#/definitions/IncludeReference" },
+        "$includes": { "$ref": "#/definitions/IncludeReferences" }
+      },
       "patternProperties": {
-        "^.+$": {
+        "^(?!\\$includes?$).+$": {
           "type": "string"
         }
       },
       "additionalProperties": false,
+      "allOf": [ { "$ref": "#/definitions/IncludeExclusivity" } ],
       "description": "Key-value pairs for labeling"
+    },
+    "ExpandedModel": {
+      "description": "Expanded structural stage: the model after the include directives have been resolved by a real resolver. It does not overlay the specification-defined attributes and performs no semantic conformance checking.",
+      "allOf": [
+        { "$ref": "#" },
+        { "$ref": "#/definitions/NoIncludeDirective" },
+        {
+          "properties": {
+            "attributes": { "$ref": "#/definitions/ExpandedAttributeDefinitions" },
+            "groups": {
+              "additionalProperties": {
+                "$ref": "#/definitions/ExpandedGroupDefinition"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "ExpandedGroupDefinition": {
+      "type": "object",
+      "required": ["singular"],
+      "allOf": [ { "$ref": "#/definitions/NoIncludeDirective" } ],
+      "properties": {
+        "attributes": { "$ref": "#/definitions/ExpandedAttributeDefinitions" },
+        "resources": {
+          "additionalProperties": {
+            "$ref": "#/definitions/ExpandedResourceDefinition"
+          }
+        }
+      }
+    },
+    "ExpandedResourceDefinition": {
+      "type": "object",
+      "required": ["singular"],
+      "allOf": [ { "$ref": "#/definitions/NoIncludeDirective" } ],
+      "properties": {
+        "attributes": { "$ref": "#/definitions/ExpandedAttributeDefinitions" },
+        "resourceattributes": { "$ref": "#/definitions/ExpandedAttributeDefinitions" },
+        "metaattributes": { "$ref": "#/definitions/ExpandedAttributeDefinitions" }
+      }
+    },
+    "ExpandedAttributeDefinitions": {
+      "type": "object",
+      "allOf": [ { "$ref": "#/definitions/NoIncludeDirective" } ],
+      "additionalProperties": {
+        "$ref": "#/definitions/ExpandedAttributeDefinition"
+      }
+    },
+    "ExpandedAttributeDefinition": {
+      "type": "object",
+      "required": ["type"],
+      "allOf": [ { "$ref": "#/definitions/NoIncludeDirective" } ],
+      "properties": {
+        "attributes": { "$ref": "#/definitions/ExpandedAttributeDefinitions" },
+        "item": { "$ref": "#/definitions/ExpandedItemDefinition" },
+        "ifvalues": {
+          "additionalProperties": {
+            "$ref": "#/definitions/ExpandedIfValueBranch"
+          }
+        }
+      }
+    },
+    "ExpandedIfValueBranch": {
+      "type": "object",
+      "required": ["siblingattributes"],
+      "allOf": [ { "$ref": "#/definitions/NoIncludeDirective" } ],
+      "properties": {
+        "siblingattributes": { "$ref": "#/definitions/ExpandedAttributeDefinitions" }
+      }
+    },
+    "ExpandedItemDefinition": {
+      "type": "object",
+      "required": ["type"],
+      "allOf": [ { "$ref": "#/definitions/NoIncludeDirective" } ],
+      "properties": {
+        "attributes": { "$ref": "#/definitions/ExpandedAttributeDefinitions" },
+        "item": { "$ref": "#/definitions/ExpandedItemDefinition" }
+      }
     }
   }
 }
