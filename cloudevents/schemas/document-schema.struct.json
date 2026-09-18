@@ -35,118 +35,6 @@
   "additionalProperties": false,
   "definitions": {
     "Messagegroups": {
-      "MessageProtocoloptionsApplicationPropertiesValue": {
-        "type": "object",
-        "properties": {
-          "description": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string",
-            "description": "The application property type",
-            "enum": [
-              "string",
-              "uritemplate",
-              "integer",
-              "number",
-              "boolean"
-            ]
-          },
-          "value": {
-            "type": "string",
-            "description": "Application property value"
-          },
-          "required": {
-            "type": "boolean",
-            "description": "Application property required"
-          }
-        },
-        "additionalProperties": false
-      },
-      "MessageProtocoloptionsMessageAnnotationsValue": {
-        "type": "object",
-        "properties": {
-          "description": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string",
-            "description": "The message annotation type",
-            "enum": [
-              "string",
-              "uritemplate",
-              "integer",
-              "number",
-              "boolean"
-            ]
-          },
-          "value": {
-            "type": "string",
-            "description": "Annotation value constraint"
-          },
-          "required": {
-            "type": "boolean",
-            "description": "Annotation required"
-          }
-        },
-        "additionalProperties": false
-      },
-      "MessageProtocoloptionsDeliveryAnnotationsValue": {
-        "type": "object",
-        "properties": {
-          "description": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string",
-            "description": "The annotation type",
-            "enum": [
-              "string",
-              "uritemplate",
-              "integer",
-              "number",
-              "boolean"
-            ]
-          },
-          "value": {
-            "type": "string",
-            "description": "Annotation value constraint"
-          },
-          "required": {
-            "type": "boolean",
-            "description": "Annotation required"
-          }
-        },
-        "additionalProperties": false
-      },
-      "MessageProtocoloptionsFooterValue": {
-        "type": "object",
-        "properties": {
-          "description": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string",
-            "description": "AMQP footer type",
-            "enum": [
-              "string",
-              "uritemplate",
-              "integer",
-              "number",
-              "boolean"
-            ]
-          },
-          "value": {
-            "type": "string",
-            "description": "Footer value constraint"
-          },
-          "required": {
-            "type": "boolean",
-            "description": "Footer required"
-          }
-        },
-        "additionalProperties": false
-      },
       "Message": {
         "type": "object",
         "properties": {
@@ -228,205 +116,39 @@
             "type": "object",
             "properties": {
               "specversion": {
-                "type": "object",
-                "properties": {
-                  "description": {
-                    "type": "string"
-                  },
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "string"
-                    ]
-                  },
-                  "value": {
-                    "type": "string",
-                    "description": "CloudEvents spec version (fixed to '1.0')",
-                    "enum": [
-                      "1.0"
-                    ]
-                  },
-                  "required": {
-                    "type": "boolean",
-                    "description": "CloudEvents specversion is always required",
-                    "enum": [
-                      true
-                    ]
-                  }
-                },
-                "additionalProperties": false,
-                "description": "CloudEvents specversion https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#specversion"
+                "type": "any",
+                "description": "CloudEvents specversion declaration https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#specversion. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract"
               },
               "id": {
-                "type": "object",
-                "properties": {
-                  "description": {
-                    "type": "string"
-                  },
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "uritemplate",
-                      "string"
-                    ]
-                  },
-                  "value": {
-                    "type": "string",
-                    "description": "CloudEvents id value constraint"
-                  },
-                  "required": {
-                    "type": "boolean",
-                    "description": "CloudEvents id is always required",
-                    "enum": [
-                      true
-                    ]
-                  }
-                },
-                "additionalProperties": false,
-                "description": "CloudEvents id https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#id"
+                "type": "any",
+                "description": "CloudEvents id declaration https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#id. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract"
               },
               "type": {
-                "type": "object",
-                "properties": {
-                  "description": {
-                    "type": "string"
-                  },
-                  "type": {
-                    "type": "string"
-                  },
-                  "value": {
-                    "type": "string",
-                    "description": "CloudEvents type value constraint"
-                  },
-                  "required": {
-                    "type": "boolean",
-                    "description": "CloudEvents type is always required",
-                    "enum": [
-                      true
-                    ]
-                  }
-                },
-                "additionalProperties": false,
-                "description": "CloudEvents type https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#type"
+                "type": "any",
+                "description": "CloudEvents type declaration https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#type. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract"
               },
               "source": {
-                "type": "object",
-                "properties": {
-                  "description": {
-                    "type": "string"
-                  },
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "uritemplate",
-                      "string"
-                    ]
-                  },
-                  "value": {
-                    "type": "string",
-                    "description": "CloudEvents source value constraint"
-                  },
-                  "required": {
-                    "type": "boolean",
-                    "description": "CloudEvents source is always required",
-                    "enum": [
-                      true
-                    ]
-                  }
-                },
-                "additionalProperties": false,
-                "description": "CloudEvents source https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#source-1"
+                "type": "any",
+                "description": "CloudEvents source declaration https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#source-1. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract"
               },
               "subject": {
-                "type": "object",
-                "properties": {
-                  "description": {
-                    "type": "string"
-                  },
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "uritemplate",
-                      "string"
-                    ]
-                  },
-                  "value": {
-                    "type": "string",
-                    "description": "CloudEvents subject value constraint"
-                  },
-                  "required": {
-                    "type": "boolean",
-                    "description": "CloudEvents subject required"
-                  }
-                },
-                "additionalProperties": false,
-                "description": "CloudEvents subject https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#subject"
+                "type": "any",
+                "description": "CloudEvents subject declaration https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#subject. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract"
               },
               "time": {
-                "type": "object",
-                "properties": {
-                  "description": {
-                    "type": "string"
-                  },
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "timestamp"
-                    ]
-                  },
-                  "value": {
-                    "type": "string",
-                    "description": "The timestamp value constraint."
-                  },
-                  "required": {
-                    "type": "boolean"
-                  }
-                },
-                "additionalProperties": false,
-                "description": "CloudEvents time https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#time"
+                "type": "any",
+                "description": "CloudEvents time declaration https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#time. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract"
               },
               "dataschema": {
-                "type": "object",
-                "properties": {
-                  "description": {
-                    "type": "string"
-                  },
-                  "type": {
-                    "type": "string"
-                  },
-                  "value": {
-                    "type": "string",
-                    "description": "The URI value constraint"
-                  },
-                  "required": {
-                    "type": "boolean"
-                  }
-                },
-                "additionalProperties": false,
-                "description": "CloudEvents dataschema https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#dataschema. The URI of the schema for the event payload. Absence indicates no known schema. This attribute corresponds to the 'dataschemauri' attribute in the message definition and MUST be the same as the 'dataschemauri' attribute of the definition if present."
+                "type": "any",
+                "description": "CloudEvents dataschema declaration https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#dataschema. The URI of the schema for the event payload. Absence indicates no known schema. This attribute corresponds to the 'dataschemauri' attribute in the message definition and MUST be the same as the 'dataschemauri' attribute of the definition if present. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract"
               },
               "datacontenttype": {
-                "type": "object",
-                "properties": {
-                  "description": {
-                    "type": "string"
-                  },
-                  "type": {
-                    "type": "string"
-                  },
-                  "value": {
-                    "type": "string",
-                    "description": "The content type value constraint"
-                  },
-                  "required": {
-                    "type": "boolean"
-                  }
-                },
-                "additionalProperties": false,
-                "description": "CloudEvents datacontenttype https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#datacontenttype."
+                "type": "any",
+                "description": "CloudEvents datacontenttype declaration https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#datacontenttype. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract"
               }
             },
-            "additionalProperties": false,
+            "additionalProperties": true,
             "description": "CloudEvents attribute declarations, adding constraints to the CloudEvents envelope not yet covered by the CloudEvents spec https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md"
           },
           "envelopeoptions": {
@@ -455,373 +177,86 @@
                 "type": "object",
                 "properties": {
                   "messageId": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "type": {
-                        "type": "string",
-                        "description": "AMQP properties.message-id type constraint. The type values refer to the AMQP type model` and the defined message-id types",
-                        "enum": [
-                          "ulong",
-                          "uuid",
-                          "binary",
-                          "string",
-                          "uritemplate"
-                        ]
-                      },
-                      "value": {
-                        "type": "string",
-                        "description": "AMQP properties.message-id value constraint. "
-                      },
-                      "required": {
-                        "type": "boolean",
-                        "description": "AMQP properties.message-id required"
-                      }
-                    },
-                    "additionalProperties": false,
-                    "description": "AMQP properties.message-id",
+                    "type": "any",
+                    "description": "AMQP properties.message-id declaration. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract",
                     "altnames": {
                       "json": "message-id"
                     }
                   },
                   "userId": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "type": {
-                        "type": "string",
-                        "description": "AMQP properties.user-id value type",
-                        "enum": [
-                          "binary",
-                          "string",
-                          "uritemplate"
-                        ]
-                      },
-                      "value": {
-                        "type": "string",
-                        "description": "AMQP properties.user-id value constraint"
-                      },
-                      "required": {
-                        "type": "boolean",
-                        "description": "AMQP properties.user-id required"
-                      }
-                    },
-                    "additionalProperties": false,
-                    "description": "AMQP properties.user-id",
+                    "type": "any",
+                    "description": "AMQP properties.user-id declaration. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract",
                     "altnames": {
                       "json": "user-id"
                     }
                   },
                   "to": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "type": {
-                        "type": "string",
-                        "description": "AMQP properties.to value type",
-                        "enum": [
-                          "string",
-                          "uritemplate"
-                        ]
-                      },
-                      "value": {
-                        "type": "string",
-                        "description": "AMQP properties.to value constraint"
-                      },
-                      "required": {
-                        "type": "boolean",
-                        "description": "AMQP properties.to required"
-                      }
-                    },
-                    "additionalProperties": false,
-                    "description": "AMQP properties.to"
+                    "type": "any",
+                    "description": "AMQP properties.to declaration. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract"
                   },
                   "subject": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "type": {
-                        "type": "string",
-                        "description": "AMQP properties.subject value type",
-                        "enum": [
-                          "string",
-                          "uritemplate"
-                        ]
-                      },
-                      "value": {
-                        "type": "string",
-                        "description": "AMQP properties.subject value constraint"
-                      },
-                      "required": {
-                        "type": "boolean",
-                        "description": "AMQP properties.subject required"
-                      }
-                    },
-                    "additionalProperties": false,
-                    "description": "AMQP properties.subject"
+                    "type": "any",
+                    "description": "AMQP properties.subject declaration. AMQP declarations are OPTIONAL and the common contract defaults 'required' to false. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract"
                   },
                   "replyTo": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "type": {
-                        "type": "string",
-                        "description": "AMQP properties.reply-to value type",
-                        "enum": [
-                          "string",
-                          "uritemplate"
-                        ]
-                      },
-                      "value": {
-                        "type": "string",
-                        "description": "AMQP properties.reply-to value constraint"
-                      },
-                      "required": {
-                        "type": "boolean",
-                        "description": "AMQP properties.reply-to required"
-                      }
-                    },
-                    "additionalProperties": false,
-                    "description": "AMQP properties.reply-to",
+                    "type": "any",
+                    "description": "AMQP properties.reply-to declaration. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract",
                     "altnames": {
                       "json": "reply-to"
                     }
                   },
                   "correlationId": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "type": {
-                        "type": "string",
-                        "description": "AMQP correlation-id value type",
-                        "enum": [
-                          "binary",
-                          "string",
-                          "uritemplate"
-                        ]
-                      },
-                      "value": {
-                        "type": "string",
-                        "description": "AMQP correlation-id value constraint"
-                      },
-                      "required": {
-                        "type": "boolean",
-                        "description": "AMQP correlation-id required"
-                      }
-                    },
-                    "additionalProperties": false,
-                    "description": "AMQP properties.correlation-id",
+                    "type": "any",
+                    "description": "AMQP properties.correlation-id declaration. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract",
                     "altnames": {
                       "json": "correlation-id"
                     }
                   },
                   "contentType": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "type": {
-                        "type": "string",
-                        "description": "AMQP properties.content-type value type",
-                        "enum": [
-                          "string",
-                          "uritemplate"
-                        ]
-                      },
-                      "value": {
-                        "type": "string",
-                        "description": "AMQP properties.content-type value constraint"
-                      },
-                      "required": {
-                        "type": "boolean",
-                        "description": "AMQP properties.content-type required"
-                      }
-                    },
-                    "additionalProperties": false,
-                    "description": "AMQP properties.content-type",
+                    "type": "any",
+                    "description": "AMQP properties.content-type declaration. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract",
                     "altnames": {
                       "json": "content-type"
                     }
                   },
                   "contentEncoding": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "type": {
-                        "type": "string",
-                        "description": "AMQP properties.content-encoding value type",
-                        "enum": [
-                          "string"
-                        ]
-                      },
-                      "value": {
-                        "type": "string",
-                        "description": "AMQP properties.content-encoding value constraint"
-                      },
-                      "required": {
-                        "type": "boolean",
-                        "description": "AMQP properties.content-encoding required"
-                      }
-                    },
-                    "additionalProperties": false,
-                    "description": "AMQP properties.content-encoding",
+                    "type": "any",
+                    "description": "AMQP properties.content-encoding declaration. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract",
                     "altnames": {
                       "json": "content-encoding"
                     }
                   },
                   "absoluteExpiryTime": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "type": {
-                        "type": "string",
-                        "description": "AMQP properties.absolute-expiry-time value type",
-                        "enum": [
-                          "timestamp"
-                        ]
-                      },
-                      "value": {
-                        "type": "string",
-                        "description": "AMQP properties.absolute-expiry-time value constraint"
-                      },
-                      "required": {
-                        "type": "boolean",
-                        "description": "AMQP properties.absolute-expiry-time required"
-                      }
-                    },
-                    "additionalProperties": false,
-                    "description": "AMQP properties.absolute-expiry-time",
+                    "type": "any",
+                    "description": "AMQP properties.absolute-expiry-time declaration. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract",
                     "altnames": {
                       "json": "absolute-expiry-time"
                     }
                   },
                   "creationTime": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "type": {
-                        "type": "string",
-                        "description": "AMQP properties.creation-time value type",
-                        "enum": [
-                          "timestamp"
-                        ]
-                      },
-                      "value": {
-                        "type": "string",
-                        "description": "AMQP properties.creation-time value constraint"
-                      },
-                      "required": {
-                        "type": "boolean",
-                        "description": "AMQP properties.creation-time required"
-                      }
-                    },
-                    "additionalProperties": false,
-                    "description": "AMQP properties.creation-time",
+                    "type": "any",
+                    "description": "AMQP properties.creation-time declaration. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract",
                     "altnames": {
                       "json": "creation-time"
                     }
                   },
                   "groupId": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "type": {
-                        "type": "string",
-                        "description": "AMQP properties.group-id value type",
-                        "enum": [
-                          "string",
-                          "uritemplate"
-                        ]
-                      },
-                      "value": {
-                        "type": "string",
-                        "description": "AMQP properties.group-id value constraint"
-                      },
-                      "required": {
-                        "type": "boolean",
-                        "description": "AMQP properties.group-id required"
-                      }
-                    },
-                    "additionalProperties": false,
-                    "description": "AMQP properties.group-id",
+                    "type": "any",
+                    "description": "AMQP properties.group-id declaration. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract",
                     "altnames": {
                       "json": "group-id"
                     }
                   },
                   "groupSequence": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "type": {
-                        "type": "string",
-                        "description": "AMQP group-sequence value type",
-                        "enum": [
-                          "integer"
-                        ]
-                      },
-                      "value": {
-                        "type": "string",
-                        "description": "AMQP group-sequence value constraint"
-                      },
-                      "required": {
-                        "type": "boolean",
-                        "description": "AMQP group-sequence required"
-                      }
-                    },
-                    "additionalProperties": false,
-                    "description": "AMQP group-sequence",
+                    "type": "any",
+                    "description": "AMQP properties.group-sequence declaration. A declared integer 'value' is preserved as a JSON number and is not stringified. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract",
                     "altnames": {
                       "json": "group-sequence"
                     }
                   },
                   "replyToGroupId": {
-                    "type": "object",
-                    "properties": {
-                      "description": {
-                        "type": "string"
-                      },
-                      "type": {
-                        "type": "string",
-                        "description": "AMQP properties.reply-to-group-id value type",
-                        "enum": [
-                          "string",
-                          "uritemplate"
-                        ]
-                      },
-                      "value": {
-                        "type": "string",
-                        "description": "AMQP properties.reply-to-group-id value constraint"
-                      },
-                      "required": {
-                        "type": "boolean",
-                        "description": "AMQP properties.reply-to-group-id required"
-                      }
-                    },
-                    "additionalProperties": false,
-                    "description": "AMQP properties.reply-to-group-id",
+                    "type": "any",
+                    "description": "AMQP properties.reply-to-group-id declaration. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract",
                     "altnames": {
                       "json": "reply-to-group-id"
                     }
@@ -831,37 +266,22 @@
                 "description": "AMQP properties section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-properties"
               },
               "applicationProperties": {
-                "type": "map",
-                "values": {
-                  "type": {
-                    "$ref": "#/definitions/Messagegroups/MessageProtocoloptionsApplicationPropertiesValue"
-                  }
-                },
-                "description": "AMQP application-properties section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-application-properties",
+                "type": "any",
+                "description": "AMQP application-properties section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-application-properties. The whole section is an opaque native-name map: each key is an AMQP symbol naming one property and each value is a declaration record defined by the common Property Definitions contract",
                 "altnames": {
                   "json": "application-properties"
                 }
               },
               "messageAnnotations": {
-                "type": "map",
-                "values": {
-                  "type": {
-                    "$ref": "#/definitions/Messagegroups/MessageProtocoloptionsMessageAnnotationsValue"
-                  }
-                },
-                "description": "AMQP message-annotations section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-message-annotations",
+                "type": "any",
+                "description": "AMQP message-annotations section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-message-annotations. The whole section is an opaque native-name map: each key is an AMQP symbol naming one annotation and each value is a declaration record defined by the common Property Definitions contract",
                 "altnames": {
                   "json": "message-annotations"
                 }
               },
               "deliveryAnnotations": {
-                "type": "map",
-                "values": {
-                  "type": {
-                    "$ref": "#/definitions/Messagegroups/MessageProtocoloptionsDeliveryAnnotationsValue"
-                  }
-                },
-                "description": "AMQP delivery-annotations section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-delivery-annotations",
+                "type": "any",
+                "description": "AMQP delivery-annotations section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-delivery-annotations. The whole section is an opaque native-name map: each key is an AMQP symbol naming one annotation and each value is a declaration record defined by the common Property Definitions contract",
                 "altnames": {
                   "json": "delivery-annotations"
                 }
@@ -900,13 +320,8 @@
                 "description": "AMQP header section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-header"
               },
               "footer": {
-                "type": "map",
-                "values": {
-                  "type": {
-                    "$ref": "#/definitions/Messagegroups/MessageProtocoloptionsFooterValue"
-                  }
-                },
-                "description": "AMQP footer section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-footer"
+                "type": "any",
+                "description": "AMQP footer section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-footer. The whole section is an opaque native-name map: each key is an AMQP symbol naming one footer property and each value is a declaration record defined by the common Property Definitions contract"
               }
             },
             "additionalProperties": false,

@@ -817,10 +817,8 @@ Example:
     "myevent": {
       "envelope": "CloudEvents/1.0",
       "envelopemetadata": {
-        "attributes": {
-          "type": {
-            "value": "myevent"
-          }
+        "type": {
+          "value": "myevent"
         }
       }
     }

@@ -1011,8 +1011,126 @@ defined by the message `protocol` rules apply.
 
 #### Property Definitions
 
-The following attributes are used to define the properties associated with
-the headers, properties or attributes defined for a message:
+A message definition constrains a protocol header, a protocol property or an
+envelope attribute by *declaring* it. Each declaration is a single JSON
+object, and this section is the only normative definition of that object. The
+[metadata envelope](#metadata-envelopes) and
+[message protocol](#message-protocols) sections name the properties of each
+family and link back here instead of restating these rules.
+
+##### Declaration containers
+
+A declaration is reached through one of three container shapes, and the shape
+determines how the declared property is named.
+
+| Container shape | Used by | Property name |
+| --- | --- | --- |
+| Flat object with defined member names | CloudEvents `envelopemetadata`, AMQP `properties` | The member name |
+| Native-name map | AMQP `application-properties`, `message-annotations`, `delivery-annotations` and `footer`; Kafka `headers` | The map key |
+| Ordered array | HTTP `headers` and `query`; NATS `headers`; MQTT `user_properties` | The entry's `name` member |
+
+CloudEvents `envelopemetadata` is a flat object whose members are the
+CloudEvents context attributes themselves; it does not nest them inside a
+further wrapper. The AMQP `header` section is not a declaration container: its
+members are direct Boolean and integer values defined in
+[`header` (AMQP 1.0)](#header-amqp-10).
+
+##### Declaration records
+
+- A declaration MUST be a JSON object whose members are `description`,
+  `required`, `specurl`, `type` and `value` as defined below, plus `name` when
+  the container is an ordered array. A member that is not one of these is
+  invalid.
+- A declaration is stored as opaque JSON data. This preserves the JSON kind of
+  the values it carries and keeps a native property name free of the xRegistry
+  attribute and map key character sets. Opacity is a storage boundary and not
+  a statement of validity: a schema generated from the message model admits
+  any JSON object at this boundary, and that MUST NOT be read as evidence that
+  a declaration, a property name or a declared value is valid for the protocol
+  that owns it.
+- A declared `value` keeps the JSON kind it was authored with. A Boolean
+  `false`, an integer `42` and a number `1.5` MUST be preserved as a JSON
+  Boolean, integer and number respectively. An implementation MUST NOT
+  substitute the strings `"false"` or `"42"` for them, and MUST NOT round an
+  exact value.
+- A declaration whose `value` member is present and is the literal `null`
+  constrains the property to a null value. It is distinct from a declaration
+  that has no `value` member, which places no constraint on the value. Both
+  MUST be preserved as authored. This applies to the declaration record only
+  and does not change how a Registry treats a `null` attribute anywhere else.
+- Defaults apply only inside a declaration that is present. An absent
+  declaration MUST NOT be created so that it can hold a default, and an
+  explicitly declared member MUST NOT be replaced by a default. Interpreting a
+  declaration MUST NOT modify the caller's data.
+
+The complete record shape is:
+
+```yaml
+{
+  "name": "<STRING>", ?         # Ordered-array containers only; REQUIRED there
+  "description": "<STRING>", ?
+  "required": <BOOLEAN>, ?      # Default: false
+  "specurl": "<URI>", ?
+  "type": "<TYPE>", ?           # Default: "string"
+  "value": <ANY> ?              # Absent, or any JSON value including null
+}
+```
+
+##### Declared property names
+
+A property name is checked against the rules of the family that owns it
+rather than against one universal pattern.
+
+| Family | Name rule |
+| --- | --- |
+| CloudEvents attributes | A base attribute name from the table in [CloudEvents/1.0](#cloudevents10), or an extension name of lower-case alphanumeric characters without separators |
+| AMQP `properties` | One of the fixed names defined in [`properties` (AMQP 1.0)](#properties-amqp-10) |
+| AMQP `application-properties`, `message-annotations`, `delivery-annotations`, `footer` | An AMQP `symbol` |
+| Kafka `headers` | A Kafka header name |
+| HTTP `headers` | A valid HTTP field name |
+| HTTP `query` | A valid HTTP query parameter name |
+| NATS `headers` | A valid NATS header name |
+| MQTT `user_properties` | An MQTT user property name |
+
+Names such as `MyProperty` or `_tag` are therefore admitted wherever the
+owning protocol permits them. This does not widen the CloudEvents extension
+rule, which stays lower-case alphanumeric without separators.
+
+In a native-name map the key is the sole canonical name of the property, and a
+declaration in such a map MUST NOT carry a `name` member. Earlier revisions of
+the Kafka `headers` model additionally mandated an inner `name`; a declaration
+that still carries one MUST be migrated by deleting that member and keeping
+the outer key. This specification defines no precedence between an outer key
+and an inner name, and defines no alias for the case in which the two agree.
+
+In an ordered array the order of the entries is significant and MUST be
+preserved, the same `name` MAY appear in more than one entry, and the array
+MUST NOT be converted into a keyed map. This specification does not define
+wire de-duplication semantics for repeated names.
+
+##### Conformance evidence and limits
+
+The obligations above are conformance requirements on authors and on clients
+that interpret a message definition. A Registry server is not obligated to
+check them, and this specification does not define a validator for them.
+
+Schemas generated from the message model project the container shapes - which
+sections exist, which of them are native-name maps, and which are ordered
+arrays - but not the record contract, because the records are opaque at that
+boundary. A consumer that relied on the previously generated closed record
+properties, on a string-only `value`, on generated `required` and `type`
+defaults, or on the Kafka inner `name`, MUST adopt the migration described
+above.
+
+##### `name`
+
+- Type: String
+- Description: The name of the declared property.
+- Constraints:
+  - REQUIRED in an ordered array container, and MUST NOT be used in any other
+    container.
+  - MUST be a non-empty string that satisfies the name rule of the owning
+    family.
 
 ##### `description`
 
@@ -1029,7 +1147,10 @@ the headers, properties or attributes defined for a message:
   message of this type.
 - Constraints:
   - OPTIONAL.
-  - Default value MUST be `false`.
+  - Default value MUST be `false`. This default applies only when the
+    declaration itself is present.
+  - MUST be a JSON Boolean. The strings `"true"` and `"false"` are not valid
+    values.
 
 ##### `specurl`
 
@@ -1046,7 +1167,8 @@ the headers, properties or attributes defined for a message:
   the property.
 - Constraints:
   - OPTIONAL.
-  - Default value MUST be "string".
+  - Default value MUST be "string". This default applies only when the
+    declaration itself is present.
   - The valid types are those defined in the [CloudEvents][CloudEvents Types]
     core specification, with some additions:
     - `any`: Any type of value, including `null`.
@@ -1090,6 +1212,9 @@ to be revised accordingly.
 - Constraints:
   - OPTIONAL.
   - If present, MUST be a valid value for the property.
+  - The authored JSON kind MUST be preserved, and a present literal `null`
+    MUST be distinguished from an absent member, as described in
+    [Declaration records](#declaration-records).
 
 If the `type` property has the value `uritemplate`, `value` MAY contain
 placeholders. As defined in [RFC6570][RFC6570] (Level 1), the placeholders MUST
@@ -1117,9 +1242,10 @@ This specification only defines one metadata envelope: "CloudEvents/1.0".
 ##### CloudEvents/1.0
 
 For the "CloudEvents/1.0" envelope, the
-[`envelopemetadata`](#envelopemetadata) object contains a property
-`attributes`, which is an object whose properties correspond to the
-CloudEvents context attributes.
+[`envelopemetadata`](#envelopemetadata) object is a flat object whose members
+are declarations of the CloudEvents context attributes. Each member is a
+declaration record as defined in
+[Property Definitions](#property-definitions).
 
 As with the [CloudEvents specification][CloudEvents], the attributes form a
 flat list and extension attributes are allowed. Attribute names are restricted
@@ -1172,7 +1298,10 @@ same placeholder is used in multiple properties, the value of the placeholder
 is assumed to be identical.
 
 The following shows the format of a CloudEvents "envelopemetadata" section for
-a message (see the [model file](model.json) for the complete definition):
+a message. Each member is a declaration record, so `description`, `required`
+and `specurl` MAY also be present in any of them; see
+[Property Definitions](#property-definitions) for the complete record shape
+and the [model file](model.json) for the complete definition.
 
 ```yaml
 "envelope": "CloudEvents/1.0",
@@ -1205,6 +1334,10 @@ a message (see the [model file](model.json) for the complete definition):
   "dataschema": {
     "value": "<URITEMPLATE>", ?
     "type": "uritemplate" ?
+  },
+  "datacontenttype": {
+    "value": "<STRING>", ?
+    "type": "string" ?
   },
   "*": {
     "value": <ANY>, ?
@@ -1271,8 +1404,10 @@ properties as defined below:
 | `status`  | `string`      | The HTTP status code        |
 
 HTTP allows for multiple headers with the same name. The `headers` property is
-therefore an array of objects with `name` and `value` properties. The `name`
-property is a string that MUST be a valid HTTP header name.
+therefore an ordered array of declaration records, each carrying a REQUIRED
+`name` member, as defined in [Property Definitions](#property-definitions).
+Entry order and repeated names are preserved, and the `name` of each entry
+MUST be a valid HTTP header name.
 
 The `query` property is a map of string keys to string values.
 
@@ -1334,7 +1469,14 @@ as defined below:
 | `header`                 | Map  | The AMQP 1.0 [Message Header][AMQP 1.0 Message Header] section                  |
 | `footer`                 | Map  | The AMQP 1.0 [Message Footer][AMQP 1.0 Message Footer] section                  |
 
-As in AMQP, all sections and properties are OPTIONAL.
+As in AMQP, all sections and properties are OPTIONAL. Every member of the
+sections above is a declaration record as defined in
+[Property Definitions](#property-definitions), except for `header`, whose
+members are direct values. Because AMQP declarations are OPTIONAL, the
+`required` member of a declaration defaults to `false` in every AMQP section.
+An earlier revision of the model preset `properties.subject` to
+`required: true`; that preset was erroneous and has been removed. A definition
+that relies on a mandatory subject MUST declare `"required": true` explicitly.
 
 The values of all `string`, `symbol`, `uri`, and `uritemplate`-typed properties
 MAY contain placeholders using the [RFC6570][RFC6570] Level 1 URI Template
@@ -1410,8 +1552,10 @@ properties of the AMQP 1.0 [Application Properties][AMQP 1.0 Application
 Properties] section.
 
 The names of the properties MUST be of type `symbol` and MUST be unique within
-the scope of the map. The values of the properties MAY be of any permitted
-type.
+the scope of the map. It is a native-name map, so the map key is the sole
+canonical property name; see
+[Declared property names](#declared-property-names). The values of the
+properties MAY be of any permitted type.
 
 ##### `message-annotations` (AMQP 1.0)
 
@@ -1420,8 +1564,10 @@ properties of the AMQP 1.0 [Message Annotations][AMQP 1.0 Message Annotations]
 section.
 
 The names of the properties MUST be of type `symbol` and MUST be unique within
-the scope of the map. The values of the properties MAY be of any permitted
-type.
+the scope of the map. It is a native-name map, so the map key is the sole
+canonical property name; see
+[Declared property names](#declared-property-names). The values of the
+properties MAY be of any permitted type.
 
 ##### `delivery-annotations` (AMQP 1.0)
 
@@ -1430,8 +1576,10 @@ properties of the AMQP 1.0
 [Delivery Annotations][AMQP 1.0 Delivery Annotations] section.
 
 The names of the properties MUST be of type `symbol` and MUST be unique within
-the scope of the map. The values of the properties MAY be of any permitted
-type.
+the scope of the map. It is a native-name map, so the map key is the sole
+canonical property name; see
+[Declared property names](#declared-property-names). The values of the
+properties MAY be of any permitted type.
 
 ###### `header` (AMQP 1.0)
 
@@ -1453,8 +1601,10 @@ The `footer` property is a map that contains the custom properties of the AMQP
 1.0 [Message Footer][AMQP 1.0 Message Footer] section.
 
 The names of the properties MUST be of type `symbol` and MUST be unique within
-the scope of the map. The values of the properties MAY be of any permitted
-type.
+the scope of the map. It is a native-name map, so the map key is the sole
+canonical property name; see
+[Declared property names](#declared-property-names). The values of the
+properties MAY be of any permitted type.
 
 ##### "MQTT/3.1.1" and "MQTT/5.0" protocols
 
@@ -1482,8 +1632,10 @@ indicate whether the property is supported for the respective MQTT version.
 | `user_properties`         | Array         | no         | yes      | User properties                  |
 
 Like HTTP, MQTT allows for multiple user properties with the same name,
-so the `user_properties` property is an array of objects, each of which
-contains a single property name and value.
+so the `user_properties` property is an ordered array of declaration records,
+each carrying a REQUIRED `name` member, as defined in
+[Property Definitions](#property-definitions). Entry order and repeated names
+are preserved.
 
 The values of all `string`, `symbol`, and `uritemplate`-typed properties and
 user properties MAY contain placeholders using the [RFC6570][RFC6570] Level 1
@@ -1534,6 +1686,12 @@ The following properties are defined:
 The `key` and `key_base64` properties are mutually exclusive and MUST NOT be
 present at the same time.
 
+The `headers` property is a native-name map of declaration records as defined
+in [Property Definitions](#property-definitions). Its map key is the sole
+canonical header name, and a declaration MUST NOT carry an inner `name`
+member; see [Declared property names](#declared-property-names) for the
+migration that applies to declarations written against the earlier model.
+
 The `partition` property is included because there are cases where applications
 use partitions explicitly for addressing and routing messages within the scope
 of a topic.
@@ -1570,6 +1728,11 @@ The following properties are defined:
 | `subject`  | `uritemplate` | The subject the message will be published to |
 | `reply-to` | `uritemplate` | The subject the receiver ought to reply to   |
 | `headers`  | Array         | A list of headers to set on the message      |
+
+The `headers` property is an ordered array of declaration records, each
+carrying a REQUIRED `name` member, as defined in
+[Property Definitions](#property-definitions). Entry order and repeated names
+are preserved.
 
 The values of all `string`-, `symbol`-, and `uritemplate`-typed properties
 and headers MAY contain placeholders using the [RFC6570][RFC6570] Level 1 URI
