@@ -675,6 +675,10 @@
               "enum": {
                 "not": {},
                 "description": "Only scalar items carry a value set; a container recurses through its own 'item'"
+              },
+              "strict": {
+                "not": {},
+                "description": "Only scalar items carry a value set, so only they qualify one"
               }
             }
           }

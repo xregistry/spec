@@ -6,9 +6,11 @@ the real `jsonschema`/OpenAPI validators, the emitted JSON Structure contract
 and the real Avro parser, reader and writer.
 
 Membership, `strict`, the advisory form and the absent or empty set reuse the
-attribute rules. An `enum` on a non-scalar item is invalid, the owning array
-keeps its own separate (legacy) projection, and Avro carries string symbol sets
-only: a value set Avro cannot name is projected as the plain mapped type.
+attribute rules. `enum` and `strict` are defined for scalar items only, declared
+values must have the item's own scalar kind whether or not `strict` enforces
+membership, the owning array keeps its own separate legacy (non-Core) enum
+projection, and Avro carries string symbol sets only: a value set Avro cannot
+name is projected as the plain mapped type.
 """
 
 import copy
@@ -46,6 +48,17 @@ DIALECTS = ["json-schema", "openapi"]
 ROLES = ["subscriber", "consumer", "producer"]
 SCALAR_ITEM_TYPES = ["string", "uri", "xid", "timestamp", "uritemplate"]
 NON_SCALAR_ITEM_TYPES = ["array", "map", "object", "any"]
+EMITTERS = [
+    "generate_json_schema", "generate_openapi", "generate_json_structure",
+    "generate_avro_schema",
+]
+
+
+def non_scalar_item(item_type, **aspects):
+    item = {"type": item_type, **aspects}
+    if item_type in ("array", "map"):
+        item["item"] = {"type": "string"}
+    return item
 
 
 def base_model():
@@ -160,10 +173,26 @@ def test_source_admits_an_empty_item_enum_like_an_attribute_enum():
 
 @pytest.mark.parametrize("item_type", NON_SCALAR_ITEM_TYPES)
 def test_source_rejects_an_item_enum_on_a_non_scalar_item_type(item_type):
-    item = {"type": item_type, "enum": ["a"]}
-    if item_type in ("array", "map"):
-        item["item"] = {"type": "string"}
-    rejects_source(model_with({"type": "array", "item": item}))
+    rejects_source(model_with(
+        {"type": "array", "item": non_scalar_item(item_type, enum=["a"])}))
+
+
+@pytest.mark.parametrize("item_type", NON_SCALAR_ITEM_TYPES)
+@pytest.mark.parametrize("strict", [True, False])
+def test_source_rejects_an_item_strict_on_a_non_scalar_item_type(item_type, strict):
+    """`item.strict` is OPTIONAL and MUST only be used when `item.type` is a
+    scalar, so it is invalid on a container item with or without an `enum`."""
+    rejects_source(model_with(
+        {"type": "array", "item": non_scalar_item(item_type, strict=strict)}))
+    rejects_source(model_with({
+        "type": "array",
+        "item": non_scalar_item(item_type, enum=["a"], strict=strict),
+    }))
+
+
+@pytest.mark.parametrize("strict", [True, False])
+def test_source_admits_a_scalar_item_strict_without_an_enum(strict):
+    accepts_source(model_with(roles_array(strict=strict)))
 
 
 @pytest.mark.parametrize("value", ["subscriber", {"0": "subscriber"}, 3])
@@ -301,6 +330,14 @@ def test_an_empty_or_absent_item_enum_adds_no_membership_restriction(
 
 
 @pytest.mark.parametrize("dialect", DIALECTS)
+@pytest.mark.parametrize("strict", [True, False])
+def test_a_scalar_item_strict_without_an_enum_adds_no_restriction(dialect, strict):
+    checker = generated_validator(model_with(roles_array(strict=strict)), dialect)
+    accepts(checker, document_with(["publisher"]))
+    rejects(checker, document_with([3]))
+
+
+@pytest.mark.parametrize("dialect", DIALECTS)
 def test_an_array_of_maps_projects_the_inner_value_enum(dialect):
     checker = generated_validator(model_with({
         "type": "array",
@@ -405,18 +442,48 @@ def test_the_generator_rejects_a_wrong_kind_value_for_a_numeric_item():
             {"type": "array", "item": {"type": "uinteger", "enum": ["1"]}}))
 
 
-@pytest.mark.parametrize("generate", [
-    "generate_json_schema", "generate_openapi", "generate_json_structure",
-    "generate_avro_schema",
-])
+@pytest.mark.parametrize("generate", EMITTERS)
 @pytest.mark.parametrize("item_type", NON_SCALAR_ITEM_TYPES)
 def test_every_emitter_rejects_an_item_enum_on_a_non_scalar_item(generate, item_type):
-    item = {"type": item_type, "enum": ["a"]}
-    if item_type in ("array", "map"):
-        item["item"] = {"type": "string"}
     with pytest.raises(ValueError, match="scalar item types only"):
+        getattr(GENERATOR, generate)(group_model_with(
+            {"type": "array", "item": non_scalar_item(item_type, enum=["a"])}))
+
+
+@pytest.mark.parametrize("generate", EMITTERS)
+@pytest.mark.parametrize("item_type", NON_SCALAR_ITEM_TYPES)
+def test_every_emitter_rejects_an_item_strict_on_a_non_scalar_item(
+    generate, item_type
+):
+    with pytest.raises(ValueError, match="scalar item types only"):
+        getattr(GENERATOR, generate)(group_model_with(
+            {"type": "array", "item": non_scalar_item(item_type, strict=False)}))
+
+
+@pytest.mark.parametrize("generate", EMITTERS)
+def test_an_advisory_item_enum_still_requires_its_own_value_kinds(generate):
+    """`strict` false makes membership advisory; it does not relax the declared
+    `item.type` of each value."""
+    with pytest.raises(ValueError, match="not a valid string"):
         getattr(GENERATOR, generate)(
-            group_model_with({"type": "array", "item": item}))
+            group_model_with(roles_array(enum=[1], strict=False)))
+
+
+@pytest.mark.parametrize("strict", [None, True, False])
+def test_an_advisory_or_strict_wrong_kind_item_enum_is_rejected_when_nested(strict):
+    item = {"type": "string", "enum": [1]}
+    if strict is not None:
+        item["strict"] = strict
+    with pytest.raises(ValueError, match="not a valid string"):
+        GENERATOR.generate_json_schema(model_with({
+            "type": "map", "item": {"type": "array", "item": item},
+        }))
+
+
+@pytest.mark.parametrize("generate", EMITTERS)
+def test_an_empty_advisory_item_enum_stays_a_legal_source_model(generate):
+    getattr(GENERATOR, generate)(
+        group_model_with(roles_array(enum=[], strict=False)))
 
 
 def test_a_wrong_kind_item_enum_is_rejected_inside_a_nested_container():
@@ -538,7 +605,7 @@ def test_avro_projects_a_map_value_item_enum():
 
 
 @pytest.mark.parametrize("enum", [
-    ["with-dash"], ["9lives"], ["with space"], ["same", "same"], [""],
+    ["with-dash"], ["9lives"], ["with space"], [""],
 ])
 def test_avro_falls_back_when_the_value_set_is_not_a_legal_symbol_set(enum):
     """Avro enums carry named string symbols only; a set Avro cannot name is
@@ -546,6 +613,19 @@ def test_avro_falls_back_when_the_value_set_is_not_a_legal_symbol_set(enum):
     schema_data = avro_of(group_model_with(roles_array(enum=enum)))
     assert avro_usage(schema_data)["items"] == {"type": "string"}
     assert avro.io.validate(usage_schema(schema_data), ["anything"])
+
+
+def test_avro_deduplicates_repeated_legal_symbols_in_first_occurrence_order():
+    """A repeated legal value names the same symbol, so the set stays fully
+    representable and keeps enforcing membership."""
+    schema_data = avro_of(group_model_with(
+        roles_array(enum=["producer", "consumer", "producer", "subscriber"])))
+    items = avro_usage(schema_data)["items"]
+    assert items["name"] == "UsageEnumType"
+    assert items["symbols"] == ["producer", "consumer", "subscriber"]
+    schema = usage_schema(schema_data)
+    assert round_trip(schema, ["producer", "subscriber"]) == ["producer", "subscriber"]
+    assert not avro.io.validate(schema, ["publisher"])
 
 
 def test_avro_falls_back_for_a_non_string_scalar_item_enum():
@@ -580,17 +660,47 @@ def test_avro_shares_one_named_enum_across_declaring_groups():
     assert json.dumps(schema_data).count('"symbols"') == 1
     assert avro_usage(schema_data)["items"]["name"] == "UsageEnumType"
     assert avro_usage(schema_data, "indexes")["items"] == "io.xregistry.UsageEnumType"
+    for plural in ("catalogs", "indexes"):
+        schema = usage_schema(schema_data, plural)
+        assert round_trip(schema, list(ROLES)) == ROLES
+        assert not avro.io.validate(schema, ["publisher"])
 
 
-def test_avro_falls_back_when_one_name_would_carry_two_value_sets():
-    """Avro admits a name once; the second, different set keeps its restriction
-    only in the dialects that can express it."""
-    schema_data = avro_of(two_group_model(ROLE_ARRAY, roles_array(enum=["other"])))
+def test_avro_keeps_strict_membership_for_a_second_different_value_set():
+    """Avro admits a name once, so a different legal set takes the next
+    deterministic name in the same convention rather than losing membership."""
+    other = ["auditor"]
+    schema_data = avro_of(two_group_model(ROLE_ARRAY, roles_array(enum=other)))
     assert parsed(schema_data) is not None
-    assert avro_usage(schema_data)["items"]["symbols"] == ROLES
-    assert avro_usage(schema_data, "indexes")["items"] == {"type": "string"}
+    first = avro_usage(schema_data)["items"]
+    second = avro_usage(schema_data, "indexes")["items"]
+    assert first["name"] == "UsageEnumType" and first["symbols"] == ROLES
+    assert second["name"] == "UsageEnumType2" and second["symbols"] == other
+    catalogs = usage_schema(schema_data)
     indexes = usage_schema(schema_data, "indexes")
-    assert avro.io.validate(indexes, ["anything"])
+    assert round_trip(catalogs, list(ROLES)) == ROLES
+    assert round_trip(indexes, other) == other
+    assert not avro.io.validate(catalogs, other)
+    assert not avro.io.validate(indexes, ["producer"])
+    assert not avro.io.validate(indexes, ["publisher"])
+
+
+def test_avro_reuses_a_renamed_definition_for_a_later_identical_set():
+    other = ["auditor"]
+    model = two_group_model(ROLE_ARRAY, roles_array(enum=other))
+    model["groups"]["ledgers"] = copy.deepcopy(model["groups"]["indexes"])
+    model["groups"]["ledgers"]["singular"] = "ledger"
+    model["groups"]["ledgers"]["resources"]["ledgerentries"] = (
+        model["groups"]["ledgers"]["resources"].pop("indexentries")
+    )
+    model["groups"]["ledgers"]["resources"]["ledgerentries"]["singular"] = "ledgerentry"
+    schema_data = avro_of(model)
+    assert parsed(schema_data) is not None
+    assert json.dumps(schema_data).count('"symbols"') == 2
+    assert avro_usage(schema_data, "ledgers")["items"] == "io.xregistry.UsageEnumType2"
+    ledgers = usage_schema(schema_data, "ledgers")
+    assert round_trip(ledgers, other) == other
+    assert not avro.io.validate(ledgers, ["producer"])
 
 
 # --- the shipped models keep their existing generated identities -----------

@@ -702,8 +702,9 @@ def test_the_real_schema_registry_model_keeps_its_equals_constraint_unprojected(
 
 
 def test_array_level_enum_keeps_its_existing_item_projection():
-    """Removing this legacy delegation depends on the source cleanup owned by
-    the model-consistency work; `endpoint/model.json` still declares one."""
+    """Core does not permit `enum` on the owning array; this legacy delegation
+    is a P2 prerequisite that stays until the source cleanup owned by the
+    model-consistency work, because `endpoint/model.json` still declares one."""
     model = base_model()
     model["attributes"]["usage"] = {
         "type": "array", "enum": ["a", "b"], "item": {"type": "string"},

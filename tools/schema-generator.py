@@ -256,17 +256,31 @@ def validate_scalar_enum_aspects(name, definition, kind="attribute"):
 def item_enum(name, item):
     """The value set a Core array element or map value actually restricts.
 
-    `enum` is defined for scalar items only; a container item recurses through
-    its own `item` instead. Membership, `strict`, and the absent or empty set
-    reuse the attribute rules.
+    `enum` and `strict` are defined for scalar items only; a container item
+    recurses through its own `item` instead. Declared values must have the
+    item's own scalar kind whether or not `strict` enforces membership, and an
+    absent or empty set restricts nothing.
     """
-    if not isinstance(item, dict) or "enum" not in item:
+    if not isinstance(item, dict):
         return None
-    if item.get("type") not in core_scalar_types:
+    if "enum" not in item and "strict" not in item:
+        return None
+    type_name = item.get("type")
+    if type_name not in core_scalar_types:
+        keyword = "enum" if "enum" in item else "strict"
         raise ValueError(
-            f"enum of item {name!r} is defined for scalar item types only, not "
-            f"{item.get('type')!r}"
+            f"{keyword} of item {name!r} is defined for scalar item types "
+            f"only, not {type_name!r}"
         )
+    values = item.get("enum")
+    if isinstance(values, list):
+        # `strict` false makes membership advisory, not the value kinds.
+        for value in values:
+            if not _is_scalar_value(type_name, value):
+                raise ValueError(
+                    f"enum value {value!r} of item {name!r} is not a valid "
+                    f"{type_name}"
+                )
     return validate_scalar_enum_aspects(name, item, kind="item")
 
 
@@ -278,9 +292,10 @@ def avro_enum_symbols(values):
     """The Avro `enum` symbol set a Core value set maps to, when one exists.
 
     Avro restricts a value only through named string symbols, so a Core value
-    set that is not a unique list of legal symbol names has no Avro equivalent.
-    Such a set is projected as the plain mapped type, leaving the restriction
-    expressed in the dialects that can carry it.
+    set that is not expressible as legal symbol names has no Avro equivalent
+    and is projected as the plain mapped type, leaving the restriction
+    expressed in the dialects that can carry it. A repeated value names the
+    same symbol, so it is folded in place rather than losing the restriction.
     """
     if not values:
         return None
@@ -288,9 +303,8 @@ def avro_enum_symbols(values):
     for value in values:
         if not isinstance(value, str) or not avro_symbol_pattern.match(value):
             return None
-        if value in symbols:
-            return None
-        symbols.append(value)
+        if value not in symbols:
+            symbols.append(value)
     return symbols
 
 
@@ -2086,24 +2100,30 @@ def generate_avro_schema(model_definition) -> dict:
     enum_types = {}
 
     def avro_enum_type(name, symbols):
-        """One shared named `enum` definition per Avro type identity.
+        """One shared named `enum` definition per distinct value set.
 
-        Avro admits a named type once per schema, so a repeated declaration
-        references the first definition instead of redefining it. A name that
-        would have to carry two different value sets has no single Avro
-        identity, so it is projected as the plain mapped type instead.
+        Avro admits a named type once per schema, so an identical set reuses
+        the first definition by its qualified name. A different set under the
+        same base name takes the next name in the same convention, which keeps
+        its membership instead of degrading to the plain mapped type.
         """
-        qualified = f"io.xregistry.{name}"
-        known = enum_types.get(qualified)
-        if known is None:
-            enum_types[qualified] = symbols
-            return {
-                "type": "enum",
-                "name": name,
-                "namespace": "io.xregistry",
-                "symbols": symbols,
-            }
-        return qualified if known == symbols else None
+        candidate = name
+        ordinal = 1
+        while True:
+            qualified = f"io.xregistry.{candidate}"
+            known = enum_types.get(qualified)
+            if known is None:
+                enum_types[qualified] = symbols
+                return {
+                    "type": "enum",
+                    "name": candidate,
+                    "namespace": "io.xregistry",
+                    "symbols": symbols,
+                }
+            if known == symbols:
+                return qualified
+            ordinal += 1
+            candidate = f"{name}{ordinal}"
 
     def handle_item(resource_schema, type, item, name, prefix, enum_values=None):
         symbols = avro_enum_symbols(item_enum(name, item))
@@ -2123,9 +2143,9 @@ def generate_avro_schema(model_definition) -> dict:
                     if "item" in item:
                         handle_item(item_schema, item["type"], item["item"], name+"Item", prefix)
                 elif symbols is not None:
-                    projected = avro_enum_type(prefix+name+"EnumType", symbols)
-                    if projected is not None:
-                        item_schema = {"type": projected}
+                    item_schema = {
+                        "type": avro_enum_type(prefix+name+"EnumType", symbols)
+                    }
                 resource_schema["type"]["values"] = item_schema["type"]
             else:
                 raise Exception("Map item must have a type specified")
@@ -2138,10 +2158,9 @@ def generate_avro_schema(model_definition) -> dict:
                         handle_item(item_schema, item["type"], item["item"], name, prefix)
                         resource_schema["type"]["items"] = item_schema["type"]
                 else:
-                    projected = (avro_enum_type(prefix+name+"EnumType", symbols)
-                                 if symbols is not None else None)
-                    if projected is not None:
-                        item_schema = projected
+                    if symbols is not None:
+                        item_schema = avro_enum_type(
+                            prefix+name+"EnumType", symbols)
                     # Apply enum constraint to array items if provided
                     elif enum_values is not None and len(enum_values) > 0:
                         item_schema = {
