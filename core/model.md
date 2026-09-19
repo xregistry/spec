@@ -90,6 +90,8 @@ The overall format of a model definition is as follows:
       "attributes": { ... }, ?         # If "type" above is object
       "item": {                        # If "type" above is map,array
         "type": "<TYPE>", ?            # Map value type, or array type
+        "enum": [ <VALUE> * ], ?       # Scalar item values of type "<TYPE>"
+        "strict": <BOOLEAN>, ?         # Just item enum values. Default=true
         "target": "<XIDTYPE>", ?       # If this item "type" is xid/url
         "namecharset": "<STRING>", ?   # If this item "type" is object
         "attributes": { ... }, ?       # If this item "type" is object
@@ -436,6 +438,35 @@ The following describes the attributes of the Registry model:
 - Type: String.
 - REQUIRED.
 - The ["TYPE"](#attributesstringtype) of this nested entity.
+
+### `attributes.<STRING>.item.enum`
+- Type: Array of values of type `attributes.<STRING>.item.type`.
+- OPTIONAL, and MUST only be used when `item.type` is a scalar.
+- The [`enum`](#attributesstringenum) rules apply to each array element or
+  map value, using `item.type` and `item.strict`. They do not constrain map
+  keys, container length, uniqueness or combinations of values.
+- An absent or empty array adds no value-set restriction.
+
+This does not permit `enum` on the owning `array` or `map` attribute itself.
+For example, an array of usage roles can constrain each string as follows:
+
+```json
+{
+  "type": "array",
+  "item": {
+    "type": "string",
+    "enum": [ "subscriber", "consumer", "producer" ]
+  }
+}
+```
+
+### `attributes.<STRING>.item.strict`
+- Type: Boolean.
+- OPTIONAL, and MUST only be used when `item.type` is a scalar.
+- The [`strict`](#attributesstringstrict) rules apply to `item.enum`.
+  When absent, the default value MUST be `true`. A value of `false` makes
+  the enum advisory; it does not relax the `item.type` requirement.
+- This aspect has no effect when `item.enum` is absent or empty.
 
 ### `attributes.<STRING>.item.target`
 - Type: String.
