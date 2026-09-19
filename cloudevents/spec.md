@@ -320,7 +320,7 @@ other scenarios:
         "com.example.telemetrydata": {
           "schemaid": "com.example.telemetrydata",
           "versionid": "1.0",
-          "self": "https://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata",
+          "self": "https://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata$details",
           "xid": "/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata",
           "epoch": 5,
           "isdefault": true,

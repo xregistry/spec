@@ -904,8 +904,8 @@ Content-Type: application/json; charset=utf-8
     "item": {
       "type": "string"
     },
-    "enum": [ "collections", "doc", "epoch", "filter", "ignore", "inline",
-       "setdefaultversionid", "sort", "specversion" ]
+    "enum": [ "binary", "collections", "doc", "epoch", "filter", "ignore",
+       "inline", "setdefaultversionid", "sort", "specversion" ]
   },
   "ignores": {
     "type": "array",
