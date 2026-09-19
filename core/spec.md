@@ -2682,6 +2682,16 @@ The following provides additional details:
     specified in the
     [Cross Referencing Resources](#cross-referencing-resources) section.
 
+- Step 4 - Process the `meta` sub-object:
+  - If the operation isn't replacing the entire `meta` sub-object, but instead
+    is doing a "patch" type of operation, and it is changing the Resource's
+    `defaultversionsticky` flag from `false` to `true`, then the current
+    default Version (as defined prior to the start of the operation) is to be
+    made sticky. This aligns with the first sub-bullet of "Step 2" above,
+    to ensure that the same "default" Version is used for both updating
+    the "default Version attributes" as well as "making the default Version
+    sticky".
+
 See [Resource Update Samples](./resource.md) for examples.
 
 ##### `<RESOURCE>*` Attribute Processing
@@ -3088,8 +3098,11 @@ of the Resource in any of the following situations:
   `defaultversionsticky` with a value of `true`, but no `defaultversionid` was
   provided.
 - The processing patched the `meta` sub-object and the request modified
-  `defaultversionsticky` from `false` to `true`, but no `defaultversionid`
-  was provided.
+  `defaultversionsticky` from `false` to `true`, and a `defaultversionid`
+  value of `null` was provided for this attribute. Note that a patch request
+  with `defaultversionsticky` set to `true` but no `defaultversionid` specified
+  will make the default Version as defined prior to the start of the operation
+  sticky.
 
 Regardless of the reason for `defaultversionid` or `defaultversionsticky`
 being modified, those changes alone MUST NOT change any attributes in any
