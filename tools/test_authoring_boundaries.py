@@ -570,6 +570,7 @@ def test_no_declaration_container_declares_a_partial_member_set(message_model):
 def test_declaration_records_admit_every_common_member(
     message_schema, protocol, option
 ):
+    """HTTP query admits records structurally, but requires strings normatively."""
     container = _guarded_options(message_schema, "protocol", protocol)[
         "properties"
     ][option]
@@ -666,7 +667,7 @@ def test_samples_carry_no_redundant_kafka_inner_header_name(sample):
         ("KAFKA", "key_base64", "string"),
         ("MQTT/5.0", "qos", "integer"),
         ("MQTT/5.0", "retain", "boolean"),
-        ("MQTT/5.0", "correlation_data", "binary"),
+        ("MQTT/5.0", "correlation_data", "string"),
         ("HTTP", "path", "uritemplate"),
         ("NATS", "subject", "uritemplate"),
     ],
@@ -687,16 +688,20 @@ def test_scalar_protocol_options_stay_scalar(message_model, protocol, option, ki
 def test_mqtt_correlation_data_is_binary_not_a_template(
     message_model, message_schema
 ):
-    """W17: binary correlation data is base64 in JSON, not a URI template."""
+    """Native bytes use a Core string; the encoding obligation is normative."""
     declared = message_options(message_model, "MQTT/5.0")["correlation_data"]
-    assert declared["type"] == "binary"
+    assert declared["type"] == "string"
 
     emitted = _guarded_options(message_schema, "protocol", "MQTT/5.0")["properties"][
         "correlation_data"
     ]
     assert emitted["type"] == "string"
-    assert emitted["format"] == "base64"
-    assert "uri-template" not in json.dumps(emitted)
+    assert "format" not in emitted
+    for value in ("", "AAH+/w==", "aWQ="):
+        assert _accepts(emitted, value)
+    for wrong_kind in (None, True, 12, 1.5, [], {"value": "aWQ="}):
+        assert not _accepts(emitted, wrong_kind)
+    assert _accepts(emitted, "not base64")
 
 
 def test_no_message_option_is_typed_as_a_stringified_integer(message_model):
@@ -748,9 +753,8 @@ def test_legacy_http_query_array_is_prohibited_only_by_the_normative_text():
 
     `protocoloptions.query` is an opaque native-name map, so the generated
     schema admits any JSON value there, including the obsolete array of
-    records. Requiring the map form is therefore a normative obligation on
-    authors and clients, and the migration is stated in the specification's
-    Declared property names section.
+    records. Requiring a map with string values is therefore a normative
+    obligation on authors and clients, not a generated-schema guarantee.
     """
     model = _load(MESSAGE_MODEL)
     declared = message_options(model, "HTTP")["query"]
@@ -765,5 +769,6 @@ def test_legacy_http_query_array_is_prohibited_only_by_the_normative_text():
         document["definitions"]["messagegroup-schema"]["message"], "protocol", "HTTP"
     )["properties"]["query"]
     legacy = [{"name": "foo", "value": "bar"}]
+    assert _accepts(container, {"apiVersion": "v1", "{parameter}": "{value}"})
     assert _accepts(container, legacy)
     assert _accepts(container, {"foo": {"value": "bar"}})

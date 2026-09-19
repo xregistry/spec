@@ -2296,7 +2296,6 @@
               },
               "correlation_data": {
                 "type": "string",
-                "format": "base64",
                 "description": "MQTT correlation data. This is binary data: its JSON representation is an RFC4648 section 4 base64 string, not a URI template. A declaration written against the earlier uritemplate typing needs the migration described in the MQTT protocol section"
               },
               "content_type": {
@@ -2376,7 +2375,7 @@
                 "items": {}
               },
               "query": {
-                "description": "The HTTP query parameters. The whole section is an opaque native-name map: each key is an HTTP query parameter name and is the sole canonical name of that parameter, and its key character set is not constrained by the xRegistry map key rules. Each value is a declaration record defined by the common Property Definitions contract and MUST NOT carry a redundant inner 'name' member. Keys and values MAY carry RFC6570 Level 1 placeholders"
+                "description": "The HTTP query parameters. This is an opaque native-name map of string keys to string values, not property declaration records. Each key is an HTTP query parameter name, outside the xRegistry map key character set. Keys and values MAY carry RFC6570 Level 1 placeholders"
               },
               "path": {
                 "type": "string",

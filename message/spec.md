@@ -1178,13 +1178,13 @@ rule, which stays lower-case alphanumeric without separators.
 
 In a native-name map the key is the sole canonical name of the property, and a
 declaration in such a map MUST NOT carry a `name` member. Earlier revisions of
-the Kafka `headers` and HTTP `query` models additionally mandated an inner
-`name`, and HTTP `query` was additionally modelled as an array; a declaration
-that still carries an inner `name` MUST be migrated by deleting that member
-and keeping the outer key, and an HTTP `query` written as an array MUST be
-migrated to a map keyed by the parameter name. This specification defines no
-precedence between an outer key and an inner name, and defines no alias for
-the case in which the two agree.
+the Kafka `headers` model additionally mandated an inner `name`; a declaration
+that still carries that member MUST be migrated by deleting it and keeping
+the outer key. This specification defines no precedence between an outer key
+and an inner name, and defines no alias for the case in which the two agree.
+
+HTTP `query` uses string values, not these declaration records; see the
+[HTTP protocol](#http11-http2-http3-protocols) for its shape and migration.
 
 In an ordered array the order of the entries is significant and MUST be
 preserved, the same `name` MAY appear in more than one entry, and the array
@@ -1590,13 +1590,11 @@ therefore an ordered array of declaration records, each carrying a REQUIRED
 Entry order and repeated names are preserved, and the `name` of each entry
 MUST be a valid HTTP header name.
 
-The `query` property is a map of string keys to string values. It is a
-native-name map of declaration records as defined in
-[Property Definitions](#property-definitions): its map key is the sole
-canonical query parameter name, its key character set is not constrained by
-the xRegistry map key rules, and a declaration MUST NOT carry an inner `name`
-member. A `query` written as an array of records needs the migration described
-in [Declared property names](#declared-property-names).
+The `query` property is a native-name map of string keys to string values.
+Each key is the HTTP query parameter name and is not constrained by the
+xRegistry map key rules. Values are strings, not property declaration records.
+Earlier array or declaration-record forms need to be rewritten as this
+string-valued map.
 
 The `path` property is a URI template.
 
@@ -1828,8 +1826,10 @@ user properties MAY contain placeholders using the [RFC6570][RFC6570] Level 1
 URI Template syntax. When the same placeholder is used in multiple properties,
 the value of the placeholder is assumed to be identical.
 
-`correlation_data` is binary data, as defined by [MQTT 5.0][MQTT 5.0]. Its
-JSON representation is an [RFC 4648][RFC4648] section 4 base64 string, and the
+`correlation_data` is binary data, as defined by [MQTT 5.0][MQTT 5.0].
+The Core model uses `string` for its JSON carrier; `binary` here is the native
+MQTT type, not a Core model type. Its JSON representation is an
+[RFC 4648][RFC4648] section 4 base64 string, and the
 encoding rules in [Wire encoding](#wire-encoding) apply to it. It is not a URI
 template and MUST NOT carry placeholders: a placeholder would be part of the
 decoded bytes rather than a substitution point.
