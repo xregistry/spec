@@ -1007,11 +1007,6 @@ Note that this feature has similar results to setting the Resource attribute's
   - The `compatibility` validation logic MUST generate an error
     ([compatibility_unknown](spec.md#compatibility_unknown)) if the
     Resource's `meta.compatibility` value is an unsupported value.
-  - If validation cannot be performed because the Version uses a
-    `<RESOURCE>url` to reference a document stored outside of the Registry,
-    see the [`formatvalidated`](spec.md#formatvalidated-attribute) and
-    [`compatibilityvalidated`](spec.md#compatibilityvalidated-attribute)
-    rules ([format_external](spec.md#format_external)).
 - A value of `false` indicates that:
   - If the Version's `format` value is absent, then format and compatibility
     validation logic MUST NOT be performed for that Version.
@@ -1021,6 +1016,11 @@ Note that this feature has similar results to setting the Resource attribute's
     `false`.
   - If the Resource's `meta.compatibility` value is unsupported, then
     the Version's `compatibilityvalidated` attribute MUST be set to `false`.
+  - When the Version references a document stored outside of the Registry via
+    `<RESOURCE>url`, see the
+    [`formatvalidated`](spec.md#formatvalidated-attribute) and
+    [`compatibilityvalidated`](spec.md#compatibilityvalidated-attribute)
+    attributes.
 - Regardless of the value of this aspect, if the Version's `format` value is
   absent, then format and compatibility validation logic MUST NOT be performed
   for that Version.

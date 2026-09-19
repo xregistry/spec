@@ -291,7 +291,7 @@ other scenarios:
           },
 
           "dataschemaformat": "Protobuf/3",
-          "dataschemauri": "#/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions/1.0:Metrics",
+          "dataschemauri": "/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions/1.0#Metrics",
           "datacontenttype": "application/x-protobuf",
 
           "metaurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/meta",
@@ -335,16 +335,7 @@ other scenarios:
           "metaurl": "https://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/meta",
 
           "versionscount": 1,
-          "versionsurl": "https://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions",
-          "versions": {
-            "1.0": {
-              "versionid": "1.0",
-              "self": "https://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions/1.0$details",
-              "xid": "/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions/1.0",
-              "format": "Protobuf/3",
-              "schema": "syntax = \"proto3\"; message Metrics { float metric = 1;}"
-            }
-          }
+          "versionsurl": "https://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions"
         }
       }
     }
@@ -352,11 +343,9 @@ other scenarios:
 }
 ```
 
-The shared layout includes the selected Schema Version so that its local
-reference can be followed within the document. The `:Metrics` suffix selects
-the Protobuf message declaration using the existing
+The `#Metrics` fragment selects the Protobuf `message` declaration within the
+referenced Schema Version, as defined by the
 [Protobuf reference rule](../schema/spec.md#434-protobuf-schema).
-Other server-managed attributes of that Version are omitted.
 
 If we assume the message definitions and schemas to reside at an API endpoint,
 an endpoint definition might just reference the associated message definition

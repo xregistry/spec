@@ -474,8 +474,7 @@ events.
 ## Sample xRegistry Interactions
 
 In these examples, unless otherwise stated, assume that the Registry has
-the base URL `https://example.com` and the following model definition. The
-Resources are metadata-only, so metadata PATCH requests use unsuffixed URLs.
+the following model definition:
 
 ```yaml
 {
@@ -484,8 +483,7 @@ Resources are metadata-only, so metadata PATCH requests use unsuffixed URLs.
       "singular": "dir",
       "resources": {
         "files": {
-          "singular": "file",
-          "hasdocument": false
+          "singular": "file"
         }
       }
     }
@@ -508,7 +506,7 @@ Resources are metadata-only, so metadata PATCH requests use unsuffixed URLs.
 
 - Empty Registry
 - Interaction:
-  - `PUT /dirs/d1/files/f1/versions/v1`
+  - `PUT /dirs/d1/files/f1/versions/v1$details`
   - Body: `{}`
 - Events:
   - `io.xregistry.registry.updated`
@@ -530,7 +528,7 @@ Resources are metadata-only, so metadata PATCH requests use unsuffixed URLs.
 
 - Current default Version is `v1`
 - Interaction:
-  - `PATCH /dirs/d1/files/f1`
+  - `PATCH /dirs/d1/files/f1$details`
   - Body: `{ "name": "foo" }`
 - Events:
   - `io.xregistry.resource.updated`
@@ -604,7 +602,7 @@ Resources are metadata-only, so metadata PATCH requests use unsuffixed URLs.
 
 - Current default Version (v1) is not "sticky"
 - Interaction:
-  - `PUT /dirs/d1/files/f1/versions/v2`
+  - `PUT /dirs/d1/files/f1/versions/v2$details`
   - Body: `{}`
 - Events:
   - `io.xregistry.resource.updated`
@@ -622,7 +620,7 @@ Resources are metadata-only, so metadata PATCH requests use unsuffixed URLs.
 
 - Current default Version (v1) is "sticky"
 - Interaction:
-  - `PUT /dirs/d1/files/f1/versions/v2`
+  - `PUT /dirs/d1/files/f1/versions/v2$details`
   - Body: `{}`
 - Events:
   - `io.xregistry.resource.updated`
@@ -654,7 +652,7 @@ Resources are metadata-only, so metadata PATCH requests use unsuffixed URLs.
 
 - Current default Version is `v1`
 - Interaction:
-  - `PATCH /dirs/d1/files/f1/versions/v1`
+  - `PATCH /dirs/d1/files/f1/versions/v1$details`
   - Body: `{ "name": "foo" }`
 - Events:
   - `io.xregistry.resource.updated`
@@ -671,7 +669,7 @@ Resources are metadata-only, so metadata PATCH requests use unsuffixed URLs.
 
 - Current default Version is `v1`
 - Interaction:
-  - `PATCH /dirs/d1/files/f1/versions/v2`
+  - `PATCH /dirs/d1/files/f1/versions/v2$details`
   - Body: `{ "name": "foo" }`
 - Events:
   - `io.xregistry.version.updated`
@@ -683,7 +681,7 @@ Resources are metadata-only, so metadata PATCH requests use unsuffixed URLs.
 
 - Current default Version (v1) is not "sticky"
 - Interaction:
-  - `POST /dirs/d1/files/f1`
+  - `POST /dirs/d1/files/f1$details`
   - Body: `{}`
 - Events:
   - `io.xregistry.resource.updated`
@@ -701,7 +699,7 @@ Resources are metadata-only, so metadata PATCH requests use unsuffixed URLs.
 
 - Current default Version (v1) is "sticky"
 - Interaction:
-  - `POST /dirs/d1/files/f1`
+  - `POST /dirs/d1/files/f1$details`
   - Body: `{}`
 - Events:
   - `io.xregistry.resource.updated`
