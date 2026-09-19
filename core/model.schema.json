@@ -629,6 +629,15 @@
           "pattern": "^([sS][tT][rR][iI][cC][tT]|[eE][xX][tT][eE][nN][dD][eE][dD])$",
           "default": "strict"
         },
+        "enum": {
+          "type": "array",
+          "description": "Allowed values for scalar items; membership, 'strict' and the empty or absent set follow the attribute 'enum' rules"
+        },
+        "strict": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to restrict item values to enum only"
+        },
         "attributes": {
           "description": "Nested attributes for object items; the applicable character set is selected by this item's namecharset"
         },
@@ -652,6 +661,22 @@
           },
           "then": {
             "required": ["item"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": { "enum": ["array", "map", "object", "any"] }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "properties": {
+              "enum": {
+                "not": {},
+                "description": "Only scalar items carry a value set; a container recurses through its own 'item'"
+              }
+            }
           }
         },
         {

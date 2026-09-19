@@ -9,7 +9,8 @@ resolvable Group constraint overlays.
 Selector activation (`ifvalues`) stays a separate rule: it is case-insensitive,
 and it never makes a non-member legal. Array-level `enum` keeps its existing
 behavior here; removing that plumbing depends on the source cleanup owned by the
-model-consistency work, and no `item.enum` is introduced.
+model-consistency work. The separately approved scalar `item.enum` is projected
+and tested in `test_schema_generator_item_enums.py`.
 """
 
 import copy
@@ -712,13 +713,22 @@ def test_array_level_enum_keeps_its_existing_item_projection():
     assert "enum" not in schema["properties"]["usage"]
 
 
-def test_no_item_level_enum_vocabulary_is_introduced():
+def test_item_level_enums_are_admitted_only_for_approved_scalar_item_kinds():
+    """The reviewed Endpoint directive added a scalar `item.enum`; an `enum` on
+    a container item stays invalid. `test_schema_generator_item_enums.py` owns
+    the projection of the admitted form."""
     model = base_model()
     model["attributes"]["usage"] = {
         "type": "array", "item": {"type": "string", "enum": ["a"]},
     }
+    SOURCE.validate(model)
+    nested = base_model()
+    nested["attributes"]["usage"] = {
+        "type": "array",
+        "item": {"type": "map", "enum": ["a"], "item": {"type": "string"}},
+    }
     with pytest.raises(jsonschema.ValidationError):
-        SOURCE.validate(model)
+        SOURCE.validate(nested)
 
 
 def test_json_structure_scalar_enum_annotation_is_unchanged():
