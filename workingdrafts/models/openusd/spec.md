@@ -419,7 +419,7 @@ id, the `usdassetgroupid` MUST be its symbolic identifier
 
 Already legal Core container IDs remain verbatim. A case-insensitive collision
 for such an ID MUST be rejected, not repaired by switching it to a symbolic ID.
-The sibling assignment rules apply where symbolic construction is required.
+The sibling assignment rules apply where symbolic construction is needed.
 
 An Asset Container Group MUST set the core [`name`][xRegistry Core] attribute
 to the asset container identifier verbatim, so the exact string survives the
@@ -685,12 +685,12 @@ and as a file name in the [file-system representation][xRegistry primer].
    does not change when a new Version is written.
 
 **Candidate and sole fallback.** Let `C` be the candidate above, including a
-suffix only when step 6 required shortening. Results of at most 128 characters
+suffix only when step 6 needed shortening. Results of at most 128 characters
 MUST remain unchanged as `C`; a Producer MUST NOT unconditionally suffix them.
 Let `F` be the sole collision fallback. It uses the same normalized source
 labels from steps 1-5, reduced by the step-6 dropping/truncation rules to at most
 119 characters before adding the suffix. This reservation applies whenever a
-suffix is required, including collision-only results of 120 through 128
+suffix is needed, including collision-only results of 120 through 128
 characters. An implementation MUST NOT split a normalized label again at its
 literal dots. An already shortened candidate has no additional fallback:
 `F` equals `C`, not `C` with another suffix.
@@ -698,7 +698,7 @@ literal dots. An already shortened candidate has no additional fallback:
 For a Resource, the source is its already normalized `assetidentifier`. The
 hash input is not a decoded path, extracted package member, canonicalized URI,
 Document, or candidate ID. For a symbolically named Group, the source is its
-exact required `name`; Section 4.1's exception for legal Core container IDs is
+exact mandatory `name`; Section 4.1's exception for legal Core container IDs is
 unchanged.
 
 **Stable assignment.** The policy is deterministic for a fixed sibling state,
@@ -760,14 +760,14 @@ locations within one selected Group and consistent Registry context:
    `C`. Read the Resource's metadata at `C`, using the binding's metadata
    representation (for example HTTP `$details`), not an artifact acquisition
    inferred from the source string.
-2. A response must identify the exact addressed Resource ID and contain a
+2. A response MUST identify the exact addressed Resource ID and contain a
    nonempty, normalized `assetidentifier`. The Consumer MUST compare the
    returned `assetidentifier` exactly with the normalized authored identifier.
    Only a match establishes the intended Resource. Neither `name` nor an
    attempted inverse of the symbolic ID establishes that identity.
 3. If `C` is established to be absent, or its well-formed identity metadata
    belongs to a different source, compute and probe `F` if distinct. This is
-   required even when `C` is absent: a retained fallback can outlive its
+   needed even when `C` is absent: a retained fallback can outlive its
    original competitor. A match at `F` is validated the same way.
 4. If neither permitted location matches, resolution fails. An already
    shortened source has just one distinct location. A Consumer MUST NOT try
@@ -776,7 +776,7 @@ locations within one selected Group and consistent Registry context:
    exhausted limits as absence.
 
 Consumers MUST use finite source-byte, cumulative metadata-byte and parsing-work
-budgets and support cancellation. Metadata acquisition, when required, must be
+budgets and support cancellation. Metadata acquisition, when needed, MUST be
 explicitly authorized for the selected Registry context. No metadata or artifact
 acquisition is implicit in candidate computation. Artifact retrieval follows
 successful identity resolution and the applicable authorization and integrity

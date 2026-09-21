@@ -698,9 +698,7 @@
                                         {
                                           "type": "array",
                                           "name": "ProtocolMqtt50ProtocoloptionsUserPropertiesArrayType",
-                                          "items": {
-                                            "type": "io.xregistry.GenericRecord"
-                                          }
+                                          "items": "io.xregistry.GenericRecord"
                                         }
                                       ],
                                       "name": "userProperties",
@@ -804,9 +802,7 @@
                                         {
                                           "type": "array",
                                           "name": "ProtocolHTTPProtocoloptionsHeadersArrayType",
-                                          "items": {
-                                            "type": "io.xregistry.GenericRecord"
-                                          }
+                                          "items": "io.xregistry.GenericRecord"
                                         }
                                       ],
                                       "name": "headers",
@@ -898,9 +894,7 @@
                                         {
                                           "type": "array",
                                           "name": "ProtocolNATSProtocoloptionsHeadersArrayType",
-                                          "items": {
-                                            "type": "io.xregistry.GenericRecord"
-                                          }
+                                          "items": "io.xregistry.GenericRecord"
                                         }
                                       ],
                                       "name": "headers",

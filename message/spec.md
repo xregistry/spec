@@ -861,7 +861,7 @@ implicit codec. HTTP, NATS and MQTT values remain strings. The string-valued
 refinements `string`, `symbol`, `uri`, `uritemplate`, `stringified integer`,
 `timestamp`, `duration` and `uuid` are permitted; `any` leaves the native string
 unconstrained. Implementations MUST NOT coerce JSON Boolean, Number, Object or
-Array values into protocol header strings. Kafka header values may additionally
+Array values into protocol header strings. Kafka header values MAY additionally
 use `binary` with a canonical base64 JSON string, or `any` with literal `null`
 for Kafka's null byte value. The default `string` represents text, not an
 implicit base64 decoding. A literal null is otherwise invalid for these header

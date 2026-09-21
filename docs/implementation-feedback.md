@@ -6,9 +6,9 @@ The independent xregistry-dotnet model compiler found invalid artifacts while
 compiling all published domain models, rather than only parsing their JSON.
 
 - CloudEvents model include fragments used `#groups` instead of the RFC6901
-  `#/groups` required by Core. The fragments were corrected.
+  `#/groups` mandated by Core. The fragments were corrected.
 - Endpoint `usage` used the Core scalar `enum` aspect on an array and omitted
-  its required flag. Its model now declares a required array of strings;
+  its `required` flag. Its model now declares a mandatory array of strings;
   allowed roles and their protocol-specific combinations remain normative
   domain rules, not a new Core array aspect.
 - Schema regeneration exposed incomplete `$includes` handling and incorrect
@@ -29,7 +29,7 @@ corrections, not changes to the rc4 HTTP protocol or Endpoint role semantics.
 
 Eleven CloudEvents modification timestamps used April 31 after an April 30
 creation timestamp. The .NET validator and Python calendar parser independently
-rejected them. The examples now use May 1, preserving next-day ordering.
+rejected them. The examples now use `May 1`, preserving next-day ordering.
 `tools/test_implementation_timestamp_regressions.py` guards valid dates and
 ordering without relaxing the Core timestamp rules.
 
@@ -79,7 +79,7 @@ The corrected version-1 draft requires canonical URI-component spelling for
 internal graph identity annotations and finite routing bounds: strict one-pass
 decoding, unchanged case-sensitive Core IDs, literal unreserved characters and
 uppercase escapes for the other allowed characters. Selectors normalize before
-routing. Portable config XIDs may keep a URI-equivalent spelling; config bytes,
+routing. Portable config XIDs can keep a URI-equivalent spelling; config bytes,
 domain URLs, document bases and Document bytes remain unchanged. Old
 noncanonical draft graphs require explicit regeneration/migration, never a
 silent relabeling or an alternate-spelling fallback.
@@ -140,7 +140,8 @@ and twelve .NET executions reproduced the inconsistencies before correction:
 - HTTP options include `status` and represent `query` as a string map. The
   contradictory array-shaped example now matches the table and normative prose.
 - NATS uses the normative `reply-to` name, not `reply`.
-- AMQP's optional `subject` declaration defaults `required` to false. This
+- AMQP's `subject` declaration is not mandatory and defaults `required` to
+  false. This
   does not change CloudEvents' distinct mandatory attributes.
 - Endpoint `messagegroups` targets the Message Group type, not individual
   Messages. A declaration remains data, not authorization to fetch that target.
@@ -179,11 +180,11 @@ The Message model represented literal property values as Core strings. This
 rejected boolean/numeric/structured constraints and `specurl`, constrained URI
 refinements incorrectly, and applied Core metadata-name rules to AMQP symbols.
 Changing only `value` to Core `any` would still remove an explicit null during
-Core attribute completion, making a required literal-null constraint impossible.
+Core attribute completion, making a mandatory literal-null constraint impossible.
 
 CloudEvents envelope declarations and the five AMQP property-declaration
 sections are now opaque domain objects in the Core model. Their object shape,
-names, typed literals, required/type defaults and fixed-property constraints
+names, typed literals, `required`/`type` defaults and fixed-property constraints
 remain mandatory procedural Message rules. This preserves literal null and
 protocol names without weakening Core deletion, identifier or scalar semantics.
 The .NET implementation validates and completes those declarations explicitly.
@@ -238,7 +239,7 @@ structural schemas are regenerated from the corrected source.
 ## Message header references and binary protocol values
 
 The four HTTP, NATS, MQTT and Kafka header/property declaration records omitted
-the common `specurl` attribute. It is now an optional Core URI in each record.
+the common `specurl` attribute. It is now a non-mandatory Core URI in each record.
 The MQTT model also represented binary `correlation_data` as a URI template and
 represented the MIME `content_type` as a URI template while its prose called it
 a symbol. A valid `application/json; charset=utf-8` declaration was rejected.
@@ -266,12 +267,12 @@ Version metadata, and Document requests on metadata-only types remain
 `unsupported_operation`. No generic Core field rule was weakened.
 
 The native OCI binding had the equivalent conflict, including silent omission
-of required defaults for ordinary singular/base64-named fields. Its producer,
+of `required` defaults for ordinary singular/base64-named fields. Its producer,
 reader and independent oracle now apply these reservations only to
 document-bearing types. Captured nulls remain metadata unless Core supplies an
 effective default. All existing placeholder, mode, routing, digest, closure and
 credential checks remain in force; metadata-only Document operations remain
-unsupported. The generic OCI record schema required no change.
+unsupported. The generic OCI record schema needed no change.
 
 The three negative OCI field controls are separate test methods rather than
 `unittest.subTest` cases. Pytest 9 counted successful subtests in its XML total
@@ -314,6 +315,6 @@ The prose distinguishes a native string refinement from an invented wire codec.
 Textual headers cannot silently coerce booleans, numbers or objects to strings;
 Kafka's binary and nullable byte values have explicit JSON representations.
 The .NET Server and materializer share the declaration validator, including
-required-name, member/type checks, defaults, refinement syntax and canonical
+mandatory-name, member/type checks, defaults, refinement syntax and canonical
 base64. The four common fields and raw/null failure cases have public regression
 coverage. Core's generic object/null semantics remain unchanged.

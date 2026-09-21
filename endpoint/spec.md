@@ -451,7 +451,7 @@ to the xRegistry-defined core
 
   These member-value and combination constraints are defined by this domain
   specification. The Core model's `enum` aspect applies only to scalar
-  attributes, so the model represents `usage` as a required array of strings
+  attributes, so the model represents `usage` as a `required` array of strings
   rather than applying that scalar aspect to an array.
   - Endpoints that jointly describe more than one role SHOULD be declared
     separately and correlated with a shared `channel` value.

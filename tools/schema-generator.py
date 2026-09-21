@@ -1172,7 +1172,15 @@ def generate_avro_schema(model_definition) -> dict:
                             "name": prefix+name+"EnumType",
                             "symbols": enum_values
                         }
-                    resource_schema["type"]["items"] = item_schema
+                        resource_schema["type"]["items"] = item_schema
+                    elif isinstance(item_schema.get("type"), str) and "." in item_schema["type"]:
+                        # A named type reference resolves only in its bare
+                        # form; the wrapped {"type": "<name>"} form is not a
+                        # valid Avro schema. The map branch above already
+                        # unwraps, so do the same for array items.
+                        resource_schema["type"]["items"] = item_schema["type"]
+                    else:
+                        resource_schema["type"]["items"] = item_schema
             else:
                 raise Exception("Array item must have a type specified")
 

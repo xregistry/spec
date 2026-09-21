@@ -136,11 +136,26 @@ class TestSchemaGenerator:
                 'Endpoints', 'Messagegroups', 'Schemagroups'
             }
             message = schema_data['definitions']['Messagegroups']['Message']
-            protocol_properties = message['properties']['protocoloptions'][
+            protocol_options = message['properties']['protocoloptions'][
                 'properties'
-            ]['properties']['properties']
-            assert protocol_properties['messageId']['altnames'] == {
-                'json': 'message-id'
+            ]
+            # The AMQP sections that carry whole declaration records are
+            # opaque, so literal nulls and protocol-defined property names
+            # survive the Core attribute walk instead of being retyped.
+            for opaque in (
+                'properties', 'applicationProperties', 'messageAnnotations',
+                'deliveryAnnotations', 'footer',
+            ):
+                assert protocol_options[opaque]['type'] == 'any'
+                assert 'properties' not in protocol_options[opaque]
+            # Sections that keep their declared native kinds still map
+            # dashed protocol names onto camel-case members.
+            header_properties = protocol_options['header']['properties']
+            assert header_properties['deliveryCount']['altnames'] == {
+                'json': 'delivery-count'
+            }
+            assert header_properties['firstAcquirer']['altnames'] == {
+                'json': 'first-acquirer'
             }
         finally:
             if os.path.exists(tmp_path):
