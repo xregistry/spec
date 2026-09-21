@@ -21,7 +21,7 @@
 
 This specification defines an OpenUSD Artifact Registry extension to the
 xRegistry document format and API [specification][xRegistry Core]. An OpenUSD
-Artifact Registry allows for the storage, management, discovery and federation
+Artifact Registry allows the storage, management, discovery and federation
 of [OpenUSD][OpenUSD] (Universal Scene Description) artifacts — the layers,
 packages, textures, MaterialX documents, volumes and schema plugins that a
 consumer needs in order to compose and render a USD stage.
@@ -547,7 +547,7 @@ Group offering only one of them is not usable.
 
 ### 4.4. Schema Plugin Resources
 
-The Resource inside of Schema Plugin Groups is also named `usdasset`, with
+The Resource inside Schema Plugin Groups is also named `usdasset`, with
 collection name `usdassets`. It is the **same Resource type** as in
 [Section 4.2](#42-usd-asset-resources), with the same attributes and the same
 identifier rules, because a plugin manifest and a generated schema are USD
@@ -830,7 +830,7 @@ Two rules keep the closure decidable:
 Some composition arcs are not discoverable by inspecting the artifacts. A
 publisher can compose a scene by authoring references at runtime, in which case
 no stored layer contains the corresponding `@...@` string. `dependson` is
-authoritative in such cases, and an implementation that derives the closure by
+authoritative in those cases, and an implementation that derives the closure by
 scanning documents alone will under-report it.
 
 ### 5.3. Federation
