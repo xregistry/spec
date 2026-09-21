@@ -115,7 +115,7 @@
         "properties": {
           "entity": {
             "properties": {
-              "xid": {"pattern": "^/[^/]+/[^/]+/[^/]+/[^/]+/meta$"}
+              "xid": {"pattern": "^/[^/]+/[^/]+/[^/]+/[^/]+/(?:m|%6[dD])(?:e|%65)(?:t|%74)(?:a|%61)$"}
             },
             "if": {"required": ["xref"]},
             "then": {
@@ -148,7 +148,7 @@
         "properties": {
           "entity": {
             "properties": {
-              "xid": {"pattern": "^/[^/]+/[^/]+/[^/]+/[^/]+/versions/[^/]+$"}
+              "xid": {"pattern": "^/[^/]+/[^/]+/[^/]+/[^/]+/(?:v|%76)(?:e|%65)(?:r|%72)(?:s|%73)(?:i|%69)(?:o|%6[fF])(?:n|%6[eE])(?:s|%73)/[^/]+$"}
             },
             "required": [
               "versionid", "epoch", "createdat", "modifiedat",
@@ -168,7 +168,8 @@
     },
     "xid": {
       "type": "string",
-      "pattern": "^/(?:[A-Za-z0-9_][A-Za-z0-9_.~:@-]{0,127}(?:/[A-Za-z0-9_][A-Za-z0-9_.~:@-]{0,127})*)?(?![\\s\\S])"
+      "pattern": "^/(?:(?:[A-Za-z0-9_]|%[0-9A-Fa-f]{2})(?:[A-Za-z0-9_.~:@-]|%[0-9A-Fa-f]{2}){0,127}(?:/(?:[A-Za-z0-9_]|%[0-9A-Fa-f]{2})(?:[A-Za-z0-9_.~:@-]|%[0-9A-Fa-f]{2}){0,127})*)?(?![\\s\\S])",
+      "$comment": "URI spelling only. Procedural validation strictly decodes each component once as UTF-8 and applies the unchanged Core ID grammar and typed hierarchy. Encoded separators, invalid Unicode and decoded percent signs remain invalid; no second decoding pass is permitted."
     },
     "path": {
       "type": "string",

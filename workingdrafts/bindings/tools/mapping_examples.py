@@ -19,19 +19,22 @@ from jsonschema import Draft202012Validator, FormatChecker
 from jsonschema.exceptions import ValidationError
 from referencing import Registry, Resource
 
-from federation_examples import (
+from workingdrafts.federation.tools.federation_examples import (
     FederationError,
+    canonical_xid,
     resource_type,
+    same_xid,
     select_label,
     validate_profile,
     validate_xid,
+    xid_parts,
 )
 
 
 FORMAT = "xregistry-document-tree"
 FORMAT_VERSION = "1"
 CORE_VERSION = "1.0-rc4"
-_SCHEMAS = Path(__file__).parent.parent / "workingdrafts" / "bindings" / "schemas"
+_SCHEMAS = Path(__file__).resolve().parents[1] / "schemas"
 _DEVICE = re.compile(r"(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)", re.I)
 _OID = re.compile(r"(?:[0-9a-fA-F]{40}|[0-9a-fA-F]{64})\Z")
 _STAMP_FIELDS = ("st_dev", "st_ino", "st_mode", "st_size", "st_mtime_ns")
@@ -665,10 +668,9 @@ class DocumentTree:
         return self.groups[origin_group]["resources"][origin_resource]
 
     def _typed(self, xid, *, collection=False):
-        validate_xid(xid, collection=collection)
+        parts = xid_parts(xid, collection=collection)
         if xid == "/":
             return "registry"
-        parts = xid[1:].split("/")
         _require(parts[0] in self.groups, "Unknown Group model type")
         if len(parts) >= 3:
             _require(parts[2] in self._resources(parts[0]), "Unknown Resource model type")
@@ -682,7 +684,9 @@ class DocumentTree:
         identity = (
             href, namespace,
             None if namespace == "documents" else reference.get("kind"),
-            None if namespace == "documents" else reference.get("xid"),
+            None if namespace == "documents" else canonical_xid(
+                reference["xid"], collection=reference.get("kind") == "collection"
+            ),
             reference["size"], reference["sha256"],
         )
         _require(key not in self._allocations or self._allocations[key] == identity,
@@ -694,12 +698,17 @@ class DocumentTree:
         xids = [reference["xid"] for reference in references]
         _require(xids == sorted(set(xids), key=lambda value: value.encode("utf-8")),
                  "References must be unique and sorted by full XID")
+        identities = [
+            canonical_xid(reference["xid"], collection=reference["kind"] == "collection").casefold()
+            for reference in references
+        ]
+        _require(len(set(identities)) == len(identities), "Case-insensitive sibling collision")
 
     def _check_record(self, record):
         entity, kind = record["entity"], record["kind"]
         xid = entity["xid"]
         _require(self._typed(xid) == kind, "Entity kind and XID disagree")
-        parts = xid[1:].split("/")
+        parts = xid_parts(xid)
         names = []
         if kind == "registry":
             names = sorted(self.groups)
@@ -717,14 +726,14 @@ class DocumentTree:
             _require(entity.get(id_name) == parts[1], "Group ID disagrees with XID")
             names = self._resources(parts[0])
         else:
-            resource_xid = "/" + "/".join(parts[:4])
+            resource_xid = "/" + "/".join(quote(part, safe="-._~") for part in parts[:4])
             definition = self._definition(resource_xid)
             id_name = definition["singular"] + "id"
             _require(entity.get(id_name) == parts[3], "Resource ID disagrees with XID")
             if kind == "resource":
                 _require(set(entity) == {"xid", id_name},
                          "Resource contains inherited or extra metadata")
-                _require(record["meta"]["xid"] == xid + "/meta",
+                _require(same_xid(record["meta"]["xid"], xid + "/meta"),
                          "Wrong Meta reference")
                 self._allocate(record["meta"], "records")
                 names = ["versions"] if record["collections"] else []
@@ -743,8 +752,8 @@ class DocumentTree:
             self._ordered(record["collections"])
             prefix = "" if xid == "/" else xid
             _require(
-                [r["xid"] for r in record["collections"]]
-                == sorted(prefix + "/" + name for name in names),
+                sorted(canonical_xid(r["xid"], collection=True) for r in record["collections"])
+                == sorted(canonical_xid(prefix + "/" + name, collection=True) for name in names),
                 "Missing or unexpected modeled collection",
             )
             for reference in record["collections"]:
@@ -756,12 +765,19 @@ class DocumentTree:
     def _check_document(self, record, definition):
         document, entity = record["document"], record["entity"]
         singular = definition["singular"]
-        _require(singular not in entity and singular + "base64" not in entity,
-                 "Document bytes must be detached")
-        url = entity.get(singular + "url")
         has_document = definition.get("hasdocument", True)
         _require((document["kind"] == "none") == (has_document is False),
                  "Document state disagrees with hasdocument")
+        if not has_document:
+            attributes = definition.get("attributes", {})
+            for name in (singular, singular + "base64", singular + "url"):
+                if name in entity:
+                    _require(name in attributes or "*" in attributes,
+                             "Metadata-only field is not admitted by the model")
+            return
+        _require(singular not in entity and singular + "base64" not in entity,
+                 "Document bytes must be detached")
+        url = entity.get(singular + "url")
         if document["kind"] == "external":
             _require(self.root["snapshot"]["completeness"] == "linked",
                      "External document in offline-complete snapshot")
@@ -786,12 +802,12 @@ class DocumentTree:
         self._ordered(entries)
         folded = set()
         for reference in entries:
-            parts = reference["xid"].rsplit("/", 1)
-            _require(parts[0] == index["xid"] and reference["kind"] == expected
+            parts = xid_parts(reference["xid"])
+            _require(parts[:-1] == xid_parts(index["xid"], collection=True) and reference["kind"] == expected
                      and self._typed(reference["xid"]) == expected,
                      "Index entry is not an immediate typed member")
-            _require(parts[1].casefold() not in folded, "Case-insensitive sibling collision")
-            folded.add(parts[1].casefold())
+            _require(parts[-1].casefold() not in folded, "Case-insensitive sibling collision")
+            folded.add(parts[-1].casefold())
             self._allocate(reference, "records")
 
     def _bytes(self, reference):
@@ -816,7 +832,8 @@ class DocumentTree:
             self._cache[name] = (data, value)
         value = self._cache[name][1]
         xid = value["xid"] if value["kind"] == "collection" else value["entity"]["xid"]
-        _require(value["kind"] == reference["kind"] and xid == reference["xid"],
+        _require(value["kind"] == reference["kind"] and same_xid(
+            xid, reference["xid"], collection=value["kind"] == "collection"),
                  "Reference and stored object disagree")
         return value
 
@@ -828,7 +845,7 @@ class DocumentTree:
             meta = self._read_ref(parent["meta"])
             _require("xref" not in meta["entity"], "cannot_doc_xref",
                      "unsupported_operation")
-        reference = next((r for r in parent["collections"] if r["xid"] == xid), None)
+        reference = next((r for r in parent["collections"] if same_xid(r["xid"], xid, collection=True)), None)
         _require(reference is not None, "Missing modeled collection")
         return self._read_ref(reference)
 
@@ -842,18 +859,18 @@ class DocumentTree:
             return self._read_ref(owner["meta"])
         collection_xid = xid.rsplit("/", 1)[0]
         index = self._index(collection_xid)
-        reference = next((r for r in index["entries"] if r["xid"] == xid), None)
+        reference = next((r for r in index["entries"] if same_xid(r["xid"], xid)), None)
         _require(reference is not None, f"XID not found: {xid}", "not_found")
         record = self._read_ref(reference)
         if kind == "version":
-            owner = xid.rsplit("/versions/", 1)[0]
+            owner = "/" + "/".join(quote(part, safe="-._~") for part in xid_parts(xid)[:4])
             _, meta, versions = self._state(owner)
             entity = record["entity"]
             _require(entity["isdefault"]
                      == (entity["versionid"] == meta["entity"]["defaultversionid"]),
                      "Version default flag disagrees with Meta")
-            _require(owner + "/versions/" + entity["ancestorid"]
-                     in {r["xid"] for r in versions["entries"]},
+            _require(any(same_xid(owner + "/versions/" + quote(entity["ancestorid"], safe="-._~"), r["xid"])
+                         for r in versions["entries"]),
                      "Missing Version ancestor")
         return record
 
@@ -866,8 +883,8 @@ class DocumentTree:
             return resource, meta, None
         _require(len(resource["collections"]) == 1, "Ordinary Resource lacks Versions")
         versions = self._read_ref(resource["collections"][0])
-        default_xid = xid + "/versions/" + meta["entity"]["defaultversionid"]
-        _require(any(r["xid"] == default_xid for r in versions["entries"]),
+        default_xid = xid + "/versions/" + quote(meta["entity"]["defaultversionid"], safe="-._~")
+        _require(any(same_xid(r["xid"], default_xid) for r in versions["entries"]),
                  "Default Version is missing from index")
         return resource, meta, versions
 
@@ -888,15 +905,16 @@ class DocumentTree:
         kind = self._typed(xid)
         _require(kind in ("resource", "version"), "Document requires Resource or Version",
                  "unsupported_operation")
-        explicit = xid.rsplit("/", 1)[1] if kind == "version" else None
-        owner = xid.rsplit("/versions/", 1)[0] if kind == "version" else xid
+        parts = xid_parts(xid)
+        explicit = parts[-1] if kind == "version" else None
+        owner = "/" + "/".join(quote(part, safe="-._~") for part in parts[:4])
         _require(self._definition(owner).get("hasdocument", True),
                  "Resource hasdocument is false", "unsupported_operation")
         target = self._one_hop(owner)
         _require(target is not None, "No one-hop alias document", "not_found")
         _, meta, _ = self._state(target)
         version = explicit if explicit is not None else meta["entity"]["defaultversionid"]
-        return self.read_record(target + "/versions/" + version)
+        return self.read_record(target + "/versions/" + quote(version, safe="-._~"))
 
     def document_descriptor(self, xid):
         descriptor = copy.deepcopy(self._selected_version(xid)["document"])
@@ -919,12 +937,12 @@ class DocumentTree:
         entity["self"] = "#" + pointer
         if record["kind"] in ("registry", "group"):
             for reference in record["collections"]:
-                name = reference["xid"].rsplit("/", 1)[1]
+                name = xid_parts(reference["xid"], collection=True)[-1]
                 index = self._read_ref(reference)
                 child_pointer = _pointer(pointer, name)
                 entity[name] = {
-                    child["xid"].rsplit("/", 1)[1]: self._materialize(
-                        child["xid"], _pointer(child_pointer, child["xid"].rsplit("/", 1)[1])
+                    xid_parts(child["xid"])[-1]: self._materialize(
+                        child["xid"], _pointer(child_pointer, xid_parts(child["xid"])[-1])
                     ) for child in index["entries"]
                 }
                 entity[name + "url"] = "#" + child_pointer
@@ -938,9 +956,9 @@ class DocumentTree:
             if versions is not None:
                 version_pointer = _pointer(pointer, "versions")
                 entity["versions"] = {
-                    child["xid"].rsplit("/", 1)[1]: self._materialize(
+                    xid_parts(child["xid"])[-1]: self._materialize(
                         child["xid"],
-                        _pointer(version_pointer, child["xid"].rsplit("/", 1)[1]),
+                        _pointer(version_pointer, xid_parts(child["xid"])[-1]),
                     ) for child in versions["entries"]
                 }
                 entity["versionsurl"] = "#" + version_pointer
@@ -962,7 +980,7 @@ class DocumentTree:
             default = result["entity"]["defaultversionid"]
             pointer = "/related/defaultversion"
             result["related"] = {
-                "defaultversion": self._materialize(owner + "/versions/" + default, pointer)
+                "defaultversion": self._materialize(owner + "/versions/" + quote(default, safe="-._~"), pointer)
             }
             result["entity"]["defaultversionurl"] = "#" + pointer
         self.store.finish()
@@ -976,7 +994,7 @@ class DocumentTree:
             if target is not None:
                 _, meta, _ = self._state(target)
                 version = self.read_record(
-                    target + "/versions/" + meta["entity"]["defaultversionid"]
+                    target + "/versions/" + quote(meta["entity"]["defaultversionid"], safe="-._~")
                 )
                 entity = {**copy.deepcopy(version["entity"]), **entity}
         return entity
@@ -991,13 +1009,13 @@ class DocumentTree:
                 [self._effective(reference) for reference in entries],
                 selector["label"], selector["value"],
             )
-            entries = [r for r in entries if r["xid"] == match["xid"]]
+            entries = [r for r in entries if same_xid(r["xid"], match["xid"])]
         result = {
-            "kind": "collection", "xid": xid, "complete": True,
+            "kind": "collection", "xid": index["xid"], "complete": True,
             "entities": {
-                reference["xid"].rsplit("/", 1)[1]: self._materialize(
+                xid_parts(reference["xid"])[-1]: self._materialize(
                     reference["xid"],
-                    _pointer("/entities", reference["xid"].rsplit("/", 1)[1]),
+                    _pointer("/entities", xid_parts(reference["xid"])[-1]),
                 ) for reference in entries
             },
         }

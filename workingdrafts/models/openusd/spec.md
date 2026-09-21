@@ -159,7 +159,10 @@ bytes. A Resource is the umbrella over its Versions, so an id computed from a
 document would change on every revision and split one logical artifact into a
 new Resource each time. The content hash of a Version is the `digest`
 ([Section 4.2](#42-usd-asset-resources)), which is Version-level metadata. The
-id is derived only from the `assetidentifier`, which is Version-invariant.
+candidate and its sole collision fallback are derived only from the
+`assetidentifier`, which is Version-invariant. The assigned id also reflects
+the sibling reservations at first publication and remains stable thereafter
+([Section 5.1.1](#511-the-symbolic-identifier-construction)).
 
 A Consumer that does not select a Version explicitly MUST receive the
 Resource's default Version. An `xid` that addresses a specific Version MUST NOT
@@ -181,9 +184,10 @@ headers or via the `$details` suffix.
 
 This is the property that makes the registry usable from unmodified USD
 tooling: **a Resource Version's `self` URL is a valid USD asset path.** A USD
-asset resolver plugin that maps authored identifiers onto registry URLs needs
-no xRegistry awareness beyond that mapping, and a `.usdz` package retrieved
-from a registry is byte-for-byte the package the publisher produced.
+asset resolver plugin uses the bounded metadata locations in
+[Section 5.1.1](#511-the-symbolic-identifier-construction) and checks the
+authoritative identifier before retrieving a Document. A `.usdz` package
+retrieved from a registry is byte-for-byte the package the publisher produced.
 
 ## 2. Notations and Terminology
 
@@ -413,6 +417,10 @@ to the Group. Where the container identifier is not already a legal xRegistry
 id, the `usdassetgroupid` MUST be its symbolic identifier
 ([Section 5.1.1](#511-the-symbolic-identifier-construction)).
 
+Already legal Core container IDs remain verbatim. A case-insensitive collision
+for such an ID MUST be rejected, not repaired by switching it to a symbolic ID.
+The sibling assignment rules apply where symbolic construction is required.
+
 An Asset Container Group MUST set the core [`name`][xRegistry Core] attribute
 to the asset container identifier verbatim, so the exact string survives the
 normalization the id applies. A registry is browsed by people, often through
@@ -455,7 +463,7 @@ The Resource (`<RESOURCE>`) inside of Asset Container Groups is named
 `usdasset` is a container for one or more `versions`, each of which holds one
 concrete artifact document.
 
-The `usdassetid` MUST be the symbolic identifier of the Resource's
+The `usdassetid` MUST be the assigned symbolic identifier of the Resource's
 `assetidentifier`. See [Section 5.1](#51-asset-identifiers-and-xids). The
 `assetidentifier`, not the id, is the authority: it is REQUIRED, it is what a
 layer authors, and it is what a Consumer matches an authored `@...@` reference
@@ -634,11 +642,11 @@ not what a layer authors, and an identifier such as `textures/albedo.png`
 cannot appear in an id at all.
 
 This specification therefore does not equate them. It derives one from the
-other by a **closed-form, one-way construction**, and keeps the authored
-identifier as the authority:
+other by a **bounded, one-way candidate construction and stable sibling-scoped
+assignment**, and keeps the authored identifier as the authority:
 
 > A `usdasset`'s `assetidentifier` MUST be its authored USD asset identifier,
-> normalized relative to its Group. Its `usdassetid` MUST be the **symbolic
+> normalized relative to its Group. Its `usdassetid` MUST be the **assigned symbolic
 > identifier** of that `assetidentifier` (Section 5.1.1). Its `xid` is
 > consequently `/usdassetgroups/<usdassetgroupid>/usdassets/<usdassetid>`.
 > The `assetidentifier` attribute is REQUIRED on every `usdasset` and is the
@@ -647,7 +655,7 @@ identifier as the authority:
 
 #### 5.1.1. The Symbolic Identifier Construction
 
-A symbolic identifier is built from a source string as follows. The result is a
+A symbolic candidate is built from a source string as follows. The result is a
 dot-separated token in the alphabet `A-Z a-z 0-9 _ . -`, a strict subset of what
 xRegistry permits, so that it is simultaneously safe in a URL, on a command line
 and as a file name in the [file-system representation][xRegistry primer].
@@ -671,19 +679,116 @@ and as a file name in the [file-system representation][xRegistry primer].
    the first — until it is at most 119 characters long. If that first label is
    itself longer than 119 characters, truncate it to 119 and strip any trailing
    `-` or `.`. Then append the disambiguator of step 7.
-7. Where step 6 truncated the result, or where the result would collide
-   case-insensitively with an existing sibling in the same collection, append
-   `.` followed by the first eight lower-case hexadecimal characters of the
+7. The disambiguator is `.` followed by the first eight lower-case hexadecimal characters of the
    SHA-256 of the UTF-8 encoding of the **exact source string**. The
    disambiguator is a function of the identifier, not of any document, so it
    does not change when a new Version is written.
 
-The construction is deterministic, so a Producer and a Consumer agree without a
-lookup table. It is lossy, so only the forward direction is defined:
+**Candidate and sole fallback.** Let `C` be the candidate above, including a
+suffix only when step 6 required shortening. Results of at most 128 characters
+MUST remain unchanged as `C`; a Producer MUST NOT unconditionally suffix them.
+Let `F` be the sole collision fallback. It uses the same normalized source
+labels from steps 1-5, reduced by the step-6 dropping/truncation rules to at most
+119 characters before adding the suffix. This reservation applies whenever a
+suffix is required, including collision-only results of 120 through 128
+characters. An implementation MUST NOT split a normalized label again at its
+literal dots. An already shortened candidate has no additional fallback:
+`F` equals `C`, not `C` with another suffix.
+
+For a Resource, the source is its already normalized `assetidentifier`. The
+hash input is not a decoded path, extracted package member, canonicalized URI,
+Document, or candidate ID. For a symbolically named Group, the source is its
+exact required `name`; Section 4.1's exception for legal Core container IDs is
+unchanged.
+
+**Stable assignment.** The policy is deterministic for a fixed sibling state,
+not for a source string alone. Sibling state includes published bindings and
+explicit reservations for other sources in the same collection and transaction.
+Core ID collisions are compared case-insensitively; source strings are compared
+exactly, without case folding or another decoding step.
+
+1. A Producer MUST retain an existing binding for the same exact source,
+   even if the sibling that caused the collision is later deleted. It MUST NOT
+   rename an existing entity to make room, and MUST NOT rebind an existing ID
+   to another source. The source-to-ID binding remains stable across Versions
+   and restarts. A retained symbolic binding MUST use that source's exact `C`
+   or `F`. Inconsistent bindings MUST be rejected rather than repaired by
+   renaming. For a Resource represented by a one-hop alias, retargeting
+   MUST preserve its exact `assetidentifier` too.
+2. For a source without an existing binding, reserve `C` if it does not
+   collide. Otherwise reserve `F` if it is distinct and does not collide.
+   Publication MUST check the final reservations and prior bindings atomically,
+   and MUST reject duplicate exact-source bindings in the same collection.
+   The Producer supplies explicit reservations; JSON member enumeration order
+   is not a tie-breaker. Publication order can determine which source first
+   owns `C`, but MUST NOT reshuffle already published IDs.
+3. A Producer MUST reject the assignment if the sole fallback also collides.
+   It MUST NOT append another suffix, overwrite a sibling, or choose a random
+   discriminator. Eight hexadecimal characters are a finite discriminator,
+   not a uniqueness guarantee. A concurrent reservation conflict requires a
+   new consistent sibling state, not an overwrite.
+
+For example, each row below starts with the stated sibling bindings:
+
+| Source | Existing `id -> exact source` | Candidate `C` | Assigned ID or outcome |
+|---|---|---|---|
+| `a/b` | none | `a.b` | `a.b` |
+| `a.b` | `a.b -> a/b` | `a.b` | `a.b.2e7336dc` |
+| `a/b` | `a.b -> a.b` | `a.b` | `a.b.c14cddc0` |
+| `pump` | `Pump -> Pump` | `pump` | `pump.0b203c46` |
+| `a.b` | `a.b.2e7336dc -> a.b` | `a.b` | `a.b.2e7336dc` (retained) |
+| `a.b` | `a.b -> a/b; a.b.2e7336dc -> a.b.2e7336dc` | `a.b` | reject |
+
+The last row is a secondary collision with another source's ordinary candidate;
+it requires no hash collision. For a collision-only source consisting of 120
+copies of `a`, `F` is 119 copies of `a` followed by `.2f3d3354`, not a
+129-character ID. For 128 copies it is 119 copies followed by `.6836cf13`,
+not a 137-character ID. Without a collision those 120- and 128-character
+candidates remain unchanged.
+
+Actual hash-prefix collisions also exist. The exact sources
+`https://example.test/asset?i=184995` and
+`https://example.test/asset?i=191756` both have `C` equal to
+`test.example.asset` and `F` equal to `test.example.asset.df41192b`. If `C`
+belongs to another source and the first source already owns `F`, the second
+assignment MUST fail.
+
+**Bounded forward resolution.** A Consumer uses at most two distinct metadata
+locations within one selected Group and consistent Registry context:
+
+1. Normalize the authored identifier as specified in Section 2.2.2 and compute
+   `C`. Read the Resource's metadata at `C`, using the binding's metadata
+   representation (for example HTTP `$details`), not an artifact acquisition
+   inferred from the source string.
+2. A response must identify the exact addressed Resource ID and contain a
+   nonempty, normalized `assetidentifier`. The Consumer MUST compare the
+   returned `assetidentifier` exactly with the normalized authored identifier.
+   Only a match establishes the intended Resource. Neither `name` nor an
+   attempted inverse of the symbolic ID establishes that identity.
+3. If `C` is established to be absent, or its well-formed identity metadata
+   belongs to a different source, compute and probe `F` if distinct. This is
+   required even when `C` is absent: a retained fallback can outlive its
+   original competitor. A match at `F` is validated the same way.
+4. If neither permitted location matches, resolution fails. An already
+   shortened source has just one distinct location. A Consumer MUST NOT try
+   a third suffix or claim a match from an incomplete search. It MUST NOT
+   treat authorization, transport, malformed metadata, incomplete reads, or
+   exhausted limits as absence.
+
+Consumers MUST use finite source-byte, cumulative metadata-byte and parsing-work
+budgets and support cancellation. Metadata acquisition, when required, must be
+explicitly authorized for the selected Registry context. No metadata or artifact
+acquisition is implicit in candidate computation. Artifact retrieval follows
+successful identity resolution and the applicable authorization and integrity
+rules. For a symbolically named Group, the analogous bounded lookup compares
+the Group's exact `name`; a legal Core container ID has only its verbatim
+location.
+
+The construction is lossy, so only the forward direction is defined:
 
 | Direction | Operation |
 |---|---|
-| authored `@X@` in a layer of container `C` → registry location | normalize `X` against `C`, apply the construction, append to `/usdassetgroups/C/usdassets/` |
+| authored `@X@` in a layer of container `C` → registry location | normalize `X` against `C`, probe the candidate and sole fallback under `/usdassetgroups/C/usdassets/`, validate the returned `assetidentifier` |
 | `usdassetid` → authored identifier | read the Resource's `assetidentifier` attribute |
 
 For example, in container `fabrikam.plant-01`:
@@ -768,11 +873,11 @@ resolver in its chain, and MAY stop as soon as an artifact resolves.
 Sections [5.1](#51-asset-identifiers-and-xids) through
 [5.3](#53-federation) together mean that a registry **is** an addressable asset
 resolver backend. A USD asset resolver plugin holding a container context
-resolves an authored `@...@` reference to a Resource by computation alone —
-normalize, apply the symbolic identifier construction, append — and retrieves
-its bytes from the resulting URL, exactly as
-[Section 1.4](#14-document-store) describes. No lookup table, no index, and no
-xRegistry awareness in the authored scene are needed.
+resolves an authored `@...@` reference by the bounded forward procedure in
+Section 5.1.1: normalize, compute the candidate and sole fallback, and validate
+the returned authoritative metadata before retrieving bytes from the matched
+Resource as [Section 1.4](#14-document-store) describes. No inverse mapping,
+all-sibling enumeration, or xRegistry awareness in the authored scene is needed.
 
 A Consumer composing a scene from a registry SHOULD:
 

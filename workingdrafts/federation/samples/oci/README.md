@@ -67,11 +67,11 @@ Run from the repository root with Python and the existing `jsonschema`
 dependency in `tools\requirements.txt`:
 
 ```powershell
-python -B tools\oci_examples.py validate workingdrafts\federation\samples\oci\layout --reference offline
-python -B tools\oci_examples.py validate workingdrafts\federation\samples\oci\layout --reference linked
-python -B tools\oci_examples.py lookup workingdrafts\federation\samples\oci\layout /dirs/main/files/sample/versions/v2 --reference offline --operation document --trace trace.json
-python -B tools\oci_examples.py lookup workingdrafts\federation\samples\oci\layout /dirs/main/files/sample/meta --reference offline
-python -B tools\oci_examples.py lookup workingdrafts\federation\samples\oci\layout /dirs --reference offline --operation collection --label empty --value ""
+python -B -m workingdrafts.bindings.tools.oci_examples validate workingdrafts\federation\samples\oci\layout --reference offline
+python -B -m workingdrafts.bindings.tools.oci_examples validate workingdrafts\federation\samples\oci\layout --reference linked
+python -B -m workingdrafts.bindings.tools.oci_examples lookup workingdrafts\federation\samples\oci\layout /dirs/main/files/sample/versions/v2 --reference offline --operation document --trace trace.json
+python -B -m workingdrafts.bindings.tools.oci_examples lookup workingdrafts\federation\samples\oci\layout /dirs/main/files/sample/meta --reference offline
+python -B -m workingdrafts.bindings.tools.oci_examples lookup workingdrafts\federation\samples\oci\layout /dirs --reference offline --operation collection --label empty --value ""
 ```
 
 Without a reference, this layout produces `ambiguous`. Native
@@ -104,7 +104,7 @@ most one same-type local hop.
 
 ### Python interfaces
 
-The module is [`tools/oci_examples.py`](../../../../tools/oci_examples.py).
+The module is [`oci_examples.py`](../../../bindings/tools/oci_examples.py).
 It imports only the frozen shared helpers `FederationError`,
 `select_label`, `validate_profile`, and `validate_xid`.
 
@@ -166,8 +166,8 @@ It is not a general domain-document validator or full Core server.
 Reproduce the two roots in a scratch directory:
 
 ```powershell
-python -B tools\oci_examples.py build scratch-layout --sample --reference offline --page-size 2
-python -B tools\oci_examples.py build scratch-layout --sample --linked --reference linked --page-size 2
+python -B -m workingdrafts.bindings.tools.oci_examples build scratch-layout --sample --reference offline --page-size 2
+python -B -m workingdrafts.bindings.tools.oci_examples build scratch-layout --sample --linked --reference linked --page-size 2
 ```
 
 The builder writes bottom-up, then atomically replaces the layout entry
@@ -183,7 +183,7 @@ layout modes, without `--recursive`, a server or any remote publication:
 
 ```powershell
 oras cp --from-oci-layout --to-oci-layout workingdrafts\federation\samples\oci\layout:offline copied-layout:copied
-python -B tools\oci_examples.py validate copied-layout --reference copied --inventory copied-inventory.json
+python -B -m workingdrafts.bindings.tools.oci_examples validate copied-layout --reference copied --inventory copied-inventory.json
 ```
 
 This command was executed during implementation. The selected root

@@ -10,15 +10,15 @@ from unittest.mock import Mock, call, patch
 import pytest
 from jsonschema import Draft7Validator, Draft202012Validator, FormatChecker
 
-import oci_examples as oci
-from mapping_examples import (
+from workingdrafts.bindings.tools import oci_examples as oci
+from workingdrafts.bindings.tools.mapping_examples import (
     DocumentTree, MemoryStore, encode_tree,
     sample_records as document_sample_records,
 )
-from federation_examples import FederationError
+from workingdrafts.federation.tools.federation_examples import FederationError
 
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[3]
 OCI_FIXTURES = ROOT / "workingdrafts" / "federation" / "samples" / "oci"
 DOCUMENT_FIXTURES = ROOT / "workingdrafts" / "bindings" / "samples" / "mapping"
 SCHEMAS = ROOT / "workingdrafts" / "bindings" / "schemas"
@@ -291,7 +291,12 @@ def _graph(path, reference="snapshot"):
 
 
 def _node(graph, kind, xid, media=INDEX, lower="", upper=""):
-    return graph["nodes"][(media, kind, xid, lower, upper)]
+    return graph["nodes"][(media, kind, _fixture_routing_key(xid), lower, upper)]
+
+
+def _fixture_routing_key(xid):
+    # These independently authored fixture IDs contain only literal ASCII Core characters.
+    return xid.replace(":", "%3A").replace("@", "%40")
 
 
 def _index(graph, kind, xid, lower="", upper=""):
@@ -1656,7 +1661,7 @@ def test_oci_federation_and_relationship_targets_are_not_implicitly_copied(tmp_p
     assert (summary["objects"], summary["records"], summary["documents"]) == (89, 24, 3)
     assert all(item.args[0].is_relative_to(tmp_path) for item in read.call_args_list)
     assert {key[2] for key in graph["nodes"]} == (
-        {record["entity"]["xid"] for record in records}
+        {_fixture_routing_key(record["entity"]["xid"]) for record in records}
         | {
             "/categories", "/documents", "/independent", "/mirrors",
             "/categories/main/registries", "/documents/main/assets", "/documents/main/notes",

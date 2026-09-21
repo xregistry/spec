@@ -16,11 +16,13 @@ import jsonschema
 import pytest
 from openapi_spec_validator import validate_spec
 
-from federation_examples import FederationError, select_profile, select_version
+from workingdrafts.federation.tools.federation_examples import (
+    FederationError, select_profile, select_version,
+)
 
 
-ROOT = Path(__file__).resolve().parent.parent
-REGISTRY_DIR = ROOT / "workingdrafts" / "models" / "registry"
+ROOT = Path(__file__).resolve().parents[4]
+REGISTRY_DIR = Path(__file__).resolve().parents[1]
 MODEL_PATH = REGISTRY_DIR / "model.json"
 SCHEMA_BASE = "https://xregistry.io/workingdrafts/models/registry/schemas/"
 FORMATS = {
@@ -516,7 +518,7 @@ def test_registry_website_only_entry_is_valid_but_not_resolvable(
         ),
         pytest.param(
             {"federationprofiles": [dict(HTTP, priority=0.0)]}, BUILTINS, None,
-            ("invalid_package", "Invalid candidate priority"), id="integral-float-is-not-priority",
+            0, id="integral-value-is-valid-priority",
         ),
         pytest.param(
             {"federationprofiles": [

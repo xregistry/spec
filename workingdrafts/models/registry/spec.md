@@ -434,6 +434,10 @@ Profile-specific extensions belong inside `parameters`.
   - OPTIONAL. Absence MUST be interpreted as `0`.
   - MUST be an integer greater than or equal to zero, not a string,
     fractional number or boolean.
+    This is the mathematical value constraint of Core `uinteger`, not an
+    unsigned-only JSON token grammar. Integer-valued decimal and exponent
+    notation, such as `0.0` and `1e0`, are valid; negative zero has value zero.
+    These spellings do not require rewriting retained metadata.
   - Lower values MUST sort before higher values after caller selection
     and policy are applied. Equal values retain original array order.
   - The absence rule is a selection default, not a Core model `default`

@@ -17,24 +17,19 @@ import tempfile
 from functools import lru_cache
 from pathlib import Path
 from typing import Iterator, Mapping, NoReturn
-from urllib.parse import urlsplit
+from urllib.parse import quote, urlsplit
 
 from jsonschema import Draft7Validator, Draft202012Validator, FormatChecker
 
-if __package__:
-    from .federation_examples import (
-        FederationError,
-        select_label,
-        validate_profile,
-        validate_xid,
-    )
-else:
-    from federation_examples import (
-        FederationError,
-        select_label,
-        validate_profile,
-        validate_xid,
-    )
+from workingdrafts.federation.tools.federation_examples import (
+    FederationError,
+    canonical_xid,
+    same_xid,
+    select_label,
+    validate_profile,
+    validate_xid,
+    xid_parts,
+)
 
 
 INDEX_MEDIA_TYPE = "application/vnd.oci.image.index.v1+json"
@@ -53,8 +48,8 @@ ARTIFACT_TYPES = {
         "metadata", "version",
     )
 }
-_ROOT = Path(__file__).resolve().parent.parent
-_SCHEMAS = _ROOT / "workingdrafts" / "bindings" / "schemas"
+_ROOT = Path(__file__).resolve().parents[3]
+_SCHEMAS = Path(__file__).resolve().parents[1] / "schemas"
 _DIGEST = re.compile(r"sha256:[0-9a-f]{64}\Z")
 _TAG = re.compile(r"[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}\Z")
 _MEDIA_TYPE = re.compile(
@@ -170,6 +165,12 @@ def _annotation_fields(item: dict, names: set[str]) -> None:
         _fail("invalid_package", f"Unexpected routing annotations: {sorted(actual)}")
 
 
+def _canonical_key(value: str, *, collection: bool = False) -> str:
+    if canonical_xid(value, collection=collection) != value:
+        _fail("invalid_package", "Noncanonical OCI routing XID; regenerate or explicitly migrate the draft layout")
+    return value
+
+
 def _descriptor(value: object, *, internal: bool = True) -> dict:
     item = _object(value, "descriptor")
     if not isinstance(item.get("digest"), str) or not _DIGEST.fullmatch(item["digest"]):
@@ -196,10 +197,16 @@ def _descriptor(value: object, *, internal: bool = True) -> dict:
         ):
             _fail("invalid_package", "A blob descriptor does not have an artifactType")
         role = _annotation(item, "role")
-        _annotation(item, "xid")
+        xid = _annotation(item, "xid")
+        collection = role == "collection" or role == "shard" and xid != "/" and xid.count("/") in (1, 3, 5)
+        _canonical_key(xid, collection=collection)
         fields = {"role", "xid"}
         if role == "shard":
             fields |= {"lower", "upper"}
+            for name in ("lower", "upper"):
+                bound = _annotation(item, name)
+                if bound:
+                    _canonical_key(bound, collection=not collection)
         _annotation_fields(item, fields)
         if "org.opencontainers.image.ref.name" in annotations:
             _fail("invalid_package", "Tags belong on layout entries, not internal edges")
@@ -225,8 +232,13 @@ def _node_header(node: dict) -> tuple[str, str]:
     if node.get("artifactType") != artifact:
         _fail("invalid_package", "artifactType disagrees with the node kind")
     fields = {"version", "kind", "xid"}
+    _canonical_key(xid, collection=kind == "collection")
     if kind in ("collections", "collection"):
         fields |= {"mode", "lower", "upper"}
+        for name in ("lower", "upper"):
+            bound = _annotation(node, name)
+            if bound:
+                _canonical_key(bound, collection=kind == "collections")
     _annotation_fields(node, fields)
     return kind, xid
 
@@ -465,8 +477,7 @@ class _Model:
         return origins
 
     def resource_type(self, xid: str) -> tuple[str, str]:
-        validate_xid(xid)
-        parts = xid[1:].split("/")
+        parts = xid_parts(xid)
         if len(parts) != 4:
             _fail("invalid_package", "Resource type lookup needs a Resource XID")
         origins = self.resources(parts[0])
@@ -479,8 +490,7 @@ class _Model:
         return self.groups[group]["resources"][resource]
 
     def identifier(self, kind: str, xid: str) -> tuple[str, str]:
-        validate_xid(xid)
-        parts = xid[1:].split("/")
+        parts = xid_parts(xid)
         if kind == "registry" and xid == "/":
             return "registryid", ""
         if kind == "group" and len(parts) == 2:
@@ -498,10 +508,11 @@ class _Model:
         return resource["singular"] + "id", parts[3]
 
     def collections(self, kind: str, xid: str, *, alias: bool = False) -> list[str]:
+        xid = canonical_xid(xid)
         if kind == "registry":
             return ["/" + name for name in sorted(self.groups)]
         if kind == "group":
-            return [xid + "/" + name for name in sorted(self.resources(xid.split("/")[1]))]
+            return [xid + "/" + name for name in sorted(self.resources(xid_parts(xid)[0]))]
         return [] if alias else [xid + "/versions"]
 
 
@@ -531,27 +542,28 @@ def _record_context(record: dict, model: _Model) -> None:
     if kind == "meta" and "xref" in entity:
         if set(entity) != {"xid", id_key, "xref"}:
             _fail("invalid_package", "xref Meta contains target attributes")
-        if model.resource_type(entity["xref"]) != model.resource_type(xid[:-5]):
+        if model.resource_type(entity["xref"]) != model.resource_type(xid.rsplit("/", 1)[0]):
             _fail("invalid_package", "xref Resource model types differ")
     if kind == "version":
-        if entity["versionid"] != xid.rsplit("/", 1)[1]:
+        if entity["versionid"] != xid_parts(xid)[-1]:
             _fail("invalid_package", "versionid does not match XID")
-        resource_xid = xid.rsplit("/versions/", 1)[0]
+        resource_xid = "/".join(canonical_xid(xid).split("/")[:5])
         definition = model.resource(resource_xid)
         singular = definition["singular"]
-        if entity.keys() & {singular, singular + "base64"}:
+        has_document = definition.get("hasdocument", True)
+        if has_document and entity.keys() & {singular, singular + "base64"}:
             _fail("invalid_package", "Domain bytes must not be in metadata")
         mode = record["document"]["mode"]
-        has_document = definition.get("hasdocument", True)
         if (mode == "metadata-only") != (not has_document):
             _fail("invalid_package", "Document mode disagrees with hasdocument")
         url_key = singular + "url"
-        if url_key in entity:
-            _check_external_url(entity[url_key])
-        if mode == "external" and url_key not in entity:
-            _fail("invalid_package", "External document has no Core document URL")
-        if mode != "external" and url_key in entity:
-            _fail("invalid_package", "Only external mode has a Core document URL")
+        if has_document:
+            if url_key in entity:
+                _check_external_url(entity[url_key])
+            if mode == "external" and url_key not in entity:
+                _fail("invalid_package", "External document has no Core document URL")
+            if mode != "external" and url_key in entity:
+                _fail("invalid_package", "Only external mode has a Core document URL")
         for key in ("origin", "base"):
             if key in record["document"]:
                 _check_external_url(record["document"][key])
@@ -566,7 +578,7 @@ def _records(
     sibling_ids = set()
     for value in records:
         record = _record_shape(value)
-        xid = record["entity"]["xid"]
+        xid = canonical_xid(record["entity"]["xid"])
         if xid in by_xid:
             _fail("invalid_package", f"Duplicate entity XID: {xid}")
         if record["kind"] in ("group", "resource", "version"):
@@ -638,7 +650,8 @@ def _records(
             for key, value in documents.items()
         ):
             _fail("invalid_package", "Documents must map Version XIDs to bytes")
-        if set(documents) != embedded:
+        document_keys = [canonical_xid(key) for key in documents]
+        if len(set(document_keys)) != len(document_keys) or set(document_keys) != embedded:
             _fail("invalid_package", "Document bytes do not match embedded Version records")
     return by_xid, model
 
@@ -710,7 +723,7 @@ class _Builder:
         ))
 
     def manifest(self, record: dict, documents: Mapping[str, bytes]) -> dict:
-        kind, xid = record["kind"], record["entity"]["xid"]
+        kind, xid = record["kind"], canonical_xid(record["entity"]["xid"])
         config = self.put(encode_json(record), CONFIG_MEDIA_TYPE)
         if kind == "version" and record["document"]["mode"] == "embedded":
             layer = _edge(self.put(documents[xid], DOCUMENT_MEDIA_TYPE), "document", xid)
@@ -757,6 +770,7 @@ def build_layout(
         _fail("limit_exceeded", "Invalid fixture index byte budget")
     documents = {} if documents is None else documents
     by_xid, model = _records(records, documents)
+    documents = {canonical_xid(key): value for key, value in documents.items()}
     root = _layout_root(path)
     root.mkdir(parents=True, exist_ok=True)
     entry_path = _safe_path(root, Path("index.json"))
@@ -958,6 +972,7 @@ class FixtureLayout:
         return [copy.deepcopy(self._inventory[key]) for key in sorted(self._inventory)]
 
     def _read_node(self, descriptor: dict, kind: str, xid: str) -> dict:
+        xid = canonical_xid(xid, collection=kind == "collection")
         data = self.fetch(descriptor)
         if descriptor["mediaType"] == INDEX_MEDIA_TYPE:
             node = check_index(data)
@@ -983,6 +998,8 @@ class FixtureLayout:
     @staticmethod
     def _require_edge(descriptor: dict, role: str, xid: str, media_type: str) -> None:
         _descriptor(descriptor)
+        collection = role == "collection" or role == "shard" and xid != "/" and xid.count("/") in (1, 3, 5)
+        xid = canonical_xid(xid, collection=collection)
         if (
             _annotation(descriptor, "role") != role
             or _annotation(descriptor, "xid") != xid
@@ -1010,7 +1027,7 @@ class FixtureLayout:
         manifest = self._read_node(descriptor, kind, xid)
         self._require_edge(manifest["config"], "config", xid, CONFIG_MEDIA_TYPE)
         record = _record_shape(decode_json(self.fetch(manifest["config"])))
-        if record["kind"] != kind or record["entity"]["xid"] != xid:
+        if record["kind"] != kind or not same_xid(record["entity"]["xid"], xid):
             _fail("invalid_package", "Config identity disagrees with manifest")
         layer = manifest["layers"][0]
         embedded = kind == "version" and record["document"]["mode"] == "embedded"
@@ -1037,7 +1054,7 @@ class FixtureLayout:
 
     @staticmethod
     def _key(key: str, kind: str, xid: str) -> None:
-        validate_xid(key, collection=kind == "collections")
+        _canonical_key(key, collection=kind == "collections")
         parent = key.rsplit("/", 1)[0] or "/"
         if parent != xid:
             _fail("invalid_package", "Routing key is outside its typed collection")
@@ -1072,7 +1089,7 @@ class FixtureLayout:
             for edge in entries:
                 key = _annotation(edge, "xid")
                 self._key(key, kind, xid)
-                identifier = key.rsplit("/", 1)[-1].casefold()
+                identifier = xid_parts(key, collection=kind == "collections")[-1].casefold()
                 if identifier in identifiers:
                     _fail("invalid_package", "Case-insensitive sibling ID collision")
                 identifiers.add(identifier)
@@ -1126,7 +1143,7 @@ class FixtureLayout:
                 depth + 1, active | {digest},
             ):
                 found = True
-                identifier = _annotation(entry, "xid").rsplit("/", 1)[-1].casefold()
+                identifier = xid_parts(_annotation(entry, "xid"), collection=kind == "collections")[-1].casefold()
                 if identifier in identifiers:
                     _fail("invalid_package", "Case-insensitive sibling ID collision")
                 identifiers.add(identifier)
@@ -1135,6 +1152,8 @@ class FixtureLayout:
                 _fail("invalid_package", "Shard contains no eventual entries")
 
     def _find(self, descriptor: dict, kind: str, xid: str, key: str) -> dict:
+        xid = canonical_xid(xid, collection=kind == "collection")
+        key = canonical_xid(key, collection=kind == "collections")
         self._key(key, kind, xid)
         lower, upper = "", ""
         active = set()
@@ -1159,7 +1178,7 @@ class FixtureLayout:
         _fail("limit_exceeded", "Routing depth budget exhausted")
 
     def _locate(self, xid: str) -> tuple[dict, str]:
-        validate_xid(xid)
+        xid = canonical_xid(xid)
         self._context()
         if xid == "/":
             return self.root_descriptor, "registry"
@@ -1183,6 +1202,8 @@ class FixtureLayout:
         return descriptor, kind
 
     def _required_collection(self, node: dict, kind: str, owner: str, xid: str) -> dict:
+        owner = canonical_xid(owner)
+        xid = canonical_xid(xid, collection=True)
         _, model = self._context()
         if xid not in model.collections(kind, owner):
             _fail("not_found", f"Unknown collection type: {xid}")
@@ -1194,7 +1215,7 @@ class FixtureLayout:
             raise FederationError("invalid_package", f"Missing model collection: {xid}") from error
 
     def _collection(self, xid: str) -> dict:
-        validate_xid(xid, collection=True)
+        xid = canonical_xid(xid, collection=True)
         parent = xid.rsplit("/", 1)[0] or "/"
         descriptor, kind = self._locate(parent)
         node = self._entity_node(descriptor, kind, parent)
@@ -1205,6 +1226,7 @@ class FixtureLayout:
         return self._required_collection(node, kind, parent, xid)
 
     def _resource_state(self, xid: str) -> tuple[dict, dict, dict]:
+        xid = canonical_xid(xid)
         descriptor, kind = self._locate(xid)
         if kind != "resource":
             _fail("invalid_package", "Expected a Resource")
@@ -1214,21 +1236,23 @@ class FixtureLayout:
         return node, resource, meta
 
     def _document_source(self, xid: str) -> tuple[str, dict, dict]:
+        xid = canonical_xid(xid)
         node, _, meta = self._resource_state(xid)
         target = meta["entity"].get("xref")
         if target is not None:
             node, _, meta = self._resource_state(target)
             if "xref" in meta["entity"]:
                 _fail("not_found", "One-hop target is itself an alias")
-            xid = target
+            xid = canonical_xid(target)
         return xid, node, meta
 
     def _version(
         self, resource_xid: str, node: dict, meta: dict, versionid: str
     ) -> tuple[dict, dict, str]:
+        resource_xid = canonical_xid(resource_xid)
         collection_xid = resource_xid + "/versions"
         collection = self._required_collection(node, "resource", resource_xid, collection_xid)
-        xid = collection_xid + "/" + versionid
+        xid = collection_xid + "/" + quote(versionid, safe="-._~")
         try:
             descriptor = self._find(collection, "collection", collection_xid, xid)
         except FederationError as error:
@@ -1241,17 +1265,18 @@ class FixtureLayout:
         registry, _ = self._context()
         if record["document"]["mode"] == "external" and registry["snapshot"] == "offline-complete":
             _fail("invalid_package", "Offline-complete snapshot has external content")
-        return record, manifest, xid
+        return record, manifest, record["entity"]["xid"]
 
     @staticmethod
     def _pointer(path: str) -> str:
         return "#" + path
 
     def _metadata(self, descriptor: dict, kind: str, xid: str, pointer: str = "") -> dict:
+        xid = canonical_xid(xid)
         if kind == "version":
             resource_xid = xid.rsplit("/versions/", 1)[0]
             node, _, meta = self._resource_state(resource_xid)
-            record, _, _ = self._version(resource_xid, node, meta, xid.rsplit("/", 1)[1])
+            record, _, _ = self._version(resource_xid, node, meta, xid_parts(xid)[-1])
             result = copy.deepcopy(record["entity"])
             result["self"] = self._pointer(pointer)
             return result
@@ -1278,12 +1303,12 @@ class FixtureLayout:
             _fail("invalid_package", "Directory does not match model or xref state")
         for collection in collection_edges:
             path = _annotation(collection, "xid")
-            name = path.rsplit("/", 1)[1]
+            name = xid_parts(path, collection=True)[-1]
             items = {}
             child_kind = {"registry": "group", "group": "resource", "resource": "version"}[kind]
             for edge in self._entries(collection, "collection", path):
                 child_xid = _annotation(edge, "xid")
-                key = child_xid.rsplit("/", 1)[1]
+                key = xid_parts(child_xid)[-1]
                 escaped = key.replace("~", "~0").replace("/", "~1")
                 items[key] = self._metadata(edge, child_kind, child_xid, pointer + "/" + name + "/" + escaped)
             result[name] = items
@@ -1295,11 +1320,12 @@ class FixtureLayout:
         return result
 
     def _selection_entity(self, descriptor: dict, kind: str, xid: str) -> dict:
+        xid = canonical_xid(xid)
         if kind != "resource":
             if kind == "version":
                 owner = xid.rsplit("/versions/", 1)[0]
                 node, _, meta = self._resource_state(owner)
-                record, _, _ = self._version(owner, node, meta, xid.rsplit("/", 1)[1])
+                record, _, _ = self._version(owner, node, meta, xid_parts(xid)[-1])
             else:
                 descriptor = self._entity_node(descriptor, kind, xid)["manifests"][0]
                 record, _ = self._record(descriptor, kind, xid)
@@ -1333,12 +1359,12 @@ class FixtureLayout:
                 "resolvedmodelsource": registry["modelresolved"],
             }
             return {**result, "value": copy.deepcopy(value), "pointer": ""}
-        validate_xid(target, collection=operation == "collection")
+        target = canonical_xid(target, collection=operation == "collection")
         if operation == "document":
-            parts = target[1:].split("/")
+            parts = xid_parts(target)
             if len(parts) not in (4, 6):
                 _fail("unsupported_operation", "Only Resources and Versions have documents")
-            resource_xid = "/" + "/".join(parts[:4])
+            resource_xid = "/" + "/".join(quote(part, safe="-._~") for part in parts[:4])
             source, node, meta = self._document_source(resource_xid)
             versionid = parts[5] if len(parts) == 6 else meta["entity"]["defaultversionid"]
             record, manifest, version_xid = self._version(source, node, meta, versionid)
@@ -1369,7 +1395,7 @@ class FixtureLayout:
                 ]
                 selected = select_label(entities, selector["label"], selector["value"])
                 target = selected["xid"]
-                edge = next(edge for edge in entries if _annotation(edge, "xid") == target)
+                edge = next(edge for edge in entries if same_xid(_annotation(edge, "xid"), target))
                 return {
                     **result, "target": target,
                     "value": self._metadata(edge, kind, target), "pointer": "",
@@ -1377,14 +1403,14 @@ class FixtureLayout:
             value = {}
             for edge in entries:
                 xid = _annotation(edge, "xid")
-                key = xid.rsplit("/", 1)[1]
+                key = xid_parts(xid)[-1]
                 escaped = key.replace("~", "~0").replace("/", "~1")
                 value[key] = self._metadata(edge, kind, xid, "/" + escaped)
             return {**result, "value": value, "pointer": ""}
         descriptor, kind = self._locate(target)
         pointer = ""
         if kind == "meta":
-            owner = target[:-5]
+            owner = target.rsplit("/", 1)[0]
             descriptor, kind = self._locate(owner)
             value = self._metadata(descriptor, kind, owner)
             pointer = "/meta"

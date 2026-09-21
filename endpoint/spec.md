@@ -448,6 +448,11 @@ to the xRegistry-defined core
   - MUST NOT declare `["subscriber", "consumer"]` for `HTTP` or `KAFKA`
     endpoints. In those protocols the two roles are distinct interfaces and
     MUST be modeled as separate Endpoint resources.
+
+  These member-value and combination constraints are defined by this domain
+  specification. The Core model's `enum` aspect applies only to scalar
+  attributes, so the model represents `usage` as a required array of strings
+  rather than applying that scalar aspect to an array.
   - Endpoints that jointly describe more than one role SHOULD be declared
     separately and correlated with a shared `channel` value.
 
@@ -861,6 +866,21 @@ resolved out-of-band by the client; this specification does not define how
 the values are supplied. When the same placeholder name occurs in more than
 one value of the same endpoint, all of its occurrences MUST resolve to the
 same value.
+
+The model uses an opaque authoring boundary for each `protocoloptions` Map.
+This permits the unresolved strings and Map keys described above without
+weakening Core attribute-name, URI or enum rules for ordinary metadata.
+The authoring value MUST remain a JSON object; literal known option names
+retain their specified JSON scalar/container kinds. Implementations MUST NOT
+coerce a quoted placeholder into a Boolean or Number. Structural member names
+of endpoint-address, authorization and HTTP-header records are literal, not
+templated Map keys.
+
+Authoring validation can check these shapes and Level-1 expression syntax
+without resolving variables or performing the consumer-only protocol checks
+above. String enum membership and resolved addresses are checked after
+substitution. Protocol defaults remain interpretation rules for consumers;
+they do not require storing an absent option or creating `protocoloptions`.
 
 ##### HTTP options
 

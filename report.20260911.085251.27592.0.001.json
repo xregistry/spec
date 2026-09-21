@@ -1,0 +1,1032 @@
+
+{
+  "header": {
+    "reportVersion": 5,
+    "event": "Allocation failed - JavaScript heap out of memory",
+    "trigger": "OOMError",
+    "filename": "report.20260911.085251.27592.0.001.json",
+    "dumpEventTime": "2026-09-11T08:52:51Z",
+    "dumpEventTimeStamp": "1789109571934",
+    "processId": 27592,
+    "threadId": 0,
+    "cwd": "D:\\git\\marcschier\\xregistry-spec",
+    "commandLine": [
+      "C:\\Users\\mschier\\AppData\\Local\\GitHubCopilotCLI\\copilot.exe",
+      "--no-warnings",
+      "--report-on-fatalerror",
+      "--optimize-for-size",
+      "--expose-gc",
+      "--no-maglev",
+      "--no-sparkplug",
+      "C:\\Users\\mschier\\AppData\\Local\\GitHubCopilotCLI\\copilot.exe",
+      "--yolo",
+      "--session-id",
+      "7199f016-a1ba-4cc5-8b52-bedb89f06a0b"
+    ],
+    "nodejsVersion": "v24.20.0",
+    "wordSize": 64,
+    "arch": "x64",
+    "platform": "win32",
+    "componentVersions": {
+      "acorn": "8.18.0",
+      "ada": "4.0.0",
+      "amaro": "1.1.11",
+      "ares": "1.34.8",
+      "brotli": "1.2.0",
+      "cldr": "48.0",
+      "icu": "78.3",
+      "llhttp": "9.4.3",
+      "merve": "1.2.2",
+      "modules": "137",
+      "napi": "10",
+      "nbytes": "0.1.4",
+      "ncrypto": "0.0.1",
+      "nghttp2": "1.70.0",
+      "nghttp3": "",
+      "ngtcp2": "",
+      "node": "24.20.0",
+      "openssl": "3.5.7",
+      "simdjson": "4.6.6",
+      "simdutf": "6.4.0",
+      "sqlite": "3.53.4",
+      "tz": "2026c",
+      "undici": "7.29.0",
+      "unicode": "17.0",
+      "uv": "1.52.1",
+      "uvwasi": "0.0.23",
+      "v8": "13.6.233.17-node.53",
+      "zlib": "1.3.2.1-motley-42c2f19",
+      "zstd": "1.5.7"
+    },
+    "release": {
+      "name": "node",
+      "lts": "Krypton",
+      "headersUrl": "https://nodejs.org/download/release/v24.20.0/node-v24.20.0-headers.tar.gz",
+      "sourceUrl": "https://nodejs.org/download/release/v24.20.0/node-v24.20.0.tar.gz",
+      "libUrl": "https://nodejs.org/download/release/v24.20.0/win-x64/node.lib"
+    },
+    "osName": "Windows_NT",
+    "osRelease": "10.0.26200",
+    "osVersion": "Windows 11 Enterprise",
+    "osMachine": "x86_64",
+    "cpus": [
+      {
+        "model": "Intel(R) Core(TM) Ultra 7 265K",
+        "speed": 3878,
+        "user": 27178281,
+        "nice": 0,
+        "sys": 15039171,
+        "idle": 93822859,
+        "irq": 2174125
+      },
+      {
+        "model": "Intel(R) Core(TM) Ultra 7 265K",
+        "speed": 3878,
+        "user": 31185265,
+        "nice": 0,
+        "sys": 9293578,
+        "idle": 95561281,
+        "irq": 417687
+      },
+      {
+        "model": "Intel(R) Core(TM) Ultra 7 265K",
+        "speed": 3878,
+        "user": 22740109,
+        "nice": 0,
+        "sys": 5975453,
+        "idle": 107324562,
+        "irq": 294921
+      },
+      {
+        "model": "Intel(R) Core(TM) Ultra 7 265K",
+        "speed": 3878,
+        "user": 22957046,
+        "nice": 0,
+        "sys": 5177562,
+        "idle": 107905515,
+        "irq": 247937
+      },
+      {
+        "model": "Intel(R) Core(TM) Ultra 7 265K",
+        "speed": 3878,
+        "user": 23213359,
+        "nice": 0,
+        "sys": 4515906,
+        "idle": 108310859,
+        "irq": 217734
+      },
+      {
+        "model": "Intel(R) Core(TM) Ultra 7 265K",
+        "speed": 3878,
+        "user": 22842046,
+        "nice": 0,
+        "sys": 4194546,
+        "idle": 109003531,
+        "irq": 191187
+      },
+      {
+        "model": "Intel(R) Core(TM) Ultra 7 265K",
+        "speed": 3878,
+        "user": 26059718,
+        "nice": 0,
+        "sys": 5279953,
+        "idle": 104700453,
+        "irq": 260203
+      },
+      {
+        "model": "Intel(R) Core(TM) Ultra 7 265K",
+        "speed": 3878,
+        "user": 25725468,
+        "nice": 0,
+        "sys": 4921390,
+        "idle": 105393265,
+        "irq": 232125
+      },
+      {
+        "model": "Intel(R) Core(TM) Ultra 7 265K",
+        "speed": 3878,
+        "user": 22830921,
+        "nice": 0,
+        "sys": 5811671,
+        "idle": 107397531,
+        "irq": 284718
+      },
+      {
+        "model": "Intel(R) Core(TM) Ultra 7 265K",
+        "speed": 3878,
+        "user": 23129250,
+        "nice": 0,
+        "sys": 4964453,
+        "idle": 107946421,
+        "irq": 245062
+      },
+      {
+        "model": "Intel(R) Core(TM) Ultra 7 265K",
+        "speed": 3878,
+        "user": 57964140,
+        "nice": 0,
+        "sys": 23635046,
+        "idle": 54440937,
+        "irq": 524750
+      },
+      {
+        "model": "Intel(R) Core(TM) Ultra 7 265K",
+        "speed": 3878,
+        "user": 29263796,
+        "nice": 0,
+        "sys": 8275921,
+        "idle": 98500406,
+        "irq": 373468
+      },
+      {
+        "model": "Intel(R) Core(TM) Ultra 7 265K",
+        "speed": 3878,
+        "user": 61948093,
+        "nice": 0,
+        "sys": 22773359,
+        "idle": 51318671,
+        "irq": 460937
+      },
+      {
+        "model": "Intel(R) Core(TM) Ultra 7 265K",
+        "speed": 3878,
+        "user": 29273531,
+        "nice": 0,
+        "sys": 7944828,
+        "idle": 98821765,
+        "irq": 347812
+      },
+      {
+        "model": "Intel(R) Core(TM) Ultra 7 265K",
+        "speed": 3878,
+        "user": 25492343,
+        "nice": 0,
+        "sys": 5441750,
+        "idle": 105106031,
+        "irq": 271250
+      },
+      {
+        "model": "Intel(R) Core(TM) Ultra 7 265K",
+        "speed": 3878,
+        "user": 25350203,
+        "nice": 0,
+        "sys": 5125156,
+        "idle": 105564765,
+        "irq": 239171
+      },
+      {
+        "model": "Intel(R) Core(TM) Ultra 7 265K",
+        "speed": 3878,
+        "user": 24935468,
+        "nice": 0,
+        "sys": 4748937,
+        "idle": 106355718,
+        "irq": 212937
+      },
+      {
+        "model": "Intel(R) Core(TM) Ultra 7 265K",
+        "speed": 3878,
+        "user": 24522937,
+        "nice": 0,
+        "sys": 4528968,
+        "idle": 106988218,
+        "irq": 191828
+      },
+      {
+        "model": "Intel(R) Core(TM) Ultra 7 265K",
+        "speed": 3878,
+        "user": 28617046,
+        "nice": 0,
+        "sys": 7930015,
+        "idle": 99493062,
+        "irq": 348484
+      },
+      {
+        "model": "Intel(R) Core(TM) Ultra 7 265K",
+        "speed": 3878,
+        "user": 29081750,
+        "nice": 0,
+        "sys": 8109687,
+        "idle": 98848687,
+        "irq": 330078
+      }
+    ],
+    "networkInterfaces": [
+      {
+        "name": "Ethernet",
+        "internal": false,
+        "mac": "f4:f1:9e:4b:2d:0e",
+        "address": "2001:a61:a1f:c301:437b:6bff:a273:d067",
+        "netmask": "ffff:ffff:ffff:ffff::",
+        "family": "IPv6",
+        "scopeid": 0
+      },
+      {
+        "name": "Ethernet",
+        "internal": false,
+        "mac": "f4:f1:9e:4b:2d:0e",
+        "address": "fdd1:194d:1403:0:c43e:742c:e72d:909f",
+        "netmask": "ffff:ffff:ffff:ffff::",
+        "family": "IPv6",
+        "scopeid": 0
+      },
+      {
+        "name": "Ethernet",
+        "internal": false,
+        "mac": "f4:f1:9e:4b:2d:0e",
+        "address": "2001:a61:a1f:c301:31b2:3e49:9164:151d",
+        "netmask": "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+        "family": "IPv6",
+        "scopeid": 0
+      },
+      {
+        "name": "Ethernet",
+        "internal": false,
+        "mac": "f4:f1:9e:4b:2d:0e",
+        "address": "2001:a61:a1f:c301:5955:3913:966d:beb1",
+        "netmask": "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+        "family": "IPv6",
+        "scopeid": 0
+      },
+      {
+        "name": "Ethernet",
+        "internal": false,
+        "mac": "f4:f1:9e:4b:2d:0e",
+        "address": "fdd1:194d:1403:0:31b2:3e49:9164:151d",
+        "netmask": "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+        "family": "IPv6",
+        "scopeid": 0
+      },
+      {
+        "name": "Ethernet",
+        "internal": false,
+        "mac": "f4:f1:9e:4b:2d:0e",
+        "address": "fdd1:194d:1403:0:5955:3913:966d:beb1",
+        "netmask": "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+        "family": "IPv6",
+        "scopeid": 0
+      },
+      {
+        "name": "Ethernet",
+        "internal": false,
+        "mac": "f4:f1:9e:4b:2d:0e",
+        "address": "fe80::8429:853b:74d9:df71",
+        "netmask": "ffff:ffff:ffff:ffff::",
+        "family": "IPv6",
+        "scopeid": 3
+      },
+      {
+        "name": "Ethernet",
+        "internal": false,
+        "mac": "f4:f1:9e:4b:2d:0e",
+        "address": "192.168.178.101",
+        "netmask": "255.255.255.0",
+        "family": "IPv4"
+      },
+      {
+        "name": "Loopback Pseudo-Interface 1",
+        "internal": true,
+        "mac": "00:00:00:00:00:00",
+        "address": "::1",
+        "netmask": "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+        "family": "IPv6",
+        "scopeid": 0
+      },
+      {
+        "name": "Loopback Pseudo-Interface 1",
+        "internal": true,
+        "mac": "00:00:00:00:00:00",
+        "address": "127.0.0.1",
+        "netmask": "255.0.0.0",
+        "family": "IPv4"
+      },
+      {
+        "name": "vEthernet (Default Switch)",
+        "internal": false,
+        "mac": "00:15:5d:b1:ea:d1",
+        "address": "fe80::94c:bd55:c0aa:7745",
+        "netmask": "ffff:ffff:ffff:ffff::",
+        "family": "IPv6",
+        "scopeid": 46
+      },
+      {
+        "name": "vEthernet (Default Switch)",
+        "internal": false,
+        "mac": "00:15:5d:b1:ea:d1",
+        "address": "172.24.80.1",
+        "netmask": "255.255.240.0",
+        "family": "IPv4"
+      }
+    ],
+    "host": "mschier-wsp3"
+  },
+  "javascriptStack": {
+    "message": "No stack.",
+    "stack": [
+      "Unavailable."
+    ],
+    "errorProperties": {
+    }
+  },
+  "javascriptHeap": {
+    "totalMemory": 100732928,
+    "executableMemory": 5246976,
+    "totalCommittedMemory": 100732928,
+    "availableMemory": 4200476784,
+    "totalGlobalHandlesMemory": 151624,
+    "usedGlobalHandlesMemory": 93632,
+    "usedMemory": 89760544,
+    "memoryLimit": 4298113024,
+    "mallocedMemory": 1073200,
+    "externalMemory": 36840050,
+    "peakMallocedMemory": 57385976,
+    "nativeContextCount": 2,
+    "detachedContextCount": 0,
+    "doesZapGarbage": 0,
+    "heapSpaces": {
+      "read_only_space": {
+        "memorySize": 0,
+        "committedMemory": 0,
+        "capacity": 0,
+        "used": 0,
+        "available": 0
+      },
+      "new_space": {
+        "memorySize": 1048576,
+        "committedMemory": 1048576,
+        "capacity": 1048512,
+        "used": 887096,
+        "available": 161416
+      },
+      "old_space": {
+        "memorySize": 86929408,
+        "committedMemory": 86929408,
+        "capacity": 78040520,
+        "used": 77761680,
+        "available": 278840
+      },
+      "code_space": {
+        "memorySize": 4456448,
+        "committedMemory": 4456448,
+        "capacity": 4455904,
+        "used": 3791936,
+        "available": 663968
+      },
+      "shared_space": {
+        "memorySize": 0,
+        "committedMemory": 0,
+        "capacity": 0,
+        "used": 0,
+        "available": 0
+      },
+      "trusted_space": {
+        "memorySize": 5890048,
+        "committedMemory": 5890048,
+        "capacity": 5877256,
+        "used": 4933368,
+        "available": 943888
+      },
+      "shared_trusted_space": {
+        "memorySize": 0,
+        "committedMemory": 0,
+        "capacity": 0,
+        "used": 0,
+        "available": 0
+      },
+      "new_large_object_space": {
+        "memorySize": 0,
+        "committedMemory": 0,
+        "capacity": 1048576,
+        "used": 0,
+        "available": 1048576
+      },
+      "large_object_space": {
+        "memorySize": 1216512,
+        "committedMemory": 1216512,
+        "capacity": 1200232,
+        "used": 1200232,
+        "available": 0
+      },
+      "code_large_object_space": {
+        "memorySize": 790528,
+        "committedMemory": 790528,
+        "capacity": 787264,
+        "used": 787264,
+        "available": 0
+      },
+      "shared_large_object_space": {
+        "memorySize": 0,
+        "committedMemory": 0,
+        "capacity": 0,
+        "used": 0,
+        "available": 0
+      },
+      "shared_trusted_large_object_space": {
+        "memorySize": 0,
+        "committedMemory": 0,
+        "capacity": 0,
+        "used": 0,
+        "available": 0
+      },
+      "trusted_large_object_space": {
+        "memorySize": 401408,
+        "committedMemory": 401408,
+        "capacity": 398968,
+        "used": 398968,
+        "available": 0
+      }
+    }
+  },
+  "nativeStack": [
+    {
+      "pc": "0x00007ff7570f9fb7",
+      "symbol": ""
+    },
+    {
+      "pc": "0x00007ff7570f645c",
+      "symbol": ""
+    },
+    {
+      "pc": "0x00007ff7570fc328",
+      "symbol": ""
+    },
+    {
+      "pc": "0x00007ff7571d1d57",
+      "symbol": ""
+    },
+    {
+      "pc": "0x00007ff755de3617",
+      "symbol": ""
+    },
+    {
+      "pc": "0x00007ff755be3e57",
+      "symbol": ""
+    },
+    {
+      "pc": "0x00007ff755b7c44b",
+      "symbol": ""
+    },
+    {
+      "pc": "0x00007ff755b53e7e",
+      "symbol": ""
+    },
+    {
+      "pc": "0x00007ff755be68f2",
+      "symbol": ""
+    },
+    {
+      "pc": "0x00007ff755be58a7",
+      "symbol": ""
+    },
+    {
+      "pc": "0x00007ff755bf67e2",
+      "symbol": ""
+    },
+    {
+      "pc": "0x00007ff755bf630b",
+      "symbol": ""
+    },
+    {
+      "pc": "0x00007ff7574f492d",
+      "symbol": ""
+    },
+    {
+      "pc": "0x00007ff755be1920",
+      "symbol": ""
+    },
+    {
+      "pc": "0x00007ff755b91ec2",
+      "symbol": ""
+    },
+    {
+      "pc": "0x00007ff757115c65",
+      "symbol": ""
+    },
+    {
+      "pc": "0x00007ff757113fd0",
+      "symbol": ""
+    },
+    {
+      "pc": "0x00007ff755e49b9b",
+      "symbol": ""
+    },
+    {
+      "pc": "0x00007ff755e4970f",
+      "symbol": ""
+    },
+    {
+      "pc": "0x00007ff7572eaebf",
+      "symbol": ""
+    },
+    {
+      "pc": "0x00007ff75715eb36",
+      "symbol": ""
+    },
+    {
+      "pc": "0x00007ff757234b79",
+      "symbol": ""
+    },
+    {
+      "pc": "0x00007ff7572ee092",
+      "symbol": ""
+    },
+    {
+      "pc": "0x00007ff7574fe034",
+      "symbol": ""
+    },
+    {
+      "pc": "0x00007ffbd484cd87",
+      "symbol": ""
+    },
+    {
+      "pc": "0x00007ffbd544caec",
+      "symbol": "RtlUserThreadStart+44"
+    }
+  ],
+  "resourceUsage": {
+    "free_memory": 9203085312,
+    "total_memory": 68009082880,
+    "rss": 671756288,
+    "available_memory": 9203085312,
+    "userCpuSeconds": 320.453,
+    "kernelCpuSeconds": 30.109,
+    "cpuConsumptionPercent": 4.88384,
+    "userCpuConsumptionPercent": 4.46438,
+    "kernelCpuConsumptionPercent": 0.419462,
+    "maxRss": 1039036416,
+    "pageFaults": {
+      "IORequired": 3904628,
+      "IONotRequired": 0
+    },
+    "fsActivity": {
+      "reads": 31396,
+      "writes": 4664
+    }
+  },
+  "uvthreadResourceUsage": {
+    "userCpuSeconds": 173.953,
+    "kernelCpuSeconds": 8.031,
+    "cpuConsumptionPercent": 2.5353,
+    "userCpuConsumptionPercent": 2.42342,
+    "kernelCpuConsumptionPercent": 0.111884,
+    "fsActivity": {
+      "reads": 0,
+      "writes": 0
+    }
+  },
+  "libuv": [
+    {
+      "type": "async",
+      "is_active": true,
+      "is_referenced": false,
+      "address": "0x000001af46a19570"
+    },
+    {
+      "type": "async",
+      "is_active": true,
+      "is_referenced": false,
+      "address": "0x00007ff75aaeac88"
+    },
+    {
+      "type": "timer",
+      "is_active": true,
+      "is_referenced": true,
+      "address": "0x000001af46aad290",
+      "repeat": 0,
+      "firesInMsFromNow": 15,
+      "expired": false
+    },
+    {
+      "type": "check",
+      "is_active": true,
+      "is_referenced": false,
+      "address": "0x000001af46aad330"
+    },
+    {
+      "type": "idle",
+      "is_active": true,
+      "is_referenced": true,
+      "address": "0x000001af46aad3a8"
+    },
+    {
+      "type": "prepare",
+      "is_active": true,
+      "is_referenced": false,
+      "address": "0x000001af46aad420"
+    },
+    {
+      "type": "check",
+      "is_active": true,
+      "is_referenced": false,
+      "address": "0x000001af46aad498"
+    },
+    {
+      "type": "async",
+      "is_active": true,
+      "is_referenced": false,
+      "address": "0x000001af46aad510"
+    },
+    {
+      "type": "tty",
+      "is_active": false,
+      "is_referenced": true,
+      "address": "0x000001af46ab5a58",
+      "width": 116,
+      "height": 28,
+      "writeQueueSize": 0,
+      "readable": false,
+      "writable": true
+    },
+    {
+      "type": "signal",
+      "is_active": true,
+      "is_referenced": false,
+      "address": "0x000001af46b62ec8",
+      "signum": 28,
+      "signal": "SIGWINCH"
+    },
+    {
+      "type": "async",
+      "is_active": true,
+      "is_referenced": false,
+      "address": "0x000001af46cb9de0"
+    },
+    {
+      "type": "tty",
+      "is_active": true,
+      "is_referenced": true,
+      "address": "0x000001af46175848",
+      "writeQueueSize": 0,
+      "readable": true,
+      "writable": false
+    },
+    {
+      "type": "tty",
+      "is_active": false,
+      "is_referenced": true,
+      "address": "0x000001af67512b88",
+      "width": 116,
+      "height": 28,
+      "writeQueueSize": 0,
+      "readable": false,
+      "writable": true
+    },
+    {
+      "type": "async",
+      "is_active": true,
+      "is_referenced": false,
+      "address": "0x000001af46d5a9e0"
+    },
+    {
+      "type": "async",
+      "is_active": true,
+      "is_referenced": false,
+      "address": "0x000001af67994620"
+    },
+    {
+      "type": "async",
+      "is_active": true,
+      "is_referenced": true,
+      "address": "0x000001af662f57e0"
+    },
+    {
+      "type": "signal",
+      "is_active": true,
+      "is_referenced": false,
+      "address": "0x000001af636a6f78",
+      "signum": 15,
+      "signal": "SIGTERM"
+    },
+    {
+      "type": "signal",
+      "is_active": true,
+      "is_referenced": false,
+      "address": "0x000001af46ad2398",
+      "signum": 2,
+      "signal": "SIGINT"
+    },
+    {
+      "type": "signal",
+      "is_active": true,
+      "is_referenced": false,
+      "address": "0x000001af63694e88",
+      "signum": 1,
+      "signal": "SIGHUP"
+    },
+    {
+      "type": "signal",
+      "is_active": true,
+      "is_referenced": false,
+      "address": "0x000001af678c5e38",
+      "signum": 3,
+      "signal": "SIGQUIT"
+    },
+    {
+      "type": "async",
+      "is_active": true,
+      "is_referenced": false,
+      "address": "0x000001af66608b70"
+    },
+    {
+      "type": "async",
+      "is_active": true,
+      "is_referenced": true,
+      "address": "0x000001af662f6420"
+    },
+    {
+      "type": "signal",
+      "is_active": true,
+      "is_referenced": false,
+      "address": "0x000001af6797b0b8",
+      "signum": 22,
+      "signal": "SIGABRT"
+    },
+    {
+      "type": "async",
+      "is_active": true,
+      "is_referenced": false,
+      "address": "0x000001af6660bc70"
+    },
+    {
+      "type": "async",
+      "is_active": true,
+      "is_referenced": true,
+      "address": "0x000001af63602480"
+    },
+    {
+      "type": "async",
+      "is_active": true,
+      "is_referenced": true,
+      "address": "0x000001af636037c0"
+    },
+    {
+      "type": "async",
+      "is_active": true,
+      "is_referenced": true,
+      "address": "0x000001af65efb630"
+    },
+    {
+      "type": "async",
+      "is_active": true,
+      "is_referenced": true,
+      "address": "0x000001af65efe1f0"
+    },
+    {
+      "type": "async",
+      "is_active": true,
+      "is_referenced": true,
+      "address": "0x000001af65efee30"
+    },
+    {
+      "type": "async",
+      "is_active": true,
+      "is_referenced": true,
+      "address": "0x000001af671abdc0"
+    },
+    {
+      "type": "async",
+      "is_active": true,
+      "is_referenced": true,
+      "address": "0x000001af63609640"
+    },
+    {
+      "type": "async",
+      "is_active": true,
+      "is_referenced": true,
+      "address": "0x000001af63608840"
+    },
+    {
+      "type": "async",
+      "is_active": true,
+      "is_referenced": true,
+      "address": "0x000001af63609480"
+    },
+    {
+      "type": "async",
+      "is_active": true,
+      "is_referenced": true,
+      "address": "0x000001af63609800"
+    },
+    {
+      "type": "async",
+      "is_active": true,
+      "is_referenced": true,
+      "address": "0x000001af636099c0"
+    },
+    {
+      "type": "async",
+      "is_active": true,
+      "is_referenced": true,
+      "address": "0x000001af63602b80"
+    },
+    {
+      "type": "async",
+      "is_active": true,
+      "is_referenced": true,
+      "address": "0x000001af636022c0"
+    },
+    {
+      "type": "pipe",
+      "is_active": true,
+      "is_referenced": true,
+      "address": "0x000001af66695018",
+      "localEndpoint": null,
+      "remoteEndpoint": "\\\\.\\pipe\\mcp-9452f838-c47c-45f0-ae82-ec156d3db355.sock",
+      "writeQueueSize": 0,
+      "readable": true,
+      "writable": true
+    },
+    {
+      "type": "async",
+      "is_active": true,
+      "is_referenced": true,
+      "address": "0x000001af63607500"
+    },
+    {
+      "type": "async",
+      "is_active": true,
+      "is_referenced": true,
+      "address": "0x000001af65efe570"
+    },
+    {
+      "type": "async",
+      "is_active": true,
+      "is_referenced": true,
+      "address": "0x000001af671ad100"
+    },
+    {
+      "type": "async",
+      "is_active": true,
+      "is_referenced": true,
+      "address": "0x000001af671a62c0"
+    },
+    {
+      "type": "async",
+      "is_active": true,
+      "is_referenced": true,
+      "address": "0x000001af671a6100"
+    },
+    {
+      "type": "async",
+      "is_active": true,
+      "is_referenced": true,
+      "address": "0x000001af671aa8c0"
+    },
+    {
+      "type": "async",
+      "is_active": true,
+      "is_referenced": true,
+      "address": "0x000001af671acbc0"
+    },
+    {
+      "type": "timer",
+      "is_active": true,
+      "is_referenced": false,
+      "address": "0x000001af6363be80",
+      "repeat": 0,
+      "firesInMsFromNow": 100,
+      "expired": false
+    },
+    {
+      "type": "loop",
+      "is_active": true,
+      "address": "0x00007ff75aac4158",
+      "loopIdleTimeSeconds": 6789.94
+    }
+  ],
+  "workers": [
+  ],
+  "sharedObjects": [
+    "C:\\Users\\mschier\\AppData\\Local\\GitHubCopilotCLI\\copilot.exe",
+    "C:\\Windows\\SYSTEM32\\ntdll.dll",
+    "C:\\Windows\\System32\\KERNEL32.DLL",
+    "C:\\Windows\\System32\\KERNELBASE.dll",
+    "C:\\Windows\\System32\\CRYPT32.dll",
+    "C:\\Windows\\System32\\ucrtbase.dll",
+    "C:\\Windows\\System32\\WS2_32.dll",
+    "C:\\Windows\\System32\\RPCRT4.dll",
+    "C:\\Windows\\System32\\USER32.dll",
+    "C:\\Windows\\System32\\win32u.dll",
+    "C:\\Windows\\System32\\GDI32.dll",
+    "C:\\Windows\\System32\\gdi32full.dll",
+    "C:\\Windows\\System32\\msvcp_win.dll",
+    "C:\\Windows\\System32\\ADVAPI32.dll",
+    "C:\\Windows\\System32\\msvcrt.dll",
+    "C:\\Windows\\SYSTEM32\\dbghelp.dll",
+    "C:\\Windows\\System32\\sechost.dll",
+    "C:\\Windows\\System32\\combase.dll",
+    "C:\\Windows\\System32\\SHELL32.dll",
+    "C:\\Windows\\System32\\ole32.dll",
+    "C:\\Windows\\System32\\OLEAUT32.dll",
+    "C:\\Windows\\SYSTEM32\\IPHLPAPI.DLL",
+    "C:\\Windows\\SYSTEM32\\USERENV.dll",
+    "C:\\Windows\\SYSTEM32\\WINMM.dll",
+    "C:\\Windows\\SYSTEM32\\dbgcore.DLL",
+    "C:\\Windows\\SYSTEM32\\CRYPTBASE.DLL",
+    "C:\\Windows\\System32\\IMM32.DLL",
+    "C:\\Windows\\SYSTEM32\\powrprof.dll",
+    "C:\\Windows\\SYSTEM32\\UMPDC.dll",
+    "C:\\Windows\\System32\\bcryptprimitives.dll",
+    "C:\\Windows\\system32\\uxtheme.dll",
+    "C:\\Windows\\system32\\mswsock.dll",
+    "C:\\Windows\\SYSTEM32\\CRYPTSP.dll",
+    "C:\\Windows\\system32\\rsaenh.dll",
+    "C:\\Windows\\SYSTEM32\\kernel.appcore.dll",
+    "\\\\?\\C:\\Users\\mschier\\AppData\\Local\\copilot\\pkg\\win32-x64\\1.0.84-4\\prebuilds\\win32-x64\\cli-native.node",
+    "C:\\Windows\\SYSTEM32\\VCRUNTIME140.dll",
+    "\\\\?\\C:\\Users\\mschier\\.copilot\\pkg\\win32-x64\\1.0.84-4\\prebuilds\\win32-x64\\runtime.node",
+    "C:\\Windows\\System32\\psapi.dll",
+    "C:\\Windows\\System32\\wintrust.dll",
+    "C:\\Windows\\SYSTEM32\\ncrypt.dll",
+    "C:\\Windows\\SYSTEM32\\tdh.dll",
+    "C:\\Windows\\SYSTEM32\\secur32.dll",
+    "C:\\Windows\\SYSTEM32\\bcrypt.dll",
+    "C:\\Windows\\SYSTEM32\\SSPICLI.DLL",
+    "C:\\Windows\\SYSTEM32\\NTASN1.dll",
+    "C:\\Windows\\SYSTEM32\\MSASN1.dll",
+    "\\\\?\\C:\\Users\\mschier\\.copilot\\pkg\\win32-x64\\1.0.84-4\\prebuilds\\win32-x64\\msal-node-runtime.node",
+    "\\\\?\\C:\\Users\\mschier\\.copilot\\pkg\\win32-x64\\1.0.84-4\\prebuilds\\win32-x64\\msalruntime.dll",
+    "C:\\Windows\\SYSTEM32\\WININET.dll",
+    "\\\\?\\C:\\Users\\mschier\\.copilot\\pkg\\win32-x64\\1.0.84-4\\prebuilds\\win32-x64\\cli-native.node",
+    "C:\\Windows\\SYSTEM32\\windows.storage.dll",
+    "C:\\Windows\\System32\\SHCORE.dll",
+    "C:\\Windows\\SYSTEM32\\windows.staterepositorycore.dll",
+    "C:\\Windows\\System32\\shlwapi.dll",
+    "C:\\Windows\\SYSTEM32\\daxexec.dll",
+    "C:\\Windows\\SYSTEM32\\container.dll",
+    "C:\\Windows\\SYSTEM32\\MPR.dll",
+    "C:\\Windows\\SYSTEM32\\ntmarta.dll",
+    "C:\\Windows\\System32\\clbcatq.dll",
+    "C:\\Windows\\SYSTEM32\\RpcRtRemote.dll",
+    "C:\\Windows\\System32\\Windows.StateRepositoryPS.dll",
+    "C:\\Windows\\SYSTEM32\\AppXAllUserStore.dll",
+    "C:\\Windows\\SYSTEM32\\windows.staterepositoryclient.dll",
+    "C:\\Windows\\SYSTEM32\\capauthz.dll",
+    "C:\\Windows\\SYSTEM32\\apisethost.appexecutionalias.dll",
+    "C:\\Windows\\SYSTEM32\\profapi.dll",
+    "C:\\Windows\\System32\\Windows.ApplicationModel.dll",
+    "C:\\Windows\\SYSTEM32\\wintypes.dll",
+    "C:\\Windows\\System32\\OSClient.API.dll",
+    "C:\\Windows\\System32\\icu.dll",
+    "C:\\Windows\\System32\\PROPSYS.dll",
+    "C:\\Windows\\System32\\twinapi.appcore.dll",
+    "C:\\Windows\\System32\\Windows.Web.dll",
+    "C:\\Windows\\SYSTEM32\\processmodel.dll",
+    "C:\\Windows\\SYSTEM32\\FLTLIB.DLL",
+    "C:\\Windows\\SYSTEM32\\fwpuclnt.dll",
+    "C:\\Windows\\SYSTEM32\\DNSAPI.dll",
+    "C:\\Windows\\SYSTEM32\\DSPARSE.dll",
+    "C:\\Windows\\System32\\NSI.dll",
+    "C:\\Windows\\System32\\rasadhlp.dll",
+    "C:\\Windows\\SYSTEM32\\gpapi.dll",
+    "C:\\Windows\\System32\\cryptnet.dll",
+    "C:\\Windows\\SYSTEM32\\WINNSI.DLL",
+    "C:\\Windows\\SYSTEM32\\CldApi.dll",
+    "C:\\Windows\\SYSTEM32\\dhcpcsvc6.DLL",
+    "C:\\Windows\\SYSTEM32\\dhcpcsvc.DLL",
+    "C:\\Windows\\system32\\napinsp.dll",
+    "C:\\Windows\\System32\\winrnr.dll",
+    "C:\\Windows\\system32\\nlansp_c.dll",
+    "C:\\Windows\\system32\\wshbth.dll"
+  ]
+}

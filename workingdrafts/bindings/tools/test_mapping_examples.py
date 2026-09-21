@@ -17,14 +17,11 @@ import pytest
 from jsonschema import Draft202012Validator, FormatChecker
 from referencing import Registry, Resource
 
-import mapping_examples as document
-from federation_examples import FederationError
+from workingdrafts.bindings.tools import mapping_examples as document
+from workingdrafts.federation.tools.federation_examples import FederationError
 
 
-FIXTURE_ROOT = (
-    Path(__file__).resolve().parent.parent
-    / "workingdrafts" / "bindings" / "samples" / "mapping"
-)
+FIXTURE_ROOT = Path(__file__).resolve().parents[1] / "samples" / "mapping"
 SCHEMA_ROOT = FIXTURE_ROOT.parent.parent / "schemas"
 ITEM = "/documents/main/assets/item"
 V1 = ITEM + "/versions/v1"

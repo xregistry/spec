@@ -825,7 +825,7 @@ retrieval. Tests MUST distinguish full graph validation from selective
 lookup. A validator walking everything does not demonstrate efficient
 selective resolution.
 
-The [source-selection example](../../tools/federation_resolution_examples.py)
+The [source-selection example](tools/federation_resolution_examples.py)
 uses in-memory read functions to demonstrate local shadow precedence,
 ordered source misses and selection of one Resource origin for all Version
 reads. It does not introduce a federation wire API. The caller supplies

@@ -8,8 +8,8 @@ from unittest.mock import patch
 
 import pytest
 
-import mapping_examples as document
-from federation_examples import FederationError
+from workingdrafts.bindings.tools import mapping_examples as document
+from workingdrafts.federation.tools.federation_examples import FederationError
 
 
 class GitFixture:

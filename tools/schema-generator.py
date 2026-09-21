@@ -3,6 +3,7 @@ import copy
 import json
 import os
 import re
+from urllib.parse import unquote_to_bytes, urldefrag, urlsplit
 from jsonpointer import resolve_pointer
 
 avro_generic_record_name = "GenericRecord"
@@ -1480,36 +1481,68 @@ model_definition = {
 
 
 def resolve_imports(basedir, node):
-    """
-    recursively resolve all $includes in the model definition.
-    This code handles two cases. The legacy case where the $include is
-    relative file path (URL)
-    """
+    """Resolve local model includes without modifying the supplied source.
 
-    if isinstance(node, dict):
-        if "$include" in node:
-            obj_ref = ''
-            file_ref = node["$include"]
-            # strip # anchor portion from the file reference
-            if "#" in file_ref:
-                fr = file_ref.split("#")
-                file_ref = fr[0]
-                obj_ref = fr[1]
-            file_ref = file_ref.replace('/', os.sep)
-            import_file = os.path.join(basedir, file_ref)
-            with open(import_file, encoding='utf-8') as file:
-                import_definition = json.load(file)
-            del node["$include"]
-            if obj_ref:
-                node.update(resolve_pointer(import_definition, obj_ref))
+    Local values override included values; earlier includes override later ones.
+    Each nested include retains the base of its containing document.
+    """
+    documents = {}
+    visits = 0
+
+    def expand(value, document, directory, identity, active, depth):
+        nonlocal visits
+        visits += 1
+        if visits > 100000 or depth > 128:
+            raise ValueError("Model include expansion exceeds its node or depth limit")
+        if isinstance(value, list):
+            return [expand(item, document, directory, identity, active, depth + 1)
+                    for item in value]
+        if not isinstance(value, dict):
+            return copy.deepcopy(value)
+        if "$include" in value and "$includes" in value:
+            raise ValueError("$include and $includes cannot occur together")
+        references = value.get("$includes", [])
+        if "$include" in value:
+            references = [value["$include"]]
+        if not isinstance(references, list) or any(not isinstance(ref, str) for ref in references):
+            raise ValueError("Model includes require a string or ordered string array")
+
+        result = {
+            key: expand(child, document, directory, identity, active, depth + 1)
+            for key, child in value.items() if key not in ("$include", "$includes")
+        }
+        for reference in references:
+            file_ref, fragment = urldefrag(reference)
+            fragment = unquote_to_bytes(fragment).decode("utf-8")
+            if fragment and not fragment.startswith("/"):
+                raise ValueError("A model include fragment must be an RFC6901 JSON Pointer")
+            if file_ref:
+                if urlsplit(file_ref).scheme or file_ref.startswith("//"):
+                    raise ValueError("Schema generation requires explicitly supplied local include files")
+                filename = os.path.abspath(os.path.join(directory, file_ref.replace("/", os.sep)))
+                if filename not in documents:
+                    if len(documents) >= 64:
+                        raise ValueError("Model includes exceed the document limit")
+                    with open(filename, encoding="utf-8") as source:
+                        documents[filename] = json.load(source)
+                target_document = documents[filename]
+                target_directory = os.path.dirname(filename)
+                target_identity = filename
             else:
-                node.update(import_definition)
-        for k,v in node.items():
-            node[k] = resolve_imports(basedir, v)
-    elif isinstance(node, list):
-        for i, item in enumerate(node):
-            node[i] = resolve_imports(basedir, item)
-    return node
+                target_document, target_directory, target_identity = document, directory, identity
+            key = (target_identity, fragment)
+            if key in active:
+                raise ValueError("Circular model include")
+            selected = resolve_pointer(target_document, fragment)
+            if not isinstance(selected, dict):
+                raise ValueError("A model include must select an object")
+            included = expand(selected, target_document, target_directory, target_identity,
+                              active | {key}, depth + 1)
+            for name, child in included.items():
+                result.setdefault(name, child)
+        return result
+
+    return expand(node, node, os.path.abspath(basedir), "<source>", set(), 0)
 
 
 # read model definition from file ../schema/model.json

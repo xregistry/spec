@@ -12,7 +12,7 @@
     "xid": {
       "allOf": [
         {"$ref": "urn:xregistry:document-tree:record:1#/$defs/xid"},
-        {"pattern": "^/[^/]+(?:/[^/]+/[^/]+(?:/[^/]+/versions)?)?$"}
+        {"pattern": "^/[^/]+(?:/[^/]+/[^/]+(?:/[^/]+/(?:v|%76)(?:e|%65)(?:r|%72)(?:s|%73)(?:i|%69)(?:o|%6[fF])(?:n|%6[eE])(?:s|%73))?)?$"}
       ]
     },
     "count": {"type": "integer", "minimum": 0},

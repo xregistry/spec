@@ -525,8 +525,11 @@ Storage metadata MUST omit `self`, `shortself`, `metaurl`,
 `defaultversionurl`, collection navigation/counts, nested entity collections,
 and Version `formatvalidated`, `compatibilityvalidated`, and their reason
 attributes.
-It MUST NOT contain inlined `<RESOURCE>` or `<RESOURCE>base64` document
-content. These omissions do not permit dropping other Core or extension data.
+For a Resource model with `hasdocument: true`, it MUST NOT contain inlined
+`<RESOURCE>` or `<RESOURCE>base64` document content. These omissions do not
+permit dropping other Core or extension data. In particular, an ordinary
+model-admitted attribute of a metadata-only Resource is not document content
+merely because its name uses one of these spellings.
 
 Registry and Group records have a `collections` array containing exactly one
 reference for every modeled child collection, even an empty one. An ordinary
@@ -651,10 +654,12 @@ Binary and JSON bytes MUST NOT be decoded, reserialized, newline-converted
 or replaced by an empty JSON wrapper. The Version's `contenttype`,
 if present, describes the bytes independently of the file's extension.
 
-For `hasdocument: false`, `document.kind` MUST be `none`, and all three
-Core document attributes (`<RESOURCE>`, `<RESOURCE>base64`, `<RESOURCE>url`)
-MUST be absent. A document request MUST produce `unsupported_operation`.
-This is distinct from a present zero-byte document.
+For `hasdocument: false`, `document.kind` MUST be `none`; the Core document
+attributes do not apply. Ordinary model-admitted metadata named `<RESOURCE>`,
+`<RESOURCE>base64` or `<RESOURCE>url` MUST be preserved and validated as
+metadata, not decoded or dereferenced as document content. A document request
+MUST produce `unsupported_operation`. This is distinct from a present
+zero-byte document.
 
 ## Reads and Core Document View
 
@@ -802,15 +807,17 @@ not a containment edge or permission for Git readers to apply attributes.
 Existing projects do not need to replace their `.gitattributes` to add a
 mapping. Git readers obtain stored object bytes without checkout conversion.
 
-[`tools/mapping_examples.py`](../../tools/mapping_examples.py) provides
+[`mapping_examples.py`](tools/mapping_examples.py) provides
 offline parsing, schema/semantic validation, selective reads, document-view
 assembly and an OPTIONAL local Git object-store reader. It uses the common
 `FederationError`, XID validation, label selection and Resource type helper.
 It does not fetch repositories or external documents.
 
+Run from the repository root:
+
 ```text
-python -B tools\mapping_examples.py validate workingdrafts\bindings\samples\mapping
-python -B tools\mapping_examples.py entity workingdrafts\bindings\samples\mapping /documents/main/assets/item/versions/v1
+python -B -m workingdrafts.bindings.tools.mapping_examples validate workingdrafts\bindings\samples\mapping
+python -B -m workingdrafts.bindings.tools.mapping_examples entity workingdrafts\bindings\samples\mapping /documents/main/assets/item/versions/v1
 ```
 
 `read_record` exposes a storage fragment, not a Core response. `metadata`

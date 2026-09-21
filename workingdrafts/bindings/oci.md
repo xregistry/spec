@@ -323,6 +323,41 @@ decoding, Unicode normalization or locale collation. Core ID grammar
 makes these keys ASCII in the referenced Core version. Thus `A` precedes
 `a`. `v10` precedes `v2`. Labels do not determine these keys.
 
+Before this byte comparison, the serialized keys MUST use the following
+canonical URI-component encoding. Validate percent escapes and decode each
+component exactly once as strict UTF-8, then validate the decoded Core type,
+identifier and hierarchy. Emit ASCII unreserved characters literally and
+percent-encode every other allowed component character using uppercase
+hexadecimal. Under the current Core ID grammar, `:` is therefore `%3A` and
+`@` is `%40`. Type names and the fixed `meta` and `versions` components are
+emitted literally. Case-sensitive entity identity MUST be preserved; no
+case folding, second decoding pass or Unicode normalization is permitted.
+
+This encoding is REQUIRED for every `io.xregistry.oci.xid` on an internal
+descriptor, index or manifest, and every finite `lower` or `upper` boundary.
+A consumer MUST reject a consumed noncanonical annotation as `invalid_package`,
+not probe alternative serialized spellings or rewrite the verified object.
+A caller's XID selector MUST be validated and canonicalized once before
+routing, retaining the original requested identity separately from the
+selected config's serialization. URI-equivalent selectors then follow the
+same one-interval-per-level lookup.
+
+Portable config `entity.xid` and Meta `xref` MAY retain another valid,
+URI-equivalent spelling. Their decoded, case-sensitive identity MUST agree
+with their canonical descriptor identity; their original bytes still determine
+the config digest and MUST NOT be rewritten during a read. JSON map keys and
+document-local pointers use decoded IDs. Producers MUST reject duplicate
+decoded sibling identities, including Core's case-insensitive sibling
+collisions. Domain URLs, document base/origin and domain-document bytes are not
+subject to this routing-key encoding.
+
+This is a correction to the unreleased version-1 draft. A previously produced
+draft layout containing noncanonical graph annotations requires explicit
+migration or regeneration, with new digests propagated to its root; it MUST
+NOT be silently relabeled as conforming. The original layout can be retained
+as migration evidence. The encoding does not prescribe a canonical JSON
+serialization or a unique placement of shard boundaries.
+
 ### 4.2. Exact range representation
 
 Every directory, collection and shard MUST carry these annotations:
@@ -375,6 +410,10 @@ Missing shards, conflicting bounds, duplicate keys and overlapping
 entries are not absence: they are `invalid_package`. A full validator
 MUST verify the complete partition and closure, not just a successful
 lookup path. A selective reader validates the path it consumes.
+As with missing or inconsistent unvisited objects, a selective result is not
+proof that every unvisited shard is well formed. A complete conformance or
+absence claim about all serialized representations requires the full validator;
+`not_found` from a selective read describes only the canonical routed lookup.
 
 ## 5. Metadata and Documents
 
@@ -417,8 +456,13 @@ The following storage decomposition is REQUIRED:
   by descriptors. These rules do not delete similarly named properties
   inside extension objects.
 - `formatvalidated` and `compatibilityvalidated` are absent, as in Core
-  document view. Domain documents are detached, never duplicated in the
-  `<RESOURCE>` or `<RESOURCE>base64` fields of configs.
+  document view. For Resource types with `hasdocument: true`, domain Documents
+  are detached and MUST NOT be duplicated in the `<RESOURCE>` or
+  `<RESOURCE>base64` fields of configs. For Resource types with
+  `hasdocument: false`, model-admitted attributes with these spellings, or
+  `<RESOURCE>url`, are ordinary metadata and MUST be preserved and validated
+  according to their model definitions, not dropped or interpreted as
+  Document content or locators.
 
 The config schema supplements the Core model. It is not a second,
 hand-maintained full Resource schema. Core-required attributes, dynamic
@@ -485,8 +529,12 @@ mode. The selected snapshot supplies the pinned bytes, not a fresh fetch
 of the original locator.
 
 `metadata-only` MUST agree with `hasdocument: false`. Such Versions MUST
-NOT have document bytes or `<RESOURCE>url`. All other modes require
-`hasdocument` to be true. Only `external` has a Core `<RESOURCE>url`.
+NOT carry a domain Document or a Document locator. Ordinary model-admitted
+metadata attributes named `<RESOURCE>`, `<RESOURCE>base64` or `<RESOURCE>url`
+do not constitute Document content or a locator and MUST NOT be decoded,
+fetched, dropped or rejected merely because of their names. All other modes
+require `hasdocument` to be true. Among document-capable Versions, only
+`external` has the Core `<RESOURCE>url` Document locator.
 An `external` Version cannot claim to contain bytes. Missing an expected
 `embedded` blob is an invalid package, not an empty document. Core requires
 a document-capable Version to have a document, even if its length is zero.
@@ -567,7 +615,10 @@ verify same-Registry and same Resource model type, MUST NOT chase a second
 hop, and MUST retain source target identity separately from the resolved
 Version XID. A dangling or alias target has no retrievable document.
 Absolute remote `xref` values or wrong Resource model types are invalid.
-Core `<RESOURCE>url` is a document locator, never a metadata alias.
+For a Resource type with `hasdocument: true`, Core `<RESOURCE>url` is a
+Document locator, never a metadata alias. A model-admitted same-spelled
+attribute on a `hasdocument: false` type remains ordinary metadata and
+creates neither a locator nor an alias.
 
 ## 6. Native Read Operations
 
@@ -765,7 +816,7 @@ ranges, model semantics or graph completeness.
 The checked-in [OCI samples](../federation/samples/oci/README.md) contain
 real small layouts, exact digests, metadata-only and zero-byte documents,
 multiple roots, local aliases and forced multi-level shards. The helper
-[`tools/oci_examples.py`](../../tools/oci_examples.py) builds, validates
+[`oci_examples.py`](tools/oci_examples.py) builds, validates
 and selectively reads these offline fixtures. It records actual file
 fetches, distinguishes exhaustive validation from lookup, and performs
 no network requests or production publication.

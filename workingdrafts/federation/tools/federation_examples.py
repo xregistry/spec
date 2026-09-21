@@ -1,7 +1,9 @@
 """Offline examples of federation selection, not a network resolver."""
 
+from decimal import Decimal
+import math
 import re
-from urllib.parse import urlsplit
+from urllib.parse import quote, unquote_to_bytes, urlsplit
 
 
 class FederationError(ValueError):
@@ -20,13 +22,19 @@ _PROFILE_PARAMETERS = {
 }
 
 
-def validate_xid(value, *, collection=False):
-    """Validate syntax. Callers also validate collection names against a model."""
+def xid_parts(value, *, collection=False):
+    """Decode a typed Core URI exactly once; model names remain caller-checked."""
     if not isinstance(value, str) or not value.startswith("/"):
         raise FederationError("invalid_package", "XID must start with /")
     if value == "/" and not collection:
-        return value
-    parts = value[1:].split("/")
+        return ()
+    encoded = value[1:].split("/")
+    if any(len(part) > 384 or re.search(r"%(?![0-9a-fA-F]{2})", part) for part in encoded):
+        raise FederationError("invalid_package", "Invalid XID component")
+    try:
+        parts = [unquote_to_bytes(part).decode("utf-8", errors="strict") for part in encoded]
+    except UnicodeError as error:
+        raise FederationError("invalid_package", "Invalid XID component") from error
     if not all(_ID.fullmatch(part) for part in parts):
         raise FederationError("invalid_package", "Invalid XID component")
     valid = (
@@ -38,7 +46,22 @@ def validate_xid(value, *, collection=False):
     )
     if not valid:
         raise FederationError("invalid_package", "Invalid XID hierarchy")
+    return tuple(parts)
+
+
+def validate_xid(value, *, collection=False):
+    """Validate syntax while retaining the original serialized URI spelling."""
+    xid_parts(value, collection=collection)
     return value
+
+
+def canonical_xid(value, *, collection=False):
+    """A comparison/routing key, not permission to rewrite stored metadata."""
+    return "/" + "/".join(quote(part, safe="-._~") for part in xid_parts(value, collection=collection))
+
+
+def same_xid(left, right, *, collection=False):
+    return xid_parts(left, collection=collection) == xid_parts(right, collection=collection)
 
 
 def _absolute_uri(value):
@@ -61,6 +84,16 @@ def _absolute_uri(value):
     return uri
 
 
+def _unsigned_integer(value):
+    if type(value) is int:
+        return value >= 0
+    if type(value) is float:
+        return math.isfinite(value) and value >= 0 and value.is_integer()
+    if type(value) is Decimal:
+        return value.is_finite() and value >= 0 and value == value.to_integral_value()
+    return False
+
+
 def validate_profile(profile):
     if not isinstance(profile, dict):
         raise FederationError("invalid_package", "Advertisement must be an object")
@@ -71,7 +104,7 @@ def validate_profile(profile):
         raise FederationError("invalid_package", "Missing profile name")
     uri = _absolute_uri(profile.get("endpoint"))
     priority = profile.get("priority", 0)
-    if type(priority) is not int or priority < 0:
+    if not _unsigned_integer(priority):
         raise FederationError("invalid_package", "Priority must be unsigned integer")
     parameters = profile.get("parameters", {})
     if not isinstance(parameters, dict):
@@ -134,7 +167,7 @@ def validate_profile(profile):
     if name == "opcua":
         if uri.scheme not in ("opc.tcp", "https", "opc.wss"):
             raise FederationError("unsupported_operation", "Unsupported UA transport")
-        from opcua_examples import validate_registry_root
+        from workingdrafts.bindings.tools.opcua_examples import validate_registry_root
 
         validate_registry_root(parameters.get("registryroot"))
         for parameter in ("applicationuri", "transportprofileuri"):
@@ -172,7 +205,7 @@ def select_profile(entry, supported, *, name=None):
         raise FederationError("unsupported_binding", "No supported advertisement")
     for profile in eligible:
         priority = profile.get("priority", 0)
-        if type(priority) is not int or priority < 0:
+        if not _unsigned_integer(priority):
             raise FederationError("invalid_package", "Invalid candidate priority")
     selected = min(eligible, key=lambda p: p.get("priority", 0))
     validate_profile(selected)
@@ -208,8 +241,7 @@ def select_label(entities, key, value):
 
 
 def resource_type(modelsource, xid):
-    validate_xid(xid)
-    parts = xid[1:].split("/")
+    parts = xid_parts(xid)
     if len(parts) != 4:
         raise FederationError("invalid_package", "Reference must name a Resource")
 

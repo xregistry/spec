@@ -3,12 +3,14 @@
 import json
 from copy import deepcopy
 from pathlib import Path
+from unittest.mock import Mock
 
 import pytest
 from jsonschema import Draft202012Validator
 
-from federation_examples import (
+from workingdrafts.federation.tools.federation_examples import (
     FederationError,
+    execute_selected,
     resolve_local_xref,
     resource_type,
     select_label,
@@ -19,7 +21,7 @@ from federation_examples import (
 )
 
 
-FIXTURE_ROOT = Path(__file__).parent.parent / "workingdrafts" / "federation"
+FIXTURE_ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.fixture
@@ -174,7 +176,7 @@ def test_validate_xid_component_length_boundaries(length, valid):
         pytest.param("/documents/main/", False, "Invalid XID component", id="trailing-slash"),
         pytest.param("/documents//assets/item", False, "Invalid XID component", id="internal-empty"),
         pytest.param("/documents/-main", False, "Invalid XID component", id="invalid-initial"),
-        pytest.param("/documents/it%65m", False, "Invalid XID component", id="percent-encoding"),
+        pytest.param("/documents/it%2565m", False, "Invalid XID component", id="second-percent-decoding"),
         pytest.param("/documents/main item", False, "Invalid XID component", id="space"),
         pytest.param("/documents/main\\item", False, "Invalid XID component", id="backslash"),
         pytest.param("/documents/main\n", False, "Invalid XID component", id="newline"),
@@ -289,7 +291,7 @@ def test_validate_profile_accepts_unknown_profile_as_catalog_data(profile):
         pytest.param({"name": "http", "endpoint": "https://[::1"}, "Malformed endpoint", id="unclosed-ipv6"),
         pytest.param({"name": "http", "endpoint": "https://example.test", "priority": -1}, "Priority must be unsigned integer", id="negative-priority"),
         pytest.param({"name": "http", "endpoint": "https://example.test", "priority": True}, "Priority must be unsigned integer", id="boolean-priority"),
-        pytest.param({"name": "http", "endpoint": "https://example.test", "priority": 0.0}, "Priority must be unsigned integer", id="float-priority"),
+        pytest.param({"name": "http", "endpoint": "https://example.test", "priority": 0.5}, "Priority must be unsigned integer", id="fractional-priority"),
         pytest.param({"name": "http", "endpoint": "https://example.test", "priority": "0"}, "Priority must be unsigned integer", id="string-priority"),
         pytest.param({"name": "http", "endpoint": "https://example.test", "priority": None}, "Priority must be unsigned integer", id="null-priority"),
         pytest.param({"name": "http", "endpoint": "https://example.test", "parameters": None}, "Parameters must be an object", id="null-parameters"),
@@ -966,7 +968,7 @@ def test_select_profile_filters_before_priority_and_parameter_validation(other, 
     [
         pytest.param(-1, id="negative"),
         pytest.param(True, id="boolean"),
-        pytest.param(0.0, id="float"),
+        pytest.param(0.5, id="fractional"),
         pytest.param("0", id="string"),
         pytest.param(None, id="null"),
     ],
@@ -1188,3 +1190,30 @@ def test_select_profile_does_not_fallback_after_selected_validation_error(select
     assert str(raised.value) == message
     assert entry == before
     assert alternate == {"name": "http", "endpoint": "https://alternate.example.test/registry", "priority": 5}
+
+
+@pytest.mark.parametrize("name", ["oci", "com.example.custom"])
+@pytest.mark.parametrize("extra", [{"reference": "sha256:" + "1" * 64}, {"endpointurl": "https://other.example.com"}])
+def test_advertisement_rejects_misplaced_envelope_fields_without_fallback(name, extra):
+    profile = {
+        "name": name, "endpoint": "oci://example.com/repo",
+        "parameters": {"reference": "stable"}, **extra,
+    }
+    with pytest.raises(FederationError) as error:
+        validate_profile(profile)
+    assert error.value.code == "invalid_package"
+    read = Mock()
+    with pytest.raises(FederationError) as error:
+        execute_selected({"federationprofiles": [profile]}, {name}, read)
+    assert error.value.code == "invalid_package"
+    read.assert_not_called()
+
+
+def test_extension_parameters_remain_extensible_with_closed_envelope():
+    profile = {
+        "name": "com.example.custom", "endpoint": "custom:registry",
+        "parameters": {"reference": "v1", "extra": {"mode": "pinned"}}
+    }
+    before = deepcopy(profile)
+    validate_profile(profile)
+    assert profile == before

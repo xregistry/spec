@@ -18,7 +18,9 @@ from pathlib import Path
 from urllib.parse import quote, unquote, urlsplit
 from uuid import UUID
 
-from federation_examples import FederationError, validate_profile, validate_xid
+from workingdrafts.federation.tools.federation_examples import (
+    FederationError, validate_profile, validate_xid,
+)
 
 
 UA_NAMESPACE = "http://opcfoundation.org/UA/"

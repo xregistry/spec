@@ -250,7 +250,7 @@ identify which layouts it implements. Support for one does not imply the
 other. An offline-complete claim additionally requires the selected layout's
 offline content closure.
 
-The [document helper](../../tools/mapping_examples.py) implements only
+The [document helper](tools/mapping_examples.py) implements only
 `document-tree`. `file_root(profile, boundary)` parses and checks a local
 advertisement, and `FileStore(root)` supplies exact bytes to `DocumentTree`.
 The fixture helper rejects `oci-layout` with `unsupported_operation`.
