@@ -86,6 +86,7 @@ normative technical details.
   - [11.23. Detecting circular references between Versions](#1123-detecting-circular-references-between-versions)
   - [11.24. Optional required fields in requests](#1124-optional-required-fields-in-requests)
   - [11.25. Deprecation of entities in an xRegistry](#1125-deprecation-of-entities-in-an-xregistry)
+  - [11.26. Relative Resource URLs in the File representation](#1126-relative-resource-urls-in-the-file-representation)
 - [12. The `format` attribute in the Schema spec](#12-the-format-attribute-in-the-schema-spec)
 - [13. Problematic characters in attributes](#13-problematic-characters-in-attributes)
 - [14. Why do Resources have 3 levels of data?](#14-why-do-resources-have-3-levels-of-data)
@@ -1454,6 +1455,56 @@ When doing so it is recommended to use the same attribute definition as
 defined in the core specification for consistency. It is worth noting that
 the Endpoint [specification](../endpoint/spec.md) does exactly this to
 indicate when an Endpoint (i.e. a Group) is deprecated.
+
+### 11.26. Relative Resource URLs in the File representation
+
+As described [above](#81-file), xRegistry supports a file-based
+representation that can be used to maintain a registry side-by-side with a
+project in a source code repository. In this representation, it is desirable
+to use relative URLs pointing to the documents associated with each Resource,
+rather than absolute URLs. This allows the entire registry to be moved to a
+different location without rewriting the URLs, and it avoids replicating the
+documents into the registry file.
+
+**Example:**
+
+```
+Repository structure:
+    /project-root
+        ...
+        /registry
+            xreg.json
+        /schemas
+            schema1.json
+            schema2.json
+        ...
+```
+
+For a repository structured as shown above, a schema version in xRegistry
+could look like:
+
+```yaml
+"schemagroups": {
+    "MySchemaGroup": {
+        "schemas": {
+            "MySchema": {
+                "versions": {
+                    "1": {
+                        "format": "JsonStructure/draft-02",
+                        "schemaurl": "../schemas/schema1.json"
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+The specification requires resource URLs to be resolvable which, in the context
+of the files of the repository, is possible. When uploading registry content to
+a server, ensure that all relative URLs are resolved and that the referenced
+documents are included in the upload. Client-side tooling may be able to
+assist with this process.
 
 ## 12. The `format` attribute in the Schema spec
 

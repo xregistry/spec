@@ -1768,6 +1768,7 @@ Link: <https://example.com/endpoints/ep1/messages&page=2>;rel=next;count=100
     "ancestorid": "1.0",
 
     "metaurl": "https://example.com/endpoints/ep1/messages/msg1/meta",
+
     "versionsurl": "https://example.com/endpoints/ep1/messages/msg1/versions",
     "versionscount": 1
   }
@@ -2016,6 +2017,7 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1
   "ancestorid": "1",
 
   "metaurl": "https://example.com/endpoints/ep1/messages/msg1/meta",
+
   "versionsurl": "https://example.com/endpoints/ep1/messages/msg1/versions",
   "versionscount": 1
 }
@@ -2205,6 +2207,7 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1
   },
 
   "metaurl": "https://example.com/endpoints/ep1/messages/msg1/meta",
+
   "versionsurl": "https://example.com/endpoints/ep1/messages/msg1/versions",
   "versionscount": 1
 }
