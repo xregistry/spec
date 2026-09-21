@@ -855,9 +855,9 @@ Consumers MUST establish endpoint trust and credentials independently.
 Producers MUST NOT store credentials in URLs, parameters, labels or other
 catalog metadata.
 
-Before resolving an advertisement or explicitly following a relationship,
-consumers MUST apply policy to the selected scheme, destination and
-operation. They MUST protect against requests to unintended local or
+Consumers MUST apply policy to the selected scheme, destination and
+operation before resolving an advertisement or explicitly following a
+relationship. They MUST protect against requests to unintended local or
 private services, filesystem escape, redirect loops and resource
 exhaustion. Redirects MUST NOT cause credentials to be forwarded to an
 unauthorized destination.
