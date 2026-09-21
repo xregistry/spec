@@ -534,8 +534,6 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   "modelsource": { ... }, ?                        # Input model, if inlined
 
   # Repeat for each Group type
-  "<GROUPS>url": "<URL>",                          # e.g. "endpointsurl"
-  "<GROUPS>count": <UINTEGER>,                     # e.g. "endpointscount"
   "<GROUPS>": {                                    # Only if inlined
     "<KEY>": {                                     # Key=the Group ID
       "<GROUP>id": "<STRING>",                     # The Group ID
@@ -565,8 +563,6 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       }, ?
 
       # Repeat for each Resource type in the Group
-      "<RESOURCES>url": "<URL>",                   # e.g. "messagesurl"
-      "<RESOURCES>count": <UINTEGER>,              # e.g. "messagescount"
       "<RESOURCES>": {                             # Only if inlined
         "<KEY>": {                                 # The Resource ID
           "<RESOURCE>id": "<STRING>",
@@ -621,8 +617,6 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "defaultversionsticky": <BOOLEAN> ?    # Default=false
           }, ?
 
-          "versionsurl": "<URL>",
-          "versionscount": <UINTEGER>,
           "versions": {                            # Only if inlined
             "<KEY>": {                             # The Version's versionid
               "<RESOURCE>id": "<STRING>",          # The Resource's ID
@@ -651,11 +645,17 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
               "<RESOURCE>": ... Resource document ..., ? # If inlined & JSON
               "<RESOURCE>base64": "<STRING>" ?           # If inlined & ~JSON
             } *
-          } ?
+          }, ?
+          "versionsurl": "<URL>",
+          "versionscount": <UINTEGER>
         } *
-      } ?
+      }, ?
+      "<RESOURCES>url": "<URL>",                   # e.g. "messagesurl"
+      "<RESOURCES>count": <UINTEGER>               # e.g. "messagescount"
     } *
-  } ?
+  }, ?
+  "<GROUPS>url": "<URL>",                          # e.g. "endpointsurl"
+  "<GROUPS>count": <UINTEGER>                      # e.g. "endpointscount"
 }
 ```
 
@@ -1504,11 +1504,11 @@ The serialization of a collection is done as 3 attributes and they MUST adhere
 to their respective forms as follows:
 
 ```yaml
-"<COLLECTION>url": "<URL>",
-"<COLLECTION>count": <UINTEGER>,
 "<COLLECTION>": {
   # Map of entities in the collection, key is the "<SINGULAR>id" of the entity
-}
+},
+"<COLLECTION>url": "<URL>",
+"<COLLECTION>count": <UINTEGER>
 ```
 
 Where:
@@ -1548,8 +1548,6 @@ entities is an indication of those entities being deleted or not.
 Sample `schemagroups` collection attributes, with `schemagroups` inlined.
 
 ```yaml
-"schemagroupsurl": "http://registry.example.com/schemagroups",
-"schemagroupscount": 8
 "schemagroups": {
   "Contoso.ERP": {...},
   "Fabrikam.InkJetPrinter": {...},
@@ -1560,6 +1558,8 @@ Sample `schemagroups` collection attributes, with `schemagroups` inlined.
   "WaterBoiler": {...},
   "WindGenerator": {...}
 },
+"schemagroupsurl": "http://registry.example.com/schemagroups",
+"schemagroupscount": 8
 ```
 
 The requirements on the presence of the 3 `<COLLECTION>*` attributes varies
@@ -1705,9 +1705,9 @@ The serialization of the Registry entity MUST adhere to this form:
   "modelsource": { Registry model }, ?           # Only if inlined
 
   # Repeat for each Group type
+  "<GROUPS>": { Groups collection }, ?           # Only if inlined
   "<GROUPS>url": "<URL>",                        # e.g. "endpointsurl"
-  "<GROUPS>count": <UINTEGER>,                   # e.g. "endpointscount"
-  "<GROUPS>": { Groups collection } ?            # Only if inlined
+  "<GROUPS>count": <UINTEGER>                    # e.g. "endpointscount"
 }
 ```
 
@@ -2312,9 +2312,9 @@ The serialization of a Group entity MUST adhere to this form:
   }, ?
 
   # Repeat for each Resource type in the Group
+  "<RESOURCES>": { Resources collection }, ?  # If inlined
   "<RESOURCES>url": "<URL>",                  # e.g. "messagesurl"
-  "<RESOURCES>count": <UINTEGER>,             # e.g. "messagescount"
-  "<RESOURCES>": { Resources collection } ?   # If inlined
+  "<RESOURCES>count": <UINTEGER>              # e.g. "messagescount"
 }
 ```
 
@@ -2409,9 +2409,9 @@ it MUST adhere to the following:
   "metaurl": "<URL>",                        # URL to 'meta' entity
   "meta": { meta entity }, ?                 # Only if inlined
 
+  "versions": { map of Versions },           # Only if inlined
   "versionsurl": "<URL>",                    # Absolute URL to versions
-  "versionscount": <UINTEGER>,               # Size of versions collection
-  "versions": { map of Versions }            # Only if inlined
+  "versionscount": <UINTEGER>                # Size of versions collection
 }
 ```
 
@@ -2445,9 +2445,9 @@ it MUST adhere to the following:
   "metaurl": "<URL>",
   "meta": { meta entity }, ?                 # Only if inlined
 
+  "versions": { map of Versions }, ?         # Only if inlined
   "versionsurl": "<URL>",
-  "versionscount": <UINTEGER>,
-  "versions": { map of Versions } ?          # Only if inlined
+  "versionscount": <UINTEGER>
 }
 ```
 
@@ -2758,8 +2758,8 @@ So, if the target Resource (`sharedSchema`) is defined as:
 
   "metaurl": "http://example.com/schemagroups/group2/schemas/sharedSchema/meta",
 
-  "versionscount": 1,
-  "versionsurl": "http://example.com/schemagroups/group2/schemas/sharedSchema/versions"
+  "versionsurl": "http://example.com/schemagroups/group2/schemas/sharedSchema/versions",
+  "versionscount": 1
 }
 ```
 
@@ -2791,8 +2791,8 @@ then the resulting serialization of the source Resource would be:
     "defaultversionsticky": false
   },
 
-  "versionscount": 1,
-  "versionsurl": "http://example.com/schemagroups/group1/schemas/mySchema/versions"
+  "versionsurl": "http://example.com/schemagroups/group1/schemas/mySchema/versions",
+  "versionscount": 1
 }
 ```
 
