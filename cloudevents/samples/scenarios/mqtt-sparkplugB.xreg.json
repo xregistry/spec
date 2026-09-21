@@ -6,9 +6,9 @@
         "producer"
       ],
       "protocol": "MQTT/3.1.1",
-      "deployed": false,
-      "endpoints": [],
       "protocoloptions": {
+        "deployed": false,
+        "endpoints": [],
         "cleansession": true,
         "willtopic": "spBv1.0/{group_id}/NDEATH/{edge_node_id}",
         "willmessage": "/messagegroups/Eclipse.SparkplugB.EdgeNode/messages/NDEATH"
@@ -24,9 +24,9 @@
         "consumer"
       ],
       "protocol": "MQTT/3.1.1",
-      "deployed": false,
-      "endpoints": [],
       "protocoloptions": {
+        "deployed": false,
+        "endpoints": [],
         "cleansession": true,
         "topicfilter": "spBv1.0/{group_id}/NCMD/{edge_node_id}",
         "qos": 1
@@ -42,9 +42,9 @@
         "consumer"
       ],
       "protocol": "MQTT/3.1.1",
-      "deployed": false,
-      "endpoints": [],
       "protocoloptions": {
+        "deployed": false,
+        "endpoints": [],
         "cleansession": true,
         "topicfilter": "spBv1.0/STATE/{sparkplug_host_id}",
         "qos": 1
@@ -59,9 +59,10 @@
         "producer"
       ],
       "protocol": "MQTT/3.1.1",
-      "deployed": false,
-      "endpoints": [],
-      "protocoloptions": {},
+      "protocoloptions": {
+        "deployed": false,
+        "endpoints": []
+      },
       "messagegroups": [
         "/messagegroups/Eclipse.SparkplugB.Device"
       ]
@@ -73,9 +74,9 @@
         "consumer"
       ],
       "protocol": "MQTT/3.1.1",
-      "deployed": false,
-      "endpoints": [],
       "protocoloptions": {
+        "deployed": false,
+        "endpoints": [],
         "cleansession": true,
         "topicfilter": "spBv1.0/{group_id}/DCMD/{edge_node_id}/{device_id}",
         "qos": 1
@@ -90,9 +91,9 @@
         "producer"
       ],
       "protocol": "MQTT/3.1.1",
-      "deployed": false,
-      "endpoints": [],
       "protocoloptions": {
+        "deployed": false,
+        "endpoints": [],
         "cleansession": true,
         "willtopic": "spBv1.0/STATE/{sparkplug_host_id}",
         "willmessage": "/messagegroups/Eclipse.SparkplugB.HostApplicationState/messages/STATE.Death"
@@ -110,9 +111,9 @@
         "consumer"
       ],
       "protocol": "MQTT/3.1.1",
-      "deployed": false,
-      "endpoints": [],
       "protocoloptions": {
+        "deployed": false,
+        "endpoints": [],
         "cleansession": true,
         "topicfilter": "spBv1.0/#",
         "qos": 1
@@ -129,9 +130,9 @@
         "consumer"
       ],
       "protocol": "MQTT/3.1.1",
-      "deployed": false,
-      "endpoints": [],
       "protocoloptions": {
+        "deployed": false,
+        "endpoints": [],
         "cleansession": true,
         "topicfilter": "spBv1.0/STATE/{sparkplug_host_id}",
         "qos": 1
@@ -154,8 +155,8 @@
             "qos": 0,
             "retain": false
           },
-          "dataschemaformat": "Protobuf/2.0",
-          "dataschemauri": "/schemagroups/Eclipse.Sparkplug/schemas/SparkplugB_Protobuf/versions/v1.0:Payload"
+          "dataschemaformat": "Protobuf/2",
+          "dataschemauri": "/schemagroups/Eclipse.Sparkplug/schemas/SparkplugB_Protobuf/versions/v1.0#Payload"
         },
         "NDATA": {
           "description": "Data payload for Sparkplug Edge Nodes",
@@ -165,8 +166,8 @@
             "qos": 0,
             "retain": false
           },
-          "dataschemaformat": "Protobuf/2.0",
-          "dataschemauri": "/schemagroups/Eclipse.Sparkplug/schemas/SparkplugB_Protobuf/versions/v1.0:Payload"
+          "dataschemaformat": "Protobuf/2",
+          "dataschemauri": "/schemagroups/Eclipse.Sparkplug/schemas/SparkplugB_Protobuf/versions/v1.0#Payload"
         },
         "NDEATH": {
           "description": "Death certificate for Sparkplug Edge Nodes, registered as the MQTT Will Message. Sparkplug requires Will QoS 1 and Will Retain false",
@@ -176,8 +177,8 @@
             "qos": 1,
             "retain": false
           },
-          "dataschemaformat": "Protobuf/2.0",
-          "dataschemauri": "/schemagroups/Eclipse.Sparkplug/schemas/SparkplugB_Protobuf/versions/v1.0:Payload"
+          "dataschemaformat": "Protobuf/2",
+          "dataschemauri": "/schemagroups/Eclipse.Sparkplug/schemas/SparkplugB_Protobuf/versions/v1.0#Payload"
         }
       }
     },
@@ -193,8 +194,8 @@
             "qos": 0,
             "retain": false
           },
-          "dataschemaformat": "Protobuf/2.0",
-          "dataschemauri": "/schemagroups/Eclipse.Sparkplug/schemas/SparkplugB_Protobuf/versions/v1.0:Payload"
+          "dataschemaformat": "Protobuf/2",
+          "dataschemauri": "/schemagroups/Eclipse.Sparkplug/schemas/SparkplugB_Protobuf/versions/v1.0#Payload"
         },
         "DDEATH": {
           "description": "Death certificate for Sparkplug Devices",
@@ -204,8 +205,8 @@
             "qos": 0,
             "retain": false
           },
-          "dataschemaformat": "Protobuf/2.0",
-          "dataschemauri": "/schemagroups/Eclipse.Sparkplug/schemas/SparkplugB_Protobuf/versions/v1.0:Payload"
+          "dataschemaformat": "Protobuf/2",
+          "dataschemauri": "/schemagroups/Eclipse.Sparkplug/schemas/SparkplugB_Protobuf/versions/v1.0#Payload"
         },
         "DDATA": {
           "description": "Device data telemetry message",
@@ -215,8 +216,8 @@
             "qos": 0,
             "retain": false
           },
-          "dataschemaformat": "Protobuf/2.0",
-          "dataschemauri": "/schemagroups/Eclipse.Sparkplug/schemas/SparkplugB_Protobuf/versions/v1.0:Payload"
+          "dataschemaformat": "Protobuf/2",
+          "dataschemauri": "/schemagroups/Eclipse.Sparkplug/schemas/SparkplugB_Protobuf/versions/v1.0#Payload"
         }
       }
     },
@@ -260,8 +261,8 @@
             "qos": 0,
             "retain": false
           },
-          "dataschemaformat": "Protobuf/2.0",
-          "dataschemauri": "/schemagroups/Eclipse.Sparkplug/schemas/SparkplugB_Protobuf/versions/v1.0:Payload"
+          "dataschemaformat": "Protobuf/2",
+          "dataschemauri": "/schemagroups/Eclipse.Sparkplug/schemas/SparkplugB_Protobuf/versions/v1.0#Payload"
         }
       }
     },
@@ -277,8 +278,8 @@
             "qos": 0,
             "retain": false
           },
-          "dataschemaformat": "Protobuf/2.0",
-          "dataschemauri": "/schemagroups/Eclipse.Sparkplug/schemas/SparkplugB_Protobuf/versions/v1.0:Payload"
+          "dataschemaformat": "Protobuf/2",
+          "dataschemauri": "/schemagroups/Eclipse.Sparkplug/schemas/SparkplugB_Protobuf/versions/v1.0#Payload"
         }
       }
     }
@@ -353,11 +354,11 @@
         },
         "SparkplugB_Protobuf": {
           "description": "Eclipse Sparkplug B Schema",
-          "format": "Protobuf/2.0",
+          "format": "Protobuf/2",
           "versions": {
             "v1.0": {
               "description": "Eclipse Sparkplug B Schema Version 1.0",
-              "format": "Protobuf/2.0",
+              "format": "Protobuf/2",
               "schemaurl": "https://raw.githubusercontent.com/Cirrus-Link/Sparkplug/master/sparkplug_b/sparkplug_b.proto"
             }
           }

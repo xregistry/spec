@@ -1,6 +1,7 @@
 # Contributing to xRegistry
 
 <!-- no verify-specs -->
+<!-- words: configs conventionalcommits dco developercertificate feb readme -->
 
 This page contains information about reporting issues, how to suggest changes as
 well as the guidelines we follow for how our documents are formatted.

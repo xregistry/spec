@@ -1,14 +1,15 @@
 SCHEMA_DIRS = $(shell find . -type d -name schemas)
 
-all: models docker
+all: docker models
 	@git diff --name-status --exit-code -- $(SCHEMA_DIRS) > /dev/null 2>&1 || \
 		( echo "schema files have been updated, make sure you commit them" ; \
 		  exit 1 )
 	@test -z "$$(git ls-files --others --exclude-standard -- $(SCHEMA_DIRS))" || \
 		( echo "generated schema files are untracked" ; exit 1 )
+	@echo "All good!"
 
-verify: spellcheck ticks badhrefs tabcheck errorcheck samplescheck hrefs \
-	testpython links website
+verify: spellcheck ticks badhrefs tabcheck errorcheck hrefs \
+	testpython links website makeschema
 
 spellcheck:
 	@echo "Checking for spelling mistakes:"
@@ -74,27 +75,25 @@ links: loadpython
 	@echo
 
 models:
-	@echo "Verifying the models are valid & regen the sample:"
+	@echo "Regen the sample:"
 	@# Note this will use a local 'xr' if available so that local build/test
 	@# of 'xr' can be done
-	if which xr ; then \
-	  echo Using local xr ; \
-	  xr model verify */model.json workingdrafts/models/*/model.json -v && \
+	@if which xr > /dev/null ; then \
+	  echo Using local xr to regen sample-model-full.json ; \
 	  xr model verify core/sample-model.json --full-model | \
 		jq 'del(.groups.dirs.resources.files.attributes.fileproxyurl)' \
 		> core/sample-model-full.json ; \
 	else \
-	  echo Using docker ghcr.io/xregistry/xr && \
-	  docker run -t -v $$PWD:/xreg -w /xreg --entrypoint /bin/sh \
-		ghcr.io/xregistry/xr -c \
-			"/xr model verify */model.json \
-			workingdrafts/models/*/model.json -v" && \
+	  echo Using ghcr.io/xregistry/xr to regen sample-model-full.json && \
 	  docker run -t -v $$PWD:/xreg -w /xreg --entrypoint /bin/sh \
 		ghcr.io/xregistry/xr -c "/xr model verify core/sample-model.json \
 		--full-model" | \
 		jq 'del(.groups.dirs.resources.files.attributes.fileproxyurl)' \
 		> core/sample-model-full.json ; \
 	fi
+	@echo
+	@echo "Verifying the models are valid"
+	tools/modelscheck
 	@echo
 
 website:
@@ -129,7 +128,8 @@ makeschema: loadpython
 	@python tools/schema-generator.py --type json-structure --schema-id https://xregistry.io/workingdrafts/models/registry/schemas/document-schema.struct.json --schema-name RegistryOfRegistriesDocument --output workingdrafts/models/registry/schemas/document-schema.struct.json workingdrafts/models/registry/model.json
 	@python tools/schema-generator.py --type avro-schema --output workingdrafts/models/registry/schemas/document-schema.avsc workingdrafts/models/registry/model.json
 	@python tools/schema-generator.py --type openapi --output workingdrafts/models/registry/schemas/openapi.json workingdrafts/models/registry/model.json
+	@echo
 
 docker:
 	@docker run -t -v $(PWD):/tmp/spec -w /tmp/spec python:3.11 \
-	    make -f tools/Makefile verify makeschema
+	    make -f tools/Makefile verify

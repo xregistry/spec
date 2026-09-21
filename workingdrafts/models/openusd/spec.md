@@ -2,7 +2,7 @@
 
 <!-- words: OpenUSD usd usda usdc usdz usdi AOUSD MaterialX mtlx OpenVDB -->
 <!-- words: Alembic Omniverse prim prims sublayer sublayers subLayers -->
-<!-- words: payload payloads referenced resolver resolvers usdasset -->
+<!-- words: payload payloads referenced resolver resolvers usdasset retargeting -->
 <!-- words: usdassets usdassetid usdasseturl usdassetbase64 usdassetsurl -->
 <!-- words: usdassetscount usdassetbase usdassetgroup usdassetgroups -->
 <!-- words: usdassetgroupid usdassetgroupsurl usdassetgroupscount -->
