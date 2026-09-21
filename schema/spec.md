@@ -234,8 +234,6 @@ this form:
 
   "model": { ... }, ?
 
-  "schemagroupsurl": "<URL>",                      # SchemaGroups collection
-  "schemagroupscount": <UINTEGER>,
   "schemagroups": {
     "KEY": {                                       # schemagroupid
       "schemagroupid": "<STRING>",                 # xRegistry core attributes
@@ -251,8 +249,6 @@ this form:
       "deprecated": { ... }, ?
       "format": "<STRING>", ?
 
-      "schemasurl": "<URL>",                       # Schemas collection
-      "schemascount": <UINTEGER>,
       "schemas": {
         "KEY": {                                   # schemaid
           "schemaid": "<STRING>",                  # xRegistry core attributes
@@ -284,13 +280,17 @@ this form:
           "metaurl": "<URL>",                      # Resource level attrs
           "meta": { ... }, ?
 
+          "versions": { ... }, ?
           "versionsurl": "<URL>",
-          "versionscount": <UINTEGER>,
-          "versions": { ... } ?
+          "versionscount": <UINTEGER>
         } *
-      } ?
+      }, ?
+      "schemasurl": "<URL>",                       # Schemas collection
+      "schemascount": <UINTEGER>
     } *
-  } ?
+  }, ?
+  "schemagroupsurl": "<URL>",                      # SchemaGroups collection
+  "schemagroupscount": <UINTEGER>
 }
 ```
 
@@ -329,8 +329,6 @@ containing 5 schemas.
   "specversion": "1.0-rc4",
   # other xRegistry top-level attributes excluded for brevity
 
-  "schemagroupsurl": "http://example.com/schemagroups",
-  "schemagroupscount": 1,
   "schemagroups": {
     "com.example.schemas": {
       "schemagroupid": "com.example.schemas",
@@ -339,7 +337,9 @@ containing 5 schemas.
       "schemasurl": "https://example.com/schemagroups/com.example.schemas/schemas",
       "schemascount": 5
     }
-  }
+  },
+  "schemagroupsurl": "http://example.com/schemagroups",
+  "schemagroupscount": 1
 }
 ```
 
@@ -417,15 +417,11 @@ Versions for a schema named `com.example.telemetrydata`:
   "specversion": "1.0-rc4",
   # other xRegistry top-level attributes excluded for brevity
 
-  "schemagroupsurl": "http://example.com/schemagroups",
-  "schemagroupscount": 1,
   "schemagroups": {
     "com.example.telemetry": {
       "schemagroupid": "com.example.telemetry",
       # other xRegistry group-level attributes excluded for brevity
 
-      "schemasurl": "http://example.com/schemagroups/com.example.telemetry/schemas",
-      "schemascount": 1,
       "schemas": {
         "com.example.telemetrydata": {
           "schemaid": "com.example.telemetrydata",
@@ -440,8 +436,6 @@ Versions for a schema named `com.example.telemetrydata`:
 
           "metaurl": "http://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/meta",
 
-          "versionsurl": "http://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions",
-          "versionscount": 3,
           "versions": {
             "1": {
               "schemaid": "com.example.telemetrydata",
@@ -476,11 +470,17 @@ Versions for a schema named `com.example.telemetrydata`:
 
               "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; string description = 3; } }"
             }
-          }
+          },
+          "versionsurl": "http://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions",
+          "versionscount": 3
         }
-      }
+      },
+      "schemasurl": "http://example.com/schemagroups/com.example.telemetry/schemas",
+      "schemascount": 1
     }
-  }
+  },
+  "schemagroupsurl": "http://example.com/schemagroups",
+  "schemagroupscount": 1
 }
 ```
 
