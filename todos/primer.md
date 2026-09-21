@@ -1,6 +1,7 @@
 # Discovery and Subscription Primer - WIP
 
 <!-- no verify-specs -->
+<!-- no spellcheck -->
 
 ## Abstract
 

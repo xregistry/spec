@@ -5369,7 +5369,7 @@ the data being parsed; e.g. `/model`.
 ### server_busy
 
 * Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#server_busy`
-* Code: `503 Internal Server Error`
+* Code: `503 Service Unavailable`
 * Title: `Due to excessive requests, the server could not complete "<subject>", please try again later.`
 * Subject: `<request_path>`
 

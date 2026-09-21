@@ -1,0 +1,72 @@
+#!/bin/bash
+
+set -e
+
+function clean() {
+    set +e
+    echo "# Stopping server"
+    docker rm -f xrserver > /dev/null
+}
+
+badPatterns=(
+  "required.*false"
+  "hasdoc.*true"
+  "plural"
+)
+
+trap clean EXIT
+
+export XR_IMAGE=ghcr.io/xregistry/xr
+export XRSERVER_IMAGE=ghcr.io/xregistry/xrserver-all
+export XR_SERVER=http://localhost:8383
+
+# Start an xrserver to test loading the models and sample data
+echo -n "# Starting xrserver"
+docker run -qdti --name xrserver -p 8383:8080 $XRSERVER_IMAGE \
+    --rootapp=xreg > /dev/null
+
+while ! curl --silent --fail $XR_SERVER > /dev/null;do echo -n . && sleep 2;done
+echo ; echo
+
+# Validate all model.json files in the entire repo
+for fn in `find . -name \*model.json`; do
+    echo "# Model: $fn"
+    echo "  # Verifying"
+    set +e
+    xr model verify $fn
+    set -e
+
+    # Look for anti-patterns in the model
+    for pattern in "${badPatterns[@]}" ; do
+        if ( grep "$pattern" "$fn" > /dev/null ); then
+            echo Found "'$pattern'"
+            exit 1
+        fi
+    done
+
+    echo "  # Loading"
+    set +e
+    xr model update $fn
+    set -e
+
+    dir=$(dirname $fn)
+    echo "  # Looking for samples (*.xreg.json) in: $dir"
+    for data in `find $dir -name \*xreg.json`; do
+        echo "  # Sample: $data"
+        set +e
+        xr update / -d @$data
+        set -e
+    done
+
+    list=$(xr model group list | grep -v GROUP | sed "s/\/.*//g")
+    list=$(echo $list)
+    if [[ "$list" != "" ]]; then
+        echo "  # Deleting group instances: $list"
+        xr delete $list
+        echo "  # Deleting group models: $list"
+        xr model group delete $list
+    fi
+
+echo
+done
+

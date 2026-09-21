@@ -4,8 +4,8 @@
       "singular": "doc",
 
       "resources": {
-        "formats": {
-          "singular": "format"
+        "renditions": {
+          "singular": "rendition"
         }
       }
     }

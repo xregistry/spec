@@ -147,7 +147,6 @@
             "schemas": {
                 "Fabrikam.InkJetPrinter.PrintJobStartedEventData": {
                     "format": "Protobuf/3",
-                    "defaultversionid": "1",
                     "versions": {
                         "1": {
                             "format": "Protobuf/3",
@@ -157,7 +156,6 @@
                 },
                 "Fabrikam.InkJetPrinter.PrintJobCompletedEventData": {
                     "format": "Protobuf/3",
-                    "defaultversionid": "1",
                     "versions": {
                         "1": {
                             "format": "Protobuf/3",
@@ -167,7 +165,6 @@
                 },
                 "Fabrikam.InkJetPrinter.InkLowEventData": {
                     "format": "Protobuf/3",
-                    "defaultversionid": "1",
                     "versions": {
                         "1": {
                             "format": "Protobuf/3",
@@ -177,7 +174,6 @@
                 },
                 "Fabrikam.InkJetPrinter.PaperJamEventData": {
                     "format": "Protobuf/3",
-                    "defaultversionid": "1",
                     "versions": {
                         "1": {
                             "format": "Protobuf/3",
@@ -187,7 +183,6 @@
                 },
                 "Fabrikam.InkJetPrinter.MaintenanceRequiredEventData": {
                     "format": "Protobuf/3",
-                    "defaultversionid": "1",
                     "versions": {
                         "1": {
                             "format": "Protobuf/3",

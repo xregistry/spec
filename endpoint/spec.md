@@ -2,7 +2,7 @@
 <!-- words: apikeyname apikeyin plainscheme plainusernamefield plainpasswordfield sasl oauthbearer -->
 <!-- words: cleanstart sessionexpiryinterval topicfilter retainhandling retainaspublished nolocal -->
 <!-- words: sharedsubscriptiongroup keyserializer valueserializer enableautocommit autooffsetreset -->
-<!-- words: serializer subjectfilter queuegroup usernames tenantid -->
+<!-- words: serializer subjectfilter queuegroup usernames tenantid templated -->
 
 ## Abstract
 

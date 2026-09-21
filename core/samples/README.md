@@ -29,20 +29,20 @@ Files:
 
 ## Multi-Format Document Store
 
-This example is another document store, however, in this case the format of
-the documents stored needs to be a first class concept in the model. So, in
-this case the "document" maps to the xRegistry "group" and the document
-"format" maps to the xRegistry "resource".
+This example is another document store, but in this case each rendition of a
+document needs to be a first-class concept in the model. The "document" maps
+to an xRegistry Group and each "rendition" maps to an xRegistry Resource.
 
-In this model each document does not need to have a unique id for each format,
+In this model each document does not need to have a unique id for each rendition,
 rather in this scenario the document id (and often "name") will be the same for
-all formats. Thus the XID for a single document and format would look something
-like: `docs/form-1040/formats/pdf` and `docs/form-1040/formats/ms-word`.
-Each format of the documents can then be versioned as needed.
+all renditions. Thus the XID for a single document and rendition would look
+something like: `docs/form-1040/renditions/pdf` and
+`docs/form-1040/renditions/ms-word`. Each rendition of the documents can then
+be versioned as needed.
 
 Model:
 - Group: `docs` / `doc`
-  - Resources: `formats` / `format`
+  - Resources: `renditions` / `rendition`
 
 Files:
 - Model: [formatted-doc-store-model.json](formatted-doc-store-model.json)

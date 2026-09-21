@@ -595,8 +595,10 @@ with the declared version.
 A URI, like the Message Registry's
 [`dataschemauri`](../message/spec.md#dataschemauri), that points to a Protobuf
 Schema document MUST reference a Protobuf `message` declaration contained in the
-schema document using a URI fragment suffix `[:]{message-name}`. The ':'
-character is used as a separator when the URI already contains a fragment.
+schema document. If the URI does not contain a fragment, the message name MUST
+be appended as a URI fragment using `#{message-name}`. If the URI already
+contains a fragment, the message name MUST be appended to the fragment using
+`:{message-name}`.
 
 Examples:
 

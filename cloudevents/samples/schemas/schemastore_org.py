@@ -117,14 +117,19 @@ def build_registry(groups):
     schemas = registry["schemagroups"]["schemastore_org.json"]["schemas"]
     for base, versions in groups.items():
         version_entries = {}
+        drafts = {info["draft"] for info in versions.values()}
+        format_name = (
+            "JSONSchema"
+            if len(drafts) > 1 or "unknown" in drafts
+            else f"JSONSchema/{next(iter(drafts)).capitalize()}"
+        )
         for ver, info in sorted(versions.items()):
-            # Capitalize the draft string (e.g. "draft-07" -> "Draft-07")
-            draft_cap = info["draft"].capitalize() if info["draft"] else "unknown"
-            version_entries[ver] = {
+            version_entry = {
                 "schemaurl": BASE_URI + info["filename"],
                 "description": f"Schema for {info['filename']}",
-                "format": f"JSONSchema/{draft_cap}"
+                "format": format_name
             }
+            version_entries[ver] = version_entry
         schemas[base] = {
             "versions": version_entries
         }
