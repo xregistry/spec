@@ -767,11 +767,13 @@ Note that this feature has similar results to setting the Resource attribute's
   it is valid for an implementation to only support one (`1`) Version when
   `maxversions` is set to `0`.
 - When the limit is exceeded, implementations MUST prune Versions by
-  deleting the oldest Version first (based on the Resource's
-  [`versionmode`](#groupsstringresourcesstringversionmode)
-  algorithm), skipping the Version marked as "default".
-  Once the single oldest Version is determined, delete it.
-  A special case for the pruning rules is that if `maxversions` is set to
+  deleting the oldest root Version first (see the
+  [`versionmode`](#groupsstringresourcesstringversionmode) section for how
+  oldest is determined). If the chosen Version is the current default Version,
+  then for the purposes of determining which to delete, the default Version is
+  removed from the collection of Versions, the list of "root" ancestors is
+  recalculated and the "oldest root Version" algorithm is reapplied.
+- A special case for the pruning rules is that if `maxversions` is set to
   one (1), then the "default" Version is not skipped, which means it will be
   deleted and the new Version will become "default".
 - An attempt to change `maxversions` to `1` when there are existing Resource
@@ -822,66 +824,57 @@ Note that this feature has similar results to setting the Resource attribute's
 ### `groups.<STRING>.resources.<STRING>.versionmode`
 - Type: String
 - OPTIONAL.
-- Indicates the algorithm that MUST be used when determining how Versions
-  are managed with respect to aspects such as:
-  - Which Version is the "newest"?
-  - Which Version is the "oldest"?
-  - How a Version's `ancestorid` attribute will be populated when not
-    explicitly set by a client.
+- Indicates the algorithm that MUST be used when determining how Version's
+  `ancestorid` attribute is managed (or calculated).
 - Implementations MAY define additional algorithms and MAY define
   additional aspects that they control, as long as those aspects do not
   conflict with specification-defined semantics.
 - Regardless of the algorithm used, implementations MUST ensure that
   the `ancestorid` attribute of all Versions of a Resource accurately
   represents the relationship of the Versions prior to the completion of
-  any operation. For example, when the `createdat` algorithm is used and
-  the `createdat` timestamp of a Version is modified, this might cause a
-  reordering of the Versions and the `ancestorid` attributes might need to
-  be changed accordingly. Similarly, the `defaultversionid` of the
-  Resource might change if its `defaultversionsticky` attribute is `false`.
+  any operation that created, modifies or deletes Versions. For example, when
+  the `createdat` algorithm is used and the `createdat` timestamp of a Version
+  is modified, this might cause a reordering of the Versions and the
+  `ancestorid` attributes might need to be changed accordingly. Similarly, the
+  `defaultversionid` of the Resource might change if its
+  `defaultversionsticky` attribute is `false`.
 - When not specified, the default value MUST be `manual`.
 - Implementations MUST support at least `manual`.
 - The value of this attribute MUST be case-insensitive.
+
+- Regardless of which algorithm is used, the following rules apply with
+  respect to choosing the "newest" or "oldest" Version:
+  - The "newest" Version MUST be determined by finding all "leaf" Versions
+    (ones that are not referenced as an ancestor of any other Version), and
+    choosing the one with the newest `createdat` timestamp. If there is more
+    than one, then the one with the highest alphabetically case-insensitive
+    `versionid` value MUST be chosen.
+  - The "oldest" Version MUST be determined by finding all "root" Versions
+    (ones that have an `ancestorid` value that points to itself), and then
+    choosing the one with the oldest `createdat` timestamp. If there is more
+    than one, then the one with the lowest alphabetically case-insensitive
+    `versionid` value MUST be chosen.
+
 - This specification defines the following `versionmode` algorithms:
   - `manual`
-    - Newest Version: MUST be determined by finding all Versions that are
-      not referenced as an `ancestor` of another Version, then
-      finding the one with the newest `createdat` timestamp. If there is
-      more than one, then the one with the highest alphabetically
-      case-insensitive `versionid` value MUST be chosen.
-    - Oldest Version: MUST be determined by finding all root Versions (ones
-      that have an `ancestorid` value that points to itself), then finding
-      the one with the oldest `createdat` timestamp. If there is more than
-      one, then the one with the lowest alphabetically case-insensitive
-      `versionid` MUST be chosen.
     - Ancestor Processing: typically provided by clients. During a "create"
       operation, all new Versions that do not have an `ancestorid` value
       provided MUST be sorted/processed by `versionid` (in case-insensitive
       ascending order) and the `ancestorid` value of each MUST be set to the
       current "newest Version" per the above semantics. Note that as
-      each new Version is created, it MUST become the "newest". If there
+      each new Version is processed, it will likely become the "newest" but
+      it might not if its `createdat` timestamp is in the past. If there
       is no existing Version then the new Version becomes a root and its
       `ancestorid` value MUST be its own `versionid` attribute value.
-    - Deleted Ancestor: if a Version's ancestor is deleted, then this Version
-      MUST become a root, and its `ancestorid` value MUST be set to its own
-      `versionid` value.
+    - Deleted Ancestor: if a Version's ancestor is deleted, then it MUST become
+      a root, and its `ancestorid` MUST be set to its own `versionid` value.
     - The name of this versionmode is a bit of a misnomer in that it is not
       100% "manual". As stated above, as a convenience, by default new
       Versions will point to the "newest" Version as their ancestor. If this
       behavior is not desired, then during the "create" operation, the
-      `ancestorid` can be set to point to itself (or any other Version) if
-      desired.
+      `ancestorid` can be set to point to itself (or any other Version).
 
   - `createdat`
-    - Newest Version: MUST be determined by finding the Version with the
-      newest `createdat` timestamp. If there is more than one, then the
-      one with the highest alphabetically case-insensitive `versionid`
-      value MUST be chosen.
-    - Oldest Version: MUST be determined by finding the Version with the
-      oldest `createdat` timestamp. If there is more than one, then the
-      one with the lowest alphabetically case-insensitive `versionid`
-      value MUST be chosen. Note that this MUST also be the one and only
-      "root" Version.
     - Ancestor Processing: The `ancestorid` value of each Version MUST be
       determined via examination of the `createdat` timestamp of each
       Version and the Versions sorted in ascending order, where the first
@@ -889,9 +882,6 @@ Note that this feature has similar results to setting the Resource attribute's
       MUST be its `versionid`. If there is more than one Version with the
       same `createdat` timestamp then those MUST be ordered in ascending
       case-insensitive order based on their `versionid` values.
-    - Deleted Ancestor: if a Version's ancestor is deleted, then this Version's
-      `ancestorid` value MUST be determined by the "ancestor processing" logic
-      as stated above.
     - When this `versionmode` is used, the `singleversionroot` aspect
       MUST be set to `true`.
 
@@ -901,21 +891,11 @@ Note that this feature has similar results to setting the Resource attribute's
       `createdat` attribute.
 
   - `semver`
-    - Newest Version: MUST be the Version with the highest `versionid`
-      value per the [Semantic Versioning](https://semver.org/)
-      specification's "precedence" ordering rules.
-    - Oldest Version: MUST be the Version with the lowest `versionid`
-      value per the [Semantic Versioning](https://semver.org/)
-      specification's "precedence" ordering rules. Note that this MUST also
-      be the one and only "root" Version.
     - Ancestor Processing: The `ancestorid` value of each Version MUST either
       be its `versionid` value (if it is the oldest Version), or the
       `versionid` of the next oldest Version per the
       [Semantic Versioning](https://semver.org/) specification's
       "precedence" ordering rules.
-    - Deleted Ancestor: if a Version's ancestor is deleted, then this Version's
-      `ancestorid` value MUST be determined by the "ancestor processing" logic
-      as stated above.
     - When this `versionmode` is used, the `singleversionroot` aspect
       MUST be set to `true`.
 
