@@ -38,7 +38,7 @@
 
 This specification defines an OPC UA protocol binding for the xRegistry document
 format and API [specification][xRegistry Core]. It is a peer of the
-[HTTP binding][xRegistry HTTP]: a registry, its groups, resources, versions,
+[HTTP binding][xRegistry HTTP]. A registry, its groups, resources, versions,
 documents and attributes are discovered, read, created, updated, deleted,
 exported and federated natively over OPC UA Services, rather than by tunnelling
 HTTP over OPC UA.
@@ -115,16 +115,17 @@ identity do not override xRegistry Core or the OPC UA Parts.
 ## 1. Scope
 
 This specification defines the OPC UA API binding for
-[xRegistry](https://github.com/xregistry/spec): how a registry, its groups,
-resources, versions, documents and attributes are discovered, read, created,
-updated and deleted natively over OPC UA Services while realizing the xRegistry
-core model on the OPC UA AddressSpace and FileTransfer model of [*OPC UA —
+[xRegistry](https://github.com/xregistry/spec). It defines how a registry, its
+groups, resources, versions, documents and attributes are discovered, read,
+created, updated and deleted natively over OPC UA Services while realizing the
+xRegistry core model on the OPC UA AddressSpace and FileTransfer model of [*OPC
+UA —
 xRegistry*](https://github.com/marcschier/opcua-drafts/blob/ff22f224400fc8be813bf0abcbfc3cde52bc7ed3/core-specs/xregistry/OPC-UA-xRegistry.md).
 
 The abstract information model is defined by [*OPC UA —
-xRegistry*](https://github.com/marcschier/opcua-drafts/blob/ff22f224400fc8be813bf0abcbfc3cde52bc7ed3/core-specs/xregistry/OPC-UA-xRegistry.md):
-a registry is a `RegistryType` folder (subtype of `FolderType`), each group is
-a `GroupType` folder (subtype of `FolderType`), and each resource or resource
+xRegistry*](https://github.com/marcschier/opcua-drafts/blob/ff22f224400fc8be813bf0abcbfc3cde52bc7ed3/core-specs/xregistry/OPC-UA-xRegistry.md).
+A registry is a `RegistryType` folder (subtype of `FolderType`). Each group is
+a `GroupType` folder (subtype of `FolderType`). Each resource or resource
 version is a `ResourceType` (subtype of `FileType`). Document-bearing
 Resources expose their bytes through that file interface. Metadata-only
 Resources remain readable as metadata without a fabricated domain document.
@@ -234,16 +235,21 @@ URL authority is involved in the native OPC UA API. Entity identity is carried
 by xRegistry identifier Properties and `Xid`, while the OPC UA session,
 endpoint and NodeIds identify where those entities are currently served.
 
-The baseline operation model is: Browse a folder to enumerate a collection,
-select entities from the Browse result by BrowseName, NodeClass, TypeDefinition
-and target NodeId, Read Properties and the `Labels` container's `<Attribute>`
-Property Variables to obtain attributes that are not already in the Browse
-result, Write writable Properties to change fixed mutable attributes, Call
-`Open` /`Read`/`Write`/`Close` to read or replace document bytes, Call
-`CreateGroup`, `GetOrCreateGroup`, `CreateResource` or `GetOrCreateResource`
-to create entities, Call the entity's `Delete(ExpectedEpoch)` Method to delete
-it and everything it contains, and Call `Labels.AddAttribute` or
-`Labels.RemoveAttribute` for supported labels and extension attributes.
+The baseline operation model is:
+
+- Browse a folder to enumerate a collection.
+- Select entities from the Browse result by BrowseName, NodeClass,
+  TypeDefinition and target NodeId.
+- Read Properties and the `Labels` container's `<Attribute>` Property Variables
+  to obtain attributes that are not already in the Browse result.
+- Write writable Properties to change fixed mutable attributes.
+- Call `Open` /`Read`/`Write`/`Close` to read or replace document bytes.
+- Call `CreateGroup`, `GetOrCreateGroup`, `CreateResource` or
+  `GetOrCreateResource` to create entities.
+- Call the entity's `Delete(ExpectedEpoch)` Method to delete it and everything
+  it contains.
+- Call `Labels.AddAttribute` or `Labels.RemoveAttribute` for supported labels
+  and extension attributes.
 
 If an xRegistry function is not supported for an otherwise supported
 node, the server MUST return `Bad_NotSupported`, `Bad_UserAccessDenied`,
@@ -409,13 +415,14 @@ xRegistry attribute and `MimeType` is the FileTransfer media hint.
 
 ### 4.5. Method signatures and argument mapping
 
-The creation and mutation Method signatures used by this API are the
-domain-named `CreateGroup`, `GetOrCreateGroup`, `CreateResource` and
-`GetOrCreateResource` Methods defined by the xRegistry base model, the `Delete`
-Method on `GroupType` and `ResourceType`, the `AddAttribute` and
-`RemoveAttribute` Methods on `AttributesType`, and the inherited `Open` /
-`Read` / `Write` / `Close` Methods of `ResourceType` whose exact argument
-definitions are normative in OPC 10000-20.
+The creation and mutation Method signatures used by this API are:
+
+- The domain-named `CreateGroup`, `GetOrCreateGroup`, `CreateResource` and
+  `GetOrCreateResource` Methods defined by the xRegistry base model.
+- The `Delete` Method on `GroupType` and `ResourceType`.
+- The `AddAttribute` and `RemoveAttribute` Methods on `AttributesType`.
+- The inherited `Open` / `Read` / `Write` / `Close` Methods of `ResourceType`,
+  whose exact argument definitions are normative in OPC 10000-20.
 
 | xRegistry action | OPC UA Method or Service | Argument mapping |
 |---|---|---|
@@ -471,7 +478,7 @@ atomic epoch-matched Method call rather than a read-then-delete sequence.
 Beyond this, a server MAY optionally expose coarser-grained exclusive access
 using the standard OPC UA locking mechanism — a `LockingServicesType` component
 (`InitLock` / `RenewLock` / `ExitLock` / `BreakLock`, OPC 10000-5) — on the
-registry root, a group or a resource, so that a client can hold an explicit
+registry root, a group or a resource. A client can then hold an explicit
 exclusive lock across a multi-step create/update sequence. This API does not
 require locking. When it is absent, clients rely on FileTransfer `Open`
 exclusivity and `Epoch` preconditions.
@@ -557,11 +564,17 @@ entities. Error mapping is specified in §10.
 
 ### 5.1. Reading the registry
 
-A client reads the selected `RegistryType` root by Reading its Properties,
-Reading the typed `CapabilitiesInfo` Variable when fixed capabilities
-are requested, Browsing its `Labels` object where labels are requested,
-Browsing its `Capabilities` and `Model` `FileType` component Objects when those
-JSON documents are requested, and Browsing its group children. The standard base
+A client reads the selected `RegistryType` root by:
+
+- Reading its Properties.
+- Reading the typed `CapabilitiesInfo` Variable when fixed capabilities are
+  requested.
+- Browsing its `Labels` object where labels are requested.
+- Browsing its `Capabilities` and `Model` `FileType` component Objects when
+  those JSON documents are requested.
+- Browsing its group children.
+
+The standard base
 Properties are `RegistryId`, `SpecVersion`, `CapabilitiesInfo`, `Xid`,
 `Epoch`, `Name`, `Description`, `Documentation`, `CreatedAt` and
 `ModifiedAt` where present. `Capabilities` and `Model` are `FileType`
@@ -1105,12 +1118,12 @@ The `ignore` flag affects write processing. In OPC UA, ignore behavior is
 advertised in `Capabilities` and applied by the server while processing Write,
 Call and FileTransfer operations.
 
-Because standard OPC UA Write and Call requests do not carry arbitrary xRegistry
-option maps, a generic client that needs `ignore` semantics MUST either use a
-server-defined operation that accepts write options, or MUST pre-process the
-representation and omit ignored attributes before issuing standard Writes and
-Calls. Unsupported ignore requirements MUST fail with `Bad_NotSupported` or
-`Bad_InvalidArgument`.
+Standard OPC UA Write and Call requests do not carry arbitrary xRegistry
+option maps. A generic client that needs `ignore` semantics MUST therefore
+either use a server-defined operation that accepts write options, or MUST
+pre-process the representation and omit ignored attributes before issuing
+standard Writes and Calls. Unsupported ignore requirements MUST fail with
+`Bad_NotSupported` or `Bad_InvalidArgument`.
 
 ### 6.3. Inlining
 
@@ -1578,24 +1591,30 @@ proof that a label selector had no match.
 
 ## 11. Conformance
 
-A server conforms to the read-only OPC UA xRegistry API if it exposes a
-`RegistryType` root or domain subtype, exposes groups as `GroupType` or
-subtypes, exposes resources/versions as `ResourceType` or subtypes, and
-supports Browse and Read sufficient to retrieve the declared metadata and
-collections. Document-bearing Resources additionally require
+A server conforms to the read-only OPC UA xRegistry API if it:
+
+- Exposes a `RegistryType` root or domain subtype.
+- Exposes groups as `GroupType` or subtypes.
+- Exposes resources/versions as `ResourceType` or subtypes.
+- Supports Browse and Read sufficient to retrieve the declared metadata and
+  collections.
+
+Document-bearing Resources additionally require
 `Open`/`Read`/`Close` sufficient to retrieve their declared documents.
 Metadata-only catalog Resources do not require fake domain documents.
 This is conformance to this working draft, not to an adopted companion
 standard or the pinned proposal's different minimal-download claim.
 
 A server conforms to the writable OPC UA xRegistry API if, in addition to
-read-only conformance, it supports the applicable creation and mutation
-operations (`CreateGroup`, `GetOrCreateGroup`, `CreateResource`,
-`GetOrCreateResource`, `Delete`, and `Labels.AddAttribute`
-/`Labels.RemoveAttribute` with `ExpectedEpoch` on each mutable entity's `Labels`
-`AttributesType` container), writable Properties, and `Open` /`Write`/`Close` on
-`ResourceType`, `Capabilities` and `Model` where document replacement is
-mutable.
+read-only conformance, it supports:
+
+- The applicable creation and mutation operations (`CreateGroup`,
+  `GetOrCreateGroup`, `CreateResource`, `GetOrCreateResource`, `Delete`, and
+  `Labels.AddAttribute` /`Labels.RemoveAttribute` with `ExpectedEpoch` on each
+  mutable entity's `Labels` `AttributesType` container).
+- Writable Properties.
+- `Open` /`Write`/`Close` on `ResourceType`, `Capabilities` and `Model` where
+  document replacement is mutable.
 
 A server conforms to the export-capable OPC UA xRegistry API if it implements
 the request-flag mappings it advertises in `Capabilities`, including Browse
