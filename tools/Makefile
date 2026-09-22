@@ -126,7 +126,6 @@ makeschema: loadpython
 	@python tools/schema-generator.py --type openapi --output cloudevents/schemas/openapi.json endpoint/model.json message/model.json schema/model.json
 	@python tools/schema-generator.py --type json-schema --schema-id https://xregistry.io/workingdrafts/models/registry/schemas/document-schema.json --output workingdrafts/models/registry/schemas/document-schema.json workingdrafts/models/registry/model.json
 	@python tools/schema-generator.py --type json-structure --schema-id https://xregistry.io/workingdrafts/models/registry/schemas/document-schema.struct.json --schema-name RegistryOfRegistriesDocument --output workingdrafts/models/registry/schemas/document-schema.struct.json workingdrafts/models/registry/model.json
-	@python tools/schema-generator.py --type avro-schema --output workingdrafts/models/registry/schemas/document-schema.avsc workingdrafts/models/registry/model.json
 	@python tools/schema-generator.py --type openapi --output workingdrafts/models/registry/schemas/openapi.json workingdrafts/models/registry/model.json
 	@echo
 

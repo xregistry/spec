@@ -464,56 +464,6 @@
         }
       }
     },
-    "/categories": {
-      "get": {
-        "operationId": "getCategoriesAll",
-        "tags": [
-          "ResourceGroupCollection"
-        ],
-        "description": "Gets all resource groups. Supports optional filtering ('filter'), inlining ('inline'), and document view ('doc'). (See spec: Registry Collections, Inline, and Filter)",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/inline"
-          },
-          {
-            "$ref": "#/components/parameters/filter"
-          },
-          {
-            "$ref": "#/components/parameters/doc"
-          },
-          {
-            "$ref": "#/components/parameters/specversion"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Resource groups that match the query (or all groups if no filter is specified).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "$ref": "#/components/schemas/category"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "500": {
-            "$ref": "#/components/responses/InternalServerError"
-          }
-        }
-      }
-    },
     "/categories/{groupid}": {
       "parameters": [
         {
@@ -955,6 +905,15 @@
         },
         {
           "in": "query",
+          "name": "meta",
+          "description": "If true, operate on the resource metadata sub-object (see spec: Resource Metadata vs Resource Document).",
+          "required": false,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        {
+          "in": "query",
           "name": "noepoch",
           "description": "If true, epoch validation is ignored. (See spec: Creating or Updating Entities)",
           "required": false,
@@ -1054,6 +1013,12 @@
               }
             },
             "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/registry"
@@ -1108,6 +1073,12 @@
         "requestBody": {
           "description": "The resource document or xRegistry metadata (depending on URL suffix $details).",
           "content": {
+            "application/octet-stream": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            },
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/registry"
@@ -1185,6 +1156,12 @@
         "requestBody": {
           "description": "The new resource version document or xRegistry metadata.",
           "content": {
+            "application/octet-stream": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            },
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/registry"
@@ -1225,6 +1202,12 @@
               }
             },
             "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/registry"
@@ -1346,10 +1329,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "$ref": "#/components/schemas/registryVersion"
-                  }
+                  "$ref": "#/components/schemas/registry"
                 }
               }
             }
@@ -1404,7 +1384,7 @@
               "schema": {
                 "type": "object",
                 "additionalProperties": {
-                  "$ref": "#/components/schemas/registryVersion"
+                  "$ref": "#/components/schemas/registry"
                 }
               }
             }
@@ -1418,7 +1398,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": {
-                    "$ref": "#/components/schemas/registryVersion"
+                    "$ref": "#/components/schemas/registry"
                   }
                 }
               }
@@ -1454,6 +1434,16 @@
           "$ref": "#/components/parameters/versionid"
         },
         {
+          "in": "query",
+          "name": "meta",
+          "description": "If true, operate on version metadata view ($details).",
+          "required": false,
+          "allowEmptyValue": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        {
           "$ref": "#/components/parameters/specversion"
         },
         {
@@ -1476,9 +1466,15 @@
           "200": {
             "description": "The resource version.",
             "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/registryVersion"
+                  "$ref": "#/components/schemas/registry"
                 }
               }
             }
@@ -1530,62 +1526,6 @@
           },
           "409": {
             "$ref": "#/components/responses/Conflict"
-          },
-          "500": {
-            "$ref": "#/components/responses/InternalServerError"
-          }
-        }
-      }
-    },
-    "/categories/{groupid}/registries/{resourceid}/versions/{versionid}$details": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/groupid"
-        },
-        {
-          "$ref": "#/components/parameters/resourceid"
-        },
-        {
-          "$ref": "#/components/parameters/versionid"
-        },
-        {
-          "$ref": "#/components/parameters/specversion"
-        },
-        {
-          "$ref": "#/components/parameters/inline"
-        },
-        {
-          "$ref": "#/components/parameters/filter"
-        },
-        {
-          "$ref": "#/components/parameters/doc"
-        }
-      ],
-      "get": {
-        "operationId": "getCategoryRegistryVersionMetadata",
-        "tags": [
-          "ResourceVersion"
-        ],
-        "description": "Gets a specific version of a resource. Returns either the document (if not $details) or the metadata view. (See spec: Retrieving a Version and Retrieving a Version as Metadata)",
-        "responses": {
-          "200": {
-            "description": "The resource version.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/registryVersion"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
           },
           "500": {
             "$ref": "#/components/responses/InternalServerError"
@@ -2113,75 +2053,11 @@
       "document": {
         "type": "object",
         "properties": {
-          "name": {
-            "type": "string",
-            "description": "Name of the object"
-          },
-          "epoch": {
-            "type": "integer",
-            "description": "Epoch time of the object creation"
-          },
-          "self": {
-            "type": "string",
-            "format": "uri-reference",
-            "description": "URL of the object"
-          },
-          "xid": {
-            "type": "string",
-            "format": "xid",
-            "description": "Relative URL of the object"
-          },
-          "description": {
-            "type": "string",
-            "description": "Description of the object"
-          },
-          "documentation": {
-            "type": "string",
-            "format": "uri-reference",
-            "description": "URI of the documentation of the object"
-          },
-          "labels": {
-            "type": "object",
-            "description": "Labels for the object"
-          },
-          "createdat": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Time of the object creation"
-          },
-          "modifiedat": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Time of the object modification"
-          },
-          "registryid": {
-            "type": "string"
-          },
-          "specversion": {
-            "type": "string"
-          },
-          "model": {
-            "type": "object"
-          },
-          "modelsource": {
-            "type": "object"
-          },
-          "capabilities": {
-            "type": "object"
-          },
           "categories": {
             "type": "object",
             "additionalProperties": {
               "$ref": "#/components/schemas/category"
             }
-          },
-          "categoriesurl": {
-            "type": "string",
-            "format": "uri-reference"
-          },
-          "categoriescount": {
-            "type": "integer",
-            "minimum": 0
           }
         }
       },
@@ -2206,7 +2082,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri-reference",
+            "format": "uri",
             "description": "URL of the object"
           },
           "xid": {
@@ -2220,7 +2096,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri-reference",
+            "format": "uri",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -2237,23 +2113,14 @@
             "format": "date-time",
             "description": "Time of the object modification"
           },
-          "ancestorid": {
-            "type": "string"
-          },
-          "isdefault": {
-            "type": "boolean"
-          },
-          "contenttype": {
-            "type": "string"
-          },
           "xregurl": {
             "type": "string",
-            "format": "uri-reference",
+            "format": "uri",
             "description": "xRegistry HTTP Registry root URL."
           },
           "weburl": {
             "type": "string",
-            "format": "uri-reference",
+            "format": "uri",
             "description": "Human-facing website. Not a resolution advertisement."
           },
           "registrytypes": {
@@ -2265,7 +2132,7 @@
           },
           "authority": {
             "type": "string",
-            "format": "uri-reference",
+            "format": "uri",
             "description": "Administrative authority identifier. Not a trust claim."
           },
           "federationprofiles": {
@@ -2280,7 +2147,7 @@
                 },
                 "endpoint": {
                   "type": "string",
-                  "format": "uri-reference",
+                  "format": "uri",
                   "description": "Absolute, credential-free binding endpoint URI."
                 },
                 "priority": {
@@ -2312,7 +2179,7 @@
                 },
                 "target": {
                   "type": "string",
-                  "format": "uri-reference",
+                  "format": "uri",
                   "description": "Catalog-root Resource XID or absolute entry URI."
                 },
                 "labels": {
@@ -2348,7 +2215,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri-reference",
+            "format": "uri",
             "description": "URL of the object"
           },
           "xid": {
@@ -2362,7 +2229,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri-reference",
+            "format": "uri",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -2378,138 +2245,33 @@
             "type": "string",
             "format": "date-time",
             "description": "Time of the object modification"
-          },
-          "metaurl": {
-            "type": "string",
-            "format": "uri-reference"
-          },
-          "meta": {
-            "type": "object",
-            "properties": {
-              "name": {
-                "type": "string",
-                "description": "Name of the object"
-              },
-              "epoch": {
-                "type": "integer",
-                "description": "Epoch time of the object creation"
-              },
-              "self": {
-                "type": "string",
-                "format": "uri-reference",
-                "description": "URL of the object"
-              },
-              "xid": {
-                "type": "string",
-                "format": "xid",
-                "description": "Relative URL of the object"
-              },
-              "description": {
-                "type": "string",
-                "description": "Description of the object"
-              },
-              "documentation": {
-                "type": "string",
-                "format": "uri-reference",
-                "description": "URI of the documentation of the object"
-              },
-              "labels": {
-                "type": "object",
-                "description": "Labels for the object"
-              },
-              "createdat": {
-                "type": "string",
-                "format": "date-time",
-                "description": "Time of the object creation"
-              },
-              "modifiedat": {
-                "type": "string",
-                "format": "date-time",
-                "description": "Time of the object modification"
-              },
-              "registryid": {
-                "type": "string"
-              },
-              "xref": {
-                "type": "string",
-                "format": "uri-reference",
-                "pattern": "^/"
-              },
-              "readonly": {
-                "type": "boolean"
-              },
-              "compatibility": {
-                "type": "string"
-              },
-              "deprecated": {
-                "type": "object",
-                "properties": {
-                  "effective": {
-                    "type": "string",
-                    "format": "date-time"
-                  },
-                  "removal": {
-                    "type": "string",
-                    "format": "date-time"
-                  },
-                  "alternative": {
-                    "type": "string",
-                    "format": "uri-reference"
-                  },
-                  "documentation": {
-                    "type": "string",
-                    "format": "uri-reference"
-                  }
-                }
-              },
-              "defaultversionid": {
-                "type": "string"
-              },
-              "defaultversionurl": {
-                "type": "string",
-                "format": "uri-reference"
-              },
-              "defaultversionsticky": {
-                "type": "boolean"
-              }
-            }
-          },
-          "versionsurl": {
-            "type": "string",
-            "format": "uri-reference"
-          },
-          "versionscount": {
-            "type": "integer",
-            "minimum": 0
-          },
-          "versions": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/components/schemas/registryVersion"
-            }
           }
         },
-        "anyOf": [
+        "oneOf": [
           {
+            "properties": {
+              "versionsurl": {
+                "type": "string"
+              },
+              "versionscount": {
+                "type": "integer"
+              }
+            },
             "required": [
               "versionsurl"
             ]
           },
           {
-            "required": [
-              "versions"
-            ]
-          },
-          {
             "properties": {
-              "meta": {
-                "required": [
-                  "xref"
-                ]
+              "versions": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/registryVersion"
+                }
               }
             },
             "required": [
-              "meta"
+              "versions"
             ]
           }
         ]
@@ -2531,7 +2293,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri-reference",
+            "format": "uri",
             "description": "URL of the object"
           },
           "xid": {
@@ -2545,7 +2307,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri-reference",
+            "format": "uri",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -2567,14 +2329,6 @@
             "additionalProperties": {
               "$ref": "#/components/schemas/registry"
             }
-          },
-          "registriesurl": {
-            "type": "string",
-            "format": "uri-reference"
-          },
-          "registriescount": {
-            "type": "integer",
-            "minimum": 0
           }
         }
       }

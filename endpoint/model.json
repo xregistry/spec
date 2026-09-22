@@ -12,8 +12,12 @@
         "usage": {
           "name": "usage",
           "type": "array",
-          "description": "Required endpoint roles: subscriber, consumer, or producer. The Endpoint specification defines allowed combinations by protocol. These are domain constraints; the Core model's scalar enum aspect does not apply to arrays.",
-          "required": true,
+          "description": "Client's expected usage of this endpoint. Single-role declarations are preferred. Mixed declarations are guidance-oriented metadata and should be used only when role semantics are unambiguous.",
+          "enum": [
+            "subscriber",
+            "consumer",
+            "producer"
+          ],
           "item": {
             "type": "string"
           }
@@ -97,8 +101,188 @@
               "siblingattributes": {
                 "protocoloptions": {
                   "name": "protocoloptions",
-                  "type": "any",
-                  "description": "Configuration information for this endpoint Opaque authoring Map: permitted string values and Map keys may contain RFC6570 Level-1 placeholders. Native JSON types and structural record names are retained; resolve variables and enforce the Endpoint consumer protocol contract before use."
+                  "type": "object",
+                  "namecharset": "extended",
+                  "description": "Configuration information for this endpoint",
+                  "attributes": {
+                    "endpoints": {
+                      "name": "endpoints",
+                      "type": "array",
+                      "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URI just identifies a network host or links directly to a resource managed by the network host is protocol specific",
+                      "item": {
+                        "type": "object",
+                        "attributes": {
+                          "uri": {
+                            "name": "uri",
+                            "type": "uri",
+                            "description": "AMQP Addressing URI"
+                          },
+                          "*": {
+                            "name": "*",
+                            "type": "any"
+                          }
+                        }
+                      }
+                    },
+                    "authorization": {
+                      "name": "authorization",
+                      "type": "array",
+                      "description": "Authorization options. These are hints for the adapter for interacting with the authorization endpoint. This is not a credentials configuration",
+                      "item": {
+                        "type": "object",
+                        "attributes": {
+                          "type": {
+                            "name": "type",
+                            "type": "string",
+                            "description": "The authentication/authorization type. OAuth2, Plain, APIKey, X509Cert, and SASL are well-defined"
+                          },
+                          "mechanism": {
+                            "name": "mechanism",
+                            "type": "string",
+                            "description": "The SASL mechanism name when authorization.type is SASL (for example PLAIN, SCRAM-SHA-256, SCRAM-SHA-512, OAUTHBEARER, or EXTERNAL)"
+                          },
+                          "resourceuri": {
+                            "name": "resourceuri",
+                            "type": "uri",
+                            "description": "The resource uri for which authorization shall be granted (if applicable)"
+                          },
+                          "authorityuri": {
+                            "name": "authorityuri",
+                            "type": "uri",
+                            "description": "The authority uri where authorization shall be requested (if applicable)"
+                          },
+                          "*": {
+                            "name": "*",
+                            "type": "any"
+                          }
+                        }
+                      }
+                    },
+                    "deployed": {
+                      "name": "deployed",
+                      "type": "boolean",
+                      "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication",
+                      "required": true,
+                      "default": true
+                    },
+                    "node": {
+                      "name": "node",
+                      "type": "string",
+                      "description": "The AMQP node name. Commonly the name of a queue or a topic. Corresponds to the 'address' in source or target of the attach frame."
+                    },
+                    "durable": {
+                      "name": "durable",
+                      "type": "boolean",
+                      "description": "Whether the AMQP node identified by 'node' is durable rather than transient. This is a property of the node, not of the link terminus and not of the message header field of the same name. Terminus durability is expressed by 'terminus-durability'",
+                      "required": true,
+                      "default": false
+                    },
+                    "link-properties": {
+                      "name": "link-properties",
+                      "type": "map",
+                      "description": "An optional map of AMQP link properties to use with the endpoint",
+                      "item": {
+                        "type": "string"
+                      }
+                    },
+                    "connection-properties": {
+                      "name": "connection-properties",
+                      "type": "map",
+                      "description": "An optional map of AMQP connection properties to use with the endpoint",
+                      "item": {
+                        "type": "string"
+                      }
+                    },
+                    "distribution-mode": {
+                      "name": "distribution-mode",
+                      "type": "string",
+                      "enum": [
+                        "move",
+                        "copy"
+                      ],
+                      "description": "The AMQP source distribution mode. 'move' means a transferred message is removed from the node and is therefore seen by only one receiver. 'copy' means the message remains at the node after transfer and may also be transferred to other receivers. This does not describe message locking",
+                      "required": true,
+                      "default": "move"
+                    },
+                    "connection-capabilities": {
+                      "name": "connection-capabilities",
+                      "type": "array",
+                      "description": "The AMQP capabilities to use with the endpoint",
+                      "item": {
+                        "type": "string"
+                      }
+                    },
+                    "node-capabilities": {
+                      "name": "node-capabilities",
+                      "type": "array",
+                      "description": "The AMQP node capabilities to use with the endpoint",
+                      "item": {
+                        "type": "string"
+                      }
+                    },
+                    "source-filters": {
+                      "name": "source-filters",
+                      "type": "map",
+                      "description": "AMQP source filters used for subscription/receive setup",
+                      "item": {
+                        "type": "any"
+                      }
+                    },
+                    "dynamic": {
+                      "name": "dynamic",
+                      "type": "boolean",
+                      "description": "Whether a dynamic source or target is requested"
+                    },
+                    "terminus-durability": {
+                      "name": "terminus-durability",
+                      "type": "string",
+                      "enum": [
+                        "none",
+                        "configuration",
+                        "unsettled-state"
+                      ],
+                      "description": "Durability mode for the applicable source/target terminus"
+                    },
+                    "expiry-policy": {
+                      "name": "expiry-policy",
+                      "type": "string",
+                      "enum": [
+                        "link-detach",
+                        "session-end",
+                        "connection-close",
+                        "never"
+                      ],
+                      "description": "Expiry policy for the applicable source/target terminus"
+                    },
+                    "timeout": {
+                      "name": "timeout",
+                      "type": "uinteger",
+                      "description": "Timeout in seconds for the applicable expiry policy"
+                    },
+                    "sender-settle-mode": {
+                      "name": "sender-settle-mode",
+                      "type": "string",
+                      "enum": [
+                        "unsettled",
+                        "settled",
+                        "mixed"
+                      ],
+                      "description": "AMQP sender settle mode requested for the link. It constrains the party that sends transfers over the link: the client for a producer endpoint, the remote node for a consumer endpoint"
+                    },
+                    "receiver-settle-mode": {
+                      "name": "receiver-settle-mode",
+                      "type": "string",
+                      "enum": [
+                        "first",
+                        "second"
+                      ],
+                      "description": "AMQP receiver settle mode requested for the link. It constrains the party that receives transfers over the link: the remote node for a producer endpoint, the client for a consumer endpoint"
+                    },
+                    "*": {
+                      "name": "*",
+                      "type": "any"
+                    }
+                  }
                 }
               }
             },
@@ -106,8 +290,149 @@
               "siblingattributes": {
                 "protocoloptions": {
                   "name": "protocoloptions",
-                  "type": "any",
-                  "description": "Configuration information for this endpoint Opaque authoring Map: permitted string values and Map keys may contain RFC6570 Level-1 placeholders. Native JSON types and structural record names are retained; resolve variables and enforce the Endpoint consumer protocol contract before use."
+                  "type": "object",
+                  "description": "Configuration information for this endpoint",
+                  "attributes": {
+                    "endpoints": {
+                      "name": "endpoints",
+                      "type": "array",
+                      "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URI just identifies a network host or links directly to a resource managed by the network host is protocol specific",
+                      "item": {
+                        "type": "object",
+                        "attributes": {
+                          "uri": {
+                            "name": "uri",
+                            "type": "uri",
+                            "description": "MQTT URI (mqtt, mqtts, or ws scheme)"
+                          },
+                          "*": {
+                            "name": "*",
+                            "type": "any"
+                          }
+                        }
+                      }
+                    },
+                    "authorization": {
+                      "name": "authorization",
+                      "type": "array",
+                      "description": "Authorization options. These are hints for the adapter for interacting with the authorization endpoint. This is not a credentials configuration",
+                      "item": {
+                        "type": "object",
+                        "attributes": {
+                          "type": {
+                            "name": "type",
+                            "type": "string",
+                            "description": "The authentication/authorization type. OAuth2, Plain, APIKey, X509Cert, and SASL are well-defined"
+                          },
+                          "mechanism": {
+                            "name": "mechanism",
+                            "type": "string",
+                            "description": "The SASL mechanism name when authorization.type is SASL (for example PLAIN, SCRAM-SHA-256, SCRAM-SHA-512, OAUTHBEARER, or EXTERNAL)"
+                          },
+                          "resourceuri": {
+                            "name": "resourceuri",
+                            "type": "uri",
+                            "description": "The resource uri for which authorization shall be granted (if applicable)"
+                          },
+                          "authorityuri": {
+                            "name": "authorityuri",
+                            "type": "uri",
+                            "description": "The authority uri where authorization shall be requested (if applicable)"
+                          },
+                          "*": {
+                            "name": "*",
+                            "type": "any"
+                          }
+                        }
+                      }
+                    },
+                    "deployed": {
+                      "name": "deployed",
+                      "type": "boolean",
+                      "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication",
+                      "required": true,
+                      "default": true
+                    },
+                    "topic": {
+                      "name": "topic",
+                      "type": "string",
+                      "description": "The concrete MQTT topic name that is used for communication with the endpoint unless overridden by the message. It MUST NOT contain the '+' or '#' wildcard characters"
+                    },
+                    "qos": {
+                      "name": "qos",
+                      "type": "uinteger",
+                      "description": "The MQTT QoS level. May be 0, 1, or 2",
+                      "required": true,
+                      "default": 0,
+                      "enum": [
+                        0,
+                        1,
+                        2
+                      ]
+                    },
+                    "retain": {
+                      "name": "retain",
+                      "type": "boolean",
+                      "description": "The MQTT retain flag to use for publishers on ths endpoint",
+                      "required": true,
+                      "default": false
+                    },
+                    "topicfilter": {
+                      "name": "topicfilter",
+                      "type": "string",
+                      "description": "MQTT subscribe topic filter. MAY contain the '+' and '#' wildcard characters"
+                    },
+                    "cleanstart": {
+                      "name": "cleanstart",
+                      "type": "boolean",
+                      "description": "MQTT 5 clean start flag"
+                    },
+                    "sessionexpiryinterval": {
+                      "name": "sessionexpiryinterval",
+                      "type": "uinteger",
+                      "description": "MQTT 5 session expiry interval in seconds"
+                    },
+                    "sharedsubscriptiongroup": {
+                      "name": "sharedsubscriptiongroup",
+                      "type": "string",
+                      "description": "MQTT 5 shared subscription group. It MUST only be used together with 'topicfilter' and MUST NOT include the '$share/' prefix"
+                    },
+                    "nolocal": {
+                      "name": "nolocal",
+                      "type": "boolean",
+                      "description": "MQTT 5 no-local subscription flag"
+                    },
+                    "retainaspublished": {
+                      "name": "retainaspublished",
+                      "type": "boolean",
+                      "description": "MQTT 5 retain-as-published subscription flag"
+                    },
+                    "retainhandling": {
+                      "name": "retainhandling",
+                      "type": "uinteger",
+                      "enum": [
+                        0,
+                        1,
+                        2
+                      ],
+                      "description": "MQTT 5 retain-handling subscription mode"
+                    },
+                    "willtopic": {
+                      "name": "willtopic",
+                      "type": "string",
+                      "description": "The MQTT will topic to configure for publishers on this endpoint"
+                    },
+                    "willmessage": {
+                      "name": "willmessage",
+                      "type": "xid",
+                      "target": "/messagegroups/messages",
+                      "description": "The MQTT will message definition to configure for publishers on this endpoint. This MUST be a reference to a message definition"
+                    },
+                    "*": {
+                      "name": "*",
+                      "type": "any"
+                    }
+                  }
                 }
               }
             },
@@ -115,8 +440,121 @@
               "siblingattributes": {
                 "protocoloptions": {
                   "name": "protocoloptions",
-                  "type": "any",
-                  "description": "Configuration information for this endpoint Opaque authoring Map: permitted string values and Map keys may contain RFC6570 Level-1 placeholders. Native JSON types and structural record names are retained; resolve variables and enforce the Endpoint consumer protocol contract before use."
+                  "type": "object",
+                  "description": "Configuration information for this endpoint",
+                  "attributes": {
+                    "endpoints": {
+                      "name": "endpoints",
+                      "type": "array",
+                      "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URI just identifies a network host or links directly to a resource managed by the network host is protocol specific",
+                      "item": {
+                        "type": "object",
+                        "attributes": {
+                          "uri": {
+                            "name": "uri",
+                            "type": "uri",
+                            "description": "MQTT URI (mqtt, mqtts, or ws scheme)"
+                          },
+                          "*": {
+                            "name": "*",
+                            "type": "any"
+                          }
+                        }
+                      }
+                    },
+                    "authorization": {
+                      "name": "authorization",
+                      "type": "array",
+                      "description": "Authorization options. These are hints for the adapter for interacting with the authorization endpoint. This is not a credentials configuration",
+                      "item": {
+                        "type": "object",
+                        "attributes": {
+                          "type": {
+                            "name": "type",
+                            "type": "string",
+                            "description": "The authentication/authorization type. OAuth2, Plain, APIKey, X509Cert, and SASL are well-defined"
+                          },
+                          "mechanism": {
+                            "name": "mechanism",
+                            "type": "string",
+                            "description": "The SASL mechanism name when authorization.type is SASL (for example PLAIN, SCRAM-SHA-256, SCRAM-SHA-512, OAUTHBEARER, or EXTERNAL)"
+                          },
+                          "resourceuri": {
+                            "name": "resourceuri",
+                            "type": "uri",
+                            "description": "The resource uri for which authorization shall be granted (if applicable)"
+                          },
+                          "authorityuri": {
+                            "name": "authorityuri",
+                            "type": "uri",
+                            "description": "The authority uri where authorization shall be requested (if applicable)"
+                          },
+                          "*": {
+                            "name": "*",
+                            "type": "any"
+                          }
+                        }
+                      }
+                    },
+                    "deployed": {
+                      "name": "deployed",
+                      "type": "boolean",
+                      "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication",
+                      "required": true,
+                      "default": true
+                    },
+                    "topic": {
+                      "name": "topic",
+                      "type": "string",
+                      "description": "The concrete MQTT topic name that is used for communication with the endpoint unless overridden by the message. It MUST NOT contain the '+' or '#' wildcard characters"
+                    },
+                    "qos": {
+                      "name": "qos",
+                      "type": "uinteger",
+                      "description": "The MQTT QoS level. May be 0, 1, or 2",
+                      "required": true,
+                      "default": 0,
+                      "enum": [
+                        0,
+                        1,
+                        2
+                      ]
+                    },
+                    "retain": {
+                      "name": "retain",
+                      "type": "boolean",
+                      "description": "The MQTT retain flag to use for publishers on ths endpoint",
+                      "required": true,
+                      "default": false
+                    },
+                    "cleansession": {
+                      "name": "cleansession",
+                      "type": "boolean",
+                      "description": "The MQTT clean session flag to use for publishers on this endpoint",
+                      "required": true,
+                      "default": true
+                    },
+                    "topicfilter": {
+                      "name": "topicfilter",
+                      "type": "string",
+                      "description": "MQTT subscribe topic filter"
+                    },
+                    "willtopic": {
+                      "name": "willtopic",
+                      "type": "string",
+                      "description": "The MQTT will topic to configure for publishers on this endpoint"
+                    },
+                    "willmessage": {
+                      "name": "willmessage",
+                      "type": "xid",
+                      "target": "/messagegroups/messages",
+                      "description": "The MQTT will message definition to configure for publishers on this endpoint. This MUST be a reference to a message definition"
+                    },
+                    "*": {
+                      "name": "*",
+                      "type": "any"
+                    }
+                  }
                 }
               }
             },
@@ -124,8 +562,139 @@
               "siblingattributes": {
                 "protocoloptions": {
                   "name": "protocoloptions",
-                  "type": "any",
-                  "description": "Configuration information for this endpoint Opaque authoring Map: permitted string values and Map keys may contain RFC6570 Level-1 placeholders. Native JSON types and structural record names are retained; resolve variables and enforce the Endpoint consumer protocol contract before use."
+                  "type": "object",
+                  "description": "Configuration information for this endpoint",
+                  "attributes": {
+                    "endpoints": {
+                      "name": "endpoints",
+                      "type": "array",
+                      "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URI just identifies a network host or links directly to a resource managed by the network host is protocol specific",
+                      "item": {
+                        "type": "object",
+                        "attributes": {
+                          "uri": {
+                            "name": "uri",
+                            "type": "uri",
+                            "description": "HTTP URI"
+                          },
+                          "*": {
+                            "name": "*",
+                            "type": "any"
+                          }
+                        }
+                      }
+                    },
+                    "authorization": {
+                      "name": "authorization",
+                      "type": "array",
+                      "description": "Authorization options. These are hints for the adapter for interacting with the authorization endpoint. This is not a credentials configuration",
+                      "item": {
+                        "type": "object",
+                        "attributes": {
+                          "type": {
+                            "name": "type",
+                            "type": "string",
+                            "description": "The authentication/authorization type. OAuth2, Plain, APIKey, X509Cert, and SASL are well-defined"
+                          },
+                          "mechanism": {
+                            "name": "mechanism",
+                            "type": "string",
+                            "description": "The SASL mechanism name when authorization.type is SASL (for example PLAIN, SCRAM-SHA-256, SCRAM-SHA-512, OAUTHBEARER, or EXTERNAL)"
+                          },
+                          "resourceuri": {
+                            "name": "resourceuri",
+                            "type": "uri",
+                            "description": "The resource uri for which authorization shall be granted (if applicable)"
+                          },
+                          "authorityuri": {
+                            "name": "authorityuri",
+                            "type": "uri",
+                            "description": "The authority uri where authorization shall be requested (if applicable)"
+                          },
+                          "*": {
+                            "name": "*",
+                            "type": "any"
+                          }
+                        }
+                      }
+                    },
+                    "deployed": {
+                      "name": "deployed",
+                      "type": "boolean",
+                      "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication",
+                      "required": true,
+                      "default": true
+                    },
+                    "method": {
+                      "name": "method",
+                      "type": "string",
+                      "description": "The HTTP method name",
+                      "required": true,
+                      "default": "POST"
+                    },
+                    "headers": {
+                      "name": "headers",
+                      "type": "array",
+                      "description": "HTTP headers to use with the endpoint. The same header may be specified multiple times with different values. The HTTP header names are case insensitive",
+                      "item": {
+                        "type": "object",
+                        "attributes": {
+                          "name": {
+                            "name": "name",
+                            "type": "string",
+                            "description": "HTTP header name",
+                            "required": true
+                          },
+                          "value": {
+                            "name": "value",
+                            "type": "string",
+                            "description": "HTTP header value"
+                          }
+                        }
+                      }
+                    },
+                    "query": {
+                      "name": "query",
+                      "type": "map",
+                      "description": "HTTP query parameters",
+                      "item": {
+                        "type": "string"
+                      }
+                    },
+                    "apikeyname": {
+                      "name": "apikeyname",
+                      "type": "string",
+                      "description": "Name of the API key header/query carrier when authorization.type is APIKey"
+                    },
+                    "apikeyin": {
+                      "name": "apikeyin",
+                      "type": "string",
+                      "description": "Placement of API key metadata for HTTP when authorization.type is APIKey. Expected values: header or query",
+                      "required": true,
+                      "default": "header"
+                    },
+                    "plainscheme": {
+                      "name": "plainscheme",
+                      "type": "string",
+                      "description": "HTTP transport pattern when authorization.type is Plain. Expected values: basic, form, or query",
+                      "required": true,
+                      "default": "basic"
+                    },
+                    "plainusernamefield": {
+                      "name": "plainusernamefield",
+                      "type": "string",
+                      "description": "Parameter or header field name carrying the username when plainscheme is form or query"
+                    },
+                    "plainpasswordfield": {
+                      "name": "plainpasswordfield",
+                      "type": "string",
+                      "description": "Parameter or header field name carrying the password when plainscheme is form or query"
+                    },
+                    "*": {
+                      "name": "*",
+                      "type": "any"
+                    }
+                  }
                 }
               }
             },
@@ -133,8 +702,156 @@
               "siblingattributes": {
                 "protocoloptions": {
                   "name": "protocoloptions",
-                  "type": "any",
-                  "description": "Configuration information for this endpoint Opaque authoring Map: permitted string values and Map keys may contain RFC6570 Level-1 placeholders. Native JSON types and structural record names are retained; resolve variables and enforce the Endpoint consumer protocol contract before use."
+                  "type": "object",
+                  "description": "Configuration information for this endpoint",
+                  "attributes": {
+                    "endpoints": {
+                      "name": "endpoints",
+                      "type": "array",
+                      "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URI just identifies a network host or links directly to a resource managed by the network host is protocol specific",
+                      "item": {
+                        "type": "object",
+                        "namecharset": "extended",
+                        "attributes": {
+                          "bootstrap.servers": {
+                            "name": "bootstrap.servers",
+                            "type": "array",
+                            "description": "The Kafka bootstrap servers",
+                            "item": {
+                              "type": "string"
+                            }
+                          },
+                          "security.protocol": {
+                            "name": "security.protocol",
+                            "type": "string",
+                            "description": "The Kafka security protocol",
+                            "required": true,
+                            "default": "PLAINTEXT"
+                          },
+                          "sasl.mechanism": {
+                            "name": "sasl.mechanism",
+                            "type": "string",
+                            "description": "The Kafka SASL mechanism",
+                            "required": true,
+                            "default": "PLAIN"
+                          },
+                          "*": {
+                            "name": "*",
+                            "type": "any"
+                          }
+                        }
+                      }
+                    },
+                    "authorization": {
+                      "name": "authorization",
+                      "type": "array",
+                      "description": "Authorization options. These are hints for the adapter for interacting with the authorization endpoint. This is not a credentials configuration",
+                      "item": {
+                        "type": "object",
+                        "attributes": {
+                          "type": {
+                            "name": "type",
+                            "type": "string",
+                            "description": "The authentication/authorization type. OAuth2, Plain, APIKey, X509Cert, and SASL are well-defined"
+                          },
+                          "mechanism": {
+                            "name": "mechanism",
+                            "type": "string",
+                            "description": "The SASL mechanism name when authorization.type is SASL (for example PLAIN, SCRAM-SHA-256, SCRAM-SHA-512, OAUTHBEARER, or EXTERNAL)"
+                          },
+                          "resourceuri": {
+                            "name": "resourceuri",
+                            "type": "uri",
+                            "description": "The resource uri for which authorization shall be granted (if applicable)"
+                          },
+                          "authorityuri": {
+                            "name": "authorityuri",
+                            "type": "uri",
+                            "description": "The authority uri where authorization shall be requested (if applicable)"
+                          },
+                          "*": {
+                            "name": "*",
+                            "type": "any"
+                          }
+                        }
+                      }
+                    },
+                    "deployed": {
+                      "name": "deployed",
+                      "type": "boolean",
+                      "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication",
+                      "required": true,
+                      "default": true
+                    },
+                    "topic": {
+                      "name": "topic",
+                      "type": "string",
+                      "description": "Apache Kafka topic name"
+                    },
+                    "acks": {
+                      "name": "acks",
+                      "type": "integer",
+                      "description": "The Apache Kafka acks setting to use. If no acks setting is specified, the default is 1",
+                      "required": true,
+                      "default": 1
+                    },
+                    "key": {
+                      "name": "key",
+                      "type": "string",
+                      "description": "The Apache Kafka record key"
+                    },
+                    "partition": {
+                      "name": "partition",
+                      "type": "integer",
+                      "description": "The Apache Kafka partition number to use when writing to or receiving from Apache Kafka"
+                    },
+                    "consumergroup": {
+                      "name": "consumergroup",
+                      "type": "string",
+                      "description": "The Apache Kafka consumer group name. It MUST be present and non-empty on a 'consumer' endpoint and MUST be absent on a 'subscriber' endpoint"
+                    },
+                    "headers": {
+                      "name": "headers",
+                      "type": "map",
+                      "description": "The Apache Kafka headers for publishers on this endpoint",
+                      "item": {
+                        "type": "string"
+                      }
+                    },
+                    "keyserializer": {
+                      "name": "keyserializer",
+                      "type": "string",
+                      "description": "The Kafka key serializer",
+                      "required": true,
+                      "default": "org.apache.kafka.common.serialization.StringSerializer"
+                    },
+                    "valueserializer": {
+                      "name": "valueserializer",
+                      "type": "string",
+                      "description": "The Kafka value serializer",
+                      "required": true,
+                      "default": "org.apache.kafka.common.serialization.StringSerializer"
+                    },
+                    "autooffsetreset": {
+                      "name": "autooffsetreset",
+                      "type": "string",
+                      "enum": [
+                        "earliest",
+                        "latest",
+                        "none"
+                      ],
+                      "description": "Consumer offset reset behavior when no valid committed offset exists"
+                    },
+                    "enableautocommit": {
+                      "name": "enableautocommit",
+                      "type": "boolean",
+                      "description": "Whether the consumer commits offsets automatically"
+                    },
+                    "*": {
+                      "name": "*",
+                      "type": "any"
+                    }
+                  }
                 }
               }
             },
@@ -142,8 +859,89 @@
               "siblingattributes": {
                 "protocoloptions": {
                   "name": "protocoloptions",
-                  "type": "any",
-                  "description": "Configuration information for this endpoint Opaque authoring Map: permitted string values and Map keys may contain RFC6570 Level-1 placeholders. Native JSON types and structural record names are retained; resolve variables and enforce the Endpoint consumer protocol contract before use."
+                  "type": "object",
+                  "description": "Configuration information for this endpoint",
+                  "attributes": {
+                    "endpoints": {
+                      "name": "endpoints",
+                      "type": "array",
+                      "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URI just identifies a network host or links directly to a resource managed by the network host is protocol specific",
+                      "item": {
+                        "type": "object",
+                        "attributes": {
+                          "uri": {
+                            "name": "uri",
+                            "type": "uri",
+                            "description": "NATS URI"
+                          },
+                          "*": {
+                            "name": "*",
+                            "type": "any"
+                          }
+                        }
+                      }
+                    },
+                    "authorization": {
+                      "name": "authorization",
+                      "type": "array",
+                      "description": "Authorization options. These are hints for the adapter for interacting with the authorization endpoint. This is not a credentials configuration",
+                      "item": {
+                        "type": "object",
+                        "attributes": {
+                          "type": {
+                            "name": "type",
+                            "type": "string",
+                            "description": "The authentication/authorization type. OAuth2, Plain, APIKey, X509Cert, and SASL are well-defined"
+                          },
+                          "mechanism": {
+                            "name": "mechanism",
+                            "type": "string",
+                            "description": "The SASL mechanism name when authorization.type is SASL (for example PLAIN, SCRAM-SHA-256, SCRAM-SHA-512, OAUTHBEARER, or EXTERNAL)"
+                          },
+                          "resourceuri": {
+                            "name": "resourceuri",
+                            "type": "uri",
+                            "description": "The resource uri for which authorization shall be granted (if applicable)"
+                          },
+                          "authorityuri": {
+                            "name": "authorityuri",
+                            "type": "uri",
+                            "description": "The authority uri where authorization shall be requested (if applicable)"
+                          },
+                          "*": {
+                            "name": "*",
+                            "type": "any"
+                          }
+                        }
+                      }
+                    },
+                    "deployed": {
+                      "name": "deployed",
+                      "type": "boolean",
+                      "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication",
+                      "required": true,
+                      "default": true
+                    },
+                    "subject": {
+                      "name": "subject",
+                      "type": "string",
+                      "description": "The concrete NATS publish subject. It MUST NOT contain the '*' or '>' wildcard tokens"
+                    },
+                    "subjectfilter": {
+                      "name": "subjectfilter",
+                      "type": "string",
+                      "description": "The NATS subscription subject filter. It MAY contain the '*' and '>' wildcard tokens"
+                    },
+                    "queuegroup": {
+                      "name": "queuegroup",
+                      "type": "string",
+                      "description": "The NATS queue group for queue subscriptions. It MUST only be used together with 'subjectfilter'"
+                    },
+                    "*": {
+                      "name": "*",
+                      "type": "any"
+                    }
+                  }
                 }
               }
             }
@@ -155,7 +953,7 @@
           "description": "The message groups that are supported by this endpoint. Relative references are XIDs within the same registry. Absolute URIs reference message groups in external registries.",
           "item": {
             "type": "uri",
-            "target": "/messagegroups"
+            "target": "/messagegroups/messages"
           }
         },
         "*": {
@@ -163,9 +961,7 @@
           "type": "any"
         }
       },
-      "ximportresources": [
-        "/messagegroups/messages"
-      ]
+      "ximportresources": [ "/messagegroups/messages" ]
     }
   }
 }

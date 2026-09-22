@@ -842,31 +842,6 @@ defined by the message `protocol` rules apply.
 The following attributes are used to define the properties associated with
 the headers, properties or attributes defined for a message:
 
-Property declaration objects are domain data, not independently editable Core
-attributes. The model represents CloudEvents `envelopemetadata` and the AMQP
-property declaration sections as `any` so that a literal `value: null` and
-protocol-defined property names survive Core metadata processing. These sections
-MUST still be JSON objects containing property declaration objects and MUST obey
-all rules below. Domain defaults apply during completion or materialization;
-the absence of a Core model default does not change their meaning.
-
-HTTP and NATS header arrays, MQTT `user_properties` arrays and Kafka header
-maps use the same logical declaration fields. Each item is an opaque declaration
-object in the Core model, with a REQUIRED nonempty `name` and the common
-`description`, `required`, `specurl`, `type` and `value` fields below. Array order
-and repeated header names are preserved; map-key rules are unchanged.
-
-A header type refines its native protocol value, rather than defining an
-implicit codec. HTTP, NATS and MQTT values remain strings. The string-valued
-refinements `string`, `symbol`, `uri`, `uritemplate`, `stringified integer`,
-`timestamp`, `duration` and `uuid` are permitted; `any` leaves the native string
-unconstrained. Implementations MUST NOT coerce JSON Boolean, Number, Object or
-Array values into protocol header strings. Kafka header values MAY additionally
-use `binary` with a canonical base64 JSON string, or `any` with literal `null`
-for Kafka's null byte value. The default `string` represents text, not an
-implicit base64 decoding. A literal null is otherwise invalid for these header
-declarations; omission of `value` means that no fixed value is imposed.
-
 ##### `description`
 
 - Type: String
@@ -905,20 +880,12 @@ declarations; omission of `value` means that no fixed value is imposed.
     - `any`: Any type of value, including `null`.
     - `binary`: CloudEvents "Binary" type.
     - `boolean`: CloudEvents "Boolean" type.
-    - `duration`: ISO 8601 duration in the XML Schema duration lexical profile:
-      OPTIONAL leading `-`, `P`, ordered year/month/day components, and OPTIONAL
-      `T` with ordered hour/minute/second components. At least one component is
-      REQUIRED. Fractions are permitted only on seconds; week notation is not
-      part of this profile. Duration validation MUST NOT narrow the value to a
-      host platform's time interval range.
+    - `duration`: RFC3339 Duration.
     - `integer`: CloudEvents "Integer" type (RFC 7159, Section 6).
     - `number`: IEEE754 Double.
     - `string`: CloudEvents "String" type.
     - `symbol`: A `string` that is restricted to alphanumerical characters and
       underscores.
-    - `stringified integer`: A `string` containing an OPTIONAL leading `-`
-      followed by one or more decimal digits. This refines a string attribute
-      without changing its JSON value kind.
     - `timestamp`: CloudEvents "Timestamp" type (RFC3339 DateTime)
     - `uri`: CloudEvents URI type (RFC3986 URI).
     - `uritemplate`: [RFC6570][RFC6570] Level 1 URI Template.
@@ -959,9 +926,9 @@ This specification only defines one metadata envelope: "CloudEvents/1.0".
 ##### CloudEvents/1.0
 
 For the "CloudEvents/1.0" envelope, the
-[`envelopemetadata`](#envelopemetadata) object is a flat map whose properties
-correspond directly to the CloudEvents context attributes. There is no
-intermediate `attributes` wrapper.
+[`envelopemetadata`](#envelopemetadata) object contains a property
+`attributes`, which is an object whose properties correspond to the
+CloudEvents context attributes.
 
 As with the [CloudEvents specification][CloudEvents], the attributes form a
 flat list and extension attributes are allowed. Attribute names are restricted
@@ -1140,9 +1107,12 @@ The following example defines a message that is sent over HTTP/1.1:
         "value": "application/json"
       }
     ],
-    "query": {
-      "foo": "bar"
-    },
+    "query": [
+      {
+        "name": "foo",
+        "value": "bar"
+      }
+    ],
     "path": "/foo/{bar}",
     "method": "POST"
   },
@@ -1239,12 +1209,6 @@ The `message-id` permits the types `ulong`, `uuid`, `binary`, `string`, and
 defined in the message definition except for the case where the `message-id`
 is a `uritemplate`.
 
-For these AMQP-specific types, `ulong` is an unsigned 64-bit JSON integer and
-`uuid` is an RFC 4122 hyphenated UUID string. The AMQP `content-type` and
-`content-encoding` properties carry their protocol-defined media-type and
-content-encoding text. Their AMQP `symbol` representation does not impose the
-restricted placeholder-name alphabet on that text.
-
 ##### `application-properties` (AMQP 1.0)
 
 The `application-properties` property is a map that contains the custom
@@ -1305,7 +1269,7 @@ sent over [MQTT 3.1.1][MQTT 3.1.1] or [MQTT 5.0][MQTT 5.0] connections. The
 format describes the [MQTT PUBLISH packet][MQTT 5.0] content.
 
 The [`protocoloptions`](#protocoloptions) object contains the elements of the
-MQTT PUBLISH packet directly, with the `user_properties` element corresponding
+MQTT PUBLISH packet directly, with the `user-properties` element corresponding
 to the application properties collection of other protocols.
 
 The following properties are defined. The MQTT 3.1.1 and MQTT 5.0 columns
@@ -1316,17 +1280,12 @@ indicate whether the property is supported for the respective MQTT version.
 | `qos`                     | `integer`     | yes        | yes      | Quality of Service level         |
 | `retain`                  | `boolean`     | yes        | yes      | Retain flag                      |
 | `topic_name`              | `uritemplate` | yes        | yes      | Topic name                       |
-| `payload_format_indicator` | `integer`    | no         | yes      | Payload format indicator         |
+| `payload_format`          | `integer`     | no         | yes      | Payload format indicator         |
 | `message_expiry_interval` | `integer`     | no         | yes      | Message expiry interval          |
 | `response_topic`          | `uritemplate` | no         | yes      | Response topic                   |
 | `correlation_data`        | `binary`      | no         | yes      | Correlation data                 |
-| `content_type`            | `string`      | no         | yes      | MIME content type of the payload |
+| `content_type`            | `symbol`      | no         | yes      | MIME content type of the payload |
 | `user_properties`         | Array         | no         | yes      | User properties                  |
-
-Binary `correlation_data` is represented as a base64-encoded JSON string, not a
-URI template. `content_type` is a media type string, including any parameters;
-the `/` separator and parameter syntax do not satisfy the narrower `symbol`
-grammar. Its permitted string placeholders still follow the rules below.
 
 Like HTTP, MQTT allows for multiple user properties with the same name,
 so the `user_properties` property is an array of objects, each of which

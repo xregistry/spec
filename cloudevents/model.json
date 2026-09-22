@@ -2,9 +2,9 @@
   "$schema": "https://xregistry.io/xregistryspecs/core-v1/schemas/model.schema.json",
   "groups": {
     "$includes": [
-      "../endpoint/model.json#/groups",
-      "../message/model.json#/groups",
-      "../schema/model.json#/groups"
+      "../endpoint/model.json#groups",
+      "../message/model.json#groups",
+      "../schema/model.json#groups"
     ]
   }
 }

@@ -38,8 +38,6 @@
             "defaultversionurl": "#/categories/public/registries/canonical/versions/1",
             "defaultversionsticky": false
           },
-          "versionsurl": "#/categories/public/registries/canonical/versions",
-          "versionscount": 1,
           "versions": {
             "1": {
               "registryid": "canonical",
@@ -88,8 +86,6 @@
             "defaultversionurl": "#/categories/public/registries/mirror/versions/1",
             "defaultversionsticky": false
           },
-          "versionsurl": "#/categories/public/registries/mirror/versions",
-          "versionscount": 1,
           "versions": {
             "1": {
               "registryid": "mirror",
@@ -148,8 +144,6 @@
             "defaultversionurl": "#/categories/public/registries/aggregate/versions/1",
             "defaultversionsticky": false
           },
-          "versionsurl": "#/categories/public/registries/aggregate/versions",
-          "versionscount": 1,
           "versions": {
             "1": {
               "registryid": "aggregate",

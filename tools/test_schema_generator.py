@@ -124,38 +124,17 @@ class TestSchemaGenerator:
                 schema_data = json.load(schema_file)
             self.assert_json_structure(schema_data)
             assert set(schema_data['properties']) == {
-                'registryid', 'specversion', 'name', 'epoch', 'self', 'xid',
-                'description', 'documentation', 'labels', 'createdat', 'modifiedat',
-                'model', 'modelsource', 'capabilities',
-                'endpointsurl', 'endpointscount',
-                'messagegroupsurl', 'messagegroupscount',
-                'schemagroupsurl', 'schemagroupscount',
                 'endpoints', 'messagegroups', 'schemagroups'
             }
             assert set(schema_data['definitions']) == {
                 'Endpoints', 'Messagegroups', 'Schemagroups'
             }
             message = schema_data['definitions']['Messagegroups']['Message']
-            protocol_options = message['properties']['protocoloptions'][
+            protocol_properties = message['properties']['protocoloptions'][
                 'properties'
-            ]
-            # The AMQP sections that carry whole declaration records are
-            # opaque, so literal nulls and protocol-defined property names
-            # survive the Core attribute walk instead of being retyped.
-            for opaque in (
-                'properties', 'applicationProperties', 'messageAnnotations',
-                'deliveryAnnotations', 'footer',
-            ):
-                assert protocol_options[opaque]['type'] == 'any'
-                assert 'properties' not in protocol_options[opaque]
-            # Sections that keep their declared native kinds still map
-            # dashed protocol names onto camel-case members.
-            header_properties = protocol_options['header']['properties']
-            assert header_properties['deliveryCount']['altnames'] == {
-                'json': 'delivery-count'
-            }
-            assert header_properties['firstAcquirer']['altnames'] == {
-                'json': 'first-acquirer'
+            ]['properties']['properties']
+            assert protocol_properties['messageId']['altnames'] == {
+                'json': 'message-id'
             }
         finally:
             if os.path.exists(tmp_path):
@@ -298,10 +277,6 @@ class TestSchemaGenerator:
         if dataschema_field:
             # Should be a reference to GenericRecord, not an inline definition
             field_type = dataschema_field['type']
-            assert len(field_type) == 2
-            assert field_type[0] == 'null'
-            assert dataschema_field['default'] is None
-            field_type = field_type[1]
             assert field_type == 'io.xregistry.GenericRecord', \
                 "'any' type should map to GenericRecord reference"
 
