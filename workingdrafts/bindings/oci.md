@@ -55,10 +55,11 @@ An xRegistry `versionid`, an OCI tag, a Version manifest digest and the
 snapshot root digest are four distinct values. None substitutes for
 another, and an XID alone does not identify an entity across Registries.
 
-Consumption is read-only. Package construction and publication are
-separate operations. Write-through, replication, synchronization, delta
-replay, arbitrary domain-document dependency discovery and conflict
-resolution are outside this binding. An xRegistry HTTP facade is OPTIONAL
+Consuming a Package is read-only. Constructing and publishing a Package are
+separate operations. This binding does not define write-through,
+replication, synchronization, delta replay, arbitrary domain-document
+dependency discovery or conflict resolution. An xRegistry HTTP facade is
+OPTIONAL
 and MUST separately conform to [the HTTP binding](../../core/http.md).
 
 ### 1.1. Motivation and Example
@@ -240,7 +241,7 @@ silently ignored.
 
 Only the seven annotation suffixes `version`, `kind`, `xid`, `role`,
 `mode`, `lower`, and `upper` are defined in `io.xregistry.oci.`.
-Unknown keys in that namespace MUST be rejected in version 1. Other OCI
+A consumer MUST reject unknown keys in that namespace in version 1. Other OCI
 annotations MAY be included but MUST NOT carry REQUIRED containment,
 model, labels, or other authoritative entity metadata. Full metadata is
 stored in configs, not stringified JSON annotation values. Annotation
@@ -345,7 +346,8 @@ same one-interval-per-level lookup.
 Portable config `entity.xid` and Meta `xref` MAY retain another valid,
 URI-equivalent spelling. Their decoded, case-sensitive identity MUST agree
 with their canonical descriptor identity; their original bytes still determine
-the config digest and MUST NOT be rewritten during a read. JSON map keys and
+the config digest. Producers MUST NOT rewrite those bytes during a read.
+JSON map keys and
 document-local pointers use decoded IDs. Producers MUST reject duplicate
 decoded sibling identities, including Core's case-insensitive sibling
 collisions. Domain URLs, document base/origin and domain-document bytes are not
@@ -460,9 +462,9 @@ The following storage decomposition is REQUIRED:
   are detached and MUST NOT be duplicated in the `<RESOURCE>` or
   `<RESOURCE>base64` fields of configs. For Resource types with
   `hasdocument: false`, model-admitted attributes with these spellings, or
-  `<RESOURCE>url`, are ordinary metadata and MUST be preserved and validated
-  according to their model definitions, not dropped or interpreted as
-  Document content or locators.
+  `<RESOURCE>url`, are ordinary metadata. Consumers MUST preserve and
+  validate them according to their model definitions, and MUST NOT drop them
+  or interpret them as Document content or locators.
 
 The config schema supplements the Core model. It is not a second,
 hand-maintained full Resource schema. Core-required attributes, dynamic
@@ -515,8 +517,8 @@ A Version config MUST have a `document` object containing `mode`:
 | `external` | One `empty` layer. Core `<RESOURCE>url` names uncaptured content |
 | `metadata-only` | One `empty` layer. Resource model has `hasdocument: false` |
 
-An external URL MUST be absolute and credential-free. A relative
-domain-document locator MUST be resolved against its original retrieval
+An external URL MUST be absolute and credential-free. A consumer MUST
+resolve a relative domain-document locator against its original retrieval
 base before capture, never against an OCI repository, XID, or config
 blob path. A captured copy of an externally stored document uses
 `embedded`. Its original locator MAY be retained as `document.origin`,
@@ -531,8 +533,8 @@ of the original locator.
 `metadata-only` MUST agree with `hasdocument: false`. Such Versions MUST
 NOT carry a domain Document or a Document locator. Ordinary model-admitted
 metadata attributes named `<RESOURCE>`, `<RESOURCE>base64` or `<RESOURCE>url`
-do not constitute Document content or a locator and MUST NOT be decoded,
-fetched, dropped or rejected merely because of their names. All other modes
+do not constitute Document content or a locator. Consumers MUST NOT decode,
+fetch, drop or reject them merely because of their names. All other modes
 require `hasdocument` to be true. Among document-capable Versions, only
 `external` has the Core `<RESOURCE>url` Document locator.
 An `external` Version cannot claim to contain bytes. Missing an expected
@@ -572,10 +574,10 @@ document and does not invalidate offline completeness. An
 offline-complete claim does not guarantee availability of a domain
 document for every possible document request.
 
-External federation advertisements, descriptive relationships,
-documentation URLs, original model-source include URLs and arbitrary
-links inside domain documents are not recursively captured by this
-claim. Scope is exactly the single selected Registry snapshot, not every
+This claim does not recursively capture external federation advertisements,
+descriptive relationships, documentation URLs, original model-source include
+URLs or arbitrary links inside domain documents. Scope is exactly the single
+selected Registry snapshot, not every
 Registry mentioned by its metadata.
 
 ### 5.5. Core document-view results and local references
@@ -597,8 +599,8 @@ retrieval the document is the Core ID-keyed collection map.
 
 An implementation offering a different partial view MUST provide actual
 retrievable, Core-conforming absolute URLs for non-inlined navigation, or
-report `unsupported_operation`. An arbitrary implementation-defined
-`oci:` URI MUST NOT be presented as a conforming `self` URL.
+report `unsupported_operation`. A resolver MUST NOT present an arbitrary
+implementation-defined `oci:` URI as a conforming `self` URL.
 
 An `xref` Resource and Meta store only their source ID, XID, and, on
 Meta, `xref`. Their metadata result keeps source identity and excludes
@@ -778,21 +780,24 @@ by the Federation specification:
 | Network or storage access fails | `unavailable` |
 | External document content cannot be retrieved through the selected access method | `unavailable` |
 
-Duplicate JSON keys, invalid UTF-8 and non-JSON numbers MUST be rejected.
-Consumers MUST detect cycles and impose finite resource budgets. Budget
+Consumers MUST reject duplicate JSON keys, invalid UTF-8 and non-JSON
+numbers. Consumers MUST detect cycles and impose finite resource budgets.
+Budget
 exhaustion is not successful, truncated enumeration. Verification of a
 chosen path does not prove that every unvisited shard is well-formed.
 
 Use authenticated HTTPS and repository-scoped credentials under caller
 policy. OCI metadata MUST NOT contain credentials. Redirect destinations,
 external document URLs and filesystem roots require independent policy
-checks. Authorization headers MUST NOT be forwarded indiscriminately.
+checks. A layout reader MUST NOT forward Authorization headers
+indiscriminately.
 A layout reader MUST prevent path traversal and symlink or reparse-point
 escape. A blob name is derived from a validated digest, never from an ID.
 
 Untrusted document blobs are data, not executable code. Consumers MUST
-NOT execute hooks, start containers, extract archives or interpret domain
-links merely to traverse this profile. Integrity does not establish
+NOT execute hooks or start containers. They MUST NOT extract archives or
+interpret domain links merely to traverse this profile. Integrity does not
+establish
 publisher authorization. Trust decisions and OPTIONAL signature checks
 are distinct from format validity. Integrity and policy errors MUST NOT
 silently trigger fallback to another
