@@ -74,9 +74,10 @@ The profile name MUST be `file`. `endpoint` MUST be an absolute
 [RFC8089](https://www.rfc-editor.org/rfc/rfc8089) file URI identifying the
 selected directory. It MUST NOT contain credentials, a query or fragment.
 An absent authority or `localhost` means local access. Other authorities,
-including UNC servers, MUST produce `policy_denied` in this binding.
+including UNC (Universal Naming Convention) servers, MUST produce
+`policy_denied` in this binding.
 A separately named extension can define remote filesystem access policy.
-It MUST NOT be inferred from this profile.
+An implementation MUST NOT infer it from this profile.
 
 `parameters` contains only:
 
@@ -86,9 +87,9 @@ It MUST NOT be inferred from this profile.
 | `reference` | REQUIRED for `oci-layout`, forbidden for `document-tree`. An OCI tag or `sha256` digest under the OCI binding. |
 
 An unknown selected parameter MUST produce `unsupported_operation`.
-The layout MUST NOT be guessed from files in the directory or used as a
-fallback after a failure. Selecting a root among several OCI snapshots
-requires `reference`, not the first directory entry.
+The resolver MUST NOT guess the layout from files in the directory or use it
+as a fallback after a failure. Selecting a root among several OCI
+snapshots requires `reference`, not the first directory entry.
 
 ```json
 {
@@ -118,10 +119,17 @@ Windows drive-relative paths and older `C|` spellings are not accepted.
 
 URI parsing MUST validate escapes before decoding, decode UTF-8 exactly once,
 and reject NUL/control characters, backslashes, encoded separators and
-encoded dot/parent segments. After decoding, `.` and `..`, empty interior
-components, drive or device prefixes, alternate data streams, trailing
-spaces/dots and Windows-reserved component names MUST be rejected where
-applicable. A single terminal slash is permitted for a directory URI.
+encoded dot/parent segments. After decoding, URI parsing MUST reject:
+
+- `.` and `..`.
+- Empty interior components.
+- Drive or device prefixes.
+- Alternate data streams.
+- Trailing spaces and dots.
+- Windows-reserved component names.
+
+These rejections apply where applicable. A single terminal slash is
+permitted for a directory URI.
 Decoding a second time MUST NOT turn a literal percent sequence into traversal.
 
 The selected directory's spelling is a locator, not a new restriction on
@@ -131,8 +139,8 @@ filenames. The OCI layout uses its own digest-based names.
 ## Layout Selection and Reads
 
 For `document-tree`, the selected directory MUST contain `registry.json`.
-The [directory mapping format](mapping.md) defines
-all record/index schemas, exact bytes, model and capabilities reads,
+The [directory mapping format](mapping.md) defines all record and index
+schemas, and the exact bytes. It also defines model and capabilities reads,
 label selection, Core document view, defaults and `xref`. Every internal
 `href` is relative to this directory, not to a nested record's directory.
 No extra `xregistry` directory is implied.
@@ -153,9 +161,9 @@ For `oci-layout`, consumers MUST use the
 descriptor-graph rules. The directory contains OCI `oci-layout`, `index.json`
 and `blobs`. `index.json` can advertise multiple Registry snapshot roots.
 `reference` selects and pins exactly one eligible root under that binding.
-Tag ambiguity, root artifact validation, nested indexes, descriptor bounds,
-range selection, size/digest verification and complete containment closure
-are unchanged. This binding neither invents another OCI root-selection
+Tag ambiguity, root artifact validation, nested indexes and descriptor bounds
+are unchanged. So are range selection, size/digest verification and complete
+containment closure. This binding neither invents another OCI root-selection
 algorithm nor treats a layout index as a Distribution endpoint.
 
 The chosen OCI root identifies one Registry, not every root in the directory.
@@ -183,11 +191,12 @@ within that boundary, then constrain all internal reads to that selected
 root. A mere string prefix test is insufficient: `root-other` is not
 inside `root`.
 
-Every directory component, including components of the selected root, MUST
-be checked for symlinks and Windows reparse points. Internal objects MUST be
-regular files. Consumers MUST NOT follow symlinks, junctions, mount-point
-reparse records or other path redirections. Device files, pipes, sockets and
-alternate data streams MUST NOT be read as snapshot content.
+The resolver MUST check every directory component, including components of
+the selected root, for symlinks and Windows reparse points. Internal objects
+MUST be regular files. Consumers MUST NOT follow symlinks, junctions,
+mount-point reparse records or other path redirections. Consumers MUST NOT
+read device files, pipes, sockets and alternate data streams as snapshot
+content.
 Case folding, short-name aliases and reserved OS names MUST NOT select a
 different internal object. Git/File storage portability does not permit
 case-insensitive Core XID lookup.

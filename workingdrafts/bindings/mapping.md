@@ -459,8 +459,9 @@ or domain format.
 
 Paths MUST be nonempty, normalized root-relative strings with `/` separators.
 They MUST NOT be absolute, contain empty components, `.` or `..` components,
-backslashes, NUL/control characters or surrogate code points. URI decoding
-MUST NOT be applied. Encoded separator/dot traversal tricks MUST be rejected.
+backslashes, NUL/control characters or surrogate code points. A consumer
+MUST NOT apply URI decoding. It MUST reject encoded separator/dot traversal
+tricks.
 Portable paths MUST NOT contain `<>:"|?*`, end a component with a space or
 period, or use Windows device names such as `CON` and `NUL`.
 Other Unicode names and spaces within components are permitted. Platform
@@ -470,8 +471,8 @@ Metadata files describing different records or indexes MUST have distinct
 paths. Paths whose spellings differ only by case MUST NOT designate different
 mapping objects, because such mappings are ambiguous on case-insensitive
 filesystems. Several Versions MAY reference the same local document file
-using the same path and identical size/digest values. A document path MUST
-NOT also be allocated to a metadata record or index.
+using the same path and identical size/digest values. A producer MUST NOT
+also allocate a document path to a metadata record or index.
 
 An index maps a full, case-sensitive XID to a storage path. That path is not
 derived from the entity ID. The mapping therefore supports all Core-valid
@@ -521,10 +522,10 @@ are literal Core path components. Group and Resource type names MUST be
 validated against the captured model. Resource and Version extension metadata
 MUST stay on the entity to which the model assigns it.
 
-Storage metadata MUST omit `self`, `shortself`, `metaurl`,
-`defaultversionurl`, collection navigation/counts, nested entity collections,
-and Version `formatvalidated`, `compatibilityvalidated`, and their reason
-attributes.
+Storage metadata MUST omit `self`, `shortself`, `metaurl` and
+`defaultversionurl`. It MUST also omit collection navigation/counts, nested
+entity collections, and Version `formatvalidated`, `compatibilityvalidated`,
+and their reason attributes.
 For a Resource model with `hasdocument: true`, it MUST NOT contain inlined
 `<RESOURCE>` or `<RESOURCE>base64` document content. These omissions do not
 permit dropping other Core or extension data. In particular, an ordinary
@@ -588,9 +589,10 @@ be the actual full Core model, not a compact source relabeled as a full model.
 It MUST agree with the source, its resolved includes and the captured data.
 
 If the source contains `$include` or `$includes`, the Registry record MUST
-also contain `resolvedmodelsource`: the compact source after those includes
-were evaluated at capture time, but before implicit Core definitions and
-`ximportresources` expansion. This object MUST be self-contained and preserve
+also contain `resolvedmodelsource`. That object is the compact source after
+those includes were evaluated at capture time, but before implicit Core
+definitions and `ximportresources` expansion. This object MUST be
+self-contained and preserve
 Resource type sharing. `modelbase` MUST record the absolute base of the
 original source. Consumers MUST NOT re-fetch mutable includes during a read.
 The producer MUST establish equivalence of the captured source, resolved
@@ -650,14 +652,15 @@ explicit external location. A missing referenced local file is an
 A zero-byte local document MUST reference an actual zero-byte file, with
 `size: 0` and SHA-256
 `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`.
-Binary and JSON bytes MUST NOT be decoded, reserialized, newline-converted
-or replaced by an empty JSON wrapper. The Version's `contenttype`,
+Consumers MUST NOT decode, reserialize, newline-convert or replace binary
+and JSON bytes with an empty JSON wrapper. The Version's `contenttype`,
 if present, describes the bytes independently of the file's extension.
 
 For `hasdocument: false`, `document.kind` MUST be `none`; the Core document
-attributes do not apply. Ordinary model-admitted metadata named `<RESOURCE>`,
-`<RESOURCE>base64` or `<RESOURCE>url` MUST be preserved and validated as
-metadata, not decoded or dereferenced as document content. A document request
+attributes do not apply. Consumers MUST preserve and validate ordinary
+model-admitted metadata named `<RESOURCE>`, `<RESOURCE>base64` or
+`<RESOURCE>url` as metadata, and MUST NOT decode or dereference it as
+document content. A document request
 MUST produce `unsupported_operation`. This is distinct from a present
 zero-byte document.
 
@@ -698,8 +701,9 @@ Registry and Group results inline all child metadata. Ordinary Resource
 results inline `meta` and all Version metadata. `metaurl`, `versionsurl`,
 and the Meta's `defaultversionurl` MUST point at those actual objects.
 Collection URLs and counts, when included, MUST describe the materialized
-maps, including empty maps. Default-Version attributes MUST NOT also be
-copied onto the Resource. No response in this format invents an API `self`.
+maps, including empty maps. A producer MUST NOT also copy Default-Version
+attributes onto the Resource. No response in this format invents an API
+`self`.
 
 A standalone ordinary Meta result includes its selected default Version
 metadata in an envelope sibling, `related.defaultversion`. Its
@@ -773,8 +777,8 @@ these failures.
 
 All data in a [package](../federation/spec.md#notations-and-terminology), the
 stored mapping and its referenced documents, is untrusted. Producers MUST
-use regular files and real
-directories, not symlinks, reparse points, parent paths, device names, alternate
+use regular files and real directories. They MUST NOT use symlinks, reparse
+points, parent paths, device names, alternate
 data streams or OS aliases. Consumers MUST enforce selected-root containment
 before reading bytes. Dot segments, empty components, backslashes, absolute
 paths are not valid `href` syntax. Percent encodings that could be interpreted
@@ -795,10 +799,18 @@ requirement to implement a server or an API-view facade.
 
 ## Executable Example
 
-The [shared fixture](samples/mapping/registry.json) contains typed
-collections, explicit defaults, JSON, empty and binary documents, a
-metadata-only catalog entry, a Windows-reserved ID, type-sharing aliases,
-a dangling alias and an alias chain. An empty independent collection
+The [shared fixture](samples/mapping/registry.json) contains:
+
+- Typed collections.
+- Explicit defaults.
+- JSON, empty and binary documents.
+- A metadata-only catalog entry.
+- A Windows-reserved ID.
+- Type-sharing aliases.
+- A dangling alias.
+- An alias chain.
+
+An empty independent collection
 demonstrates a distinct Resource model type.
 
 The fixture's local `.gitattributes` retains LF for JSON records and disables
