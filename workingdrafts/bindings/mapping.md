@@ -4,7 +4,7 @@
 <!-- words: modelsource hasdocument defaultversionid defaultversionsticky -->
 <!-- words: ancestorid isdefault formatversion href readonly ximportresources -->
 <!-- words: casefold subtrees filesystem filenames bytecode smudge -->
-<!-- words: federationerror namespace namespaces py reserialized -->
+<!-- words: federationerror namespace namespaces py reserialized reserialize -->
 <!-- words: standalone workingdrafts -->
 <!-- words: gitattributes checkout -->
 <!-- words: formatvalidated compatibilityvalidated -->
