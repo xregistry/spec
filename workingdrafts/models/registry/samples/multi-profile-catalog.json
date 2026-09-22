@@ -38,8 +38,6 @@
             "defaultversionurl": "#/categories/public/registries/schemas/versions/2",
             "defaultversionsticky": true
           },
-          "versionsurl": "#/categories/public/registries/schemas/versions",
-          "versionscount": 2,
           "versions": {
             "1": {
               "registryid": "schemas",

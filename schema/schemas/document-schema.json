@@ -2,75 +2,11 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://xregistry.io/xreg/xregistryspecs/schema-v1/schemas/document-schema.json",
   "properties": {
-    "name": {
-      "type": "string",
-      "description": "Name of the object"
-    },
-    "epoch": {
-      "type": "integer",
-      "description": "Epoch time of the object creation"
-    },
-    "self": {
-      "type": "string",
-      "format": "uri-reference",
-      "description": "URL of the object"
-    },
-    "xid": {
-      "type": "string",
-      "format": "xid",
-      "description": "Relative URL of the object"
-    },
-    "description": {
-      "type": "string",
-      "description": "Description of the object"
-    },
-    "documentation": {
-      "type": "string",
-      "format": "uri-reference",
-      "description": "URI of the documentation of the object"
-    },
-    "labels": {
-      "type": "object",
-      "description": "Labels for the object"
-    },
-    "createdat": {
-      "type": "string",
-      "format": "date-time",
-      "description": "Time of the object creation"
-    },
-    "modifiedat": {
-      "type": "string",
-      "format": "date-time",
-      "description": "Time of the object modification"
-    },
-    "registryid": {
-      "type": "string"
-    },
-    "specversion": {
-      "type": "string"
-    },
-    "model": {
-      "type": "object"
-    },
-    "modelsource": {
-      "type": "object"
-    },
-    "capabilities": {
-      "type": "object"
-    },
     "schemagroups": {
       "type": "object",
       "additionalProperties": {
         "$ref": "#/definitions/schemagroup-schema/schemagroup"
       }
-    },
-    "schemagroupsurl": {
-      "type": "string",
-      "format": "uri-reference"
-    },
-    "schemagroupscount": {
-      "type": "integer",
-      "minimum": 0
     }
   },
   "definitions": {
@@ -96,7 +32,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri-reference",
+            "format": "uri",
             "description": "URL of the object"
           },
           "xid": {
@@ -110,7 +46,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri-reference",
+            "format": "uri",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -127,74 +63,52 @@
             "format": "date-time",
             "description": "Time of the object modification"
           },
-          "schema": {
-            "description": "Embedded schema object",
-            "oneOf": [
-              {
-                "type": "object"
-              },
-              {
-                "type": "string"
-              }
-            ]
-          },
-          "schemabase64": {
-            "type": "string",
-            "format": "base64"
-          },
-          "schemaurl": {
-            "type": "string",
-            "format": "uri-reference"
-          },
-          "ancestorid": {
-            "type": "string"
-          },
-          "isdefault": {
-            "type": "boolean"
-          },
-          "contenttype": {
-            "type": "string"
-          },
           "format": {
             "type": "string"
           }
         },
         "oneOf": [
           {
+            "properties": {
+              "schema": {
+                "description": "Embedded schema object",
+                "oneOf": [
+                  {
+                    "type": "object"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              }
+            },
             "required": [
               "schema"
             ]
           },
           {
+            "properties": {
+              "schemabase64": {
+                "description": "Embedded schema object as binary data",
+                "type": "string",
+                "format": "base64"
+              }
+            },
             "required": [
               "schemabase64"
             ]
           },
           {
+            "properties": {
+              "schemaurl": {
+                "description": "Linked schema object",
+                "type": "string",
+                "format": "uri"
+              }
+            },
             "required": [
               "schemaurl"
             ]
-          },
-          {
-            "not": {
-              "anyOf": [
-                {
-                  "required": [
-                    "schema"
-                  ]
-                },
-                {
-                  "required": [
-                    "schemabase64"
-                  ]
-                },
-                {
-                  "required": [
-                    "schemaurl"
-                  ]
-                }
-              ]
-            }
           }
         ],
         "required": [
@@ -218,7 +132,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri-reference",
+            "format": "uri",
             "description": "URL of the object"
           },
           "xid": {
@@ -232,7 +146,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri-reference",
+            "format": "uri",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -248,157 +162,33 @@
             "type": "string",
             "format": "date-time",
             "description": "Time of the object modification"
-          },
-          "schema": {
-            "description": "Embedded schema object",
-            "oneOf": [
-              {
-                "type": "object"
-              },
-              {
-                "type": "string"
-              }
-            ]
-          },
-          "schemabase64": {
-            "type": "string",
-            "format": "base64"
-          },
-          "schemaurl": {
-            "type": "string",
-            "format": "uri-reference"
-          },
-          "metaurl": {
-            "type": "string",
-            "format": "uri-reference"
-          },
-          "meta": {
-            "type": "object",
-            "properties": {
-              "name": {
-                "type": "string",
-                "description": "Name of the object"
-              },
-              "epoch": {
-                "type": "integer",
-                "description": "Epoch time of the object creation"
-              },
-              "self": {
-                "type": "string",
-                "format": "uri-reference",
-                "description": "URL of the object"
-              },
-              "xid": {
-                "type": "string",
-                "format": "xid",
-                "description": "Relative URL of the object"
-              },
-              "description": {
-                "type": "string",
-                "description": "Description of the object"
-              },
-              "documentation": {
-                "type": "string",
-                "format": "uri-reference",
-                "description": "URI of the documentation of the object"
-              },
-              "labels": {
-                "type": "object",
-                "description": "Labels for the object"
-              },
-              "createdat": {
-                "type": "string",
-                "format": "date-time",
-                "description": "Time of the object creation"
-              },
-              "modifiedat": {
-                "type": "string",
-                "format": "date-time",
-                "description": "Time of the object modification"
-              },
-              "schemaid": {
-                "type": "string"
-              },
-              "xref": {
-                "type": "string",
-                "format": "uri-reference",
-                "pattern": "^/"
-              },
-              "readonly": {
-                "type": "boolean"
-              },
-              "compatibility": {
-                "type": "string"
-              },
-              "deprecated": {
-                "type": "object",
-                "properties": {
-                  "effective": {
-                    "type": "string",
-                    "format": "date-time"
-                  },
-                  "removal": {
-                    "type": "string",
-                    "format": "date-time"
-                  },
-                  "alternative": {
-                    "type": "string",
-                    "format": "uri-reference"
-                  },
-                  "documentation": {
-                    "type": "string",
-                    "format": "uri-reference"
-                  }
-                }
-              },
-              "defaultversionid": {
-                "type": "string"
-              },
-              "defaultversionurl": {
-                "type": "string",
-                "format": "uri-reference"
-              },
-              "defaultversionsticky": {
-                "type": "boolean"
-              }
-            }
-          },
-          "versionsurl": {
-            "type": "string",
-            "format": "uri-reference"
-          },
-          "versionscount": {
-            "type": "integer",
-            "minimum": 0
-          },
-          "versions": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/definitions/schemagroup-schema/schemaVersion"
-            }
           }
         },
-        "anyOf": [
+        "oneOf": [
           {
+            "properties": {
+              "versionsurl": {
+                "type": "string"
+              },
+              "versionscount": {
+                "type": "integer"
+              }
+            },
             "required": [
               "versionsurl"
             ]
           },
           {
-            "required": [
-              "versions"
-            ]
-          },
-          {
             "properties": {
-              "meta": {
-                "required": [
-                  "xref"
-                ]
+              "versions": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/definitions/schemagroup-schema/schemaVersion"
+                }
               }
             },
             "required": [
-              "meta"
+              "versions"
             ]
           }
         ]
@@ -420,7 +210,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri-reference",
+            "format": "uri",
             "description": "URL of the object"
           },
           "xid": {
@@ -434,7 +224,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri-reference",
+            "format": "uri",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -459,18 +249,9 @@
             "additionalProperties": {
               "$ref": "#/definitions/schemagroup-schema/schema"
             }
-          },
-          "schemasurl": {
-            "type": "string",
-            "format": "uri-reference"
-          },
-          "schemascount": {
-            "type": "integer",
-            "minimum": 0
           }
         }
       }
     }
-  },
-  "type": "object"
+  }
 }

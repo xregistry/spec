@@ -3,7 +3,7 @@ from re import Match
 from typing import Optional
 
 import pytest
-from tools.verify import (
+from verify import (
     _BANNED_PHRASES_PATTERN,
     _CAPITAL_DASH_PATTERN,
     _FAKE_DOCS_DIR,

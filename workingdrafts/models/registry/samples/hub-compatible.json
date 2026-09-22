@@ -38,8 +38,6 @@
             "defaultversionurl": "#/categories/oci/registries/docker-hub/versions/1",
             "defaultversionsticky": false
           },
-          "versionsurl": "#/categories/oci/registries/docker-hub/versions",
-          "versionscount": 1,
           "versions": {
             "1": {
               "registryid": "docker-hub",
@@ -87,8 +85,6 @@
             "defaultversionurl": "#/categories/dev/registries/schema-bridge/versions/1",
             "defaultversionsticky": false
           },
-          "versionsurl": "#/categories/dev/registries/schema-bridge/versions",
-          "versionscount": 1,
           "versions": {
             "1": {
               "registryid": "schema-bridge",
@@ -136,8 +132,6 @@
             "defaultversionurl": "#/categories/community/registries/directory/versions/1",
             "defaultversionsticky": false
           },
-          "versionsurl": "#/categories/community/registries/directory/versions",
-          "versionscount": 1,
           "versions": {
             "1": {
               "registryid": "directory",

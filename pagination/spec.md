@@ -171,8 +171,8 @@ Each successful response from the server MUST adhere to the following:
   `next` Link MUST be included in the response.
 - The response MAY include the `last` Link in any response.
 - The response MAY include the `expires` attribute in any response as an
-  HTTP "Expires" header. If present, it MUST use the `HTTP-date` format
-  specified in [RFC7234](https://tools.ietf.org/html/rfc7234#section-5.3).
+  HTTP "Expires" header. If present, it MUST adhere to the format specified in
+  [RFC3339](https://tools.ietf.org/html/rfc7234#section-5.3).
 - It is STRONGLY RECOMMENDED that all responses include the `count` attribute.
 
 Additionally, Links MUST appear in the HTTP response as HTTP headers using
@@ -187,7 +187,7 @@ Link: <http://example.com?limit=100&offset=1>;rel=prev
 Example 2:
 ```
 Link: <http://example.com?resultset=83d71>;rel=next
-Expires: Wed, 01 Dec 2021 16:00:00 GMT
+Expires: Thu, 01 Dec 2021 16:00:00 GMT
 ```
 
 Example 3:
