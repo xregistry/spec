@@ -2,8 +2,9 @@
 
 <!-- words: opc opcua OpenUSD pytest readme ua workingdrafts -->
 <!-- words: namespace validators -->
+<!-- words: usd MaterialX plugins federatable -->
 
-The specifications in this directory are under active development and can change independently of released xRegistry specifications. 
+The specifications in this directory are under active development and can change independently of released xRegistry specifications.
 They are included for discussion and review and are not part of a released xRegistry specification.
 
 ## Federation Specification Family
@@ -51,6 +52,33 @@ The [Registry model artifacts](models/registry/README.md) and
 [conformance examples](federation/samples/README.md) accompany these drafts.
 Core `xref` remains a same-Registry, same-Resource-model-type mechanism.
 Federation does not redefine it as a remote URL.
-xamples use `python -m` so imports resolve across bundles.
-Shared generators and documentation checkers remain in the repository's
-central [tools directory](../tools).
+
+## OpenUSD Artifact Registry
+
+The OpenUSD draft is a domain model rather than a federation binding. It
+defines how an xRegistry stores and describes the artifacts that make up an
+[OpenUSD](https://openusd.org) scene: layers, packages, textures, MaterialX
+documents, volumes and schema plugins.
+
+| Specification | Scope |
+| --- | --- |
+| [OpenUSD Artifact Registry](models/openusd/spec.md) | Asset containers, artifact Resources, identifiers and the dependency closure. |
+| [Model artifacts](models/openusd/README.md) | The authoritative model and its identifier tests. |
+
+A stage is opened against one root layer, which pulls in others through
+composition arcs. The transitive set is the **dependency closure**, and a
+Consumer missing any member of it cannot compose the scene correctly. The
+draft makes that closure describable, verifiable through per-Version digests,
+versioned through Core rules, and federatable across registries.
+
+Because the registry is an xRegistry document store, an existing USD asset
+resolver can retrieve an artifact by URL without any xRegistry awareness. The
+draft also acts as the wire-format peer of an OPC UA projection of the same
+model, with which it shares collection names, attribute names and identifier
+rules. That projection is defined externally, and this draft does not depend
+on it.
+
+Cross-references to the xRegistry [Schema](../schema/spec.md) and
+[Endpoint](../endpoint/spec.md) registries are informative. An implementation
+MAY validate them, but the draft does not require that every referent
+resolves.
