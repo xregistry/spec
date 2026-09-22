@@ -37,9 +37,10 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
 "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" are to be
 interpreted as described in [RFC2119][rfc2119].
 
-Core owns entity types, IDs, labels, default Versions, `xref`, document
-view, errors and request flags. The HTTP binding owns methods, paths,
-`$details`, HTTP metadata headers and the wire representation of flags.
+Core owns entity types, IDs, labels and default Versions. Core also owns
+`xref`, document view, errors and request flags. The HTTP binding owns
+methods, paths, `$details`, HTTP metadata headers and the wire
+representation of flags.
 [HTTP Semantics][http] and [HTTP Caching][cache] own HTTP processing.
 Requirements here apply to federation resolvers. They do not turn an
 OPTIONAL Core API into a mandatory server API or redefine CRUD operations.
@@ -101,8 +102,8 @@ The described Registry's `registryid` need not equal the catalog entry ID.
 
 The chosen advertisement establishes a new Registry context. The resolver
 MUST discover the target's version, model and capabilities independently
-of the catalog. It MUST NOT transfer catalog credentials, compatibility
-assumptions or label requirements to that target.
+of the catalog. The resolver MUST NOT transfer catalog credentials,
+compatibility assumptions or label requirements to that target.
 
 ## Registry Root and Version Discovery
 
@@ -125,8 +126,8 @@ before interpreting model-dependent entities. A known, explicitly supported
 Core version is necessary. Parsing JSON is not a compatibility check.
 An unsupported version MUST produce `unsupported_version`. If supported,
 Core's `specversion` flag can request a compatible representation, but the
-resolver MUST verify the version actually returned. Silently ignoring a
-query parameter MUST NOT be mistaken for successful negotiation.
+resolver MUST verify the version actually returned. The resolver MUST NOT
+mistake a silently ignored query parameter for successful negotiation.
 
 `GET B/model` retrieves the interpreted model. `GET B/modelsource`, when
 available, retrieves the client-provided source and preserves information
@@ -195,8 +196,9 @@ order or the greatest Version identifier.
 An explicit Version target MUST select that exact, case-sensitive Version.
 When a multi-request operation needs both default metadata and bytes, the
 resolver SHOULD record the selected default Version ID and use its explicit
-Version URLs for subsequent requests. It MUST detect a changed selection
-when claiming a consistent capture. Version IDs themselves do not make a
+Version URLs for subsequent requests. The resolver MUST detect a changed
+selection when claiming a consistent capture. Version IDs themselves do not
+make a
 live Version immutable.
 
 For document-bearing types, body `self` links to Resource/Version metadata
@@ -272,16 +274,18 @@ A resolver MUST process collection pages according to the
 [pagination specification](../../pagination/spec.md). It MUST follow each
 necessary `Link` with `rel=next`, resolve a relative link against the
 response request URL, and then use that link without editing its query.
-It MUST NOT synthesize page numbers, reattach the original filter, or add
-`limit` to subsequent links. Pagination links have the same credential and
+The resolver MUST NOT synthesize page numbers, reattach the original filter,
+or add `limit` to subsequent links. Pagination links have the same credential
+and
 locator policy checks as redirects.
 
 Unique label selection requires the complete relevant candidate set. A
 match on the first page is not proof of uniqueness. No match after complete
 enumeration yields `not_found`. A second match yields `ambiguous`.
 An unavailable later page or a traversal limit MUST NOT become either a
-unique result or `not_found`. Conflicting duplicates, changed declared
-totals or an incomplete capture MUST be reported, not silently merged.
+unique result or `not_found`. The resolver MUST report conflicting
+duplicates, changed declared totals or an incomplete capture, and MUST NOT
+silently merge them.
 
 If filtering is unavailable, the resolver MUST enumerate the relevant
 unfiltered collection and apply the common selector locally. This applies
@@ -310,8 +314,8 @@ to RFC 9111 section 4.3.4. Without one, it needs an unconditional read or an
 explicit failure. `If-Modified-Since` and `Last-Modified` have HTTP's
 semantics and precedence, not Core timestamp semantics.
 
-`If-Match` uses strong comparison. A weak ETag MUST NOT be used where a
-strong validator is needed. A resolver assembling partial bytes MUST apply
+`If-Match` uses strong comparison. A resolver MUST NOT use a weak ETag where
+a strong validator is needed. A resolver assembling partial bytes MUST apply
 RFC 9110 sections 13.1.5 and 14, validate `Content-Range` and representation
 identity, and account for every byte. A weak ETag is not valid for
 `If-Range`. An HTTP-date is usable there only under HTTP's strong-validator
@@ -338,8 +342,9 @@ domain content, not another Registry root. Other redirects can relocate
 an endpoint or representation. The resolver MUST distinguish these cases.
 
 Every redirect, advertised endpoint, next link and external document URL
-MUST pass caller policy, including scheme, destination, network access and
-redirect limits. The resolver MUST reject embedded credentials and MUST NOT
+MUST pass caller policy. That policy includes scheme, destination, network
+access and redirect limits. The resolver MUST reject embedded credentials
+and MUST NOT
 automatically forward Authorization, cookies, client credentials or
 origin-specific conditional headers across a trust boundary. Destination
 credentials require independent authorization. HTTPS downgrade and access
@@ -375,8 +380,9 @@ incomplete, the outcome is `inconsistent_snapshot`.
 For a multi-request capture, the resolver SHOULD recheck the default
 selection and the representations on which the capture depends. A changed
 default, changed representation, conflicting membership or interrupted
-page/byte sequence invalidates a claim of consistent capture. It MUST
-report `inconsistent_snapshot` and discard that claim. It MAY start a new,
+page/byte sequence invalidates a claim of consistent capture. The resolver
+MUST report `inconsistent_snapshot` and discard that claim. It MAY start a
+new,
 separately identified operation. A fresh capture is not a silent continuation
 using mixed old and new state.
 
@@ -397,8 +403,8 @@ Common errors are resolver outcomes, not additional Core HTTP errors:
 | Transport failure, rate limit or transient server failure outside a completed capture | `unavailable` |
 
 The resolver MUST retain the HTTP status and any Core error detail.
-`api_not_found` is not an absent entity. A generic `404` without enough
-context MUST NOT be used to invent an empty collection. Failure of a
+`api_not_found` is not an absent entity. The resolver MUST NOT use a generic
+`404` without enough context to invent an empty collection. Failure of a
 previously identified member during capture is also evidence of incomplete
 capture, not proof of a consistent deletion history.
 
@@ -412,9 +418,19 @@ HTTP conformance. This document does not require query support from a
 no-code server.
 
 [Offline examples](../federation/samples/http/README.md) contain exact
-request mappings and synthetic transcripts for a full API, a no-code catalog,
-a non-root base path, later-page ambiguity, literal labels, validators,
-document redirects, unsupported versions and inconsistent captures. They
+request mappings and synthetic transcripts for:
+
+- A full API.
+- A no-code catalog.
+- A non-root base path.
+- Later-page ambiguity.
+- Literal labels.
+- Validators.
+- Document redirects.
+- Unsupported versions.
+- Inconsistent captures.
+
+They
 do not contact the public hub or establish runtime interoperability.
 
 The observed hub's read-only capabilities and a followed Registry advertising

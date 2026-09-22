@@ -37,7 +37,7 @@ document are to be interpreted as described in
 This binding implements the read contract of
 [federation](../federation/spec.md), using Core and Model Version 1.0-rc4.
 It defines no write-through, synchronization, checkout, build or repository
-execution. Package publication is separate from federation consumption.
+execution. Publishing a Package is separate from consuming a federation.
 
 ## Motivation and Example
 
@@ -76,8 +76,9 @@ are not part of this binding. A web page URL is not implicitly a repository.
 A full ref MUST begin with `refs/` and pass Git's
 [`check-ref-format`](https://git-scm.com/docs/git-check-ref-format) rules.
 For example, `refs/heads/main` and `refs/tags/release-1` are valid.
-`HEAD`, branch shorthand, abbreviated OIDs, reflog selectors, revision ranges,
-`~`, `^` expressions and `:<path>` expressions MUST NOT be accepted.
+The resolver MUST NOT accept `HEAD`, branch shorthand, abbreviated object IDs
+(OIDs), reflog selectors, revision ranges, `~`, `^` expressions or `:<path>`
+expressions.
 A complete object ID consists of exactly 40 or 64 hexadecimal characters,
 matching the repository's object format. Readers normalize its spelling to
 lowercase for the pin. A full ref is a selection input, not an immutable pin.
@@ -114,10 +115,11 @@ permitted, but MUST NOT create or execute a working tree. Any acquisition
 MUST be explicit, bounded and complete for the requested operation.
 
 The resolver MUST resolve `revision` once. Lightweight tags and branches
-select their referenced object. Annotated tags MUST be peeled to a commit.
-An object that cannot resolve to a commit is invalid selection input.
-The resulting complete commit OID MUST be recorded and remain pinned for the
-entire operation, including model, label and document reads. Movement of the
+select their referenced object. The resolver MUST peel annotated tags to a
+commit. An object that cannot resolve to a commit is invalid selection input.
+The resolver MUST record the resulting complete commit OID, which remains
+pinned for the entire operation, including model, label and document reads.
+Movement of the
 original ref MUST NOT change that pin or trigger a second resolution.
 Consumers MUST NOT substitute a currently reachable or newer commit when
 the selected commit is inaccessible.
@@ -133,9 +135,10 @@ stays at its current paths. The mapping, rather than the physical directory
 layout, determines its Group, Resource and Version hierarchy. Files not
 referenced by that mapping do not participate in the Registry's closure.
 
-Records, indexes and documents MUST be read as blob payloads. Consumers MUST
-NOT use checkout bytes, text conversion, clean/smudge filters, attributes,
-LFS downloads, hooks, external diff commands, build steps or repository code.
+Consumers MUST read records, indexes and documents as blob payloads.
+Consumers MUST NOT use checkout bytes, text conversion, clean/smudge filters
+or attributes. They MUST NOT use LFS downloads, hooks, external diff
+commands, build steps or repository code.
 Blob mode `100644` or `100755` denotes data. Executable permission does not
 authorize execution. Git object type and identity MUST be verified, in
 addition to the format's descriptor size and SHA-256.
@@ -212,8 +215,9 @@ Readers using Git subprocesses MUST pass validated arguments directly without
 shell evaluation, and MUST isolate unsafe configuration/environment settings.
 
 Acquisition, tag peeling, tree traversal and object reads MUST have explicit
-resource limits. Limits or incomplete acquisition MUST NOT be reported as
-successful empty results or used to justify fallback to another profile.
+resource limits. A resolver MUST NOT report limits or incomplete acquisition
+as successful empty results, or use them to justify fallback to another
+profile.
 Git content identity alone does not authenticate the publisher. Signature
 and repository trust policies are independent.
 
