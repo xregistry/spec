@@ -24,7 +24,7 @@ xRegistry document format and API [specification][xRegistry Core]. An OpenUSD
 Artifact Registry allows the storage, management, discovery and federation
 of [OpenUSD][OpenUSD] (Universal Scene Description) artifacts. Those artifacts
 are the layers, packages, textures, MaterialX documents, volumes and schema
-plugins that a consumer needs to compose and render a USD stage.
+plugins that a Consumer needs to compose and render a USD stage.
 
 ## Table of Contents
 
@@ -42,6 +42,7 @@ plugins that a consumer needs to compose and render a USD stage.
       - [2.2.1. USD Asset](#221-usd-asset)
       - [2.2.2. Asset Identifier](#222-asset-identifier)
       - [2.2.3. Schema Plugin](#223-schema-plugin)
+      - [2.2.4. Consumer and Producer](#224-consumer-and-producer)
     - [2.3. Asset Container Group](#23-asset-container-group)
     - [2.4. Schema Plugin Group](#24-schema-plugin-group)
   - [3. OpenUSD Registry Model](#3-openusd-registry-model)
@@ -73,7 +74,7 @@ An OpenUSD Artifact Registry provides a repository for managing the artifacts
 that make up an [OpenUSD][OpenUSD] scene: **layers** (`.usda`, `.usdc`,
 `.usd`), **packages** (`.usdz`), the **textures**, **MaterialX** documents and
 **volumes** those layers reference, and the **schema plugins** that teach a
-consumer about vendor-defined prim types.
+Consumer about vendor-defined prim types.
 
 USD itself deliberately says nothing about where assets live. A layer refers
 to another asset by writing an **asset identifier** between `@` characters —
@@ -81,7 +82,7 @@ for example `@./pump.usda@` — and delegates the job of turning that string int
 retrievable bytes to an **asset resolver**. Every deployment therefore invents
 its own answer: a file share, an object store, a version-control checkout, a
 vendor asset service. Those answers do not interoperate, and none of them
-carries the metadata a consumer needs in order to know *whether it has
+carries the metadata a Consumer needs in order to know *whether it has
 everything*, *whether the bytes are intact*, or *which revision it is looking
 at*.
 
@@ -89,12 +90,12 @@ An OpenUSD Artifact Registry is that missing answer, expressed once. An
 OpenUSD Artifact Registry makes a set of USD artifacts:
 
 - **Discoverable** — what does this scene consist of?
-- **Verifiable** — are these the bytes the publisher intended?
+- **Verifiable** — are these the bytes the Producer intended?
 - **Versioned** — which revision, and what came before it?
 - **Federatable** — this registry does not host that texture, but it knows
   which registry does.
 
-Because the registry is an xRegistry document store, a consumer that knows
+Because the registry is an xRegistry document store, a Consumer that knows
 nothing about xRegistry can still retrieve an artifact by URL, which means an
 existing USD asset resolver can be pointed at a registry with no changes to the
 authored scene.
@@ -107,14 +108,14 @@ one texture, one MaterialX document, one plugin manifest.
 Artifacts are not useful in isolation. A stage is opened against a single
 **root layer**, and that root layer pulls in others through composition arcs —
 sublayers, references, payloads — which in turn reference textures and
-materials. The transitive set is the **dependency closure**, and a consumer
+materials. The transitive set is the **dependency closure**, and a Consumer
 that is missing any member of it cannot compose the scene correctly: USD will
 either fail to open the layer or, worse, compose a scene with silently missing
 opinions.
 
 This specification therefore groups artifacts by **asset container**: a named
 collection holding a root layer together with everything reachable from it.
-The asset container is the unit a publisher curates, a consumer retrieves, and
+The asset container is the unit a Producer curates, a Consumer retrieves, and
 an authorization policy protects.
 
 ### 1.2. Relationship to Other xRegistry Specs
@@ -137,7 +138,7 @@ This specification is also the wire-format peer of an OPC UA projection of the
 same model. In that projection, the registry appears in an OPC UA AddressSpace
 and each artifact is retrieved through the OPC UA file-transfer interface. The
 two projections share collection names, attribute names and the identifier
-rules of [Section 5.1](#51-asset-identifiers-and-xids). A client MAY therefore
+rules of [Section 5.1](#51-asset-identifiers-and-xids). A Consumer MAY therefore
 move between them without re-resolving anything. That projection is defined
 externally and this specification does not depend on it.
 
@@ -154,7 +155,7 @@ The **asset identifier binds to the Resource, not to the Version.** All
 Versions of one `usdasset` share one `assetidentifier` and one `usdassetid`.
 They differ only in `versionid`. This is what makes an authored `@...@`
 reference durable. A layer that pinned a particular revision would defeat the
-registry's ability to serve a corrected artifact. A consumer that resolved
+registry's ability to serve a corrected artifact. A Consumer that resolved
 an identifier to a Version would re-resolve to a different artifact whenever a
 new revision was published.
 
@@ -191,7 +192,7 @@ tooling: **a Resource Version's `self` URL is a valid USD asset path.** A USD
 asset resolver plugin uses the bounded metadata locations in
 [Section 5.1.1](#511-the-symbolic-identifier-construction) and checks the
 authoritative identifier before retrieving a Document. A `.usdz` package
-retrieved from a registry is byte-for-byte the package the publisher produced.
+retrieved from a registry is byte-for-byte the package the Producer produced.
 
 ## 2. Notations and Terminology
 
@@ -248,11 +249,19 @@ yields `pkg.usdz[tex/a.png]`.
 #### 2.2.3. Schema Plugin
 
 A **schema plugin** is a set of files that declares USD prim types to a
-consumer at runtime. This specification is concerned with **codeless** schema
+Consumer at runtime. This specification is concerned with **codeless** schema
 plugins, which require exactly two documents — a plugin manifest and a
-generated schema — and no compiled code. A consumer that retrieves and
+generated schema — and no compiled code. A Consumer that retrieves and
 registers both can browse and author a vendor's prim types with full fidelity
 instead of degrading them to untyped prims.
+
+#### 2.2.4. Consumer and Producer
+
+A **Consumer** is the party that retrieves artifacts from an OpenUSD Artifact
+Registry and composes or renders them. A **Producer** is the party that
+publishes artifacts to that registry.
+
+Capitalized role names in this specification denote these defined roles.
 
 ### 2.3. Asset Container Group
 
@@ -421,8 +430,9 @@ to the Group. Where the container identifier is not already a legal xRegistry
 id, the `usdassetgroupid` MUST be its symbolic identifier
 ([Section 5.1.1](#511-the-symbolic-identifier-construction)).
 
-Already legal Core container IDs remain verbatim. A case-insensitive collision
-for such an ID MUST be rejected, not repaired by switching it to a symbolic ID.
+Already legal Core container IDs remain verbatim. An implementation MUST reject
+a case-insensitive collision for such an ID, and MUST NOT repair it by
+switching it to a symbolic ID.
 The sibling assignment rules apply where symbolic construction is needed.
 
 An Asset Container Group MUST set the core [`name`][xRegistry Core] attribute
@@ -619,8 +629,8 @@ for any document that is not conformant with the corresponding specification.
 
 - Format identifier: `USD-GeneratedSchema/1.0`
 - Document: a USD `generatedSchema.usda` carrying codeless schema definitions.
-- Although a generated schema is syntactically a USD layer, it MUST be
-  published with this format identifier rather than `OpenUSD/1.0`, because it
+- Although a generated schema is syntactically a USD layer, a Producer MUST
+  publish it with this format identifier rather than `OpenUSD/1.0`, because it
   is registered rather than composed.
 
 #### 4.5.6. Opaque
@@ -717,8 +727,8 @@ exactly, without case folding or another decoding step.
    rename an existing entity to make room, and MUST NOT rebind an existing ID
    to another source. The source-to-ID binding remains stable across Versions
    and restarts. A retained symbolic binding MUST use that source's exact `C`
-   or `F`. Inconsistent bindings MUST be rejected rather than repaired by
-   renaming. For a Resource represented by a one-hop alias, retargeting
+   or `F`. A Producer MUST reject inconsistent bindings rather than repair them
+   by renaming. For a Resource represented by a one-hop alias, retargeting
    MUST preserve its exact `assetidentifier` too.
 2. For a source without an existing binding, reserve `C` if it does not
    collide. Otherwise reserve `F` if it is distinct and does not collide.
@@ -833,7 +843,7 @@ Two rules keep the closure decidable:
   subject to the ordinary closure rule.
 
 Some composition arcs are not discoverable by inspecting the artifacts. A
-publisher can compose a scene by authoring references at runtime, in which case
+Producer can compose a scene by authoring references at runtime, in which case
 no stored layer contains the corresponding `@...@` string. `dependson` is
 authoritative in those cases, and an implementation that derives the closure by
 scanning documents alone will under-report it.
