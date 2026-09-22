@@ -115,9 +115,11 @@ identity do not override xRegistry Core or the OPC UA Parts.
 ## 1. Scope
 
 This specification defines the OPC UA API binding for
-[xRegistry](https://github.com/xregistry/spec). It defines how a registry, its
-groups, resources, versions, documents and attributes are discovered, read,
-created, updated and deleted natively over OPC UA Services while realizing the
+[xRegistry](https://github.com/xregistry/spec). It defines how a registry
+exposes its groups, resources, versions, documents and attributes. Those
+entities are discovered, read, created, updated and deleted natively over
+OPC UA Services. That binding
+realizes the
 xRegistry core model on the OPC UA AddressSpace and FileTransfer model of [*OPC
 UA —
 xRegistry*](https://github.com/marcschier/opcua-drafts/blob/ff22f224400fc8be813bf0abcbfc3cde52bc7ed3/core-specs/xregistry/OPC-UA-xRegistry.md).
@@ -203,11 +205,15 @@ Annex A and the corresponding NodeSet: `RegistryType`, `GroupType`,
 `CreateGroup`, `GetOrCreateGroup`, `CreateResource`, `GetOrCreateResource`,
 `AddAttribute`, `RemoveAttribute`, `Delete` and `ExpectedEpoch`.
 
-The OPC UA Services used by this API are Browse for collection enumeration,
-BrowseNext for continuation points, Read for Properties and node metadata, Write
-for writable Properties, Call for FileTransfer and xRegistry Methods including
-`Delete`, TranslateBrowsePathsToNodeIds for path resolution, and the
-FileTransfer Methods inherited from `FileType` by `ResourceType`.
+This API uses the following OPC UA Services:
+
+- Browse, for collection enumeration.
+- BrowseNext, for continuation points.
+- Read, for Properties and node metadata.
+- Write, for writable Properties.
+- Call, for FileTransfer and xRegistry Methods including `Delete`.
+- TranslateBrowsePathsToNodeIds, for path resolution.
+- The FileTransfer Methods inherited from `FileType` by `ResourceType`.
 
 In pseudo-signatures, FileTransfer Methods are shown by their BrowseNames rather
 than by numeric NodeIds because a concrete server can expose them on domain
@@ -292,8 +298,8 @@ The collection names `<GROUPS>` and `<RESOURCES>` are xRegistry model names, not
 mandatory OPC UA base nodes. A domain registry MAY express collection names
 through subtype BrowseNames, domain Properties, folders or model metadata, but
 each concrete group instance MUST be a `GroupType` or subtype and each concrete
-resource or version instance MUST be a `ResourceType` or subtype. Collection
-names, identifier Properties and model type provenance MUST be checked
+resource or version instance MUST be a `ResourceType` or subtype. A server
+MUST check collection names, identifier Properties and model type provenance
 together. The same `ResourceId` in independently defined collections is not
 the same Resource type. Qualified BrowsePath elements MUST use namespace
 URIs mapped to the selected Server's namespace indexes. Neither an unqualified
@@ -334,8 +340,9 @@ file.
 Full replacement of an entity targets the entity node or the parent folder from
 which the entity can be created. If the entity does not exist, the server
 creates a `GroupType` folder or `ResourceType` file. If it exists, the server
-updates it. Mutable Properties or `Labels` entries omitted from the replacement
-representation MUST be deleted, reset to default or left unchanged only where
+updates it. The server MUST delete, reset to default or leave unchanged any
+mutable Properties or `Labels` entries omitted from the replacement
+representation, only where
 the xRegistry core rules or server-managed semantics require that behavior.
 
 Partial update of an entity changes only explicitly named mutable attributes and
@@ -373,8 +380,9 @@ resource deletes its versions and `Labels`. Deleting a collection subset is a
 sequence or server-defined batch of `Delete(ExpectedEpoch)` Calls over selected
 children.
 
-Unless otherwise stated, a request to update a read-only Property MUST be
-ignored only if xRegistry says that read-only attribute updates are ignored.
+Unless otherwise stated, the server MUST ignore a request to update a
+read-only Property only if xRegistry says that read-only attribute updates
+are ignored.
 Otherwise the server MUST reject the Write with `Bad_NotWritable` or
 `Bad_UserAccessDenied`. A request that supplies an identifier Property
 (`RegistryId`, `GroupId`, `ResourceId` or `VersionId`) whose value conflicts
@@ -590,8 +598,9 @@ are grouped into xRegistry collections.
 A registry-level full replacement writes the full replacement set of mutable
 `RegistryType` Properties. Omitted mutable attributes are removed or reset
 according to xRegistry rules. `Capabilities` and `Model` are `FileType`
-component Objects: absence MUST NOT require a change, while presence MUST be
-written as a complete replacement document with `Open(write)` /`Write`/`Close`
+component Objects: absence MUST NOT require a change, while a server MUST
+write presence
+as a complete replacement document with `Open(write)` /`Write`/`Close`
 unless the server supports finer-grained update semantics. When the raw
 `Capabilities` JSON is changed, the server MUST keep `CapabilitiesInfo`
 consistent for the fixed fields it exposes.
@@ -916,7 +925,8 @@ This procedure also applies to `Model`, `Capabilities` and a namespace file.
 The client MUST NOT use a handle on another Object, in another Session or
 after Close. It MUST retain the original read error if cleanup also fails
 and report the cleanup failure as additional diagnostic information.
-Unsuccessful cleanup MUST NOT be reported as an entirely successful sequence.
+A client MUST NOT report unsuccessful cleanup as an entirely successful
+sequence.
 A range read via `SetPosition` is not a complete export unless every needed
 byte has been accounted for. §10 maps StatusCodes without treating a denied,
 locked or interrupted file as an absent or empty document.
@@ -965,10 +975,11 @@ document content MUST provide a complete replacement document.
 ### 5.16. Deleting resources
 
 Deleting a selected resource uses the resource's own
-`Delete(ExpectedEpoch: UInt32)` Method, where `ExpectedEpoch` can be omitted and
-`0` disables the check, to delete the resource and everything it contains,
-including versions and `Labels`, depending on the server's version
-representation and xRegistry model configuration. Deleting a resource collection
+`Delete(ExpectedEpoch: UInt32)` Method. `ExpectedEpoch` can be omitted, and
+`0` disables the check. The Method deletes the resource and everything it
+contains, including versions and `Labels`, depending on the server's version
+representation and xRegistry model configuration. Deleting a resource
+collection
 subset is a sequence or server-defined batch of `Delete(ExpectedEpoch)` Calls,
 one for each selected `ResourceType` or resource-version set.
 
@@ -1069,8 +1080,9 @@ UA they are represented by operation choice, service parameters, Browse result
 processing, continuation points, Read `IndexRange`, Write options or server
 capabilities rather than by transport-specific request parameters.
 
-Unknown or unsupported flags SHOULD be ignored when xRegistry defines them as
-response-shaping hints, and MUST be rejected with `Bad_NotSupported` or
+A server SHOULD ignore unknown or unsupported flags when xRegistry defines
+them as
+response-shaping hints, and MUST reject them with `Bad_NotSupported` or
 `Bad_InvalidArgument` when they are needed for safe write semantics.
 
 | xRegistry flag | OPC UA realization |
@@ -1294,11 +1306,11 @@ demonstrate metadata-only catalog entries, three Versions with `v1` selected
 despite later Versions, exact JSON/binary/empty bytes, local aliases and
 document-local navigation.
 
-The inverse import process creates or updates the same subtree: create group
-folders, create resource/version files, write document bytes, write mapped
-Properties, update `Labels` containers, and let the server auto-bootstrap `Xid`
-, `Epoch`, `CreatedAt` and `ModifiedAt` where they are not explicitly supplied
-or are server-managed.
+The inverse import process creates or updates the same subtree. It creates
+group folders and resource/version files. It writes document bytes and
+mapped Properties. It updates `Labels` containers. It lets the server
+auto-bootstrap `Xid`, `Epoch`, `CreatedAt` and `ModifiedAt` where they are
+not explicitly supplied or are server-managed.
 
 Those existing write operations do not define a new standard OPC UA
 `Import` Method. Serialization preserves identity across representations
