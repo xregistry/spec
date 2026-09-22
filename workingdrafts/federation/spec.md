@@ -240,7 +240,8 @@ A federation-aware consumer MUST inspect this signal before traversing a
 view's catalog. It obtains enabled capabilities through the selected
 binding's capability read or an equivalent inlined representation. An
 offered capability is not the enabled value. A failed metadata read is not
-an absent signal and MUST be handled according to that binding's error rules.
+an absent signal. The consumer MUST handle it according to that binding's
+error rules.
 
 With `producer`, the consumer MUST NOT use the view's catalog to repeat
 composition for the same request. This applies to entity reads, collection
@@ -300,8 +301,8 @@ For Resource metadata, Meta, Version metadata and document reads, the unit
 of shadowing is the Resource, including all of its Versions:
 
 1. Check the requested Resource path in the local Registry view. A present
-   local Resource wins, including a local alias. Its missing Version or
-   unavailable document MUST NOT be filled from another Registry.
+   local Resource wins, including a local alias. A resolver MUST NOT fill its
+   missing Version or unavailable document from another Registry.
 2. If the Resource is absent locally, visit the eligible source entries in
    their configured order. For each entry, select a catalog-description
    Version and then one binding using
@@ -319,10 +320,10 @@ of shadowing is the Resource, including all of its Versions:
    Version and document reads for this Resource MUST use that selected
    origin and revision. Do not merge Version sets across origins.
 6. A source Resource result of `not_found` permits trying the next configured
-   source entry. Exhausting the list yields `not_found`. Other failures,
-   including authorization denial, unsupported binding/version, malformed
-   data and integrity failure, MUST be reported rather than treated as
-   absence.
+   source entry. Exhausting the list yields `not_found`. The resolver MUST
+   report other failures, including authorization denial, unsupported
+   binding/version, malformed data and integrity failure, rather than treat
+   them as absence.
 
 Thus the resolver can retry the same XID in configured source Registries
 after a local Resource miss. It does not search arbitrary Registries or
@@ -372,7 +373,8 @@ Configured source type mappings MUST account for the collection's model.
 A label selector is then evaluated on the resulting visible collection.
 Finding one matching member in an early source is not proof of uniqueness.
 All necessary collection pages and unshadowed sources MUST be considered.
-Errors or incomplete traversal MUST NOT be disguised as a complete result.
+A resolver MUST NOT disguise errors or incomplete traversal as a complete
+result.
 Counts, continuation links and model/capability reads MUST describe the
 consumer-visible Registry, not whichever source happened to respond first.
 
@@ -565,7 +567,8 @@ retain Resource type sharing. An expanded model alone can obscure
 `ximportresources` provenance. Included model documents MUST be resolved
 within the captured scope, or supplied with immutable checked references.
 Offline-complete interpretation MUST NOT fetch mutable external includes.
-Unknown Core versions MUST NOT be accepted merely because a document parses.
+A consumer MUST NOT accept unknown Core versions merely because a document
+parses.
 
 ## Identity and References
 
@@ -625,8 +628,9 @@ behavior. This specification does not add remote writes to aliases.
 
 ### Remote References and Composition
 
-A Version's `<RESOURCE>url` references a domain document. It MUST NOT be
-interpreted as remote Resource metadata or as a request to import Versions.
+A Version's `<RESOURCE>url` references a domain document. A consumer MUST
+NOT interpret it as remote Resource metadata or as a request to import
+Versions.
 Reading its bytes does not change the identity of the describing Version.
 
 A projected Registry MAY expose locally modeled Resources representing
@@ -651,9 +655,9 @@ copy registries, establish trust or synchronize changes.
 | Model include | The model source document containing the include, following Core. |
 | `#` JSON Pointer navigation | The returned JSON document. |
 
-A resolver MUST NOT substitute one of these bases for another. A binding
-that cannot preserve or supply the base needed to interpret a relative
-document URI MUST report `invalid_package` or `unsupported_operation`
+A resolver MUST NOT substitute one of these bases for another. Some bindings
+cannot preserve or supply the base needed to interpret a relative document
+URI. Such a binding MUST report `invalid_package` or `unsupported_operation`
 rather than guess.
 
 ## Selectors
@@ -695,9 +699,10 @@ the matching or ambiguity outcome.
 Zero matches yields `not_found`. Exactly one complete match yields the
 selected entity. Multiple matches yields `ambiguous`. A resolver MUST inspect
 all necessary continuation pages before claiming uniqueness. It MAY report
-ambiguity after a second match without reading further pages. A request
-limit, incomplete page chain or unstable collection MUST NOT be reported as
-a unique selection. Resource selectors examine the effective metadata of
+ambiguity after a second match without reading further pages. A resolver
+MUST NOT report a request limit, incomplete page chain or unstable
+collection as a unique selection. Resource selectors examine the effective
+metadata of
 their default Versions as defined by Core, not only the reduced Resource
 object in document view.
 
@@ -705,13 +710,14 @@ object in document view.
 
 Metadata and domain documents are distinct results, even when both are JSON.
 `self`, `metaurl` and `defaultversionurl` locate metadata under the relevant
-Core binding. They MUST NOT automatically be treated as raw-byte locations.
+Core binding. A consumer MUST NOT automatically treat them as raw-byte
+locations.
 
 Native access to a [snapshot](#snapshots-and-completeness) uses Core
 [document view](../../core/spec.md#doc-flag), with storage descriptors and
-transport context outside the Core entity. This requires removal of duplicated
+transport context outside the Core entity. This requires removing duplicated
 default-Version attributes, Version validation-result attributes and
-`shortself`, and suppression of alias-target expansion. Links to entities
+`shortself`, and suppressing alias-target expansion. Links to entities
 included in the returned document MUST use document-local JSON Pointers.
 Links to entities not included MUST NOT be rewritten to nonexistent local
 pointers. Reassembling records into a larger document requires rebasing
@@ -719,8 +725,8 @@ pointers to that document, not concatenating independently relative records.
 
 Native bindings MUST distinguish these document-view serializations from
 the logical operation that retrieves an alias's target document under Core.
-An unsupported view or alias-Version document view MUST be reported, not
-silently converted to a different view.
+A resolver MUST report an unsupported view or alias-Version document view,
+and MUST NOT silently convert it to a different view.
 
 A binding offering API-view results MUST define actually retrievable
 Core-conforming `self` and navigation URLs. An implementation-defined URI
@@ -755,10 +761,10 @@ bases and known content integrity descriptors MUST survive packaging.
 Materializing external content requires preserving its actual bytes.
 
 An immutable revision MUST remain pinned throughout an operation. A moving
-tag, branch or mutable directory name is not a revision pin. A live HTTP or
-UA endpoint without a snapshot guarantee MUST be reported as live, not as
-an atomic snapshot. Revision identifiers MUST NOT be substituted for Resource
-Version IDs.
+tag, branch or mutable directory name is not a revision pin. A resolver MUST
+report a live HTTP or UA endpoint without a snapshot guarantee as live, not
+as an atomic snapshot. Revision identifiers MUST NOT be substituted for
+Resource Version IDs.
 
 Digests identify exact bytes, not semantic equality. Equivalent publications
 can have different digests. New snapshots MAY reuse unchanged content and
@@ -784,17 +790,18 @@ or mandates for new HTTP status codes:
 | `unavailable` | A transport or backing object is temporarily unavailable. |
 
 An error MUST retain the underlying Core error or transport diagnostic when
-available, without exposing credentials. An incomplete retrieval MUST NOT
-be returned as a successful empty collection. Core's dangling-alias exception
-is preserved.
+available, without exposing credentials. A resolver MUST NOT return an
+incomplete retrieval as a successful empty collection. Core's dangling-alias
+exception is preserved.
 
 ## Security Considerations
 
 Catalog data and package contents are untrusted input. Discovery is not an
 authorization grant. A resolver MUST apply caller policy before contacting
 endpoints, following redirects, reading local paths or retrieving external
-documents. Credentials MUST be scoped to the authenticated destination and
-MUST NOT be forwarded merely because a catalog entry or redirect names it.
+documents. A resolver MUST scope credentials to the authenticated
+destination, and MUST NOT forward them merely because a catalog entry or
+redirect names it.
 
 Resolvers MUST bound traversal depth, request count and aggregate bytes,
 detect discovery/redirect cycles, and surface exhausted bounds. SHA-256
