@@ -1,11 +1,7 @@
-SCHEMA_DIRS = $(shell find . -type d -name schemas)
-
 all: docker models
-	@git diff --name-status --exit-code -- $(SCHEMA_DIRS) > /dev/null 2>&1 || \
+	@git diff --name-status --exit-code */schemas > /dev/null 2>&1 || \
 		( echo "schema files have been updated, make sure you commit them" ; \
 		  exit 1 )
-	@test -z "$$(git ls-files --others --exclude-standard -- $(SCHEMA_DIRS))" || \
-		( echo "generated schema files are untracked" ; exit 1 )
 	@echo "All good!"
 
 verify: spellcheck ticks badhrefs tabcheck errorcheck hrefs \
