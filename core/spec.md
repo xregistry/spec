@@ -4316,9 +4316,6 @@ contents of all specified inlineable attributes. Inlineable attributes include:
 - The `<RESOURCE>` attribute in a Resource or Version.
 - The `meta` attribute in a Resource.
 
-Specifying the name of a non-inlineable attribute MUST generate an error
-([inline_noninlineable](#inline_noninlineable)).
-
 While the `<RESOURCE>` and `<RESOURCE>base64` attributes are defined as two
 separate attributes, they are technically two separate "views" of the same
 underlying data. As such, the usage of each will be based on the content type
@@ -5174,15 +5171,6 @@ field is just a substitution value and MUST NOT be empty.
 * Subject: `<version_xid>`
 * Args:
   - `plural`: The "plural" type name of the Resource being processed.
-
-### inline_noninlineable
-
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#inline_noninlineable`
-* Code: `400 Bad Request`
-* Title: `Attempting to inline a non-inlineable attribute (<name>) on: <subject>.`
-* Subject: `<request_path>`
-* Args:
-  - `name`: The name of the attribute in question.
 
 ### invalid_attribute
 
