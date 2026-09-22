@@ -75,12 +75,14 @@ The overall format of a model definition is as follows:
   "attributes": {                      # Registry-level extensions
     "<STRING>": {                      # Attribute name
       "name": "<STRING>",              # Same as attribute's key
+      "description": "<STRING>", ?
       "type": "<TYPE>",                # boolean, string, array, object, ...
+
+      "enum": [ <VALUE> * ], ?         # Array of scalars of type "type"
+      "strict": <BOOLEAN>, ?           # Just value in "enum"? Default=true
       "target": "<XIDTYPE>", ?         # If "type" is "xid" or "url"
       "namecharset": "<STRING>", ?     # If "type" is "object"
-      "description": "<STRING>", ?
-      "enum": [ <VALUE> * ], ?         # Array of scalars of type "<TYPE>"
-      "strict": <BOOLEAN>, ?           # Just "enum" values or not. Default=true
+
       "matchversions": <BOOLEAN>, ?    # Same for all Versions? Default=false
       "readonly": <BOOLEAN>, ?         # From client's POV. Default=false
       "immutable": <BOOLEAN>, ?        # Once set, can't change. Default=false
@@ -90,8 +92,12 @@ The overall format of a model definition is as follows:
       "attributes": { ... }, ?         # If "type" above is object
       "item": {                        # If "type" above is map,array
         "type": "<TYPE>", ?            # Map value type, or array type
+
+        "enum": [ <VALUE> * ], ?       # Array of scalars of this item "type"
+        "strict": <BOOLEAN>, ?         # Just value in "enum"? Default=true
         "target": "<XIDTYPE>", ?       # If this item "type" is xid/url
         "namecharset": "<STRING>", ?   # If this item "type" is object
+
         "attributes": { ... }, ?       # If this item "type" is object
         "item": { ... } ?              # If this item "type" is map,array
       }, ?
@@ -218,12 +224,39 @@ The following describes the attributes of the Registry model:
   levels - e.g. a Version-level extension MUST NOT use a name that conflicts
   with its Resource-level attribute names.
 
+### `attributes.<STRING>.description`
+- Type: String.
+- OPTIONAL.
+- A human-readable description of the attribute.
+
 ### `attributes.<STRING>.type`
 - Type: String.
 - REQUIRED.
 - The "TYPE" of the attribute being defined. MUST be one of the data types
   (in lower case) defined in [Attributes and
   Extensions](./spec.md#attributes-and-extensions).
+
+### `attributes.<STRING>.enum`
+- Type: Array of values of type `attributes.<STRING>.type`.
+- OPTIONAL.
+- A list of possible values for this attribute. Each item in the array MUST
+  be of the type defined by `type`. When not specified, or an empty array, there
+  are no restrictions on the value set of this attribute. This MUST only be
+  used when the `type` is a scalar. See the `strict` attribute below.
+
+  When specified without `strict` being `true`, this list is just a
+  suggested set of values and the attribute is NOT REQUIRED to use one of
+  them.
+
+### `attributes.<STRING>.strict`
+- Type: Boolean.
+- OPTIONAL.
+- Indicates whether the attribute restricts its values to just the array of
+  values specified in `enum` or not. A value of `true` means that any
+  values used that are not part of the `enum` set MUST generate an error
+  ([invalid_attribute](./spec.md#invalid_attribute)).
+  This attribute has no impact when `enum` is absent or an empty array.
+- When not specified, the default value MUST be `true`.
 
 ### `attributes.<STRING>.target`
 - Type: String.
@@ -293,33 +326,6 @@ The following describes the attributes of the Registry model:
   definition) of additional `namecharset` values supported by an
   implementation. Implementations SHOULD use their documentation to
   advertise this extension.
-
-### `attributes.<STRING>.description`
-- Type: String.
-- OPTIONAL.
-- A human-readable description of the attribute.
-
-### `attributes.<STRING>.enum`
-- Type: Array of values of type `attributes.<STRING>.type`.
-- OPTIONAL.
-- A list of possible values for this attribute. Each item in the array MUST
-  be of the type defined by `type`. When not specified, or an empty array, there
-  are no restrictions on the value set of this attribute. This MUST only be
-  used when the `type` is a scalar. See the `strict` attribute below.
-
-  When specified without `strict` being `true`, this list is just a
-  suggested set of values and the attribute is NOT REQUIRED to use one of
-  them.
-
-### `attributes.<STRING>.strict`
-- Type: Boolean.
-- OPTIONAL.
-- Indicates whether the attribute restricts its values to just the array of
-  values specified in `enum` or not. A value of `true` means that any
-  values used that are not part of the `enum` set MUST generate an error
-  ([invalid_attribute](./spec.md#invalid_attribute)).
-  This attribute has no impact when `enum` is absent or an empty array.
-- When not specified, the default value MUST be `true`.
 
 ### `attributes.<STRING>.matchversions`
 - Type: Boolean.
@@ -436,6 +442,17 @@ The following describes the attributes of the Registry model:
 - Type: String.
 - REQUIRED.
 - The ["TYPE"](#attributesstringtype) of this nested entity.
+
+### `attributes.<STRING>.item.enum`
+- Type: Array of values of type `attributes.<STRING>.type`.
+- OPTIONAL, and MUST only be used when `item.type` is a scalar.
+- See [`attributes.<STRING>.enum`](#attributesstringenum) above.
+
+### `attributes.<STRING>.item.strict`
+- Type: Boolean.
+- OPTIONAL, and this attribute has no impact when `item.enum` is absent or an
+  empty array.
+- See [`attributes.<STRING>.strict`](#attributesstringstrict) above.
 
 ### `attributes.<STRING>.item.target`
 - Type: String.

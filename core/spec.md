@@ -462,12 +462,14 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
     "attributes": {                     # Registry-level attributes/extensions
       "<STRING>": {                     # Attribute name (case-sensitive)
         "name": "<STRING>",             # Same as attribute's key
+        "description": "<STRING>", ?
         "type": "<TYPE>",               # string, decimal, array, object, ...
+
+        "enum": [ <VALUE> * ], ?        # Array of scalars of type `"type"`
+        "strict": <BOOLEAN>, ?          # Just value in "enum"? Default=true
         "target": "<XIDTYPE>", ?        # If "type" is "xid" or "url"
         "namecharset": "<STRING>", ?    # If "type" is "object"
-        "description": "<STRING>", ?
-        "enum": [ <VALUE> * ], ?        # Array of scalars of type `"type"`
-        "strict": <BOOLEAN>, ?          # Just "enum" values? Default=true
+
         "matchversions": <BOOLEAN>, ?   # Same for all Versions? Def=false
         "readonly": <BOOLEAN>, ?        # From client's POV. Default=false
         "immutable": <BOOLEAN>, ?       # Once set, can't change. Default=false
@@ -477,8 +479,12 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
         "attributes": { ... }, ?        # If "type" above is object
         "item": {                       # If "type" above is map,array
           "type": "<TYPE>", ?           # map value type, or array type
+
+          "enum": [ <VALUE> * ], ?      # Array of scalars of this item `"type"`
+          "strict": <BOOLEAN>, ?        # Just value in "enum"? Default=true
           "target": "<XIDTYPE>", ?      # If this item "type" is xid/url
           "namecharset": "<STRING>", ?  # If this item "type" is object
+
           "attributes": { ... }, ?      # If this item "type" is object
           "item": { ... } ?             # If this item "type" is map,array
         } ?
