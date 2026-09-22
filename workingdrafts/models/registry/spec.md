@@ -82,8 +82,9 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
 "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
 document are to be interpreted as described in [RFC 2119][RFC2119].
 
-Core defines Registry, Group, Resource, Meta, Version, XID, API view and
-document view. This specification uses these additional distinctions:
+Core defines Registry, Group, Resource, Meta and Version. It also defines
+XID, API view and document view. This specification uses these additional
+distinctions:
 
 - **Catalog:** An xRegistry containing entries that describe independently
   administered Registries or discovery-only websites.
@@ -242,8 +243,9 @@ In particular, it MUST:
   domain document bytes.
 
 The Core navigation attributes `self`, `<COLLECTION>url`, `metaurl` and
-`defaultversionurl` MUST become `#JSON-POINTER` references if, and only if,
-the referenced entity or collection is included in the serialized output.
+`defaultversionurl` MUST become `#JSON-POINTER` references. This applies if,
+and only if, the referenced entity or collection is included in the
+serialized output.
 The pointer MUST locate it within the current response document, with
 JSON Pointer escaping, and MUST NOT include a protocol suffix such as
 `$details`. It is not necessarily relative to the catalog Registry root.
@@ -908,9 +910,9 @@ this class. No conformance claim guarantees current endpoint availability.
 ### 10.3. Catalog Consumer
 
 A catalog consumer claiming resolution conformance MUST implement the
-selection procedure, preserve origin and revision distinctions, and
-conform to [shared federation][Federation] and each binding it claims to
-support. It MUST report unsupported operations and failures explicitly.
+selection procedure. It MUST preserve origin and revision distinctions. It
+MUST conform to [shared federation][Federation] and each binding it claims
+to support. It MUST report unsupported operations and failures explicitly.
 It is not REQUIRED to implement every built-in binding.
 
 Read-only federation consumption does not prohibit independent,

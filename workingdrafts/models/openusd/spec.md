@@ -108,8 +108,8 @@ one texture, one MaterialX document, one plugin manifest.
 Artifacts are not useful in isolation. A stage is opened against a single
 **root layer**, and that root layer pulls in others through composition arcs —
 sublayers, references, payloads — which in turn reference textures and
-materials. The transitive set is the **dependency closure**, and a Consumer
-that is missing any member of it cannot compose the scene correctly: USD will
+materials. The transitive set is the **dependency closure**. A Consumer
+that is missing any member of it cannot compose the scene correctly. USD will
 either fail to open the layer or, worse, compose a scene with silently missing
 opinions.
 
