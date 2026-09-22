@@ -1060,12 +1060,7 @@
                 "producer"
               ]
             },
-            "description": "Client's expected usage of this endpoint. Single-role declarations are preferred. Mixed declarations are guidance-oriented metadata and should be used only when role semantics are unambiguous.",
-            "enum": [
-              "subscriber",
-              "consumer",
-              "producer"
-            ]
+            "description": "Client's expected usage of this endpoint. Single-role declarations are preferred. Mixed declarations are guidance-oriented metadata and should be used only when role semantics are unambiguous."
           },
           "channel": {
             "type": "string",
