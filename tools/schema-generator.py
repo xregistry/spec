@@ -173,20 +173,20 @@ def _is_scalar_value(type_name, value):
 def item_enum(name, item):
     """The value set a Core array element or map value actually restricts.
 
-    `enum` and `strict` are defined for scalar items only; a container item
-    recurses through its own `item` instead. Declared values must have the
-    item's own scalar kind whether or not `strict` enforces membership, and an
-    absent or empty set restricts nothing.
+    Only scalar items carry `enum`; containers recurse through their own
+    `item`. A Boolean `strict` alone has no effect. Declared values must have
+    the item's scalar kind even when membership is advisory.
     """
     if not isinstance(item, dict):
         return None
-    if "enum" not in item and "strict" not in item:
+    if "strict" in item and not isinstance(item["strict"], bool):
+        raise ValueError(f"strict of item {name!r} must be a Boolean")
+    if "enum" not in item:
         return None
     type_name = item.get("type")
     if type_name not in core_scalar_types:
-        keyword = "enum" if "enum" in item else "strict"
         raise ValueError(
-            f"{keyword} of item {name!r} is defined for scalar item types "
+            f"enum of item {name!r} is defined for scalar item types "
             f"only, not {type_name!r}"
         )
     values = item.get("enum")
@@ -206,7 +206,7 @@ def item_enum(name, item):
 
 
 def reject_container_value_set(name, definition):
-    """Core defines `enum` and `strict` for scalar attributes only.
+    """Core defines `enum` for scalar attributes only.
 
     An array or map restricts its elements through `item.enum`, so a value set
     on the owning container is not a Core declaration and is not projected.
@@ -216,13 +216,12 @@ def reject_container_value_set(name, definition):
     type_name = definition.get("type")
     if type_name in core_scalar_types:
         return
-    for keyword in ("enum", "strict"):
-        if keyword in definition:
-            raise ValueError(
-                f"{keyword} of attribute {name!r} is defined for scalar types "
-                f"only, not {type_name!r}; an array or map restricts its "
-                f"elements through item.{keyword}"
-            )
+    if "enum" in definition:
+        raise ValueError(
+            f"enum of attribute {name!r} is defined for scalar types "
+            f"only, not {type_name!r}; an array or map restricts its "
+            "elements through item.enum"
+        )
 
 
 # Avro restricts a value only through a named enum of unique string symbols.

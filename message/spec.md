@@ -432,8 +432,6 @@ this form:
   "model": { ... }, ?
   "modelsource": { ... }, ?
 
-  "messagegroupsurl": "<URL>",
-  "messagegroupscount": <UINTEGER>,
   "messagegroups": {
     "<KEY>": {                                  # messagegroupid
       "messagegroupid": "<STRING>",             # xRegistry core attributes
@@ -453,8 +451,6 @@ this form:
       "envelope": "<STRING>", ?                 # e.g. CloudEvents/1.0
       "protocol": "<STRING>", ?                 # e.g. HTTP/1.1
 
-      "messagesurl": "<URL>",
-      "messagescount": <UINTEGER>,
       "messages" : {
         "<KEY>": {                              # messageid
           "messageid": "<STRING>",              # xRegistry core attributes
@@ -510,12 +506,17 @@ this form:
           "metaurl": "<URL>",
           "meta": { ... }, ?
 
+          "versions": { ... }, ?
           "versionsurl": "<URL>",
-          "versionscount": <UINTEGER>,
-          "versions": { ... } ?
-      } ?
+          "versionscount": <UINTEGER>
+        }
+      }, ?
+      "messagesurl": "<URL>",
+      "messagescount": <UINTEGER>
     } *
-  } ?
+  }, ?
+  "messagegroupsurl": "<URL>",
+  "messagegroupscount": <UINTEGER>,
 }
 ```
 
@@ -652,8 +653,6 @@ The following abbreviated collection fragment uses the Core
 the borrowed Message. Only selected attributes are shown:
 
 ```yaml
-"messagegroupsurl": "...",
-"messagegroupscount": 2,
 "messagegroups": {
   "com.example.abc": {
     "messagegroupid": "com.example.abc",
@@ -690,7 +689,9 @@ the borrowed Message. Only selected attributes are shown:
       }
     }
   }
-}
+},
+"messagegroupsurl": "...",
+"messagegroupscount": 2
 ```
 
 #### `envelopemetadata`

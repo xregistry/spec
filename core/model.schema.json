@@ -418,10 +418,6 @@
               "enum": {
                 "not": {},
                 "description": "Only scalar attributes carry a value set; an array or map restricts its elements through 'item.enum'"
-              },
-              "strict": {
-                "not": {},
-                "description": "Only scalar attributes carry a value set, so only they qualify one"
               }
             }
           }
@@ -504,10 +500,6 @@
               "enum": {
                 "not": {},
                 "description": "Only scalar items carry a value set; a container recurses through its own 'item'"
-              },
-              "strict": {
-                "not": {},
-                "description": "Only scalar items carry a value set, so only they qualify one"
               }
             }
           }

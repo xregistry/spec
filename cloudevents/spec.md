@@ -126,8 +126,6 @@ endpoint with a single, embedded message definition using an embedded Protobuf
   "createdat": "2024-04-30T12:00:00Z",
   "modifiedat": "2024-04-31T12:00:00Z",
 
-  "endpointsurl": "https://example.com/endpoints",
-  "endpointscount": 1,
   "endpoints": {
     "com.example.telemetry": {
       "endpointid": "com.example.telemetry",
@@ -195,7 +193,9 @@ endpoint with a single, embedded message definition using an embedded Protobuf
         }
       }
     }
-  }
+  },
+  "endpointsurl": "https://example.com/endpoints",
+  "endpointscount": 1
 }
 ```
 
@@ -214,8 +214,6 @@ other scenarios:
   "createdat": "2024-04-30T12:00:00Z",
   "modifiedat": "2024-04-31T12:00:00Z",
 
-  "endpointsurl": "https://example.com/endpoints",
-  "endpointscount": 1,
   "endpoints": {
     "com.example.telemetry": {
       "endpointid": "com.example.telemetry",
@@ -241,9 +239,9 @@ other scenarios:
       "messagescount": 0
     }
   },
+  "endpointsurl": "https://example.com/endpoints",
+  "endpointscount": 1,
 
-  "messagegroupsurl": "https://example.com/messagegroups",
-  "messagegroupscount": 1,
   "messagegroups": {
     "com.example.telemetryEvents": {
       "messagegroupid": "com.example.telemetryEvents",
@@ -302,9 +300,9 @@ other scenarios:
       }
     }
   },
+  "messagegroupsurl": "https://example.com/messagegroups",
+  "messagegroupscount": 1,
 
-  "schemagroupsurl": "https://example.com/schemagroups",
-  "schemagroupscount": 1,
   "schemagroups": {
     "com.example.telemetry": {
       "schemagroupid": "com.example.telemetry",
@@ -339,7 +337,9 @@ other scenarios:
         }
       }
     }
-  }
+  },
+  "schemagroupsurl": "https://example.com/schemagroups",
+  "schemagroupscount": 1
 }
 ```
 
@@ -357,8 +357,6 @@ group with a deep link to the respective object in the service:
   "specversion": "1.0-rc4",
   "registryid": "Example Registry",
 
-  "endpointsurl": "https://example.com/endpoints",
-  "endpointscount": 1,
   "endpoints": {
     "com.example.telemetry": {
       "endpointid": "com.example.telemetry",
@@ -377,7 +375,9 @@ group with a deep link to the respective object in the service:
 
       "messagegroups": [ "https://example.com/messagegroups/com.example.telemetryEvents" ]
     }
-  }
+  },
+  "endpointsurl": "https://example.com/endpoints",
+  "endpointscount": 1
 }
 ```
 
@@ -392,8 +392,6 @@ link will first reference the file and then the object within the file, using
   "specversion": "1.0-rc4",
   "registryid": "Example Registry",
 
-  "endpointsurl": "https://example.com/endpoints",
-  "endpointscount": 1,
   "endpoints": {
     "com.example.telemetry": {
       "endpointid": "com.example.telemetry",
@@ -412,7 +410,9 @@ link will first reference the file and then the object within the file, using
 
       "messagegroups": [ "https://rawdata.repos.example.com/myorg/myproject/main/example.telemetryEvents.cereg#/messagegroups/com.example.telemetryEvents" ]
     }
-  }
+  },
+  "endpointsurl": "https://example.com/endpoints",
+  "endpointscount": 1
 }
 ```
 
@@ -464,17 +464,17 @@ embedded or referenced. Any of the three sub-registries MAY be omitted.
   "specversion": "1.0-rc4",
   "registryid": "STRING",
 
+  "endpoints": { ... },
   "endpointsurl": "URL",
   "endpointscount": INT,
-  "endpoints": { ... },
 
+  "messagegroups": { ... },
   "messagegroupsurl": "URL",
   "messagegroupscount": INT,
-  "messagegroups": { ... },
 
+  "schemagroups": { ... },
   "schemagroupsurl": "URL",
-  "schemagroupscount": INT,
-  "schemagroups": { ... }
+  "schemagroupscount": INT
 }
 ```
 

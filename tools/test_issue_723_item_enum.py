@@ -5,8 +5,8 @@ element definition. These tests exercise the real source meta-schema, the real
 `jsonschema` and OpenAPI validators, the emitted JSON Structure contract and the
 real Avro parser, reader and writer.
 
-`enum` and `strict` are defined for scalar items only; a container item recurses
-through its own `item`. Declared values must have the item's own scalar kind
+Only scalar items carry `enum`; `strict` without an enum is ineffective even
+on a container item. Declared values must have the item's own scalar kind
 whether or not `strict` enforces membership, and an absent or empty set adds no
 membership restriction. Core does not permit an `enum` on the owning array or
 map attribute itself, so that spelling is rejected rather than projected.
@@ -150,13 +150,12 @@ def test_source_rejects_an_item_enum_on_a_non_scalar_item_type(item_type):
 
 
 @pytest.mark.parametrize("item_type", NON_SCALAR_ITEM_TYPES)
-@pytest.mark.parametrize("with_enum", [True, False])
-def test_source_rejects_an_item_strict_on_a_non_scalar_item_type(item_type, with_enum):
-    aspects = {"strict": True}
-    if with_enum:
-        aspects["enum"] = ["a"]
-    errors = source_errors(array_of(container(item_type, **aspects)))
-    assert errors, f"{item_type} item must not qualify a value set it cannot carry"
+@pytest.mark.parametrize("strict", [True, False])
+def test_source_accepts_an_inert_item_strict_on_a_non_scalar(item_type, strict):
+    assert not source_errors(array_of(container(item_type, strict=strict)))
+    assert source_errors(
+        array_of(container(item_type, enum=["a"], strict=strict))
+    )
 
 
 @pytest.mark.parametrize("strict", ["true", 1, "yes", None])
@@ -178,13 +177,13 @@ def test_source_rejects_an_enum_on_the_owning_container_attribute(attr_type):
     assert errors, "Core does not permit an enum on the owning array or map"
 
 
-@pytest.mark.parametrize("attr_type", ["array", "map"])
-def test_source_rejects_a_strict_on_the_owning_container_attribute(attr_type):
+@pytest.mark.parametrize("attr_type", NON_SCALAR_ITEM_TYPES)
+@pytest.mark.parametrize("strict", [True, False])
+def test_source_accepts_an_inert_strict_on_the_owning_container(attr_type, strict):
     definition = model(
-        {"type": attr_type, "item": {"type": "string"}, "strict": True}
+        container(attr_type, strict=strict)
     )
-    errors = source_errors(definition)
-    assert errors, "the owning container has no value set to qualify"
+    assert not source_errors(definition)
 
 
 def test_source_still_admits_a_scalar_attribute_enum():
@@ -218,9 +217,29 @@ def test_every_emitter_rejects_an_item_enum_on_a_non_scalar_item(emitter, item_t
 
 @pytest.mark.parametrize("emitter", EMITTERS)
 @pytest.mark.parametrize("item_type", NON_SCALAR_ITEM_TYPES)
-def test_every_emitter_rejects_an_item_strict_on_a_non_scalar_item(emitter, item_type):
-    with pytest.raises(ValueError):
-        emit(emitter, array_of(container(item_type, strict=True)))
+@pytest.mark.parametrize("strict", [True, False])
+def test_inert_item_strict_does_not_change_emitted_schema(emitter, item_type, strict):
+    baseline = array_of(container(item_type))
+    candidate = array_of(container(item_type, strict=strict))
+    assert emit(emitter, candidate) == emit(emitter, baseline)
+
+
+@pytest.mark.parametrize("emitter", EMITTERS)
+@pytest.mark.parametrize("attr_type", NON_SCALAR_ITEM_TYPES)
+@pytest.mark.parametrize("strict", [True, False])
+def test_inert_container_strict_does_not_change_emitted_schema(
+    emitter, attr_type, strict
+):
+    assert emit(emitter, model(container(attr_type, strict=strict))) == emit(
+        emitter, model(container(attr_type))
+    )
+
+
+@pytest.mark.parametrize("emitter", EMITTERS)
+@pytest.mark.parametrize("strict", ["true", 1, None])
+def test_every_emitter_rejects_a_non_boolean_item_strict(emitter, strict):
+    with pytest.raises(ValueError, match="must be a Boolean"):
+        emit(emitter, array_of(container("map", strict=strict)))
 
 
 @pytest.mark.parametrize("emitter", EMITTERS)

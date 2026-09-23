@@ -21,8 +21,8 @@ set:
 }
 ```
 
-The value set sits on `item`, not on the array. Core defines `enum` and
-`strict` for scalar types only, so an array or map restricts its elements
+The value set sits on `item`, not on the array. Core defines `enum` for
+scalar types only, so an array or map restricts its elements
 through `item.enum`; a value set on the owning array is not a Core declaration
 and is rejected by both the source meta-schema and every emitter.
 
@@ -30,6 +30,8 @@ and is rejected by both the source meta-schema and every emitter.
 An absent or empty `item.enum`, or `"strict": false`, adds no membership
 restriction, and declared values must still have the item's own scalar kind in
 every case.
+An otherwise valid Boolean `strict` without an enum has no effect, including
+on a container definition.
 
 ## What changed for readers
 
@@ -74,10 +76,11 @@ contains a value which is not a legal Avro name keeps its restriction in the
 other three dialects and is projected as the plain mapped type in Avro. No
 encoding is invented to work around that.
 
-## Prerequisite
+## Core contract
 
-The normative Core text for `item.enum` and `item.strict` is owned by
-[xregistry/spec#677](https://github.com/xregistry/spec/pull/677). This
+The normative [item enum](../../core/model.md#attributesstringitemenum) and
+[item strict](../../core/model.md#attributesstringitemstrict) rules are part
+of Core following [xregistry/spec#732](https://github.com/xregistry/spec/pull/732). This
 repository carries the source meta-schema aspect and the four emitter
 projections; the Core prose is not duplicated here.
 
@@ -89,7 +92,7 @@ and CloudEvents consumers, including the Avro round trip of every declared role
 and the documents that prove the domain rules are still separate. The
 [projection contract](../../tools/test_issue_723_item_enum.py) covers the
 meta-schema admission and rejection cases, the four-emitter rejection of an
-illegal non-scalar item aspect, the nested container projections and the Avro
+illegal non-scalar item enum, ineffective strict flags, nested projections and Avro
 naming, reuse and mapping limits.
 
 ```console

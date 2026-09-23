@@ -1125,9 +1125,8 @@ PUT /dirs/d1/files/f1
   only takes effect after the default Version is recalculated. This is due to
   the fact that `PUT` is a complete replacement and `meta.defaultversionid`
   not being in the request is akin to setting it to `null` in the request.
-  However, the next example also recalculates the default for a `PATCH` that
-  changes `meta.defaultversionsticky` from `false` to `true` without an explicit
-  ID.
+  In the next example, a `PATCH` omits that ID instead of resetting it, so the
+  pre-operation default Version becomes sticky.
 - Ancestor order: `v2` (2020) <- `v1` (2025).
 
 <hr>
@@ -1194,10 +1193,10 @@ PATCH /dirs/d1/files/f1
 ```
 {
   "fileid": "f1",
-  "versionid": "v1",
+  "versionid": "v2",
   "epoch": 2,
   "isdefault": true,
-  "createdat": "2025",
+  "createdat": "2020",
   "modifiedat": "now",
   "ancestorid": "v2",
 
@@ -1205,17 +1204,17 @@ PATCH /dirs/d1/files/f1
     "epoch": 2,
     "createdat": "2025",
     "modifiedat": "now",
-    "defaultversionid": "v1",
+    "defaultversionid": "v2",
     "defaultversionsticky": true
   },
   "versions": {
-    "v1": { see Resource.* attrs },
-    "v2": {
+    "v1": {
       "epoch": 2,
-      "createdat": "2020",
+      "createdat": "2025",
       "modifiedat": "now",
       "ancestorid": "v2"
-    }
+    },
+    "v2": { see Resource.* attrs }
   }
 }
 ```
@@ -1227,10 +1226,10 @@ PATCH /dirs/d1/files/f1
 - Resource.name is ignored due to `v2` (the current default Version) being in
   the request's `versions` collection.
 - Since this `PATCH` changes `meta.defaultversionsticky` from `false` to `true`
-  without specifying `meta.defaultversionid`, the default Version is
-  recalculated after the update using `versionmode`. Moving `v2`'s `createdat`
-  to `2020` makes `v1` (`2025`) the newest Version, so `v1` becomes the sticky
-  default.
+  without specifying `meta.defaultversionid`, the pre-operation default `v2`
+  becomes sticky. Its changed `createdat` does not select a different sticky
+  default. An explicit `meta.defaultversionid` of `null` would instead select
+  the newest Version after Version processing, as in the replacement example.
 - Ancestor order: `v2` (2020) <- `v1` (2025).
 
 <hr>
