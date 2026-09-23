@@ -47,6 +47,47 @@ MODEL = {
 }
 
 
+@pytest.mark.parametrize("dialect", ["json-schema", "openapi", "json-structure", "avro"])
+@pytest.mark.parametrize("strict", [None, True, False])
+def test_current_endpoint_usage_item_enum_survives_generation(dialect, strict):
+    source = json.loads(
+        (ROOT / "endpoint" / "model.json").read_text(encoding="utf-8")
+    )
+    usage = source["groups"]["endpoints"]["attributes"]["usage"]
+    assert "enum" not in usage
+    roles = usage["item"]["enum"]
+    if strict is not None:
+        usage["item"]["strict"] = strict
+    source = GENERATOR.resolve_imports(str(ROOT / "endpoint"), source)
+    if dialect == "json-schema":
+        generated = GENERATOR.generate_json_schema(copy.deepcopy(source))
+        item = generated["definitions"]["endpoint-schema"]["endpoint"][
+            "properties"
+        ]["usage"]["items"]
+    elif dialect == "openapi":
+        generated = GENERATOR.generate_openapi(copy.deepcopy(source))
+        item = generated["components"]["schemas"]["endpoint"]["properties"][
+            "usage"
+        ]["items"]
+    elif dialect == "json-structure":
+        generated = GENERATOR.generate_json_structure(copy.deepcopy(source))
+        item = generated["definitions"]["Endpoints"]["Endpoint"]["properties"][
+            "usage"
+        ]["items"]
+    else:
+        generated = GENERATOR.generate_avro_schema(copy.deepcopy(source))
+        parsed = avro.schema.parse(json.dumps(generated))
+        endpoint = parsed.fields_dict["endpoints"].type.values
+        items = avro_nonnullable(endpoint.fields_dict["usage"].type).items
+        assert avro.io.validate(items, roles[0])
+        assert avro.io.validate(items, "unknown-role") is (strict is False)
+        return
+    if strict is False:
+        assert "enum" not in item
+    else:
+        assert item["enum"] == roles
+
+
 def generate(kind):
     model = copy.deepcopy(MODEL)
     if kind == "json":
