@@ -68,8 +68,9 @@ Avro (`document-schema.avsc`), and OpenAPI (`openapi.json`) in the
 [schema](schema/schemas/)). The core model has its own JSON Schema at
 [core/model.schema.json](core/model.schema.json), which describes the
 `modelsource` document. See the [model source schema
-stages](tools/model-source-schema-stages.md) for what the source and expanded
-structural stages prove and what they leave to a real implementation.
+stages](tools/schema-generator.md#model-source-schema-what-each-validation-stage-proves)
+for what the source and expanded structural stages prove and what they leave to
+a real implementation.
 
 Generated request, response and JSON Structure types changed, so consumers
 should regenerate any bindings built from these schemas. The guidance linked
@@ -81,16 +82,19 @@ from completed responses, Resource Meta types use model-specific IDs, and the
 Strict scalar `enum` value sets and statically resolvable Group constraints
 are now expressed in both generated dialects, so data that previously passed
 validation may start failing it.
-See the [request and Meta guidance](tools/openapi-request-meta-schemas.md)
+See the [request and Meta
+guidance](tools/schema-generator.md#openapi-request-roles-and-resource-meta-schemas)
 for default/server obligations, alias forms, document routes and structural
 validation limits.
 
 JSON Structure uses maps for wildcard-only dynamic objects and zero-entry maps
 with explicit validation-feature support for closed-empty objects. Named
 objects retain their structured schemas and typed wildcard value constraints.
-See the [dynamic object guidance](tools/json-structure-dynamic-maps.md) and
-[typed wildcard semantics](tools/json-structure-typed-wildcards.md) for data,
-reader and Core parameter-name validation boundaries.
+See the [dynamic object
+guidance](tools/schema-generator.md#json-structure-dynamic-object-projection)
+and [typed wildcard
+semantics](tools/schema-generator.md#typed-wildcards-on-named-json-structure-objects)
+for data, reader and Core parameter-name validation boundaries.
 
 Additional release related information:
   [Historical releases and changelogs](docs/RELEASES.md)
