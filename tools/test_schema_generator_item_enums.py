@@ -6,11 +6,10 @@ the real `jsonschema`/OpenAPI validators, the emitted JSON Structure contract
 and the real Avro parser, reader and writer.
 
 Membership, `strict`, the advisory form and the absent or empty set reuse the
-attribute rules. `enum` and `strict` are defined for scalar items only, declared
-values must have the item's own scalar kind whether or not `strict` enforces
-membership, the owning array keeps its own separate legacy (non-Core) enum
-projection, and Avro carries string symbol sets only: a value set Avro cannot
-name is projected as the plain mapped type.
+attribute rules. Only scalar items carry `enum`; `strict` without an enum is
+ineffective even on a container item. Declared values must have the item's
+scalar kind whether or not membership is enforced. Owning-container enums are
+rejected. Avro carries string symbol sets only; other sets keep the plain type.
 """
 
 import copy
@@ -179,10 +178,8 @@ def test_source_rejects_an_item_enum_on_a_non_scalar_item_type(item_type):
 
 @pytest.mark.parametrize("item_type", NON_SCALAR_ITEM_TYPES)
 @pytest.mark.parametrize("strict", [True, False])
-def test_source_rejects_an_item_strict_on_a_non_scalar_item_type(item_type, strict):
-    """`item.strict` is OPTIONAL and MUST only be used when `item.type` is a
-    scalar, so it is invalid on a container item with or without an `enum`."""
-    rejects_source(model_with(
+def test_source_accepts_an_inert_item_strict_on_a_non_scalar(item_type, strict):
+    accepts_source(model_with(
         {"type": "array", "item": non_scalar_item(item_type, strict=strict)}))
     rejects_source(model_with({
         "type": "array",
@@ -452,12 +449,27 @@ def test_every_emitter_rejects_an_item_enum_on_a_non_scalar_item(generate, item_
 
 @pytest.mark.parametrize("generate", EMITTERS)
 @pytest.mark.parametrize("item_type", NON_SCALAR_ITEM_TYPES)
-def test_every_emitter_rejects_an_item_strict_on_a_non_scalar_item(
-    generate, item_type
+@pytest.mark.parametrize("strict", [True, False])
+def test_inert_item_strict_does_not_change_emitted_schema(
+    generate, item_type, strict
 ):
-    with pytest.raises(ValueError, match="scalar item types only"):
+    baseline = group_model_with(
+        {"type": "array", "item": non_scalar_item(item_type)}
+    )
+    candidate = group_model_with(
+        {"type": "array", "item": non_scalar_item(item_type, strict=strict)}
+    )
+    assert getattr(GENERATOR, generate)(candidate) == getattr(
+        GENERATOR, generate
+    )(baseline)
+
+
+@pytest.mark.parametrize("generate", EMITTERS)
+@pytest.mark.parametrize("strict", ["true", 1, None])
+def test_every_emitter_rejects_a_non_boolean_item_strict(generate, strict):
+    with pytest.raises(ValueError, match="must be a Boolean"):
         getattr(GENERATOR, generate)(group_model_with(
-            {"type": "array", "item": non_scalar_item(item_type, strict=False)}))
+            {"type": "array", "item": non_scalar_item("map", strict=strict)}))
 
 
 @pytest.mark.parametrize("generate", EMITTERS)

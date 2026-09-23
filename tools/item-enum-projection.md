@@ -7,11 +7,10 @@ The [schema generator](schema-generator.py) projects a scalar `item.enum` onto
 the array element or map value it belongs to. The reviewed Endpoint directive
 moves a role value set off the owning array and onto the element definition, so
 the [source meta-schema](../core/model.schema.json) admits `enum` and `strict`
-on an `ItemDefinition`. Core defines both for scalar items only, so an array,
-map, object, or `any` item carries neither and recurses through its own `item`
-instead. Core does not permit `enum` on the owning `array` or `map` attribute
-itself; the projection that still reads one is legacy plumbing kept only until
-the source cleanup removes that declaration.
+on an `ItemDefinition`. Core defines `enum` for scalar items only; a container
+restricts its scalar elements through its own `item`. A Boolean `strict` without
+an enum has no effect, even on a container. Core does not permit `enum` on the
+owning `array` or `map` attribute itself.
 
 Membership reuses the attribute rules. Values must have the item's own scalar
 kind, matching is case-sensitive, `strict` defaults to true, `strict` false
@@ -52,7 +51,9 @@ and the actual Avro parser, reader, and writer. The emitted JSON Structure
 contract is asserted directly rather than through an SDK claim.
 
 This change adds no item defaults, model policy, general declaration validator,
-or client SDK codec. The separate array-level `enum` is not Core valid; its
-existing projection and the test that pins it stay until the source cleanup
-that removes the declaration, and the earlier strict scalar attribute work is
-unchanged.
+or client SDK codec. Core's
+[item aspects](../core/model.md#attributesstringitemenum) and Endpoint's
+item-level declaration are now on main following
+[xregistry/spec#732](https://github.com/xregistry/spec/pull/732). The obsolete
+owning-array projection is removed; source validation and all emitters reject
+that placement rather than silently moving its value set onto the items.

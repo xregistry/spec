@@ -226,6 +226,8 @@ def effective_enum(definition):
 
 def validate_scalar_enum_aspects(name, definition, kind="attribute"):
     """Check the source aspects an effective strict enum governs."""
+    if kind == "attribute":
+        reject_container_value_set(name, definition)
     values = effective_enum(definition)
     if values is None:
         return None
@@ -256,20 +258,20 @@ def validate_scalar_enum_aspects(name, definition, kind="attribute"):
 def item_enum(name, item):
     """The value set a Core array element or map value actually restricts.
 
-    `enum` and `strict` are defined for scalar items only; a container item
-    recurses through its own `item` instead. Declared values must have the
-    item's own scalar kind whether or not `strict` enforces membership, and an
-    absent or empty set restricts nothing.
+    Only scalar items carry `enum`; containers recurse through their own
+    `item`. A Boolean `strict` alone has no effect. Declared values must have
+    the item's scalar kind even when membership is advisory.
     """
     if not isinstance(item, dict):
         return None
-    if "enum" not in item and "strict" not in item:
+    if "strict" in item and not isinstance(item["strict"], bool):
+        raise ValueError(f"strict of item {name!r} must be a Boolean")
+    if "enum" not in item:
         return None
     type_name = item.get("type")
     if type_name not in core_scalar_types:
-        keyword = "enum" if "enum" in item else "strict"
         raise ValueError(
-            f"{keyword} of item {name!r} is defined for scalar item types "
+            f"enum of item {name!r} is defined for scalar item types "
             f"only, not {type_name!r}"
         )
     values = item.get("enum")
@@ -282,6 +284,19 @@ def item_enum(name, item):
                     f"{type_name}"
                 )
     return validate_scalar_enum_aspects(name, item, kind="item")
+
+
+def reject_container_value_set(name, definition):
+    """Containers restrict their scalar elements, not their own value."""
+    if not isinstance(definition, dict):
+        return
+    type_name = definition.get("type")
+    if type_name not in core_scalar_types and "enum" in definition:
+        raise ValueError(
+            f"enum of attribute {name!r} is defined for scalar types "
+            f"only, not {type_name!r}; an array or map restricts its "
+            "elements through item.enum"
+        )
 
 
 # Avro restricts a value only through a named enum of unique string symbols.
@@ -867,7 +882,7 @@ def generate_json_schema(
     """
     model_definition = model_with_names(model_definition)
 
-    def handle_item(resource_schema, type, item, enum_values=None, role=None,
+    def handle_item(resource_schema, type, item, role=None,
                     name="item"):
         restriction = item_enum(name, item)
         if type == "object":
@@ -903,9 +918,6 @@ def generate_json_schema(
                     attr_schema["description"] = item["description"]
                 if "description" in attr_schema and attr_schema["description"] == "":
                     del attr_schema["description"]
-                # Apply enum constraint to array items if provided
-                if enum_values is not None and len(enum_values) > 0:
-                    attr_schema["enum"] = enum_values
                 if restriction is not None:
                     attr_schema["enum"] = copy.deepcopy(restriction)
                 resource_schema["items"] = attr_schema
@@ -989,8 +1001,7 @@ def generate_json_schema(
             if not ignored and attr_props["type"] in ("object", "map", "array"):
                 if "item" in attr_props:
                     # Pass enum values if this is an array with enum constraint
-                    enum_values = attr_props.get("enum") if attr_props["type"] == "array" else None
-                    handle_item(attr_schema, attr_props["type"], attr_props["item"], enum_values, role=role, name=attr_name)
+                    handle_item(attr_schema, attr_props["type"], attr_props["item"], role=role, name=attr_name)
 
             if role == "response" and attr_props.get("readonly", False):
                 attr_schema["readOnly"] = True
@@ -1808,6 +1819,7 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
             schema["enum"] = copy.deepcopy(definition["enum"])
 
     def value_schema(definition, namespace, suggested_name, require_reference=False):
+        reject_container_value_set(suggested_name, definition)
         value_type = definition["type"]
         if value_type == "object":
             schema = object_schema(
@@ -1836,8 +1848,6 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
                 "type": "array",
                 "items": value_schema(item, namespace, suggested_name + "Item", True)
             }
-            if definition.get("enum"):
-                schema["items"]["enum"] = copy.deepcopy(definition["enum"])
             apply_annotations(schema, definition)
             return schema
         if value_type not in json_structure_type_mapping:
@@ -2125,7 +2135,7 @@ def generate_avro_schema(model_definition) -> dict:
             ordinal += 1
             candidate = f"{name}{ordinal}"
 
-    def handle_item(resource_schema, type, item, name, prefix, enum_values=None):
+    def handle_item(resource_schema, type, item, name, prefix):
         symbols = avro_enum_symbols(item_enum(name, item))
         if type == "object":
             if "attributes" in item:
@@ -2161,13 +2171,6 @@ def generate_avro_schema(model_definition) -> dict:
                     if symbols is not None:
                         item_schema = avro_enum_type(
                             prefix+name+"EnumType", symbols)
-                    # Apply enum constraint to array items if provided
-                    elif enum_values is not None and len(enum_values) > 0:
-                        item_schema = {
-                            "type": "enum",
-                            "name": prefix+name+"EnumType",
-                            "symbols": enum_values
-                        }
                     resource_schema["type"]["items"] = item_schema
             else:
                 raise Exception("Array item must have a type specified")
@@ -2176,6 +2179,7 @@ def generate_avro_schema(model_definition) -> dict:
     def handle_attributes(resource_schema, attributes, type_prefix=""):
         nonlocal avro_generic_record_emitted
         for attr_name, attr_props in attributes.items():
+            reject_container_value_set(attr_name, attr_props)
             pascal_attr_name = pascal(attr_name)
             # attribute schema is based on the type mapping
             if "type" in attr_props:
@@ -2200,9 +2204,7 @@ def generate_avro_schema(model_definition) -> dict:
 
             if attr_props["type"] == "object" or attr_props["type"] == "map" or attr_props["type"] == "array":
                 if "item" in attr_props:
-                    # Pass enum values if this is an array with enum constraint
-                    enum_values = attr_props.get("enum") if attr_props["type"] == "array" else None
-                    handle_item(attr_schema, attr_props["type"], attr_props["item"], pascal_attr_name, type_prefix, enum_values)
+                    handle_item(attr_schema, attr_props["type"], attr_props["item"], pascal_attr_name, type_prefix)
                 else:
                     if attr_props["type"] == "object":
                         # Use GenericRecord reference (it's defined at document level if needed)

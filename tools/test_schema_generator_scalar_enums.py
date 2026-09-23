@@ -698,20 +698,44 @@ def test_the_real_schema_registry_model_keeps_its_equals_constraint_unprojected(
     assert "enum" not in definition["properties"]["format"]
 
 
-# --- W14-i/j: array plumbing and the JSON Structure adapter are unchanged ---
+# --- Container enums are invalid; only scalar item values are restricted ---
 
 
-def test_array_level_enum_keeps_its_existing_item_projection():
-    """Core does not permit `enum` on the owning array; this legacy delegation
-    is a P2 prerequisite that stays until the source cleanup owned by the
-    model-consistency work, because `endpoint/model.json` still declares one."""
+@pytest.mark.parametrize("carrier", ["array", "map", "object", "any"])
+@pytest.mark.parametrize("generate", [
+    "generate_json_schema", "generate_openapi", "generate_json_structure",
+    "generate_avro_schema",
+])
+def test_owning_container_enum_is_rejected(carrier, generate):
     model = base_model()
-    model["attributes"]["usage"] = {
-        "type": "array", "enum": ["a", "b"], "item": {"type": "string"},
-    }
-    schema = GENERATOR.generate_json_schema(model)
-    assert schema["properties"]["usage"]["items"]["enum"] == ["a", "b"]
-    assert "enum" not in schema["properties"]["usage"]
+    declaration = {"type": carrier, "enum": ["a", "b"]}
+    if carrier in ("array", "map"):
+        declaration["item"] = {"type": "string"}
+    model["groups"]["catalogs"]["attributes"]["usage"] = declaration
+    with pytest.raises(jsonschema.ValidationError):
+        SOURCE.validate(model)
+    with pytest.raises(ValueError, match="scalar types only"):
+        getattr(GENERATOR, generate)(model)
+
+
+@pytest.mark.parametrize("carrier", ["array", "map", "object", "any"])
+@pytest.mark.parametrize("strict", [True, False])
+@pytest.mark.parametrize("generate", [
+    "generate_json_schema", "generate_openapi", "generate_json_structure",
+    "generate_avro_schema",
+])
+def test_owning_container_strict_without_enum_is_inert(carrier, strict, generate):
+    baseline = base_model()
+    declaration = {"type": carrier}
+    if carrier in ("array", "map"):
+        declaration["item"] = {"type": "string"}
+    baseline["groups"]["catalogs"]["attributes"]["usage"] = declaration
+    candidate = copy.deepcopy(baseline)
+    candidate["groups"]["catalogs"]["attributes"]["usage"]["strict"] = strict
+    SOURCE.validate(candidate)
+    assert getattr(GENERATOR, generate)(candidate) == getattr(
+        GENERATOR, generate
+    )(baseline)
 
 
 def test_item_level_enums_are_admitted_only_for_approved_scalar_item_kinds():

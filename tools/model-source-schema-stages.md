@@ -65,6 +65,8 @@ shape of the type-name components only.
 - **`cloudevents/model.json`** still uses three `#groups` include fragments that
   are not RFC 6901 JSON Pointers, so its expanded stage cannot pass. Repairing
   those fragments is tracked separately as a model-consistency correction.
-- **Scalar-only `enum` applicability** is not enforced at the source stage yet,
-  because `endpoint/model.json` still declares an array-level `enum` whose
-  removal is owned by the same model-consistency correction.
+- **Scalar-only `enum` applicability** is enforced wherever the declared type
+  is known. Endpoint now uses `usage.item.enum` following
+  [xregistry/spec#732](https://github.com/xregistry/spec/pull/732), so there is
+  no array-level compatibility exception. Includes can still supply an omitted
+  source type; the expanded stage resolves it before applying the same rule.

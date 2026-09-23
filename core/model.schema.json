@@ -544,6 +544,22 @@
         {
           "if": {
             "properties": {
+              "type": { "enum": ["array", "map", "object", "any"] }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "properties": {
+              "enum": {
+                "not": {},
+                "description": "Only scalar attributes carry a value set; containers use item.enum"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
               "type": { "enum": ["array", "map"] }
             },
             "required": ["type"]
@@ -675,10 +691,6 @@
               "enum": {
                 "not": {},
                 "description": "Only scalar items carry a value set; a container recurses through its own 'item'"
-              },
-              "strict": {
-                "not": {},
-                "description": "Only scalar items carry a value set, so only they qualify one"
               }
             }
           }
