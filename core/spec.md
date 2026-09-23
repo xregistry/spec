@@ -462,12 +462,14 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
     "attributes": {                     # Registry-level attributes/extensions
       "<STRING>": {                     # Attribute name (case-sensitive)
         "name": "<STRING>",             # Same as attribute's key
+        "description": "<STRING>", ?
         "type": "<TYPE>",               # string, decimal, array, object, ...
+
+        "enum": [ <VALUE> * ], ?        # Array of scalars of type `"type"`
+        "strict": <BOOLEAN>, ?          # Just value in "enum"? Default=true
         "target": "<XIDTYPE>", ?        # If "type" is "xid" or "url"
         "namecharset": "<STRING>", ?    # If "type" is "object"
-        "description": "<STRING>", ?
-        "enum": [ <VALUE> * ], ?        # Array of scalars of type `"type"`
-        "strict": <BOOLEAN>, ?          # Just "enum" values? Default=true
+
         "matchversions": <BOOLEAN>, ?   # Same for all Versions? Def=false
         "readonly": <BOOLEAN>, ?        # From client's POV. Default=false
         "immutable": <BOOLEAN>, ?       # Once set, can't change. Default=false
@@ -477,8 +479,12 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
         "attributes": { ... }, ?        # If "type" above is object
         "item": {                       # If "type" above is map,array
           "type": "<TYPE>", ?           # map value type, or array type
+
+          "enum": [ <VALUE> * ], ?      # Array of scalars of this item `"type"`
+          "strict": <BOOLEAN>, ?        # Just value in "enum"? Default=true
           "target": "<XIDTYPE>", ?      # If this item "type" is xid/url
           "namecharset": "<STRING>", ?  # If this item "type" is object
+
           "attributes": { ... }, ?      # If this item "type" is object
           "item": { ... } ?             # If this item "type" is map,array
         } ?
@@ -534,8 +540,6 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
   "modelsource": { ... }, ?                        # Input model, if inlined
 
   # Repeat for each Group type
-  "<GROUPS>url": "<URL>",                          # e.g. "endpointsurl"
-  "<GROUPS>count": <UINTEGER>,                     # e.g. "endpointscount"
   "<GROUPS>": {                                    # Only if inlined
     "<KEY>": {                                     # Key=the Group ID
       "<GROUP>id": "<STRING>",                     # The Group ID
@@ -565,8 +569,6 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
       }, ?
 
       # Repeat for each Resource type in the Group
-      "<RESOURCES>url": "<URL>",                   # e.g. "messagesurl"
-      "<RESOURCES>count": <UINTEGER>,              # e.g. "messagescount"
       "<RESOURCES>": {                             # Only if inlined
         "<KEY>": {                                 # The Resource ID
           "<RESOURCE>id": "<STRING>",
@@ -621,8 +623,6 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
             "defaultversionsticky": <BOOLEAN> ?    # Default=false
           }, ?
 
-          "versionsurl": "<URL>",
-          "versionscount": <UINTEGER>,
           "versions": {                            # Only if inlined
             "<KEY>": {                             # The Version's versionid
               "<RESOURCE>id": "<STRING>",          # The Resource's ID
@@ -651,11 +651,17 @@ For easy reference, the JSON serialization of a Registry adheres to this form:
               "<RESOURCE>": ... Resource document ..., ? # If inlined & JSON
               "<RESOURCE>base64": "<STRING>" ?           # If inlined & ~JSON
             } *
-          } ?
+          }, ?
+          "versionsurl": "<URL>",
+          "versionscount": <UINTEGER>
         } *
-      } ?
+      }, ?
+      "<RESOURCES>url": "<URL>",                   # e.g. "messagesurl"
+      "<RESOURCES>count": <UINTEGER>               # e.g. "messagescount"
     } *
-  } ?
+  }, ?
+  "<GROUPS>url": "<URL>",                          # e.g. "endpointsurl"
+  "<GROUPS>count": <UINTEGER>                      # e.g. "endpointscount"
 }
 ```
 
@@ -1504,11 +1510,11 @@ The serialization of a collection is done as 3 attributes and they MUST adhere
 to their respective forms as follows:
 
 ```yaml
-"<COLLECTION>url": "<URL>",
-"<COLLECTION>count": <UINTEGER>,
 "<COLLECTION>": {
   # Map of entities in the collection, key is the "<SINGULAR>id" of the entity
-}
+},
+"<COLLECTION>url": "<URL>",
+"<COLLECTION>count": <UINTEGER>
 ```
 
 Where:
@@ -1548,8 +1554,6 @@ entities is an indication of those entities being deleted or not.
 Sample `schemagroups` collection attributes, with `schemagroups` inlined.
 
 ```yaml
-"schemagroupsurl": "http://registry.example.com/schemagroups",
-"schemagroupscount": 8
 "schemagroups": {
   "Contoso.ERP": {...},
   "Fabrikam.InkJetPrinter": {...},
@@ -1560,6 +1564,8 @@ Sample `schemagroups` collection attributes, with `schemagroups` inlined.
   "WaterBoiler": {...},
   "WindGenerator": {...}
 },
+"schemagroupsurl": "http://registry.example.com/schemagroups",
+"schemagroupscount": 8
 ```
 
 The requirements on the presence of the 3 `<COLLECTION>*` attributes varies
@@ -1705,9 +1711,9 @@ The serialization of the Registry entity MUST adhere to this form:
   "modelsource": { Registry model }, ?           # Only if inlined
 
   # Repeat for each Group type
+  "<GROUPS>": { Groups collection }, ?           # Only if inlined
   "<GROUPS>url": "<URL>",                        # e.g. "endpointsurl"
-  "<GROUPS>count": <UINTEGER>,                   # e.g. "endpointscount"
-  "<GROUPS>": { Groups collection } ?            # Only if inlined
+  "<GROUPS>count": <UINTEGER>                    # e.g. "endpointscount"
 }
 ```
 
@@ -2312,9 +2318,9 @@ The serialization of a Group entity MUST adhere to this form:
   }, ?
 
   # Repeat for each Resource type in the Group
+  "<RESOURCES>": { Resources collection }, ?  # If inlined
   "<RESOURCES>url": "<URL>",                  # e.g. "messagesurl"
-  "<RESOURCES>count": <UINTEGER>,             # e.g. "messagescount"
-  "<RESOURCES>": { Resources collection } ?   # If inlined
+  "<RESOURCES>count": <UINTEGER>              # e.g. "messagescount"
 }
 ```
 
@@ -2409,9 +2415,9 @@ it MUST adhere to the following:
   "metaurl": "<URL>",                        # URL to 'meta' entity
   "meta": { meta entity }, ?                 # Only if inlined
 
+  "versions": { map of Versions },           # Only if inlined
   "versionsurl": "<URL>",                    # Absolute URL to versions
-  "versionscount": <UINTEGER>,               # Size of versions collection
-  "versions": { map of Versions }            # Only if inlined
+  "versionscount": <UINTEGER>                # Size of versions collection
 }
 ```
 
@@ -2445,9 +2451,9 @@ it MUST adhere to the following:
   "metaurl": "<URL>",
   "meta": { meta entity }, ?                 # Only if inlined
 
+  "versions": { map of Versions }, ?         # Only if inlined
   "versionsurl": "<URL>",
-  "versionscount": <UINTEGER>,
-  "versions": { map of Versions } ?          # Only if inlined
+  "versionscount": <UINTEGER>
 }
 ```
 
@@ -2682,6 +2688,16 @@ The following provides additional details:
     specified in the
     [Cross Referencing Resources](#cross-referencing-resources) section.
 
+- Step 4 - Process the `meta` sub-object:
+  - If the operation isn't replacing the entire `meta` sub-object, but instead
+    is doing a "patch" type of operation, and it is changing the Resource's
+    `defaultversionsticky` flag from `false` to `true`, then the current
+    default Version (as defined prior to the start of the operation) is to be
+    made sticky. This aligns with the first sub-bullet of "Step 2" above,
+    to ensure that the same "default" Version is used for both updating
+    the "default Version attributes" as well as "making the default Version
+    sticky".
+
 See [Resource Update Samples](./resource.md) for examples.
 
 ##### `<RESOURCE>*` Attribute Processing
@@ -2758,8 +2774,8 @@ So, if the target Resource (`sharedSchema`) is defined as:
 
   "metaurl": "http://example.com/schemagroups/group2/schemas/sharedSchema/meta",
 
-  "versionscount": 1,
-  "versionsurl": "http://example.com/schemagroups/group2/schemas/sharedSchema/versions"
+  "versionsurl": "http://example.com/schemagroups/group2/schemas/sharedSchema/versions",
+  "versionscount": 1
 }
 ```
 
@@ -2791,8 +2807,8 @@ then the resulting serialization of the source Resource would be:
     "defaultversionsticky": false
   },
 
-  "versionscount": 1,
-  "versionsurl": "http://example.com/schemagroups/group1/schemas/mySchema/versions"
+  "versionsurl": "http://example.com/schemagroups/group1/schemas/mySchema/versions",
+  "versionscount": 1
 }
 ```
 
@@ -3088,8 +3104,11 @@ of the Resource in any of the following situations:
   `defaultversionsticky` with a value of `true`, but no `defaultversionid` was
   provided.
 - The processing patched the `meta` sub-object and the request modified
-  `defaultversionsticky` from `false` to `true`, but no `defaultversionid`
-  was provided.
+  `defaultversionsticky` from `false` to `true`, and a `defaultversionid`
+  value of `null` was provided for this attribute. Note that a patch request
+  with `defaultversionsticky` set to `true` but no `defaultversionid` specified
+  will make the default Version as defined prior to the start of the operation
+  sticky.
 
 Regardless of the reason for `defaultversionid` or `defaultversionsticky`
 being modified, those changes alone MUST NOT change any attributes in any
@@ -4310,9 +4329,6 @@ contents of all specified inlineable attributes. Inlineable attributes include:
 - The `<RESOURCE>` attribute in a Resource or Version.
 - The `meta` attribute in a Resource.
 
-Specifying the name of a non-inlineable attribute MUST generate an error
-([inline_noninlineable](#inline_noninlineable)).
-
 While the `<RESOURCE>` and `<RESOURCE>base64` attributes are defined as two
 separate attributes, they are technically two separate "views" of the same
 underlying data. As such, the usage of each will be based on the content type
@@ -5168,15 +5184,6 @@ field is just a substitution value and MUST NOT be empty.
 * Subject: `<version_xid>`
 * Args:
   - `plural`: The "plural" type name of the Resource being processed.
-
-### inline_noninlineable
-
-* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#inline_noninlineable`
-* Code: `400 Bad Request`
-* Title: `Attempting to inline a non-inlineable attribute (<name>) on: <subject>.`
-* Subject: `<request_path>`
-* Args:
-  - `name`: The name of the attribute in question.
 
 ### invalid_attribute
 

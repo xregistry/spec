@@ -1230,12 +1230,7 @@
             "type": "array",
             "description": "Client's expected usage of this endpoint. Single-role declarations are preferred. Mixed declarations are guidance-oriented metadata and should be used only when role semantics are unambiguous.",
             "items": {
-              "type": "string",
-              "enum": [
-                "subscriber",
-                "consumer",
-                "producer"
-              ]
+              "type": "string"
             }
           },
           "channel": {
