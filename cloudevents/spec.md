@@ -119,12 +119,12 @@ endpoint with a single, embedded message definition using an embedded Protobuf
 {
   "$schema": "https://cloudevents.io/schemas/registry",
   "specversion": "1.0-rc4",
-  "registryid": "Example Registry",
-  "self": "http://example.com",
+  "registryid": "example-registry",
+  "self": "https://example.com",
   "xid": "/",
   "epoch": 4,
   "createdat": "2024-04-30T12:00:00Z",
-  "modifiedat": "2024-04-31T12:00:00Z",
+  "modifiedat": "2024-05-01T12:00:00Z",
 
   "endpoints": {
     "com.example.telemetry": {
@@ -133,7 +133,7 @@ endpoint with a single, embedded message definition using an embedded Protobuf
       "xid": "/endpoints/com.example.telemetry",
       "epoch": 5,
       "createdat": "2024-04-30T12:00:00Z",
-      "modifiedat": "2024-04-31T12:00:00Z",
+      "modifiedat": "2024-05-01T12:00:00Z",
 
       "usage": [ "consumer" ],
       "envelope": "CloudEvents/1.0",
@@ -157,7 +157,7 @@ endpoint with a single, embedded message definition using an embedded Protobuf
           "isdefault": true,
           "description": "device telemetry event",
           "createdat": "2024-04-30T12:00:00Z",
-          "modifiedat": "2024-04-31T12:00:00Z",
+          "modifiedat": "2024-05-01T12:00:00Z",
           "ancestorid": "1.0",
 
           "envelope": "CloudEvents/1.0",
@@ -207,12 +207,12 @@ other scenarios:
 {
   "$schema": "https://cloudevents.io/schemas/registry",
   "specversion": "1.0-rc4",
-  "registryid": "Example Registry",
-  "self": "http://example.com",
+  "registryid": "example-registry",
+  "self": "https://example.com",
   "xid": "/",
   "epoch": 4,
   "createdat": "2024-04-30T12:00:00Z",
-  "modifiedat": "2024-04-31T12:00:00Z",
+  "modifiedat": "2024-05-01T12:00:00Z",
 
   "endpoints": {
     "com.example.telemetry": {
@@ -221,7 +221,7 @@ other scenarios:
       "xid": "/endpoints/com.example.telemetry",
       "epoch": 5,
       "createdat": "2024-04-30T12:00:00Z",
-      "modifiedat": "2024-04-31T12:00:00Z",
+      "modifiedat": "2024-05-01T12:00:00Z",
 
       "usage": [ "consumer" ],
       "envelope": "CloudEvents/1.0",
@@ -249,7 +249,7 @@ other scenarios:
       "xid": "/messagegroups/com.example.telemetryEvents",
       "epoch": 3,
       "createdat": "2024-04-30T12:00:00Z",
-      "modifiedat": "2024-04-31T12:00:00Z",
+      "modifiedat": "2024-05-01T12:00:00Z",
 
       "messagesurl": "https://example.com/messagegroups/com.example.telemetryEvents/messages",
       "messagescount": 1,
@@ -257,13 +257,13 @@ other scenarios:
         "com.example.telemetry": {
           "messageid": "com.example.telemetry",
           "versionid": "1.0",
-          "self": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry",
-          "xid": "/endpoints/com.example.telemetry/messages/com.example.telemetry",
+          "self": "https://example.com/messagegroups/com.example.telemetryEvents/messages/com.example.telemetry",
+          "xid": "/messagegroups/com.example.telemetryEvents/messages/com.example.telemetry",
           "epoch": 5,
           "isdefault": true,
           "description": "device telemetry event",
           "createdat": "2024-04-30T12:00:00Z",
-          "modifiedat": "2024-04-31T12:00:00Z",
+          "modifiedat": "2024-05-01T12:00:00Z",
           "ancestorid": "1.0",
 
           "envelope": "CloudEvents/1.0",
@@ -292,9 +292,9 @@ other scenarios:
           "dataschemauri": "/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions/1.0#Metrics",
           "datacontenttype": "application/x-protobuf",
 
-          "metaurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/meta",
+          "metaurl": "https://example.com/messagegroups/com.example.telemetryEvents/messages/com.example.telemetry/meta",
 
-          "versionsurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/versions",
+          "versionsurl": "https://example.com/messagegroups/com.example.telemetryEvents/messages/com.example.telemetry/versions",
           "versionscount": 1
         }
       }
@@ -310,7 +310,7 @@ other scenarios:
       "xid": "/schemagroups/com.example.telemetry",
       "epoch": 5,
       "createdat": "2024-04-30T12:00:00Z",
-      "modifiedat": "2024-04-31T12:00:00Z",
+      "modifiedat": "2024-05-01T12:00:00Z",
 
       "schemasurl": "https://example.com/schemagroups/com.example.telemetry/schemas",
       "schemascount": 1,
@@ -324,7 +324,7 @@ other scenarios:
           "isdefault": true,
           "description": "device telemetry event data",
           "createdat": "2024-04-30T12:00:00Z",
-          "modifiedat": "2024-04-31T12:00:00Z",
+          "modifiedat": "2024-05-01T12:00:00Z",
           "ancestorid": "1.0",
 
           "format": "Protobuf/3",
@@ -355,7 +355,7 @@ group with a deep link to the respective object in the service:
 {
   "$schema": "https://cloudevents.io/schemas/registry",
   "specversion": "1.0-rc4",
-  "registryid": "Example Registry",
+  "registryid": "example-registry",
 
   "endpoints": {
     "com.example.telemetry": {
@@ -364,7 +364,7 @@ group with a deep link to the respective object in the service:
       "xid": "/endpoints/com.example.telemetry",
       "epoch": 5,
       "createdat": "2024-04-30T12:00:00Z",
-      "modifiedat": "2024-04-31T12:00:00Z",
+      "modifiedat": "2024-05-01T12:00:00Z",
 
       "usage": [ "consumer" ],
       "envelope": "CloudEvents/1.0",
@@ -390,7 +390,7 @@ link will first reference the file and then the object within the file, using
 {
   "$schema": "https://cloudevents.io/schemas/registry",
   "specversion": "1.0-rc4",
-  "registryid": "Example Registry",
+  "registryid": "example-registry",
 
   "endpoints": {
     "com.example.telemetry": {
@@ -399,7 +399,7 @@ link will first reference the file and then the object within the file, using
       "xid": "/endpoints/com.example.telemetry",
       "epoch": 5,
       "createdat": "2024-04-30T12:00:00Z",
-      "modifiedat": "2024-04-31T12:00:00Z",
+      "modifiedat": "2024-05-01T12:00:00Z",
 
       "usage": [ "consumer" ],
       "envelope": "CloudEvents/1.0",

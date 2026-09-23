@@ -535,7 +535,7 @@ to these Endpoint usage constraints.
   - OPTIONAL.
 - Examples:
   - For an endpoint using an `envelope` value of `CloudEvents/1.0`:
-    `{ "mode": "binary", "format": "application/json" }`
+    `{ "mode": "structured", "format": "application/cloudevents+json" }`
 
 This specification defines the following envelope options for the indicated
 `envelope` values:

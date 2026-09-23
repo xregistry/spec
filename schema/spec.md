@@ -445,7 +445,7 @@ Versions for a schema named `com.example.telemetrydata`:
           "format": "Protobuf/3",
           # other xRegistry default Version attributes excluded for brevity
 
-          "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; string description = 3; } }",
+          "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; string description = 3; }",
 
           "metaurl": "http://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/meta",
 
@@ -459,7 +459,7 @@ Versions for a schema named `com.example.telemetrydata`:
               "format": "Protobuf/3",
               # other xRegistry Version-level attributes excluded for brevity
 
-              "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; } }"
+              "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; }"
             },
             "2": {
               "schemaid": "com.example.telemetrydata",
@@ -470,7 +470,7 @@ Versions for a schema named `com.example.telemetrydata`:
               "format": "Protobuf/3",
               # other xRegistry Version-level attributes excluded for brevity
 
-              "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; } }"
+              "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; }"
             },
             "3": {
               "schemaid": "com.example.telemetrydata",
@@ -481,7 +481,7 @@ Versions for a schema named `com.example.telemetrydata`:
               "format": "Protobuf/3",
               # other xRegistry Version-level attributes excluded for brevity
 
-              "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; string description = 3; } }"
+              "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; string description = 3; }"
             }
           },
           "versionsurl": "http://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions",

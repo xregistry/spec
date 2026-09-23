@@ -1848,11 +1848,11 @@ Content-Type: application/json; charset=utf-8
 
 {
   "msg1": {
-    "endpointid": "msg1",
+    "messageid": "msg1",
     ... remainder of msg1 definition excluded for brevity ...
   },
   "msg2": {
-    "endpointid": "msg2",
+    "messageid": "msg2",
     ... remainder of msg2 definition excluded for brevity ...
   }
 }
@@ -1864,11 +1864,11 @@ Content-Type: application/json; charset=utf-8
 
 {
   "msg1": {
-    "endpointid": "msg1",
+    "messageid": "msg1",
     ... remainder of msg1 definition excluded for brevity ...
   },
   "msg2": {
-    "endpointid": "msg2",
+    "messageid": "msg2",
     ... remainder of msg2 definition excluded for brevity ...
   }
 }
@@ -2616,8 +2616,8 @@ Link: <https://example.com/endpoints/ep1/messages/msg1/versions&page=2>;rel=next
   "1.0": {
     "messageid": "msg1",
     "versionid": "1.0",
-    "self": "https://example.com/endpoints/ep1/messages/msg1",
-    "xid": "/endpoints/ep1/messages/msg1",
+    "self": "https://example.com/endpoints/ep1/messages/msg1/versions/1.0",
+    "xid": "/endpoints/ep1/messages/msg1/versions/1.0",
     "epoch": 1,
     "name": "Blob Created",
     "isdefault": true,
@@ -2650,7 +2650,7 @@ POST /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions
 Content-Type: application/json; charset=utf-8
 
 {
-  "<KEY>": {                                      # <GROUP>id
+  "<KEY>": {                                      # versionid
      ... Version entity excluded for brevity ...
   } *
 }
@@ -2663,7 +2663,7 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "<KEY>": {                                      # <GROUP>id
+  "<KEY>": {                                      # versionid
      ... Version entity excluded for brevity ...
   } *
 }
@@ -2713,7 +2713,7 @@ Content-Type: application/json; charset=utf-8
     "labels": { "customer": "abc" },
     # Remainder of Version entity excluded for brevity
   }
-]
+}
 ```
 
 Note that in this case, the new "label" replaces all existing labels; it is
@@ -2734,7 +2734,7 @@ The processing of this API is defined in the
 The request MUST be of the form:
 
 ```yaml
-DELETE /<GROUPS>/<GID>/<RESOURCES>/versions
+DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions
 
 {
   "<KEY>": {                            # versionid
@@ -3098,10 +3098,10 @@ DELETE /endpoints/ep1/messages/msg1/versions/1.0
 HTTP/1.1 204 No Content
 ```
 
-Delete a Resource, verifying its `epoch` value:
+Delete a Version, verifying its `epoch` value:
 
 ```yaml
-DELETE /endpoints/ep1/messages/msg1/versions?epoch=5
+DELETE /endpoints/ep1/messages/msg1/versions/1.0?epoch=5
 ```
 
 ```
