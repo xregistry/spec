@@ -1,0 +1,17 @@
+{
+  "document": {
+    "mode": "metadata-only"
+  },
+  "entity": {
+    "ancestorid": "v1",
+    "createdat": "2026-09-01T12:00:00Z",
+    "epoch": 1,
+    "isdefault": true,
+    "modifiedat": "2026-09-01T12:00:00Z",
+    "noteid": "info",
+    "versionid": "v1",
+    "xid": "/dirs/main/notes/info/versions/v1"
+  },
+  "formatversion": 1,
+  "kind": "version"
+}

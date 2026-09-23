@@ -49,6 +49,9 @@ def _sample_files():
     for sample_root in (ROOT / "core" / "samples", ROOT / "cloudevents" / "samples"):
         for pattern in SAMPLE_PATTERNS:
             samples.extend(sample_root.rglob(pattern))
+    for sample_root in (ROOT / "workingdrafts").rglob("samples"):
+        for pattern in (*SAMPLE_PATTERNS, "*.json"):
+            samples.extend(sample_root.rglob(pattern))
     return sorted(set(samples))
 
 

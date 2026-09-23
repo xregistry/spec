@@ -1,0 +1,16 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "collection",
+  "xid": "/categories",
+  "count": 1,
+  "entries": [
+    {
+      "kind": "group",
+      "xid": "/categories/main",
+      "href": "records/n0.json",
+      "size": 502,
+      "sha256": "0926669d64232f3dfabf7d06f5fd27a4954c6d92811dee47062283b42c5d1bdb"
+    }
+  ]
+}

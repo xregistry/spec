@@ -1,0 +1,225 @@
+{
+  "specversion": "1.0-rc4",
+  "registryid": "first",
+  "self": "#",
+  "xid": "/",
+  "epoch": 1,
+  "createdat": "2026-09-01T00:00:00Z",
+  "modifiedat": "2026-09-01T00:00:00Z",
+  "modelsource": {
+    "groups": {
+      "documents": {
+        "singular": "document",
+        "resources": {
+          "assets": {
+            "singular": "asset",
+            "attributes": {
+              "owner": {"type": "string"}
+            }
+          }
+        }
+      },
+      "mirrors": {
+        "singular": "mirror",
+        "ximportresources": ["/documents/assets"]
+      },
+      "categories": {
+        "singular": "category",
+        "resources": {
+          "registries": {
+            "singular": "registry",
+            "hasdocument": false,
+            "attributes": {
+              "xregurl": {"type": "url"},
+              "weburl": {"type": "url"}
+            }
+          }
+        }
+      }
+    }
+  },
+  "documentsurl": "#/documents",
+  "documentscount": 1,
+  "documents": {
+    "main": {
+      "documentid": "main",
+      "self": "#/documents/main",
+      "xid": "/documents/main",
+      "epoch": 1,
+      "createdat": "2026-09-01T00:00:00Z",
+      "modifiedat": "2026-09-01T00:00:00Z",
+      "assetsurl": "#/documents/main/assets",
+      "assetscount": 1,
+      "assets": {
+        "item": {
+          "assetid": "item",
+          "self": "#/documents/main/assets/item",
+          "xid": "/documents/main/assets/item",
+          "metaurl": "#/documents/main/assets/item/meta",
+          "meta": {
+            "assetid": "item",
+            "self": "#/documents/main/assets/item/meta",
+            "xid": "/documents/main/assets/item/meta",
+            "epoch": 3,
+            "createdat": "2026-09-01T00:00:00Z",
+            "modifiedat": "2026-09-03T00:00:00Z",
+            "readonly": false,
+            "defaultversionid": "v1",
+            "defaultversionurl": "#/documents/main/assets/item/versions/v1",
+            "defaultversionsticky": true
+          },
+          "versionsurl": "#/documents/main/assets/item/versions",
+          "versionscount": 3,
+          "versions": {
+            "v1": {
+              "assetid": "item",
+              "versionid": "v1",
+              "self": "#/documents/main/assets/item/versions/v1",
+              "xid": "/documents/main/assets/item/versions/v1",
+              "epoch": 1,
+              "createdat": "2026-09-01T00:00:00Z",
+              "modifiedat": "2026-09-01T00:00:00Z",
+              "isdefault": true,
+              "ancestorid": "v1",
+              "labels": {"stage": "production", "note": ""},
+              "owner": "example",
+              "contenttype": "application/json",
+              "assetbase64": "eyJ0eXBlIjoic3RyaW5nIn0="
+            },
+            "v2": {
+              "assetid": "item",
+              "versionid": "v2",
+              "self": "#/documents/main/assets/item/versions/v2",
+              "xid": "/documents/main/assets/item/versions/v2",
+              "epoch": 1,
+              "createdat": "2026-09-02T00:00:00Z",
+              "modifiedat": "2026-09-02T00:00:00Z",
+              "isdefault": false,
+              "ancestorid": "v1",
+              "labels": {"stage": "development"},
+              "contenttype": "application/octet-stream",
+              "assetbase64": "AP8="
+            },
+            "v3": {
+              "assetid": "item",
+              "versionid": "v3",
+              "self": "#/documents/main/assets/item/versions/v3",
+              "xid": "/documents/main/assets/item/versions/v3",
+              "epoch": 1,
+              "createdat": "2026-09-03T00:00:00Z",
+              "modifiedat": "2026-09-03T00:00:00Z",
+              "isdefault": false,
+              "ancestorid": "v2",
+              "contenttype": "application/octet-stream",
+              "assetbase64": ""
+            }
+          }
+        }
+      }
+    }
+  },
+  "mirrorsurl": "#/mirrors",
+  "mirrorscount": 1,
+  "mirrors": {
+    "local": {
+      "mirrorid": "local",
+      "self": "#/mirrors/local",
+      "xid": "/mirrors/local",
+      "epoch": 1,
+      "createdat": "2026-09-01T00:00:00Z",
+      "modifiedat": "2026-09-01T00:00:00Z",
+      "assetsurl": "#/mirrors/local/assets",
+      "assetscount": 3,
+      "assets": {
+        "copy": {
+          "assetid": "copy",
+          "self": "#/mirrors/local/assets/copy",
+          "xid": "/mirrors/local/assets/copy",
+          "metaurl": "#/mirrors/local/assets/copy/meta",
+          "meta": {
+            "assetid": "copy",
+            "self": "#/mirrors/local/assets/copy/meta",
+            "xid": "/mirrors/local/assets/copy/meta",
+            "xref": "/documents/main/assets/item"
+          }
+        },
+        "dangling": {
+          "assetid": "dangling",
+          "self": "#/mirrors/local/assets/dangling",
+          "xid": "/mirrors/local/assets/dangling",
+          "metaurl": "#/mirrors/local/assets/dangling/meta",
+          "meta": {
+            "assetid": "dangling",
+            "self": "#/mirrors/local/assets/dangling/meta",
+            "xid": "/mirrors/local/assets/dangling/meta",
+            "xref": "/documents/main/assets/missing"
+          }
+        },
+        "chain": {
+          "assetid": "chain",
+          "self": "#/mirrors/local/assets/chain",
+          "xid": "/mirrors/local/assets/chain",
+          "metaurl": "#/mirrors/local/assets/chain/meta",
+          "meta": {
+            "assetid": "chain",
+            "self": "#/mirrors/local/assets/chain/meta",
+            "xid": "/mirrors/local/assets/chain/meta",
+            "xref": "/mirrors/local/assets/copy"
+          }
+        }
+      }
+    }
+  },
+  "categoriesurl": "#/categories",
+  "categoriescount": 1,
+  "categories": {
+    "dev": {
+      "categoryid": "dev",
+      "self": "#/categories/dev",
+      "xid": "/categories/dev",
+      "epoch": 1,
+      "createdat": "2026-09-01T00:00:00Z",
+      "modifiedat": "2026-09-01T00:00:00Z",
+      "registriesurl": "#/categories/dev/registries",
+      "registriescount": 1,
+      "registries": {
+        "bridge": {
+          "registryid": "bridge",
+          "self": "#/categories/dev/registries/bridge",
+          "xid": "/categories/dev/registries/bridge",
+          "metaurl": "#/categories/dev/registries/bridge/meta",
+          "meta": {
+            "registryid": "bridge",
+            "self": "#/categories/dev/registries/bridge/meta",
+            "xid": "/categories/dev/registries/bridge/meta",
+            "epoch": 1,
+            "createdat": "2026-09-01T00:00:00Z",
+            "modifiedat": "2026-09-01T00:00:00Z",
+            "readonly": false,
+            "defaultversionid": "v1",
+            "defaultversionurl": "#/categories/dev/registries/bridge/versions/v1",
+            "defaultversionsticky": true
+          },
+          "versionsurl": "#/categories/dev/registries/bridge/versions",
+          "versionscount": 1,
+          "versions": {
+            "v1": {
+              "registryid": "bridge",
+              "versionid": "v1",
+              "self": "#/categories/dev/registries/bridge/versions/v1",
+              "xid": "/categories/dev/registries/bridge/versions/v1",
+              "epoch": 1,
+              "createdat": "2026-09-01T00:00:00Z",
+              "modifiedat": "2026-09-01T00:00:00Z",
+              "isdefault": true,
+              "ancestorid": "v1",
+              "labels": {},
+              "xregurl": "https://first.example.com/services/xreg/",
+              "weburl": "https://www.example.com/"
+            }
+          }
+        }
+      }
+    }
+  }
+}

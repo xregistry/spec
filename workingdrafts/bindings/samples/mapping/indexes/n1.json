@@ -1,0 +1,16 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "collection",
+  "xid": "/categories/main/registries",
+  "count": 1,
+  "entries": [
+    {
+      "kind": "resource",
+      "xid": "/categories/main/registries/site",
+      "href": "records/n1.json",
+      "size": 654,
+      "sha256": "2c8fea0f7ceef284c0e7a05651e12406cac92a81a0fde678a2a5a062a97bfb26"
+    }
+  ]
+}

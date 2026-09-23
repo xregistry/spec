@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:xregistry:document-tree:index:1",
+  "title": "xRegistry document-tree collection index, working draft 1",
+  "type": "object",
+  "required": ["format", "formatversion", "kind", "xid", "count", "entries"],
+  "additionalProperties": false,
+  "properties": {
+    "format": {"const": "xregistry-document-tree"},
+    "formatversion": {"const": "1"},
+    "kind": {"const": "collection"},
+    "xid": {
+      "allOf": [
+        {"$ref": "urn:xregistry:document-tree:record:1#/$defs/xid"},
+        {"pattern": "^/[^/]+(?:/[^/]+/[^/]+(?:/[^/]+/(?:v|%76)(?:e|%65)(?:r|%72)(?:s|%73)(?:i|%69)(?:o|%6[fF])(?:n|%6[eE])(?:s|%73))?)?$"}
+      ]
+    },
+    "count": {"type": "integer", "minimum": 0},
+    "entries": {
+      "type": "array",
+      "items": {
+        "allOf": [
+          {"$ref": "urn:xregistry:document-tree:record:1#/$defs/reference"},
+          {"properties": {"kind": {"enum": ["group", "resource", "version"]}}}
+        ]
+      }
+    }
+  }
+}

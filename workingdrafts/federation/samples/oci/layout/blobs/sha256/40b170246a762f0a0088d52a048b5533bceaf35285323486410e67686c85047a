@@ -1,0 +1,33 @@
+{
+  "annotations": {
+    "io.xregistry.oci.kind": "collections",
+    "io.xregistry.oci.lower": "",
+    "io.xregistry.oci.mode": "leaf",
+    "io.xregistry.oci.upper": "",
+    "io.xregistry.oci.version": "1",
+    "io.xregistry.oci.xid": "/dirs/empty"
+  },
+  "artifactType": "application/vnd.xregistry.collections.v1+json",
+  "manifests": [
+    {
+      "annotations": {
+        "io.xregistry.oci.role": "collection",
+        "io.xregistry.oci.xid": "/dirs/empty/files"
+      },
+      "digest": "sha256:451cb49adc8484d1c6e065b7adb86300351758b170dc6643faac4c548c3bd5c0",
+      "mediaType": "application/vnd.oci.image.index.v1+json",
+      "size": 425
+    },
+    {
+      "annotations": {
+        "io.xregistry.oci.role": "collection",
+        "io.xregistry.oci.xid": "/dirs/empty/notes"
+      },
+      "digest": "sha256:6b26127ebdd01140a16b0a6900863411bd083bf41519799462f1fada1b78fb37",
+      "mediaType": "application/vnd.oci.image.index.v1+json",
+      "size": 425
+    }
+  ],
+  "mediaType": "application/vnd.oci.image.index.v1+json",
+  "schemaVersion": 2
+}

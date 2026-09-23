@@ -1,0 +1,16 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "collection",
+  "xid": "/categories/main/registries/site/versions",
+  "count": 1,
+  "entries": [
+    {
+      "kind": "version",
+      "xid": "/categories/main/registries/site/versions/v1",
+      "href": "records/n3.json",
+      "size": 455,
+      "sha256": "11db7843c5c638e23ee6a89561ce8a4e6a86bda7b2eee69a1c6f0db669c91637"
+    }
+  ]
+}

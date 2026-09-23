@@ -1,0 +1,21 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "version",
+  "entity": {
+    "epoch": 1,
+    "createdat": "2026-09-04T00:00:00Z",
+    "modifiedat": "2026-09-04T00:00:00Z",
+    "xid": "/documents/main/notes/item/versions/v1",
+    "noteid": "item",
+    "versionid": "v1",
+    "isdefault": true,
+    "ancestorid": "v1",
+    "labels": {
+      "note": ""
+    }
+  },
+  "document": {
+    "kind": "none"
+  }
+}

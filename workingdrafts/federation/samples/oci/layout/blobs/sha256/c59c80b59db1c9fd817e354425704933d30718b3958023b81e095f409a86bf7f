@@ -1,0 +1,39 @@
+{
+  "annotations": {
+    "io.xregistry.oci.kind": "resource",
+    "io.xregistry.oci.version": "1",
+    "io.xregistry.oci.xid": "/dirs/main/files/dangling"
+  },
+  "artifactType": "application/vnd.xregistry.resource.v1+json",
+  "manifests": [
+    {
+      "annotations": {
+        "io.xregistry.oci.role": "metadata",
+        "io.xregistry.oci.xid": "/dirs/main/files/dangling"
+      },
+      "digest": "sha256:48304a2f5296fd7a0d3a02ce8ade5d70eebb9e63aff0d20e3fde2be91f373d19",
+      "mediaType": "application/vnd.oci.image.manifest.v1+json",
+      "size": 948
+    },
+    {
+      "annotations": {
+        "io.xregistry.oci.role": "meta",
+        "io.xregistry.oci.xid": "/dirs/main/files/dangling/meta"
+      },
+      "digest": "sha256:27eea50d50157aa67ba451c20c0edd0ce64c68ce0c968e394009e69825290d36",
+      "mediaType": "application/vnd.oci.image.manifest.v1+json",
+      "size": 959
+    },
+    {
+      "annotations": {
+        "io.xregistry.oci.role": "collections",
+        "io.xregistry.oci.xid": "/dirs/main/files/dangling"
+      },
+      "digest": "sha256:ab4e0c7a9da03192c16b3b148277085f0fa1431f7fea91ae020f38cb4a6aad99",
+      "mediaType": "application/vnd.oci.image.index.v1+json",
+      "size": 435
+    }
+  ],
+  "mediaType": "application/vnd.oci.image.index.v1+json",
+  "schemaVersion": 2
+}

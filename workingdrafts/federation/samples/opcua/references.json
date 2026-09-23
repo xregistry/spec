@@ -1,0 +1,440 @@
+{
+  "format": "xregistry-opcua-examples-v1",
+  "cases": [
+    {
+      "name": "advertised-root",
+      "kind": "root",
+      "input": {
+        "profile": {
+          "name": "opcua",
+          "endpoint": "opc.tcp://ua.example.com:4840",
+          "parameters": {
+            "registryroot": "nsu=urn:example:registry;s=FirstRegistry",
+            "applicationuri": "urn:example:ua:first",
+            "transportprofileuri": "http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary"
+          }
+        },
+        "endpoint_description": {
+          "endpointUrl": "opc.tcp://ua.example.com:4840",
+          "server": {"applicationUri": "urn:example:ua:first"},
+          "transportProfileUri": "http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary"
+        },
+        "namespace_array": [
+          "http://opcfoundation.org/UA/",
+          "urn:example:companion",
+          "urn:example:other",
+          "urn:example:registry"
+        ]
+      },
+      "expected": {
+        "endpoint": "opc.tcp://ua.example.com:4840",
+        "applicationuri": "urn:example:ua:first",
+        "transportprofileuri": "http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary",
+        "registryroot": "nsu=urn:example:registry;s=FirstRegistry",
+        "nodeId": "ns=3;s=FirstRegistry"
+      }
+    },
+    {
+      "name": "another-root-at-same-endpoint",
+      "kind": "root",
+      "input": {
+        "profile": {
+          "name": "opcua",
+          "endpoint": "opc.tcp://ua.example.com:4840",
+          "parameters": {"registryroot": "nsu=urn:example:registry;s=SecondRegistry"}
+        },
+        "endpoint_description": {
+          "endpointUrl": "opc.tcp://ua.example.com:4840",
+          "server": {"applicationUri": "urn:example:ua:first"},
+          "transportProfileUri": "http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary"
+        },
+        "namespace_array": [
+          "http://opcfoundation.org/UA/",
+          "urn:example:registry"
+        ]
+      },
+      "expected": {
+        "endpoint": "opc.tcp://ua.example.com:4840",
+        "applicationuri": "urn:example:ua:first",
+        "transportprofileuri": "http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary",
+        "registryroot": "nsu=urn:example:registry;s=SecondRegistry",
+        "nodeId": "ns=1;s=SecondRegistry"
+      }
+    },
+    {
+      "name": "remote-source-tables-to-target-seven",
+      "kind": "reference",
+      "input": {
+        "reference": {
+          "serverIndex": 2,
+          "namespaceIndex": 3,
+          "identifierType": "String",
+          "identifier": "ItemV1"
+        },
+        "source_server_array": [
+          "urn:example:ua:first", "urn:example:ua:unrelated", "urn:example:ua:remote"
+        ],
+        "source_namespace_array": [
+          "http://opcfoundation.org/UA/", "urn:example:source",
+          "urn:example:unused", "urn:example:registry"
+        ],
+        "target_applicationuri": "urn:example:ua:remote",
+        "target_namespace_array": [
+          "http://opcfoundation.org/UA/",
+          "urn:example:other1", "urn:example:other2", "urn:example:other3",
+          "urn:example:other4", "urn:example:other5", "urn:example:other6",
+          "urn:example:registry"
+        ]
+      },
+      "expected": {
+        "applicationuri": "urn:example:ua:remote",
+        "namespaceUri": "urn:example:registry",
+        "nodeId": "ns=7;s=ItemV1",
+        "portable": "svu=urn:example:ua:remote;nsu=urn:example:registry;s=ItemV1",
+        "local": false
+      }
+    },
+    {
+      "name": "reindexed-source-and-target",
+      "kind": "reference",
+      "input": {
+        "reference": {
+          "serverIndex": 1,
+          "namespaceIndex": 2,
+          "identifierType": "String",
+          "identifier": "ItemV1"
+        },
+        "source_server_array": [
+          "urn:example:ua:first", "urn:example:ua:remote", "urn:example:ua:unrelated"
+        ],
+        "source_namespace_array": [
+          "http://opcfoundation.org/UA/", "urn:example:unused",
+          "urn:example:registry", "urn:example:source"
+        ],
+        "target_applicationuri": "urn:example:ua:remote",
+        "target_namespace_array": [
+          "http://opcfoundation.org/UA/", "urn:example:other",
+          "urn:example:registry"
+        ]
+      },
+      "expected": {
+        "applicationuri": "urn:example:ua:remote",
+        "namespaceUri": "urn:example:registry",
+        "nodeId": "ns=2;s=ItemV1",
+        "portable": "svu=urn:example:ua:remote;nsu=urn:example:registry;s=ItemV1",
+        "local": false
+      }
+    },
+    {
+      "name": "explicit-namespace-needs-no-source-namespace-table",
+      "kind": "reference",
+      "input": {
+        "reference": {
+          "serverIndex": 1,
+          "namespaceUri": "urn:example:registry",
+          "namespaceIndex": 0,
+          "identifierType": "String",
+          "identifier": "ItemV1"
+        },
+        "source_server_array": ["urn:example:ua:first", "urn:example:ua:remote"],
+        "source_namespace_array": null,
+        "target_applicationuri": "urn:example:ua:remote",
+        "target_namespace_array": [
+          "http://opcfoundation.org/UA/", "urn:example:registry"
+        ]
+      },
+      "expected": {
+        "applicationuri": "urn:example:ua:remote",
+        "namespaceUri": "urn:example:registry",
+        "nodeId": "ns=1;s=ItemV1",
+        "portable": "svu=urn:example:ua:remote;nsu=urn:example:registry;s=ItemV1",
+        "local": false
+      }
+    },
+    {
+      "name": "server-zero-is-source",
+      "kind": "reference",
+      "input": {
+        "reference": {
+          "serverIndex": 0,
+          "namespaceIndex": 1,
+          "identifierType": "String",
+          "identifier": "FirstRegistry"
+        },
+        "source_server_array": ["urn:example:ua:first", "urn:example:ua:remote"],
+        "source_namespace_array": [
+          "http://opcfoundation.org/UA/", "urn:example:registry"
+        ],
+        "target_applicationuri": "urn:example:ua:first",
+        "target_namespace_array": [
+          "http://opcfoundation.org/UA/", "urn:example:registry"
+        ]
+      },
+      "expected": {
+        "applicationuri": "urn:example:ua:first",
+        "namespaceUri": "urn:example:registry",
+        "nodeId": "ns=1;s=FirstRegistry",
+        "portable": "svu=urn:example:ua:first;nsu=urn:example:registry;s=FirstRegistry",
+        "local": true
+      }
+    },
+    {
+      "name": "standard-namespace-numeric",
+      "kind": "reference",
+      "input": {
+        "reference": {
+          "serverIndex": 0, "namespaceIndex": 0,
+          "identifierType": "Numeric", "identifier": 2255
+        },
+        "source_server_array": ["urn:example:ua:first"],
+        "source_namespace_array": ["http://opcfoundation.org/UA/"],
+        "target_applicationuri": "urn:example:ua:first",
+        "target_namespace_array": ["http://opcfoundation.org/UA/"]
+      },
+      "expected": {
+        "applicationuri": "urn:example:ua:first",
+        "namespaceUri": "http://opcfoundation.org/UA/",
+        "nodeId": "i=2255",
+        "portable": "svu=urn:example:ua:first;i=2255",
+        "local": true
+      }
+    },
+    {
+      "name": "guid-identifier",
+      "kind": "reference",
+      "input": {
+        "reference": {
+          "serverIndex": 0, "namespaceIndex": 1,
+          "identifierType": "Guid",
+          "identifier": "09087E75-8E5E-499B-954F-F2A9603DB28A"
+        },
+        "source_server_array": ["urn:example:ua:first"],
+        "source_namespace_array": [
+          "http://opcfoundation.org/UA/", "urn:example:registry"
+        ],
+        "target_applicationuri": "urn:example:ua:first",
+        "target_namespace_array": [
+          "http://opcfoundation.org/UA/", "urn:example:registry"
+        ]
+      },
+      "expected": {
+        "applicationuri": "urn:example:ua:first",
+        "namespaceUri": "urn:example:registry",
+        "nodeId": "ns=1;g=09087e75-8e5e-499b-954f-f2a9603db28a",
+        "portable": "svu=urn:example:ua:first;nsu=urn:example:registry;g=09087e75-8e5e-499b-954f-f2a9603db28a",
+        "local": true
+      }
+    },
+    {
+      "name": "opaque-identifier",
+      "kind": "reference",
+      "input": {
+        "reference": {
+          "serverIndex": 0, "namespaceIndex": 1,
+          "identifierType": "Opaque", "identifier": "AP8="
+        },
+        "source_server_array": ["urn:example:ua:first"],
+        "source_namespace_array": [
+          "http://opcfoundation.org/UA/", "urn:example:registry"
+        ],
+        "target_applicationuri": "urn:example:ua:first",
+        "target_namespace_array": [
+          "http://opcfoundation.org/UA/", "urn:example:registry"
+        ]
+      },
+      "expected": {
+        "applicationuri": "urn:example:ua:first",
+        "namespaceUri": "urn:example:registry",
+        "nodeId": "ns=1;b=AP8=",
+        "portable": "svu=urn:example:ua:first;nsu=urn:example:registry;b=AP8=",
+        "local": true
+      }
+    },
+    {
+      "name": "semicolon-escaping-and-opaque-string-identity",
+      "kind": "reference",
+      "input": {
+        "reference": {
+          "serverIndex": 0, "namespaceIndex": 0,
+          "namespaceUri": "urn:example:model;revision=1",
+          "identifierType": "String", "identifier": "A;ns=9;B"
+        },
+        "source_server_array": ["urn:example:ua:first"],
+        "source_namespace_array": null,
+        "target_applicationuri": "urn:example:ua:first",
+        "target_namespace_array": [
+          "http://opcfoundation.org/UA/", "urn:example:model;revision=1"
+        ]
+      },
+      "expected": {
+        "applicationuri": "urn:example:ua:first",
+        "namespaceUri": "urn:example:model;revision=1",
+        "nodeId": "ns=1;s=A;ns=9;B",
+        "portable": "svu=urn:example:ua:first;nsu=urn:example:model%3Brevision=1;s=A;ns=9;B",
+        "local": true
+      }
+    },
+    {
+      "name": "source-server-index-out-of-range",
+      "kind": "reference",
+      "input": {
+        "reference": {
+          "serverIndex": 2, "namespaceIndex": 0,
+          "identifierType": "Numeric", "identifier": 1
+        },
+        "source_server_array": ["urn:example:ua:first"],
+        "source_namespace_array": ["http://opcfoundation.org/UA/"],
+        "target_applicationuri": "urn:example:ua:first",
+        "target_namespace_array": ["http://opcfoundation.org/UA/"]
+      },
+      "error": "invalid_package"
+    },
+    {
+      "name": "target-namespace-missing",
+      "kind": "reference",
+      "input": {
+        "reference": {
+          "serverIndex": 0, "namespaceIndex": 1,
+          "identifierType": "String", "identifier": "ItemV1"
+        },
+        "source_server_array": ["urn:example:ua:first"],
+        "source_namespace_array": [
+          "http://opcfoundation.org/UA/", "urn:example:registry"
+        ],
+        "target_applicationuri": "urn:example:ua:first",
+        "target_namespace_array": ["http://opcfoundation.org/UA/"]
+      },
+      "error": "not_found"
+    },
+    {
+      "name": "application-is-not-endpoint",
+      "kind": "reference",
+      "input": {
+        "reference": {
+          "serverIndex": 1, "namespaceIndex": 0,
+          "identifierType": "Numeric", "identifier": 1
+        },
+        "source_server_array": ["urn:example:ua:first", "urn:example:ua:remote"],
+        "source_namespace_array": ["http://opcfoundation.org/UA/"],
+        "target_applicationuri": "opc.tcp://remote.example.com:4840",
+        "target_namespace_array": ["http://opcfoundation.org/UA/"]
+      },
+      "error": "integrity_error"
+    },
+    {
+      "name": "fictional-serveruri-member-rejected",
+      "kind": "reference",
+      "input": {
+        "reference": {
+          "serverIndex": 1, "namespaceIndex": 0,
+          "ServerUri": "opc.tcp://remote.example.com:4840",
+          "identifierType": "Numeric", "identifier": 1
+        },
+        "source_server_array": ["urn:example:ua:first", "urn:example:ua:remote"],
+        "source_namespace_array": ["http://opcfoundation.org/UA/"],
+        "target_applicationuri": "urn:example:ua:remote",
+        "target_namespace_array": ["http://opcfoundation.org/UA/"]
+      },
+      "error": "invalid_package"
+    },
+    {
+      "name": "explicit-namespace-requires-zero-index",
+      "kind": "reference",
+      "input": {
+        "reference": {
+          "serverIndex": 0, "namespaceIndex": 1,
+          "namespaceUri": "urn:example:registry",
+          "identifierType": "String", "identifier": "ItemV1"
+        },
+        "source_server_array": ["urn:example:ua:first"],
+        "source_namespace_array": ["http://opcfoundation.org/UA/"],
+        "target_applicationuri": "urn:example:ua:first",
+        "target_namespace_array": [
+          "http://opcfoundation.org/UA/", "urn:example:registry"
+        ]
+      },
+      "error": "invalid_package"
+    },
+    {
+      "name": "nonportable-advertised-root",
+      "kind": "root",
+      "input": {
+        "profile": {
+          "name": "opcua",
+          "endpoint": "opc.tcp://ua.example.com:4840",
+          "parameters": {"registryroot": "ns=3;s=FirstRegistry"}
+        },
+        "endpoint_description": {
+          "endpointUrl": "opc.tcp://ua.example.com:4840",
+          "server": {"applicationUri": "urn:example:ua:first"},
+          "transportProfileUri": "http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary"
+        },
+        "namespace_array": ["http://opcfoundation.org/UA/", "urn:example:registry"]
+      },
+      "error": "invalid_package"
+    },
+    {
+      "name": "unknown-selected-parameter",
+      "kind": "root",
+      "input": {
+        "profile": {
+          "name": "opcua",
+          "endpoint": "opc.tcp://ua.example.com:4840",
+          "parameters": {
+            "registryroot": "nsu=urn:example:registry;s=FirstRegistry",
+            "browsepath": "/Objects/FirstRegistry"
+          }
+        },
+        "endpoint_description": {
+          "endpointUrl": "opc.tcp://ua.example.com:4840",
+          "server": {"applicationUri": "urn:example:ua:first"},
+          "transportProfileUri": "http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary"
+        },
+        "namespace_array": ["http://opcfoundation.org/UA/", "urn:example:registry"]
+      },
+      "error": "unsupported_operation"
+    },
+    {
+      "name": "root-application-mismatch",
+      "kind": "root",
+      "input": {
+        "profile": {
+          "name": "opcua",
+          "endpoint": "opc.tcp://ua.example.com:4840",
+          "parameters": {
+            "registryroot": "nsu=urn:example:registry;s=FirstRegistry",
+            "applicationuri": "urn:example:ua:expected"
+          }
+        },
+        "endpoint_description": {
+          "endpointUrl": "opc.tcp://ua.example.com:4840",
+          "server": {"applicationUri": "urn:example:ua:first"},
+          "transportProfileUri": "http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary"
+        },
+        "namespace_array": ["http://opcfoundation.org/UA/", "urn:example:registry"]
+      },
+      "error": "integrity_error"
+    },
+    {
+      "name": "root-transport-mismatch",
+      "kind": "root",
+      "input": {
+        "profile": {
+          "name": "opcua",
+          "endpoint": "opc.tcp://ua.example.com:4840",
+          "parameters": {
+            "registryroot": "nsu=urn:example:registry;s=FirstRegistry",
+            "transportprofileuri": "urn:example:unsupported-transport"
+          }
+        },
+        "endpoint_description": {
+          "endpointUrl": "opc.tcp://ua.example.com:4840",
+          "server": {"applicationUri": "urn:example:ua:first"},
+          "transportProfileUri": "http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary"
+        },
+        "namespace_array": ["http://opcfoundation.org/UA/", "urn:example:registry"]
+      },
+      "error": "unsupported_binding"
+    }
+  ]
+}

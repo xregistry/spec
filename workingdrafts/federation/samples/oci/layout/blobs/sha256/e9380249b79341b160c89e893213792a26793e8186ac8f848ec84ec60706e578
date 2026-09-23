@@ -1,0 +1,24 @@
+{
+  "annotations": {
+    "io.xregistry.oci.kind": "collection",
+    "io.xregistry.oci.lower": "/dirs/main/files/dangling",
+    "io.xregistry.oci.mode": "leaf",
+    "io.xregistry.oci.upper": "/dirs/main/files/empty",
+    "io.xregistry.oci.version": "1",
+    "io.xregistry.oci.xid": "/dirs/main/files"
+  },
+  "artifactType": "application/vnd.xregistry.collection.v1+json",
+  "manifests": [
+    {
+      "annotations": {
+        "io.xregistry.oci.role": "entity",
+        "io.xregistry.oci.xid": "/dirs/main/files/dangling"
+      },
+      "digest": "sha256:c59c80b59db1c9fd817e354425704933d30718b3958023b81e095f409a86bf7f",
+      "mediaType": "application/vnd.oci.image.index.v1+json",
+      "size": 1299
+    }
+  ],
+  "mediaType": "application/vnd.oci.image.index.v1+json",
+  "schemaVersion": 2
+}

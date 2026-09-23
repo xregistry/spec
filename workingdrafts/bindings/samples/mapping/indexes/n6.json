@@ -1,0 +1,23 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "collection",
+  "xid": "/documents/main/assets/item/versions",
+  "count": 2,
+  "entries": [
+    {
+      "kind": "version",
+      "xid": "/documents/main/assets/item/versions/v1",
+      "href": "records/na.json",
+      "size": 656,
+      "sha256": "eecde658e03efaee69d073d25c0fb8c14f3c7d97216c38ab9777a0edb90b7fa0"
+    },
+    {
+      "kind": "version",
+      "xid": "/documents/main/assets/item/versions/v2",
+      "href": "records/nb.json",
+      "size": 645,
+      "sha256": "464596c3ba9171c9ae6815017e2bc652c9dfc442dc061592866c9bc79a9ace81"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "group",
+  "entity": {
+    "epoch": 1,
+    "createdat": "2026-09-04T00:00:00Z",
+    "modifiedat": "2026-09-04T00:00:00Z",
+    "xid": "/independent/MAIN",
+    "independentid": "MAIN"
+  },
+  "collections": [
+    {
+      "kind": "collection",
+      "xid": "/independent/MAIN/assets",
+      "href": "indexes/na.json",
+      "size": 158,
+      "sha256": "46c003371012f3e865f61ab8f06dfa62b30125e21119d5e4ed9aa73262f2eca2"
+    }
+  ]
+}
