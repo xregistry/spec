@@ -2388,7 +2388,7 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1
 
   "message": {
     # Updated definition of a "Blob Created" event excluded for brevity
-  },
+  }
 }
 ```
 
@@ -2662,13 +2662,13 @@ Content-Type: application/json; charset=utf-8
 
 {
   "1": {
-    "labels": { "customer": "abc" },
+    "labels": { "customer": "abc" }
   },
   "2": {
-    "labels": { "customer": "abc" },
+    "labels": { "customer": "abc" }
   },
   "3": {
-    "labels": { "customer": "abc" },
+    "labels": { "customer": "abc" }
   }
 }
 ```
@@ -3023,7 +3023,7 @@ Content-Type: application/json; charset=utf-8
   "description": "a cool event",
   "message": {
     # Updated definition of a "Blob Created" event excluded for brevity
-  },
+  }
 }
 ```
 
@@ -3047,7 +3047,7 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/v2.0
 
   "message": {
     # Updated definition of a "Blob Created" event excluded for brevity
-  },
+  }
 }
 ```
 
@@ -3116,9 +3116,9 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "registries": {
+  "registries": [
     "URL", *
-  }
+  ]
 }
 ```
 
@@ -3362,6 +3362,7 @@ starting with `/`. E.g. `/export` if the "export" feature is not supported.
 * Subject: `<request_path>`
 * Args:
   - `name`: The HTTP header name.
+  - `error_detail`: Specific details about the error.
 
 #### missing_body
 
@@ -3381,3 +3382,4 @@ starting with `/`. E.g. `/export` if the "export" feature is not supported.
 
 [rfc7230-section-3]: https://tools.ietf.org/html/rfc7230#section-3
 [rfc7230-section-3-2-6]: https://tools.ietf.org/html/rfc7230#section-3.2.6
+[rfc3986-section-2-1]: https://tools.ietf.org/html/rfc3986#section-2.1
