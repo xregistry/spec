@@ -1041,12 +1041,6 @@ Note that this feature has similar results to setting the Resource attribute's
   The `typemap` attribute allows for this by defining a mapping of
   `contenttype` values to well-known xRegistry format types.
 
-  For responses, the [binary flag](./spec.md#binary-flag) MUST take precedence
-  over every `typemap` selection. The effective mapping, including the implicit
-  mappings below, determines the encoding when using the `<RESOURCE>`
-  attribute. The [empty-document rule](./spec.md#resourcebase64-attribute)
-  still applies.
-
   Since the `contenttype` value is a "media-type" per
   [RFC9110](https://datatracker.ietf.org/doc/html/rfc9110#media.type),
   for purposes of looking it up in the `typemap`, just the `type/subtype`
@@ -1081,13 +1075,12 @@ Note that this feature has similar results to setting the Resource attribute's
   server MAY choose to modify the formatting of the document (e.g. to
   "pretty-print" it).
 
-  A value of `string` indicates that, when the Resource's document is
-  serialized under the `<RESOURCE>` attribute, it MUST be serialized as a
-  string using the default string serialization rules for the Resource's
-  metadata format. The document bytes do not need to already be a valid value
-  in that format. For example, when using JSON, this means quoting the string
-  and escaping characters such as quotation marks, backslashes, and
-  non-printable characters.
+  A value of `string` indicates that the Resource's document is to be treated
+  as a string and serialized using the default string serialization rules
+  for the format being used to serialize the Resource's metadata. For
+  example, when using JSON, this means quoting the string and escaping
+  characters such as quotation marks, backslashes and non-printable
+  characters.
 
   Specifying an unknown (or unsupported) value MUST generate an error
   ([model_error](./spec.md#model_error)) during the update of the xRegistry

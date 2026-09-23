@@ -452,13 +452,14 @@ to the xRegistry-defined core
   - Endpoints that jointly describe more than one role SHOULD be declared
     separately and correlated with a shared `channel` value.
 
-The Core model declares `usage` as a REQUIRED array of strings. Core's `enum`
-aspect applies only to scalar attributes; it does not define an array-member
-restriction. The nonempty, distinct-member, allowed-role and role-combination
-constraints above are domain constraints. Domain validation MUST check them
-in addition to Core model admission. Acceptance by a derived schema that
-checks only the REQUIRED array and its string items does not establish
-conformance to these Endpoint usage constraints.
+The Core model declares `usage` as a REQUIRED array whose members are
+restricted to the three role values by the item
+[`enum`](../core/model.md#attributesstringitemenum) aspect. The nonempty,
+distinct-member and role-combination constraints above are domain constraints
+that the Core model does not express. Domain validation MUST check them in
+addition to Core model admission. Acceptance by a derived schema that checks
+only the REQUIRED array and its member values does not establish conformance
+to these Endpoint usage constraints.
 
 #### `channel`
 
