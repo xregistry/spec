@@ -221,8 +221,6 @@ this form:
 
   "model": { ... }, ?
 
-  "endpointsurl": "<URL>",
-  "endpointscount": <UINTEGER>,
   "endpoints": {
     "<KEY>": {
       "endpointid": "<STRING>",                   # xRegistry core attributes
@@ -343,15 +341,17 @@ this form:
       "messagegroups": [ "<URI>" * ], ?
       # End of Endpoint extensions
 
-      "messagesurl": "<URL>", ?
-      "messagescount": <UINTEGER>, ?
       "messages": {
         "<KEY>": {                                # messageid
           # See Message Definition spec for details
         } *
-      } ?
+      }, ?
+      "messagesurl": "<URL>", ?
+      "messagescount": <UINTEGER> ?
     } *
-  } ?
+  }, ?
+  "endpointsurl": "<URL>",
+  "endpointscount": <UINTEGER>
 }
 ```
 
@@ -811,8 +811,6 @@ Example:
     "method": "POST"
   },
 
-  "messagesurl": "...",
-  "messagescount": 1,
   "messages": {
     "myevent": {
       "envelope": "CloudEvents/1.0",
@@ -822,7 +820,9 @@ Example:
         }
       }
     }
-  }
+  },
+  "messagesurl": "...",
+  "messagescount": 1
 }
 ```
 
