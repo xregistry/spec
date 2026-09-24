@@ -213,7 +213,7 @@ Link: <http://example.com?limit=100&offset=1>;rel=prev
 Example 2:
 ```
 Link: <http://example.com?resultset=83d71>;rel=next
-Expires: Thu, 01 Dec 2021 16:00:00 GMT
+Expires: Wed, 01 Dec 2021 16:00:00 GMT
 ```
 
 Example 3:

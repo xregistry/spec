@@ -1875,11 +1875,11 @@ Content-Type: application/json; charset=utf-8
 
 {
   "msg1": {
-    "endpointid": "msg1",
+    "messageid": "msg1",
     ... remainder of msg1 definition excluded for brevity ...
   },
   "msg2": {
-    "endpointid": "msg2",
+    "messageid": "msg2",
     ... remainder of msg2 definition excluded for brevity ...
   }
 }
@@ -1891,11 +1891,11 @@ Content-Type: application/json; charset=utf-8
 
 {
   "msg1": {
-    "endpointid": "msg1",
+    "messageid": "msg1",
     ... remainder of msg1 definition excluded for brevity ...
   },
   "msg2": {
-    "endpointid": "msg2",
+    "messageid": "msg2",
     ... remainder of msg2 definition excluded for brevity ...
   }
 }
@@ -2061,7 +2061,7 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1
 {
   "messageid": "msg1",
   "versionid": "1",
-  "self": "https://example.com/endpoints/ep1/messages/msg1","
+  "self": "https://example.com/endpoints/ep1/messages/msg1",
   "xid": "/endpoints/ep1/messages/msg1",
   "epoch": 1,
   "name": "Blob Created",
@@ -2431,7 +2431,7 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1
   "messageid": "msg1",
   "versionid": "1",
   "self": "https://example.com/endpoints/ep1/messages/msg1/versions/1",
-  "xid": "/endpoints/ep1/messages/msg1",
+  "xid": "/endpoints/ep1/messages/msg1/versions/1",
   "epoch": 2,
   "name": "Blob Created",
   "isdefault": true,
@@ -2653,8 +2653,8 @@ Link: <https://example.com/endpoints/ep1/messages/msg1/versions&page=2>;rel=next
   "1.0": {
     "messageid": "msg1",
     "versionid": "1.0",
-    "self": "https://example.com/endpoints/ep1/messages/msg1",
-    "xid": "/endpoints/ep1/messages/msg1",
+    "self": "https://example.com/endpoints/ep1/messages/msg1/versions/1.0",
+    "xid": "/endpoints/ep1/messages/msg1/versions/1.0",
     "epoch": 1,
     "name": "Blob Created",
     "isdefault": true,
@@ -2687,7 +2687,7 @@ POST /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions
 Content-Type: application/json; charset=utf-8
 
 {
-  "<KEY>": {                                      # <GROUP>id
+  "<KEY>": {                                      # versionid
      ... Version entity excluded for brevity ...
   } *
 }
@@ -2700,7 +2700,7 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "<KEY>": {                                      # <GROUP>id
+  "<KEY>": {                                      # versionid
      ... Version entity excluded for brevity ...
   } *
 }
@@ -2750,7 +2750,7 @@ Content-Type: application/json; charset=utf-8
     "labels": { "customer": "abc" },
     # Remainder of Version entity excluded for brevity
   }
-]
+}
 ```
 
 Note that in this case, the new "label" replaces all existing labels; it is
@@ -2771,7 +2771,7 @@ The processing of this API is defined in the
 The request MUST be of the form:
 
 ```yaml
-DELETE /<GROUPS>/<GID>/<RESOURCES>/versions
+DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions
 
 {
   "<KEY>": {                            # versionid
@@ -2900,7 +2900,7 @@ Content-Type: application/json; charset=utf-8
   "schemaid": "myschema",
   "versionid": "1.0",
   "self": "https://example.com/schemagroups/g1/schemas/myschema/versions/1.0",
-  "xid": "/endpoints/ep1/messages/msg1/versions/1.0",
+  "xid": "/schemagroups/g1/schemas/myschema/versions/1.0",
   "epoch": 2,
   "isdefault": true,
   "createdat": "2024-04-30T12:00:00Z",
@@ -3069,7 +3069,7 @@ Content-Disposition: attachment; filename="msg1"
 Update a Version of a Resource as metadata:
 
 ```yaml
-PUT /endpoints/ep1/messages/msg1/versions/v2.0$details/
+PUT /endpoints/ep1/messages/msg1/versions/v2.0$details
 Content-Type: application/json; charset=utf-8
 
 {
@@ -3088,7 +3088,7 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/v2.0
 
 {
   "messageid": "msg1",
-  "versionid": "1",
+  "versionid": "v2.0",
   "self": "https://example.com/endpoints/ep1/messages/msg1/versions/v2.0",
   "xid": "/endpoints/ep1/messages/msg1/versions/v2.0",
   "epoch": 2,
@@ -3142,10 +3142,10 @@ DELETE /endpoints/ep1/messages/msg1/versions/1.0
 HTTP/1.1 204 No Content
 ```
 
-Delete a Resource, verifying its `epoch` value:
+Delete a Version, verifying its `epoch` value:
 
 ```yaml
-DELETE /endpoints/ep1/messages/msg1/versions?epoch=5
+DELETE /endpoints/ep1/messages/msg1/versions/1.0?epoch=5
 ```
 
 ```

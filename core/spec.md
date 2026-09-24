@@ -2762,14 +2762,14 @@ So, if the target Resource (`sharedSchema`) is defined as:
 
 ```yaml
 {
-  "resourceid": "sharedSchema",
+  "schemaid": "sharedSchema",
   "versionid": "v1",
   "self": "http://example.com/schemagroups/group2/schemas/sharedSchema",
   "xid": "/schemagroups/group2/schemas/sharedSchema",
   "epoch": 2,
   "isdefault": true,
-  "createdat": "2024-01-01-T12:00:00Z",
-  "modifiedat": "2024-01-01-T12:01:00Z",
+  "createdat": "2024-01-01T12:00:00Z",
+  "modifiedat": "2024-01-01T12:01:00Z",
   "ancestorid": "v1",
 
   "metaurl": "http://example.com/schemagroups/group2/schemas/sharedSchema/meta",
@@ -2783,24 +2783,24 @@ then the resulting serialization of the source Resource would be:
 
 ```yaml
 {
-  "resourceid": "mySchema",
+  "schemaid": "mySchema",
   "versionid": "v1",
   "self": "http://example.com/schemagroups/group1/schemas/mySchema",
   "xid": "/schemagroups/group1/schemas/mySchema",
   "epoch": 2,
   "isdefault": true,
-  "createdat": "2024-01-01-T12:00:00Z",
-  "modifiedat": "2024-01-01-T12:01:00Z",
+  "createdat": "2024-01-01T12:00:00Z",
+  "modifiedat": "2024-01-01T12:01:00Z",
   "ancestorid": "v1",
 
   "metaurl": "http://example.com/schemagroups/group1/schemas/mySchema/meta",
   "meta": {
-    "resourceid": "mySchema",
+    "schemaid": "mySchema",
     "self": "http://example.com/schemagroups/group1/schemas/mySchema/meta",
     "xid": "/schemagroups/group1/schemas/mySchema/meta",
     "xref": "/schemagroups/group2/schemas/sharedSchema",
-    "createdat": "2024-01-01-T12:00:00Z",
-    "modifiedat": "2024-01-01-T12:01:00Z",
+    "createdat": "2024-01-01T12:00:00Z",
+    "modifiedat": "2024-01-01T12:01:00Z",
     "readonly": false,
     "defaultversionid": "v1",
     "defaultversionurl": "http://example.com/schemagroups/group1/schemas/mySchema/versions/v1",
@@ -3497,7 +3497,7 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
 #### `compatibilityvalidated` Attribute
 - Type: Boolean
 - Description: When [`compatibility`
-  validation](./model.md#groupsstringresourcesstringvalidateformat)
+  validation](./model.md#groupsstringresourcesstringvalidatecompatibility)
   is enabled, this attribute will indicate whether or not the server has
   performed validation to ensure the Version conforms to the rules defined by
   its Resource's `meta.compatibility` attribute's value.
@@ -3554,7 +3554,7 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
 - Description: When
   [`compatibilityvalidated`](#compatibilityvalidated-attribute) has a
   value of `false`, this attribute MUST provide information as to why the
-  format validation check was not performed.
+  compatibility validation check was not performed.
 
 - Constraints:
   - OPTIONAL
