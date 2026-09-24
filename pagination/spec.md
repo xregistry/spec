@@ -1,4 +1,4 @@
-# Pagination - Version 0.1-wip
+# Pagination - Version 1.0-rc4
 
 This document describes a mechanism by which a server can return a set of
 records to a client in an incremental fashion. Often this will be used when
@@ -33,12 +33,15 @@ modify those values.
 #### limit
 
 - Type: `Unsigned 64-bit Integer`
-- Description: Indicates the maximum number of records per message
-  that the client is willing to accept. If the server is unable to
-  meet this criterion then it MUST generate an error.
+- Description: Indicates the maximum number of records per message that the
+  client is willing to accept. If the server is unable to meet this criterion
+  then it MUST generate an error.
+
   There is no default value for this attribute.
-  If this attribute is not specified, then the server MAY choose to send back
-  as many or as few records per response message.
+
+  If this attribute is not specified on a request message, and the server
+  chooses to not enable pagination on its own, then the server's response is
+  not constrained by this specification.
 - Constraints:
   - OPTIONAL.
   - MUST be an unsigned 64-bit integer with a value greater than 0.
@@ -48,7 +51,7 @@ modify those values.
 ## Server Response
 
 When a server returns a subset of records, it MAY include additional attributes
-to help the client retrieve the next subset of records.
+to help the client retrieve the additional subsets of records.
 
 ### Server Attributes
 
@@ -57,7 +60,7 @@ a client's request for a set of records.
 
 Note: in the examples listed below, the use of certain query parameters
 in the response messages from the server, such as `offset` and `limit`,
-are an implementation detail of the server. How the server encodes the
+is an implementation detail of the server. How the server encodes the
 information it needs to retrieve a certain subset of records is not mandated by
 this specification.
 
@@ -88,9 +91,8 @@ this specification.
 - Type: `String`
 - Description: A string representing the relationship between the records
   available via the `link` URI-Reference and the current subset of records.
-  This attribute adheres to the Relation Type as defined in section 5.3
-  of [RFC5988](https://tools.ietf.org/html/rfc5988).
-  This specification uses the following values as defined by section 6.2.2
+  This specification uses the following values as defined by
+  [Link Relations Registry](https://www.iana.org/assignments/link-relations):
   in [RFC5988](https://tools.ietf.org/html/rfc5988):
   - `next` - indicates the next subset of records in the sequence of records
     being returned.
@@ -100,22 +102,25 @@ this specification.
     being returned.
   - `last` - indicates the last subset of records in the sequence of records
     being returned.
+
   Unless otherwise constrained by a specification leveraging this
   specification, additional values MAY be defined.
 - Constraints:
   - REQUIRED if the `link` attribute is present.
-  - MUST be a string as defined by `relation-types` in
-   [RFC5988](https://tools.ietf.org/html/rfc5988).
+  - MUST be a string as defined by
+    [Link Relations Registry](https://www.iana.org/assignments/link-relations).
 
 #### expires
 
 - Type: `Timestamp`
 - Description: Indicates when the complete set of records referenced by the
-  `link` will no longer be available. When not specified, the availability
-  of the data is undefined by this specification. However, it is RECOMMENDED
-  that this attribute only be excluded when the data being iterated over
-  is not expected to change very often and therefore the server will
-  typically not need to save any state related to this client's requests.
+  `link` will no longer be available. When not specified the availability,
+  and consistency, of the result set is undefined.
+
+  It is RECOMMENDED that this attribute only be used when the underlying
+  result set is guaranteed to not change before the date specified. For
+  example, it might be used if the result set is cached to ensure that
+  subsequent write operations to the server will not modify the result set.
 - Constraints:
   - OPTIONAL.
 
@@ -123,8 +128,8 @@ this specification.
 
 - Type: `Unsigned 64-bit Integer`
 - Description: Indicates the total number of records in the complete set
-  referenced by the `link`. Note that this is not the number of records in any one
-  message, but instead it is the aggregate count of records across all
+  referenced by the `link`. Note that this is not the number of records in any
+  one message, but instead it is the aggregate count of records across all
   messages in the set.
 - Constraints:
   - STRONGLY RECOMMENDED.
@@ -139,7 +144,7 @@ flow of HTTP messages during the retrieval of a set of records.
 
 ### Request for a record set
 
-To request a set of records from a server, a client will send an HTTP GET
+To request a set of records from a server, a client will send an HTTP `GET`
 request to the server. How this URL is determined is out of scope of this
 specification.
 
@@ -163,8 +168,9 @@ Each successful response from the server MUST adhere to the following:
 - If the response does not include the start of the set of records, then the
   `prev` Link MAY be included in the response.
 - The response MAY include the `first` Link in any response.
-- If the `limit` attribute was specified as part of the flow, the response MUST
-  NOT include more records than what the `limit` attribute has indicated.
+- If the `limit` attribute was specified as part of the initial request
+  for the result set, all responses for the result set MUST NOT include more
+  records than what the `limit` attribute indicated.
 - If the response refers to the end of the set of records, then the `next`
   Link MUST NOT be included in the response.
 - If the response does not refer to the end of the set of records, then the
@@ -174,10 +180,11 @@ Each successful response from the server MUST adhere to the following:
   HTTP "Expires" header. If present, it MUST adhere to the HTTP-date format
   specified for
   [Expires in RFC9111](https://www.rfc-editor.org/rfc/rfc9111.html#section-5.3).
-- It is STRONGLY RECOMMENDED that all responses include the `count` attribute.
+- It is STRONGLY RECOMMENDED that all responses include the `count` attribute
+  in all Links.
 
-Additionally, Links MUST appear in the HTTP response as HTTP headers using
-the format described in [RFC5988](https://tools.ietf.org/html/rfc5988).
+Links in server response messages MUST appear as HTTP headers using the format
+described in [RFC8288](https://tools.ietf.org/html/rfc8288).
 
 Example 1:
 ```

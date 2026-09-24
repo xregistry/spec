@@ -2014,6 +2014,10 @@ The following defines the specification-defined capabilities:
     `setdefaultversionid`, `sort`, `specversion`.
 - When not specified, the default value MUST be an empty list and no flags
   are supported.
+- Implementations MAY include additional values based on other supported
+  features. For example, if the [pagination](../pagination/spec.md)
+  specification is supported then the `limit` and `offered` values SHOULD also
+  appear.
 - Examples:
   - `"flags": [ "filter", "inline" ]`    # Just these 2
   - `"flags": [ "*" ]`                   # All supported flags (requests only)
@@ -2051,7 +2055,14 @@ The following defines the specification-defined capabilities:
   protocol-specific "pagination" feature when querying xRegistry collections.
   Each protocol binding specification will define which pagination
   specification(s) is to be supported, if any.
-- When not specified, the default value MUST be `false`.
+- When not specified, the default value MUST be `false` and the pagination
+  related flags SHOULD NOT appear in the `flags` capability.
+- When set to `true`, the pagination related flags SHOULD appear in the
+  `flags` capability.
+- During an update of the capabilities, if the `flags` and `pagination`
+  capabilities are inconsistent, then the `pagination` capability's value
+  SHOULD result in changing the `flags` capability as needed to make them
+  consistent.
 
 #### `shortself` Capability
 - Name: `shortself`
@@ -2261,8 +2272,7 @@ in the serialization of its capabilities offering map.
     }
   },
   "pagination": {
-    "type": "boolean",
-    "enum": [ false, true ]
+    "type": "boolean"
   },
   "shortself": {
     "type": "boolean",
