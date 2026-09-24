@@ -488,7 +488,7 @@
                 }
               },
               "name": "usage",
-              "doc": "Required, nonempty array of unique client roles: subscriber, consumer, or producer. The producer role MUST NOT be combined with another role. Only subscriber and consumer MAY be combined, and only for AMQP/1.0, MQTT/3.1.1, MQTT/5.0, or NATS. Domain validation MUST enforce these constraints."
+              "doc": "Required, nonempty array of client roles: subscriber, consumer, or producer. The producer role MUST NOT be combined with another role. Only subscriber and consumer MAY be combined, and only for AMQP/1.0, MQTT/3.1.1, MQTT/5.0, or NATS. Domain validation MUST enforce these constraints."
             },
             {
               "type": "string",

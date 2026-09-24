@@ -1124,9 +1124,8 @@ PUT /dirs/d1/files/f1
 - While the current default is `v2`, setting `defaultversionsticky` to `true`
   only takes effect after the default Version is recalculated. This is due to
   the fact that `PUT` is a complete replacement and `meta.defaultversionid`
-  not being in the request is akin to setting it to `null` in the request.
-  In the next example, a `PATCH` omits that ID instead of resetting it, so the
-  pre-operation default Version becomes sticky.
+  not being in the request is akin to setting it to `null` in the request. In
+  the next example we'll see how `PATCH` changes this semantics.
 - Ancestor order: `v2` (2020) <- `v1` (2025).
 
 <hr>
@@ -1224,11 +1223,10 @@ PATCH /dirs/d1/files/f1
 
 - Resource.name is ignored due to `v2` (the current default Version) being in
   the request's `versions` collection.
-- Since this `PATCH` changes `meta.defaultversionsticky` from `false` to `true`
-  without specifying `meta.defaultversionid`, the pre-operation default `v2`
-  becomes sticky. Its changed `createdat` does not select a different sticky
-  default. An explicit `meta.defaultversionid` of `null` would instead select
-  the newest Version after Version processing, as in the replacement example.
+- Since this is a `PATCH`, unlike the previous example where
+  `meta.defaultversionid` was implicitly set to `null`, in this case its value
+  remains unchanged. So, when `meta.defaultversionsticky` is set to `true` the
+  current default Version becomes "sticky".
 - Ancestor order: `v2` (2020) <- `v1` (2025).
 
 <hr>

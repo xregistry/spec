@@ -2198,40 +2198,40 @@ Content-Disposition: myschema
 { ... Contents of a schema doc excluded for brevity ... }
 ```
 
-Update the default Version of a Resource as xRegistry metadata:
+Update the default Version of the same Resource as xRegistry metadata:
 
 ```yaml
-PUT /endpoints/ep1/messages/msg1
+PUT /schemagroups/g1/schemas/myschema$details
 Content-Type: application/json; charset=utf-8
 
 {
   "epoch": 1,
-  "name": "Blob Created",
-  "description": "a cool event"
+  "name": "My Schema",
+  "description": "a cool schema"
 }
 ```
 
 ```yaml
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
-Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1
+Content-Location: https://example.com/schemagroups/g1/schemas/myschema/versions/1$details
 
 {
-  "messageid": "msg1",
+  "schemaid": "myschema",
   "versionid": "1",
-  "self": "https://example.com/endpoints/ep1/messages/msg1",
-  "xid": "/endpoints/ep1/messages/msg1",
+  "self": "https://example.com/schemagroups/g1/schemas/myschema$details",
+  "xid": "/schemagroups/g1/schemas/myschema",
   "epoch": 2,
-  "name": "Blob Created",
+  "name": "My Schema",
   "isdefault": true,
-  "description": "a cool event",
+  "description": "a cool schema",
   "createdat": "2024-04-30T12:00:00Z",
   "modifiedat": "2024-04-30T12:00:01Z",
   "ancestorid": "1",
 
-  "metaurl": "https://example.com/endpoints/ep1/messages/msg1/meta",
+  "metaurl": "https://example.com/schemagroups/g1/schemas/myschema/meta",
 
-  "versionsurl": "https://example.com/endpoints/ep1/messages/msg1/versions",
+  "versionsurl": "https://example.com/schemagroups/g1/schemas/myschema/versions",
   "versionscount": 1
 }
 ```
@@ -2373,34 +2373,34 @@ Content-Disposition: myschema
 { ... Contents of a schema doc excluded for brevity ... }
 ```
 
-Update a Version of a Resource as xRegistry metadata:
+Update a Version of the same Resource as xRegistry metadata:
 
 ```yaml
-POST /endpoints/ep1/messages/msg1
+POST /schemagroups/g1/schemas/myschema$details
 Content-Type: application/json; charset=utf-8
 
 {
   "versionid": "1",
   "epoch": 1,
-  "name": "Blob Created",
-  "description": "a cool event"
+  "name": "My Schema",
+  "description": "a cool schema"
 }
 ```
 
 ```yaml
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
-Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1
+Content-Location: https://example.com/schemagroups/g1/schemas/myschema/versions/1$details
 
 {
-  "messageid": "msg1",
+  "schemaid": "myschema",
   "versionid": "1",
-  "self": "https://example.com/endpoints/ep1/messages/msg1/versions/1",
-  "xid": "/endpoints/ep1/messages/msg1/versions/1",
+  "self": "https://example.com/schemagroups/g1/schemas/myschema/versions/1$details",
+  "xid": "/schemagroups/g1/schemas/myschema/versions/1",
   "epoch": 2,
-  "name": "Blob Created",
+  "name": "My Schema",
   "isdefault": true,
-  "description": "a cool event",
+  "description": "a cool schema",
   "createdat": "2024-04-30T12:00:00Z",
   "modifiedat": "2024-04-30T12:00:01Z",
   "ancestorid": "1"
@@ -3029,32 +3029,32 @@ Content-Disposition: myschema
 { ... Contents of a schema doc excluded for brevity ... }
 ```
 
-Update a Version of a Resource as metadata:
+Update the same Version as xRegistry metadata:
 
 ```yaml
-PUT /endpoints/ep1/messages/msg1/versions/v2.0
+PUT /schemagroups/g1/schemas/myschema/versions/v2.0$details
 Content-Type: application/json; charset=utf-8
 
 {
-  "name": "Blob Created v2",
-  "description": "a cool event"
+  "name": "My Schema v2",
+  "description": "a cool schema"
 }
 ```
 
 ```yaml
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
-Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/v2.0
+Content-Location: https://example.com/schemagroups/g1/schemas/myschema/versions/v2.0$details
 
 {
-  "messageid": "msg1",
+  "schemaid": "myschema",
   "versionid": "v2.0",
-  "self": "https://example.com/endpoints/ep1/messages/msg1/versions/v2.0",
-  "xid": "/endpoints/ep1/messages/msg1/versions/v2.0",
+  "self": "https://example.com/schemagroups/g1/schemas/myschema/versions/v2.0$details",
+  "xid": "/schemagroups/g1/schemas/myschema/versions/v2.0",
   "epoch": 2,
-  "name": "Blob Created v2",
+  "name": "My Schema v2",
   "isdefault": true,
-  "description": "a cool event",
+  "description": "a cool schema",
   "createdat": "2024-04-30T12:00:00Z",
   "modifiedat": "2024-04-30T12:00:01Z",
   "ancestorid": "v1.0"

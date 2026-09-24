@@ -436,7 +436,6 @@ to the xRegistry-defined core
     - "consumer"
     - "producer"
   - MUST be an array of at least one value.
-  - MUST NOT contain duplicate values.
   - MUST declare exactly one usage value, except for the single combination
     permitted below.
   - MUST NOT combine `producer` with any other value.
@@ -454,12 +453,12 @@ to the xRegistry-defined core
 
 The Core model declares `usage` as a REQUIRED array whose members are
 restricted to the three role values by the item
-[`enum`](../core/model.md#attributesstringitemenum) aspect. The nonempty,
-distinct-member and role-combination constraints above are domain constraints
-that the Core model does not express. Domain validation MUST check them in
-addition to Core model admission. Acceptance by a derived schema that checks
-only the REQUIRED array and its member values does not establish conformance
-to these Endpoint usage constraints.
+[`enum`](../core/model.md#attributesstringitemenum) aspect. The nonempty and
+role-combination constraints above are domain constraints that the Core model
+does not express. Domain validation MUST check them in addition to Core model
+admission. Acceptance by a derived schema that checks only the REQUIRED array
+and its member values does not establish conformance to these Endpoint usage
+constraints.
 
 #### `channel`
 
