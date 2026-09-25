@@ -639,7 +639,7 @@ PUT /dirs/d1/files/f1
   "isdefault": true,
   "createdat": "2020",
   "modifiedat": "now",
-  "ancestorid": "v0",
+  "ancestorid": "v1",
 
   "meta": {
     "epoch": 2,

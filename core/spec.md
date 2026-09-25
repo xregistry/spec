@@ -711,8 +711,10 @@ its parent entities do not exist, then they MUST be implicitly created. Each of
 those entities MUST be created with the appropriate `<SINGULAR>id` as specified
 by the protocol-specific mechanism by which the nested entity is identified.
 For example, in HTTP the `<PATH>` would include the `<SINGULAR>id` values
-of the parent entities. If any of those entities have REQUIRED attributes,
-then they cannot be implicitly created, and would need to be created directly.
+of the parent entities. If any of those entities have applicable REQUIRED
+attributes whose non-null values cannot be populated by the server or by
+default values (see the `required` aspect in the [model](./model.md)), then
+they cannot be implicitly created, and would need to be created directly.
 This also means that the creation of the original entity would fail and
 generate an error
 ([required_attribute_missing](./spec.md#required_attribute_missing)) for the
@@ -2764,7 +2766,7 @@ So, if the target Resource (`sharedSchema`) is defined as:
 {
   "schemaid": "sharedSchema",
   "versionid": "v1",
-  "self": "http://example.com/schemagroups/group2/schemas/sharedSchema",
+  "self": "http://example.com/schemagroups/group2/schemas/sharedSchema$details",
   "xid": "/schemagroups/group2/schemas/sharedSchema",
   "epoch": 2,
   "isdefault": true,
@@ -2785,7 +2787,7 @@ then the resulting serialization of the source Resource would be:
 {
   "schemaid": "mySchema",
   "versionid": "v1",
-  "self": "http://example.com/schemagroups/group1/schemas/mySchema",
+  "self": "http://example.com/schemagroups/group1/schemas/mySchema$details",
   "xid": "/schemagroups/group1/schemas/mySchema",
   "epoch": 2,
   "isdefault": true,
@@ -2803,7 +2805,7 @@ then the resulting serialization of the source Resource would be:
     "modifiedat": "2024-01-01T12:01:00Z",
     "readonly": false,
     "defaultversionid": "v1",
-    "defaultversionurl": "http://example.com/schemagroups/group1/schemas/mySchema/versions/v1",
+    "defaultversionurl": "http://example.com/schemagroups/group1/schemas/mySchema/versions/v1$details",
     "defaultversionsticky": false
   },
 
@@ -2888,11 +2890,12 @@ source Resource. Recursive, or transitively, following of `xref` XIDs is not
 done.
 
 Both the source and target Resources MUST be of the same Resource model type,
-simply having similar Resource type definitions is not sufficient. This
-implies that the
-[`ximportresources`](./model.md#groupsstringximportresources) feature to
-reference a Resource type from another Group type definition MUST be
-used.
+simply having similar Resource type definitions is not sufficient. When the
+source and target Resources belong to different Group types, the
+[`ximportresources`](./model.md#groupsstringximportresources) feature MUST be
+used to share the Resource type definition. Resources in different instances
+of the same Group type already share the Resource type definition and do not
+require an import.
 
 An `xref` value that points to a non-existing Resource, either because
 it was deleted, never existed or the current client does not have permission
@@ -2910,7 +2913,7 @@ Resource (`missingSchema`) would look like:
 ```yaml
 {
   "schemaid": "mySchema",
-  "self": "http://example.com/schemagroups/group1/schemas/mySchema",
+  "self": "http://example.com/schemagroups/group1/schemas/mySchema$details",
   "xid": "/schemagroups/group1/schemas/mySchema",
   "metaurl": "https://example.com/schemagroups/group1/schemas/mySchema/meta",
   "meta": {

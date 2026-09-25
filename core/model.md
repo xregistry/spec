@@ -999,10 +999,10 @@ Note that this feature has similar results to setting the Resource attribute's
 - When not specified, the default value MUST be `false`.
 - A value of `true` indicates that:
   - The `format` validation logic MUST generate an error
-    ([format_violation](spec.md#format_violation)) if the Version's `format`
+    ([format_unknown](spec.md#format_unknown)) if the Version's `format`
     is an unsupported value.
   - The `compatibility` validation logic MUST generate an error
-    ([compatibility_violation](spec.md#compatibility_violation)) if the
+    ([compatibility_unknown](spec.md#compatibility_unknown)) if the
     Resource's `meta.compatibility` value is an unsupported value.
 - A value of `false` indicates that:
   - If the Version's `format` value is absent, then format and compatibility
@@ -1013,6 +1013,11 @@ Note that this feature has similar results to setting the Resource attribute's
     `false`.
   - If the Resource's `meta.compatibility` value is unsupported, then
     the Version's `compatibilityvalidated` attribute MUST be set to `false`.
+  - When the Version references a document stored outside of the Registry via
+    `<RESOURCE>url`, see the
+    [`formatvalidated`](spec.md#formatvalidated-attribute) and
+    [`compatibilityvalidated`](spec.md#compatibilityvalidated-attribute)
+    attributes.
 - Regardless of the value of this aspect, if the Version's `format` value is
   absent, then format and compatibility validation logic MUST NOT be performed
   for that Version.
@@ -1073,7 +1078,9 @@ Note that this feature has similar results to setting the Resource attribute's
   A value of `string` indicates that the Resource's document is to be treated
   as a string and serialized using the default string serialization rules
   for the format being used to serialize the Resource's metadata. For
-  example, when using JSON, this means escaping all non-printable characters.
+  example, when using JSON, this means quoting the string and escaping
+  characters such as quotation marks, backslashes and non-printable
+  characters.
 
   Specifying an unknown (or unsupported) value MUST generate an error
   ([model_error](./spec.md#model_error)) during the update of the xRegistry

@@ -506,7 +506,7 @@ the following model definition:
 
 - Empty Registry
 - Interaction:
-  - `PUT /dirs/d1/files/f1/versions/v1`
+  - `PUT /dirs/d1/files/f1/versions/v1$details`
   - Body: `{}`
 - Events:
   - `io.xregistry.registry.updated`
@@ -528,7 +528,7 @@ the following model definition:
 
 - Current default Version is `v1`
 - Interaction:
-  - `PATCH /dirs/d1/files/f1`
+  - `PATCH /dirs/d1/files/f1$details`
   - Body: `{ "name": "foo" }`
 - Events:
   - `io.xregistry.resource.updated`
@@ -602,7 +602,7 @@ the following model definition:
 
 - Current default Version (v1) is not "sticky"
 - Interaction:
-  - `PUT /dirs/d1/files/f1/versions/v2`
+  - `PUT /dirs/d1/files/f1/versions/v2$details`
   - Body: `{}`
 - Events:
   - `io.xregistry.resource.updated`
@@ -620,7 +620,7 @@ the following model definition:
 
 - Current default Version (v1) is "sticky"
 - Interaction:
-  - `PUT /dirs/d1/files/f1/versions/v2`
+  - `PUT /dirs/d1/files/f1/versions/v2$details`
   - Body: `{}`
 - Events:
   - `io.xregistry.resource.updated`
@@ -652,7 +652,7 @@ the following model definition:
 
 - Current default Version is `v1`
 - Interaction:
-  - `PATCH /dirs/d1/files/f1/versions/v1`
+  - `PATCH /dirs/d1/files/f1/versions/v1$details`
   - Body: `{ "name": "foo" }`
 - Events:
   - `io.xregistry.resource.updated`
@@ -669,7 +669,7 @@ the following model definition:
 
 - Current default Version is `v1`
 - Interaction:
-  - `PATCH /dirs/d1/files/f1/versions/v2`
+  - `PATCH /dirs/d1/files/f1/versions/v2$details`
   - Body: `{ "name": "foo" }`
 - Events:
   - `io.xregistry.version.updated`
@@ -681,7 +681,7 @@ the following model definition:
 
 - Current default Version (v1) is not "sticky"
 - Interaction:
-  - `POST /dirs/d1/files/f1`
+  - `POST /dirs/d1/files/f1$details`
   - Body: `{}`
 - Events:
   - `io.xregistry.resource.updated`
@@ -699,7 +699,7 @@ the following model definition:
 
 - Current default Version (v1) is "sticky"
 - Interaction:
-  - `POST /dirs/d1/files/f1`
+  - `POST /dirs/d1/files/f1$details`
   - Body: `{}`
 - Events:
   - `io.xregistry.resource.updated`
@@ -729,6 +729,8 @@ the following model definition:
 
 ### Creating a Group with a complete client HTTP message exchange
 
+Assume Group `d1` does not exist and the Registry's `epoch` is 1.
+
 Client Request:
 ```yaml
 PUT /dirs/d1 HTTP/1.1
@@ -741,20 +743,21 @@ Content-Type: application/json
 xRegistry Response:
 
 ```yaml
-HTTP/1.1 200 OK
+HTTP/1.1 201 Created
+Location: https://example.com/dirs/d1
 Content-Type: application/json
 Date: Wed, 02 Jul 2025 12:00:01 GMT
 xRegistry-xregcorrelationid: B9282-129301
 
 {
   "dirid": "d1",
-  "self": "http://example.com/dirs/d1",
+  "self": "https://example.com/dirs/d1",
   "xid": "/dirs/d1",
   "epoch": 1,
   "createdat": "2025-07-02T12:00:01Z",
   "modifiedat": "2025-07-02T12:00:01Z",
 
-  "filesurl": "http://example.com/dirs/d1/files",
+  "filesurl": "https://example.com/dirs/d1/files",
   "filescount": 0
 }
 ```
