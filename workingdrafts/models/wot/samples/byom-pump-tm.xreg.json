@@ -1,0 +1,92 @@
+{
+    "thingmodelgroups": {
+        "Contoso.Pumps": {
+            "description": "Thing Models supplied by Contoso and stored unchanged",
+            "thingmodels": {
+                "example.contoso.tm.pump": {
+                    "meta": {
+                        "defaultversionid": "2"
+                    },
+                    "versions": {
+                        "1": {
+                            "description": "Vendor-supplied pump Thing Model, stored as authored",
+                            "format": "JSON-LD/1.1",
+                            "contenttype": "application/tm+json",
+                            "wotid": "https://contoso.example/tm/pump",
+                            "derivedfrom": [ "https://contoso.example/tm/device" ],
+                            "publisher": "Contoso",
+                            "license": "https://contoso.example/licenses/tm",
+                            "canonicalurl": "https://contoso.example/tm/pump",
+                            "maturity": "Vendor",
+                            "thingmodel": {
+                                "@context": "https://www.w3.org/2022/wot/td/v1.1",
+                                "@type": "tm:ThingModel",
+                                "id": "https://contoso.example/tm/pump",
+                                "title": "Contoso Pump",
+                                "version": { "model": "1.0.0" },
+                                "links": [
+                                    {
+                                        "rel": "tm:extends",
+                                        "href": "https://contoso.example/tm/device",
+                                        "type": "application/tm+json"
+                                    }
+                                ],
+                                "properties": {
+                                    "flowRate": { "type": "number", "unit": "l/min" }
+                                }
+                            }
+                        },
+                        "2": {
+                            "description": "Vendor-supplied pump Thing Model, stored as authored",
+                            "format": "JSON-LD/1.1",
+                            "contenttype": "application/tm+json",
+                            "wotid": "https://contoso.example/tm/pump",
+                            "derivedfrom": [ "https://contoso.example/tm/device" ],
+                            "publisher": "Contoso",
+                            "license": "https://contoso.example/licenses/tm",
+                            "canonicalurl": "https://contoso.example/tm/pump",
+                            "maturity": "Vendor",
+                            "thingmodel": {
+                                "@context": "https://www.w3.org/2022/wot/td/v1.1",
+                                "@type": "tm:ThingModel",
+                                "id": "https://contoso.example/tm/pump",
+                                "title": "Contoso Pump",
+                                "version": { "model": "1.1.0" },
+                                "links": [
+                                    {
+                                        "rel": "tm:extends",
+                                        "href": "https://contoso.example/tm/device",
+                                        "type": "application/tm+json"
+                                    }
+                                ],
+                                "properties": {
+                                    "flowRate": { "type": "number", "unit": "l/min" },
+                                    "inletPressure": { "type": "number", "unit": "bar" }
+                                }
+                            }
+                        }
+                    }
+                },
+                "example.contoso.tm.device": {
+                    "description": "Base device Thing Model that the pump extends",
+                    "format": "JSON-LD/1.1",
+                    "contenttype": "application/tm+json",
+                    "wotid": "https://contoso.example/tm/device",
+                    "publisher": "Contoso",
+                    "canonicalurl": "https://contoso.example/tm/device",
+                    "maturity": "Vendor",
+                    "thingmodel": {
+                        "@context": "https://www.w3.org/2022/wot/td/v1.1",
+                        "@type": "tm:ThingModel",
+                        "id": "https://contoso.example/tm/device",
+                        "title": "Contoso Device",
+                        "version": { "model": "1.0.0" },
+                        "properties": {
+                            "serialNumber": { "type": "string", "readOnly": true }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
