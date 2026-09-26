@@ -3,6 +3,7 @@
 <!-- words: formatvalidated compatibilityvalidated -->
 <!-- words: formatvalidatedreason compatibilityvalidatedreason -->
 <!-- words: jsonstructure jstruct namespace -->
+<!-- words: namespaces targetnamespace xmlns -->
 
 ## Abstract
 
@@ -34,6 +35,7 @@ allows for the storage, management and discovery of schema documents.
     - [4.3.3. Apache Avro Schema](#433-apache-avro-schema)
     - [4.3.4. Protobuf Schema](#434-protobuf-schema)
     - [4.3.5. JSON Structure Schema](#435-json-structure-schema)
+    - [4.3.6. Schema Object Selection](#436-schema-object-selection)
 
 ## 1. Overview
 
@@ -403,6 +405,21 @@ in a Schema Registry by defining a set of common schema format names that MUST
 be used for the given formats, but applications MAY define extensions for
 other formats on their own.
 
+These names do not require a Registry to support every format or version. For
+each format and version it supports, a Registry MUST admit the root categories
+allowed by that format, rather than imposing an object-only restriction. Other
+applicable validation and compatibility requirements still apply. Parsing a
+document alone does not establish support for all of its semantics.
+
+The native document representations described below do not override Core's
+[`<RESOURCE>`](../core/spec.md#resource-attribute) and
+[`<RESOURCE>base64`](../core/spec.md#resourcebase64-attribute) rules. In
+particular, JSON schema documents retain their native JSON value kind when
+inlined in JSON metadata; they MUST NOT be wrapped in an object or converted
+to a string containing JSON text. The document view exposes the document,
+not its surrounding xRegistry metadata. A base64 representation encodes the
+document's bytes, not a different schema representation.
+
 - Examples:
   - `JsonSchema/draft-07`
   - `Protobuf/3`
@@ -489,19 +506,34 @@ Versions for a schema named `com.example.telemetrydata`:
 The [`format`](../core/spec.md#format-attribute) identifier for JSON Schema is
 `JsonSchema`.
 
-When the `format` attribute is set to `JsonSchema`, the `schema` attribute of
-the schema Resource is a JSON object representing a JSON Schema document
-conformant with the declared version.
+When the `format` attribute is set to `JsonSchema`, the schema Resource's
+document is a JSON Schema conformant with the declared version. For the
+versions listed below, its root is a JSON object or a JSON boolean, `true` or
+`false`, as defined by [JSON Schema][JSON Schema Core]. Both boolean values are
+valid schemas: `true` accepts every instance and `false` rejects every instance.
+An array, string, number or JSON `null` is not a JSON Schema root.
 
 When a URI, like the Message Registry's
 [`dataschemauri`](../message/spec.md#dataschemauri), points to a JSON Schema
 document, it MAY use a [JSON pointer][JSON pointer] expression to deep link into
 the schema document to reference a particular type definition. Otherwise the
-top-level object definition of the schema is used.
+entire root schema is used, including a boolean root. A selected subschema can
+also be an object or boolean.
 
-The version of the JSON Schema format is the version of the JSON Schema
-specification that is used to define the schema. The version of the JSON Schema
-specification is defined in the `$schema` attribute of the schema document.
+JSON Pointer selectors are relative to the schema document, not its surrounding
+xRegistry metadata. Their encoding, document boundary, and the handling of
+missing, invalid and ambiguous selectors follow
+[Schema Object Selection](#436-schema-object-selection). An empty JSON Pointer
+selects the root; a pointer to a value that is not a schema is an error. Other
+fragment forms, such as anchors, retain the meaning assigned by the declared
+JSON Schema version. They MUST NOT be treated as a JSON Pointer or silently
+replaced with root selection. Use a schema document URI with its own fragment
+for such forms, rather than appending them to a local entity pointer.
+
+The `format` value identifies the version of the JSON Schema specification
+used to define the schema. If a schema object includes `$schema`, the version
+it identifies MUST agree with `format`. Boolean roots cannot carry `$schema`;
+their version is supplied by `format`.
 
 The identifiers for the following JSON Schema versions
 
@@ -519,6 +551,16 @@ which follows the exact convention as defined for JSON schema and expecting an
 eventually released version 1.0 of the JSON Schema specification using a plain
 version number.
 
+These examples show complete UTF-8 JSON documents and their document media
+types. When inlined in JSON metadata, `schema` has the same JSON value shown
+in the last column, without an extra layer of JSON quoting.
+
+| Format | Document `contenttype` | Document |
+| --- | --- | --- |
+| `JsonSchema/draft/2020-12` | `application/schema+json` | `true` |
+| `JsonSchema/draft/2020-12` | `application/schema+json` | `false` |
+| `JsonSchema/draft/2020-12` | `application/schema+json` | `{"type":"string"}` |
+
 #### 4.3.2. XML Schema
 
 The [`format`](../core/spec.md#format-attribute) identifier for XML Schema is
@@ -531,9 +573,42 @@ the declared version.
 
 When a URI, like the Message Registry's
 [`dataschemauri`](../message/spec.md#dataschemauri), points to an XML Schema
-document, it MAY use an XPath expression to deep link into the schema document
-to reference a particular type definition. Otherwise the top-level object
-definition of the schema is used.
+document, it MAY use an XPath expression to select an element declaration or
+a simple or complex type definition in the schema document. This profile uses
+[XPath 1.0][XPath] for both XSD versions listed below. The context node is the
+XML document node, with context position and size both `1`. Only the XPath core
+function library is available; no variables or extension functions are bound.
+
+The expression's namespace context contains the non-empty prefix bindings on
+the document's `schema` element, with `xs` reserved for
+`http://www.w3.org/2001/XMLSchema` and `xml` reserved for the XML namespace.
+The document's default namespace does not apply to unprefixed XPath names.
+This context is fixed for the expression; it does not depend on the prefixes
+chosen by the caller or on namespace declarations below the `schema` element.
+The expression is encoded as specified in
+[Schema Object Selection](#436-schema-object-selection), which also governs
+missing, invalid and ambiguous selectors.
+
+The result MUST contain exactly one node representing an element declaration,
+simple type definition or complex type definition; a scalar result or any
+other kind of node does not satisfy this requirement. Without a selector, the
+document MUST contain exactly one such declaration directly under its `schema`
+element; otherwise an explicit selector MUST be supplied. This does not make a
+schema with multiple declarations invalid.
+
+For example, this schema requires an explicit selector:
+
+```xml
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="urn:example:orders">
+  <xs:element name="Order" type="xs:string"/>
+  <xs:element name="Cancel" type="xs:string"/>
+</xs:schema>
+```
+
+The XPath `/xs:schema/xs:element[@name='Order']` selects `Order`. A URI carrying
+that selector is
+`https://example.com/schemas/orders.xsd#%2Fxs%3Aschema%2Fxs%3Aelement%5B%40name%3D%27Order%27%5D`.
 
 The identifiers for the following XML Schema versions:
 
@@ -551,9 +626,15 @@ The [`format`](../core/spec.md#format-attribute) identifier for Apache Avro
 Schema is `Avro`. The version of the Apache Avro Schema format is the version
 of the Apache Avro Schema release that is used to define the schema.
 
-When the `format` attribute is set to `Avro`, the `schema` attribute of the
-schema Resource is a JSON object representing an Avro schema document conformant
-with the declared version.
+When the `format` attribute is set to `Avro`, the schema Resource's document
+is an Avro schema conformant with the declared version. As defined by
+[Apache Avro][Avro Specification], its JSON representation is a string naming
+a defined type, an object defining a type, or an array defining a union.
+This includes primitive schemas, named record, enum and fixed schemas, and
+array, map and union schemas. A named type reference still requires that type
+to be defined in the applicable Avro name context; admission of string roots
+does not make an undefined name valid. JSON booleans, numbers and `null` are
+not Avro schemas. The JSON string `"null"` is the schema for Avro's null type.
 
 Examples:
 
@@ -562,10 +643,38 @@ Examples:
 
 When a URI, like the Message Registry's
 [`dataschemauri`](../message/spec.md#dataschemauri), points to an Avro Schema
-document, it MAY use a URI fragment suffix `[:]{record-name}` to deep link into
+document, it MAY use a URI fragment suffix `[:]{type-name}` to deep link into
 the schema document to reference a particular type definition. Otherwise the
-top-level object definition of the schema is used. The ':' character is used as
-a separator when the URI already contains a fragment.
+entire root schema is used, including primitive, array, map and union schemas.
+A union is not an implicit selection of its first branch. The ':' character
+is used as a separator when the URI already contains a fragment.
+
+The selected declaration can be a record, enum or fixed type. Its identity is
+its case-sensitive [Avro full name][Avro Names], including the namespace
+determined by Avro's name rules. A qualified selector MUST match that full name
+exactly. An unqualified selector is accepted only when exactly one named
+declaration in the document has that simple name, and no namespace is inferred
+for it. Aliases do not participate in this lookup. Missing, invalid and
+ambiguous names are handled as defined in
+[Schema Object Selection](#436-schema-object-selection). This does not change
+selection of the root when no name is supplied, or turn an unnamed schema into
+a named declaration.
+
+These examples show complete UTF-8 JSON documents. Their document media type
+is `application/json`; it does not describe the encoding of data governed by
+the schema. In particular, the primitive string schema's document bytes include
+the JSON quotation marks in `"string"`, unlike a plain text document containing
+`string`. In JSON metadata its `schema` value is the JSON string `"string"`.
+
+| Format | Document `contenttype` | Document |
+| --- | --- | --- |
+| `Avro/1.12.0` | `application/json` | `"string"` |
+| `Avro/1.12.0` | `application/json` | `["null","string"]` |
+| `Avro/1.12.0` | `application/json` | `{"type":"record","name":"Reading","fields":[{"name":"value","type":"long"}]}` |
+
+Clients that previously assumed every schema was a JSON object need to preserve
+these native root kinds. They MUST NOT convert a primitive or union root to
+a record merely to fit an object-only representation.
 
 Examples:
 
@@ -599,6 +708,17 @@ schema document. If the URI does not contain a fragment, the message name MUST
 be appended as a URI fragment using `#{message-name}`. If the URI already
 contains a fragment, the message name MUST be appended to the fragment using
 `:{message-name}`.
+
+The selected declaration MUST be a message, not an enum, service or field.
+Its full name includes the Protobuf package and enclosing message names. A
+qualified selector, with or without Protobuf's leading `.`, MUST match the full
+name exactly. An unqualified selector is accepted only when exactly one message
+declaration in the document has that simple name; partial suffix matching does
+not apply and no package is inferred for it. These name rules follow the
+[Protobuf language's scope rules][Protobuf Names]. Missing, invalid and
+ambiguous names are handled as defined in
+[Schema Object Selection](#436-schema-object-selection), whose document and
+selector encoding rules apply without changing the `#` and `:` separators.
 
 Examples:
 
@@ -634,6 +754,21 @@ schema document, it MAY use a [JSON pointer][JSON pointer] expression to deep
 link into the schema document to reference a particular type definition. This is
 typically used to reference type definitions within the `definitions` namespace.
 
+For `JsonStructure/draft-04`, an explicit non-empty pointer MUST select a
+reusable type declaration within `definitions`, including nested namespaces.
+Selecting a namespace object or an inline compound type that the native format
+does not permit to be referenced externally is an error. A type declaration
+is not limited to the `object` data type.
+
+Without an explicit selection, use the document's inline root type or its
+`$root` designation, as defined by [JSON Structure Core draft 04][JSTRUCT-04].
+`$root` selects a type within `definitions`, and is mutually exclusive with
+an inline root `type`. A document with neither has no selected root, even if
+it contains only one reusable declaration. An explicit pointer MUST then be
+supplied. This preserves primitive and compound roots, and roots designated
+by `$root`, including type unions; it does not infer a root from declaration
+order or mistake a namespace for a type.
+
 Examples:
 
 - `https://example.com/schemas/person.json#/definitions/Employee` uses the
@@ -642,7 +777,72 @@ Examples:
   `#/schemagroups/com.example.schemas/schemas/com.example.person/versions/1/definitions/Employee`,
   append the JSON Pointer fragment to reference a specific type within that schema.
 
+#### 4.3.6. Schema Object Selection
 
+A schema object reference has two distinct parts: the document locator and
+the format-defined selector within that document. The locator can identify a
+Schema Resource, selecting its default Version's document, or a particular
+Schema Version. Selecting an object does not change that owning entity.
+These rules define selection, not which formats a Registry has to support,
+and do not override the native format's schema validity rules.
+
+For a schema document URI without a fragment, append the selector after `#`.
+For a locator that already uses a fragment to identify a Schema entity in
+an xRegistry document, the boundary of that entity MUST be established before
+interpreting a selector:
+
+- For JSON Schema and JSON Structure JSON Pointer selectors, append the
+  pointer's tokens to the entity pointer. For example, a known Version locator
+  `#/schemagroups/g/schemas/s/versions/1` and selector `/definitions/T` give
+  `#/schemagroups/g/schemas/s/versions/1/definitions/T`. No extra `schema`
+  metadata token is inserted.
+- For Avro names, Protobuf names and XPath expressions, append `:` followed
+  by the encoded selector. This also applies to an entity pointer in an
+  external xRegistry document, such as
+  `https://example.com/registry.json#/schemagroups/g/schemas/s:Event`.
+
+The entity boundary comes from the containing xRegistry document's metadata
+or an explicitly supplied owning entity, not from stripping a suffix from an
+identifier. If more than one owner/selector interpretation is possible, the
+reference MUST be rejected as ambiguous. For example,
+`#/schemagroups/g/schemas/a:B` can denote the literal Resource `a:B` or select
+`B` within Resource `a`. Neither interpretation takes precedence. The same
+rule applies if trailing pointer tokens could identify a Version or a member
+of a Resource's schema document. An explicit owner can remove the ambiguity;
+otherwise use a schema document URI with a separate selector fragment.
+
+When constructing local entity pointers, literal colons in identifiers MUST
+be percent-encoded as `%3A`; for example,
+`#/schemagroups/g/schemas/a%3AB` denotes the literal Resource `a:B`, not a
+selector on `a`. An encoded colon MUST NOT be promoted to a separator.
+Existing references containing colons that are not percent-encoded remain
+usable when their owner boundary is unambiguous, but MUST NOT be silently
+reinterpreted when another matching entity is added.
+
+Encode each selector as UTF-8 followed by URI fragment percent-encoding.
+Identify the document boundary and any separating literal `:` before decoding
+the selector. Percent-decode the selected component exactly once. For JSON
+Pointers, then apply [RFC 6901][JSON Pointer], including its `~1` and `~0`
+token escapes; do not apply those token escapes to names or XPath expressions.
+Thus a literal `%2F` in a JSON member name is encoded as `%252F`, not decoded
+a second time into `/`. Preserve case and Unicode code points. Invalid escapes
+or invalid UTF-8 are errors. Decoding a selector MUST NOT normalize or change
+the document locator's unrelated URI components.
+
+An inline schema has no inherent document URI. Apply the format's root
+selection rule, or an explicitly supplied selector in a context that supports
+one, without inventing a locator or publishing the schema. If the document,
+owner context, needed schema dependencies, or the selector facility is
+unavailable, report selection as unresolved or unsupported rather than claim
+that a concrete object has been selected. Selection does not require automatic
+network acquisition. When the needed information is available, a missing,
+invalid or ambiguous target is an error, not permission to choose another
+object or a different Version.
+
+Consumers that used suffix stripping, implicit namespace lookup or first-root
+selection need to retain explicit owner and selector information. Producers
+can use encoded literal identifiers and fully qualified names to avoid those
+heuristics. These rules do not alter unrelated URI equality requirements.
 
 Like the [xRegistry Core][xRegistry Core] specification, this specification does
 not explicitly address authentication or authorization levels of users, nor how
@@ -663,7 +863,13 @@ a schema, allowing for fine-grained access control.
 ---
 
 [JSON Pointer]: https://www.rfc-editor.org/rfc/rfc6901
+[JSON Schema Core]: https://json-schema.org/draft/2020-12/json-schema-core#section-4.3
+[Avro Specification]: https://avro.apache.org/docs/1.12.0/specification/
+[XPath]: https://www.w3.org/TR/1999/REC-xpath-19991116/
+[Avro Names]: https://avro.apache.org/docs/1.12.0/specification/
+[Protobuf Names]: https://protobuf.dev/programming-guides/proto3/
 [JSTRUCT-CORE]: https://json-structure.github.io/core/draft-vasters-json-structure-core.html
+[JSTRUCT-04]: https://www.ietf.org/archive/id/draft-vasters-json-structure-core-04.html
 [CloudEvents dataschema]: https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#dataschema
 [xRegistry Core]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html
 [xRegistry self]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#self-attribute
