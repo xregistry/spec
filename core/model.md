@@ -534,8 +534,17 @@ The following describes the attributes of the Registry model:
 - The singular name of a Group type e.g. `endpoint` (`<GROUP>`).
 - MUST be unique across all Group types (plural and singular names) in the
   Registry.
-- MUST be non-empty and MUST be a valid attribute name. For clarity, it
-  MUST NOT exceed 63 characters.
+- MUST be non-empty and MUST be a valid attribute name with the exception
+  that it MUST NOT exceed 61 characters (not 63).
+
+This limit leaves room for the `id` suffix in the `<GROUP>id` attribute within
+the [63-character attribute-name limit](./spec.md#attributes). `<GROUP>id` is
+the only Core attribute name derived from a Group type's singular name, which
+is why this bound is 61 rather than the 57 characters that apply to the Group
+type's plural name and to a Resource type's names. Models using the previously
+stated 63-character Group singular names do not satisfy this bound. Existing
+immutable Group types MUST NOT be silently truncated or renamed; adopting
+this bound requires an explicit migration.
 
 ### `groups.<STRING>.description`
 - Type: String.
@@ -983,6 +992,10 @@ Note that this feature has similar results to setting the Resource attribute's
   attribute MUST also be `true`.
 - A value of `false` indicates that the server MUST NOT perform any
   `compatibility` checking for instances of this Resource type.
+- These checks validate the stored
+  [`meta.compatibility` claim](spec.md#compatibility-attribute); they do not
+  replace the Resource model's attribute constraints. When disabled, lack of
+  checker support MUST NOT by itself reject a stored claim.
 - In cases where this attribute is `false`, but there is a desire to advertise
   the external entity that has performed the validation, a `label` MAY be
   added to the Resource's model or to the Resource instance itself with this
@@ -1036,6 +1049,13 @@ Note that this feature has similar results to setting the Resource attribute's
   The `typemap` attribute allows for this by defining a mapping of
   `contenttype` values to well-known xRegistry format types.
 
+  How an effective mapping, including the implicit mappings below, selects
+  and encodes a Version's document in a response is defined by the
+  [Core document representation rules](./spec.md#resource-attribute). Those
+  rules also define the precedence of the
+  [binary flag](./spec.md#binary-flag), the JSON `null` constraint and the
+  [empty-document rule](./spec.md#resourcebase64-attribute).
+
   Since the `contenttype` value is a "media-type" per
   [RFC9110](https://datatracker.ietf.org/doc/html/rfc9110#media.type),
   for purposes of looking it up in the `typemap`, just the `type/subtype`
@@ -1063,17 +1083,20 @@ Note that this feature has similar results to setting the Resource attribute's
   (e.g. `application/json`). This is useful when it is desirable to not
   have the server potentially modify the document (e.g. "pretty-print" it).
 
-  A value of `json` indicates that the Resource's document is JSON and MUST
-  be serialized under the `<RESOURCE>` attribute if it is valid JSON. Note
-  that if there is a syntax error in the JSON then the server MUST treat the
-  document as `binary` to avoid sending invalid JSON to the client. The
-  server MAY choose to modify the formatting of the document (e.g. to
+  A value of `json` indicates that the Resource's document is JSON. Under the
+  [Core document representation rules](./spec.md#resource-attribute) this
+  selects the `<RESOURCE>` attribute for a response. When using `<RESOURCE>`,
+  the server MAY choose to modify the formatting of the document (e.g. to
   "pretty-print" it).
 
   A value of `string` indicates that the Resource's document is to be treated
-  as a string and serialized using the default string serialization rules
-  for the format being used to serialize the Resource's metadata. For
-  example, when using JSON, this means escaping all non-printable characters.
+  as a string. Under the
+  [Core document representation rules](./spec.md#resource-attribute) this
+  selects the `<RESOURCE>` attribute for a response, using the default string
+  serialization rules for the Resource's metadata format. The document bytes
+  do not need to already be a valid value in that format. For example, when
+  using JSON, this means quoting the string and escaping characters such as
+  quotation marks, backslashes, and non-printable characters.
 
   Specifying an unknown (or unsupported) value MUST generate an error
   ([model_error](./spec.md#model_error)) during the update of the xRegistry

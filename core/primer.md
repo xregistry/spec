@@ -1202,11 +1202,22 @@ sensitivity rules in the specification.
 
 Attribute names and key names are limited to 63 characters, so why are some
 Group and Resource names limited to less? Because when they appear as part of
-attribute names and they can be appended with phrases like `url`, `count`
-or `base64`, and they still have to fit within the 63-character limit, and so
-we need to take into account the length of those phrases. As a result, both
-Group and Resource type names (both singular and plural) are limited to
-57 characters.
+attribute names and they can be appended with phrases like `url`, `count`,
+`base64` or `id`, and they still have to fit within the 63-character limit,
+and so we need to take into account the length of those phrases. How much
+room has to be reserved depends on which phrases are appended to that
+particular kind of name, so exactly one bound is stated for each kind:
+
+- A Group type's singular name (`<GROUP>`) is limited to 61 characters. The
+  only Core attribute name derived from it is `<GROUP>id`, so only the
+  two-character `id` phrase has to be accounted for.
+- A Group type's plural name (`<GROUPS>`), and both the singular and plural
+  names of a Resource type (`<RESOURCE>` and `<RESOURCES>`), are limited to
+  57 characters, because longer phrases are appended to them, for example in
+  `<RESOURCE>base64`.
+
+The [Registry Model](./model.md#registry-model) states these same bounds
+normatively.
 
 ### 11.13. Why must Group type and Resource type names be valid attribute names?
 

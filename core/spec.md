@@ -870,7 +870,8 @@ be one of the following data types:
 - `timestamp` - an [RFC3339](https://tools.ietf.org/html/rfc3339) timestamp.
   Use of a `time-zone` notation is RECOMMENDED. All timestamps returned by
   a server MUST be normalized to UTC to allow for easy (and consistent)
-  comparisons.
+  comparisons. Timestamp comparisons MUST use the
+  [instant comparison rules](#filter-flag).
 - `uinteger` - unsigned integer.
 - `uri` - an absolute URI ( `uriabsolute`) or relative URI (`urirelative`).
 - `uriabsolute` - absolute URI as defined in [RFC 3986 Section
@@ -1086,15 +1087,16 @@ of the existing entity. Then the existing entity would be deleted.
 ##### `self` Attribute
 
 - Type: URL
-- Description: A server-generated unique URL referencing the current entity.
-  - Each entity in the Registry MUST have a unique `self` URL value that
-    locates the entity in the Registry hierarchy and from where the entity can
-    be retrieved.
+- Description: A server-generated URL referencing the current entity.
+  - In API view, each entity in the Registry MUST have a unique `self` URL
+    value that locates the entity in the Registry hierarchy and from where the
+    entity can be retrieved.
   - When specified as an absolute URL, it MUST be based on the URL of the
     Registry root appended with the hierarchy path of the Registry
     entities/collections leading to the entity (its `xid` value).
-  - When specified as a relative URL, it MUST end with the entity's `xid`
-    value.
+  - When specified as a relative URL other than a document-view fragment
+    pointer, it MUST end with the entity's `xid` value. Document-view fragment
+    pointers are response-local and are not subject to this suffix requirement.
 
 - API View Constraints:
   - REQUIRED.
@@ -1112,7 +1114,7 @@ of the existing entity. Then the existing entity would be deleted.
 
 - Document View Constraints:
   - REQUIRED.
-  - MUST be immutable.
+  - Its value MAY differ between responses with different document roots.
   - MUST be a relative URL of the form `#JSON-POINTER` where the `JSON-POINTER`
     locates this entity within the current document. See [Doc Flag](#doc-flag)
     for more information.
@@ -1983,12 +1985,17 @@ The following defines the specification-defined capabilities:
   character at that location in the string. Similar to a `.*` in regular
   expressions.
 
-  An error
+  When configuring this capability, an error
   ([capability_error](#capability_error)) MUST be generated if a specified
   key/format isn't in Capabilities `formats` list or the compatibility rule
   specified is not supported for that `format` (i.e. that combination of
   `format`/`compatibility` is not listed in the `compatibilities` offered
   capabilities).
+
+  This map describes available validation support, not an unconditional list
+  of allowed stored claims. Admission and validation of a Resource's
+  [`compatibility`](#compatibility-attribute) claim follow that attribute's
+  rules.
 
   Compatibility rules are semantic requirements that define how Versions of a
   Resource are allowed to change over time. For example, the compatibility rule
@@ -3071,16 +3078,30 @@ and the following Meta-level attributes:
   relationship between the Resource's Versions and the server MUST NOT perform
   any `compatibility` checking.
 
+  A stored value is a compatibility claim, not a statement that the server has
+  verified it. The per-Version
+  [`compatibilityvalidated`](#compatibilityvalidated-attribute) attribute
+  reports whether the applicable checks were performed successfully.
+
 - Constraints:
   - OPTIONAL.
-  - If present, MUST be a case-insensitive non-empty value from the Registry's
+  - If present, MUST be a case-insensitive non-empty string that satisfies the
+    Resource's model constraints, including any applicable enumeration
+    restrictions.
+  - The Registry's
     [`capabilities.compatibilities`](#compatibilities-capability) values
-    for the set of `format` values used by the Versions of the Resource.
-  - When changing the value of this attribute, it MUST be applied to all
-    Versions of the Resource, and an error
-    ([compatibility_violation](#compatibility_violation)) MUST be generated
-    if any Version can not conform to the requirements of the specified
-    compatibility value.
+    describe which format/compatibility checks are available. Lack of an
+    applicable checker MUST NOT by itself reject a model-permitted claim
+    when compatibility checking is disabled or `strictvalidation` is `false`.
+    An enabled applicable check that is unavailable MUST follow the existing
+    [`compatibilityvalidated`](#compatibilityvalidated-attribute) rules for
+    strict rejection or an unchecked result with an explanation. Validation
+    status and reason attributes MUST follow their existing presence rules.
+  - When changing this attribute, the new claim applies to all Versions of
+    the Resource. Its enabled checks MUST be evaluated for all applicable
+    Versions, not only changed Versions. An actual failed check MUST generate
+    an error ([compatibility_violation](#compatibility_violation)) and reject
+    the entire operation, regardless of `strictvalidation`.
 
 #### `defaultversionid` Attribute
 - Type: String
@@ -3089,7 +3110,8 @@ and the following Meta-level attributes:
 
 - Constraints:
   - REQUIRED.
-  - MUST be the `versionid` of the default Version of the Resource.
+  - At the end of the operation, MUST be the `versionid` of the default
+    Version of the Resource.
 
 When a "patch" type of operation is used and this attribute is present in the
 request but `defaultversionsticky` is absent, then:
@@ -3122,9 +3144,20 @@ For clarity, when processing a request that results in
 value, or value specified in the request, MUST be ignored for the purpose of
 setting its final value.
 
-Any attempt to set `defaultversionid` to a non-existing Version, after all
-Version processing for the current operation is completed, MUST generate an
-error ([unknown_id](#unknown_id)).
+Existence validation MUST use the effective selection after applying Meta
+processing, model defaults, patch inference and flag overrides, and after all
+Version processing for the operation. A non-null candidate that remains the
+effective sticky selection MUST reference an existing Version; otherwise an
+error ([unknown_id](#unknown_id)) MUST be generated. A candidate discarded by
+non-sticky selection or superseded by a flag MUST NOT cause an existence error.
+
+Discarding a candidate affects only its existence obligation, not its JSON
+type or identifier-syntax validation. A supplied non-null candidate MUST be a
+string with valid [Version identifier syntax](#singularid-id-attribute). This
+rule MUST NOT discard a candidate before the existing
+[Resource creation-clue processing](#resource-processing-algorithm). An invalid
+effective selection fails the whole operation under
+[Error Processing](#error-processing), without retaining partial changes.
 
 See [`defaultversionsticky` Attribute](#defaultversionsticky-attribute) below
 for the relationship between these two attribute.
@@ -3591,41 +3624,57 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
 #### `<RESOURCE>` Attribute
 - Type: Resource Document
 - Description: This attribute is a serialization of the corresponding
-  Version's domain-specific document's contents. If the document's bytes
-  "as is" (without any additional processing such as escaping) allows for
-  them to appear as the value of this JSON attribute, then this attribute
-  MUST be used if the request asked for the document to be
-  [inlined](#inline-flag) in the response.
+  Version's domain-specific document's contents. The rules in this section
+  are the document representation rules for responses, and the Resource
+  type's [`typemap`](./model.md#groupsstringresourcesstringtypemap) defines
+  the mappings that they consume. For a non-empty document
+  [inlined](#inline-flag) in a response, the selection and encoding of this
+  attribute MUST follow that `typemap`, including its implicit mappings,
+  subject to the JSON `null` constraint below. The
+  [Binary Flag](#binary-flag) MUST force the use of `<RESOURCE>base64`.
 
-  This is a convenience (optimization) attribute to make it easier to view the
-  document when it happens to be in the same format as the serialization of
-  the Version.
+  A `string` mapping MUST use this attribute with the string serialization
+  rules of the metadata format, even when the original document bytes are
+  not a JSON value. For example, the bytes `Hello` with `contenttype` set to
+  `text/plain` are represented as `"file": "Hello"` for a `file` Resource.
+  If the bytes cannot be represented as a string without loss, then
+  `<RESOURCE>base64` MUST be used instead; the server MUST NOT replace or
+  discard invalid bytes to force a string representation.
 
-  The model Resource attribute
-  [`typemap`](./model.md#groupsstringresourcesstringtypemap)
-  MAY be used to help the server determine if the document is in the
-  same format. If a Version has a matching `contenttype` attribute but the
-  contents of the Version's document do not successfully parse (e.g. it's
-  `application/json` but the JSON is invalid), then `<RESOURCE>`
-  MUST NOT be used and `<RESOURCE>base64` MUST be used instead.
+  A `json` mapping MUST use this attribute for valid JSON, subject to the
+  JSON `null` constraint below. A document selected as `json` that contains
+  invalid JSON MUST use `<RESOURCE>base64` instead.
+  A `binary` mapping, including the result of conflicting matching entries,
+  MUST use `<RESOURCE>base64`.
+
+  If no explicit or implicit `typemap` mapping applies, this attribute MAY
+  be used if the document's bytes "as is" are a valid value in the metadata
+  format. In this case, the server MAY prefer `<RESOURCE>base64` even for a
+  valid JSON document. A server preference for `<RESOURCE>base64` MUST NOT
+  override a `json` or `string` mapping. Document bytes MUST NOT be converted
+  to a string merely to fit the metadata format when no `string` mapping
+  applies.
 
 - Constraints
   - If the Version's document is to be serialized and is not empty,
     then either `<RESOURCE>` or `<RESOURCE>base64` MUST be present.
-  - MUST only be used if the Version's document (bytes) is in the same
-    format as the serialization of the Version entity.
+  - MUST only be used when permitted by the representation rules above.
   - MUST NOT be present if `<RESOURCE>base64` is also present.
   - MUST NOT be present if the Resource type's
     [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
     is set to `false`.
+  - MUST NOT be used to represent a non-empty document as the JSON value
+    `null`. Instead, `<RESOURCE>base64` MUST carry the original document bytes
+    so that a subsequent request does not interpret the document as empty.
+    This constraint applies even when a `json` mapping selects the
+    representation, and does not require the `binary` flag.
 
 #### `<RESOURCE>base64` Attribute
 - Type: String
 - Description: This attribute is a base64 encoding of the corresponding
-  Version's domain-specific document. If the Version's document (which is
-  stored as an array of bytes) is not conformant with the format being used
-  to serialize the Version (e.g. as a JSON value), then this attribute MUST be
-  used instead of the `<RESOURCE>` attribute.
+  Version's domain-specific document. If the document cannot be represented
+  using `<RESOURCE>` under the representation rules above, then
+  this attribute MUST be used instead.
 
 - Constraints:
   - If the Version's document is to be serialized and it is not empty,
@@ -3637,6 +3686,22 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
   - MUST NOT be present if the Resource type's
     [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
     is set to `false`.
+
+For example, the four document bytes `null` for a `file` Resource are
+represented by the following document field:
+
+<!-- words: bnvsba -->
+
+```json
+{
+  "filebase64": "bnVsbA=="
+}
+```
+
+An explicit `"file": null` in a request still requests an empty document, as
+defined in [`<RESOURCE>*` Attribute Processing](#resource-attribute-processing).
+A JSON string whose contents are `null` has the JSON value `"null"`, not
+`null`, so this exception does not apply to it.
 
 ---
 
@@ -3660,7 +3725,9 @@ attributes to be used. In the case of `<RESOURCE>` or `<RESOURCE>base64`,
 implementations can not assume that a previous use of one means that all
 subsequent interactions with that entity will use the same attribute. For
 example, a client can use `<RESOURCE>` to populate the value, but the server
-is free to use `<RESOURCE>base64` when returning the data.
+MUST select the response representation according to the rules above. It can
+return `<RESOURCE>base64` when those rules require it or, when no `typemap`
+mapping applies, when it prefers that form.
 
 #### Version IDs
 
@@ -3914,6 +3981,13 @@ relative and reference a Resource or Version, any protocol-specific
 modifications to the URLs (e.g. the HTTP `$details` suffix) MUST NOT be
 present despite the semantics of the suffix being applied (as noted below).
 
+Each pointer MUST use the
+[URI fragment identifier representation of RFC6901](https://datatracker.ietf.org/doc/html/rfc6901#section-6):
+escape `~` as `~0` and `/` as `~1` within each reference token, then perform
+the UTF-8 and URI-fragment percent-encoding from that section. A pointer to the
+response root MUST be `#` (an empty JSON Pointer); `#/` instead refers to a
+member whose name is the empty string.
+
 For clarity, if a Registry has a Schema Resource at
 `/schemagroups/g1/schemas/s1`, then this entity's `self` URL (when serialized
 in document view) would change based on the path specified on the `GET`
@@ -3925,7 +3999,7 @@ request:
 | `http://example.com/myreg/schemagroups` | `#/g1/schemas/s1` |
 | `http://example.com/myreg/schemagroups/g1/ ` | `#/schemas/s1` |
 | `http://example.com/myreg/schemagroups/g1/schemas ` | `#/s1` |
-| `http://example.com/myreg/schemagroups/g1/schemas/s1` | `#/` |
+| `http://example.com/myreg/schemagroups/g1/schemas/s1` | `#` |
 
 This feature is useful when a client wants to minimize the amount of data
 returned by a server because the duplication of that data (typically used for
@@ -4083,8 +4157,19 @@ impacts how the comparisons are done:
   - The strings MUST be compared in a case-insensitive manner.
   - It is STRONGLY RECOMMENDED to use Unicode collation based on en-US.
   - See the next paragraph for information about use of wildcards.
-- For timestamp attributes, after the values have been normalized to UTC,
-  these follow the same rules as "strings" above.
+- For timestamp attributes, timestamps MUST be compared by the instants they
+  represent after normalization to UTC, not by string collation. Comparisons
+  MUST preserve arbitrary permitted fractional-second precision and MUST NOT
+  round or truncate fractions for comparison. An absent fraction is zero,
+  and trailing fractional zeroes do not change the instant.
+  For example, `2030-01-01T00:00:00.0Z` and `2030-01-01T00:00:00Z` compare
+  equal, and `2030-01-01T00:00:00.1Z` compares greater than either one.
+  RFC3339 offset and leap-second semantics remain applicable. This rule does
+  not impose a uniform number of fractional digits on stored or returned
+  values.
+  Presence, `null`, and whole-value `*` existence tests retain their existing
+  semantics. Outside those tests, operands MUST be RFC3339 timestamps.
+  Other string-wildcard patterns are not timestamp operands.
 - For URI/URL variants, these follow the same rules as "strings" above.
 
 See the [`Sort`](#sort-flag) section for more details concerning sorting.
@@ -4504,6 +4589,8 @@ the same as if they had the "lowest" possible value for that attribute. If
 more than one entity shares the same attribute value then the `<SINGULAR>id`
 MUST be used as a secondary sorting key, using the same `asc`/`desc` value
 specified for the primary sorting key.
+Different timestamp representations of the same instant MUST use this
+secondary key, not their serialized spellings.
 
 An invalid usage of, or value for, the `sort` flag MUST generate an error
 ([bad_sort](#bad_sort)).
