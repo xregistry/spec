@@ -3,6 +3,7 @@
 <!-- words: cleanstart sessionexpiryinterval topicfilter retainhandling retainaspublished nolocal -->
 <!-- words: sharedsubscriptiongroup keyserializer valueserializer enableautocommit autooffsetreset -->
 <!-- words: serializer subjectfilter queuegroup usernames tenantid -->
+<!-- words: configs -->
 
 ## Abstract
 
@@ -254,7 +255,7 @@ this form:
         # Common protocol options
         "endpoints": [
           {                                     # entry shape is protocol
-            "uri": "<URI>", ?                   #   specific: "uri" for all
+            "uri": "<URITEMPLATE>", ?           #   specific: "uri" for all
             "bootstrap.servers":                #   protocols except "KAFKA",
               [ "<STRING>" * ], ?               #   which has no "uri" and
             "<STRING>": <JSON-VALUE> *          #   uses "bootstrap.servers"
@@ -264,8 +265,8 @@ this form:
           {
             "type": "<STRING>", ?
             "mechanism": "<STRING>", ?
-            "resourceuri": "<URI>", ?
-            "authorityuri": "<URI>" ?
+            "resourceuri": "<URITEMPLATE>", ?
+            "authorityuri": "<URITEMPLATE>" ?
           } *
         ], ?
         "deployed": <BOOLEAN>, ?
@@ -539,8 +540,11 @@ This specification defines the following envelope options for the indicated
   is acceptable.
 - `format` : indicates the format of the CloudEvent when sent in `structured`
   mode. This attribute MUST NOT be specified when `mode` is `binary`. The value
-  used MUST match the expected content type of the message (e.g. for HTTP the
-  `Content-Type` header value).
+  is the serialized envelope's media type, for example
+  `application/cloudevents+json`, and MUST match the content type of that
+  envelope in the protocol body (e.g. the HTTP `Content-Type` header). For how
+  the envelope, the event data and the protocol content type relate, see the
+  Message [`datacontenttype`](../message/spec.md#datacontenttype) attribute.
 
 #### `protocol`
 
@@ -613,10 +617,13 @@ This specification defines the following envelope options for the indicated
   - Each object MUST carry the endpoint address in the attribute that the
     endpoint's protocol defines for that purpose. Of the protocols defined in
     this specification, `HTTP`, `AMQP/1.0`, `MQTT/3.1.1`, `MQTT/5.0`, and
-    `NATS` use a `uri` attribute holding a valid, absolute URI (URL), and
-    `KAFKA` uses a non-empty `bootstrap.servers` attribute. A protocol
-    defined outside of this specification MAY define a different addressing
-    attribute.
+    `NATS` use a `uri` attribute, and `KAFKA` uses a non-empty
+    `bootstrap.servers` attribute. A protocol defined outside of this
+    specification MAY define a different addressing attribute.
+  - The `uri` attribute is a URI Template. It MAY contain unresolved
+    placeholders as described in [Protocol Options](#protocol-options). After
+    placeholder resolution the value MUST be a valid, absolute URI (URL) that
+    satisfies the scheme requirements stated for the endpoint's protocol.
 - Examples:
   - `[ {"uri": "https://example.com" } ]`
   - ```
@@ -718,24 +725,30 @@ This specification defines the following envelope options for the indicated
 
 ###### `protocoloptions.authorization.resourceuri`
 
-- Type: URI
+- Type: URI Template
 - Description: The URI of the resource for which the authorization is
   requested. The format of the URI depends on the authorization type.
 
 - Constraints:
   - OPTIONAL.
-  - MUST be a non-empty URI if used.
+  - MUST be a non-empty string if used.
+  - MAY contain unresolved placeholders as described in
+    [Protocol Options](#protocol-options). After placeholder resolution the
+    value MUST be a non-empty URI.
 
 ###### `protocoloptions.authorization.authorityuri`
 
-- Type: URI
+- Type: URI Template
 - Description: The URI of the authorization authority from which the
   authorization is requested. The format of the URI depends on the
   authorization type.
 
 - Constraints:
   - OPTIONAL.
-  - MUST be a non-empty URI if used.
+  - MUST be a non-empty string if used.
+  - MAY contain unresolved placeholders as described in
+    [Protocol Options](#protocol-options). After placeholder resolution the
+    value MUST be a non-empty URI.
 
 ##### `protocoloptions.deployed`
 
@@ -779,6 +792,16 @@ Endpoints are supersets of
 MAY contain inlined messages. See
 [Message Definitions](../message/spec.md#message-definitions).
 
+An Endpoint's [`envelope`](#envelope) constraint applies to the effective
+Messages used by that Endpoint, whether inlined, borrowed, or reached through
+[`messagegroups`](#messagegroups). Each available effective Message MUST
+satisfy that constraint under the Message
+[binding-context rules](../message/spec.md#envelope). An Endpoint without an
+envelope constraint does not by itself require an envelope on those Messages.
+These checks do not copy the Endpoint selector into a Message and do not
+require the server to acquire external definitions. If the effective
+definition is unavailable, its compatibility with the Endpoint is unresolved.
+
 Example:
 
 ```yaml
@@ -792,10 +815,8 @@ Example:
     "myevent": {
       "envelope": "CloudEvents/1.0",
       "envelopemetadata": {
-        "attributes": {
-          "type": {
-            "value": "myevent"
-          }
+        "type": {
+          "value": "myevent"
         }
       }
     }
@@ -823,10 +844,14 @@ would be the same for both runtime messages), so the `messageid` value of one
 message definition (or the values of both) might not match the runtime
 message's `type` value. In those cases, finding the appropriate message
 definition will need to be done via examination of some other metadata - such
-as the message's
-`envelopemetadata.type` value along with its `envelopeoptions.format` value.
-These details are out of scope for this specification to define and are left as
-an implementation detail.
+as the message's `envelopemetadata.type` value along with the media type of
+the payload data, given by the Message
+[`datacontenttype`](../message/spec.md#datacontenttype) or by
+`envelopemetadata.datacontenttype.value`. The payload media type distinguishes
+the two serializations in both `binary` and `structured` mode, whereas
+`envelopeoptions.format` describes only the serialized envelope and is absent
+in `binary` mode. These details are out of scope for this specification to
+define and are left as an implementation detail.
 
 Implementations MAY choose to generate an error if they detect duplicate
 `messageid` values across the `messages` collection message definitions and
@@ -861,6 +886,78 @@ resolved out-of-band by the client; this specification does not define how
 the values are supplied. When the same placeholder name occurs in more than
 one value of the same endpoint, all of its occurrences MUST resolve to the
 same value.
+
+##### Authoring and resolved protocol option values
+
+Protocol options are authored before the values they carry are resolved, so
+this specification separates two stages. The option tables in the following
+sections state the requirements of the resolved stage.
+
+- *Authoring stage*: the declaration is stored in a Registry. Every string
+  value, every string array item, and every key and value of a native-name
+  container listed below MAY be an unresolved URI Template. Examples that MUST
+  be accepted are the endpoint `{ "uri": "https://{tenant}.example.test" }`,
+  the HTTP query key `{parameter}`, the Kafka option
+  `"autooffsetreset": "{mode}"`, and the string array item
+  `"bootstrap.servers": [ "{broker}:9093" ]`. The stored data is preserved
+  exactly as authored.
+- *Resolved stage*: a client has replaced every placeholder out-of-band. The
+  syntax requirements stated in the following sections - valid URI schemes,
+  `host:port` bootstrap addresses, and the listed values of an enumerated
+  option - apply to the resolved value, and a client MUST treat a violation as
+  an error. A Registry server is not obligated to resolve placeholders,
+  acquire an endpoint, or check these rules.
+
+Two model aspects carry this distinction. An address or authorization
+reference is typed as a URI Template rather than as a URI, and an enumerated
+string option lists its values advisorily rather than strictly. An unresolved
+placeholder therefore does not fail authoring validation, and it is also not
+evidence that the resolved value is valid for the protocol.
+
+The following options are native-name containers. Their keys are names of the
+owning protocol rather than xRegistry map keys, so the whole container is
+stored as opaque JSON data:
+
+| Protocol | Option | Key space | Value space |
+| --- | --- | --- | --- |
+| `AMQP/1.0` | `link-properties` | AMQP symbol | string |
+| `AMQP/1.0` | `connection-properties` | AMQP symbol | string |
+| `AMQP/1.0` | `source-filters` | AMQP filter symbol | any JSON value, including a literal `null` |
+| `HTTP` | `query` | HTTP query parameter name | string |
+| `KAFKA` | `headers` | Kafka header name | string |
+
+Opacity is a storage boundary, not a statement of protocol validity. Within
+each container an author MUST satisfy, and a client MUST check, all of the
+following. A generic schema generated from the model admits any JSON value
+here, so it MUST NOT be read as proof that a declaration is valid:
+
+- The container MUST be a JSON object.
+- Each key MUST be a non-empty name that is valid for the owning protocol,
+  or a name carrying unresolved placeholders that resolves to one.
+- Each key MUST be unique within its container. Two keys that differ only in
+  the placeholders they contain are not thereby distinct.
+- Each value MUST have the kind listed above. A value of a different kind,
+  and a member that is not described here, is invalid even though it
+  serializes as well-formed JSON.
+
+Everything outside those containers keeps the structure and kind that the
+following sections define. The fixed option objects and their member names,
+the `endpoints` and `authorization` arrays, the Kafka `bootstrap.servers`
+string array together with the separate `security.protocol` and
+`sasl.mechanism` members of the same object, and every native Boolean,
+integer and unsigned-integer option are unchanged. A Boolean option MUST NOT
+be written as the string `"true"`, and a numeric option such as `qos`,
+`acks`, `partition` or `timeout` MUST NOT carry a placeholder, because a
+placeholder is a string and those options are not strings.
+
+Migration: declarations keep their stored data unchanged. What moves is the
+stage at which a constraint is checked. A consumer that relied on the
+Registry rejecting an invalid endpoint URI, an unlisted enumeration value, or
+a non-string value inside one of the containers above MUST now perform that
+check itself after resolving placeholders. Schemas generated from the model
+lose the nested validation precision of the opaque containers, and the
+enumerations listed above are emitted as advisory documentation rather than
+as generated constraints.
 
 ##### HTTP options
 
@@ -902,7 +999,7 @@ Constraints:
 |---|---|---|---|---|---|
 | `method` | string (HTTP method), default `POST` | ✓ | ✓ | ✓ | HTTP method for the concrete operation represented by the endpoint. |
 | `headers` | array of `{name: string, value: string}` | ✓ | ✓ | ✓ | HTTP request headers. Duplicate names are allowed. |
-| `query` | map of string to string | ✓ | ✓ | ✓ | HTTP query parameters for the operation. |
+| `query` | native-name map of string to string | ✓ | ✓ | ✓ | HTTP query parameters for the operation. See [Authoring and resolved protocol option values](#authoring-and-resolved-protocol-option-values). |
 | `apikeyname` | string | ✓ | ✓ | ✓ | Name of the API key carrier when `authorization.type` is `APIKey` (for example `x-api-key`). |
 | `apikeyin` | enum: `header`, `query`, default `header` | ✓ | ✓ | ✓ | Placement of API key metadata when `authorization.type` is `APIKey`. `header` SHOULD be used; `query` SHOULD only be used when header placement is not possible. |
 | `plainscheme` | enum: `basic`, `form`, `query`, default `basic` | ✓ | ✓ | ✓ | Transport pattern for `authorization.type` = `Plain`. `basic` refers to HTTP Basic authentication ([RFC7617][RFC7617]). |
@@ -926,12 +1023,12 @@ The following options are defined for AMQP endpoints.
 |---|---|---|---|---|---|
 | `node` | string | ✓ | ✓ | ✓ | AMQP node (address). When set, it overrides the URI path. |
 | `durable` | boolean, default `false` | ✓ | - | - | Whether the node identified by `node` is a durable node rather than a transient one. This is a property of the node. It is not the AMQP message header field of the same name and it is not terminus durability, which is expressed by `terminus-durability`. It does not by itself imply a delivery guarantee. |
-| `link-properties` | map of string to string | ✓ | ✓ | ✓ | AMQP link properties. |
-| `connection-properties` | map of string to string | ✓ | ✓ | ✓ | AMQP connection properties. |
+| `link-properties` | native-name map of string to string | ✓ | ✓ | ✓ | AMQP link properties. See [Authoring and resolved protocol option values](#authoring-and-resolved-protocol-option-values). |
+| `connection-properties` | native-name map of string to string | ✓ | ✓ | ✓ | AMQP connection properties. See [Authoring and resolved protocol option values](#authoring-and-resolved-protocol-option-values). |
 | `distribution-mode` | enum: `move`, `copy`, default `move` | - | ✓ | ✓ | AMQP source distribution mode. `move` means a transferred message is removed from the node and is therefore transferred to at most one receiver. `copy` means the message remains at the node after transfer and can also be transferred to other receivers. This describes distribution between the node and its receivers; it does not describe message locking. |
 | `connection-capabilities` | array of string | ✓ | ✓ | ✓ | AMQP connection capabilities. |
 | `node-capabilities` | array of string | ✓ | ✓ | ✓ | AMQP node capabilities. |
-| `source-filters` | map of string to any | - | ✓ | ✓ | AMQP source filter expressions/descriptor keys for receive setup. |
+| `source-filters` | native-name map of string to any | - | ✓ | ✓ | AMQP source filter expressions/descriptor keys for receive setup. A value MAY be a literal `null`. See [Authoring and resolved protocol option values](#authoring-and-resolved-protocol-option-values). |
 | `dynamic` | boolean | ✓ | ✓ | ✓ | Dynamic node creation for source/target setup, depending on role. |
 | `terminus-durability` | enum: `none`, `configuration`, `unsettled-state` | ✓ | ✓ | ✓ | Durability mode for the applicable source or target terminus. For a `producer` endpoint this is the target terminus; for a `consumer` or `subscriber` endpoint it is the source terminus. |
 | `expiry-policy` | enum: `link-detach`, `session-end`, `connection-close`, `never` | ✓ | ✓ | ✓ | Expiry policy for the applicable terminus, selected as for `terminus-durability`. |
@@ -1012,10 +1109,44 @@ defined as protocol options by this specification.
 
 ##### KAFKA options
 
-The [endpoint URIs](#protocoloptionsendpoints) for "Kafka" endpoints MUST be
-valid Kafka bootstrap server addresses. The scheme follows Kafka configuration
-usage as described in [Apache Kafka], e.g. `SSL://<HOST>:<PORT>` or
-`PLAINTEXT://<HOST>:<PORT>`.
+The [`bootstrap.servers`](#protocoloptionsendpoints) attribute for "Kafka"
+endpoints is a non-empty array of strings in `host:port` form, as specified
+by [Kafka client configuration]. An IPv6 literal MUST be enclosed in square
+brackets, for example `[2001:db8::1]:9093`. After placeholder resolution, each
+entry MUST contain a host and a decimal port and MUST NOT include a URI scheme,
+path, query or fragment. Broker listener URLs such as `SSL://host:9093` and
+`PLAINTEXT://host:9092` are not client bootstrap address declarations.
+
+The `security.protocol` member of the same endpoint-address object supplies
+the Kafka security protocol separately. For example, `SSL` selects TLS without
+SASL, while `SASL_SSL` selects SASL over TLS. Credentials and other
+deployment-specific security configuration are supplied separately. A port
+number does not imply a security protocol.
+
+For example:
+
+```json
+{
+  "bootstrap.servers": [
+    "broker1.example.com:9093",
+    "192.0.2.1:9093",
+    "[2001:db8::1]:9093"
+  ],
+  "security.protocol": "SSL"
+}
+```
+
+Unresolved authoring placeholders remain permitted as described in
+[Protocol Options](#protocol-options). Clients apply the address requirements
+after resolving placeholders out-of-band; storing these declarations does not
+require the Registry server to resolve names or acquire an endpoint.
+
+Existing declarations using listener-style URLs need an explicit migration.
+For example, an author replaces `SSL://host:9093` with `host:9093` and
+explicitly sets `security.protocol` to `SSL` in the same endpoint-address
+object. Consumers MUST NOT silently strip a scheme or infer security
+configuration from it. In particular, stripping `SSL://` while retaining the
+model's `PLAINTEXT` default would change the intended security configuration.
 
 The following options are defined for Kafka endpoints.
 
@@ -1026,7 +1157,7 @@ The following options are defined for Kafka endpoints.
 | `key` | string | ✓ | - | - | Producer record key. |
 | `partition` | integer | ✓ | ✓ | - | Fixed producer partition target or explicit consumer partition selection. |
 | `consumergroup` | string | - | ✓ | - | Consumer group identifier for group-based consumption. |
-| `headers` | map of string to string | ✓ | - | - | Producer record headers. |
+| `headers` | native-name map of string to string | ✓ | - | - | Producer record headers. See [Authoring and resolved protocol option values](#authoring-and-resolved-protocol-option-values). |
 | `keyserializer` | string | ✓ | - | - | Producer key serializer class/name. |
 | `valueserializer` | string | ✓ | - | - | Producer value serializer class/name. |
 | `autooffsetreset` | enum: `earliest`, `latest`, `none` | - | ✓ | - | Consumer offset reset behavior when no valid committed offset exists. |
@@ -1098,6 +1229,7 @@ Addressing constraints:
 [CloudEvents Subscriptions API]: https://github.com/cloudevents/spec/blob/main/subscriptions/spec.md
 [NATS]: https://docs.nats.io/reference/protocols/client/
 [Apache Kafka]: https://kafka.apache.org/protocol
+[Kafka client configuration]: https://kafka.apache.org/41/configuration/producer-configs#producerconfigs_bootstrap.servers
 [Apache Kafka producer]: https://kafka.apache.org/31/javadoc/org/apache/kafka/clients/producer/ProducerRecord.html
 [Apache Kafka consumer]: https://kafka.apache.org/31/javadoc/org/apache/kafka/clients/consumer/ConsumerRecord.html
 [HTTP Message Format]: https://www.rfc-editor.org/rfc/rfc9110#section-6
