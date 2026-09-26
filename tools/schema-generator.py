@@ -59,7 +59,7 @@ avro_type_mapping = {
     "array": {"type":{"type": "array", "items": ""}},
     "uritemplate": {"type": "string"},
     "binary": {"type": "bytes"},
-    "timestamp": {"type": {"type":"int", "logicalType": "timestamp-millis"}},
+    "timestamp": {"type": {"type":"long", "logicalType": "timestamp-millis"}},
     "any": {"type": avro_generic_record_qualified_name},
     "var": {"type": avro_generic_record_qualified_name},
     "xid": {"type": "string"}
@@ -69,9 +69,9 @@ json_type_mapping = {
     "string": {"type": "string"},
     "object": {"type": "object"},
     "map": {"type": "object"},
-    "uri": {"type": "string", "format": "uri"},
-    "url": {"type": "string", "format": "uri"},
-    "xid": {"type": "string", "format": "uri"},
+    "uri": {"type": "string", "format": "uri-reference"},
+    "url": {"type": "string", "format": "uri-reference"},
+    "xid": {"type": "string", "format": "uri-reference", "pattern": "^/"},
     "datetime": {"type": "string", "format": "date-time"},
     "integer": {"type": "integer"},
     "uinteger": {"type": "integer", "minimum": 0},
@@ -103,10 +103,10 @@ json_structure_type_mapping = {
 json_common_attributes = {
     "name": {"type": "string", "description": "Name of the object"},
     "epoch": {"type": "integer", "description": "Epoch time of the object creation"},
-    "self": {"type": "string", "format": "uri", "description": "URL of the object"},
+    "self": {"type": "string", "format": "uri-reference", "description": "URL of the object"},
     "xid": {"type": "string", "format": "xid", "description": "Relative URL of the object"},
     "description": {"type": "string", "description": "Description of the object"},
-    "documentation": {"type": "string", "format": "uri", "description": "URI of the documentation of the object"},
+    "documentation": {"type": "string", "format": "uri-reference", "description": "URI of the documentation of the object"},
     "labels": {"type": "object", "description": "Labels for the object"},
     "createdat": {"type": "string", "format": "date-time", "description": "Time of the object creation"},
     "modifiedat": {"type": "string", "format": "date-time", "description": "Time of the object modification"}
@@ -120,8 +120,76 @@ avro_common_attributes = [
     {"name": "description", "type": ["string", "null"], "doc": "Description of the object"},
     {"name": "documentation", "type": ["string", "null"], "doc": "URI of the documentation of the object"},
     {"name": "labels", "type": { "type": "map", "values": ["string", "null"]} , "doc": "Labels for the object"},
-    {"name": "createdat", "type": [{"type":"int", "logicalType": "time-millis"}, "null"], "doc": "Time of the object creation"},
-    {"name": "modifiedat", "type": [{"type":"int", "logicalType": "time-millis"},"null"], "doc": "Time of the object modification"}
+    {"name": "createdat", "type": [{"type":"long", "logicalType": "timestamp-millis"}, "null"], "doc": "Time of the object creation"},
+    {"name": "modifiedat", "type": [{"type":"long", "logicalType": "timestamp-millis"},"null"], "doc": "Time of the object modification"}
+]
+
+core_meta_attributes = {
+    "xref": {"type": "xid"},
+    "readonly": {"type": "boolean"},
+    "compatibility": {"type": "string"},
+    "deprecated": {
+        "type": "object",
+        "attributes": {
+            "effective": {"type": "timestamp"},
+            "removal": {"type": "timestamp"},
+            "alternative": {"type": "url"},
+            "documentation": {"type": "url"},
+        },
+    },
+    "defaultversionid": {"type": "string"},
+    "defaultversionurl": {"type": "url"},
+    "defaultversionsticky": {"type": "boolean"},
+}
+
+# Projection of xRegistry metadata onto HTTP headers for Resource types that
+# carry a domain-specific document. See core/http.md, "Serializing Resource
+# Domain-Specific Documents". Private xRegistry header values are percent
+# encoded wire strings, so URI-typed attributes do not claim a native URI
+# format here; `Location`, `Content-Location` and `Content-Disposition` keep
+# their own native grammars as template components.
+xregistry_header_prefix = "xRegistry-"
+
+header_type_mapping = {
+    "string": {"type": "string"},
+    "uri": {"type": "string"},
+    "url": {"type": "string"},
+    "uritemplate": {"type": "string"},
+    "xid": {"type": "string"},
+    "binary": {"type": "string", "format": "byte"},
+    "datetime": {"type": "string", "format": "date-time"},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "integer": {"type": "integer", "format": "int64"},
+    "uinteger": {"type": "integer", "format": "int64", "minimum": 0},
+    "boolean": {"type": "boolean"},
+}
+
+# Version-level attributes every document serialization carries, in the order
+# used by core/http.md. The Resource identifier and document URL depend on the
+# Resource singular and are added by the generator.
+core_document_header_attributes = [
+    ("versionid", "string"),
+    ("self", "url"),
+    ("xid", "xid"),
+    ("epoch", "uinteger"),
+    ("name", "string"),
+    ("isdefault", "boolean"),
+    ("description", "string"),
+    ("documentation", "url"),
+    ("labels", ("map", "string")),
+    ("createdat", "timestamp"),
+    ("modifiedat", "timestamp"),
+    ("ancestorid", "string"),
+]
+
+# Server-assigned attributes a client cannot send on a document write request.
+readonly_document_header_attributes = ("self", "xid", "isdefault")
+
+# Resource-level scalar navigation, carried only by Resource serializations.
+resource_document_header_attributes = [
+    ("metaurl", "url"),
+    ("versionsurl", "url"),
+    ("versionscount", "uinteger"),
 ]
 
 
@@ -149,6 +217,22 @@ def camel(string):
     return pascalString[0:1].lower() + pascalString[1:]
 
 
+def item_enum(item):
+    """Read the scalar-item value set defined by Core, not its container."""
+    if "strict" in item and not isinstance(item["strict"], bool):
+        raise ValueError("item.strict must be a Boolean")
+    if "enum" not in item:
+        return None
+    if item.get("type") in ("array", "map", "object", "any"):
+        raise ValueError("item.enum is defined for scalar item types only")
+    values = item["enum"]
+    if not isinstance(values, list):
+        raise ValueError("item.enum must be an array")
+    if not values or item.get("strict", True) is False:
+        return None
+    return values
+
+
 def generate_openapi(model_definition):
 
     # now recursively find all $ref attributes in the template and replace them with references to the appropriate schema
@@ -164,6 +248,17 @@ def generate_openapi(model_definition):
                     if isinstance(item, dict):
                         replace_refs(item, expression, reference)
 
+    def replace_exact_refs(schema_fragment: dict, expression: str, reference: str):
+        for k, v in schema_fragment.items():
+            if k == "$ref" and v == expression:
+                schema_fragment[k] = reference
+            if isinstance(v, dict):
+                replace_exact_refs(v, expression, reference)
+            elif isinstance(v, list):
+                for item in v:
+                    if isinstance(item, dict):
+                        replace_exact_refs(item, expression, reference)
+
     def replace_ops(schema_fragment: dict, expression: str, reference: str):
         for k,v in schema_fragment.items():
             if k == "operationId":
@@ -175,6 +270,248 @@ def generate_openapi(model_definition):
                 for item in v:
                     if isinstance(item, dict):
                         replace_ops(item, expression, reference)
+
+    def metadata_content(value):
+        if isinstance(value, dict):
+            if "content" in value:
+                value["content"].pop("application/octet-stream", None)
+            for child in value.values():
+                metadata_content(child)
+        elif isinstance(value, list):
+            for child in value:
+                metadata_content(child)
+
+    def document_content(path_item):
+        for method in ("get", "put", "post", "patch"):
+            operation = path_item.get(method, {})
+            messages = [
+                response for status, response in operation.get("responses", {}).items()
+                if status.startswith("2")
+            ]
+            if "requestBody" in operation:
+                messages.append(operation["requestBody"])
+            for message in messages:
+                content = message.get("content", {})
+                if "application/json" in content:
+                    content["application/json"]["schema"] = {
+                        "description": "Domain-specific JSON content, not xRegistry metadata."
+                    }
+
+    def modelled_header_attributes(attributes):
+        """Top-level model attributes that Core serializes as HTTP headers."""
+        projected = []
+        for name, definition in attributes.items():
+            if name == "*":
+                continue
+            kind = definition.get("type")
+            if kind in header_type_mapping:
+                projected.append((name, kind))
+            elif kind == "map":
+                item_kind = definition.get("item", {}).get("type")
+                if item_kind in header_type_mapping:
+                    projected.append((name, ("map", item_kind)))
+            for condition in definition.get("ifvalues", {}).values():
+                projected.extend(modelled_header_attributes(
+                    condition.get("siblingattributes", {})
+                ))
+        return projected
+
+    def document_header_attributes(resource, singular, level, request=False):
+        projected = [(singular + "id", "string")]
+        projected.extend(core_document_header_attributes)
+        projected.extend(modelled_header_attributes(resource.get("attributes", {})))
+        if resource.get("hasdocument", True):
+            projected.append((singular + "url", "url"))
+        if request:
+            projected = [
+                entry for entry in projected
+                if entry[0] not in readonly_document_header_attributes
+            ]
+        elif level == "resource":
+            projected.extend(
+                entry for entry in resource_document_header_attributes
+                if entry[0] == "metaurl" or resource.get("maxversions", -1) != 1
+            )
+        # The document itself travels in the HTTP body and `contenttype` uses
+        # the native `Content-Type` header, so neither is projected here.
+        excluded = {"contenttype", singular, singular + "base64", "meta", "versions"}
+        ordered = []
+        for name, kind in projected:
+            if name in excluded:
+                continue
+            excluded.add(name)
+            ordered.append((name, kind))
+        return ordered
+
+    def header_name(attribute, kind):
+        if isinstance(kind, tuple):
+            return f"{xregistry_header_prefix}{attribute}.<KEY>"
+        return xregistry_header_prefix + attribute
+
+    def component_name(attribute):
+        # OpenAPI component keys are restricted to `^[a-zA-Z0-9.\-_]+$`, so the
+        # map-family placeholder only appears in the header or parameter name.
+        return xregistry_header_prefix + attribute
+
+    def header_description(attribute, kind):
+        if isinstance(kind, tuple):
+            return (
+                f"The xRegistry '{attribute}' map, sent as one header per key named "
+                f"'{xregistry_header_prefix}{attribute}.<KEYNAME>' with a {kind[1]} "
+                "value. Key names are known only at runtime, so this entry describes "
+                "the family rather than an individual header name. Values are "
+                "percent-encoded per the spec's HTTP Header Values rules."
+            )
+        return (
+            f"The xRegistry '{attribute}' attribute ({kind}), percent-encoded per the "
+            "spec's HTTP Header Values rules."
+        )
+
+    def component(container, name, definition):
+        components = openapi["components"].setdefault(container, {})
+        if components.setdefault(name, definition) == definition:
+            return {"$ref": f"#/components/{container}/{name}"}
+        return copy.deepcopy(definition)
+
+    def header_schema(kind):
+        return copy.deepcopy(
+            header_type_mapping[kind[1] if isinstance(kind, tuple) else kind]
+        )
+
+    def document_headers(resource, singular, level, *native):
+        headers = {}
+        for attribute, kind in document_header_attributes(resource, singular, level):
+            name = header_name(attribute, kind)
+            headers[name] = component("headers", component_name(attribute), {
+                "description": header_description(attribute, kind),
+                "schema": header_schema(kind),
+            })
+        for name in native:
+            headers[name] = {"$ref": f"#/components/headers/{name}"}
+        return headers
+
+    def document_header_parameters(resource, singular):
+        parameters = []
+        for attribute, kind in document_header_attributes(
+            resource, singular, "version", request=True
+        ):
+            name = header_name(attribute, kind)
+            parameters.append(component("parameters", component_name(attribute), {
+                "name": name,
+                "in": "header",
+                "required": False,
+                "schema": header_schema(kind),
+                "description": header_description(attribute, kind),
+            }))
+        return parameters
+
+    def sorted_responses(operation):
+        operation["responses"] = {
+            status: operation["responses"][status]
+            for status in sorted(operation["responses"])
+        }
+
+    def ordered_response(response):
+        ordered = {
+            key: response[key] for key in ("description", "headers", "content")
+            if key in response
+        }
+        ordered.update(response)
+        return ordered
+
+    def redirect_response(description, headers):
+        return {"description": description, "headers": headers}
+
+    def document_contracts(resource_item, version_item, resource, singular):
+        """Apply the document status, native and metadata header contracts."""
+        resource_get = resource_item["get"]
+        resource_get["responses"]["200"]["headers"] = document_headers(
+            resource, singular, "resource", "Content-Location", "Content-Disposition"
+        )
+        resource_get["responses"]["303"] = redirect_response(
+            "The resource document is stored externally. The body is empty and "
+            "Location carries the RESOURCEurl value.",
+            document_headers(
+                resource, singular, "resource",
+                "Location", "Content-Location", "Content-Disposition",
+            ),
+        )
+        sorted_responses(resource_get)
+
+        put = resource_item["put"]
+        put["parameters"].extend(document_header_parameters(resource, singular))
+        success = put["responses"]["200"]
+        success["description"] = "The updated resource. No entity was created."
+        success["content"] = document_media(success["content"])
+        success["headers"] = document_headers(
+            resource, singular, "resource", "Content-Location", "Content-Disposition"
+        )
+        put["responses"]["200"] = ordered_response(success)
+        put["responses"]["201"] = {
+            "description": "The created resource.",
+            "headers": document_headers(
+                resource, singular, "resource",
+                "Location", "Content-Location", "Content-Disposition",
+            ),
+            "content": copy.deepcopy(success["content"]),
+        }
+        put["responses"]["303"] = redirect_response(
+            "The resource document is stored externally. The body is empty and "
+            "Location carries the RESOURCEurl value.",
+            document_headers(
+                resource, singular, "resource",
+                "Location", "Content-Location", "Content-Disposition",
+            ),
+        )
+        sorted_responses(put)
+
+        post = resource_item["post"]
+        post["parameters"].extend(document_header_parameters(resource, singular))
+        post["responses"]["201"]["headers"] = document_headers(
+            resource, singular, "version",
+            "Location", "Content-Location", "Content-Disposition",
+        )
+        post["responses"]["201"] = ordered_response(post["responses"]["201"])
+
+        version_get = version_item["get"]
+        version_get["responses"]["200"]["headers"] = document_headers(
+            resource, singular, "version", "Content-Disposition"
+        )
+        version_get["responses"]["200"] = ordered_response(
+            version_get["responses"]["200"]
+        )
+        version_get["responses"]["303"] = redirect_response(
+            "The version document is stored externally. The body is empty and "
+            "Location carries the RESOURCEurl value.",
+            document_headers(
+                resource, singular, "version", "Location", "Content-Disposition"
+            ),
+        )
+        sorted_responses(version_get)
+
+    def document_media(content):
+        media = {"application/octet-stream": {
+            "schema": {"type": "string", "format": "binary"}
+        }}
+        media.update(content)
+        return media
+
+    def creation_contracts(resource_item):
+        """A newly created entity answers 201 with its own Location."""
+        for method in ("put", "post"):
+            operation = resource_item.get(method, {})
+            responses = operation.get("responses", {})
+            if "201" not in responses:
+                responses["201"] = {
+                    "description": "The created resource.",
+                    "content": copy.deepcopy(responses["200"]["content"]),
+                }
+            responses["201"]["headers"] = {
+                name: {"$ref": f"#/components/headers/{name}"}
+                for name in ("Location", "Content-Location")
+            }
+            responses["201"] = ordered_response(responses["201"])
+            sorted_responses(operation)
 
     try:
         template_file_name = os.path.join(os.path.dirname(__file__), '..', 'core', 'templates', 'xregistry_openapi_template.json')
@@ -196,7 +533,7 @@ def generate_openapi(model_definition):
             path_template_copy = copy.deepcopy(path_template)
             replace_refs(path_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{group['singular']}")
             replace_ops(path_template_copy, "{%-groupNamePlural-%}", f"{pascal(group['plural'])}")
-            openapi["paths"][f"/{group['plural']}"]: path_template_copy
+            openapi["paths"][f"/{group['plural']}"] = path_template_copy
         openapi["paths"].pop(path)
 
         path = "/{%-groupNamePlural-%}/{groupid}"
@@ -335,6 +672,62 @@ def generate_openapi(model_definition):
 
         openapi["paths"].pop(path)
 
+        for group in model_definition.get("groups", {}).values():
+            resources = dict(group.get("resources", {}))
+            for imported in group.get("ximportresources", []):
+                source_group, resource_name = imported.split("/")[1:]
+                resources[resource_name] = model_definition["groups"][source_group]["resources"][resource_name]
+            for plural, definition in resources.items():
+                resource = resolve_resource(group, definition)
+                base = f"/{group['plural']}/{{groupid}}/{plural}/{{resourceid}}"
+                version_type = resource["singular"] + "Version"
+                reference = f"#/components/schemas/{version_type}"
+                versions = openapi["paths"][base + "/versions"]
+                version = openapi["paths"][base + "/versions/{versionid}"]
+                for item in (versions, version):
+                    replace_refs(item, f"#/components/schemas/{resource['singular']}", reference)
+                if not resource.get("hasdocument", True):
+                    post = openapi["paths"][base]["post"]
+                    replace_refs(
+                        post,
+                        f"#/components/schemas/{resource['singular']}", reference
+                    )
+                    replace_refs(post["requestBody"], reference, reference + "Input")
+                    resource_input = f"{resource['singular']}Input"
+                    if resource_input in openapi["components"]["schemas"]:
+                        replace_exact_refs(
+                            openapi["paths"][base]["put"]["requestBody"],
+                            f"#/components/schemas/{resource['singular']}",
+                            f"#/components/schemas/{resource_input}",
+                        )
+                versions["get"]["responses"]["200"]["content"]["application/json"]["schema"] = {
+                    "type": "object", "additionalProperties": {"$ref": reference}
+                }
+                for item in (openapi["paths"][base], version):
+                    item["parameters"] = [
+                        parameter for parameter in item.get("parameters", [])
+                        if parameter.get("name") != "meta"
+                    ]
+                    if not resource.get("hasdocument", True):
+                        metadata_content(item)
+                version_details = {
+                    key: copy.deepcopy(value) for key, value in version.items()
+                    if key in ("parameters", "get", "put", "patch")
+                }
+                metadata_content(version_details)
+                for method in ("get", "put", "patch"):
+                    if method in version_details:
+                        version_details[method]["operationId"] += "Metadata"
+                openapi["paths"][base + "/versions/{versionid}$details"] = version_details
+                if resource.get("hasdocument", True):
+                    document_content(openapi["paths"][base])
+                    document_content(version)
+                    document_contracts(
+                        openapi["paths"][base], version, resource, resource["singular"]
+                    )
+                else:
+                    creation_contracts(openapi["paths"][base])
+
         registry_entity_schema = openapi["components"]["schemas"]["RegistryEntity"]
         for _, group in model_definition.get("groups", {}).items():
             group_plural = group["plural"]
@@ -377,7 +770,8 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
         dict: The generated JSON schema.
     """
 
-    def handle_item(resource_schema, type, item, enum_values=None):
+    def handle_item(resource_schema, type, item):
+        enum_values = item_enum(item)
         if type == "object":
             resource_schema["type"] = "object"
             if "attributes" in item:
@@ -395,6 +789,8 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                     attr_schema["description"] = item["description"]
                 if "description" in attr_schema and attr_schema["description"] == "":
                     del attr_schema["description"]
+                if enum_values is not None:
+                    attr_schema["enum"] = copy.deepcopy(enum_values)
                 resource_schema["additionalProperties"] = attr_schema
                 if item["type"] == "object" or item["type"] == "map" or item["type"] == "array":
                     if "item" in item:
@@ -414,9 +810,8 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                     attr_schema["description"] = item["description"]
                 if "description" in attr_schema and attr_schema["description"] == "":
                     del attr_schema["description"]
-                # Apply enum constraint to array items if provided
-                if enum_values is not None and len(enum_values) > 0:
-                    attr_schema["enum"] = enum_values
+                if enum_values is not None:
+                    attr_schema["enum"] = copy.deepcopy(enum_values)
                 resource_schema["items"] = attr_schema
                 if item["type"] == "object" or item["type"] == "map" or item["type"] == "array":
                     if "item" in item:
@@ -446,9 +841,7 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
 
             if attr_props["type"] == "object" or attr_props["type"] == "map" or attr_props["type"] == "array":
                 if "item" in attr_props:
-                    # Pass enum values if this is an array with enum constraint
-                    enum_values = attr_props.get("enum") if attr_props["type"] == "array" else None
-                    handle_item(attr_schema, attr_props["type"], attr_props["item"], enum_values)
+                    handle_item(attr_schema, attr_props["type"], attr_props["item"])
 
             if "required" in attr_props and attr_props["required"] == True and not "default" in attr_props:
                 if "required" not in resource_schema:
@@ -565,6 +958,17 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
         document_properties = schema["properties"]
         schema_definitions = schema["definitions"]
 
+    root_schema = schema["components"]["schemas"]["document"] if for_openapi else schema
+    root_schema["type"] = "object"
+    document_properties.update(copy.deepcopy(json_common_attributes))
+    document_properties.update({
+        "registryid": {"type": "string"},
+        "specversion": {"type": "string"},
+        "model": {"type": "object"},
+        "modelsource": {"type": "object"},
+        "capabilities": {"type": "object"},
+    })
+    handle_attributes(root_schema, model_definition.get("attributes", {}))
 
     for key, group in model_definition.get("groups", {}).items():
         if "plural" not in group: group["plural"] = key
@@ -583,6 +987,8 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
         }
 
         document_properties[groups_name] = groups_schema
+        document_properties[groups_name + "url"] = {"type": "string", "format": "uri-reference"}
+        document_properties[groups_name + "count"] = {"type": "integer", "minimum": 0}
         resource_collection_properties = {}
 
         for rKey, resource in group.get("resources", {}).items():
@@ -594,39 +1000,30 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
             props.update(copy.deepcopy(json_common_attributes))
 
             if resource.get("hasdocument", True):
+                props.update({
+                    resource_name: {
+                        "description": f"Embedded {resource_name} object",
+                        "oneOf": [{"type": "object"}, {"type": "string"}],
+                    },
+                    resource_name + "base64": {
+                        "type": "string", "format": "base64",
+                    },
+                    resource_name + "url": {
+                        "type": "string", "format": "uri-reference",
+                    },
+                })
                 resource_schema = {
                     "type": "object",
                     "properties": props,
                     "oneOf": [
-                        {
-                            "properties": {
-                                resource_name : {
-                                    "description": f"Embedded {resource_name} object",
-                                    "oneOf": [{"type": "object"},{"type": "string"}]
-                                }
-                            },
-                            "required": [resource_name]
-                        },
-                        {
-                            "properties": {
-                                resource_name+"base64" : {
-                                    "description": f"Embedded {resource_name} object as binary data",
-                                    "type": "string",
-                                    "format": "base64"
-                                }
-                            },
-                            "required": [resource_name+"base64"]
-                        },
-                        {
-                            "properties": {
-                                resource_name+"url" : {
-                                    "description": f"Linked {resource_name} object",
-                                    "type": "string",
-                                    "format": "uri"
-                                }
-                            },
-                            "required": [resource_name+"url"]
-                        }
+                        {"required": [resource_name]},
+                        {"required": [resource_name + "base64"]},
+                        {"required": [resource_name + "url"]},
+                        {"not": {"anyOf": [
+                            {"required": [resource_name]},
+                            {"required": [resource_name + "base64"]},
+                            {"required": [resource_name + "url"]},
+                        ]}},
                     ]
                 }
             else:
@@ -635,49 +1032,99 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                     "properties": props
                 }
 
+            meta_schema = {
+                "type": "object",
+                "properties": {
+                    **copy.deepcopy(json_common_attributes),
+                    resource_name + "id": {"type": "string"},
+                },
+            }
+            handle_attributes(meta_schema, {
+                **core_meta_attributes, **resource.get("metaattributes", {})
+            })
+            resource_schema["properties"]["metaurl"] = {
+                "type": "string", "format": "uri-reference",
+            }
+            resource_schema["properties"]["meta"] = meta_schema
             attributes = resource.get("attributes", {})
-            if resource.get("maxversions", -1) != 1:
+            if for_openapi or resource.get("maxversions", -1) != 1:
                 resource_version_schema = copy.deepcopy(resource_schema)
+                resource_version_schema["properties"].pop("meta")
+                resource_version_schema["properties"].pop("metaurl")
                 props = {}
                 props["versionid"] = {"type": "string", "description": f"ID of the {resource_name} version"}
                 props.update(copy.deepcopy(resource_version_schema["properties"]))
+                props.update({
+                    "ancestorid": {"type": "string"},
+                    "isdefault": {"type": "boolean"},
+                    "contenttype": {"type": "string"},
+                })
                 resource_version_schema["properties"] = props
                 handle_attributes(resource_version_schema, attributes)
 
-                resource_schema["oneOf"] = [
-                        {
-                            "properties": {
-                                "versionsurl": {"type": "string"},
-                                "versionscount": {"type": "integer"},
-                            },
-                            "required": ["versionsurl"]
-                        },
-                        {
-                            "properties": {
-                                "versions": {
-                                "type": "object",
-                                "additionalProperties": {
-                                    "$ref": f"{group_definition_prefix}{resource_name}Version"
-                                    }
-                                }
-                            },
-                            "required": ["versions"]
-                        }
-                    ]
-
                 # For OpenAPI: flat keys, for JSON Schema: nested structure
                 if for_openapi:
+                    resource_only_names = (
+                        "meta", "metaurl", "versions", "versionsurl", "versionscount",
+                    )
+                    if not resource.get("hasdocument", True):
+                        # Core HTTP permits ignored Resource fields on Resource POST.
+                        version_input_schema = copy.deepcopy(resource_version_schema)
+                        version_input_schema["properties"].update({
+                            name: {} for name in resource_only_names
+                        })
+                        schema_definitions[f"{resource_name}VersionInput"] = version_input_schema
+                    resource_version_schema["not"] = {
+                        "anyOf": [
+                            {"required": [name]}
+                            for name in resource_only_names
+                        ]
+                    }
                     schema_definitions[f"{resource_name}Version"] = resource_version_schema
                 else:
                     if f"{group_name}-schema" not in schema_definitions:
                         schema_definitions[f"{group_name}-schema"] = {}
                     schema_definitions[f"{group_name}-schema"][f"{resource_name}Version"] = resource_version_schema
+
+            if resource.get("maxversions", -1) != 1:
+                resource_schema.pop("oneOf", None)
+                resource_schema["properties"].update({
+                    "versionsurl": {"type": "string", "format": "uri-reference"},
+                    "versionscount": {"type": "integer", "minimum": 0},
+                    "versions": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "$ref": f"{group_definition_prefix}{resource_name}Version"
+                        }
+                    },
+                })
+                if for_openapi:
+                    # A completed response always carries versions navigation
+                    # unless the Resource is a cross-reference. The document
+                    # projection also describes inputs, where the collection
+                    # attributes are OPTIONAL, so it admits a plain Resource
+                    # that carries no versions navigation at all.
+                    resource_schema["anyOf"] = [
+                        {"required": ["versionsurl"]},
+                        {"required": ["versions"]},
+                        {
+                            "properties": {"meta": {"required": ["xref"]}},
+                            "required": ["meta"]
+                        }
+                    ]
+
             else:
                 handle_attributes(resource_schema, attributes)
 
             # For OpenAPI: flat keys, for JSON Schema: nested structure
             if for_openapi:
                 schema_definitions[resource_name] = resource_schema
+                if "anyOf" in resource_schema and not resource.get("hasdocument", True):
+                    # Metadata-only Resource writes carry the same properties
+                    # without the completed-response navigation requirement.
+                    resource_input_schema = copy.deepcopy(resource_schema)
+                    resource_input_schema.pop("anyOf")
+                    schema_definitions[f"{resource_name}Input"] = resource_input_schema
             else:
                 if f"{group_name}-schema" not in schema_definitions:
                     schema_definitions[f"{group_name}-schema"] = {}
@@ -717,6 +1164,12 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
         handle_attributes(group_schema, attributes)
         for resource_collection_name, resource_collection_schema in resource_collection_properties.items():
             group_schema["properties"][resource_collection_name] = resource_collection_schema
+            group_schema["properties"][resource_collection_name + "url"] = {
+                "type": "string", "format": "uri-reference",
+            }
+            group_schema["properties"][resource_collection_name + "count"] = {
+                "type": "integer", "minimum": 0,
+            }
         # For OpenAPI: flat keys, for JSON Schema: nested structure
         if for_openapi:
             schema_definitions[group_name] = group_schema
@@ -779,6 +1232,7 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
             return schema
         if value_type == "map":
             item = definition.get("item", {"type": "any"})
+            item_enum(item)
             schema = {
                 "type": "map",
                 "values": value_schema(item, namespace, suggested_name + "Value", True)
@@ -787,12 +1241,11 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
             return schema
         if value_type == "array":
             item = definition.get("item", {"type": "any"})
+            item_enum(item)
             schema = {
                 "type": "array",
                 "items": value_schema(item, namespace, suggested_name + "Item", True)
             }
-            if definition.get("enum"):
-                schema["items"]["enum"] = copy.deepcopy(definition["enum"])
             apply_annotations(schema, definition)
             return schema
         if value_type not in json_structure_type_mapping:
@@ -800,6 +1253,24 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
         schema = {"type": json_structure_type_mapping[value_type]}
         apply_annotations(schema, definition)
         return schema
+
+    def optional_attributes(attributes):
+        """Copy attribute definitions with their required constraint removed."""
+        relaxed = {}
+        for name, definition in attributes.items():
+            definition = {**definition, "required": False}
+            if "ifvalues" in definition:
+                definition["ifvalues"] = {
+                    value: {
+                        **condition,
+                        "siblingattributes": optional_attributes(
+                            condition.get("siblingattributes", {})
+                        ),
+                    }
+                    for value, condition in definition["ifvalues"].items()
+                }
+            relaxed[name] = definition
+        return relaxed
 
     def collect_attributes(attributes):
         collected = dict(attributes)
@@ -855,7 +1326,20 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
         "createdat": {"type": "timestamp", "description": "Creation time"},
         "modifiedat": {"type": "timestamp", "description": "Modification time"}
     }
-    root_properties = {}
+    root_schema = object_schema(
+        {
+            "registryid": {"type": "string"},
+            "specversion": {"type": "string"},
+            **common_attributes,
+            "model": {"type": "map", "item": {"type": "any"}},
+            "modelsource": {"type": "map", "item": {"type": "any"}},
+            "capabilities": {"type": "map", "item": {"type": "any"}},
+            **model_definition.get("attributes", {}),
+        },
+        "Registry",
+        "Registry",
+    )
+    root_properties = root_schema["properties"]
     group_metadata = {}
     groups = model_definition.get("groups", {})
 
@@ -876,11 +1360,38 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
                 **common_attributes
             }
             resource_attributes = dict(identity_attributes)
-            if resource.get("maxversions", -1) == 1:
+            if resource.get("maxversions", -1) != 1:
+                # A Resource serialization carries its default Version's
+                # attributes, but a Resource that is only a cross-reference
+                # carries none of them, so the Resource's copies are optional.
+                resource_attributes.update(optional_attributes({
+                    "versionid": {
+                        "type": "string",
+                        "description": f"ID of the default {resource_singular} version"
+                    },
+                    "isdefault": {"type": "boolean"},
+                    "ancestorid": {"type": "string"},
+                    "contenttype": {"type": "string"},
+                    **resource.get("attributes", {}),
+                }))
+            else:
                 resource_attributes.update(resource.get("attributes", {}))
             resource_schema = object_schema(
                 resource_attributes, namespace, resource_type_name
             )
+            meta_schema = object_schema(
+                {
+                    **identity_attributes,
+                    **core_meta_attributes,
+                    **resource.get("metaattributes", {}),
+                },
+                namespace,
+                resource_type_name + "Meta",
+            )
+            resource_schema["properties"].update({
+                "metaurl": {"type": "uri"},
+                "meta": meta_schema,
+            })
             if resource.get("hasdocument", True):
                 resource_schema["properties"].update({
                     resource_singular: {
@@ -905,6 +1416,9 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
                             "description": f"ID of the {resource_singular} version"
                         },
                         **identity_attributes,
+                        "isdefault": {"type": "boolean"},
+                        "ancestorid": {"type": "string"},
+                        "contenttype": {"type": "string"},
                         **resource.get("attributes", {})
                     },
                     namespace,
@@ -966,11 +1480,20 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
                 "type": "map",
                 "values": reference(source_metadata["namespace"], source_resource_type)
             }
+        collection_names = set(metadata["resource_collections"])
+        collection_names.update(
+            xid.split("/")[2] for xid in group.get("ximportresources", [])
+        )
+        for collection_name in sorted(collection_names):
+            group_schema["properties"][collection_name + "url"] = {"type": "uri"}
+            group_schema["properties"][collection_name + "count"] = {"type": "uint32"}
         add_definition(namespace, group_type_name, group_schema)
         root_properties[group_plural] = {
             "type": "map",
             "values": reference(namespace, group_type_name)
         }
+        root_properties[group_plural + "url"] = {"type": "uri"}
+        root_properties[group_plural + "count"] = {"type": "uint32"}
 
     return {
         "$schema": "https://json-structure.org/meta/extended/v0/#",
@@ -979,7 +1502,8 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
         "name": type_identifier(schema_name or "xRegistryDocument"),
         "type": "object",
         "properties": root_properties,
-        "additionalProperties": False,
+        "additionalProperties": root_schema["additionalProperties"],
+        **({"required": root_schema["required"]} if "required" in root_schema else {}),
         "definitions": definitions
     }
 
@@ -995,52 +1519,53 @@ def generate_avro_schema(model_definition) -> dict:
         dict: The generated Avro schema.
     """
 
-    # Pre-scan to determine if GenericRecord is needed anywhere
-    def needs_generic_record(attributes):
-        """Check if any attribute requires GenericRecord type"""
-        for attr_name, attr_props in attributes.items():
-            # Check for "*" extension attributes with "any" or "var" type
-            if attr_name == "*" and attr_props.get("type") in ["any", "var", "object"]:
-                return True
-            # Consolidated check: If attribute is an extension ("*") with type "any", "var", or "object",
-            # or if attribute is type "object" without "item" or "attributes", GenericRecord is needed.
-            if (attr_name == "*" and attr_props.get("type") in ["any", "var", "object"]) or \
-               (attr_props.get("type") == "object" and "item" not in attr_props and "attributes" not in attr_props):
-                return True
-            # Check nested attributes
-            if "attributes" in attr_props:
-                if needs_generic_record(attr_props["attributes"]):
-                    return True
-            # Check ifvalues sibling attributes
-            if "ifvalues" in attr_props:
-                for condition_props in attr_props["ifvalues"].values():
-                    if "siblingattributes" in condition_props:
-                        if needs_generic_record(condition_props["siblingattributes"]):
-                            return True
-        return False
-
-    # Check if GenericRecord is needed in the entire model
-    generic_record_needed = False
-    for _, group in model_definition.get("groups", {}).items():
-        if "attributes" in group and needs_generic_record(group["attributes"]):
-            generic_record_needed = True
-            break
-        for _, resource in group.get("resources", {}).items():
-            resource = resolve_resource(group, resource)
-            if "attributes" in resource and needs_generic_record(resource["attributes"]):
-                generic_record_needed = True
-                break
-        if generic_record_needed:
-            break
-
-    avro_generic_record_emitted = False
     record_types = set()
+    enum_types = {}
 
-    def handle_item(resource_schema, type, item, name, prefix, enum_values=None):
+    def enum_type(values, name, namespace):
+        if not values or any(
+            not isinstance(value, str)
+            or re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", value) is None
+            for value in values
+        ):
+            return None
+        symbols = list(dict.fromkeys(values))
+        candidate = name
+        ordinal = 1
+        while f"{namespace}.{candidate}" in enum_types:
+            if enum_types[f"{namespace}.{candidate}"] == symbols:
+                return f"{namespace}.{candidate}"
+            ordinal += 1
+            candidate = f"{name}{ordinal}"
+        enum_types[f"{namespace}.{candidate}"] = symbols
+        return {
+            "type": "enum", "namespace": namespace,
+            "name": candidate, "symbols": symbols,
+        }
+
+    def emit_optional(record, field):
+        """Add a field to a record as an optional copy of the given field."""
+        field = copy.deepcopy(field)
+        branches = field["type"] if isinstance(field["type"], list) else [field["type"]]
+        if "null" not in branches:
+            field["type"] = ["null", *branches]
+        if field["type"][0] == "null":
+            field["default"] = None
+        for index, existing in enumerate(record["fields"]):
+            if existing["name"] == field["name"]:
+                record["fields"][index] = field
+                return
+        record["fields"].append(field)
+
+    def handle_item(resource_schema, type, item, name, prefix, namespace):
+        enum_values = item_enum(item)
         if type == "object":
             if "attributes" in item:
-                item_schema = { "type": "record", "name" : prefix+name+"Type", "fields": []}
-                handle_attributes(item_schema, item["attributes"], prefix)
+                item_schema = {
+                    "type": "record", "namespace": namespace,
+                    "name": prefix + name + "Type", "fields": [],
+                }
+                handle_attributes(item_schema, item["attributes"], prefix + name, namespace)
                 resource_schema["type"] = item_schema
             else:
                 # Use GenericRecord reference (it's defined at document level if needed)
@@ -1049,9 +1574,14 @@ def generate_avro_schema(model_definition) -> dict:
             resource_schema["type"] =  { "type": "map", "name": prefix+name+"Type","values": "" }
             if "type" in item:
                 item_schema = copy.deepcopy(avro_type_mapping[item["type"]])
-                if item["type"] == "object" or item["type"] == "map" or item["type"] == "array":
-                    if "item" in item:
-                        handle_item(item_schema, item["type"], item["item"], name+"Item", prefix)
+                if item["type"] == "object":
+                    handle_item(item_schema, "object", item, name+"Item", prefix, namespace)
+                elif item["type"] in ("map", "array"):
+                    handle_item(item_schema, item["type"], item["item"], name+"Item", prefix, namespace)
+                elif enum_values is not None:
+                    restriction = enum_type(enum_values, prefix + name + "EnumType", namespace)
+                    if restriction is not None:
+                        item_schema = {"type": restriction}
                 resource_schema["type"]["values"] = item_schema["type"]
             else:
                 raise Exception("Map item must have a type specified")
@@ -1059,27 +1589,31 @@ def generate_avro_schema(model_definition) -> dict:
             resource_schema["type"] = { "type": "array", "name": prefix+name+"ArrayType", "items": "" }
             if "type" in item:
                 item_schema = copy.deepcopy(avro_type_mapping[item["type"]])
-                if item["type"] == "object" or item["type"] == "map" or item["type"] == "array":
-                    if "item" in item:
-                        handle_item(item_schema, item["type"], item["item"], name, prefix)
-                        resource_schema["type"]["items"] = item_schema["type"]
+                if item["type"] == "object":
+                    handle_item(item_schema, "object", item, name+"Item", prefix, namespace)
+                    resource_schema["type"]["items"] = item_schema["type"]
+                elif item["type"] in ("map", "array"):
+                    handle_item(item_schema, item["type"], item["item"], name+"Item", prefix, namespace)
+                    resource_schema["type"]["items"] = item_schema["type"]
                 else:
-                    # Apply enum constraint to array items if provided
-                    if enum_values is not None and len(enum_values) > 0:
-                        item_schema = {
-                            "type": "enum",
-                            "name": prefix+name+"EnumType",
-                            "symbols": enum_values
-                        }
+                    restriction = enum_type(enum_values, prefix + name + "EnumType", namespace)
+                    if restriction is not None:
+                        item_schema = restriction
                     resource_schema["type"]["items"] = item_schema
             else:
                 raise Exception("Array item must have a type specified")
 
 
-    def handle_attributes(resource_schema, attributes, type_prefix=""):
-        nonlocal avro_generic_record_emitted
+    def handle_attributes(resource_schema, attributes, type_prefix, namespace):
+        def emit(field):
+            for index, existing in enumerate(resource_schema["fields"]):
+                if existing["name"] == field["name"]:
+                    resource_schema["fields"][index] = field
+                    return
+            resource_schema["fields"].append(field)
+
         for attr_name, attr_props in attributes.items():
-            pascal_attr_name = pascal(attr_name)
+            pascal_attr_name = "Extensions" if attr_name == "*" else pascal(attr_name)
             # attribute schema is based on the type mapping
             if "type" in attr_props:
                 attr_schema = copy.deepcopy(avro_type_mapping[attr_props["type"]])
@@ -1103,13 +1637,16 @@ def generate_avro_schema(model_definition) -> dict:
 
             if attr_props["type"] == "object" or attr_props["type"] == "map" or attr_props["type"] == "array":
                 if "item" in attr_props:
-                    # Pass enum values if this is an array with enum constraint
-                    enum_values = attr_props.get("enum") if attr_props["type"] == "array" else None
-                    handle_item(attr_schema, attr_props["type"], attr_props["item"], pascal_attr_name, type_prefix, enum_values)
+                    handle_item(
+                        attr_schema, attr_props["type"], attr_props["item"],
+                        pascal_attr_name, type_prefix, namespace,
+                    )
                 else:
                     if attr_props["type"] == "object":
-                        # Use GenericRecord reference (it's defined at document level if needed)
-                        attr_schema["type"] = avro_generic_record_qualified_name
+                        handle_item(
+                            attr_schema, "object", attr_props,
+                            pascal_attr_name, type_prefix, namespace,
+                        )
                     else:
                         raise Exception("array or map attribute must have an item specified")
 
@@ -1126,11 +1663,14 @@ def generate_avro_schema(model_definition) -> dict:
                     condition_schema_identifier = pascal_attr_name + pascal("".join([c if c.isalnum() else "_" for c in condition_value]))
                     conditional_schema = {
                                 "type": "record",
-                                "namespace": group_namespace,
+                                "namespace": namespace,
                                 "name": type_prefix+condition_schema_identifier+"Type",
                                 "fields": []
                             }
-                    handle_attributes(conditional_schema,  condition_props.get("siblingattributes", {}), condition_schema_identifier)
+                    handle_attributes(
+                        conditional_schema, condition_props.get("siblingattributes", {}),
+                        type_prefix + condition_schema_identifier, namespace,
+                    )
                     union.append(conditional_schema)
                 if len(union) > 0:
                     field_schema = {
@@ -1139,45 +1679,27 @@ def generate_avro_schema(model_definition) -> dict:
                     }
                     if "description" in attr_props:
                         field_schema["doc"] = attr_props["description"]
-                    resource_schema["fields"].append(field_schema)
+                    emit(field_schema)
             else:
                 if attr_name == "*":
-                    # For extension attributes, we need to handle named types properly
-                    # Named types cannot be defined inline in a map's values field
-                    values_type = attr_schema["type"]
-
-                    # Handle the case where the type needs to be resolved
-                    if isinstance(values_type, dict) and "name" in values_type:
-                        # This is a named type (like GenericRecord) - use only the name as a reference
-                        values_type_ref = values_type["name"]
-                    elif isinstance(values_type, dict):
-                        # This is a complex unnamed type - should not happen but use as-is
-                        values_type_ref = values_type
-                    elif values_type == "record":
-                        # This is an incomplete object type - use GenericRecord reference
-                        # (GenericRecord is defined at document level if needed)
-                        values_type_ref = avro_generic_record_qualified_name
-                    else:
-                        # This is a simple type reference (string like "string", "int", etc.)
-                        values_type_ref = values_type
-
+                    # Map values can define a record inline; do not discard that definition.
                     field_schema = {
                             "name": "Extensions",
                             "type":  {
                                "type": "map",
                                "name": type_prefix+"ExtensionsType",
                                "default": {},
-                               "values": values_type_ref
+                               "values": attr_schema["type"]
                              }}
                     if "description" in attr_props:
                         field_schema["doc"] = attr_props["description"]
-                    resource_schema["fields"].append(field_schema)
+                    emit(field_schema)
                 else:
                     attr_schema["name"] = camel(pascal_attr_name)
-                    # if the attribute is not required, union the type with null
-                    #if not "required" in attr_props or attr_props["required"] == False:
-                    #    attr_schema = ["null", attr_schema]
-                    resource_schema["fields"].append(attr_schema)
+                    if not attr_props.get("required", False) or "default" in attr_props:
+                        attr_schema["type"] = ["null", attr_schema["type"]]
+                        attr_schema["default"] = None
+                    emit(attr_schema)
 
 
 
@@ -1190,57 +1712,27 @@ def generate_avro_schema(model_definition) -> dict:
     }
     document_properties = document_type["fields"]
 
-    # If GenericRecord is needed anywhere in the schema, define it first as a field
-    # This ensures it's available for all references throughout the schema
-    if generic_record_needed:
-        # Create a version with fully qualified names for recursive references
-        generic_record_with_namespace = {
-            "type": "record",
-            "name": avro_generic_record_name,
-            "fields": [
-                {
-                    "name": "object",
-                    "type": {
-                        "type": "map",
-                        "values": [
-                            "null",
-                            "boolean",
-                            "int",
-                            "long",
-                            "float",
-                            "double",
-                            "bytes",
-                            "string",
-                            {
-                                "type": "array",
-                                "items": [
-                                    "null",
-                                    "boolean",
-                                    "int",
-                                    "long",
-                                    "float",
-                                    "double",
-                                    "bytes",
-                                    "string",
-                                    avro_generic_record_qualified_name
-                                ]
-                            },
-                            avro_generic_record_qualified_name
-                        ]
-                    }
-                }
-            ]
-        }
-        generic_record_field = {
-            "name": "genericRecordDefinition",
-            "type": {
-                "type": "array",
-                "items": generic_record_with_namespace
-            },
-            "default": [],
-            "doc": "Internal field to define GenericRecord type for use in extension attributes"
-        }
-        document_properties.append(generic_record_field)
+    # Root model/capabilities and extension values share one recursive type.
+    document_properties.append({
+        "name": "genericRecordDefinition",
+        "type": {"type": "array", "items": copy.deepcopy(avro_generic_record)},
+        "default": [],
+        "doc": "Internal field defining the shared recursive extension type",
+    })
+
+    document_properties.extend([
+        {"name": "registryid", "type": "string"},
+        {"name": "specversion", "type": "string"},
+        *copy.deepcopy(avro_common_attributes),
+    ])
+    for name in ("model", "modelsource", "capabilities"):
+        document_properties.append({
+            "name": name, "type": ["null", avro_generic_record_qualified_name],
+            "default": None,
+        })
+    handle_attributes(
+        document_type, model_definition.get("attributes", {}), "Registry", "io.xregistry"
+    )
 
     for key, group in model_definition.get("groups", {}).items():
         if "plural" not in group: group["plural"] = key
@@ -1254,7 +1746,7 @@ def generate_avro_schema(model_definition) -> dict:
             if "plural" not in resource: resource["plural"] = rKey
             resource = resolve_resource(group, resource)
             resource_name = resource["singular"]
-            if resource_name in record_types:
+            if (group_namespace, resource_name) in record_types:
                 resource_collection_fields.append({
                     "name": camel(resource["plural"]),
                     "type" :{
@@ -1263,7 +1755,7 @@ def generate_avro_schema(model_definition) -> dict:
                     }
                     })
             else:
-                record_types.add(resource_name)
+                record_types.add((group_namespace, resource_name))
                 props = copy.deepcopy(avro_common_attributes)
                 props.insert(0, {"name": resource_name+"id", "type": "string", "description": f"ID of the {resource_name} object"})
                 resource_schema = {
@@ -1273,38 +1765,65 @@ def generate_avro_schema(model_definition) -> dict:
                     "fields": props
                 }
                 attributes = resource.get("attributes", {})
-                if resource.get("versions", 1) != 1:
+                if resource.get("maxversions", -1) != 1:
+                    core_version_fields = [
+                        {"name": "versionid", "type": "string", "description": f"ID of the {resource_name} version"},
+                        {"name": "ancestorid", "type": "string"},
+                        {"name": "isdefault", "type": "boolean"},
+                        {"name": "contenttype", "type": ["null", "string"], "default": None},
+                    ]
                     resource_version_schema = copy.deepcopy(resource_schema)
-                    resource_version_schema["fields"].insert(0, {"name" : "versionid", "type": "string", "description": f"ID of the {resource_name} version"})
-                    handle_attributes(resource_version_schema, attributes)
                     resource_version_schema["name"] = pascal(resource_name)+"VersionType"
+                    resource_version_schema["fields"].extend(copy.deepcopy(core_version_fields))
+                    handle_attributes(
+                        resource_version_schema, attributes,
+                        pascal(resource_name) + "Version", group_namespace,
+                    )
+                    # A Resource serialization carries its default Version's
+                    # attributes, but a Resource that is only a cross-reference
+                    # carries none of them, so the Resource's copies are
+                    # optional. They are built under the Resource's own owning
+                    # name prefix, never by copying the Version's records.
+                    resource_overlay = {"fields": copy.deepcopy(core_version_fields)}
+                    for overlay_field in resource_overlay["fields"]:
+                        if overlay_field["name"] == "versionid":
+                            overlay_field["description"] = f"ID of the default {resource_name} version"
+                    handle_attributes(
+                        resource_overlay, attributes, pascal(resource_name), group_namespace
+                    )
+                    for overlay_field in resource_overlay["fields"]:
+                        emit_optional(resource_schema, overlay_field)
                     resource_schema["fields"].append(
                         {
                             "name": "versions",
-                            "type": [
-                                {
-                                    "type": "map",
-                                    "values": resource_version_schema
-                                },
-                                {
-                                    "type": "record",
-                                    "name": pascal(resource_name)+"VersionInfo",
-                                    "fields": [
-                                        {
-                                            "name": "versionsUrl",
-                                            "type": "string"
-                                        },
-                                        {
-                                            "name": "versionCount",
-                                            "type": "int"
-                                        }
-                                    ]
-                                }
-                            ]
+                            "type": {"type": "map", "values": resource_version_schema},
+                            "default": {},
                         })
+                    resource_schema["fields"].extend([
+                        {"name": "versionsurl", "type": ["null", "string"], "default": None},
+                        {"name": "versionscount", "type": ["null", "long"], "default": None},
+                    ])
                 else:
-                    handle_attributes(resource_schema, attributes)
+                    handle_attributes(
+                        resource_schema, attributes, pascal(resource_name), group_namespace
+                    )
 
+                meta_schema = {
+                    "type": "record", "namespace": group_namespace,
+                    "name": pascal(resource_name) + "MetaType",
+                    "fields": [
+                        {"name": resource_name + "id", "type": "string"},
+                        *copy.deepcopy(avro_common_attributes),
+                    ],
+                }
+                handle_attributes(meta_schema, {
+                    **core_meta_attributes,
+                    **resource.get("metaattributes", {}),
+                }, pascal(resource_name) + "Meta", group_namespace)
+                resource_schema["fields"].extend([
+                    {"name": "metaurl", "type": ["null", "string"], "default": None},
+                    {"name": "meta", "type": ["null", meta_schema], "default": None},
+                ])
                 resource_collection_fields.append({
                     "name": camel(resource["plural"]),
                     "type" :{
@@ -1333,9 +1852,14 @@ def generate_avro_schema(model_definition) -> dict:
             "fields": props,
         }
         attributes = group.get("attributes", {})
-        handle_attributes(group_schema, attributes)
+        handle_attributes(group_schema, attributes, pascal(group_name), group_namespace)
         for resource_collection in resource_collection_fields:
             group_schema["fields"].append(resource_collection)
+            for suffix, field_type in (("url", "string"), ("count", "long")):
+                group_schema["fields"].append({
+                    "name": resource_collection["name"] + suffix,
+                    "type": ["null", field_type], "default": None,
+                })
         groups_schema = {
             "name": camel(groups_name),
             "type": {
@@ -1344,6 +1868,11 @@ def generate_avro_schema(model_definition) -> dict:
             }
         }
         document_properties.append(groups_schema)
+        for suffix, field_type in (("url", "string"), ("count", "long")):
+            document_properties.append({
+                "name": camel(groups_name) + suffix,
+                "type": ["null", field_type], "default": None,
+            })
 
     return document_type
 
@@ -1425,6 +1954,15 @@ def resolve_imports(basedir, node):
 # read model definition from file ../schema/model.json
 # make the path relative to this script file, irrespective of working directory
 
+def write_schema(schema, output):
+    if output:
+        with open(output, "w", encoding="utf-8", newline="\n") as file:
+            json.dump(schema, file, indent=2)
+            file.write("\n")
+    else:
+        print(json.dumps(schema, indent=2))
+
+
 def main():
     parser = argparse.ArgumentParser(description='Generate JSON schema from model definition')
     parser.add_argument('--type', type=str, help='type of document to generate', choices=['json-schema', 'json-structure', 'avro-schema', 'openapi'], default='json-schema')
@@ -1442,6 +1980,8 @@ def main():
             print(f"> {input_file} as '{args.type}'")
             input_definition = json.load(file)
             input_definition = resolve_imports(os.path.dirname(input_file), input_definition)
+            for name, definition in input_definition.get("attributes", {}).items():
+                model_definition.setdefault("attributes", {}).setdefault(name, definition)
             if "groups" in input_definition:
                 for group_name, group_definition in input_definition["groups"].items():
                     # convert file.name to using OS separators
@@ -1451,36 +1991,20 @@ def main():
                         model_definition["groups"][group_name] = group_definition
     if (args.type == 'json-schema'):
         json_schema = generate_json_schema(model_definition, schema_id=args.schema_id)
-        if args.output:
-            with open(args.output, 'w', encoding='utf-8') as of:
-                json.dump(json_schema, of, indent=2)
-        else:
-            print(json.dumps(json_schema, indent=2))
+        write_schema(json_schema, args.output)
     elif (args.type == 'json-structure'):
         json_structure = generate_json_structure(
             model_definition,
             schema_id=args.schema_id,
             schema_name=args.schema_name
         )
-        if args.output:
-            with open(args.output, 'w', encoding='utf-8') as of:
-                json.dump(json_structure, of, indent=2)
-        else:
-            print(json.dumps(json_structure, indent=2))
+        write_schema(json_structure, args.output)
     elif (args.type == 'avro-schema'):
         avro_schema = generate_avro_schema(model_definition)
-        if args.output:
-            with open(args.output, 'w') as of:
-                json.dump(avro_schema, of, indent=2)
-        else:
-            print(json.dumps(avro_schema, indent=2))
+        write_schema(avro_schema, args.output)
     elif (args.type == 'openapi'):
         openapi = generate_openapi(model_definition)
-        if args.output:
-            with open(args.output, 'w') as of:
-                json.dump(openapi, of, indent=2)
-        else:
-            print(json.dumps(openapi, indent=2))
+        write_schema(openapi, args.output)
 
 
 if __name__ == '__main__':

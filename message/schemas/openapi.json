@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "xRegistry API",
-    "description": "xRegistry API. See spec sections (e.g. 'Registry Capabilities', 'Retrieving the Registry Model', 'Doc', etc.) for details.",
+    "description": "xRegistry API. See spec sections (e.g. 'Registry Capabilities', 'Retrieving the Registry Model', 'Doc', etc.) for details. Routes that serve a Resource's domain-specific document carry its xRegistry metadata in 'xRegistry-' HTTP headers, while 'contenttype' uses the native 'Content-Type' header. Map-valued attributes such as 'labels' use one header per key, and models may allow undeclared extension attributes, so this description names those header families instead of enumerating header names that are only known at runtime.",
     "version": "1.0-rc4"
   },
   "servers": [],
@@ -464,6 +464,56 @@
         }
       }
     },
+    "/messagegroups": {
+      "get": {
+        "operationId": "getMessagegroupsAll",
+        "tags": [
+          "ResourceGroupCollection"
+        ],
+        "description": "Gets all resource groups. Supports optional filtering ('filter'), inlining ('inline'), and document view ('doc'). (See spec: Registry Collections, Inline, and Filter)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/inline"
+          },
+          {
+            "$ref": "#/components/parameters/filter"
+          },
+          {
+            "$ref": "#/components/parameters/doc"
+          },
+          {
+            "$ref": "#/components/parameters/specversion"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource groups that match the query (or all groups if no filter is specified).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/messagegroup"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
     "/messagegroups/{groupid}": {
       "parameters": [
         {
@@ -905,15 +955,6 @@
         },
         {
           "in": "query",
-          "name": "meta",
-          "description": "If true, operate on the resource metadata sub-object (see spec: Resource Metadata vs Resource Document).",
-          "required": false,
-          "schema": {
-            "type": "boolean"
-          }
-        },
-        {
-          "in": "query",
           "name": "noepoch",
           "description": "If true, epoch validation is ignored. (See spec: Creating or Updating Entities)",
           "required": false,
@@ -975,50 +1016,13 @@
         "description": "Gets the resource (default version). Supports $details view via the 'doc' query parameter. (See spec: Retrieving a Resource and Retrieving a Resource as Metadata)",
         "responses": {
           "200": {
-            "description": "The resource (or a redirect if a RESOURCEurl is set).",
+            "description": "The resource.",
             "headers": {
-              "resource-id": {
-                "$ref": "#/components/headers/resource-id"
-              },
-              "resource-version": {
-                "$ref": "#/components/headers/resource-version"
-              },
-              "resource-name": {
-                "$ref": "#/components/headers/resource-name"
-              },
-              "resource-self": {
-                "$ref": "#/components/headers/resource-self"
-              },
-              "resource-description": {
-                "$ref": "#/components/headers/resource-description"
-              },
-              "resource-documentation": {
-                "$ref": "#/components/headers/resource-documentation"
-              },
-              "resource-labels": {
-                "$ref": "#/components/headers/resource-labels"
-              },
-              "resource-createdat": {
-                "$ref": "#/components/headers/resource-createdat"
-              },
-              "resource-modifiedat": {
-                "$ref": "#/components/headers/resource-modifiedat"
-              },
               "Content-Location": {
-                "description": "Permalink location of the returned version.",
-                "schema": {
-                  "type": "string",
-                  "format": "uri"
-                }
+                "$ref": "#/components/headers/Content-Location"
               }
             },
             "content": {
-              "application/octet-stream": {
-                "schema": {
-                  "type": "string",
-                  "format": "binary"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/message"
@@ -1073,12 +1077,6 @@
         "requestBody": {
           "description": "The resource document or xRegistry metadata (depending on URL suffix $details).",
           "content": {
-            "application/octet-stream": {
-              "schema": {
-                "type": "string",
-                "format": "binary"
-              }
-            },
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/message"
@@ -1089,6 +1087,24 @@
         "responses": {
           "200": {
             "description": "The updated resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/message"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "The created resource.",
+            "headers": {
+              "Location": {
+                "$ref": "#/components/headers/Location"
+              },
+              "Content-Location": {
+                "$ref": "#/components/headers/Content-Location"
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -1123,15 +1139,6 @@
         ],
         "parameters": [
           {
-            "$ref": "#/components/parameters/resource-description"
-          },
-          {
-            "$ref": "#/components/parameters/resource-documentation"
-          },
-          {
-            "$ref": "#/components/parameters/resource-labels"
-          },
-          {
             "in": "query",
             "name": "setdefaultversionid",
             "description": "Specifies the versionid to be set as the default version. (See spec: Default Version of a Resource)",
@@ -1156,15 +1163,9 @@
         "requestBody": {
           "description": "The new resource version document or xRegistry metadata.",
           "content": {
-            "application/octet-stream": {
-              "schema": {
-                "type": "string",
-                "format": "binary"
-              }
-            },
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/message"
+                "$ref": "#/components/schemas/messageVersionInput"
               }
             }
           }
@@ -1173,44 +1174,17 @@
           "201": {
             "description": "The created resource version.",
             "headers": {
-              "resource-id": {
-                "$ref": "#/components/headers/resource-id"
+              "Location": {
+                "$ref": "#/components/headers/Location"
               },
-              "resource-version": {
-                "$ref": "#/components/headers/resource-version"
-              },
-              "resource-name": {
-                "$ref": "#/components/headers/resource-name"
-              },
-              "resource-self": {
-                "$ref": "#/components/headers/resource-self"
-              },
-              "resource-description": {
-                "$ref": "#/components/headers/resource-description"
-              },
-              "resource-documentation": {
-                "$ref": "#/components/headers/resource-documentation"
-              },
-              "resource-labels": {
-                "$ref": "#/components/headers/resource-labels"
-              },
-              "resource-createdat": {
-                "$ref": "#/components/headers/resource-createdat"
-              },
-              "resource-modifiedat": {
-                "$ref": "#/components/headers/resource-modifiedat"
+              "Content-Location": {
+                "$ref": "#/components/headers/Content-Location"
               }
             },
             "content": {
-              "application/octet-stream": {
-                "schema": {
-                  "type": "string",
-                  "format": "binary"
-                }
-              },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/message"
+                  "$ref": "#/components/schemas/messageVersion"
                 }
               }
             }
@@ -1329,7 +1303,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/message"
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/messageVersion"
+                  }
                 }
               }
             }
@@ -1384,7 +1361,7 @@
               "schema": {
                 "type": "object",
                 "additionalProperties": {
-                  "$ref": "#/components/schemas/message"
+                  "$ref": "#/components/schemas/messageVersion"
                 }
               }
             }
@@ -1398,7 +1375,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": {
-                    "$ref": "#/components/schemas/message"
+                    "$ref": "#/components/schemas/messageVersion"
                   }
                 }
               }
@@ -1434,16 +1411,6 @@
           "$ref": "#/components/parameters/versionid"
         },
         {
-          "in": "query",
-          "name": "meta",
-          "description": "If true, operate on version metadata view ($details).",
-          "required": false,
-          "allowEmptyValue": true,
-          "schema": {
-            "type": "boolean"
-          }
-        },
-        {
           "$ref": "#/components/parameters/specversion"
         },
         {
@@ -1466,15 +1433,9 @@
           "200": {
             "description": "The resource version.",
             "content": {
-              "application/octet-stream": {
-                "schema": {
-                  "type": "string",
-                  "format": "binary"
-                }
-              },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/message"
+                  "$ref": "#/components/schemas/messageVersion"
                 }
               }
             }
@@ -1532,6 +1493,62 @@
           }
         }
       }
+    },
+    "/messagegroups/{groupid}/messages/{resourceid}/versions/{versionid}$details": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/groupid"
+        },
+        {
+          "$ref": "#/components/parameters/resourceid"
+        },
+        {
+          "$ref": "#/components/parameters/versionid"
+        },
+        {
+          "$ref": "#/components/parameters/specversion"
+        },
+        {
+          "$ref": "#/components/parameters/inline"
+        },
+        {
+          "$ref": "#/components/parameters/filter"
+        },
+        {
+          "$ref": "#/components/parameters/doc"
+        }
+      ],
+      "get": {
+        "operationId": "getMessagegroupMessageVersionMetadata",
+        "tags": [
+          "ResourceVersion"
+        ],
+        "description": "Gets a specific version of a resource. Returns either the document (if not $details) or the metadata view. (See spec: Retrieving a Version and Retrieving a Version as Metadata)",
+        "responses": {
+          "200": {
+            "description": "The resource version.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/messageVersion"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1569,34 +1586,6 @@
           "type": "string"
         },
         "description": "The unique identifier of the resource version."
-      },
-      "resource-description": {
-        "name": "resource-description",
-        "in": "query",
-        "required": false,
-        "schema": {
-          "type": "string"
-        },
-        "description": "The description attribute for a resource."
-      },
-      "resource-documentation": {
-        "name": "resource-documentation",
-        "in": "query",
-        "required": false,
-        "schema": {
-          "type": "string",
-          "format": "uri"
-        },
-        "description": "The documentation URL for a resource."
-      },
-      "resource-labels": {
-        "name": "resource-labels",
-        "in": "query",
-        "required": false,
-        "schema": {
-          "type": "string"
-        },
-        "description": "The labels attribute for a resource."
       },
       "specversion": {
         "name": "specversion",
@@ -1641,62 +1630,24 @@
       }
     },
     "headers": {
-      "resource-id": {
-        "description": "The resource identifier. MUST be percent-encoded per xRegistry specifications (i.e. all non-printable ASCII characters, spaces, quotes, and percent signs must be encoded).",
-        "schema": {
-          "type": "string"
-        }
-      },
-      "resource-version": {
-        "description": "The resource version identifier. MUST be percent-encoded per xRegistry specifications.",
-        "schema": {
-          "type": "string"
-        }
-      },
-      "resource-name": {
-        "description": "The resource name. MUST be percent-encoded per xRegistry specifications.",
-        "schema": {
-          "type": "string"
-        }
-      },
-      "resource-self": {
-        "description": "The self URL of the resource. MUST be percent-encoded per xRegistry specifications.",
+      "Location": {
+        "description": "The URL of the entity the response refers to, using native URI syntax. On a 201 it is the created entity's 'self' URL; on a 303 it is the external document location and equals the decoded RESOURCEurl value.",
         "schema": {
           "type": "string",
-          "format": "uri"
+          "format": "uri-reference"
         }
       },
-      "resource-description": {
-        "description": "The resource description. MUST be percent-encoded per xRegistry specifications.",
+      "Content-Location": {
+        "description": "The URL of the version the returned or written representation belongs to, using native URI syntax.",
+        "schema": {
+          "type": "string",
+          "format": "uri-reference"
+        }
+      },
+      "Content-Disposition": {
+        "description": "A native RFC 6266 disposition whose 'filename' parameter carries the resource identifier for HTTP tooling. Entity identity comes from the xRegistry identifier header, not from this value.",
         "schema": {
           "type": "string"
-        }
-      },
-      "resource-documentation": {
-        "description": "The resource documentation URL. MUST be percent-encoded per xRegistry specifications.",
-        "schema": {
-          "type": "string",
-          "format": "uri"
-        }
-      },
-      "resource-labels": {
-        "description": "Serialized resource labels. MUST be percent-encoded per xRegistry specifications.",
-        "schema": {
-          "type": "string"
-        }
-      },
-      "resource-createdat": {
-        "description": "The resource creation timestamp. MUST be percent-encoded per xRegistry specifications.",
-        "schema": {
-          "type": "string",
-          "format": "date-time"
-        }
-      },
-      "resource-modifiedat": {
-        "description": "The resource modification timestamp. MUST be percent-encoded per xRegistry specifications.",
-        "schema": {
-          "type": "string",
-          "format": "date-time"
         }
       }
     },
@@ -2053,11 +2004,75 @@
       "document": {
         "type": "object",
         "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation"
+          },
+          "self": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "string",
+            "format": "xid",
+            "description": "Relative URL of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "URI of the documentation of the object"
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object"
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation"
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification"
+          },
+          "registryid": {
+            "type": "string"
+          },
+          "specversion": {
+            "type": "string"
+          },
+          "model": {
+            "type": "object"
+          },
+          "modelsource": {
+            "type": "object"
+          },
+          "capabilities": {
+            "type": "object"
+          },
           "messagegroups": {
             "type": "object",
             "additionalProperties": {
               "$ref": "#/components/schemas/messagegroup"
             }
+          },
+          "messagegroupsurl": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "messagegroupscount": {
+            "type": "integer",
+            "minimum": 0
           }
         }
       },
@@ -3009,6 +3024,242 @@
           "protocol"
         ]
       },
+      "messageVersionInput": {
+        "type": "object",
+        "properties": {
+          "versionid": {
+            "type": "string",
+            "description": "ID of the message version"
+          },
+          "messageid": {
+            "type": "string",
+            "description": "ID of the message object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation"
+          },
+          "self": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "string",
+            "format": "xid",
+            "description": "Relative URL of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "URI of the documentation of the object"
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object"
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation"
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification"
+          },
+          "ancestorid": {
+            "type": "string"
+          },
+          "isdefault": {
+            "type": "boolean"
+          },
+          "contenttype": {
+            "type": "string"
+          },
+          "basemessageuri": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "Reference to a base definition for this definition. Relative references are XIDs within the same registry. Absolute URIs reference message definitions in external registries. The base definition is overridden by this definition. If not present, this definition does not override any base definition"
+          },
+          "dataschemaformat": {
+            "type": "string",
+            "description": "The schema format applicable to the message payload, equivalent to the 'format' attribute of the schema registry"
+          },
+          "dataschema": {
+            "description": "The inline schema for the message payload, equivalent to the 'schema' attribute of the schema registry"
+          },
+          "dataschemauri": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "The URI of the schema for the message payload, equivalent to the 'schemauri' attribute of the schema registry"
+          },
+          "dataschemaxid": {
+            "type": "string",
+            "format": "uri-reference",
+            "pattern": "^/",
+            "description": "Contains the xid of the xRegistry schema Resource entity associated with the dataschemauri referenced schema document. Note that this means the entity MUST be located within the same Registry."
+          },
+          "datacontenttype": {
+            "type": "string",
+            "description": "The content type for the message payload"
+          },
+          "meta": {},
+          "metaurl": {},
+          "versions": {},
+          "versionsurl": {},
+          "versionscount": {}
+        },
+        "discriminator": {
+          "propertyName": "protocol",
+          "mapping": {
+            "AMQP/1.0": "#/components/schemas/protocol_AMQP_1_0",
+            "MQTT/3.1.1": "#/components/schemas/protocol_MQTT_3_1_1",
+            "MQTT/5.0": "#/components/schemas/protocol_MQTT_5_0",
+            "KAFKA": "#/components/schemas/protocol_KAFKA",
+            "HTTP": "#/components/schemas/protocol_HTTP",
+            "NATS": "#/components/schemas/protocol_NATS"
+          }
+        }
+      },
+      "messageVersion": {
+        "type": "object",
+        "properties": {
+          "versionid": {
+            "type": "string",
+            "description": "ID of the message version"
+          },
+          "messageid": {
+            "type": "string",
+            "description": "ID of the message object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation"
+          },
+          "self": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "string",
+            "format": "xid",
+            "description": "Relative URL of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "URI of the documentation of the object"
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object"
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation"
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification"
+          },
+          "ancestorid": {
+            "type": "string"
+          },
+          "isdefault": {
+            "type": "boolean"
+          },
+          "contenttype": {
+            "type": "string"
+          },
+          "basemessageuri": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "Reference to a base definition for this definition. Relative references are XIDs within the same registry. Absolute URIs reference message definitions in external registries. The base definition is overridden by this definition. If not present, this definition does not override any base definition"
+          },
+          "dataschemaformat": {
+            "type": "string",
+            "description": "The schema format applicable to the message payload, equivalent to the 'format' attribute of the schema registry"
+          },
+          "dataschema": {
+            "description": "The inline schema for the message payload, equivalent to the 'schema' attribute of the schema registry"
+          },
+          "dataschemauri": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "The URI of the schema for the message payload, equivalent to the 'schemauri' attribute of the schema registry"
+          },
+          "dataschemaxid": {
+            "type": "string",
+            "format": "uri-reference",
+            "pattern": "^/",
+            "description": "Contains the xid of the xRegistry schema Resource entity associated with the dataschemauri referenced schema document. Note that this means the entity MUST be located within the same Registry."
+          },
+          "datacontenttype": {
+            "type": "string",
+            "description": "The content type for the message payload"
+          }
+        },
+        "discriminator": {
+          "propertyName": "protocol",
+          "mapping": {
+            "AMQP/1.0": "#/components/schemas/protocol_AMQP_1_0",
+            "MQTT/3.1.1": "#/components/schemas/protocol_MQTT_3_1_1",
+            "MQTT/5.0": "#/components/schemas/protocol_MQTT_5_0",
+            "KAFKA": "#/components/schemas/protocol_KAFKA",
+            "HTTP": "#/components/schemas/protocol_HTTP",
+            "NATS": "#/components/schemas/protocol_NATS"
+          }
+        },
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "meta"
+              ]
+            },
+            {
+              "required": [
+                "metaurl"
+              ]
+            },
+            {
+              "required": [
+                "versions"
+              ]
+            },
+            {
+              "required": [
+                "versionsurl"
+              ]
+            },
+            {
+              "required": [
+                "versionscount"
+              ]
+            }
+          ]
+        }
+      },
       "message": {
         "type": "object",
         "properties": {
@@ -3026,7 +3277,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -3040,7 +3291,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -3057,9 +3308,104 @@
             "format": "date-time",
             "description": "Time of the object modification"
           },
+          "metaurl": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Name of the object"
+              },
+              "epoch": {
+                "type": "integer",
+                "description": "Epoch time of the object creation"
+              },
+              "self": {
+                "type": "string",
+                "format": "uri-reference",
+                "description": "URL of the object"
+              },
+              "xid": {
+                "type": "string",
+                "format": "xid",
+                "description": "Relative URL of the object"
+              },
+              "description": {
+                "type": "string",
+                "description": "Description of the object"
+              },
+              "documentation": {
+                "type": "string",
+                "format": "uri-reference",
+                "description": "URI of the documentation of the object"
+              },
+              "labels": {
+                "type": "object",
+                "description": "Labels for the object"
+              },
+              "createdat": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Time of the object creation"
+              },
+              "modifiedat": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Time of the object modification"
+              },
+              "messageid": {
+                "type": "string"
+              },
+              "xref": {
+                "type": "string",
+                "format": "uri-reference",
+                "pattern": "^/"
+              },
+              "readonly": {
+                "type": "boolean"
+              },
+              "compatibility": {
+                "type": "string"
+              },
+              "deprecated": {
+                "type": "object",
+                "properties": {
+                  "effective": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "removal": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "alternative": {
+                    "type": "string",
+                    "format": "uri-reference"
+                  },
+                  "documentation": {
+                    "type": "string",
+                    "format": "uri-reference"
+                  }
+                }
+              },
+              "defaultversionid": {
+                "type": "string"
+              },
+              "defaultversionurl": {
+                "type": "string",
+                "format": "uri-reference"
+              },
+              "defaultversionsticky": {
+                "type": "boolean"
+              }
+            }
+          },
           "basemessageuri": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "Reference to a base definition for this definition. Relative references are XIDs within the same registry. Absolute URIs reference message definitions in external registries. The base definition is overridden by this definition. If not present, this definition does not override any base definition"
           },
           "dataschemaformat": {
@@ -3071,12 +3417,13 @@
           },
           "dataschemauri": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "The URI of the schema for the message payload, equivalent to the 'schemauri' attribute of the schema registry"
           },
           "dataschemaxid": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
+            "pattern": "^/",
             "description": "Contains the xid of the xRegistry schema Resource entity associated with the dataschemauri referenced schema document. Note that this means the entity MUST be located within the same Registry."
           },
           "datacontenttype": {
@@ -3113,7 +3460,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -3127,7 +3474,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -3157,6 +3504,14 @@
             "additionalProperties": {
               "$ref": "#/components/schemas/message"
             }
+          },
+          "messagesurl": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "messagescount": {
+            "type": "integer",
+            "minimum": 0
           }
         }
       }
