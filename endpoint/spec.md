@@ -1012,7 +1012,8 @@ defined as protocol options by this specification.
 
 ##### KAFKA options
 
-The [bootstrap server addresses](#protocoloptionsendpoints) for "Kafka" endpoints MUST be
+The [bootstrap server addresses](#protocoloptionsendpoints) for "Kafka"
+endpoints MUST be
 valid Kafka bootstrap server addresses in `<HOST>:<PORT>` form, as described in
 [Kafka client configuration].
 
