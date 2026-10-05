@@ -409,6 +409,19 @@
         {
           "if": {
             "properties": {
+              "type": { "enum": ["array", "map", "object", "any"] }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "properties": {
+              "enum": { "not": {} }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
               "default": { "not": { "type": "null" } }
             },
             "required": ["default"]
@@ -444,6 +457,15 @@
           "enum": ["strict", "extended"],
           "default": "strict"
         },
+        "enum": {
+          "type": "array",
+          "description": "Allowed values for scalar items"
+        },
+        "strict": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to restrict item values to enum only"
+        },
         "attributes": {
           "$ref": "#/definitions/AttributeDefinitions"
         },
@@ -461,6 +483,19 @@
           },
           "then": {
             "required": ["item"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": { "enum": ["array", "map", "object", "any"] }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "properties": {
+              "enum": { "not": {} }
+            }
           }
         }
       ]
