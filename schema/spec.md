@@ -313,7 +313,8 @@ The plural, used as the collection name, is `schemagroups`. The Schema Group
 defines an OPTIONAL `format` extension attribute of type `string`.
 
 A schema group is a collection of schemas that are related to each other in
-some application-defined way. Without a value for the Group's `format`, a Schema Group MAY contain schemas
+some application-defined way. Without a value for the Group's `format`, a Schema
+Group MAY contain schemas
 of different formats.
 
 Every schema (i.e. the schema Resource) MUST reside inside a Schema Group.
