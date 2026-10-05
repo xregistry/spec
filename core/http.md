@@ -1662,7 +1662,8 @@ Where:
 - The `Content-Location` header MAY appear, and if present, MUST reference
   the "default" Version.
 - `Content-Disposition` SHOULD be present and if so, its `filename` parameter
-  MUST be the `<RESOURCE>id` value. This allows for HTTP tooling that is not aware of xRegistry to know
+  MUST be the `<RESOURCE>id` value. This allows for HTTP tooling that is not
+  aware of xRegistry to know
   the desired filename to use if the HTTP body were to be written to a file.
 
 Version serialization will look similar, but without the Resource-level
@@ -1699,7 +1700,8 @@ Content-Disposition: <DISPOSITION-TYPE>; filename="<RID>" ?
 
 Where:
 - `Content-Disposition` SHOULD be present and if so, its `filename` parameter
-  MUST be the `<RESOURCE>id` value. This allows for HTTP tooling that is not aware of xRegistry to know
+  MUST be the `<RESOURCE>id` value. This allows for HTTP tooling that is not
+  aware of xRegistry to know
   the desired filename to use if the HTTP body were to be written to a file.
 
 Scalar requested Version extension attributes MUST also appear as
@@ -1990,7 +1992,8 @@ Where:
 - If `Content-Location` is present then it MUST be a URL to the Version of the
   Resource in the `versions` collection - same as `meta.defaultversionurl`.
 - `Content-Disposition` SHOULD be present and if so, its `filename` parameter
-  MUST be the `<RESOURCE>id` value. This allows for HTTP tooling that is not aware of xRegistry to know
+  MUST be the `<RESOURCE>id` value. This allows for HTTP tooling that is not
+  aware of xRegistry to know
   the desired filename to use if the HTTP body were to be written to a file.
 
 **Examples:**
@@ -2133,7 +2136,8 @@ Content-Disposition: <DISPOSITION-TYPE>; filename="<RID>" ?
 
 Where:
 - `Content-Disposition` SHOULD be present and if so, its `filename` parameter
-  MUST be the `<RESOURCE>id` value. This allows for HTTP tooling that is not aware of xRegistry to know
+  MUST be the `<RESOURCE>id` value. This allows for HTTP tooling that is not
+  aware of xRegistry to know
   the desired filename to use if the HTTP body were to be written to a file.
 
 **Examples:**
@@ -2319,7 +2323,8 @@ Content-Disposition: <DISPOSITION-TYPE>; filename="<RID>" ?
 
 Where:
 - `Content-Disposition` SHOULD be present and if so, its `filename` parameter
-  MUST be the `<RESOURCE>id` value. This allows for HTTP tooling that is not aware of xRegistry to know
+  MUST be the `<RESOURCE>id` value. This allows for HTTP tooling that is not
+  aware of xRegistry to know
   the desired filename to use if the HTTP body were to be written to a file.
 
 **Examples:**
@@ -2828,7 +2833,8 @@ Content-Disposition: <DISPOSITION-TYPE>; filename="<RID>" ?
 
 Where:
 - `Content-Disposition` SHOULD be present and if so, its `filename` parameter
-  MUST be the `<RESOURCE>id` value. This allows for HTTP tooling that is not aware of xRegistry to know
+  MUST be the `<RESOURCE>id` value. This allows for HTTP tooling that is not
+  aware of xRegistry to know
   the desired filename to use if the HTTP body were to be written to a file.
 - `Location`, if present, and `<RESOURCE>url` MUST have the same value.
 
