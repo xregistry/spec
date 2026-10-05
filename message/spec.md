@@ -930,7 +930,8 @@ This specification only defines one metadata envelope: "CloudEvents/1.0".
 ##### CloudEvents/1.0
 
 For the "CloudEvents/1.0" envelope, the
-[`envelopemetadata`](#envelopemetadata) object contains properties that correspond directly to the
+[`envelopemetadata`](#envelopemetadata) object contains properties that
+correspond directly to the
 CloudEvents context attributes.
 
 As with the [CloudEvents specification][CloudEvents], the attributes form a
