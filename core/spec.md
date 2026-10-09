@@ -711,8 +711,9 @@ its parent entities do not exist, then they MUST be implicitly created. Each of
 those entities MUST be created with the appropriate `<SINGULAR>id` as specified
 by the protocol-specific mechanism by which the nested entity is identified.
 For example, in HTTP the `<PATH>` would include the `<SINGULAR>id` values
-of the parent entities. If any of those entities have REQUIRED attributes,
-then they cannot be implicitly created, and would need to be created directly.
+of the parent entities. If any of those entities have REQUIRED attributes whose
+values cannot be populated by the server or by defaults, then they cannot be
+implicitly created, and would need to be created directly.
 This also means that the creation of the original entity would fail and
 generate an error
 ([required_attribute_missing](./spec.md#required_attribute_missing)) for the
@@ -2897,11 +2898,10 @@ source Resource. Recursive, or transitively, following of `xref` XIDs is not
 done.
 
 Both the source and target Resources MUST be of the same Resource model type,
-simply having similar Resource type definitions is not sufficient. This
-implies that the
-[`ximportresources`](./model.md#groupsstringximportresources) feature to
-reference a Resource type from another Group type definition MUST be
-used.
+simply having similar Resource type definitions is not sufficient. When the
+source and target Resources belong to different Group types, the
+[`ximportresources`](./model.md#groupsstringximportresources) feature MUST be
+used to share the Resource type definition.
 
 An `xref` value that points to a non-existing Resource, either because
 it was deleted, never existed or the current client does not have permission
