@@ -1073,7 +1073,8 @@ Note that this feature has similar results to setting the Resource attribute's
   A value of `string` indicates that the Resource's document is to be treated
   as a string and serialized using the default string serialization rules
   for the format being used to serialize the Resource's metadata. For
-  example, when using JSON, this means escaping all non-printable characters.
+  example, when using JSON, this means quoting the string and escaping
+  quotation marks, backslashes and control characters (U+0000 through U+001F).
 
   Specifying an unknown (or unsupported) value MUST generate an error
   ([model_error](./spec.md#model_error)) during the update of the xRegistry
