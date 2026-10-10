@@ -75,7 +75,7 @@
                 "int",
                 "null"
               ],
-              "doc": "Epoch time of the object creation"
+              "doc": "Optimistic concurrency update counter"
             },
             {
               "name": "self",
@@ -184,7 +184,7 @@
                         "int",
                         "null"
                       ],
-                      "doc": "Epoch time of the object creation"
+                      "doc": "Optimistic concurrency update counter"
                     },
                     {
                       "name": "self",
@@ -411,7 +411,7 @@
                 "int",
                 "null"
               ],
-              "doc": "Epoch time of the object creation"
+              "doc": "Optimistic concurrency update counter"
             },
             {
               "name": "self",
@@ -477,7 +477,14 @@
                 "type": "array",
                 "name": "UsageArrayType",
                 "items": {
-                  "type": "string"
+                  "type": "enum",
+                  "name": "UsageEnumType",
+                  "namespace": "io.xregistry",
+                  "symbols": [
+                    "subscriber",
+                    "consumer",
+                    "producer"
+                  ]
                 }
               },
               "name": "usage",
@@ -647,7 +654,7 @@
                 "int",
                 "null"
               ],
-              "doc": "Epoch time of the object creation"
+              "doc": "Optimistic concurrency update counter"
             },
             {
               "name": "self",
@@ -749,7 +756,7 @@
                         "int",
                         "null"
                       ],
-                      "doc": "Epoch time of the object creation"
+                      "doc": "Optimistic concurrency update counter"
                     },
                     {
                       "name": "self",
