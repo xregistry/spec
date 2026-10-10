@@ -205,8 +205,8 @@ appropriate new schema to use following a breaking change.
 ### 2.3. Schema Group
 
 A Schema Group is a container for schemas that are related to each other in
-some application-defined way. This specification does not impose any
-restrictions on what schemas can be contained in a Schema Group.
+some application-defined way. Its OPTIONAL `format` attribute can constrain
+the formats of its schemas, as described in [Schema Groups](#41-schema-groups).
 
 ## 3. Schema Registry Model
 
@@ -310,12 +310,12 @@ Resource Version objects are inherited from there.
 
 The Group (`<GROUP>`) name for the Schema Registry is `schemagroup` (singular).
 The plural, used as the collection name, is `schemagroups`. The Schema Group
-does not have any specific extension attributes.
+defines an OPTIONAL `format` extension attribute of type `string`.
 
 A schema group is a collection of schemas that are related to each other in
-some application-defined way. A Schema Group does not impose any restrictions
-on the contained schemas, meaning that a Schema Group MAY contain schemas of
-different formats.
+some application-defined way. Without a value for the Group's `format`, a Schema
+Group MAY contain schemas
+of different formats.
 
 Every schema (i.e. the schema Resource) MUST reside inside a Schema Group.
 
