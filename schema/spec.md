@@ -266,7 +266,7 @@ this form:
           "modifiedat": "<TIMESTAMP>",
           "ancestorid": "<STRING>",
           "contenttype": "<STRING>", ?
-          "format": "<STRING>", ?
+          "format": "<STRING>",
           "formatvalidated": <BOOLEAN>, ?
           "formatvalidatedreason": "<STRING>", ?
           "compatibilityvalidated": <BOOLEAN>, ?
