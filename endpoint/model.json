@@ -12,7 +12,8 @@
         "usage": {
           "name": "usage",
           "type": "array",
-          "description": "Client's expected usage of this endpoint. Single-role declarations are preferred. Mixed declarations are guidance-oriented metadata and should be used only when role semantics are unambiguous.",
+          "required": true,
+          "description": "Client's expected usage of this endpoint. A single role is required, except subscriber and consumer may be combined for AMQP/1.0, MQTT/3.1.1, MQTT/5.0, or NATS.",
           "item": {
             "type": "string",
             "enum": [
