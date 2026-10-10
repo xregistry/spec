@@ -4,6 +4,17 @@
   "$uses": [
     "JSONStructureAlternateNames"
   ],
+  "x-xregistryProjection": {
+    "avroGenericValues": "GenericRecord.object.json contains exact Core JSON",
+    "avroOptionalScalars": "absent-record, null, or string",
+    "constraints": "typed enum and bounds; no lexical numeric comparison",
+    "defaults": "target-typed reader defaults; not implicit writer values",
+    "id": "https://xregistry.io/profiles/scalar-projection/1",
+    "identity": "sha256 of complete profile, dialect and writer schema",
+    "numbers": "exact-json-number-token; mathematical coefficient/exponent",
+    "timestamps": "rfc3339-text; exact fraction and explicit UTC normalization",
+    "version": "1"
+  },
   "name": "EndpointRegistryDocument",
   "type": "object",
   "properties": {
@@ -151,8 +162,17 @@
             "description": "Name of the object"
           },
           "epoch": {
-            "type": "integer",
-            "description": "Epoch of the object"
+            "type": [
+              "string",
+              "null"
+            ],
+            "x-xregistryScalar": {
+              "coreType": "uinteger",
+              "encoding": "json-number-token",
+              "constraints": {}
+            },
+            "description": "Optimistic concurrency update counter",
+            "x-xregistryOptional": true
           },
           "self": {
             "type": "uri",
@@ -177,12 +197,30 @@
             }
           },
           "createdat": {
-            "type": "datetime",
-            "description": "Creation time"
+            "type": [
+              "datetime",
+              "null"
+            ],
+            "x-xregistryScalar": {
+              "coreType": "timestamp",
+              "encoding": "rfc3339-text",
+              "constraints": {}
+            },
+            "description": "Creation time",
+            "x-xregistryOptional": true
           },
           "modifiedat": {
-            "type": "datetime",
-            "description": "Modification time"
+            "type": [
+              "datetime",
+              "null"
+            ],
+            "x-xregistryScalar": {
+              "coreType": "timestamp",
+              "encoding": "rfc3339-text",
+              "constraints": {}
+            },
+            "description": "Modification time",
+            "x-xregistryOptional": true
           },
           "basemessageuri": {
             "type": "uri",
@@ -210,7 +248,7 @@
           },
           "dataschemaxid": {
             "type": "uri",
-            "description": "Contains the xid of the xRegistry schema Resource entity associated with the dataschemauri referenced schema document. Note that this means the entity MUST be located within the same Registry."
+            "description": "Contains the xid of the owning xRegistry Schema Resource or Version in the same Registry. The object selector in dataschemauri does not change that owning entity."
           },
           "datacontenttype": {
             "type": "string",
@@ -866,12 +904,27 @@
                     "description": "AMQP durable flag"
                   },
                   "priority": {
-                    "type": "integer",
-                    "description": "AMQP priority"
+                    "type": "string",
+                    "x-xregistryScalar": {
+                      "coreType": "integer",
+                      "encoding": "json-number-token",
+                      "constraints": {}
+                    },
+                    "description": "AMQP priority",
+                    "default": "4"
                   },
                   "ttl": {
-                    "type": "integer",
-                    "description": "AMQP time-to-live (milliseconds)"
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "x-xregistryScalar": {
+                      "coreType": "integer",
+                      "encoding": "json-number-token",
+                      "constraints": {}
+                    },
+                    "description": "AMQP time-to-live (milliseconds)",
+                    "x-xregistryOptional": true
                   },
                   "firstAcquirer": {
                     "type": "boolean",
@@ -881,8 +934,14 @@
                     }
                   },
                   "deliveryCount": {
-                    "type": "integer",
+                    "type": "string",
+                    "x-xregistryScalar": {
+                      "coreType": "integer",
+                      "encoding": "json-number-token",
+                      "constraints": {}
+                    },
                     "description": "AMQP delivery-count",
+                    "default": "0",
                     "altnames": {
                       "json": "delivery-count"
                     }
@@ -919,8 +978,17 @@
             "description": "Name of the object"
           },
           "epoch": {
-            "type": "integer",
-            "description": "Epoch of the object"
+            "type": [
+              "string",
+              "null"
+            ],
+            "x-xregistryScalar": {
+              "coreType": "uinteger",
+              "encoding": "json-number-token",
+              "constraints": {}
+            },
+            "description": "Optimistic concurrency update counter",
+            "x-xregistryOptional": true
           },
           "self": {
             "type": "uri",
@@ -945,12 +1013,30 @@
             }
           },
           "createdat": {
-            "type": "datetime",
-            "description": "Creation time"
+            "type": [
+              "datetime",
+              "null"
+            ],
+            "x-xregistryScalar": {
+              "coreType": "timestamp",
+              "encoding": "rfc3339-text",
+              "constraints": {}
+            },
+            "description": "Creation time",
+            "x-xregistryOptional": true
           },
           "modifiedat": {
-            "type": "datetime",
-            "description": "Modification time"
+            "type": [
+              "datetime",
+              "null"
+            ],
+            "x-xregistryScalar": {
+              "coreType": "timestamp",
+              "encoding": "rfc3339-text",
+              "constraints": {}
+            },
+            "description": "Modification time",
+            "x-xregistryOptional": true
           },
           "envelope": {
             "type": "string",
@@ -1017,8 +1103,17 @@
             "description": "Name of the object"
           },
           "epoch": {
-            "type": "integer",
-            "description": "Epoch of the object"
+            "type": [
+              "string",
+              "null"
+            ],
+            "x-xregistryScalar": {
+              "coreType": "uinteger",
+              "encoding": "json-number-token",
+              "constraints": {}
+            },
+            "description": "Optimistic concurrency update counter",
+            "x-xregistryOptional": true
           },
           "self": {
             "type": "uri",
@@ -1043,12 +1138,30 @@
             }
           },
           "createdat": {
-            "type": "datetime",
-            "description": "Creation time"
+            "type": [
+              "datetime",
+              "null"
+            ],
+            "x-xregistryScalar": {
+              "coreType": "timestamp",
+              "encoding": "rfc3339-text",
+              "constraints": {}
+            },
+            "description": "Creation time",
+            "x-xregistryOptional": true
           },
           "modifiedat": {
-            "type": "datetime",
-            "description": "Modification time"
+            "type": [
+              "datetime",
+              "null"
+            ],
+            "x-xregistryScalar": {
+              "coreType": "timestamp",
+              "encoding": "rfc3339-text",
+              "constraints": {}
+            },
+            "description": "Modification time",
+            "x-xregistryOptional": true
           },
           "usage": {
             "type": "array",
@@ -1070,12 +1183,30 @@
             "type": "object",
             "properties": {
               "effective": {
-                "type": "datetime",
-                "description": "tbd"
+                "type": [
+                  "datetime",
+                  "null"
+                ],
+                "x-xregistryScalar": {
+                  "coreType": "timestamp",
+                  "encoding": "rfc3339-text",
+                  "constraints": {}
+                },
+                "description": "tbd",
+                "x-xregistryOptional": true
               },
               "removal": {
-                "type": "datetime",
-                "description": "tbd"
+                "type": [
+                  "datetime",
+                  "null"
+                ],
+                "x-xregistryScalar": {
+                  "coreType": "timestamp",
+                  "encoding": "rfc3339-text",
+                  "constraints": {}
+                },
+                "description": "tbd",
+                "x-xregistryOptional": true
               },
               "alternative": {
                 "type": "uri",
@@ -1245,8 +1376,17 @@
                 }
               },
               "timeout": {
-                "type": "uint32",
-                "description": "Timeout in seconds for the applicable expiry policy"
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "x-xregistryScalar": {
+                  "coreType": "uinteger",
+                  "encoding": "json-number-token",
+                  "constraints": {}
+                },
+                "description": "Timeout in seconds for the applicable expiry policy",
+                "x-xregistryOptional": true
               },
               "senderSettleMode": {
                 "type": "string",
