@@ -1,13 +1,16 @@
 """
 Tests for schema-generator.py to validate JSON Schema and Avro output conformance.
 """
+import io
 import json
 import os
 import re
 import subprocess
 import tempfile
+from datetime import datetime, timezone
 from pathlib import Path
 
+import avro.io
 import avro.schema
 import jsonschema
 import pytest
@@ -124,6 +127,12 @@ class TestSchemaGenerator:
                 schema_data = json.load(schema_file)
             self.assert_json_structure(schema_data)
             assert set(schema_data['properties']) == {
+                'registryid', 'specversion', 'name', 'epoch', 'self', 'xid',
+                'description', 'documentation', 'labels', 'createdat', 'modifiedat',
+                'model', 'modelsource', 'capabilities',
+                'endpointsurl', 'endpointscount',
+                'messagegroupsurl', 'messagegroupscount',
+                'schemagroupsurl', 'schemagroupscount',
                 'endpoints', 'messagegroups', 'schemagroups'
             }
             assert set(schema_data['definitions']) == {
@@ -277,6 +286,10 @@ class TestSchemaGenerator:
         if dataschema_field:
             # Should be a reference to GenericRecord, not an inline definition
             field_type = dataschema_field['type']
+            assert len(field_type) == 2
+            assert field_type[0] == 'null'
+            assert dataschema_field['default'] is None
+            field_type = field_type[1]
             assert field_type == 'io.xregistry.GenericRecord', \
                 "'any' type should map to GenericRecord reference"
 
@@ -509,6 +522,134 @@ class TestSchemaGenerator:
             if os.path.exists(tmp_path):
                 os.unlink(tmp_path)
 
+
+    def assert_resource_version_parity(self, schema_data, group, resource):
+        """A Resource record must declare the same modelled fields as its Version."""
+        parsed = avro.schema.parse(json.dumps(schema_data))
+        record = parsed.fields_dict[group].type.values.fields_dict[resource].type.values
+        version = record.fields_dict['versions'].type.values
+        navigation = {
+            'versions', 'versionsurl', 'versionscount', 'metaurl', 'meta',
+        }
+        assert set(record.fields_dict) == set(version.fields_dict) | navigation
+        for name in ('versionid', 'ancestorid', 'isdefault'):
+            assert self.nonnullable(record.fields_dict[name].type).type == (
+                version.fields_dict[name].type.type
+            )
+            # The Version requires them; a cross-referenced Resource has none.
+            assert not avro.io.validate(version.fields_dict[name].type, None)
+            assert avro.io.validate(record.fields_dict[name].type, None)
+        return record, version
+
+    @staticmethod
+    def nonnullable(schema):
+        if isinstance(schema, avro.schema.UnionSchema):
+            return next(part for part in schema.schemas if part.type != 'null')
+        return schema
+
+    def test_schema_model_avro_resource_keeps_format_and_extensions(
+        self, schema_model, tools_dir
+    ):
+        """The published Schema Resource record keeps format and Extensions."""
+        schema_data = self.generate_schema(schema_model, 'avro-schema', tools_dir)
+        record, version = self.assert_resource_version_parity(
+            schema_data, 'schemagroups', 'schemas'
+        )
+        assert {'format', 'Extensions'} <= set(record.fields_dict)
+        assert self.nonnullable(record.fields_dict['format'].type).type == 'string'
+        assert avro.io.validate(record.fields_dict['format'].type, 'JSON Schema/draft-07')
+        assert not avro.io.validate(record.fields_dict['format'].type, 7)
+        assert version.fields_dict['format'].type.type == 'string'
+        assert not avro.io.validate(version.fields_dict['format'].type, None)
+        extensions = self.nonnullable(record.fields_dict['Extensions'].type)
+        assert extensions.type == 'map'
+        assert extensions.values.fullname == 'io.xregistry.GenericRecord'
+
+    @staticmethod
+    def fill_absent(record, data):
+        """Complete a datum with null, or an empty map where null is not allowed."""
+        for name, item in record.fields_dict.items():
+            if name not in data:
+                data[name] = None if avro.io.validate(item.type, None) else {}
+        return data
+
+    def test_schema_model_avro_resource_admits_a_cross_reference(
+        self, schema_model, tools_dir
+    ):
+        """A Core cross-referenced Resource carries no default Version values."""
+        schema_data = self.generate_schema(schema_model, 'avro-schema', tools_dir)
+        parsed = avro.schema.parse(json.dumps(schema_data))
+        record = parsed.fields_dict['schemagroups'].type.values.fields_dict[
+            'schemas'
+        ].type.values
+        stamp = datetime(2026, 1, 1, tzinfo=timezone.utc)
+        identity = {
+            'schemaid': 's', 'name': None, 'epoch': 1, 'description': None,
+            'documentation': None, 'labels': {}, 'createdat': stamp,
+            'modifiedat': stamp,
+        }
+        meta = self.fill_absent(self.nonnullable(record.fields_dict['meta'].type), {
+            **identity,
+            'self': 'https://example.com/schemagroups/g/schemas/s/meta',
+            'xid': '/schemagroups/g/schemas/s/meta',
+            'xref': '/schemagroups/g2/schemas/s2',
+        })
+        datum = self.fill_absent(record, {
+            **identity,
+            'self': 'https://example.com/schemagroups/g/schemas/s',
+            'xid': '/schemagroups/g/schemas/s',
+            'metaurl': 'https://example.com/schemagroups/g/schemas/s/meta',
+            'meta': meta,
+        })
+        assert datum['format'] is None
+        assert datum['versionid'] is None
+        assert avro.io.validate(record, datum)
+
+        output = io.BytesIO()
+        avro.io.DatumWriter(record).write(datum, avro.io.BinaryEncoder(output))
+        output.seek(0)
+        decoded = avro.io.DatumReader(record).read(avro.io.BinaryDecoder(output))
+        assert decoded['meta']['xref'] == '/schemagroups/g2/schemas/s2'
+        assert decoded['format'] is None
+        assert decoded['schemaid'] == 's'
+        assert not avro.io.validate(record, {**datum, 'format': 7})
+
+    def test_cloudevents_multi_model_avro_resource_keeps_format_and_extensions(
+        self, endpoint_model, message_model, schema_model, tools_dir
+    ):
+        """The CloudEvents composition keeps Resource parity for every group."""
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as tmp:
+            tmp_path = tmp.name
+
+        try:
+            result = subprocess.run(
+                ['python', 'schema-generator.py', '--type', 'avro-schema',
+                 '--output', tmp_path, str(endpoint_model), str(message_model),
+                 str(schema_model)],
+                cwd=str(tools_dir),
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+            assert result.returncode == 0, f"Schema generation failed: {result.stderr}"
+            with open(tmp_path, 'r', encoding='utf-8') as schema_file:
+                schema_data = json.load(schema_file)
+
+            record, _ = self.assert_resource_version_parity(
+                schema_data, 'schemagroups', 'schemas'
+            )
+            assert {'format', 'Extensions'} <= set(record.fields_dict)
+            assert self.nonnullable(record.fields_dict['format'].type).type == 'string'
+            parsed = avro.schema.parse(json.dumps(schema_data))
+            groups = parsed.fields_dict['messagegroups'].type.values
+            singleton = groups.fields_dict['messages'].type.values
+            assert 'versions' not in singleton.fields_dict
+            assert {'basemessageuri', 'envelope', 'protocol'} <= set(singleton.fields_dict)
+            imported = parsed.fields_dict['endpoints'].type.values
+            assert imported.fields_dict['messages'].type.values is singleton
+        finally:
+            if os.path.exists(tmp_path):
+                os.unlink(tmp_path)
 
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])
