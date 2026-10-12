@@ -205,7 +205,9 @@ appropriate new schema to use following a breaking change.
 ### 2.3. Schema Group
 
 A Schema Group is a container for schemas that are related to each other in
-some application-defined way. Its OPTIONAL `format` attribute can constrain
+some application-defined way. This specification does not impose any
+restrictions on what schemas can be contained in a Schema Group.
+Its OPTIONAL `format` attribute can constrain
 the formats of its schemas, as described in [Schema Groups](#41-schema-groups).
 
 ## 3. Schema Registry Model
@@ -344,11 +346,7 @@ containing 5 schemas.
 
 There might be cases where all schemas within a schemagroup need to have the
 same `format` value. To enable this, set the schemagroup's `format` value to
-the string that all schemas/Versions within that schemagroup need to use; the
-model expresses this as the `schemas.format` constraint with `equals` set to
-`format`.
-
-This equality constraint does not itself define a default value.
+the string that all schemas/Versions within that schemagroup need to use.
 
 Additionally, if desired, a schemagroup-instance level constraint MAY be added:
 
@@ -406,15 +404,9 @@ in a Schema Registry by defining a set of common schema format names that MUST
 be used for the given formats, but applications MAY define extensions for
 other formats on their own.
 
-Every completed Schema Version MUST have a non-null `format` value, including
-the default Version projection on a Schema Resource. The model sets
-`required` and `matchversions` to `true` for `format`, so all Versions of a
-Schema Resource MUST use the same `format` value.
-
-Client input MAY omit `format` when the Schema Group declares a
-`constraints.schemas.format` default (see [Schema Groups](#41-schema-groups)).
-This does not make the completed value OPTIONAL: a completed Version without
-`format` is invalid.
+The Schema model is defined to require all Schema Versions to have non-null
+`format` values. The model MAY be modified to define a default value for
+`format` to avoid clients having to specify it each time.
 
 - Examples:
   - `JsonSchema/draft-07`

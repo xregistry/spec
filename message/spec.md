@@ -648,9 +648,8 @@ boundaries, this attribute is also REQUIRED and MUST be the same as the
 `envelope` attribute of the `messagegroup` object into which the message is
 embedded or referenced.
 
-The following abbreviated collection fragment uses the Core
-[`meta.xref`](../core/spec.md#cross-referencing-resources) representation for
-the borrowed Message. Only selected attributes are shown:
+The following abbreviated example uses the core specification's `meta.xref`
+feature to reference a Message defined in another Group.
 
 ```yaml
 "messagegroups": {
@@ -933,22 +932,16 @@ This specification only defines one metadata envelope: "CloudEvents/1.0".
 ##### CloudEvents/1.0
 
 For the "CloudEvents/1.0" envelope, the
-[`envelopemetadata`](#envelopemetadata) object contains one property
-declaration directly for each declared CloudEvents context attribute.
-For example, `envelopemetadata.source` is the declaration of the `source`
-attribute, and `envelopemetadata.type` is the declaration of the `type`
-attribute. There is no intervening `attributes` wrapper.
+[`envelopemetadata`](#envelopemetadata) object contains a property
+`attributes`, which is an object whose properties correspond to the
+CloudEvents context attributes.
 
 As with the [CloudEvents specification][CloudEvents], the attributes form a
 flat list and extension attributes are allowed. Attribute names are restricted
 to lower-case alphanumerical characters without separators.
 
 [`envelopeoptions`](#envelopeoptions) holds serialization options such as mode
-and format, not these property declarations. Older examples that placed
-declarations in `envelopeoptions` or inside an `envelopemetadata.attributes`
-wrapper need to be migrated by moving each declaration directly under
-`envelopemetadata`. Those locations are not aliases for the modeled
-declarations.
+and format, not these property declarations.
 
 The base attributes are defined as follows:
 
@@ -1296,7 +1289,7 @@ indicate whether the property is supported for the respective MQTT version.
 | `qos`                     | `integer`     | yes        | yes      | Quality of Service level         |
 | `retain`                  | `boolean`     | yes        | yes      | Retain flag                      |
 | `topic_name`              | `uritemplate` | yes        | yes      | Topic name                       |
-| `payload_format_indicator` | `integer`     | no         | yes      | Payload format indicator         |
+| `payload_format`          | `integer`     | no         | yes      | Payload format indicator         |
 | `message_expiry_interval` | `integer`     | no         | yes      | Message expiry interval          |
 | `response_topic`          | `uritemplate` | no         | yes      | Response topic                   |
 | `correlation_data`        | `binary`      | no         | yes      | Correlation data                 |
