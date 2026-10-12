@@ -711,8 +711,9 @@ its parent entities do not exist, then they MUST be implicitly created. Each of
 those entities MUST be created with the appropriate `<SINGULAR>id` as specified
 by the protocol-specific mechanism by which the nested entity is identified.
 For example, in HTTP the `<PATH>` would include the `<SINGULAR>id` values
-of the parent entities. If any of those entities have REQUIRED attributes,
-then they cannot be implicitly created, and would need to be created directly.
+of the parent entities. If any of those entities have REQUIRED attributes whose
+values cannot be populated by the server or by defaults, then they cannot be
+implicitly created, and would need to be created directly.
 This also means that the creation of the original entity would fail and
 generate an error
 ([required_attribute_missing](./spec.md#required_attribute_missing)) for the
@@ -2021,6 +2022,9 @@ The following defines the specification-defined capabilities:
     `setdefaultversionid`, `sort`, `specversion`.
 - When not specified, the default value MUST be an empty list and no flags
   are supported.
+- Implementations MAY include additional values based on other supported
+  features. For example, if the [pagination](../pagination/spec.md)
+  specification is supported then the `limit` flag SHOULD also appear.
 - Examples:
   - `"flags": [ "filter", "inline" ]`    # Just these 2
   - `"flags": [ "*" ]`                   # All supported flags (requests only)
@@ -2058,7 +2062,14 @@ The following defines the specification-defined capabilities:
   protocol-specific "pagination" feature when querying xRegistry collections.
   Each protocol binding specification will define which pagination
   specification(s) is to be supported, if any.
-- When not specified, the default value MUST be `false`.
+- When not specified, the default value MUST be `false` and the pagination
+  related flags SHOULD NOT appear in the `flags` capability.
+- When set to `true`, the pagination related flags SHOULD appear in the
+  `flags` capability.
+- During an update of the capabilities, if the `flags` and `pagination`
+  capabilities are inconsistent, then the `pagination` capability value
+  SHOULD result in changing the `flags` capability as needed to make them
+  consistent.
 
 #### `shortself` Capability
 - Name: `shortself`
@@ -2268,8 +2279,7 @@ in the serialization of its capabilities offering map.
     }
   },
   "pagination": {
-    "type": "boolean",
-    "enum": [ false, true ]
+    "type": "boolean"
   },
   "shortself": {
     "type": "boolean",
@@ -2769,14 +2779,14 @@ So, if the target Resource (`sharedSchema`) is defined as:
 
 ```yaml
 {
-  "resourceid": "sharedSchema",
+  "schemaid": "sharedSchema",
   "versionid": "v1",
   "self": "http://example.com/schemagroups/group2/schemas/sharedSchema",
   "xid": "/schemagroups/group2/schemas/sharedSchema",
   "epoch": 2,
   "isdefault": true,
-  "createdat": "2024-01-01-T12:00:00Z",
-  "modifiedat": "2024-01-01-T12:01:00Z",
+  "createdat": "2024-01-01T12:00:00Z",
+  "modifiedat": "2024-01-01T12:01:00Z",
   "ancestorid": "v1",
 
   "metaurl": "http://example.com/schemagroups/group2/schemas/sharedSchema/meta",
@@ -2790,24 +2800,24 @@ then the resulting serialization of the source Resource would be:
 
 ```yaml
 {
-  "resourceid": "mySchema",
+  "schemaid": "mySchema",
   "versionid": "v1",
   "self": "http://example.com/schemagroups/group1/schemas/mySchema",
   "xid": "/schemagroups/group1/schemas/mySchema",
   "epoch": 2,
   "isdefault": true,
-  "createdat": "2024-01-01-T12:00:00Z",
-  "modifiedat": "2024-01-01-T12:01:00Z",
+  "createdat": "2024-01-01T12:00:00Z",
+  "modifiedat": "2024-01-01T12:01:00Z",
   "ancestorid": "v1",
 
   "metaurl": "http://example.com/schemagroups/group1/schemas/mySchema/meta",
   "meta": {
-    "resourceid": "mySchema",
+    "schemaid": "mySchema",
     "self": "http://example.com/schemagroups/group1/schemas/mySchema/meta",
     "xid": "/schemagroups/group1/schemas/mySchema/meta",
     "xref": "/schemagroups/group2/schemas/sharedSchema",
-    "createdat": "2024-01-01-T12:00:00Z",
-    "modifiedat": "2024-01-01-T12:01:00Z",
+    "createdat": "2024-01-01T12:00:00Z",
+    "modifiedat": "2024-01-01T12:01:00Z",
     "readonly": false,
     "defaultversionid": "v1",
     "defaultversionurl": "http://example.com/schemagroups/group1/schemas/mySchema/versions/v1",
@@ -2895,11 +2905,10 @@ source Resource. Recursive, or transitively, following of `xref` XIDs is not
 done.
 
 Both the source and target Resources MUST be of the same Resource model type,
-simply having similar Resource type definitions is not sufficient. This
-implies that the
-[`ximportresources`](./model.md#groupsstringximportresources) feature to
-reference a Resource type from another Group type definition MUST be
-used.
+simply having similar Resource type definitions is not sufficient. When the
+source and target Resources belong to different Group types, the
+[`ximportresources`](./model.md#groupsstringximportresources) feature MUST be
+used to share the Resource type definition.
 
 An `xref` value that points to a non-existing Resource, either because
 it was deleted, never existed or the current client does not have permission

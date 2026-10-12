@@ -1,0 +1,174 @@
+{
+  "$schema": "https://xregistry.io/xregistryspecs/core-v1/schemas/model.schema.json",
+  "groups": {
+    "thingdescriptiongroups": {
+      "singular": "thingdescriptiongroup",
+      "modelversion": "0.1",
+      "modelcompatiblewith": "https://xregistry.io/xreg/domains/wot/specs/model.json",
+      "description": "Thing Description containers. Each Group holds Thing Descriptions that are related in some application-defined way, such as all Things of a tenant, a fleet or a physical site",
+
+      "attributes": {
+        "*": {
+          "name": "*",
+          "type": "any"
+        }
+      },
+
+      "resources": {
+        "thingdescriptions": {
+          "singular": "thingdescription",
+          "modelversion": "0.1",
+          "modelcompatiblewith": "https://xregistry.io/xreg/domains/wot/specs/model.json",
+          "validateformat": true,
+          "validatecompatibility": true,
+          "strictvalidation": false,
+          "description": "A W3C WoT Thing Description, served as a document. Each Version holds one complete WoT-TD 1.1 JSON-LD document",
+
+          "attributes": {
+            "format": {
+              "name": "format",
+              "type": "string",
+              "required": true,
+              "enum": [ "JSON-LD/1.1" ],
+              "strict": true,
+              "default": "JSON-LD/1.1",
+              "matchversions": true,
+              "description": "The document format. All Versions of a Thing Description share one format"
+            },
+            "wotid": {
+              "name": "wotid",
+              "type": "string",
+              "required": true,
+              "matchversions": true,
+              "description": "The authored WoT identifier of this Thing Description - the value of the document's 'id' member, verbatim. It is the document's identity in the WoT identifier space and is distinct from the thingdescriptionid, which is the Resource id within this registry and is chosen by the client. All Versions of a Thing Description share one wotid; it MUST NOT encode a revision of the document it names"
+            },
+            "derivedfrom": {
+              "name": "derivedfrom",
+              "type": "array",
+              "item": {
+                "type": "string"
+              },
+              "description": "The authored WoT identifiers of the Thing Models this Thing Description extends or composes - authored identifiers, not xids, so a resolver matches them against the document's own references directly"
+            },
+            "license": {
+              "name": "license",
+              "type": "string",
+              "description": "The license the document is offered under, as an SPDX license expression or a URL. Advisory provenance metadata"
+            },
+            "publisher": {
+              "name": "publisher",
+              "type": "string",
+              "description": "The organization that published the document. Advisory provenance metadata"
+            },
+            "standardsbody": {
+              "name": "standardsbody",
+              "type": "string",
+              "description": "The standards organization that defines or endorses the document, where one does, for example 'W3C' or 'OPC Foundation'. Advisory provenance metadata"
+            },
+            "canonicalurl": {
+              "name": "canonicalurl",
+              "type": "url",
+              "description": "The canonical upstream location of the document, where it is also published outside this registry. Advisory provenance metadata"
+            },
+            "maturity": {
+              "name": "maturity",
+              "type": "string",
+              "enum": [ "Standard", "Vendor", "Community", "Experimental" ],
+              "strict": true,
+              "description": "How established the document is, letting a Consumer prefer an official definition over an ad hoc one. Advisory provenance metadata that does not affect the semantic identity of the document"
+            },
+            "*": {
+              "name": "*",
+              "type": "any"
+            }
+          }
+        }
+      }
+    },
+
+    "thingmodelgroups": {
+      "singular": "thingmodelgroup",
+      "modelversion": "0.1",
+      "modelcompatiblewith": "https://xregistry.io/xreg/domains/wot/specs/model.json",
+      "description": "Thing Model containers. Each Group holds Thing Models that are related in some application-defined way, such as all Thing Models published by one vendor or belonging to one product family",
+
+      "attributes": {
+        "*": {
+          "name": "*",
+          "type": "any"
+        }
+      },
+
+      "resources": {
+        "thingmodels": {
+          "singular": "thingmodel",
+          "modelversion": "0.1",
+          "modelcompatiblewith": "https://xregistry.io/xreg/domains/wot/specs/model.json",
+          "validateformat": true,
+          "validatecompatibility": true,
+          "strictvalidation": false,
+          "description": "A W3C WoT Thing Model, served as a document. Each Version holds one complete WoT-TM 1.1 JSON-LD document",
+
+          "attributes": {
+            "format": {
+              "name": "format",
+              "type": "string",
+              "required": true,
+              "enum": [ "JSON-LD/1.1" ],
+              "strict": true,
+              "default": "JSON-LD/1.1",
+              "matchversions": true,
+              "description": "The document format. All Versions of a Thing Model share one format"
+            },
+            "wotid": {
+              "name": "wotid",
+              "type": "string",
+              "required": true,
+              "matchversions": true,
+              "description": "The authored WoT identifier of this Thing Model - the value of the document's 'id' member, verbatim. It is the document's identity in the WoT identifier space and is distinct from the thingmodelid, which is the Resource id within this registry and is chosen by the client. All Versions of a Thing Model share one wotid; it MUST NOT encode a revision of the document it names"
+            },
+            "derivedfrom": {
+              "name": "derivedfrom",
+              "type": "array",
+              "item": {
+                "type": "string"
+              },
+              "description": "The authored WoT identifiers of the Thing Models this Thing Model extends via 'tm:extends' or references via 'tm:ref' - authored identifiers, not xids, so a resolver matches them against the document's own references directly"
+            },
+            "license": {
+              "name": "license",
+              "type": "string",
+              "description": "The license the document is offered under, as an SPDX license expression or a URL. Advisory provenance metadata"
+            },
+            "publisher": {
+              "name": "publisher",
+              "type": "string",
+              "description": "The organization that published the document. Advisory provenance metadata"
+            },
+            "standardsbody": {
+              "name": "standardsbody",
+              "type": "string",
+              "description": "The standards organization that defines or endorses the document, where one does, for example 'W3C' or 'OPC Foundation'. Advisory provenance metadata"
+            },
+            "canonicalurl": {
+              "name": "canonicalurl",
+              "type": "url",
+              "description": "The canonical upstream location of the document, where it is also published outside this registry. Advisory provenance metadata"
+            },
+            "maturity": {
+              "name": "maturity",
+              "type": "string",
+              "enum": [ "Standard", "Vendor", "Community", "Experimental" ],
+              "strict": true,
+              "description": "How established the document is, letting a Consumer prefer an official definition over an ad hoc one. Advisory provenance metadata that does not affect the semantic identity of the document"
+            },
+            "*": {
+              "name": "*",
+              "type": "any"
+            }
+          }
+        }
+      }
+    }
+  }
+}

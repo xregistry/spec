@@ -203,7 +203,7 @@ For example, let there be this definition:
 {
   "protocol": "MQTT/5.0",
   "protocoloptions": {
-    "topic_name": "/store/{storeid}/cashierdesk/{cdid}"
+    "topic_name": "/store/{storeid}/cashierdesk/{cdid}",
     "user_properties" : [
       { "name": "eventType", "type": "uritemplate", "value": "{eventType}" }
     ]
@@ -660,15 +660,15 @@ Illustrating example:
     "messages": {
       "com.example.abc.event1": {
         "messageid": "com.example.abc.event1",
-        "envelope": "CloudEvents/1.0",
-         # details ...
-        }
+        "envelope": "CloudEvents/1.0"
+        # details ...
       },
       "com.example.abc.event2": {
-        "messageid": "com.example.abc.event1",
-        "envelope": "CloudEvents/1.0",
+        "messageid": "com.example.abc.event2",
+        "envelope": "CloudEvents/1.0"
         # details ...
       }
+    }
   },
   "com.example.def": {
     "messagegroupid": "com.example.def",
@@ -881,7 +881,7 @@ the headers, properties or attributes defined for a message:
     - `any`: Any type of value, including `null`.
     - `binary`: CloudEvents "Binary" type.
     - `boolean`: CloudEvents "Boolean" type.
-    - `duration`: RFC3339 Duration.
+    - `duration`: ISO 8601 Duration.
     - `integer`: CloudEvents "Integer" type (RFC 7159, Section 6).
     - `number`: IEEE754 Double.
     - `string`: CloudEvents "String" type.
@@ -985,7 +985,7 @@ a message (see the [model file](model.json) for the complete definition):
 
 ```yaml
 "envelope": "CloudEvents/1.0",
-"envelopemetadata" {
+"envelopemetadata": {
   # "CloudEvents/1.0" envelope metadata
   "specversion": {
     "value": "1.0",

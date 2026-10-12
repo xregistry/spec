@@ -1012,10 +1012,10 @@ Note that this feature has similar results to setting the Resource attribute's
 - When not specified, the default value MUST be `false`.
 - A value of `true` indicates that:
   - The `format` validation logic MUST generate an error
-    ([format_violation](spec.md#format_violation)) if the Version's `format`
+    ([format_unknown](spec.md#format_unknown)) if the Version's `format`
     is an unsupported value.
   - The `compatibility` validation logic MUST generate an error
-    ([compatibility_violation](spec.md#compatibility_violation)) if the
+    ([compatibility_unknown](spec.md#compatibility_unknown)) if the
     Resource's `meta.compatibility` value is an unsupported value.
 - A value of `false` indicates that:
   - If the Version's `format` value is absent, then format and compatibility
@@ -1095,8 +1095,8 @@ Note that this feature has similar results to setting the Resource attribute's
   selects the `<RESOURCE>` attribute for a response, using the default string
   serialization rules for the Resource's metadata format. The document bytes
   do not need to already be a valid value in that format. For example, when
-  using JSON, this means quoting the string and escaping characters such as
-  quotation marks, backslashes, and non-printable characters.
+  using JSON, this means quoting the string and escaping quotation marks,
+  backslashes and control characters (U+0000 through U+001F).
 
   Specifying an unknown (or unsupported) value MUST generate an error
   ([model_error](./spec.md#model_error)) during the update of the xRegistry
