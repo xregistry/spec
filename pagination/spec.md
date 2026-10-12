@@ -195,7 +195,7 @@ Each successful response from the server MUST adhere to the following:
 Additionally, Links MUST appear in the HTTP response as HTTP headers using
 the format described in [RFC8288](https://www.rfc-editor.org/rfc/rfc8288#section-3).
 
-No `self`, `first` or `last` Link is REQUIRED solely to carry a count, and no
+No `first` or `last` Link is REQUIRED solely to carry a count, and no
 separate HTTP count header is defined. Which Links are present follows the
 constraints in [Server Attributes](#server-attributes) and the bullets above.
 
