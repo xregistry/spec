@@ -4,8 +4,10 @@
 <!-- words: namespace validators -->
 <!-- words: usd MaterialX plugins federatable -->
 
-The specifications in this directory are under active development and can change independently of released xRegistry specifications.
-They are included for discussion and review and are not part of a released xRegistry specification.
+The specifications in this directory are under active development and can
+change independently of released xRegistry specifications. They are included
+for discussion and review and are not part of a released xRegistry
+specification.
 
 ## Federation Specification Family
 
@@ -82,3 +84,7 @@ Cross-references to the xRegistry [Schema](../schema/spec.md) and
 [Endpoint](../endpoint/spec.md) registries are informative. An implementation
 MAY validate them, but the draft does not require that every referent
 resolves.
+
+## WoT Registry
+
+See the [WoT Registry working draft](models/wot/README.md).
