@@ -3648,8 +3648,9 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
   MUST use `<RESOURCE>base64`.
 
   If no explicit or implicit `typemap` mapping applies, this attribute MAY
-  be used if the document's bytes "as is" are a valid value in the metadata
-  format. In this case, the server MAY prefer `<RESOURCE>base64` even for a
+  be used if the document's bytes "as is" (without any additional processing
+  such as escaping) are a valid value in the metadata format. In this case,
+  the server MAY prefer `<RESOURCE>base64` even for a
   valid JSON document. A server preference for `<RESOURCE>base64` MUST NOT
   override a `json` or `string` mapping. Document bytes MUST NOT be converted
   to a string merely to fit the metadata format when no `string` mapping
