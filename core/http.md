@@ -2,7 +2,8 @@
 
 <!-- words: validatecompatibility validateformat -->
 <!-- words: compat formatvalidated compatibilityvalidated -->
-<!-- words: compat formatvalidatedreason compatibilityvalidatedreason -->
+<!-- words: compat formatvalidatedreason compatibilityvalidatedreason multipart -->
+<!-- words: caf custommap hh tchar -->
 
 ## Abstract
 
@@ -65,6 +66,7 @@ model and semantics that apply to all protocols.
     - [`DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`](#delete-groupsgidresourcesridversionsvid)
   - [xRegistry Discovery](#xregistry-discovery)
 - [Request Flags / Query Parameters](#request-flags--query-parameters)
+- [HTTP Header Names](#http-header-names)
 - [HTTP Header Values](#http-header-values)
 - [Error Processing](#error-processing)
 
@@ -425,7 +427,9 @@ apply:
 - When `labels` is serialized as an HTTP header, see
   [Serializing Resource Domain-Specific Documents](#serializing-resource-domain-specific-documents), then
   each map entry MUST appear as a separate HTTP header using a name of
-  `xRegistry-labels.<KEYNAME>`.
+  `xRegistry-labels.<ENCODED_KEY>`, where `<ENCODED_KEY>` is the map key encoded
+  according to [HTTP Header Names](#http-header-names), not the key copied
+  literally into the field name.
 
 ##### `contenttype` Attribute
 
@@ -435,6 +439,9 @@ rules apply:
 
 - When this attribute is serialized as an HTTP header, it MUST use the name
   `Content-Type` and not `xRegistry-contenttype`.
+  Its value MUST follow the native media type grammar, including parameter
+  quoting, rather than the xRegistry metadata header encoding described in
+  [HTTP Header Values](#http-header-values).
 - On an update request when the xRegistry metadata appears in HTTP headers,
   unlike other attributes that will remain unchanged when not specified,
   this attribute MUST be erased if the incoming request does not include
@@ -1573,8 +1580,11 @@ with some of the Resource's xRegistry metadata. To support this, some of the
 Resource's xRegistry metadata MAY appear as HTTP headers in messages.
 
 On responses, unless otherwise stated, all top-level scalar attributes of the
-Resource SHOULD appear as HTTP headers where the header name is the name of the
-attribute prefixed with `xRegistry-`. Note, the optionality of this requirement
+Resource SHOULD appear as HTTP headers where the header name is the encoded
+attribute name prefixed with `xRegistry-`, as defined in
+[HTTP Header Names](#http-header-names). Core attribute names that use the
+default character set are unchanged by this encoding.
+Note, the optionality of this requirement
 is not to allow for servers to decide whether or not to do so, rather it is to
 allow for [No-Code Servers](#no-code-servers) that might not be
 able to control the HTTP response headers.
@@ -1585,11 +1595,12 @@ values will appear in the HTTP body.
 
 Top-level map attributes whose values are of scalar types SHOULD also appear as
 HTTP headers (each key having its own HTTP header) and in those cases the
-HTTP header names will be of the form: `xRegistry-<MAPNAME>.<KEYNAME>`.
-Note that map keys MAY contain the `.` character, so any `.` after the
-`<MAPNAME>.` is part of the key name. See
-[HTTP Header Values](#http-header-values) for additional information and
-[`labels`](#labels-attribute) for an example of one such attribute.
+HTTP header names will be of the form:
+`xRegistry-<ENCODED_MAPNAME>.<ENCODED_KEY>`. Both name components MUST use
+[HTTP Header Names](#http-header-names). The first literal `.` separates the
+map name from the key; any later dots belong to the key and do not indicate
+nested attributes. See [HTTP Header Values](#http-header-values) for the
+separate field-value encoding and [`labels`](#labels-attribute) for an example.
 
 Certain attributes do not follow this rule if a standard HTTP header name
 is defined for that semantic purpose. See the
@@ -1606,6 +1617,49 @@ attributes MAY be done. Unless otherwise stated, any attributes not included
 in request messages MUST be interpreted as a request to leave their values
 unchanged. Using a value of `null` (case-sensitive) MUST be processed as a
 request to delete that attribute.
+
+For `xRegistry-` metadata headers, this test MUST be applied after the decoding
+in [HTTP Header Values](#http-header-values), not to the original wire spelling.
+Existing attribute-specific rules for `null` still apply. In particular,
+quoting or percent-encoding the four-character string `null` does not
+distinguish it from deletion.
+
+For example, for the OPTIONAL string attribute `name`:
+
+| Header field line | Decoded string | Update effect |
+| --- | --- | --- |
+| `xRegistry-name: null` | `null` | Delete `name` |
+| `xRegistry-name: "null"` | `null` | Delete `name` |
+| `xRegistry-name: %6E%75%6C%6C` | `null` | Delete `name` |
+| `xRegistry-name:` | Empty string | Reject: `name` MUST be non-empty |
+| `xRegistry-name: Null` | `Null` | Set `name` to `Null` |
+| `xRegistry-name: %22null%22` | `"null"` | Set `name` to a six-character string |
+
+To assign the four-character string `null` to a string attribute,
+clients MUST use the JSON metadata view, via the `$details` URL suffix, rather
+than a metadata header. For example, this JSON metadata update assigns the
+literal string:
+
+```json
+{"name":"null"}
+```
+
+In contrast, this JSON metadata update requests deletion:
+
+```json
+{"name":null}
+```
+
+Attribute validation still applies in either representation. This header-write
+limitation does not restrict Core string values or change the meaning of JSON
+`null`, attribute-specific null processing, or Resource document bytes.
+
+A response header can contain `xRegistry-name: null` when the stored string is
+`null`. Copying that header into an update would request deletion, not preserve
+the string. Clients MUST account for this when copying response metadata into
+requests: an unchanged top-level scalar attribute can be omitted under the
+normal update rules. Adding quotes or another percent-encoding layer MUST NOT
+be treated as a literal-string escape; decoding still occurs exactly once.
 
 Any top-level map attributes that appear as HTTP headers MUST be included
 in their entirety and any missing keys MUST be interpreted as a request to
@@ -1630,7 +1684,7 @@ xRegistry-isdefault: true
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
-xRegistry-labels.<KEY>: <STRING> *
+xRegistry-labels.<ENCODED_KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
 xRegistry-ancestorid: <STRING>
@@ -1645,7 +1699,7 @@ xRegistry-versionsurl: <URL>
 xRegistry-versionscount: <UINTEGER>
 Location: <URL> ?
 Content-Location: <URL> ?
-Content-Disposition: <STRING> ?
+Content-Disposition: <DISPOSITION-TYPE>; filename="<RID>" ?
 
 ... Resource document excluded for brevity ... ?
 ```
@@ -1661,9 +1715,9 @@ Where:
   MUST be the same as the `self` URL.
 - The `Content-Location` header MAY appear, and if present, MUST reference
   the "default" Version.
-- `Content-Disposition` SHOULD be present and if so, MUST be the `<RESOURCE>id`
-  value. This allows for HTTP tooling that is not aware of xRegistry to know
-  the desired filename to use if the HTTP body were to be written to a file.
+- `Content-Disposition` SHOULD be present and, if present, MUST carry the
+  `<RESOURCE>id` in its `filename` parameter as specified in
+  [HTTP Header Values](#http-header-values).
 
 Version serialization will look similar, but without the Resource-level
 attributes, and MUST be of the form:
@@ -1680,7 +1734,7 @@ xRegistry-isdefault: <BOOLEAN>
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
-xRegistry-labels.<KEY>: <STRING> *
+xRegistry-labels.<ENCODED_KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
 xRegistry-ancestorid: <STRING>
@@ -1692,15 +1746,15 @@ xRegistry-compatibilityvalidatedreason: <STRING> ?
 xRegistry-<RESOURCE>url: <URL> ?           # End of default Version attributes
 Location: <URL> ?
 Content-Location: <URL> ?
-Content-Disposition: <STRING> ?
+Content-Disposition: <DISPOSITION-TYPE>; filename="<RID>" ?
 
 ... Version document excluded for brevity ... ?
 ```
 
 Where:
-- `Content-Disposition` SHOULD be present and if so, MUST be the `<RESOURCE>id`
-  value. This allows for HTTP tooling that is not aware of xRegistry to know
-  the desired filename to use if the HTTP body were to be written to a file.
+- `Content-Disposition` SHOULD be present and, if present, MUST carry the
+  `<RESOURCE>id` in its `filename` parameter as specified in
+  [HTTP Header Values](#http-header-values).
 
 Scalar default Version extension attributes MUST also appear as
 `xRegistry-` HTTP headers.
@@ -1963,7 +2017,7 @@ xRegistry-isdefault: true
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
-xRegistry-labels.<KEY>: <STRING> *
+xRegistry-labels.<ENCODED_KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
 xRegistry-ancestorid: <STRING>
@@ -1978,7 +2032,7 @@ xRegistry-versionsurl: <URL>
 xRegistry-versionscount: <UINTEGER>
 Location: <URL> ?                      # If 303 is returned
 Content-Location: <URL> ?
-Content-Disposition: <STRING> ?
+Content-Disposition: <DISPOSITION-TYPE>; filename="<RID>" ?
 
 ... Resource document ...              # If <RESOURCE>url is not set
 ```
@@ -1987,9 +2041,9 @@ Where:
 - If `<RESOURCE>url` is present then it MUST have the same value as `Location`.
 - If `Content-Location` is present then it MUST be a URL to the Version of the
   Resource in the `versions` collection - same as `meta.defaultversionurl`.
-- `Content-Disposition` SHOULD be present and if so, MUST be the `<RESOURCE>id`
-  value. This allows for HTTP tooling that is not aware of xRegistry to know
-  the desired filename to use if the HTTP body were to be written to a file.
+- `Content-Disposition` SHOULD be present and, if present, MUST carry the
+  `<RESOURCE>id` in its `filename` parameter as specified in
+  [HTTP Header Values](#http-header-values).
 
 **Examples:**
 
@@ -2073,7 +2127,7 @@ xRegistry-name: <STRING> ?
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
-xRegistry-labels.<KEY>: <STRING> *
+xRegistry-labels.<ENCODED_KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP> ?
 xRegistry-modifiedat: <TIMESTAMP> ?
 xRegistry-ancestorid: <STRING> ?
@@ -2109,7 +2163,7 @@ xRegistry-isdefault: true
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
-xRegistry-labels.<KEY>: <STRING> *
+xRegistry-labels.<ENCODED_KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
 xRegistry-ancestorid: <STRING>
@@ -2124,15 +2178,15 @@ xRegistry-versionsurl: <URL>
 xRegistry-versionscount: <UINTEGER>
 Location: <URL> ?                      # If 201 or 303 is returned
 Content-Location: <URL> ?
-Content-Disposition: <STRING> ?
+Content-Disposition: <DISPOSITION-TYPE>; filename="<RID>" ?
 
 ... Resource document ...              # If <RESOURCE>url is not set
 ```
 
 Where:
-- `Content-Disposition` SHOULD be present and if so, MUST be the `<RESOURCE>id`
-  value. This allows for HTTP tooling that is not aware of xRegistry to know
-  the desired filename to use if the HTTP body were to be written to a file.
+- `Content-Disposition` SHOULD be present and, if present, MUST carry the
+  `<RESOURCE>id` in its `filename` parameter as specified in
+  [HTTP Header Values](#http-header-values).
 
 **Examples:**
 
@@ -2162,7 +2216,7 @@ xRegistry-versionsurl: https://example.com/endpoints/ep1/messages/msg1/versions
 xRegistry-versionscount: 1
 Location: https://example.com/endpoints/ep1/messages/msg1
 Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1
-Content-Disposition: msg1
+Content-Disposition: attachment; filename="msg1"
 
 { ... Definition of "Blob Created" event (document) excluded for brevity ... }
 ```
@@ -2265,7 +2319,7 @@ xRegistry-name: <STRING> ?
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
-xRegistry-labels.<KEY>: <STRING> *
+xRegistry-labels.<ENCODED_KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP> ?
 xRegistry-modifiedat: <TIMESTAMP> ?
 xRegistry-ancestorid: <STRING> ?
@@ -2298,7 +2352,7 @@ xRegistry-isdefault: <BOOLEAN>
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
-xRegistry-labels.<KEY>: <STRING> *
+xRegistry-labels.<ENCODED_KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
 xRegistry-ancestorid: <STRING>
@@ -2310,15 +2364,15 @@ xRegistry-compatibilityvalidatedreason: <STRING> ?
 xRegistry-<RESOURCE>url: <URL> ?       # If Resource is not in body
 Location: <URL> ?                      # If 201 or 303 is returned
 Content-Location: <URL> ?
-Content-Disposition: <STRING> ?
+Content-Disposition: <DISPOSITION-TYPE>; filename="<RID>" ?
 
 ... Version document excluded for brevity ...  # If <RESOURCE>url is not set
 ```
 
 Where:
-- `Content-Disposition` SHOULD be present and if so, MUST be the `<RESOURCE>id`
-  value. This allows for HTTP tooling that is not aware of xRegistry to know
-  the desired filename to use if the HTTP body were to be written to a file.
+- `Content-Disposition` SHOULD be present and, if present, MUST carry the
+  `<RESOURCE>id` in its `filename` parameter as specified in
+  [HTTP Header Values](#http-header-values).
 
 **Examples:**
 
@@ -2345,7 +2399,7 @@ xRegistry-isdefault: true
 xRegistry-ancestorid: 1
 Location: https://example.com/endpoints/ep1/messages/msg1/versions/2
 Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/2
-Content-Disposition: msg1
+Content-Disposition: attachment; filename="msg1"
 
 { ... Definition of "Blob Created" event (document) excluded for brevity ... }
 ```
@@ -2809,7 +2863,7 @@ xRegistry-isdefault: <BOOLEAN>
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
-xRegistry-labels.<KEY>: <STRING> *
+xRegistry-labels.<ENCODED_KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
 xRegistry-ancestorid: <STRING>
@@ -2819,15 +2873,15 @@ xRegistry-formatvalidatedreason: <STRING> ?
 xRegistry-compatibilityvalidated: <BOOLEAN> ?
 xRegistry-compatibilityvalidatedreason: <STRING> ?
 Location: <URL> ?                        # If 303 is returned
-Content-Disposition: <STRING> ?
+Content-Disposition: <DISPOSITION-TYPE>; filename="<RID>" ?
 
 ... Version document ...                 # If <RESOURCE>url is not set
 ```
 
 Where:
-- `Content-Disposition` SHOULD be present and if so, MUST be the `<RESOURCE>id`
-  value. This allows for HTTP tooling that is not aware of xRegistry to know
-  the desired filename to use if the HTTP body were to be written to a file.
+- `Content-Disposition` SHOULD be present and, if present, MUST carry the
+  `<RESOURCE>id` in its `filename` parameter as specified in
+  [HTTP Header Values](#http-header-values).
 - `Location`, if present, and `<RESOURCE>url` MUST have the same value.
 
 **Examples:**
@@ -2873,7 +2927,7 @@ xRegistry-isdefault: true
 xRegistry-createdat: 2024-04-30T12:00:00Z
 xRegistry-modifiedat: 2024-04-30T12:00:01Z
 xRegistry-ancestorid: 1.0
-Content-Disposition: myschema
+Content-Disposition: attachment; filename="myschema"
 
 { ... Contents of a schema doc excluded for brevity ...  }
 ```
@@ -2929,7 +2983,7 @@ xRegistry-isdefault: <BOOLEAN>
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
-xRegistry-labels.<KEY>: <STRING> *
+xRegistry-labels.<ENCODED_KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP> ?
 xRegistry-modifiedat: <TIMESTAMP> ?
 xRegistry-ancestorid: <STRING> ?
@@ -2965,7 +3019,7 @@ xRegistry-isdefault: <BOOLEAN>
 xRegistry-description: <STRING> ?
 xRegistry-documentation: <URL> ?
 xRegistry-icon: <URL> ?
-xRegistry-labels.<KEY>: <STRING> *
+xRegistry-labels.<ENCODED_KEY>: <STRING> *
 xRegistry-createdat: <TIMESTAMP>
 xRegistry-modifiedat: <TIMESTAMP>
 xRegistry-ancestorid: <STRING>
@@ -2977,7 +3031,7 @@ xRegistry-compatibilityvalidatedreason: <STRING> ?
 xRegistry-<RESOURCE>url: <URL> ?       # If Resource is not in body
 Location: <URL> ?                      # If 201 or 303 is returned
 Content-Location: <URL> ?
-Content-Disposition: <STRING> ?
+Content-Disposition: <DISPOSITION-TYPE>; filename="<RID>" ?
 
 ... Version document ...               # If <RESOURCE>url is not set
 ```
@@ -3007,7 +3061,7 @@ xRegistry-isdefault: true
 xRegistry-ancestorid: v1.0
 Location: https://example.com/endpoints/ep1/messages/msg1/versions/v2.0
 Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/v2.0
-Content-Disposition: msg1
+Content-Disposition: attachment; filename="msg1"
 
 { ... Definition of "Blob Created" event (document) excluded for brevity ... }
 ```
@@ -3225,25 +3279,205 @@ This query parameter MUST be serialized as:
 ?sort=<ATTRIBUTE>[=asc|desc]
 ```
 
+## HTTP Header Names
+
+HTTP field names are case-insensitive
+([RFC9110, section 5.1](https://www.rfc-editor.org/rfc/rfc9110#section-5.1))
+and MUST follow its
+[`token` grammar](https://www.rfc-editor.org/rfc/rfc9110#section-5.6.2).
+In particular, a colon is a field delimiter, not part of a field name. Therefore
+a logical metadata map key MUST NOT simply be appended to an HTTP field name.
+This section defines the reversible encoding of `xRegistry-` name components;
+it is separate from the [field-value encoding](#http-header-values).
+
+The forms are `xRegistry-<ENCODED_ATTRIBUTE>` for a scalar attribute and
+`xRegistry-<ENCODED_MAPNAME>.<ENCODED_KEY>` for a scalar-valued map entry. The
+`xRegistry-` prefix is matched case-insensitively. The first literal `.` after
+that prefix is the map-name separator. Dots within an attribute or map name
+MUST be encoded so that they cannot be confused with this separator. Further
+literal or encoded dots belong to the map key, not to a nested path.
+
+Each logical name component MUST be encoded independently as follows:
+
+- Encode the original Unicode string as UTF-8, without case changes or Unicode
+  normalization. Invalid Unicode MUST generate an error
+  ([header_error](#header_error)), not replacement characters.
+- Emit lowercase ASCII letters, digits and the punctuation allowed by the HTTP
+  `tchar` grammar unchanged, except for `%`. In an attribute or map-name
+  component, also exclude `.` from this unchanged set.
+- Encode every other byte as `%HH`, using exactly two hexadecimal digits for
+  the byte. This includes literal `%`, uppercase ASCII letters, colons and all
+  non-ASCII bytes. Hexadecimal letters SHOULD be uppercase.
+  A literal percent sequence in the logical name is data, not a pre-encoded
+  sequence to reuse.
+
+The result contains only HTTP field-name characters. Existing unambiguous
+lowercase names such as `xRegistry-labels.owner` and `xRegistry-labels.a.b` keep
+their spelling. Logical uppercase characters are always escaped; otherwise
+an HTTP implementation changing field-name casing would lose their identity.
+
+For example, `{"labels":{"a:b":"value","a.b":"other"}}` uses these fields:
+
+```http
+xRegistry-labels.a%3Ab: value
+xRegistry-labels.a.b: other
+```
+
+The following table shows preferred encodings. Keys are written as JSON strings
+so that their Unicode characters and literal percent signs are explicit. Rows
+using `custommap` illustrate additional characters only where an applicable
+model or extension admits those keys; this encoding does not itself permit them.
+
+| Logical key (JSON string) | HTTP field name |
+| --- | --- |
+| `"owner"` | `xRegistry-labels.owner` |
+| `"a:b"` | `xRegistry-labels.a%3Ab` |
+| `"a.b"` | `xRegistry-labels.a.b` |
+| `"A"` | `xRegistry-custommap.%41` |
+| `"a%3a"` | `xRegistry-custommap.a%253a` |
+| `"a%3A"` | `xRegistry-custommap.a%253%41` |
+| `"caf\u00e9"` | `xRegistry-custommap.caf%C3%A9` |
+| `"face\ud83d\ude00"` | `xRegistry-custommap.face%F0%9F%98%80` |
+
+Similarly, if an attribute name `custom.map` is admitted, it is encoded as
+`custom%2Emap`. The field `xRegistry-custom%2Emap.a.b` then represents key `a.b`
+in that map; it does not represent key `map.a.b` in a map named `custom`.
+
+Receivers MUST decode these field names in this order:
+
+1. Validate HTTP field-name syntax and match the `xRegistry-` prefix. Split at
+   the first literal `.` before decoding either component. Name components
+   MUST NOT be empty.
+2. Treat unescaped ASCII letters case-insensitively, using their lowercase
+   form. This handles HTTP field-name case changes, not logical key
+   normalization. Decode each component's percent escapes exactly once, then
+   decode the resulting bytes as UTF-8. Hexadecimal digits of either case and
+   valid but unnecessary escapes MUST be accepted. Malformed escapes or invalid
+   UTF-8 MUST generate an error ([header_error](#header_error)); they MUST NOT
+   be treated as literal names. A plus sign is not a space.
+3. Preserve decoded characters exactly, including uppercase letters, percent
+   signs and Unicode normalization differences. Do not lowercase the decoded
+   names or decode them again. For example, `%41` decodes to `A`, while a raw
+   `A` is the HTTP case variant of raw `a`. `a%253%41` decodes to `a%3A`, not
+   `a:` or `a%3a`.
+4. Apply the Core and applicable model constraints to the decoded names,
+   including their length, character set and map-key uniqueness. Encoding does
+   not relax these constraints. Name length limits apply to the decoded names;
+   HTTP transport size limits still apply to the encoded fields.
+
+Within each map, duplicate decoded keys MUST generate an error
+([header_error](#header_error)), even if their field names use different casing
+or different valid escape spellings, or their values are identical. For example,
+`xRegistry-labels.a` and `xRegistry-labels.%61` both address key `a`. Receivers
+MUST retain separate field occurrences for this check rather than overwrite
+them or combine their values first. These metadata fields do not define a
+comma-separated list of map entries; commas in a value cannot be used to
+reconstruct combined field occurrences. A server unable to perform this check
+MUST reject a header-mode map update rather than silently accept ambiguous data.
+
+This profile replaces literal map-key suffix construction. Deployments using
+older peers MUST coordinate support for the encoding before exchanging names
+that require it, or use the JSON metadata view via `$details`. Receivers MUST
+NOT guess between literal and encoded interpretations or fall back to literal
+names after a decoding error. Implementations MUST NOT truncate, change case
+or otherwise lose logical name data to fit a transport limit. Standard HTTP
+field names and all field-value grammars are unaffected.
+
 ## HTTP Header Values
 
-Some attributes can contain arbitrary UTF-8 string content,
-and per [RFC7230, section 3][rfc7230-section-3], HTTP headers MUST only use
-printable characters from the US-ASCII character set, and are terminated by a
-CRLF sequence with OPTIONAL whitespace around the header value.
+The percent-encoding and quoted-string unescaping rules below apply only to
+`xRegistry-` metadata header values. They MUST NOT be applied to standard HTTP
+fields, even when those fields carry xRegistry metadata. Standard HTTP fields
+MUST use their own grammars:
 
-When encoding an attribute's value as an HTTP header, it MUST be
+- `Content-Type` uses the media type grammar in
+  [RFC9110, section 8.3](https://www.rfc-editor.org/rfc/rfc9110#section-8.3).
+  Parameter spaces, quotes and literal percent signs are interpreted by that
+  grammar, not by an xRegistry decoder.
+- `Location` and `Content-Location` use the URI grammars in
+  [RFC9110, section 10.2.2](https://www.rfc-editor.org/rfc/rfc9110#section-10.2.2)
+  and [section 8.7](https://www.rfc-editor.org/rfc/rfc9110#section-8.7),
+  respectively. Percent escapes already present in a URI MUST NOT undergo an
+  additional round of xRegistry encoding or decoding.
+- `Content-Disposition`, when included for a Resource or Version document, MUST
+  use the grammar in
+  [RFC6266, section 4](https://www.rfc-editor.org/rfc/rfc6266#section-4).
+  It MUST contain a disposition type and a `filename` parameter whose value is
+  the Resource's `<RESOURCE>id`, serialized as a quoted-string. The
+  serialization templates write that disposition type as `<DISPOSITION-TYPE>`;
+  this specification does not mandate a particular one, and its examples use
+  `attachment`. For example, `attachment; filename="doc.txt"` suggests the
+  filename `doc.txt`; the bare value `doc.txt` would instead be a disposition
+  type. Core Resource IDs are ASCII, including permitted dots, colons and `@`,
+  and need no private encoding in a quoted filename.
+
+xRegistry clients MUST obtain the Resource identity from the `<RESOURCE>id`
+metadata, normally the `xRegistry-<RESOURCE>id` header in document mode, not
+from the entire `Content-Disposition` value. The filename is advisory for HTTP
+tooling; recipients still need the filesystem safety precautions in
+[RFC6266, section 4.3](https://www.rfc-editor.org/rfc/rfc6266#section-4.3).
+
+Every `xRegistry-` metadata header value uses the private encoding below,
+including the `<URL>`- and `<XID>`-typed attributes that the serialization
+templates declare, such as `xRegistry-self`, `xRegistry-xid`,
+`xRegistry-metaurl`, `xRegistry-versionsurl`, `xRegistry-<RESOURCE>url`,
+`xRegistry-documentation` and `xRegistry-icon`. A percent sign in those values
+is encoded as `%25` like any other percent sign, so a URI that already contains
+`%20` is carried as `%2520`. The single round of decoding restores the URI with
+its own escapes intact: `%2520` decodes to `%20`, not to a space. The decoded
+value is the URI and MUST NOT be decoded again.
+
+Where this specification requires a metadata attribute and a standard HTTP
+field to have the same value - for example `self` and `Location`, or
+`<RESOURCE>url` and `Location` - the comparison is between the decoded
+attribute value and the native field value, not between the two wire
+spellings. A client that dereferences a `<URL>`-typed metadata header MUST
+decode it first; the raw field value is not the URI whenever the attribute
+contains percent escapes.
+
+For example, these field values preserve native HTTP syntax while the
+`xRegistry-` values carry the private encoding:
+
+```http
+Content-Type: multipart/mixed; boundary="a b"
+Location: https://example.com/docs/doc.txt?name=a%20b
+Content-Location: https://example.com/docs/doc.txt/versions/1?name=a%20b
+Content-Disposition: attachment; filename="doc.txt"
+xRegistry-self: https://example.com/docs/doc.txt?name=a%2520b
+xRegistry-description: a%20%22quote%22%20and%20100%25
+```
+
+A native MIME parser sees the boundary `a b`, and a URI parser retains `a%20b`
+in each URI's query. Each `xRegistry-` value is decoded exactly once:
+`xRegistry-self` decodes to `https://example.com/docs/doc.txt?name=a%20b`,
+which is the same URI as `Location`, and `xRegistry-description` decodes to
+`a "quote" and 100%`. Decoding `xRegistry-self` a second time would corrupt
+the URI by turning `%20` into a space. Applying the private encoding to the
+`Content-Type` value would instead produce
+`multipart/mixed;%20boundary=%22a%20b%22`, which does not declare that MIME
+boundary.
+
+Some xRegistry attributes can contain arbitrary UTF-8 string content. The
+private encoding below represents that content using printable US-ASCII field
+values. It does not relax HTTP framing or field syntax. Per
+[RFC9110, section 5.5](https://www.rfc-editor.org/rfc/rfc9110#section-5.5), raw
+CR, LF and NUL are invalid within field values. Other control bytes MUST NOT be
+emitted except for horizontal tab where allowed by the field's grammar.
+Decoded metadata MUST NOT be copied into an HTTP field without applying that
+field's serialization rules.
+
+When encoding an attribute's value as an `xRegistry-` HTTP header, it MUST be
 percent-encoded as described below. This is compatible with [RFC3986, section
 2.1][rfc3986-section-2-1] but is more specific about what needs
 encoding. The resulting string SHOULD NOT be further encoded.
 (Rationale: quoted string escaping is unnecessary when every space
 and double-quote character is already percent-encoded.)
 
-When decoding an HTTP header into an attribute's value, any HTTP header
+When decoding an `xRegistry-` HTTP header into an attribute's value, the header
 value MUST first be unescaped with respect to double-quoted strings,
 as described in [RFC7230, section 3.2.6][rfc7230-section-3-2-6]. A single
 round of percent-decoding MUST then be performed as described
-below. HTTP headers for attribute values do not support
+below. These metadata headers do not support
 parenthetical comments, so the initial unescaping only needs to handle
 double-quoted values, including processing backslash escapes within
 double-quoted values. Header values produced via the
@@ -3251,6 +3485,11 @@ percent-encoding described here will never include double-quoted
 values, but they MUST be supported when receiving events, for
 compatibility with older versions of this specification which did
 not require double-quote and space characters to be percent-encoded.
+
+After decoding, metadata update values MUST be interpreted according to the
+[document metadata update rules](#serializing-resource-domain-specific-documents).
+In particular, a decoded `null` retains its deletion meaning; quoting and
+percent-encoding do not provide an escape for the literal string.
 
 Percent encoding is performed by considering each Unicode character
 within the attribute's canonical string representation. Any
