@@ -1,4 +1,4 @@
-# Pagination - Version 0.1-wip
+# Pagination - Version 1.0-rc4
 
 This document describes a mechanism by which a server can return a set of
 records to a client in an incremental fashion. Often this will be used when
@@ -24,21 +24,32 @@ fit within one response message.
 
 The following list of attributes MAY be included in a client's request for
 a set of records from a server. The client MUST only specify these on
-the initial request for the set. If the results can not fit within one
-response then these attributes MUST NOT be added to subsequent requests
-by the client. Note that the server MAY include these attributes within
-the URI-reference returned in a response message, but the client MUST NOT
-modify those values.
+the initial request for the set and their presence (and values) in any
+subsequent request to the server to retrieve additional records for the same
+pagination sequence is dictated by the server - the client MUST NOT add or
+modify them.
+
+While this specification defines a mechanism by which clients can initiate the
+pagination of a result set, servers MAY automatically initiate it themselves,
+typically if the result set is very large. How the server knows that the
+client supports pagination, or how clients are made aware of this possibility,
+is out of scope for this specification.
+
+The location and syntax of how these attribute appear in request messages will
+be defined by the protocol binding being used.
 
 #### limit
 
 - Type: `Unsigned 64-bit Integer`
-- Description: Indicates the maximum number of records per message
-  that the client is willing to accept. If the server is unable to
-  meet this criterion then it MUST generate an error.
+- Description: Indicates the maximum number of records per message that the
+  client is willing to accept. If the server is unable to meet this criterion
+  then it MUST generate an error.
+
   There is no default value for this attribute.
-  If this attribute is not specified, then the server MAY choose to send back
-  as many or as few records per response message.
+
+  If this attribute is not specified on a request message, and the server
+  chooses to not enable pagination on its own, then the server's response is
+  not constrained by this specification.
 - Constraints:
   - OPTIONAL.
   - MUST be an unsigned 64-bit integer with a value greater than 0.
@@ -58,10 +69,10 @@ of records. Their individual constraints and the protocol binding determine
 which attributes are present.
 
 Note: in the examples listed below, the use of certain query parameters
-in the response messages from the server, such as `offset` and `limit`,
-are an implementation detail of the server. How the server encodes the
-information it needs to retrieve a certain subset of records is not mandated by
-this specification.
+in the sample response message's `Link` URL, such as `pos`, is an
+implementation detail of the server. How the server encodes the information it
+needs to retrieve a certain subset of records is not mandated by this
+specification.
 
 #### link
 
@@ -74,21 +85,22 @@ this specification.
   value, or attributes (such as query parameters), is not defined by this
   specification and the results from the server are undefined.
 - Constraints:
+  - REQUIRED if any pagination metadata is included in a response message.
   - A `next` link MUST be present if more records remain after the current
     subset, and MUST NOT be present at the end of the set.
   - A `prev` link MUST NOT be present at the start of the set, and MAY be
     present otherwise.
-  - `first` and `last` links are OPTIONAL, including when their target is the
-    current subset. This also applies to a one-page or empty result set.
+  - `first` and `last` links are OPTIONAL, subject to the single-response
+    recommendations for [`rel`](#rel).
   - An offered link MUST identify a subset with the stated relationship.
     The availability of an OPTIONAL relation's target does not require that
     relation to be offered, nor does offering one relation require the others.
   - MUST be a URI-Reference as defined in
     [RFC3986](https://tools.ietf.org/html/rfc3986).
 - Examples:
-  - `http://example.com/people?offset=3&limit=100`
   - `http://example.com/people?id=1234`
   - `http://example.com/people?resultset=7a835`
+  - `http://example.com/people?pos=3`
 
 #### rel
 
@@ -107,22 +119,39 @@ this specification.
     being returned.
   - `last` - indicates the last subset of records in the sequence of records
     being returned.
+
+  and the following additional value:
+  - `self` - indicates the current set of records in the sequence of records
+    being returned. This is mainly used to carry the metadata (e.g.
+    [`offset`](#offset)) about the pagination sequence.
+
   Unless otherwise constrained by a specification leveraging this
   specification, additional values MAY be defined.
 - Constraints:
   - REQUIRED if the `link` attribute is present.
-  - MUST be a string as defined by `relation-type` in
+  - MUST be a non-empty string as defined by `relation-type` in
    [RFC8288](https://www.rfc-editor.org/rfc/rfc8288#section-3.3).
+  - If the current subset of records is not the last set of records for the
+    pagination sequence, then a `next` Link attribute MUST be included in the
+    response message.
+  - A `self` Link attribute is STRONGLY RECOMMENDED to be included in all
+    responses from the server so that clients have a consistent location to
+    find metadata about the current pagination sequence.
+  - If the size of the entire result set can fit in one response message then
+    the `self` Link attribute SHOULD still be included, however no other
+    Link attribute SHOULD be present.
 
 #### expires
 
 - Type: `Timestamp`
 - Description: Indicates when the complete set of records referenced by the
-  `link` will no longer be available. When not specified, the availability
-  of the data is undefined by this specification. However, it is RECOMMENDED
-  that this attribute only be excluded when the data being iterated over
-  is not expected to change very often and therefore the server will
-  typically not need to save any state related to this client's requests.
+  `link` will no longer be available. When not specified the availability,
+  and consistency, of the result set is undefined.
+
+  It is RECOMMENDED that this attribute only be used when the underlying
+  result set is guaranteed to not change before the date specified. For
+  example, it might be used if the result set is cached to ensure that
+  subsequent write operations to the server will not modify the result set.
 - Constraints:
   - OPTIONAL.
 
@@ -130,19 +159,57 @@ this specification.
 
 - Type: `Unsigned 64-bit Integer`
 - Description: Indicates the total number of records in the complete set
-  referenced by the `link`. Note that this is not the number of records in any one
-  message, but instead it is the aggregate count of records across all
+  in the pagination sequence. Note that this is not the number of records in
+  any one message, but instead it is the aggregate count of records across all
   messages in the set.
 - Constraints:
-  - STRONGLY RECOMMENDED.
-  - MUST be an unsigned 64-bit integer. Zero is a valid count for an empty
-    result set.
-  - When present, MUST be consistent with every other supplied `count` in
-    `link` attributes and messages for that particular set of records.
-    Omission in an intervening message does not reset an earlier count.
+  - OPTIONAL.
+  - If present, MUST be an unsigned 64-bit integer. Zero is a valid count for
+    an empty result set.
+  - STRONGLY RECOMMENDED to appear on the `self` Link attribute.
+  - MAY be present for other Link attributes, and if so, it MUST be the same
+    value for all Link attributes within the same message.
+  - When the complete record set does not change for the lifetime of the
+    pagination requests, then this value MUST be consistent across all `link`
+    attributes and messages in which it appears.
 
 An omitted count does not mean zero. How a count is carried is defined by the
 protocol binding.
+
+#### offset
+
+- Type: `Unsigned 64-bit Integer`
+- Description: Indicates the offset of the first item in the referenced record
+  set.
+- Constraints:
+  - OPTIONAL.
+  - If present, MUST be an unsigned integer and MUST be 0-based; meaning, the
+    first record of the first result set is `0` (zero) not `1`.
+  - If the current set of records does not contain any records then this
+    attribute MUST NOT be present.
+  - STRONGLY RECOMMENDED to appear on the `self` Link attribute.
+  - MAY be present for other Link attributes, and if so, it MUST have the
+    appropriate value for the referenced set of records. For example, in
+    the simple case the `next` Link attribute, its `offset` value would be
+    the current `self` link's `offset` value plus the number of records in the
+    current response message.
+
+#### limit
+
+- Type: `Unsigned 64-bit Integer`
+- Description: Indicates the maximum number of records per message that the
+  server will send. This MUST be the same value that was specified in the
+  client's `limit` attribute when it initiated the pagination sequence. It
+  is included in response messages as a convenience for clients.
+- Constraints:
+  - OPTIONAL.
+  - If present, MUST be an unsigned integer and MUST be the same value that
+    was specified during the creation of the pagination sequence, if the
+    sequence was initiated by the client. For server-initiated sequences,
+    the value specified for this attribute, regardless of where it appears,
+    MUST NOT change.
+  - STRONGLY RECOMMENDED to appear on the `self` Link attribute.
+  - MAY be present for other Link attributes.
 
 ## HTTP Binding
 
@@ -151,7 +218,7 @@ flow of HTTP messages during the retrieval of a set of records.
 
 ### Request for a record set
 
-To request a set of records from a server, a client will send an HTTP GET
+To request a set of records from a server, a client will send an HTTP `GET`
 request to the server. How this URL is determined is out of scope of this
 specification.
 
@@ -160,7 +227,7 @@ there is some out-of-band negotiation to determine a different mechanism,
 the server MUST accept the `limit` attribute as a query parameter (named
 `limit`, case sensitive) in the URL.
 
-For example:
+Example:
 ```
 http://example.com/people?limit=100
 ```
@@ -168,32 +235,39 @@ http://example.com/people?limit=100
 ### Response for a record set
 
 Each successful response from the server MUST adhere to the following:
-- MUST respond with an HTTP 200.
+- MUST respond with an HTTP response code in the `2xx` range.
 - MUST include zero or more records.
+- If the `limit` attribute was specified as part of the initial request
+  for the result set, all responses for the result set MUST NOT include more
+  records than what the `limit` attribute indicated.
 - If the response refers to the start of the set of records, then the `prev`
   Link MUST NOT be included in the response.
 - If the response does not include the start of the set of records, then the
   `prev` Link MAY be included in the response.
-- The response MAY include the `first` Link in any response.
-- If the `limit` attribute was specified as part of the flow, the response MUST
-  NOT include more records than what the `limit` attribute has indicated.
+- The `first` Link MAY appear in any response.
 - If no more records remain after the current subset, then the `next`
   Link MUST NOT be included in the response.
 - If more records remain after the current subset, then the
   `next` Link MUST be included in the response.
-- The response MAY include the `last` Link in any response.
+- The `last` Link MAY appear in any response.
 - The response MAY include the `expires` attribute in any response as an
   HTTP "Expires" header. The generic attribute is a `Timestamp`; in this
   binding its value MUST be converted to an HTTP-date, as defined in
   [RFC9111, section 5.3](https://www.rfc-editor.org/rfc/rfc9111#section-5.3)
   and [RFC9110, section 5.6.7](https://www.rfc-editor.org/rfc/rfc9110#section-5.6.7).
-- When a pagination Link is included, it is STRONGLY RECOMMENDED that the
-  response include the `count` attribute as a parameter on a pagination Link.
-- When no pagination Link is included, the response MAY omit `count`, even
-  when the server knows the total number of records.
+- It is STRONGLY RECOMMENDED that all responses include the `self` Link with
+  the `offset`, `limit` and `count` attributes.
 
-Additionally, Links MUST appear in the HTTP response as HTTP headers using
-the format described in [RFC8288](https://www.rfc-editor.org/rfc/rfc8288#section-3).
+Links in server response messages MUST appear as HTTP headers using the format
+described in [RFC8288](https://www.rfc-editor.org/rfc/rfc8288#section-3), and
+adhere to the following form:
+
+```
+Link: <URL>;rel=STRING;offset=UINT;limit=UINT;count=UINT
+```
+
+Where:
+- `offset`, `limit` and `count` are OPTIONAL HTTP parameters as defined above.
 
 No `first` or `last` Link is REQUIRED solely to carry a count, and no
 separate HTTP count header is defined. Which Links are present follows the
@@ -201,29 +275,55 @@ constraints in [Server Attributes](#server-attributes) and the bullets above.
 
 When supplied, `count` is a Link extension parameter containing an unsigned
 decimal integer, either as a token or an equivalent quoted-string under the
-Link syntax. All supplied counts for the same record set MUST agree, whether
-they occur on different Link values, different header lines or later pages.
+Link syntax. Its consistency follows the `count` constraints above.
 
-Example 1:
+Example:
+
+Initiate a pagination request, asking for only 10 records per response:
+
 ```
-Link: <http://example.com?limit=100&offset=3>;rel=next
-Link: <http://example.com?limit=100&offset=1>;rel=prev
+GET http://example.com/?limit=10
 ```
 
-Example 2:
+The first response in the sequence of 100 items might look like:
 ```
-Link: <http://example.com?resultset=83d71>;rel=next
+HTTP/1.1 200 OK
+Link: <http://example.com?seq=29182>;rel=first
+Link: <http://example.com?seq=29182s>;rel=self;offset=0;limit=10;count=100
+Link: <http://example.com?seq=29182n>;rel=next
 Expires: Wed, 01 Dec 2021 16:00:00 GMT
+
+... first 10 records ...
 ```
 
-Example 3:
+and the 2nd request might look like:
+
 ```
-Link: <http://example.com?id=1001>;rel=next;count=3000
-Link: <http://example.com?id=0>;rel=prev;count=3000
+GET http://example.com?seq=29182n
 ```
 
-An empty result set can be returned without a pagination Link or count.
-The example bodies below contain exactly the two bytes `[]`.
+The response might look like:
+```
+HTTP/1.1 200 OK
+Link: <http://example.com?seq=29182>;rel=first
+Link: <http://example.com?seq=29182>;rel=prev
+Link: <http://example.com?seq=29182s>;rel=self;offset=10;limit=10;count=100
+Link: <http://example.com?seq=29182n>;rel=next
+Expires: Wed, 01 Dec 2021 16:00:00 GMT
+
+... second 10 records ...
+```
+
+If the complete result set was only 5 records, then only the `self` Link header
+might included in the first response:
+
+```
+Link: <http://example.com?seq=29182>;rel=self;offset=0;limit=10;count=5
+```
+
+The following empty response omits the RECOMMENDED `self` Link and all
+pagination metadata. The example bodies below contain exactly the two bytes
+`[]`.
 
 Example 4:
 ```http
@@ -234,15 +334,16 @@ Content-Length: 2
 []
 ```
 
-A server MAY instead offer a `first` Link for that empty set and include a
-zero count. This Link is OPTIONAL, not a prerequisite for an empty response.
+A server can instead offer the RECOMMENDED `self` Link for that empty set and
+include a zero count. The `offset` attribute MUST NOT be present for an empty
+referenced set.
 
 Example 5:
 ```http
 HTTP/1.1 200 OK
 Content-Type: application/json
 Content-Length: 2
-Link: <https://example.com/people?resultset=empty>;rel=first;count=0
+Link: <https://example.com/people?resultset=empty>;rel=self;count=0
 
 []
 ```
@@ -271,8 +372,16 @@ the next subset of records until a response is returned without a `next` Link -
 indicating that it has reached the end.
 
 Absence of `count`, or an empty current page, MUST NOT be interpreted as the end
-when a `next` Link is present. Conversely, OPTIONAL `prev`, `first` or `last`
-Links do not require continued forward traversal when `next` is absent.
+when a `next` Link is present. Conversely, OPTIONAL `prev`, `first`, `last` or
+`self` Links do not require continued forward traversal when `next` is absent.
+
+For each record set returned, typically, the client will use the `self` Link's
+metadata in any end-user facing interfaces to indicate which page they are
+viewing. For example, using the above example's 2nd response's metadata:
+
+```
+Showing: 11-20 of 100 records
+```
 
 However, if other Links are provided by the server, then the client MAY
 use those Links instead to follow a different traversal path through the
