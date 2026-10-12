@@ -1228,9 +1228,14 @@
           },
           "usage": {
             "type": "array",
-            "description": "Client's expected usage of this endpoint. Single-role declarations are preferred. Mixed declarations are guidance-oriented metadata and should be used only when role semantics are unambiguous.",
+            "description": "Required, nonempty array of client roles: subscriber, consumer, or producer. The producer role MUST NOT be combined with another role. Only subscriber and consumer MAY be combined, and only for AMQP/1.0, MQTT/3.1.1, MQTT/5.0, or NATS. Domain validation MUST enforce these constraints.",
             "items": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "subscriber",
+                "consumer",
+                "producer"
+              ]
             }
           },
           "channel": {
@@ -1278,6 +1283,9 @@
             }
           }
         },
+        "required": [
+          "usage"
+        ],
         "allOf": [
           {
             "oneOf": [

@@ -2774,7 +2774,7 @@ So, if the target Resource (`sharedSchema`) is defined as:
 {
   "schemaid": "sharedSchema",
   "versionid": "v1",
-  "self": "http://example.com/schemagroups/group2/schemas/sharedSchema",
+  "self": "http://example.com/schemagroups/group2/schemas/sharedSchema$details",
   "xid": "/schemagroups/group2/schemas/sharedSchema",
   "epoch": 2,
   "isdefault": true,
@@ -2795,7 +2795,7 @@ then the resulting serialization of the source Resource would be:
 {
   "schemaid": "mySchema",
   "versionid": "v1",
-  "self": "http://example.com/schemagroups/group1/schemas/mySchema",
+  "self": "http://example.com/schemagroups/group1/schemas/mySchema$details",
   "xid": "/schemagroups/group1/schemas/mySchema",
   "epoch": 2,
   "isdefault": true,
@@ -2813,7 +2813,7 @@ then the resulting serialization of the source Resource would be:
     "modifiedat": "2024-01-01T12:01:00Z",
     "readonly": false,
     "defaultversionid": "v1",
-    "defaultversionurl": "http://example.com/schemagroups/group1/schemas/mySchema/versions/v1",
+    "defaultversionurl": "http://example.com/schemagroups/group1/schemas/mySchema/versions/v1$details",
     "defaultversionsticky": false
   },
 
@@ -2919,7 +2919,7 @@ Resource (`missingSchema`) would look like:
 ```yaml
 {
   "schemaid": "mySchema",
-  "self": "http://example.com/schemagroups/group1/schemas/mySchema",
+  "self": "http://example.com/schemagroups/group1/schemas/mySchema$details",
   "xid": "/schemagroups/group1/schemas/mySchema",
   "metaurl": "https://example.com/schemagroups/group1/schemas/mySchema/meta",
   "meta": {

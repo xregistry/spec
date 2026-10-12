@@ -276,6 +276,20 @@
         "description": {
           "type": "string"
         },
+        "enum": {
+          "type": "array",
+          "description": "Allowed values for scalar wildcard attributes"
+        },
+        "strict": {
+          "type": "boolean",
+          "default": true
+        },
+        "attributes": {
+          "$ref": "#/definitions/AttributeDefinitions"
+        },
+        "item": {
+          "$ref": "#/definitions/ItemDefinition"
+        },
         "readonly": {
           "enum": [false, null],
           "description": "Wildcard: not modifiable"
@@ -289,7 +303,32 @@
           "description": "Wildcard: no conditional attributes"
         }
       },
-      "additionalProperties": true
+      "additionalProperties": true,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": { "enum": ["array", "map"] }
+            }
+          },
+          "then": {
+            "required": ["item"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": { "enum": ["array", "map", "object", "any"] }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "properties": {
+              "enum": { "not": {} }
+            }
+          }
+        }
+      ]
     },
     "AttributeDefinition": {
       "oneOf": [
@@ -409,6 +448,22 @@
         {
           "if": {
             "properties": {
+              "type": { "enum": ["array", "map", "object", "any"] }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "properties": {
+              "enum": {
+                "not": {},
+                "description": "Only scalar attributes carry a value set; an array or map restricts its elements through 'item.enum'"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
               "default": { "not": { "type": "null" } }
             },
             "required": ["default"]
@@ -444,6 +499,15 @@
           "enum": ["strict", "extended"],
           "default": "strict"
         },
+        "enum": {
+          "type": "array",
+          "description": "Allowed values for scalar items; membership, 'strict' and the empty or absent set follow the attribute 'enum' rules"
+        },
+        "strict": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to restrict item values to enum only"
+        },
         "attributes": {
           "$ref": "#/definitions/AttributeDefinitions"
         },
@@ -461,6 +525,22 @@
           },
           "then": {
             "required": ["item"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": { "enum": ["array", "map", "object", "any"] }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "properties": {
+              "enum": {
+                "not": {},
+                "description": "Only scalar items carry a value set; a container recurses through its own 'item'"
+              }
+            }
           }
         }
       ]
