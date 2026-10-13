@@ -586,13 +586,13 @@
         "tags": [
           "ResourceGroup"
         ],
-        "description": "Deletes a resource group. Requires the current epoch. (See spec: Deleting Entities in a Registry Collection)",
+        "description": "Deletes a resource group. Supports an optional epoch guard. (See spec: Deleting Entities in a Registry Collection)",
         "parameters": [
           {
             "in": "query",
             "name": "epoch",
             "description": "The current epoch of the group.",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "integer",
               "format": "int64"
@@ -743,13 +743,13 @@
         "tags": [
           "ResourceGroup"
         ],
-        "description": "Deletes a resource group. Requires the current epoch. (See spec: Deleting Entities in a Registry Collection)",
+        "description": "Deletes a resource group. Supports an optional epoch guard. (See spec: Deleting Entities in a Registry Collection)",
         "parameters": [
           {
             "in": "query",
             "name": "epoch",
             "description": "The current epoch of the group.",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "integer",
               "format": "int64"
@@ -1662,7 +1662,7 @@
       },
       "delete": {
         "summary": "Delete resource",
-        "description": "Deletes the resource and all of its versions. Requires the current epoch. (See spec: Deleting Resources)",
+        "description": "Deletes the resource and all of its versions. Supports an optional epoch guard. (See spec: Deleting Resources)",
         "operationId": "deleteMessagegroupMessage",
         "tags": [
           "Resource"
@@ -1672,7 +1672,7 @@
             "in": "query",
             "name": "epoch",
             "description": "The current epoch of the resource.",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "integer",
               "format": "int64"
@@ -2046,7 +2046,7 @@
       },
       "delete": {
         "summary": "Delete resource",
-        "description": "Deletes the resource and all of its versions. Requires the current epoch. (See spec: Deleting Resources)",
+        "description": "Deletes the resource and all of its versions. Supports an optional epoch guard. (See spec: Deleting Resources)",
         "operationId": "deleteEndpointMessages",
         "tags": [
           "Resource"
@@ -2056,7 +2056,7 @@
             "in": "query",
             "name": "epoch",
             "description": "The current epoch of the resource.",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "integer",
               "format": "int64"
@@ -2456,13 +2456,13 @@
         "tags": [
           "ResourceVersion"
         ],
-        "description": "Deletes a specific version of a resource. Requires the current epoch. (See spec: Deleting a Version)",
+        "description": "Deletes a specific version of a resource. Supports an optional epoch guard. (See spec: Deleting a Version)",
         "parameters": [
           {
             "in": "query",
             "name": "epoch",
             "description": "The current epoch of the version.",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "integer",
               "format": "int64"
@@ -2567,13 +2567,13 @@
         "tags": [
           "ResourceVersion"
         ],
-        "description": "Deletes a specific version of a resource. Requires the current epoch. (See spec: Deleting a Version)",
+        "description": "Deletes a specific version of a resource. Supports an optional epoch guard. (See spec: Deleting a Version)",
         "parameters": [
           {
             "in": "query",
             "name": "epoch",
             "description": "The current epoch of the version.",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "integer",
               "format": "int64"
