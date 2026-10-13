@@ -1012,10 +1012,17 @@ defined as protocol options by this specification.
 
 ##### KAFKA options
 
-The [bootstrap server addresses](#protocoloptionsendpoints) for "Kafka"
-endpoints MUST be
-valid Kafka bootstrap server addresses in `<HOST>:<PORT>` form, as described in
-[Kafka client configuration].
+Kafka uses different address formats for broker listeners and clients.
+A listener-style `uri` includes a scheme, such as `SSL://broker1:9092` or
+`PLAINTEXT://broker1:9092`. The client `bootstrap.servers` configuration uses
+plain `host:port` addresses, such as `broker1:9092`, without a scheme, as
+specified in [Kafka client configuration].
+
+For `KAFKA` endpoints, the [endpoint addresses](#protocoloptionsendpoints)
+MUST be carried in `bootstrap.servers` as an array of client bootstrap
+addresses. Each entry MUST use the `host:port` format without a scheme.
+The listener-style `uri` format is not an alternative addressing field
+for a `KAFKA` endpoint.
 
 The following options are defined for Kafka endpoints.
 
