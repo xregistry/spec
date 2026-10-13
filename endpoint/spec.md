@@ -793,6 +793,7 @@ Example:
       "envelope": "CloudEvents/1.0",
       "envelopemetadata": {
         "type": {
+          "type": "string",
           "value": "myevent"
         }
       }
