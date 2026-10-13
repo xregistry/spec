@@ -3240,6 +3240,9 @@ and per [RFC7230, section 3][rfc7230-section-3], HTTP headers MUST only use
 printable characters from the US-ASCII character set, and are terminated by a
 CRLF sequence with OPTIONAL whitespace around the header value.
 
+Native HTTP headers, such as `Content-Type`, retain their native syntax and
+encoding. The attribute-value rules below apply to `xRegistry-` headers.
+
 When encoding an attribute's value as an `xRegistry-` HTTP header, it MUST be
 percent-encoded as described below. This is compatible with [RFC3986, section
 2.1][rfc3986-section-2-1] but is more specific about what needs
