@@ -410,8 +410,7 @@
           "if": {
             "properties": {
               "type": { "enum": ["array", "map", "object", "any"] }
-            },
-            "required": ["type"]
+            }
           },
           "then": {
             "properties": {
@@ -489,8 +488,7 @@
           "if": {
             "properties": {
               "type": { "enum": ["array", "map", "object", "any"] }
-            },
-            "required": ["type"]
+            }
           },
           "then": {
             "properties": {
