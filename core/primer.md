@@ -1205,8 +1205,9 @@ Group and Resource names limited to less? Because when they appear as part of
 attribute names and they can be appended with phrases like `url`, `count`
 or `base64`, and they still have to fit within the 63-character limit, and so
 we need to take into account the length of those phrases. As a result, Group
-type singular names are limited to 63 characters.
-All other Group and Resource type names are limited to 57 characters.
+type singular names are limited to 61 characters.
+Group type plural names and Resource type singular and plural names are
+limited to 57 characters.
 
 ### 11.13. Why must Group type and Resource type names be valid attribute names?
 
