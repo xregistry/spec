@@ -2,7 +2,7 @@
 <!-- words: apikeyname apikeyin plainscheme plainusernamefield plainpasswordfield sasl oauthbearer -->
 <!-- words: cleanstart sessionexpiryinterval topicfilter retainhandling retainaspublished nolocal -->
 <!-- words: sharedsubscriptiongroup keyserializer valueserializer enableautocommit autooffsetreset -->
-<!-- words: serializer subjectfilter queuegroup usernames tenantid -->
+<!-- words: serializer subjectfilter queuegroup usernames tenantid configs -->
 
 ## Abstract
 
@@ -1011,10 +1011,17 @@ defined as protocol options by this specification.
 
 ##### KAFKA options
 
-The [endpoint URIs](#protocoloptionsendpoints) for "Kafka" endpoints MUST be
-valid Kafka bootstrap server addresses. The scheme follows Kafka configuration
-usage as described in [Apache Kafka], e.g. `SSL://<HOST>:<PORT>` or
-`PLAINTEXT://<HOST>:<PORT>`.
+Kafka uses different address formats for broker listeners and clients.
+A listener-style `uri` includes a scheme, such as `SSL://broker1:9092` or
+`PLAINTEXT://broker1:9092`. The client `bootstrap.servers` configuration uses
+plain `host:port` addresses, such as `broker1:9092`, without a scheme, as
+specified in [Kafka client configuration].
+
+For `KAFKA` endpoints, the [endpoint addresses](#protocoloptionsendpoints)
+MUST be carried in `bootstrap.servers` as an array of client bootstrap
+addresses. Each entry MUST use the `host:port` format without a scheme.
+The listener-style `uri` format is not an alternative addressing field
+for a `KAFKA` endpoint.
 
 The following options are defined for Kafka endpoints.
 
@@ -1097,6 +1104,7 @@ Addressing constraints:
 [CloudEvents Subscriptions API]: https://github.com/cloudevents/spec/blob/main/subscriptions/spec.md
 [NATS]: https://docs.nats.io/reference/protocols/client/
 [Apache Kafka]: https://kafka.apache.org/protocol
+[Kafka client configuration]: https://kafka.apache.org/41/configuration/producer-configs#producerconfigs_bootstrap.servers
 [Apache Kafka producer]: https://kafka.apache.org/31/javadoc/org/apache/kafka/clients/producer/ProducerRecord.html
 [Apache Kafka consumer]: https://kafka.apache.org/31/javadoc/org/apache/kafka/clients/consumer/ConsumerRecord.html
 [HTTP Message Format]: https://www.rfc-editor.org/rfc/rfc9110#section-6
