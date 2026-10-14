@@ -3914,6 +3914,10 @@ relative and reference a Resource or Version, any protocol-specific
 modifications to the URLs (e.g. the HTTP `$details` suffix) MUST NOT be
 present despite the semantics of the suffix being applied (as noted below).
 
+When a relative URL references the root of the response, it MUST be `#`,
+which represents an empty JSON Pointer selecting the whole document, not
+`#/`, which selects an object member with an empty name.
+
 For clarity, if a Registry has a Schema Resource at
 `/schemagroups/g1/schemas/s1`, then this entity's `self` URL (when serialized
 in document view) would change based on the path specified on the `GET`
