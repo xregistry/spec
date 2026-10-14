@@ -168,6 +168,8 @@ pattern of the APIs:
   `DELETE` MUST then be used to delete unwanted entities.
 - Unknown query parameters SHOULD be silently ignored by servers. This
   includes specification-defined but unsupported query parameters.
+- The choice of disposition type in a `Content-Disposition` response header,
+  such as `inline` or `attachment`, is left to the application.
 - Despite the
   [HTTP specification](https://datatracker.ietf.org/doc/html/rfc9110#name-idempotent-methods)
   saying that the `PUT` method is idempotent, this specification does not
