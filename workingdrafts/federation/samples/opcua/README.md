@@ -29,7 +29,7 @@ code. It prints each file's case and expected-error counts. `show` first
 validates the file and then prints one named result. Invalid fixtures,
 unexpected outcomes and unavailable files produce a JSON error on standard
 error and exit status 1. Argument syntax errors use argparse's exit status 2.
-No new test modules are part of these examples.
+These commands run the fixtures directly; no test runner is needed.
 
 ## Fixture Files
 
@@ -121,7 +121,7 @@ one captured token in `continuationPoints` and set
 `releaseContinuationPoints`. Tokens are Base64 or null/empty at completion.
 The same token can be reused by a server as traversal advances. It is not
 in itself a cycle. Browse references contain native addressing observations,
-not label values magically returned by Browse.
+not label values.
 
 File events use `service: "Call"`, the Method BrowseName in `method`,
 native argument names in `input`, and normalized `output`. `Open` returns
@@ -188,8 +188,8 @@ new OPC UA or xRegistry document-size limits.
 ## Dedicated Test-Phase Inventory
 
 The supplied fixtures contain executable positive and negative cases.
-The following matrix also names boundary mutations for the later test
-phase. It is not a claim that a unit-test suite has already been generated.
+The following matrix also lists boundary mutations for conformance checks;
+it does not claim that every listed mutation has an executable test.
 
 | Area | Edge cases |
 | --- | --- |

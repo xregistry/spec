@@ -178,7 +178,7 @@ semantic digest definition.
 
 ## Standard Artifact Copy
 
-The actual interoperability exercise uses ORAS **1.3.0** and both standard
+The interoperability exercise uses ORAS **1.3.0** and both standard
 layout modes, without `--recursive`, a server or any remote publication:
 
 ```powershell
@@ -192,7 +192,7 @@ including configs, range shards, empty collections, binary bytes and the
 zero-byte document. The linked Registry root was not selected or copied.
 Environment-specific command logs, release-checksum verification and
 the independently compared closure inventory are retained in the
-implementation session, not represented by a fabricated passing test.
+implementation session.
 
 ORAS also placed auxiliary descriptors for copied internal indexes and
 manifests in the destination layout's `index.json`: 69 entries in this
@@ -211,7 +211,7 @@ descriptor hashing or the full graph walk.
 
 ## Edge Cases for Conformance Checks
 
-Positive and negative probes for later automated suites include:
+Positive and negative conformance cases include:
 
 - Exact 256/257 descriptor and 1,048,576/1,048,577 encoded-byte boundaries,
   with control descriptors included and byte-driven splitting below 256.

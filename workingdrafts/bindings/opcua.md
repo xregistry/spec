@@ -1142,8 +1142,7 @@ collection
 subset is a sequence or server-defined batch of `Delete(ExpectedEpoch)` Calls,
 one for each selected `ResourceType` or resource-version set.
 
-Deleting a resource collection subset is a sequence or server-defined batch of
-`Delete(ExpectedEpoch)` Calls, one for each selected logical Resource. A server
+Each `Delete(ExpectedEpoch)` Call targets one selected logical Resource. A server
 MUST NOT retain any exact Version from a deleted Resource as a detached or
 group-level alias.
 
