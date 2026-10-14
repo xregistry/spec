@@ -68,6 +68,12 @@ Avro (`document-schema.avsc`), and OpenAPI (`openapi.json`) in the
 [schema](schema/schemas/)). The core model has its own JSON Schema at
 [core/model.schema.json](core/model.schema.json).
 
+Generated schema artifacts are regenerated from the models whenever the
+generator changes. Regenerating them can change Avro record names and
+layouts, so check writer/reader compatibility before upgrading generated
+bindings; see the [release notes](docs/RELEASE_NOTES.md) for the per-change
+detail.
+
 Additional release related information:
   [Historical releases and changelogs](docs/RELEASES.md)
 
