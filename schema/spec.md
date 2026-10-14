@@ -397,9 +397,9 @@ xRegistry specification for more information.
 
 ### 4.3. Schema Formats
 
-The `format` attribute is REQUIRED for each Schema Version, as defined by
-the [Core model][xRegistry-required-aspect].
-Clients MAY omit `format` from a request if the server populates its value.
+The `format` attribute in the [Core model](../core/spec.md#format-attribute)
+is defined as being OPTIONAL. However, this specification modifies it to be
+REQUIRED.
 
 This specification further refines the
 [core specification's `format`](../core/spec.md#format-attribute) for use
@@ -679,5 +679,4 @@ a schema, allowing for fine-grained access control.
 [xRegistry pagination]: https://xregistry.io/xreg/xregistryspecs/pagination-v1/docs/spec.html
 [xRegistry deprecated]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#deprecated
 [xRegistry default-version]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#registry-design
-[xRegistry-required-aspect]: https://github.com/xregistry/spec/blob/508cd2760a3c5b74adf61acac1e94654f9852f34/core/model.md?plain=1#L376-L390
 [xRegistry hasdocument]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#hasdocument
