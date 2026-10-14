@@ -71,23 +71,20 @@ plugins that a Consumer needs to compose and render a USD stage.
 ## 1. Overview
 
 An OpenUSD Artifact Registry provides a repository for managing the artifacts
-that make up an [OpenUSD][OpenUSD] scene: **layers** (`.usda`, `.usdc`,
-`.usd`), **packages** (`.usdz`), the **textures**, **MaterialX** documents and
-**volumes** those layers reference, and the **schema plugins** that teach a
+that make up an [OpenUSD][OpenUSD] scene: layers (`.usda`, `.usdc`,
+`.usd`), packages (`.usdz`), the textures, MaterialX documents and
+volumes those layers reference, and the schema plugins that teach a
 Consumer about vendor-defined prim types.
 
 USD itself deliberately says nothing about where assets live. A layer refers
 to another asset by writing an **asset identifier** between `@` characters —
 for example `@./pump.usda@` — and delegates the job of turning that string into
-retrievable bytes to an **asset resolver**. Every deployment therefore invents
-its own answer: a file share, an object store, a version-control checkout, a
-vendor asset service. Those answers do not interoperate, and none of them
-carries the metadata a Consumer needs in order to know *whether it has
-everything*, *whether the bytes are intact*, or *which revision it is looking
-at*.
+retrievable bytes to an **asset resolver**. Deployments can store assets in
+a file share, an object store, a version-control checkout or a vendor asset
+service. This specification defines a common description of asset
+dependencies, integrity and revisions across those locations.
 
-An OpenUSD Artifact Registry is that missing answer, expressed once. An
-OpenUSD Artifact Registry makes a set of USD artifacts:
+An OpenUSD Artifact Registry makes a set of USD artifacts:
 
 - **Discoverable** — what does this scene consist of?
 - **Verifiable** — are these the bytes the Producer intended?
@@ -105,12 +102,12 @@ authored scene.
 A **USD artifact** is a single retrievable document: one layer, one package,
 one texture, one MaterialX document, one plugin manifest.
 
-Artifacts are not useful in isolation. A stage is opened against a single
-**root layer**, and that root layer pulls in others through composition arcs —
-sublayers, references, payloads — which in turn reference textures and
-materials. The transitive set is the **dependency closure**. A Consumer
+A stage is opened against a single **root layer**, which pulls in others
+through composition arcs — sublayers, references, payloads — which in turn
+reference textures and materials. The transitive set is the **dependency
+closure**. A Consumer
 that is missing any member of it cannot compose the scene correctly. USD will
-either fail to open the layer or, worse, compose a scene with silently missing
+either fail to open the layer or compose a scene with silently missing
 opinions.
 
 This specification therefore groups artifacts by **asset container**: a named
@@ -153,11 +150,9 @@ selection) apply unchanged.
 
 The **asset identifier binds to the Resource, not to the Version.** All
 Versions of one `usdasset` share one `assetidentifier` and one `usdassetid`.
-They differ only in `versionid`. This is what makes an authored `@...@`
-reference durable. A layer that pinned a particular revision would defeat the
-registry's ability to serve a corrected artifact. A Consumer that resolved
-an identifier to a Version would re-resolve to a different artifact whenever a
-new revision was published.
+Their `versionid` values distinguish the revisions. An authored `@...@`
+reference continues to name the same Resource when a new Version is
+published. Version selection follows the Core rules described below.
 
 For the same reason a `usdassetid` MUST NOT be derived from the artifact's
 bytes. A Resource is the umbrella over its Versions, so an id computed from a
@@ -224,12 +219,12 @@ This specification defines the following terms:
 We use the term **USD asset** (or `usdasset` Resource) in this specification as
 a logical grouping of **USD Asset Versions**. A **USD Asset Version** is one
 concrete artifact document — a layer, a package, a texture, a MaterialX
-document, a volume, a plugin manifest or a generated schema. The **USD asset**
-Resource is a semantic umbrella formed around one or more concrete documents
-that represent iterations of the same logical artifact. Per the definition of
-the [`compatibility`][xRegistry compatibility] attribute, all Versions of a
-single **USD asset** MUST adhere to the rules defined by the `compatibility`
-attribute. Any breaking change MUST result in a new **USD asset** Resource
+document, a volume, a plugin manifest or a generated schema. The USD asset
+Resource groups one or more concrete documents that represent iterations of
+the same logical artifact. Per the definition of the
+[`compatibility`][xRegistry compatibility] attribute, all Versions of a
+single USD asset MUST adhere to the rules defined by the `compatibility`
+attribute. Any breaking change MUST result in a new USD asset Resource
 being created.
 
 #### 2.2.2. Asset Identifier
@@ -252,8 +247,8 @@ A **schema plugin** is a set of files that declares USD prim types to a
 Consumer at runtime. This specification is concerned with **codeless** schema
 plugins, which require exactly two documents — a plugin manifest and a
 generated schema — and no compiled code. A Consumer that retrieves and
-registers both can browse and author a vendor's prim types with full fidelity
-instead of degrading them to untyped prims.
+registers both can browse and author the vendor's declared prim types rather
+than treating them as untyped prims.
 
 #### 2.2.4. Consumer and Producer
 
@@ -270,7 +265,7 @@ composable unit: a root layer together with the sublayers, references,
 payloads, textures, MaterialX documents and volumes reachable from it.
 
 Unlike the Groups of some other xRegistry domains, an Asset Container Group is
-**not** an arbitrary application-defined bucket. Its membership is determined by
+not an arbitrary application-defined bucket. Its membership is determined by
 composition: see [Section 5.2](#52-the-dependency-closure).
 
 ### 2.4. Schema Plugin Group
@@ -422,7 +417,7 @@ An Asset Container Group is a collection of USD assets that together compose
 one scene unit. Every USD asset (i.e. the `usdasset` Resource) MUST reside
 inside either an Asset Container Group or a Schema Plugin Group.
 
-The `usdassetgroupid` **is** the asset container identifier. This
+The `usdassetgroupid` is the asset container identifier. This
 specification does not define a separate attribute for it, and an
 implementation MUST NOT treat the Group id as a prefix of its members'
 `assetidentifier` values — member identifiers are already normalized relative
@@ -479,9 +474,8 @@ concrete artifact document.
 
 The `usdassetid` MUST be the assigned symbolic identifier of the Resource's
 `assetidentifier`. See [Section 5.1](#51-asset-identifiers-and-xids). The
-`assetidentifier`, not the id, is the authority: it is REQUIRED, it is what a
-layer authors, and it is what a Consumer matches an authored `@...@` reference
-against.
+`assetidentifier`, not the id, is authoritative. It is REQUIRED: a layer
+authors it, and a Consumer matches an authored `@...@` reference against it.
 
 A `usdasset` MUST set the core [`name`][xRegistry Core] attribute to its
 `assetidentifier` verbatim, so that a person browsing the registry — including
@@ -546,7 +540,7 @@ The Group name for schema plugins is `usdschemaplugingroup` (singular), with
 collection name `usdschemaplugingroups`. The Schema Plugin Group does not have
 any specific extension attributes.
 
-The `usdschemaplugingroupid` **is** the plugin name, normalized: it MUST be the
+The `usdschemaplugingroupid` is the plugin name, normalized: it MUST be the
 symbolic identifier of the plugin name declared by the `SchemaPlugin` document
 the Group contains ([Section 5.1.1](#511-the-symbolic-identifier-construction)),
 and an implementation MUST reject a Group whose id does not match.
@@ -564,10 +558,9 @@ Group offering only one of them is not usable.
 The Resource inside Schema Plugin Groups is also named `usdasset`, with
 collection name `usdassets`. It is the **same Resource type** as in
 [Section 4.2](#42-usd-asset-resources), with the same attributes and the same
-identifier rules. This is because a plugin manifest and a generated schema are
-USD artifacts like any other: they are retrieved the same way, versioned the
-same way, and verified the same way. Only their `assetkind` and `format` values
-differ.
+identifier rules. The same retrieval, versioning and verification rules apply
+to plugin manifests and generated schemas. Only their `assetkind` and `format`
+values differ.
 
 The `assetkind` of the plugin manifest MUST be `SchemaPlugin` and its `format`
 MUST be `USD-PlugInfo/1.0`. The `assetkind` of the generated schema MUST be
@@ -587,9 +580,9 @@ identifiers for other artifact classes, but MUST NOT use the identifiers below
 for any document that is not conformant with the corresponding specification.
 
 `format` describes the **document**. `assetkind` describes the artifact's
-**role**. The two are orthogonal and both are meaningful: a `SubLayer`, a
-`Reference` and a `Payload` are all `OpenUSD/1.0` documents, while a single
-`Reference` might be a layer, a package or a MaterialX document.
+**role**. For example, a `SubLayer`, a `Reference` and a `Payload` are all
+`OpenUSD/1.0` documents, while a single `Reference` might be a layer, a package
+or a MaterialX document.
 
 #### 4.5.1. USD Layer
 
@@ -816,8 +809,8 @@ For example, in container `fabrikam.plant-01`:
 
 Conflating the identifier with the id would break relative resolution. A
 Consumer that caches artifacts locally places each one at the relative path
-given by its `assetidentifier`, which is precisely what makes an authored
-reference such as `@./pump.usda@` resolve from its sibling layer. Caching by
+given by its `assetidentifier`, so an authored reference such as
+`@./pump.usda@` resolves from its sibling layer. Caching by
 `usdassetid` would not.
 
 ### 5.2. The Dependency Closure
@@ -860,14 +853,12 @@ URL and is not followed transitively. The
 [federation working draft](../../federation/spec.md) defines explicit Registry
 selection and binding access while preserving this Core distinction.
 
-This is what makes artifact registries composable, and it is the reason the
-identifier rules of [Section 5.1](#51-asset-identifiers-and-xids) are strict. A
-plant-level registry can describe a turbine supplied by a vendor and delegate
+The identifier rules of [Section 5.1](#51-asset-identifiers-and-xids) let a
+plant-level registry describe a turbine supplied by a vendor and delegate
 the bytes to the vendor's own registry. It does so without copying the vendor's
 content, and without either party re-authoring the scene. The authored
 `@turbine.usda@` resolves to the same `assetidentifier` in both registries, and
-only the hosting
-changes.
+only the hosting changes.
 
 Consequently:
 
@@ -887,7 +878,7 @@ resolver in its chain, and MAY stop as soon as an artifact resolves.
 ### 5.4. Asset Resolution
 
 Sections [5.1](#51-asset-identifiers-and-xids) through
-[5.3](#53-federation) together mean that a registry **is** an addressable asset
+[5.3](#53-federation) together mean that a registry is an addressable asset
 resolver backend. A USD asset resolver plugin holding a container context
 resolves an authored `@...@` reference by the bounded forward procedure in
 Section 5.1.1: normalize, compute the candidate and sole fallback, and validate
@@ -935,33 +926,28 @@ Like the [xRegistry Core][xRegistry Core] specification, this specification
 does not explicitly address authentication or authorization levels of users,
 nor how to securely protect the APIs.
 
-It is expected that any implementation of this specification will use
-authentication and authorization mechanisms that are appropriate for the
-application domain and the deployment environment. This MAY include, but is not
-limited to, OAuth 2.0, OpenID Connect, API keys, or other mechanisms
-appropriate for the use case.
+Implementations are expected to use authentication and authorization
+mechanisms suited to the application domain and deployment environment.
+These MAY include OAuth 2.0, OpenID Connect, API keys or other mechanisms.
 
-For authorization, the `usdassetgroup` and `usdschemaplugingroup` concepts
-provide a natural boundary, where users can be granted access to specific
-Groups and therefore to the artifacts they contain. Because an Asset Container
-Group is exactly the set of artifacts needed to compose one scene unit, it is
-also a meaningful unit of entitlement.
+Users can be granted access to particular `usdassetgroup` and
+`usdschemaplugingroup` Groups and their artifacts. For an Asset Container
+Group, this covers the artifacts needed to compose one scene unit.
 
 Operators SHOULD be aware of three domain-specific considerations:
 
 - **Artifacts are intellectual property.** A USD layer is engineering data:
-  geometry, tolerances, materials and plant topology. Read authorization
-  matters at least as much as write authorization, which is the opposite of the
-  emphasis in some registry domains.
+  geometry, tolerances, materials and plant topology. Read access can disclose
+  that data even when write access is restricted.
 - **A digest is integrity, not authenticity.** Verifying a `digest` proves the
   bytes match what the registry described. It does not establish who authored
   the artifact. Deployments needing provenance SHOULD carry a signature
   alongside, out of band of this specification.
-- **Retrieval is composition.** A Consumer that opens a retrieved root layer
-  will follow its composition arcs, and a maliciously authored layer can direct
-  a resolver at unintended locations. A Consumer SHOULD confine resolution to
-  the registry and its declared federation links rather than allowing arbitrary
-  resolution from authored strings.
+- **Composition can follow external references.** A Consumer that opens a
+  retrieved root layer will follow its composition arcs, and a maliciously
+  authored layer can direct a resolver at unintended locations. A Consumer
+  SHOULD confine resolution to the registry and its declared federation links
+  rather than allowing arbitrary resolution from authored strings.
 
 ---
 
