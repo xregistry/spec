@@ -105,8 +105,8 @@ one texture, one MaterialX document, one plugin manifest.
 A stage is opened against a single **root layer**, which pulls in others
 through composition arcs — sublayers, references, payloads — which in turn
 reference textures and materials. The transitive set is the **dependency
-closure**. A Consumer
-that is missing any member of it cannot compose the scene correctly. USD will
+closure**. A Consumer that is missing any member of it cannot compose the
+scene correctly. USD will
 either fail to open the layer or compose a scene with silently missing
 opinions.
 
@@ -280,8 +280,7 @@ a plugin name out of a scene can address the Group directly.
 The authoritative xRegistry extension model of the OpenUSD Artifact Registry
 resides in the [model.json](model.json) file.
 
-For easy reference, the JSON serialization of an OpenUSD Artifact Registry
-adheres to this form:
+The JSON serialization of an OpenUSD Artifact Registry adheres to this form:
 
 ```yaml
 {
@@ -399,8 +398,8 @@ adheres to this form:
 
 ## 4. OpenUSD Registry
 
-The OpenUSD Artifact Registry is a metadata store for organizing USD artifacts
-and their Versions. It is a document store.
+The OpenUSD Artifact Registry stores USD artifact documents and organizes
+metadata about their Versions.
 
 Implementations of this specification MAY include additional extension
 attributes, including the `*` attribute of type `any`.
@@ -558,10 +557,10 @@ Group offering only one of them is not usable.
 
 The Resource inside Schema Plugin Groups is also named `usdasset`, with
 collection name `usdassets`. It is the **same Resource type** as in
-[Section 4.2](#42-usd-asset-resources), with the same attributes and the same
-identifier rules. The same retrieval, versioning and verification rules apply
-to plugin manifests and generated schemas. Only their `assetkind` and `format`
-values differ.
+[Section 4.2](#42-usd-asset-resources). Plugin manifests and generated schemas
+use that type's attributes and identifier rules, as well as its retrieval,
+versioning and verification rules. Only their `assetkind` and `format` values
+differ.
 
 The `assetkind` of the plugin manifest MUST be `SchemaPlugin` and its `format`
 MUST be `USD-PlugInfo/1.0`. The `assetkind` of the generated schema MUST be
@@ -878,9 +877,9 @@ resolver in its chain, and MAY stop as soon as an artifact resolves.
 
 ### 5.4. Asset Resolution
 
-Sections [5.1](#51-asset-identifiers-and-xids) through
-[5.3](#53-federation) together mean that a registry is an addressable asset
-resolver backend. A USD asset resolver plugin holding a container context
+The registry serves as an addressable asset resolver backend under Sections
+[5.1](#51-asset-identifiers-and-xids) through [5.3](#53-federation). A USD asset
+resolver plugin holding a container context
 resolves an authored `@...@` reference by the bounded forward procedure in
 Section 5.1.1: normalize, compute the candidate and sole fallback, and validate
 the returned authoritative metadata. It retrieves bytes from the matched
