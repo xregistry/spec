@@ -823,9 +823,11 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "available": [
-    "/capabilities", "/export", "/model", "/modelsource"
-  ],
+  "available": {
+    "capabilities": { "mutable": true },
+    "entities": { "mutable": true },
+    "model": { "mutable": false }
+  },
   "flags": [
     "binary", "collections", "doc", "epoch", "filter", "ignore", "inline",
     "setdefaultversionid", "sort", "specversion"
@@ -875,12 +877,27 @@ Content-Type: application/json; charset=utf-8
 
 {
   "available": {
-    "type": "array",
-    "item": {
-      "type": "string"
-    },
-    "enum": [ "/capabilities", "/capabilitiesoffered", "/export", "/model",
-       "/modelsource" ]
+    "type": "object",
+    "attributes": {
+      "capabilities": {
+        "type": "object",
+        "attributes": {
+          "mutable": { "type": "boolean", "enum": [ false, true ] }
+        }
+      },
+      "entities": {
+        "type": "object",
+        "attributes": {
+          "mutable": { "type": "boolean", "enum": [ false, true ] }
+        }
+      },
+      "model": {
+        "type": "object",
+        "attributes": {
+          "mutable": { "type": "boolean", "enum": [ false ] }
+        }
+      }
+    }
   },
   "flags": {
     "type": "array",
@@ -988,9 +1005,11 @@ PATCH /capabilities
 
 ```yaml
 {
-  "available": [
-    "/capabilities", "/export", "/model", "/modelsource"
-  ],
+  "available": {
+    "capabilities": { "mutable": true },
+    "entities": { "mutable": true },
+    "model": { "mutable": false }
+  },
   "flags": [
     "binary", "collections", "doc", "epoch", "filter", "ignore", "inline",
     "setdefaultversionid", "sort", "specversion"
@@ -1443,12 +1462,16 @@ Content-Type: application/json; charset=utf-8
 
 {
   "messages": {
-    "messageid": "msg1",
-    ... remainder of msg1 definition excluded for brevity ...
+    "msg1": {
+      "messageid": "msg1",
+      ... remainder of msg1 definition excluded for brevity ...
+    }
   },
   "schemas": {
-    "schemaid": "schema1",
-    ... remainder of schema1 definition excluded for brevity ...
+    "schema1": {
+      "schemaid": "schema1",
+      ... remainder of schema1 definition excluded for brevity ...
+    }
   }
 }
 ```
@@ -1459,12 +1482,16 @@ Content-Type: application/json; charset=utf-8
 
 {
   "messages": {
-    "messageid": "msg1",
-    ... remainder of msg1 definition excluded for brevity ...
+    "msg1": {
+      "messageid": "msg1",
+      ... remainder of msg1 definition excluded for brevity ...
+    }
   },
   "schemas": {
-    "schemaid": "schema1",
-    ... remainder of schema1 definition excluded for brevity ...
+    "schema1": {
+      "schemaid": "schema1",
+      ... remainder of schema1 definition excluded for brevity ...
+    }
   }
 }
 ```
@@ -1671,7 +1698,7 @@ attributes, and MUST be of the form:
 ```yaml
 Content-Type: <STRING> ?
 xRegistry-<RESOURCE>id: <STRING>           # ID of Resource, not default Version
-xRegistry-versionid: <STRING>              # ID of the default Version
+xRegistry-versionid: <STRING>              # ID of the requested Version
 xRegistry-self: <URL>                      # Version URL
 xRegistry-xid: <URI>                       # Relative Version URI
 xRegistry-epoch: <UINTEGER>
@@ -1689,7 +1716,7 @@ xRegistry-formatvalidated: <BOOLEAN> ?
 xRegistry-formatvalidatedreason: <STRING> ?
 xRegistry-compatibilityvalidated: <BOOLEAN> ?
 xRegistry-compatibilityvalidatedreason: <STRING> ?
-xRegistry-<RESOURCE>url: <URL> ?           # End of default Version attributes
+xRegistry-<RESOURCE>url: <URL> ?           # End of requested Version attributes
 Location: <URL> ?
 Content-Location: <URL> ?
 Content-Disposition: <STRING> ?
@@ -1887,7 +1914,9 @@ DELETE /endpoints/ep1/messages
 
 {
   "msg1": {
-    "epoch": 5
+    "meta": {
+      "epoch": 5
+    }
   },
   "msg2": {}
 }
@@ -1897,7 +1926,7 @@ DELETE /endpoints/ep1/messages
 HTTP/1.1 204 No Content
 ```
 
-Notice that the `epoch` value for `msg1` will be verified prior to the
+Notice that the `meta.epoch` value for `msg1` will be verified prior to the
 delete, but no such check will happen for `msg2`.
 
 #### `GET /<GROUPS>/<GID>/<RESOURCES>/<RID>`
@@ -2176,11 +2205,7 @@ Content-Type: application/json; charset=utf-8
 {
   "epoch": 1,
   "name": "Blob Created",
-  "description": "a cool event",
-
-  "message": {
-    # Updated definition of a "Blob Created" event excluded for brevity
-  }
+  "description": "a cool event"
 }
 ```
 
@@ -2201,10 +2226,6 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1
   "createdat": "2024-04-30T12:00:00Z",
   "modifiedat": "2024-04-30T12:00:01Z",
   "ancestorid": "1",
-
-  "message": {
-    # Updated definition of a "Blob Created" event excluded for brevity
-  },
 
   "metaurl": "https://example.com/endpoints/ep1/messages/msg1/meta",
 
@@ -2360,11 +2381,7 @@ Content-Type: application/json; charset=utf-8
   "versionid": "1",
   "epoch": 1,
   "name": "Blob Created",
-  "description": "a cool event",
-
-  "message": {
-    # Updated definition of a "Blob Created" event excluded for brevity
-  }
+  "description": "a cool event"
 }
 ```
 
@@ -2384,11 +2401,7 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1
   "description": "a cool event",
   "createdat": "2024-04-30T12:00:00Z",
   "modifiedat": "2024-04-30T12:00:01Z",
-  "ancestorid": "1",
-
-  "message": {
-    # Updated definition of a "Blob Created" event excluded for brevity
-  }
+  "ancestorid": "1"
 }
 ```
 
@@ -2480,6 +2493,7 @@ Content-Type: application/json; charset=utf-8
   "epoch": 2,
   "createdat": "2024-04-30T12:00:00Z",
   "modifiedat": "2024-04-30T12:00:01Z",
+  "readonly": false,
   "compatibility": "none",
   "defaultversionid": "v2.0",
   "defaultversionurl": "https://example.com/endpoints/ep1/messages/msg1/versions/v2.0",
@@ -2541,6 +2555,7 @@ Content-Type: application/json; charset=utf-8
   "epoch": 2,
   "createdat": "2024-04-30T12:00:00Z",
   "modifiedat": "2024-04-30T12:00:01Z",
+  "readonly": false,
   "compatibility": "none",
   "defaultversionid": "v1.0",
   "defaultversionurl": "https://example.com/endpoints/ep1/messages/msg1/versions/v1.0",
@@ -2845,7 +2860,7 @@ Content-Type: application/json; charset=utf-8
 {
   "schemaid": "myschema",
   "versionid": "1.0",
-  "self": "https://example.com/schemagroups/g1/schemas/myschema/versions/1.0",
+  "self": "https://example.com/schemagroups/g1/schemas/myschema/versions/1.0$details",
   "xid": "/schemagroups/g1/schemas/myschema/versions/1.0",
   "epoch": 2,
   "isdefault": true,
@@ -2873,7 +2888,7 @@ xRegistry-isdefault: true
 xRegistry-createdat: 2024-04-30T12:00:00Z
 xRegistry-modifiedat: 2024-04-30T12:00:01Z
 xRegistry-ancestorid: 1.0
-Content-Disposition: myschema
+Content-Disposition: attachment; filename="myschema"
 
 { ... Contents of a schema doc excluded for brevity ...  }
 ```
@@ -3020,10 +3035,7 @@ Content-Type: application/json; charset=utf-8
 
 {
   "name": "Blob Created v2",
-  "description": "a cool event",
-  "message": {
-    # Updated definition of a "Blob Created" event excluded for brevity
-  }
+  "description": "a cool event"
 }
 ```
 
@@ -3043,11 +3055,7 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/v2.0
   "description": "a cool event",
   "createdat": "2024-04-30T12:00:00Z",
   "modifiedat": "2024-04-30T12:00:01Z",
-  "ancestorid": "v1.0",
-
-  "message": {
-    # Updated definition of a "Blob Created" event excluded for brevity
-  }
+  "ancestorid": "v1.0"
 }
 ```
 
