@@ -178,13 +178,14 @@ cached the old closure would silently compose an incomplete scene.
 
 The OpenUSD Artifact Registry is a document store: the `usdassets` Resources
 are defined with [`hasdocument`][xRegistry hasdocument] set to `true`. A GET
-against a Resource Version's [`self`][xRegistry self] URL returns the artifact
-bytes with the appropriate content-type. Resource metadata is returned in HTTP
-headers or via the `$details` suffix.
+against the Version's document URL, without `$details`, returns the artifact
+bytes. A [`self`][xRegistry self] URL ending in `$details` identifies metadata
+and is not an artifact path. The document response uses the appropriate
+content-type and carries Resource metadata in HTTP headers. Metadata can also
+be retrieved via the `$details` suffix.
 
-This is the property that makes the registry usable from unmodified USD
-tooling: **a Resource Version's `self` URL is a valid USD asset path.** A USD
-asset resolver plugin uses the bounded metadata locations in
+For unmodified USD tooling, **a Resource Version's document URL is a valid USD
+asset path.** A USD asset resolver plugin uses the bounded metadata locations in
 [Section 5.1.1](#511-the-symbolic-identifier-construction) and checks the
 authoritative identifier before retrieving a Document. A `.usdz` package
 retrieved from a registry is byte-for-byte the package the Producer produced.
