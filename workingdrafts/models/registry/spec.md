@@ -121,7 +121,7 @@ the semantic constraints in this specification.
 The model defines all six domain attributes in the Resource's `attributes`
 map. They belong to catalog-description Versions. No domain attribute is
 placed in Core's reserved `resourceattributes` map, and this revision adds
-no `metaattributes`. Genuine Resource-wide extensions belong in
+no `metaattributes`. Resource-wide extensions belong in
 `metaattributes`, as defined by [the model language][Model attributes].
 
 The following is illustrative pseudo JSON. Core attributes are omitted.

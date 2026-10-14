@@ -433,10 +433,9 @@ request mappings and synthetic transcripts for:
 They
 do not contact the public hub or establish runtime interoperability.
 
-The observed hub's read-only capabilities and a followed Registry advertising
-an older Core release motivate the compatibility examples. These observations
-are not normative endpoint behavior, and a saved model-file hash is not an
-observed HTTP ETag.
+The compatibility examples cover read-only capabilities and a Registry
+advertising an older Core release. These are synthetic inputs, not captured
+public-endpoint behavior. A saved model-file hash is not an observed HTTP ETag.
 
 ## References
 

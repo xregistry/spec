@@ -224,7 +224,7 @@ report the lack of an immutable filesystem pin. It MUST NOT advertise an
 atomic capture of a live upstream Registry based only on consistent file
 timestamps.
 
-A producer SHOULD construct an entire complete snapshot separately, then
+A producer SHOULD construct a complete snapshot separately, then
 make it available atomically with platform-appropriate synchronization.
 Updating files in place while readers are traversing them is not a valid
 substitute for completeness. Retaining immutable old files can allow readers

@@ -1427,7 +1427,7 @@ Use JSON Pointer escaping for path components. Convert `metaurl`,
 targets are included, and never append `$details`. Core permits collection
 URL/count attributes to be omitted in document view. Where a selected Core
 shape requires a navigation target, the exporter MUST include that target
-or use a genuinely defined API URL. If neither is available, it MUST report
+or use a defined API URL. If neither is available, it MUST report
 `unsupported_operation`, not fabricate an `opc.tcp` URL or dangling pointer.
 
 Native endpoint, Application URI, Registry-root NodeId, table context and
