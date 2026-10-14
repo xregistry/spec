@@ -266,7 +266,7 @@ this form:
           "modifiedat": "<TIMESTAMP>",
           "ancestorid": "<STRING>",
           "contenttype": "<STRING>", ?
-          "format": "<STRING>", ?
+          "format": "<STRING>",
           "formatvalidated": <BOOLEAN>, ?
           "formatvalidatedreason": "<STRING>", ?
           "compatibilityvalidated": <BOOLEAN>, ?
@@ -395,6 +395,10 @@ lineage. See the [`ancestorid`][xRegistry ancestorid] attribute in the core
 xRegistry specification for more information.
 
 ### 4.3. Schema Formats
+
+The `format` attribute in the [Core model](../core/spec.md#format-attribute)
+is defined as being OPTIONAL. However, this specification modifies it to be
+REQUIRED.
 
 This specification further refines the
 [core specification's `format`](../core/spec.md#format-attribute) for use
