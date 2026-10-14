@@ -43,8 +43,9 @@ python -B tools\schema-generator.py `
   workingdrafts\models\registry\model.json
 ```
 
-The generator writes UTF-8 JSON with LF line endings and a final newline
-on every supported host. Do not manually change generated definitions.
+The generator writes indented JSON. File output uses the host's text-mode
+line endings and has no final newline. Do not manually change generated
+definitions.
 
 ## Validation
 
@@ -62,17 +63,23 @@ semantic checks specified in the domain.
 
 ### JSON Schema
 
-The schema permits collection navigation together with inlined Versions.
-URI references accept document pointers and catalog-root relationship
-targets. The domain separately requires advertisement endpoints to be
-absolute. The complete catalog samples are validated with Draft 7.
+The current schema describes the catalog collection and selected Group,
+Resource and Version fields. It does not describe a complete Core Registry
+root or connect the Version definition to a Resource's Versions collection.
+
+Navigation and relationship fields use absolute-URI format declarations,
+which do not describe document-local pointers or catalog-root references.
+Draft 7 validation without URI format checking does not establish the
+validity of those references. The domain separately requires advertisement
+endpoints to be absolute.
 
 ### JSON Structure
 
-The schema describes Core root metadata, navigation and Version metadata
-in addition to domain attributes. URI references use strings because the
-model permits relative references. Names needing an alternate JSON
-spelling use the declared alternate-name extension.
+The schema describes the catalog collection and selected Group, Resource
+and Version fields, but not a complete Core Registry root. URI reference
+fields use strings; their syntax and base rules still come from the domain.
+Names needing an alternate JSON spelling use the declared alternate-name
+extension.
 
 The repository supplies structural and fixture checks for this dialect,
 not a general JSON Structure validator for every possible extension.

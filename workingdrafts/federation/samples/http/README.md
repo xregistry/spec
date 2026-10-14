@@ -106,5 +106,5 @@ document-local navigation.
 | Trust | External-document `303`. Independent destination credentials. Denied redirect. No silent fallback after `401`/`403`. Cached temporary redirect still subject to policy. |
 | Capture | Incompatible Core release. Changing default Version. Lack of Registry-wide atomicity. Colliding XIDs in independent contexts. |
 
-The matrix is an inventory for the dedicated test phase, not a claim that
-every derivable mutation already has an executable test.
+The matrix lists scenarios and boundary cases for conformance checks. It is
+not an exhaustive test-coverage report.

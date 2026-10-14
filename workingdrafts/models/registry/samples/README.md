@@ -99,8 +99,7 @@ Version `1` deliberately has explicit HTTP priority `20` and OCI priority
 `10`, plus matching `xregurl`. Under the frozen catalog contract, the
 appended implicit HTTP candidate retains priority `0` and wins absent a
 caller override. Removing that candidate merely because explicit HTTP
-exists changes the result. This is an important cross-specification
-selection case, not an invitation to normalize or merge advertisements.
+exists changes the selected advertisement.
 
 Version `1` also demonstrates empty `labels`, `registrytypes` and
 `relationships`. Version `2` has descriptive domain/model URIs and an

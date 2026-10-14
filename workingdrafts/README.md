@@ -12,8 +12,7 @@ specification.
 ## Federation Specification Family
 
 The federation drafts define read-only resolution across independently
-administered Registries. Start with the domain and shared contract, then
-select a transport binding.
+administered Registries.
 
 For a first reading, use the domain specification to understand catalog
 entries, then the federation specification to understand hosting and source
