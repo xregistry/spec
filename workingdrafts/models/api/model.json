@@ -1,0 +1,60 @@
+{
+  "$schema": "https://raw.githubusercontent.com/xregistry/spec/main/core/model.schema.json",
+  "groups": {
+    "apigroups": {
+      "singular": "apigroup",
+      "modelversion": "0.1",
+      "description": "Groups of related synchronous API definitions.",
+      "attributes": {
+        "format": {
+          "name": "format",
+          "type": "string",
+          "description": "The API document format used by all APIs in this group."
+        },
+        "*": {
+          "name": "*",
+          "type": "any"
+        }
+      },
+      "constraints": {
+        "apis.format": {
+          "equals": "format"
+        }
+      },
+      "resources": {
+        "apis": {
+          "singular": "api",
+          "modelversion": "0.1",
+          "description": "A versioned synchronous API definition document.",
+          "maxversions": 0,
+          "setversionid": true,
+          "validateformat": true,
+          "validatecompatibility": true,
+          "strictvalidation": false,
+          "typemap": {
+            "text/*": "string",
+            "application/yaml": "string",
+            "application/x-yaml": "string",
+            "application/xml": "string",
+            "application/wsdl+xml": "string",
+            "application/graphql": "string",
+            "application/smithy": "string"
+          },
+          "attributes": {
+            "format": {
+              "name": "format",
+              "type": "string",
+              "required": true,
+              "matchversions": true,
+              "description": "The API document format identifier."
+            },
+            "*": {
+              "name": "*",
+              "type": "any"
+            }
+          }
+        }
+      }
+    }
+  }
+}
