@@ -1,0 +1,121 @@
+{
+  "$schema": "https://xregistry.io/xregistryspecs/core-v1/schemas/model.schema.json",
+  "groups": {
+    "categories": {
+      "singular": "category",
+      "modelversion": "1.0-rc1",
+      "description": "Open-ended organizational categories of catalog entries.",
+      "attributes": {
+        "*": {
+          "type": "any"
+        }
+      },
+      "resources": {
+        "registries": {
+          "singular": "registry",
+          "modelversion": "1.0-rc1",
+          "hasdocument": false,
+          "description": "Versioned descriptions of independently managed Registries.",
+          "attributes": {
+            "xregurl": {
+              "type": "url",
+              "description": "xRegistry HTTP Registry root URL."
+            },
+            "weburl": {
+              "type": "url",
+              "description": "Human-facing website. Not a resolution advertisement."
+            },
+            "registrytypes": {
+              "type": "array",
+              "description": "Descriptive domain or model URI identifiers.",
+              "item": {
+                "type": "string"
+              }
+            },
+            "authority": {
+              "type": "uri",
+              "description": "Administrative authority identifier. Not a trust claim."
+            },
+            "federationprofiles": {
+              "type": "array",
+              "description": "Ordered access advertisements for one logical Registry.",
+              "item": {
+                "type": "object",
+                "attributes": {
+                  "name": {
+                    "type": "string",
+                    "required": true,
+                    "description": "Nonempty, case-sensitive binding identifier.",
+                    "enum": [
+                      "http",
+                      "oci",
+                      "git",
+                      "file",
+                      "opcua"
+                    ],
+                    "strict": false
+                  },
+                  "endpoint": {
+                    "type": "uri",
+                    "required": true,
+                    "description": "Absolute, credential-free binding endpoint URI."
+                  },
+                  "priority": {
+                    "type": "uinteger",
+                    "description": "Lower values are preferred. Absence means 0."
+                  },
+                  "parameters": {
+                    "type": "object",
+                    "description": "Binding parameters. Absence means an empty object.",
+                    "attributes": {
+                      "*": {
+                        "type": "any"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "relationships": {
+              "type": "array",
+              "description": "Descriptive links to catalog entries, not instructions.",
+              "item": {
+                "type": "object",
+                "attributes": {
+                  "type": {
+                    "type": "string",
+                    "required": true,
+                    "description": "Nonempty relationship identifier.",
+                    "enum": [
+                      "depends-on",
+                      "derived-from",
+                      "supersedes",
+                      "mirrors",
+                      "federates-with"
+                    ],
+                    "strict": false
+                  },
+                  "target": {
+                    "type": "uri",
+                    "required": true,
+                    "description": "Catalog-root Resource XID or absolute entry URI."
+                  },
+                  "labels": {
+                    "type": "map",
+                    "description": "Ordinary Core labels describing this relationship.",
+                    "item": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "*": {
+              "type": "any"
+            }
+          }
+        }
+      }
+    }
+  }
+}

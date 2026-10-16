@@ -1,0 +1,17 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "resource",
+  "entity": {
+    "xid": "/mirrors/local/assets/dangling",
+    "assetid": "dangling"
+  },
+  "meta": {
+    "kind": "meta",
+    "xid": "/mirrors/local/assets/dangling/meta",
+    "href": "records/n16.json",
+    "size": 225,
+    "sha256": "9f2ac91c792bb0973dcdbb67d5af0488812700b98ad01c69106eb32efacecd31"
+  },
+  "collections": []
+}

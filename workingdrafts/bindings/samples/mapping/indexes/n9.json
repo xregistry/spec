@@ -1,0 +1,16 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "collection",
+  "xid": "/independent",
+  "count": 1,
+  "entries": [
+    {
+      "kind": "group",
+      "xid": "/independent/MAIN",
+      "href": "records/nf.json",
+      "size": 503,
+      "sha256": "5f5c83b67866f52b39f60c773940ead3a0dd5dc2e0c52aaabd3f33debb79dffe"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "annotations": {
+    "io.xregistry.oci.kind": "resource",
+    "io.xregistry.oci.version": "1",
+    "io.xregistry.oci.xid": "/dirs/main/files/sample"
+  },
+  "artifactType": "application/vnd.xregistry.resource.v1+json",
+  "manifests": [
+    {
+      "annotations": {
+        "io.xregistry.oci.role": "metadata",
+        "io.xregistry.oci.xid": "/dirs/main/files/sample"
+      },
+      "digest": "sha256:3311d4b1bb8e790703c637d1cd0d12f482b34f94f927e97b97d1a1978491ab22",
+      "mediaType": "application/vnd.oci.image.manifest.v1+json",
+      "size": 942
+    },
+    {
+      "annotations": {
+        "io.xregistry.oci.role": "meta",
+        "io.xregistry.oci.xid": "/dirs/main/files/sample/meta"
+      },
+      "digest": "sha256:f86a54fd29327feca1af033dbaf76ce7191573da03fe163c6896dcff449adc72",
+      "mediaType": "application/vnd.oci.image.manifest.v1+json",
+      "size": 953
+    },
+    {
+      "annotations": {
+        "io.xregistry.oci.role": "collections",
+        "io.xregistry.oci.xid": "/dirs/main/files/sample"
+      },
+      "digest": "sha256:3fd9f557e3ccfc24ea18c4f6ee5a5ef24464f05743c02e1327eadbdb40f93dfb",
+      "mediaType": "application/vnd.oci.image.index.v1+json",
+      "size": 766
+    }
+  ],
+  "mediaType": "application/vnd.oci.image.index.v1+json",
+  "schemaVersion": 2
+}

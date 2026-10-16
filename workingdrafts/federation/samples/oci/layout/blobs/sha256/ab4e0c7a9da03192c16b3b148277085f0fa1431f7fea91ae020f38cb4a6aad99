@@ -1,0 +1,14 @@
+{
+  "annotations": {
+    "io.xregistry.oci.kind": "collections",
+    "io.xregistry.oci.lower": "",
+    "io.xregistry.oci.mode": "leaf",
+    "io.xregistry.oci.upper": "",
+    "io.xregistry.oci.version": "1",
+    "io.xregistry.oci.xid": "/dirs/main/files/dangling"
+  },
+  "artifactType": "application/vnd.xregistry.collections.v1+json",
+  "manifests": [],
+  "mediaType": "application/vnd.oci.image.index.v1+json",
+  "schemaVersion": 2
+}

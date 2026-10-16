@@ -1,0 +1,27 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "version",
+  "entity": {
+    "epoch": 1,
+    "createdat": "2026-09-04T00:00:00Z",
+    "modifiedat": "2026-09-04T00:00:00Z",
+    "xid": "/documents/main/assets/item/versions/v1",
+    "assetid": "item",
+    "versionid": "v1",
+    "isdefault": true,
+    "ancestorid": "v1",
+    "labels": {
+      "stage": "production",
+      "note": ""
+    },
+    "contenttype": "application/json",
+    "purpose": "primary"
+  },
+  "document": {
+    "kind": "local",
+    "href": "documents/n1.bin",
+    "size": 18,
+    "sha256": "6a47c31b7b7c3b9a1dbc960669f4674ce088c8fc9d9a4f7e9fcc3f6a81f7b86c"
+  }
+}

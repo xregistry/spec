@@ -1,0 +1,16 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "collection",
+  "xid": "/documents/main/assets/CON/versions",
+  "count": 1,
+  "entries": [
+    {
+      "kind": "version",
+      "xid": "/documents/main/assets/CON/versions/a:b@c.",
+      "href": "records/n7.json",
+      "size": 578,
+      "sha256": "61c089f8071b8a166ad664de9c316451a7a370f2640a29ad463253488b70455d"
+    }
+  ]
+}

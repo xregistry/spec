@@ -1,0 +1,30 @@
+{
+  "annotations": {
+    "io.xregistry.oci.kind": "version",
+    "io.xregistry.oci.version": "1",
+    "io.xregistry.oci.xid": "/dirs/main/files/binary/versions/v1"
+  },
+  "artifactType": "application/vnd.xregistry.version.v1+json",
+  "config": {
+    "annotations": {
+      "io.xregistry.oci.role": "config",
+      "io.xregistry.oci.xid": "/dirs/main/files/binary/versions/v1"
+    },
+    "digest": "sha256:b780a08f29e401e46ab8bb495c82ea4c4aafa0590ae04d4ef6f7a43108792c52",
+    "mediaType": "application/vnd.xregistry.entity.v1+json",
+    "size": 398
+  },
+  "layers": [
+    {
+      "annotations": {
+        "io.xregistry.oci.role": "document",
+        "io.xregistry.oci.xid": "/dirs/main/files/binary/versions/v1"
+      },
+      "digest": "sha256:47a8404dd5bb287e70354f4aa0f7bf250e4fefe66a72cf2ac5475a802fd45968",
+      "mediaType": "application/vnd.xregistry.document.v1",
+      "size": 7
+    }
+  ],
+  "mediaType": "application/vnd.oci.image.manifest.v1+json",
+  "schemaVersion": 2
+}

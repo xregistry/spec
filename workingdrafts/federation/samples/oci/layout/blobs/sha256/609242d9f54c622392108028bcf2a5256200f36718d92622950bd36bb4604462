@@ -1,0 +1,9 @@
+{
+  "entity": {
+    "fileid": "alias",
+    "xid": "/dirs/main/files/alias/meta",
+    "xref": "/dirs/main/files/sample"
+  },
+  "formatversion": 1,
+  "kind": "meta"
+}

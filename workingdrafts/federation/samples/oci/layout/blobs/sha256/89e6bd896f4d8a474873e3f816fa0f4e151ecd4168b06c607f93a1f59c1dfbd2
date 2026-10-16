@@ -1,0 +1,14 @@
+{
+  "entity": {
+    "createdat": "2026-09-01T12:00:00Z",
+    "defaultversionid": "v1",
+    "defaultversionsticky": true,
+    "epoch": 1,
+    "fileid": "empty",
+    "modifiedat": "2026-09-01T12:00:00Z",
+    "readonly": false,
+    "xid": "/dirs/main/files/empty/meta"
+  },
+  "formatversion": 1,
+  "kind": "meta"
+}

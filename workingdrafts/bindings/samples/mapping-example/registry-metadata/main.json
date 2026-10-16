@@ -1,0 +1,21 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "group",
+  "entity": {
+    "xid": "/documents/main",
+    "documentid": "main",
+    "epoch": 1,
+    "createdat": "2026-01-01T00:00:00Z",
+    "modifiedat": "2026-01-01T00:00:00Z"
+  },
+  "collections": [
+    {
+      "kind": "collection",
+      "xid": "/documents/main/assets",
+      "href": "registry-metadata/assets.json",
+      "size": 392,
+      "sha256": "72c43f08dd89af2c16b51ab9dc21fc36b7901ab475cae7ebb9e610c6a6cc9626"
+    }
+  ]
+}

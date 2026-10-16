@@ -1,0 +1,15 @@
+{
+  "entity": {
+    "createdat": "2026-09-01T12:00:00Z",
+    "dirid": "main",
+    "epoch": 1,
+    "labels": {
+      "empty": "",
+      "stage": "Ready"
+    },
+    "modifiedat": "2026-09-01T12:00:00Z",
+    "xid": "/dirs/main"
+  },
+  "formatversion": 1,
+  "kind": "group"
+}

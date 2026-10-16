@@ -1,0 +1,65 @@
+{
+  "roots": {
+    "offline": {
+      "registryid": "fixture-offline",
+      "snapshot": "offline-complete",
+      "digest": "sha256:c937f902c54ca9c63e510bab3b4ec07ec3775ad338ac030ac93d916a736efba6",
+      "size": 903,
+      "objects": 99,
+      "indexes": 44,
+      "manifests": 25,
+      "records": 25,
+      "documents": 4
+    },
+    "linked": {
+      "registryid": "fixture-linked",
+      "snapshot": "linked",
+      "digest": "sha256:dff871378d2678ee851fb7d97bae5a6b69b05c3d668f224a2f97127e8e8dee88",
+      "size": 903,
+      "objects": 98,
+      "indexes": 44,
+      "manifests": 25,
+      "records": 25,
+      "documents": 3
+    }
+  },
+  "documents": [
+    {
+      "xid": "/dirs/main/files/binary/versions/v1",
+      "size": 7,
+      "digest": "sha256:47a8404dd5bb287e70354f4aa0f7bf250e4fefe66a72cf2ac5475a802fd45968",
+      "base64": "AAF/gP8NCg==",
+      "mediaType": "application/octet-stream"
+    },
+    {
+      "xid": "/dirs/main/files/empty/versions/v1",
+      "size": 0,
+      "digest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "base64": "",
+      "mediaType": "text/plain; charset=utf-8"
+    },
+    {
+      "xid": "/dirs/main/files/sample/versions/v1",
+      "size": 18,
+      "digest": "sha256:85803e087e684bdab3e5d6c2dd1af627da83382db625be9a42aea3d4d06539be",
+      "base64": "eyJ0eXBlIjoic3RyaW5nIn0K",
+      "mediaType": "application/schema+json"
+    },
+    {
+      "xid": "/dirs/main/files/sample/versions/v2",
+      "size": 18,
+      "digest": "sha256:e562cc019db9f5cb554d77b7cdd6b0e0640c1fd7a045e36b1b164879a24ac87d",
+      "base64": "eyJ0eXBlIjoibnVtYmVyIn0K",
+      "mediaType": "application/schema+json"
+    }
+  ],
+  "defaultversionid": "v1",
+  "document_expectations_apply_to": "offline",
+  "linked_external_version": "/dirs/main/files/sample/versions/v2",
+  "empty_collection": "/emptygroups",
+  "metadata_only": "/dirs/main/notes/info",
+  "local_alias": "/dirs/main/files/alias",
+  "imported_type_alias": "/imports/shared/files/alias",
+  "dangling_alias": "/dirs/main/files/dangling",
+  "nontransitive_alias": "/dirs/main/files/chain"
+}

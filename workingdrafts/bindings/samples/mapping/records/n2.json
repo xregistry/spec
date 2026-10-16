@@ -1,0 +1,15 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "meta",
+  "entity": {
+    "epoch": 1,
+    "createdat": "2026-09-04T00:00:00Z",
+    "modifiedat": "2026-09-04T00:00:00Z",
+    "xid": "/categories/main/registries/site/meta",
+    "registryid": "site",
+    "readonly": true,
+    "defaultversionid": "v1",
+    "defaultversionsticky": true
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "meta",
+  "entity": {
+    "xid": "/mirrors/local/assets/chain/meta",
+    "assetid": "chain",
+    "xref": "/mirrors/local/assets/copy"
+  }
+}

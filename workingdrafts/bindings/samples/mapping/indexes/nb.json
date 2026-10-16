@@ -1,0 +1,16 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "collection",
+  "xid": "/mirrors",
+  "count": 1,
+  "entries": [
+    {
+      "kind": "group",
+      "xid": "/mirrors/local",
+      "href": "records/n10.json",
+      "size": 493,
+      "sha256": "7804ecf025f70d1578ec2cd1ee658987af9e3803e598556a6ecbcbaa1294ec21"
+    }
+  ]
+}
