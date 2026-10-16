@@ -3851,7 +3851,8 @@
           },
           "epoch": {
             "type": "integer",
-            "description": "Epoch time of the object creation"
+            "minimum": 0,
+            "description": "Optimistic concurrency update counter"
           },
           "self": {
             "type": "string",
@@ -3906,7 +3907,7 @@
           "dataschemaxid": {
             "type": "string",
             "format": "uri",
-            "description": "Contains the xid of the xRegistry schema Resource entity associated with the dataschemauri referenced schema document. Note that this means the entity MUST be located within the same Registry."
+            "description": "Contains the xid of the owning xRegistry Schema Resource or Version in the same Registry. The object selector in dataschemauri does not change that owning entity."
           },
           "datacontenttype": {
             "type": "string",
@@ -3938,7 +3939,8 @@
           },
           "epoch": {
             "type": "integer",
-            "description": "Epoch time of the object creation"
+            "minimum": 0,
+            "description": "Optimistic concurrency update counter"
           },
           "self": {
             "type": "string",
@@ -4002,7 +4004,8 @@
           },
           "epoch": {
             "type": "integer",
-            "description": "Epoch time of the object creation"
+            "minimum": 0,
+            "description": "Optimistic concurrency update counter"
           },
           "self": {
             "type": "string",
