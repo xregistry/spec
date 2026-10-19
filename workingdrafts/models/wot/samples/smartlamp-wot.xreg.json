@@ -1,0 +1,73 @@
+{
+    "thingmodelgroups": {
+        "Fabrikam.Lighting": {
+            "description": "Reusable Thing Models for Fabrikam lighting products",
+            "thingmodels": {
+                "urn.fabrikam.lamp": {
+                    "description": "Generic dimmable lamp Thing Model",
+                    "format": "JSON-LD/1.1",
+                    "contenttype": "application/tm+json",
+                    "wotid": "urn:fabrikam:lamp",
+                    "thingmodel": {
+                        "@context": "https://www.w3.org/2022/wot/td/v1.1",
+                        "@type": "tm:ThingModel",
+                        "id": "urn:fabrikam:lamp",
+                        "title": "Fabrikam Lamp",
+                        "version": { "model": "1.0.0" },
+                        "properties": {
+                            "status": { "type": "string", "enum": [ "on", "off" ], "readOnly": true },
+                            "brightness": { "type": "integer", "minimum": 0, "maximum": 100, "unit": "percent" }
+                        },
+                        "actions": {
+                            "toggle": { "synchronous": true },
+                            "setBrightness": { "input": { "type": "integer", "minimum": 0, "maximum": 100 } }
+                        }
+                    }
+                }
+            }
+        }
+    },
+
+    "thingdescriptiongroups": {
+        "Fabrikam.FactoryFloor.01": {
+            "description": "All Things deployed on Fabrikam factory floor #1",
+            "thingdescriptions": {
+                "urn.fabrikam.lamp.42": {
+                    "description": "Smart lamp instance #42 (above workbench A)",
+                    "format": "JSON-LD/1.1",
+                    "contenttype": "application/td+json",
+                    "wotid": "urn:fabrikam:lamp:42",
+                    "derivedfrom": [ "urn:fabrikam:lamp" ],
+                    "thingdescription": {
+                        "@context": "https://www.w3.org/2022/wot/td/v1.1",
+                        "@type": "Thing",
+                        "id": "urn:fabrikam:lamp:42",
+                        "title": "Lamp #42 (workbench A)",
+                        "version": { "instance": "1.0.0", "model": "1.0.0" },
+                        "links": [
+                            {
+                                "rel": "type",
+                                "href": "https://example.com/thingmodelgroups/Fabrikam.Lighting/thingmodels/urn.fabrikam.lamp",
+                                "type": "application/tm+json"
+                            }
+                        ],
+                        "securityDefinitions": { "bearer_sc": { "scheme": "bearer", "format": "jwt" } },
+                        "security": [ "bearer_sc" ],
+                        "properties": {
+                            "brightness": {
+                                "type": "integer", "minimum": 0, "maximum": 100, "unit": "percent",
+                                "forms": [
+                                    {
+                                        "href": "https://gw.fabrikam.example/floor01/lamp-42/brightness",
+                                        "contentType": "application/json",
+                                        "op": [ "readproperty", "writeproperty" ]
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

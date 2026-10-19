@@ -207,8 +207,8 @@ appropriate new schema to use following a breaking change.
 ### 2.3. Schema Group
 
 A Schema Group is a container for schemas that are related to each other in
-some application-defined way. This specification does not impose any
-restrictions on what schemas can be contained in a Schema Group.
+some application-defined way. Its OPTIONAL `format` attribute can constrain
+the formats of its schemas, as described in [Schema Groups](#41-schema-groups).
 
 ## 3. Schema Registry Model
 
@@ -268,7 +268,7 @@ this form:
           "modifiedat": "<TIMESTAMP>",
           "ancestorid": "<STRING>",
           "contenttype": "<STRING>", ?
-          "format": "<STRING>", ?
+          "format": "<STRING>",
           "formatvalidated": <BOOLEAN>, ?
           "formatvalidatedreason": "<STRING>", ?
           "compatibilityvalidated": <BOOLEAN>, ?
@@ -312,12 +312,11 @@ Resource Version objects are inherited from there.
 
 The Group (`<GROUP>`) name for the Schema Registry is `schemagroup` (singular).
 The plural, used as the collection name, is `schemagroups`. The Schema Group
-does not have any specific extension attributes.
+defines an OPTIONAL `format` extension attribute of type `string`.
 
 A schema group is a collection of schemas that are related to each other in
-some application-defined way. A Schema Group does not impose any restrictions
-on the contained schemas, meaning that a Schema Group MAY contain schemas of
-different formats.
+some application-defined way. Without a value for the Group's `format`, a Schema
+Group MAY contain schemas of different formats.
 
 Every schema (i.e. the schema Resource) MUST reside inside a Schema Group.
 
@@ -399,6 +398,10 @@ xRegistry specification for more information.
 
 ### 4.3. Schema Formats
 
+The `format` attribute in the [Core model](../core/spec.md#format-attribute)
+is defined as being OPTIONAL. However, this specification modifies it to be
+REQUIRED.
+
 This specification further refines the
 [core specification's `format`](../core/spec.md#format-attribute) for use
 in a Schema Registry by defining a set of common schema format names that MUST
@@ -449,7 +452,7 @@ Versions for a schema named `com.example.telemetrydata`:
           "format": "Protobuf/3",
           # other xRegistry default Version attributes excluded for brevity
 
-          "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; string description = 3; } }",
+          "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; string description = 3; }",
 
           "metaurl": "http://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/meta",
 
@@ -463,7 +466,7 @@ Versions for a schema named `com.example.telemetrydata`:
               "format": "Protobuf/3",
               # other xRegistry Version-level attributes excluded for brevity
 
-              "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; } }"
+              "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; }"
             },
             "2": {
               "schemaid": "com.example.telemetrydata",
@@ -474,7 +477,7 @@ Versions for a schema named `com.example.telemetrydata`:
               "format": "Protobuf/3",
               # other xRegistry Version-level attributes excluded for brevity
 
-              "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; } }"
+              "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; }"
             },
             "3": {
               "schemaid": "com.example.telemetrydata",
@@ -485,7 +488,7 @@ Versions for a schema named `com.example.telemetrydata`:
               "format": "Protobuf/3",
               # other xRegistry Version-level attributes excluded for brevity
 
-              "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; string description = 3; } }"
+              "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; string description = 3; }"
             }
           },
           "versionsurl": "http://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions",
