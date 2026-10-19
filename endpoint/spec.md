@@ -2,8 +2,7 @@
 <!-- words: apikeyname apikeyin plainscheme plainusernamefield plainpasswordfield sasl oauthbearer -->
 <!-- words: cleanstart sessionexpiryinterval topicfilter retainhandling retainaspublished nolocal -->
 <!-- words: sharedsubscriptiongroup keyserializer valueserializer enableautocommit autooffsetreset -->
-<!-- words: serializer subjectfilter queuegroup usernames tenantid -->
-<!-- words: configs -->
+<!-- words: serializer subjectfilter queuegroup usernames tenantid configs -->
 
 ## Abstract
 
@@ -526,7 +525,8 @@ to the xRegistry-defined core
   - OPTIONAL.
 - Examples:
   - For an endpoint using an `envelope` value of `CloudEvents/1.0`:
-    `{ "mode": "structured", "format": "application/cloudevents+json" }`
+    - `{ "mode": "structured", "format": "application/cloudevents+json" }`
+    - `{ "mode": "binary" }`
 
 This specification defines the following envelope options for the indicated
 `envelope` values:
@@ -816,6 +816,7 @@ Example:
       "envelope": "CloudEvents/1.0",
       "envelopemetadata": {
         "type": {
+          "type": "string",
           "value": "myevent"
         }
       }
@@ -1109,13 +1110,22 @@ defined as protocol options by this specification.
 
 ##### KAFKA options
 
-The [`bootstrap.servers`](#protocoloptionsendpoints) attribute for "Kafka"
-endpoints is a non-empty array of strings in `host:port` form, as specified
-by [Kafka client configuration]. An IPv6 literal MUST be enclosed in square
+Kafka uses different address formats for broker listeners and clients.
+A listener-style `uri` includes a scheme, such as `SSL://broker1:9092` or
+`PLAINTEXT://broker1:9092`. The client `bootstrap.servers` configuration uses
+plain `host:port` addresses, such as `broker1:9092`, without a scheme, as
+specified in [Kafka client configuration].
+
+For `KAFKA` endpoints, the [endpoint addresses](#protocoloptionsendpoints)
+MUST be carried in `bootstrap.servers` as an array of client bootstrap
+addresses. Each entry MUST use the `host:port` format without a scheme.
+The listener-style `uri` format is not an alternative addressing field
+for a `KAFKA` endpoint.
+
+The array is non-empty. An IPv6 literal MUST be enclosed in square
 brackets, for example `[2001:db8::1]:9093`. After placeholder resolution, each
 entry MUST contain a host and a decimal port and MUST NOT include a URI scheme,
-path, query or fragment. Broker listener URLs such as `SSL://host:9093` and
-`PLAINTEXT://host:9092` are not client bootstrap address declarations.
+path, query or fragment.
 
 The `security.protocol` member of the same endpoint-address object supplies
 the Kafka security protocol separately. For example, `SSL` selects TLS without
