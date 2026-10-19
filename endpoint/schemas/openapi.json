@@ -686,13 +686,13 @@
         "tags": [
           "ResourceGroup"
         ],
-        "description": "Deletes a resource group. Requires the current epoch. (See spec: Deleting Entities in a Registry Collection)",
+        "description": "Deletes a resource group. Supports an optional epoch guard. (See spec: Deleting Entities in a Registry Collection)",
         "parameters": [
           {
             "in": "query",
             "name": "epoch",
             "description": "The current epoch of the group.",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "integer",
               "format": "int64"
@@ -843,13 +843,13 @@
         "tags": [
           "ResourceGroup"
         ],
-        "description": "Deletes a resource group. Requires the current epoch. (See spec: Deleting Entities in a Registry Collection)",
+        "description": "Deletes a resource group. Supports an optional epoch guard. (See spec: Deleting Entities in a Registry Collection)",
         "parameters": [
           {
             "in": "query",
             "name": "epoch",
             "description": "The current epoch of the group.",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "integer",
               "format": "int64"
@@ -1686,7 +1686,7 @@
       },
       "delete": {
         "summary": "Delete resource",
-        "description": "Deletes the resource and all of its versions. Requires the current epoch. (See spec: Deleting Resources)",
+        "description": "Deletes the resource and all of its versions. Supports an optional epoch guard. (See spec: Deleting Resources)",
         "operationId": "deleteMessagegroupMessage",
         "tags": [
           "Resource"
@@ -1696,7 +1696,7 @@
             "in": "query",
             "name": "epoch",
             "description": "The current epoch of the resource.",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "integer",
               "format": "int64"
@@ -1994,7 +1994,7 @@
       },
       "delete": {
         "summary": "Delete resource",
-        "description": "Deletes the resource and all of its versions. Requires the current epoch. (See spec: Deleting Resources)",
+        "description": "Deletes the resource and all of its versions. Supports an optional epoch guard. (See spec: Deleting Resources)",
         "operationId": "deleteEndpointMessages",
         "tags": [
           "Resource"
@@ -2004,7 +2004,7 @@
             "in": "query",
             "name": "epoch",
             "description": "The current epoch of the resource.",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "integer",
               "format": "int64"
@@ -2394,13 +2394,13 @@
         "tags": [
           "ResourceVersion"
         ],
-        "description": "Deletes a specific version of a resource. Requires the current epoch. (See spec: Deleting a Version)",
+        "description": "Deletes a specific version of a resource. Supports an optional epoch guard. (See spec: Deleting a Version)",
         "parameters": [
           {
             "in": "query",
             "name": "epoch",
             "description": "The current epoch of the version.",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "integer",
               "format": "int64"
@@ -2489,13 +2489,13 @@
         "tags": [
           "ResourceVersion"
         ],
-        "description": "Deletes a specific version of a resource. Requires the current epoch. (See spec: Deleting a Version)",
+        "description": "Deletes a specific version of a resource. Supports an optional epoch guard. (See spec: Deleting a Version)",
         "parameters": [
           {
             "in": "query",
             "name": "epoch",
             "description": "The current epoch of the version.",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "integer",
               "format": "int64"
@@ -4421,7 +4421,7 @@
           },
           "usage": {
             "type": "array",
-            "description": "Client's expected usage of this endpoint. Single-role declarations are preferred. Mixed declarations are guidance-oriented metadata and should be used only when role semantics are unambiguous.",
+            "description": "Client's expected usage of this endpoint. A single role is required, except `subscriber` and `consumer` may be combined for AMQP/1.0, MQTT/3.1.1, MQTT/5.0, or NATS.",
             "items": {
               "type": "string",
               "enum": [
@@ -4484,6 +4484,9 @@
             "minimum": 0
           }
         },
+        "required": [
+          "usage"
+        ],
         "discriminator": {
           "propertyName": "protocol",
           "mapping": {
