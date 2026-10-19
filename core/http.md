@@ -4,6 +4,7 @@
 <!-- words: compat formatvalidated compatibilityvalidated -->
 <!-- words: compat formatvalidatedreason compatibilityvalidatedreason multipart -->
 <!-- words: caf custommap hh tchar -->
+<!-- words: mymap myheader spacey -->
 
 ## Abstract
 
@@ -66,8 +67,9 @@ model and semantics that apply to all protocols.
     - [`DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`](#delete-groupsgidresourcesridversionsvid)
   - [xRegistry Discovery](#xregistry-discovery)
 - [Request Flags / Query Parameters](#request-flags--query-parameters)
-- [HTTP Header Names](#http-header-names)
-- [HTTP Header Values](#http-header-values)
+- [HTTP Header Processing](#http-header-processing)
+  - [HTTP Header Names](#http-header-names)
+  - [HTTP Header Values](#http-header-values)
 - [Error Processing](#error-processing)
 
 ## Notations and Terminology
@@ -170,6 +172,8 @@ pattern of the APIs:
   `DELETE` MUST then be used to delete unwanted entities.
 - Unknown query parameters SHOULD be silently ignored by servers. This
   includes specification-defined but unsupported query parameters.
+- The choice of disposition type in a `Content-Disposition` response header,
+  such as `inline` or `attachment`, is left to the application.
 - Despite the
   [HTTP specification](https://datatracker.ietf.org/doc/html/rfc9110#name-idempotent-methods)
   saying that the `PUT` method is idempotent, this specification does not
@@ -830,9 +834,11 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "available": [
-    "/capabilities", "/export", "/model", "/modelsource"
-  ],
+  "available": {
+    "capabilities": { "mutable": true },
+    "entities": { "mutable": true },
+    "model": { "mutable": false }
+  },
   "flags": [
     "binary", "collections", "doc", "epoch", "filter", "ignore", "inline",
     "setdefaultversionid", "sort", "specversion"
@@ -882,12 +888,27 @@ Content-Type: application/json; charset=utf-8
 
 {
   "available": {
-    "type": "array",
-    "item": {
-      "type": "string"
-    },
-    "enum": [ "/capabilities", "/capabilitiesoffered", "/export", "/model",
-       "/modelsource" ]
+    "type": "object",
+    "attributes": {
+      "capabilities": {
+        "type": "object",
+        "attributes": {
+          "mutable": { "type": "boolean", "enum": [ false, true ] }
+        }
+      },
+      "entities": {
+        "type": "object",
+        "attributes": {
+          "mutable": { "type": "boolean", "enum": [ false, true ] }
+        }
+      },
+      "model": {
+        "type": "object",
+        "attributes": {
+          "mutable": { "type": "boolean", "enum": [ false ] }
+        }
+      }
+    }
   },
   "flags": {
     "type": "array",
@@ -995,9 +1016,11 @@ PATCH /capabilities
 
 ```yaml
 {
-  "available": [
-    "/capabilities", "/export", "/model", "/modelsource"
-  ],
+  "available": {
+    "capabilities": { "mutable": true },
+    "entities": { "mutable": true },
+    "model": { "mutable": false }
+  },
   "flags": [
     "binary", "collections", "doc", "epoch", "filter", "ignore", "inline",
     "setdefaultversionid", "sort", "specversion"
@@ -1450,12 +1473,16 @@ Content-Type: application/json; charset=utf-8
 
 {
   "messages": {
-    "messageid": "msg1",
-    ... remainder of msg1 definition excluded for brevity ...
+    "msg1": {
+      "messageid": "msg1",
+      ... remainder of msg1 definition excluded for brevity ...
+    }
   },
   "schemas": {
-    "schemaid": "schema1",
-    ... remainder of schema1 definition excluded for brevity ...
+    "schema1": {
+      "schemaid": "schema1",
+      ... remainder of schema1 definition excluded for brevity ...
+    }
   }
 }
 ```
@@ -1466,12 +1493,16 @@ Content-Type: application/json; charset=utf-8
 
 {
   "messages": {
-    "messageid": "msg1",
-    ... remainder of msg1 definition excluded for brevity ...
+    "msg1": {
+      "messageid": "msg1",
+      ... remainder of msg1 definition excluded for brevity ...
+    }
   },
   "schemas": {
-    "schemaid": "schema1",
-    ... remainder of schema1 definition excluded for brevity ...
+    "schema1": {
+      "schemaid": "schema1",
+      ... remainder of schema1 definition excluded for brevity ...
+    }
   }
 }
 ```
@@ -1725,7 +1756,7 @@ attributes, and MUST be of the form:
 ```yaml
 Content-Type: <STRING> ?
 xRegistry-<RESOURCE>id: <STRING>           # ID of Resource, not default Version
-xRegistry-versionid: <STRING>              # ID of the default Version
+xRegistry-versionid: <STRING>              # ID of the requested Version
 xRegistry-self: <URL>                      # Version URL
 xRegistry-xid: <URI>                       # Relative Version URI
 xRegistry-epoch: <UINTEGER>
@@ -1743,7 +1774,7 @@ xRegistry-formatvalidated: <BOOLEAN> ?
 xRegistry-formatvalidatedreason: <STRING> ?
 xRegistry-compatibilityvalidated: <BOOLEAN> ?
 xRegistry-compatibilityvalidatedreason: <STRING> ?
-xRegistry-<RESOURCE>url: <URL> ?           # End of default Version attributes
+xRegistry-<RESOURCE>url: <URL> ?           # End of requested Version attributes
 Location: <URL> ?
 Content-Location: <URL> ?
 Content-Disposition: <DISPOSITION-TYPE>; filename="<RID>" ?
@@ -1756,7 +1787,7 @@ Where:
   `<RESOURCE>id` in its `filename` parameter as specified in
   [HTTP Header Values](#http-header-values).
 
-Scalar default Version extension attributes MUST also appear as
+Scalar requested Version extension attributes MUST also appear as
 `xRegistry-` HTTP headers.
 
 Notice that for Resources, the `meta` and `versions` attributes are not
@@ -1919,7 +1950,9 @@ DELETE /<GROUPS>/<GID>/<RESOURCES>
 
 {
   "<KEY>": {                            # <RESOURCE>id
-    "epoch": <UINTEGER> ?
+    "meta": {
+      "epoch": <UINTEGER> ?
+    } ?
   } *
 } ?
 ```
@@ -1941,7 +1974,9 @@ DELETE /endpoints/ep1/messages
 
 {
   "msg1": {
-    "epoch": 5
+    "meta": {
+      "epoch": 5
+    }
   },
   "msg2": {}
 }
@@ -1951,7 +1986,7 @@ DELETE /endpoints/ep1/messages
 HTTP/1.1 204 No Content
 ```
 
-Notice that the `epoch` value for `msg1` will be verified prior to the
+Notice that the `meta.epoch` value for `msg1` will be verified prior to the
 delete, but no such check will happen for `msg2`.
 
 #### `GET /<GROUPS>/<GID>/<RESOURCES>/<RID>`
@@ -2230,11 +2265,7 @@ Content-Type: application/json; charset=utf-8
 {
   "epoch": 1,
   "name": "Blob Created",
-  "description": "a cool event",
-
-  "message": {
-    # Updated definition of a "Blob Created" event excluded for brevity
-  }
+  "description": "a cool event"
 }
 ```
 
@@ -2255,10 +2286,6 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1
   "createdat": "2024-04-30T12:00:00Z",
   "modifiedat": "2024-04-30T12:00:01Z",
   "ancestorid": "1",
-
-  "message": {
-    # Updated definition of a "Blob Created" event excluded for brevity
-  },
 
   "metaurl": "https://example.com/endpoints/ep1/messages/msg1/meta",
 
@@ -2414,11 +2441,7 @@ Content-Type: application/json; charset=utf-8
   "versionid": "1",
   "epoch": 1,
   "name": "Blob Created",
-  "description": "a cool event",
-
-  "message": {
-    # Updated definition of a "Blob Created" event excluded for brevity
-  }
+  "description": "a cool event"
 }
 ```
 
@@ -2438,11 +2461,7 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1
   "description": "a cool event",
   "createdat": "2024-04-30T12:00:00Z",
   "modifiedat": "2024-04-30T12:00:01Z",
-  "ancestorid": "1",
-
-  "message": {
-    # Updated definition of a "Blob Created" event excluded for brevity
-  }
+  "ancestorid": "1"
 }
 ```
 
@@ -2534,6 +2553,7 @@ Content-Type: application/json; charset=utf-8
   "epoch": 2,
   "createdat": "2024-04-30T12:00:00Z",
   "modifiedat": "2024-04-30T12:00:01Z",
+  "readonly": false,
   "compatibility": "none",
   "defaultversionid": "v2.0",
   "defaultversionurl": "https://example.com/endpoints/ep1/messages/msg1/versions/v2.0",
@@ -2595,6 +2615,7 @@ Content-Type: application/json; charset=utf-8
   "epoch": 2,
   "createdat": "2024-04-30T12:00:00Z",
   "modifiedat": "2024-04-30T12:00:01Z",
+  "readonly": false,
   "compatibility": "none",
   "defaultversionid": "v1.0",
   "defaultversionurl": "https://example.com/endpoints/ep1/messages/msg1/versions/v1.0",
@@ -2899,7 +2920,7 @@ Content-Type: application/json; charset=utf-8
 {
   "schemaid": "myschema",
   "versionid": "1.0",
-  "self": "https://example.com/schemagroups/g1/schemas/myschema/versions/1.0",
+  "self": "https://example.com/schemagroups/g1/schemas/myschema/versions/1.0$details",
   "xid": "/schemagroups/g1/schemas/myschema/versions/1.0",
   "epoch": 2,
   "isdefault": true,
@@ -3074,10 +3095,7 @@ Content-Type: application/json; charset=utf-8
 
 {
   "name": "Blob Created v2",
-  "description": "a cool event",
-  "message": {
-    # Updated definition of a "Blob Created" event excluded for brevity
-  }
+  "description": "a cool event"
 }
 ```
 
@@ -3097,11 +3115,7 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/v2.0
   "description": "a cool event",
   "createdat": "2024-04-30T12:00:00Z",
   "modifiedat": "2024-04-30T12:00:01Z",
-  "ancestorid": "v1.0",
-
-  "message": {
-    # Updated definition of a "Blob Created" event excluded for brevity
-  }
+  "ancestorid": "v1.0"
 }
 ```
 
@@ -3279,7 +3293,12 @@ This query parameter MUST be serialized as:
 ?sort=<ATTRIBUTE>[=asc|desc]
 ```
 
-## HTTP Header Names
+## HTTP Header Processing
+
+Native HTTP headers, such as `Content-Type`, retain their native syntax and
+encoding. The attribute-value rules below apply to `xRegistry-` headers.
+
+### HTTP Header Names
 
 HTTP field names are case-insensitive
 ([RFC9110, section 5.1](https://www.rfc-editor.org/rfc/rfc9110#section-5.1))
@@ -3383,9 +3402,9 @@ names after a decoding error. Implementations MUST NOT truncate, change case
 or otherwise lose logical name data to fit a transport limit. Standard HTTP
 field names and all field-value grammars are unaffected.
 
-## HTTP Header Values
+### HTTP Header Values
 
-The percent-encoding and quoted-string unescaping rules below apply only to
+The percent-encoding and quoted-group rules below apply only to
 `xRegistry-` metadata header values. They MUST NOT be applied to standard HTTP
 fields, even when those fields carry xRegistry metadata. Standard HTTP fields
 MUST use their own grammars:
@@ -3466,73 +3485,60 @@ emitted except for horizontal tab where allowed by the field's grammar.
 Decoded metadata MUST NOT be copied into an HTTP field without applying that
 field's serialization rules.
 
-When encoding an attribute's value as an `xRegistry-` HTTP header, it MUST be
-percent-encoded as described below. This is compatible with [RFC3986, section
-2.1][rfc3986-section-2-1] but is more specific about what needs
-encoding. The resulting string SHOULD NOT be further encoded.
-(Rationale: quoted string escaping is unnecessary when every space
-and double-quote character is already percent-encoded.)
+When data appears in HTTP headers care needs to be taken to ensure that
+only printable characters from the US-ASCII character (U+0021-U+007E range)
+set are used.
 
-When decoding an `xRegistry-` HTTP header into an attribute's value, the header
-value MUST first be unescaped with respect to double-quoted strings,
-as described in [RFC7230, section 3.2.6][rfc7230-section-3-2-6]. A single
-round of percent-decoding MUST then be performed as described
-below. These metadata headers do not support
-parenthetical comments, so the initial unescaping only needs to handle
-double-quoted values, including processing backslash escapes within
-double-quoted values. Header values produced via the
-percent-encoding described here will never include double-quoted
-values, but they MUST be supported when receiving events, for
-compatibility with older versions of this specification which did
-not require double-quote and space characters to be percent-encoded.
+The following rules MUST be followed when encoding values as HTTP headers:
+
+- Double-quotes (`"`) around a set of characters MAY be used to denote a
+  "group". Whitespace within groups are excluded from whitespace trimming
+  and commas (`,`), normally interpreted as header value separators, are
+  treated as normal characters.
+- Any non-US-ASCII characters, percent (`%`) and double-quotes within values,
+  MUST be percent encoded.
+- Header values that support lists MAY be expressed as separate HTTP headers
+  or multiple values MAY be grouped into one HTTP header separated by a
+  an unescaped comma.
+
+The following rules MUST be followed when decoding HTTP header values:
+
+- Commas that appear outside of groups (non-escaped double-quoted ranges of
+  characters) MUST be treated as separators between a list of values.
+- Leading and trailing (non-percent encoded) whitespace around individual
+  values MUST be removed. All non-leading/trailing whitespace MUST remain
+  as-is.
+- Group's double-quotes MUST be removed prior to passing the values on to the
+  receiving application.
+- Percent decoding MUST be performed on all character ranges, both in and out
+  of groups.
 
 After decoding, metadata update values MUST be interpreted according to the
 [document metadata update rules](#serializing-resource-domain-specific-documents).
 In particular, a decoded `null` retains its deletion meaning; quoting and
 percent-encoding do not provide an escape for the literal string.
 
-Percent encoding is performed by considering each Unicode character
-within the attribute's canonical string representation. Any
-character represented in memory as a [Unicode surrogate
-pair][surrogate-pair] MUST be treated as a single Unicode character.
-The following characters MUST be percent-encoded:
+If there is an error during processing of HTTP header values then an
+error ([header_error](#header_error)) MUST be generated.
 
-- Space (U+0020).
-- Double-quote (U+0022).
-- Percent (U+0025).
-- Any characters outside the printable ASCII range of U+0021-U+007E
-  inclusive.
+Example 1:
 
-Space and double-quote are encoded to avoid requiring any further
-quoting. Percent is encoded to avoid ambiguity with percent-encoding
-itself.
+- Value as seen by the application:
+  - Euro &#x20AC;&nbsp;&nbsp;&nbsp;&#x1F600;
+- Resulting Header:
+  - `MyHeader: Euro %E2%82%AC   %F0%9F%98%80`
 
-Steps to encode a Unicode character:
-
-- Encode the character using UTF-8, to obtain a byte sequence.
-- Encode each byte within the sequence as `%xy` where `x` is a
-  hexadecimal representation of the most significant 4 bits of the byte,
-  and `y` is a hexadecimal representation of the least significant 4
-  bits of the byte.
-
-Percent-encoding SHOULD be performed using upper-case for values A-F,
-but decoding MUST accept lowercase values.
-
-When performing percent-decoding, values that have been unnecessarily
-percent-encoded MUST be accepted, but encoded byte sequences which are invalid
-in UTF-8 MUST generate an error ([header_error](#header_error)). For example,
-"%C0%A0" is an overlong encoding of U+0020, and would be rejected.
-
-Example: a header value of "Euro &#x20AC; &#x1F600;" SHOULD be encoded as
-follows:
-
-- The characters, 'E', 'u', 'r', 'o' do not require encoding.
-- Space, the Euro symbol, and the grinning face emoji require encoding.
-  They are characters U+0020, U+20AC and U+1F600 respectively.
-- The encoded HTTP header value is therefore "Euro%20%E2%82%AC%20%F0%9F%98%80"
-  where "%20" is the encoded form of space, "%E2%82%AC" is the encoded form
-  of the Euro symbol, and "%F0%9F%98%80" is the encoded form of the
-  grinning face emoji.
+Example 2:
+- Value(s) as seen by the application:
+  - `   A   spacey,  "string"   `
+  - `a-word`
+  - `% is cool`
+- Resulting Single Header - option 1:
+  - `MyHeader: "  A   spacey,  %22string%22  ", a-word, %25 is cool`
+- Resulting Multiple Headers - option 2:
+  - `MyHeader: "  A   spacey,  %22string%22  "`
+  - `MyHeader: a-word`
+  - `MyHeader: %25 is cool`
 
 ## Error Processing
 
