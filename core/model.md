@@ -535,7 +535,7 @@ The following describes the attributes of the Registry model:
 - MUST be unique across all Group types (plural and singular names) in the
   Registry.
 - MUST be non-empty and MUST be a valid attribute name. For clarity, it
-  MUST NOT exceed 63 characters.
+  MUST NOT exceed 61 characters.
 
 ### `groups.<STRING>.description`
 - Type: String.

@@ -205,9 +205,7 @@ appropriate new schema to use following a breaking change.
 ### 2.3. Schema Group
 
 A Schema Group is a container for schemas that are related to each other in
-some application-defined way. This specification does not impose any
-restrictions on what schemas can be contained in a Schema Group.
-Its OPTIONAL `format` attribute can constrain
+some application-defined way. Its OPTIONAL `format` attribute can constrain
 the formats of its schemas, as described in [Schema Groups](#41-schema-groups).
 
 ## 3. Schema Registry Model
@@ -315,8 +313,8 @@ The plural, used as the collection name, is `schemagroups`. The Schema Group
 defines an OPTIONAL `format` extension attribute of type `string`.
 
 A schema group is a collection of schemas that are related to each other in
-some application-defined way. Without a value for the Group's `format`, a
-Schema Group MAY contain Schema Resources of different formats.
+some application-defined way. Without a value for the Group's `format`, a Schema
+Group MAY contain schemas of different formats.
 
 Every schema (i.e. the schema Resource) MUST reside inside a Schema Group.
 
@@ -397,6 +395,10 @@ lineage. See the [`ancestorid`][xRegistry ancestorid] attribute in the core
 xRegistry specification for more information.
 
 ### 4.3. Schema Formats
+
+The `format` attribute in the [Core model](../core/spec.md#format-attribute)
+is defined as being OPTIONAL. However, this specification modifies it to be
+REQUIRED.
 
 This specification further refines the
 [core specification's `format`](../core/spec.md#format-attribute) for use
