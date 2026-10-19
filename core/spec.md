@@ -2781,7 +2781,7 @@ So, if the target Resource (`sharedSchema`) is defined as:
 {
   "schemaid": "sharedSchema",
   "versionid": "v1",
-  "self": "http://example.com/schemagroups/group2/schemas/sharedSchema",
+  "self": "http://example.com/schemagroups/group2/schemas/sharedSchema$details",
   "xid": "/schemagroups/group2/schemas/sharedSchema",
   "epoch": 2,
   "isdefault": true,
@@ -2802,7 +2802,7 @@ then the resulting serialization of the source Resource would be:
 {
   "schemaid": "mySchema",
   "versionid": "v1",
-  "self": "http://example.com/schemagroups/group1/schemas/mySchema",
+  "self": "http://example.com/schemagroups/group1/schemas/mySchema$details",
   "xid": "/schemagroups/group1/schemas/mySchema",
   "epoch": 2,
   "isdefault": true,
@@ -2820,7 +2820,7 @@ then the resulting serialization of the source Resource would be:
     "modifiedat": "2024-01-01T12:01:00Z",
     "readonly": false,
     "defaultversionid": "v1",
-    "defaultversionurl": "http://example.com/schemagroups/group1/schemas/mySchema/versions/v1",
+    "defaultversionurl": "http://example.com/schemagroups/group1/schemas/mySchema/versions/v1$details",
     "defaultversionsticky": false
   },
 
@@ -2926,7 +2926,7 @@ Resource (`missingSchema`) would look like:
 ```yaml
 {
   "schemaid": "mySchema",
-  "self": "http://example.com/schemagroups/group1/schemas/mySchema",
+  "self": "http://example.com/schemagroups/group1/schemas/mySchema$details",
   "xid": "/schemagroups/group1/schemas/mySchema",
   "metaurl": "https://example.com/schemagroups/group1/schemas/mySchema/meta",
   "meta": {
@@ -3994,9 +3994,11 @@ present despite the semantics of the suffix being applied (as noted below).
 Each pointer MUST use the
 [URI fragment identifier representation of RFC6901](https://datatracker.ietf.org/doc/html/rfc6901#section-6):
 escape `~` as `~0` and `/` as `~1` within each reference token, then perform
-the UTF-8 and URI-fragment percent-encoding from that section. A pointer to the
-response root MUST be `#` (an empty JSON Pointer); `#/` instead refers to a
-member whose name is the empty string.
+the UTF-8 and URI-fragment percent-encoding from that section.
+
+When a relative URL references the root of the response, it MUST be `#`,
+which represents an empty JSON Pointer selecting the whole document, not
+`#/`, which selects an object member with an empty name.
 
 For clarity, if a Registry has a Schema Resource at
 `/schemagroups/g1/schemas/s1`, then this entity's `self` URL (when serialized

@@ -534,8 +534,8 @@ The following describes the attributes of the Registry model:
 - The singular name of a Group type e.g. `endpoint` (`<GROUP>`).
 - MUST be unique across all Group types (plural and singular names) in the
   Registry.
-- MUST be non-empty and MUST be a valid attribute name with the exception
-  that it MUST NOT exceed 61 characters (not 63).
+- MUST be non-empty and MUST be a valid attribute name. For clarity, it
+  MUST NOT exceed 61 characters.
 
 This limit leaves room for the `id` suffix in the `<GROUP>id` attribute within
 the [63-character attribute-name limit](./spec.md#attributes). `<GROUP>id` is
