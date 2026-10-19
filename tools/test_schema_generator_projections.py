@@ -482,13 +482,14 @@ def test_group_plural_and_resource_names_are_bounded_at_57(length, valid):
         "entries": {"singular": "entry", "plural": name}}}}))
 
 
-@pytest.mark.parametrize("length", [61, 62, 63])
-def test_group_singular_follows_current_main_law_of_63(length):
+@pytest.mark.parametrize("length", [1, 60, 61])
+def test_group_singular_follows_current_main_law_of_61(length):
     source_accepts(source_model(groups={"catalogs": {"singular": "a" * length}}))
 
 
-def test_group_singular_rejects_names_above_the_current_main_bound():
-    source_rejects(source_model(groups={"catalogs": {"singular": "a" * 64}}))
+@pytest.mark.parametrize("length", [62, 63, 64])
+def test_group_singular_rejects_names_above_the_current_main_bound(length):
+    source_rejects(source_model(groups={"catalogs": {"singular": "a" * length}}))
 
 
 def test_group_and_resource_type_names_admit_leading_underscores():
@@ -1661,7 +1662,7 @@ def endpoint_document(protocol, qos):
         "registryid": "r", "specversion": "1.0", "self": "https://example.com/",
         "xid": "/", "epoch": 1, "createdat": STAMP, "modifiedat": STAMP,
         "endpoints": {"e": {
-            "endpointid": "e", "protocol": protocol,
+            "endpointid": "e", "protocol": protocol, "usage": ["consumer"],
             "protocoloptions": {"qos": qos},
         }},
     }

@@ -70,8 +70,8 @@
             "$includes": { "$ref": "#/definitions/IncludeReferences" },
             "singular": {
               "type": "string",
-              "pattern": "^[a-z_][a-z0-9_]{0,62}$",
-              "description": "Singular name of the group type (<=63 per core/model.md; the proposed 61 bound depends on xregistry/spec#677)"
+              "pattern": "^[a-z_][a-z0-9_]{0,60}$",
+              "description": "Singular name of the group type (<=61, leaving room for the id suffix)"
             },
             "plural": {
               "type": "string",
@@ -647,7 +647,7 @@
         },
         "enum": {
           "type": "array",
-          "description": "Allowed values for scalar items; membership, 'strict' and the empty or absent set follow the attribute 'enum' rules"
+          "description": "Allowed values for scalar items"
         },
         "strict": {
           "type": "boolean",

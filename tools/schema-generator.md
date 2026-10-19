@@ -67,7 +67,7 @@ The root schema validates the document as written:
   set.
 - Group plural, Resource singular and Resource plural names - as map keys and as
   explicit fields - are limited to 57 characters. Group singular follows the
-  current `core/model.md` text of 63 characters.
+  current `core/model.md` limit of 61 characters.
 - `namecharset`, `versionmode` and `typemap` values are matched
   case-insensitively. Type names, attribute names and `enum` members are not.
 
@@ -95,9 +95,9 @@ shape of the type-name components only.
 
 ### Recorded dependencies
 
-- **Group singular of 61 characters** is proposed in xregistry/spec#677 and is
-  not adopted here; the schema keeps the 63 characters that `core/model.md`
-  currently states.
+- **Group singular names** are limited to 61 characters following
+  [xregistry/spec#761](https://github.com/xregistry/spec/pull/761), leaving
+  room for the `id` suffix within the 63-character attribute-name limit.
 - **`cloudevents/model.json`** still uses three `#groups` include fragments that
   are not RFC 6901 JSON Pointers, so its expanded stage cannot pass. Repairing
   those fragments is tracked separately as a model-consistency correction.

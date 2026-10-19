@@ -5393,7 +5393,7 @@
                                         "required": {
                                           "type": "boolean",
                                           "description": "AMQP properties.subject required",
-                                          "default": true
+                                          "default": false
                                         }
                                       },
                                       "required": [
@@ -6910,7 +6910,7 @@
                               "required": {
                                 "type": "boolean",
                                 "description": "AMQP properties.subject required",
-                                "default": true
+                                "default": false
                               }
                             },
                             "required": [
@@ -8163,7 +8163,7 @@
           },
           "usage": {
             "type": "array",
-            "description": "Client's expected usage of this endpoint. Single-role declarations are preferred. Mixed declarations are guidance-oriented metadata and should be used only when role semantics are unambiguous.",
+            "description": "Client's expected usage of this endpoint. A single role is required, except `subscriber` and `consumer` may be combined for AMQP/1.0, MQTT/3.1.1, MQTT/5.0, or NATS.",
             "items": {
               "type": "string",
               "enum": [
@@ -8196,6 +8196,9 @@
           "envelopeoptions": {},
           "protocoloptions": {}
         },
+        "required": [
+          "usage"
+        ],
         "allOf": [
           {
             "oneOf": [
@@ -10559,7 +10562,7 @@
                               "required": {
                                 "type": "boolean",
                                 "description": "AMQP properties.subject required",
-                                "default": true,
+                                "default": false,
                                 "nullable": true
                               }
                             },
@@ -12533,7 +12536,7 @@
                                   "required": {
                                     "type": "boolean",
                                     "description": "AMQP properties.subject required",
-                                    "default": true,
+                                    "default": false,
                                     "nullable": true
                                   }
                                 },
@@ -14234,7 +14237,7 @@
                               "required": {
                                 "type": "boolean",
                                 "description": "AMQP properties.subject required",
-                                "default": true,
+                                "default": false,
                                 "nullable": true
                               }
                             },
@@ -16208,7 +16211,7 @@
                                   "required": {
                                     "type": "boolean",
                                     "description": "AMQP properties.subject required",
-                                    "default": true,
+                                    "default": false,
                                     "nullable": true
                                   }
                                 },
@@ -17940,7 +17943,7 @@
                               "required": {
                                 "type": "boolean",
                                 "description": "AMQP properties.subject required",
-                                "default": true,
+                                "default": false,
                                 "nullable": true
                               }
                             },
@@ -19914,7 +19917,7 @@
                                   "required": {
                                     "type": "boolean",
                                     "description": "AMQP properties.subject required",
-                                    "default": true,
+                                    "default": false,
                                     "nullable": true
                                   }
                                 },
@@ -29712,7 +29715,7 @@
           },
           "usage": {
             "type": "array",
-            "description": "Client's expected usage of this endpoint. Single-role declarations are preferred. Mixed declarations are guidance-oriented metadata and should be used only when role semantics are unambiguous.",
+            "description": "Client's expected usage of this endpoint. A single role is required, except `subscriber` and `consumer` may be combined for AMQP/1.0, MQTT/3.1.1, MQTT/5.0, or NATS.",
             "items": {
               "type": "string",
               "enum": [
@@ -29720,8 +29723,7 @@
                 "consumer",
                 "producer"
               ]
-            },
-            "nullable": true
+            }
           },
           "channel": {
             "type": "string",
@@ -29751,6 +29753,9 @@
           "protocoloptions": {}
         },
         "description": "Structural request input. The server applies defaults, retained state, conditional model constraints and final creation validation.",
+        "required": [
+          "usage"
+        ],
         "allOf": [
           {
             "anyOf": [
@@ -32467,7 +32472,7 @@
           },
           "usage": {
             "type": "array",
-            "description": "Client's expected usage of this endpoint. Single-role declarations are preferred. Mixed declarations are guidance-oriented metadata and should be used only when role semantics are unambiguous.",
+            "description": "Client's expected usage of this endpoint. A single role is required, except `subscriber` and `consumer` may be combined for AMQP/1.0, MQTT/3.1.1, MQTT/5.0, or NATS.",
             "items": {
               "type": "string",
               "enum": [
@@ -32475,8 +32480,7 @@
                 "consumer",
                 "producer"
               ]
-            },
-            "nullable": true
+            }
           },
           "channel": {
             "type": "string",

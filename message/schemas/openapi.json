@@ -2987,7 +2987,7 @@
                                         "required": {
                                           "type": "boolean",
                                           "description": "AMQP properties.subject required",
-                                          "default": true
+                                          "default": false
                                         }
                                       },
                                       "required": [
@@ -4504,7 +4504,7 @@
                               "required": {
                                 "type": "boolean",
                                 "description": "AMQP properties.subject required",
-                                "default": true
+                                "default": false
                               }
                             },
                             "required": [
@@ -6734,7 +6734,7 @@
                               "required": {
                                 "type": "boolean",
                                 "description": "AMQP properties.subject required",
-                                "default": true,
+                                "default": false,
                                 "nullable": true
                               }
                             },
@@ -8708,7 +8708,7 @@
                                   "required": {
                                     "type": "boolean",
                                     "description": "AMQP properties.subject required",
-                                    "default": true,
+                                    "default": false,
                                     "nullable": true
                                   }
                                 },
@@ -10409,7 +10409,7 @@
                               "required": {
                                 "type": "boolean",
                                 "description": "AMQP properties.subject required",
-                                "default": true,
+                                "default": false,
                                 "nullable": true
                               }
                             },
@@ -12383,7 +12383,7 @@
                                   "required": {
                                     "type": "boolean",
                                     "description": "AMQP properties.subject required",
-                                    "default": true,
+                                    "default": false,
                                     "nullable": true
                                   }
                                 },
@@ -14115,7 +14115,7 @@
                               "required": {
                                 "type": "boolean",
                                 "description": "AMQP properties.subject required",
-                                "default": true,
+                                "default": false,
                                 "nullable": true
                               }
                             },
@@ -16089,7 +16089,7 @@
                                   "required": {
                                     "type": "boolean",
                                     "description": "AMQP properties.subject required",
-                                    "default": true,
+                                    "default": false,
                                     "nullable": true
                                   }
                                 },
