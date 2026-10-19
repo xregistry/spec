@@ -140,7 +140,7 @@ Any message definition covers up to three aspects:
    understand the particular payload format or having to read the payload. The
    only predefined envelope model in this specification is CNCF CloudEvents
    1.0. Once the `envelope` selector is set, constraints for the attributes
-   of the CloudEvents envelope can be defined in the `envelopeoptions`.
+   of the CloudEvents envelope can be defined in the `envelopemetadata`.
 
 2. Protocol: The `protocol` selector picks a specific application protocol to
    which the given message is bound. If a protocol is chosen, constraints for
@@ -165,7 +165,7 @@ are distinguished by content-type (including parameters) or even only through
 whether payload schema definitions match an incoming message.
 
 Where attributes (or properties or headers; depending on protocol nomenclature)
-can be defined in the `envelopeoptions` and `protocoloptions`, the general
+can be defined in the `envelopemetadata` and `protocoloptions`, the general
 pattern used in this model is that the attribute can have a name, a
 description, a type and a value. Setting a value makes that value constant for
 all instances of that message, which is useful for discriminators like AMQP’s
@@ -182,7 +182,7 @@ context values into named variables.
 The embedded placeholders in values of the `uritemplate` type can refer to
 context attributes provided by the application environment in which the metadata
 is evaluated. For instance, a message definition might declare a `source`
-attribute in the `envelopeoptions` of a CloudEvent, with a `uritemplate` type
+attribute in the `envelopemetadata` of a CloudEvent, with a `uritemplate` type
 and a `value` definition `/vehicles/{vin}/systems/{system}/sensor/{sensor}`.
 
 If the application environment from which the message is published provides values
@@ -203,13 +203,13 @@ For example, let there be this definition:
 {
   "protocol": "MQTT/5.0",
   "protocoloptions": {
-    "topic_name": "/store/{storeid}/cashierdesk/{cdid}"
+    "topic_name": "/store/{storeid}/cashierdesk/{cdid}",
     "user_properties" : [
       { "name": "eventType", "type": "uritemplate", "value": "{eventType}" }
     ]
   },
   "envelope": "CloudEvents/1.0",
-  "envelopeoptions": {
+  "envelopemetadata": {
     "type": { "type": "uritemplate", "value": "{eventType}" },
     "source": { "type": "uritemplate", "value": "{storeid}" },
     "subject": { "type": "uritemplate", "value": "{cdid}" }
@@ -220,7 +220,7 @@ For example, let there be this definition:
 An application might use this definition to match incoming MQTT messages only
 against the `protocol`/`protocoloptions` part of the definition. If an incoming
 message matches this part, the application can then use the `envelope` and
-`envelopeoptions` definitions to transform the message into a CloudEvent, with
+`envelopemetadata` definitions to transform the message into a CloudEvent, with
 the context attributes carrying the values.
 
 Context attributes and their handling are not covered by the following normative
@@ -660,15 +660,15 @@ Illustrating example:
     "messages": {
       "com.example.abc.event1": {
         "messageid": "com.example.abc.event1",
-        "envelope": "CloudEvents/1.0",
-         # details ...
-        }
+        "envelope": "CloudEvents/1.0"
+        # details ...
       },
       "com.example.abc.event2": {
-        "messageid": "com.example.abc.event1",
-        "envelope": "CloudEvents/1.0",
+        "messageid": "com.example.abc.event2",
+        "envelope": "CloudEvents/1.0"
         # details ...
       }
+    }
   },
   "com.example.def": {
     "messagegroupid": "com.example.def",
@@ -678,7 +678,10 @@ Illustrating example:
     "messagescount": 1,
     "messages": {
       "com.example.abc.event1": {
-        "uri": "#/messagegroups/com.example.abc/messages/com.example.abc.event1",
+        "messageid": "com.example.abc.event1",
+        "meta": {
+          "xref": "/messagegroups/com.example.abc/messages/com.example.abc.event1"
+        }
         # details ...
       }
     }
@@ -881,7 +884,7 @@ the headers, properties or attributes defined for a message:
     - `any`: Any type of value, including `null`.
     - `binary`: CloudEvents "Binary" type.
     - `boolean`: CloudEvents "Boolean" type.
-    - `duration`: RFC3339 Duration.
+    - `duration`: ISO 8601 Duration.
     - `integer`: CloudEvents "Integer" type (RFC 7159, Section 6).
     - `number`: IEEE754 Double.
     - `string`: CloudEvents "String" type.
@@ -927,9 +930,8 @@ This specification only defines one metadata envelope: "CloudEvents/1.0".
 ##### CloudEvents/1.0
 
 For the "CloudEvents/1.0" envelope, the
-[`envelopemetadata`](#envelopemetadata) object contains a property
-`attributes`, which is an object whose properties correspond to the
-CloudEvents context attributes.
+[`envelopemetadata`](#envelopemetadata) object contains properties that
+correspond directly to the CloudEvents context attributes.
 
 As with the [CloudEvents specification][CloudEvents], the attributes form a
 flat list and extension attributes are allowed. Attribute names are restricted
@@ -985,7 +987,7 @@ a message (see the [model file](model.json) for the complete definition):
 
 ```yaml
 "envelope": "CloudEvents/1.0",
-"envelopemetadata" {
+"envelopemetadata": {
   # "CloudEvents/1.0" envelope metadata
   "specversion": {
     "value": "1.0",
@@ -1270,23 +1272,23 @@ sent over [MQTT 3.1.1][MQTT 3.1.1] or [MQTT 5.0][MQTT 5.0] connections. The
 format describes the [MQTT PUBLISH packet][MQTT 5.0] content.
 
 The [`protocoloptions`](#protocoloptions) object contains the elements of the
-MQTT PUBLISH packet directly, with the `user-properties` element corresponding
+MQTT PUBLISH packet directly, with the `user_properties` element corresponding
 to the application properties collection of other protocols.
 
 The following properties are defined. The MQTT 3.1.1 and MQTT 5.0 columns
 indicate whether the property is supported for the respective MQTT version.
 
-| Property                  | Type          | MQTT 3.1.1 | MQTT 5.0 | Description                      |
-| ------------------------- | ------------- | ---------- | -------- | -------------------------------- |
-| `qos`                     | `integer`     | yes        | yes      | Quality of Service level         |
-| `retain`                  | `boolean`     | yes        | yes      | Retain flag                      |
-| `topic_name`              | `uritemplate` | yes        | yes      | Topic name                       |
-| `payload_format`          | `integer`     | no         | yes      | Payload format indicator         |
-| `message_expiry_interval` | `integer`     | no         | yes      | Message expiry interval          |
-| `response_topic`          | `uritemplate` | no         | yes      | Response topic                   |
-| `correlation_data`        | `binary`      | no         | yes      | Correlation data                 |
-| `content_type`            | `symbol`      | no         | yes      | MIME content type of the payload |
-| `user_properties`         | Array         | no         | yes      | User properties                  |
+| Property                   | Type          | MQTT 3.1.1 | MQTT 5.0 | Description                      |
+| -------------------------- | ------------- | ---------- | -------- | -------------------------------- |
+| `qos`                      | `integer`     | yes        | yes      | Quality of Service level         |
+| `retain`                   | `boolean`     | yes        | yes      | Retain flag                      |
+| `topic_name`               | `uritemplate` | yes        | yes      | Topic name                       |
+| `payload_format_indicator` | `integer`     | no         | yes      | Payload format indicator         |
+| `message_expiry_interval`  | `integer`     | no         | yes      | Message expiry interval          |
+| `response_topic`           | `uritemplate` | no         | yes      | Response topic                   |
+| `correlation_data`         | `binary`      | no         | yes      | Correlation data                 |
+| `content_type`             | `symbol`      | no         | yes      | MIME content type of the payload |
+| `user_properties`          | Array         | no         | yes      | User properties                  |
 
 Like HTTP, MQTT allows for multiple user properties with the same name,
 so the `user_properties` property is an array of objects, each of which
