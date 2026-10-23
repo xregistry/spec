@@ -3157,8 +3157,7 @@
               },
               "xref": {
                 "type": "string",
-                "format": "uri-reference",
-                "pattern": "^/"
+                "format": "uri-reference"
               },
               "readonly": {
                 "type": "boolean"

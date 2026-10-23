@@ -204,8 +204,7 @@
               },
               "xref": {
                 "type": "string",
-                "format": "uri-reference",
-                "pattern": "^/"
+                "format": "uri-reference"
               },
               "readonly": {
                 "type": "boolean"
@@ -266,7 +265,6 @@
           "dataschemaxid": {
             "type": "string",
             "format": "uri-reference",
-            "pattern": "^/",
             "description": "Contains the xid of the xRegistry schema Resource entity associated with the dataschemauri referenced schema document. Note that this means the entity MUST be located within the same Registry."
           },
           "datacontenttype": {
@@ -1779,7 +1777,6 @@
                       "willmessage": {
                         "type": "string",
                         "format": "uri-reference",
-                        "pattern": "^/",
                         "description": "The MQTT will message definition to configure for publishers on this endpoint. This MUST be a reference to a message definition"
                       }
                     }
@@ -1875,7 +1872,6 @@
                       "willmessage": {
                         "type": "string",
                         "format": "uri-reference",
-                        "pattern": "^/",
                         "description": "The MQTT will message definition to configure for publishers on this endpoint. This MUST be a reference to a message definition"
                       }
                     }
@@ -2478,8 +2474,7 @@
               },
               "xref": {
                 "type": "string",
-                "format": "uri-reference",
-                "pattern": "^/"
+                "format": "uri-reference"
               },
               "readonly": {
                 "type": "boolean"
