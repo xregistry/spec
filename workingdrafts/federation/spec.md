@@ -124,6 +124,17 @@ This model is useful for offline tools or applications that already support
 OCI, Git or other native bindings. A stored catalog alone does not execute
 the selection algorithm. The client performs the additional reads.
 
+In this mode the producer does not contact source Registries or return their
+possible matches. An ordinary client without federation support reads only
+the supplied local view. A federation-aware client uses the catalog for
+independently maintained descriptions and access advertisements; its own
+credentials and composition policy do not necessarily contain that
+information. A caller that already knows the source endpoint can instead
+bypass catalog discovery as described under [Read Operations](#read-operations).
+The resolution-owner signal distinguishes this uncombined view from one whose
+producer has already performed composition. It does not define a service that
+returns a remote execution plan for the client to run.
+
 ### API Server Resolution
 
 A federating API server performs resolution for consumers that call its
@@ -294,8 +305,30 @@ the eligible catalog entries, their order and the Resource paths they can
 supply. That ordered list is configuration, not JSON object-map order or
 Category enumeration order. This specification does not add a catalog
 attribute for that list. A caller MAY choose one source explicitly instead.
-An unordered set of potentially competing origins is insufficient to choose
-a winner and MUST produce `ambiguous` when disambiguation is needed.
+
+The policy belongs to the resolver forming the view: the server or publisher
+in producer resolution, or the consuming application in consumer resolution.
+Its configuration format and management interface are implementation-specific.
+An implementation can permit per-call choices or overrides, but these remain
+subject to its access and source-selection policy; a caller cannot gain
+authorization merely by naming a source.
+
+The catalog and this policy serve different purposes. A catalog describes
+known Registries and how to access them. Listing an entry does not include it
+in a particular composed view, assign it precedence, or authorize access.
+For example, a shared catalog can list suppliers for several applications
+while one application's view selects only its approved suppliers. Either the
+catalog or the policy can change independently. The `priority` inside a
+catalog entry orders that entry's access advertisements, not different source
+Registries; see [Discovery and Binding Selection](#discovery-and-binding-selection).
+
+With a complete source order, multiple copies of the same Resource path are
+resolved by precedence, not reported as ambiguous. An unordered set of
+potentially competing origins is insufficient to choose a winner and MUST
+produce `ambiguous` when disambiguation is needed. Separately, several
+distinct visible Resources can satisfy a selector after shadowing; source
+precedence does not choose between them. See
+[Select After Applying Shadows](#example-select-after-applying-shadows).
 
 For Resource metadata, Meta, Version metadata and document reads, the unit
 of shadowing is the Resource, including all of its Versions:
@@ -451,6 +484,9 @@ context, not an additional Core attribute or a new HTTP response envelope:
 ```
 
 There is no immutable revision pin for the live HTTP source in this example.
+In producer resolution the server supplies this context through its documented
+origin-reporting mechanism, described under [Read Operations](#read-operations).
+It cannot be inferred from the consumer-facing `self` URL alone.
 
 Now remove the local `item` Resource and repeat the collection request.
 Source A's `item` becomes visible with default Version `v2`. Both `item` and
@@ -559,6 +595,15 @@ For each operation a resolver MUST:
 Origin information MUST identify the chosen advertisement, catalog-description
 Version when applicable, target XID and revision pin or the absence of an
 immutable pin. It MUST travel separately from Core identity attributes.
+A library can return that information alongside the value. A producer-resolved
+service MUST document how an authorized consumer obtains the context
+associated with a result, through a binding extension or associated metadata
+interface. Keeping it only in an internal server log does not return it to
+the consumer. This draft does not standardize an HTTP header, UA node or new
+Core response envelope for that purpose. An ordinary Core response alone
+therefore does not identify whether its Resource originated locally or in
+another Registry.
+
 A standalone endpoint supplied by the caller MAY bypass catalog discovery,
 but MUST still establish all other context.
 
@@ -748,6 +793,17 @@ states between requests. A package stores such a snapshot using the
 representation. Core Resource Versions remain distinct from the revision
 of a snapshot that contains them.
 
+Snapshots are not the only way to cache data for offline use. A consumer can
+cache individual responses under the selected binding's caching rules,
+without claiming that those responses form one consistent captured state.
+The snapshot requirements below apply when a producer claims to provide a
+snapshot with a declared scope and completeness class.
+
+This specification does not prescribe a capture trigger or refresh schedule.
+A caller can request a capture, or a server or publisher can manage captures
+and refreshes. Each operation still uses its selected revision; a refresh
+does not replace a revision already pinned by an ongoing operation.
+
 Every snapshot MUST have a complete internal containment graph. A linked
 snapshot MAY retain explicit external document references. An
 offline-complete snapshot MUST additionally contain the declared xRegistry
@@ -765,6 +821,11 @@ tag, branch or mutable directory name is not a revision pin. A resolver MUST
 report a live HTTP or UA endpoint without a snapshot guarantee as live, not
 as an atomic snapshot. Revision identifiers MUST NOT be substituted for
 Resource Version IDs.
+This report is part of the origin and revision context returned under
+[Read Operations](#read-operations), not the resolution-owner capability.
+The [source-selection example](#example-select-after-applying-shadows)
+illustrates a live result with `revision: null` and `consistency: "live"`;
+those field names illustrate resolver context, not a new wire format.
 
 Digests identify exact bytes, not semantic equality. Equivalent publications
 can have different digests. New snapshots MAY reuse unchanged content and
