@@ -92,9 +92,6 @@ specification.
     present otherwise.
   - `first` and `last` links are OPTIONAL, subject to the single-response
     recommendations for [`rel`](#rel).
-  - An offered link MUST identify a subset with the stated relationship.
-    The availability of an OPTIONAL relation's target does not require that
-    relation to be offered, nor does offering one relation require the others.
   - MUST be a URI-Reference as defined in
     [RFC3986](https://tools.ietf.org/html/rfc3986).
 - Examples:
@@ -173,8 +170,7 @@ specification.
     pagination requests, then this value MUST be consistent across all `link`
     attributes and messages in which it appears.
 
-An omitted count does not mean zero. How a count is carried is defined by the
-protocol binding.
+An omitted count does not mean zero.
 
 #### offset
 
@@ -269,14 +265,6 @@ Link: <URL>;rel=STRING;offset=UINT;limit=UINT;count=UINT
 Where:
 - `offset`, `limit` and `count` are OPTIONAL HTTP parameters as defined above.
 
-No `first` or `last` Link is REQUIRED solely to carry a count, and no
-separate HTTP count header is defined. Which Links are present follows the
-constraints in [Server Attributes](#server-attributes) and the bullets above.
-
-When supplied, `count` is a Link extension parameter containing an unsigned
-decimal integer, either as a token or an equivalent quoted-string under the
-Link syntax. Its consistency follows the `count` constraints above.
-
 Example:
 
 Initiate a pagination request, asking for only 10 records per response:
@@ -315,7 +303,7 @@ Expires: Wed, 01 Dec 2021 16:00:00 GMT
 ```
 
 If the complete result set was only 5 records, then only the `self` Link header
-might included in the first response:
+might be included in the response:
 
 ```
 Link: <http://example.com?seq=29182>;rel=self;offset=0;limit=10;count=5
@@ -372,8 +360,7 @@ the next subset of records until a response is returned without a `next` Link -
 indicating that it has reached the end.
 
 Absence of `count`, or an empty current page, MUST NOT be interpreted as the end
-when a `next` Link is present. Conversely, OPTIONAL `prev`, `first`, `last` or
-`self` Links do not require continued forward traversal when `next` is absent.
+when a `next` Link is present.
 
 For each record set returned, typically, the client will use the `self` Link's
 metadata in any end-user facing interfaces to indicate which page they are
