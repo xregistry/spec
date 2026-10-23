@@ -3868,7 +3868,7 @@
             "format": "date-time",
             "description": "Time of the object modification"
           },
-          "basemessageuri": {
+          "basemessage": {
             "type": "string",
             "format": "uri",
             "description": "Reference to a base definition for this definition. Relative references are XIDs within the same registry. Absolute URIs reference message definitions in external registries. The base definition is overridden by this definition. If not present, this definition does not override any base definition"
