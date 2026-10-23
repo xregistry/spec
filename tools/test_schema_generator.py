@@ -91,6 +91,71 @@ class TestSchemaGenerator:
 
         visit(schema_data)
 
+    def test_message_model_uses_normative_basemessage_name(self, message_model):
+        model = json.loads(message_model.read_text(encoding='utf-8'))
+        attributes = model['groups']['messagegroups']['resources']['messages'][
+            'attributes'
+        ]
+
+        assert 'basemessageuri' not in attributes
+        assert attributes['basemessage']['name'] == 'basemessage'
+        assert attributes['basemessage']['type'] == 'uri'
+        assert attributes['basemessage']['target'] == (
+            '/messagegroups/messages[/versions]'
+        )
+        assert not attributes['basemessage'].get('required', False)
+
+    @pytest.mark.parametrize(
+        ('schema_type', 'message_path', 'expected_type'),
+        [
+            (
+                'json-schema',
+                ('definitions', 'messagegroup-schema', 'message'),
+                'string',
+            ),
+            (
+                'json-structure',
+                ('definitions', 'Messagegroups', 'Message'),
+                'uri',
+            ),
+            (
+                'openapi',
+                ('components', 'schemas', 'message'),
+                'string',
+            ),
+        ],
+    )
+    def test_generated_message_basemessage_property(
+        self, message_model, tools_dir, schema_type, message_path, expected_type
+    ):
+        message = self.generate_schema(message_model, schema_type, tools_dir)
+        for component in message_path:
+            message = message[component]
+
+        properties = message['properties']
+        assert 'basemessageuri' not in properties
+        assert properties['basemessage']['type'] == expected_type
+        if expected_type == 'string':
+            assert properties['basemessage']['format'] == 'uri'
+
+    def test_message_avro_uses_basemessage_field(self, message_model, tools_dir):
+        schema = self.generate_schema(message_model, 'avro-schema', tools_dir)
+        groups = next(
+            field for field in schema['fields']
+            if field['name'] == 'messagegroups'
+        )
+        messages = next(
+            field for field in groups['type']['values']['fields']
+            if field['name'] == 'messages'
+        )
+        fields = {
+            field['name']: field
+            for field in messages['type']['values']['fields']
+        }
+
+        assert 'basemessageuri' not in fields
+        assert fields['basemessage']['type'] == 'string'
+
     def test_schema_model_json_structure(self, schema_model, tools_dir):
         """Test native JSON Structure shape for a registry model."""
         schema_data = self.generate_schema(schema_model, 'json-structure', tools_dir)
