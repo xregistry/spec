@@ -71,6 +71,14 @@ Registry context established after selection. A catalog does not have to
 implement those bindings, serve an HTTP facade for them, proxy their
 contents or provide a materialized view.
 
+A catalog's own `category` Groups and `registry` Resources MAY also be
+federated using the shared federation rules and a compatible catalog model.
+Such a view combines catalog descriptions, not the contents of every Registry
+they describe. The resolver still needs an initial access context and a
+composition policy for that catalog view. Encountering an advertised Registry
+does not automatically add it to the view or authorize another traversal;
+the federation policy and cycle limits continue to apply.
+
 This specification does not define replication, synchronization, automatic
 dependency traversal, write-through, conflict resolution or credential
 storage. It does not change domain document formats or require remote
