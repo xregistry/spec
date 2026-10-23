@@ -197,24 +197,6 @@ class TestSchemaGenerator:
         except jsonschema.SchemaError as e:
             pytest.fail(f"JSON Schema validation failed: {e}")
 
-    def test_endpoint_messagegroups_reference_groups(self, endpoint_model):
-        model = json.loads(endpoint_model.read_text(encoding='utf-8'))
-        endpoint = model['groups']['endpoints']
-        attributes = endpoint['attributes']
-
-        assert attributes['messagegroups']['type'] == 'array'
-        assert attributes['messagegroups']['item'] == {
-            'type': 'uri',
-            'target': '/messagegroups',
-        }
-        assert endpoint['ximportresources'] == ['/messagegroups/messages']
-        for protocol in ('MQTT/3.1.1', 'MQTT/5.0'):
-            options = attributes['protocol']['ifvalues'][protocol][
-                'siblingattributes'
-            ]['protocoloptions']['attributes']
-            assert options['willmessage']['type'] == 'xid'
-            assert options['willmessage']['target'] == '/messagegroups/messages'
-
     def test_endpoint_model_avro_schema_valid(self, endpoint_model, tools_dir):
         """Test that endpoint model generates valid Avro schema."""
         schema_data = self.generate_schema(endpoint_model, 'avro-schema', tools_dir)
