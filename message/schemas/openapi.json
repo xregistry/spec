@@ -2947,6 +2947,10 @@
               "method": {
                 "type": "string",
                 "description": "The HTTP method"
+              },
+              "status": {
+                "type": "string",
+                "description": "The HTTP status code"
               }
             }
           }

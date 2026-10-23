@@ -1282,6 +1282,11 @@
                           "name": "method",
                           "description": "The HTTP method",
                           "type": "string"
+                        },
+                        "status": {
+                          "name": "status",
+                          "description": "The HTTP status code",
+                          "type": "string"
                         }
                       }
                     }
