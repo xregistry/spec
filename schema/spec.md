@@ -205,8 +205,8 @@ appropriate new schema to use following a breaking change.
 ### 2.3. Schema Group
 
 A Schema Group is a container for schemas that are related to each other in
-some application-defined way. This specification does not impose any
-restrictions on what schemas can be contained in a Schema Group.
+some application-defined way. Its OPTIONAL `format` attribute can constrain
+the formats of its schemas, as described in [Schema Groups](#41-schema-groups).
 
 ## 3. Schema Registry Model
 
@@ -234,8 +234,6 @@ this form:
 
   "model": { ... }, ?
 
-  "schemagroupsurl": "<URL>",                      # SchemaGroups collection
-  "schemagroupscount": <UINTEGER>,
   "schemagroups": {
     "KEY": {                                       # schemagroupid
       "schemagroupid": "<STRING>",                 # xRegistry core attributes
@@ -251,8 +249,6 @@ this form:
       "deprecated": { ... }, ?
       "format": "<STRING>", ?
 
-      "schemasurl": "<URL>",                       # Schemas collection
-      "schemascount": <UINTEGER>,
       "schemas": {
         "KEY": {                                   # schemaid
           "schemaid": "<STRING>",                  # xRegistry core attributes
@@ -270,7 +266,7 @@ this form:
           "modifiedat": "<TIMESTAMP>",
           "ancestorid": "<STRING>",
           "contenttype": "<STRING>", ?
-          "format": "<STRING>", ?
+          "format": "<STRING>",
           "formatvalidated": <BOOLEAN>, ?
           "formatvalidatedreason": "<STRING>", ?
           "compatibilityvalidated": <BOOLEAN>, ?
@@ -284,13 +280,17 @@ this form:
           "metaurl": "<URL>",                      # Resource level attrs
           "meta": { ... }, ?
 
+          "versions": { ... }, ?
           "versionsurl": "<URL>",
-          "versionscount": <UINTEGER>,
-          "versions": { ... } ?
+          "versionscount": <UINTEGER>
         } *
-      } ?
+      }, ?
+      "schemasurl": "<URL>",                       # Schemas collection
+      "schemascount": <UINTEGER>
     } *
-  } ?
+  }, ?
+  "schemagroupsurl": "<URL>",                      # SchemaGroups collection
+  "schemagroupscount": <UINTEGER>
 }
 ```
 
@@ -310,12 +310,11 @@ Resource Version objects are inherited from there.
 
 The Group (`<GROUP>`) name for the Schema Registry is `schemagroup` (singular).
 The plural, used as the collection name, is `schemagroups`. The Schema Group
-does not have any specific extension attributes.
+defines an OPTIONAL `format` extension attribute of type `string`.
 
 A schema group is a collection of schemas that are related to each other in
-some application-defined way. A Schema Group does not impose any restrictions
-on the contained schemas, meaning that a Schema Group MAY contain schemas of
-different formats.
+some application-defined way. Without a value for the Group's `format`, a Schema
+Group MAY contain schemas of different formats.
 
 Every schema (i.e. the schema Resource) MUST reside inside a Schema Group.
 
@@ -329,8 +328,6 @@ containing 5 schemas.
   "specversion": "1.0-rc4",
   # other xRegistry top-level attributes excluded for brevity
 
-  "schemagroupsurl": "http://example.com/schemagroups",
-  "schemagroupscount": 1,
   "schemagroups": {
     "com.example.schemas": {
       "schemagroupid": "com.example.schemas",
@@ -339,7 +336,9 @@ containing 5 schemas.
       "schemasurl": "https://example.com/schemagroups/com.example.schemas/schemas",
       "schemascount": 5
     }
-  }
+  },
+  "schemagroupsurl": "http://example.com/schemagroups",
+  "schemagroupscount": 1
 }
 ```
 
@@ -397,6 +396,10 @@ xRegistry specification for more information.
 
 ### 4.3. Schema Formats
 
+The `format` attribute in the [Core model](../core/spec.md#format-attribute)
+is defined as being OPTIONAL. However, this specification modifies it to be
+REQUIRED.
+
 This specification further refines the
 [core specification's `format`](../core/spec.md#format-attribute) for use
 in a Schema Registry by defining a set of common schema format names that MUST
@@ -417,15 +420,11 @@ Versions for a schema named `com.example.telemetrydata`:
   "specversion": "1.0-rc4",
   # other xRegistry top-level attributes excluded for brevity
 
-  "schemagroupsurl": "http://example.com/schemagroups",
-  "schemagroupscount": 1,
   "schemagroups": {
     "com.example.telemetry": {
       "schemagroupid": "com.example.telemetry",
       # other xRegistry group-level attributes excluded for brevity
 
-      "schemasurl": "http://example.com/schemagroups/com.example.telemetry/schemas",
-      "schemascount": 1,
       "schemas": {
         "com.example.telemetrydata": {
           "schemaid": "com.example.telemetrydata",
@@ -436,11 +435,10 @@ Versions for a schema named `com.example.telemetrydata`:
           "format": "Protobuf/3",
           # other xRegistry default Version attributes excluded for brevity
 
-          "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; string description = 3; } }",
+          "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; string description = 3; }",
 
           "metaurl": "http://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/meta",
-          "versionsurl": "http://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions",
-          "versionscount": 3,
+
           "versions": {
             "1": {
               "schemaid": "com.example.telemetrydata",
@@ -451,7 +449,7 @@ Versions for a schema named `com.example.telemetrydata`:
               "format": "Protobuf/3",
               # other xRegistry Version-level attributes excluded for brevity
 
-              "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; } }"
+              "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; }"
             },
             "2": {
               "schemaid": "com.example.telemetrydata",
@@ -462,7 +460,7 @@ Versions for a schema named `com.example.telemetrydata`:
               "format": "Protobuf/3",
               # other xRegistry Version-level attributes excluded for brevity
 
-              "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; } }"
+              "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; }"
             },
             "3": {
               "schemaid": "com.example.telemetrydata",
@@ -473,13 +471,19 @@ Versions for a schema named `com.example.telemetrydata`:
               "format": "Protobuf/3",
               # other xRegistry Version-level attributes excluded for brevity
 
-              "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; string description = 3; } }"
+              "schema": "syntax = \"proto3\"; message Metrics { float metric = 1; string unit = 2; string description = 3; }"
             }
-          }
+          },
+          "versionsurl": "http://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions",
+          "versionscount": 3
         }
-      }
+      },
+      "schemasurl": "http://example.com/schemagroups/com.example.telemetry/schemas",
+      "schemascount": 1
     }
-  }
+  },
+  "schemagroupsurl": "http://example.com/schemagroups",
+  "schemagroupscount": 1
 }
 ```
 
@@ -594,8 +598,10 @@ with the declared version.
 A URI, like the Message Registry's
 [`dataschemauri`](../message/spec.md#dataschemauri), that points to a Protobuf
 Schema document MUST reference a Protobuf `message` declaration contained in the
-schema document using a URI fragment suffix `[:]{message-name}`. The ':'
-character is used as a separator when the URI already contains a fragment.
+schema document. If the URI does not contain a fragment, the message name MUST
+be appended as a URI fragment using `#{message-name}`. If the URI already
+contains a fragment, the message name MUST be appended to the fragment using
+`:{message-name}`.
 
 Examples:
 

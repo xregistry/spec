@@ -3,6 +3,7 @@
 <!-- words: validatecompatibility validateformat -->
 <!-- words: compat formatvalidated compatibilityvalidated -->
 <!-- words: compat formatvalidatedreason compatibilityvalidatedreason -->
+<!-- words: mymap myheader spacey -->
 
 ## Abstract
 
@@ -65,7 +66,7 @@ model and semantics that apply to all protocols.
     - [`DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>`](#delete-groupsgidresourcesridversionsvid)
   - [xRegistry Discovery](#xregistry-discovery)
 - [Request Flags / Query Parameters](#request-flags--query-parameters)
-- [HTTP Header Values](#http-header-values)
+- [HTTP Header Processing](#http-header-processing)
 - [Error Processing](#error-processing)
 
 ## Notations and Terminology
@@ -168,6 +169,8 @@ pattern of the APIs:
   `DELETE` MUST then be used to delete unwanted entities.
 - Unknown query parameters SHOULD be silently ignored by servers. This
   includes specification-defined but unsupported query parameters.
+- The choice of disposition type in a `Content-Disposition` response header,
+  such as `inline` or `attachment`, is left to the application.
 - Despite the
   [HTTP specification](https://datatracker.ietf.org/doc/html/rfc9110#name-idempotent-methods)
   saying that the `PUT` method is idempotent, this specification does not
@@ -823,9 +826,11 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "available": [
-    "/capabilities", "/export", "/model", "/modelsource"
-  ],
+  "available": {
+    "capabilities": { "mutable": true },
+    "entities": { "mutable": true },
+    "model": { "mutable": false }
+  },
   "flags": [
     "binary", "collections", "doc", "epoch", "filter", "ignore", "inline",
     "setdefaultversionid", "sort", "specversion"
@@ -875,12 +880,27 @@ Content-Type: application/json; charset=utf-8
 
 {
   "available": {
-    "type": "array",
-    "item": {
-      "type": "string"
-    },
-    "enum": [ "/capabilities", "/capabilitiesoffered", "/export", "/model",
-       "/modelsource" ]
+    "type": "object",
+    "attributes": {
+      "capabilities": {
+        "type": "object",
+        "attributes": {
+          "mutable": { "type": "boolean", "enum": [ false, true ] }
+        }
+      },
+      "entities": {
+        "type": "object",
+        "attributes": {
+          "mutable": { "type": "boolean", "enum": [ false, true ] }
+        }
+      },
+      "model": {
+        "type": "object",
+        "attributes": {
+          "mutable": { "type": "boolean", "enum": [ false ] }
+        }
+      }
+    }
   },
   "flags": {
     "type": "array",
@@ -988,9 +1008,11 @@ PATCH /capabilities
 
 ```yaml
 {
-  "available": [
-    "/capabilities", "/export", "/model", "/modelsource"
-  ],
+  "available": {
+    "capabilities": { "mutable": true },
+    "entities": { "mutable": true },
+    "model": { "mutable": false }
+  },
   "flags": [
     "binary", "collections", "doc", "epoch", "filter", "ignore", "inline",
     "setdefaultversionid", "sort", "specversion"
@@ -1443,12 +1465,16 @@ Content-Type: application/json; charset=utf-8
 
 {
   "messages": {
-    "messageid": "msg1",
-    ... remainder of msg1 definition excluded for brevity ...
+    "msg1": {
+      "messageid": "msg1",
+      ... remainder of msg1 definition excluded for brevity ...
+    }
   },
   "schemas": {
-    "schemaid": "schema1",
-    ... remainder of schema1 definition excluded for brevity ...
+    "schema1": {
+      "schemaid": "schema1",
+      ... remainder of schema1 definition excluded for brevity ...
+    }
   }
 }
 ```
@@ -1459,12 +1485,16 @@ Content-Type: application/json; charset=utf-8
 
 {
   "messages": {
-    "messageid": "msg1",
-    ... remainder of msg1 definition excluded for brevity ...
+    "msg1": {
+      "messageid": "msg1",
+      ... remainder of msg1 definition excluded for brevity ...
+    }
   },
   "schemas": {
-    "schemaid": "schema1",
-    ... remainder of schema1 definition excluded for brevity ...
+    "schema1": {
+      "schemaid": "schema1",
+      ... remainder of schema1 definition excluded for brevity ...
+    }
   }
 }
 ```
@@ -1588,8 +1618,8 @@ HTTP headers (each key having its own HTTP header) and in those cases the
 HTTP header names will be of the form: `xRegistry-<MAPNAME>.<KEYNAME>`.
 Note that map keys MAY contain the `.` character, so any `.` after the
 `<MAPNAME>.` is part of the key name. See
-[HTTP Header Values](#http-header-values) for additional information and
-[`labels`](#labels-attribute) for an example of one such attribute.
+[HTTP Header Processing](#http-header-processing) for additional information
+and [`labels`](#labels-attribute) for an example of one such attribute.
 
 Certain attributes do not follow this rule if a standard HTTP header name
 is defined for that semantic purpose. See the
@@ -1645,7 +1675,7 @@ xRegistry-versionsurl: <URL>
 xRegistry-versionscount: <UINTEGER>
 Location: <URL> ?
 Content-Location: <URL> ?
-Content-Disposition: <STRING> ?
+Content-Disposition: <DISPOSITION-TYPE>; filename="<RID>" ?
 
 ... Resource document excluded for brevity ... ?
 ```
@@ -1661,8 +1691,9 @@ Where:
   MUST be the same as the `self` URL.
 - The `Content-Location` header MAY appear, and if present, MUST reference
   the "default" Version.
-- `Content-Disposition` SHOULD be present and if so, MUST be the `<RESOURCE>id`
-  value. This allows for HTTP tooling that is not aware of xRegistry to know
+- `Content-Disposition` SHOULD be present and if so, its `filename` parameter
+  MUST be the `<RESOURCE>id` value. This allows for HTTP tooling that is not
+  aware of xRegistry to know
   the desired filename to use if the HTTP body were to be written to a file.
 
 Version serialization will look similar, but without the Resource-level
@@ -1671,7 +1702,7 @@ attributes, and MUST be of the form:
 ```yaml
 Content-Type: <STRING> ?
 xRegistry-<RESOURCE>id: <STRING>           # ID of Resource, not default Version
-xRegistry-versionid: <STRING>              # ID of the default Version
+xRegistry-versionid: <STRING>              # ID of the requested Version
 xRegistry-self: <URL>                      # Version URL
 xRegistry-xid: <URI>                       # Relative Version URI
 xRegistry-epoch: <UINTEGER>
@@ -1689,20 +1720,21 @@ xRegistry-formatvalidated: <BOOLEAN> ?
 xRegistry-formatvalidatedreason: <STRING> ?
 xRegistry-compatibilityvalidated: <BOOLEAN> ?
 xRegistry-compatibilityvalidatedreason: <STRING> ?
-xRegistry-<RESOURCE>url: <URL> ?           # End of default Version attributes
+xRegistry-<RESOURCE>url: <URL> ?           # End of requested Version attributes
 Location: <URL> ?
 Content-Location: <URL> ?
-Content-Disposition: <STRING> ?
+Content-Disposition: <DISPOSITION-TYPE>; filename="<RID>" ?
 
 ... Version document excluded for brevity ... ?
 ```
 
 Where:
-- `Content-Disposition` SHOULD be present and if so, MUST be the `<RESOURCE>id`
-  value. This allows for HTTP tooling that is not aware of xRegistry to know
+- `Content-Disposition` SHOULD be present and if so, its `filename` parameter
+  MUST be the `<RESOURCE>id` value. This allows for HTTP tooling that is not
+  aware of xRegistry to know
   the desired filename to use if the HTTP body were to be written to a file.
 
-Scalar default Version extension attributes MUST also appear as
+Scalar requested Version extension attributes MUST also appear as
 `xRegistry-` HTTP headers.
 
 Notice that for Resources, the `meta` and `versions` attributes are not
@@ -1768,6 +1800,7 @@ Link: <https://example.com/endpoints/ep1/messages&page=2>;rel=next;count=100
     "ancestorid": "1.0",
 
     "metaurl": "https://example.com/endpoints/ep1/messages/msg1/meta",
+
     "versionsurl": "https://example.com/endpoints/ep1/messages/msg1/versions",
     "versionscount": 1
   }
@@ -1820,11 +1853,11 @@ Content-Type: application/json; charset=utf-8
 
 {
   "msg1": {
-    "endpointid": "msg1",
+    "messageid": "msg1",
     ... remainder of msg1 definition excluded for brevity ...
   },
   "msg2": {
-    "endpointid": "msg2",
+    "messageid": "msg2",
     ... remainder of msg2 definition excluded for brevity ...
   }
 }
@@ -1836,11 +1869,11 @@ Content-Type: application/json; charset=utf-8
 
 {
   "msg1": {
-    "endpointid": "msg1",
+    "messageid": "msg1",
     ... remainder of msg1 definition excluded for brevity ...
   },
   "msg2": {
-    "endpointid": "msg2",
+    "messageid": "msg2",
     ... remainder of msg2 definition excluded for brevity ...
   }
 }
@@ -1864,7 +1897,9 @@ DELETE /<GROUPS>/<GID>/<RESOURCES>
 
 {
   "<KEY>": {                            # <RESOURCE>id
-    "epoch": <UINTEGER> ?
+    "meta": {
+      "epoch": <UINTEGER> ?
+    } ?
   } *
 } ?
 ```
@@ -1886,7 +1921,9 @@ DELETE /endpoints/ep1/messages
 
 {
   "msg1": {
-    "epoch": 5
+    "meta": {
+      "epoch": 5
+    }
   },
   "msg2": {}
 }
@@ -1896,7 +1933,7 @@ DELETE /endpoints/ep1/messages
 HTTP/1.1 204 No Content
 ```
 
-Notice that the `epoch` value for `msg1` will be verified prior to the
+Notice that the `meta.epoch` value for `msg1` will be verified prior to the
 delete, but no such check will happen for `msg2`.
 
 #### `GET /<GROUPS>/<GID>/<RESOURCES>/<RID>`
@@ -1977,7 +2014,7 @@ xRegistry-versionsurl: <URL>
 xRegistry-versionscount: <UINTEGER>
 Location: <URL> ?                      # If 303 is returned
 Content-Location: <URL> ?
-Content-Disposition: <STRING> ?
+Content-Disposition: <DISPOSITION-TYPE>; filename="<RID>" ?
 
 ... Resource document ...              # If <RESOURCE>url is not set
 ```
@@ -1986,8 +2023,9 @@ Where:
 - If `<RESOURCE>url` is present then it MUST have the same value as `Location`.
 - If `Content-Location` is present then it MUST be a URL to the Version of the
   Resource in the `versions` collection - same as `meta.defaultversionurl`.
-- `Content-Disposition` SHOULD be present and if so, MUST be the `<RESOURCE>id`
-  value. This allows for HTTP tooling that is not aware of xRegistry to know
+- `Content-Disposition` SHOULD be present and if so, its `filename` parameter
+  MUST be the `<RESOURCE>id` value. This allows for HTTP tooling that is not
+  aware of xRegistry to know
   the desired filename to use if the HTTP body were to be written to a file.
 
 **Examples:**
@@ -2006,7 +2044,7 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1
 {
   "messageid": "msg1",
   "versionid": "1",
-  "self": "https://example.com/endpoints/ep1/messages/msg1","
+  "self": "https://example.com/endpoints/ep1/messages/msg1",
   "xid": "/endpoints/ep1/messages/msg1",
   "epoch": 1,
   "name": "Blob Created",
@@ -2016,6 +2054,7 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1
   "ancestorid": "1",
 
   "metaurl": "https://example.com/endpoints/ep1/messages/msg1/meta",
+
   "versionsurl": "https://example.com/endpoints/ep1/messages/msg1/versions",
   "versionscount": 1
 }
@@ -2122,14 +2161,15 @@ xRegistry-versionsurl: <URL>
 xRegistry-versionscount: <UINTEGER>
 Location: <URL> ?                      # If 201 or 303 is returned
 Content-Location: <URL> ?
-Content-Disposition: <STRING> ?
+Content-Disposition: <DISPOSITION-TYPE>; filename="<RID>" ?
 
 ... Resource document ...              # If <RESOURCE>url is not set
 ```
 
 Where:
-- `Content-Disposition` SHOULD be present and if so, MUST be the `<RESOURCE>id`
-  value. This allows for HTTP tooling that is not aware of xRegistry to know
+- `Content-Disposition` SHOULD be present and if so, its `filename` parameter
+  MUST be the `<RESOURCE>id` value. This allows for HTTP tooling that is not
+  aware of xRegistry to know
   the desired filename to use if the HTTP body were to be written to a file.
 
 **Examples:**
@@ -2174,11 +2214,7 @@ Content-Type: application/json; charset=utf-8
 {
   "epoch": 1,
   "name": "Blob Created",
-  "description": "a cool event",
-
-  "message": {
-    # Updated definition of a "Blob Created" event excluded for brevity
-  }
+  "description": "a cool event"
 }
 ```
 
@@ -2200,11 +2236,8 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1
   "modifiedat": "2024-04-30T12:00:01Z",
   "ancestorid": "1",
 
-  "message": {
-    # Updated definition of a "Blob Created" event excluded for brevity
-  },
-
   "metaurl": "https://example.com/endpoints/ep1/messages/msg1/meta",
+
   "versionsurl": "https://example.com/endpoints/ep1/messages/msg1/versions",
   "versionscount": 1
 }
@@ -2307,14 +2340,15 @@ xRegistry-compatibilityvalidatedreason: <STRING> ?
 xRegistry-<RESOURCE>url: <URL> ?       # If Resource is not in body
 Location: <URL> ?                      # If 201 or 303 is returned
 Content-Location: <URL> ?
-Content-Disposition: <STRING> ?
+Content-Disposition: <DISPOSITION-TYPE>; filename="<RID>" ?
 
 ... Version document excluded for brevity ...  # If <RESOURCE>url is not set
 ```
 
 Where:
-- `Content-Disposition` SHOULD be present and if so, MUST be the `<RESOURCE>id`
-  value. This allows for HTTP tooling that is not aware of xRegistry to know
+- `Content-Disposition` SHOULD be present and if so, its `filename` parameter
+  MUST be the `<RESOURCE>id` value. This allows for HTTP tooling that is not
+  aware of xRegistry to know
   the desired filename to use if the HTTP body were to be written to a file.
 
 **Examples:**
@@ -2357,11 +2391,7 @@ Content-Type: application/json; charset=utf-8
   "versionid": "1",
   "epoch": 1,
   "name": "Blob Created",
-  "description": "a cool event",
-
-  "message": {
-    # Updated definition of a "Blob Created" event excluded for brevity
-  }
+  "description": "a cool event"
 }
 ```
 
@@ -2374,18 +2404,14 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1
   "messageid": "msg1",
   "versionid": "1",
   "self": "https://example.com/endpoints/ep1/messages/msg1/versions/1",
-  "xid": "/endpoints/ep1/messages/msg1",
+  "xid": "/endpoints/ep1/messages/msg1/versions/1",
   "epoch": 2,
   "name": "Blob Created",
   "isdefault": true,
   "description": "a cool event",
   "createdat": "2024-04-30T12:00:00Z",
   "modifiedat": "2024-04-30T12:00:01Z",
-  "ancestorid": "1",
-
-  "message": {
-    # Updated definition of a "Blob Created" event excluded for brevity
-  },
+  "ancestorid": "1"
 }
 ```
 
@@ -2477,6 +2503,7 @@ Content-Type: application/json; charset=utf-8
   "epoch": 2,
   "createdat": "2024-04-30T12:00:00Z",
   "modifiedat": "2024-04-30T12:00:01Z",
+  "readonly": false,
   "compatibility": "none",
   "defaultversionid": "v2.0",
   "defaultversionurl": "https://example.com/endpoints/ep1/messages/msg1/versions/v2.0",
@@ -2538,6 +2565,7 @@ Content-Type: application/json; charset=utf-8
   "epoch": 2,
   "createdat": "2024-04-30T12:00:00Z",
   "modifiedat": "2024-04-30T12:00:01Z",
+  "readonly": false,
   "compatibility": "none",
   "defaultversionid": "v1.0",
   "defaultversionurl": "https://example.com/endpoints/ep1/messages/msg1/versions/v1.0",
@@ -2596,8 +2624,8 @@ Link: <https://example.com/endpoints/ep1/messages/msg1/versions&page=2>;rel=next
   "1.0": {
     "messageid": "msg1",
     "versionid": "1.0",
-    "self": "https://example.com/endpoints/ep1/messages/msg1",
-    "xid": "/endpoints/ep1/messages/msg1",
+    "self": "https://example.com/endpoints/ep1/messages/msg1/versions/1.0",
+    "xid": "/endpoints/ep1/messages/msg1/versions/1.0",
     "epoch": 1,
     "name": "Blob Created",
     "isdefault": true,
@@ -2630,7 +2658,7 @@ POST /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions
 Content-Type: application/json; charset=utf-8
 
 {
-  "<KEY>": {                                      # <GROUP>id
+  "<KEY>": {                                      # versionid
      ... Version entity excluded for brevity ...
   } *
 }
@@ -2643,7 +2671,7 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "<KEY>": {                                      # <GROUP>id
+  "<KEY>": {                                      # versionid
      ... Version entity excluded for brevity ...
   } *
 }
@@ -2659,13 +2687,13 @@ Content-Type: application/json; charset=utf-8
 
 {
   "1": {
-    "labels": { "customer": "abc" },
+    "labels": { "customer": "abc" }
   },
   "2": {
-    "labels": { "customer": "abc" },
+    "labels": { "customer": "abc" }
   },
   "3": {
-    "labels": { "customer": "abc" },
+    "labels": { "customer": "abc" }
   }
 }
 ```
@@ -2693,7 +2721,7 @@ Content-Type: application/json; charset=utf-8
     "labels": { "customer": "abc" },
     # Remainder of Version entity excluded for brevity
   }
-]
+}
 ```
 
 Note that in this case, the new "label" replaces all existing labels; it is
@@ -2714,7 +2742,7 @@ The processing of this API is defined in the
 The request MUST be of the form:
 
 ```yaml
-DELETE /<GROUPS>/<GID>/<RESOURCES>/versions
+DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions
 
 {
   "<KEY>": {                            # versionid
@@ -2816,14 +2844,15 @@ xRegistry-formatvalidatedreason: <STRING> ?
 xRegistry-compatibilityvalidated: <BOOLEAN> ?
 xRegistry-compatibilityvalidatedreason: <STRING> ?
 Location: <URL> ?                        # If 303 is returned
-Content-Disposition: <STRING> ?
+Content-Disposition: <DISPOSITION-TYPE>; filename="<RID>" ?
 
 ... Version document ...                 # If <RESOURCE>url is not set
 ```
 
 Where:
-- `Content-Disposition` SHOULD be present and if so, MUST be the `<RESOURCE>id`
-  value. This allows for HTTP tooling that is not aware of xRegistry to know
+- `Content-Disposition` SHOULD be present and if so, its `filename` parameter
+  MUST be the `<RESOURCE>id` value. This allows for HTTP tooling that is not
+  aware of xRegistry to know
   the desired filename to use if the HTTP body were to be written to a file.
 - `Location`, if present, and `<RESOURCE>url` MUST have the same value.
 
@@ -2842,8 +2871,8 @@ Content-Type: application/json; charset=utf-8
 {
   "schemaid": "myschema",
   "versionid": "1.0",
-  "self": "https://example.com/schemagroups/g1/schemas/myschema/versions/1.0",
-  "xid": "/endpoints/ep1/messages/msg1/versions/1.0",
+  "self": "https://example.com/schemagroups/g1/schemas/myschema/versions/1.0$details",
+  "xid": "/schemagroups/g1/schemas/myschema/versions/1.0",
   "epoch": 2,
   "isdefault": true,
   "createdat": "2024-04-30T12:00:00Z",
@@ -2870,7 +2899,7 @@ xRegistry-isdefault: true
 xRegistry-createdat: 2024-04-30T12:00:00Z
 xRegistry-modifiedat: 2024-04-30T12:00:01Z
 xRegistry-ancestorid: 1.0
-Content-Disposition: myschema
+Content-Disposition: attachment; filename="myschema"
 
 { ... Contents of a schema doc excluded for brevity ...  }
 ```
@@ -2974,7 +3003,7 @@ xRegistry-compatibilityvalidatedreason: <STRING> ?
 xRegistry-<RESOURCE>url: <URL> ?       # If Resource is not in body
 Location: <URL> ?                      # If 201 or 303 is returned
 Content-Location: <URL> ?
-Content-Disposition: <STRING> ?
+Content-Disposition: <DISPOSITION-TYPE>; filename="<RID>" ?
 
 ... Version document ...               # If <RESOURCE>url is not set
 ```
@@ -3012,15 +3041,12 @@ Content-Disposition: msg1
 Update a Version of a Resource as metadata:
 
 ```yaml
-PUT /endpoints/ep1/messages/msg1/versions/v2.0$details/
+PUT /endpoints/ep1/messages/msg1/versions/v2.0$details
 Content-Type: application/json; charset=utf-8
 
 {
   "name": "Blob Created v2",
-  "description": "a cool event",
-  "message": {
-    # Updated definition of a "Blob Created" event excluded for brevity
-  },
+  "description": "a cool event"
 }
 ```
 
@@ -3031,7 +3057,7 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/v2.0
 
 {
   "messageid": "msg1",
-  "versionid": "1",
+  "versionid": "v2.0",
   "self": "https://example.com/endpoints/ep1/messages/msg1/versions/v2.0",
   "xid": "/endpoints/ep1/messages/msg1/versions/v2.0",
   "epoch": 2,
@@ -3040,11 +3066,7 @@ Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/v2.0
   "description": "a cool event",
   "createdat": "2024-04-30T12:00:00Z",
   "modifiedat": "2024-04-30T12:00:01Z",
-  "ancestorid": "v1.0",
-
-  "message": {
-    # Updated definition of a "Blob Created" event excluded for brevity
-  },
+  "ancestorid": "v1.0"
 }
 ```
 
@@ -3085,10 +3107,10 @@ DELETE /endpoints/ep1/messages/msg1/versions/1.0
 HTTP/1.1 204 No Content
 ```
 
-Delete a Resource, verifying its `epoch` value:
+Delete a Version, verifying its `epoch` value:
 
 ```yaml
-DELETE /endpoints/ep1/messages/msg1/versions?epoch=5
+DELETE /endpoints/ep1/messages/msg1/versions/1.0?epoch=5
 ```
 
 ```
@@ -3113,9 +3135,9 @@ HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "registries": {
+  "registries": [
     "URL", *
-  }
+  ]
 }
 ```
 
@@ -3222,75 +3244,83 @@ This query parameter MUST be serialized as:
 ?sort=<ATTRIBUTE>[=asc|desc]
 ```
 
-## HTTP Header Values
+## HTTP Header Processing
 
-Some attributes can contain arbitrary UTF-8 string content,
-and per [RFC7230, section 3][rfc7230-section-3], HTTP headers MUST only use
-printable characters from the US-ASCII character set, and are terminated by a
-CRLF sequence with OPTIONAL whitespace around the header value.
+### HTTP Header Names
 
-When encoding an attribute's value as an HTTP header, it MUST be
-percent-encoded as described below. This is compatible with [RFC3986, section
-2.1][rfc3986-section-2-1] but is more specific about what needs
-encoding. The resulting string SHOULD NOT be further encoded.
-(Rationale: quoted string escaping is unnecessary when every space
-and double-quote character is already percent-encoded.)
+Native HTTP headers, such as `Content-Type`, retain their native syntax and
+encoding. The attribute-value rules below apply to `xRegistry-` headers.
 
-When decoding an HTTP header into an attribute's value, any HTTP header
-value MUST first be unescaped with respect to double-quoted strings,
-as described in [RFC7230, section 3.2.6][rfc7230-section-3-2-6]. A single
-round of percent-decoding MUST then be performed as described
-below. HTTP headers for attribute values do not support
-parenthetical comments, so the initial unescaping only needs to handle
-double-quoted values, including processing backslash escapes within
-double-quoted values. Header values produced via the
-percent-encoding described here will never include double-quoted
-values, but they MUST be supported when receiving events, for
-compatibility with older versions of this specification which did
-not require double-quote and space characters to be percent-encoded.
+The allowable characters for HTTP header name differs from that of what
+xRegistry allows for map-key names. Therefore, any map-key name that appears
+as an HTTP header MUST have those non-HTTP compliant characters percent
+encoded.
 
-Percent encoding is performed by considering each Unicode character
-within the attribute's canonical string representation. Any
-character represented in memory as a [Unicode surrogate
-pair][surrogate-pair] MUST be treated as a single Unicode character.
-The following characters MUST be percent-encoded:
+HTTP allowable characters: ``0-9 a-z a-Z ! # $ % & ' * + - . ^ _ ` | ~``
 
-- Space (U+0020).
-- Double-quote (U+0022).
-- Percent (U+0025).
-- Any characters outside the printable ASCII range of U+0021-U+007E
-  inclusive.
+xRegistry allowable map-key names: `a-z 0-9 : - _ .`
 
-Space and double-quote are encoded to avoid requiring any further
-quoting. Percent is encoded to avoid ambiguity with percent-encoding
-itself.
+Therefore colons (`:`) will need to be represented as: `%3A`.
 
-Steps to encode a Unicode character:
+Example:
 
-- Encode the character using UTF-8, to obtain a byte sequence.
-- Encode each byte within the sequence as `%xy` where `x` is a
-  hexadecimal representation of the most significant 4 bits of the byte,
-  and `y` is a hexadecimal representation of the least significant 4
-  bits of the byte.
+A map (`mymap`) with a key name of: `org:team` would appear as:
 
-Percent-encoding SHOULD be performed using upper-case for values A-F,
-but decoding MUST accept lowercase values.
+```
+xRegistry-mymap-org%3Ateam: hr:dept1
+```
 
-When performing percent-decoding, values that have been unnecessarily
-percent-encoded MUST be accepted, but encoded byte sequences which are invalid
-in UTF-8 MUST generate an error ([header_error](#header_error)). For example,
-"%C0%A0" is an overlong encoding of U+0020, and would be rejected.
+### HTTP Header Values
 
-Example: a header value of "Euro &#x20AC; &#x1F600;" SHOULD be encoded as
-follows:
+When data appears in HTTP headers care needs to be taken to ensure that
+only printable characters from the US-ASCII character (U+0021-U+007E range)
+set are used.
 
-- The characters, 'E', 'u', 'r', 'o' do not require encoding.
-- Space, the Euro symbol, and the grinning face emoji require encoding.
-  They are characters U+0020, U+20AC and U+1F600 respectively.
-- The encoded HTTP header value is therefore "Euro%20%E2%82%AC%20%F0%9F%98%80"
-  where "%20" is the encoded form of space, "%E2%82%AC" is the encoded form
-  of the Euro symbol, and "%F0%9F%98%80" is the encoded form of the
-  grinning face emoji.
+The following rules MUST be followed when encoding values as HTTP headers:
+
+- Double-quotes (`"`) around a set of characters MAY be used to denote a
+  "group". Whitespace within groups are excluded from whitespace trimming
+  and commas (`,`), normally interpreted as header value separators, are
+  treated as normal characters.
+- Any non-US-ASCII characters, percent (`%`) and double-quotes within values,
+  MUST be percent encoded.
+- Header values that support lists MAY be expressed as separate HTTP headers
+  or multiple values MAY be grouped into one HTTP header separated by a
+  an unescaped comma.
+
+The following rules MUST be followed when decoding HTTP header values:
+
+- Commas that appear outside of groups (non-escaped double-quoted ranges of
+  characters) MUST be treated as separators between a list of values.
+- Leading and trailing (non-percent encoded) whitespace around individual
+  values MUST be removed. All non-leading/trailing whitespace MUST remain
+  as-is.
+- Group's double-quotes MUST be removed prior to passing the values on to the
+  receiving application.
+- Percent decoding MUST be performed on all character ranges, both in and out
+  of groups.
+
+If there is an error during processing of HTTP header values then an
+error ([header_error](#header_error)) MUST be generated.
+
+Example 1:
+
+- Value as seen by the application:
+  - Euro &#x20AC;&nbsp;&nbsp;&nbsp;&#x1F600;
+- Resulting Header:
+  - `MyHeader: Euro %E2%82%AC   %F0%9F%98%80`
+
+Example 2:
+- Value(s) as seen by the application:
+  - `   A   spacey,  "string"   `
+  - `a-word`
+  - `% is cool`
+- Resulting Single Header - option 1:
+  - `MyHeader: "  A   spacey,  %22string%22  ", a-word, %25 is cool`
+- Resulting Multiple Headers - option 2:
+  - `MyHeader: "  A   spacey,  %22string%22  "`
+  - `MyHeader: a-word`
+  - `MyHeader: %25 is cool`
 
 ## Error Processing
 
@@ -3359,6 +3389,7 @@ starting with `/`. E.g. `/export` if the "export" feature is not supported.
 * Subject: `<request_path>`
 * Args:
   - `name`: The HTTP header name.
+  - `error_detail`: Specific details about the error.
 
 #### missing_body
 
@@ -3378,3 +3409,4 @@ starting with `/`. E.g. `/export` if the "export" feature is not supported.
 
 [rfc7230-section-3]: https://tools.ietf.org/html/rfc7230#section-3
 [rfc7230-section-3-2-6]: https://tools.ietf.org/html/rfc7230#section-3.2.6
+[rfc3986-section-2-1]: https://tools.ietf.org/html/rfc3986#section-2.1

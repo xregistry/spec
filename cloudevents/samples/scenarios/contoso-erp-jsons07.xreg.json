@@ -3,13 +3,15 @@
         "Contoso.ERP.Http": {
             "description": "HTTP producer endpoint for Contoso ERP eventing",
             "usage": [ "producer" ],
-            "deployed": false,
-            "endpoints": [
-                {
-                    "uri": "https://erpsystem.com/events"
-                }
-            ],
             "protocol": "HTTP",
+            "protocoloptions": {
+                "deployed": false,
+                "endpoints": [
+                    {
+                        "uri": "https://erpsystem.com/events"
+                    }
+                ]
+            },
             "messagegroups": [
                 "/messagegroups/Contoso.ERP.ReservationEvents",
                 "/messagegroups/Contoso.ERP.PaymentEvents",
@@ -25,12 +27,14 @@
             "description": "HTTP subscriber endpoint for Contoso ERP eventing",
             "usage": [ "subscriber"] ,
             "protocol": "HTTP",
-            "deployed": false,
-            "endpoints": [
-                {
-                    "uri": "https://erpsystem.com/events/subscriptions"
-                }
-            ],
+            "protocoloptions": {
+                "deployed": false,
+                "endpoints": [
+                    {
+                        "uri": "https://erpsystem.com/events/subscriptions"
+                    }
+                ]
+            },
             "messagegroups": [
                 "/messagegroups/Contoso.ERP.ReservationEvents",
                 "/messagegroups/Contoso.ERP.PaymentEvents",
@@ -47,18 +51,18 @@
             "channel": "myqueue",
             "usage": [ "consumer" ],
             "protocol": "AMQP/1.0",
-            "deployed": false,
-            "endpoints": [
-                {
-                    "uri": "amqps://cediscoveryinterop.example.com/queue"
-                }
-            ],
             "protocoloptions": {
+                "deployed": false,
+                "endpoints": [
+                    {
+                        "uri": "amqps://cediscoveryinterop.example.com/queue"
+                    }
+                ],
                 "node": "queue",
-                "link_properties": {
+                "link-properties": {
                     "myprop": "prop"
                 },
-                "distribution_mode": "copy"
+                "distribution-mode": "copy"
             },
             "messagegroups": [
                 "/messagegroups/Contoso.ERP.ReservationEvents",
@@ -77,18 +81,18 @@
             "usage": [ "producer" ],
             "protocol": "AMQP/1.0",
             "protocoloptions": {
+                "deployed": false,
+                "endpoints": [
+                    {
+                        "uri": "amqps://cediscoveryinterop.example.com/queue"
+                    }
+                ],
                 "node": "queue",
-                "link_properties": {
+                "link-properties": {
                     "myprop": "prop"
                 },
-                "distribution_mode": "copy"
+                "distribution-mode": "copy"
             },
-            "deployed": false,
-            "endpoints": [
-                {
-                    "uri": "amqps://cediscoveryinterop.example.com/queue"
-                }
-            ],
             "messagegroups": [
                 "/messagegroups/Contoso.ERP.ReservationEvents",
                 "/messagegroups/Contoso.ERP.PaymentEvents",
@@ -105,13 +109,15 @@
             "channel": "mytopic",
             "usage": [ "producer" ],
             "protocol": "KAFKA",
-            "deployed": false,
-            "endpoints": [
-                {
-                    "uri": "kafka://cediscoveryinterop.example.com:9093"
-                }
-            ],
             "protocoloptions": {
+                "deployed": false,
+                "endpoints": [
+                    {
+                        "bootstrap.servers": [
+                            "SSL://cediscoveryinterop.example.com:9093"
+                        ]
+                    }
+                ],
                 "topic": "mytopic",
                 "partition": 0
             },
@@ -131,13 +137,15 @@
             "channel": "mytopic",
             "usage": [ "consumer" ],
             "protocol": "KAFKA",
-            "deployed": false,
-            "endpoints": [
-                {
-                    "uri": "kafka://cediscoveryinterop.example.com:9093"
-                }
-            ],
             "protocoloptions": {
+                "deployed": false,
+                "endpoints": [
+                    {
+                        "bootstrap.servers": [
+                            "SSL://cediscoveryinterop.example.com:9093"
+                        ]
+                    }
+                ],
                 "topic": "mytopic",
                 "consumergroup": "mygroup"
             },

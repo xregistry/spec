@@ -119,15 +119,13 @@ endpoint with a single, embedded message definition using an embedded Protobuf
 {
   "$schema": "https://cloudevents.io/schemas/registry",
   "specversion": "1.0-rc4",
-  "registryid": "Example Registry",
-  "self": "http://example.com",
+  "registryid": "example-registry",
+  "self": "https://example.com",
   "xid": "/",
   "epoch": 4,
   "createdat": "2024-04-30T12:00:00Z",
-  "modifiedat": "2024-04-31T12:00:00Z",
+  "modifiedat": "2024-05-01T12:00:00Z",
 
-  "endpointsurl": "https://example.com/endpoints",
-  "endpointscount": 1,
   "endpoints": {
     "com.example.telemetry": {
       "endpointid": "com.example.telemetry",
@@ -135,7 +133,7 @@ endpoint with a single, embedded message definition using an embedded Protobuf
       "xid": "/endpoints/com.example.telemetry",
       "epoch": 5,
       "createdat": "2024-04-30T12:00:00Z",
-      "modifiedat": "2024-04-31T12:00:00Z",
+      "modifiedat": "2024-05-01T12:00:00Z",
 
       "usage": "consumer",
       "format": "CloudEvents/1.0",
@@ -162,7 +160,7 @@ endpoint with a single, embedded message definition using an embedded Protobuf
           "isdefault": true,
           "description": "device telemetry event",
           "createdat": "2024-04-30T12:00:00Z",
-          "modifiedat": "2024-04-31T12:00:00Z",
+          "modifiedat": "2024-05-01T12:00:00Z",
           "ancestorid": "1.0",
 
           "format": "CloudEvents/1.0",
@@ -192,12 +190,15 @@ endpoint with a single, embedded message definition using an embedded Protobuf
           "datacontenttype": "application/x-protobuf",
 
           "metaurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/meta",
+
           "versionsurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/versions",
           "versionscount": 1
         }
       }
     }
-  }
+  },
+  "endpointsurl": "https://example.com/endpoints",
+  "endpointscount": 1
 }
 ```
 
@@ -209,15 +210,13 @@ other scenarios:
 {
   "$schema": "https://cloudevents.io/schemas/registry",
   "specversion": "1.0-rc4",
-  "registryid": "Example Registry",
-  "self": "http://example.com",
+  "registryid": "example-registry",
+  "self": "https://example.com",
   "xid": "/",
   "epoch": 4,
   "createdat": "2024-04-30T12:00:00Z",
-  "modifiedat": "2024-04-31T12:00:00Z",
+  "modifiedat": "2024-05-01T12:00:00Z",
 
-  "endpointsurl": "https://example.com/endpoints",
-  "endpointscount": 1,
   "endpoints": {
     "com.example.telemetry": {
       "endpointid": "com.example.telemetry",
@@ -225,7 +224,7 @@ other scenarios:
       "xid": "/endpoints/com.example.telemetry",
       "epoch": 5,
       "createdat": "2024-04-30T12:00:00Z",
-      "modifiedat": "2024-04-31T12:00:00Z",
+      "modifiedat": "2024-05-01T12:00:00Z",
 
       "usage": "consumer",
       "format": "CloudEvents/1.0",
@@ -246,9 +245,9 @@ other scenarios:
       "messagescount": 0
     }
   },
+  "endpointsurl": "https://example.com/endpoints",
+  "endpointscount": 1,
 
-  "messagegroupsurl": "https://example.com/messagegroups",
-  "messagegroupscount": 1,
   "messagegroups": {
     "com.example.telemetryEvents": {
       "messagegroupid": "com.example.telemetryEvents",
@@ -256,7 +255,7 @@ other scenarios:
       "xid": "/messagegroups/com.example.telemetryEvents",
       "epoch": 3,
       "createdat": "2024-04-30T12:00:00Z",
-      "modifiedat": "2024-04-31T12:00:00Z",
+      "modifiedat": "2024-05-01T12:00:00Z",
 
       "messagesurl": "https://example.com/messagegroups/com.example.telemetryEvents/messages",
       "messagescount": 1,
@@ -264,13 +263,13 @@ other scenarios:
         "com.example.telemetry": {
           "messageid": "com.example.telemetry",
           "versionid": "1.0",
-          "self": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry",
-          "xid": "/endpoints/com.example.telemetry/messages/com.example.telemetry",
+          "self": "https://example.com/messagegroups/com.example.telemetryEvents/messages/com.example.telemetry",
+          "xid": "/messagegroups/com.example.telemetryEvents/messages/com.example.telemetry",
           "epoch": 5,
           "isdefault": true,
           "description": "device telemetry event",
           "createdat": "2024-04-30T12:00:00Z",
-          "modifiedat": "2024-04-31T12:00:00Z",
+          "modifiedat": "2024-05-01T12:00:00Z",
           "ancestorid": "1.0",
 
           "format": "CloudEvents/1.0",
@@ -299,16 +298,17 @@ other scenarios:
           "dataschemauri": "#/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions/1.0",
           "datacontenttype": "application/x-protobuf",
 
-          "metaurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/meta",
-          "versionsurl": "https://example.com/endpoints/com.example.telemetry/messages/com.example.telemetry/versions",
+          "metaurl": "https://example.com/messagegroups/com.example.telemetryEvents/messages/com.example.telemetry/meta",
+
+          "versionsurl": "https://example.com/messagegroups/com.example.telemetryEvents/messages/com.example.telemetry/versions",
           "versionscount": 1
         }
       }
     }
   },
+  "messagegroupsurl": "https://example.com/messagegroups",
+  "messagegroupscount": 1,
 
-  "schemagroupsurl": "https://example.com/schemagroups",
-  "schemagroupscount": 1,
   "schemagroups": {
     "com.example.telemetry": {
       "schemagroupid": "com.example.telemetry",
@@ -316,7 +316,7 @@ other scenarios:
       "xid": "/schemagroups/com.example.telemetry",
       "epoch": 5,
       "createdat": "2024-04-30T12:00:00Z",
-      "modifiedat": "2024-04-31T12:00:00Z",
+      "modifiedat": "2024-05-01T12:00:00Z",
 
       "schemasurl": "https://example.com/schemagroups/com.example.telemetry/schemas",
       "schemascount": 1,
@@ -330,19 +330,22 @@ other scenarios:
           "isdefault": true,
           "description": "device telemetry event data",
           "createdat": "2024-04-30T12:00:00Z",
-          "modifiedat": "2024-04-31T12:00:00Z",
+          "modifiedat": "2024-05-01T12:00:00Z",
           "ancestorid": "1.0",
 
           "format": "Protobuf/3.0",
           "schema": "syntax = \"proto3\"; message Metrics { float metric = 1;}",
 
           "metaurl": "https://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/meta",
+
           "versionscount": 1,
           "versionsurl": "https://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata/versions"
         }
       }
     }
-  }
+  },
+  "schemagroupsurl": "https://example.com/schemagroups",
+  "schemagroupscount": 1
 }
 ```
 
@@ -354,10 +357,8 @@ group with a deep link to the respective object in the service:
 {
   "$schema": "https://cloudevents.io/schemas/registry",
   "specversion": "1.0-rc4",
-  "registryid": "Example Registry",
+  "registryid": "example-registry",
 
-  "endpointsurl": "https://example.com/endpoints",
-  "endpointscount": 1,
   "endpoints": {
     "com.example.telemetry": {
       "endpointid": "com.example.telemetry",
@@ -365,7 +366,7 @@ group with a deep link to the respective object in the service:
       "xid": "/endpoints/com.example.telemetry",
       "epoch": 5,
       "createdat": "2024-04-30T12:00:00Z",
-      "modifiedat": "2024-04-31T12:00:00Z",
+      "modifiedat": "2024-05-01T12:00:00Z",
 
       "usage": "consumer",
       "format": "CloudEvents/1.0",
@@ -376,7 +377,9 @@ group with a deep link to the respective object in the service:
 
       "messagegroups": [ "https://example.com/messagegroups/com.example.telemetryEvents" ]
     }
-  }
+  },
+  "endpointsurl": "https://example.com/endpoints",
+  "endpointscount": 1
 }
 ```
 
@@ -389,10 +392,8 @@ link will first reference the file and then the object within the file, using
 {
   "$schema": "https://cloudevents.io/schemas/registry",
   "specversion": "1.0-rc4",
-  "registryid": "Example Registry",
+  "registryid": "example-registry",
 
-  "endpointsurl": "https://example.com/endpoints",
-  "endpointscount": 1,
   "endpoints": {
     "com.example.telemetry": {
       "endpointid": "com.example.telemetry",
@@ -400,7 +401,7 @@ link will first reference the file and then the object within the file, using
       "xid": "/endpoints/com.example.telemetry",
       "epoch": 5,
       "createdat": "2024-04-30T12:00:00Z",
-      "modifiedat": "2024-04-31T12:00:00Z",
+      "modifiedat": "2024-05-01T12:00:00Z",
 
       "usage": "consumer",
       "format": "CloudEvents/1.0",
@@ -411,7 +412,9 @@ link will first reference the file and then the object within the file, using
 
       "messagegroups": [ "https://rawdata.repos.example.com/myorg/myproject/main/example.telemetryEvents.cereg#/messagegroups/com.example.telemetryEvents" ]
     }
-  }
+  },
+  "endpointsurl": "https://example.com/endpoints",
+  "endpointscount": 1
 }
 ```
 
@@ -463,17 +466,17 @@ embedded or referenced. Any of the three sub-registries MAY be omitted.
   "specversion": "1.0-rc4",
   "registryid": "STRING",
 
+  "endpoints": { ... },
   "endpointsurl": "URL",
   "endpointscount": INT,
-  "endpoints": { ... },
 
+  "messagegroups": { ... },
   "messagegroupsurl": "URL",
   "messagegroupscount": INT,
-  "messagegroups": { ... },
 
+  "schemagroups": { ... },
   "schemagroupsurl": "URL",
-  "schemagroupscount": INT,
-  "schemagroups": { ... }
+  "schemagroupscount": INT
 }
 ```
 

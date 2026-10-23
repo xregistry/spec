@@ -1,0 +1,224 @@
+{
+  "$schema": "https://json-structure.org/meta/extended/v0/#",
+  "$id": "https://xregistry.io/xreg/xregistryspecs/schema-v1/schemas/document-schema.struct.json",
+  "$uses": [
+    "JSONStructureAlternateNames"
+  ],
+  "name": "SchemaRegistryDocument",
+  "type": "object",
+  "properties": {
+    "schemagroups": {
+      "type": "map",
+      "values": {
+        "type": {
+          "$ref": "#/definitions/Schemagroups/Schemagroup"
+        }
+      }
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "Schemagroups": {
+      "SchemaVersion": {
+        "type": "object",
+        "properties": {
+          "versionid": {
+            "type": "string",
+            "description": "ID of the schema version"
+          },
+          "schemaid": {
+            "type": "string",
+            "description": "ID of the schema object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch of the object"
+          },
+          "self": {
+            "type": "uri",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "uri",
+            "description": "XID of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "uri",
+            "description": "Documentation URL"
+          },
+          "labels": {
+            "type": "map",
+            "values": {
+              "type": "string"
+            }
+          },
+          "createdat": {
+            "type": "datetime",
+            "description": "Creation time"
+          },
+          "modifiedat": {
+            "type": "datetime",
+            "description": "Modification time"
+          },
+          "format": {
+            "type": "string"
+          },
+          "schema": {
+            "type": "any"
+          },
+          "schemabase64": {
+            "type": "binary"
+          },
+          "schemaurl": {
+            "type": "uri"
+          }
+        },
+        "additionalProperties": true,
+        "required": [
+          "format"
+        ]
+      },
+      "Schema": {
+        "type": "object",
+        "properties": {
+          "schemaid": {
+            "type": "string",
+            "description": "ID of the schema object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch of the object"
+          },
+          "self": {
+            "type": "uri",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "uri",
+            "description": "XID of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "uri",
+            "description": "Documentation URL"
+          },
+          "labels": {
+            "type": "map",
+            "values": {
+              "type": "string"
+            }
+          },
+          "createdat": {
+            "type": "datetime",
+            "description": "Creation time"
+          },
+          "modifiedat": {
+            "type": "datetime",
+            "description": "Modification time"
+          },
+          "schema": {
+            "type": "any",
+            "description": "Embedded schema document"
+          },
+          "schemabase64": {
+            "type": "binary",
+            "description": "Base64-encoded schema document"
+          },
+          "schemaurl": {
+            "type": "uri",
+            "description": "URL of the schema document"
+          },
+          "versionsurl": {
+            "type": "uri"
+          },
+          "versionscount": {
+            "type": "uint32"
+          },
+          "versions": {
+            "type": "map",
+            "values": {
+              "type": {
+                "$ref": "#/definitions/Schemagroups/SchemaVersion"
+              }
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "Schemagroup": {
+        "type": "object",
+        "properties": {
+          "schemagroupid": {
+            "type": "string",
+            "description": "ID of the schemagroup object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch of the object"
+          },
+          "self": {
+            "type": "uri",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "uri",
+            "description": "XID of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "uri",
+            "description": "Documentation URL"
+          },
+          "labels": {
+            "type": "map",
+            "values": {
+              "type": "string"
+            }
+          },
+          "createdat": {
+            "type": "datetime",
+            "description": "Creation time"
+          },
+          "modifiedat": {
+            "type": "datetime",
+            "description": "Modification time"
+          },
+          "format": {
+            "type": "string"
+          },
+          "schemas": {
+            "type": "map",
+            "values": {
+              "type": {
+                "$ref": "#/definitions/Schemagroups/Schema"
+              }
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  }
+}

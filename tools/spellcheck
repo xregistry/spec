@@ -7,6 +7,11 @@
 set -e
 
 for f in $* ; do
+  [[ "$f" == *".pytest"* ]] && continue
+  [[ "$f" == *".github/"* ]] && continue
+  [[ "$f" == *"/fake-docs/"* ]] && continue
+  grep '<!-- no spellcheck' $f > /dev/null && continue || true
+
   echo "> $f"
 
   # assume "#..." are fragment pointers so ignore all words after the #

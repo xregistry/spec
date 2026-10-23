@@ -84,6 +84,22 @@ json_type_mapping = {
     "var": {"type": "object"}
 }
 
+json_structure_type_mapping = {
+    "string": "string",
+    "uri": "uri",
+    "url": "uri",
+    "xid": "uri",
+    "datetime": "datetime",
+    "integer": "integer",
+    "uinteger": "uint32",
+    "boolean": "boolean",
+    "uritemplate": "string",
+    "binary": "binary",
+    "timestamp": "datetime",
+    "any": "any",
+    "var": "any"
+}
+
 json_common_attributes = {
     "name": {"type": "string", "description": "Name of the object"},
     "epoch": {"type": "integer", "description": "Epoch time of the object creation"},
@@ -712,6 +728,262 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
 
 
 
+def generate_json_structure(model_definition, schema_id='', schema_name='') -> dict:
+    """Generate a native JSON Structure schema for an xRegistry document."""
+    definitions = {}
+
+    def identifier(wire_name):
+        words = [word for word in re.split(r'[^A-Za-z0-9]+', wire_name) if word]
+        logical_name = words[0] + ''.join(
+            word[:1].upper() + word[1:] for word in words[1:]
+        ) if words else "value"
+        if logical_name[0].isdigit():
+            logical_name = "value" + logical_name
+        return logical_name
+
+    def type_identifier(wire_name):
+        logical_name = identifier(wire_name)
+        return logical_name[:1].upper() + logical_name[1:]
+
+    def reference(namespace, type_name):
+        return {"type": {"$ref": f"#/definitions/{namespace}/{type_name}"}}
+
+    def add_definition(namespace, suggested_name, schema):
+        namespace_definitions = definitions.setdefault(namespace, {})
+        type_name = type_identifier(suggested_name)
+        existing = namespace_definitions.get(type_name)
+        if existing is not None and existing != schema:
+            raise ValueError(
+                f"Conflicting JSON Structure definition: {namespace}/{type_name}"
+            )
+        if existing is None:
+            namespace_definitions[type_name] = schema
+        return type_name
+
+    def apply_annotations(schema, definition):
+        if definition.get("description"):
+            schema["description"] = definition["description"]
+        if definition.get("enum") and definition.get("strict", True):
+            schema["enum"] = copy.deepcopy(definition["enum"])
+
+    def value_schema(definition, namespace, suggested_name, require_reference=False):
+        value_type = definition["type"]
+        if value_type == "object":
+            schema = object_schema(
+                definition.get("attributes", {}), namespace, suggested_name
+            )
+            apply_annotations(schema, definition)
+            if require_reference:
+                type_name = add_definition(namespace, suggested_name, schema)
+                return reference(namespace, type_name)
+            return schema
+        if value_type == "map":
+            item = definition.get("item", {"type": "any"})
+            schema = {
+                "type": "map",
+                "values": value_schema(item, namespace, suggested_name + "Value", True)
+            }
+            apply_annotations(schema, definition)
+            return schema
+        if value_type == "array":
+            item = definition.get("item", {"type": "any"})
+            schema = {
+                "type": "array",
+                "items": value_schema(item, namespace, suggested_name + "Item", True)
+            }
+            if definition.get("enum"):
+                schema["items"]["enum"] = copy.deepcopy(definition["enum"])
+            apply_annotations(schema, definition)
+            return schema
+        if value_type not in json_structure_type_mapping:
+            raise ValueError(f"Unsupported JSON Structure type: {value_type}")
+        schema = {"type": json_structure_type_mapping[value_type]}
+        apply_annotations(schema, definition)
+        return schema
+
+    def collect_attributes(attributes):
+        collected = dict(attributes)
+        for definition in attributes.values():
+            for condition in definition.get("ifvalues", {}).values():
+                for sibling_name, sibling_definition in condition.get(
+                    "siblingattributes", {}
+                ).items():
+                    collected.setdefault(sibling_name, sibling_definition)
+        return collected
+
+    def object_schema(attributes, namespace, owner_name):
+        properties = {}
+        required = []
+        used_names = {}
+        additional_properties = False
+        for wire_name, definition in collect_attributes(attributes).items():
+            if wire_name == "*":
+                additional_properties = definition["type"] == "any"
+                continue
+            logical_name = identifier(wire_name)
+            if logical_name in used_names and used_names[logical_name] != wire_name:
+                raise ValueError(
+                    f"JSON Structure name collision: '{wire_name}' and "
+                    f"'{used_names[logical_name]}' both map to '{logical_name}'"
+                )
+            used_names[logical_name] = wire_name
+            property_schema = value_schema(
+                definition, namespace, owner_name + type_identifier(logical_name)
+            )
+            if logical_name != wire_name:
+                property_schema["altnames"] = {"json": wire_name}
+            properties[logical_name] = property_schema
+            if definition.get("required") is True and "default" not in definition:
+                required.append(logical_name)
+        schema = {
+            "type": "object",
+            "properties": properties,
+            "additionalProperties": additional_properties
+        }
+        if required:
+            schema["required"] = required
+        return schema
+
+    common_attributes = {
+        "name": {"type": "string", "description": "Name of the object"},
+        "epoch": {"type": "integer", "description": "Epoch of the object"},
+        "self": {"type": "url", "description": "URL of the object"},
+        "xid": {"type": "xid", "description": "XID of the object"},
+        "description": {"type": "string", "description": "Description of the object"},
+        "documentation": {"type": "url", "description": "Documentation URL"},
+        "labels": {"type": "map", "item": {"type": "string"}},
+        "createdat": {"type": "timestamp", "description": "Creation time"},
+        "modifiedat": {"type": "timestamp", "description": "Modification time"}
+    }
+    root_properties = {}
+    group_metadata = {}
+    groups = model_definition.get("groups", {})
+
+    for group_key, group in groups.items():
+        group_plural = group.get("plural", group_key)
+        namespace = type_identifier(group_plural)
+        resource_collections = {}
+        for resource_key, unresolved_resource in group.get("resources", {}).items():
+            resource = resolve_resource(group, unresolved_resource)
+            resource_plural = resource.get("plural", resource_key)
+            resource_singular = resource["singular"]
+            resource_type_name = type_identifier(resource_singular)
+            identity_attributes = {
+                resource_singular + "id": {
+                    "type": "string",
+                    "description": f"ID of the {resource_singular} object"
+                },
+                **common_attributes
+            }
+            resource_attributes = dict(identity_attributes)
+            if resource.get("maxversions", -1) == 1:
+                resource_attributes.update(resource.get("attributes", {}))
+            resource_schema = object_schema(
+                resource_attributes, namespace, resource_type_name
+            )
+            if resource.get("hasdocument", True):
+                resource_schema["properties"].update({
+                    resource_singular: {
+                        "type": "any",
+                        "description": f"Embedded {resource_singular} document"
+                    },
+                    resource_singular + "base64": {
+                        "type": "binary",
+                        "description": f"Base64-encoded {resource_singular} document"
+                    },
+                    resource_singular + "url": {
+                        "type": "uri",
+                        "description": f"URL of the {resource_singular} document"
+                    }
+                })
+            if resource.get("maxversions", -1) != 1:
+                version_type_name = resource_type_name + "Version"
+                version_schema = object_schema(
+                    {
+                        "versionid": {
+                            "type": "string",
+                            "description": f"ID of the {resource_singular} version"
+                        },
+                        **identity_attributes,
+                        **resource.get("attributes", {})
+                    },
+                    namespace,
+                    version_type_name
+                )
+                if resource.get("hasdocument", True):
+                    version_schema["properties"].update({
+                        resource_singular: {"type": "any"},
+                        resource_singular + "base64": {"type": "binary"},
+                        resource_singular + "url": {"type": "uri"}
+                    })
+                add_definition(namespace, version_type_name, version_schema)
+                resource_schema["properties"].update({
+                    "versionsurl": {"type": "uri"},
+                    "versionscount": {"type": "uint32"},
+                    "versions": {
+                        "type": "map",
+                        "values": reference(namespace, version_type_name)
+                    }
+                })
+            add_definition(namespace, resource_type_name, resource_schema)
+            resource_collections[resource_plural] = {
+                "type": "map",
+                "values": reference(namespace, resource_type_name)
+            }
+        group_metadata[group_plural] = {
+            "group": group,
+            "namespace": namespace,
+            "resource_collections": resource_collections
+        }
+
+    for group_plural, metadata in group_metadata.items():
+        group = metadata["group"]
+        namespace = metadata["namespace"]
+        group_singular = group["singular"]
+        group_type_name = type_identifier(group_singular)
+        group_schema = object_schema(
+            {
+                group_singular + "id": {
+                    "type": "string",
+                    "description": f"ID of the {group_singular} object"
+                },
+                **common_attributes,
+                **group.get("attributes", {})
+            },
+            namespace,
+            group_type_name
+        )
+        group_schema["properties"].update(metadata["resource_collections"])
+        for resource_xid in group.get("ximportresources", []):
+            source_group_plural, source_resource_plural = resource_xid.split("/")[1:]
+            source_metadata = group_metadata[source_group_plural]
+            source_resource = resolve_resource(
+                groups[source_group_plural],
+                groups[source_group_plural]["resources"][source_resource_plural]
+            )
+            source_resource_type = type_identifier(source_resource["singular"])
+            group_schema["properties"][source_resource_plural] = {
+                "type": "map",
+                "values": reference(source_metadata["namespace"], source_resource_type)
+            }
+        add_definition(namespace, group_type_name, group_schema)
+        root_properties[group_plural] = {
+            "type": "map",
+            "values": reference(namespace, group_type_name)
+        }
+
+    return {
+        "$schema": "https://json-structure.org/meta/extended/v0/#",
+        "$id": schema_id or "https://xregistry.io/schemas/xregistry.struct.json",
+        "$uses": ["JSONStructureAlternateNames"],
+        "name": type_identifier(schema_name or "xRegistryDocument"),
+        "type": "object",
+        "properties": root_properties,
+        "additionalProperties": False,
+        "definitions": definitions
+    }
+
+
 def generate_avro_schema(model_definition) -> dict:
     """
     Generates an Avro schema based on the given model definition.
@@ -1155,9 +1427,10 @@ def resolve_imports(basedir, node):
 
 def main():
     parser = argparse.ArgumentParser(description='Generate JSON schema from model definition')
-    parser.add_argument('--type', type=str, help='type of document to generate', choices=['json-schema', 'avro-schema', 'openapi'], default='json-schema')
+    parser.add_argument('--type', type=str, help='type of document to generate', choices=['json-schema', 'json-structure', 'avro-schema', 'openapi'], default='json-schema')
     parser.add_argument('--output', type=str, help='Path for output file', default='', required=False)
     parser.add_argument('--schema-id', type=str, help='URI for the $id field in the schema', default='', required=False)
+    parser.add_argument('--schema-name', type=str, help='Root type name for JSON Structure output', default='', required=False)
     parser.add_argument('input_files', type=str, help='Path to input files', nargs='+')
 
     args = parser.parse_args()
@@ -1183,6 +1456,17 @@ def main():
                 json.dump(json_schema, of, indent=2)
         else:
             print(json.dumps(json_schema, indent=2))
+    elif (args.type == 'json-structure'):
+        json_structure = generate_json_structure(
+            model_definition,
+            schema_id=args.schema_id,
+            schema_name=args.schema_name
+        )
+        if args.output:
+            with open(args.output, 'w', encoding='utf-8') as of:
+                json.dump(json_structure, of, indent=2)
+        else:
+            print(json.dumps(json_structure, indent=2))
     elif (args.type == 'avro-schema'):
         avro_schema = generate_avro_schema(model_definition)
         if args.output:

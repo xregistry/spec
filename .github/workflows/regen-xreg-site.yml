@@ -14,4 +14,4 @@ jobs:
           -H "Accept: application/vnd.github+json" \
           -H "Authorization: Bearer ${{ secrets.XREGIO_PAT }}" \
           https://api.github.com/repos/xregistry/xregistry.github.io/dispatches \
-          -d '{"event_type": "main_branch_updated"}'
+          -d '{"event_type": "spec_updated"}'

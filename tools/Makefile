@@ -1,17 +1,15 @@
-all: models docker
+all: docker models
 	@git diff --name-status --exit-code */schemas > /dev/null 2>&1 || \
 		( echo "schema files have been updated, make sure you commit them" ; \
 		  exit 1 )
+	@echo "All good!"
 
-verify: spellcheck ticks badhrefs tabcheck errorcheck samplescheck hrefs \
-	testpython links website
+verify: spellcheck ticks badhrefs tabcheck errorcheck hrefs \
+	testpython links website makeschema
 
 spellcheck:
 	@echo "Checking for spelling mistakes:"
-	tools/spellcheck */README.md */spec.md core/*.md \
-		workingdrafts/bindings/*.md \
-		workingdrafts/models/*/README.md workingdrafts/models/*/spec.md \
-		docs/share/README.md */samples/README.md */samples/*/README.md
+	tools/spellcheck `find . -name \*.md`
 	@echo
 
 tabcheck:
@@ -21,7 +19,7 @@ tabcheck:
 
 ticks:
 	@echo "Checking for uneven back-ticks:"
-	@(! grep '^[^`]*`[^`]*$$' core/*.md workingdrafts/bindings/*.md)
+	@(! grep '^[^`]*`[^`]*$$' `find . -name \*.md`)
 	@echo
 
 badhrefs:
@@ -32,12 +30,6 @@ badhrefs:
 errorcheck:
 	@echo "Validating the errors in the specs:"
 	tools/errorcheck core/spec.md core/model.md core/http.md
-	@echo
-
-samplescheck:
-	@echo "Check for too verbose samples:"
-	tools/samplescheck */model.json workingdrafts/models/*/model.json \
-		*/samples/*json */samples/*/*json
 	@echo
 
 hrefs:
@@ -62,21 +54,16 @@ links: loadpython
 	@echo
 
 models:
-	@echo "Verifying the models are valid & regen the sample:"
+	@echo "Regen the sample:"
 	@# Note this will use a local 'xr' if available so that local build/test
 	@# of 'xr' can be done
-	if which xr ; then \
-	  echo Using local xr ; \
-	  xr model verify */model.json workingdrafts/models/*/model.json -v && \
+	@if which xr > /dev/null ; then \
+	  echo Using local xr to regen sample-model-full.json ; \
 	  xr model verify core/sample-model.json --full-model | \
 		jq 'del(.groups.dirs.resources.files.attributes.fileproxyurl)' \
 		> core/sample-model-full.json ; \
 	else \
-	  echo Using docker ghcr.io/xregistry/xr && \
-	  docker run -t -v $$PWD:/xreg -w /xreg --entrypoint /bin/sh \
-		ghcr.io/xregistry/xr -c \
-			"/xr model verify */model.json \
-			workingdrafts/models/*/model.json -v" && \
+	  echo Using ghcr.io/xregistry/xr to regen sample-model-full.json && \
 	  docker run -t -v $$PWD:/xreg -w /xreg --entrypoint /bin/sh \
 		ghcr.io/xregistry/xr -c "/xr model verify core/sample-model.json \
 		--full-model" | \
@@ -84,32 +71,40 @@ models:
 		> core/sample-model-full.json ; \
 	fi
 	@echo
+	@echo "Verifying the models are valid"
+	tools/modelscheck
+	@echo
 
 website:
 	@echo "If available, verify the website generation code works too:"
-	@if test -f `readlink -f .`/../xregistry.github.io/tools/buildsite ; then \
-	  XR_SPEC=`pwd -P` `pwd -P`/../xregistry.github.io/tools/buildsite && \
+	@if test -f `readlink -f .`/../xregistry.io/tools/buildsite ; then \
+	  XR_SPEC=`pwd -P` `pwd -P`/../xregistry.io/tools/buildsite && \
 	    rm -rf xreg ; \
 	else \
-	  echo "> Website dir (../xregistry.github.io) can't be found" ; \
+	  echo "> Website dir (../xregistry.io) can't be found" ; \
 	fi
 	@echo
 
 makeschema: loadpython
 	@echo "Rebuilding the schemas..."
 	@python tools/schema-generator.py --type json-schema --schema-id https://xregistry.io/xreg/xregistryspecs/schema-v1/schemas/document-schema.json --output schema/schemas/document-schema.json schema/model.json
+	@python tools/schema-generator.py --type json-structure --schema-id https://xregistry.io/xreg/xregistryspecs/schema-v1/schemas/document-schema.struct.json --schema-name SchemaRegistryDocument --output schema/schemas/document-schema.struct.json schema/model.json
 	@python tools/schema-generator.py --type avro-schema --output schema/schemas/document-schema.avsc schema/model.json
 	@python tools/schema-generator.py --type openapi --output schema/schemas/openapi.json schema/model.json
 	@python tools/schema-generator.py --type json-schema --schema-id https://xregistry.io/xreg/xregistryspecs/message-v1/schemas/document-schema.json --output message/schemas/document-schema.json message/model.json
+	@python tools/schema-generator.py --type json-structure --schema-id https://xregistry.io/xreg/xregistryspecs/message-v1/schemas/document-schema.struct.json --schema-name MessageRegistryDocument --output message/schemas/document-schema.struct.json message/model.json
 	@python tools/schema-generator.py --type avro-schema --output message/schemas/document-schema.avsc message/model.json
 	@python tools/schema-generator.py --type openapi --output message/schemas/openapi.json message/model.json
 	@python tools/schema-generator.py --type json-schema --schema-id https://xregistry.io/xreg/xregistryspecs/endpoint-v1/schemas/document-schema.json --output endpoint/schemas/document-schema.json endpoint/model.json
+	@python tools/schema-generator.py --type json-structure --schema-id https://xregistry.io/xreg/xregistryspecs/endpoint-v1/schemas/document-schema.struct.json --schema-name EndpointRegistryDocument --output endpoint/schemas/document-schema.struct.json endpoint/model.json
 	@python tools/schema-generator.py --type avro-schema --output endpoint/schemas/document-schema.avsc endpoint/model.json
 	@python tools/schema-generator.py --type openapi --output endpoint/schemas/openapi.json endpoint/model.json
 	@python tools/schema-generator.py --type json-schema --schema-id https://xregistry.io/xreg/xregistryspecs/cloudevents-v1/schemas/document-schema.json --output cloudevents/schemas/document-schema.json endpoint/model.json message/model.json schema/model.json
+	@python tools/schema-generator.py --type json-structure --schema-id https://xregistry.io/xreg/xregistryspecs/cloudevents-v1/schemas/document-schema.struct.json --schema-name CloudEventsRegistryDocument --output cloudevents/schemas/document-schema.struct.json endpoint/model.json message/model.json schema/model.json
 	@python tools/schema-generator.py --type avro-schema --output cloudevents/schemas/document-schema.avsc endpoint/model.json message/model.json schema/model.json
 	@python tools/schema-generator.py --type openapi --output cloudevents/schemas/openapi.json endpoint/model.json message/model.json schema/model.json
+	@echo
 
 docker:
 	@docker run -t -v $(PWD):/tmp/spec -w /tmp/spec python:3.11 \
-	    make -f tools/Makefile verify makeschema
+	    make -f tools/Makefile verify

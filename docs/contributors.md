@@ -1,6 +1,7 @@
 ## xRegistry contributors
 
 <!-- no verify-links -->
+<!-- no spellcheck -->
 
 We welcome you to join us! This list acknowledges those who contribute whether
 it be via GitHub pull request or in real life in the project, as well as those

@@ -1,0 +1,968 @@
+{
+  "$schema": "https://json-structure.org/meta/extended/v0/#",
+  "$id": "https://xregistry.io/xreg/xregistryspecs/message-v1/schemas/document-schema.struct.json",
+  "$uses": [
+    "JSONStructureAlternateNames"
+  ],
+  "name": "MessageRegistryDocument",
+  "type": "object",
+  "properties": {
+    "messagegroups": {
+      "type": "map",
+      "values": {
+        "type": {
+          "$ref": "#/definitions/Messagegroups/Messagegroup"
+        }
+      }
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "Messagegroups": {
+      "MessageProtocoloptionsApplicationPropertiesValue": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "description": "The application property type",
+            "enum": [
+              "string",
+              "uritemplate",
+              "integer",
+              "number",
+              "boolean"
+            ]
+          },
+          "value": {
+            "type": "string",
+            "description": "Application property value"
+          },
+          "required": {
+            "type": "boolean",
+            "description": "Application property required"
+          }
+        },
+        "additionalProperties": false
+      },
+      "MessageProtocoloptionsMessageAnnotationsValue": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "description": "The message annotation type",
+            "enum": [
+              "string",
+              "uritemplate",
+              "integer",
+              "number",
+              "boolean"
+            ]
+          },
+          "value": {
+            "type": "string",
+            "description": "Annotation value constraint"
+          },
+          "required": {
+            "type": "boolean",
+            "description": "Annotation required"
+          }
+        },
+        "additionalProperties": false
+      },
+      "MessageProtocoloptionsDeliveryAnnotationsValue": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "description": "The annotation type",
+            "enum": [
+              "string",
+              "uritemplate",
+              "integer",
+              "number",
+              "boolean"
+            ]
+          },
+          "value": {
+            "type": "string",
+            "description": "Annotation value constraint"
+          },
+          "required": {
+            "type": "boolean",
+            "description": "Annotation required"
+          }
+        },
+        "additionalProperties": false
+      },
+      "MessageProtocoloptionsFooterValue": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "description": "AMQP footer type",
+            "enum": [
+              "string",
+              "uritemplate",
+              "integer",
+              "number",
+              "boolean"
+            ]
+          },
+          "value": {
+            "type": "string",
+            "description": "Footer value constraint"
+          },
+          "required": {
+            "type": "boolean",
+            "description": "Footer required"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Message": {
+        "type": "object",
+        "properties": {
+          "messageid": {
+            "type": "string",
+            "description": "ID of the message object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch of the object"
+          },
+          "self": {
+            "type": "uri",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "uri",
+            "description": "XID of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "uri",
+            "description": "Documentation URL"
+          },
+          "labels": {
+            "type": "map",
+            "values": {
+              "type": "string"
+            }
+          },
+          "createdat": {
+            "type": "datetime",
+            "description": "Creation time"
+          },
+          "modifiedat": {
+            "type": "datetime",
+            "description": "Modification time"
+          },
+          "basemessageuri": {
+            "type": "uri",
+            "description": "Reference to a base definition for this definition. Relative references are XIDs within the same registry. Absolute URIs reference message definitions in external registries. The base definition is overridden by this definition. If not present, this definition does not override any base definition"
+          },
+          "envelope": {
+            "type": "string",
+            "description": "Message envelope format identifier. This attribute MUST be the same as the 'envelope' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups. The predefined envelope format is 'CloudEvents/1.0'"
+          },
+          "protocol": {
+            "type": "string",
+            "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups"
+          },
+          "dataschemaformat": {
+            "type": "string",
+            "description": "The schema format applicable to the message payload, equivalent to the 'format' attribute of the schema registry"
+          },
+          "dataschema": {
+            "type": "any",
+            "description": "The inline schema for the message payload, equivalent to the 'schema' attribute of the schema registry"
+          },
+          "dataschemauri": {
+            "type": "uri",
+            "description": "The URI of the schema for the message payload, equivalent to the 'schemauri' attribute of the schema registry"
+          },
+          "dataschemaxid": {
+            "type": "uri",
+            "description": "Contains the xid of the xRegistry schema Resource entity associated with the dataschemauri referenced schema document. Note that this means the entity MUST be located within the same Registry."
+          },
+          "datacontenttype": {
+            "type": "string",
+            "description": "The content type for the message payload"
+          },
+          "envelopemetadata": {
+            "type": "object",
+            "properties": {
+              "specversion": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "string"
+                    ]
+                  },
+                  "value": {
+                    "type": "string",
+                    "description": "CloudEvents spec version (fixed to '1.0')",
+                    "enum": [
+                      "1.0"
+                    ]
+                  },
+                  "required": {
+                    "type": "boolean",
+                    "description": "CloudEvents specversion is always required",
+                    "enum": [
+                      true
+                    ]
+                  }
+                },
+                "additionalProperties": false,
+                "description": "CloudEvents specversion https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#specversion"
+              },
+              "id": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "uritemplate",
+                      "string"
+                    ]
+                  },
+                  "value": {
+                    "type": "string",
+                    "description": "CloudEvents id value constraint"
+                  },
+                  "required": {
+                    "type": "boolean",
+                    "description": "CloudEvents id is always required",
+                    "enum": [
+                      true
+                    ]
+                  }
+                },
+                "additionalProperties": false,
+                "description": "CloudEvents id https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#id"
+              },
+              "type": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string",
+                    "description": "CloudEvents type value constraint"
+                  },
+                  "required": {
+                    "type": "boolean",
+                    "description": "CloudEvents type is always required",
+                    "enum": [
+                      true
+                    ]
+                  }
+                },
+                "additionalProperties": false,
+                "description": "CloudEvents type https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#type"
+              },
+              "source": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "uritemplate",
+                      "string"
+                    ]
+                  },
+                  "value": {
+                    "type": "string",
+                    "description": "CloudEvents source value constraint"
+                  },
+                  "required": {
+                    "type": "boolean",
+                    "description": "CloudEvents source is always required",
+                    "enum": [
+                      true
+                    ]
+                  }
+                },
+                "additionalProperties": false,
+                "description": "CloudEvents source https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#source-1"
+              },
+              "subject": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "uritemplate",
+                      "string"
+                    ]
+                  },
+                  "value": {
+                    "type": "string",
+                    "description": "CloudEvents subject value constraint"
+                  },
+                  "required": {
+                    "type": "boolean",
+                    "description": "CloudEvents subject required"
+                  }
+                },
+                "additionalProperties": false,
+                "description": "CloudEvents subject https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#subject"
+              },
+              "time": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "timestamp"
+                    ]
+                  },
+                  "value": {
+                    "type": "string",
+                    "description": "The timestamp value constraint."
+                  },
+                  "required": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false,
+                "description": "CloudEvents time https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#time"
+              },
+              "dataschema": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string",
+                    "description": "The URI value constraint"
+                  },
+                  "required": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false,
+                "description": "CloudEvents dataschema https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#dataschema. The URI of the schema for the event payload. Absence indicates no known schema. This attribute corresponds to the 'dataschemauri' attribute in the message definition and MUST be the same as the 'dataschemauri' attribute of the definition if present."
+              },
+              "datacontenttype": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string",
+                    "description": "The content type value constraint"
+                  },
+                  "required": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false,
+                "description": "CloudEvents datacontenttype https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#datacontenttype."
+              }
+            },
+            "additionalProperties": false,
+            "description": "CloudEvents attribute declarations, adding constraints to the CloudEvents envelope not yet covered by the CloudEvents spec https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md"
+          },
+          "envelopeoptions": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "type": "string",
+                "description": "Whether CloudEvents 'binary' or 'structured' mode will be used",
+                "enum": [
+                  "binary",
+                  "structured"
+                ]
+              },
+              "format": {
+                "type": "string",
+                "description": "The media type format used to serialize the CloudEvent in the case of mode=structured"
+              }
+            },
+            "additionalProperties": true,
+            "description": "Envelope metadata constraints"
+          },
+          "protocoloptions": {
+            "type": "object",
+            "properties": {
+              "properties": {
+                "type": "object",
+                "properties": {
+                  "messageId": {
+                    "type": "object",
+                    "properties": {
+                      "description": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "AMQP properties.message-id type constraint. The type values refer to the AMQP type model` and the defined message-id types",
+                        "enum": [
+                          "ulong",
+                          "uuid",
+                          "binary",
+                          "string",
+                          "uritemplate"
+                        ]
+                      },
+                      "value": {
+                        "type": "string",
+                        "description": "AMQP properties.message-id value constraint. "
+                      },
+                      "required": {
+                        "type": "boolean",
+                        "description": "AMQP properties.message-id required"
+                      }
+                    },
+                    "additionalProperties": false,
+                    "description": "AMQP properties.message-id",
+                    "altnames": {
+                      "json": "message-id"
+                    }
+                  },
+                  "userId": {
+                    "type": "object",
+                    "properties": {
+                      "description": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "AMQP properties.user-id value type",
+                        "enum": [
+                          "binary",
+                          "string",
+                          "uritemplate"
+                        ]
+                      },
+                      "value": {
+                        "type": "string",
+                        "description": "AMQP properties.user-id value constraint"
+                      },
+                      "required": {
+                        "type": "boolean",
+                        "description": "AMQP properties.user-id required"
+                      }
+                    },
+                    "additionalProperties": false,
+                    "description": "AMQP properties.user-id",
+                    "altnames": {
+                      "json": "user-id"
+                    }
+                  },
+                  "to": {
+                    "type": "object",
+                    "properties": {
+                      "description": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "AMQP properties.to value type",
+                        "enum": [
+                          "string",
+                          "uritemplate"
+                        ]
+                      },
+                      "value": {
+                        "type": "string",
+                        "description": "AMQP properties.to value constraint"
+                      },
+                      "required": {
+                        "type": "boolean",
+                        "description": "AMQP properties.to required"
+                      }
+                    },
+                    "additionalProperties": false,
+                    "description": "AMQP properties.to"
+                  },
+                  "subject": {
+                    "type": "object",
+                    "properties": {
+                      "description": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "AMQP properties.subject value type",
+                        "enum": [
+                          "string",
+                          "uritemplate"
+                        ]
+                      },
+                      "value": {
+                        "type": "string",
+                        "description": "AMQP properties.subject value constraint"
+                      },
+                      "required": {
+                        "type": "boolean",
+                        "description": "AMQP properties.subject required"
+                      }
+                    },
+                    "additionalProperties": false,
+                    "description": "AMQP properties.subject"
+                  },
+                  "replyTo": {
+                    "type": "object",
+                    "properties": {
+                      "description": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "AMQP properties.reply-to value type",
+                        "enum": [
+                          "string",
+                          "uritemplate"
+                        ]
+                      },
+                      "value": {
+                        "type": "string",
+                        "description": "AMQP properties.reply-to value constraint"
+                      },
+                      "required": {
+                        "type": "boolean",
+                        "description": "AMQP properties.reply-to required"
+                      }
+                    },
+                    "additionalProperties": false,
+                    "description": "AMQP properties.reply-to",
+                    "altnames": {
+                      "json": "reply-to"
+                    }
+                  },
+                  "correlationId": {
+                    "type": "object",
+                    "properties": {
+                      "description": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "AMQP correlation-id value type",
+                        "enum": [
+                          "binary",
+                          "string",
+                          "uritemplate"
+                        ]
+                      },
+                      "value": {
+                        "type": "string",
+                        "description": "AMQP correlation-id value constraint"
+                      },
+                      "required": {
+                        "type": "boolean",
+                        "description": "AMQP correlation-id required"
+                      }
+                    },
+                    "additionalProperties": false,
+                    "description": "AMQP properties.correlation-id",
+                    "altnames": {
+                      "json": "correlation-id"
+                    }
+                  },
+                  "contentType": {
+                    "type": "object",
+                    "properties": {
+                      "description": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "AMQP properties.content-type value type",
+                        "enum": [
+                          "string",
+                          "uritemplate"
+                        ]
+                      },
+                      "value": {
+                        "type": "string",
+                        "description": "AMQP properties.content-type value constraint"
+                      },
+                      "required": {
+                        "type": "boolean",
+                        "description": "AMQP properties.content-type required"
+                      }
+                    },
+                    "additionalProperties": false,
+                    "description": "AMQP properties.content-type",
+                    "altnames": {
+                      "json": "content-type"
+                    }
+                  },
+                  "contentEncoding": {
+                    "type": "object",
+                    "properties": {
+                      "description": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "AMQP properties.content-encoding value type",
+                        "enum": [
+                          "string"
+                        ]
+                      },
+                      "value": {
+                        "type": "string",
+                        "description": "AMQP properties.content-encoding value constraint"
+                      },
+                      "required": {
+                        "type": "boolean",
+                        "description": "AMQP properties.content-encoding required"
+                      }
+                    },
+                    "additionalProperties": false,
+                    "description": "AMQP properties.content-encoding",
+                    "altnames": {
+                      "json": "content-encoding"
+                    }
+                  },
+                  "absoluteExpiryTime": {
+                    "type": "object",
+                    "properties": {
+                      "description": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "AMQP properties.absolute-expiry-time value type",
+                        "enum": [
+                          "timestamp"
+                        ]
+                      },
+                      "value": {
+                        "type": "string",
+                        "description": "AMQP properties.absolute-expiry-time value constraint"
+                      },
+                      "required": {
+                        "type": "boolean",
+                        "description": "AMQP properties.absolute-expiry-time required"
+                      }
+                    },
+                    "additionalProperties": false,
+                    "description": "AMQP properties.absolute-expiry-time",
+                    "altnames": {
+                      "json": "absolute-expiry-time"
+                    }
+                  },
+                  "creationTime": {
+                    "type": "object",
+                    "properties": {
+                      "description": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "AMQP properties.creation-time value type",
+                        "enum": [
+                          "timestamp"
+                        ]
+                      },
+                      "value": {
+                        "type": "string",
+                        "description": "AMQP properties.creation-time value constraint"
+                      },
+                      "required": {
+                        "type": "boolean",
+                        "description": "AMQP properties.creation-time required"
+                      }
+                    },
+                    "additionalProperties": false,
+                    "description": "AMQP properties.creation-time",
+                    "altnames": {
+                      "json": "creation-time"
+                    }
+                  },
+                  "groupId": {
+                    "type": "object",
+                    "properties": {
+                      "description": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "AMQP properties.group-id value type",
+                        "enum": [
+                          "string",
+                          "uritemplate"
+                        ]
+                      },
+                      "value": {
+                        "type": "string",
+                        "description": "AMQP properties.group-id value constraint"
+                      },
+                      "required": {
+                        "type": "boolean",
+                        "description": "AMQP properties.group-id required"
+                      }
+                    },
+                    "additionalProperties": false,
+                    "description": "AMQP properties.group-id",
+                    "altnames": {
+                      "json": "group-id"
+                    }
+                  },
+                  "groupSequence": {
+                    "type": "object",
+                    "properties": {
+                      "description": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "AMQP group-sequence value type",
+                        "enum": [
+                          "integer"
+                        ]
+                      },
+                      "value": {
+                        "type": "string",
+                        "description": "AMQP group-sequence value constraint"
+                      },
+                      "required": {
+                        "type": "boolean",
+                        "description": "AMQP group-sequence required"
+                      }
+                    },
+                    "additionalProperties": false,
+                    "description": "AMQP group-sequence",
+                    "altnames": {
+                      "json": "group-sequence"
+                    }
+                  },
+                  "replyToGroupId": {
+                    "type": "object",
+                    "properties": {
+                      "description": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "AMQP properties.reply-to-group-id value type",
+                        "enum": [
+                          "string",
+                          "uritemplate"
+                        ]
+                      },
+                      "value": {
+                        "type": "string",
+                        "description": "AMQP properties.reply-to-group-id value constraint"
+                      },
+                      "required": {
+                        "type": "boolean",
+                        "description": "AMQP properties.reply-to-group-id required"
+                      }
+                    },
+                    "additionalProperties": false,
+                    "description": "AMQP properties.reply-to-group-id",
+                    "altnames": {
+                      "json": "reply-to-group-id"
+                    }
+                  }
+                },
+                "additionalProperties": false,
+                "description": "AMQP properties section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-properties"
+              },
+              "applicationProperties": {
+                "type": "map",
+                "values": {
+                  "type": {
+                    "$ref": "#/definitions/Messagegroups/MessageProtocoloptionsApplicationPropertiesValue"
+                  }
+                },
+                "description": "AMQP application-properties section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-application-properties",
+                "altnames": {
+                  "json": "application-properties"
+                }
+              },
+              "messageAnnotations": {
+                "type": "map",
+                "values": {
+                  "type": {
+                    "$ref": "#/definitions/Messagegroups/MessageProtocoloptionsMessageAnnotationsValue"
+                  }
+                },
+                "description": "AMQP message-annotations section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-message-annotations",
+                "altnames": {
+                  "json": "message-annotations"
+                }
+              },
+              "deliveryAnnotations": {
+                "type": "map",
+                "values": {
+                  "type": {
+                    "$ref": "#/definitions/Messagegroups/MessageProtocoloptionsDeliveryAnnotationsValue"
+                  }
+                },
+                "description": "AMQP delivery-annotations section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-delivery-annotations",
+                "altnames": {
+                  "json": "delivery-annotations"
+                }
+              },
+              "header": {
+                "type": "object",
+                "properties": {
+                  "durable": {
+                    "type": "boolean",
+                    "description": "AMQP durable flag"
+                  },
+                  "priority": {
+                    "type": "integer",
+                    "description": "AMQP priority"
+                  },
+                  "ttl": {
+                    "type": "integer",
+                    "description": "AMQP time-to-live (milliseconds)"
+                  },
+                  "firstAcquirer": {
+                    "type": "boolean",
+                    "description": "AMQP first-acquirer flag",
+                    "altnames": {
+                      "json": "first-acquirer"
+                    }
+                  },
+                  "deliveryCount": {
+                    "type": "integer",
+                    "description": "AMQP delivery-count",
+                    "altnames": {
+                      "json": "delivery-count"
+                    }
+                  }
+                },
+                "additionalProperties": false,
+                "description": "AMQP header section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-header"
+              },
+              "footer": {
+                "type": "map",
+                "values": {
+                  "type": {
+                    "$ref": "#/definitions/Messagegroups/MessageProtocoloptionsFooterValue"
+                  }
+                },
+                "description": "AMQP footer section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-footer"
+              }
+            },
+            "additionalProperties": false,
+            "description": "AMQP message metadata constraints"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Messagegroup": {
+        "type": "object",
+        "properties": {
+          "messagegroupid": {
+            "type": "string",
+            "description": "ID of the messagegroup object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch of the object"
+          },
+          "self": {
+            "type": "uri",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "uri",
+            "description": "XID of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "uri",
+            "description": "Documentation URL"
+          },
+          "labels": {
+            "type": "map",
+            "values": {
+              "type": "string"
+            }
+          },
+          "createdat": {
+            "type": "datetime",
+            "description": "Creation time"
+          },
+          "modifiedat": {
+            "type": "datetime",
+            "description": "Modification time"
+          },
+          "envelope": {
+            "type": "string",
+            "description": "Envelope format identifier that defines the common metadata information for the message. All definitions in this group share this envelope format. Mixed-envelope-format groups are not permitted. The predefined envelope format is CloudEvents/1.0"
+          },
+          "protocol": {
+            "type": "string",
+            "description": "Protocol identifier that defines the transport message protocol. All definitions in this group share this protocol type. Mixed-protocol groups are not permitted. Predefined protocol formats are 'AMQP/1.0', 'MQTT/3.1.1', 'MQTT/5.0', 'KAFKA', 'HTTP', and 'NATS'"
+          },
+          "messages": {
+            "type": "map",
+            "values": {
+              "type": {
+                "$ref": "#/definitions/Messagegroups/Message"
+              }
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  }
+}

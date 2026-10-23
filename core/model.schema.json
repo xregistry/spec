@@ -85,21 +85,28 @@
             },
             "constraints": {
               "type": "object",
-              "properties": {
-                "default": {
-                  "type": [ "string", "number", "integer", "boolean" ]
-                },
-                "enum": {
-                  "type": "array",
-                  "items": {
-                    "type": [ "string", "number", "integer", "boolean" ]
+              "patternProperties": {
+                "^[a-z][a-z0-9_]*\\..+$": {
+                  "type": "object",
+                  "properties": {
+                    "default": {
+                      "type": [ "string", "number", "integer", "boolean" ]
+                    },
+                    "enum": {
+                      "type": "array",
+                      "items": {
+                        "type": [ "string", "number", "integer", "boolean" ]
+                      },
+                      "minItems": 1
+                    },
+                    "equals": {
+                      "type": "string"
+                    }
                   },
-                  "minItems": 1
-                },
-                "equals": {
-                  "type": "string"
+                  "additionalProperties": false
                 }
               },
+              "additionalProperties": false,
               "description": "Group level constraints over resources"
             },
             "resources": {
@@ -173,6 +180,21 @@
               "type": "boolean",
               "default": false,
               "description": "Whether to enforce single root Version"
+            },
+            "validateformat": {
+              "type": "boolean",
+              "default": false,
+              "description": "Whether to perform Version format checks"
+            },
+            "validatecompatibility": {
+              "type": "boolean",
+              "default": false,
+              "description": "Whether to perform Version compatibility checks"
+            },
+            "strictvalidation": {
+              "type": "boolean",
+              "default": false,
+              "description": "Whether to reject unknown format and compatibility validators"
             },
             "typemap": {
               "type": "object",
@@ -387,6 +409,18 @@
         {
           "if": {
             "properties": {
+              "type": { "enum": ["array", "map", "object", "any"] }
+            }
+          },
+          "then": {
+            "properties": {
+              "enum": { "not": {} }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
               "default": { "not": { "type": "null" } }
             },
             "required": ["default"]
@@ -422,6 +456,15 @@
           "enum": ["strict", "extended"],
           "default": "strict"
         },
+        "enum": {
+          "type": "array",
+          "description": "Allowed values for scalar items"
+        },
+        "strict": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to restrict item values to enum only"
+        },
         "attributes": {
           "$ref": "#/definitions/AttributeDefinitions"
         },
@@ -439,6 +482,18 @@
           },
           "then": {
             "required": ["item"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": { "enum": ["array", "map", "object", "any"] }
+            }
+          },
+          "then": {
+            "properties": {
+              "enum": { "not": {} }
+            }
           }
         }
       ]

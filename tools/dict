@@ -24,6 +24,7 @@ aws
 backend
 basemessage
 bbase
+blog
 bprime
 bson
 bunnymq
@@ -31,6 +32,7 @@ capabilitiesoffered
 cashierdesk
 cdid
 cereg
+changelog
 charset
 checkedin
 cleansession
@@ -109,6 +111,7 @@ gmt
 google
 gotchas
 granttypes
+grep
 groupid
 groupscount
 groupsgid
@@ -150,11 +153,13 @@ javadoc
 json
 jsonpath
 jsonschema
+jsonstructure
 jul
 keyname
 lifecycle
 lightbulb
 linkproperties
+linux
 mapname
 maxmaxversions
 maxversions
@@ -203,6 +208,7 @@ myregistry
 myresourceid
 myresources
 myschema
+myschemagroup
 myschemas
 myspec
 mysubject
@@ -234,6 +240,7 @@ ptr
 pubsub
 qos
 rawdata
+readme
 readonly
 redis
 registryid
@@ -250,6 +257,7 @@ resourceversionid
 resultset
 rfc
 rid
+roadmap
 robovac
 rpc
 schemacontenttype
@@ -279,6 +287,7 @@ siblingattributes
 singleversionroot
 singularid
 smartoven
+soaphub
 someattribute
 someattributes
 sourceregistry
@@ -288,6 +297,7 @@ specversion
 specversions
 src
 ssl
+stakeholders
 storeid
 stringified
 svg
@@ -338,6 +348,7 @@ vnd
 watchkam
 waterboiler
 webhook
+website
 websockets
 wildcards
 willmessage
@@ -361,6 +372,7 @@ xregcorrelationid
 xregfullmodel
 xregistries
 xregistry
+xregistryio
 xregistryspecs
 xregsample
 xregurlmapping
