@@ -3085,7 +3085,7 @@
           "contenttype": {
             "type": "string"
           },
-          "basemessageuri": {
+          "basemessage": {
             "type": "string",
             "format": "uri-reference",
             "description": "Reference to a base definition for this definition. Relative references are XIDs within the same registry. Absolute URIs reference message definitions in external registries. The base definition is overridden by this definition. If not present, this definition does not override any base definition"
@@ -3191,7 +3191,7 @@
           "contenttype": {
             "type": "string"
           },
-          "basemessageuri": {
+          "basemessage": {
             "type": "string",
             "format": "uri-reference",
             "description": "Reference to a base definition for this definition. Relative references are XIDs within the same registry. Absolute URIs reference message definitions in external registries. The base definition is overridden by this definition. If not present, this definition does not override any base definition"
@@ -3403,7 +3403,7 @@
               }
             }
           },
-          "basemessageuri": {
+          "basemessage": {
             "type": "string",
             "format": "uri-reference",
             "description": "Reference to a base definition for this definition. Relative references are XIDs within the same registry. Absolute URIs reference message definitions in external registries. The base definition is overridden by this definition. If not present, this definition does not override any base definition"

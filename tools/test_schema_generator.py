@@ -644,7 +644,7 @@ class TestSchemaGenerator:
             groups = parsed.fields_dict['messagegroups'].type.values
             singleton = groups.fields_dict['messages'].type.values
             assert 'versions' not in singleton.fields_dict
-            assert {'basemessageuri', 'envelope', 'protocol'} <= set(singleton.fields_dict)
+            assert {'basemessage', 'envelope', 'protocol'} <= set(singleton.fields_dict)
             imported = parsed.fields_dict['endpoints'].type.values
             assert imported.fields_dict['messages'].type.values is singleton
         finally:
