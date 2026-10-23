@@ -2063,6 +2063,8 @@ The following defines the specification-defined capabilities:
   capabilities are inconsistent, then the `pagination` capability value
   SHOULD result in changing the `flags` capability as needed to make them
   consistent.
+- Use of a pagination type of feature on a non-collection result MUST generate
+  an error ([pagination_noncollection](#pagination_noncollection)).
 
 #### `shortself` Capability
 - Name: `shortself`
@@ -5346,6 +5348,13 @@ error SHOULD be used instead.
 * Subject: `<entity_xid>`
 * Args:
   - `list`: Comma separated list of `<RESOURCE>*` attributes allowed.
+
+### pagination_noncollection
+
+* Type: `https://github.com/xregistry/spec/blob/main/core/spec.md#pagination_noncollection`
+* Code: `400 Bad Request`
+* Title: `Can't use pagination on a non-collection result set. Query path: <subject>.`
+* Subject: `<request_path>`
 
 ### parsing_data
 
