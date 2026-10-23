@@ -477,7 +477,14 @@
                 "type": "array",
                 "name": "UsageArrayType",
                 "items": {
-                  "type": "string"
+                  "type": "enum",
+                  "name": "UsageEnumType",
+                  "namespace": "io.xregistry",
+                  "symbols": [
+                    "subscriber",
+                    "consumer",
+                    "producer"
+                  ]
                 }
               },
               "name": "usage",

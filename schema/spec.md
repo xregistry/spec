@@ -2,7 +2,7 @@
 
 <!-- words: formatvalidated compatibilityvalidated -->
 <!-- words: formatvalidatedreason compatibilityvalidatedreason -->
-<!-- words: jsonstructure jstruct namespace -->
+<!-- words: jsonstructure jstruct matchversions namespace -->
 
 ## Abstract
 
@@ -405,6 +405,10 @@ This specification further refines the
 in a Schema Registry by defining a set of common schema format names that MUST
 be used for the given formats, but applications MAY define extensions for
 other formats on their own.
+
+The Schema model is defined to require all Schema Versions to have non-null
+`format` values. The model MAY be modified to define a default value for
+`format` to avoid clients having to specify it each time.
 
 - Examples:
   - `JsonSchema/draft-07`

@@ -140,7 +140,8 @@ Any message definition covers up to three aspects:
    understand the particular payload format or having to read the payload. The
    only predefined envelope model in this specification is CNCF CloudEvents
    1.0. Once the `envelope` selector is set, constraints for the attributes
-   of the CloudEvents envelope can be defined in the `envelopemetadata`.
+   of the CloudEvents envelope can be defined in `envelopemetadata`.
+   Serialization options, such as mode and format, belong in `envelopeoptions`.
 
 2. Protocol: The `protocol` selector picks a specific application protocol to
    which the given message is bound. If a protocol is chosen, constraints for
@@ -647,7 +648,8 @@ boundaries, this attribute is also REQUIRED and MUST be the same as the
 `envelope` attribute of the `messagegroup` object into which the message is
 embedded or referenced.
 
-Illustrating example:
+The following abbreviated example uses the core specification's `meta.xref`
+feature to reference a Message defined in another Group.
 
 ```yaml
 "messagegroups": {
@@ -936,6 +938,9 @@ correspond directly to the CloudEvents context attributes.
 As with the [CloudEvents specification][CloudEvents], the attributes form a
 flat list and extension attributes are allowed. Attribute names are restricted
 to lower-case alphanumerical characters without separators.
+
+[`envelopeoptions`](#envelopeoptions) holds serialization options such as mode
+and format, not these property declarations.
 
 The base attributes are defined as follows:
 
