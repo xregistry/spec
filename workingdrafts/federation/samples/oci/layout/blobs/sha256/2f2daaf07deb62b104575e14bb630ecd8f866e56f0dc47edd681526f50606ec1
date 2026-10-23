@@ -1,0 +1,9 @@
+{
+  "entity": {
+    "fileid": "dangling",
+    "xid": "/dirs/main/files/dangling/meta",
+    "xref": "/dirs/missing/files/sample"
+  },
+  "formatversion": 1,
+  "kind": "meta"
+}

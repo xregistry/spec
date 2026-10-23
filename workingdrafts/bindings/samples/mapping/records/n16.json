@@ -1,0 +1,10 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "meta",
+  "entity": {
+    "xid": "/mirrors/local/assets/dangling/meta",
+    "assetid": "dangling",
+    "xref": "/documents/main/assets/missing"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "group",
+  "entity": {
+    "epoch": 1,
+    "createdat": "2026-09-04T00:00:00Z",
+    "modifiedat": "2026-09-04T00:00:00Z",
+    "xid": "/documents/main",
+    "documentid": "main"
+  },
+  "collections": [
+    {
+      "kind": "collection",
+      "xid": "/documents/main/assets",
+      "href": "indexes/n4.json",
+      "size": 593,
+      "sha256": "636dccef343486cbb4d6f7725d769712166c806158c364152e3dd0093d2ff316"
+    },
+    {
+      "kind": "collection",
+      "xid": "/documents/main/notes",
+      "href": "indexes/n7.json",
+      "size": 374,
+      "sha256": "a445ad1f06f3dd8885042d114a453cc69e0a0e2d4f018be328bad064baf4146c"
+    }
+  ]
+}

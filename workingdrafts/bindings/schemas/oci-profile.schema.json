@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xregistry.io/workingdrafts/bindings/schemas/oci-profile.schema.json",
+  "title": "OCI federation advertisement, unreleased version 1",
+  "type": "object",
+  "required": ["name", "endpoint", "parameters"],
+  "properties": {
+    "name": {"const": "oci"},
+    "endpoint": {
+      "type": "string",
+      "pattern": "^oci://[^/@?#\\s]+/[a-z0-9]+(?:(?:[._]|__|-+)[a-z0-9]+)*(?:/[a-z0-9]+(?:(?:[._]|__|-+)[a-z0-9]+)*)*$"
+    },
+    "priority": {"type": "integer", "minimum": 0, "default": 0},
+    "parameters": {
+      "type": "object",
+      "required": ["reference"],
+      "properties": {
+        "reference": {
+          "type": "string",
+          "pattern": "^(?:sha256:[0-9a-f]{64}|[A-Za-z0-9_][A-Za-z0-9_.-]{0,127})$"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true,
+  "$comment": "The shared federation advertisement and URI authority rules also apply. Credentials, malformed ports and unsupported parameters require semantic validation."
+}

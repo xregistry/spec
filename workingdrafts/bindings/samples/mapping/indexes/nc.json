@@ -1,0 +1,30 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "collection",
+  "xid": "/mirrors/local/assets",
+  "count": 3,
+  "entries": [
+    {
+      "kind": "resource",
+      "xid": "/mirrors/local/assets/chain",
+      "href": "records/n11.json",
+      "size": 407,
+      "sha256": "a239f93fb4f3b665f0870676b8f9d0af035897da46ce2debc5fa2903e53956f5"
+    },
+    {
+      "kind": "resource",
+      "xid": "/mirrors/local/assets/copy",
+      "href": "records/n13.json",
+      "size": 404,
+      "sha256": "bfa76f2e711f299841f45cdf0cd2250fd25c9a7b329134662d92d201fb49dcfb"
+    },
+    {
+      "kind": "resource",
+      "xid": "/mirrors/local/assets/dangling",
+      "href": "records/n15.json",
+      "size": 416,
+      "sha256": "c9fdc61832e1b916b54f16704cc62f201bf5a3a485121c703a04820bec5150e8"
+    }
+  ]
+}

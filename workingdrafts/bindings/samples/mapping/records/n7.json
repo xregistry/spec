@@ -1,0 +1,22 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "version",
+  "entity": {
+    "epoch": 1,
+    "createdat": "2026-09-04T00:00:00Z",
+    "modifiedat": "2026-09-04T00:00:00Z",
+    "xid": "/documents/main/assets/CON/versions/a:b@c.",
+    "assetid": "CON",
+    "versionid": "a:b@c.",
+    "isdefault": true,
+    "ancestorid": "a:b@c.",
+    "contenttype": "application/octet-stream"
+  },
+  "document": {
+    "kind": "local",
+    "href": "documents/n0.bin",
+    "size": 5,
+    "sha256": "9c4c17b54893625385fa1d9c9ca1aa6ddc67917a22d6936afcad1dd9dab50f04"
+  }
+}

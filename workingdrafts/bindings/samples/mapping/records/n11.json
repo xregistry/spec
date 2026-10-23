@@ -1,0 +1,17 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "resource",
+  "entity": {
+    "xid": "/mirrors/local/assets/chain",
+    "assetid": "chain"
+  },
+  "meta": {
+    "kind": "meta",
+    "xid": "/mirrors/local/assets/chain/meta",
+    "href": "records/n12.json",
+    "size": 215,
+    "sha256": "667077d623e4679109551cf1c2f28da2b9049ba81c5f0594f5d5302bc51bb73f"
+  },
+  "collections": []
+}

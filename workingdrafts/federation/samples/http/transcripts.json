@@ -1,0 +1,657 @@
+{
+  "format": "xregistry-http-examples-v1",
+  "supportedSpecversions": ["1.0-rc4"],
+  "selectors": [
+    {
+      "name": "case-insensitive-value",
+      "selector": {"label": "stage", "value": "PRODUCTION"},
+      "entities": [
+        {"assetid": "item", "labels": {"stage": "production"}},
+        {"assetid": "other", "labels": {"stage": "development"}}
+      ],
+      "expected": "item",
+      "filter": "labels.stage=PRODUCTION"
+    },
+    {
+      "name": "empty-is-not-absent",
+      "selector": {"label": "note", "value": ""},
+      "entities": [
+        {"assetid": "item", "labels": {"note": ""}},
+        {"assetid": "unlabeled"}
+      ],
+      "expected": "item",
+      "filter": "labels.note="
+    },
+    {
+      "name": "literal-star",
+      "selector": {"label": "note", "value": "A*B"},
+      "entities": [
+        {"assetid": "item", "labels": {"note": "a*b"}},
+        {"assetid": "other", "labels": {"note": "axxb"}}
+      ],
+      "expected": "item",
+      "filter": "labels.note=A\\*B"
+    },
+    {
+      "name": "dot-in-label-key",
+      "selector": {"label": "release.channel", "value": "stable"},
+      "entities": [
+        {"assetid": "item", "labels": {"release.channel": "STABLE"}},
+        {"assetid": "other", "labels": {"channel": "stable"}}
+      ],
+      "expected": "item",
+      "filter": "labels['release.channel']=stable"
+    },
+    {
+      "name": "literal-null-fallback",
+      "selector": {"label": "note", "value": "null"},
+      "entities": [
+        {"assetid": "item", "labels": {"note": "NULL"}},
+        {"assetid": "unlabeled"}
+      ],
+      "expected": "item",
+      "filter": null
+    },
+    {
+      "name": "comma-fallback",
+      "selector": {"label": "note", "value": "a,b"},
+      "entities": [
+        {"assetid": "item", "labels": {"note": "A,B"}}
+      ],
+      "expected": "item",
+      "filter": null
+    },
+    {
+      "name": "no-unicode-normalization",
+      "selector": {"label": "note", "value": "\u00e9"},
+      "entities": [
+        {"assetid": "item", "labels": {"note": "\u00c9"}},
+        {"assetid": "other", "labels": {"note": "e\u0301"}}
+      ],
+      "expected": "item",
+      "filter": null
+    },
+    {
+      "name": "no-match",
+      "selector": {"label": "note", "value": ""},
+      "entities": [{"assetid": "unlabeled"}],
+      "error": "not_found",
+      "filter": "labels.note="
+    }
+  ],
+  "transcripts": [
+    {
+      "name": "full-api-bootstrap",
+      "note": "Discovery excerpt; native /model access is specified in read-mapping.json. The compact /modelsource below is not an expanded /model response.",
+      "endpoint": "https://first.example.com/services/xreg/",
+      "exchanges": [
+        {
+          "request": {"url": "https://first.example.com/services/xreg/", "headers": {}},
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json",
+              "Link": "<https://first.example.com/services/xreg/>;rel=xregistry-root",
+              "ETag": "\"root-1\""
+            },
+            "json": {
+              "specversion": "1.0-rc4",
+              "registryid": "first",
+              "self": "https://first.example.com/services/xreg/",
+              "xid": "/",
+              "epoch": 1,
+              "createdat": "2026-09-01T00:00:00Z",
+              "modifiedat": "2026-09-01T00:00:00Z",
+              "documentsurl": "https://first.example.com/services/xreg/documents",
+              "documentscount": 1,
+              "categoriesurl": "https://first.example.com/services/xreg/categories",
+              "categoriescount": 1
+            }
+          }
+        },
+        {
+          "request": {"url": "https://first.example.com/services/xreg/capabilities", "headers": {}},
+          "response": {
+            "status": 200,
+            "headers": {"Content-Type": "application/json"},
+            "json": {
+              "available": {
+                "capabilities": {"mutable": false},
+                "entities": {"mutable": false},
+                "model": {"mutable": false},
+                "modelsource": {"mutable": false},
+                "export": {"mutable": false}
+              },
+              "flags": ["filter", "inline", "doc", "binary", "specversion"],
+              "mutable": [],
+              "pagination": true,
+              "shortself": false,
+              "specversions": ["1.0-rc4"]
+            }
+          }
+        },
+        {
+          "request": {"url": "https://first.example.com/services/xreg/modelsource", "headers": {}},
+          "response": {
+            "status": 200,
+            "headers": {"Content-Type": "application/json"},
+            "json": {
+              "groups": {
+                "documents": {
+                  "singular": "document",
+                  "resources": {"assets": {"singular": "asset"}}
+                },
+                "categories": {
+                  "singular": "category",
+                  "resources": {
+                    "registries": {
+                      "singular": "registry",
+                      "hasdocument": false,
+                      "attributes": {
+                        "xregurl": {"type": "url"},
+                        "weburl": {"type": "url"}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "expected": {"registryid": "first", "specversion": "1.0-rc4", "immutable": false}
+    },
+    {
+      "name": "no-filter-catalog",
+      "endpoint": "https://catalog.example.com/catalog",
+      "selector": {"label": "stage", "value": "PRODUCTION"},
+      "exchanges": [
+        {
+          "request": {"url": "https://catalog.example.com/catalog/capabilities", "headers": {}},
+          "response": {
+            "status": 200,
+            "headers": {"Content-Type": "application/json"},
+            "json": {
+              "available": {
+                "capabilities": {"mutable": false},
+                "entities": {"mutable": false},
+                "model": {"mutable": false}
+              },
+              "flags": null,
+              "mutable": [],
+              "pagination": false,
+              "specversions": ["1.0-rc4"]
+            }
+          }
+        },
+        {
+          "request": {"url": "https://catalog.example.com/catalog/categories/dev/registries", "headers": {}},
+          "response": {
+            "status": 200,
+            "headers": {"Content-Type": "application/json"},
+            "json": {
+              "bridge": {
+                "registryid": "bridge",
+                "versionid": "v1",
+                "self": "https://catalog.example.com/catalog/categories/dev/registries/bridge",
+                "xid": "/categories/dev/registries/bridge",
+                "epoch": 1,
+                "isdefault": true,
+                "ancestorid": "v1",
+                "createdat": "2026-09-01T00:00:00Z",
+                "modifiedat": "2026-09-01T00:00:00Z",
+                "labels": {"stage": "production", "note": ""},
+                "xregurl": "https://first.example.com/services/xreg/",
+                "metaurl": "https://catalog.example.com/catalog/categories/dev/registries/bridge/meta",
+                "versionsurl": "https://catalog.example.com/catalog/categories/dev/registries/bridge/versions",
+                "versionscount": 1
+              },
+              "website": {
+                "registryid": "website",
+                "versionid": "v1",
+                "self": "https://catalog.example.com/catalog/categories/dev/registries/website",
+                "xid": "/categories/dev/registries/website",
+                "epoch": 1,
+                "isdefault": true,
+                "ancestorid": "v1",
+                "createdat": "2026-09-01T00:00:00Z",
+                "modifiedat": "2026-09-01T00:00:00Z",
+                "weburl": "https://www.example.com/",
+                "metaurl": "https://catalog.example.com/catalog/categories/dev/registries/website/meta",
+                "versionsurl": "https://catalog.example.com/catalog/categories/dev/registries/website/versions",
+                "versionscount": 1
+              }
+            }
+          }
+        }
+      ],
+      "expected": {
+        "xid": "/categories/dev/registries/bridge",
+        "endpoint": "https://first.example.com/services/xreg/",
+        "documentReads": 0
+      }
+    },
+    {
+      "name": "filtered-pages",
+      "endpoint": "https://first.example.com/services/xreg/",
+      "selector": {"label": "stage", "value": "PRODUCTION"},
+      "exchanges": [
+        {
+          "request": {
+            "url": "https://first.example.com/services/xreg/documents/main/assets?filter=labels.stage%3DPRODUCTION&limit=1",
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json",
+              "Link": "<?cursor=opaque%2B2>;rel=next;count=1"
+            },
+            "json": {}
+          }
+        },
+        {
+          "request": {
+            "url": "https://first.example.com/services/xreg/documents/main/assets?cursor=opaque%2B2",
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {"Content-Type": "application/json"},
+            "json": {
+              "item": {
+                "assetid": "item",
+                "versionid": "v1",
+                "self": "https://first.example.com/services/xreg/documents/main/assets/item$details",
+                "xid": "/documents/main/assets/item",
+                "epoch": 1,
+                "isdefault": true,
+                "ancestorid": "v1",
+                "createdat": "2026-09-01T00:00:00Z",
+                "modifiedat": "2026-09-01T00:00:00Z",
+                "labels": {"stage": "production"},
+                "metaurl": "https://first.example.com/services/xreg/documents/main/assets/item/meta",
+                "versionsurl": "https://first.example.com/services/xreg/documents/main/assets/item/versions",
+                "versionscount": 3
+              }
+            }
+          }
+        }
+      ],
+      "expected": {"xid": "/documents/main/assets/item", "pages": 2}
+    },
+    {
+      "name": "later-page-ambiguity",
+      "endpoint": "https://first.example.com/services/xreg/",
+      "selector": {"label": "stage", "value": "PRODUCTION"},
+      "exchanges": [
+        {
+          "request": {"url": "https://first.example.com/services/xreg/documents/main/assets", "headers": {}},
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json",
+              "Link": "<https://first.example.com/services/xreg/documents/main/assets?cursor=next>;rel=next;count=2"
+            },
+            "json": {
+              "item": {
+                "assetid": "item",
+                "versionid": "v1",
+                "self": "https://first.example.com/services/xreg/documents/main/assets/item$details",
+                "xid": "/documents/main/assets/item",
+                "epoch": 1,
+                "isdefault": true,
+                "ancestorid": "v1",
+                "createdat": "2026-09-01T00:00:00Z",
+                "modifiedat": "2026-09-01T00:00:00Z",
+                "labels": {"stage": "production"},
+                "metaurl": "https://first.example.com/services/xreg/documents/main/assets/item/meta",
+                "versionsurl": "https://first.example.com/services/xreg/documents/main/assets/item/versions",
+                "versionscount": 3
+              }
+            }
+          }
+        },
+        {
+          "request": {"url": "https://first.example.com/services/xreg/documents/main/assets?cursor=next", "headers": {}},
+          "response": {
+            "status": 200,
+            "headers": {"Content-Type": "application/json"},
+            "json": {
+              "other": {
+                "assetid": "other",
+                "versionid": "v1",
+                "self": "https://first.example.com/services/xreg/documents/main/assets/other$details",
+                "xid": "/documents/main/assets/other",
+                "epoch": 1,
+                "isdefault": true,
+                "ancestorid": "v1",
+                "createdat": "2026-09-01T00:00:00Z",
+                "modifiedat": "2026-09-01T00:00:00Z",
+                "labels": {"stage": "PRODUCTION"},
+                "metaurl": "https://first.example.com/services/xreg/documents/main/assets/other/meta",
+                "versionsurl": "https://first.example.com/services/xreg/documents/main/assets/other/versions",
+                "versionscount": 1
+              }
+            }
+          }
+        }
+      ],
+      "expected": {"error": "ambiguous"}
+    },
+    {
+      "name": "document-revalidation",
+      "endpoint": "https://first.example.com/services/xreg/",
+      "exchanges": [
+        {
+          "request": {"url": "https://first.example.com/services/xreg/documents/main/assets/item/versions/v1", "headers": {}},
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json",
+              "Content-Length": "17",
+              "ETag": "\"document-v1\"",
+              "Cache-Control": "private, max-age=0",
+              "xRegistry-assetid": "item",
+              "xRegistry-versionid": "v1",
+              "xRegistry-self": "https://first.example.com/services/xreg/documents/main/assets/item/versions/v1",
+              "xRegistry-xid": "/documents/main/assets/item/versions/v1",
+              "xRegistry-epoch": "1",
+              "xRegistry-isdefault": "true",
+              "xRegistry-ancestorid": "v1",
+              "xRegistry-createdat": "2026-09-01T00:00:00Z",
+              "xRegistry-modifiedat": "2026-09-01T00:00:00Z"
+            },
+            "text": "{\"type\":\"string\"}"
+          }
+        },
+        {
+          "request": {
+            "url": "https://first.example.com/services/xreg/documents/main/assets/item/versions/v1",
+            "headers": {"If-None-Match": "\"document-v1\""}
+          },
+          "response": {
+            "status": 304,
+            "headers": {
+              "ETag": "\"document-v1\"",
+              "Cache-Control": "private, max-age=0"
+            }
+          }
+        }
+      ],
+      "expected": {"text": "{\"type\":\"string\"}", "cacheReuse": true}
+    },
+    {
+      "name": "zero-byte-document",
+      "endpoint": "https://first.example.com/services/xreg/",
+      "exchanges": [
+        {
+          "request": {"url": "https://first.example.com/services/xreg/documents/main/assets/item/versions/v3", "headers": {}},
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/octet-stream",
+              "Content-Length": "0",
+              "ETag": "\"document-v3-empty\"",
+              "xRegistry-assetid": "item",
+              "xRegistry-versionid": "v3",
+              "xRegistry-self": "https://first.example.com/services/xreg/documents/main/assets/item/versions/v3",
+              "xRegistry-xid": "/documents/main/assets/item/versions/v3",
+              "xRegistry-epoch": "1",
+              "xRegistry-isdefault": "false",
+              "xRegistry-ancestorid": "v2",
+              "xRegistry-createdat": "2026-09-03T00:00:00Z",
+              "xRegistry-modifiedat": "2026-09-03T00:00:00Z"
+            },
+            "base64": ""
+          }
+        }
+      ],
+      "expected": {"base64": "", "size": 0}
+    },
+    {
+      "name": "document-redirect",
+      "endpoint": "https://first.example.com/services/xreg/",
+      "policy": {
+        "allowedOrigins": ["https://first.example.com", "https://content.example.com"],
+        "credentialScope": "https://first.example.com"
+      },
+      "exchanges": [
+        {
+          "request": {
+            "url": "https://first.example.com/services/xreg/documents/main/assets/item/versions/v2",
+            "headers": {
+              "Authorization": "Bearer SYNTHETIC-NONSECRET-TOKEN",
+              "If-None-Match": "\"source-document-locator\""
+            }
+          },
+          "response": {
+            "status": 303,
+            "headers": {
+              "Location": "https://content.example.com/item-v2.bin",
+              "xRegistry-asseturl": "https://content.example.com/item-v2.bin",
+              "xRegistry-assetid": "item",
+              "xRegistry-versionid": "v2",
+              "xRegistry-self": "https://first.example.com/services/xreg/documents/main/assets/item/versions/v2",
+              "xRegistry-xid": "/documents/main/assets/item/versions/v2",
+              "xRegistry-epoch": "1",
+              "xRegistry-isdefault": "false",
+              "xRegistry-ancestorid": "v1",
+              "xRegistry-createdat": "2026-09-02T00:00:00Z",
+              "xRegistry-modifiedat": "2026-09-02T00:00:00Z",
+              "Content-Length": "0"
+            }
+          }
+        },
+        {
+          "request": {"url": "https://content.example.com/item-v2.bin", "headers": {}},
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/octet-stream",
+              "Content-Length": "2",
+              "ETag": "\"external-document-v2\""
+            },
+            "base64": "AP8="
+          }
+        }
+      ],
+      "expected": {
+        "base64": "AP8=",
+        "sourceXid": "/documents/main/assets/item/versions/v2",
+        "targetIsMetadata": false,
+        "forwardedCredentials": false
+      }
+    },
+    {
+      "name": "redirect-policy-denial",
+      "note": "Redirect-policy excerpt; only representation and destination headers are retained.",
+      "endpoint": "https://first.example.com/services/xreg/",
+      "policy": {"allowedOrigins": ["https://first.example.com"]},
+      "exchanges": [
+        {
+          "request": {
+            "url": "https://first.example.com/services/xreg/documents/main/assets/item/versions/v2",
+            "headers": {}
+          },
+          "response": {
+            "status": 303,
+            "headers": {
+              "Location": "http://restricted.example.com/item.bin",
+              "xRegistry-asseturl": "http://restricted.example.com/item.bin",
+              "Content-Length": "0"
+            }
+          }
+        }
+      ],
+      "expected": {"error": "policy_denied", "fallbackAttempts": 0}
+    },
+    {
+      "name": "changed-default",
+      "endpoint": "https://first.example.com/services/xreg/",
+      "exchanges": [
+        {
+          "request": {"url": "https://first.example.com/services/xreg/documents/main/assets/item/meta", "headers": {}},
+          "response": {
+            "status": 200,
+            "headers": {"Content-Type": "application/json", "ETag": "\"meta-3\""},
+            "json": {
+              "assetid": "item",
+              "self": "https://first.example.com/services/xreg/documents/main/assets/item/meta",
+              "xid": "/documents/main/assets/item/meta",
+              "epoch": 3,
+              "createdat": "2026-09-01T00:00:00Z",
+              "modifiedat": "2026-09-03T00:00:00Z",
+              "readonly": false,
+              "defaultversionid": "v1",
+              "defaultversionurl": "https://first.example.com/services/xreg/documents/main/assets/item/versions/v1$details",
+              "defaultversionsticky": true
+            }
+          }
+        },
+        {
+          "request": {"url": "https://first.example.com/services/xreg/documents/main/assets/item/versions/v1", "headers": {}},
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json",
+              "Content-Length": "17",
+              "ETag": "\"document-v1\"",
+              "xRegistry-assetid": "item",
+              "xRegistry-versionid": "v1",
+              "xRegistry-self": "https://first.example.com/services/xreg/documents/main/assets/item/versions/v1",
+              "xRegistry-xid": "/documents/main/assets/item/versions/v1",
+              "xRegistry-epoch": "1",
+              "xRegistry-isdefault": "true",
+              "xRegistry-ancestorid": "v1",
+              "xRegistry-createdat": "2026-09-01T00:00:00Z",
+              "xRegistry-modifiedat": "2026-09-01T00:00:00Z"
+            },
+            "text": "{\"type\":\"string\"}"
+          }
+        },
+        {
+          "request": {
+            "url": "https://first.example.com/services/xreg/documents/main/assets/item/meta",
+            "headers": {"If-None-Match": "\"meta-3\""}
+          },
+          "response": {
+            "status": 200,
+            "headers": {"Content-Type": "application/json", "ETag": "\"meta-4\""},
+            "json": {
+              "assetid": "item",
+              "self": "https://first.example.com/services/xreg/documents/main/assets/item/meta",
+              "xid": "/documents/main/assets/item/meta",
+              "epoch": 4,
+              "createdat": "2026-09-01T00:00:00Z",
+              "modifiedat": "2026-09-04T00:00:00Z",
+              "readonly": false,
+              "defaultversionid": "v2",
+              "defaultversionurl": "https://first.example.com/services/xreg/documents/main/assets/item/versions/v2$details",
+              "defaultversionsticky": true
+            }
+          }
+        }
+      ],
+      "expected": {"error": "inconsistent_snapshot"}
+    },
+    {
+      "name": "incompatible-target",
+      "endpoint": "https://older.example.com/xreg",
+      "exchanges": [
+        {
+          "request": {"url": "https://older.example.com/xreg", "headers": {}},
+          "response": {
+            "status": 200,
+            "headers": {"Content-Type": "application/json"},
+            "json": {
+              "specversion": "1.0-rc2",
+              "registryid": "older",
+              "self": "https://older.example.com/xreg",
+              "xid": "/",
+              "epoch": 1,
+              "createdat": "2026-09-01T00:00:00Z",
+              "modifiedat": "2026-09-01T00:00:00Z",
+              "documentsurl": "https://older.example.com/xreg/documents",
+              "documentscount": 1
+            }
+          }
+        }
+      ],
+      "expected": {"error": "unsupported_version", "subsequentEntityReads": 0}
+    },
+    {
+      "name": "incomplete-page",
+      "endpoint": "https://first.example.com/services/xreg/",
+      "selector": {"label": "stage", "value": "PRODUCTION"},
+      "exchanges": [
+        {
+          "request": {"url": "https://first.example.com/services/xreg/documents/main/assets", "headers": {}},
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/json",
+              "Link": "<?cursor=remaining>;rel=next;count=1"
+            },
+            "json": {}
+          }
+        },
+        {
+          "request": {"url": "https://first.example.com/services/xreg/documents/main/assets?cursor=remaining", "headers": {}},
+          "response": {"status": 503, "headers": {"Retry-After": "30"}}
+        }
+      ],
+      "expected": {"error": "inconsistent_snapshot"}
+    },
+    {
+      "name": "range-restart",
+      "note": "Range-processing excerpt; only representation headers are retained.",
+      "endpoint": "https://first.example.com/services/xreg/",
+      "exchanges": [
+        {
+          "request": {
+            "url": "https://first.example.com/services/xreg/documents/main/assets/item/versions/v2",
+            "headers": {"Range": "bytes=0-1"}
+          },
+          "response": {
+            "status": 206,
+            "headers": {
+              "Content-Type": "application/octet-stream",
+              "Content-Length": "2",
+              "Content-Range": "bytes 0-1/4",
+              "ETag": "\"old-bytes\""
+            },
+            "text": "AB"
+          }
+        },
+        {
+          "request": {
+            "url": "https://first.example.com/services/xreg/documents/main/assets/item/versions/v2",
+            "headers": {"Range": "bytes=2-3", "If-Range": "\"old-bytes\""}
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "Content-Type": "application/octet-stream",
+              "Content-Length": "4",
+              "ETag": "\"new-bytes\""
+            },
+            "text": "WXYZ"
+          }
+        }
+      ],
+      "expected": {"text": "WXYZ", "discardedPartial": "AB"}
+    },
+    {
+      "name": "authorization-stops-resolution",
+      "endpoint": "https://first.example.com/services/xreg/",
+      "exchanges": [
+        {
+          "request": {"url": "https://first.example.com/services/xreg/documents/main/assets", "headers": {}},
+          "response": {"status": 403, "headers": {}}
+        }
+      ],
+      "expected": {"error": "policy_denied", "fallbackAttempts": 0}
+    }
+  ]
+}

@@ -9,7 +9,15 @@ verify: spellcheck ticks badhrefs tabcheck errorcheck hrefs \
 
 spellcheck:
 	@echo "Checking for spelling mistakes:"
-	tools/spellcheck `find . -name \*.md`
+	tools/spellcheck */README.md */spec.md core/*.md \
+		workingdrafts/bindings/*.md \
+		workingdrafts/bindings/samples/*.md \
+		workingdrafts/federation/*.md workingdrafts/federation/samples/*.md \
+		workingdrafts/federation/samples/*/README.md \
+		workingdrafts/models/*/README.md workingdrafts/models/*/spec.md \
+		workingdrafts/models/*/samples/README.md \
+		workingdrafts/models/*/schemas/README.md \
+		docs/share/README.md */samples/README.md */samples/*/README.md
 	@echo
 
 tabcheck:
@@ -19,7 +27,8 @@ tabcheck:
 
 ticks:
 	@echo "Checking for uneven back-ticks:"
-	@(! grep '^[^`]*`[^`]*$$' `find . -name \*.md`)
+	@(! grep '^[^`]*`[^`]*$$' core/*.md workingdrafts/bindings/*.md \
+		workingdrafts/federation/*.md workingdrafts/models/*/spec.md)
 	@echo
 
 badhrefs:
@@ -30,6 +39,14 @@ badhrefs:
 errorcheck:
 	@echo "Validating the errors in the specs:"
 	tools/errorcheck core/spec.md core/model.md core/http.md
+	@echo
+
+samplescheck:
+	@echo "Check for too verbose samples:"
+	tools/samplescheck */model.json workingdrafts/models/*/model.json \
+		*/samples/*json */samples/*/*json \
+		workingdrafts/models/*/samples/*.json \
+		workingdrafts/federation/samples/*.json
 	@echo
 
 hrefs:
@@ -46,7 +63,7 @@ loadpython:
 
 testpython: loadpython
 	@echo "Testing our python tools:"
-	@pytest tools/
+	@python -m pytest
 
 links: loadpython
 	@echo "Verifying links in our docs:"
@@ -103,6 +120,9 @@ makeschema: loadpython
 	@python tools/schema-generator.py --type json-structure --schema-id https://xregistry.io/xreg/xregistryspecs/cloudevents-v1/schemas/document-schema.struct.json --schema-name CloudEventsRegistryDocument --output cloudevents/schemas/document-schema.struct.json endpoint/model.json message/model.json schema/model.json
 	@python tools/schema-generator.py --type avro-schema --output cloudevents/schemas/document-schema.avsc endpoint/model.json message/model.json schema/model.json
 	@python tools/schema-generator.py --type openapi --output cloudevents/schemas/openapi.json endpoint/model.json message/model.json schema/model.json
+	@python tools/schema-generator.py --type json-schema --schema-id https://xregistry.io/workingdrafts/models/registry/schemas/document-schema.json --output workingdrafts/models/registry/schemas/document-schema.json workingdrafts/models/registry/model.json
+	@python tools/schema-generator.py --type json-structure --schema-id https://xregistry.io/workingdrafts/models/registry/schemas/document-schema.struct.json --schema-name RegistryOfRegistriesDocument --output workingdrafts/models/registry/schemas/document-schema.struct.json workingdrafts/models/registry/model.json
+	@python tools/schema-generator.py --type openapi --output workingdrafts/models/registry/schemas/openapi.json workingdrafts/models/registry/model.json
 	@echo
 
 docker:

@@ -1,0 +1,14 @@
+{
+  "entity": {
+    "createdat": "2026-09-01T12:00:00Z",
+    "defaultversionid": "v1",
+    "defaultversionsticky": true,
+    "epoch": 1,
+    "modifiedat": "2026-09-01T12:00:00Z",
+    "noteid": "info",
+    "readonly": false,
+    "xid": "/dirs/main/notes/info/meta"
+  },
+  "formatversion": 1,
+  "kind": "meta"
+}

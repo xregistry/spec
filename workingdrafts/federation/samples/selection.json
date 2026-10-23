@@ -1,0 +1,72 @@
+{
+  "requests": [
+    {
+      "operation": "collection",
+      "target": "/documents/main/assets",
+      "selector": {"label": "stage", "value": "PRODUCTION"}
+    },
+    {
+      "operation": "document",
+      "target": "/documents/main/assets/item/versions/v1"
+    }
+  ],
+  "contexts": [
+    {
+      "registryid": "first",
+      "endpoint": "https://first.example.com/registry",
+      "xid": "/documents/main/assets/item"
+    },
+    {
+      "registryid": "second",
+      "endpoint": "https://second.example.com/registry",
+      "xid": "/documents/main/assets/item"
+    }
+  ],
+  "labels": [
+    {"assetid": "item", "labels": {"stage": "production", "note": ""}},
+    {"assetid": "other", "labels": {"stage": "development"}},
+    {"assetid": "unlabeled"}
+  ],
+  "registry": {
+    "registryid": "first",
+    "modelsource": {
+      "groups": {
+        "documents": {
+          "singular": "document",
+          "resources": {"assets": {"singular": "asset"}}
+        },
+        "mirrors": {
+          "singular": "mirror",
+          "ximportresources": ["/documents/assets"]
+        },
+        "independent": {
+          "singular": "independent",
+          "resources": {"assets": {"singular": "asset"}}
+        }
+      }
+    },
+    "documents": {
+      "main": {
+        "assets": {
+          "item": {
+            "assetid": "item",
+            "meta": {"defaultversionid": "v1"},
+            "versions": {
+              "v1": {"versionid": "v1", "labels": {"stage": "production"}},
+              "v2": {"versionid": "v2", "labels": {"stage": "development"}}
+            }
+          }
+        }
+      }
+    },
+    "mirrors": {
+      "local": {
+        "assets": {
+          "copy": {"meta": {"xref": "/documents/main/assets/item"}},
+          "dangling": {"meta": {"xref": "/documents/main/assets/missing"}},
+          "chain": {"meta": {"xref": "/mirrors/local/assets/copy"}}
+        }
+      }
+    }
+  }
+}

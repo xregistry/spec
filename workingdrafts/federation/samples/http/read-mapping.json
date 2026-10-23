@@ -1,0 +1,123 @@
+{
+  "format": "xregistry-http-examples-v1",
+  "endpoint": "https://first.example.com/services/xreg/",
+  "modelsource": {
+    "groups": {
+      "documents": {
+        "singular": "document",
+        "resources": {
+          "assets": {
+            "singular": "asset"
+          }
+        }
+      },
+      "categories": {
+        "singular": "category",
+        "resources": {
+          "registries": {
+            "singular": "registry",
+            "hasdocument": false,
+            "attributes": {
+              "xregurl": {"type": "url"},
+              "weburl": {"type": "url"}
+            }
+          }
+        }
+      }
+    }
+  },
+  "cases": [
+    {
+      "name": "registry",
+      "request": {"operation": "entity", "target": "/"},
+      "url": "https://first.example.com/services/xreg/",
+      "view": "metadata"
+    },
+    {
+      "name": "groups",
+      "request": {"operation": "collection", "target": "/documents"},
+      "url": "https://first.example.com/services/xreg/documents",
+      "view": "metadata"
+    },
+    {
+      "name": "group",
+      "request": {"operation": "entity", "target": "/documents/main"},
+      "url": "https://first.example.com/services/xreg/documents/main",
+      "view": "metadata"
+    },
+    {
+      "name": "resources",
+      "request": {"operation": "collection", "target": "/documents/main/assets"},
+      "url": "https://first.example.com/services/xreg/documents/main/assets",
+      "view": "metadata"
+    },
+    {
+      "name": "resource-metadata",
+      "request": {"operation": "entity", "target": "/documents/main/assets/item"},
+      "url": "https://first.example.com/services/xreg/documents/main/assets/item$details",
+      "view": "metadata"
+    },
+    {
+      "name": "resource-meta",
+      "request": {"operation": "entity", "target": "/documents/main/assets/item/meta"},
+      "url": "https://first.example.com/services/xreg/documents/main/assets/item/meta",
+      "view": "metadata"
+    },
+    {
+      "name": "versions",
+      "request": {"operation": "collection", "target": "/documents/main/assets/item/versions"},
+      "url": "https://first.example.com/services/xreg/documents/main/assets/item/versions",
+      "view": "metadata"
+    },
+    {
+      "name": "version-metadata",
+      "request": {"operation": "entity", "target": "/documents/main/assets/item/versions/v1"},
+      "url": "https://first.example.com/services/xreg/documents/main/assets/item/versions/v1$details",
+      "view": "metadata"
+    },
+    {
+      "name": "default-document",
+      "request": {"operation": "document", "target": "/documents/main/assets/item"},
+      "url": "https://first.example.com/services/xreg/documents/main/assets/item",
+      "view": "document",
+      "defaultversionid": "v1",
+      "availableversions": ["v1", "v2", "v3"]
+    },
+    {
+      "name": "explicit-document",
+      "request": {"operation": "document", "target": "/documents/main/assets/item/versions/v2"},
+      "url": "https://first.example.com/services/xreg/documents/main/assets/item/versions/v2",
+      "view": "document"
+    },
+    {
+      "name": "metadata-only-resource",
+      "request": {"operation": "entity", "target": "/categories/dev/registries/bridge"},
+      "url": "https://first.example.com/services/xreg/categories/dev/registries/bridge",
+      "view": "metadata"
+    },
+    {
+      "name": "metadata-only-version",
+      "request": {"operation": "entity", "target": "/categories/dev/registries/bridge/versions/v1"},
+      "url": "https://first.example.com/services/xreg/categories/dev/registries/bridge/versions/v1",
+      "view": "metadata"
+    },
+    {
+      "name": "metadata-only-has-no-document",
+      "request": {"operation": "document", "target": "/categories/dev/registries/bridge"},
+      "error": "unsupported_operation"
+    },
+    {
+      "name": "model",
+      "request": {"operation": "model", "target": "/"},
+      "url": "https://first.example.com/services/xreg/model",
+      "modelsourceurl": "https://first.example.com/services/xreg/modelsource",
+      "view": "model"
+    },
+    {
+      "name": "capabilities",
+      "request": {"operation": "capabilities", "target": "/"},
+      "url": "https://first.example.com/services/xreg/capabilities",
+      "view": "capabilities"
+    }
+  ]
+}

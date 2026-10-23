@@ -1,0 +1,19 @@
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "version",
+  "entity": {
+    "epoch": 1,
+    "createdat": "2026-09-04T00:00:00Z",
+    "modifiedat": "2026-09-04T00:00:00Z",
+    "xid": "/categories/main/registries/site/versions/v1",
+    "registryid": "site",
+    "versionid": "v1",
+    "isdefault": true,
+    "ancestorid": "v1",
+    "weburl": "https://example.com/cataloged-registry"
+  },
+  "document": {
+    "kind": "none"
+  }
+}

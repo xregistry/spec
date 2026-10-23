@@ -1,0 +1,28 @@
+{
+  "document": {
+    "mode": "embedded"
+  },
+  "entity": {
+    "ancestorid": "v1",
+    "contenttype": "application/schema+json",
+    "createdat": "2026-09-01T12:00:00Z",
+    "epoch": 1,
+    "extra": {
+      "enabled": true,
+      "nested": {
+        "self": "extension data, not navigation"
+      }
+    },
+    "fileid": "sample",
+    "isdefault": true,
+    "labels": {
+      "empty": "",
+      "stage": "Ready"
+    },
+    "modifiedat": "2026-09-01T12:00:00Z",
+    "versionid": "v1",
+    "xid": "/dirs/main/files/sample/versions/v1"
+  },
+  "formatversion": 1,
+  "kind": "version"
+}
