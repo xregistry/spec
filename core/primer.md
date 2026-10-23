@@ -69,6 +69,7 @@ normative technical details.
   - [10.1. Resource.ID vs Resource.Version.ID](#resourceid-vs-resourceversionid)
   - [10.2. Valid Characters](#valid-characters)
   - [10.3. Extensions](#extensions)
+    - [10.3.1. Potential extensions](#potential-extensions)
   - [10.4. Group organization](#group-organization)
   - [10.5. Deleting entities](#deleting-entities)
   - [10.6. Detection of Referenced
@@ -103,15 +104,15 @@ normative technical details.
     requests](#optional-required-fields-in-requests)
   - [10.23. Deprecation of entities in an
     xRegistry](#deprecation-of-entities-in-an-xregistry)
-- [11. Problematic characters in values](#problematic-characters-in-values)
-- [12. Why do Resources have 3 levels of
-  data?](#why-do-resources-have-3-levels-of-data)
-- [13. Why are some (conditional) read-only attributes not
-  ignored?](#why-are-some-conditional-read-only-attributes-not-ignored)
-- [14. Why isn't `PUT` idempotent?](#why-isnt-put-idempotent)
-- [15. Validation edge cases](#validation-edge-cases)
-  - [15.1. Empty format capabilities](#empty-format-capabilities)
-  - [15.2. Constraints and `matchversions`](#constraints-and-matchversions)
+  - [10.24. Problematic characters in values](#problematic-characters-in-values)
+  - [10.25. Why do Resources have 3 levels of
+    data?](#why-do-resources-have-3-levels-of-data)
+  - [10.26. Why are some (conditional) read-only attributes not
+    ignored?](#why-are-some-conditional-read-only-attributes-not-ignored)
+  - [10.27. Why isn't `PUT` idempotent?](#why-isnt-put-idempotent)
+  - [10.28. Validation edge cases](#validation-edge-cases)
+    - [10.28.1. Empty format capabilities](#empty-format-capabilities)
+    - [10.28.2. Constraints and `matchversions`](#constraints-and-matchversions)
 
 
 <a id="quick-introduction"></a>
@@ -200,10 +201,10 @@ defines (e.g. `endpoints`, `messages`) - they're not literal.
 <a id="reading-things"></a>
 #### 3.2.1. Reading things
 
-A plain `GET` on a Registry, Group, metadata-only Resource, or Version returns
-its metadata as JSON. Resources with domain-specific documents, called
-Document Resources in the core specification, are the exception described in
-section 3.2.3.
+A plain `GET` on a Registry, Group, or metadata-only Resource returns its
+metadata as JSON. The same applies to a Version of a metadata-only Resource.
+Retrieving a Document Resource or one of its Versions returns its
+domain-specific document by default, as described in section 3.2.3.
 
 ```
 GET /endpoints/ep1
@@ -568,20 +569,17 @@ further builds upon this by providing a specification to define resources that
 correlate specific events to endpoints, providing versioning information and
 more extensive metadata.
 
-Correlating events and endpoints across a system also provides the information
-needed to define event flows. Those flows can then be discovered directly
-instead of reconstructed from manually maintained documentation or observed
-runtime behavior.
+Using the Endpoint specification to correlate events and endpoints across a
+system provides information that other tools or models can use to define event
+flows. xRegistry does not define those flows. Once defined, they can be
+discovered directly instead of reconstructed from manually maintained
+documentation or observed runtime behavior.
 
-<a id="design-goals"></a>
 <a id="non-goals"></a>
 ## 6. Non-Goals
 
 - **Authentication and Authorization:** Rely on established security standards
   depending on the registry representation.
-- **Relationships between event channels:** The Endpoint specification focuses
-  on describing individual event channels and does not standardize relationships
-  between them.
 
 <a id="representations"></a>
 ## 7. Representations
@@ -599,7 +597,8 @@ representation based on how the registry will be updated and deployed.
 <a id="file"></a>
 ### 7.1. File
 
-The registry is represented as a single JSON file.
+A registry can be represented as a single JSON file, with mechanisms available
+to split the registry across multiple files.
 
 The primary use case for this representation is a registry whose purpose is to
 be used where file-based access is preferred over network-based access.
@@ -639,7 +638,7 @@ only possible by rebuilding the server and file structure, e.g. via pipelines.
 If you want to directly write to the server or need sophisticated searching and
 filtering, you might consider using the API server instead. Adding server logic
 to the static file server to make up for the features of the API server is
-considered an anti pattern.
+considered an anti-pattern.
 
 <a id="api-server"></a>
 ### 7.3. API Server
@@ -672,8 +671,8 @@ separate document format metadata from the choice to embed, encode, or link the
 document.
 
 The model declares document metadata but does not define the document's
-internal shape. Implementations may interpret and validate that shape according
-to `format`.
+internal shape. Implementations may use the `format` attribute to interpret and
+validate that shape.
 
 <a id="formats-and-contentmedia-types"></a>
 ### 8.1. Formats and Content/Media-Types
@@ -686,9 +685,10 @@ each document, that provides the corresponding media-type. An example for this
 is that Apache Avro schema has no official media type, so that the content type
 might be "application/json", but the `format` is "Avro/1.12".
 
-Some xRegistry implementations, including the reference server, validate
-well-known formats such as Apache Avro schema and check compatibility between
-versions. The specification does not define those validation implementations.
+Some xRegistry implementations, including the
+[reference server](https://github.com/xregistry/server), validate well-known
+formats such as Apache Avro schema and check compatibility between versions.
+The specification does not define those validation implementations.
 It defines indicators through which a server reports whether validation is
 available and has been applied. Model metadata gives the server the information
 needed to validate embedded data.
@@ -707,9 +707,9 @@ formats, can import them without ambiguity.
 <a id="embeddings-and-links"></a>
 ### 8.2. Embeddings and Links
 
-When the resource is declared to be a document, it can be stored inside the
-registry either as a directly [embedded object](spec.md#resource-attribute), a
-[binary blob](spec.md#resourcebase64-attribute), or an [external URL
+When the Resource is declared to be a document, it can be stored inside the
+registry as an [embedded JSON value](spec.md#resource-attribute), a
+[base64-encoded value](spec.md#resourcebase64-attribute), or an [external URL
 reference](spec.md#resourceurl-attribute).
 
 Strictly speaking, the choice between whether, say, a schema is represented as
@@ -725,12 +725,12 @@ registry in Avro binary and there is a formal schema for Avro.
 The core specification defines only JSON serialization. Another registry
 encoding requires a separately defined serialization binding.
 
-In JSON, we can embed JSON-data like an Avro Schema into `schema` and we can
-also embed a single string for a text file into `schema` as long as we are
-applying appropriate escaping rules for JSON strings and we can use the same
-character encoding as the hosting JSON document. Any other document will be
-base64 encoded and stored in `schemabase64`. The `schemacontenttype` is meant
-to hold media-type and encoding of that data.
+For the Schema Registry model serialized as JSON, an Avro schema can be
+embedded as JSON data in `schema`. A text file can also be embedded in `schema`
+as a JSON string when appropriate escaping rules are applied and it uses the
+same character encoding as the hosting JSON document. Any other document will
+be base64 encoded and stored in `schemabase64`. The `schemacontenttype` is
+meant to hold media-type and encoding of that data.
 
 You can also refer to the target document through a `<RESOURCE>url` attribute.
 The URL can identify an HTTP resource or a file-system location, which allows
@@ -908,6 +908,8 @@ extension to allow attributes supplied at runtime. Extension names follow the
 [casing](#naming-and-case-sensitivity) rules for all attributes.
 
 <a id="potential-extensions"></a>
+#### 10.3.1. Potential extensions
+
 Implementations that track the identity responsible for a change might define
 `createdby` and `modifiedby` extensions alongside `createdat` and `modifiedat`.
 The core specification does not define them because it does not define
@@ -1383,7 +1385,7 @@ defined in the core specification for consistency. The Endpoint
 Endpoint (i.e. a Group) is deprecated.
 
 <a id="problematic-characters-in-values"></a>
-## 11. Problematic characters in values
+### 10.24. Problematic characters in values
 
 Attribute values can be used outside the scope of the xRegistry specification.
 For example, a `name` or ID value might become a file name. The character rules
@@ -1395,7 +1397,7 @@ value, reject it, or require the user to choose a value that is valid in the
 target system. The specification does not prescribe that behavior.
 
 <a id="why-do-resources-have-3-levels-of-data"></a>
-## 12. Why do Resources have 3 levels of data?
+### 10.25. Why do Resources have 3 levels of data?
 
 Resource attributes are split into 3 categories:
 
@@ -1460,7 +1462,7 @@ Resource type definition requires that attribute to be consistent across all
 Versions or have a Version-specific value.
 
 <a id="why-are-some-conditional-read-only-attributes-not-ignored"></a>
-## 13. Why are some (conditional) read-only attributes not ignored?
+### 10.26. Why are some (conditional) read-only attributes not ignored?
 
 Attributes that are always defined as "read-only" normally have semantics such
 that attempts to update them are silently ignored. This is especially useful
@@ -1482,7 +1484,7 @@ of that Resource becomes "read-only". And any attempt to update it will result
 in an error being generated.
 
 <a id="why-isnt-put-idempotent"></a>
-## 14. Why isn't `PUT` idempotent?
+### 10.27. Why isn't `PUT` idempotent?
 
 As stated in the [core](./spec.md) specification, the `PUT` operations are
 almost idempotent, per the HTTP specification. For the most part, multiple
@@ -1495,7 +1497,7 @@ expensive or ambiguous check to perform, so it was determined it would be best
 to avoid it all together.
 
 <a id="validation-edge-cases"></a>
-## 15. Validation edge cases
+### 10.28. Validation edge cases
 
 Sections [5.5](#schema-validation) and
 [8.1](#formats-and-contentmedia-types) explain the purpose and boundaries of
@@ -1503,7 +1505,7 @@ validation. The following cases cover two less obvious interactions between
 validation settings.
 
 <a id="empty-format-capabilities"></a>
-### 15.1. Empty format capabilities
+#### 10.28.1. Empty format capabilities
 
 If a Resource model sets both `validateformat` and `strictvalidation` to `true`,
 but the Registry's `capabilities` declares no `format` values, the server will
@@ -1515,7 +1517,7 @@ unusable Resource type if its model enables those aspects and clients supply
 
 <a id="constraints-and-matchversions-features"></a>
 <a id="constraints-and-matchversions"></a>
-### 15.2. Constraints and `matchversions`
+#### 10.28.2. Constraints and `matchversions`
 
 `constraints` and `matchversions` validate only scalar attributes in objects.
 They do not apply inside maps, arrays, `ifvalues` clauses, or `*` extensions.
