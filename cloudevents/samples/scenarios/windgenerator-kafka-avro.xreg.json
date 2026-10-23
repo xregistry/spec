@@ -10,7 +10,6 @@
           "protocoloptions": {
             "headers": {
               "action": {
-                "name": "action",
                 "value": "powerOutput"
               }
             },
@@ -25,7 +24,6 @@
           "protocoloptions": {
             "headers": {
               "action": {
-                "name": "action",
                 "value": "statusChange"
               }
             },
