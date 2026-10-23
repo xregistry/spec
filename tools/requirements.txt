@@ -9,5 +9,8 @@ jsonpointer
 pytest
 pyyaml
 avro
-jsonschema
+# The format extra installs the validators that make `format` enforced instead
+# of annotated, which the generated URI/date-time assertions rely on. The
+# nongpl variant avoids the GPL-licensed rfc3987 the plain format extra pulls.
+jsonschema[format-nongpl]
 openapi-spec-validator>=0.7.1

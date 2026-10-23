@@ -2,11 +2,88 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://xregistry.io/xreg/xregistryspecs/schema-v1/schemas/document-schema.json",
   "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the object"
+    },
+    "epoch": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Optimistic concurrency update counter"
+    },
+    "self": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL of the object"
+    },
+    "xid": {
+      "type": "string",
+      "format": "xid",
+      "description": "Relative URL of the object"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the object"
+    },
+    "documentation": {
+      "type": "string",
+      "format": "uri",
+      "description": "URI of the documentation of the object"
+    },
+    "labels": {
+      "type": "object",
+      "description": "Labels for the object"
+    },
+    "createdat": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Time of the object creation"
+    },
+    "modifiedat": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Time of the object modification"
+    },
+    "shortself": {},
+    "icon": {
+      "type": "string",
+      "format": "uri"
+    },
+    "$schema": {
+      "type": "string",
+      "format": "uri-reference"
+    },
+    "registryid": {
+      "type": "string"
+    },
+    "specversion": {
+      "type": "string"
+    },
+    "capabilities": {},
+    "model": {},
+    "modelsource": {},
     "schemagroups": {
       "type": "object",
       "additionalProperties": {
-        "$ref": "#/definitions/schemagroup-schema/schemagroup"
+        "allOf": [
+          {
+            "$ref": "#/definitions/schemagroup-schema/schemagroup"
+          },
+          {
+            "not": {
+              "required": [
+                "$schema"
+              ]
+            }
+          }
+        ]
       }
+    },
+    "schemagroupsurl": {
+      "type": "string"
+    },
+    "schemagroupscount": {
+      "type": "integer"
     }
   },
   "definitions": {
@@ -28,7 +105,8 @@
           },
           "epoch": {
             "type": "integer",
-            "description": "Epoch time of the object creation"
+            "minimum": 0,
+            "description": "Optimistic concurrency update counter"
           },
           "self": {
             "type": "string",
@@ -63,9 +141,42 @@
             "format": "date-time",
             "description": "Time of the object modification"
           },
+          "shortself": {},
+          "icon": {
+            "type": "string",
+            "format": "uri"
+          },
+          "$schema": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "ancestorid": {
+            "type": "string"
+          },
+          "isdefault": {
+            "type": "boolean"
+          },
+          "contenttype": {
+            "type": "string"
+          },
           "format": {
             "type": "string"
-          }
+          },
+          "formatvalidated": {
+            "type": "boolean"
+          },
+          "formatvalidatedreason": {
+            "type": "string"
+          },
+          "compatibilityvalidated": {
+            "type": "boolean"
+          },
+          "compatibilityvalidatedreason": {
+            "type": "string"
+          },
+          "schema": {},
+          "schemabase64": {},
+          "schemaurl": {}
         },
         "oneOf": [
           {
@@ -128,7 +239,8 @@
           },
           "epoch": {
             "type": "integer",
-            "description": "Epoch time of the object creation"
+            "minimum": 0,
+            "description": "Optimistic concurrency update counter"
           },
           "self": {
             "type": "string",
@@ -162,7 +274,108 @@
             "type": "string",
             "format": "date-time",
             "description": "Time of the object modification"
-          }
+          },
+          "shortself": {},
+          "icon": {
+            "type": "string",
+            "format": "uri"
+          },
+          "$schema": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "versionid": {
+            "type": "string"
+          },
+          "ancestorid": {
+            "type": "string"
+          },
+          "isdefault": {
+            "type": "boolean"
+          },
+          "contenttype": {
+            "type": "string"
+          },
+          "format": {
+            "type": "string"
+          },
+          "formatvalidated": {
+            "type": "boolean"
+          },
+          "formatvalidatedreason": {
+            "type": "string"
+          },
+          "compatibilityvalidated": {
+            "type": "boolean"
+          },
+          "compatibilityvalidatedreason": {
+            "type": "string"
+          },
+          "meta": {
+            "allOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "self": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "URL of the object"
+                  },
+                  "xid": {
+                    "type": "string",
+                    "format": "xid",
+                    "description": "Relative URL of the object"
+                  },
+                  "epoch": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Optimistic concurrency update counter"
+                  },
+                  "labels": {
+                    "type": "object",
+                    "description": "Labels for the object"
+                  },
+                  "createdat": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Time of the object creation"
+                  },
+                  "modifiedat": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Time of the object modification"
+                  },
+                  "schemaid": {},
+                  "shortself": {},
+                  "xref": {},
+                  "readonly": {},
+                  "compatibility": {},
+                  "deprecated": {},
+                  "defaultversionid": {},
+                  "defaultversionurl": {},
+                  "defaultversionsticky": {},
+                  "$schema": {
+                    "type": "string",
+                    "format": "uri-reference"
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "not": {
+                  "required": [
+                    "$schema"
+                  ]
+                }
+              }
+            ]
+          },
+          "metaurl": {
+            "type": "string"
+          },
+          "versions": {},
+          "versionscount": {},
+          "versionsurl": {}
         },
         "oneOf": [
           {
@@ -183,7 +396,18 @@
               "versions": {
                 "type": "object",
                 "additionalProperties": {
-                  "$ref": "#/definitions/schemagroup-schema/schemaVersion"
+                  "allOf": [
+                    {
+                      "$ref": "#/definitions/schemagroup-schema/schemaVersion"
+                    },
+                    {
+                      "not": {
+                        "required": [
+                          "$schema"
+                        ]
+                      }
+                    }
+                  ]
                 }
               }
             },
@@ -206,7 +430,8 @@
           },
           "epoch": {
             "type": "integer",
-            "description": "Epoch time of the object creation"
+            "minimum": 0,
+            "description": "Optimistic concurrency update counter"
           },
           "self": {
             "type": "string",
@@ -241,17 +466,70 @@
             "format": "date-time",
             "description": "Time of the object modification"
           },
-          "format": {
-            "type": "string"
+          "shortself": {},
+          "icon": {
+            "type": "string",
+            "format": "uri"
+          },
+          "$schema": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "deprecated": {
+            "type": "object",
+            "properties": {
+              "effective": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "removal": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "alternative": {
+                "type": "string",
+                "format": "uri-reference"
+              },
+              "documentation": {
+                "type": "string",
+                "format": "uri-reference"
+              }
+            },
+            "additionalProperties": false
+          },
+          "constraints": {
+            "type": "object"
           },
           "schemas": {
             "type": "object",
             "additionalProperties": {
-              "$ref": "#/definitions/schemagroup-schema/schema"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/schemagroup-schema/schema"
+                },
+                {
+                  "not": {
+                    "required": [
+                      "$schema"
+                    ]
+                  }
+                }
+              ]
             }
+          },
+          "schemasurl": {
+            "type": "string"
+          },
+          "schemascount": {
+            "type": "integer"
+          },
+          "format": {
+            "type": "string"
           }
         }
       }
     }
-  }
+  },
+  "type": "object",
+  "additionalProperties": false
 }
