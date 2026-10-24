@@ -30,8 +30,9 @@ Thing Descriptions keep `versionmode: manual`. Their `versionid` is chosen freel
 |---|---|
 | `tm:extends`, `tm:submodel` link | `tm:minVersion` member on the link |
 | `tm:ref` | `tm:minVersion` member beside `tm:ref` |
-| TD `rel:type` link, exactly one in the TD | implicit: the TD's `version.model` |
-| TD `rel:type` link, several in the TD | `tm:minVersion` on each link; a TD with `version.model` and an unattributable link is invalid |
+| TD `rel:type` link, exactly one in the TD | Greater of its explicit `tm:minVersion` and the TD's implicit `version.model` by SemVer precedence; if only one is present, use it; otherwise no floor |
+| TD `rel:type` links, several, with `version.model` | Every link MUST have `tm:minVersion`, or resolution fails as `ambiguous-floor`; each link uses the greater of its own floor and `version.model` |
+| TD `rel:type` links, several, without `version.model` | Each link uses its own `tm:minVersion` if present; otherwise no floor, without error |
 
 Because R1 puts the major in the identity, an upper bound is never needed.
 
@@ -44,7 +45,18 @@ resolve(reference, pin?, allowPrerelease = false):
   R := the Resource whose wotid equals the reference target           else FAIL not-found
   if pin.digest:     return the Version of R with that contentdigest  else FAIL pin-mismatch
   if pin.versionid:  return that Version of R                         else FAIL not-found
-  floor := reference.tm:minVersion  or the implicit rel:type floor   (may be absent)
+  floor := reference.tm:minVersion                                 (may be absent)
+  if reference is a TD rel:type link:
+      links := all rel:type links in that TD
+      model := TD.version.model                                   (may be absent)
+      if model is present and count(links) > 1 and any link lacks tm:minVersion:
+          FAIL ambiguous-floor
+      validate every explicit link floor                          else FAIL invalid-version
+      if model is present:
+          validate model as a floor                               else FAIL invalid-version
+          floor := greater by SemVer precedence of floor and model (use model if floor absent)
+  validate floor if present                                       else FAIL invalid-version
+  # Generated 0.0.0-N ids and invalid SemVer are never valid floors.
   if R.defaultversionsticky:
       V := R.default                                   # operator pin is honoured, never bypassed
   else:
