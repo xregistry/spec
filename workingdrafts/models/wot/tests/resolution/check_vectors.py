@@ -63,7 +63,7 @@ def floor_for(case):
     if reference["kind"] == "type" and document:
         links = document["typeLinks"]
         model = document.get("version.model")
-        if len(links) > 1 and any("minVersion" not in link for link in links):
+        if model is not None and len(links) > 1 and any("minVersion" not in link for link in links):
             raise OutcomeError("ambiguous-floor")
         # The reference is a normalized projection of this exact link.
         matches = [link for link in links if link["target"] == reference["target"]]
@@ -73,7 +73,7 @@ def floor_for(case):
             if "minVersion" in link:
                 validate_floor(link["minVersion"])
         effective = validate_floor(floor) if floor is not None else None
-        if model is not None and len(links) == 1:
+        if model is not None:
             implicit = validate_floor(model)
             if effective is None or effective < implicit:
                 effective = implicit
