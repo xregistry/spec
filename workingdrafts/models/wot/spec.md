@@ -1,7 +1,5 @@
 # WoT Registry Service - Version 1.0-rc4
 
-<!-- words: allowprerelease contentdigest marcschier minversion prereleases unversioned versionorigin -->
-
 <!-- words: WoT JSON-LD Servient affordances affordance discoverability tm td -->
 <!-- words: thingdescription thingdescriptionid thingdescriptionurl thingdescriptions thingdescriptionsurl thingdescriptionscount thingdescriptionbase -->
 <!-- words: thingmodel thingmodels thingmodelid thingmodelurl thingmodelsurl thingmodelscount thingmodelbase -->
@@ -14,6 +12,7 @@
 <!-- words: wotid wotids derivedfrom canonicalurl standardsbody submodel spdx openusd -->
 <!-- words: toolchain byom contoso maturity publisher nosniff validateformat -->
 <!-- words: shortself -->
+<!-- words: allowprerelease contentdigest minversion prereleases unversioned versionorigin -->
 
 ## Abstract
 
@@ -125,23 +124,81 @@ binding an affordance to an endpoint, depends on them.
 
 ### 1.3. Versioning
 
-Each Version of a `thingdescription` or `thingmodel` Resource holds a complete WoT document, stored without rewriting its bytes. A Resource's `wotid` and registry Resource id are stable across compatible revisions; `wotid` is declared with [`matchversions`][xRegistry matchversions]. A registry MUST reject a Version that supplies a different `wotid`. A Thing Model's major version MUST be part of its `wotid`; a breaking change MUST use a new `wotid` and a new Resource ([Section 5.1.1](#511-breaking-changes-and-successor-identifiers)).
+Each Version of a `thingdescription` or `thingmodel` Resource holds a complete
+WoT document, stored without rewriting its bytes. A Resource's `wotid` and
+registry Resource id are stable across compatible revisions; `wotid` is
+declared with [`matchversions`][xRegistry matchversions]. A registry MUST
+reject a Version that supplies a different `wotid`. A Thing Model's major
+version MUST be part of its `wotid`; a breaking change MUST use a new `wotid`
+and a new Resource
+([Section 5.1.1](#511-breaking-changes-and-successor-identifiers)).
 
-Thing Models MUST use Core `versionmode: semver` and `singleversionroot: true`. The registry MUST inspect `version.model` without modifying the stored document. If it is a SemVer 2.0.0 value without build metadata, the Version's `versionid` MUST equal it verbatim; the registry MUST assign it when omitted and MUST reject a supplied mismatch as `version-mismatch`. SemVer build metadata (`+build`) MUST be rejected as `invalid-version`, since `+` is not in Core's `versionid` grammar. An authored SemVer value that exceeds Core's 128-character id limit MUST also be rejected as `invalid-version`.
+Thing Models MUST use Core `versionmode: semver` and
+`singleversionroot: true`. The registry MUST inspect `version.model` without
+modifying the stored document. If it is a SemVer 2.0.0 value without build
+metadata, the Version's `versionid` MUST equal it verbatim; the registry MUST
+assign it when omitted and MUST reject a supplied mismatch as
+`version-mismatch`. SemVer build metadata (`+build`) MUST be rejected as
+`invalid-version`, since `+` is not in Core's `versionid` grammar. An authored
+SemVer value that exceeds Core's 128-character id limit MUST also be rejected
+as `invalid-version`.
 
-If `version.model` is absent or is not SemVer, the registry MUST assign `0.0.0-N`, where N is the lowest positive integer whose complete id is not already used in the Resource. A client-supplied `versionid`, if present, MUST equal that assignment or the registry MUST reject it as `version-mismatch`. A supplied id that violates Core's id grammar MUST be rejected as `invalid-version` before this comparison. The original absent or non-SemVer `version.model` MUST NOT be rewritten. Assignment and creation MUST be atomic with respect to concurrent writes, so two writes cannot claim the same generated id.
+If `version.model` is absent or is not SemVer, the registry MUST assign
+`0.0.0-N`, where N is the lowest positive integer whose complete id is not
+already used in the Resource. A client-supplied `versionid`, if present, MUST
+equal that assignment or the registry MUST reject it as `version-mismatch`. A
+supplied id that violates Core's id grammar MUST be rejected as
+`invalid-version` before this comparison. The original absent or non-SemVer
+`version.model` MUST NOT be rewritten. Assignment and creation MUST be atomic
+with respect to concurrent writes, so two writes cannot claim the same
+generated id.
 
-Each Thing Model Version MUST have the server-set, read-only `versionorigin` attribute: `authored` when its id comes from a SemVer `version.model`, and `generated` otherwise. Client-supplied `versionorigin` MUST be ignored, under Core's rules for read-only attributes. Generated ids are prereleases. They MUST NOT be used as minimum-version floors; the `0.0.0-N` form is reserved from use as a floor, even when the target Version is not present in the registry.
+Each Thing Model Version MUST have the server-set, read-only `versionorigin`
+attribute: `authored` when its id comes from a SemVer `version.model`, and
+`generated` otherwise. Client-supplied `versionorigin` MUST be ignored, under
+Core's rules for read-only attributes. Generated ids are prereleases. They
+MUST NOT be used as minimum-version floors; the `0.0.0-N` form is reserved
+from use as a floor, even when the target Version is not present in the
+registry.
 
-Thing Descriptions MUST use `versionmode: manual`. Their `versionid` MAY be any value permitted by Core; it need not equal `version.instance` or `version.model`. A TD's `version.model` describes its model dependency, not its instance revision.
+Thing Descriptions MUST use `versionmode: manual`. Their `versionid` MAY be
+any value permitted by Core; it need not equal `version.instance` or
+`version.model`. A TD's `version.model` describes its model dependency, not
+its instance revision.
 
-For Thing Models, the Resource-level `compatibility` attribute in `meta` MUST default to `backward`. A backward-compatible TM revision MUST NOT remove or narrow an affordance, a data schema or an `@type`, and MUST NOT introduce a new mandatory member. Narrowing includes reducing the accepted values or operations of an existing member. These constraints apply to every earlier Version of the same Resource. A registry MAY validate this domain-specific compatibility rule; Core's validation capability and strict-validation rules still apply. A lack of a domain validator does not permit a Producer to publish an incompatible revision under the same `wotid`.
+For Thing Models, the Resource-level `compatibility` attribute in `meta` MUST
+default to `backward`. A backward-compatible TM revision MUST NOT remove or
+narrow an affordance, a data schema or an `@type`, and MUST NOT introduce a
+new mandatory member. Narrowing includes reducing the accepted values or
+operations of an existing member. These constraints apply to every earlier
+Version of the same Resource. A registry MAY validate this domain-specific
+compatibility rule; Core's validation capability and strict-validation rules
+still apply. A lack of a domain validator does not permit a Producer to
+publish an incompatible revision under the same `wotid`.
 
-Core's SemVer lineage determines the default when `defaultversionsticky` is false: a late `1.0.1` after `1.1.0` MUST NOT replace `1.1.0` as the default. A sticky default MUST be honoured. Reference resolution additionally applies floors and prerelease eligibility as specified in [Section 5.4](#54-versioned-reference-resolution); an ordinary unversioned Resource retrieval still serves Core's default.
+Core's SemVer lineage determines the default when `defaultversionsticky` is
+false: a late `1.0.1` after `1.1.0` MUST NOT replace `1.1.0` as the default. A
+sticky default MUST be honoured. Reference resolution additionally applies
+floors and prerelease eligibility as specified in
+[Section 5.4](#54-versioned-reference-resolution); an ordinary unversioned
+Resource retrieval still serves Core's default.
 
-For migration, an operator SHOULD inventory every Version and root of a legacy Resource before enabling this model. Compatible roots SHOULD be imported into one SemVer-ordered lineage with ids assigned by the rules above; incompatible roots MUST be placed in distinct Resources with distinct major-version `wotid`s. Where changing an old immutable id or authored document would be necessary, the operator SHOULD preserve the legacy Resource outside the conforming collection and import a copy under a new registry Resource id. The operator MUST preserve authored bytes, record the old-to-new registry paths for callers holding pins, and establish a valid default before enabling `singleversionroot`. An operator MUST NOT claim that an unresolved multiple-root Resource conforms to this model.
+For migration, an operator SHOULD inventory every Version and root of a legacy
+Resource before enabling this model. Compatible roots SHOULD be imported into
+one SemVer-ordered lineage with ids assigned by the rules above; incompatible
+roots MUST be placed in distinct Resources with distinct major-version
+`wotid`s. Where changing an old immutable id or authored document would be
+necessary, the operator SHOULD preserve the legacy Resource outside the
+conforming collection and import a copy under a new registry Resource id. The
+operator MUST preserve authored bytes, record the old-to-new registry paths
+for callers holding pins, and establish a valid default before enabling
+`singleversionroot`. An operator MUST NOT claim that an unresolved
+multiple-root Resource conforms to this model.
 
-The [versioning design note](versioning-design.md) explains the design informatively. The W3C proposal [td-versioned-references](https://github.com/marcschier/wot-thing-description/pull/1) defines `tm:minVersion`; it is informative context, not a claim that this member is part of the published WoT 1.1 Recommendation.
+The [versioning design note](versioning-design.md) explains the design
+informatively. The `tm:minVersion` member is defined by a proposed extension
+to the W3C WoT Thing Description; it is informative context, not a claim that
+this member is part of the published WoT 1.1 Recommendation.
 
 ### 1.4. Document Store
 
@@ -543,12 +600,19 @@ explicitly registered for WoT documents, and the same constraint on serving
 stored bytes as active content applies as in
 [Section 4.2](#42-thing-description-resources).
 
-The `compatibility`, `versionid`, `versionorigin` and [`ancestorid`][xRegistry ancestorid] rules for Thing Models are defined in [Section 1.3](#13-versioning). The Version-level `versionorigin` is a REQUIRED string with the strict enumeration `authored` or `generated`, and is read-only. The model declares `compatibility` under `metaattributes`, with `required: true` and `default: backward`, as Core requires for an attribute with a default.
+The `compatibility`, `versionid`, `versionorigin` and
+[`ancestorid`][xRegistry ancestorid] rules for Thing Models are defined in
+[Section 1.3](#13-versioning). The Version-level `versionorigin` is a REQUIRED
+string with the strict enumeration `authored` or `generated`, and is
+read-only. The model declares `compatibility` under `metaattributes`, with
+`required: true` and `default: backward`, as Core requires for an attribute
+with a default.
 
 The `wotid` attribute is REQUIRED on a `thingmodel` and holds the document's
 authored WoT identifier, which is distinct from the `thingmodelid`. Where a
 Thing Model extends another via a `tm:extends` link relation, or references
-one via `tm:ref`, or composes one via `tm:submodel`, the referenced Thing Models' `wotid`s SHOULD be listed in `derivedfrom`.
+one via `tm:ref`, or composes one via `tm:submodel`, the referenced Thing
+Models' `wotid`s SHOULD be listed in `derivedfrom`.
 
 ### 4.5. Formats
 
@@ -683,9 +747,17 @@ the [OpenUSD Artifact Registry][OpenUSD Draft] working draft defines one such
 construction — but no convention is mandated by this specification, and a
 Consumer MUST NOT assume that an id it did not assign was produced by one.
 
-A `wotid` MUST NOT encode a compatible revision of the document it names. A Thing Model's major version MUST be included in that stable identity, for example `urn:fabrikam:lamp:v1` or `https://fabrikam.example/tm/lamp/v1`. Minor and patch revisions are carried by `versionid` and `version.model`, not appended to the identifier. No particular spelling of the major-version token is mandated.
+A `wotid` MUST NOT encode a compatible revision of the document it names. A
+Thing Model's major version MUST be included in that stable identity, for
+example `urn:fabrikam:lamp:v1` or `https://fabrikam.example/tm/lamp/v1`. Minor
+and patch revisions are carried by `versionid` and `version.model`, not
+appended to the identifier. No particular spelling of the major-version token
+is mandated.
 
-When a document is revised compatibly, its `wotid` and `thingdescriptionid` or `thingmodelid` MUST remain unchanged, and a new Version is created under the same Resource. A breaking revision instead names a distinct logical Thing as specified in [Section 5.1.1](#511-breaking-changes-and-successor-identifiers).
+When a document is revised compatibly, its `wotid` and `thingdescriptionid` or
+`thingmodelid` MUST remain unchanged, and a new Version is created under the
+same Resource. A breaking revision instead names a distinct logical Thing as
+specified in [Section 5.1.1](#511-breaking-changes-and-successor-identifiers).
 
 A `wotid` is REQUIRED, and the rule for populating it depends on the document:
 
@@ -710,9 +782,17 @@ second case is not yet settled.
 
 #### 5.1.1. Breaking Changes and Successor Identifiers
 
-A breaking Thing Model change MUST use a new major-version `wotid` and a distinct Resource. The predecessor's `wotid` MUST NOT be modified. A breaking TD change that violates its declared compatibility policy MUST likewise use a distinct `wotid` and Resource.
+A breaking Thing Model change MUST use a new major-version `wotid` and a
+distinct Resource. The predecessor's `wotid` MUST NOT be modified. A breaking
+TD change that violates its declared compatibility policy MUST likewise use a
+distinct `wotid` and Resource.
 
-The predecessor Resource MUST be marked with Core's [`deprecated`][xRegistry deprecated] attribute, whose `alternative` MUST be the successor Resource's URL. Its Versions MUST remain retrievable; deprecation alone MUST NOT cause the resolver to redirect a reference to the successor. A Consumer MAY inspect the successor and explicitly choose to adopt its different identity.
+The predecessor Resource MUST be marked with Core's
+[`deprecated`][xRegistry deprecated] attribute, whose `alternative` MUST be
+the successor Resource's URL. Its Versions MUST remain retrievable;
+deprecation alone MUST NOT cause the resolver to redirect a reference to the
+successor. A Consumer MAY inspect the successor and explicitly choose to adopt
+its different identity.
 
 | | Predecessor | Successor |
 |---|---|---|
@@ -761,13 +841,14 @@ the `derivedfrom` attribute. `derivedfrom` holds `wotid` values, not `xid`s,
 precisely so that it can be compared directly against what the document
 authored.
 
-`derivedfrom` is a producer-supplied *index* of the document's references,
-not an authority over them. A registry MAY verify that it matches the
-`tm:extends`, `tm:submodel`, `tm:ref` and `links[].rel="type"` targets in the stored
-document, and SHOULD reject a write where the two disagree; where a registry
-does not verify, the document is authoritative. A Consumer making a trust,
-allow-list or compliance decision about a document's lineage MUST derive that
-lineage from the document itself and MUST NOT rely on `derivedfrom` alone.
+`derivedfrom` is a producer-supplied *index* of the document's references, not
+an authority over them. A registry MAY verify that it matches the
+`tm:extends`, `tm:submodel`, `tm:ref` and `links[].rel="type"` targets in the
+stored document, and SHOULD reject a write where the two disagree; where a
+registry does not verify, the document is authoritative. A Consumer making a
+trust, allow-list or compliance decision about a document's lineage MUST
+derive that lineage from the document itself and MUST NOT rely on
+`derivedfrom` alone.
 
 ### 5.3. Lookup
 
@@ -820,7 +901,12 @@ Version selection is a second, separate step, and is never encoded in the
 metadata view, or that URL with the `$details` suffix removed for the
 document view; see [Section 1.4](#14-document-store).
 
-The Resource URL serves the Core default Version, including when `defaultversionsticky` is true. A registry MUST serve that default when no Version is named. This retrieval is distinct from resolving a reference: a resolver MUST use [Section 5.4](#54-versioned-reference-resolution), not lexical sorting, publication time or an assumption that the default always satisfies the reference.
+The Resource URL serves the Core default Version, including when
+`defaultversionsticky` is true. A registry MUST serve that default when no
+Version is named. This retrieval is distinct from resolving a reference: a
+resolver MUST use [Section 5.4](#54-versioned-reference-resolution), not
+lexical sorting, publication time or an assumption that the default always
+satisfies the reference.
 
 What a caller SHOULD NOT do is fold the two into one opaque string. A caller
 that carries an identifier and a version through a transport — for example in
@@ -834,26 +920,79 @@ recipient can put straight into a URL.
 
 #### 5.4.1. Floors and Pins
 
-A reference MAY carry a minimum SemVer, called its floor, but MUST NOT carry a version range. For `tm:extends` and `tm:submodel`, `tm:minVersion` is a member of the link object. For `tm:ref`, it is a sibling of `tm:ref` in the referring object. A floor MUST be a SemVer 2.0.0 string without build metadata, within Core's id length limit, and MUST NOT have the generated `0.0.0-N` form. An invalid floor MUST produce `invalid-version`.
+A reference MAY carry a minimum SemVer, called its floor, but MUST NOT carry a
+version range. For `tm:extends` and `tm:submodel`, `tm:minVersion` is a member
+of the link object. For `tm:ref`, it is a sibling of `tm:ref` in the referring
+object. A floor MUST be a SemVer 2.0.0 string without build metadata, within
+Core's id length limit, and MUST NOT have the generated `0.0.0-N` form. An
+invalid floor MUST produce `invalid-version`.
 
-For a TD with exactly one `rel: "type"` link, its `version.model`, when present, is the implicit floor of that link. If the link also has an explicit `tm:minVersion`, the greater value by SemVer precedence is the effective floor; an explicit lower value MUST NOT weaken the implicit floor. If only one floor is present, that floor applies. For a TD with several type links and `version.model`, every type link MUST carry its own `tm:minVersion`; otherwise resolution MUST fail as `ambiguous-floor`, including when resolving a different, fully specified link of that TD. When every link has an explicit floor, each link MUST use the greater of its own `tm:minVersion` and `version.model` by SemVer precedence. For several type links without `version.model`, there is no implicit floor: each link uses its own `tm:minVersion` if present, and otherwise has no floor. An omitted floor in that case MUST NOT produce `ambiguous-floor`. A non-SemVer implicit floor MUST produce `invalid-version`, not silently disappear.
+For a TD with exactly one `rel: "type"` link, its `version.model`, when
+present, is the implicit floor of that link. If the link also has an explicit
+`tm:minVersion`, the greater value by SemVer precedence is the effective
+floor; an explicit lower value MUST NOT weaken the implicit floor. If only one
+floor is present, that floor applies. For a TD with several type links and
+`version.model`, every type link MUST carry its own `tm:minVersion`; otherwise
+resolution MUST fail as `ambiguous-floor`, including when resolving a
+different, fully specified link of that TD. When every link has an explicit
+floor, each link MUST use the greater of its own `tm:minVersion` and
+`version.model` by SemVer precedence. For several type links without
+`version.model`, there is no implicit floor: each link uses its own
+`tm:minVersion` if present, and otherwise has no floor. An omitted floor in
+that case MUST NOT produce `ambiguous-floor`. A non-SemVer implicit floor MUST
+produce `invalid-version`, not silently disappear.
 
-A resolver MUST return `(wotid, versionid, contentdigest, origin)`, where `origin` identifies the registry from which the stored bytes were obtained and `contentdigest` is the digest of those bytes. A Consumer MAY retain this tuple outside the document and pass either a digest pin or a `versionid` pin on a subsequent resolution. A request MUST contain at most one kind of pin. Documents MUST NOT carry registry version pins or digest pins; a floor is a compatibility requirement, not a pin. Authored references and document bytes MUST remain portable between registries.
+A resolver MUST return `(wotid, versionid, contentdigest, origin)`, where
+`origin` identifies the registry from which the stored bytes were obtained and
+`contentdigest` is the digest of those bytes. A Consumer MAY retain this tuple
+outside the document and pass either a digest pin or a `versionid` pin on a
+subsequent resolution. A request MUST contain at most one kind of pin.
+Documents MUST NOT carry registry version pins or digest pins; a floor is a
+compatibility requirement, not a pin. Authored references and document bytes
+MUST remain portable between registries.
 
 #### 5.4.2. Resolver Algorithm
 
-The caller first selects a registry and Group scope that identifies one Resource by `wotid`, following [Section 5.3](#53-lookup). For `tm:ref`, the lookup target is the document identifier resolved from the reference URI, excluding any fragment; the fragment is applied to the selected document after version selection. Resource disambiguation across Groups precedes this algorithm.
+The caller first selects a registry and Group scope that identifies one
+Resource by `wotid`, following [Section 5.3](#53-lookup). For `tm:ref`, the
+lookup target is the document identifier resolved from the reference URI,
+excluding any fragment; the fragment is applied to the selected document after
+version selection. Resource disambiguation across Groups precedes this
+algorithm.
 
 The resolver MUST apply the following steps in order:
 
-1. Find the Resource whose `wotid` equals the reference target. If none exists, fail as `not-found`. A deprecated Resource is eligible and MUST NOT be replaced automatically by its `deprecated.alternative`.
-2. If a digest pin is supplied, return a Version of that Resource whose `contentdigest` equals the pin, or fail as `pin-mismatch`. If several Versions have identical bytes and the same digest, return the one with highest SemVer precedence. If a `versionid` pin is supplied, return that exact Version or fail as `not-found`. Pins are caller overrides: they bypass floor derivation, prerelease filtering and sticky-default selection. They do not authorize substituting bytes or following a successor.
-3. Derive and validate the floor as specified in Section 5.4.1. Report `ambiguous-floor` before validating individual floors when the multiple-type-link rule is violated.
-4. If `defaultversionsticky` is true, select the Version named by `defaultversionid` as-is. Do not substitute another Version or apply prerelease filtering to an operator's sticky choice. If the named Version is unavailable, fail as `not-found`.
-5. Otherwise, exclude all prereleases, including generated ids, unless the floor is a prerelease or the caller explicitly opts in with `allowPrerelease`. Select the highest remaining Version by SemVer 2.0.0 precedence, not lexicographic order. If none is eligible, fail as `unsatisfied`. Even a Resource containing only generated Versions requires an opt-in or an explicit pin or sticky default.
-6. If a floor exists and the selected Version is below it, fail as `unsatisfied`. Never downgrade, bypass a sticky default or retry with a lower Version. Otherwise return the selected `(wotid, versionid, contentdigest, origin)`.
+1. Find the Resource whose `wotid` equals the reference target. If none
+   exists, fail as `not-found`. A deprecated Resource is eligible and MUST NOT
+   be replaced automatically by its `deprecated.alternative`.
+2. If a digest pin is supplied, return a Version of that Resource whose
+   `contentdigest` equals the pin, or fail as `pin-mismatch`. If several
+   Versions have identical bytes and the same digest, return the one with
+   highest SemVer precedence. If a `versionid` pin is supplied, return that
+   exact Version or fail as `not-found`. Pins are caller overrides: they
+   bypass floor derivation, prerelease filtering and sticky-default selection.
+   They do not authorize substituting bytes or following a successor.
+3. Derive and validate the floor as specified in Section 5.4.1. Report
+   `ambiguous-floor` before validating individual floors when the
+   multiple-type-link rule is violated.
+4. If `defaultversionsticky` is true, select the Version named by
+   `defaultversionid` as-is. Do not substitute another Version or apply
+   prerelease filtering to an operator's sticky choice. If the named Version
+   is unavailable, fail as `not-found`.
+5. Otherwise, exclude all prereleases, including generated ids, unless the
+   floor is a prerelease or the caller explicitly opts in with
+   `allowPrerelease`. Select the highest remaining Version by SemVer 2.0.0
+   precedence, not lexicographic order. If none is eligible, fail as
+   `unsatisfied`. Even a Resource containing only generated Versions requires
+   an opt-in or an explicit pin or sticky default.
+6. If a floor exists and the selected Version is below it, fail as
+   `unsatisfied`. Never downgrade, bypass a sticky default or retry with a
+   lower Version. Otherwise return the selected
+   `(wotid, versionid, contentdigest, origin)`.
 
-For an unpinned reference, only SemVer Versions from a conforming Thing Model Resource are inputs to this algorithm. Thing Description instance revisions are not ordered by this resolver.
+For an unpinned reference, only SemVer Versions from a conforming Thing Model
+Resource are inputs to this algorithm. Thing Description instance revisions
+are not ordered by this resolver.
 
 #### 5.4.3. Errors and Test Vectors
 
@@ -866,7 +1005,11 @@ For an unpinned reference, only SemVer Versions from a conforming Thing Model Re
 | `version-mismatch` | A supplied publication `versionid` disagrees with the authored or generated assignment. |
 | `invalid-version` | A floor or publication version violates the version syntax or generated-floor restriction. |
 
-These names identify domain outcomes, not replacements for Core's protocol error envelopes. The [canonical resolution vectors](tests/resolution/README.md) define portable resolver inputs and expected outcomes, including write-side version assignment.
+These names identify domain outcomes, not replacements for Core's protocol
+error envelopes. The
+[canonical resolution vectors](tests/resolution/README.md) define portable
+resolver inputs and expected outcomes, including write-side version
+assignment.
 
 ## 6. Relationships and Cross-References
 

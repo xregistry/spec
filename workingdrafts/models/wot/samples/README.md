@@ -1,9 +1,8 @@
 # WoT Registry Samples
 
-<!-- words: affordance inletpressure marcschier minversion versionorigin -->
-
 <!-- words: WoT thingdescriptiongroups thingmodelgroups schemagroups messagegroups fabrikam lamp smartlamp -->
 <!-- words: wotid derivedfrom byom contoso standardsbody maturity -->
+<!-- words: affordance inletpressure minversion versionorigin -->
 
 This directory contains illustrative sample documents that exercise the
 WoT Registry model defined in [../model.json](../model.json):
@@ -11,8 +10,9 @@ WoT Registry model defined in [../model.json](../model.json):
 - [lamp-tm.xreg.json](lamp-tm.xreg.json) — a minimal `thingmodelgroups`
   document containing a single Thing Model for a generic dimmable lamp. Its
   authored identifier `urn:fabrikam:lamp:v1` is carried in `wotid`, while
-  `urn.fabrikam.lamp.v1` is the Resource id the client chose for it; a Consumer
-  holding the authored identifier finds the Resource by querying `wotid`.
+  `urn.fabrikam.lamp.v1` is the Resource id the client chose for it; a
+  Consumer holding the authored identifier finds the Resource by querying
+  `wotid`.
 - [lamp-td.xreg.json](lamp-td.xreg.json) — a `thingdescriptiongroups` document
   containing a Thing Description (`urn:fabrikam:lamp:42`) that conforms to the
   lamp Thing Model above. Its `links[].rel = "type"` entry references the TM
@@ -25,10 +25,10 @@ WoT Registry model defined in [../model.json](../model.json):
   `derivedfrom`. Both are marked `"maturity": "Vendor"` and carry no
   `standardsbody`, because Contoso publishes them itself; a `standardsbody` is
   a claim about who defines a document, not about who wrote it. The pump has
-  two Versions, with `1.1.0` as the default, so retrieving the Resource yields the
-  latest while `.../versions/1.0.0` yields the earlier one. Because the pump
-  supplies an explicit `versions` collection, its attributes — including the
-  provenance attributes an agent uses to prefer an official model — are
+  two Versions, with `1.1.0` as the default, so retrieving the Resource yields
+  the latest while `.../versions/1.0.0` yields the earlier one. Because the
+  pump supplies an explicit `versions` collection, its attributes — including
+  the provenance attributes an agent uses to prefer an official model — are
   carried on each Version rather than on the Resource; the device, which has a
   single implicit Version, carries them on the Resource directly. Showing both
   shapes in one file is deliberate: the `versions` collection is only needed
@@ -40,4 +40,11 @@ WoT Registry model defined in [../model.json](../model.json):
   `thingdescriptiongroups` compose: the instance carries `derivedfrom` and a
   `links[].rel = "type"` reference to the Thing Model Resource.
 
-All Thing Model `versionid` values equal the document's SemVer `version.model`. The model identifiers include their major version. The pump's `tm:extends` links carry `tm:minVersion: "1.0.0"`, so resolution requires at least that revision of the device model. This member is defined by the informative [W3C proposal](https://github.com/marcschier/wot-thing-description/pull/1), not by the published WoT 1.1 Recommendation. `versionorigin` is omitted from these publication requests because it is server-set to `authored`. Its new `inletPressure` affordance is declared non-mandatory, so the `1.1.0` revision adds no mandatory member.
+All Thing Model `versionid` values equal the document's SemVer
+`version.model`. The model identifiers include their major version. The pump's
+`tm:extends` links carry `tm:minVersion: "1.0.0"`, so resolution requires at
+least that revision of the device model. This member is defined by a proposed
+extension to the W3C WoT Thing Description, not by the published WoT 1.1
+Recommendation. `versionorigin` is omitted from these publication requests
+because it is server-set to `authored`. Its new `inletPressure` affordance is
+declared non-mandatory, so the `1.1.0` revision adds no mandatory member.
