@@ -836,7 +836,7 @@ recipient can put straight into a URL.
 
 A reference MAY carry a minimum SemVer, called its floor, but MUST NOT carry a version range. For `tm:extends` and `tm:submodel`, `tm:minVersion` is a member of the link object. For `tm:ref`, it is a sibling of `tm:ref` in the referring object. A floor MUST be a SemVer 2.0.0 string without build metadata, within Core's id length limit, and MUST NOT have the generated `0.0.0-N` form. An invalid floor MUST produce `invalid-version`.
 
-For a TD with exactly one `rel: type` link, its `version.model`, when present, is the implicit floor of that link. An explicit `tm:minVersion` on the link takes precedence over that implicit floor. For a TD with several type links and a `version.model`, every type link MUST carry its own `tm:minVersion`; otherwise resolution MUST fail as `ambiguous-floor`, including when resolving a different, fully specified link of that TD. The document-wide `version.model` MUST NOT be guessed to belong to one of several type links. Without `version.model`, no implicit floor exists; individual type links MAY still carry explicit floors. All explicit floors in this multiple-link context MUST be valid. A non-SemVer implicit floor MUST produce `invalid-version`, not silently disappear.
+For a TD with exactly one `rel: type` link, its `version.model`, when present, is the implicit floor of that link. If the link also has an explicit `tm:minVersion`, the greater value by SemVer precedence is the effective floor; an explicit lower value MUST NOT weaken the implicit floor. For a TD with several type links, every type link MUST carry its own `tm:minVersion`, whether or not the TD has a `version.model`; otherwise resolution MUST fail as `ambiguous-floor`, including when resolving a different, fully specified link of that TD. The document-wide `version.model` MUST NOT be guessed to belong to one of several type links. Each link is resolved independently against its own explicit floor. A non-SemVer implicit floor MUST produce `invalid-version`, not silently disappear.
 
 A resolver MUST return `(wotid, versionid, contentdigest, origin)`, where `origin` identifies the registry from which the stored bytes were obtained and `contentdigest` is the digest of those bytes. A Consumer MAY retain this tuple outside the document and pass either a digest pin or a `versionid` pin on a subsequent resolution. A request MUST contain at most one kind of pin. Documents MUST NOT carry registry version pins or digest pins; a floor is a compatibility requirement, not a pin. Authored references and document bytes MUST remain portable between registries.
 
@@ -862,7 +862,7 @@ For an unpinned reference, only SemVer Versions from a conforming Thing Model Re
 | `not-found` | Resource, pinned Version or sticky default is absent. |
 | `pin-mismatch` | The target Resource has no Version with the caller's digest. |
 | `unsatisfied` | No eligible Version exists, or the selected Version is below the floor. |
-| `ambiguous-floor` | A TD has `version.model` and several type links, at least one without its own floor. |
+| `ambiguous-floor` | A TD has several type links and at least one lacks its own floor. |
 | `version-mismatch` | A supplied publication `versionid` disagrees with the authored or generated assignment. |
 | `invalid-version` | A floor or publication version violates the version syntax or generated-floor restriction. |
 
