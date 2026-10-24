@@ -1,5 +1,5 @@
 {
-  "description": "Several type links without version.model have no implicit floor.",
+  "description": "Several type links require an explicit floor even without version.model.",
   "registry": [
     {
       "wotid": "urn:example:pump:v1",
@@ -36,10 +36,6 @@
     ]
   },
   "expect": {
-    "result": {
-      "wotid": "urn:example:pump:v1",
-      "versionid": "1.1.0",
-      "contentdigest": "sha256:0000000000000000000000000000000000000000000000000000000000000002"
-    }
+    "error": "ambiguous-floor"
   }
 }
