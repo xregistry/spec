@@ -1,30 +1,58 @@
 # WoT Registry: Versioning and Versioned Reference Resolution
 
-This note is informative. It explains how WoT documents are versioned in an xRegistry WoT Registry and how a reference between WoT documents resolves to exactly one version. The normative rules are in [spec.md](spec.md). The same design is used by the W3C proposal `td-versioned-references` and by the OPC UA WoT Connectivity specification (OPC 10100), so a document resolves to the same version in all three.
+This note is informative. It explains how WoT documents are versioned in an
+xRegistry WoT Registry and how a reference between WoT documents resolves to
+exactly one version. The normative rules are in [spec.md](spec.md). The same
+design is used by the W3C proposal `td-versioned-references` and by the OPC UA
+WoT Connectivity specification (OPC 10100), so a document resolves to the same
+version in all three.
 
 ## Problem
 
-A Thing Model (TM) states its own version in `version.model`. The registry keeps a separate `versionid` for every stored Version. A reference inside a WoT document (`tm:extends`, `tm:submodel`, `tm:ref`, or a Thing Description's `rel:type` link) names only the target's identifier and no version. That leaves three questions open:
+A Thing Model (TM) states its own version in `version.model`. The registry
+keeps a separate `versionid` for every stored Version. A reference inside a
+WoT document (`tm:extends`, `tm:submodel`, `tm:ref`, or a Thing Description's
+`rel:type` link) names only the target's identifier and no version. That
+leaves three questions open:
 
 1. When a document is published, which `versionid` does it get?
 2. When a reference is followed, which Version does it resolve to?
 3. How does a consumer reproduce the exact bytes it resolved last time?
 
-Without answers, a late patch release (`1.0.1` published after `1.1.0`) can become the default Version, and a Thing Description that was built from model `1.1.0` silently resolves to `1.0.1`.
+Without answers, a late patch release (`1.0.1` published after `1.1.0`) can
+become the default Version, and a Thing Description that was built from model
+`1.1.0` silently resolves to `1.0.1`.
 
 ## Design
 
 Four rules, R1–R4.
 
-**R1. The major version is part of the identity.** A breaking change publishes a new document identifier (`wotid`), for example `urn:example:pump:v2`. The previous Resource is marked `deprecated` and names its successor. Every Version of one `wotid` is therefore backward compatible with every earlier Version of it, and `compatibility` defaults to `backward` for Thing Models.
+**R1. The major version is part of the identity.** A breaking change publishes
+a new document identifier (`wotid`), for example `urn:example:pump:v2`. The
+previous Resource is marked `deprecated` and names its successor. Every
+Version of one `wotid` is therefore backward compatible with every earlier
+Version of it, and `compatibility` defaults to `backward` for Thing Models.
 
-**R2. One version string.** For Thing Models the registry uses `versionmode: semver` with `singleversionroot: true`, and `versionid` MUST equal the document's `version.model`. A write whose `versionid` differs is rejected, the same way a mismatch between `wotid` and the document `id` is rejected. SemVer build metadata (`+…`) is rejected because `versionid` cannot carry `+`.
+**R2. One version string.** For Thing Models the registry uses
+`versionmode: semver` with `singleversionroot: true`, and `versionid` MUST
+equal the document's `version.model`. A write whose `versionid` differs is
+rejected, the same way a mismatch between `wotid` and the document `id` is
+rejected. SemVer build metadata (`+…`) is rejected because `versionid` cannot
+carry `+`.
 
-A Thing Model without a version, or with a version that is not SemVer, gets a registry-generated `versionid` of the form `0.0.0-N`. N is the lowest positive integer whose id is not already in use. The Version is marked `versionorigin: generated`. A generated id is a prerelease, so it sorts below every release, and it MUST NOT be used as a floor. A Version whose `versionid` came from `version.model` is marked `versionorigin: authored`.
+A Thing Model without a version, or with a version that is not SemVer, gets a
+registry-generated `versionid` of the form `0.0.0-N`. N is the lowest positive
+integer whose id is not already in use. The Version is marked
+`versionorigin: generated`. A generated id is a prerelease, so it sorts below
+every release, and it MUST NOT be used as a floor. A Version whose `versionid`
+came from `version.model` is marked `versionorigin: authored`.
 
-Thing Descriptions keep `versionmode: manual`. Their `versionid` is chosen freely, because a TD's version describes an instance revision, not a compatibility contract.
+Thing Descriptions keep `versionmode: manual`. Their `versionid` is chosen
+freely, because a TD's version describes an instance revision, not a
+compatibility contract.
 
-**R3. A reference carries a floor, never a range.** A reference MAY state the minimum Version it needs:
+**R3. A reference carries a floor, never a range.** A reference MAY state the
+minimum Version it needs:
 
 | Reference | Floor |
 |---|---|
@@ -36,7 +64,11 @@ Thing Descriptions keep `versionmode: manual`. Their `versionid` is chosen freel
 
 Because R1 puts the major in the identity, an upper bound is never needed.
 
-**R4. The pin belongs to the resolver output, not to the document.** A resolution returns `(wotid, versionid, contentdigest, origin)`. A caller that needs reproducibility stores that tuple and passes the digest back on the next resolution. Documents never contain registry identifiers or digests, so they stay portable between registries.
+**R4. The pin belongs to the resolver output, not to the document.** A
+resolution returns `(wotid, versionid, contentdigest, origin)`. A caller that
+needs reproducibility stores that tuple and passes the digest back on the next
+resolution. Documents never contain registry identifiers or digests, so they
+stay portable between registries.
 
 ## Resolver
 
@@ -45,10 +77,10 @@ resolve(reference, pin?, allowPrerelease = false):
   R := the Resource whose wotid equals the reference target           else FAIL not-found
   if pin.digest:     return the Version of R with that contentdigest  else FAIL pin-mismatch
   if pin.versionid:  return that Version of R                         else FAIL not-found
-  floor := reference.tm:minVersion                                 (may be absent)
+  floor := reference.tm:minVersion                                 (absent if unset)
   if reference is a TD rel:type link:
       links := all rel:type links in that TD
-      model := TD.version.model                                   (may be absent)
+      model := TD.version.model                                   (absent if unset)
       if model is present and count(links) > 1 and any link lacks tm:minVersion:
           FAIL ambiguous-floor
       validate every explicit link floor                          else FAIL invalid-version
@@ -67,7 +99,9 @@ resolve(reference, pin?, allowPrerelease = false):
   return (R.wotid, V.versionid, V.contentdigest, registry origin)
 ```
 
-A resolver never selects a Version below the floor and never falls back to a lower one. A sticky default below the floor is a reported failure, because it means an operator pinned an older Version on purpose.
+A resolver never selects a Version below the floor and never falls back to a
+lower one. A sticky default below the floor is a reported failure, because it
+means an operator pinned an older Version on purpose.
 
 ## User flows
 
@@ -97,7 +131,7 @@ A resolver never selects a Version below the floor and never falls back to a low
 
 | Specification | Change |
 |---|---|
-| W3C WoT (proposal `td-versioned-references`) | Defines `tm:minVersion`, the implicit `rel:type` floor, the multiple-link rule, and optional `successor-version` / `latest-version` link relations. |
+| W3C WoT (proposal `td-versioned-references`) | Defines `tm:minVersion`, the implicit `rel:type` floor, the multiple-link rule, and the `successor-version` / `latest-version` link relations. |
 | xRegistry WoT Registry | `versionmode: semver` and `singleversionroot: true` for Thing Models, the `versionid` = `version.model` rule, `versionorigin`, generated `0.0.0-N`, prerelease eligibility, the resolver, and the resolution test vectors in [tests/resolution](tests/resolution). |
 | OPC 10100 WoT Binding | Maps `tm:minVersion` and TD `version.model` to the information model. |
 | OPC 10100 WoT Connectivity | `WoTDependencyDataType.RequiredVersion`, the authored version and its origin on `WoTDocumentType`, and the same resolution order. |

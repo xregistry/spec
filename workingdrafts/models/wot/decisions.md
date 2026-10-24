@@ -1,10 +1,9 @@
 # WoT Registry Decision Record
 
-<!-- words: contentdigest minversion prereleases versionorigin -->
-
 <!-- words: WoT wotid derivedfrom thingdescription thingmodel -->
 <!-- words: thingdescriptionid thingmodelid canonicalurl standardsbody -->
 <!-- words: openusd href td tm matchversions repointing -->
+<!-- words: contentdigest minversion prereleases versionorigin -->
 
 This document records the identity, versioning, lookup and provenance
 decisions behind the [WoT Registry specification](spec.md) and its
@@ -13,9 +12,16 @@ working document and changes with the draft.
 
 ## 1. Identity and version are separate values
 
-**Decision.** A `wotid` is the document's authored `id` and MUST NOT change on a compatible revision. A Thing Model's stable `wotid` includes its major version, such as `:v2`; it does not encode each minor or patch revision.
+**Decision.** A `wotid` is the document's authored `id` and MUST NOT change on
+a compatible revision. A Thing Model's stable `wotid` includes its major
+version, such as `:v2`; it does not encode each minor or patch revision.
 
-**Why.** An identifier that changes on each compatible revision is not a stable identifier. With a full revision baked in, the registry cannot tell that two documents describe the same logical Thing, `ancestor` lineage cannot be formed, and every holder of a reference has to be rewritten. Keeping minor and patch versions out of identity also lets a recipient resolve a document without taking a string apart.
+**Why.** An identifier that changes on each compatible revision is not a
+stable identifier. With a full revision baked in, the registry cannot tell
+that two documents describe the same logical Thing, `ancestor` lineage cannot
+be formed, and every holder of a reference has to be rewritten. Keeping minor
+and patch versions out of identity also lets a recipient resolve a document
+without taking a string apart.
 
 **Example.** A typo is fixed in the lamp `urn:fabrikam:lamp:42`. Its `wotid`
 and its `thingdescriptionid` do not change, and the correction becomes a new
@@ -26,7 +32,11 @@ by name.
 **Consequence.** Revising a document leaves `wotid`, `thingdescriptionid` and
 `thingmodelid` unchanged and adds a Version.
 
-**Scope.** This constrains mutating an existing identifier. An author who publishes a second, incompatible Thing is naming a different Thing. For a Thing Model, its identifier MUST carry a major-version token: that token is part of its permanent `wotid`, not a revision appended to an existing one. See [Decision 6](#6-a-breaking-change-produces-a-new-logical-thing).
+**Scope.** This constrains mutating an existing identifier. An author who
+publishes a second, incompatible Thing is naming a different Thing. For a
+Thing Model, its identifier MUST carry a major-version token: that token is
+part of its permanent `wotid`, not a revision appended to an existing one. See
+[Decision 6](#6-a-breaking-change-produces-a-new-logical-thing).
 
 See [Section 1.3](spec.md#13-versioning),
 [Section 5.1](spec.md#51-wot-identifiers-and-registry-ids) and
@@ -129,7 +139,10 @@ See [Section 4.6](spec.md#46-provenance-and-selection-metadata).
 
 ## 6. A breaking change produces a new logical Thing
 
-**Decision.** A breaking change creates a new Resource, reached by authoring a new `wotid`, not by revising the existing one. The predecessor retains its Versions and MUST set `deprecated.alternative` to the successor Resource URL. A Thing Model identifier MUST carry a major-version token.
+**Decision.** A breaking change creates a new Resource, reached by authoring a
+new `wotid`, not by revising the existing one. The predecessor retains its
+Versions and MUST set `deprecated.alternative` to the successor Resource URL.
+A Thing Model identifier MUST carry a major-version token.
 
 **Why.** [Decision 1](#1-identity-and-version-are-separate-values) holds a
 `wotid` constant across revisions, and `wotid` is declared `matchversions`, so
@@ -154,9 +167,13 @@ See [Section 5.1.1](spec.md#511-breaking-changes-and-successor-identifiers).
 
 ## 7. Version floors, semantic versions and reproducible resolution
 
-**Decision.** Thing Models use `versionmode: semver` with `singleversionroot: true`, and `compatibility` defaults to `backward`. The resolver accepts a minimum-version floor, honours a sticky default, and returns an exact selection with its origin.
+**Decision.** Thing Models use `versionmode: semver` with
+`singleversionroot: true`, and `compatibility` defaults to `backward`. The
+resolver accepts a minimum-version floor, honours a sticky default, and
+returns an exact selection with its origin.
 
-**Why.** The following choices make references portable while separating compatibility from reproducibility:
+**Why.** The following choices make references portable while separating
+compatibility from reproducibility:
 
 | Choice | Rationale |
 |---|---|
@@ -168,8 +185,16 @@ See [Section 5.1.1](spec.md#511-breaking-changes-and-successor-identifiers).
 | Sticky default honoured, never bypassed | An operator's deliberate selection is authoritative unless the caller supplies an explicit pin. A sticky Version below the floor fails rather than selecting a different Version. |
 | Pin in output, not document | The tuple `(wotid, versionid, contentdigest, origin)` supports reproducibility without putting registry-specific choices into portable WoT documents. Caller pins deliberately override normal floor selection. |
 
-**Example.** Publishing `1.0.1` after `1.1.0` does not replace the newer default. A TD derived from model `1.1.0` has that implicit floor when it has exactly one type link. Several type links with a document-level model version require explicit `tm:minVersion` on every link.
+**Example.** Publishing `1.0.1` after `1.1.0` does not replace the newer
+default. A TD derived from model `1.1.0` has that implicit floor when it has
+exactly one type link. Several type links with a document-level model version
+require explicit `tm:minVersion` on every link.
 
-**Consequence.** Producers preserve the authored document bytes. Operators migrate compatible legacy roots to one SemVer lineage and separate incompatible identities before enabling the model. Consumers retain pins externally and implement the error outcomes and algorithm in [Section 5.4](spec.md#54-versioned-reference-resolution).
+**Consequence.** Producers preserve the authored document bytes. Operators
+migrate compatible legacy roots to one SemVer lineage and separate
+incompatible identities before enabling the model. Consumers retain pins
+externally and implement the error outcomes and algorithm in
+[Section 5.4](spec.md#54-versioned-reference-resolution).
 
-See the informative [versioning design](versioning-design.md) and the [canonical test vectors](tests/resolution/README.md).
+See the informative [versioning design](versioning-design.md) and the
+[canonical test vectors](tests/resolution/README.md).
