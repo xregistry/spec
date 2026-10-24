@@ -2,15 +2,14 @@
 
 <!-- words: allowprerelease bytewise contentdigest gitattributes hashlib hexdigest iterdir minversion pathlib prereleases py submodel typelinks versionorigin workingdrafts wotid -->
 
-These canonical fixtures exercise
+These fixtures cover
 [specification Section 1.3](../../spec.md#13-versioning) and
 [Section 5.4](../../spec.md#54-versioned-reference-resolution). Each numbered
-JSON file is one independent case. Fixtures contain fake, syntactically valid
-`sha256:` digests followed by 64 lowercase hexadecimal characters; they
-identify fixture bytes symbolically and are not computed from a WoT document.
-`MANIFEST.sha256`, in contrast, hashes the actual committed bytes of every
-file in this directory except itself, including this README, the schema and
-the checker.
+JSON file describes one case. The `sha256:` values are syntactically valid
+placeholders followed by 64 lowercase hexadecimal characters; they identify
+fixture values symbolically and are not computed from a WoT document.
+`MANIFEST.sha256` hashes the committed bytes of every file in this directory
+except itself, including this README, the schema and the checker.
 
 ## Running the checker
 
@@ -21,12 +20,12 @@ python workingdrafts/models/wot/tests/resolution/check_vectors.py
 ```
 
 The checker verifies manifest coverage and hashes, requires LF and a final
-newline for every file, validates the schema and all vectors if `jsonschema`
-is installed, and executes the reference implementation against every
-expectation. Without `jsonschema` it explicitly reports the skipped shape
-check; semantic execution and manifest verification still run. Any failed
-check returns nonzero. The implementation uses only the Python standard
-library otherwise, and does not fetch schemas or documents.
+newline for each file, validates the schema and vectors when `jsonschema` is
+installed, and runs the reference implementation against every expected
+result. If `jsonschema` is absent, it reports the skipped shape check;
+manifest verification and semantic execution still run. A failed check
+returns a nonzero exit status. The remaining checks use only Python's standard library, and the checker
+fetches no schemas or documents.
 
 ## Format
 

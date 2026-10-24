@@ -16,12 +16,12 @@ working document and changes with the draft.
 a compatible revision. A Thing Model's stable `wotid` includes its major
 version, such as `:v2`; it does not encode each minor or patch revision.
 
-**Why.** An identifier that changes on each compatible revision is not a
-stable identifier. With a full revision baked in, the registry cannot tell
-that two documents describe the same logical Thing, `ancestor` lineage cannot
-be formed, and every holder of a reference has to be rewritten. Keeping minor
-and patch versions out of identity also lets a recipient resolve a document
-without taking a string apart.
+**Why.** An identifier that changes with each compatible revision cannot be
+a stable reference. If every revision gets a new identifier, the registry
+cannot identify documents that describe the same logical Thing or form their
+`ancestor` lineage, and every holder of a reference has to update it. Keeping
+minor and patch versions out of the identifier lets a recipient resolve the
+document without parsing a version suffix.
 
 **Example.** A typo is fixed in the lamp `urn:fabrikam:lamp:42`. Its `wotid`
 and its `thingdescriptionid` do not change, and the correction becomes a new
@@ -32,11 +32,10 @@ by name.
 **Consequence.** Revising a document leaves `wotid`, `thingdescriptionid` and
 `thingmodelid` unchanged and adds a Version.
 
-**Scope.** This constrains mutating an existing identifier. An author who
-publishes a second, incompatible Thing is naming a different Thing. For a
-Thing Model, its identifier MUST carry a major-version token: that token is
-part of its permanent `wotid`, not a revision appended to an existing one. See
-[Decision 6](#6-a-breaking-change-produces-a-new-logical-thing).
+**Scope.** This rule constrains revisions of an existing identifier. An
+author publishing a second, incompatible Thing assigns it a distinct,
+permanent `wotid`. A Thing Model's identifier MUST include a major-version
+token. See [Decision 6](#6-a-breaking-change-produces-a-new-logical-thing).
 
 See [Section 1.3](spec.md#13-versioning),
 [Section 5.1](spec.md#51-wot-identifiers-and-registry-ids) and
@@ -172,8 +171,8 @@ See [Section 5.1.1](spec.md#511-breaking-changes-and-successor-identifiers).
 resolver accepts a minimum-version floor, honours a sticky default, and
 returns an exact selection with its origin.
 
-**Why.** The following choices make references portable while separating
-compatibility from reproducibility:
+**Why.** The resolver separates a dependency's minimum compatible version
+from a caller's request to reproduce a previous selection:
 
 | Choice | Rationale |
 |---|---|
