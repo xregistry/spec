@@ -8,7 +8,7 @@
                     "format": "JSON-LD/1.1",
                     "contenttype": "application/td+json",
                     "wotid": "urn:fabrikam:lamp:42",
-                    "derivedfrom": [ "urn:fabrikam:lamp" ],
+                    "derivedfrom": [ "urn:fabrikam:lamp:v1" ],
                     "publisher": "Fabrikam",
                     "maturity": "Vendor",
                     "thingdescription": {
@@ -23,7 +23,7 @@
                         "links": [
                             {
                                 "rel": "type",
-                                "href": "https://example.com/thingmodelgroups/Fabrikam.Lighting/thingmodels/urn.fabrikam.lamp",
+                                "href": "https://example.com/thingmodelgroups/Fabrikam.Lighting/thingmodels/urn.fabrikam.lamp.v1",
                                 "type": "application/tm+json"
                             }
                         ],

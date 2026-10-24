@@ -3,15 +3,16 @@
         "Fabrikam.Lighting": {
             "description": "Reusable Thing Models for Fabrikam lighting products",
             "thingmodels": {
-                "urn.fabrikam.lamp": {
+                "urn.fabrikam.lamp.v1": {
                     "description": "Generic dimmable lamp Thing Model",
                     "format": "JSON-LD/1.1",
                     "contenttype": "application/tm+json",
-                    "wotid": "urn:fabrikam:lamp",
+                    "versionid": "1.0.0",
+                    "wotid": "urn:fabrikam:lamp:v1",
                     "thingmodel": {
                         "@context": "https://www.w3.org/2022/wot/td/v1.1",
                         "@type": "tm:ThingModel",
-                        "id": "urn:fabrikam:lamp",
+                        "id": "urn:fabrikam:lamp:v1",
                         "title": "Fabrikam Lamp",
                         "version": { "model": "1.0.0" },
                         "properties": {
@@ -37,7 +38,7 @@
                     "format": "JSON-LD/1.1",
                     "contenttype": "application/td+json",
                     "wotid": "urn:fabrikam:lamp:42",
-                    "derivedfrom": [ "urn:fabrikam:lamp" ],
+                    "derivedfrom": [ "urn:fabrikam:lamp:v1" ],
                     "thingdescription": {
                         "@context": "https://www.w3.org/2022/wot/td/v1.1",
                         "@type": "Thing",
@@ -47,7 +48,7 @@
                         "links": [
                             {
                                 "rel": "type",
-                                "href": "https://example.com/thingmodelgroups/Fabrikam.Lighting/thingmodels/urn.fabrikam.lamp",
+                                "href": "https://example.com/thingmodelgroups/Fabrikam.Lighting/thingmodels/urn.fabrikam.lamp.v1",
                                 "type": "application/tm+json"
                             }
                         ],
