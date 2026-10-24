@@ -61,9 +61,10 @@ Registry allows for the storage, management and discovery of W3C
       - [5.4.3. Errors and Test Vectors](#543-errors-and-test-vectors)
   - [6. Relationships and Cross-References](#6-relationships-and-cross-references)
     - [6.1. Thing Description to Thing Model](#61-thing-description-to-thing-model)
-    - [6.2. Thing Description to Endpoint Registry](#62-thing-description-to-endpoint-registry)
-    - [6.3. Thing Description to Schema Registry](#63-thing-description-to-schema-registry)
-    - [6.4. Affordance Grouping](#64-affordance-grouping)
+    - [6.2. Thing Description to Thing Description](#62-thing-description-to-thing-description)
+    - [6.3. Thing Description to Endpoint Registry](#63-thing-description-to-endpoint-registry)
+    - [6.4. Thing Description to Schema Registry](#64-thing-description-to-schema-registry)
+    - [6.5. Affordance Grouping](#65-affordance-grouping)
   - [7. Security](#7-security)
 
 ## 1. Overview
@@ -107,11 +108,11 @@ A WoT Registry is complementary to the xRegistry [Endpoint][xRegistry Endpoint],
 
 - A Thing Description's `forms` array describes protocol bindings that MAY
   also be represented as `endpoint` Resources; see
-  [Section 6.2](#62-thing-description-to-endpoint-registry).
+  [Section 6.3](#63-thing-description-to-endpoint-registry).
 - A Thing Description's property/action/event data schemas (declared inline
   via WoT data-schema vocabulary) MAY reference external schemas managed by
   the xRegistry Schema Registry; see
-  [Section 6.3](#63-thing-description-to-schema-registry).
+  [Section 6.4](#64-thing-description-to-schema-registry).
 - A Thing Description MAY reference one or more Thing Models from which it
   is derived; see [Section 6.1](#61-thing-description-to-thing-model).
 
@@ -146,8 +147,8 @@ as `invalid-version`.
 If `version.model` is absent or is not SemVer, the registry MUST assign
 `0.0.0-N`, where N is the lowest positive integer whose complete id is not
 already used in the Resource. A client-supplied `versionid`, if present, MUST
-equal that assignment or the registry MUST reject it as `version-mismatch`. A
-supplied id that violates Core's id grammar MUST be rejected as
+equal that assignment or the registry MUST reject it as `version-mismatch`.
+A supplied id that violates Core's id grammar MUST be rejected as
 `invalid-version` before this comparison. The original absent or non-SemVer
 `version.model` MUST NOT be rewritten. Assignment and creation MUST be atomic
 with respect to concurrent writes, so two writes cannot claim the same
@@ -161,10 +162,26 @@ MUST NOT be used as minimum-version floors; the `0.0.0-N` form is reserved
 from use as a floor, even when the target Version is not present in the
 registry.
 
-Thing Descriptions MUST use `versionmode: manual`. Their `versionid` MAY be
-any value permitted by Core; it need not equal `version.instance` or
-`version.model`. A TD's `version.model` describes its model dependency, not
-its instance revision.
+Thing Description Resources MUST use Core `versionmode: semver` and
+`singleversionroot: true`. The registry MUST inspect `version.instance`
+without modifying the stored document. If it is a SemVer 2.0.0 value without
+build metadata, the Version's `versionid` MUST equal it verbatim; the registry
+MUST assign it when omitted and MUST reject a supplied mismatch as
+`version-mismatch`. Build metadata MUST be rejected as `invalid-version`.
+If `version.instance` is absent or is not SemVer, the registry MUST assign
+`0.0.0-N`, where N is the lowest positive integer whose complete id is not
+already used in the Resource. A supplied `versionid`, if present, MUST equal
+that assignment or the registry MUST reject it as `version-mismatch`. The
+original `version.instance` MUST NOT be rewritten. Assignment and creation
+MUST be atomic with respect to concurrent writes.
+
+Each Thing Description Version MUST have the server-set, read-only
+`versionorigin` attribute: `authored` when its id comes from a SemVer
+`version.instance`, and `generated` otherwise. Client-supplied
+`versionorigin` MUST be ignored. Generated ids MUST NOT be used as floors.
+A TD's `version.model` describes a model dependency; only a TD's `rel: "type"`
+link uses it as an implicit floor. It does not determine the TD's instance
+version and does not supply a floor for a TD-to-TD reference.
 
 For Thing Models, the Resource-level `compatibility` attribute in `meta` MUST
 default to `backward`. A backward-compatible TM revision MUST NOT remove or
@@ -183,22 +200,25 @@ floors and prerelease eligibility as specified in
 [Section 5.4](#54-versioned-reference-resolution); an ordinary unversioned
 Resource retrieval still serves Core's default.
 
-For migration, an operator SHOULD inventory every Version and root of a legacy
-Resource before enabling this model. Compatible roots SHOULD be imported into
-one SemVer-ordered lineage with ids assigned by the rules above; incompatible
-roots MUST be placed in distinct Resources with distinct major-version
-`wotid`s. Where changing an old immutable id or authored document would be
-necessary, the operator SHOULD preserve the legacy Resource outside the
-conforming collection and import a copy under a new registry Resource id. The
-operator MUST preserve authored bytes, record the old-to-new registry paths
-for callers holding pins, and establish a valid default before enabling
-`singleversionroot`. An operator MUST NOT claim that an unresolved
+For migration, an operator SHOULD inventory every Version and root of a
+legacy Resource before enabling this model. Compatible TM roots SHOULD be
+imported into one SemVer-ordered lineage with ids assigned by the rules above;
+incompatible roots MUST be placed in distinct Resources with distinct
+major-version `wotid`s. Legacy TD Resources with manually assigned `versionid`s
+SHOULD be inventoried and re-imported with ids assigned from `version.instance`
+or generated by these rules. Where changing an old immutable id or authored
+document would be necessary, the operator SHOULD preserve the legacy Resource
+outside the conforming collection and import a copy under a new registry
+Resource id. The operator MUST preserve authored bytes, record old-to-new
+registry paths for callers holding pins, and establish a valid default before
+enabling `singleversionroot`. An operator MUST NOT claim that an unresolved
 multiple-root Resource conforms to this model.
 
 The [versioning design note](versioning-design.md) explains the design
-informatively. The `tm:minVersion` member is defined by a proposed extension
-to the W3C WoT Thing Description; it is informative context, not a claim that
-this member is part of the published WoT 1.1 Recommendation.
+informatively. The `tm:minVersion` and `td:minVersion` members are defined by
+a proposed extension to the W3C WoT Thing Description; they are informative
+context, not claims that these members are part of the published WoT 1.1
+Recommendation.
 
 ### 1.4. Document Store
 
@@ -268,15 +288,15 @@ This specification defines the following terms:
 We use the term **Thing Description** (or `thingdescription` Resource) in this specification as a
 logical grouping of **Thing Description Versions**. A **Thing Description Version** is a concrete
 WoT-TD 1.1 JSON-LD document. The **Thing Description** Resource names one or
-more concrete Thing Description documents that represent iterations of the
-same logical Thing instance. It is more than a container for them: addressing
-the Resource without naming a Version addresses its
-[default Version][xRegistry version-ids], so the Resource also acts as a
-stable alias for whichever Version is current. Per the definition of the
-[`compatibility`][xRegistry compatibility] attribute, all Versions of a single
-**Thing Description** MUST adhere to the rules defined by the `compatibility` attribute.
-A breaking change that violates that policy MUST result in a new **Thing
-Description** Resource being created; see [Section 1.3](#13-versioning).
+more concrete Thing Description documents for the same Thing instance.
+Addressing the Resource without naming a Version addresses its
+[default Version][xRegistry version-ids], so the Resource acts as a stable
+alias for whichever Version is current. The TD's `version.instance` carries
+its revision, including breaking major revisions; a major revision remains
+under the same `id`, `wotid`, and Resource. If a Resource declares the
+[`compatibility`][xRegistry compatibility] attribute, all its Versions MUST
+adhere to that policy. A TD that identifies a different Thing MUST use that
+Thing's `id` and a corresponding Resource; see [Section 1.3](#13-versioning).
 
 #### 2.2.2. Thing Model
 
@@ -382,6 +402,7 @@ form:
           "createdat": "<TIMESTAMP>",
           "modifiedat": "<TIMESTAMP>",
           "ancestorid": "<STRING>",
+          "versionorigin": "<STRING>",              # authored or generated; server-set
           "contenttype": "<STRING>", ?             # application/td+json; see 4.2
           "format": "<STRING>",                    # MUST be "JSON-LD/1.1"
           "wotid": "<STRING>",                     # the document's authored 'id'
@@ -530,10 +551,18 @@ Example:
 
 ### 4.2. Thing Description Resources
 
-The Resource Type (`<RESOURCE>`) inside of Thing Description Groups is named `thingdescription`. The
-plural, used as the collection name, is `thingdescriptions`. Any single `thingdescription` is a
-container for one or more `versions`, each of which holds the concrete
-WoT-TD 1.1 JSON-LD document.
+The Resource Type (`<RESOURCE>`) inside Thing Description Groups is named
+`thingdescription`. The plural, used as the collection name, is
+`thingdescriptions`. Each Resource contains one or more Versions, each holding
+a complete WoT-TD 1.1 JSON-LD document.
+
+Thing Description Resources MUST use Core `versionmode: semver` and
+`singleversionroot: true`, as specified in [Section 1.3](#13-versioning).
+The Version-level `versionorigin` attribute is REQUIRED, read-only, and uses
+the strict enumeration `authored` or `generated`. The `versionid` is assigned
+from `version.instance` when that member is SemVer without build metadata;
+otherwise it is the lowest free `0.0.0-N` id. The original document bytes,
+including `version.instance`, are not rewritten.
 
 The `format` attribute of a `thingdescription` Resource Version MUST be
 `"JSON-LD/1.1"`. [model.json](model.json) declares the `format` enumeration
@@ -562,8 +591,9 @@ Description extends or composes; it is a producer-supplied index rather than
 an authority over the document's own references, as
 [Section 5.2](#52-preserving-customer-documents) describes.
 
-All Versions of a single Thing Description Resource MUST adhere to the semantic rules of
-the Thing Description's [`compatibility`][xRegistry compatibility] attribute, if specified.
+All Versions of a single Thing Description Resource MUST adhere to the
+semantic rules of the Thing Description's [`compatibility`][xRegistry
+compatibility] attribute, if specified.
 
 Implementations of this specification SHOULD use the xRegistry default
 algorithm for generating new `versionid` values. Which Version is the default
@@ -754,10 +784,12 @@ and patch revisions are carried by `versionid` and `version.model`, not
 appended to the identifier. No particular spelling of the major-version token
 is mandated.
 
-When a document is revised compatibly, its `wotid` and `thingdescriptionid` or
-`thingmodelid` MUST remain unchanged, and a new Version is created under the
-same Resource. A breaking revision instead names a distinct logical Thing as
+When a document is revised compatibly, its `wotid` and Resource id MUST
+remain unchanged, and a new Version is created under the same Resource. A
+Thing Model breaking revision uses a distinct major-version `wotid` as
 specified in [Section 5.1.1](#511-breaking-changes-and-successor-identifiers).
+A Thing Description major revision remains under its existing `id` and
+`wotid`; a new TD identifier names a different concrete Thing.
 
 A `wotid` is REQUIRED, and the rule for populating it depends on the document:
 
@@ -783,9 +815,10 @@ second case is not yet settled.
 #### 5.1.1. Breaking Changes and Successor Identifiers
 
 A breaking Thing Model change MUST use a new major-version `wotid` and a
-distinct Resource. The predecessor's `wotid` MUST NOT be modified. A breaking
-TD change that violates its declared compatibility policy MUST likewise use a
-distinct `wotid` and Resource.
+distinct Resource. The predecessor's `wotid` MUST NOT be modified. A major
+Thing Description revision remains a Version of the same concrete Thing under
+the same `id`, `wotid`, and Resource. A distinct TD `id` and `wotid` identify
+a different concrete Thing, not a breaking revision of the existing one.
 
 The predecessor Resource MUST be marked with Core's
 [`deprecated`][xRegistry deprecated] attribute, whose `alternative` MUST be
@@ -920,12 +953,23 @@ recipient can put straight into a URL.
 
 #### 5.4.1. Floors and Pins
 
-A reference MAY carry a minimum SemVer, called its floor, but MUST NOT carry a
-version range. For `tm:extends` and `tm:submodel`, `tm:minVersion` is a member
-of the link object. For `tm:ref`, it is a sibling of `tm:ref` in the referring
-object. A floor MUST be a SemVer 2.0.0 string without build metadata, within
-Core's id length limit, and MUST NOT have the generated `0.0.0-N` form. An
-invalid floor MUST produce `invalid-version`.
+A reference MAY carry a minimum SemVer, called its floor, but MUST NOT carry
+a version range. `tm:minVersion` is a member of `tm:extends` or
+`tm:submodel` links and a sibling of `tm:ref`. `td:minVersion` is a member of
+`td:extends` or `td:subthing` links and a sibling of `td:ref`. A floor MUST be
+a SemVer 2.0.0 string without build metadata, within Core's id length limit,
+and MUST NOT have the generated `0.0.0-N` form. Invalid syntax or a generated
+floor MUST produce `invalid-version`. `td:minVersion` on a TM reference and
+`tm:minVersion` on a TD-to-TD reference MUST produce `invalid-floor`.
+
+A TM floor has no upper bound; the TM major is part of its `wotid`. A TD
+floor `X.Y.Z` admits target versions greater than or equal to `X.Y.Z` and
+below `(X+1).0.0`, including when X is zero. It also excludes prereleases
+whose major is `X+1`. A TD reference without a floor has no lower or upper
+bound and can select a version in any major. Neither the referencing TD's
+`version.instance` nor its `version.model` supplies an implicit floor for a
+TD-to-TD reference. The `version.model` implicit floor applies only to a TD's
+`rel: "type"` link to a TM.
 
 For a TD with exactly one `rel: "type"` link, its `version.model`, when
 present, is the implicit floor of that link. If the link also has an explicit
@@ -934,65 +978,63 @@ floor; an explicit lower value MUST NOT weaken the implicit floor. If only one
 floor is present, that floor applies. For a TD with several type links and
 `version.model`, every type link MUST carry its own `tm:minVersion`; otherwise
 resolution MUST fail as `ambiguous-floor`, including when resolving a
-different, fully specified link of that TD. When every link has an explicit
-floor, each link MUST use the greater of its own `tm:minVersion` and
-`version.model` by SemVer precedence. For several type links without
-`version.model`, there is no implicit floor: each link uses its own
-`tm:minVersion` if present, and otherwise has no floor. An omitted floor in
-that case MUST NOT produce `ambiguous-floor`. A non-SemVer implicit floor MUST
-produce `invalid-version`, not silently disappear.
+different, fully specified link. When every link has a floor, each link MUST
+use the greater of its own floor and `version.model`. For several type links
+without `version.model`, each link uses its own floor if present; an omitted
+floor MUST NOT produce `ambiguous-floor`. A non-SemVer implicit floor MUST
+produce `invalid-version`.
 
 A resolver MUST return `(wotid, versionid, contentdigest, origin)`, where
-`origin` identifies the registry from which the stored bytes were obtained and
-`contentdigest` is the digest of those bytes. A Consumer MAY retain this tuple
-outside the document and pass either a digest pin or a `versionid` pin on a
-subsequent resolution. A request MUST contain at most one kind of pin.
+`origin` identifies the registry from which the stored bytes were obtained
+and `contentdigest` is the digest of those bytes. A Consumer MAY retain this
+tuple outside the document and pass either a digest pin or a `versionid` pin
+on a subsequent resolution. A request MUST contain at most one kind of pin.
 Documents MUST NOT carry registry version pins or digest pins; a floor is a
 compatibility requirement, not a pin. Authored references and document bytes
 MUST remain portable between registries.
 
 #### 5.4.2. Resolver Algorithm
 
-The caller first selects a registry and Group scope that identifies one
-Resource by `wotid`, following [Section 5.3](#53-lookup). For `tm:ref`, the
+The caller selects a registry and Group scope identifying one Resource by
+`wotid`, following [Section 5.3](#53-lookup). For `tm:ref` or `td:ref`, the
 lookup target is the document identifier resolved from the reference URI,
-excluding any fragment; the fragment is applied to the selected document after
-version selection. Resource disambiguation across Groups precedes this
-algorithm.
+excluding any fragment; the fragment is applied after version selection.
+Resource disambiguation across Groups precedes this algorithm.
 
-The resolver MUST apply the following steps in order:
+The resolver MUST apply these steps in order:
 
 1. Find the Resource whose `wotid` equals the reference target. If none
-   exists, fail as `not-found`. A deprecated Resource is eligible and MUST NOT
-   be replaced automatically by its `deprecated.alternative`.
-2. If a digest pin is supplied, return a Version of that Resource whose
-   `contentdigest` equals the pin, or fail as `pin-mismatch`. If several
-   Versions have identical bytes and the same digest, return the one with
+   exists, fail as `not-found`. A deprecated Resource is eligible and MUST
+   NOT be replaced automatically by its `deprecated.alternative`.
+2. If a digest pin is supplied, return a Version with that `contentdigest`,
+   or fail as `pin-mismatch`. For duplicate bytes, return the Version with
    highest SemVer precedence. If a `versionid` pin is supplied, return that
-   exact Version or fail as `not-found`. Pins are caller overrides: they
-   bypass floor derivation, prerelease filtering and sticky-default selection.
-   They do not authorize substituting bytes or following a successor.
-3. Derive and validate the floor as specified in Section 5.4.1. Report
+   exact Version or fail as `not-found`. Pins bypass floor derivation, the TD
+   major cap, prerelease filtering and sticky-default selection. They do not
+   authorize substituting bytes or following a successor.
+3. Derive the target kind and floor as specified in Section 5.4.1. Report
    `ambiguous-floor` before validating individual floors when the
    multiple-type-link rule is violated.
-4. If `defaultversionsticky` is true, select the Version named by
-   `defaultversionid` as-is. Do not substitute another Version or apply
-   prerelease filtering to an operator's sticky choice. If the named Version
-   is unavailable, fail as `not-found`.
-5. Otherwise, exclude all prereleases, including generated ids, unless the
-   floor is a prerelease or the caller explicitly opts in with
-   `allowPrerelease`. Select the highest remaining Version by SemVer 2.0.0
-   precedence, not lexicographic order. If none is eligible, fail as
-   `unsatisfied`. Even a Resource containing only generated Versions requires
-   an opt-in or an explicit pin or sticky default.
-6. If a floor exists and the selected Version is below it, fail as
-   `unsatisfied`. Never downgrade, bypass a sticky default or retry with a
-   lower Version. Otherwise return the selected
-   `(wotid, versionid, contentdigest, origin)`.
+4. If `defaultversionsticky` is true, select `defaultversionid` as-is. Do not
+   substitute another Version or apply prerelease filtering to a sticky
+   choice. If it is unavailable, fail as `not-found`. If it is below the
+   floor or its major is at least the floor major plus one, fail as
+   `unsatisfied`.
+5. Otherwise, exclude prereleases, including generated ids, unless the floor
+   is a prerelease or the caller opts in with `allowPrerelease`. For TD
+   targets with a floor, also exclude Versions below the floor and those with
+   major at least `floor.major + 1`, including prereleases of the next major.
+   Select the highest remaining Version by SemVer precedence. If none is
+   eligible, fail as `unsatisfied`. A generated-only Resource requires an
+   opt-in, pin or sticky default.
+6. If a floor exists and the selected Version is below it, or a TD target's
+   major is at least `floor.major + 1`, fail as `unsatisfied`. Never downgrade,
+   bypass a sticky default or retry with a lower Version.
+   Otherwise return `(wotid, versionid, contentdigest, origin)`.
 
-For an unpinned reference, only SemVer Versions from a conforming Thing Model
-Resource are inputs to this algorithm. Thing Description instance revisions
-are not ordered by this resolver.
+For an unpinned reference, only SemVer Versions from a conforming Resource of
+the indicated target kind are inputs. A TD Resource's `versionid` is derived
+from `version.instance`; a TM Resource's is derived from `version.model`.
 
 #### 5.4.3. Errors and Test Vectors
 
@@ -1000,8 +1042,9 @@ are not ordered by this resolver.
 |---|---|
 | `not-found` | Resource, pinned Version or sticky default is absent. |
 | `pin-mismatch` | The target Resource has no Version with the caller's digest. |
-| `unsatisfied` | No eligible Version exists, or the selected Version is below the floor. |
+| `unsatisfied` | No eligible Version exists, or the selected Version is below the floor or outside the TD major cap. |
 | `ambiguous-floor` | A TD has `version.model`, several type links and at least one link without its own floor. |
+| `invalid-floor` | A floor term is used with a reference to the other document kind. |
 | `version-mismatch` | A supplied publication `versionid` disagrees with the authored or generated assignment. |
 | `invalid-version` | A floor or publication version violates the version syntax or generated-floor restriction. |
 
@@ -1014,10 +1057,10 @@ assignment.
 ## 6. Relationships and Cross-References
 
 Sections [6.1](#61-thing-description-to-thing-model) through
-[6.3](#63-thing-description-to-schema-registry) describe how existing WoT and
+[6.4](#64-thing-description-to-schema-registry) describe how existing WoT and
 xRegistry mechanisms compose. They place no requirements on a conformant
 registry and use no RFC 2119 keywords;
-[Section 6.4](#64-affordance-grouping) is normative.
+[Section 6.5](#65-affordance-grouping) is normative.
 
 ### 6.1. Thing Description to Thing Model
 
@@ -1063,7 +1106,25 @@ through the TD document's `links` member rather than through the xRegistry
 [`xref`][xRegistry xref] attribute, which exists to surface the *same*
 Resource under more than one Group.
 
-### 6.2. Thing Description to Endpoint Registry
+### 6.2. Thing Description to Thing Description
+
+A TD-to-TD reference selects a Version of the target `thingdescription`
+Resource using its `wotid` and SemVer `versionid`, derived from the target
+`version.instance` as specified in [Section 1.3](#13-versioning). For
+`td:extends`, `td:subthing` and `td:ref`, `td:minVersion` is an OPTIONAL
+floor. A floor limits the target Version to `[floor, (major + 1).0.0)`;
+without a floor, resolution selects the highest eligible Version overall and
+can cross major versions. The referencing TD's `version.instance` and
+`version.model` do not supply an implicit floor.
+
+This selection rule identifies the TD supplied to the composition operator;
+it does not change the operator's inheritance, child-relationship, or
+definition-reference semantics. A `td:minVersion` on a TM reference or a
+`tm:minVersion` on a TD-to-TD reference is `invalid-floor`. Other TD links are
+outside this rule. The W3C versioned-reference proposal defines the proposed
+vocabulary and processing model.
+
+### 6.3. Thing Description to Endpoint Registry
 
 A WoT-TD 1.1 `forms` entry binds an interaction affordance to a network
 endpoint. When a Thing Description shares an endpoint that is independently
@@ -1077,7 +1138,7 @@ This specification does not require an `endpoint` Resource to exist for every
 mechanism. Implementations are free to define their own conventions to
 correlate the two.
 
-### 6.3. Thing Description to Schema Registry
+### 6.4. Thing Description to Schema Registry
 
 A WoT-TD 1.1 property, action, or event affordance can reference an external
 data schema rather than declaring its data schema inline. When the referenced
@@ -1088,7 +1149,7 @@ implementations typically express the reference using the WoT
 Resource Version's document-view URL — the `self` URL with the `$details`
 suffix removed.
 
-### 6.4. Affordance Grouping
+### 6.5. Affordance Grouping
 
 A Thing Description declares its properties, actions and events in the
 `properties`, `actions` and `events` members of a single document, as defined
