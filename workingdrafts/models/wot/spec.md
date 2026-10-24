@@ -901,12 +901,12 @@ Version selection is a second, separate step, and is never encoded in the
 metadata view, or that URL with the `$details` suffix removed for the
 document view; see [Section 1.4](#14-document-store).
 
-The Resource URL serves the Core default Version, including when
-`defaultversionsticky` is true. A registry MUST serve that default when no
-Version is named. This retrieval is distinct from resolving a reference: a
-resolver MUST use [Section 5.4](#54-versioned-reference-resolution), not
-lexical sorting, publication time or an assumption that the default always
-satisfies the reference.
+A request to the Resource URL without a Version returns the Core default,
+even when `defaultversionsticky` is true. A registry MUST serve that default
+when no Version is named. Reference resolution follows a different rule: a
+resolver MUST use [Section 5.4](#54-versioned-reference-resolution), not sort
+ids lexically, use publication time, or assume that the default satisfies the
+reference.
 
 What a caller SHOULD NOT do is fold the two into one opaque string. A caller
 that carries an identifier and a version through a transport — for example in

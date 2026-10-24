@@ -40,11 +40,11 @@ WoT Registry model defined in [../model.json](../model.json):
   `thingdescriptiongroups` compose: the instance carries `derivedfrom` and a
   `links[].rel = "type"` reference to the Thing Model Resource.
 
-All Thing Model `versionid` values equal the document's SemVer
-`version.model`. The model identifiers include their major version. The pump's
+Each Thing Model's `versionid` equals the document's SemVer
+`version.model`, and its identifier includes the major version. The pump's
 `tm:extends` links carry `tm:minVersion: "1.0.0"`, so resolution requires at
 least that revision of the device model. This member is defined by a proposed
 extension to the W3C WoT Thing Description, not by the published WoT 1.1
 Recommendation. `versionorigin` is omitted from these publication requests
-because it is server-set to `authored`. Its new `inletPressure` affordance is
-declared non-mandatory, so the `1.1.0` revision adds no mandatory member.
+because the registry sets it to `authored`. The new `inletPressure` affordance
+is non-mandatory, so revision `1.1.0` adds no mandatory member.

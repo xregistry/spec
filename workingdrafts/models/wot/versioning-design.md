@@ -1,11 +1,11 @@
 # WoT Registry: Versioning and Versioned Reference Resolution
 
-This note is informative. It explains how WoT documents are versioned in an
-xRegistry WoT Registry and how a reference between WoT documents resolves to
-exactly one version. The normative rules are in [spec.md](spec.md). The same
-design is used by the W3C proposal `td-versioned-references` and by the OPC UA
-WoT Connectivity specification (OPC 10100), so a document resolves to the same
-version in all three.
+This note is informative. It describes versioning in an xRegistry WoT
+Registry and how a reference resolves to one document version. The normative
+rules are in [spec.md](spec.md). The W3C proposal
+`td-versioned-references` and the OPC UA WoT Connectivity specification
+(OPC 10100) use the same design, so a document resolves to the same version
+in each.
 
 ## Problem
 
@@ -33,12 +33,11 @@ previous Resource is marked `deprecated` and names its successor. Every
 Version of one `wotid` is therefore backward compatible with every earlier
 Version of it, and `compatibility` defaults to `backward` for Thing Models.
 
-**R2. One version string.** For Thing Models the registry uses
-`versionmode: semver` with `singleversionroot: true`, and `versionid` MUST
-equal the document's `version.model`. A write whose `versionid` differs is
-rejected, the same way a mismatch between `wotid` and the document `id` is
-rejected. SemVer build metadata (`+…`) is rejected because `versionid` cannot
-carry `+`.
+**R2. `versionid` equals `version.model`.** For Thing Models the registry
+uses `versionmode: semver` with `singleversionroot: true`. A write whose
+`versionid` differs from the document's `version.model` is rejected, just as
+a mismatch between `wotid` and the document `id` is rejected. SemVer build
+metadata (`+…`) is rejected because `versionid` cannot carry `+`.
 
 A Thing Model without a version, or with a version that is not SemVer, gets a
 registry-generated `versionid` of the form `0.0.0-N`. N is the lowest positive
@@ -64,11 +63,11 @@ minimum Version it needs:
 
 Because R1 puts the major in the identity, an upper bound is never needed.
 
-**R4. The pin belongs to the resolver output, not to the document.** A
-resolution returns `(wotid, versionid, contentdigest, origin)`. A caller that
-needs reproducibility stores that tuple and passes the digest back on the next
-resolution. Documents never contain registry identifiers or digests, so they
-stay portable between registries.
+**R4. Keep the resolved tuple outside the document.** A resolution returns
+`(wotid, versionid, contentdigest, origin)`. A caller that needs to reproduce
+the selection stores that tuple and supplies a digest or `versionid` pin on a
+later request. The document contains no registry identifiers or content
+digests, so it remains portable between registries.
 
 ## Resolver
 
@@ -99,9 +98,9 @@ resolve(reference, pin?, allowPrerelease = false):
   return (R.wotid, V.versionid, V.contentdigest, registry origin)
 ```
 
-A resolver never selects a Version below the floor and never falls back to a
-lower one. A sticky default below the floor is a reported failure, because it
-means an operator pinned an older Version on purpose.
+A resolver never selects a Version below the floor or falls back to a lower
+one. If the sticky default is below the floor, resolution fails; the resolver
+does not select a different Version.
 
 ## User flows
 
