@@ -17,15 +17,25 @@
       "resources": {
         "thingdescriptions": {
           "singular": "thingdescription",
-          "versionmode": "manual",
+          "versionmode": "semver",
+          "singleversionroot": true,
           "modelversion": "0.1",
           "modelcompatiblewith": "https://xregistry.io/xreg/domains/wot/specs/model.json",
           "validateformat": true,
           "validatecompatibility": true,
           "strictvalidation": false,
-          "description": "A W3C WoT Thing Description, served as a document. Each Version holds one complete WoT-TD 1.1 JSON-LD document",
+          "description": "A W3C WoT Thing Description, served as a document. Each Version holds one complete WoT-TD 1.1 JSON-LD document; its versionid follows version.instance or is server-generated",
 
           "attributes": {
+            "versionorigin": {
+              "name": "versionorigin",
+              "type": "string",
+              "required": true,
+              "enum": [ "authored", "generated" ],
+              "strict": true,
+              "readonly": true,
+              "description": "Server-set origin of the Version id: authored from a SemVer version.instance, or generated as 0.0.0-N."
+            },
             "format": {
               "name": "format",
               "type": "string",

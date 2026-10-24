@@ -11,8 +11,9 @@ in each.
 
 A Thing Model (TM) states its own version in `version.model`. The registry
 keeps a separate `versionid` for every stored Version. A reference inside a
-WoT document (`tm:extends`, `tm:submodel`, `tm:ref`, or a Thing Description's
-`rel:type` link) names only the target's identifier and no version. That
+WoT document (`tm:extends`, `tm:submodel`, `tm:ref`, a TD `rel:type` link,
+or TD-to-TD `td:extends`, `td:subthing`, or `td:ref`) names only the target's
+identifier and no version. That
 leaves three questions open:
 
 1. When a document is published, which `versionid` does it get?
@@ -27,41 +28,45 @@ become the default Version, and a Thing Description that was built from model
 
 Four rules, R1–R4.
 
-**R1. The major version is part of the identity.** A breaking change publishes
-a new document identifier (`wotid`), for example `urn:example:pump:v2`. The
-previous Resource is marked `deprecated` and names its successor. Every
-Version of one `wotid` is therefore backward compatible with every earlier
-Version of it, and `compatibility` defaults to `backward` for Thing Models.
+**R1. The TM major version is part of the identity.** A breaking TM change
+uses a new `wotid`, for example `urn:example:pump:v2`. The previous Resource
+is marked `deprecated` and names its successor. Every Version of one TM
+`wotid` is backward compatible with earlier Versions under it, and
+`compatibility` defaults to `backward` for Thing Models. A TD `id` names a
+concrete Thing; its major instance revision remains under that `id`.
 
-**R2. `versionid` equals `version.model`.** For Thing Models the registry
-uses `versionmode: semver` with `singleversionroot: true`. A write whose
-`versionid` differs from the document's `version.model` is rejected, just as
-a mismatch between `wotid` and the document `id` is rejected. SemVer build
-metadata (`+…`) is rejected because `versionid` cannot carry `+`.
+**R2. The Version id follows the document version.** Thing Models use
+`versionmode: semver` and `singleversionroot: true`; their `versionid` equals
+SemVer `version.model`. Thing Descriptions use the same resource settings;
+their `versionid` equals SemVer `version.instance`. Build metadata is rejected
+because Core `versionid` cannot carry `+`, and a supplied mismatch is
+`version-mismatch`.
 
-A Thing Model without a version, or with a version that is not SemVer, gets a
-registry-generated `versionid` of the form `0.0.0-N`. N is the lowest positive
-integer whose id is not already in use. The Version is marked
-`versionorigin: generated`. A generated id is a prerelease, so it sorts below
-every release, and it MUST NOT be used as a floor. A Version whose `versionid`
-came from `version.model` is marked `versionorigin: authored`.
+If the relevant document version is absent or is not SemVer, the registry
+assigns the lowest unused `0.0.0-N`. `versionorigin` is `authored` when the id
+comes from `version.model` or `version.instance`, and `generated` otherwise.
+Generated ids are prereleases and MUST NOT be used as floors. For a TD,
+`version.model` remains an implicit floor only for its `rel:type` TM link.
 
-Thing Descriptions keep `versionmode: manual`. Their `versionid` is chosen
-freely, because a TD's version describes an instance revision, not a
-compatibility contract.
-
-**R3. A reference carries a floor, never a range.** A reference MAY state the
+**R3. A reference carries a floor, not range syntax.** A reference MAY state the
 minimum Version it needs:
 
 | Reference | Floor |
 |---|---|
 | `tm:extends`, `tm:submodel` link | `tm:minVersion` member on the link |
 | `tm:ref` | `tm:minVersion` member beside `tm:ref` |
+| `td:extends`, `td:subthing` | `td:minVersion` member on the link; target range ends before the next major |
+| `td:ref` | `td:minVersion` member beside `td:ref`; target range ends before the next major |
 | TD `rel:type` link, exactly one in the TD | Greater of its explicit `tm:minVersion` and the TD's implicit `version.model` by SemVer precedence; if only one is present, use it; otherwise no floor |
 | TD `rel:type` links, several, with `version.model` | Every link MUST have `tm:minVersion`, or resolution fails as `ambiguous-floor`; each link uses the greater of its own floor and `version.model` |
 | TD `rel:type` links, several, without `version.model` | Each link uses its own `tm:minVersion` if present; otherwise no floor, without error |
 
-Because R1 puts the major in the identity, an upper bound is never needed.
+TM floors have no upper bound because their major is part of `wotid`. A TD
+floor is a caret floor: `X.Y.Z` selects versions from `X.Y.Z` up to but not
+including `(X+1).0.0`. A TD `id` names a concrete Thing, so a breaking major
+revision remains under that id. An unfloored TD-to-TD reference can cross
+majors; `td:minVersion` on `td:extends`, `td:subthing`, or beside `td:ref`
+selects within the target major. There is no implicit floor for TD targets.
 
 **R4. Keep the resolved tuple outside the document.** A resolution returns
 `(wotid, versionid, contentdigest, origin)`. A caller that needs to reproduce
@@ -73,34 +78,33 @@ digests, so it remains portable between registries.
 
 ```text
 resolve(reference, pin?, allowPrerelease = false):
-  R := the Resource whose wotid equals the reference target           else FAIL not-found
-  if pin.digest:     return the Version of R with that contentdigest  else FAIL pin-mismatch
-  if pin.versionid:  return that Version of R                         else FAIL not-found
-  floor := reference.tm:minVersion                                 (absent if unset)
+  R := the Resource whose wotid equals the reference target      else FAIL not-found
+  if pin.digest:     return the Version of R with that digest    else FAIL pin-mismatch
+  if pin.versionid:  return that Version of R                    else FAIL not-found
+  kind := TM or TD from the reference operator
+  floor := reference.tm:minVersion or reference.td:minVersion   (absent if unset)
   if reference is a TD rel:type link:
-      links := all rel:type links in that TD
-      model := TD.version.model                                   (absent if unset)
-      if model is present and count(links) > 1 and any link lacks tm:minVersion:
-          FAIL ambiguous-floor
-      validate every explicit link floor                          else FAIL invalid-version
-      if model is present:
-          validate model as a floor                               else FAIL invalid-version
-          floor := greater by SemVer precedence of floor and model (use model if floor absent)
-  validate floor if present                                       else FAIL invalid-version
-  # Generated 0.0.0-N ids and invalid SemVer are never valid floors.
+      derive the existing implicit floor from TD.version.model
+      apply the multiple-link ambiguous-floor rule
+  validate floor syntax and reject generated 0.0.0-N floors      else FAIL invalid-version
+  reject a floor term for the other target kind                  else FAIL invalid-floor
   if R.defaultversionsticky:
-      V := R.default                                   # operator pin is honoured, never bypassed
+      V := R.default
+      if floor and V < floor: FAIL unsatisfied
+      if kind is TD and floor and V.major >= floor.major + 1: FAIL unsatisfied
   else:
-      eligible := Versions of R, excluding prereleases
-                  unless allowPrerelease or floor is itself a prerelease
-      V := highest eligible Version by SemVer precedence    else FAIL unsatisfied
-  if floor and V < floor: FAIL unsatisfied (have V, need floor)
+      eligible := Versions in the target-kind floor range,
+                  excluding prereleases unless opted in or floor is prerelease
+      V := highest eligible Version by SemVer precedence         else FAIL unsatisfied
   return (R.wotid, V.versionid, V.contentdigest, registry origin)
 ```
 
-A resolver never selects a Version below the floor or falls back to a lower
-one. If the sticky default is below the floor, resolution fails; the resolver
-does not select a different Version.
+For a TD target with floor `X.Y.Z`, the eligible range ends before
+`(X+1).0.0` and excludes prereleases of that next major. With no floor, TD
+selection MAY cross majors. A resolver never selects below a floor or outside
+a TD caret range. If a sticky default is out of range, including in a higher
+TD major, resolution fails as `unsatisfied`; it does not select a different
+Version.
 
 ## User flows
 
@@ -130,8 +134,8 @@ does not select a different Version.
 
 | Specification | Change |
 |---|---|
-| W3C WoT (proposal `td-versioned-references`) | Defines `tm:minVersion`, the implicit `rel:type` floor, the multiple-link rule, and the `successor-version` / `latest-version` link relations. |
-| xRegistry WoT Registry | `versionmode: semver` and `singleversionroot: true` for Thing Models, the `versionid` = `version.model` rule, `versionorigin`, generated `0.0.0-N`, prerelease eligibility, the resolver, and the resolution test vectors in [tests/resolution](tests/resolution). |
-| OPC 10100 WoT Binding | Maps `tm:minVersion` and TD `version.model` to the information model. |
+| W3C WoT (proposal `td-versioned-references`) | Defines TM and TD floors, TD instance identity, implicit `rel:type` floors, and version navigation. |
+| xRegistry WoT Registry | SemVer identities for TMs and TDs, `versionorigin`, generated `0.0.0-N`, TM floors, TD caret floors, prerelease eligibility, the resolver, and shared vectors in [tests/resolution](tests/resolution). |
+| OPC 10100 WoT Binding | Maps `tm:minVersion`, `td:minVersion`, and TD `version.model` to the information model. |
 | OPC 10100 WoT Connectivity | `WoTDependencyDataType.RequiredVersion`, the authored version and its origin on `WoTDocumentType`, and the same resolution order. |
 | Implementations (xregistry-dotnet, UA-.NETStandard) | Implement the resolver and run the shared vectors byte for byte. |
