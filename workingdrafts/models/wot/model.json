@@ -17,6 +17,7 @@
       "resources": {
         "thingdescriptions": {
           "singular": "thingdescription",
+          "versionmode": "manual",
           "modelversion": "0.1",
           "modelcompatiblewith": "https://xregistry.io/xreg/domains/wot/specs/model.json",
           "validateformat": true,
@@ -102,6 +103,8 @@
       "resources": {
         "thingmodels": {
           "singular": "thingmodel",
+          "versionmode": "semver",
+          "singleversionroot": true,
           "modelversion": "0.1",
           "modelcompatiblewith": "https://xregistry.io/xreg/domains/wot/specs/model.json",
           "validateformat": true,
@@ -109,7 +112,25 @@
           "strictvalidation": false,
           "description": "A W3C WoT Thing Model, served as a document. Each Version holds one complete WoT-TM 1.1 JSON-LD document",
 
+          "metaattributes": {
+            "compatibility": {
+              "name": "compatibility",
+              "type": "string",
+              "required": true,
+              "default": "backward"
+            }
+          },
+
           "attributes": {
+            "versionorigin": {
+              "name": "versionorigin",
+              "type": "string",
+              "required": true,
+              "enum": [ "authored", "generated" ],
+              "strict": true,
+              "readonly": true,
+              "description": "Server-set origin of the Version id: authored from a SemVer version.model, or generated as 0.0.0-N."
+            },
             "format": {
               "name": "format",
               "type": "string",
@@ -125,7 +146,7 @@
               "type": "string",
               "required": true,
               "matchversions": true,
-              "description": "The authored WoT identifier of this Thing Model - the value of the document's 'id' member, verbatim. It is the document's identity in the WoT identifier space and is distinct from the thingmodelid, which is the Resource id within this registry and is chosen by the client. All Versions of a Thing Model share one wotid; it MUST NOT encode a revision of the document it names"
+              "description": "The authored WoT identifier of this Thing Model, equal to its document id when present. It includes the major version and is stable across compatible revisions. It is distinct from the client-chosen thingmodelid."
             },
             "derivedfrom": {
               "name": "derivedfrom",
@@ -133,7 +154,7 @@
               "item": {
                 "type": "string"
               },
-              "description": "The authored WoT identifiers of the Thing Models this Thing Model extends via 'tm:extends' or references via 'tm:ref' - authored identifiers, not xids, so a resolver matches them against the document's own references directly"
+              "description": "The authored WoT identifiers of the Thing Models this Thing Model extends via 'tm:extends', composes via 'tm:submodel', or references via 'tm:ref' - authored identifiers, not xids, so a resolver matches them against the document's own references directly"
             },
             "license": {
               "name": "license",
