@@ -129,9 +129,9 @@ never valid floors.
 All files are UTF-8 without a byte-order mark, use LF and end in a newline.
 JSON files use two-space indentation. Vector filenames are stable and are
 listed in bytewise filename order in `MANIFEST.sha256`, whose lines are
-`<lowercase-sha256>  <filename>`. The repository's `.gitattributes` enforces
-LF for this directory. No timestamps or absolute local paths enter the fixtures
-or manifest.
+`<lowercase-sha256>  <filename>`. The repository's `.gitattributes` pins LF
+in Windows checkouts because the manifest hashes exact bytes. No timestamps or
+absolute local paths enter the fixtures or manifest.
 
 After an intentional edit, regenerate the manifest from the repository root,
 then run the checker:

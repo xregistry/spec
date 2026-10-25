@@ -1,2 +1,3 @@
 *.sh text eol=lf
+# MANIFEST.sha256 hashes LF bytes; keep Windows checkouts byte-identical.
 workingdrafts/models/wot/tests/resolution/* text eol=lf
