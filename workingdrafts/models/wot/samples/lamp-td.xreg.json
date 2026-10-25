@@ -7,6 +7,7 @@
                     "description": "Smart lamp instance #42 (above workbench A)",
                     "format": "JSON-LD/1.1",
                     "contenttype": "application/td+json",
+                    "versionid": "1.0.0",
                     "wotid": "urn:fabrikam:lamp:42",
                     "derivedfrom": [ "urn:fabrikam:lamp:v1" ],
                     "publisher": "Fabrikam",
