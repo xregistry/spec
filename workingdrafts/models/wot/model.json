@@ -34,6 +34,7 @@
               "enum": [ "authored", "generated" ],
               "strict": true,
               "readonly": true,
+              "default": "authored",
               "description": "Server-set origin of the Version id: authored from a SemVer version.instance, or generated as 0.0.0-N."
             },
             "format": {
@@ -127,6 +128,8 @@
               "name": "compatibility",
               "type": "string",
               "required": true,
+              "enum": [ "backward", "backward_transitive", "forward", "forward_transitive", "full", "full_transitive" ],
+              "strict": true,
               "default": "backward"
             }
           },
@@ -139,6 +142,7 @@
               "enum": [ "authored", "generated" ],
               "strict": true,
               "readonly": true,
+              "default": "authored",
               "description": "Server-set origin of the Version id: authored from a SemVer version.model, or generated as 0.0.0-N."
             },
             "format": {

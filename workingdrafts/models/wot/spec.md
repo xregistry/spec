@@ -191,6 +191,9 @@ Each Thing Description Version MUST have the server-set, read-only
 `version.instance`, and `generated` otherwise. Client-supplied
 `versionorigin` MUST be ignored under Core's [read-only attribute
 rules][Core read-only rules].
+The model initializes `versionorigin` to `authored`. For either document kind,
+the server MUST replace that initial value with `generated` when assigning a
+generated id; the model default does not replace the assignment rules above.
 Generated ids MUST NOT be used as floors. A TD's `version.model` describes a
 model dependency; only a TD's `rel: "type"` link uses it as an implicit floor.
 It does not determine the TD's instance version and does not supply a floor
