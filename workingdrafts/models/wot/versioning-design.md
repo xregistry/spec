@@ -1,5 +1,7 @@
 # WoT Registry: Versioning and Versioned Reference Resolution
 
+<!-- words: allowprerelease contentdigest dotnet minversion netstandard opc prereleases REQUIREDVERSION submodel tds tms ua versionorigin wotdependencydatatype wotdocumenttype wotid -->
+
 This note is informative. It describes versioning in an xRegistry WoT
 Registry and how a reference resolves to one document version. The normative
 rules are in [spec.md](spec.md). The W3C proposal

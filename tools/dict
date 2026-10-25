@@ -103,6 +103,7 @@ files
 filescount
 filesurl
 filesystem
+floorterm
 formatauthority
 gid
 github
@@ -300,7 +301,10 @@ ssl
 stakeholders
 storeid
 stringified
+strictvalidation
+subthing
 svg
+targetkind
 targetregistry
 tcp
 telemetrydata
@@ -317,6 +321,7 @@ uint
 uinteger
 ulong
 unescaping
+validatecompatibility
 unicode
 updateable
 upfront
