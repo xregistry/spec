@@ -1287,7 +1287,7 @@ indicate whether the property is supported for the respective MQTT version.
 | `message_expiry_interval`  | `integer`     | no         | yes      | Message expiry interval          |
 | `response_topic`           | `uritemplate` | no         | yes      | Response topic                   |
 | `correlation_data`         | `binary`      | no         | yes      | Correlation data                 |
-| `content_type`             | `symbol`      | no         | yes      | MIME content type of the payload |
+| `content_type`             | `string`      | no         | yes      | MIME content type of the payload |
 | `user_properties`          | Array         | no         | yes      | User properties                  |
 
 Like HTTP, MQTT allows for multiple user properties with the same name,

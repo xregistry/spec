@@ -1108,7 +1108,7 @@
                         "content_type": {
                           "name": "content_type",
                           "description": "MQTT content type",
-                          "type": "uritemplate"
+                          "type": "string"
                         },
                         "user_properties": {
                           "name": "user_properties",

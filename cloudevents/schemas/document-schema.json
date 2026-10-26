@@ -843,7 +843,6 @@
                       },
                       "content_type": {
                         "type": "string",
-                        "format": "uri-template",
                         "description": "MQTT content type"
                       },
                       "user_properties": {
