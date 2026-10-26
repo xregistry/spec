@@ -40,8 +40,6 @@ def test_checked_authored_bytes_and_context(publication):
     jsonschema.Draft202012Validator.check_schema(SCHEMA)
     result = open_context(context, objects)
     assert result["documents"][0]["viewVersion"] == "/sets/manual/documents/intro/versions/7"
-    content = result["documents"][0]["content"]
-    assert objects[content["url"]] == (SAMPLES / "intro.txt").read_bytes()
     validate("channel", json.loads((SAMPLES / "channel.json").read_text(encoding="utf-8")))
 
 

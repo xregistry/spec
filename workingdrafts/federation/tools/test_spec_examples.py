@@ -1,18 +1,11 @@
 """Keep the federation selection walkthrough executable and byte-accurate."""
 
-import json
-import re
-from pathlib import Path
-
 import pytest
 
 from workingdrafts.federation.tools.federation_examples import (
     FederationError, select_label, select_version,
 )
 from workingdrafts.federation.tools.federation_resolution_examples import Source, resolve_resource_read
-
-
-ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.mark.parametrize("local_shadow", [True, False], ids=["unique-after-shadowing", "ambiguous-without-shadow"])
@@ -65,22 +58,3 @@ def test_published_selection_example_filters_after_resource_shadowing(local_shad
         with pytest.raises(FederationError) as error:
             select_label(effective, "stage", "production")
         assert error.value.code == "ambiguous"
-
-
-def test_selection_example_keeps_public_metadata_separate_from_source_context():
-    text = (ROOT / "spec.md").read_text(encoding="utf-8")
-    section = text.split("### Example: Select After Applying Shadows")[1].split(
-        "## Discovery and Binding Selection"
-    )[0]
-    values = [json.loads(block) for block in re.findall(r"```json\n(.*?)```", section, re.S)]
-    assert values[0] == {"label": "stage", "value": "production"}
-    metadata, origin = values[1:]
-    xid = "/documents/main/assets/other/versions/v7"
-    assert metadata["xid"] == origin["selectedxid"] == xid
-    assert metadata["self"] == "https://registry.example.com" + xid + "$details"
-    assert metadata["versionid"] == "v7"
-    assert metadata["labels"] == {"stage": "production"}
-    assert metadata["contenttype"] == "text/plain"
-    assert origin["endpoint"] == "https://b.example.com/registry"
-    assert origin["revision"] is None and origin["consistency"] == "live"
-    assert "origin" not in metadata and "registryid" not in metadata

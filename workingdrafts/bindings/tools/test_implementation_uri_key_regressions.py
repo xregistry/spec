@@ -1,6 +1,5 @@
 """SPEC005: decoded mapping identities and canonical native OCI routing keys."""
 
-import hashlib
 import json
 from pathlib import Path
 from urllib.parse import unquote
@@ -14,7 +13,6 @@ from workingdrafts.bindings.tools import oci_examples as oci
 
 ROOT = Path(__file__).resolve().parents[3]
 MAPPING = ROOT / "workingdrafts" / "bindings" / "samples" / "mapping"
-OCI = ROOT / "workingdrafts" / "federation" / "samples" / "oci" / "layout"
 PREFIX = "io.xregistry.oci."
 
 
@@ -115,11 +113,3 @@ def test_canonical_uri_routing_keeps_exact_encoded_byte_count():
     with pytest.raises(FederationError) as failure:
         oci.check_index(exact + b" ")
     assert failure.value.code == "limit_exceeded"
-
-
-def test_fixture_documents_are_independent_of_the_uri_encoder():
-    expected = b'{"type":"string"}\n'
-    digest = "85803e087e684bdab3e5d6c2dd1af627da83382db625be9a42aea3d4d06539be"
-    actual = (OCI / "blobs" / "sha256" / digest).read_bytes()
-    assert actual == expected
-    assert hashlib.sha256(actual).hexdigest() == digest

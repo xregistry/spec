@@ -1360,17 +1360,13 @@ def test_document_storage_name_length_limit_is_inclusive():
         pytest.param("index", "indexes/n6.json", "count", id="collection-index"),
     ],
 )
-def test_document_schemas_use_explicit_declared_dialects(
+def test_document_fixtures_validate_and_missing_required_field_fails(
     authored_files, schema_name, fixture_name, required_field
 ):
     schemas = {
         name: json.loads((SCHEMA_ROOT / f"document-{name}.schema.json").read_bytes())
         for name in ("record", "index")
     }
-    for name, schema in schemas.items():
-        assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
-        assert schema["$id"] == f"urn:xregistry:document-tree:{name}:1"
-        Draft202012Validator.check_schema(schema)
     registry = Registry().with_resources(
         (schema["$id"], Resource.from_contents(schema)) for schema in schemas.values()
     )

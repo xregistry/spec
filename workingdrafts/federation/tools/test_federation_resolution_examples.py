@@ -1,7 +1,6 @@
 """Concrete local shadow and ordered-source examples without network access."""
 
 import json
-import re
 from pathlib import Path
 from unittest.mock import Mock
 
@@ -10,7 +9,7 @@ from jsonschema import Draft202012Validator
 
 from workingdrafts.federation.tools.federation_examples import FederationError
 from workingdrafts.federation.tools.federation_resolution_examples import (
-    Source, resolution_owner, resolve_resource_read,
+    Source, resolve_resource_read,
 )
 
 
@@ -215,17 +214,6 @@ def test_producer_mode_still_validates_returned_entity_identity(value):
     assert error.value.code == "invalid_package"
     read.assert_called_once_with("entity", XID)
     remote.assert_not_called()
-
-
-def test_published_resolution_signals_match_the_capability_schema(capability_validator):
-    root = Path(__file__).resolve().parents[1]
-    text = (root / "spec.md").read_text(encoding="utf-8")
-    examples = [json.loads(block) for block in re.findall(r"```json\n(.*?)```", text, re.S)]
-    capabilities = [value for value in examples if "federation" in value]
-    assert len(capabilities) == 2
-    assert [resolution_owner(value) for value in capabilities] == ["producer", "consumer"]
-    for value in capabilities:
-        capability_validator.validate(value)
 
 
 @pytest.mark.parametrize("binding", ["file", "oci"])

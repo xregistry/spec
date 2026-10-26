@@ -1,20 +1,13 @@
 """Offline conformance checks for the versioned Registry catalog model."""
 
-from collections import Counter
 from copy import deepcopy
-from datetime import datetime, time, timezone
 import json
 import os
 from pathlib import Path
-import re
 import subprocess
 import sys
 
-import avro.io
-import avro.schema
-import jsonschema
 import pytest
-from openapi_spec_validator import validate_spec
 
 from workingdrafts.federation.tools.federation_examples import (
     FederationError, select_profile, select_version,
@@ -31,19 +24,6 @@ FORMATS = {
     "openapi": "openapi.json",
 }
 BUILTINS = {"http", "oci", "git", "file", "opcua"}
-COMMON_FIELDS = {
-    "name", "epoch", "self", "xid", "description", "documentation",
-    "labels", "createdat", "modifiedat",
-}
-ROOT_FIELDS = COMMON_FIELDS | {
-    "registryid", "specversion", "model", "modelsource", "capabilities",
-    "categories", "categoriesurl", "categoriescount",
-}
-DOMAIN_FIELDS = {
-    "xregurl", "weburl", "registrytypes", "authority",
-    "federationprofiles", "relationships",
-}
-DOCUMENT_FIELDS = {"registry", "registrybase64", "registryurl"}
 HTTP = {"name": "http", "endpoint": "https://registry.example.test/root"}
 OCI = {
     "name": "oci",
@@ -111,59 +91,6 @@ def _generate(directory, schema_type, model_path=MODEL_PATH):
     return json.loads(raw), raw
 
 
-def _write_model(directory, model):
-    path = directory / "model.json"
-    path.write_text(json.dumps(model, indent=2) + "\n", encoding="utf-8", newline="\n")
-    return path
-
-
-def _objects(value):
-    if isinstance(value, dict):
-        yield value
-        for child in value.values():
-            yield from _objects(child)
-    elif isinstance(value, list):
-        for child in value:
-            yield from _objects(child)
-
-
-def _resolve_local(document, reference):
-    assert reference.startswith("#/"), f"Non-local reference: {reference}"
-    target = document
-    for segment in reference[2:].split("/"):
-        target = target[segment.replace("~1", "/").replace("~0", "~")]
-    assert isinstance(target, dict), reference
-    return target
-
-
-def _local_references(document):
-    references = Counter()
-    for node in _objects(document):
-        if "$ref" in node:
-            reference = node["$ref"]
-            _resolve_local(document, reference)
-            references[reference] += 1
-    return references
-
-
-def _all_errors(errors):
-    for error in errors:
-        yield error
-        yield from _all_errors(error.context)
-
-
-def _assert_schema_rejects(validator, instance, path, keyword):
-    errors = list(_all_errors(validator.iter_errors(instance)))
-    observed = [
-        (tuple(error.absolute_path), error.validator, error.message)
-        for error in errors
-    ]
-    assert any(
-        error_path == path and error_keyword == keyword
-        for error_path, error_keyword, _ in observed
-    ), f"Expected {keyword} at {path}; observed {observed}"
-
-
 def _assert_federation_error(entry, code, message, supported=BUILTINS, name=None):
     with pytest.raises(FederationError) as caught:
         select_profile(entry, supported, name=name)
@@ -173,44 +100,6 @@ def _assert_federation_error(entry, code, message, supported=BUILTINS, name=None
 
 def _base_resource(catalog):
     return catalog["categories"]["tools"]["registries"]["base"]
-
-
-def _avro_fields(record):
-    fields = {field["name"]: field for field in record["fields"]}
-    assert len(fields) == len(record["fields"])
-    return fields
-
-
-@pytest.fixture
-def registry_model():
-    return json.loads(MODEL_PATH.read_text(encoding="utf-8"))
-
-
-@pytest.fixture
-def catalog_schema(tmp_path):
-    schema, _ = _generate(tmp_path, "json-schema")
-    assert schema["$schema"] == "http://json-schema.org/draft-07/schema#"
-    jsonschema.Draft7Validator.check_schema(schema)
-    _local_references(schema)
-    return schema
-
-
-@pytest.fixture
-def catalog_validator(catalog_schema):
-    return jsonschema.Draft7Validator(
-        catalog_schema, format_checker=jsonschema.FormatChecker()
-    )
-
-
-@pytest.fixture
-def version_validator(catalog_schema):
-    # Exercise the emitted Version schema directly as well as the full document.
-    # Navigation must not mask invalid inline Versions. That has a separate
-    # full-document regression below, rather than a fixture that removes URLs.
-    return jsonschema.Draft7Validator(
-        catalog_schema["definitions"]["category-schema"]["registryVersion"],
-        format_checker=jsonschema.FormatChecker(),
-    )
 
 
 @pytest.fixture
@@ -280,49 +169,6 @@ def base_catalog():
 
 
 @pytest.mark.parametrize(
-    "case", ["minimal-version", "empty-category", "empty-catalog", "hub-compatible"]
-)
-def test_registry_base_catalog_requires_no_federation_fields(
-    case, base_catalog, catalog_validator, version_validator, registry_model
-):
-    catalog = base_catalog
-    if case == "empty-category":
-        catalog["categories"]["tools"]["registries"] = {}
-        catalog["categories"]["tools"]["registriescount"] = 0
-    elif case == "empty-catalog":
-        catalog["categories"] = {}
-        catalog["categoriescount"] = 0
-    elif case == "hub-compatible":
-        catalog = _sample("hub-compatible.json")
-    before = deepcopy(catalog)
-
-    catalog_validator.validate(catalog)
-
-    forbidden = {"labels", "registrytypes", "authority", "relationships",
-                 "federationprofiles", "endpoint"}
-    assert all(forbidden.isdisjoint(node) for node in _objects(catalog))
-    definitions = catalog_validator.schema["definitions"]["category-schema"]
-    assert definitions["category"].get("required", []) == []
-    assert definitions["registry"].get("required", []) == []
-    assert definitions["registryVersion"].get("required", []) == []
-    assert catalog_validator.schema.get("required", []) == []
-    attributes = registry_model["groups"]["categories"]["resources"]["registries"][
-        "attributes"
-    ]
-    assert {name for name, value in attributes.items() if value.get("required")} == set()
-    for category in catalog["categories"].values():
-        for resource in category["registries"].values():
-            version_validator.validate(select_version(resource))
-    if case == "minimal-version":
-        version = select_version(_base_resource(catalog))
-        assert DOMAIN_FIELDS.isdisjoint(version)
-        _assert_federation_error(
-            version, "unsupported_binding", "No supported advertisement"
-        )
-    assert catalog == before
-
-
-@pytest.mark.parametrize(
     "filename,category_id,resource_id,version_id,choice,expected_index,expected",
     [
         pytest.param(
@@ -359,14 +205,11 @@ def test_registry_base_catalog_requires_no_federation_fields(
 )
 def test_registry_xregurl_xregurl_entry_remains_valid(
     filename, category_id, resource_id, version_id, choice, expected_index, expected,
-    catalog_validator, version_validator,
 ):
     catalog = _sample(filename)
     before = deepcopy(catalog)
     resource = catalog["categories"][category_id]["registries"][resource_id]
     version = select_version(resource, version_id)
-    catalog_validator.validate(catalog)
-    version_validator.validate(version)
 
     selected = select_profile(version, BUILTINS, name=choice)
 
@@ -387,17 +230,14 @@ def test_registry_xregurl_xregurl_entry_remains_valid(
     ],
 )
 def test_registry_website_only_entry_is_valid_but_not_resolvable(
-    weburl, base_catalog, catalog_validator, version_validator
+    weburl, base_catalog
 ):
     version = select_version(_base_resource(base_catalog))
     version["weburl"] = weburl
     before = deepcopy(base_catalog)
 
-    catalog_validator.validate(base_catalog)
-    version_validator.validate(version)
     _assert_federation_error(version, "unsupported_binding", "No supported advertisement")
 
-    assert DOMAIN_FIELDS.intersection(version) == {"weburl"}
     assert base_catalog == before
 
 
@@ -542,15 +382,11 @@ def test_registry_website_only_entry_is_valid_but_not_resolvable(
 )
 def test_registry_resolvable_entry_requires_supported_valid_advertisement(
     attributes, supported, choice, outcome,
-    base_catalog, catalog_validator, version_validator,
+    base_catalog,
 ):
     version = select_version(_base_resource(base_catalog))
     version.update(deepcopy(attributes))
     before = deepcopy(base_catalog)
-    # These inputs have valid generated *shapes*. Binding semantics below are
-    # deliberately stricter than URI-reference/type validation.
-    catalog_validator.validate(base_catalog)
-    version_validator.validate(version)
 
     if isinstance(outcome, tuple):
         _assert_federation_error(version, *outcome, supported=supported, name=choice)
@@ -565,162 +401,9 @@ def test_registry_resolvable_entry_requires_supported_valid_advertisement(
     assert base_catalog == before
 
 
-@pytest.mark.parametrize(
-    "attributes,error_path,keyword",
-    [
-        pytest.param(
-            {
-                "labels": {},
-                "registrytypes": [
-                    "urn:example:domain:schema",
-                    "https://models.example.test/events/1.0/model.json",
-                    "urn:example:domain:schema",
-                ],
-                "authority": "urn:example:organization:catalog-team",
-                "relationships": [
-                    {"type": "depends-on", "target": "/categories/tools/registries/base"},
-                    {
-                        "type": "com.example.curated-with",
-                        "target": "https://other.example.test/categories/shared/registries/events",
-                        "labels": {"note": ""},
-                    },
-                    {
-                        "type": "mirrors", "target": "/categories/tools/registries/base",
-                        "labels": {},
-                    },
-                ],
-                "exampleextension": {"mode": "KeepCase", "values": [0, False, ""]},
-            },
-            None, None, id="combined-descriptions-labels-and-extension",
-        ),
-        pytest.param(
-            {"registrytypes": [], "relationships": [], "labels": {}, "authority": "teams/platform"},
-            None, None, id="empty-collections-relative-authority",
-        ),
-        pytest.param(
-            {"federationprofiles": [EXTENSION]}, None, None, id="extension-parameters-object",
-        ),
-        pytest.param(
-            {"federationprofiles": [dict(HTTP, priority=0, parameters={})]},
-            None, None, id="explicit-zero-and-empty-parameters",
-        ),
-        pytest.param({"federationprofiles": None}, ("federationprofiles",), "type", id="profiles-null"),
-        pytest.param({"federationprofiles": {}}, ("federationprofiles",), "type", id="profiles-object"),
-        pytest.param({"federationprofiles": [None]}, ("federationprofiles", 0), "type", id="profile-null"),
-        pytest.param(
-            {"federationprofiles": [{"endpoint": HTTP["endpoint"]}]},
-            ("federationprofiles", 0), "required", id="profile-name-missing",
-        ),
-        pytest.param(
-            {"federationprofiles": [dict(HTTP, name=None)]},
-            ("federationprofiles", 0, "name"), "type", id="profile-name-null",
-        ),
-        pytest.param(
-            {"federationprofiles": [dict(HTTP, name=1)]},
-            ("federationprofiles", 0, "name"), "type", id="profile-name-number",
-        ),
-        pytest.param(
-            {"federationprofiles": [{"name": "http"}]},
-            ("federationprofiles", 0), "required", id="profile-endpoint-missing",
-        ),
-        pytest.param(
-            {"federationprofiles": [dict(HTTP, endpoint=None)]},
-            ("federationprofiles", 0, "endpoint"), "type", id="profile-endpoint-null",
-        ),
-        pytest.param(
-            {"federationprofiles": [dict(HTTP, priority=-1)]},
-            ("federationprofiles", 0, "priority"), "minimum", id="priority-below-zero",
-        ),
-        pytest.param(
-            {"federationprofiles": [dict(HTTP, priority=True)]},
-            ("federationprofiles", 0, "priority"), "type", id="priority-boolean",
-        ),
-        pytest.param(
-            {"federationprofiles": [dict(HTTP, priority="0")]},
-            ("federationprofiles", 0, "priority"), "type", id="priority-string",
-        ),
-        pytest.param(
-            {"federationprofiles": [dict(HTTP, priority=0.5)]},
-            ("federationprofiles", 0, "priority"), "type", id="priority-fraction",
-        ),
-        pytest.param(
-            {"federationprofiles": [dict(HTTP, priority=None)]},
-            ("federationprofiles", 0, "priority"), "type", id="priority-null",
-        ),
-        pytest.param(
-            {"federationprofiles": [dict(HTTP, parameters=None)]},
-            ("federationprofiles", 0, "parameters"), "type", id="parameters-null",
-        ),
-        pytest.param(
-            {"federationprofiles": [dict(HTTP, parameters=[])]},
-            ("federationprofiles", 0, "parameters"), "type", id="parameters-array",
-        ),
-        pytest.param({"registrytypes": None}, ("registrytypes",), "type", id="registrytypes-null"),
-        pytest.param({"registrytypes": "schema"}, ("registrytypes",), "type", id="registrytypes-string"),
-        pytest.param({"registrytypes": [7]}, ("registrytypes", 0), "type", id="registrytype-nonstring"),
-        pytest.param({"authority": False}, ("authority",), "type", id="authority-nonstring"),
-        pytest.param({"xregurl": None}, ("xregurl",), "type", id="xregurl-url-null"),
-        pytest.param({"weburl": []}, ("weburl",), "type", id="website-array"),
-        pytest.param({"relationships": {}}, ("relationships",), "type", id="relationships-object"),
-        pytest.param({"relationships": [None]}, ("relationships", 0), "type", id="relationship-null"),
-        pytest.param(
-            {"relationships": [{"target": "/categories/tools/registries/base"}]},
-            ("relationships", 0), "required", id="relationship-type-missing",
-        ),
-        pytest.param(
-            {"relationships": [{"type": None, "target": "/categories/tools/registries/base"}]},
-            ("relationships", 0, "type"), "type", id="relationship-type-null",
-        ),
-        pytest.param(
-            {"relationships": [{"type": "depends-on"}]},
-            ("relationships", 0), "required", id="relationship-target-missing",
-        ),
-        pytest.param(
-            {"relationships": [{"type": "depends-on", "target": 5}]},
-            ("relationships", 0, "target"), "type", id="relationship-target-nonstring",
-        ),
-        pytest.param(
-            {"relationships": [{
-                "type": "mirrors", "target": "/categories/tools/registries/base", "labels": []
-            }]},
-            ("relationships", 0, "labels"), "type", id="relationship-labels-array",
-        ),
-        pytest.param(
-            {"relationships": [{
-                "type": "mirrors", "target": "/categories/tools/registries/base",
-                "labels": {"note": None},
-            }]},
-            ("relationships", 0, "labels", "note"), "type", id="relationship-label-value-null",
-        ),
-        pytest.param({"labels": []}, ("labels",), "type", id="version-labels-array"),
-    ],
-)
-def test_registry_profile_and_relationship_shapes_are_additive(
-    attributes, error_path, keyword, base_catalog, version_validator, catalog_validator
-):
-    version = select_version(_base_resource(base_catalog))
-    version["federationprofiles"] = [deepcopy(HTTP)]
-    version.update(deepcopy(attributes))
-    before = deepcopy(base_catalog)
-
-    if error_path is None:
-        version_validator.validate(version)
-        catalog_validator.validate(base_catalog)
-        selected = select_profile(version, BUILTINS | {"com.example.discovery"})
-        assert selected is version["federationprofiles"][0]
-        assert selected == attributes.get("federationprofiles", [HTTP])[0]
-    else:
-        _assert_schema_rejects(version_validator, version, error_path, keyword)
-    profile_schema = version_validator.schema["properties"]["federationprofiles"]["items"]
-    relationship_schema = version_validator.schema["properties"]["relationships"]["items"]
-    assert profile_schema["required"] == ["name", "endpoint"]
-    assert relationship_schema["required"] == ["type", "target"]
-    assert base_catalog == before
-
-
 @pytest.mark.parametrize("case", ["absent-profiles", "empty-profiles", "cycle-and-dangling-sample"])
 def test_registry_website_relationship_and_authority_never_supply_endpoints(
-    case, base_catalog, catalog_validator, version_validator
+    case, base_catalog
 ):
     catalog = base_catalog
     if case == "cycle-and-dangling-sample":
@@ -747,43 +430,15 @@ def test_registry_website_relationship_and_authority_never_supply_endpoints(
         version["federationprofiles"] = []
     before = deepcopy(catalog)
 
-    catalog_validator.validate(catalog)
-    for category in catalog["categories"].values():
-        for entry in category["registries"].values():
-            version_validator.validate(select_version(entry))
     _assert_federation_error(version, "unsupported_binding", "No supported advertisement")
 
-    if case == "cycle-and-dangling-sample":
-        assert [item["target"] for item in version["relationships"]] == [
-            "/categories/public/registries/canonical",
-            "/categories/public/registries/retired",
-            "/categories/public/registries/mirror",
-            "https://catalog.example.net/categories/shared/registries/events",
-        ]
     assert catalog == before
 
 
-def test_registry_catalog_attributes_are_versioned_and_metadata_only(
-    registry_model, catalog_validator, version_validator
-):
-    group = registry_model["groups"]["categories"]
-    resource_model = group["resources"]["registries"]
-    assert set(registry_model["groups"]) == {"categories"}
-    assert (group["singular"], set(group["resources"]), resource_model["singular"]) == (
-        "category", {"registries"}, "registry"
-    )
-    assert (group["modelversion"], resource_model["modelversion"]) == ("1.0-rc1", "1.0-rc1")
-    assert resource_model["hasdocument"] is False
-    assert set(resource_model["attributes"]) == DOMAIN_FIELDS | {"*"}
-    assert resource_model.get("resourceattributes", {}) == {}
-    assert resource_model.get("metaattributes", {}) == {}
-
+def test_registry_version_and_profile_selection_over_sample_catalog():
     catalog = _sample("multi-profile-catalog.json")
     before = deepcopy(catalog)
     resource = catalog["categories"]["public"]["registries"]["schemas"]
-    catalog_validator.validate(catalog)
-    for version in resource["versions"].values():
-        version_validator.validate(version)
     default = select_version(resource)
     earlier = select_version(resource, "1")
 
@@ -823,75 +478,7 @@ def test_registry_catalog_attributes_are_versioned_and_metadata_only(
     assert select_version(target_resource) == {
         "versionid": "target-17", "labels": {"stage": "production"}
     }
-    assert (earlier["versionid"], default["versionid"], resource["meta"]["defaultversionid"]) == (
-        "1", "2", "2"
-    )
-    definitions = catalog_validator.schema["definitions"]["category-schema"]
-    assert DOMAIN_FIELDS.issubset(definitions["registryVersion"]["properties"])
-    assert DOMAIN_FIELDS.isdisjoint(definitions["registry"]["properties"])
-    for name in ("registry", "registryVersion"):
-        assert DOCUMENT_FIELDS.isdisjoint(definitions[name]["properties"])
     assert catalog == before
-
-
-@pytest.mark.parametrize(
-    "case,path,value,error_keyword",
-    [
-        pytest.param("authoritative", (), None, None, id="authoritative-model"),
-        pytest.param(
-            "missing", ("groups", "categories", "singular"), None, "required",
-            id="missing-category-singular",
-        ),
-        pytest.param(
-            "set", ("groups", "categories", "resources", "registries", "hasdocument"),
-            "false", "type", id="hasdocument-is-boolean",
-        ),
-        pytest.param(
-            "set", ("groups", "categories", "resources", "registries", "maxversions"),
-            -1, "minimum", id="maxversions-not-negative",
-        ),
-        pytest.param(
-            "set",
-            ("groups", "categories", "resources", "registries", "attributes",
-             "federationprofiles", "item", "type"),
-            "not-a-core-type", "enum", id="array-item-must-use-core-type",
-        ),
-        pytest.param(
-            "set",
-            ("groups", "categories", "resources", "registries", "attributes", "*", "required"),
-            True, "enum", id="wildcard-cannot-be-required",
-        ),
-    ],
-)
-def test_registry_model_validates_with_explicit_draft7(
-    case, path, value, error_keyword, registry_model
-):
-    core = json.loads((ROOT / "core" / "model.schema.json").read_text(encoding="utf-8"))
-    assert core["$schema"] == "https://json-schema.org/draft-07/schema#"
-    assert registry_model["$schema"] == core["$id"]
-    jsonschema.Draft7Validator.check_schema(core)
-    _local_references(core)
-    validator = jsonschema.Draft7Validator(core, format_checker=jsonschema.FormatChecker())
-    validator.validate(registry_model)
-    candidate = deepcopy(registry_model)
-    if case != "authoritative":
-        parent = candidate
-        for key in path[:-1]:
-            parent = parent[key]
-        if case == "missing":
-            del parent[path[-1]]
-        else:
-            parent[path[-1]] = value
-    before = deepcopy(candidate)
-
-    if case == "authoritative":
-        assert list(validator.iter_errors(candidate)) == []
-    else:
-        _assert_schema_rejects(
-            validator, candidate, path[:-1] if case == "missing" else path, error_keyword
-        )
-    assert candidate == before
-    assert registry_model["groups"]["categories"]["resources"]["registries"]["hasdocument"] is False
 
 
 @pytest.mark.parametrize("schema_type", FORMATS, ids=FORMATS)

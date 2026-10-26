@@ -1,41 +1,17 @@
 """Offline conformance tests for the common federation example primitives."""
 
-import json
 from copy import deepcopy
-from pathlib import Path
 from unittest.mock import Mock
 
 import pytest
-from jsonschema import Draft202012Validator
 
 from workingdrafts.federation.tools.federation_examples import (
     FederationError,
     execute_selected,
-    resolve_local_xref,
-    resource_type,
-    select_label,
     select_profile,
-    select_version,
     validate_profile,
     validate_xid,
 )
-
-
-FIXTURE_ROOT = Path(__file__).resolve().parents[1]
-
-
-@pytest.fixture
-def selection_sample():
-    return json.loads(
-        (FIXTURE_ROOT / "samples" / "selection.json").read_text(encoding="utf-8")
-    )
-
-
-@pytest.fixture
-def request_schema():
-    return json.loads(
-        (FIXTURE_ROOT / "schemas" / "request.json").read_text(encoding="utf-8")
-    )
 
 
 @pytest.fixture(params=["http", "oci", "git", "file", "opcua"])

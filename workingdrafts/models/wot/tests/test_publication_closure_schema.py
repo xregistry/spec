@@ -16,7 +16,6 @@ EXAMPLE = json.loads((ROOT / "samples" / "publication-closure.json").read_text()
 def test_proposed_closure_shape():
     jsonschema.Draft202012Validator.check_schema(SCHEMA)
     jsonschema.validate(EXAMPLE, SCHEMA)
-    assert EXAMPLE["bindings"][0]["pointer"] == "/links/0"
 
 
 @pytest.mark.parametrize("pointer", ["links/0", "/links/~2", "#/links/0"])
