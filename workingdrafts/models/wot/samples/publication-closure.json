@@ -1,0 +1,15 @@
+{
+  "format": "wot-publication-closure/1",
+  "entries": [
+    "/thingmodelgroups/acme/thingmodels/pump/versions/42"
+  ],
+  "bindings": [
+    {
+      "source": "/thingmodelgroups/acme/thingmodels/pump/versions/42",
+      "pointer": "/links/0",
+      "operator": "tm:extends",
+      "href": "urn:example:pump:base",
+      "target": "/thingmodelgroups/acme/thingmodels/base/versions/7"
+    }
+  ]
+}

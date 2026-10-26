@@ -7,6 +7,7 @@
 <!-- words: compatibilityline ctt href lockfile marcschier namespace nodeids -->
 <!-- words: nodeset opcfoundation rdf REQUIREDCOMPATIBILITYLINE unversioned -->
 <!-- words: walkthroughs workaround workflow workflows -->
+<!-- words: standalone -->
 
 ## Status and reading guide
 
@@ -23,6 +24,12 @@ The [workflow catalog](#publisher-workflows) explains operation, including
 failures and reversal. The [evidence index](#workflow-evidence-index)
 distinguishes existing checks from proposed implementation work.
 
+The [channel/snapshot design](publication-design.md) adds 12 set-publication
+workflows, N01-N12, to the 63 workflows here. The generic xRegistry proposal
+owns the publication model and HTTP/offline context; WoT supplies a proposed
+dependency-binding schema and compatibility acceptance. Neither .NET runtime
+nor the OPC UA model is changed by this specification-first pass.
+
 ## Decision
 
 Keep the native SemVer profile and add a separate incremental profile.
@@ -36,6 +43,12 @@ A publisher normally uploads unchanged document bytes and a line declaration;
 the registry assigns the next revision. A consumer normally names the target
 and line, adding a minimum revision only when it needs a particular feature.
 The resolver returns an exact pin for repeatable use.
+
+Use channels for named update streams and immutable snapshots for complete
+publication sets. Keep compatibility independent: `stable` is not a promise
+that its next head accepts the same consumers. A Group represents none of
+these concepts. The [publication design](publication-design.md) defines exact
+dependency bindings, conditional promotion, export and federation.
 
 Use `uav:minVersion` and `uav:compatibilityLine` in the existing OPC UA WoT
 Binding namespace for deployment now. Core WoT vocabulary standardization is
@@ -300,6 +313,13 @@ An unknown/unavailable profile fails rather than weakening the requirement.
 
 ### D7. Selection, defaults, and exact pins
 
+This algorithm describes standalone live selection and existing raw pin
+retrieval. In snapshot-bound composition, use the exact binding from the
+selected manifest, then validate the authored requirement and caller policy.
+Do not replace it with the highest live revision or another channel head.
+The [publication acceptance rules][Publication acceptance]
+specify that separate operation.
+
 ```text
 resolve(target, requirement, pin?):
   establish target kind, authorized origin and one source Resource
@@ -344,6 +364,11 @@ expectations to match. Pinning a parent does not pin its transitive
 dependencies. Preserve records and bytes for every dependency when exact
 replay is needed.
 
+That override belongs to raw exact retrieval. A publication snapshot does
+not override compatibility acceptance: it fixes the inputs to that check.
+Pinning a parent and retaining a complete dependency closure are separate
+claims; a WoT-complete publication explicitly supplies both.
+
 ### D8. State changes, recovery, and migration
 
 An explicit existing revision can be idempotent under the publication API's
@@ -379,6 +404,11 @@ profile-aware assignment, durable allocation, declaration agreement, and
 early structural validation. The provider supplies trusted candidate
 metadata. The resolver supplies constrained selection and exact replay.
 The caller owns deployment activation and retained dependency records.
+
+The generic publication adapter owns immutable manifests, durable conditional
+channel heads and checked open contexts. The WoT layer independently discovers
+and validates the reference closure. A channel head changes a publication
+set; it does not allocate document revisions or decide compatibility.
 
 Extend existing .NET snapshots/APIs with profile and line context and reuse
 the SemVer implementation. Audit actual publication owners: a pure helper
@@ -1191,15 +1221,24 @@ Open implementation proof gates are:
 4. Review OPC UA field ownership/encoding and regenerate append-only model
    outputs on the `1.1-draft` track.
 
-This review delivers the design and
-[summary](versioning-design-summary.md) first. Coordinated specification,
-model, fixture, and implementation changes wait for review of these documents.
+This specification-first pass adds the generic publication proposal and
+[WoT closure design/schema](publication-design.md), while the
+[summary](versioning-design-summary.md) remains the overview. Incremental
+runtime/profile enforcement, WoT closure integration and generated OPC UA
+changes remain implementation gates; generic synthetic examples do not close
+them.
 
 ## Specification and implementation impact
 
 The xRegistry WoT draft needs the incremental profile, publication rules,
 line metadata, resolver contract, samples, and separate migration fixtures.
 Core itself does not change.
+
+The [generic publication proposal](https://github.com/xregistry/spec/pull/571)
+owns channels, manifests and observable open context. Its federation
+integration reuses the existing snapshot definition and source-precedence
+rules. WoT adds closure/acceptance rules rather than embedding WoT semantics
+in generic federation or interpreting a Group as a channel.
 
 The W3C proposal explains the deployment extension and proposed core
 standardization path. Its acceptance is not an execution gate for xRegistry,
@@ -1233,3 +1272,4 @@ origin-scoped resolution record; explicitly map independent copies.
 [Core version IDs]: ../../../core/spec.md#version-ids
 [Core defaults]: ../../../core/spec.md#default-version-of-a-resource
 [WoT proposal]: https://github.com/marcschier/wot-thing-description/pull/1
+[Publication acceptance]: publication-design.md#selection-and-acceptance
