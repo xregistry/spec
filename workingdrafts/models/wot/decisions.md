@@ -3,6 +3,7 @@
 <!-- words: WoT wotid derivedfrom thingdescription thingmodel -->
 <!-- words: thingdescriptionid thingmodelid canonicalurl standardsbody -->
 <!-- words: openusd href td tm matchversions repointing -->
+<!-- words: contentdigest minversion prereleases versionorigin -->
 
 This document records the identity, versioning, lookup and provenance
 decisions behind the [WoT Registry specification](spec.md) and its
@@ -11,16 +12,16 @@ working document and changes with the draft.
 
 ## 1. Identity and version are separate values
 
-**Decision.** A `wotid` is the document's authored `id` and MUST NOT carry a
-version suffix such as `:v2`.
+**Decision.** A `wotid` is the document's authored `id` and MUST NOT change on
+a compatible revision. A Thing Model's stable `wotid` includes its major
+version, such as `:v2`; it does not encode each minor or patch revision.
 
-**Why.** An identifier that changes when the document changes is not an
-identifier. With a version baked in, the registry cannot tell that two
-documents describe the same logical Thing, `ancestor` lineage cannot be
-formed, and every holder of a reference has to be rewritten on each revision.
-Keeping the two apart also lets a recipient resolve a document without taking
-a string apart, and reusing the Core rule for "latest" avoids a second,
-conflicting notion of it.
+**Why.** An identifier that changes with each compatible revision cannot be
+a stable reference. If every revision gets a new identifier, the registry
+cannot identify documents that describe the same logical Thing or form their
+`ancestor` lineage, and every holder of a reference has to update it. Keeping
+minor and patch versions out of the identifier lets a recipient resolve the
+document without parsing a version suffix.
 
 **Example.** A typo is fixed in the lamp `urn:fabrikam:lamp:42`. Its `wotid`
 and its `thingdescriptionid` do not change, and the correction becomes a new
@@ -31,12 +32,10 @@ by name.
 **Consequence.** Revising a document leaves `wotid`, `thingdescriptionid` and
 `thingmodelid` unchanged and adds a Version.
 
-**Scope.** This constrains *mutating* an identifier, not the characters in
-one. An author who publishes a second, incompatible Thing is naming a
-different Thing, and the identifier they choose for it can legitimately carry
-a `v2` token — that token is part of the new Thing's own permanent `wotid`,
-not a version appended to an existing one. See
-[Decision 6](#6-a-breaking-change-produces-a-new-logical-thing).
+**Scope.** This rule constrains revisions of an existing identifier. An
+author publishing a second, incompatible Thing assigns it a distinct,
+permanent `wotid`. A Thing Model's identifier MUST include a major-version
+token. See [Decision 6](#6-a-breaking-thing-model-change-uses-a-successor-identifier).
 
 See [Section 1.3](spec.md#13-versioning),
 [Section 5.1](spec.md#51-wot-identifiers-and-registry-ids) and
@@ -137,22 +136,19 @@ specification grants it no exemption from them.
 
 See [Section 4.6](spec.md#46-provenance-and-selection-metadata).
 
-## 6. A breaking change produces a new logical Thing
+## 6. A breaking Thing Model change uses a successor identifier
 
-**Decision.** A breaking change creates a new Resource, and that Resource is
-reached by authoring a **new `wotid`** — not by revising the existing one. The
-superseded Resource retains its Versions and SHOULD set `deprecated` naming
-the successor. Where a solution versions Things semantically, the authored
-identifier SHOULD carry a major-version token.
+**Decision.** A breaking Thing Model change creates a new Resource under a
+new major-version `wotid`. The predecessor retains its Versions and MUST set
+`deprecated.alternative` to the successor Resource URL. A Thing Model
+identifier MUST carry a major-version token. A breaking TD major revision is a
+new Version of the same concrete Thing under its existing `id` and `wotid`.
 
-**Why.** [Decision 1](#1-identity-and-version-are-separate-values) holds a
-`wotid` constant across revisions, and `wotid` is declared `matchversions`, so
-every Version of a Resource carries the same one. A document incompatible with
-its predecessor therefore cannot be a Version of it, and the only place a
-successor can come from is a newly authored identifier. Stating this
-explicitly removes an apparent contradiction between the two rules: without
-it, a breaking change has no legal representation, since it can neither become
-a Version of the existing Resource nor reuse its `wotid`.
+**Why.** [Decision 1](#1-identity-and-version-are-separate-values) keeps a Thing
+Model's major compatibility line in its `wotid`. A breaking TM contract
+therefore cannot be published as another Version of that Resource. Thing
+Descriptions identify concrete Things instead: a major `version.instance`
+marks a breaking revision without changing the Thing's `id` or `wotid`.
 
 The major-version token is the convention the
 [Schema Registry](https://xregistry.io/xreg/xregistryspecs/schema-v1/docs/spec.html)
@@ -160,9 +156,47 @@ already recommends for `schemaid`, and `deprecated` is how it already links a
 superseded schema to its replacement; reusing both keeps a WoT registry
 legible to anyone who knows the approved specifications.
 
-**Consequence.** A consumer holding a stale identifier is not stranded: the
-old Resource still resolves, still serves its documents, and points at the
-successor.
+**Consequence.** A Consumer holding a stale TM identifier can retrieve the
+predecessor and inspect its successor. A TD consumer resolves a major instance
+revision under the same Thing identifier.
 
 See [Section 5.1.1](spec.md#511-breaking-changes-and-successor-identifiers).
 
+## 7. Version floors, semantic versions and reproducible resolution
+
+**Decision.** Thing Models and Thing Descriptions use
+`versionmode: semver` with `singleversionroot: true`. A TM `versionid` equals
+`version.model`; a TD `versionid` equals `version.instance`. Both receive a
+server-set `versionorigin`. TD-to-TD floors use `td:minVersion` and cap the
+selected version below the next major. The resolver honours a sticky default
+only when it satisfies the applicable floor and range, and returns an exact
+selection with its origin.
+
+**Why.** The resolver separates a dependency's minimum compatible version
+from a caller's request to reproduce a previous selection:
+
+| Choice | Rationale |
+|---|---|
+| TM floors are uncapped; TD floors are caret-bounded | A TM major is part of its `wotid`; a TD `id` names a concrete Thing, so a TD floor selects within its major. An unfloored TD reference can cross majors. |
+| Major in TM identity | Incompatible TM contracts are distinct Resources; a stable reference cannot silently acquire a breaking revision. A TD `id` names one concrete Thing, so its breaking major revision remains under that id. Core `deprecated.alternative` points to a TM successor without redirecting old references. |
+| `versionid` follows the document revision | TM identity comes from SemVer `version.model`; TD identity comes from SemVer `version.instance`. Mismatches are rejected; build metadata cannot fit Core's id grammar. |
+| Generated `0.0.0-N`, not `0.0.N` | Generated ids do not collide with authored patch releases. Allocation skips occupied ids, including authored prereleases of the same spelling, and `versionorigin` distinguishes their source. Generated ids are not compatibility promises and cannot be floors. |
+| Prereleases excluded by default | A dependency does not silently adopt an unstable or generated revision. A prerelease floor or caller opt-in makes prereleases eligible. There is no fallback for a collection containing only generated Versions. |
+| Sticky default honoured only in range | An operator's deliberate selection is authoritative unless the caller supplies an explicit pin. A sticky Version below the floor or in a higher TD major fails rather than selecting a different Version. |
+| Pin in output, not document | The tuple `(wotid, versionid, contentdigest, origin)` supports reproducibility without putting registry-specific choices into portable WoT documents. Caller pins deliberately override normal floor selection. |
+
+**Example.** Publishing `1.0.1` after `1.1.0` does not replace the newer
+default. A TD derived from model `1.1.0` has that implicit floor when it has
+exactly one type link. A TD-to-TD floor of `1.2.0` admits versions below
+`2.0.0`; an unfloored TD reference can select a later major. Several type
+links with a document-level model version require explicit `tm:minVersion`
+on every link.
+
+**Consequence.** Producers preserve the authored document bytes. Operators
+migrate compatible legacy roots to one SemVer lineage and separate
+incompatible identities before enabling the model. Consumers retain pins
+externally and implement the error outcomes and algorithm in
+[Section 5.4](spec.md#54-versioned-reference-resolution).
+
+See the informative [versioning design](versioning-design.md) and the
+[canonical test vectors](tests/resolution/README.md).

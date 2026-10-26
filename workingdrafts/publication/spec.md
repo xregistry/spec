@@ -31,6 +31,11 @@ reference bases, snapshot completeness and package interpretation.
 This extension adds publication descriptors and named channel updates.
 It does not require federation to publish a local Registry.
 
+The [WoT companion](../models/wot/publication-design.md) defines domain
+dependency bindings and compatibility acceptance over this contract.
+Other domains define their own closure rules without changing channel
+or snapshot identity.
+
 | Term | Meaning |
 | --- | --- |
 | Scope | Absolute URI identifying a publication set and its authority. |

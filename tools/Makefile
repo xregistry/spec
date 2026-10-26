@@ -18,6 +18,7 @@ spellcheck:
 		workingdrafts/models/*/README.md workingdrafts/models/*/spec.md \
 		workingdrafts/models/*/samples/README.md \
 		workingdrafts/models/*/schemas/README.md \
+		workingdrafts/models/wot/publication-design.md \
 		docs/share/README.md */samples/README.md */samples/*/README.md
 	@echo
 

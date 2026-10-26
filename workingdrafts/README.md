@@ -69,6 +69,13 @@ open context provides a concrete snapshot pin without changing ordinary
 HTTP advertisements. Cross-binding equivalence requires a checked mapping,
 not equality of Registry IDs.
 
+The [WoT publication companion](models/wot/publication-design.md) supplies
+the domain-specific closure design, schema, shape example and checks.
+The [WoT versioning design](models/wot/versioning-design.md) and its
+[overview](models/wot/versioning-design-summary.md) describe document
+revision assignment, compatibility and live reference selection. The full
+WoT versioning proposal is included here with the publication proposal.
+
 ## OpenUSD Artifact Registry
 
 The OpenUSD draft is a domain model rather than a federation binding. It
