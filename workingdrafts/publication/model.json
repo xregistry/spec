@@ -40,7 +40,6 @@
         },
         "snapshots": {
           "singular": "snapshot",
-          "hasdocument": true,
           "maxversions": 1,
           "setversionid": true,
           "versionmode": "manual",
