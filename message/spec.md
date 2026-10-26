@@ -1200,7 +1200,7 @@ following properties are defined, with type constraints:
 | `subject`              | `string`         | message subject                                                                  |
 | `reply-to`             | `uritemplate`    | address of the node to which the receiver of this message ought to send replies  |
 | `correlation-id`       | `string`         | client-specific id that can be used to mark or identify messages between clients |
-| `content-type`         | `symbol`         | MIME content type for the message                                                |
+| `content-type`         | `string`         | MIME content type for the message                                                |
 | `content-encoding`     | `symbol`         | MIME content encoding for the message                                            |
 | `absolute-expiry-time` | `timestamp`      | time when this message is considered expired                                     |
 | `group-id`             | `string`         | group this message belongs to                                                    |
@@ -1211,6 +1211,10 @@ The `message-id` permits the types `ulong`, `uuid`, `binary`, `string`, and
 `uritemplate`. A `value` constraint for the `message-id` property SHOULD NOT be
 defined in the message definition except for the case where the `message-id`
 is a `uritemplate`.
+
+The xRegistry `content-type` declaration uses `string` for MIME values such
+as `application/json`. AMQP 1.0 still encodes this value as its native
+[`symbol`][AMQP 1.0 Message Properties] type.
 
 ##### `application-properties` (AMQP 1.0)
 
