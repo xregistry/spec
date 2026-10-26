@@ -529,7 +529,31 @@
                 {
                   "type": "record",
                   "namespace": "io.xregistry.endpoints",
+                  "name": "ProtocolAMQPType",
+                  "fields": [
+                    {
+                      "type": "io.xregistry.GenericRecord",
+                      "name": "protocoloptions",
+                      "doc": "Configuration information for this endpoint"
+                    }
+                  ]
+                },
+                {
+                  "type": "record",
+                  "namespace": "io.xregistry.endpoints",
                   "name": "ProtocolMqtt50Type",
+                  "fields": [
+                    {
+                      "type": "io.xregistry.GenericRecord",
+                      "name": "protocoloptions",
+                      "doc": "Configuration information for this endpoint"
+                    }
+                  ]
+                },
+                {
+                  "type": "record",
+                  "namespace": "io.xregistry.endpoints",
+                  "name": "ProtocolMQTTType",
                   "fields": [
                     {
                       "type": "io.xregistry.GenericRecord",
