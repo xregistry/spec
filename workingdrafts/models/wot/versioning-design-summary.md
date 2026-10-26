@@ -8,7 +8,9 @@
 This is an informative proposal, not an implemented incremental profile.
 The [full design](versioning-design.md) defines the mechanisms and all
 63 publisher, consumer, administrator, migration, and standardization
-workflows. The current [specification](spec.md) and
+workflows. The [publication design](publication-design.md) adds 12 workflows
+for individual/set publication, channels, snapshots, export and federation.
+The current [specification](spec.md) and
 [vectors](tests/resolution/README.md) remain the SemVer baseline.
 
 ## Decision and problem
@@ -29,6 +31,11 @@ Separate revision order from compatibility. An incremental registry assigns
 integer IDs; a publisher declares which compatibility line a Version belongs
 to. A consumer follows a named line and optionally sets a numeric floor.
 Exact pins record what it actually selected.
+
+Channels name update streams; immutable snapshots fix complete publication
+sets. Compatibility stays separate, and none of these concepts is a Group.
+A channel can advance across compatibility lines, but consumers still reject
+a selected head that violates their requirements.
 
 ## Publication and identity
 
@@ -109,6 +116,19 @@ new candidates for review/activation through existing deployment machinery.
 Offline operation also needs trusted metadata for declarations absent from
 the bytes. Do not add a new lockfile or signature protocol.
 
+For set publication, reuse the generic xRegistry manifest/channel contract.
+Convert a standard or capture a server model revision, reuse unchanged
+document Versions, record source release provenance and bind dependencies
+exactly. Individual authors use the same flow with one changed document.
+Persist a complete snapshot, then conditionally update one channel head.
+Fork/promotion/rollback reuse manifests; stale updates fail rather than
+overwrite another publisher. Resolve moving sources once for federation.
+
+A WoT closure extension binds each source Version/reference location to an
+exact target. Snapshot-bound consumption checks authored compatibility against
+that target; it never falls back to live highest-version selection.
+Offline replay needs the manifest, trusted metadata, contexts and exact bytes.
+
 After an anonymous upload timeout, use existing request-status facilities
 or inspect history for matching bytes and metadata. Looking only at the
 highest revision is unsafe under concurrent writers. No match does not prove
@@ -135,7 +155,9 @@ readers first; never duplicate composition links as an alias workaround.
 The [full design](versioning-design.md#workflow-evidence-index) distinguishes
 current SemVer evidence from planned incremental/publication/migration checks.
 Actual counter durability, provider trust/context handling, and OPC generated
-model changes remain proof gates. This documentation update pauses for design
-review before coordinated implementation across the five existing PRs.
+model changes remain proof gates. The generic publication proposal includes
+schemas and synthetic examples; the WoT closure schema checks shape only.
+Neither demonstrates deployed closure enforcement or implements the pending
+incremental/OPC/.NET changes.
 
 [WoT proposal]: https://github.com/marcschier/wot-thing-description/pull/1

@@ -46,7 +46,7 @@ loadpython:
 
 testpython: loadpython
 	@echo "Testing our python tools:"
-	@pytest tools/
+	@pytest tools/ workingdrafts/models/wot/tests
 
 links: loadpython
 	@echo "Verifying links in our docs:"
