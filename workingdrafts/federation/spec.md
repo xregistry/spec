@@ -886,7 +886,7 @@ can have different digests. New snapshots MAY reuse unchanged content and
 subtrees, but MUST be readable without replaying older snapshots.
 
 The [publication extension](../publication/spec.md) adds named channels over
-these snapshots rather than another snapshot definition. Resolve a moving
+these snapshots. Resolve a moving
 channel once per operation and retain the selected immutable context across
 collection pages, entity reads and document retrieval. Missing data in that
 context MUST NOT trigger a refresh or lookup against another channel head.

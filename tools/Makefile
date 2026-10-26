@@ -9,17 +9,7 @@ verify: spellcheck ticks badhrefs tabcheck errorcheck hrefs \
 
 spellcheck:
 	@echo "Checking for spelling mistakes:"
-	tools/spellcheck */README.md */spec.md core/*.md \
-		workingdrafts/bindings/*.md \
-		workingdrafts/bindings/samples/*.md \
-		workingdrafts/federation/*.md workingdrafts/federation/samples/*.md \
-		workingdrafts/publication/*.md workingdrafts/publication/samples/*.md \
-		workingdrafts/federation/samples/*/README.md \
-		workingdrafts/models/*/README.md workingdrafts/models/*/spec.md \
-		workingdrafts/models/*/samples/README.md \
-		workingdrafts/models/*/schemas/README.md \
-		workingdrafts/models/wot/publication-design.md \
-		docs/share/README.md */samples/README.md */samples/*/README.md
+	tools/spellcheck `find . -name \*.md`
 	@echo
 
 tabcheck:
@@ -29,9 +19,7 @@ tabcheck:
 
 ticks:
 	@echo "Checking for uneven back-ticks:"
-	@(! grep '^[^`]*`[^`]*$$' core/*.md workingdrafts/bindings/*.md \
-		workingdrafts/federation/*.md workingdrafts/publication/*.md \
-		workingdrafts/models/*/spec.md)
+	@(! grep '^[^`]*`[^`]*$$' `find . -name \*.md`)
 	@echo
 
 badhrefs:

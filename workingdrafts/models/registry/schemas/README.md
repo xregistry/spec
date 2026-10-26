@@ -26,21 +26,9 @@ Run these commands from the repository root in PowerShell. The identifiers
 and root type name match the repository's schema-generation target.
 
 ```powershell
-python -B tools\schema-generator.py `
-  --type json-schema `
-  --schema-id https://xregistry.io/workingdrafts/models/registry/schemas/document-schema.json `
-  --output workingdrafts\models\registry\schemas\document-schema.json `
-  workingdrafts\models\registry\model.json
-python -B tools\schema-generator.py `
-  --type json-structure `
-  --schema-id https://xregistry.io/workingdrafts/models/registry/schemas/document-schema.struct.json `
-  --schema-name RegistryOfRegistriesDocument `
-  --output workingdrafts\models\registry\schemas\document-schema.struct.json `
-  workingdrafts\models\registry\model.json
-python -B tools\schema-generator.py `
-  --type openapi `
-  --output workingdrafts\models\registry\schemas\openapi.json `
-  workingdrafts\models\registry\model.json
+python -B tools\schema-generator.py --type json-schema --schema-id https://xregistry.io/workingdrafts/models/registry/schemas/document-schema.json --output workingdrafts\models\registry\schemas\document-schema.json workingdrafts\models\registry\model.json
+python -B tools\schema-generator.py --type json-structure --schema-id https://xregistry.io/workingdrafts/models/registry/schemas/document-schema.struct.json --schema-name RegistryOfRegistriesDocument --output workingdrafts\models\registry\schemas\document-schema.struct.json workingdrafts\models\registry\model.json
+python -B tools\schema-generator.py --type openapi --output workingdrafts\models\registry\schemas\openapi.json workingdrafts\models\registry\model.json
 ```
 
 The generator writes indented JSON. File output uses the host's text-mode
