@@ -5,8 +5,8 @@
   "completeness": "offline-complete",
   "registry": {
     "url": "https://content.example.test/registry.json",
-    "digest": "sha256:353e772f3a78ac11e1c6dde3bd30ad6937db8c825c5e5d43d9f6c2436e4546cc",
-    "size": 808
+    "digest": "sha256:0512b7dea0b1017f79f78a538057369e0f046654309f402c695da8d877a12411",
+    "size": 770
   },
   "documents": [
     {
@@ -16,8 +16,8 @@
       "base": "https://author.example.test/manual/intro.txt",
       "content": {
         "url": "https://content.example.test/intro.txt",
-        "digest": "sha256:0e96d1376c30783434ca2bbc547314ae92e2d70ba14e649d296c4b1983e582b2",
-        "size": 37
+        "digest": "sha256:0a3fdd7ff022bd6a263d031e640fd0bc074fa877ed320a367784067b7a1d78e1",
+        "size": 36
       }
     }
   ]

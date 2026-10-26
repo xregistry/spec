@@ -5,13 +5,13 @@
     "scope": "urn:example:manual-publication",
     "snapshot": {
       "url": "https://content.example.test/manifest.json",
-      "digest": "sha256:96d78e605106504c92a03c11e0f13ff4a95b143fb46d3aa5580c77456d247956",
+      "digest": "sha256:00a2b9b3dba7ddaf97b9f8830b1bd07336d61936b63576e49625b68dfe734823",
       "size": 820
     },
     "registry": {
       "url": "https://content.example.test/registry.json",
-      "digest": "sha256:353e772f3a78ac11e1c6dde3bd30ad6937db8c825c5e5d43d9f6c2436e4546cc",
-      "size": 808
+      "digest": "sha256:0512b7dea0b1017f79f78a538057369e0f046654309f402c695da8d877a12411",
+      "size": 770
     },
     "completeness": "offline-complete",
     "channel": {

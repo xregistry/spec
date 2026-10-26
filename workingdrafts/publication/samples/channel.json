@@ -3,7 +3,7 @@
   "epoch": 12,
   "head": {
     "url": "https://content.example.test/manifest.json",
-    "digest": "sha256:96d78e605106504c92a03c11e0f13ff4a95b143fb46d3aa5580c77456d247956",
+    "digest": "sha256:00a2b9b3dba7ddaf97b9f8830b1bd07336d61936b63576e49625b68dfe734823",
     "size": 820
   }
 }
