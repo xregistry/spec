@@ -31,8 +31,10 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
 document are to be interpreted as described in
 [RFC2119](https://www.rfc-editor.org/rfc/rfc2119).
 
-The [federation contract](../federation/spec.md), Core 1.0-rc4 and
-Model 1.0-rc4 define the read semantics. This binding does not define
+The [federation contract](../federation/spec.md#read-operations),
+[Core 1.0-rc4](../../core/spec.md) and
+[Model 1.0-rc4](../../core/model.md) define the read semantics.
+This binding does not define
 filesystem mutation, synchronization, a file watcher or an HTTP facade.
 
 ## Motivation and Example
@@ -139,10 +141,12 @@ filenames. The OCI layout uses its own digest-based names.
 ## Layout Selection and Reads
 
 For `document-tree`, the selected directory MUST contain `registry.json`.
-The [directory mapping format](mapping.md) defines all record and index
+The [directory mapping format](mapping.md#record-and-index-documents)
+defines all record and index
 schemas, and the exact bytes. It also defines model and capabilities reads,
 label selection, Core document view, defaults and `xref`. Every internal
-`href` is relative to this directory, not to a nested record's directory.
+`href` is [relative to this directory](mapping.md#root-and-storage-paths),
+not to a nested record's directory.
 No extra `xregistry` directory is implied.
 
 Both layout modes carry the selected Registry's
@@ -157,8 +161,9 @@ root. No `records/`, `indexes/` or `documents/` directory is mandatory.
 Unreferenced files remain outside the Registry view.
 
 For `oci-layout`, consumers MUST use the
-[OCI binding](../bindings/oci.md)'s normative image-layout selection and
-descriptor-graph rules. The directory contains OCI `oci-layout`, `index.json`
+[OCI binding's image-layout selection](oci.md#22-image-layout-selection)
+and [descriptor-graph rules](oci.md#4-containment-and-range-shards).
+The directory contains OCI `oci-layout`, `index.json`
 and `blobs`. `index.json` can advertise multiple Registry snapshot roots.
 `reference` selects and pins exactly one eligible root under that binding.
 Tag ambiguity, root artifact validation, nested indexes and descriptor bounds
@@ -173,7 +178,9 @@ omit blobs does not relax xRegistry closure.
 
 Both modes return the same logical Core metadata and document bytes, subject
 to the selected snapshot. Resource defaults come from Core metadata, not
-file modification time. Equal XIDs in different directories remain scoped
+file modification time; see
+[Core default selection](../../core/spec.md#default-version-of-a-resource).
+Equal XIDs in different directories remain scoped
 to different Registry contexts.
 
 External domain-document links remain explicit. Retrieving one requires
@@ -223,6 +230,16 @@ the consumer MUST either capture a private stable snapshot or explicitly
 report the lack of an immutable filesystem pin. It MUST NOT advertise an
 atomic capture of a live upstream Registry based only on consistent file
 timestamps.
+
+For example, after capturing a root and its referenced descriptor:
+
+| Observed read | Outcome |
+| --- | --- |
+| A stable file has bytes different from the descriptor's size or digest | `integrity_error`. |
+| The file changes or truncates during the observed read | `inconsistent_snapshot`. |
+
+Neither outcome selects a newer root. A private stable snapshot is needed
+where the environment cannot provide coherent reads.
 
 A producer SHOULD construct a complete snapshot separately, then
 make it available atomically with platform-appropriate synchronization.

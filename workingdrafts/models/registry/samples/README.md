@@ -26,6 +26,9 @@ navigation URLs MUST become `#JSON-POINTER` references only when their
 targets are included, and MUST otherwise retain their absolute API URLs.
 Pointers use the current document's root and JSON Pointer escaping, not a
 storage path or an assumed catalog-root pointer.
+The checked full-document examples and the partial-view comparison follow
+the [domain document-view rules](../spec.md#33-document-view) and Core's
+[Multiple Document View](../../../../core/spec.md#multiple-document-view).
 
 The document views omit `shortself`, Version `formatvalidated` and
 `compatibilityvalidated`, and duplicated default-Version attributes on
@@ -71,7 +74,8 @@ hub export or the expanded hub model's non-Core `xref` typing.
 `/categories/public/registries/schemas`, with two description Versions.
 Version `2` is the explicit, sticky default. Version `1` remains available.
 Its `versionid` is not the Git commit, OCI root digest or a target schema's
-Version ID.
+Version ID. The expected results below apply the
+[domain selection procedure](../spec.md#62-advertisement-selection).
 
 Version `2` advertises an unknown extension followed by OCI, Git, HTTP,
 two File layouts and OPC UA. OCI and Git have equal priority `0`.
@@ -187,7 +191,8 @@ For these document-view samples, first obtain the description with
 keyword-only. Profile attributes are not duplicated on the Resource.
 Collection label selection likewise uses the selected description Versions.
 
-`resource_type(modelsource, xid)` identifies the Resource model type.
+`resource_type(modelsource, xid)` identifies the Resource model type using
+Core [Resource definition reuse](../../../../core/model.md#reuse-of-resource-definitions).
 `resolve_local_xref(registry, source_xid)` requires the Registry's
 `modelsource`. These catalog samples omit that OPTIONAL inline field, so
 callers supply the authoritative sibling model in their in-memory context.

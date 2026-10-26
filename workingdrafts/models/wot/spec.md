@@ -132,75 +132,58 @@ version MUST be part of its `wotid`; a breaking change MUST use a new `wotid`
 and a new Resource
 ([Section 5.1.1](#511-breaking-changes-and-successor-identifiers)).
 
-Thing Models MUST use Core [`versionmode`][Core versionmode]
-value `semver` and [`singleversionroot`][Core singleversionroot]
-value `true`. Core orders the Resource's [`ancestorid`][Core ancestorid]
-lineage by SemVer precedence and forbids multiple roots with these aspects.
-The registry MUST inspect `version.model` without modifying the stored
-document. If it is a SemVer 2.0.0 value without build
-metadata, the Version's `versionid` MUST equal it verbatim; the registry MUST
-assign it when omitted and MUST reject a supplied mismatch as
-`version-mismatch`. SemVer build metadata (`+build`) MUST be rejected as
-`invalid-version`, since `+` is not allowed by Core's [id constraints][Core
-id constraints].
-An authored
-SemVer value that exceeds Core's 128-character id limit MUST also be rejected
-under those constraints.
+Thing Model Resources and Thing Description Resources MUST use Core
+[`versionmode`][Core versionmode] `semver` and
+[`singleversionroot`][Core singleversionroot] `true`. Core orders each
+Resource's [`ancestorid`][Core ancestorid] lineage by SemVer precedence and
+forbids multiple roots with these aspects. The assignment rules for the
+corresponding authored fields are:
 
-If `version.model` is absent or is not SemVer, the registry MUST assign
-`0.0.0-N`, where N is the lowest positive integer whose complete id is not
-already used in the Resource. Core requires a unique immutable `versionid`
-([Core `versionid` attribute][Core versionid]);
-this extension defines the assignment in place of Core's default [Version ID
-algorithm][Core Version IDs]. A client-supplied `versionid`, if present,
-MUST equal that assignment or the registry MUST reject it as `version-mismatch`.
-A supplied id that violates Core's id grammar MUST be rejected as
-`invalid-version` before this comparison. The original absent or non-SemVer
-`version.model` MUST NOT be rewritten. Assignment and creation MUST be atomic
-with respect to concurrent writes, so two writes cannot claim the same
-generated id.
+| Resource | Authored field | Valid SemVer | Missing or non-SemVer |
+| --- | --- | --- | --- |
+| TM | `version.model` | `versionid` MUST equal the authored value verbatim. | The registry MUST assign `0.0.0-N`. |
+| TD | `version.instance` | `versionid` MUST equal the authored value verbatim. | The registry MUST assign `0.0.0-N`. |
 
-Each Thing Model Version MUST have the server-set, read-only `versionorigin`
-attribute: `authored` when its id comes from a SemVer `version.model`, and
-`generated` otherwise. Client-supplied `versionorigin` MUST be ignored under
-Core's [read-only attribute rules][Core read-only rules]. Generated ids are
-prereleases. The generated form MUST NOT be used as a minimum-version floor,
-even when
-the target Version is not present in the registry.
+For either Resource type, the registry MUST inspect the authored field
+without modifying the stored document. The original authored field MUST NOT
+be rewritten, including when absent or non-SemVer. A valid authored value
+is SemVer 2.0.0 without build metadata and fits Core's 128-character
+[id constraint][Core id constraints]. SemVer build metadata (`+build`) MUST
+be rejected as `invalid-version`, since `+` is not allowed by Core's id
+constraints. An authored SemVer value that exceeds Core's 128-character id
+limit MUST also be rejected under those constraints.
 
-Thing Description Resources MUST use Core [`versionmode`][Core versionmode]
-value `semver` and [`singleversionroot`][Core singleversionroot]
-value `true`. Core orders the Resource's [`ancestorid`][Core ancestorid]
-lineage by SemVer precedence and forbids multiple roots with these aspects.
-The registry MUST inspect `version.instance` without modifying the stored
-document. If it is a SemVer 2.0.0 value without build metadata, the Version's
-`versionid` MUST equal it verbatim; the registry MUST assign it when omitted
-and MUST reject a supplied mismatch as `version-mismatch`. Build metadata MUST
-be rejected as `invalid-version` under Core's [id constraints][Core id constraints].
-If `version.instance` is absent or is not SemVer, the registry MUST assign
-`0.0.0-N`, where N is the lowest positive integer whose complete id is not
-already used in the Resource. A supplied `versionid`, if present, MUST equal
-that assignment or the registry MUST reject it as `version-mismatch`. The
-original `version.instance` MUST NOT be rewritten. Assignment and creation
-MUST be atomic with respect to concurrent writes.
+`N` is the lowest positive integer whose complete id is not already used
+in the Resource. The registry MUST assign an omitted `versionid`. A supplied
+`versionid` MUST equal the authored or generated assignment, or the registry
+MUST reject it as `version-mismatch`. A supplied id that violates Core's id
+grammar MUST be rejected as `invalid-version` before this comparison. Core
+requires an immutable, unique [`versionid`][Core versionid]; this extension
+defines the assignment in place of its default
+[Version ID algorithm][Core Version IDs]. Assignment and creation MUST be
+atomic with respect to concurrent writes, so two writes cannot claim the
+same generated id.
 
-Each Thing Description Version MUST have the server-set, read-only
-`versionorigin` attribute: `authored` when its id comes from a SemVer
-`version.instance`, and `generated` otherwise. Client-supplied
-`versionorigin` MUST be ignored under Core's [read-only attribute
-rules][Core read-only rules].
-The model initializes `versionorigin` to `authored`. For either document kind,
-the server MUST replace that initial value with `generated` when assigning a
-generated id; the model default does not replace the assignment rules above.
-Generated ids MUST NOT be used as floors. A TD's `version.model` describes a
-model dependency; only a TD's `rel: "type"` link uses it as an implicit floor.
-It does not determine the TD's instance version and does not supply a floor
-for a TD-to-TD reference. The proposed TD composition operators
-`td:extends`, `td:subthing`, and `td:ref` resolve under Sections 5.4 and 6.2.
-A projection plan selects sources by target kind: `tm:minVersion` is uncapped
-for TMs, while `td:minVersion` uses a TD caret range. An unfloored TD source
-can cross major versions. The projection envelope's own `version.model` and
-`version.instance` do not set a source floor.
+Each Thing Model Version and each Thing Description Version MUST have a
+server-set, read-only `versionorigin`: `authored` when its id comes from a
+SemVer authored field, and `generated` otherwise.
+Client-supplied `versionorigin` MUST be ignored under Core's
+[read-only attribute rules][Core read-only rules]. The model initializes
+the attribute to `authored`; when the registry assigns a generated id, it
+MUST replace that initial value with `generated`. The model default does
+not replace the assignment rules above. Generated ids are prereleases and
+MUST NOT be used as minimum-version floors, even when the target Version
+is absent.
+
+A TD's `version.model` describes a model dependency; only a TD's
+`rel: "type"` link uses it as an implicit floor. It does not determine the
+TD's instance version or supply a floor for a TD-to-TD reference. The
+proposed TD composition operators `td:extends`, `td:subthing`, and `td:ref`
+resolve under Sections 5.4 and 6.2. A projection plan selects sources by
+target kind: `tm:minVersion` is uncapped for TMs, while `td:minVersion`
+uses a TD caret range. An unfloored TD source can cross major versions.
+The projection envelope's own `version.model` and `version.instance` do
+not set a source floor.
 
 The following illustrative JSON fragments show the authored version and the
 Version attributes assigned by the registry. Ellipses mark omitted members;
@@ -293,23 +276,19 @@ The WoT Registry is a document store: the `thingdescriptions` and
 [`hasdocument`][xRegistry hasdocument] `true`, which is why
 [model.json](model.json) does not declare it.
 
-Such a Resource is exposed through two views:
+Such a Resource is exposed through two views. The applicable protocol binding
+defines how they are selected; the xRegistry HTTP Binding uses these URL
+forms:
 
-- The **document view** serves the stored JSON-LD TD or TM document itself,
-  using its stored media type — `application/td+json` for TDs and
-  `application/tm+json` for TMs, per
-  [WoT-TD 1.1 §12.1 and §12.2][WoT-TD-1.1].
-- The **metadata view** serves the entity's xRegistry attributes. The
-  applicable protocol binding defines how the two views are selected; the
-  xRegistry HTTP Binding uses the `$details` URL suffix to select the
-  metadata view.
+| URL form | View | Representation |
+| --- | --- | --- |
+| [`self`][xRegistry self] with `$details` | Metadata | xRegistry attributes. |
+| The same URL without `$details` | Document | Stored document bytes. |
+| [`shortself`][xRegistry shortself], when enabled | Document | Alternative document URL. |
 
-Because these Resources have a document, an entity's
-[`self`][xRegistry self] URL is its **metadata-view** URL — in the HTTP
-binding, the `$details`-suffixed one. The URL that serves the document is that
-same URL *without* the `$details` suffix, which is also what
-[`shortself`][xRegistry shortself] is an alternative for where a deployment
-enables that capability.
+The document view serves stored JSON-LD bytes under their media type:
+`application/td+json` for TDs and `application/tm+json` for TMs, per
+[WoT-TD 1.1 §12.1 and §12.2][WoT-TD-1.1].
 
 This means an xRegistry-unaware WoT consumer MAY be handed a Version's `self`
 URL with the `$details` suffix removed — or its `shortself` URL — and treat it
@@ -318,7 +297,7 @@ would return xRegistry metadata rather than the document, so the two are not
 interchangeable.
 
 Addressing a `thingdescription` or `thingmodel` Resource without naming a
-Version serves that Resource's [default Version][xRegistry version-ids];
+Version serves that Resource's [Core default Version][Core defaults];
 [Section 5.3](#53-lookup) describes both forms of retrieval.
 
 ## 2. Notations and Terminology
@@ -1329,6 +1308,7 @@ Three further considerations follow from this specification's own rules.
 [Core validatecompatibility]: ../../../core/model.md#groupsstringresourcesstringvalidatecompatibility
 [Core strictvalidation]: ../../../core/model.md#groupsstringresourcesstringstrictvalidation
 [Core defaultversionsticky]: ../../../core/spec.md#defaultversionsticky-attribute
+[Core defaults]: ../../../core/spec.md#default-version-of-a-resource
 [WoT-TD-1.1]: https://www.w3.org/TR/wot-thing-description11/
 [WoT-TM-1.1]: https://www.w3.org/TR/wot-thing-description11/
 [WoT-Discovery]: https://www.w3.org/TR/wot-discovery/

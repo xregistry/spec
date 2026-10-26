@@ -1,6 +1,7 @@
 # Publication Examples
 
 <!-- words: cas jsonld py pytest readme workingdrafts -->
+<!-- words: deepcopy hashlib hexdigest pathlib publicationerror viewversion walkthrough -->
 
 These examples check the domain-independent
 [publication contract](../spec.md). The authored
@@ -44,3 +45,81 @@ integration evidence before conformance is claimed.
 `publication-package.json` supplies the portable URL-to-local-file map.
 The offline reader checks resolved containment and rejects unsafe paths.
 This demonstrates byte-bundle replay, not Git or OCI native projection.
+
+## Promotion, Rollback and an Already-Open Reader
+
+Run this Python walkthrough from the repository root with the same
+dependencies as the checks above. The second manifest adds preparation
+history but reuses the first manifest's document Version and bytes.
+The in-memory helper starts epochs at one and increments by one; the
+[publication contract](../spec.md#publishing-and-opening-a-channel)
+requires increasing epochs, not that particular increment.
+
+```python
+from copy import deepcopy
+import hashlib
+import json
+from pathlib import Path
+from workingdrafts.publication.tools.publication_examples import (
+    Channels, PublicationError, check_snapshot, open_package,
+)
+
+p = Path("workingdrafts/publication/samples")
+context = json.loads((p / "open.json").read_text())
+objects = {
+    "https://content.example.test/" + name: (p / name).read_bytes()
+    for name in ("manifest.json", "registry.json", "intro.txt")
+}
+first = context["snapshot"]
+next_manifest = json.loads(objects[first["url"]])
+next_manifest["parent"] = first
+raw = (json.dumps(next_manifest, indent=2) + "\n").encode()
+second = {
+    "url": "https://content.example.test/next.json",
+    "digest": "sha256:" + hashlib.sha256(raw).hexdigest(),
+    "size": len(raw),
+}
+objects[second["url"]] = raw
+channels = Channels()
+channels.create("stable", context["scope"], first, objects)
+channels.move("stable", 1, second, objects)
+record = channels.records["stable"]
+reader = deepcopy(record["head"])
+try:
+    channels.move("stable", 1, first, objects)
+except PublicationError as error:
+    print("stale update:", error.code)
+channels.move("stable", 2, first, objects)
+record = channels.records["stable"]
+print("rollback epoch:", record["epoch"])
+print("reader still on second:", reader == second)
+manifest = check_snapshot(reader, objects)
+document, = manifest["documents"]
+print("selected Version:", document["viewVersion"])
+print("offline package:", open_package(p)["completeness"])
+missing = dict(objects)
+del missing["https://content.example.test/intro.txt"]
+try:
+    check_snapshot(reader, missing)
+except PublicationError as error:
+    print("missing bytes:", error.code)
+```
+
+The output is:
+
+```text
+stale update: mismatched_epoch
+rollback epoch: 3
+reader still on second: True
+selected Version: /sets/manual/documents/intro/versions/7
+offline package: offline-complete
+missing bytes: unavailable
+```
+
+The reader still verifies the second manifest after the channel returns
+to the first. Neither promotion nor rollback creates a document revision.
+Removing a captured object from the supplied byte map fails explicitly;
+the helper never uses the original URL to repair the offline read.
+The [bundle map](publication-package.json) and
+[packaging rules](../spec.md#export-federation-and-binding-equivalence)
+apply the same check when the bytes reside in local files.

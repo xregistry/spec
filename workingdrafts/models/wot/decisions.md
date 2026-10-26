@@ -195,5 +195,7 @@ incompatible identities before enabling the model. Consumers retain pins
 externally and implement the error outcomes and algorithm in
 [Section 5.4](spec.md#54-versioned-reference-resolution).
 
-See the informative [versioning design](versioning-design.md) and the
-[canonical test vectors](tests/resolution/README.md).
+See the informative [versioning design](versioning-design.md), its
+[D7 selection flow](versioning-design.md#d7-selection-defaults-and-exact-pins),
+the [snapshot acceptance rules](publication-design.md#selection-and-acceptance),
+and the [canonical test vectors](tests/resolution/README.md).

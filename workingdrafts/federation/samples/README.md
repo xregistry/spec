@@ -1,6 +1,7 @@
 # Federation Conformance Examples
 
 <!-- words: opcua py pytest readme workingdrafts -->
+<!-- words: ua walkthrough -->
 
 These examples check the read and selection rules in the unreleased
 [federation specification](../spec.md). All inputs are synthetic and run
@@ -26,6 +27,14 @@ The `registry` object in `selection.json` is a reduced logical test vector,
 not a complete serialized Core API response. In particular, omission of
 server-generated metadata there is not permission to omit it from an API.
 The binding formats define their complete record representations separately.
+
+For concrete outcomes, start with the
+[HTTP selection and cache sequence](http/README.md#concrete-read-sequences),
+the [OCI selective lookup](oci/README.md#executable-helper), or the
+[UA reference remapping](opcua/README.md#reference-and-root-mapping).
+These are observed offline helper results, not deployed protocol traffic.
+The [publication walkthrough](../../publication/samples/README.md#promotion-rollback-and-an-already-open-reader)
+adds a moving channel while keeping a reader on its selected manifest.
 
 Run the conformance suite from the repository root:
 

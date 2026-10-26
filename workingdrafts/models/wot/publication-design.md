@@ -9,8 +9,12 @@
 ## Decision and status
 
 Use the [generic xRegistry publication extension][Publication] for channels
-and immutable snapshots. WoT defines dependency closure and compatibility
-validation; it does not add a channel API or Group hierarchy.
+and immutable snapshots. Its
+[manifest and integrity rules][Publication manifest] define the captured
+immutable state; its [channel rules][Publication channel] define head
+updates and opens. WoT
+defines dependency closure and compatibility validation; it does not add a
+channel API or Group hierarchy.
 This is an informative implementation design, not an implemented WoT
 profile. The current SemVer specification and its vectors remain unchanged.
 
@@ -45,7 +49,30 @@ Git protocol. Reconciliation creates another complete, validated snapshot.
 A domain-complete snapshot contains each entry document, the transitive
 TM/TD dependencies needed to interpret it, their fixed metadata, original
 reference bases, and one exact binding for every recognized external
-reference occurrence. It leaves domain bytes unchanged.
+reference occurrence. It leaves domain bytes unchanged. The generic
+[closure and compatibility contract][Publication closure] separates exact
+binding from acceptance of the selected target.
+
+The binding key is the source Version and reference occurrence, not only
+the authored target identifier. Two occurrences can therefore bind the same
+logical target ID to different exact Versions:
+
+```mermaid
+flowchart LR
+    C["Channel preview<br/>mutable head and epoch"] -->|"current head"| S12["Snapshot S12<br/>immutable manifest"]
+    C -. "later conditional update" .-> S13["Snapshot S13<br/>immutable manifest"]
+    S12 --> E["Entry Version<br/>exact source identity"]
+    S12 --> B0["Binding<br/>pointer /links/0"]
+    S12 --> B1["Binding<br/>pointer /links/1"]
+    E -. "source Version" .-> B0
+    E -. "source Version" .-> B1
+    B0 -->|"same authored target ID"| T7["Target Version 7<br/>exact identity"]
+    B1 -->|"same authored target ID"| T9["Target Version 9<br/>exact identity"]
+```
+
+**Figure A-1.** Informative channel and closure view. A channel has one
+current head; each binding identifies one source occurrence and one exact
+target Version in the selected snapshot.
 
 The closure extension URI is:
 
@@ -108,7 +135,9 @@ offline interpretation does not fetch live contexts.
 
 ## Selection and acceptance
 
-Opening a channel selects its current immutable manifest once. All entry,
+Opening a channel under the
+[Publishing and Opening a Channel][Publication channel] rules selects its
+current immutable manifest once. All entry,
 dependency and page reads in that operation use the selected snapshot.
 Missing closure data fails; it never causes live highest-version resolution.
 
@@ -117,7 +146,9 @@ validates the source reference's requirement and caller acceptance policy.
 Incremental targets need the declared compatibility line and any numeric
 floor. SemVer targets retain their target-kind floors, next-major bounds
 and prerelease rules. Conflicting trusted declarations fail.
-The snapshot determines content; it does not waive those requirements.
+The snapshot determines content; it does not waive those requirements. The
+raw exact-pin retrieval path remains separate from this
+[compatibility-checked composition][Publication closure].
 
 The standalone live resolver still selects the highest qualifying revision
 under [D7](versioning-design.md#d7-selection-defaults-and-exact-pins),
@@ -139,7 +170,9 @@ requirement or selects another channel explicitly.
 The existing [63 workflows](versioning-design.md#publisher-workflows)
 continue to define per-document publication, selection, exact replay and
 migration. These additional workflows explain set publication and its
-relationship to compatibility. Each uses the generic publication contract.
+relationship to compatibility. Each uses the generic
+[publishing and opening][Publication channel] and
+[export/federation][Publication export] contract.
 
 ### N01. Convert a versioned companion specification
 
@@ -242,3 +275,7 @@ and malformed pointers/missing targets. They do not validate authored bytes
 or prove dependency closure.
 
 [Publication]: ../../publication/spec.md
+[Publication manifest]: ../../publication/spec.md#manifest-and-integrity
+[Publication channel]: ../../publication/spec.md#publishing-and-opening-a-channel
+[Publication export]: ../../publication/spec.md#export-federation-and-binding-equivalence
+[Publication closure]: ../../publication/spec.md#domain-closure-and-compatibility

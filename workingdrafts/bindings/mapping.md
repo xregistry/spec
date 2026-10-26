@@ -10,6 +10,7 @@
 <!-- words: formatvalidated compatibilityvalidated -->
 <!-- words: filesystems readme -->
 <!-- words: assetid documentid walkthrough -->
+<!-- words: hrefs -->
 
 ## Abstract
 
@@ -159,6 +160,29 @@ Leave this file unchanged.
 Add the following eight JSON files. They are shown from the Version
 record up to the root, so each reference names a file already shown.
 The directory names are example choices, not format requirements.
+
+```mermaid
+flowchart TD
+    subgraph Root["Selected project root; hrefs are root-relative"]
+        subgraph Metadata["Eight mapping files"]
+            Registry["registry.json"] --> Groups["registry-metadata/groups.json"]
+            Groups --> Main["registry-metadata/main.json"]
+            Main --> Assets["registry-metadata/assets.json"]
+            Assets --> Widget["registry-metadata/widget.json"]
+            Widget --> Meta["registry-metadata/widget-meta.json"]
+            Widget --> Versions["registry-metadata/versions.json"]
+            Versions --> Version["source/specs/widget.registry.json"]
+            Meta -. "defaultversionid: v1 selects" .-> Version
+        end
+        Version --> Bytes["source/specs/widget.json: existing domain bytes"]
+    end
+```
+
+Figure 1 (informative): reference edges in the nine-file example. Each solid
+edge carries `href`, `size` and `sha256`; the dashed edge selects a Version
+and is not a file descriptor. Unreferenced project files are outside this
+graph. The [read rules](#reads-and-core-document-view) assemble metadata
+from these records without treating storage paths as entity navigation.
 
 **`source/specs/widget.registry.json`**
 
@@ -474,9 +498,11 @@ filesystems. Several Versions MAY reference the same local document file
 using the same path and identical size/digest values. A producer MUST NOT
 also allocate a document path to a metadata record or index.
 
-An index maps a full, case-sensitive XID to a storage path. That path is not
+An index maps a full, case-sensitive [XID](../../core/spec.md#xid-attribute)
+to a storage path. That path is not
 derived from the entity ID. The mapping therefore supports all Core-valid
-IDs, including IDs that are not portable filesystem names. The same local ID
+[IDs](../../core/spec.md#singularid-id-attribute), including IDs that are not
+portable filesystem names. The same local ID
 in different typed collections remains distinct.
 
 Core's case-insensitive uniqueness within a parent and case-sensitive lookup
@@ -588,16 +614,21 @@ including `ximportresources` provenance. `entity.model`, when supplied, MUST
 be the actual full Core model, not a compact source relabeled as a full model.
 It MUST agree with the source, its resolved includes and the captured data.
 
-If the source contains `$include` or `$includes`, the Registry record MUST
+If the source contains
+[`$include` or `$includes`](../../core/model.md#includes-in-the-xregistry-model-data),
+the Registry record MUST
 also contain `resolvedmodelsource`. That object is the compact source after
 those includes were evaluated at capture time, but before implicit Core
 definitions and `ximportresources` expansion. This object MUST be
 self-contained and preserve
-Resource type sharing. `modelbase` MUST record the absolute base of the
+[Resource type sharing](../../core/model.md#reuse-of-resource-definitions).
+`modelbase` MUST record the absolute base of the
 original source. Consumers MUST NOT re-fetch mutable includes during a read.
 The producer MUST establish equivalence of the captured source, resolved
 source and full model, when present. The original include directives remain
-available through `entity.modelsource`. The resolved copy is storage context,
+available through
+[`entity.modelsource`](../../core/spec.md#modelsource-attribute).
+The resolved copy is storage context,
 not a second authoritative domain model.
 
 When includes are absent, `resolvedmodelsource` is OPTIONAL and, if present,
@@ -666,6 +697,9 @@ zero-byte document.
 
 ## Reads and Core Document View
 
+Core's [`doc` flag](../../core/spec.md#doc-flag) defines document-view
+metadata; the `document` operation below instead retrieves domain bytes.
+
 An exact read walks the Registry record, the necessary typed collection
 indexes and selected child records. A Version read MUST NOT require reading
 unrelated domain bytes. A consumer MAY scan a collection index in memory.
@@ -712,7 +746,8 @@ metadata in an envelope sibling, `related.defaultversion`. Its
 an absolute URL to an undefined native API or a dangling local pointer.
 An alias Meta has no such sibling and no default-Version attributes.
 
-Core `xref` remains one-hop, same-Registry and same-Resource-model-type.
+Core [`xref`](../../core/spec.md#cross-referencing-resources) remains
+one-hop, same-Registry and same-Resource-model-type.
 Document-view Resource and Meta reads MUST leave aliases unexpanded,
 including dangling aliases and aliases whose targets are themselves aliases.
 Document-view alias Versions and alias Version collections MUST produce
@@ -727,6 +762,17 @@ Resource document requests use `meta.defaultversionid`. Explicit Version
 requests use exactly that ID. A snapshot revision, index position or highest
 Version string MUST NOT override the Core default.
 
+The larger [alias fixture](samples/mapping/registry.json) exercises the
+following boundary. These are operation outcomes, not additional stored
+records:
+
+| Request to an alias | Result |
+| --- | --- |
+| `entity` on the Resource or its Meta | Minimal source identity; the Resource's Meta retains `xref`, not target metadata. |
+| `collection` on its `versions` | `unsupported_operation`, retaining Core [`cannot_doc_xref`](../../core/spec.md#cannot_doc_xref). |
+| `document` on the logical Resource | The one-hop target's selected bytes, when available. |
+| `document` when the target is absent or itself an alias | `not_found`; the source metadata still exists. |
+
 Resource label selection uses effective default-Version metadata, applying
 one-hop alias semantics where applicable. It does not inspect only the reduced
 storage Resource object. Selection MUST use the common literal comparator and
@@ -740,6 +786,9 @@ either `linked` or `offline-complete`. Both classes MUST contain the complete
 internal record/index/document graph. An `offline-complete` snapshot MUST NOT
 contain external-only domain documents. Captured resolved model material MUST
 permit offline interpretation in both classes.
+
+The shared [snapshot classes](../federation/spec.md#snapshots-and-completeness)
+describe these completeness claims independently of selective retrieval.
 
 Here `scope: "/"` denotes the modeled Registry, not every file physically
 present in the selected directory. Only files reached through the mapping's

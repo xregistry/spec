@@ -35,7 +35,8 @@ document are to be interpreted as described in
 [RFC2119](https://www.rfc-editor.org/rfc/rfc2119).
 
 This binding implements the read contract of
-[federation](../federation/spec.md), using Core and Model Version 1.0-rc4.
+[federation](../federation/spec.md#read-operations), using
+[Core](../../core/spec.md) and [Model](../../core/model.md) Version 1.0-rc4.
 It defines no write-through, synchronization, checkout, build or repository
 execution. Publishing a Package is separate from consuming a federation.
 
@@ -124,6 +125,15 @@ original ref MUST NOT change that pin or trigger a second resolution.
 Consumers MUST NOT substitute a currently reachable or newer commit when
 the selected commit is inaccessible.
 
+For example, let `A` and `B` denote different complete commit OIDs
+(symbolic placeholders, not valid command arguments):
+
+| Time | Selection and reads |
+| --- | --- |
+| Start | `refs/tags/release-1` resolves to `A`; the operation pins `A`. |
+| Ref moves | The tag now resolves to `B`; metadata and document reads still use `A`. |
+| A pinned object becomes unavailable | `inconsistent_snapshot`; the operation does not substitute `B`. |
+
 Starting at the pinned commit's tree, the resolver MUST walk `path` with
 case-sensitive Git tree-name comparison. Every component MUST be a tree.
 The selected tree MUST contain the format root `registry.json`.
@@ -150,9 +160,12 @@ commit. None becomes `self` or modifies the selected entity XID.
 
 ## Read Operations
 
-All logical reads use the shared format's exact indexes, records, model,
+All logical reads use the shared format's
+[exact indexes and records](mapping.md#record-and-index-documents), model,
 capabilities and document rules. Registry, Group, Resource, Meta and Version
-metadata use its Core document-view assembly. No checkout-specific or
+metadata use its
+[Core document-view assembly](mapping.md#reads-and-core-document-view).
+No checkout-specific or
 Git-specific entity serialization is defined.
 
 The mapped Registry's enabled capabilities identify
@@ -164,13 +177,15 @@ Explicit XID traversal MUST NOT retrieve unrelated domain documents.
 Collection selection MUST apply the common literal label comparison and
 inspect the complete necessary index/member metadata before asserting
 uniqueness. Neither tree ordering nor a Git tag determines the default
-Resource Version.
+Resource Version, whose choice follows
+[Core default selection](../../core/spec.md#default-version-of-a-resource).
 
 Both linked and offline-complete snapshots MUST contain every internal graph
 object in the selected commit. Linked external document locators require a
 separate caller-authorized retrieval, not an implicit Git fetch. Relative
 domain links use the format's explicit document base, not the repository URL.
-Core `xref` is resolved only inside this captured Registry and remains
+Core [`xref`](../../core/spec.md#cross-referencing-resources) is resolved
+only inside this captured Registry and remains
 one-hop. It is not a link to another repository.
 
 ## Unsupported Indirections

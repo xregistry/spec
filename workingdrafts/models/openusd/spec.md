@@ -163,8 +163,8 @@ the sibling reservations at first publication and remains stable thereafter
 ([Section 5.1.1](#511-the-symbolic-identifier-construction)).
 
 A Consumer that does not select a Version explicitly MUST receive the
-Resource's default Version. An `xid` that addresses a specific Version MUST NOT
-be used as an asset identifier.
+Resource's [default Version][xRegistry default version]. An `xid` that
+addresses a specific Version MUST NOT be used as an asset identifier.
 
 A change that violates the Resource's [`compatibility`][xRegistry compatibility]
 policy MUST result in a new Resource, not a new Version. Re-authoring a layer
@@ -175,12 +175,15 @@ cached the old closure would silently compose an incomplete scene.
 ### 1.4. Document Store
 
 The OpenUSD Artifact Registry is a document store: the `usdassets` Resources
-are defined with [`hasdocument`][xRegistry hasdocument] set to `true`. A GET
-against the Version's document URL, without `$details`, returns the artifact
-bytes. A [`self`][xRegistry self] URL ending in `$details` identifies metadata
-and is not an artifact path. The document response uses the appropriate
-content-type and carries Resource metadata in HTTP headers. Metadata can also
-be retrieved via the `$details` suffix.
+are defined with the Core [`hasdocument` model property][xRegistry hasdocument]
+set to `true`. Core distinguishes the Resource's metadata from its
+domain-specific document in
+[Resource Metadata vs Resource Document][xRegistry resource metadata and
+document]. A GET against the Version's document URL, without `$details`,
+returns the artifact bytes. A [`self`][xRegistry self] URL ending in
+`$details` identifies metadata and is not an artifact path. The document
+response uses the appropriate content-type and carries Resource metadata
+in HTTP headers. Metadata can also be retrieved via the `$details` suffix.
 
 For unmodified USD tooling, **a Resource Version's document URL is a valid USD
 asset path.** A USD asset resolver plugin uses the bounded metadata locations in
@@ -530,7 +533,8 @@ All Versions of a single `usdasset` MUST adhere to the semantic rules of the
 Resource's [`compatibility`][xRegistry compatibility] attribute, if specified.
 Implementations SHOULD use the xRegistry default algorithm for generating new
 `versionid` values and for determining which is the latest Version. See
-[Version IDs][xRegistry version-ids].
+[Core Version IDs][xRegistry version-ids] and
+[default-Version rules][xRegistry default version].
 
 ### 4.3. Schema Plugin Groups
 
@@ -781,6 +785,25 @@ locations within one selected Group and consistent Registry context:
    treat authorization, transport, malformed metadata, incomplete reads, or
    exhausted limits as absence.
 
+**Figure 1 — Bounded symbolic-identifier lookup.** This diagram is an
+informative summary of the preceding algorithm. Missing metadata can lead to
+the sole fallback; acquisition or validation errors do not.
+
+```mermaid
+flowchart TD
+  Start["Normalize in selected Group;<br/>compute candidate C"] --> Read["Read metadata at current candidate"]
+  Read --> Result{"Read result"}
+  Result -- "authorization, transport or limit error" --> Error["Resolution error"]
+  Result -- "absent" --> Next{"F distinct and not yet tried?"}
+  Result -- "metadata" --> Check["Validate addressed ID and normalized assetidentifier"]
+  Check -- "exact identity match" --> Identity["Identity established"]
+  Check -- "well-formed different identity" --> Next
+  Check -- "malformed or incomplete metadata" --> Error
+  Next -- "yes: compute F from exact identifier;<br/>probe once" --> Read
+  Next -- "no" --> Missing["No match"]
+  Identity --> Retrieve["Retrieve document;<br/>verify declared digest, if present"]
+```
+
 Consumers MUST use finite source-byte, cumulative metadata-byte and parsing-work
 budgets and support cancellation. Metadata acquisition, when needed, MUST be
 explicitly authorized for the selected Registry context. No metadata or artifact
@@ -848,8 +871,9 @@ import the remote Resource's metadata or Versions.
 [`xref`][xRegistry xref] has a different purpose: it aliases a Resource of
 the same Resource model type within the same Registry. It is not a remote
 URL and is not followed transitively. The
-[federation working draft](../../federation/spec.md) defines explicit Registry
-selection and binding access while preserving this Core distinction.
+[federation working draft][Federation] defines the common behavior through
+its [selection][Federation selection], [identity][Federation identity] and
+[read][Federation reads] clauses.
 
 The identifier rules of [Section 5.1](#51-asset-identifiers-and-xids) let a
 plant-level registry describe a turbine supplied by a vendor and delegate
@@ -961,5 +985,11 @@ Operators SHOULD be aware of three domain-specific considerations:
 [xRegistry self]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#self-attribute
 [xRegistry compatibility]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#compatibility-attribute
 [xRegistry version-ids]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#version-ids
-[xRegistry hasdocument]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#hasdocument
+[xRegistry hasdocument]: ../../../core/model.md#groupsstringresourcesstringhasdocument
+[xRegistry default version]: ../../../core/spec.md#default-version-of-a-resource
+[xRegistry resource metadata and document]: ../../../core/spec.md#resource-metadata-vs-resource-document
 [xRegistry xref]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#xref-attribute
+[Federation]: ../../federation/spec.md
+[Federation selection]: ../../federation/spec.md#discovery-and-binding-selection
+[Federation identity]: ../../federation/spec.md#identity-and-references
+[Federation reads]: ../../federation/spec.md#read-operations

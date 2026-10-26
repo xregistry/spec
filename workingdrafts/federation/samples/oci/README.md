@@ -88,6 +88,27 @@ reads only what its operation needs. A Version document request does not
 fetch other Version payloads. Collection label selection visits all
 necessary pages and detects ambiguity, including on a later page.
 
+The explicit `v2` lookup command above prints:
+
+```json
+{
+  "base64": "eyJ0eXBlIjoibnVtYmVyIn0K",
+  "mediaType": "application/schema+json",
+  "operation": "document",
+  "resolved": "/dirs/main/files/sample/versions/v2",
+  "size": 18,
+  "snapshot": "sha256:c937f902c54ca9c63e510bab3b4ec07ec3775ad338ac030ac93d916a736efba6",
+  "target": "/dirs/main/files/sample/versions/v2"
+}
+```
+
+Its trace contains 23 file reads: two layout entry-point reads, 16
+manifest-route reads and five blob-route reads. Only one is a domain
+document blob, the selected 18-byte `v2`. It does not fetch default `v1`
+or the other document payloads. This illustrates
+[federation's exact Version read](../../spec.md#read-operations),
+not a whole-closure validation or a claim of 23 live HTTP requests.
+
 Metadata results contain `value`, the standalone Core document-view JSON,
 and `pointer`, a JSON Pointer selecting the requested entity within
 `value`. Pointers in the Core metadata are relative to `value`, not the

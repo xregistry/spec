@@ -4,6 +4,7 @@
 <!-- words: revalidation revalidate revalidated etag etags nfc -->
 <!-- words: readme reparsing uncacheable validators website -->
 <!-- words: workingdrafts -->
+<!-- words: sequencediagram -->
 
 ## Abstract
 
@@ -38,8 +39,11 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
 "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" are to be
 interpreted as described in [RFC2119][rfc2119].
 
-Core owns entity types, IDs, labels and default Versions. Core also owns
-`xref`, document view, errors and request flags. The HTTP binding owns
+Core owns entity types, IDs, labels and
+[default Versions](../../core/spec.md#default-version-of-a-resource).
+Core also owns [`xref`](../../core/spec.md#cross-referencing-resources),
+[document view](../../core/spec.md#doc-flag), errors and request flags.
+The [HTTP binding](../../core/http.md#resource-metadata-vs-resource-document) owns
 methods, paths, `$details`, HTTP metadata headers and the wire
 representation of flags.
 [HTTP Semantics][http] and [HTTP Caching][cache] own HTTP processing.
@@ -116,7 +120,9 @@ MUST retain its complete base path, preserve case-sensitive Core IDs and
 encode URI path segments without double encoding. A resolver MUST NOT
 derive global entity identity by splitting an arbitrary URL.
 
-The HTTP binding's `Link` with `rel=xregistry-root` identifies the serving
+The HTTP binding's
+[`Link` with `rel=xregistry-root`](../../core/http.md#xregistry-root-http-header)
+identifies the serving
 Registry root when provided. A resolver MUST interpret it in the response
 context and apply the same locator policy as for other links. A relocated
 root does not silently authorize access to a different origin.
@@ -125,7 +131,8 @@ The resolver MUST obtain `specversion` from the Registry representation
 before interpreting model-dependent entities. A known, explicitly supported
 Core version is necessary. Parsing JSON is not a compatibility check.
 An unsupported version MUST produce `unsupported_version`. If supported,
-Core's `specversion` flag can request a compatible representation, but the
+Core's [`specversion` flag](../../core/spec.md#specversion-flag) can request
+a compatible representation, but the
 resolver MUST verify the version actually returned. The resolver MUST NOT
 mistake a silently ignored query parameter for successful negotiation.
 
@@ -135,7 +142,9 @@ such as shared Resource type definitions. These are different documents.
 A missing model source is not an empty effective model. `{}` from a
 supported `/modelsource` has its Core meaning.
 
-`GET B/capabilities` retrieves enabled capabilities. A resolver MAY use
+`GET B/capabilities` retrieves
+[enabled capabilities](../../core/spec.md#registry-capabilities).
+A resolver MAY use
 already inlined capabilities or request supported inlining. It MUST NOT
 assume that `filter`, `inline`, pagination, `/export` or writes are enabled.
 Before composing the selected view, it MUST apply the shared
@@ -143,7 +152,9 @@ Before composing the selected view, it MUST apply the shared
 `federation.resolution: "producer"` means read the view directly without
 traversing its catalog. An absent signal defaults to consumer resolution.
 An absent capabilities API, an absent flag, or `flags: null` provides no
-positive evidence for that flag. `/capabilitiesoffered` describes choices
+positive evidence for that flag.
+[`/capabilitiesoffered`](../../core/spec.md#offered-capabilities)
+describes choices
 that can be enabled, not what is currently enabled.
 
 When an OPTIONAL read API is unavailable, a resolver MAY use an equivalent
@@ -189,7 +200,9 @@ export MUST resolve document-local pointers within that returned document.
 
 Resource metadata, the Meta entity and Version metadata are separate views.
 In particular, a Resource's API-view `versionid` is the default Version
-projection, whereas `meta.defaultversionid` records the choice. A resolver
+projection, whereas
+[`meta.defaultversionid`](../../core/spec.md#defaultversionid-attribute)
+records the choice. A resolver
 MUST NOT choose a default by lexical order, modification time, enumeration
 order or the greatest Version identifier.
 
@@ -200,6 +213,38 @@ Version URLs for subsequent requests. The resolver MUST detect a changed
 selection when claiming a consistent capture. Version IDs themselves do not
 make a
 live Version immutable.
+
+The following partial exchange uses the non-root base from the advertisement.
+Model, Core version and enabled-capability discovery precede these reads.
+The paths use the existing `item` example; response labels show only the
+values needed to explain selection, not complete HTTP or JSON messages.
+
+```mermaid
+sequenceDiagram
+    participant R as Resolver
+    participant H as HTTP service
+    R->>H: GET /services/xreg/documents/main/assets/item$details
+    H-->>R: Resource metadata, projected versionid = v1
+    opt Read the authoritative selection separately
+        R->>H: GET /services/xreg/documents/main/assets/item/meta
+        H-->>R: Meta, defaultversionid = v1
+    end
+    R->>R: Retain selected Version v1
+    R->>H: GET /services/xreg/documents/main/assets/item/versions/v1
+    H-->>R: Exact domain bytes, even when the document is JSON
+    opt Consistent-capture recheck
+        R->>H: Recheck selection and dependent representations
+        H-->>R: Changed default or representation invalidates capture
+    end
+```
+
+Figure 1 (informative): metadata selects the Version; its explicit URL reads
+the document without resolving the default again. Version metadata instead
+uses that Version URL with `$details`, not another mandatory request in this
+sequence. A metadata-only type has no document request. A changed capture
+selection yields `inconsistent_snapshot`, not a continuation with newer bytes;
+see [Live Capture and Errors](#live-capture-and-errors) and the checked
+[concrete read sequences](../federation/samples/http/README.md#concrete-read-sequences).
 
 For document-bearing types, body `self` links to Resource/Version metadata
 include `$details` in API view, as specified by Core HTTP. Metadata-only
@@ -236,8 +281,10 @@ can be empty. An absent label does not match an empty value. The resolver
 MUST NOT require a language label, impose NFC normalization, infer a locale
 from a category, or interpret the caller's `*` as a wildcard.
 
-A supported HTTP filter is an optimization. The resolver MUST construct
-Core dot notation relative to the requested collection and preserve literal
+A supported [HTTP filter](../../core/spec.md#filter-flag) is an optimization.
+The resolver MUST construct
+[Core dot notation](../../core/spec.md#dot-notation-in-filters) relative to
+the requested collection and preserve literal
 meaning. It MUST escape a literal wildcard using Core's backslash escape
 before URI encoding. It MUST quote label keys containing dot-notation
 operators using Core bracket notation. For example:

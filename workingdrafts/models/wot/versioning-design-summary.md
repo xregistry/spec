@@ -8,7 +8,8 @@
 This proposal describes an incremental profile; it is not implemented.
 The [full design](versioning-design.md) defines the mechanisms and all
 63 publisher, consumer, administrator, migration, and standardization
-workflows. The [publication design](publication-design.md) adds 12 workflows
+workflows; see its [D7 selection flow][D7].
+The [publication design](publication-design.md) adds 12 workflows
 for individual/set publication, channels, snapshots, export and federation.
 The [specification](spec.md) and [vectors](tests/resolution/README.md) still
 define the SemVer baseline.
@@ -162,3 +163,4 @@ Neither demonstrates deployed closure enforcement or implements the pending
 incremental/OPC/.NET changes.
 
 [WoT proposal]: https://github.com/marcschier/wot-thing-description/pull/1
+[D7]: versioning-design.md#d7-selection-defaults-and-exact-pins

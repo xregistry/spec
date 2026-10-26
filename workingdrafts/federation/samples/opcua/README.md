@@ -1,5 +1,6 @@
 # OPC UA Federation Offline Examples
 
+<!-- words: opcf -->
 <!-- words: applicationuri argparse argv browsename browsenext browseresult bytestrings continuationpoint continuationpoints datavalue endpointdescription endpointurl expandednodeid expectedsize exportnamespace federationerror federationprofiles filehandle filetransfer filetype identifiertype methodids namespace namespacearray namespacefile namespaceindex namespaceuri nodeid nodeids nodeset nsu opc opcfoundation opcua powershell py registryroot releasecontinuationpoints requestedmaxreferencespernode sdk selectedxid serializer serverarray serverindex serveruri servicestatus subcommand svu transportprofileuri typedefinition ua valueerror workingdrafts xregurl -->
 
 These synthetic examples check addressing and read sequences for the
@@ -9,8 +10,12 @@ library and the shared
 interfaces. They do not connect to a UA server, install an SDK, discover
 endpoints or modify an external repository.
 
-The companion proposal remains pinned at
-`ff22f224400fc8be813bf0abcbfc3cde52bc7ed3` and explicitly unadopted.
+The binding's structural/event companion dependency is Version
+0.6.0 at `d3399fca025025a73e5a6b599f850a81d985c060`, not the older public
+proposal at `ff22f224400fc8be813bf0abcbfc3cde52bc7ed3`. Both are unadopted.
+The [binding's authority and digest record](../../../bindings/opcua.md#2-normative-references)
+identifies the exact sources and explains that the Version 0.6.0 dependency
+needs access to `OPCF-Members/spec-drafts`.
 The fixtures demonstrate the binding's interpretation; they do not establish
 OPC Foundation adoption or interoperability with a Server.
 
@@ -150,6 +155,25 @@ the general Part 20 algorithm, which can also use a reliable Size.
 Short nonempty chunks are not EOF. Errors retain their native status.
 Recorded Close cleanup is still checked. Reads using another Session,
 Object or handle, and reads after Close, are invalid.
+
+For example, the `show ... default-v1-short-chunks` command above returns
+these fields in its `result` object (partial actual output):
+
+```json
+{
+  "data": "eyJ0eXBlIjoic3RyaW5nIn0=",
+  "size": 17,
+  "complete": true,
+  "trace": ["Open", "Read", "Read", "Read", "Close"],
+  "consistency": "observed",
+  "selectedXid": "/documents/main/assets/item/versions/v1"
+}
+```
+
+The first two Reads return 8 and 9 bytes; the third returns empty EOF.
+This implements the [binding's FileTransfer lifecycle](../../../bindings/opcua.md#5131-filetransfer-read-lifecycle).
+`observed` records matching supplied before/after values, not an atomic
+Registry snapshot.
 
 `namespace-file` with `refresh: true` starts with the parameterless
 `ExportNamespace`, then opens and reads the updated XML file. With no

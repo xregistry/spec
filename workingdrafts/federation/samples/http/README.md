@@ -1,6 +1,7 @@
 # HTTP Federation Offline Examples
 
 <!-- words: federationerror opc opcua py ua validators website weburl -->
+<!-- words: pathlib workingdrafts -->
 
 These synthetic exchanges exercise the request mapping and response handling
 in the [HTTP federation draft](../../../bindings/http-federation.md). They
@@ -53,6 +54,32 @@ literal selector `stage=PRODUCTION` chooses `bridge`, whose label value is
 `production`. `website` has no matching label and only a `weburl`.
 There is no `filter` or `inline` request and no domain document read.
 
+To observe the selection independently of the fixture's `expected` field,
+run this Python block from the repository root:
+
+```python
+import json
+from pathlib import Path
+from workingdrafts.bindings.tools.http_examples import interpret_transcript
+
+data = json.loads(Path(
+    "workingdrafts/federation/samples/http/transcripts.json"
+).read_text())
+case = next(t for t in data["transcripts"] if t["name"] == "no-filter-catalog")
+result = interpret_transcript(case)
+value = result["value"]
+print(value["registryid"], result["pages"], len(result["trace"]))
+```
+
+```text
+bridge 1 2
+```
+
+This is one complete collection page after two fixture requests, not a
+domain-document read. The
+[selection rule](../../spec.md#selectors) still requires every necessary
+page; `later-page-ambiguity` in the fixture supplies the contrasting failure.
+
 The redirect example shows the credential boundary with a synthetic,
 non-secret Authorization value. The destination request carries neither
 that header nor the source's conditional validator.
@@ -73,6 +100,13 @@ Cache-Control: private, max-age=0
 The applicable cached `200` response is in the fixture. The `304` is not
 an empty replacement document. By contrast, `zero-byte-document` is an
 actual `200` with an empty document and `Content-Length: 0`.
+
+Executing `document-revalidation` through the same helper returns
+`cache_reused: true`, two traced requests and the cached bytes
+`b'{"type":"string"}'`. The
+[HTTP consistency rules](../../../bindings/http-federation.md#http-validators-and-partial-content)
+retain the validator's representation scope; this does not establish a
+Registry snapshot.
 
 ## Validation and Later Test Cases
 

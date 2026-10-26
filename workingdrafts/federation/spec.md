@@ -3,6 +3,7 @@
 <!-- words: applicationuri federationprofiles nfc nodeid nodeids opc opcua rebasing registrygroups registryroot reparse standalone symlinks transportprofileuri ua website weburl xregurl -->
 <!-- words: py sequencediagram -->
 <!-- words: assetid selectedxid -->
+<!-- words: usda -->
 
 ## Abstract
 
@@ -45,6 +46,11 @@ their access methods. These descriptions form a catalog that the resolver
 uses for discovery. A catalog entry is a metadata-only Resource describing
 another Registry. It is not that Registry's root, and a consumer need not
 query or even see the catalog when an API server resolves requests for it.
+
+The Registry domain's
+[context diagram](../models/registry/spec.md#6-discovery-and-selection)
+separates the catalog entry and its description Version from the Registry
+that an advertisement opens.
 
 For example, an organization can expose a Registry containing a locally
 approved asset at `/documents/main/assets/approved`. It can also use a
@@ -503,7 +509,9 @@ determines source order and local shadow precedence.
 
 A resolver MUST select a catalog-description Version before interpreting its
 advertisements. In the absence of an explicit description Version, it MUST
-use the catalog Resource's Core default Version. A resolver MUST NOT infer
+use the catalog Resource's Core
+[default Version](../../core/spec.md#default-version-of-a-resource).
+A resolver MUST NOT infer
 an API from `weburl`, a label, a category name or a descriptive relationship.
 A website-only entry is a valid catalog entry, but is not resolvable.
 
@@ -552,6 +560,16 @@ explicitly different advertisement after inspecting the failure. A producer's
 multiple endpoints claim the same logical Registry, not necessarily the same
 instantaneous state. Credentials and trust are established independently.
 
+The Registry domain's
+[worked selection table](../models/registry/spec.md#62-advertisement-selection)
+applies this order to the
+[multi-profile catalog](../models/registry/samples/multi-profile-catalog.json):
+the implicit HTTP advertisement has priority zero even when an explicit
+HTTP advertisement has priority 20. Its selected description Version is
+not the target Registry's snapshot revision. Compare
+[Resource shadowing](#example-select-after-applying-shadows), which chooses
+an origin before this access-method decision.
+
 ## Read Operations
 
 These are reads within one selected source context. When the request
@@ -572,7 +590,8 @@ request envelope:
 | `entity` | Registry, Group, Resource, Meta or Version XID | xRegistry metadata, not raw domain content. |
 | `document` | Resource or Version XID | Domain bytes, or an explicit failure or external-document locator. |
 
-A Resource document request selects its Core default Version. An explicit
+A Resource document request selects its Core
+[default Version](../../core/spec.md#default-version-of-a-resource). An explicit
 Version request selects exactly that Version, case-sensitively. Neither
 operation selects the greatest Version string, latest OCI tag, newest Git
 commit or most recently modified file. Metadata-only Resources have no domain
@@ -587,7 +606,9 @@ For each operation a resolver MUST:
    support for filters, writes, atomic snapshots or inline representations.
    Honor the enabled resolution-owner signal before traversing its catalog.
 4. Resolve the typed target and any selector in that Registry context.
-5. Apply Core Resource, default-Version, Meta and `xref` semantics.
+5. Apply Core Resource, default-Version,
+   [Meta](../../core/spec.md#meta-entity) and
+   [`xref`](../../core/spec.md#cross-referencing-resources) semantics.
 6. Retrieve the requested view, checking the binding's integrity and
    consistency rules.
 7. Return the result with its origin and revision context, or a specific
@@ -616,7 +637,10 @@ but MUST still establish all other context.
 
 If a model is captured, the package MUST preserve enough model source to
 retain Resource type sharing. An expanded model alone can obscure
-`ximportresources` provenance. Included model documents MUST be resolved
+[`ximportresources`](../../core/model.md#reuse-of-resource-definitions)
+provenance.
+[Included model documents](../../core/model.md#includes-in-the-xregistry-model-data)
+MUST be resolved
 within the captured scope, or supplied with immutable checked references.
 Offline-complete interpretation MUST NOT fetch mutable external includes.
 A consumer MUST NOT accept unknown Core versions merely because a document
@@ -624,10 +648,12 @@ parses.
 
 ## Identity and References
 
-An XID identifies an entity only within one Registry. Resolvers MUST preserve
+An [XID](../../core/spec.md#xid-attribute) identifies an entity only within
+one Registry. Resolvers MUST preserve
 both its Registry context and typed collection path. Equal XIDs in unrelated
 Registries are not evidence that the entities or their bytes are identical.
-Core IDs are unique case-insensitively within their parent, but are looked up
+Core [IDs](../../core/spec.md#singularid-id-attribute) are unique
+case-insensitively within their parent, but are looked up
 case-sensitively. Storage bindings MUST NOT weaken either rule.
 
 ### Local Cross-References
@@ -712,6 +738,21 @@ cannot preserve or supply the base needed to interpret a relative document
 URI. Such a binding MUST report `invalid_package` or `unsupported_operation`
 rather than guess.
 
+For example, these three references retain different bases even when
+their metadata and bytes are retrieved through the same package. The
+pointer row assumes the named Resource is included in the returned JSON.
+
+| Reference value | Established base | Resolved target |
+| --- | --- | --- |
+| Core XID `/documents/main/assets/item` | Registry root `https://supplier.example/registry` | Resource under `https://supplier.example/registry/documents/main/assets/item` |
+| Domain URI `textures/wood.png` | Document base `https://assets.example/scenes/main.usda` | `https://assets.example/scenes/textures/wood.png` |
+| Navigation `#/documents/main/assets/item` | Returned JSON document | Its included `documents.main.assets.item` object, not a network request |
+
+Neither the file containing a stored record nor the catalog entry's URL
+supplies the domain URI base. The
+[directory mapping](../bindings/mapping.md) keeps storage references
+separate from those identities.
+
 ## Selectors
 
 A selector is a condition used to choose members of a named collection.
@@ -774,6 +815,13 @@ included in the returned document MUST use document-local JSON Pointers.
 Links to entities not included MUST NOT be rewritten to nonexistent local
 pointers. Reassembling records into a larger document requires rebasing
 pointers to that document, not concatenating independently relative records.
+
+The Registry domain's
+[view comparison](../models/registry/spec.md#33-document-view)
+shows a partial inclusion: only links whose targets are present become
+local pointers. Core's [Inline flag](../../core/spec.md#inline-flag)
+determines inclusion for API representations; document view does not
+make an omitted target present.
 
 Native bindings MUST distinguish these document-view serializations from
 the logical operation that retrieves an alias's target document under Core.
@@ -859,6 +907,22 @@ Registry IDs, endpoint names or XIDs alone do not establish that association.
 Bindings without such an association report their own pins, not an invented
 publication ID. Channel writes, promotion and retention are publication
 operations, outside this read-only federation contract.
+
+The following comparison separates capture from domain validation.
+The last row is a domain-profile claim layered over a snapshot, not a
+third generic completeness value.
+
+| Selected view | What the reader can rely on | What it does not establish |
+| --- | --- | --- |
+| Live HTTP or UA view | The binding's checked responses and reported origin | One immutable state across several reads |
+| Linked snapshot | Complete internal graph at the selected revision | Offline availability of external documents |
+| Offline-complete snapshot | Declared xRegistry documents and model material available without network access | Closure of arbitrary links inside domain documents |
+| Domain-validated publication | The domain profile's checked exact targets and acceptance rules | Compatibility from a channel name, or simultaneous capture of independent sources |
+
+For the last row, see the
+[WoT closure and acceptance design](../models/wot/publication-design.md).
+The [publication examples](../publication/samples/README.md) exercise
+generic byte replay independently of domain closure.
 
 ## Errors
 

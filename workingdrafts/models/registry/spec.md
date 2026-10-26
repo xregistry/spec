@@ -7,6 +7,7 @@
 <!-- words: registrygroups registryurl ssh ua uabinary uasc uatcp unversioned -->
 <!-- words: website websites -->
 <!-- words: compatibilityvalidated formatvalidated -->
+<!-- words: registriesurl walkthrough -->
 
 ## Abstract
 
@@ -228,17 +229,19 @@ The following values MUST NOT be substituted for one another:
 - The `modelversion` of a Group or Resource model.
 
 An entry MAY use Core `meta.xref` to alias another same-typed Resource in
-the same catalog. Core's one-hop processing, source-relative identity,
-document-view serialization and dangling-reference behavior MUST remain
-unchanged. An absolute endpoint MUST NOT be placed in `meta.xref`.
+the same catalog. Core's [cross-reference rules][Core xref] for one-hop
+processing, source-relative identity, document-view serialization and
+dangling references MUST remain unchanged. An absolute endpoint MUST NOT
+be placed in `meta.xref`.
 Consumers MUST NOT transitively follow a target Resource's own `xref`.
 Following an advertisement establishes a separate Registry context. It
 does not convert a remote document or remote Resource into a Core alias.
 
 ### 3.3. Document View
 
-Document-view serialization MUST follow the [Core `doc` flag][Core doc].
-In particular, it MUST:
+Document-view serialization MUST follow Core's
+[Multiple Document View][Core multiple document view] and the
+[`doc` flag][Core doc]. In particular, it MUST:
 
 - Suppress inherited default-Version attributes on Resources.
 - Suppress `formatvalidated` and `compatibilityvalidated` on Versions.
@@ -263,6 +266,45 @@ absent data.
 This conversion MUST NOT rewrite `xid`, `meta.xref` or catalog-root
 `relationships.target` values as document-local pointers. Their catalog
 scope remains unchanged. A storage filename is not a replacement base.
+
+The following partial projection is based on
+[`multi-profile-catalog.json`](samples/multi-profile-catalog.json). It
+includes the `public` Category, the `schemas` entry and its Meta entity,
+but omits the entry's Versions. The absolute URLs use the illustrative
+catalog API root `https://catalog.example/xregistry`; the fragment is not
+a complete Registry document.
+
+```json
+{
+  "categoryid": "public",
+  "self": "#/categories/public",
+  "xid": "/categories/public",
+  "registriesurl": "#/categories/public/registries",
+  "registries": {
+    "schemas": {
+      "registryid": "schemas",
+      "self": "#/categories/public/registries/schemas",
+      "xid": "/categories/public/registries/schemas",
+      "metaurl": "#/categories/public/registries/schemas/meta",
+      "meta": {
+        "registryid": "schemas",
+        "self": "#/categories/public/registries/schemas/meta",
+        "xid": "/categories/public/registries/schemas/meta",
+        "defaultversionid": "2",
+        "defaultversionurl": "https://catalog.example/xregistry/categories/public/registries/schemas/versions/2"
+      },
+      "versionsurl": "https://catalog.example/xregistry/categories/public/registries/schemas/versions"
+    }
+  }
+}
+```
+
+`self`, `registriesurl` and `metaurl` point to included data, so they use
+document pointers. The Meta entity's `defaultversionurl` and the entry's
+`versionsurl` target omitted data, so they remain absolute API URLs. `xid`
+remains the catalog-scoped identity. If a relationship is present, its
+`target` likewise remains a catalog reference even when the target entry
+is included.
 
 A document-view request directed to an alias's `versions` collection or
 one of its Versions MUST generate [Core `cannot_doc_xref`][Core alias doc],
@@ -624,7 +666,9 @@ grant permission to read a local or network path.
 The profile name is `opcua`. Its endpoint MUST be a native OPC UA endpoint
 URL, as defined by the [native binding][OPC UA]. It is a serving location,
 not the Server Application URI or Namespace URI. The native binding
-defines supported transport profiles and endpoint discovery.
+defines supported transport profiles and endpoint discovery, including
+[advertisement and Registry selection][OPC UA selection] and
+[structured reference resolution][OPC UA references].
 
 #### 5.6.1. `parameters.registryroot`
 
@@ -688,6 +732,40 @@ owned by that extension. Their names do not activate built-in semantics.
 
 ## 6. Discovery and Selection
 
+The catalog and the Registry it describes have separate identity and
+revision scopes. Selecting a catalog-description Version chooses
+advertisement metadata; resolving a target XID happens only after a
+binding establishes the target Registry context.
+
+**Figure 1 — Catalog selection establishes a separate target context.**
+The diagram is informative; selection and identity rules remain in this
+section and the linked federation clauses.
+
+```mermaid
+flowchart TB
+  subgraph Catalog["Catalog scope"]
+    direction LR
+    Entry["Catalog entry<br/>catalog XID"] --> Description["Selected description Version"]
+    Description --> Ads["Advertisements and xregurl when present"]
+  end
+  subgraph Selection["Advertisement selection"]
+    direction LR
+    Caller["Caller choice and policy"] --> Eligible["Filter by choice and policy;<br/>rank by priority, then array order"]
+  end
+  Ads --> Eligible
+  subgraph Target["Target Registry scope"]
+    direction LR
+    Context["Binding context<br/>revision pin when defined"] --> Root["Registry root<br/>target registryid"]
+    Root --> XID["Target XID"] --> Version["Target Resource Version"]
+  end
+  Eligible --> Context
+```
+
+Catalog-entry XIDs, catalog-description Version IDs, target Registry
+identity, target XIDs and binding revision pins are distinct values. A
+target Resource Version is selected within the target Registry context;
+it is not the catalog-description Version or a binding revision pin.
+
 ### 6.1. Entry Selection
 
 A consumer MUST select the containing catalog, Category and catalog entry
@@ -745,6 +823,24 @@ Candidates with the same endpoint but different parameters or priorities
 MUST retain those distinctions. In particular, a matching explicit HTTP
 advertisement does not change the implicit candidate's zero priority.
 Map iteration order MUST NOT be used to rank advertisements.
+
+The caller's choice constrains the candidates before priority is applied.
+Priority ranks only the remaining eligible candidates; it does not replace
+an explicit choice or bypass access policy.
+
+| Selection input | Result |
+| --- | --- |
+| Caller choice and policy leave multiple eligible candidates | Lower priority is preferred; original array order breaks ties. |
+| Caller choice leaves one eligible candidate | That candidate is selected, regardless of a different candidate's lower priority. |
+| No caller choice | Priority and then original array order select among eligible candidates. |
+| Policy rejects the selected choice | Report `policy_denied`; priority does not override policy. |
+
+The checked [multiple-profiles walkthrough][multi-profile example]
+demonstrates these results with the catalog fixtures.
+
+After selection, target XIDs and reads use the selected
+[federation Registry context][Federation identity] and
+[read operations][Federation read].
 
 ### 6.3. Consistency and Failure
 
@@ -978,13 +1074,19 @@ deployment evidence.
 [Core labels]: ../../../core/spec.md#labels-attribute
 [Core xref]: ../../../core/spec.md#cross-referencing-resources
 [Core doc]: ../../../core/spec.md#doc-flag
+[Core multiple document view]: ../../../core/spec.md#multiple-document-view
 [Core alias doc]: ../../../core/spec.md#cannot_doc_xref
 [Core filter]: ../../../core/spec.md#filter-flag
 [Model attributes]: ../../../core/model.md#groupsstringresourcesstringattributes
 [Federation]: ../../federation/spec.md
 [Selectors]: ../../federation/spec.md#selectors
 [Errors]: ../../federation/spec.md#errors
+[Federation identity]: ../../federation/spec.md#identity-and-references
+[Federation read]: ../../federation/spec.md#read-operations
+[multi-profile example]: samples/README.md#multiple-profiles-and-description-versions
 [OPC UA]: ../../bindings/opcua.md
+[OPC UA selection]: ../../bindings/opcua.md#101-advertisement-and-registry-selection
+[OPC UA references]: ../../bindings/opcua.md#102-structured-reference-resolution
 [RFC2119]: https://www.rfc-editor.org/rfc/rfc2119
 [RFC3986]: https://www.rfc-editor.org/rfc/rfc3986
 [File URI]: https://www.rfc-editor.org/rfc/rfc8089

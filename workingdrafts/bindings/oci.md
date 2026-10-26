@@ -103,6 +103,9 @@ flowchart TD
     Version --> Document
 ```
 
+Figure 1 (informative): the snapshot's descriptor edges connect metadata
+and document bytes; the layer is not a nested container image.
+
 ## 2. Advertisement and Root Selection
 
 An advertisement uses the shared `federationprofiles` entry shape:
@@ -360,6 +363,15 @@ relabel it as conforming. The original layout can be retained as migration
 evidence. The encoding does not prescribe a canonical JSON serialization or a
 unique placement of shard boundaries.
 
+For example, the following routing comparison is independent of JSON
+serialization:
+
+| Input or stored value | Result |
+| --- | --- |
+| Caller selects `/dirs/main/files/a:b` | Route with canonical key `/dirs/main/files/a%3Ab`. |
+| A consumed `io.xregistry.oci.xid` contains `/dirs/main/files/a:b` | `invalid_package`, not an in-place rewrite of the hashed object. |
+| Config `entity.xid` uses the URI-equivalent `/dirs/main/files/a:b` | Preserve the config bytes; compare its decoded identity with the canonical descriptor key. |
+
 ### 4.2. Exact range representation
 
 Every directory, collection and shard MUST carry these annotations:
@@ -490,7 +502,9 @@ of the root digest and linked/offline-complete class.
 
 `entity.model` is the full resolved Core model, including Core attributes.
 `entity.modelsource` is the original model-source value. `modelresolved`
-is that model source after Core `$include`/`$includes` processing but
+is that model source after
+[Core `$include`/`$includes` processing](../../core/model.md#includes-in-the-xregistry-model-data)
+but
 **before** expanding `ximportresources` or adding implicit Core aspects.
 It uses the existing Core model-source language, not a new model format.
 It MUST retain Resource type-sharing provenance.
@@ -505,7 +519,8 @@ An original include URI is provenance, not a consumption-time instruction.
 
 Different independently defined Resource types are not equivalent merely
 because their expanded schemas are structurally equal. Use the retained
-`ximportresources` graph when checking Core `xref` type identity.
+[`ximportresources` graph](../../core/model.md#reuse-of-resource-definitions)
+when checking Core `xref` type identity.
 
 ### 5.3. Version documents and placeholders
 
@@ -574,6 +589,10 @@ document and does not invalidate offline completeness. An
 offline-complete claim does not guarantee availability of a domain
 document for every possible document request.
 
+These are the shared
+[snapshot completeness classes](../federation/spec.md#snapshots-and-completeness),
+not a claim that a selective read has audited the entire graph.
+
 This claim does not recursively capture external federation advertisements,
 descriptive relationships, documentation URLs, original model-source include
 URLs or arbitrary links inside domain documents. Scope is exactly the single
@@ -583,7 +602,8 @@ Registry mentioned by its metadata.
 ### 5.5. Core document-view results and local references
 
 Raw config records are storage objects. A native metadata operation MUST
-assemble a Core document-view result rather than expose a config as an
+assemble a [Core document-view result](../../core/spec.md#doc-flag)
+rather than expose a config as an
 API entity. The baseline view inlines the requested metadata subtree,
 including Meta and Version metadata, but not domain-document bytes.
 It recreates collection counts and navigation fields. `self` and
@@ -602,11 +622,13 @@ retrievable, Core-conforming absolute URLs for non-inlined navigation, or
 report `unsupported_operation`. A resolver MUST NOT present an arbitrary
 implementation-defined `oci:` URI as a conforming `self` URL.
 
-An `xref` Resource and Meta store only their source ID, XID, and, on
+An [`xref` Resource](../../core/spec.md#cross-referencing-resources) and
+Meta store only their source ID, XID, and, on
 Meta, `xref`. Their metadata result keeps source identity and excludes
 target metadata and Versions, exactly as Core document view requires.
 Metadata requests for their Versions or Versions collection produce
-`unsupported_operation` corresponding to Core `cannot_doc_xref`.
+`unsupported_operation` corresponding to Core
+[`cannot_doc_xref`](../../core/spec.md#cannot_doc_xref).
 Dangling references and targets that are themselves aliases retain this
 unexpanded serialization. They are not invalid packages.
 
@@ -716,10 +738,25 @@ sequenceDiagram
     end
 ```
 
+Figure 2 (informative): selective reads follow the index hierarchy and
+fetch the selected document layer only when bytes were requested.
+
 `digest`, `version-digest`, `config-digest` and `document-digest` are
 placeholders for the complete digests obtained from descriptors, not literal
 request values. The initial tag is not read again during this operation.
 Other Versions' document layers are not needed.
+
+For the same selected Version, the result boundary is:
+
+| Operation | Retrieved content |
+| --- | --- |
+| Version metadata | Routing path, permitted bootstrap metadata, selected manifest and config; no document layer. |
+| Version document | The same selected Version context plus its verified document layer. |
+| Full validation | Every referenced descendant, including unrelated Version documents. |
+
+The [fixture inventory](../federation/samples/oci/README.md#fixture-inventory)
+and [executable helper](../federation/samples/oci/README.md#executable-helper)
+provide actual digests and fetch traces for this distinction.
 
 ## 7. Production and Publication
 

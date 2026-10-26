@@ -18,6 +18,30 @@ federation specification for hosting and source selection. Use the comparison
 below to choose a binding; its reference sections define the implementation
 rules.
 
+The arrows below indicate specification dependencies, not network requests.
+Core supplies the entities and interpretation rules; the other drafts add
+catalog discovery, access methods or publication context.
+
+```mermaid
+flowchart TD
+    C["Core: entities, model and HTTP"] --> R["Registry domain: catalog entries"]
+    C --> F["Federation: source context and selection"]
+    R --> F
+    F --> B["HTTP / OCI / Git / File / OPC UA bindings"]
+    F --> P["Publication extension: channels and snapshots"]
+    P --> D["Domain closure and compatibility, for example WoT"]
+```
+
+Choose a reading route by the operation being implemented:
+
+- **Discover and read:** [catalog selection](models/registry/spec.md#6-discovery-and-selection),
+  then [federation reads](federation/spec.md#read-operations) and the chosen
+  binding below.
+- **Publish and promote:** [channel updates](publication/spec.md#publishing-and-opening-a-channel),
+  then the [publication examples](publication/samples/README.md).
+- **Capture and replay:** [snapshot completeness](federation/spec.md#snapshots-and-completeness),
+  then [offline publication access](publication/spec.md#export-federation-and-binding-equivalence).
+
 | Specification | Scope |
 | --- | --- |
 | [Registry of Registries](models/registry/spec.md) | Hub-compatible catalog model, advertisements and relationships. |

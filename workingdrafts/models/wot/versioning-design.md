@@ -8,6 +8,7 @@
 <!-- words: nodeset opcfoundation rdf REQUIREDCOMPATIBILITYLINE unversioned -->
 <!-- words: walkthroughs workaround workflow workflows -->
 <!-- words: standalone -->
+<!-- words: ih pv sx -->
 
 ## Status and reading guide
 
@@ -88,7 +89,10 @@ Keep `model.json` as the SemVer model and propose a separate
 file delivered by this review update. Providers and offline catalogs carry
 equivalent profile information for their candidate sets.
 
-The Core aspects are:
+Core's [`versionmode`][Core versionmode] and
+[`singleversionroot`][Core singleversionroot] aspects determine Version ancestry.
+The [`ancestorid`][Core ancestorid] attribute records that ancestry.
+The Core model aspects are:
 
 | Aspect | SemVer | Incremental |
 | --- | --- | --- |
@@ -97,8 +101,7 @@ The Core aspects are:
 | Resolver order | SemVer precedence | Numeric revision |
 | Compatibility boundary | Existing rules | Explicit line |
 
-Core defines [version ordering and ancestor management][Core model].
-Its manual ancestor tree is not a numeric sequence or compatibility line.
+Core's manual ancestor tree is not a numeric sequence or compatibility line.
 Allowing several roots makes middle-ancestor deletion legal without a
 custom repair protocol. No SemVer model migration is needed.
 
@@ -162,6 +165,7 @@ the operations it actually supports.
 Core's [default Version ID algorithm][Core version IDs] already retains a
 generated high-water position. Advancing past authored IDs and committing
 all associated WoT state remain obligations to prove in the actual adapter.
+The assignment uses Core's immutable [`versionid`][Core versionid].
 Loading the proposed model is not proof of that behavior.
 
 ### D4. Compatibility and authority
@@ -314,40 +318,58 @@ An unknown/unavailable profile fails rather than weakening the requirement.
 
 ### D7. Selection, defaults, and exact pins
 
-This algorithm describes standalone live selection and existing raw pin
-retrieval. In snapshot-bound composition, use the exact binding from the
-selected manifest, then validate the authored requirement and caller policy.
-Do not replace it with the highest live revision or another channel head.
-The [publication acceptance rules][Publication acceptance]
-specify that separate operation.
+This diagram summarizes standalone live selection and raw pin retrieval.
+The pin branch bypasses live floor/default candidate selection. A `versionid`
+pin names one Version; a digest matching several Versions is ranked under the
+known profile. Both fail without an unpinned fallback.
 
-```text
-resolve(target, requirement, pin?):
-  establish target kind, authorized origin and one source Resource
-  if pin:
-    retrieve exact revision/bytes; verify identity and recorded expectations
-    establish profile if needed to order several digest matches
-    select the pinned result, or fail without unpinned fallback
-  else:
-    discover target profile
-    if semver:
-      apply existing floor, prerelease, sticky-default and target-kind rules
-    if incremental:
-      require line; validate OPTIONAL numeric floor
-      if default is sticky:
-        use it only if it satisfies line and floor, else fail unsatisfied
-      otherwise:
-        choose highest numeric revision satisfying line and floor
-  process fragment and dependencies; do not retry older candidates
-  return target, revision, exact digest, origin and selection context
+```mermaid
+flowchart TD
+    A["Identify target kind, authorized origin and Resource"] --> B{"Caller pin?"}
+    B -- "versionid or digest" --> P["Retrieve pinned Version or matching bytes"]
+    P --> PV["Verify identity and recorded expectations; no fallback"]
+    PV --> Z["Return target, versionid, digest and origin"]
+    B -- "none" --> R{"Target profile"}
+    R -- "SemVer (existing)" --> S{"Core default is sticky?"}
+    S -- "yes" --> SX["Use default if it satisfies floor and range; else fail"]
+    S -- "no" --> SH["Choose highest eligible SemVer"]
+    R -- "Incremental (proposed)" --> I["Require line; apply OPTIONAL numeric floor"]
+    I --> IS{"Core default is sticky?"}
+    IS -- "yes" --> IX["Use default if it satisfies line and floor; else fail"]
+    IS -- "no" --> IH["Choose highest numeric revision in line and floor"]
+    SX --> Z
+    SH --> Z
+    IX --> Z
+    IH --> Z
 ```
 
+**Figure D7-1.** Informative live-selection and raw-pin flow. Snapshot-bound
+composition instead selects the binding from its immutable manifest and
+validates the authored requirement and caller policy under the
+[WoT snapshot acceptance rules][Publication acceptance] and generic
+[Domain Closure and Compatibility][Publication closure]. It does not replace
+the binding with a live highest-version result or another channel head.
+
+The incremental path is illustrated by
+[C01](#c01-follow-the-newest-revision-in-a-line) and
+[C02](#c02-require-a-features-minimum-revision); exact replay by
+[C14](#c14-replay-an-exact-revision); and sticky-default behavior by
+[A05](#a05-set-a-sticky-default) and
+[A06](#a06-diagnose-a-default-conflict).
+The checked SemVer vectors include
+[version-ID pinning](tests/resolution/006-versionid-pin.json),
+[pin precedence](tests/resolution/026-pin-overrides-floor-and-sticky.json),
+and [a sticky default below its floor](tests/resolution/007-sticky-below-floor.json).
+They do not exercise the proposed incremental profile.
+
 Ordinary Resource retrieval serves the [Core default][Core defaults].
-In manual mode its non-sticky default follows leaf/time rules and need
-not be the highest integer, especially after import or metadata changes.
-Constrained resolution instead selects numerically unless a sticky default
-is authoritative. This is a distinction between operations, not a change
-to Core.
+Core's [`defaultversionsticky`][Core sticky] aspect keeps an explicitly
+selected default fixed; when it is false, Core derives the default from the
+Resource's `versionmode`. In manual mode that non-sticky default follows
+leaf/time rules and need not be the highest integer, especially after import
+or metadata changes. Constrained resolution instead selects numerically
+unless a sticky default is authoritative. This is a distinction between
+operations, not a change to Core.
 
 Keep the selected tuple outside the document. New records include profile
 and effective line when applicable; replay verifies recorded expectations
@@ -406,10 +428,14 @@ early structural validation. The provider supplies trusted candidate
 metadata. The resolver supplies constrained selection and exact replay.
 The caller owns deployment activation and retained dependency records.
 
-The generic publication adapter owns immutable manifests, durable conditional
-channel heads and checked open contexts. The WoT layer independently discovers
-and validates the reference closure. A channel head changes a publication
-set; it does not allocate document revisions or decide compatibility.
+The generic publication adapter owns immutable manifests and durable
+conditional channel heads under [Manifest and Integrity][Publication manifest]
+and [Publishing and Opening a Channel][Publication channel]. Its
+[Export and Federation rules][Publication export] define checked context and
+binding equivalence. The WoT layer independently discovers and validates the
+reference closure under [Domain Closure and Compatibility][Publication closure].
+A channel head changes a publication set; it does not allocate document
+revisions or decide compatibility.
 
 Extend existing .NET snapshots/APIs with profile and line context and reuse
 the SemVer implementation. Audit actual publication owners: a pure helper
@@ -1269,8 +1295,16 @@ Putting exact registry revisions into authored reference URLs binds them
 to one source's numbering. Keep authored requirements separate from the
 origin-scoped resolution record; explicitly map independent copies.
 
-[Core model]: ../../../core/model.md#groupsstringresourcesstringversionmode
+[Core versionmode]: ../../../core/model.md#groupsstringresourcesstringversionmode
+[Core singleversionroot]: ../../../core/model.md#groupsstringresourcesstringsingleversionroot
 [Core version IDs]: ../../../core/spec.md#version-ids
+[Core versionid]: ../../../core/spec.md#versionid-attribute
+[Core ancestorid]: ../../../core/spec.md#ancestorid-attribute
 [Core defaults]: ../../../core/spec.md#default-version-of-a-resource
+[Core sticky]: ../../../core/spec.md#defaultversionsticky-attribute
 [WoT proposal]: https://github.com/marcschier/wot-thing-description/pull/1
 [Publication acceptance]: publication-design.md#selection-and-acceptance
+[Publication manifest]: ../../publication/spec.md#manifest-and-integrity
+[Publication channel]: ../../publication/spec.md#publishing-and-opening-a-channel
+[Publication export]: ../../publication/spec.md#export-federation-and-binding-equivalence
+[Publication closure]: ../../publication/spec.md#domain-closure-and-compatibility
