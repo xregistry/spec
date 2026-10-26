@@ -3,6 +3,7 @@
 <!-- words: federationprofiles modelsource weburl xregurl xid xids -->
 <!-- words: revalidation revalidate revalidated etag etags nfc -->
 <!-- words: readme reparsing uncacheable validators website -->
+<!-- words: workingdrafts -->
 
 ## Abstract
 
@@ -362,6 +363,30 @@ Cached redirects do not waive target-policy checks. Shared caching of
 authenticated responses remains subject to RFC 9111 section 3.5.
 
 ## Live Capture and Errors
+
+A source implementing the OPTIONAL
+[publication extension](../publication/spec.md#context-and-http-discovery)
+exposes a snapshot-specific Core root and an HTTP `Link` to its open-context
+record. Its absolute relation URI is
+`https://xregistry.io/workingdrafts/publication/context`. A pin-aware resolver
+MUST validate that record and its manifest, and keep subsequent URLs/pages
+in the same selected view. The extension does not add HTTP advertisement
+parameters or change the ordinary root/version discovery rules.
+
+For example, a selected root can return:
+
+```http
+Link: <https://publisher.example.test/contexts/s12.json>; rel="https://xregistry.io/workingdrafts/publication/context"
+```
+
+That target returns the publication schema's `xregistry-open/1` record.
+Following it remains subject to redirect, destination and credential policy.
+The record identifies the exact manifest/Registry bytes; it is not an ETag
+for every API serialization. A context link alone does not prove API
+responses match the checked snapshot. A conforming producer MUST serve that
+graph, and a consumer claiming verified equivalence MUST check it.
+Without this extension or another explicit snapshot guarantee, report live
+access. Absence of a link MUST NOT be interpreted as a frozen Registry.
 
 Reading a live endpoint is not an atomic Registry snapshot. A root epoch or
 ETag need not cover changes to descendants, and equal modification times

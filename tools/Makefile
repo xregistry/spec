@@ -13,6 +13,7 @@ spellcheck:
 		workingdrafts/bindings/*.md \
 		workingdrafts/bindings/samples/*.md \
 		workingdrafts/federation/*.md workingdrafts/federation/samples/*.md \
+		workingdrafts/publication/*.md workingdrafts/publication/samples/*.md \
 		workingdrafts/federation/samples/*/README.md \
 		workingdrafts/models/*/README.md workingdrafts/models/*/spec.md \
 		workingdrafts/models/*/samples/README.md \
@@ -28,7 +29,8 @@ tabcheck:
 ticks:
 	@echo "Checking for uneven back-ticks:"
 	@(! grep '^[^`]*`[^`]*$$' core/*.md workingdrafts/bindings/*.md \
-		workingdrafts/federation/*.md workingdrafts/models/*/spec.md)
+		workingdrafts/federation/*.md workingdrafts/publication/*.md \
+		workingdrafts/models/*/spec.md)
 	@echo
 
 badhrefs:

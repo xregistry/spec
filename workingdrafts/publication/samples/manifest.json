@@ -1,0 +1,24 @@
+{
+  "format": "xregistry-publication/1",
+  "scope": "urn:example:manual-publication",
+  "capture": "assembled",
+  "completeness": "offline-complete",
+  "registry": {
+    "url": "https://content.example.test/registry.json",
+    "digest": "sha256:353e772f3a78ac11e1c6dde3bd30ad6937db8c825c5e5d43d9f6c2436e4546cc",
+    "size": 808
+  },
+  "documents": [
+    {
+      "viewVersion": "/sets/manual/documents/intro/versions/7",
+      "originRegistry": "https://author.example.test/registry",
+      "originVersion": "/sets/manual/documents/intro/versions/7",
+      "base": "https://author.example.test/manual/intro.txt",
+      "content": {
+        "url": "https://content.example.test/intro.txt",
+        "digest": "sha256:0e96d1376c30783434ca2bbc547314ae92e2d70ba14e649d296c4b1983e582b2",
+        "size": 37
+      }
+    }
+  ]
+}

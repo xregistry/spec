@@ -604,6 +604,12 @@ Core response envelope for that purpose. An ordinary Core response alone
 therefore does not identify whether its Resource originated locally or in
 another Registry.
 
+The OPTIONAL [publication extension](../publication/spec.md) defines a
+concrete open-context record and HTTP discovery link for views associated
+with an immutable publication. Implementations claiming that extension MUST
+return its checked context. This does not impose a publication write API on
+ordinary federation sources or change the resolution-owner signal.
+
 A standalone endpoint supplied by the caller MAY bypass catalog discovery,
 but MUST still establish all other context.
 
@@ -830,6 +836,29 @@ those field names illustrate resolver context, not a new wire format.
 Digests identify exact bytes, not semantic equality. Equivalent publications
 can have different digests. New snapshots MAY reuse unchanged content and
 subtrees, but MUST be readable without replaying older snapshots.
+
+The [publication extension](../publication/spec.md) adds named channels over
+these snapshots rather than another snapshot definition. Resolve a moving
+channel once per operation and retain the selected immutable context across
+collection pages, entity reads and document retrieval. Missing data in that
+context MUST NOT trigger a refresh or lookup against another channel head.
+Opening a channel again is a separately identified operation.
+
+Several sources can each be pinned without representing a simultaneous
+capture. Reproducing a combined view requires the source pins, interpreted
+model and exact composition policy, or a separately materialized complete
+snapshot. Resource precedence remains the rule in
+[Local Resources and Ordered Sources](#local-resources-and-ordered-sources);
+it does not select compatible domain Versions or fill a winning Resource's
+missing Version from a lower-priority source.
+
+Publication IDs, Git commits and OCI digests are distinct. A claim that two
+bindings expose the same publication requires a checked association between
+the manifest and each binding's model, metadata and document bytes. Equal
+Registry IDs, endpoint names or XIDs alone do not establish that association.
+Bindings without such an association report their own pins, not an invented
+publication ID. Channel writes, promotion and retention are publication
+operations, outside this read-only federation contract.
 
 ## Errors
 

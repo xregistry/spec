@@ -54,6 +54,21 @@ The [Registry model artifacts](models/registry/README.md) and
 Core `xref` remains a same-Registry, same-Resource-model-type mechanism.
 Federation does not redefine it as a remote URL.
 
+## Publication Extension
+
+[Channels and snapshots](publication/spec.md) define named publication
+streams independently of domain compatibility. A channel's conditional
+head selects an immutable manifest over the same captured Registry state
+defined by federation. Neither entity is represented by a Group.
+
+The extension includes a reusable [model](publication/model.json),
+[schemas](publication/schemas/publication.json) and
+[executable examples](publication/samples/README.md). Publication owns
+conditional writes and retention; federation remains read-only. Its HTTP
+open context provides a concrete snapshot pin without changing ordinary
+HTTP advertisements. Cross-binding equivalence requires a checked mapping,
+not equality of Registry IDs.
+
 ## OpenUSD Artifact Registry
 
 The OpenUSD draft is a domain model rather than a federation binding. It

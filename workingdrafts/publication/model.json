@@ -1,0 +1,61 @@
+{
+  "$schema": "https://xregistry.io/xregistryspecs/core-v1/schemas/model.schema.json",
+  "groups": {
+    "publicationstores": {
+      "singular": "publicationstore",
+      "description": "Organizational storage only; a Group is not a channel or snapshot.",
+      "resources": {
+        "channels": {
+          "singular": "channel",
+          "hasdocument": false,
+          "maxversions": 1,
+          "versionmode": "manual",
+          "metaattributes": {
+            "scope": {
+              "type": "uri",
+              "required": true,
+              "immutable": true,
+              "description": "Publication scope; not a Group identity."
+            },
+            "head": {
+              "type": "object",
+              "required": true,
+              "description": "One authoritative manifest reference; requires an epoch-checked Meta update.",
+              "attributes": {
+                "url": {
+                  "type": "url",
+                  "required": true
+                },
+                "digest": {
+                  "type": "string",
+                  "required": true
+                },
+                "size": {
+                  "type": "uinteger",
+                  "required": true
+                }
+              }
+            }
+          }
+        },
+        "snapshots": {
+          "singular": "snapshot",
+          "hasdocument": true,
+          "maxversions": 1,
+          "setversionid": true,
+          "versionmode": "manual",
+          "attributes": {
+            "contenttype": {
+              "type": "string",
+              "required": true,
+              "default": "application/json",
+              "enum": ["application/json"],
+              "strict": true
+            }
+          },
+          "description": "Manifest at Version manifest; adapter enforces digest identity and prohibits replacement."
+        }
+      }
+    }
+  }
+}

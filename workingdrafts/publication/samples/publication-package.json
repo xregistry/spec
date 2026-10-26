@@ -1,0 +1,27 @@
+{
+  "format": "xregistry-publication-package/1",
+  "context": {
+    "format": "xregistry-open/1",
+    "scope": "urn:example:manual-publication",
+    "snapshot": {
+      "url": "https://content.example.test/manifest.json",
+      "digest": "sha256:96d78e605106504c92a03c11e0f13ff4a95b143fb46d3aa5580c77456d247956",
+      "size": 820
+    },
+    "registry": {
+      "url": "https://content.example.test/registry.json",
+      "digest": "sha256:353e772f3a78ac11e1c6dde3bd30ad6937db8c825c5e5d43d9f6c2436e4546cc",
+      "size": 808
+    },
+    "completeness": "offline-complete",
+    "channel": {
+      "url": "https://publisher.example.test/publicationstores/team/channels/stable",
+      "epoch": 12
+    }
+  },
+  "objects": {
+    "https://content.example.test/manifest.json": "manifest.json",
+    "https://content.example.test/registry.json": "registry.json",
+    "https://content.example.test/intro.txt": "intro.txt"
+  }
+}
