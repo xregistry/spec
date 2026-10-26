@@ -53,6 +53,7 @@
 <!-- words: addressspacefiletype namespacemetadatatype namespacefile -->
 <!-- words: exportnamespace nsu svu svr remapping reindexed uint int nfc -->
 <!-- words: maxbytestringlength sessionclosed sessionidinvalid timeout -->
+<!-- words: href -->
 
 ## Abstract
 
@@ -210,8 +211,8 @@ capability paths.
 - [xRegistry Core specification](../../core/spec.md) — the registry, group, resource, version, document, attribute, request-flag, operation-processing and error model.
 - [xRegistry Events specification](https://github.com/xregistry/spec/blob/66ee31e47fbadff6ab982ae1516f7d9065e46b64/core/events.md) — canonical xRegistry event types, fields and emission rules, interpreted with the binding corrections in §9.1.
 - [xRegistry primer](../../core/primer.md) — the xRegistry concepts, representations, request-shaping concepts and federation model.
-- [*OPC UA — xRegistry*, structural/event source][companion-required-source] and
-  [NodeSet][companion-required-nodeset] — Version 0.6.0, published
+- <a href="https://github.com/OPCF-Members/spec-drafts/blob/d3399fca025025a73e5a6b599f850a81d985c060/source/core-specs/xregistry/spec.md" data-link-check="authenticated">OPC UA — xRegistry, structural/event source</a> and
+  <a href="https://github.com/OPCF-Members/spec-drafts/blob/d3399fca025025a73e5a6b599f850a81d985c060/model/core-specs/xregistry/Opc.Ua.XRegistry.NodeSet2.xml" data-link-check="authenticated">NodeSet</a> — Version 0.6.0, published
   `2026-09-05T00:00:00Z`, at commit
   `d3399fca025025a73e5a6b599f850a81d985c060`. The xRegistry NodeSet SHA-256
   digest of the exact Git blob bytes (LF line endings) is
@@ -2294,8 +2295,6 @@ corresponding operation concepts in the two peer bindings.
 [xRegistry Core]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html
 [xRegistry HTTP]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/http.html
 [federation]: ../federation/spec.md
-[companion-required-source]: https://github.com/OPCF-Members/spec-drafts/blob/d3399fca025025a73e5a6b599f850a81d985c060/source/core-specs/xregistry/spec.md
-[companion-required-nodeset]: https://github.com/OPCF-Members/spec-drafts/blob/d3399fca025025a73e5a6b599f850a81d985c060/model/core-specs/xregistry/Opc.Ua.XRegistry.NodeSet2.xml
 [companion-public-source]: https://github.com/marcschier/opcua-drafts/blob/ff22f224400fc8be813bf0abcbfc3cde52bc7ed3/core-specs/xregistry/OPC-UA-xRegistry.md
 [companion-public-nodeset]: https://github.com/marcschier/opcua-drafts/blob/ff22f224400fc8be813bf0abcbfc3cde52bc7ed3/core-specs/xregistry/Opc.Ua.XRegistry.NodeSet2.xml
 [json-pointer]: https://www.rfc-editor.org/rfc/rfc6901
