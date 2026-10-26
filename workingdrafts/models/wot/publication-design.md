@@ -8,17 +8,17 @@
 
 ## Decision and status
 
-Use the [generic xRegistry publication extension][Publication] for channels and
-immutable snapshots. WoT defines dependency closure and compatibility
-validation, not another channel API or another Group hierarchy.
+Use the [generic xRegistry publication extension][Publication] for channels
+and immutable snapshots. WoT defines dependency closure and compatibility
+validation; it does not add a channel API or Group hierarchy.
 This is an informative implementation design, not an implemented WoT
 profile. The current SemVer specification and its vectors remain unchanged.
 
-The generic proposal supplies a reusable model, manifest schema, conditional
+The generic proposal defines a reusable model, manifest schema, conditional
 head semantics, HTTP open context and offline byte bundle. Its executable
-examples demonstrate synthetic state transitions and integrity only.
-The WoT profile below still needs resolver/provider integration and
-cross-repository fixtures before deployed conformance can be claimed.
+examples exercise synthetic state transitions and integrity only. The WoT
+profile still needs resolver/provider integration and cross-repository
+fixtures before anyone can claim deployed conformance.
 
 ## What is versioned?
 
@@ -30,22 +30,22 @@ cross-repository fixtures before deployed conformance can be claimed.
 | Channel | Mutable scoped name selecting a snapshot. |
 | Source release | Capture provenance, not a revision or snapshot ID. |
 
-An unchanged document revision can appear in many snapshots. Each channel
-can cross compatibility lines as its publisher decides. A consumer's
-compatibility requirement still applies to the selected head.
-No Group stands for a channel, snapshot or compatibility line.
+The same document revision can appear in multiple snapshots. A publisher can
+move a channel across compatibility lines, but consumers still apply their
+compatibility requirement to the selected head. No Group represents a
+channel, snapshot or compatibility line.
 
-A channel resembles a Git branch only as a mutable head with cheap forks.
-The manifest's OPTIONAL parent records preparation history. There is no
-automatic merge, rebase, working tree or Git protocol. Reconciliation
-produces another complete validated snapshot.
+A channel resembles a Git branch only in that it has a mutable head and can
+be forked cheaply. The manifest's OPTIONAL parent records preparation
+history; it does not enable automatic merge, rebase, a working tree or the
+Git protocol. Reconciliation creates another complete, validated snapshot.
 
 ## A complete WoT publication
 
-A domain-complete snapshot includes every entry document, the transitive
-TM/TD dependencies used to interpret it, their fixed metadata, original
+A domain-complete snapshot contains each entry document, the transitive
+TM/TD dependencies needed to interpret it, their fixed metadata, original
 reference bases, and one exact binding for every recognized external
-reference occurrence. Domain bytes remain unchanged.
+reference occurrence. It leaves domain bytes unchanged.
 
 The closure extension URI is:
 
@@ -81,8 +81,8 @@ an unknown operator cannot satisfy closure validation.
 Interaction endpoints, documentation and arbitrary application links are not
 dependencies merely because they are URLs.
 
-The producer enumerates references independently from the emitted binding
-table, applying the WoT draft's context, fragment and composition rules.
+The producer enumerates references independently of the emitted binding
+table and applies the WoT draft's context, fragment and composition rules.
 Local fragment references stay within their source document and need no
 external binding. Every external occurrence needs exactly one binding.
 For a `links` item, `pointer` identifies that item. For `tm:ref`/`td:ref`,
@@ -90,9 +90,10 @@ it identifies the object containing that member. Source bytes need to contain
 the stated operator and exact `href` at that object.
 
 The producer materializes external dependencies as exact Versions in the
-captured view, preserving their source associations. Binding identity is
-`(source, pointer)`, not the authored target ID. Two occurrences can resolve
-the same logical authored ID to different exact revisions.
+captured view and preserves their source associations. A binding is
+identified by `(source, pointer)`, not the authored target ID. Two
+occurrences can resolve the same logical authored ID to different exact
+revisions.
 The target's bytes and fragment need to satisfy the actual source reference;
 an existing Version with unrelated bytes is not a valid binding.
 
@@ -107,8 +108,8 @@ offline interpretation does not fetch live contexts.
 
 ## Selection and acceptance
 
-Opening a channel selects its current immutable manifest once. Every entry,
-dependency read and page in that operation stays in that snapshot.
+Opening a channel selects its current immutable manifest once. All entry,
+dependency and page reads in that operation use the selected snapshot.
 Missing closure data fails; it never causes live highest-version resolution.
 
 Snapshot-bound composition first selects the bound exact revision, then
@@ -119,17 +120,19 @@ and prerelease rules. Conflicting trusted declarations fail.
 The snapshot determines content; it does not waive those requirements.
 
 The standalone live resolver still selects the highest qualifying revision
-under [D7](versioning-design.md#d7-selection-defaults-and-exact-pins), including
-its sticky-default rule. A captured default describes that snapshot's raw
-Resource read; it cannot replace an explicit dependency binding.
+under [D7](versioning-design.md#d7-selection-defaults-and-exact-pins),
+including its sticky-default rule. A captured default describes the
+snapshot's raw Resource read; it does not replace an explicit dependency
+binding.
 The existing raw exact-pin retrieval path still bypasses live floor/default
 selection. It is not compatibility-validated snapshot composition.
 
-For example, entry E in snapshot S12 binds a line-A dependency to revision 42.
-The author publishes revision 43/B. Opening S12 still reads 42/A.
-Channel `preview` can advance to S13 with 43/B, but a caller requiring A
-rejects that head. It does not search earlier snapshots for an A candidate.
-Changing the authored requirement or choosing another channel is explicit.
+For example, entry E in snapshot S12 binds a line-A dependency to
+revision 42. The author publishes revision 43/B; opening S12 still reads 42/A.
+Channel `preview` can advance to S13 with 43/B; a caller requiring A rejects
+that head. The resolver does not search earlier snapshots for an A
+candidate. To accept another result, the caller changes its authored
+requirement or selects another channel explicitly.
 
 ## Publication and user workflows
 

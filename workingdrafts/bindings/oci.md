@@ -13,8 +13,9 @@
 This unreleased working draft defines version 1 of an OCI snapshot format
 and a native, read-only federation binding for xRegistry. It supplements
 [Core](../../core/spec.md), the [model language](../../core/model.md) and
-the [shared federation contract](../federation/spec.md). It is not a
-released Core feature, a container image format, or a production client.
+the [shared federation contract](../federation/spec.md). It is an unreleased
+proposal, not a released Core feature, and does not define a container image
+format.
 
 One selected OCI image index identifies one complete Registry snapshot.
 Standard nested image indexes represent Registry, Group, Resource and
@@ -353,12 +354,11 @@ decoded sibling identities, including Core's case-insensitive sibling
 collisions. Domain URLs, document base/origin and domain-document bytes are not
 subject to this routing-key encoding.
 
-This is a correction to the unreleased version-1 draft. A previously produced
-draft layout containing noncanonical graph annotations requires explicit
-migration or regeneration, with new digests propagated to its root; it MUST
-NOT be silently relabeled as conforming. The original layout can be retained
-as migration evidence. The encoding does not prescribe a canonical JSON
-serialization or a unique placement of shard boundaries.
+A layout containing noncanonical graph annotations requires explicit migration
+or regeneration, with new digests propagated to its root; a producer MUST NOT
+relabel it as conforming. The original layout can be retained as migration
+evidence. The encoding does not prescribe a canonical JSON serialization or a
+unique placement of shard boundaries.
 
 ### 4.2. Exact range representation
 

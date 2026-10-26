@@ -9,15 +9,16 @@
 
 ## Abstract
 
-This working draft defines immutable publications of any xRegistry domain.
-A channel names a moving publication stream. A snapshot fixes a Registry
-view, its model, metadata and selected document bytes. Compatibility is
-checked separately; neither a channel nor a snapshot asserts it.
+This working draft defines named publication streams and immutable snapshots
+for any xRegistry domain. A channel selects a snapshot whose manifest fixes
+the Registry view, model, metadata and selected document bytes. Readers can
+retain that selection while the channel advances. Compatibility is checked
+separately; neither a channel nor a snapshot asserts it.
 
 The model and schemas here are proposed contracts. The executable examples
 check synthetic publication state and integrity, not a deployed server.
-No production publisher, distributed transaction or Git merge engine is
-provided by this draft.
+They do not implement a production publisher, distributed transaction or
+Git merge engine.
 
 ## Scope and Terminology
 
@@ -25,8 +26,8 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHOULD", "SHOULD NOT",
 "MAY", and "OPTIONAL" are interpreted as described in
 [RFC2119](https://www.rfc-editor.org/rfc/rfc2119).
 
-Core owns entities, model interpretation, IDs and conditional writes.
-[Federation](../federation/spec.md) owns Registry contexts, source selection,
+Core defines entities, model interpretation, IDs and conditional writes.
+[Federation](../federation/spec.md) defines Registry contexts, source selection,
 reference bases, snapshot completeness and package interpretation.
 This extension adds publication descriptors and named channel updates.
 It does not require federation to publish a local Registry.
@@ -55,7 +56,8 @@ The [model](model.json) supplies reusable `channels` and `snapshots`
 Resource types under an example organizational `publicationstores` Group
 type. A deployment MAY import these Resource types into its existing
 organizational Group types using Core `ximportresources`. It MUST preserve
-the shared Resource definitions. Group IDs do not identify channels/scopes.
+the shared Resource definitions. Group IDs identify neither channels nor
+publication scopes.
 
 A channel is a metadata-only Resource. Its Resource Meta contains:
 
@@ -71,8 +73,8 @@ Its Resource ID is the 64 lowercase hexadecimal characters of its Snapshot
 ID. A manifest MAY reference a manifest in another authorized store;
 forks do not require copies of its document revisions.
 
-The model does not by itself enforce publication immutability, safe head
-movement, retention, digest identity or authorizations. A publication adapter
+Loading the model does not enforce publication immutability, conditional head
+updates, retention, digest identity or authorization. A publication adapter
 MUST enforce those behaviors. A Core-only store MUST NOT advertise publication
 support merely because it loaded the model. Public APIs MAY be read-only.
 
@@ -103,8 +105,8 @@ Consumers MUST verify the exact size and SHA-256 of every descriptor they
 use. Manifest identity covers exact UTF-8 bytes, not parsed JSON equality.
 Whitespace changes can produce another ID. Producers SHOULD use deterministic
 serialization; this format does not canonicalize arbitrary domain documents.
-A manifest MUST NOT include its own digest. Unknown formats or unknown
-mandatory extension semantics MUST fail instead of being ignored.
+A manifest MUST NOT include its own digest. Consumers MUST reject unknown
+formats or unknown mandatory extension semantics instead of ignoring them.
 Every `requiredExtensions` entry MUST identify an included extension.
 Unlisted extensions are OPTIONAL to generic readers; a caller requesting a
 domain profile still requires that profile's extension and validation.
@@ -140,8 +142,8 @@ intentionally constructed set; `live-observation` denotes source reads without
 a source-wide consistency guarantee. `source-snapshot` is permitted only with
 a source-provided immutable capture guarantee. For that claim, the producer
 MUST retain its source identity and capture evidence in a provenance extension
-under `requiredExtensions`. This field
-does not weaken the output's own immutability or internal completeness, and
+under `requiredExtensions`. The capture classification
+does not weaken the output's immutability or internal completeness, and
 a consumer requiring atomic source capture MUST reject `live-observation`.
 
 ## Publishing and Opening a Channel
@@ -172,10 +174,11 @@ identity MUST NOT be reused after deletion. An authority MUST retain that
 non-reuse history or use a distinct Resource identity. This avoids an old
 epoch accidentally authorizing a write to a recreated channel.
 
-A timeout does not prove that a head update failed. Read back the head and
-epoch. A matching head can satisfy the publication objective but does not
-prove which request set it; a different head can represent an intervening
-authorized update. Reconcile before retrying with fresh state.
+A publisher cannot infer from a timeout whether its head update took effect.
+Read back the head and epoch before retrying. A matching head can satisfy the
+publication objective without proving which request set it; a different head
+can reflect an intervening authorized update. Reconcile the observed state
+before retrying with fresh state.
 Anonymous document publication retains its own API's retry semantics.
 
 An authorized reader opens a channel by reading its Meta once, verifying
@@ -194,7 +197,8 @@ The channel selection records its absolute Resource URL and observed epoch.
 
 An open record is transport/access context, not a new Core entity or a
 replacement for `self`. It supplies enough information to retrieve the
-manifest and Core export. It MUST be available to the caller, not only logs.
+manifest and Core export. It MUST be available to the caller, not kept only
+in logs.
 Library and native bindings MUST return the equivalent schema-defined record
 or report unsupported publication-context access.
 
@@ -227,8 +231,8 @@ Registry descriptor while representing the same captured graph; only the
 descriptor representation is checked with that descriptor's digest.
 
 A byte-preserving offline export MUST include the manifest and all objects
-needed by its completeness claim. Captured bytes
-MUST NOT be rewritten when a package moves to another location.
+needed by its completeness claim. Captured bytes MUST NOT be rewritten
+when a package moves to another location.
 Publication readers MUST NOT fetch external objects during offline replay.
 
 The portable byte bundle is a directory with `publication-package.json`.

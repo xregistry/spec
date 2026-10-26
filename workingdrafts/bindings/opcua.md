@@ -142,14 +142,10 @@ identity do not override xRegistry Core or the OPC UA Parts.
 
 ## 1. Scope
 
-This specification defines the OPC UA API binding for
-[xRegistry](https://github.com/xregistry/spec). It defines how a registry
-exposes its groups, resources, versions, documents and attributes. Those
-entities are discovered, read, created, updated and deleted natively over
-OPC UA Services. That binding
-realizes the
-xRegistry core model on the OPC UA AddressSpace and FileTransfer model of [*OPC
-UA —
+The API exposes [xRegistry](https://github.com/xregistry/spec) registries,
+groups, resources, versions, documents and attributes through OPC UA Services.
+It realizes the xRegistry core model
+on the AddressSpace and FileTransfer model defined by [*OPC UA —
 xRegistry*](https://github.com/marcschier/opcua-drafts/blob/ff22f224400fc8be813bf0abcbfc3cde52bc7ed3/core-specs/xregistry/OPC-UA-xRegistry.md).
 
 The abstract information model is defined by [*OPC UA —
@@ -163,7 +159,7 @@ permanently distinguishes the two roles, even though both use `ResourceType`
 or the same domain file subtype. Document-bearing
 Resources expose their bytes through that file interface. Metadata-only
 Resources remain readable as metadata without a fabricated domain document.
-§10.6 records the limitation of the pinned proposal. This API
+Section 10.6 identifies the pinned proposal's limitations. This API
 specifies how clients interact with those nodes using Browse, BrowseNext, Read,
 Write, Call, TranslateBrowsePathsToNodeIds and the FileTransfer Methods
 inherited by `ResourceType`. Deletion is an xRegistry `Delete(ExpectedEpoch)`

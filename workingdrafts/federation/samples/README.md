@@ -2,9 +2,9 @@
 
 <!-- words: opcua py pytest readme workingdrafts -->
 
-These examples accompany the unreleased
-[federation specification](../spec.md). They are synthetic, offline inputs,
-not credentials or production endpoints.
+These examples check the read and selection rules in the unreleased
+[federation specification](../spec.md). All inputs are synthetic and run
+offline; they contain no credentials or production endpoints.
 
 | Path | Purpose |
 | --- | --- |
@@ -20,7 +20,7 @@ The source-selection helper's `Source` accepts the selected view's enabled
 capabilities. With `{"federation":{"resolution":"producer"}}`, it calls the
 view's requested read directly and does not consult the source list.
 With no signal, or explicit `consumer`, it performs local-first resolution.
-Read failures remain failures rather than triggering a different owner mode.
+A failed read does not switch resolution ownership.
 
 The `registry` object in `selection.json` is a reduced logical test vector,
 not a complete serialized Core API response. In particular, omission of
@@ -37,9 +37,10 @@ Each draft bundle keeps its helpers and tests in a sibling `tools` directory.
 The [shared helpers](../tools) and [binding helpers](../../bindings/tools)
 exercise specified algorithms without implementing a production client or
 server. Tests construct negative cases in memory or temporary directories.
-Checked-in positive JSON examples have unique keys. Byte integrity, selected
-Version identity, full graph closure and selective fetch traces are different
-assertions.
+Checked-in positive JSON examples have unique keys. Check byte integrity,
+selected Version identity, full graph closure and selective fetch traces
+independently. A passing assertion for one does not
+establish the others.
 
 OCI copying uses artifact-aware tooling and the format's standard containment
 edges. A parser accepting JSON is not evidence of whole-graph copy support.

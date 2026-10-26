@@ -7,9 +7,9 @@
 
 ## Abstract
 
-This binding reads a Registry snapshot from an explicitly selected filesystem
-directory, using either the document-tree mapping format or an OCI image
-layout. It is suitable for filesystem access without an xRegistry server.
+This binding reads a Registry snapshot from a selected filesystem directory,
+interpreting it as either a document-tree mapping or an OCI image layout. A
+consumer can read either format without an xRegistry server.
 
 **Status:** Unreleased working draft. This binding is not part of a released
 xRegistry specification.
@@ -37,10 +37,10 @@ filesystem mutation, synchronization, a file watcher or an HTTP facade.
 
 ## Motivation and Example
 
-A local Registry snapshot is useful when the consumer cannot reach a remote
-service, or when deployment tooling needs a fixed set of metadata and
-documents. The File binding uses an already available directory rather than
-requiring an xRegistry server to interpret each request.
+A local snapshot serves consumers that cannot reach a remote service and gives
+deployment tooling a fixed set of metadata and documents. The File binding
+reads that snapshot from an existing directory; an xRegistry server is not
+needed to interpret each request.
 
 For example, `file:///D:/registry-snapshots/first` with
 `layout: "document-tree"` selects that directory's `registry.json`.
@@ -61,12 +61,12 @@ They do not enable remote-authority URIs such as `file://nas/team-registry`.
 The authority and containment rules below still apply, including the
 restrictions on symlinks and reparse points.
 
-Consumers can read these formats directly. A federating API server can also
-use the directory as a source and return a normal xRegistry response to its
+Consumers can read either format directly. A federating API server can also
+read the directory as a source and return ordinary xRegistry responses to its
 client. The shared [hosting models](../federation/spec.md#design-hosting-models)
-describe both arrangements. A local directory is not automatically immutable,
-so the containment, digest and concurrent-change rules below apply in either
-arrangement.
+describe both arrangements. A local directory is mutable unless its storage
+provides an immutable snapshot, so both arrangements follow the containment,
+digest and concurrent-change rules below.
 
 ## Advertisement and File URI
 

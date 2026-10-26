@@ -41,23 +41,23 @@ execution. Publishing a Package is separate from consuming a federation.
 
 ## Motivation and Example
 
-Git lets a team review and version a Registry alongside its project metadata.
-An application can use the exact approved Registry state from a release
-commit even after a branch or tag moves. The [directory mapping format](mapping.md)
-preserves separate metadata and domain bytes inside that commit.
+Git stores a Registry with the project metadata that defines or consumes it.
+A release can therefore pin the approved Registry state to a commit even if a
+branch or tag later moves. The [directory mapping format](mapping.md) keeps
+Registry metadata separate from domain bytes within that commit.
 
 For example, a repository at `https://example.com/registries.git` can store
-the tree below `xregistry`. Selecting `refs/tags/release-1` and requesting
+the mapping under `xregistry`. Selecting `refs/tags/release-1` and requesting
 `/documents/main/assets/item/versions/v1` first pins the tag's commit, then
 reads the corresponding Git blobs. It does not read working-tree files or
 choose the newest Resource Version from a Git timestamp.
 
-The resolver can be part of the consumer or a federating API server.
-In the latter case, the consumer uses a standard xRegistry API while the
-server uses this binding as a source. The shared
+The resolver can run in the consumer or in a federating API server. In the
+latter arrangement, the consumer uses a standard xRegistry API and the server
+uses this binding to read its source. The shared
 [hosting models](../federation/spec.md#design-hosting-models) define that
-choice. Git repository acquisition and source policy are separate from
-the Core metadata representation returned to the consumer.
+choice. Repository acquisition and source policy remain separate from the
+Core metadata returned to the consumer.
 
 ## Advertisement
 

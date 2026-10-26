@@ -11,24 +11,25 @@
 
 ## Status and reading guide
 
-This document is an informative design proposal for review. The incremental
-profile, deployable vocabulary additions, diagnostics, and mappings described
-here are not implemented or made normative by this documentation update.
-The current [WoT specification](spec.md), [model](model.json), and
-[64 resolution vectors](tests/resolution/README.md) describe the SemVer
-baseline. They are not evidence that the incremental design already works.
+This document proposes an informative design for review. This documentation
+does not implement or make normative the incremental profile, vocabulary,
+diagnostics or mappings described here. The [WoT specification](spec.md),
+[model](model.json) and [64 resolution vectors](tests/resolution/README.md)
+define the SemVer baseline; they do not demonstrate that the incremental
+design works.
 
-The [two-page overview](versioning-design-summary.md) gives the decision.
-The [mechanisms](#design-mechanisms) explain the proposed contract.
-The [workflow catalog](#publisher-workflows) explains operation, including
-failures and reversal. The [evidence index](#workflow-evidence-index)
-distinguishes existing checks from proposed implementation work.
+The [two-page overview](versioning-design-summary.md) states the decision.
+The [mechanisms](#design-mechanisms) define the proposed contract, and the
+[workflow catalog](#publisher-workflows) traces operations, failures and
+reversal. The [evidence index](#workflow-evidence-index) separates current
+checks from proposed implementation work.
 
-The [channel/snapshot design](publication-design.md) adds 12 set-publication
-workflows, N01-N12, to the 63 workflows here. The generic xRegistry proposal
-owns the publication model and HTTP/offline context; WoT supplies a proposed
-dependency-binding schema and compatibility acceptance. Neither .NET runtime
-nor the OPC UA model is changed by this specification-first pass.
+The [channel/snapshot design](publication-design.md) defines 12 additional
+set-publication workflows, N01-N12, alongside the 63 workflows here. The
+generic xRegistry proposal defines the publication model and HTTP/offline
+context. WoT defines a proposed dependency-binding schema and compatibility
+acceptance. This specification-first work changes neither .NET runtime nor
+the OPC UA model.
 
 ## Decision
 
@@ -37,18 +38,19 @@ Select the profile when provisioning a registry endpoint/model, not by
 guessing from each document. Both profiles use the existing TD and TM
 collection names. A deployment needing both exposes separate endpoints.
 
-For incremental documents, an integer revision establishes order and an
-explicit compatibility line establishes which revisions a consumer follows.
-A publisher normally uploads unchanged document bytes and a line declaration;
-the registry assigns the next revision. A consumer normally names the target
-and line, adding a minimum revision only when it needs a particular feature.
-The resolver returns an exact pin for repeatable use.
+For incremental documents, integer revisions establish order; an explicit
+compatibility line determines which revisions a consumer follows. A publisher
+normally uploads unchanged bytes with a line declaration, and the registry
+assigns the next revision. A consumer names the target and line, adding a
+minimum revision only when it requires a particular feature. The resolver
+returns an exact pin for repeatable use.
 
 Use channels for named update streams and immutable snapshots for complete
-publication sets. Keep compatibility independent: `stable` is not a promise
-that its next head accepts the same consumers. A Group represents none of
-these concepts. The [publication design](publication-design.md) defines exact
-dependency bindings, conditional promotion, export and federation.
+publication sets. Compatibility remains separate: a channel named `stable`
+does not promise that its next head meets the same consumer requirements.
+Groups represent none of these concepts. The
+[publication design](publication-design.md) defines exact dependency
+bindings, conditional promotion, export and federation.
 
 Use `uav:minVersion` and `uav:compatibilityLine` in the existing OPC UA WoT
 Binding namespace for deployment now. Core WoT vocabulary standardization is
@@ -56,22 +58,21 @@ a separate proposal track, not a prerequisite for operating this design.
 
 ## Problem and boundaries
 
-A TM can state `version.model`; a TD can state `version.instance`.
-Neither establishes how a registry assigns its revision IDs or which
-revision a reference selects. Requiring every document to use SemVer also
-excludes documents whose authors use integers, free-form labels, or no
-version at all.
+A TM can state `version.model`, and a TD can state `version.instance`.
+Neither tells a registry how to assign revision IDs or which revision a
+reference selects. Requiring SemVer in every document excludes those
+whose authors use integers, free-form labels or no version.
 
-The current fallback, generated `0.0.0-N`, allows storage without rewriting
-bytes but treats those IDs as prereleases and prohibits using them as floors.
-It is bookkeeping inside the SemVer profile, not incremental versioning.
+The current generated fallback, `0.0.0-N`, permits storage without changing
+document bytes, but its IDs are prereleases and cannot serve as floors. It is
+SemVer-profile bookkeeping, not incremental versioning.
 
-This design separates authored identity, registry revision order,
-compatibility selection, and exact replay. It covers ordinary TM and TD
-composition, type links, and projection-source selection. Existing operators,
-fragment rules, authorization, and deployment activation rules remain in
-force. It introduces no compatibility graph, signature format, new lockfile,
-exactly-once protocol, or replacement for xRegistry Core.
+The design separates authored identity, registry revision order,
+compatibility selection and exact replay. It covers TM and TD composition,
+type links and projection-source selection. Existing operators, fragment
+rules, authorization and deployment activation rules remain in force. It
+adds no compatibility graph, signature format, lockfile, exactly-once
+protocol or replacement for xRegistry Core.
 
 ## Design mechanisms
 

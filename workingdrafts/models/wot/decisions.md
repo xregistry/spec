@@ -6,9 +6,9 @@
 <!-- words: contentdigest minversion prereleases versionorigin -->
 
 This document records the identity, versioning, lookup and provenance
-decisions behind the [WoT Registry specification](spec.md) and its
-[model](model.json), together with the reasoning that led to each one. It is a
-working document and changes with the draft.
+decisions for the [WoT Registry specification](spec.md) and its
+[model](model.json), including the reasoning behind them. This working
+document changes with the draft.
 
 ## 1. Identity and version are separate values
 
@@ -16,11 +16,11 @@ working document and changes with the draft.
 a compatible revision. A Thing Model's stable `wotid` includes its major
 version, such as `:v2`; it does not encode each minor or patch revision.
 
-**Why.** An identifier that changes with each compatible revision cannot be
-a stable reference. If every revision gets a new identifier, the registry
-cannot identify documents that describe the same logical Thing or form their
-`ancestor` lineage, and every holder of a reference has to update it. Keeping
-minor and patch versions out of the identifier lets a recipient resolve the
+**Why.** An identifier that changes with each compatible revision cannot
+serve as a stable reference. If every revision gets a new identifier, the
+registry cannot group documents that describe the same logical Thing or form
+their `ancestor` lineage, and every reference holder has to update its
+identifier. Excluding minor and patch versions lets a recipient resolve the
 document without parsing a version suffix.
 
 **Example.** A typo is fixed in the lamp `urn:fabrikam:lamp:42`. Its `wotid`
@@ -47,10 +47,10 @@ See [Section 1.3](spec.md#13-versioning),
 rewrite its `id`, `links[].href`, `tm:extends` or `tm:ref` values into
 registry-specific identifiers.
 
-**Why.** Documents arrive already authored and already referenced from
-artifacts the registry never sees. Rewriting breaks those external references,
-makes the registry's copy misrepresent a standard document, and gives the same
-bytes two identities in two registries.
+**Why.** Documents arrive authored and referenced from artifacts the registry
+never sees. Rewriting breaks those external references, misrepresents a
+standard document in the registry, and assigns different identities to the
+same bytes in different registries.
 
 **Example.** A Thing Description extends a Thing Model published elsewhere, by
 that model's authored identifier. Repointing the reference at this registry's
@@ -67,19 +67,17 @@ See [Section 5.2](spec.md#52-preserving-customer-documents).
 
 ## 3. The Resource id is chosen by the client, not derived by the registry
 
-**Decision.** This specification does not define a mapping between a `wotid`
-and a `thingdescriptionid`/`thingmodelid`. The client that creates a Resource
-supplies both; the registry relates them by storing them together, not by
-computing one from the other.
+**Decision.** This specification does not map a `wotid` to a
+`thingdescriptionid` or `thingmodelid`. The client creating the Resource
+supplies both values. The registry relates them by storing them together,
+not by deriving one from the other.
 
-**Why.** A WoT identifier is a URI and an xRegistry id uses a much narrower
-grammar, so the two cannot be equated — but mandating a particular
-construction buys little and costs portability. The point of a first-party
-`wotid` is precisely that a Consumer holding a WoT identifier does not need to
-know the Resource id: it queries on `wotid`. Hosting environments also differ
-in what they permit in a name, and a deployment whose ids are constrained more
-tightly than xRegistry's own rules — an ARM-backed registry, for example —
-would otherwise be unable to conform.
+**Why.** A WoT identifier is a URI, while an xRegistry id has a much narrower
+grammar. Requiring one construction would add little and reduce portability.
+A first-party `wotid` lets a Consumer holding a WoT identifier find the
+Resource by querying `wotid`. Hosting environments also differ in the names
+they permit; a deployment with tighter id restrictions than xRegistry itself,
+such as an ARM-backed registry, would otherwise be unable to conform.
 
 **Example.** A registry that stores `urn:fabrikam:lamp:42` under the Resource
 id `lamp-42` is conformant, and so is one that stores it under
@@ -96,14 +94,13 @@ See [Section 5.1](spec.md#51-wot-identifiers-and-registry-ids).
 ## 4. `wotid` is a REQUIRED, indexed, first-party attribute
 
 **Decision.** `wotid` is REQUIRED on every `thingdescription` and
-`thingmodel`, is defined in the extension model rather than left to an
-application-managed label, and SHOULD be indexed so that
+`thingmodel`, and is defined in the extension model rather than left to an
+application-managed label. It SHOULD be indexed so that
 `?filter=wotid=<id>` is served without scanning.
 
-**Why.** An informal label is not enforced, not validated and not indexed, so
-a resolver cannot depend on it. Defining the attribute in the model means the
-registry can reject a document that has no identity when it is written,
-instead of failing to find it later.
+**Why.** A resolver cannot depend on an informal label that is not enforced,
+validated or indexed. Defining the attribute in the model lets the registry
+reject a write with no identity instead of failing to find the document later.
 
 **Open point.** Where a document carries no `id` member, the Producer has to
 supply a `wotid`; the registry rejects a write that supplies neither rather

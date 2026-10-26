@@ -54,10 +54,9 @@ slash. It does not mean resolve a leading-slash URI against the host.
 
 ## Motivation and Example
 
-An existing xRegistry HTTP service can participate in federation without
-implementing another API. A consumer-side resolver can use its catalog entry
-directly, or a federating API server can access it as a source on behalf of
-ordinary HTTP clients.
+An existing xRegistry HTTP service can serve as a federation source; it does
+not need another API. A consumer-side resolver can use its catalog entry
+directly, or a federating API server can read it on behalf of its HTTP clients.
 
 For example, a source advertised at
 `https://first.example.com/services/xreg/` can supply

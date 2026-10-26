@@ -5,8 +5,8 @@
 See the [OpenUSD Artifact Registry specification](spec.md) and its
 [model](model.json).
 
-The [tools directory](tools) contains the draft's model and identifier tests.
-Run them from the repository root:
+The draft's model and identifier tests are in [tools](tools). Run them from
+the repository root:
 
 ```console
 python -B -m pytest workingdrafts\models\openusd\tools -q

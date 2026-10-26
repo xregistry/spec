@@ -60,11 +60,11 @@ does not establish Core model compliance or graph completeness.
 
 ## Motivation and Use
 
-This format is a storage representation for the Git and File bindings.
-A publisher can capture one Registry once and make the same directory tree
-available in a Git commit, an offline bundle or a local filesystem. A
-consumer-side resolver or a federating API server then reads the selected
-metadata and document bytes from that tree.
+This format stores the snapshots read by the Git and File bindings. A
+publisher can capture a Registry in one directory tree and make that tree
+available in a Git commit, an offline bundle or a local filesystem. A consumer
+or federating API server reads the selected metadata and document bytes from
+that tree.
 
 Core already defines [single-document](../../core/spec.md#single-document-view)
 and [multiple-document](../../core/spec.md#multiple-document-view) views.

@@ -5,21 +5,21 @@
 <!-- words: workflow workflows -->
 <!-- words: href namespace opc workaround -->
 
-This is an informative proposal, not an implemented incremental profile.
+This proposal describes an incremental profile; it is not implemented.
 The [full design](versioning-design.md) defines the mechanisms and all
 63 publisher, consumer, administrator, migration, and standardization
 workflows. The [publication design](publication-design.md) adds 12 workflows
 for individual/set publication, channels, snapshots, export and federation.
-The current [specification](spec.md) and
-[vectors](tests/resolution/README.md) remain the SemVer baseline.
+The [specification](spec.md) and [vectors](tests/resolution/README.md) still
+define the SemVer baseline.
 
 ## Decision and problem
 
 Keep native SemVer behavior and add a separate incremental model profile.
-A deployment chooses its profile per endpoint/model, not by interpreting
-each document's version string. Both profiles use existing TD and TM
-collection names. Supporting both needs separate endpoint/model instances,
-not necessarily separate physical servers.
+Choose the profile per endpoint/model, not from an individual document's
+version string. Both profiles use the existing TD and TM collection names.
+Supporting both requires separate endpoint/model instances, but not
+necessarily separate physical servers.
 
 A TM can contain `version.model`; a TD can contain `version.instance`.
 Requiring SemVer everywhere makes an ordinary integer or an unchanged
@@ -27,37 +27,38 @@ external document difficult to publish and reference. The current generated
 `0.0.0-N` fallback is a prerelease label that cannot be a floor. It does not
 provide ordinary incremental revision selection.
 
-Separate revision order from compatibility. An incremental registry assigns
-integer IDs; a publisher declares which compatibility line a Version belongs
-to. A consumer follows a named line and optionally sets a numeric floor.
-Exact pins record what it actually selected.
+Keep revision order separate from compatibility. An incremental registry
+assigns integer IDs, and a publisher declares each Version's compatibility
+line. A consumer follows a named line and can set a numeric floor. An exact
+pin records the selected Version.
 
-Channels name update streams; immutable snapshots fix complete publication
-sets. Compatibility stays separate, and none of these concepts is a Group.
-A channel can advance across compatibility lines, but consumers still reject
-a selected head that violates their requirements.
+Channels name update streams, while immutable snapshots fix complete
+publication sets. Neither is a Group, and neither determines compatibility.
+A channel can advance across compatibility lines; consumers still reject a
+head that violates their requirements.
 
 ## Publication and identity
 
-The routine publisher uploads unchanged bytes and a line declaration.
-An editable document can declare root `uav:compatibilityLine`; otherwise
-authorized metadata supplies `compatibilityline`. When both exist they
-have to agree. A line is an absolute URI, not another registry Resource.
+The publisher uploads unchanged bytes and declares a line. An editable
+document can carry root `uav:compatibilityLine`; otherwise authorized
+metadata supplies `compatibilityline`. Publication rejects conflicting
+declarations.
+A line is an absolute URI, not another registry Resource.
 
 With watermark 41, an unversioned or free-form document receives registry
-revision `"42"` and `versionorigin: generated`. A canonical authored
-integer can instead supply the ID with origin `authored`, provided it
-exceeds historical allocation state. Neither path rewrites the document.
+revision `"42"` and `versionorigin: generated`. A canonical authored integer
+can supply the ID with origin `authored` if it exceeds the allocation
+watermark. Neither path rewrites the document.
 
 Persist the high-water mark atomically with content, line, and applicable
 Core state. Deleting history or restarting does not reset it. Adapters
 without durable allocation reject publication rather than approximate it.
 Counter exhaustion fails; it never recycles old IDs.
 
-A line-less upload can succeed for raw retrieval and exact pins, but its
-publishing diagnostic states that automatic line selection cannot use it.
-Line membership, including absence, is fixed at creation. A correction
-requires another revision.
+A line-less upload remains available for raw retrieval and exact pins, but
+cannot participate in automatic line selection. The publishing diagnostic
+reports that limitation. Each revision fixes its line membership, including
+the absence of a line; correcting it requires another revision.
 
 Registry revision IDs are scoped to an originating Resource/sequence.
 Independent copies with the same authored `id` do not share a numeric floor.
@@ -137,10 +138,10 @@ possible duplicates on retry; no exactly-once guarantee is added.
 
 ## Core mapping, adoption, and next gate
 
-The SemVer model stays native. The incremental model uses Core `manual`
-ordering with multiple roots permitted; ancestor trees do not define
-compatibility or numeric order. Middle deletion therefore needs no custom
-single-root repair, though it can make exact pins unavailable.
+The SemVer model remains native. The incremental model uses Core `manual`
+ordering and permits multiple roots. Ancestor trees define neither
+compatibility nor numeric order. Deleting a middle ancestor needs no
+single-root repair, but can make exact pins unavailable.
 
 Migrate into a separately validated endpoint using an offline manifest of
 bytes, revisions, lines, counters, defaults, and origin mappings. Preserve

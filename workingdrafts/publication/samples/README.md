@@ -2,7 +2,8 @@
 
 <!-- words: cas jsonld py pytest readme workingdrafts -->
 
-The [publication contract](../spec.md) applies to any domain. The authored
+These examples check the domain-independent
+[publication contract](../spec.md). The authored
 [Registry export](registry.json) and [document](intro.txt) are synthetic
 inputs. Generated `manifest.json`, `channel.json` and `open.json` bind their
 exact bytes. URLs use reserved example domains; checks perform no network IO.
@@ -29,12 +30,14 @@ The suite checks raw size/digest, schema shape, context equality, document
 associations, case-insensitive Resource collisions, missing defaults,
 unsupported mandatory extensions, stale head writes, forks, rollback epochs
 and non-reused deleted channel identities. Negative graph cases recompute
-digests so digest verification alone cannot satisfy those checks.
+digests after altering the graph.
+The checks therefore have to detect the invalid graph, not just changed
+bytes.
 
 The helper accepts this example's self-contained interpreted model only.
 It explicitly rejects aliases and is not a full Core graph or domain-closure
-validator. The channel helper serializes in-memory operations; it cannot
-prove atomicity, retention or non-reuse across process restarts. Native
+validator. The channel helper serializes in-memory operations. Its results do
+not establish atomicity, retention or non-reuse across process restarts. Native
 binding mapping, HTTP context links and durable server writes need adapter
 integration evidence before conformance is claimed.
 

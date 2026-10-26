@@ -129,8 +129,8 @@ an empty map without acquiring language-key semantics.
 
 The three documents contain five Categories, seven Resources, eight
 catalog-description Versions, ten explicit advertisements and seven
-relationships. They provide the following starting points for conformance
-checks without treating derived-schema acceptance as the authority.
+relationships. Use them as conformance-check inputs; acceptance by a derived
+schema does not establish conformance.
 
 | Area | Valid sample behavior |
 | --- | --- |

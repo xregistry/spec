@@ -7,9 +7,10 @@ domain is not part of a released xRegistry specification.
 
 The [specification](spec.md) defines a catalog of versioned, metadata-only
 Registry descriptions. The [authoritative model](model.json) preserves the
-hub's `categories` / `registries` hierarchy and OPTIONAL `weburl` and
-`xregurl`. Labels, `registrytypes` and `federationprofiles` are OPTIONAL.
-A website-only entry is a valid catalog entry, not a federation endpoint.
+hub's `categories` / `registries` hierarchy. The model marks `weburl` and
+`xregurl` OPTIONAL. Labels, `registrytypes` and `federationprofiles` are
+OPTIONAL. A website-only entry is a valid catalog entry, not a federation
+endpoint.
 
 See the [full examples](samples/README.md) for base entries, multiple
 bindings and descriptive relationships. [Derived schemas](schemas/README.md)

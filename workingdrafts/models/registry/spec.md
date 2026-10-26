@@ -121,19 +121,18 @@ Group or Resource type names.
 ## 3. Registry Model
 
 The authoritative xRegistry extension model resides in [model.json](model.json).
-It is a compact `modelsource`, not a second definition of Core metadata.
-Core supplies entity IDs, navigation, labels, Version management and Meta
-attributes. An implementation MUST apply this model together with Core and
-the semantic constraints in this specification.
+It is a compact `modelsource`; Core remains authoritative for entity IDs,
+navigation, labels, Version management and Meta attributes. An implementation
+MUST apply both the model and the semantic constraints in this specification.
 
 The model defines all six domain attributes in the Resource's `attributes`
-map. They belong to catalog-description Versions. No domain attribute is
-placed in Core's reserved `resourceattributes` map, and this revision adds
-no `metaattributes`. Resource-wide extensions belong in
-`metaattributes`, as defined by [the model language][Model attributes].
+map, where they belong to catalog-description Versions. None is placed in
+Core's reserved `resourceattributes` map, and this revision adds no
+`metaattributes`. Resource-wide extensions belong in `metaattributes`, as
+defined by [the model language][Model attributes].
 
-The following is illustrative pseudo JSON. Core attributes are omitted.
-The `?` notation means OPTIONAL and `*` means zero or more occurrences.
+The fragment shows the domain shape; Core attributes are omitted. A `?` marks
+an OPTIONAL attribute, and `*` permits zero or more occurrences.
 
 ```yaml
 {

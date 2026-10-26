@@ -19,12 +19,11 @@
 
 ## Abstract
 
-This specification defines an OpenUSD Artifact Registry extension to the
-xRegistry document format and API [specification][xRegistry Core]. An OpenUSD
-Artifact Registry allows the storage, management, discovery and federation
-of [OpenUSD][OpenUSD] (Universal Scene Description) artifacts. Those artifacts
-are the layers, packages, textures, MaterialX documents, volumes and schema
-plugins that a Consumer needs to compose and render a USD stage.
+This specification extends the xRegistry document format and API
+[specification][xRegistry Core] with an OpenUSD Artifact Registry. The
+registry stores, manages, discovers and federates [OpenUSD][OpenUSD]
+(Universal Scene Description) artifacts: layers, packages, textures, MaterialX
+documents, volumes and schema plugins used to compose and render a USD stage.
 
 ## Table of Contents
 
@@ -92,10 +91,9 @@ An OpenUSD Artifact Registry makes a set of USD artifacts:
 - **Federatable** — this registry does not host that texture, but it knows
   which registry does.
 
-Because the registry is an xRegistry document store, a Consumer that knows
-nothing about xRegistry can still retrieve an artifact by URL, which means an
-existing USD asset resolver can be pointed at a registry with no changes to the
-authored scene.
+The registry exposes artifact bytes at document URLs. An existing USD asset
+resolver can therefore retrieve them without making authored scenes
+xRegistry-aware.
 
 ### 1.1. Artifacts and Asset Containers
 
@@ -217,8 +215,8 @@ This specification defines the following terms:
 
 #### 2.2.1. USD Asset
 
-We use the term **USD asset** (or `usdasset` Resource) in this specification as
-a logical grouping of **USD Asset Versions**. A **USD Asset Version** is one
+This specification uses **USD asset** (or `usdasset` Resource) for a logical
+grouping of **USD Asset Versions**. A **USD Asset Version** is one
 concrete artifact document — a layer, a package, a texture, a MaterialX
 document, a volume, a plugin manifest or a generated schema. The USD asset
 Resource groups one or more concrete documents that represent iterations of

@@ -4,20 +4,19 @@
 <!-- words: namespace validators -->
 <!-- words: usd MaterialX plugins federatable -->
 
-The specifications in this directory are under active development and can
-change independently of released xRegistry specifications. They are included
-for discussion and review and are not part of a released xRegistry
-specification.
+These specifications are working drafts for discussion and review, not part
+of a released xRegistry specification. They can change independently of
+released specifications.
 
 ## Federation Specification Family
 
 The federation drafts define read-only resolution across independently
 administered Registries.
 
-For a first reading, use the domain specification to understand catalog
-entries, then the federation specification to understand hosting and source
-selection. The comparison below helps choose a binding. Each binding's
-reference sections contain the detailed implementation rules.
+Start with the domain specification for catalog entries, then read the
+federation specification for hosting and source selection. Use the comparison
+below to choose a binding; its reference sections define the implementation
+rules.
 
 | Specification | Scope |
 | --- | --- |
@@ -56,10 +55,11 @@ Federation does not redefine it as a remote URL.
 
 ## Publication Extension
 
-[Channels and snapshots](publication/spec.md) define named publication
-streams independently of domain compatibility. A channel's conditional
-head selects an immutable manifest over the same captured Registry state
-defined by federation. Neither entity is represented by a Group.
+[Channels and snapshots](publication/spec.md) separate a mutable publication
+stream from the captured state it selects. A channel's conditional head
+selects an immutable manifest over the Registry state defined by federation.
+Channel selection does not establish domain compatibility, and neither a
+channel nor a snapshot is represented by a Group.
 
 The extension includes a reusable [model](publication/model.json),
 [schemas](publication/schemas/publication.json) and
@@ -73,8 +73,7 @@ The [WoT publication companion](models/wot/publication-design.md) supplies
 the domain-specific closure design, schema, shape example and checks.
 The [WoT versioning design](models/wot/versioning-design.md) and its
 [overview](models/wot/versioning-design-summary.md) describe document
-revision assignment, compatibility and live reference selection. The full
-WoT versioning proposal is included here with the publication proposal.
+revision assignment, compatibility and live reference selection.
 
 ## OpenUSD Artifact Registry
 
@@ -88,11 +87,11 @@ documents, volumes and schema plugins.
 | [OpenUSD Artifact Registry](models/openusd/spec.md) | Asset containers, artifact Resources, identifiers and the dependency closure. |
 | [Model artifacts](models/openusd/README.md) | The authoritative model and its identifier tests. |
 
-A stage is opened against one root layer, which pulls in others through
-composition arcs. The transitive set is the **dependency closure**, and a
-Consumer missing any member of it cannot compose the scene correctly. The
-draft makes that closure describable, verifiable through per-Version digests,
-versioned through Core rules, and federatable across registries.
+A stage opens against one root layer and pulls in other artifacts through
+composition arcs. That transitive set is the **dependency closure**. A Consumer
+missing any member cannot compose the scene correctly. The draft defines how
+to describe the closure, verify its members through per-Version digests, and
+apply Core versioning and federation across registries.
 
 Because the registry is an xRegistry document store, an existing USD asset
 resolver can retrieve an artifact by URL without any xRegistry awareness. The

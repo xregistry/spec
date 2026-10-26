@@ -2,7 +2,7 @@
 
 <!-- words: applicationuri argparse argv browsename browsenext browseresult bytestrings continuationpoint continuationpoints datavalue endpointdescription endpointurl expandednodeid expectedsize exportnamespace federationerror federationprofiles filehandle filetransfer filetype identifiertype methodids namespace namespacearray namespacefile namespaceindex namespaceuri nodeid nodeids nodeset nsu opc opcfoundation opcua powershell py registryroot releasecontinuationpoints requestedmaxreferencespernode sdk selectedxid serializer serverarray serverindex serveruri servicestatus subcommand svu transportprofileuri typedefinition ua valueerror workingdrafts xregurl -->
 
-These synthetic examples accompany the
+These synthetic examples check addressing and read sequences for the
 [OPC UA binding](../../../bindings/opcua.md). They use Python's standard
 library and the shared
 [`federation_examples.py`](../../tools/federation_examples.py) error/validation
@@ -11,8 +11,8 @@ endpoints or modify an external repository.
 
 The companion proposal remains pinned at
 `ff22f224400fc8be813bf0abcbfc3cde52bc7ed3` and explicitly unadopted.
-The fixtures demonstrate the binding's corrected interpretation, not proof
-of OPC Foundation adoption or Server interoperability.
+The fixtures demonstrate the binding's interpretation; they do not establish
+OPC Foundation adoption or interoperability with a Server.
 
 ## Running the Examples
 
@@ -29,7 +29,7 @@ code. It prints each file's case and expected-error counts. `show` first
 validates the file and then prints one named result. Invalid fixtures,
 unexpected outcomes and unavailable files produce a JSON error on standard
 error and exit status 1. Argument syntax errors use argparse's exit status 2.
-These commands run the fixtures directly; no test runner is needed.
+These commands execute the fixtures without a test runner.
 
 ## Fixture Files
 
@@ -84,10 +84,10 @@ cases the target application is `urn:example:ua:remote`, not a guessed
 Root mapping consumes an already selected, normalized `EndpointDescription`
 with `endpointUrl`, `server.applicationUri` and `transportProfileUri`.
 The fixture policy requires the endpoint to equal the selected advertisement.
-Real discovery or an approved relocation needs its own policy. The helper
-does not discover or authenticate it. Mapping a root does not verify its
-existence, TypeDefinition or membership. Those are live-client obligations
-in the binding, not guarantees provided by string validation.
+Live discovery and approved relocation need their own policy; the helper
+neither discovers nor authenticates the endpoint. A successful root mapping
+validates the address, not the root's existence, TypeDefinition or membership.
+The live client performs those checks under the binding's rules.
 
 ## Read Transcript Notation
 
@@ -162,7 +162,8 @@ not a new NodeSet catalog domain.
 
 All invalid inputs and failed observations use the shared
 `FederationError(ValueError)`, with `.code` and a message from `str(error)`.
-No error is represented as empty bytes or an empty successful collection.
+Failures never return empty bytes or an empty collection as a successful
+result.
 
 | Interface | Result and constraints |
 | --- | --- |

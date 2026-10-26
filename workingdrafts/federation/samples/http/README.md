@@ -2,18 +2,18 @@
 
 <!-- words: federationerror opc opcua py ua validators website weburl -->
 
-These are synthetic, offline inputs for the
-[HTTP federation draft](../../../bindings/http-federation.md), not traffic
-captured from a public deployment. No server, credentials or network access
-is needed.
+These synthetic exchanges exercise the request mapping and response handling
+in the [HTTP federation draft](../../../bindings/http-federation.md). They
+are not captured deployment traffic and require no server, credentials or
+network access.
 
 ## Files
 
 `read-mapping.json` defines a compact model source and fifteen concrete
 abstract-request to HTTP-URL mappings. All successful mappings use `GET`.
 The model source is interpretation input, not a claim that an effective
-`/model` response omits Core's expanded fields. The metadata-only catalog
-and document-bearing assets share the paths used by the federation examples.
+`/model` response omits Core's expanded fields. The metadata-only catalog and
+document-bearing assets use the same paths as the federation examples.
 
 `transcripts.json` contains named synthetic exchanges. Each `request.url`
 is absolute. `request.headers` is the complete set relevant to the example.
@@ -53,9 +53,9 @@ literal selector `stage=PRODUCTION` chooses `bridge`, whose label value is
 `production`. `website` has no matching label and only a `weburl`.
 There is no `filter` or `inline` request and no domain document read.
 
-The redirect example uses an explicitly synthetic, non-secret Authorization
-value to make the credential boundary visible. Neither that header nor the
-source's conditional validator appears on the destination request.
+The redirect example shows the credential boundary with a synthetic,
+non-secret Authorization value. The destination request carries neither
+that header nor the source's conditional validator.
 
 The `document-revalidation` transcript preserves the document bytes across
 conditional retrieval:
@@ -106,5 +106,5 @@ document-local navigation.
 | Trust | External-document `303`. Independent destination credentials. Denied redirect. No silent fallback after `401`/`403`. Cached temporary redirect still subject to policy. |
 | Capture | Incompatible Core release. Changing default Version. Lack of Registry-wide atomicity. Colliding XIDs in independent contexts. |
 
-The matrix lists scenarios and boundary cases for conformance checks. It is
-not an exhaustive test-coverage report.
+Use the matrix to identify scenarios and boundary cases for conformance
+checks, not as an exhaustive report of implemented test coverage.

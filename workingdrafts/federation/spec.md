@@ -8,8 +8,9 @@
 
 This specification defines read-only resolution across independently
 administered xRegistries. A Registry of Registries describes access methods.
-A resolver chooses a method, establishes a Registry context and interprets
-that Registry using xRegistry Core. Protocol bindings define retrieval.
+A resolver selects an access method and establishes the Registry context
+in which it interprets identifiers and metadata using xRegistry Core.
+Protocol bindings define how it retrieves that data.
 
 ## Table of Contents
 
@@ -32,11 +33,11 @@ that Registry using xRegistry Core. Protocol bindings define retrieval.
 
 ## Overview
 
-Federation permits a consumer to find and read entities through a Registry
-without requiring all content to be stored in that Registry. A Registry can
-serve local Resources and obtain other Resources from configured source
-Registries. A locally supplied Resource can shadow a Resource available from
-a source Registry. The consumer's access point remains the Registry.
+Federation lets a consumer read local and source-derived entities through
+one Registry. That Registry serves local Resources and obtains others from
+configured source Registries; a local Resource can shadow the same Resource
+path in a source. The consumer retains one access point without requiring
+all content to be stored there.
 
 The [Registry domain](../models/registry/spec.md) contains a
 `categories` / `registries` hierarchy for describing source Registries and
@@ -120,9 +121,9 @@ from its XID.
 
 This is the default when no resolution-owner capability is declared.
 
-This model is useful for offline tools or applications that already support
-OCI, Git or other native bindings. A stored catalog alone does not execute
-the selection algorithm. The client performs the additional reads.
+Offline tools and applications with OCI, Git or other native readers can
+perform these reads themselves. The stored catalog describes the sources;
+the client executes selection and retrieves the selected content.
 
 In this mode the producer does not contact source Registries or return their
 possible matches. An ordinary client without federation support reads only
@@ -303,7 +304,7 @@ and selecting a binding for that source are separate decisions.
 The federating Registry MUST use an explicit composition policy identifying
 the eligible catalog entries, their order and the Resource paths they can
 supply. That ordered list is configuration, not JSON object-map order or
-Category enumeration order. This specification does not add a catalog
+Category enumeration order. This specification does not define a catalog
 attribute for that list. A caller MAY choose one source explicitly instead.
 
 The policy belongs to the resolver forming the view: the server or publisher
@@ -358,12 +359,11 @@ of shadowing is the Resource, including all of its Versions:
    binding/version, malformed data and integrity failure, rather than treat
    them as absence.
 
-Thus the resolver can retry the same XID in configured source Registries
-after a local Resource miss. It does not search arbitrary Registries or
-follow descriptive catalog relationships automatically. Ordered shadowing
-is an explicit projection policy and does not redefine global identity.
-Failing to retrieve a chosen Version or document is not permission to select
-a lower-priority Resource from a different origin.
+Only a Resource miss permits retrying the same XID in the next configured
+source Registry. A failure to retrieve a chosen Version or document does
+not permit selecting a lower-priority origin. The resolver follows the
+configured projection policy, not arbitrary Registries or descriptive
+catalog relationships; ordered shadowing does not create global identity.
 
 ```mermaid
 sequenceDiagram
@@ -560,8 +560,9 @@ addresses a combined Registry view, its
 [local and source selection](#local-resources-and-ordered-sources).
 Consumers of a producer-resolved view use these reads directly.
 
-The following abstract operations define common behavior, not new URLs,
-HTTP verbs or a transport-level request envelope:
+The following abstract operations define the read behavior shared by the
+bindings. They do not introduce URLs, HTTP verbs or a transport-level
+request envelope:
 
 | Operation | Target | Result |
 | --- | --- | --- |
@@ -594,7 +595,7 @@ For each operation a resolver MUST:
 
 Origin information MUST identify the chosen advertisement, catalog-description
 Version when applicable, target XID and revision pin or the absence of an
-immutable pin. It MUST travel separately from Core identity attributes.
+immutable pin. It MUST be returned separately from Core identity attributes.
 A library can return that information alongside the value. A producer-resolved
 service MUST document how an authorized consumer obtains the context
 associated with a result, through a binding extension or associated metadata
@@ -799,11 +800,10 @@ states between requests. A package stores such a snapshot using the
 representation. Core Resource Versions remain distinct from the revision
 of a snapshot that contains them.
 
-Snapshots are not the only way to cache data for offline use. A consumer can
-cache individual responses under the selected binding's caching rules,
-without claiming that those responses form one consistent captured state.
-The snapshot requirements below apply when a producer claims to provide a
-snapshot with a declared scope and completeness class.
+A cache of individual responses does not establish one consistent captured
+state. A consumer can use such a cache under the selected binding's rules
+without making that claim. The snapshot requirements below apply when a
+producer declares a captured scope and completeness class.
 
 This specification does not prescribe a capture trigger or refresh schedule.
 A caller can request a capture, or a server or publisher can manage captures
@@ -915,11 +915,11 @@ A **snapshot producer** MUST identify its format, scope and linked or
 offline-complete class and produce a complete internal graph. An OPTIONAL
 API facade requires separate protocol-binding conformance.
 
-The executable examples are offline conformance aids, not production
-resolvers. [Shared vectors](samples/selection.json) distinguish identity,
-selection and reference cases. Binding fixtures exercise transport-specific
-retrieval. Tests MUST distinguish full graph validation from selective
-lookup. A validator walking everything does not demonstrate efficient
+The executable examples check specified behavior offline; they do not
+implement production resolution. [Shared vectors](samples/selection.json)
+distinguish identity, selection and reference cases. Binding fixtures exercise
+transport-specific retrieval. Tests MUST distinguish full graph validation
+from selective lookup. A validator walking everything does not demonstrate efficient
 selective resolution.
 
 The [source-selection example](tools/federation_resolution_examples.py)

@@ -5,9 +5,10 @@
 <!-- words: offline-complete ximportresources xref -->
 <!-- words: emptygroups federationerror fixturelayout gitattributes opencontainers powershell py standalone workingdrafts -->
 
-These offline fixtures exercise the unreleased
-[OCI binding](../../../bindings/oci.md). They are not container images, a
-production resolver, an OCI server, or evidence of universal client support.
+These offline fixtures exercise Registry snapshot retrieval through the
+unreleased [OCI binding](../../../bindings/oci.md). They contain no container
+images and implement neither a production resolver nor an OCI server.
+Their results do not establish support in every OCI client.
 
 `layout` is a standard OCI image layout containing two separately selected
 Registry roots. [expected.json](expected.json) records their exact digests
@@ -55,9 +56,9 @@ The linked Registry changes the `v2` document to an uncaptured URL,
 `https://documents.example.org/sample-v2.json`. The fixture helper never
 fetches it. Default `v1` remains embedded.
 
-Routing pages were deliberately built with `page_size=2`. This creates
-multi-level range shards even in a small example. Entity indexes still
-have their fixed two or three control descriptors. `page_size` is not a
+Routing pages use `page_size=2` to exercise multi-level range shards in a
+small example. Entity indexes still have their fixed two or three control
+descriptors. `page_size` is not a
 different normative entity-index limit. Every index remains below both
 256 descriptors and 1,048,576 bytes.
 
@@ -186,13 +187,12 @@ oras cp --from-oci-layout --to-oci-layout workingdrafts\federation\samples\oci\l
 python -B -m workingdrafts.bindings.tools.oci_examples validate copied-layout --reference copied --inventory copied-inventory.json
 ```
 
-This command was executed during implementation. The selected root
-digest and all 99 REQUIRED objects were preserved byte-for-byte,
+In the implementation exercise, this command preserved the selected root
+digest and all 99 REQUIRED objects byte-for-byte,
 including configs, range shards, empty collections, binary bytes and the
 zero-byte document. The linked Registry root was not selected or copied.
-Environment-specific command logs, release-checksum verification and
-the independently compared closure inventory are retained in the
-implementation session.
+The implementation session retains the environment-specific command logs,
+release-checksum verification and independently compared closure inventory.
 
 ORAS also placed auxiliary descriptors for copied internal indexes and
 manifests in the destination layout's `index.json`: 69 entries in this
@@ -200,8 +200,8 @@ exercise, of which exactly one is an eligible Registry root. That mutable
 entry-point index is not the selected Registry index, which still has
 two descriptors and the same digest. Consumers MUST NOT mistake the
 auxiliary entries for additional Registry snapshots. Large copy jobs
-also need to check the destination entry-point bounds. This small
-exercise does not establish every tool's behavior at every scale.
+also need to check the destination entry-point bounds. The result establishes
+this copy's behavior, not the behavior of every tool or larger copy job.
 
 All stored index and manifest objects were additionally validated with
 the unmodified, pinned [OCI Image v1.1.1 schemas][oci-schemas], using

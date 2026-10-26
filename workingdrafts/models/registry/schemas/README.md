@@ -49,10 +49,10 @@ definitions.
 
 ## Validation
 
-All generated files are JSON documents. Parsing their JSON is only the
-first check. JSON Schema needs its Draft 7 schema check. OpenAPI needs an
-OpenAPI validator. JSON Structure needs reference and schema-shape checks
-as well as any available validator for its declared dialect.
+All generated files are JSON documents, but parsing confirms syntax only.
+Validate JSON Schema against Draft 7 and OpenAPI with an OpenAPI validator.
+JSON Structure needs reference and schema-shape checks, plus any available
+validator for its declared dialect.
 
 No hand-maintained full Resource schema is supplied. Nonempty names,
 credential-free absolute endpoints, binding-dependent parameters, label

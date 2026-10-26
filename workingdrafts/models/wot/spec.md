@@ -16,9 +16,9 @@
 
 ## Abstract
 
-This specification defines a WoT (Web of Things) Registry extension to the
-xRegistry document format and API [specification][xRegistry Core]. A WoT
-Registry allows for the storage, management and discovery of W3C
+This specification extends the xRegistry document format and API
+[specification][xRegistry Core] with a WoT (Web of Things) Registry for
+storing, managing and discovering W3C
 [WoT Thing Description (WoT-TD)][WoT-TD-1.1] and
 [WoT Thing Model (WoT-TM)][WoT-TM-1.1] documents.
 
@@ -69,37 +69,35 @@ Registry allows for the storage, management and discovery of W3C
 
 ## 1. Overview
 
-A WoT Registry provides a repository for managing W3C Web of Things documents:
-**Thing Descriptions** (TDs), which describe concrete network-facing instances
-of Things, and **Thing Models** (TMs), which describe reusable, abstract
-templates for classes of Things.
+A WoT Registry stores and manages W3C Web of Things documents:
+**Thing Descriptions** (TDs) describe concrete, network-facing Things, while
+**Thing Models** (TMs) define reusable, abstract templates for classes of
+Things.
 
-A WoT Registry is generally used to share Thing metadata amongst multiple
-parties: device fleets, gateways, integrators, and consuming applications. The
-registry is intended to make Things and their templates **discoverable** in a
-manner aligned with the W3C
-[WoT Discovery][WoT-Discovery] specification, while also allowing TDs and TMs
-to be cross-referenced from xRegistry [Endpoint][xRegistry Endpoint],
+A WoT Registry lets device fleets, gateways, integrators and consuming
+applications share Thing metadata. It makes Things and their templates
+**discoverable** as described by W3C [WoT Discovery][WoT-Discovery]. TDs and
+TMs can also be cross-referenced from xRegistry [Endpoint][xRegistry Endpoint],
 [Message][xRegistry Message], and [Schema][xRegistry Schema] entries.
 
 ### 1.1. Thing Descriptions and Thing Models
 
 A **Thing Description** (TD) is a JSON-LD 1.1 document conforming to
-[WoT-TD 1.1][WoT-TD-1.1]. It identifies a deployed Thing instance, declares its
-properties, actions, and events, and provides one or more `forms` that bind
-those interaction affordances to network endpoints over specific protocols
-(HTTP, MQTT, CoAP, OPC-UA, Modbus, etc.).
+[WoT-TD 1.1][WoT-TD-1.1]. It identifies a deployed Thing, declares its
+properties, actions and events, and provides `forms` that bind those
+interaction affordances to network endpoints over protocols such as HTTP,
+MQTT, CoAP, OPC-UA or Modbus.
 
 A **Thing Model** (TM) is a JSON-LD 1.1 document conforming to
-[WoT-TM 1.1][WoT-TM-1.1]. It is an **abstract** description of a class of
-Things, typically without `href` values in its forms. Thing Models are
-intended to be reused: a concrete Thing Description MAY extend or compose one
-or more Thing Models via the WoT `tm:extends` and `tm:ref` mechanisms, or via
-JSON-LD `@type` declarations.
+[WoT-TM 1.1][WoT-TM-1.1]. It describes an **abstract** class of Things and
+typically omits `href` values from its forms. Thing Models are reusable: a
+concrete Thing Description MAY extend or compose one or more Thing Models
+through WoT `tm:extends` and `tm:ref` mechanisms or JSON-LD `@type`
+declarations.
 
-Both document classes are JSON-LD; they share a common subset of vocabulary,
-but a WoT Registry MUST treat them as distinct Resource types because their
-intended use, validation rules, and lifecycle are different.
+Both document classes use JSON-LD and share part of its vocabulary. A WoT
+Registry MUST treat them as distinct Resource types because their intended
+use, validation rules and lifecycles differ.
 
 ### 1.2. Relationship to Other xRegistry Specs
 
@@ -117,11 +115,11 @@ A WoT Registry is complementary to the xRegistry [Endpoint][xRegistry Endpoint],
   is derived; see [Section 6.1](#61-thing-description-to-thing-model).
 
 This specification does not require a registry to resolve or validate these
-cross-references: an implementation MAY check that a referent exists, but a
-document whose referents are absent is still stored and served. That is a
-statement about what the *registry* enforces, not about whether the
-references matter — a Consumer composing a TD from its Thing Models, or
-binding an affordance to an endpoint, depends on them.
+cross-references. An implementation MAY check that a referent exists, but it
+still stores and serves a document when a referent is absent. This limits
+what the *registry* enforces; it does not make the references irrelevant. A
+Consumer composing a TD from its Thing Models or binding an affordance to an
+endpoint depends on them.
 
 ### 1.3. Versioning
 
@@ -383,16 +381,15 @@ instance.
 A **WoT identifier** is the URI a WoT document carries in its `id` member, as
 defined by [WoT-TD 1.1][WoT-TD-1.1] — for example `urn:fabrikam:lamp:42`. It
 is location-independent: it names *what* the document describes, not where it
-is stored, and it is the identifier that other WoT documents and WoT tooling
-use to refer to it.
+is stored. Other WoT documents and tools use it as a reference.
 
 A WoT identifier is held in the `wotid` attribute and is distinct from the
-xRegistry `thingdescriptionid`/`thingmodelid`, which is the Resource's id
-*within a registry*. The two MAY hold the same string where the authored
-identifier happens to satisfy the xRegistry id grammar, but most do not — a
-URL such as `https://fabrikam.example/things/lamp-42` is not a legal
-xRegistry id — so this specification keeps them as two attributes rather than
-reusing the Resource id for both.
+xRegistry `thingdescriptionid`/`thingmodelid`, the Resource's id *within a
+registry*. The two MAY hold the same string when the authored identifier
+satisfies xRegistry's id grammar. Most do not: a URL such as
+`https://fabrikam.example/things/lamp-42` is not a legal xRegistry id. The
+model therefore keeps them as separate attributes rather than reusing the
+Resource id.
 [Section 5.1](#51-wot-identifiers-and-registry-ids) defines how the two
 relate.
 
@@ -655,7 +652,7 @@ documents it did not itself author, or serve them from an origin separate
 from any registry user interface. See [Section 7](#7-security).
 
 The `wotid` attribute is REQUIRED and holds the document's authored WoT
-identifier, which is distinct from the `thingdescriptionid`. See
+identifier, distinct from the `thingdescriptionid`. See
 [Section 5.1](#51-wot-identifiers-and-registry-ids). The OPTIONAL
 `derivedfrom` attribute lists the `wotid`s of the Thing Models this Thing
 Description extends or composes; it is a producer-supplied index rather than
@@ -753,10 +750,10 @@ the Resource type (`thingdescriptions` versus `thingmodels`) and by the
 
 ### 4.6. Provenance and Selection Metadata
 
-A registry is consumed by tools and by autonomous agents that have to choose
-between several documents describing similar Things. Choosing well needs
-metadata that is *explicit*, rather than inferred from a title or a naming
-convention. Both `thingdescription` and `thingmodel` Resources therefore carry
+A registry serves tools and autonomous agents that choose among documents
+describing similar Things. That choice needs *explicit* metadata rather than
+inferences from titles or naming conventions. Both `thingdescription` and
+`thingmodel` Resources therefore carry
 the following OPTIONAL attributes:
 
 | Attribute | Type | Meaning |
@@ -959,9 +956,9 @@ derive that lineage from the document itself and MUST NOT rely on
 
 ### 5.3. Lookup
 
-A Consumer holding a WoT identifier — typically taken from a `tm:extends`
-link, a `tm:ref`, another `links[].href`, or a message attribute — resolves it
-to a stored document in one of two ways.
+A Consumer holding a WoT identifier — typically from a `tm:extends` link, a
+`tm:ref`, another `links[].href` or a message attribute — can resolve it to a
+stored document in either of two ways.
 
 **By path.** Where the Consumer already knows the Resource's Group and id —
 because it was given them, or because it follows a stored `self` URL — it
@@ -994,9 +991,8 @@ return every matching Resource rather than an arbitrary one of them, and
 [Section 4.6](#46-provenance-and-selection-metadata) governs how a Consumer
 chooses among them.
 
-Version selection is a second, separate step, and is never encoded in the
-*identifier*. It is, of course, encoded in the URL — that is what the
-`versions` collection is for:
+Version selection is separate from the *identifier*. The URL carries the
+selection through the `versions` collection:
 
 | Intent | Request |
 |---|---|
@@ -1016,9 +1012,9 @@ resolver MUST use [Section 5.4](#54-versioned-reference-resolution), not sort
 ids lexically, use publication time, or assume that the default satisfies the
 reference.
 
-What a caller SHOULD NOT do is fold the two into one opaque string. A caller
-that carries an identifier and a version through a transport — for example in
-message headers — SHOULD carry them as two separate values, such as a
+Callers SHOULD NOT fold the identifier and version into one opaque string.
+When carrying both through a transport, such as message headers, a caller
+SHOULD use separate values, for example a
 `wotid` header and a `versionid` header, rather than a single compound token
 like `urn:fabrikam:lamp@3` that every recipient has to take apart. The
 identifier stays a WoT identifier, and the version stays a `versionid` the
@@ -1248,10 +1244,11 @@ by [WoT-TD 1.1][WoT-TD-1.1]. This specification requires nothing more:
 
 Proposals to sub-divide a large TD's affordances, such as a `td:submodel`
 grouping member, are being discussed in the W3C WoT community. Were such a
-mechanism to be standardized, a WoT Registry would store a TD that uses it exactly as
-it stores any other TD, since the grouping is a member of the document rather
-than of the registry model. Support for it is OPTIONAL, and a registry that
-does not understand it MUST still store and serve the document unchanged, per
+mechanism to be standardized, a WoT Registry would store a TD that uses it
+exactly as it stores any other TD, since the grouping is a member of the
+document rather than of the registry model. Support is OPTIONAL. A registry
+that does not understand the mechanism MUST still store and serve the document
+unchanged, per
 [Section 5.2](#52-preserving-customer-documents).
 
 This matters for documents the registry did not author: those routinely
@@ -1263,18 +1260,16 @@ Like the [xRegistry Core][xRegistry Core] specification, this specification
 does not explicitly address authentication or authorization levels of users,
 nor how to securely protect the APIs.
 
-It is expected that any implementation of this specification will use
-authentication and authorization mechanisms that are appropriate for the
-application domain and the deployment environment. This MAY include, but is
-not limited to, OAuth 2.0, OpenID Connect, API keys, or other mechanisms
-appropriate for the use case.
+Implementations are expected to use authentication and authorization
+appropriate to the application domain and deployment environment. Those
+mechanisms MAY include OAuth 2.0, OpenID Connect, API keys or other options
+appropriate to the use case.
 
-For authorization, the `thingdescriptiongroup` and `thingmodelgroup` concepts provide a
-natural authorization boundary, where users can be granted access to specific
-groups, and therefore to the Things or Thing Models contained within those
-groups. The `thingdescription` and `thingmodel` Resources themselves can be used to
-further restrict access to specific Versions, allowing for fine-grained
-access control.
+For authorization, `thingdescriptiongroup` and `thingmodelgroup` provide
+natural boundaries. Users can receive access to specific Groups and the
+Things or Thing Models they contain. Access can also be restricted to
+specific Versions of `thingdescription` and `thingmodel` Resources. This
+supports fine-grained access control.
 
 Operators of a WoT Registry SHOULD be aware that Thing Descriptions can
 expose detailed information about deployed devices, including network

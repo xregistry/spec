@@ -2,12 +2,13 @@
 
 <!-- words: allowprerelease bytewise contentdigest gitattributes hashlib hexdigest iterdir minversion pathlib prereleases py submodel typelinks versionorigin workingdrafts wotid -->
 
-These 64 fixtures cover [specification Section 1.3](../../spec.md#13-versioning)
-and [Section 5.4](../../spec.md#54-versioned-reference-resolution). Each
-numbered JSON file describes one case. The `sha256:` values are syntactically
-valid placeholders; they identify fixture values and are not computed from a
-WoT document. `MANIFEST.sha256` hashes the committed bytes of every file in this
-directory except itself, including this README, the schema and the checker.
+These 64 fixtures exercise
+[specification Section 1.3](../../spec.md#13-versioning) and
+[Section 5.4](../../spec.md#54-versioned-reference-resolution). Each
+numbered JSON file defines one case. The `sha256:` values are syntactically
+valid placeholders for fixture values; they are not digests of WoT documents.
+`MANIFEST.sha256` hashes the committed bytes of every file in this directory
+except itself, including this README, the schema and the checker.
 
 ## Running the checker
 
@@ -17,13 +18,13 @@ From the repository root:
 python workingdrafts/models/wot/tests/resolution/check_vectors.py
 ```
 
-The checker verifies manifest coverage and hashes, requires LF and a final
-newline for each file, validates the schema and vectors when `jsonschema` is
-installed, and runs the reference implementation against every expected
-result. If `jsonschema` is absent, it reports the skipped shape check;
-manifest verification and semantic execution still run. A failed check
-returns a nonzero exit status. The checker uses only Python's standard
-library for the remaining checks and fetches no schemas or documents.
+The checker verifies manifest coverage and hashes, and requires LF and a
+final newline in each file. When `jsonschema` is installed, it also validates
+the schema and vectors, then runs the reference implementation against every
+expected result. Without `jsonschema`, it reports that the shape check was
+skipped; manifest verification and semantic execution still run. A failed
+check returns a nonzero exit status. The other checks use only Python's
+standard library, and the checker fetches no schemas or documents.
 
 ## Format
 
@@ -43,8 +44,8 @@ The format is defined by [schema.json](schema.json), using JSON Schema draft
 
 The `reference.kind` values `extends`, `submodel`, `ref`, and `type` retain
 their TM or type-link meanings. `td-extends`, `td-subthing`, and `td-ref`
-represent TD-to-TD operators. `minVersion` is the normalized value of the
-floor term. `floorTerm`, when present, records `tm:minVersion` or
+represent TD-to-TD operators. `minVersion` holds the normalized floor.
+When present, `floorTerm` records `tm:minVersion` or
 `td:minVersion` so vectors can test a floor used with the wrong target kind;
 when omitted, the expected term follows `kind`. Existing vectors omit both new
 properties and remain valid. A `publish.targetKind` of `td` selects
@@ -80,12 +81,12 @@ default outside that range is `unsatisfied`. Multiple Resource matches are
 disambiguated by registry and Group before this fixture interface; a `wotid`
 occurs at most once in `registry`.
 
-A successful resolution expects the portable fields `wotid`, `versionid`,
-and `contentdigest`. The production resolver also returns `origin`; it is
-resolver context, not authored document data or a Resource attribute. The
-checker uses the fixed origin `https://registry.example` and checks it before
-comparing the portable result. Consumers MUST retain their actual registry
-origin in production output.
+A successful resolution returns the portable fields `wotid`, `versionid`,
+and `contentdigest`. The production resolver also returns `origin`, which is
+resolver context rather than authored document data or a Resource attribute.
+The checker uses the fixed origin `https://registry.example` and checks it
+before comparing the portable result. Consumers MUST retain the actual
+registry origin in production output.
 
 A successful publication expects `versionid`, `versionorigin`, and
 `defaultversionid`. The default is the Core default after publication, not the
