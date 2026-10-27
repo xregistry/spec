@@ -2,7 +2,6 @@
 
 import hashlib
 import shutil
-from pathlib import Path
 
 import pytest
 
@@ -12,8 +11,6 @@ from workingdrafts.bindings.tools.mapping_examples import (
 from workingdrafts.federation.tools.federation_examples import FederationError
 
 
-ROOT = Path(__file__).resolve().parents[1]
-WALKTHROUGH = ROOT / "samples" / "mapping-example"
 RESOURCE = "/documents/main/assets/widget"
 VERSIONS = RESOURCE + "/versions"
 VERSION = VERSIONS + "/v1"
@@ -102,8 +99,8 @@ def digests(files):
     return {name: (len(data), hashlib.sha256(data).hexdigest()) for name, data in files.items()}
 
 
-def test_complete_mapping_walkthrough_reads_the_document_and_version_metadata():
-    reader = DocumentTree(FileStore(WALKTHROUGH))
+def test_complete_mapping_walkthrough_reads_the_document_and_version_metadata(walkthrough_root):
+    reader = DocumentTree(FileStore(walkthrough_root))
     result = reader.validate()
     assert (result["records"], result["indexes"], result["documents"]) == (5, 3, 1)
     assert reader.reads == ["registry.json", DOCUMENT_HREF]
@@ -121,27 +118,33 @@ def test_complete_mapping_walkthrough_reads_the_document_and_version_metadata():
     assert reader.reads == ["registry.json"] + [DOCUMENT_HREF] * 3
 
 
-def test_walkthrough_adds_one_generated_metadata_file_beside_the_unchanged_document():
+def test_walkthrough_adds_one_generated_metadata_file_beside_the_unchanged_document(walkthrough_root):
     present = sorted(
-        path.relative_to(WALKTHROUGH).as_posix()
-        for path in WALKTHROUGH.rglob("*") if path.is_file()
+        path.relative_to(walkthrough_root).as_posix()
+        for path in walkthrough_root.rglob("*") if path.is_file()
     )
     assert present == [".gitattributes", "registry.json", DOCUMENT_HREF]
-    assert (WALKTHROUGH / ".gitattributes").read_bytes() == b"*.json text eol=lf\n"
-    existing = (WALKTHROUGH / DOCUMENT_HREF).read_bytes()
+    assert (walkthrough_root / ".gitattributes").read_bytes() == (
+        b'*.json text eol=lf\n"/' + DOCUMENT_HREF.encode() + b'" -text\n'
+    )
+    existing = (walkthrough_root / DOCUMENT_HREF).read_bytes()
     assert (len(existing), hashlib.sha256(existing).hexdigest()) == (18, DOCUMENT_SHA256)
+    # The shared example source must reproduce the independently authored walkthrough.
     generated = encode_walkthrough()
     assert generated == {
-        "registry.json": (WALKTHROUGH / "registry.json").read_bytes(),
+        "registry.json": (walkthrough_root / "registry.json").read_bytes(),
         DOCUMENT_HREF: existing,
     }
+    assert digests({"registry.json": generated["registry.json"]}) == {"registry.json": (
+        6131, "cf679704edd89c2364b3163c063d9d8f6a5361e0cf54acf2ae0bd90987fa3ccb",
+    )}
 
 
-def test_walkthrough_split_form_reproduces_the_previous_one_file_per_object_mapping():
+def test_walkthrough_split_form_reproduces_the_previous_one_file_per_object_mapping(walkthrough_root):
     files = encode_walkthrough(inline=False, paths=SPLIT_PATHS)
     assert digests(files) == PREVIOUS_SPLIT
     split = DocumentTree(MemoryStore(files))
-    aggregated = DocumentTree(FileStore(WALKTHROUGH))
+    aggregated = DocumentTree(FileStore(walkthrough_root))
     for xid in ("/", "/documents/main", RESOURCE, RESOURCE + "/meta", VERSION):
         assert split.metadata(xid) == aggregated.metadata(xid)
     assert split.document(RESOURCE) == aggregated.document(RESOURCE) == DOCUMENT
@@ -151,14 +154,14 @@ def test_walkthrough_split_form_reproduces_the_previous_one_file_per_object_mapp
     assert sorted(metadata_reads) == sorted(set(PREVIOUS_SPLIT) - {DOCUMENT_HREF})
 
 
-def test_walkthrough_mixed_form_keeps_one_collection_in_its_own_file():
+def test_walkthrough_mixed_form_keeps_one_collection_in_its_own_file(walkthrough_root):
     files = encode_walkthrough(
         inline=lambda kind, xid: xid != VERSIONS,
         paths={VERSIONS: SPLIT_PATHS[VERSIONS]},
     )
     assert sorted(files) == [SPLIT_PATHS[VERSIONS], "registry.json", DOCUMENT_HREF]
     mixed = DocumentTree(MemoryStore(files))
-    aggregated = DocumentTree(FileStore(WALKTHROUGH))
+    aggregated = DocumentTree(FileStore(walkthrough_root))
     for xid in ("/documents/main", RESOURCE, RESOURCE + "/meta"):
         assert mixed.read_record(xid)["entity"] == aggregated.read_record(xid)["entity"]
     assert mixed.reads == ["registry.json"]
@@ -168,9 +171,9 @@ def test_walkthrough_mixed_form_keeps_one_collection_in_its_own_file():
     assert mixed.reads == ["registry.json", SPLIT_PATHS[VERSIONS], DOCUMENT_HREF]
 
 
-def test_mapping_walkthrough_reports_modified_existing_content(tmp_path):
+def test_mapping_walkthrough_reports_modified_existing_content(tmp_path, walkthrough_root):
     copied = tmp_path / "project"
-    shutil.copytree(WALKTHROUGH, copied)
+    shutil.copytree(walkthrough_root, copied)
     (copied / "source" / "specs" / "widget.json").write_bytes(b'{"type":"number"}\n')
     reader = DocumentTree(FileStore(copied))
     with pytest.raises(FederationError) as error:

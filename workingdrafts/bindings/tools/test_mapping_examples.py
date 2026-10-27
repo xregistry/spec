@@ -22,11 +22,52 @@ from workingdrafts.bindings.tools.test_git_examples import GitFixture
 from workingdrafts.bindings.tools.test_mapping_spec_examples import (
     DOCUMENT_HREF as WALKTHROUGH_DOCUMENT, walkthrough_source,
 )
-from workingdrafts.federation.tools.federation_examples import FederationError
+from workingdrafts.federation.tools.federation_examples import FederationError, load_example
 
 
-FIXTURE_ROOT = Path(__file__).resolve().parents[1] / "samples" / "mapping"
-SCHEMA_ROOT = FIXTURE_ROOT.parent.parent / "schemas"
+SCHEMA_ROOT = Path(__file__).resolve().parents[1] / "schemas"
+
+
+def test_neutral_mapping_adapter_keeps_full_model_separate_from_legacy_root():
+    example = load_example("portable")
+    before = copy.deepcopy(example)
+    records, documents = document.example_records(example)
+    root = next(record for record in records if record["kind"] == "registry")
+    assert root["entity"]["model"]["groups"]["documents"]["resources"]["assets"]["metaattributes"]["xref"]["type"] == "xid"
+    assert root["snapshot"] == {"scope": "/", "completeness": "offline-complete"}
+    assert documents == {
+        "/documents/main/assets/item/versions/v1": b'{"hello":"world"}\n',
+        "/documents/main/assets/item/versions/v2": b"",
+        "/documents/main/assets/CON/versions/a:b@c.": b"\x00\x01\xff\x7f\n",
+    }
+    records[0]["entity"]["registryid"] = "changed"
+    documents["/documents/main/assets/item/versions/v1"] = b"changed"
+    assert example == before
+    legacy, _ = document.sample_records()
+    assert "model" not in next(record for record in legacy if record["kind"] == "registry")["entity"]
+    assert hashlib.sha256(document.encode_tree(*document.sample_records())["registry.json"]).hexdigest() == ROOT_SHA256
+    generated = document.example_files()
+    reader = document.DocumentTree(document.MemoryStore(generated))
+    assert reader.metadata("/")["entity"]["registryid"] == "first"
+    assert reader.model()["model"]["groups"]["mirrors"]["resources"]["assets"]["attributes"]["purpose"]["type"] == "string"
+    assert reader.document("/documents/main/assets/item") == b'{"hello":"world"}\n'
+
+
+@pytest.mark.parametrize("name", ["walkthrough", "portable", "offline", "linked", "first", "second"])
+def test_neutral_mapping_example_files_select_each_capture_without_mutating_source(name):
+    before = load_example(name)
+    files = document.example_files(name)
+    reader = document.DocumentTree(document.MemoryStore(files))
+    assert reader.validate()["records"] == {
+        "walkthrough": 5, "portable": 24, "offline": 25, "linked": 25, "first": 18, "second": 5,
+    }[name]
+    assert reader.metadata("/")["entity"]["registryid"] == {
+        "walkthrough": "workshop", "portable": "first", "offline": "fixture-offline",
+        "linked": "fixture-linked", "first": "first", "second": "second",
+    }[name]
+    assert load_example(name) == before
+
+
 ITEM = "/documents/main/assets/item"
 V1 = ITEM + "/versions/v1"
 V2 = ITEM + "/versions/v2"
@@ -141,21 +182,21 @@ EXPECTED_MODEL = {
 
 
 @pytest.fixture
-def authored_files():
+def authored_files(mapping_sample_root):
     return {
-        path.relative_to(FIXTURE_ROOT).as_posix(): path.read_bytes()
-        for path in FIXTURE_ROOT.rglob("*") if path.is_file()
+        path.relative_to(mapping_sample_root).as_posix(): path.read_bytes()
+        for path in mapping_sample_root.rglob("*") if path.is_file()
     }
 
 
 @pytest.fixture
-def tree():
-    return document.DocumentTree(document.FileStore(FIXTURE_ROOT))
+def tree(mapping_sample_root):
+    return document.DocumentTree(document.FileStore(mapping_sample_root))
 
 
 @pytest.fixture
-def copied_tree(tmp_path):
-    return Path(shutil.copytree(FIXTURE_ROOT, tmp_path / "tree"))
+def copied_tree(tmp_path, mapping_sample_root):
+    return Path(shutil.copytree(mapping_sample_root, tmp_path / "tree"))
 
 
 @pytest.fixture
@@ -1942,8 +1983,8 @@ def test_document_sample_writer_refuses_overwrite_before_any_creation(tmp_path):
     assert list(root.iterdir()) == [existing]
 
 
-def test_document_cli_entity_keeps_origin_outside_core_navigation(capsys):
-    status = document.main(["entity", str(FIXTURE_ROOT), V1])
+def test_document_cli_entity_keeps_origin_outside_core_navigation(capsys, mapping_sample_root):
+    status = document.main(["entity", str(mapping_sample_root), V1])
     output = capsys.readouterr()
     assert status == 0
     assert output.err == ""
@@ -1954,7 +1995,7 @@ def test_document_cli_entity_keeps_origin_outside_core_navigation(capsys):
         "reads": V1_READS,
         "origin": {
             "pin": None, "rootsha256": ROOT_SHA256, "immutable": False,
-            "target": V1, "endpoint": FIXTURE_ROOT.as_uri(), "layout": "document-tree",
+            "target": V1, "endpoint": mapping_sample_root.as_uri(), "layout": "document-tree",
         },
     }
     assert follow_pointer(result, result["entity"]["self"]) is result["entity"]
@@ -1974,10 +2015,10 @@ def test_document_cli_entity_keeps_origin_outside_core_navigation(capsys):
                      "File reads do not accept --revision", id="file-git-revision"),
     ],
 )
-def test_document_cli_argument_errors_are_explicit_not_success_shaped(capsys, arguments, message):
+def test_document_cli_argument_errors_are_explicit_not_success_shaped(capsys, arguments, message, mapping_sample_root):
     operation, *rest = arguments
     with patch.object(document.subprocess, "run") as invoked:
-        status = document.main([operation, str(FIXTURE_ROOT), *rest])
+        status = document.main([operation, str(mapping_sample_root), *rest])
     output = capsys.readouterr()
     assert status == 1
     assert output.out == ""

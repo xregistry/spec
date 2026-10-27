@@ -5,6 +5,8 @@
 <!-- words: readme reparsing uncacheable validators website -->
 <!-- words: workingdrafts -->
 <!-- words: sequencediagram -->
+<!-- words: powershell py pytest -->
+<!-- words: federationerror revalidates -->
 
 ## Abstract
 
@@ -31,6 +33,8 @@ with an earlier release candidate.
 - [Redirects and Authorization Boundaries](#redirects-and-authorization-boundaries)
 - [Live Capture and Errors](#live-capture-and-errors)
 - [Conformance and Offline Examples](#conformance-and-offline-examples)
+  - [Concrete Read Sequences](#concrete-read-sequences)
+  - [Running the Offline Checks](#running-the-offline-checks)
 - [References](#references)
 
 ## Notations and Scope
@@ -254,7 +258,7 @@ A metadata-only type has no document request.
 A changed capture selection yields `inconsistent_snapshot`, not a continuation
 with newer bytes.
 See [Live Capture and Errors](#live-capture-and-errors) and the checked
-[concrete read sequences](../federation/samples/http/README.md#concrete-read-sequences).
+[concrete read sequences](#concrete-read-sequences).
 
 For document-bearing types, body `self` links to Resource/Version metadata
 include `$details` in API view, as specified by Core HTTP. Metadata-only
@@ -520,8 +524,8 @@ immutable snapshot solely from live reads. A server remains subject to Core
 HTTP conformance. This document does not require query support from a
 no-code server.
 
-[Offline examples](../federation/samples/http/README.md) contain exact
-request mappings and synthetic transcripts for:
+The [HTTP tests](tools/test_http_examples.py) contain exact request mappings,
+literal-selector cases and synthetic transcripts for:
 
 - A full API.
 - A no-code catalog.
@@ -533,12 +537,107 @@ request mappings and synthetic transcripts for:
 - Unsupported versions.
 - Inconsistent captures.
 
-They
-do not contact the public hub or establish runtime interoperability.
+The Registry content comes from the `first` example in
+[examples.json](../federation/examples.json). Protocol observations and
+expected outcomes remain in the tests. These cases do not contact the public
+hub or establish runtime interoperability. The shared
+[generator](../README.md#generating-and-reading-examples) can export that
+Registry through File, Git or OCI without starting an HTTP service.
 
 The compatibility examples cover read-only capabilities and a Registry
 advertising an older Core release. These are synthetic inputs, not captured
 public-endpoint behavior. A saved model-file hash is not an observed HTTP ETag.
+
+### Concrete Read Sequences
+
+The `no-filter-catalog` case reads enabled capabilities containing
+`flags: null`, then the complete unfiltered catalog collection:
+
+```http
+GET /catalog/capabilities HTTP/1.1
+Host: catalog.example.com
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"flags":null,"mutable":[],"pagination":false,"specversions":["1.0-rc4"]}
+```
+
+```http
+GET /catalog/categories/dev/registries HTTP/1.1
+Host: catalog.example.com
+```
+
+The test supplies the complete second response. Its literal selector
+`stage=PRODUCTION` selects `bridge`, whose label value is `production`.
+`website` has no matching label and supplies a `weburl`. No `filter` or
+`inline` request is sent, and no domain document is read.
+
+To inspect the result independently of the case's `expected` field, execute
+this Python block from the repository root with the test dependencies
+available:
+
+```python
+from workingdrafts.bindings.tools.http_examples import interpret_transcript
+from workingdrafts.bindings.tools.test_http_examples import TRANSCRIPTS
+
+result = interpret_transcript(TRANSCRIPTS["no-filter-catalog"])
+value = result["value"]
+print(value["registryid"], result["pages"], len(result["trace"]))
+```
+
+```text
+bridge 1 2
+```
+
+The two requests obtain one complete collection page. The
+`later-page-ambiguity` case instead shows how a subsequent page can invalidate
+an earlier unique match. An initial match does not remove the need for
+complete selection.
+
+The `document-revalidation` case preserves cached document bytes across this
+conditional request:
+
+```http
+GET /services/xreg/documents/main/assets/item/versions/v1 HTTP/1.1
+Host: first.example.com
+If-None-Match: "document-v1"
+
+HTTP/1.1 304 Not Modified
+ETag: "document-v1"
+Cache-Control: private, max-age=0
+```
+
+The applicable cached `200` is supplied by the test. The helper returns
+`cache_reused: true`, two traced requests and the cached bytes
+`b'{"type":"string"}'`. The `304` is not an empty replacement document.
+By contrast, `zero-byte-document` supplies an actual `200` with
+`Content-Length: 0`. Neither result establishes a Registry-wide snapshot.
+
+The redirect case uses a synthetic, non-secret Authorization value. Its
+destination request carries neither that header nor the source's conditional
+validator, preserving the credential and representation boundaries.
+
+### Running the Offline Checks
+
+Run the protocol tests from the repository root:
+
+```powershell
+python -B -m pytest workingdrafts\bindings\tools\test_http_examples.py -q
+```
+
+[`http_examples.py`](tools/http_examples.py) supplies `request_url`,
+`literal_filter` and `interpret_transcript`. The interpreter returns actual
+values and request traces without consulting expected outcomes. It assembles
+contiguous ranges and revalidates cached content for the same URL, but it is
+not a complete HTTP cache and performs no network I/O. Failed reads raise
+the shared `FederationError`, retaining specific resolver outcomes.
+
+The [shared helper](../federation/tools/federation_examples.py) provides
+profile and literal-label selection. Its `execute_selected` invokes one
+supplied read function. It does not catch a failure and try another
+advertisement. The tests separately assert errors, cleanup where applicable,
+returned bytes and request traces.
 
 ## References
 

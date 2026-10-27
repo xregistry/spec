@@ -21,6 +21,8 @@ from referencing import Registry, Resource
 from workingdrafts.federation.tools.federation_examples import (
     FederationError,
     canonical_xid,
+    example_documents,
+    load_example,
     resource_type,
     same_xid,
     select_label,
@@ -1333,117 +1335,60 @@ def encode_tree(records, documents, *, inline=False, paths=None, document_paths=
     return files
 
 
+def example_records(example):
+    """Adapt neutral captured entities to the existing directory mapping."""
+    records = copy.deepcopy(example["records"])
+    for record in records:
+        if record["kind"] == "registry":
+            record["snapshot"] = {"scope": "/", "completeness": example["snapshot"]}
+            for key in ("resolvedmodelsource", "modelbase", "source"):
+                if key in example:
+                    record[key] = copy.deepcopy(example[key])
+        elif record["kind"] == "version":
+            value = example["documents"][record["entity"]["xid"]]
+            if "none" in value:
+                record["document"] = {"kind": "none"}
+            elif "url" in value:
+                record["document"] = {"kind": "external", "uri": value["url"]}
+            else:
+                record["document"] = {
+                    "kind": "local",
+                    **{key: value[key] for key in ("origin", "base") if key in value},
+                }
+    return records, example_documents(example)
+
+
 def sample_records():
-    """Return the deterministic shared oracle input and exact document bytes."""
-    records = []
-    timestamp = "2026-09-04T00:00:00Z"
-
-    def add(kind, xid, entity, **extra):
-        value = {"xid": xid, **entity}
-        if kind in ("registry", "group", "version") or kind == "meta" and "xref" not in value:
-            value = {"epoch": 1, "createdat": timestamp, "modifiedat": timestamp, **value}
-        records.append({"kind": kind, "entity": value, **extra})
-
-    model = {
-        "attributes": {"fixture": {"type": "string"}},
-        "groups": {
-            "categories": {
-                "singular": "category",
-                "resources": {"registries": {
-                    "singular": "registry", "hasdocument": False,
-                    "attributes": {"weburl": {"type": "url"}},
-                }},
-            },
-            "documents": {
-                "singular": "document",
-                "resources": {
-                    "assets": {
-                        "singular": "asset",
-                        "attributes": {"purpose": {"type": "string"}},
-                    },
-                    "notes": {"singular": "note", "hasdocument": False},
-                },
-            },
-            "independent": {
-                "singular": "independent",
-                "resources": {"assets": {"singular": "asset"}},
-            },
-            "mirrors": {
-                "singular": "mirror", "ximportresources": ["/documents/assets"],
-            },
-        },
-    }
-    add("registry", "/", {
-        "registryid": "first", "specversion": CORE_VERSION,
-        "fixture": "document-tree", "modelsource": model,
-        "capabilities": {
-            "available": {
-                name: {"mutable": False} for name in
-                ("capabilities", "entities", "model", "modelsource")
-            },
-            "flags": ["doc", "inline"], "pagination": False,
-            "shortself": False, "specversions": [CORE_VERSION],
-        },
-    }, snapshot={"scope": "/", "completeness": "offline-complete"},
-        source={"uri": "https://example.com/registry", "revision": "fixture-1"})
-    for group_type, group_id in (
-        ("categories", "main"), ("documents", "main"),
-        ("independent", "MAIN"), ("mirrors", "local"),
-    ):
-        add("group", f"/{group_type}/{group_id}", {
-            model["groups"][group_type]["singular"] + "id": group_id,
-        })
-
-    for xid, singular, default in (
-        ("/documents/main/assets/item", "asset", "v1"),
-        ("/documents/main/assets/CON", "asset", "a:b@c."),
-        ("/documents/main/notes/item", "note", "v1"),
-        ("/categories/main/registries/site", "registry", "v1"),
-    ):
-        identity = {singular + "id": xid.rsplit("/", 1)[1]}
-        add("resource", xid, identity)
-        add("meta", xid + "/meta", {
-            **identity, "readonly": True,
-            "defaultversionid": default, "defaultversionsticky": True,
-        })
-    for alias, target in (
-        ("copy", "/documents/main/assets/item"),
-        ("dangling", "/documents/main/assets/missing"),
-        ("chain", "/mirrors/local/assets/copy"),
-    ):
-        xid = "/mirrors/local/assets/" + alias
-        add("resource", xid, {"assetid": alias})
-        add("meta", xid + "/meta", {"assetid": alias, "xref": target})
-
-    for version, default, ancestor, labels in (
-        ("v1", True, "v1", {"stage": "production", "note": ""}),
-        ("v2", False, "v1", {"stage": "development"}),
-    ):
-        add("version", "/documents/main/assets/item/versions/" + version, {
-            "assetid": "item", "versionid": version, "isdefault": default,
-            "ancestorid": ancestor, "labels": labels,
-            "contenttype": "application/json" if version == "v1" else "application/octet-stream",
-            "purpose": "primary" if default else "empty",
-        })
-    binary_xid = "/documents/main/assets/CON/versions/a:b@c."
-    add("version", binary_xid, {
-        "assetid": "CON", "versionid": "a:b@c.", "isdefault": True,
-        "ancestorid": "a:b@c.", "contenttype": "application/octet-stream",
-    })
-    add("version", "/documents/main/notes/item/versions/v1", {
-        "noteid": "item", "versionid": "v1", "isdefault": True,
-        "ancestorid": "v1", "labels": {"note": ""},
-    }, document={"kind": "none"})
-    add("version", "/categories/main/registries/site/versions/v1", {
-        "registryid": "site", "versionid": "v1", "isdefault": True,
-        "ancestorid": "v1", "weburl": "https://example.com/cataloged-registry",
-    }, document={"kind": "none"})
-    documents = {
-        "/documents/main/assets/item/versions/v1": b'{"hello":"world"}\n',
-        "/documents/main/assets/item/versions/v2": b"",
-        binary_xid: b"\x00\x01\xff\x7f\n",
-    }
+    """Keep the original minimal mapping view over the shared source."""
+    records, documents = example_records(load_example("portable"))
+    next(r for r in records if r["kind"] == "registry")["entity"].pop("model")
     return records, documents
+
+
+WALKTHROUGH_DOCUMENT = "source/specs/widget.json"
+# The specification walkthrough: one inline registry.json beside an existing document.
+WALKTHROUGH_LAYOUT = {
+    "inline": True,
+    "document_paths": {"/documents/main/assets/widget/versions/v1": WALKTHROUGH_DOCUMENT},
+    "gitattributes": b'*.json text eol=lf\n"/source/specs/widget.json" -text\n',
+}
+
+
+def example_tree(example, name=None, *, inline=False):
+    """Encode one neutral example. The walkthrough always keeps its specification layout."""
+    layout = WALKTHROUGH_LAYOUT if name == "walkthrough" else {"inline": inline}
+    return encode_tree(*example_records(example), **layout)
+
+
+def example_files(name="portable", input_path=None, *, inline=False):
+    return example_tree(load_example(name, input_path), name, inline=inline)
+
+
+def walkthrough_files(**layout):
+    """Reproduce the hand-authored specification walkthrough, without the full model."""
+    records, documents = example_records(load_example("walkthrough"))
+    next(r for r in records if r["kind"] == "registry")["entity"].pop("model")
+    return encode_tree(records, documents, **{**WALKTHROUGH_LAYOUT, **layout})
 
 
 def write_sample(root, *, inline=False):

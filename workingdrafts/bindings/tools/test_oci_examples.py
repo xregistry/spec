@@ -1,6 +1,7 @@
 """Offline conformance tests for the native OCI snapshot fixture APIs."""
 
 import copy
+import base64
 import hashlib
 import json
 from collections import Counter
@@ -15,12 +16,10 @@ from workingdrafts.bindings.tools.mapping_examples import (
     DocumentTree, MemoryStore, encode_tree,
     sample_records as document_sample_records,
 )
-from workingdrafts.federation.tools.federation_examples import FederationError
+from workingdrafts.federation.tools.federation_examples import FederationError, load_example
 
 
 ROOT = Path(__file__).resolve().parents[3]
-OCI_FIXTURES = ROOT / "workingdrafts" / "federation" / "samples" / "oci"
-DOCUMENT_FIXTURES = ROOT / "workingdrafts" / "bindings" / "samples" / "mapping"
 SCHEMAS = ROOT / "workingdrafts" / "bindings" / "schemas"
 INDEX = "application/vnd.oci.image.index.v1+json"
 MANIFEST = "application/vnd.oci.image.manifest.v1+json"
@@ -28,6 +27,56 @@ CONFIG = "application/vnd.xregistry.entity.v1+json"
 DOCUMENT = "application/vnd.xregistry.document.v1"
 EMPTY = "application/vnd.oci.empty.v1+json"
 PREFIX = "io.xregistry.oci."
+
+
+@pytest.mark.parametrize("name", ["offline", "linked"])
+def test_neutral_oci_adapter_preserves_document_modes_full_model_and_input(name):
+    example = load_example(name)
+    before = copy.deepcopy(example)
+    records, documents = oci.example_records(example)
+    indexed = {record["entity"]["xid"]: record for record in records}
+    assert indexed["/"]["entity"]["registryid"] == "fixture-" + name
+    assert indexed["/"]["snapshot"] == ("linked" if name == "linked" else "offline-complete")
+    assert indexed["/"]["entity"]["model"]["groups"]["dirs"]["resources"]["files"]["metaattributes"]["xref"]["type"] == "xid"
+    assert indexed["/"]["modelresolved"]["groups"]["imports"]["ximportresources"] == ["/dirs/files"]
+    assert indexed["/dirs/main/notes/info/versions/v1"]["document"]["mode"] == "metadata-only"
+    second = indexed["/dirs/main/files/sample/versions/v2"]
+    assert second["document"]["mode"] == ("external" if name == "linked" else "embedded")
+    assert documents["/dirs/main/files/binary/versions/v1"] == b"\x00\x01\x7f\x80\xff\r\n"
+    assert documents["/dirs/main/files/empty/versions/v1"] == b""
+    if name == "linked":
+        assert second["entity"]["fileurl"] == "https://documents.example.org/sample-v2.json"
+        assert "/dirs/main/files/sample/versions/v2" not in documents
+    else:
+        assert documents["/dirs/main/files/sample/versions/v2"] == b'{"type":"number"}\n'
+    indexed["/"]["entity"]["registryid"] = "mutated"
+    documents["/dirs/main/files/binary/versions/v1"] = b"mutated"
+    assert example == before
+
+
+def test_generated_legacy_oci_replaces_all_115_blobs_byte_for_byte(oci_sample_root):
+    layout = oci_sample_root / "layout"
+    blobs = {path.name: path.read_bytes() for path in (layout / "blobs" / "sha256").iterdir()}
+    assert len(blobs) == 115
+    assert set(blobs) == set(LEGACY_BLOB_HASHES)
+    for digest, data in blobs.items():
+        assert hashlib.sha256(data).hexdigest() == digest
+    for reference, expected in LEGACY_EXPECTED["roots"].items():
+        reader = oci.FixtureLayout(layout, reference)
+        summary = reader.validate()
+        assert reader.root_digest == expected["digest"]
+        assert reader.lookup("/")["value"]["registryid"] == expected["registryid"]
+        assert len(blobs[expected["digest"].removeprefix("sha256:")]) == expected["size"]
+        for field in ("snapshot", "objects", "indexes", "manifests", "records", "documents"):
+            assert summary[field] == expected[field]
+    offline = oci.FixtureLayout(layout, "offline")
+    for expected in LEGACY_EXPECTED["documents"]:
+        result = offline.lookup(expected["xid"], operation="document")
+        assert result["data"] == base64.b64decode(expected["base64"], validate=True)
+        assert len(result["data"]) == expected["size"]
+        assert "sha256:" + hashlib.sha256(result["data"]).hexdigest() == expected["digest"]
+
+
 ITEM = "/documents/main/assets/item"
 V1 = ITEM + "/versions/v1"
 V2 = ITEM + "/versions/v2"
@@ -756,19 +805,19 @@ def range_layout(tmp_path_factory, shared_records):
     return _graph(path)
 
 
-def test_oci_shared_authored_dataset_has_independent_native_oracle(shared_records, shared_layout):
+def test_oci_shared_authored_dataset_has_independent_native_oracle(shared_records, shared_layout, mapping_sample_root):
     records, documents = shared_records
     assert len(records) == 24
     assert documents == BASE_BYTES
     assert _record(records, "/")["entity"] == REGISTRY_ENTITY
     assert _record(records, "/")["modelresolved"] == MODEL_SOURCE
-    authored_root = (DOCUMENT_FIXTURES / "registry.json").read_bytes()
+    authored_root = (mapping_sample_root / "registry.json").read_bytes()
     assert hashlib.sha256(authored_root).hexdigest() == (
         "7e4c37ca61b2b875ee055a8fc67e5c90c48b344689823a12dc1fb0a6e33232bf"
     )
-    assert (DOCUMENT_FIXTURES / "documents" / "n1.bin").read_bytes() == BASE_BYTES[V1]
-    assert (DOCUMENT_FIXTURES / "documents" / "n2.bin").read_bytes() == b""
-    assert (DOCUMENT_FIXTURES / "documents" / "n0.bin").read_bytes() == BASE_BYTES[BINARY]
+    assert (mapping_sample_root / "documents" / "n1.bin").read_bytes() == BASE_BYTES[V1]
+    assert (mapping_sample_root / "documents" / "n2.bin").read_bytes() == b""
+    assert (mapping_sample_root / "documents" / "n0.bin").read_bytes() == BASE_BYTES[BINARY]
     reader = oci.FixtureLayout(shared_layout["path"])
     summary = reader.validate()
     assert summary == {
@@ -791,8 +840,8 @@ def test_oci_shared_authored_dataset_has_independent_native_oracle(shared_record
     pytest.param("offline", 99, 4, id="offline-complete"),
     pytest.param("linked", 98, 3, id="linked"),
 ])
-def test_oci_standard_graph_roles_and_media_types(reference, objects, documents):
-    path = OCI_FIXTURES / "layout"
+def test_oci_standard_graph_roles_and_media_types(reference, objects, documents, oci_sample_root):
+    path = oci_sample_root / "layout"
     graph = _graph(path, reference)
     reader = oci.FixtureLayout(path, reference)
     summary = reader.validate()
@@ -1737,8 +1786,8 @@ def test_oci_tag_moves_but_existing_reader_keeps_immutable_pin(tmp_path):
 
 
 @pytest.mark.parametrize("reference", ["offline", "linked"])
-def test_oci_registry_context_survives_colliding_xids(reference):
-    reader = oci.FixtureLayout(OCI_FIXTURES / "layout", reference)
+def test_oci_registry_context_survives_colliding_xids(reference, oci_sample_root):
+    reader = oci.FixtureLayout(oci_sample_root / "layout", reference)
     model = reader.lookup("/", operation="model")["value"]
     assert set(model) == {"model", "modelsource", "resolvedmodelsource"}
     assert model["modelsource"]["groups"]["imports"]["ximportresources"] == ["/dirs/files"]
@@ -1749,7 +1798,7 @@ def test_oci_registry_context_survives_colliding_xids(reference):
     assert result["data"] == b'{"type":"string"}\n'
     assert result["target"] == "/dirs/main/files/sample/versions/v1"
     assert result["snapshot"] == reader.root_digest
-    other = oci.FixtureLayout(OCI_FIXTURES / "layout", "linked" if reference == "offline" else "offline")
+    other = oci.FixtureLayout(oci_sample_root / "layout", "linked" if reference == "offline" else "offline")
     assert reader.root_digest != other.root_digest
 
 
@@ -1757,8 +1806,8 @@ def test_oci_registry_context_survives_colliding_xids(reference):
     "/dirs/main/files/alias", "/imports/shared/files/alias",
     "/dirs/main/files/dangling", "/dirs/main/files/chain",
 ])
-def test_oci_alias_metadata_is_unexpanded_and_source_relative(target):
-    reader = oci.FixtureLayout(OCI_FIXTURES / "layout", "offline")
+def test_oci_alias_metadata_is_unexpanded_and_source_relative(target, oci_sample_root):
+    reader = oci.FixtureLayout(oci_sample_root / "layout", "offline")
     metadata = reader.lookup(target)["value"]
     assert set(metadata) == {"fileid", "self", "xid", "meta", "metaurl"}
     assert metadata["fileid"] == target.rsplit("/", 1)[1]
@@ -1780,9 +1829,9 @@ def test_oci_alias_metadata_is_unexpanded_and_source_relative(target):
     ({"label": "missing", "value": ""}, None, "not_found"),
     ({"label": "stage", "value": "R*"}, None, "not_found"),
 ])
-def test_oci_label_selection_preserves_literal_core_comparison(selector, target, code):
+def test_oci_label_selection_preserves_literal_core_comparison(selector, target, code, oci_sample_root):
     trace = []
-    reader = oci.FixtureLayout(OCI_FIXTURES / "layout", "offline", trace=trace)
+    reader = oci.FixtureLayout(oci_sample_root / "layout", "offline", trace=trace)
     if code:
         with pytest.raises(FederationError) as error:
             reader.lookup("/dirs", operation="collection", selector=selector)
@@ -1832,9 +1881,9 @@ def test_oci_case_insensitive_sibling_collision_is_rejected_before_publication(t
 
 
 @pytest.mark.parametrize("max_depth,max_objects", [(1, 100_000), (64, 1)])
-def test_oci_traversal_limits_fail_without_partial_success(max_depth, max_objects):
+def test_oci_traversal_limits_fail_without_partial_success(max_depth, max_objects, oci_sample_root):
     reader = oci.FixtureLayout(
-        OCI_FIXTURES / "layout", "offline", max_depth=max_depth, max_objects=max_objects
+        oci_sample_root / "layout", "offline", max_depth=max_depth, max_objects=max_objects
     )
     with pytest.raises(FederationError) as error:
         reader.lookup("/dirs/main/files/sample/versions/v2", operation="document")
@@ -1886,10 +1935,10 @@ def test_oci_unknown_format_and_core_versions_fail_before_publication(tmp_path, 
     ("max_depth", 0), ("max_depth", -1),
     ("max_objects", 0), ("max_objects", -1),
 ])
-def test_oci_nonpositive_budgets_reject_before_storage_access(limit, value):
+def test_oci_nonpositive_budgets_reject_before_storage_access(limit, value, oci_sample_root):
     with patch.object(oci, "_read_file", side_effect=AssertionError("Unexpected I/O")):
         with pytest.raises(FederationError) as error:
-            oci.FixtureLayout(OCI_FIXTURES / "layout", "offline", **{limit: value})
+            oci.FixtureLayout(oci_sample_root / "layout", "offline", **{limit: value})
     assert error.value.code == "limit_exceeded"
 
 
@@ -1901,3 +1950,171 @@ def test_oci_nonpositive_budgets_reject_before_storage_access(limit, value):
 def test_oci_distribution_routes_preserve_native_manifest_blob_distinction(blob, reference, expected):
     assert oci.distribution_url("oci://registry.example.com:5443/team/catalog",
                                 reference, blob=blob) == expected
+
+
+# Independent baseline retained before sample-tree removal.
+LEGACY_EXPECTED = {'roots': {'offline': {'registryid': 'fixture-offline',
+                       'snapshot': 'offline-complete',
+                       'digest': 'sha256:c937f902c54ca9c63e510bab3b4ec07ec3775ad338ac030ac93d916a736efba6',
+                       'size': 903,
+                       'objects': 99,
+                       'indexes': 44,
+                       'manifests': 25,
+                       'records': 25,
+                       'documents': 4},
+           'linked': {'registryid': 'fixture-linked',
+                      'snapshot': 'linked',
+                      'digest': 'sha256:dff871378d2678ee851fb7d97bae5a6b69b05c3d668f224a2f97127e8e8dee88',
+                      'size': 903,
+                      'objects': 98,
+                      'indexes': 44,
+                      'manifests': 25,
+                      'records': 25,
+                      'documents': 3}},
+ 'documents': [{'xid': '/dirs/main/files/binary/versions/v1',
+                'size': 7,
+                'digest': 'sha256:47a8404dd5bb287e70354f4aa0f7bf250e4fefe66a72cf2ac5475a802fd45968',
+                'base64': 'AAF/gP8NCg==',
+                'mediaType': 'application/octet-stream'},
+               {'xid': '/dirs/main/files/empty/versions/v1',
+                'size': 0,
+                'digest': 'sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+                'base64': '',
+                'mediaType': 'text/plain; charset=utf-8'},
+               {'xid': '/dirs/main/files/sample/versions/v1',
+                'size': 18,
+                'digest': 'sha256:85803e087e684bdab3e5d6c2dd1af627da83382db625be9a42aea3d4d06539be',
+                'base64': 'eyJ0eXBlIjoic3RyaW5nIn0K',
+                'mediaType': 'application/schema+json'},
+               {'xid': '/dirs/main/files/sample/versions/v2',
+                'size': 18,
+                'digest': 'sha256:e562cc019db9f5cb554d77b7cdd6b0e0640c1fd7a045e36b1b164879a24ac87d',
+                'base64': 'eyJ0eXBlIjoibnVtYmVyIn0K',
+                'mediaType': 'application/schema+json'}],
+ 'defaultversionid': 'v1',
+ 'document_expectations_apply_to': 'offline',
+ 'linked_external_version': '/dirs/main/files/sample/versions/v2',
+ 'empty_collection': '/emptygroups',
+ 'metadata_only': '/dirs/main/notes/info',
+ 'local_alias': '/dirs/main/files/alias',
+ 'imported_type_alias': '/imports/shared/files/alias',
+ 'dangling_alias': '/dirs/main/files/dangling',
+ 'nontransitive_alias': '/dirs/main/files/chain'}
+
+
+# Independent baseline retained before sample-tree removal.
+LEGACY_BLOB_HASHES = ('00e22b0a556fdea2f7f40d5e739069bd3b4d1ccc5838c7d0645deddd0b15dc34',
+ '05a2ca64985bd015891690b0f1f01f4425ed4aefe7be33da08509a92afe585aa',
+ '0a0e6bece3e0c61f0a1b2c494545275833723d9b02019a018279d3bf90dba0c4',
+ '0a4baca4050fae26fcf8d3e59b83cf9c3309fe4d9ea14de6663f98033881b38a',
+ '0d31b1695f909e69da301ea224cef8e4e62f2c3804258a787f1bf5c59d0e0e6c',
+ '0fd794bad67501005c0b85a58a3583db86b4ffd88858f247f87cea121513657d',
+ '143776b1f87d62ba6189799fd8355b2485a8e0d4c64ed191323dceee486275e5',
+ '16583c91dab71e6bd9a17c7bb0b09087a40d2bacd9b12d18a9ee3f244430830b',
+ '1a5dfdbd8b9526d85d6d5218c249cd5d24ec3a6fda4e59ed6be11489a1a93f98',
+ '1c27b4aaa33dd535030759871e6ab834c009cfae539f716ebcb9ce83d43de5e0',
+ '1df66cd6db777093af77f65f41980e8afb1f83b45ff0c2854d54fab06e081371',
+ '245b36682117da9ba2bdf3eec67db51fdb0a9203116dc6390f4170f1b68d3561',
+ '26ce2dcae73545a27dc162e0b34af35dc19838d738eb451315bed641d2151d7c',
+ '277207f15b1951090e9ee7ee999b81c4bbcab5bebfe624abba1e99bc43e310c1',
+ '27c8676b2435c3f0e34465a1d43ed2176743b504991bd6beefa23680f88088a0',
+ '27eea50d50157aa67ba451c20c0edd0ce64c68ce0c968e394009e69825290d36',
+ '295a081643d334f73d00466295e37aa2c92c0347a8932529828a568df7e6b4a3',
+ '29bb2c1054f8a7a401d8294f111102190135910d0bd7e97f56652822d3e69373',
+ '2a7e0fb137f41cd97ed41cb53ba4d795580863beca07f18f8925e6501e313639',
+ '2eb19679df02288f3e66e53eba56fab491244b301550e010d4114061d04aecf5',
+ '2f2daaf07deb62b104575e14bb630ecd8f866e56f0dc47edd681526f50606ec1',
+ '3311d4b1bb8e790703c637d1cd0d12f482b34f94f927e97b97d1a1978491ab22',
+ '353e1cbf3f3ffc146fc18c7606b5656e6a009e614674b269d96ca3e6c1ea37db',
+ '3b47f8f5d33b39000113881c987370486f6e7b708d45544392618e6261ff3b0c',
+ '3ece5ed6bce0ab666c3c4a72625dba1b589233cdd28f14653a90f6948c2f6dc8',
+ '3fd9f557e3ccfc24ea18c4f6ee5a5ef24464f05743c02e1327eadbdb40f93dfb',
+ '40b170246a762f0a0088d52a048b5533bceaf35285323486410e67686c85047a',
+ '44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a',
+ '451cb49adc8484d1c6e065b7adb86300351758b170dc6643faac4c548c3bd5c0',
+ '47a8404dd5bb287e70354f4aa0f7bf250e4fefe66a72cf2ac5475a802fd45968',
+ '48304a2f5296fd7a0d3a02ce8ade5d70eebb9e63aff0d20e3fde2be91f373d19',
+ '4c34fe21f8878bd389481b63f4e7824c3126133a54e44e29f840befcbcf300fe',
+ '5412b2c8b0b83e0aba36a830cb0a920170916f13752568a33f9c75cc55d293b6',
+ '5615c98e76459e1f3415f04a279669deabeb3a5c7960d4ee38e645872c4aec2c',
+ '59357baeb9e4bb9572a86a9cce6d62cff33e95dc71334e458a881d1ee94c9331',
+ '59565c6202213f07406e48408e1ec92faca7e8461e2fcbb5124bbf2063b0f7b9',
+ '5993ec37018140b07970bebf1f2f4064343c282f3d0741e9e7508936bdfc9d4d',
+ '609242d9f54c622392108028bcf2a5256200f36718d92622950bd36bb4604462',
+ '617c2781bd191aa0397f99ed92715a79bb0ba061ae6693d045b35b969f35e1d2',
+ '63495a05486a49c7877f949dcd602eddc40e848329a64d00d6bdc11b76ae7d79',
+ '643cfb6ca41afe6c0440ce8b210987e7a3b90955b3596f2a1635c1a75f0d6768',
+ '6590f275badf5c393defd68535e391b58739e399cd543aaff1905bd86e3a76ae',
+ '673f0ed44ef9a11dadd3396667600a7aade32d30e161e63a34fffa4f4c2eb6e1',
+ '69d6d98ee306291fa28c4438090636ee83524b3794bf5b1c8034053681777947',
+ '6b26127ebdd01140a16b0a6900863411bd083bf41519799462f1fada1b78fb37',
+ '6ccb4af7cd65c2059d090f10d4d1b083eb27215ffaa41dfaa80c3895b51db9da',
+ '7321cbe88ee2dca9c70fb3f4020cb6811676547a5f688befdc6f7e153a4b91c6',
+ '77038f6d97d9eb75c6936fa3bcb8c540f87f4c4154f9afadd40671ddc7e1aa08',
+ '792822629fffa09fc45efd1281aadb88d502d9cfd596407be3fcd16a4f729030',
+ '7a38613fc602394aa1f2973ebb73cb52f563632d270bc82f1777eea0e6e23d39',
+ '7a38fb5df71c413fdf16d14a9388e5e179b9a60422875b3a159934b26881c6ea',
+ '7ac0374e78ccd6c7ec36772c108587623c68134e46cbd052f7bc36759f8f9ceb',
+ '7c9437a2acb55dfd866aa6198d70be51021b12744d71e505d332c1ab8f79ab60',
+ '7d234cc5817981ad09a1358b72362305de557db3cf4fc4fbbd480f610c9fdd44',
+ '7d56303bc79a61149292dfec347d2e64ae6e090afb5e498ebc197a32aa5568d4',
+ '82b0ac671cb79692f3b369cb0967b43fe50ecc61bd1dbd0915afdde08f75d473',
+ '85803e087e684bdab3e5d6c2dd1af627da83382db625be9a42aea3d4d06539be',
+ '869e958dca095889542f43143be8ec85148267bda38a01780d12d24b695bdf3e',
+ '8743420cf07b85c514b41d385d8be1aaa76e0af17a31c9ae23c62436f4c6727b',
+ '89e6bd896f4d8a474873e3f816fa0f4e151ecd4168b06c607f93a1f59c1dfbd2',
+ '8b12b7aede7c57cede44697e325f2936960583fa02ef734194a493749872df06',
+ '8f0fb9081580ad0291b2230b69dd47b3aba4efa0237d770d6f75e89370b195e2',
+ '8fc7d555f4467708b46ae97678d5e32528fcd92ce278a7b5d97aaa57096d5eea',
+ '942d27ec939867e4ece6b98daf49aa5145b89efba8fe3c3e17892db768892eae',
+ '96babed201dede192612b134d0b83cc90a8d9e5c8a52e1fb724bec3351781566',
+ '975db55338a8c3bbd22ead5a2079451c3c11909da04762339977edb530de0837',
+ '9eb6e111e1fa7792207be842512705a7bc20e08d77c3550d71d779640e463fe1',
+ 'a2af5f6eea9081df414adc1dccc1f6fd32ecefb8c6d644cf126591d94ff97fa3',
+ 'a84e6bf8af44eeeded17d3c628c8ec762e5ce34ef1570f316afd4305e7fd9db7',
+ 'a8bca48ffd091851fcc32a73e4c06992db948d8dcead9550c4cbc3ce67399635',
+ 'ab4e0c7a9da03192c16b3b148277085f0fa1431f7fea91ae020f38cb4a6aad99',
+ 'af6422ebdc770ab37ab3bbaaa1e7469146dbc3acc2523cb87cc554aa00cb8713',
+ 'b0d8c81408e7e037cf3da95cfc2257783a71cdbd693e8701cdb1c1b2ff4ff2e8',
+ 'b4c432b24f90db7afc9264b73d71f8a9045a08717c248043a6a8cd8cf7b75f39',
+ 'b6906b2727d8912451fd6f74422269aed1b03976e16cf76c6dd49641ab59bf44',
+ 'b6be2114974b3057496715c3818c9f2100ef21344a2e5f28e9ef74c73344151c',
+ 'b780a08f29e401e46ab8bb495c82ea4c4aafa0590ae04d4ef6f7a43108792c52',
+ 'b8545a900728c0125fb092cdc5f2a8333cbc1a4596d7c2d95a088999ea31a3d7',
+ 'b8786ba073b0998562c0d16fc74cf55856c2ddc2587bdfc864dd2a5ed7828fc9',
+ 'bbb8431c731d4be5db0dda92683801758a2dc25a2fc7e9908630eccdcd4d5adf',
+ 'bd619a454c1060773adbd6a0613b1d26fc451d1f5720e8345d0b96c47af23c37',
+ 'bd73dd742e5c16089d2b72a92d4a1e2a01dae79216c7f234c294a58ba9bfeefd',
+ 'c1812842e586a27ae9d1037349bcd4c5ae4a819bdb07017dc3d0bb8b5187d119',
+ 'c525b1845cc29437930fa72781e0a1603f3259d4626afb4d14d9b02410f5e7dd',
+ 'c59c80b59db1c9fd817e354425704933d30718b3958023b81e095f409a86bf7f',
+ 'c8fab8ed1186fae51a4c2d12f6a0b9bcd1835d2d3d70100262f5bff9a6368bd5',
+ 'c937f902c54ca9c63e510bab3b4ec07ec3775ad338ac030ac93d916a736efba6',
+ 'cc3a2eb3ab0b35f2a8309aed0851c4735c0f37cf601c79ce98f968162172fe6b',
+ 'd5f2a537003f14c58cb65ada4a6d8b6cec7178af9192733afd2edf639ae5098c',
+ 'd7bc2f306e167fa86b0e6f64b62e0ccdeb91b50c99eba2e1c6a49d4846d582a1',
+ 'dab7faf03ac8e7ea11f6ffa3db448d742432fc9ed09dcbc7ca3a5f97c5475bfa',
+ 'dc7b31ff81ea06249dabed96309c2749848f060df2408eedd5da90ff6ea2bf7e',
+ 'dda3965e8f06b6136e89a96fb4f100c94e7ca2f134cdf92bbd3565e65ace7e29',
+ 'dff871378d2678ee851fb7d97bae5a6b69b05c3d668f224a2f97127e8e8dee88',
+ 'e00b8e129803ca40c4b35a1db081ddede5ec668bc166680350dbd90a0d84bf28',
+ 'e1def65f2d844f818e0af6d974abb8d48f6812a56fada333c472f6e709e72787',
+ 'e2b7f1dfdb131ccd547802766a7dbbc86162e188ec1ad281668021e23173a928',
+ 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+ 'e562cc019db9f5cb554d77b7cdd6b0e0640c1fd7a045e36b1b164879a24ac87d',
+ 'e570e63cb5b54b80fa10bfbffde792a4a99d9539e4848c9faa242eaccd4472e4',
+ 'e594a3de4fd8587d20544d4a4719ef8e76084482983aea623e2a3f00a3bcda61',
+ 'e7bdec4d110824ef20c3e23fd08949fd473a05ff1d6b99c56e218cb2a3906b7f',
+ 'e9380249b79341b160c89e893213792a26793e8186ac8f848ec84ec60706e578',
+ 'ece9374b3c5cf08f6018f70a947cc26845d6b6bc5cd5dfb458a936d10eb683dd',
+ 'eebb063319204754b9460f9a59f70e5a188108910f4d311b4bca6b5def0c2754',
+ 'efdc9a345050733e94352c11c97d10a6611182ee7b4fe18b73155bed0b4fe28f',
+ 'f13787d09bfaf2c363bb85a0fa10ccf2eea60ee192bef88235dc7c11ea1f4cb2',
+ 'f2ec9eb4ca89c231b6240992b8ded217105388d87532b6777b8ae2d769211976',
+ 'f5ec1d6f6dd01943e9c5f43ae196bdf0aeb9ed58aacacb0e97f1fbd5c51dd4e0',
+ 'f86a54fd29327feca1af033dbaf76ce7191573da03fe163c6896dcff449adc72',
+ 'fa6ab41734d3578c6dca43f37880a3510cd725ab6ec481ed90acbecca2f6a149',
+ 'fb35bdd05670b835f1c50cc1876922e659d9c3818ec095e22abc89ff69a2fb18',
+ 'fb9d956868e21959e7d1048552d2feccda06b3a76ea50f77a70974ab4520467b',
+ 'fc9fb8244eea107277f53ecfcea6c7f38808f273c449e803f39a30f0b2a8a82b',
+ 'fd6b1499e8732efdc575ef3df04b8288f646fe2effee07c80e7ccd3f2e540cc6')

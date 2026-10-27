@@ -4,6 +4,7 @@
 <!-- words: py sequencediagram -->
 <!-- words: assetid selectedxid -->
 <!-- words: usda -->
+<!-- words: powershell pytest workingdrafts -->
 
 ## Abstract
 
@@ -984,11 +985,28 @@ offline-complete class and produce a complete internal graph. An OPTIONAL
 API facade requires separate protocol-binding conformance.
 
 The executable examples check specified behavior offline. They do not
-implement production resolution. [Shared vectors](samples/selection.json)
-distinguish identity, selection and reference cases. Binding fixtures exercise
-transport-specific retrieval. Tests MUST distinguish full graph validation
-from selective lookup. A validator walking everything does not demonstrate efficient
-selective resolution.
+implement production resolution. The
+[shared selection tests](tools/test_federation_examples.py) distinguish
+identity, selection and reference cases. Their reduced logical vectors are
+not complete serialized Core API responses. Omitted server-generated metadata
+in a test vector does not authorize an API to omit the same metadata.
+
+[examples.json](examples.json) contains the named Registry examples used by
+the [shared generator](tools/generate_examples.py). The
+[generation and reading instructions](../README.md#generating-and-reading-examples)
+show how to produce the existing File, Git and OCI formats. The source is
+non-normative example notation, not another federation representation.
+Protocol observations and expected results remain in the
+[HTTP](../bindings/tools/test_http_examples.py),
+[OPC UA](../bindings/tools/test_opcua_examples.py) and other binding tests.
+
+Tests MUST distinguish full graph validation from selective lookup. A
+validator walking everything does not demonstrate efficient selective
+resolution. Run the shared and binding suites from the repository root:
+
+```powershell
+python -B -m pytest workingdrafts\federation\tools workingdrafts\bindings\tools -q
+```
 
 The [source-selection example](tools/federation_resolution_examples.py)
 uses in-memory read functions. It demonstrates local shadow precedence,

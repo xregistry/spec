@@ -116,8 +116,8 @@ content closure.
 
 The [worked example](#worked-example-map-one-existing-file) below shows
 every file needed to map one existing document and the resulting reads.
-The [larger sample](samples/mapping/registry.json) demonstrates multiple
-Resource types, aliases and binary content.
+The `portable` example in the [shared source](../federation/examples.json)
+demonstrates multiple Resource types, aliases and binary content.
 
 Git chooses the directory through `parameters.path` and pins its commit.
 File selects that same directory through a file URI. The shared
@@ -133,12 +133,26 @@ This example maps one existing file to Resource
 The selected root is the `project` directory. No file outside that
 directory is read.
 
-The complete files are also available in the
-[walkthrough directory](samples/mapping-example). You can save the JSON
-block below directly. Use UTF-8, two-space indentation, LF line endings
-and one final newline. The size and digest values describe those exact
-bytes. If you change the document, recalculate its size and digest in the
-Version's document descriptor inside `registry.json`.
+You can save the JSON block below directly. Use UTF-8, two-space
+indentation, LF line endings and one final newline. The size and digest
+values describe those exact bytes. If you change the document, recalculate
+its size and digest in the Version's document descriptor inside
+`registry.json`.
+
+To generate this project instead, select `walkthrough` from the
+[shared examples](../README.md#generating-and-reading-examples):
+
+```text
+python -B -m workingdrafts.federation.tools.generate_examples file --example walkthrough --output D:\temp\xregistry-walkthrough
+```
+
+The generator writes the unchanged document, an inline `registry.json` and
+a `.gitattributes` file that disables text conversion for the document. Its
+Registry root also contains the full captured Core model from the shared
+source. The `registry.json` below omits that `model` attribute and keeps only
+`modelsource`, so the generated root has a different size and digest. The
+[walkthrough tests](tools/test_mapping_spec_examples.py) check that removing
+the model reproduces the bytes below exactly.
 
 ### 1. Keep the Existing Document
 
@@ -539,8 +553,10 @@ By default, the example generator writes every record and index to its own
 file. It uses `records/`, `indexes/` and `documents/` directories, with
 opaque hexadecimal allocations such as `records/n1a.json`. This avoids name
 collisions when generating a new tree. When the generator embeds a target
-inline, it allocates no file for it. These are producer conventions, not
-restrictions on existing files or on other conforming mappings.
+inline, it allocates no file for it. The `walkthrough` example instead keeps
+its project layout: one inline `registry.json` beside the existing document
+path. These are producer conventions, not restrictions on existing files or
+on other conforming mappings.
 
 ## Record and Index Documents
 
@@ -838,9 +854,9 @@ Resource document requests use `meta.defaultversionid`. Explicit Version
 requests use exactly the requested Version ID. A snapshot revision, index
 position or highest Version string MUST NOT override the Core default.
 
-The larger [alias fixture](samples/mapping/registry.json) exercises the
-following boundary. These are operation outcomes, not additional stored
-records:
+The `portable` example in the [shared source](../federation/examples.json)
+exercises the following alias boundary. These are operation outcomes, not
+additional stored records:
 
 | Request to an alias | Result |
 | --- | --- |
@@ -939,8 +955,8 @@ requirement to implement a server or an API-view facade.
 
 ## Executable Example
 
-The [shared fixture](samples/mapping/registry.json) uses the split form,
-with every record and index in its own file. It contains:
+The `portable` example in [examples.json](../federation/examples.json)
+contains:
 
 - Typed collections.
 - Explicit defaults.
@@ -954,11 +970,12 @@ with every record and index in its own file. It contains:
 An empty independent collection
 demonstrates a distinct Resource model type.
 
-The fixture's local `.gitattributes` retains LF for JSON records and disables
-text conversion for domain files on checkout. This is repository integration,
-not a containment edge or permission for Git readers to apply attributes.
-Existing projects do not need to replace their `.gitattributes` to add a
-mapping. Git readers obtain stored object bytes without checkout conversion.
+The generated `.gitattributes` retains LF for JSON records and disables text
+conversion for exact-byte domain files, including documents whose extension
+is `.json`. This is repository integration, not a containment edge or
+permission for Git readers to apply attributes. Existing projects do not need
+to replace their `.gitattributes` to add a mapping. Git readers obtain stored
+object bytes without checkout conversion.
 
 [`mapping_examples.py`](tools/mapping_examples.py) provides
 offline parsing, schema/semantic validation, selective reads, document-view
@@ -966,12 +983,21 @@ assembly and an OPTIONAL local Git object-store reader. It uses the common
 `FederationError`, XID validation, label selection and Resource type helper.
 It does not fetch repositories or external documents.
 
-Run from the repository root:
+Run from the repository root, selecting a new or empty output directory
+outside the checkout:
 
 ```text
-python -B -m workingdrafts.bindings.tools.mapping_examples validate workingdrafts\bindings\samples\mapping
-python -B -m workingdrafts.bindings.tools.mapping_examples entity workingdrafts\bindings\samples\mapping /documents/main/assets/item/versions/v1
+python -B -m workingdrafts.federation.tools.generate_examples file --example portable --output D:\temp\xregistry-portable
+python -B -m workingdrafts.bindings.tools.mapping_examples validate D:\temp\xregistry-portable
+python -B -m workingdrafts.bindings.tools.mapping_examples entity D:\temp\xregistry-portable /documents/main/assets/item/versions/v1
+python -B -m workingdrafts.bindings.tools.mapping_examples document D:\temp\xregistry-portable /documents/main/assets/item/versions/v1
 ```
+
+The [shared instructions](../README.md#generating-and-reading-examples) list
+prerequisites, the other named examples and equivalent Linux paths. The
+[directory mapping tests](tools/test_directory_mapping.py) separately show
+how metadata can be added around existing project files without moving or
+changing them. The new generator itself writes only to an empty destination.
 
 `read_record` exposes a storage fragment, not a Core response. `metadata`
 and `collection` return the materialized envelopes above. `document` returns
@@ -988,8 +1014,12 @@ limit counts every decoded record and index, cumulatively across files.
 separately bounds file count and bytes. Reading a metadata file checks every
 inline object it contains before any of them is used.
 
-`encode_tree(records, documents, inline=False, paths=None,
-document_paths=None, gitattributes=...)` selects the stored form:
+`encode_tree` selects the stored form:
+
+```python
+encode_tree(records, documents, inline=False, paths=None,
+            document_paths=None, gitattributes=...)
+```
 
 | Option | Effect |
 | --- | --- |
@@ -1007,20 +1037,21 @@ with `invalid_package`. The
 to rebuild the inline walkthrough, its mixed variant and its split form
 from the same records.
 
-`build-sample` writes the shared fixture in the split form. With `--inline`,
-it writes the same Registry as a single `registry.json`, plus `.gitattributes`
-and the document files:
+The generator writes the `portable` example in the split form, with every
+record and index in its own file. With `--inline`, the `file` and `git`
+commands write the same Registry as a single `registry.json`, plus
+`.gitattributes` and the document files:
 
 ```text
-python -B -m workingdrafts.bindings.tools.mapping_examples build-sample OUTPUT --inline
+python -B -m workingdrafts.federation.tools.generate_examples file --example portable --output D:\temp\xregistry-portable-inline --inline
 ```
 
 The helper checks the storage schemas and relevant Core semantics, not every
 extension constraint in an arbitrary domain model. Full model validation
-remains a separate producer/consumer responsibility. `encode_tree` and
-`sample_records` provide deterministic fixture construction, not publication.
-`build-sample` writes only generated fixture bytes and refuses to overwrite
-different content.
+remains a separate producer/consumer responsibility. The shared generator
+uses `encode_tree` to construct deterministic mapping bytes from the neutral
+source. The reader and validation interfaces remain available independently
+of generation.
 
 The filesystem example detects ordinary concurrent modification and rejects
 static symlinks/reparse points. It is not a hardened boundary against hostile

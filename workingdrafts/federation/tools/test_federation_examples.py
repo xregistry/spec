@@ -1,6 +1,7 @@
 """Offline conformance tests for the common federation example primitives."""
 
 from copy import deepcopy
+import json
 from unittest.mock import Mock
 
 import pytest
@@ -12,6 +13,124 @@ from workingdrafts.federation.tools.federation_examples import (
     validate_profile,
     validate_xid,
 )
+from workingdrafts.federation.tools import federation_examples as federation
+
+
+EXAMPLE_NAMES = {"walkthrough", "portable", "offline", "linked", "first", "second"}
+
+
+def test_neutral_source_names_and_load_example_are_deep_fresh():
+    examples = federation.load_examples()
+    assert set(examples) == EXAMPLE_NAMES
+    first = federation.load_example("first")
+    first["records"][0]["entity"]["registryid"] = "mutated"
+    first["documents"]["/documents/main/assets/item/versions/v1"]["text"] = "changed"
+    again = federation.load_example("first")
+    assert again["records"][0]["entity"]["registryid"] == "first"
+    assert again["documents"]["/documents/main/assets/item/versions/v1"] == {"text": '{"type":"string"}'}
+    assert examples["first"] == again
+
+
+@pytest.mark.parametrize("payload", [
+    b'{"exampleformat":1,"exampleformat":1,"examples":{}}',
+    b'{"exampleformat":1,"examples":{"first":{"value":NaN}}}',
+    b'{"exampleformat":1,"examples":{"first":{"value":Infinity}}}',
+    b'{"exampleformat":1,"examples":{"first":{"value":1e10000}}}',
+    b'{"exampleformat":1,"examples":{"first":{"value":"\xff"}}}',
+    b"\xef\xbb\xbf{}",
+    b'{"exampleformat":1,',
+])
+def test_neutral_source_rejects_malformed_json_without_accepting_partial_content(tmp_path, payload):
+    path = tmp_path / "invalid.json"
+    path.write_bytes(payload)
+    with pytest.raises(FederationError) as failure:
+        federation.load_examples(path)
+    assert failure.value.code == "invalid_package"
+    assert path.read_bytes() == payload
+
+
+@pytest.mark.parametrize("change", [
+    "version", "unknown-envelope", "empty-examples", "unknown-example",
+    "missing-root", "duplicate-xid", "decoded-duplicate-xid", "wrong-kind",
+    "missing-model", "missing-capabilities", "missing-document", "extra-document",
+    "ambiguous-document", "invalid-base64", "base64-padding", "false-complete",
+    "false-none", "unknown-document-field",
+])
+def test_neutral_source_rejects_ambiguous_and_incomplete_states(tmp_path, change):
+    example = federation.load_example("second")
+    source = {"exampleformat": 1, "examples": {"second": example}}
+    version = "/documents/main/assets/item/versions/v1"
+    if change == "version":
+        source["exampleformat"] = 2
+    elif change == "unknown-envelope":
+        source["unexpected"] = True
+    elif change == "empty-examples":
+        source["examples"] = {}
+    elif change == "unknown-example":
+        example["unexpected"] = True
+    elif change == "missing-root":
+        example["records"].pop(0)
+    elif change in ("duplicate-xid", "decoded-duplicate-xid"):
+        duplicate = deepcopy(example["records"][-1])
+        if change == "decoded-duplicate-xid":
+            duplicate["entity"]["xid"] = "/%64ocuments/main/assets/item/versions/v1"
+        example["records"].append(duplicate)
+    elif change == "wrong-kind":
+        example["records"][-1]["kind"] = "resource"
+    elif change in ("missing-model", "missing-capabilities"):
+        del example["records"][0]["entity"][change.removeprefix("missing-")]
+    elif change == "missing-document":
+        del example["documents"][version]
+    elif change == "extra-document":
+        example["documents"][version + "-absent"] = {"text": ""}
+    elif change == "ambiguous-document":
+        example["documents"][version] = {"text": "", "base64": ""}
+    elif change in ("invalid-base64", "base64-padding"):
+        example["documents"][version] = {"base64": "!!!" if change == "invalid-base64" else "YQ"}
+    elif change == "false-complete":
+        example["documents"][version] = {"url": "https://example.invalid/uncaptured"}
+    elif change == "false-none":
+        example["documents"][version] = {"none": False}
+    else:
+        example["documents"][version]["unknown"] = "value"
+    path = tmp_path / "source.json"
+    content = json.dumps(source).encode("utf-8")
+    path.write_bytes(content)
+    with pytest.raises(FederationError) as failure:
+        federation.load_examples(path)
+    assert failure.value.code == "invalid_package"
+    assert path.read_bytes() == content
+
+
+def test_neutral_source_custom_path_selection_and_missing_inputs(tmp_path):
+    example = federation.load_example("second")
+    example["records"][0]["entity"]["registryid"] = "custom"
+    path = tmp_path / "custom.json"
+    path.write_text(json.dumps({"exampleformat": 1, "examples": {"custom": example}}), encoding="utf-8")
+    assert set(federation.load_examples(path)) == {"custom"}
+    assert federation.load_example("custom", path)["records"][0]["entity"]["registryid"] == "custom"
+    with pytest.raises(FederationError) as missing:
+        federation.load_example("second", path)
+    assert missing.value.code == "not_found"
+    with pytest.raises(FederationError) as unavailable:
+        federation.load_examples(tmp_path / "absent.json")
+    assert unavailable.value.code == "unavailable"
+
+
+@pytest.mark.parametrize("extra,accepted", [(-1, False), (0, True), (1, True)])
+def test_neutral_source_byte_limit_exact_and_adjacent_boundaries(tmp_path, monkeypatch, extra, accepted):
+    example = federation.load_example("second")
+    payload = json.dumps({"exampleformat": 1, "examples": {"second": example}}).encode()
+    path = tmp_path / "source.json"
+    path.write_bytes(payload)
+    monkeypatch.setattr(federation, "MAX_EXAMPLE_BYTES", len(payload) + extra)
+    if accepted:
+        assert federation.load_examples(path)["second"]["records"][0]["entity"]["registryid"] == "second"
+    else:
+        with pytest.raises(FederationError) as failure:
+            federation.load_examples(path)
+        assert failure.value.code == "limit_exceeded"
+    assert path.read_bytes() == payload
 
 
 @pytest.fixture(params=["http", "oci", "git", "file", "opcua"])

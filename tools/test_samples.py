@@ -45,7 +45,7 @@ _UniqueKeyLoader.add_constructor(
 
 
 def _sample_files():
-    samples = []
+    samples = [ROOT / "workingdrafts" / "federation" / "examples.json"]
     for sample_root in (ROOT / "core" / "samples", ROOT / "cloudevents" / "samples"):
         for pattern in SAMPLE_PATTERNS:
             samples.extend(sample_root.rglob(pattern))

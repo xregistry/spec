@@ -8,6 +8,31 @@ from workingdrafts.federation.tools.federation_examples import (
 from workingdrafts.federation.tools.federation_resolution_examples import Source, resolve_resource_read
 
 
+def test_retained_selection_requests_labels_and_independent_contexts():
+    request = SELECTION["requests"][0]
+    assert request == {
+        "operation": "collection", "target": "/documents/main/assets",
+        "selector": {"label": "stage", "value": "PRODUCTION"},
+    }
+    assert select_label(
+        SELECTION["labels"], request["selector"]["label"], request["selector"]["value"],
+    )["assetid"] == "item"
+    assert select_label(SELECTION["labels"], "note", "")["assetid"] == "item"
+    with pytest.raises(FederationError) as missing:
+        select_label(SELECTION["labels"], "stage", "prod*")
+    assert missing.value.code == "not_found"
+    assert SELECTION["requests"][1] == {
+        "operation": "document", "target": "/documents/main/assets/item/versions/v1",
+    }
+    assert [(c["registryid"], c["endpoint"], c["xid"]) for c in SELECTION["contexts"]] == [
+        ("first", "https://first.example.com/registry", "/documents/main/assets/item"),
+        ("second", "https://second.example.com/registry", "/documents/main/assets/item"),
+    ]
+    resource = SELECTION["registry"]["documents"]["main"]["assets"]["item"]
+    assert select_version(resource)["versionid"] == "v1"
+    assert select_version(resource, "v2")["labels"] == {"stage": "development"}
+
+
 @pytest.mark.parametrize("local_shadow", [True, False], ids=["unique-after-shadowing", "ambiguous-without-shadow"])
 def test_published_selection_example_filters_after_resource_shadowing(local_shadow):
     collection = "/documents/main/assets"
@@ -58,3 +83,35 @@ def test_published_selection_example_filters_after_resource_shadowing(local_shad
         with pytest.raises(FederationError) as error:
             select_label(effective, "stage", "production")
         assert error.value.code == "ambiguous"
+
+
+# Independent baseline retained before sample-tree removal.
+SELECTION = {'requests': [{'operation': 'collection',
+               'target': '/documents/main/assets',
+               'selector': {'label': 'stage', 'value': 'PRODUCTION'}},
+              {'operation': 'document', 'target': '/documents/main/assets/item/versions/v1'}],
+ 'contexts': [{'registryid': 'first',
+               'endpoint': 'https://first.example.com/registry',
+               'xid': '/documents/main/assets/item'},
+              {'registryid': 'second',
+               'endpoint': 'https://second.example.com/registry',
+               'xid': '/documents/main/assets/item'}],
+ 'labels': [{'assetid': 'item', 'labels': {'stage': 'production', 'note': ''}},
+            {'assetid': 'other', 'labels': {'stage': 'development'}},
+            {'assetid': 'unlabeled'}],
+ 'registry': {'registryid': 'first',
+              'modelsource': {'groups': {'documents': {'singular': 'document',
+                                                       'resources': {'assets': {'singular': 'asset'}}},
+                                         'mirrors': {'singular': 'mirror',
+                                                     'ximportresources': ['/documents/assets']},
+                                         'independent': {'singular': 'independent',
+                                                         'resources': {'assets': {'singular': 'asset'}}}}},
+              'documents': {'main': {'assets': {'item': {'assetid': 'item',
+                                                         'meta': {'defaultversionid': 'v1'},
+                                                         'versions': {'v1': {'versionid': 'v1',
+                                                                             'labels': {'stage': 'production'}},
+                                                                      'v2': {'versionid': 'v2',
+                                                                             'labels': {'stage': 'development'}}}}}}},
+              'mirrors': {'local': {'assets': {'copy': {'meta': {'xref': '/documents/main/assets/item'}},
+                                               'dangling': {'meta': {'xref': '/documents/main/assets/missing'}},
+                                               'chain': {'meta': {'xref': '/mirrors/local/assets/copy'}}}}}}}

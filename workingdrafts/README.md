@@ -3,6 +3,8 @@
 <!-- words: opc opcua OpenUSD pytest readme ua workingdrafts -->
 <!-- words: namespace validators -->
 <!-- words: usd MaterialX plugins federatable -->
+<!-- words: exampleformat jsonschema ORAS powershell py reparse -->
+<!-- words: dockerfile resolvedmodelsource symlink walkthrough -->
 
 These specifications are working drafts for discussion and review, not part
 of a released xRegistry specification. They can change independently of
@@ -73,9 +75,126 @@ combine themselves. The default is `consumer`. With `producer`, the consumer
 reads the supplied view without repeating its catalog traversal.
 
 The [Registry model artifacts](models/registry/README.md) and
-[conformance examples](federation/samples/README.md) accompany these drafts.
+[shared examples](#generating-and-reading-examples) accompany these drafts.
 Core `xref` remains a same-Registry, same-Resource-model-type mechanism.
 Federation does not redefine it as a remote URL.
+
+### Generating and Reading Examples
+
+[examples.json](federation/examples.json) is the single Registry-content
+source for the federation and binding examples. Select one named example
+and generate a File mapping, a local Git repository or a native OCI artifact
+with [generate_examples.py](federation/tools/generate_examples.py). The
+generator does not start an HTTP or OPC UA server. Publication and domain
+model samples remain separate.
+
+| Example | Content |
+| --- | --- |
+| `walkthrough` | One `widget` Resource and its exact 18-byte document, using the project paths taught by the [mapping walkthrough](bindings/mapping.md#worked-example-map-one-existing-file). |
+| `portable` | Typed collections, explicit defaults, local aliases, a metadata-only catalog, binary content and an empty document. |
+| `offline` | Complete `dirs` / `files` Registry with imported types, aliases and locally captured documents. |
+| `linked` | A separate Registry context whose non-default `v2` document remains an external URL. |
+| `first` | The Registry used by the HTTP and UA examples, including default `v1`, explicit Versions and metadata-only catalog entries. |
+| `second` | An independent Registry with a colliding asset XID and different bytes. |
+
+These names select source examples, not Registry IDs or revision pins. Every
+example can be generated in all three formats. A linked document URL remains
+a URL. Generation never retrieves its content.
+
+Run the commands from the repository root with Python 3.10 or later and the
+existing `jsonschema` dependency in [tools/requirements.txt](../tools/requirements.txt).
+Git is needed only for Git output. ORAS 1.3.0 is needed only for explicit OCI
+copying or publication, not for offline generation. The tests use `pytest`.
+
+First validate all named examples without creating output:
+
+```powershell
+python -B -m workingdrafts.federation.tools.generate_examples validate
+```
+
+Use output paths outside the source checkout, each either new or an empty
+directory. The generator rejects nonempty destinations, filesystem
+roots and symlink/reparse escapes. It does not overwrite an existing project.
+Use different empty destinations to repeat the examples:
+
+```powershell
+python -B -m workingdrafts.federation.tools.generate_examples file --example walkthrough --output D:\temp\xregistry-file
+python -B -m workingdrafts.federation.tools.generate_examples git --example walkthrough --output D:\temp\xregistry-git
+python -B -m workingdrafts.federation.tools.generate_examples oci --example offline --output D:\temp\xregistry-oci --reference offline --page-size 2
+```
+
+On Linux, use an absolute output directory outside the checkout. For example,
+the same commands can use new directories under `$HOME/xregistry-examples`:
+
+```sh
+python -B -m workingdrafts.federation.tools.generate_examples file --example walkthrough --output "$HOME/xregistry-examples/file"
+python -B -m workingdrafts.federation.tools.generate_examples git --example walkthrough --output "$HOME/xregistry-examples/git"
+python -B -m workingdrafts.federation.tools.generate_examples oci --example offline --output "$HOME/xregistry-examples/oci" --reference offline --page-size 2
+```
+
+Each command reports its generated root and binding-specific pin as JSON.
+Git output is a bare repository containing the mapping under `xregistry`,
+with a deterministic commit at `refs/heads/main` and an annotated
+`refs/tags/snapshot`. No remote is configured, and no Git push occurs.
+OCI defaults to `--reference snapshot` and `--page-size 256`. The smaller
+page size above reproduces the existing sharded `offline` graph and digest.
+
+File and Git output put each record and index in its own file. Add
+`--inline` to embed all of them in `registry.json` instead. The
+`walkthrough` example always uses its inline project layout. OCI
+generation does not accept `--inline`.
+
+Read the generated outputs with the existing binding helpers:
+
+```powershell
+python -B -m workingdrafts.bindings.tools.mapping_examples entity D:\temp\xregistry-file /documents/main/assets/widget/versions/v1
+python -B -m workingdrafts.bindings.tools.mapping_examples document --git-dir D:\temp\xregistry-git --revision refs/tags/snapshot --path xregistry --target /documents/main/assets/widget/versions/v1
+python -B -m workingdrafts.bindings.tools.oci_examples lookup D:\temp\xregistry-oci /dirs/main/files/sample/versions/v2 --reference offline --operation document
+```
+
+For Linux, substitute the corresponding absolute output paths in these
+reader commands. Metadata and document operations remain distinct. A Git
+commit, an OCI root digest and a Core Version ID are not interchangeable.
+The [File](bindings/file.md#motivation-and-example),
+[Git](bindings/git.md#conformance) and
+[OCI](bindings/oci.md#9-conformance-and-executable-examples) sections
+describe validation and selective reads.
+
+OCI publication is opt-in. Adding
+`--push registry.example.org/team/catalog:example` to OCI generation copies
+the generated native descriptor graph to that destination. The
+[publication procedure](bindings/oci.md#publish-or-retry-an-oci-artifact)
+describes login, direct `oras cp`, retries and digest-pinned retrieval.
+Neither a Dockerfile nor a container-image tar wrapper is involved.
+
+The source envelope has `exampleformat: 1` and an `examples` map. Each
+example contains neutral `records` with `kind` and `entity`, a `snapshot`
+class, available `resolvedmodelsource`, and `documents` keyed by full
+Version XID. Each document supplies exactly one of `text`, `base64`, `url`
+or `none: true`, with `origin` and `base` where applicable. Text is encoded
+as UTF-8 without adding a newline. Base64 preserves exact binary and empty
+bytes. This is example-generator input, not a new Core response, mapping
+extension or normative interchange format. `--input PATH` selects another
+source document using the same example notation.
+
+Protocol observations and expected errors live in the
+[HTTP tests](bindings/tools/test_http_examples.py),
+[UA tests](bindings/tools/test_opcua_examples.py) and
+[shared selection tests](federation/tools/test_federation_examples.py).
+They use synthetic exchanges, not deployed traffic. The
+[generator tests](federation/tools/test_generate_examples.py) check generated
+outputs across bindings. Run the offline suites from the repository root:
+
+```powershell
+python -B -m pytest workingdrafts\bindings\tools workingdrafts\federation\tools -q
+```
+
+Tests distinguish exact document bytes, selected Version identity, complete
+graph validation and selective fetch traces. None alone establishes the
+others. The [source-resolution helper](federation/tools/federation_resolution_examples.py)
+also checks local shadows and ordered source misses through in-memory reads.
+For a channel moving while a reader stays pinned, see the separate
+[publication walkthrough](publication/samples/README.md#promotion-rollback-and-an-already-open-reader).
 
 ## Publication Extension
 

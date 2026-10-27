@@ -54,6 +54,8 @@
 <!-- words: exportnamespace nsu svu svr remapping reindexed uint int nfc -->
 <!-- words: maxbytestringlength sessionclosed sessionidinvalid timeout -->
 <!-- words: href -->
+<!-- words: powershell py pytest workingdrafts -->
+<!-- words: datavalue endpointdescription federationerror methodids sdk selectedxid -->
 
 ## Abstract
 
@@ -141,6 +143,7 @@ override xRegistry Core or the OPC UA Parts.
   - [11. Error handling](#11-error-handling)
     - [11.1. Federation resolver outcomes](#111-federation-resolver-outcomes)
   - [12. Conformance](#12-conformance)
+    - [12.1. Offline Read and Reference Examples](#121-offline-read-and-reference-examples)
 - [Annex A — Correspondence to the xRegistry HTTP binding (informative)](#annex-a--correspondence-to-the-xregistry-http-binding-informative)
 
 ## 1. Scope
@@ -1172,7 +1175,7 @@ The checked `default-v1-short-chunks` fixture requests 64 bytes per Read:
 
 The resulting 17-byte document is complete in that transcript. On a Read
 failure, the cleanup rule still attempts Close while the Session is usable.
-The [actual result and transcript notation](../federation/samples/opcua/README.md#read-transcript-notation)
+The [actual result and transcript notation](#121-offline-read-and-reference-examples)
 retain the distinction between matching observations and an immutable pin.
 
 ### 5.14. Reading and updating resource metadata
@@ -1606,7 +1609,7 @@ membership, Properties and document bytes can change between calls.
 Detected inconsistency or incomplete traversal MUST invalidate a complete,
 consistent-export claim. §10.4 and §11.1 define the resolver outcome.
 
-[Offline exports and read sequences](../federation/samples/opcua/README.md)
+[Offline exports and read sequences](#121-offline-read-and-reference-examples)
 demonstrate metadata-only catalog entries, three Versions with `v1` selected
 despite later Versions, exact JSON/binary/empty bytes, local aliases and
 document-local navigation.
@@ -2013,7 +2016,7 @@ deployment maps it to index 2, giving `ns=2;s=ItemV1`. The Application URI,
 namespace URI and identifier remain unchanged. The two endpoint URLs and
 their namespace indexes are not serialized Core identity.
 
-The [reindexing fixture](../federation/samples/opcua/README.md#reference-and-root-mapping)
+The [reindexing test](tools/test_opcua_examples.py)
 checks this mapping independently of a live connection.
 
 ### 10.3. Three distinct reference mechanisms
@@ -2285,7 +2288,7 @@ sequences, FileTransfer cleanup and explicit resolver errors. It MUST
 distinguish Application URI, endpoint, namespace URI, session-local NodeId,
 Registry-root selection and Core XID. It MUST reject unsupported Core
 versions and disclose incomplete or non-atomic live captures. The
-[offline helper and fixtures](../federation/samples/opcua/README.md) exercise
+[offline helper and tests](#121-offline-read-and-reference-examples) exercise
 these mappings without a live UA connection. They do not certify a Server.
 
 A conforming implementation MUST NOT assume additional node or Method names.
@@ -2299,6 +2302,100 @@ A conforming implementation MUST NOT require any node or Method name that is
 not defined by *OPC UA —
 xRegistry*,
 OPC 10000-20, or its own domain companion specification.
+
+### 12.1. Offline Read and Reference Examples
+
+The [UA tests](tools/test_opcua_examples.py) retain the named reference,
+Registry-root and read-sequence cases. Shared Registry content is in the
+`first` and `second` examples in [examples.json](../federation/examples.json).
+They preserve separate Registry contexts, including equal asset XIDs with
+different document bytes. The
+[shared generator](../README.md#generating-and-reading-examples) exports
+these examples through File, Git or OCI. It does not create a UA AddressSpace
+or compile a NodeSet.
+
+Run the offline tests from the repository root:
+
+```powershell
+python -B -m pytest workingdrafts\bindings\tools\test_opcua_examples.py -q
+```
+
+The [helper](tools/opcua_examples.py) uses Python's standard library and
+the shared `FederationError` interfaces. It does not install a UA SDK,
+discover endpoints, verify certificates or TypeDefinitions, or connect to a
+Server. The structural/event dependency remains Version 0.6.0 at
+`d3399fca025025a73e5a6b599f850a81d985c060`, with the access restriction and
+digest recorded in [§2](#2-normative-references). Passing these examples
+does not establish OPC Foundation adoption or live interoperability.
+
+The `reindexed-source-and-target` case changes both source tables and the
+target namespace index while preserving this portable reference:
+
+```text
+svu=urn:example:ua:remote;nsu=urn:example:registry;s=ItemV1
+```
+
+The original target uses `ns=7;s=ItemV1`. The reindexed target uses
+`ns=2;s=ItemV1`. Both identify application `urn:example:ua:remote`, not a
+guessed transport endpoint. `map_expanded_nodeid` resolves the source
+`ServerArray`, obtains the namespace URI from the supplied context and
+remaps it against the target `NamespaceArray`. A missing URI never becomes
+namespace zero.
+
+`map_registry_root` instead consumes an already selected
+`EndpointDescription`, advertisement and namespace table. A successful
+result validates the address, not root existence, TypeDefinition or
+membership. Live clients perform those additional checks under §10.
+
+Read sequences record normalized `Read`, `Browse`, `BrowseNext` and `Call`
+observations, with Session identity, owning NodeId and operation status.
+Metadata cases check each DataValue status. File cases record Method
+BrowseNames and argument values, not invented numeric MethodIds.
+`before` and `after` are separately captured observations, not new FileType
+Properties. An unknown Size is omitted, not encoded as zero.
+
+For example, inspect the short-chunk result by executing this Python block
+from the repository root with the test dependencies available:
+
+```python
+from workingdrafts.bindings.tools.opcua_examples import interpret_read_sequence
+from workingdrafts.bindings.tools.test_opcua_examples import SEQ
+
+case = SEQ["default-v1-short-chunks"]
+result = interpret_read_sequence(**case["input"])
+print(result["size"], result["consistency"], result["selectedXid"])
+print(result["trace"])
+```
+
+```text
+17 observed /documents/main/assets/item/versions/v1
+['Open', 'Read', 'Read', 'Read', 'Close']
+```
+
+The first two Reads return 8 and 9 bytes. The third returns empty EOF.
+The document is `{"type":"string"}` without a final newline. This transcript
+subset requires explicit EOF and successful Close, whereas the general
+[FileTransfer algorithm](#5131-filetransfer-read-lifecycle) also permits
+a reliable Size to establish completion.
+
+`consistency: "observed"` records matching supplied before/after values.
+`"unverified"` means no such check was supplied. Neither value asserts an
+atomic Registry snapshot. Failed reads retain their native status, and the
+helper checks recorded Close cleanup without turning failure into empty
+content or a successful trace.
+
+Browse cases consume all necessary continuation points, including a reused
+token, before claiming a complete collection. Namespace-file cases keep the
+parameterless `ExportNamespace` refresh separate from the inherited file
+read. They define neither a generic Registry resolver nor a standard import
+Method.
+
+The helper's `validate_fixture` executes an in-memory case set and checks
+its expected result or error. Its existing `validate` and `show` CLI
+operations remain available for caller-supplied transcript files. The
+repository's protocol cases are Python test data, not generated Registry
+documents. The byte, event and reference budgets are configurable helper
+limits, not new OPC UA or xRegistry document-size limits.
 
 ## Annex A — Correspondence to the xRegistry HTTP binding (informative)
 

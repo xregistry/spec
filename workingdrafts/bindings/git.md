@@ -5,6 +5,7 @@
 <!-- words: modelsource hasdocument xids worktree refspec -->
 <!-- words: documenttree filestore gitattributes gitrepository gitrevisions -->
 <!-- words: gitstore href py scm ssh workingdrafts -->
+<!-- words: powershell -->
 
 ## Abstract
 
@@ -259,19 +260,39 @@ validation, commit pinning, object-only reads, the common operations and
 the rejection rules above. Offline-complete conformance additionally requires
 all declared document bytes locally in that snapshot.
 
-The shared [offline helper](tools/mapping_examples.py) accepts an
-explicit local Git object directory and a revision. Run from the repository
-root:
+The [shared generator](../federation/tools/generate_examples.py) creates a
+new bare repository from a named Registry in
+[examples.json](../federation/examples.json). It stores the directory mapping
+under `xregistry`, creates a deterministic synthetic commit at
+`refs/heads/main`, and creates the annotated tag `refs/tags/snapshot`.
+It reports the full commit ID and selected tree path. Author identity,
+timestamps and object bytes are fixed example data, not the contributor's
+identity or working-tree state. No remote is configured, and generation
+does not fetch or push.
 
-```text
-python -B -m workingdrafts.bindings.tools.mapping_examples validate --git-dir STORE --revision refs/heads/main --path xregistry
+Run from the repository root with Git available and a new or empty output
+directory outside the checkout:
+
+```powershell
+python -B -m workingdrafts.federation.tools.generate_examples git --example portable --output D:\temp\xregistry-git-portable
+python -B -m workingdrafts.bindings.tools.mapping_examples validate --git-dir D:\temp\xregistry-git-portable --revision refs/heads/main --path xregistry
+python -B -m workingdrafts.bindings.tools.mapping_examples document --git-dir D:\temp\xregistry-git-portable --revision refs/tags/snapshot --path xregistry --target /documents/main/assets/item/versions/v1
 ```
+
+The [offline helper](tools/mapping_examples.py) peels the annotated tag and
+pins its commit before reading. To select that same state in a later
+operation independently of ref movement, supply the complete commit ID
+reported by generation as `--revision`. The synthetic local repository
+exercises object reads. It is not an HTTPS advertisement or a remote
+publication. The [shared instructions](../README.md#generating-and-reading-examples)
+include Linux paths and the other named examples.
 
 `GitStore(git_dir, revision, path="xregistry")` exposes the resolved `pin`,
 exact `read` bytes and visited storage paths. The same `DocumentTree` API
-accepts `FileStore` or `GitStore`. Temporary bare object stores can exercise
-this interface without commits in the user's repository, checkout, network
-access or publication.
+accepts `FileStore` or `GitStore`. The [Git tests](tools/test_git_examples.py)
+exercise moving refs and unavailable objects while an opened reader retains
+its original pin. These operations use isolated repositories, not commits
+or branch changes in the source checkout.
 
 For selective CLI reads, `--target` supplies the Core XID independently of
 `--git-dir`. No filesystem-root positional argument is used in Git mode.

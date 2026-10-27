@@ -24,6 +24,8 @@ from jsonschema import Draft7Validator, Draft202012Validator, FormatChecker
 from workingdrafts.federation.tools.federation_examples import (
     FederationError,
     canonical_xid,
+    example_documents,
+    load_example,
     same_xid,
     select_label,
     validate_profile,
@@ -1495,153 +1497,84 @@ def lookup_layout(
     )
 
 
-def _rename_template(value: object, names: dict[str, str]) -> object:
-    if isinstance(value, dict):
-        return {names.get(k, k): _rename_template(v, names) for k, v in value.items()}
-    if isinstance(value, list):
-        return [_rename_template(v, names) for v in value]
-    return names.get(value, value) if isinstance(value, str) else value
+def example_records(example: dict) -> tuple[list[dict], dict[str, bytes]]:
+    """Adapt a binding-neutral capture without changing its entity values."""
+    records = []
+    for original in example["records"]:
+        record = {"formatversion": 1, **copy.deepcopy(original)}
+        if record["kind"] == "registry":
+            record["snapshot"] = example["snapshot"]
+            record["modelresolved"] = copy.deepcopy(
+                example.get("resolvedmodelsource", record["entity"]["modelsource"])
+            )
+        elif record["kind"] == "version":
+            value = example["documents"][record["entity"]["xid"]]
+            record["document"] = {
+                "mode": "metadata-only" if "none" in value else
+                "external" if "url" in value else "embedded",
+                **{key: value[key] for key in ("origin", "base") if key in value},
+            }
+        records.append(record)
+    documents = example_documents(example)
+    _, model = _records(records, documents)
+    _check_captured_full_model(model)
+    for record in records:
+        if record["kind"] == "version" and record["document"]["mode"] == "external":
+            xid = record["entity"]["xid"]
+            resource_xid = "/" + "/".join(xid_parts(xid)[:4])
+            key = model.resource(resource_xid)["singular"] + "url"
+            if record["entity"][key] != example["documents"][xid]["url"]:
+                _fail("invalid_package", f"External document URL disagrees with entity: {xid}")
+    return records, documents
+
+
+def _check_captured_full_model(model: _Model) -> None:
+    """A captured full model includes Core attributes, not just modelsource."""
+    common = {
+        "self", "shortself", "xid", "epoch", "name", "description",
+        "documentation", "icon", "labels", "createdat", "modifiedat",
+    }
+
+    def attributes(definition: dict, field: str, required: set[str]) -> None:
+        actual = _object(definition.get(field, {}), field)
+        missing = required - actual.keys()
+        if missing:
+            _fail("invalid_package", f"Full model {field} lacks: {', '.join(sorted(missing))}")
+
+    def collections(names) -> set[str]:
+        return {name + suffix for name in names for suffix in ("", "url", "count")}
+
+    attributes(model.full, "attributes", common | {
+        "registryid", "specversion", "capabilities", "model", "modelsource",
+    } | collections(model.groups))
+    for name, group in model.full["groups"].items():
+        attributes(group, "attributes", common | {
+            group["singular"] + "id", "deprecated", "constraints",
+        } | collections(model.resources(name)))
+        for resource in group.get("resources", {}).values():
+            singular = resource["singular"]
+            attributes(resource, "resourceattributes", {
+                singular + "id", "self", "shortself", "xid", "meta", "metaurl",
+                "versions", "versionsurl", "versionscount",
+            })
+            attributes(resource, "metaattributes", {
+                singular + "id", "self", "shortself", "xid", "xref", "epoch",
+                "labels", "createdat", "modifiedat", "readonly", "compatibility",
+                "deprecated", "defaultversionid", "defaultversionurl", "defaultversionsticky",
+            })
+            required = common | {
+                singular + "id", "versionid", "isdefault", "ancestorid",
+                "contenttype", "format", "formatvalidated", "formatvalidatedreason",
+                "compatibilityvalidated", "compatibilityvalidatedreason",
+            }
+            if resource.get("hasdocument", True):
+                required |= {singular, singular + "url", singular + "base64"}
+            attributes(resource, "attributes", required)
 
 
 def sample_records(*, linked: bool = False) -> tuple[list[dict], dict[str, bytes]]:
-    """Synthetic Core dirs/files fixtures, using the repository's full-model example."""
-    source = {
-        "groups": {
-            "dirs": {
-                "singular": "dir",
-                "resources": {
-                    "files": {
-                        "singular": "file",
-                        "attributes": {"extra": {"type": "object", "attributes": {"*": {"type": "any"}}}},
-                    },
-                    "notes": {"singular": "note", "hasdocument": False},
-                },
-            },
-            "emptygroups": {"singular": "emptygroup"},
-            "imports": {"singular": "import", "ximportresources": ["/dirs/files"]},
-        }
-    }
-    full = _object(decode_json(_read_file(_ROOT / "core" / "sample-model-full.json")), "Core full model")
-    dirs = full["groups"]["dirs"]
-    files = dirs["resources"]["files"]
-    files["metaattributes"]["xref"]["type"] = "xid"
-    files["attributes"]["extra"] = {
-        "name": "extra", "type": "object", "attributes": {"*": {"type": "any"}},
-    }
-    notes = _object(_rename_template(files, {
-        "files": "notes", "file": "note", "fileid": "noteid",
-        "fileurl": "noteurl", "filebase64": "notebase64",
-    }), "sample metadata-only model")
-    notes["hasdocument"] = False
-    notes["attributes"].pop("extra")
-    for key in ("note", "noteurl", "notebase64"):
-        notes["attributes"].pop(key)
-    dirs["resources"]["notes"] = notes
-    for name in ("files", "filesurl", "filescount"):
-        renamed = name.replace("files", "notes")
-        dirs["attributes"][renamed] = _rename_template(dirs["attributes"][name], {name: renamed})
-    for plural, singular in (("emptygroups", "emptygroup"), ("imports", "import")):
-        group = _object(_rename_template(
-            dirs, {"dirs": plural, "dir": singular, "dirid": singular + "id"}
-        ), "sample Group model")
-        group["resources"] = {} if plural == "emptygroups" else {"files": copy.deepcopy(files)}
-        for collection in ("files", "notes"):
-            if collection not in group["resources"]:
-                for suffix in ("", "url", "count"):
-                    group["attributes"].pop(collection + suffix)
-        full["groups"][plural] = group
-        for suffix in ("", "url", "count"):
-            name = "dirs" + suffix
-            replacement = plural + suffix
-            full["attributes"][replacement] = _rename_template(
-                full["attributes"][name], {name: replacement}
-            )
-    timestamp = "2026-09-01T12:00:00Z"
-    common = {"epoch": 1, "createdat": timestamp, "modifiedat": timestamp}
-    registry = {
-        "formatversion": 1, "kind": "registry",
-        "snapshot": "linked" if linked else "offline-complete",
-        "modelresolved": copy.deepcopy(source),
-        "entity": {
-            "xid": "/", "registryid": "fixture-linked" if linked else "fixture-offline",
-            "specversion": CORE_VERSION, **common,
-            "modelsource": source, "model": full,
-            "capabilities": {
-                "available": {
-                    name: {"mutable": False}
-                    for name in ("capabilities", "entities", "model", "modelsource")
-                },
-                "mutable": [], "flags": [], "pagination": False,
-            },
-        },
-    }
-    records = [registry]
-    documents = {}
-
-    def record(kind: str, entity: dict, mode: str | None = None) -> None:
-        item = {"formatversion": 1, "kind": kind, "entity": entity}
-        if mode is not None:
-            item["document"] = {"mode": mode}
-        records.append(item)
-
-    for xid, key, value in (
-        ("/dirs/main", "dirid", "main"),
-        ("/dirs/empty", "dirid", "empty"),
-        ("/imports/shared", "importid", "shared"),
-    ):
-        entity = {"xid": xid, key: value, **common}
-        if value == "main":
-            entity["labels"] = {"stage": "Ready", "empty": ""}
-        record("group", entity)
-
-    def resource(
-        xid: str, versions: list[tuple[str, str, bytes | None, dict]],
-        *, default: str = "v1", xref: str | None = None, singular: str = "file",
-    ) -> None:
-        resource_id = xid.rsplit("/", 1)[1]
-        identity = {singular + "id": resource_id}
-        record("resource", {"xid": xid, **identity})
-        meta = {"xid": xid + "/meta", **identity}
-        if xref is not None:
-            meta["xref"] = xref
-        else:
-            meta.update({
-                **common, "readonly": False, "defaultversionid": default,
-                "defaultversionsticky": True,
-            })
-        record("meta", meta)
-        for versionid, mode, data, extra in versions:
-            version_xid = xid + "/versions/" + versionid
-            record("version", {
-                "xid": version_xid, **identity, **common, "versionid": versionid,
-                "ancestorid": "v1", "isdefault": versionid == default, **extra,
-            }, mode)
-            if data is not None:
-                documents[version_xid] = data
-
-    sample = "/dirs/main/files/sample"
-    resource(sample, [
-        ("v1", "embedded", b'{"type":"string"}\n', {
-            "contenttype": "application/schema+json", "labels": {"stage": "Ready", "empty": ""},
-            "extra": {"nested": {"self": "extension data, not navigation"}, "enabled": True},
-        }),
-        ("v2", "external" if linked else "embedded", None if linked else b'{"type":"number"}\n', {
-            "contenttype": "application/schema+json",
-            **({"fileurl": "https://documents.example.org/sample-v2.json"} if linked else {}),
-        }),
-    ])
-    resource("/dirs/main/files/binary", [
-        ("v1", "embedded", b"\x00\x01\x7f\x80\xff\r\n", {"contenttype": "application/octet-stream"}),
-    ])
-    resource("/dirs/main/files/empty", [
-        ("v1", "embedded", b"", {"contenttype": "text/plain; charset=utf-8"}),
-    ])
-    resource("/dirs/main/notes/info", [("v1", "metadata-only", None, {})], singular="note")
-    resource("/dirs/main/files/alias", [], xref=sample)
-    resource("/dirs/main/files/dangling", [], xref="/dirs/missing/files/sample")
-    resource("/dirs/main/files/chain", [], xref="/dirs/main/files/alias")
-    resource("/imports/shared/files/alias", [], xref=sample)
-    return records, documents
+    """Load the existing offline or linked capture from the shared source."""
+    return example_records(load_example("linked" if linked else "offline"))
 
 
 def _fixture_input(path: Path) -> tuple[list[dict], dict[str, bytes]]:

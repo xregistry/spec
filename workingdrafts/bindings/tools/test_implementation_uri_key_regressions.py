@@ -12,7 +12,6 @@ from workingdrafts.bindings.tools import oci_examples as oci
 
 
 ROOT = Path(__file__).resolve().parents[3]
-MAPPING = ROOT / "workingdrafts" / "bindings" / "samples" / "mapping"
 PREFIX = "io.xregistry.oci."
 
 
@@ -46,8 +45,8 @@ def _bytes(node):
 
 
 @pytest.mark.parametrize("operation", ["metadata", "document"])
-def test_frozen_mapping_uri_selectors_preserve_raw_identity_and_exact_bytes(operation):
-    tree = mapping.DocumentTree(mapping.FileStore(MAPPING))
+def test_frozen_mapping_uri_selectors_preserve_raw_identity_and_exact_bytes(operation, mapping_sample_root):
+    tree = mapping.DocumentTree(mapping.FileStore(mapping_sample_root))
     target = "/%64ocuments/%6dain/%61ssets/CON/%76ersions/a%3ab%40c."
     if operation == "document":
         assert tree.document(target) == b"\x00\x01\xff\x7f\n"
@@ -59,8 +58,8 @@ def test_frozen_mapping_uri_selectors_preserve_raw_identity_and_exact_bytes(oper
     assert tree.root_sha256 == "7e4c37ca61b2b875ee055a8fc67e5c90c48b344689823a12dc1fb0a6e33232bf"
 
 
-def test_frozen_mapping_collection_keys_are_decoded_and_pointer_targets_exist():
-    tree = mapping.DocumentTree(mapping.FileStore(MAPPING))
+def test_frozen_mapping_collection_keys_are_decoded_and_pointer_targets_exist(mapping_sample_root):
+    tree = mapping.DocumentTree(mapping.FileStore(mapping_sample_root))
     result = tree.collection("/documents/%6dain/assets/CON/%76ersions")
     assert result["xid"] == "/documents/main/assets/CON/versions"
     assert set(result["entities"]) == {"a:b@c."}

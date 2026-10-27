@@ -7,6 +7,8 @@
 <!-- words: compatibilityvalidated docx federationerror federationprofiles fileid formatvalidated imagelayoutversion namespace opencontainers py readme reparse reserialized standalone symlink -->
 <!-- words: resolvedmodelsource -->
 <!-- words: registryconfig registrymetadata sequencediagram versionconfig -->
+<!-- words: gitattributes powershell pytest workingdrafts stdin -->
+<!-- words: dockerfile emptygroups prebuilt tarball -->
 
 ## Abstract
 
@@ -36,6 +38,10 @@ content is reachable through ordinary OCI descriptor edges.
 - [7. Production and Publication](#7-production-and-publication)
 - [8. Errors and Security](#8-errors-and-security)
 - [9. Conformance and Executable Examples](#9-conformance-and-executable-examples)
+  - [Generate and Read a Layout](#generate-and-read-a-layout)
+  - [Example Inventory and Pins](#example-inventory-and-pins)
+  - [Publish or Retry an OCI Artifact](#publish-or-retry-an-oci-artifact)
+  - [Verify a Copy](#verify-a-copy)
 - [10. References](#10-references)
 
 ## 1. Scope and Notation
@@ -796,8 +802,8 @@ For the same selected Version, the result boundary is:
 | Version document | The same selected Version context plus its verified document layer. |
 | Full validation | Every referenced descendant, including unrelated Version documents. |
 
-The [fixture inventory](../federation/samples/oci/README.md#fixture-inventory)
-and [executable helper](../federation/samples/oci/README.md#executable-helper)
+The [example inventory](#example-inventory-and-pins)
+and [executable helper](#generate-and-read-a-layout)
 provide actual digests and fetch traces for this distinction.
 
 ## 7. Production and Publication
@@ -901,20 +907,225 @@ The [graph schema](schemas/oci-graph.schema.json) supplements the
 does not validate exact encoded sizes, digests, sorted non-overlapping
 ranges, model semantics or graph completeness.
 
-The checked-in [OCI samples](../federation/samples/oci/README.md) contain
-real small layouts, exact digests, metadata-only and zero-byte documents,
-multiple roots, local aliases and forced multi-level shards. The helper
-[`oci_examples.py`](tools/oci_examples.py) builds, validates
-and selectively reads these offline fixtures. It records actual file
-fetches, distinguishes exhaustive validation from lookup, and performs
-no network requests or production publication.
+The `offline` and `linked` Registries in the
+[shared source](../federation/examples.json) generate native OCI layouts
+through [generate_examples.py](../federation/tools/generate_examples.py).
+The source stores Registry content, not prebuilt manifests or a container
+image. The generator uses the existing OCI builder and validates the graph
+before any explicitly requested publication.
 
-The sample README documents the CLI and reproducible, artifact-aware
-layout-to-layout copy command. A copy exercise MUST execute the tool,
-then verify the copied root digest and all REQUIRED descendants. Merely
-parsing JSON or quoting tool help is not interoperability evidence.
-Environment-specific logs and downloaded tools belong outside the
-repository's samples.
+The [OCI tests](tools/test_oci_examples.py) retain independent digest and
+byte expectations, multiple-root selection, local aliases, shard boundaries
+and mutation cases. The [generator tests](../federation/tools/test_generate_examples.py)
+exercise all named examples across bindings. Neither an offline test nor a
+successful local build establishes interoperability with a remote service.
+
+### Generate and Read a Layout
+
+Run from the repository root with the Python dependencies listed in the
+[shared instructions](../README.md#generating-and-reading-examples).
+Each output directory is new or empty and outside the checkout:
+
+```powershell
+python -B -m workingdrafts.federation.tools.generate_examples oci --example offline --output D:\temp\xregistry-oci-offline --reference offline --page-size 2
+python -B -m workingdrafts.federation.tools.generate_examples oci --example linked --output D:\temp\xregistry-oci-linked --reference linked --page-size 2
+python -B -m workingdrafts.bindings.tools.oci_examples validate D:\temp\xregistry-oci-offline --reference offline
+python -B -m workingdrafts.bindings.tools.oci_examples validate D:\temp\xregistry-oci-linked --reference linked
+python -B -m workingdrafts.bindings.tools.oci_examples lookup D:\temp\xregistry-oci-offline /dirs/main/files/sample/versions/v2 --reference offline --operation document --trace D:\temp\xregistry-v2-trace.json
+python -B -m workingdrafts.bindings.tools.oci_examples lookup D:\temp\xregistry-oci-offline /dirs/main/files/sample/meta --reference offline
+python -B -m workingdrafts.bindings.tools.oci_examples lookup D:\temp\xregistry-oci-offline /dirs --reference offline --operation collection --label empty --value ""
+```
+
+The default options are `--reference snapshot` and `--page-size 256`.
+Page size two reproduces these examples' existing multi-level shards and
+root digests. It does not change the normative limits on entity indexes or
+encoded index bytes. Each CLI invocation selects one named example and
+creates one root in its own layout. Only the tests reproduce the combined
+two-root layout with 115 unique blobs, using the existing builder to check
+shared content and ambiguous selection. The CLI neither combines examples
+nor adds a root to an existing layout.
+
+The [reader helper](tools/oci_examples.py) performs no network I/O.
+`validate` walks the entire selected closure, including document bytes;
+`--inventory PATH` saves the verified descriptors. `lookup` reads only what
+its operation needs. `--trace PATH` records actual file reads even on
+failure, distinguishing manifest routes from blob routes. These are local
+observations, not simulated successful Distribution requests.
+
+The explicit `v2` document command returns:
+
+```json
+{
+  "base64": "eyJ0eXBlIjoibnVtYmVyIn0K",
+  "mediaType": "application/schema+json",
+  "operation": "document",
+  "resolved": "/dirs/main/files/sample/versions/v2",
+  "size": 18,
+  "snapshot": "sha256:c937f902c54ca9c63e510bab3b4ec07ec3775ad338ac030ac93d916a736efba6",
+  "target": "/dirs/main/files/sample/versions/v2"
+}
+```
+
+For this graph, its trace contains two layout entry-point reads, 16
+manifest-route reads and five blob-route reads. Only one is a domain
+document blob: the selected 18-byte `v2`. Default `v1` and the other
+payloads are not fetched. These 23 file reads are not a claim about the
+request count of a live client.
+
+Metadata results contain `value`, the standalone Core document-view JSON,
+and `pointer`, which selects the requested entity within `value`. Core
+navigation pointers are relative to `value`, not the CLI's reporting
+envelope. A Meta request returns its owning Resource document with
+`pointer: "/meta"`. The `snapshot` result always identifies the pinned
+Registry root, not a Resource Version.
+
+### Example Inventory and Pins
+
+The two Registry contexts have colliding XIDs but independent complete
+containment graphs. Each root contains 44 indexes, 25 manifests and 25
+entity configs. The offline root has four document blobs. The linked root
+has three and one external document URL. Both include the two-byte OCI
+empty-layer placeholder.
+
+| Example/reference with page size two | Registry ID | Class | Closure |
+| --- | --- | --- | --- |
+| `offline` | `fixture-offline` | `offline-complete` | 99 objects |
+| `linked` | `fixture-linked` | `linked` | 98 objects |
+
+The expected root digests are:
+
+- `offline`: `sha256:c937f902c54ca9c63e510bab3b4ec07ec3775ad338ac030ac93d916a736efba6`.
+- `linked`: `sha256:dff871378d2678ee851fb7d97bae5a6b69b05c3d668f224a2f97127e8e8dee88`.
+
+Different page sizes change the graph and its digest without changing
+Registry content. JSON serialization remains a producer choice, not a
+global semantic digest definition.
+
+| XID under the offline Registry | Purpose |
+| --- | --- |
+| `/dirs/main/files/sample` | Two Versions, explicitly defaulting to older `v1`. |
+| `/dirs/main/files/sample/versions/v1` | `{"type":"string"}` followed by one LF, with labels and nested extension metadata. |
+| `/dirs/main/files/sample/versions/v2` | `{"type":"number"}` followed by one LF, read as an independent Version. |
+| `/dirs/main/files/binary` | Seven exact bytes: `00 01 7f 80 ff 0d 0a`. |
+| `/dirs/main/files/empty` | Zero document bytes, distinct from the OCI placeholder. |
+| `/dirs/main/notes/info` | Metadata-only Resource with Version metadata. |
+| `/dirs/main/files/alias` | One-hop local reference to `sample`. |
+| `/imports/shared/files/alias` | Same-type reference across Group model types through `ximportresources`. |
+| `/dirs/main/files/dangling` | Target Group instance does not exist. |
+| `/dirs/main/files/chain` | Target is itself an alias and is not expanded transitively. |
+| `/dirs/empty/files` | Empty Resource collection. |
+| `/emptygroups` | Empty Group collection. |
+
+The linked Registry leaves `v2` at
+`https://documents.example.org/sample-v2.json`. Generation and the offline
+reader never fetch that URL. Default `v1` remains embedded.
+
+### Publish or Retry an OCI Artifact
+
+Publication uses ORAS **1.3.0** and the native layout, not a Dockerfile, a
+directory tarball or a generic container-image layer. ORAS follows the
+standard containment descriptors. `--recursive` is unnecessary for this
+graph because that option concerns referrers.
+
+Authenticate separately with `oras login` or the compatible Docker
+credential store. For noninteractive login, provide the password on standard
+input rather than in an argument or the example source. For example, after
+the caller's secret provider has supplied these environment variables:
+
+```powershell
+$env:REGISTRY_PASSWORD | oras login registry.example.org --username $env:REGISTRY_USER --password-stdin
+```
+
+Do not enter a password literal into shell history or put it in generated
+files. The generator's `--registry-config PATH` selects a caller-managed
+credential configuration for publication. Use that path with
+`oras login --registry-config`, `oras cp --to-registry-config` for
+publication, or `oras cp --from-registry-config` for retrieval.
+
+To generate and publish in one operation, choose a new output directory
+and supply `--push`:
+
+```powershell
+python -B -m workingdrafts.federation.tools.generate_examples oci --example offline --output D:\temp\xregistry-oci-publish --reference offline --page-size 2 --push registry.example.org/team/catalog:example
+```
+
+Without `--push`, generation is offline and does not require ORAS. The
+destination uses Distribution's `registry/repository:tag` spelling, not
+the federation advertisement's `oci://` URI. The explicit publication can
+replace that mutable tag. It does not implement publication channels,
+conditional promotion or retention.
+
+Normal publication uses HTTPS with certificate verification. The generator's
+explicit `--plain-http` option is limited to loopback development-registry
+destinations. It is not an additional federation advertisement parameter or
+an instruction to downgrade a remote registry connection.
+
+If publication fails, the command reports failure and retains the local
+layout. A partial transfer can leave unreachable blobs in the remote
+registry. The generator does not delete remote data. Retry the artifact
+copy from the retained layout rather than regenerating into that nonempty
+directory:
+
+```powershell
+oras cp --from-oci-layout D:\temp\xregistry-oci-publish:offline registry.example.org/team/catalog:example
+```
+
+This is also the direct publication command for a previously generated
+layout. The copier uploads descendants before exposing the root tag.
+Successful generation alone is not successful publication.
+
+### Verify a Copy
+
+An offline copy exercise uses both ORAS layout modes:
+
+```powershell
+oras cp --from-oci-layout --to-oci-layout D:\temp\xregistry-oci-offline:offline D:\temp\xregistry-oci-copy:copied
+python -B -m workingdrafts.bindings.tools.oci_examples validate D:\temp\xregistry-oci-copy --reference sha256:c937f902c54ca9c63e510bab3b4ec07ec3775ad338ac030ac93d916a736efba6 --inventory D:\temp\xregistry-oci-copy-inventory.json
+```
+
+To retrieve the published example by its immutable root digest into a
+different, empty layout:
+
+```powershell
+oras cp --to-oci-layout registry.example.org/team/catalog@sha256:c937f902c54ca9c63e510bab3b4ec07ec3775ad338ac030ac93d916a736efba6 D:\temp\xregistry-oci-returned:returned
+python -B -m workingdrafts.bindings.tools.oci_examples validate D:\temp\xregistry-oci-returned --reference sha256:c937f902c54ca9c63e510bab3b4ec07ec3775ad338ac030ac93d916a736efba6 --inventory D:\temp\xregistry-oci-returned-inventory.json
+```
+
+Use the actual reported digest when publishing a different example or
+changing generation options. Compare the selected root and every referenced
+descriptor and byte with the original layout, including binary and zero-byte
+documents. For an explicitly configured loopback HTTP test registry, add
+`--from-plain-http` to the retrieval `oras cp` command.
+
+An artifact copier can rewrite the destination's mutable `index.json`
+without changing the immutable graph. In the ORAS 1.3.0
+Distribution-to-layout exercise, every graph object retained its exact bytes,
+but the entry point omitted the root descriptor's `artifactType` and added
+entries for contained indexes and manifests. Those entries are not additional
+eligible Registry roots.
+
+The validation commands therefore select the reported root digest directly,
+not the copied tag or an unqualified default. The reader still verifies the
+stored Registry index and its closure under
+[the root-selection rules](#22-image-layout-selection). A copied entry
+without the specified `artifactType` does not become eligible for tag or
+unqualified selection merely because its graph is intact. The selected
+graph's pin remains unchanged even when the layout entry point differs.
+
+A copy exercise MUST execute the tool and verify the copied root and all
+REQUIRED descendants. Merely parsing JSON or quoting tool help is not
+interoperability evidence. Offline layout copying does not establish a
+Distribution round trip, and a round trip against one configured service
+does not establish support in every registry or client. The integration
+test requires a configured test registry and ORAS. It runs separately
+from the offline suite:
+
+```powershell
+python -B -m pytest workingdrafts\bindings\tools\test_oci_examples.py workingdrafts\federation\tools\test_generate_examples.py -q
+```
+
+Environment-specific credentials, command logs, downloaded tools and generated
+layouts remain outside the source checkout.
 
 ## 10. References
 

@@ -2,7 +2,6 @@
 
 import hashlib
 import json
-from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -12,7 +11,6 @@ from workingdrafts.bindings.tools.test_git_examples import GitFixture
 from workingdrafts.federation.tools.federation_examples import FederationError
 
 
-FIXTURE = Path(__file__).resolve().parents[1] / "samples" / "mapping"
 ITEM = "/documents/main/assets/item"
 V1 = ITEM + "/versions/v1"
 BINARY = "/documents/main/assets/CON"
@@ -21,8 +19,8 @@ BINARY = "/documents/main/assets/CON"
 def relocated_files(*, shared_document=False):
     """Independently rebuild reference hashes after choosing existing paths."""
     original = {
-        path.relative_to(FIXTURE).as_posix(): path.read_bytes()
-        for path in FIXTURE.rglob("*") if path.is_file() and path.name != ".gitattributes"
+        name: data for name, data in document.encode_tree(*document.sample_records()).items()
+        if name != ".gitattributes"
     }
     locations = {
         name: "registry-metadata/" + name for name in original if name != "registry.json"

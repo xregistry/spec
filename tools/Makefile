@@ -5,7 +5,7 @@ all: docker models
 	@echo "All good!"
 
 verify: spellcheck ticks badhrefs tabcheck errorcheck hrefs \
-	testpython links website makeschema
+	testpython examplescheck links website makeschema
 
 spellcheck:
 	@echo "Checking for spelling mistakes:"
@@ -36,8 +36,12 @@ samplescheck:
 	@echo "Check for too verbose samples:"
 	tools/samplescheck */model.json workingdrafts/models/*/model.json \
 		*/samples/*json */samples/*/*json \
-		workingdrafts/models/*/samples/*.json \
-		workingdrafts/federation/samples/*.json
+		workingdrafts/models/*/samples/*.json
+	@echo
+
+examplescheck: loadpython
+	@echo "Validating shared federation examples:"
+	@python -B -m workingdrafts.federation.tools.generate_examples validate
 	@echo
 
 hrefs:

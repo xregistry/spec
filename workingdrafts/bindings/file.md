@@ -4,6 +4,7 @@
 <!-- words: filenames href uri oid oci modelsource hasdocument -->
 <!-- words: documenttree filestore localhost posix py realpath symlink -->
 <!-- words: mnt nas -->
+<!-- words: powershell workingdrafts -->
 
 ## Abstract
 
@@ -71,6 +72,28 @@ describe both arrangements.
 A local directory is mutable unless its storage
 provides an immutable snapshot, so both arrangements follow the containment,
 digest and concurrent-change rules below.
+
+To read a local example, generate the `portable` Registry from the
+[shared source](../federation/examples.json). Run from the repository root
+with a new or empty destination outside the checkout:
+
+```powershell
+python -B -m workingdrafts.federation.tools.generate_examples file --example portable --output D:\temp\xregistry-file-portable
+python -B -m workingdrafts.bindings.tools.mapping_examples validate D:\temp\xregistry-file-portable
+python -B -m workingdrafts.bindings.tools.mapping_examples document D:\temp\xregistry-file-portable /documents/main/assets/item/versions/v1
+```
+
+The selected File root is `file:///D:/temp/xregistry-file-portable`, with
+`layout: "document-tree"`. There is no extra `xregistry` directory. The
+generator reports the root hash, but a hash does not make the output
+directory immutable. Selective reads check only their referenced bytes. The
+`validate` command checks the complete declared graph. For local OCI output,
+use the
+[OCI generation and reading commands](oci.md#generate-and-read-a-layout)
+with `layout: "oci-layout"` and the chosen reference.
+
+The [shared example instructions](../README.md#generating-and-reading-examples)
+list the other examples, dependencies and Linux path equivalents.
 
 ## Advertisement and File URI
 
