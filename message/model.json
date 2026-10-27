@@ -399,20 +399,18 @@
                                 },
                                 "type": {
                                   "name": "type",
-                                  "description": "AMQP properties.message-id type constraint. The type values refer to the AMQP type model` and the defined message-id types",
+                                  "description": "AMQP properties.message-id declaration type from the xRegistry Core type system",
                                   "type": "string",
                                   "enum": [
-                                    "ulong",
-                                    "uuid",
-                                    "binary",
+                                    "uinteger",
                                     "string",
                                     "uritemplate"
                                   ]
                                 },
                                 "value": {
                                   "name": "value",
-                                  "description": "AMQP properties.message-id value constraint. ",
-                                  "type": "string"
+                                  "description": "AMQP properties.message-id value constraint",
+                                  "type": "any"
                                 },
                                 "required": {
                                   "name": "required",
@@ -439,14 +437,13 @@
                                   "required": true,
                                   "default": "string",
                                   "enum": [
-                                    "binary",
                                     "string",
                                     "uritemplate"
                                   ]
                                 },
                                 "value": {
                                   "name": "value",
-                                  "description": "AMQP properties.user-id value constraint",
+                                  "description": "AMQP properties.user-id value constraint as a base64-encoded string",
                                   "type": "string"
                                 },
                                 "required": {
@@ -574,7 +571,6 @@
                                   "required": true,
                                   "default": "string",
                                   "enum": [
-                                    "binary",
                                     "string",
                                     "uritemplate"
                                   ]
@@ -846,7 +842,7 @@
                                   "string",
                                   "uritemplate",
                                   "integer",
-                                  "number",
+                                  "decimal",
                                   "boolean"
                                 ],
                                 "required": true,
@@ -855,7 +851,7 @@
                               "value": {
                                 "name": "value",
                                 "description": "Application property value",
-                                "type": "string"
+                                "type": "any"
                               },
                               "required": {
                                 "name": "required",
@@ -886,7 +882,7 @@
                                   "string",
                                   "uritemplate",
                                   "integer",
-                                  "number",
+                                  "decimal",
                                   "boolean"
                                 ],
                                 "required": true,
@@ -895,7 +891,7 @@
                               "value": {
                                 "name": "value",
                                 "description": "Annotation value constraint",
-                                "type": "string"
+                                "type": "any"
                               },
                               "required": {
                                 "name": "required",
@@ -926,7 +922,7 @@
                                   "string",
                                   "uritemplate",
                                   "integer",
-                                  "number",
+                                  "decimal",
                                   "boolean"
                                 ],
                                 "required": true,
@@ -935,7 +931,7 @@
                               "value": {
                                 "name": "value",
                                 "description": "Annotation value constraint",
-                                "type": "string"
+                                "type": "any"
                               },
                               "required": {
                                 "name": "required",
@@ -1007,7 +1003,7 @@
                                   "string",
                                   "uritemplate",
                                   "integer",
-                                  "number",
+                                  "decimal",
                                   "boolean"
                                 ],
                                 "required": true,
@@ -1016,7 +1012,7 @@
                               "value": {
                                 "name": "value",
                                 "description": "Footer value constraint",
-                                "type": "string"
+                                "type": "any"
                               },
                               "required": {
                                 "name": "required",
@@ -1102,13 +1098,13 @@
                         },
                         "correlation_data": {
                           "name": "correlation_data",
-                          "description": "MQTT correlation data",
-                          "type": "uritemplate"
+                          "description": "MQTT correlation data as a base64-encoded string",
+                          "type": "string"
                         },
                         "content_type": {
                           "name": "content_type",
                           "description": "MQTT content type",
-                          "type": "uritemplate"
+                          "type": "string"
                         },
                         "user_properties": {
                           "name": "user_properties",

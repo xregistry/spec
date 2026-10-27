@@ -369,11 +369,10 @@
                               },
                               "type": {
                                 "type": "string",
-                                "description": "AMQP properties.message-id type constraint. The type values refer to the AMQP type model` and the defined message-id types"
+                                "description": "AMQP properties.message-id declaration type from the xRegistry Core type system"
                               },
                               "value": {
-                                "type": "string",
-                                "description": "AMQP properties.message-id value constraint. "
+                                "description": "AMQP properties.message-id value constraint"
                               },
                               "required": {
                                 "type": "boolean",
@@ -394,7 +393,7 @@
                               },
                               "value": {
                                 "type": "string",
-                                "description": "AMQP properties.user-id value constraint"
+                                "description": "AMQP properties.user-id value constraint as a base64-encoded string"
                               },
                               "required": {
                                 "type": "boolean",
@@ -649,7 +648,6 @@
                               "description": "The application property type"
                             },
                             "value": {
-                              "type": "string",
                               "description": "Application property value"
                             },
                             "required": {
@@ -673,7 +671,6 @@
                               "description": "The message annotation type"
                             },
                             "value": {
-                              "type": "string",
                               "description": "Annotation value constraint"
                             },
                             "required": {
@@ -697,7 +694,6 @@
                               "description": "The annotation type"
                             },
                             "value": {
-                              "type": "string",
                               "description": "Annotation value constraint"
                             },
                             "required": {
@@ -747,7 +743,6 @@
                               "description": "AMQP footer type"
                             },
                             "value": {
-                              "type": "string",
                               "description": "Footer value constraint"
                             },
                             "required": {
@@ -838,12 +833,10 @@
                       },
                       "correlation_data": {
                         "type": "string",
-                        "format": "uri-template",
-                        "description": "MQTT correlation data"
+                        "description": "MQTT correlation data as a base64-encoded string"
                       },
                       "content_type": {
                         "type": "string",
-                        "format": "uri-template",
                         "description": "MQTT content type"
                       },
                       "user_properties": {
