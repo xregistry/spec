@@ -1036,7 +1036,7 @@
                         "format": "uri-template",
                         "description": "The NATS subject"
                       },
-                      "reply": {
+                      "reply-to": {
                         "type": "string",
                         "format": "uri-template",
                         "description": "The NATS reply subject"

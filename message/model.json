@@ -1300,8 +1300,8 @@
                           "description": "The NATS subject",
                           "type": "uritemplate"
                         },
-                        "reply": {
-                          "name": "reply",
+                        "reply-to": {
+                          "name": "reply-to",
                           "description": "The NATS reply subject",
                           "type": "uritemplate"
                         },
