@@ -129,10 +129,3 @@ Run the same checks locally with either:
 
 - Python and Bash: `make -f tools/Makefile`
 - Docker: `make -f tools/Makefile docker`
-
-If a link requires authentication, mark its HTML anchor with
-`data-link-check="authenticated"` and explain the access restriction in the
-document. Verify the exact target with authorized access first. Both link
-checkers report the marked URL without probing it anonymously. They still check
-all other links, local paths and fragments on marked anchors. Do not disable
-link checking for the whole document.
