@@ -41,11 +41,13 @@ normative technical details.
   - [5.2. Discovery](#discovery)
   - [5.3. Vendor-agnostic](#vendor-agnostic)
   - [5.4. Versioning](#versioning)
-  - [5.5. Schema validation](#schema-validation)
-  - [5.6. Payload reduction](#payload-reduction)
-  - [5.7. Schema-based contract and client
-    generation](#schema-contract-client-generation)
-  - [5.8. Basis for further developments](#basis-for-further-developments)
+  - [5.5. Validation and compatibility](#schema-validation)
+  - [5.6. Metadata sharing](#metadata-sharing)
+    - [5.6.1. Payload reduction](#payload-reduction)
+    - [5.6.2. Schema-based contract and client
+      generation](#schema-contract-client-generation)
+  - [5.7. Messaging models as a basis for further
+    development](#basis-for-further-developments)
 - [6. Non-Goals](#non-goals)
 - [7. Representations](#representations)
   - [7.1. File](#file)
@@ -205,7 +207,8 @@ defines (e.g. `endpoints`, `messages`) - they're not literal.
 A plain `GET` on a Registry, Group, or metadata-only Resource returns its
 metadata as JSON. The same applies to a Version of a metadata-only Resource.
 Retrieving a Document Resource or one of its Versions returns its
-domain-specific document by default, as described in section 3.2.3.
+domain-specific document by default, as described in section
+[3.2.3](#resource-metadata-vs-document).
 
 ```
 GET /endpoints/ep1
@@ -425,11 +428,9 @@ associating those declarations with application endpoints. As a result, the
 xRegistry (extensible registry) specification was created.
 
 xRegistry was initially part of CloudEvents, called "CloudEvents Discovery" but
-later moved into its own repository.
+later moved into its own project.
 
 <a id="value-proposition"></a>
-<!-- Numbered anchors preserve links to sections that were moved or combined. -->
-<a id="6-motivation"></a>
 ## 5. Value proposition
 
 xRegistry provides a specification to define metadata and extensions for
@@ -438,12 +439,9 @@ information about resources in a system. The core specification defines the
 basic building blocks for managing metadata about resources and provides
 multiple formats to [represent](#representations) this information.
 
-<a id="7-design-goals"></a>
 The design aims to make discovery, validation, and versioning interoperable
 through a consistent metadata structure and API, with extension points for
-resource metadata and errors. Simple deployments can use a single Version per
-Resource without implementing a full schema registry; other deployments can
-describe different resource types, messaging protocols, and schema languages.
+resource metadata and errors.
 
 xRegistry can be used to represent any type of metadata, as long as it adheres
 to the basic model in which a registry consists of groups, which in turn
@@ -457,9 +455,8 @@ In addition to the core specification, xRegistry provides secondary
 specifications for [endpoints](../endpoint/spec.md),
 [schemas](../schema/spec.md), and [messages](../message/spec.md), that further
 build upon the core to provide more domain-specific standardization in the
-context of event-driven systems. The following subsections provide a more
-specific overview of how xRegistry can be used to address common challenges in
-the event-driven space.
+context of event-driven systems. The following subsections describe benefits of
+the common model and API, using event-driven systems as examples.
 
 <a id="why-build-something-new"></a>
 ### 5.1. Why build something new?
@@ -489,74 +486,96 @@ resources managed by another registry.
 <a id="discovery"></a>
 ### 5.2. Discovery
 
-One of the pain points of event-driven systems is the need to create and
-maintain documentation about endpoints and the events they expose, enabling
-consumers from other teams or even other organizations to find the information
-they need. A centralized registry gives teams one place to discover and query
-endpoints and the events they produce or consume. Extensions can add
-domain-specific metadata that describes these events in greater detail. An
-extension's model can declare which of those attributes are required.
-Descriptions can also be written for people rather than tools, so developers,
-data analysts, and business analysts can use the same registry.
+Teams need to discover the resources available in a system and find the
+metadata and documents that describe them. xRegistry provides a common model
+and API for publishing and querying that information across teams and
+organizations. Model extensions can add domain-specific attributes and declare
+which are required. Human-readable descriptions let developers, data analysts,
+and business analysts use the same registry. For example, an event-driven
+system can publish information about endpoints and the events they produce or
+consume.
 
 <a id="vendor-agnostic"></a>
 ### 5.3. Vendor-agnostic
 
-xRegistry provides a specification to define, query, group, version and enforce
-schemas for systems. Multiple schema registry solutions exist already, including
+xRegistry defines a common model, document format, and API for describing and
+managing resources independently of a particular vendor or product. Clients
+can discover a registry's model and use the same operations to query metadata,
+retrieve documents, and manage Versions across implementations. Domain-specific
+models describe the resources without requiring a different core API for each
+domain.
+
+Schema registries are one example. Products such as
 [Confluent Schema
 Registry](https://docs.confluent.io/platform/current/schema-registry/index.html),
-[Azure Event Hubs
-Registry](https://learn.microsoft.com/en-us/azure/event-hubs/schema-registry-overview)
-or [Apicurio Registry](https://www.apicur.io/registry/), [AWS Glue Schema
-Registry](https://docs.aws.amazon.com/glue/latest/dg/schema-registry.html) and
-more.
-
-These schema registries are broker- and therefore vendor-specific and even
-protocol-specific, which causes friction when an event travels through multiple
-brokers. In such cases, clients have to deal with the implementation differences
-across registries, for example when validating event structures, hindering
-interoperability and, therefore, complicating integration scenarios. xRegistry
-aims to address this with an agnostic specification, providing a common base
-across these offerings.
+[Azure Event Hubs Schema
+Registry](https://learn.microsoft.com/en-us/azure/event-hubs/schema-registry-overview),
+[Apicurio Registry](https://www.apicur.io/registry/), and
+[AWS Glue Schema
+Registry](https://docs.aws.amazon.com/glue/latest/dg/schema-registry.html)
+expose different interfaces. An xRegistry API can provide a common view of
+resources managed by these systems while the source registries remain
+authoritative, as described in
+[API Servers and Proxies](#api-servers-and-proxies).
 
 <a id="versioning"></a>
 ### 5.4. Versioning
 
-As systems evolve, the endpoints that emit events may change, as may the events
-themselves. These changes can break consumers, so compatibility strategies must
-tell consumers how events and endpoints may evolve. xRegistry lets a registry
-declare a compatibility strategy and enforces that strategy when the registry
-changes. The specifications also allow endpoints to be marked as deprecated and
-can identify an alternative endpoint. Event schemas are version-aware and can
-retain multiple versions of a data schema.
+Resources and their metadata change as systems evolve. xRegistry can retain
+multiple Versions of a Resource, identify a default Version, and let clients
+retrieve a particular Version explicitly. These mechanisms apply across
+resource types, allowing clients to use a known Version while newer Versions
+are introduced.
+
+Compatibility rules depend on the kind of resource. For example, a schema
+registry can declare a compatibility strategy and check schema changes against
+it. The [Endpoint specification](../endpoint/spec.md) also defines deprecation
+metadata and can identify an alternative endpoint. These domain-specific
+features build on the common Resource and Version model.
 
 <a id="schema-validation"></a>
-### 5.5. Schema validation
+### 5.5. Validation and compatibility
 
-The registry contains granular event definitions and schemas that serve as a
-contract between publishers and consumers. This applies to both the message
-payload and its metadata. Implementations can also use these definitions for
-enforcement. For example, an event service could validate events when they are
-published and reject events that do not conform to the schema for that context.
+xRegistry models define the attributes and constraints used to validate
+registry metadata. For Resource Versions, a model can also enable
+[format validation](./model.md#groupsstringresourcesstringvalidateformat) and
+[compatibility checking](./model.md#groupsstringresourcesstringvalidatecompatibility).
+Format validation checks a document against its declared format; compatibility
+checking evaluates Versions against the Resource's declared compatibility
+policy. These checks depend on the model settings and the formats and policies
+supported by the implementation.
+
+Schema documents are one example: a registry can check that a stored schema is
+valid and that changes satisfy the selected compatibility policy, helping
+teams evolve schemas without breaking existing consumers. This is validation
+of documents stored in the registry, not a requirement for xRegistry to
+validate application traffic.
+
+<a id="metadata-sharing"></a>
+### 5.6. Metadata sharing
+
+xRegistry provides a central place to publish shared metadata and documents
+that applications can discover and retrieve by reference. The same model and
+APIs support sharing across domains, rather than requiring a separate discovery
+mechanism for each use case. Payload reduction and code generation are two
+examples of how applications can use this shared information.
 
 <a id="payload-reduction"></a>
-### 5.6. Payload reduction
+#### 5.6.1. Payload reduction
 
-Schema information enables real-time analysis of incoming data based on its
-context. Self-describing encodings such as JSON repeat field names and other
-structural information in each payload. When applications can resolve the
-applicable schema through registry metadata, they can use compact serialization
-formats that omit this repetition without giving up contextual analysis.
+Applications can reference a shared document instead of embedding a copy in
+every use. For example, an event can carry a URL identifying its payload schema
+rather than carrying the schema itself. Consumers can retrieve the schema
+through the registry when needed. Where the encoding permits it, a shared
+schema can also support compact serialization that omits repeated field names
+and other structural information.
 
 <a id="schema-contract-client-generation"></a>
-<a id="57-schema-based-data-contract-generation"></a>
-<a id="58-producer-and-consumer-generation"></a>
-### 5.7. Schema-based contract and client generation
+#### 5.6.2. Schema-based contract and client generation
 
 The [file and API representations](#representations) can both supply versioned
-model input to code generators. Teams can generate the data contracts needed to
-interact with endpoints instead of maintaining shared packages for those
+metadata and documents to code generators. For example, teams can generate
+data contracts from schemas instead of maintaining shared packages for those
 contracts by hand. A schema in a
 vendor-agnostic, well-defined format can drive tools that generate
 broker-specific consumers or event-store inserts. Generated producers and
@@ -568,36 +587,28 @@ Clemens Vasters built a proof-of-concept that shows this approach in
 the [Avrotize VS Code Extension](https://github.com/clemensv/avrotize).
 
 <a id="basis-for-further-developments"></a>
-<a id="59-basis-for-further-developments"></a>
-### 5.8. Basis for further developments
+### 5.7. Messaging models as a basis for further development
 
-The core xRegistry resource model is independent of messaging protocols.
-Domain-specific specifications can describe resources associated with MQTT,
-HTTP, Kafka, AMQP, or other protocols without changing that common model.
+The [Endpoint](../endpoint/spec.md) and [Message](../message/spec.md)
+specifications build on the protocol-independent core xRegistry model to
+describe messaging resources. These domain-specific models provide a basis
+for tools and additional models that describe how messages move between
+endpoints across protocols such as MQTT, HTTP, Kafka, and AMQP.
 
-CloudEvents serve as a mechanism to aid in the delivery of events from a
-producer to a consumer, which is applicable independently of the protocol (MQTT,
-HTTP, Kafka, and AMQP) or encoding (JSON, XML, SOAP, Avro, etc.). xRegistry
-further builds upon this by providing a specification to define resources that
-correlate specific events to endpoints, providing versioning information and
-more extensive metadata.
-
-Using the [Endpoint specification](../endpoint/spec.md#overview) to correlate
-events and endpoints across a system provides information that other tools or
-models can use to define event flows. That specification explains why modeling
-those flows is outside its scope. Once defined, they can be
-discovered directly instead of reconstructed from manually maintained
-documentation or observed runtime behavior.
+For example, the [Endpoint specification](../endpoint/spec.md#overview) can
+correlate message definitions with endpoints. Other tools or models can use
+that metadata to describe event flows, although defining those flows is
+outside the Endpoint specification's scope. Once those flow descriptions
+exist, applications can discover them rather than reconstructing them from
+manually maintained documentation or observed runtime behavior.
 
 <a id="non-goals"></a>
-<a id="71-non-goals"></a>
 ## 6. Non-Goals
 
 - **Authentication and Authorization:** Rely on established security standards
   depending on the registry representation.
 
 <a id="representations"></a>
-<a id="8-representations"></a>
 ## 7. Representations
 
 An xRegistry can be represented as a JSON file, a static file server, or an API
@@ -611,8 +622,6 @@ The representations are symmetric so that data can move between them. Choose a
 representation based on how the registry will be updated and deployed.
 
 <a id="file"></a>
-<a id="81-file"></a>
-<a id="103-metadata-files-in-repositories"></a>
 ### 7.1. File
 
 A registry can be represented as a single JSON file, with mechanisms available
@@ -637,7 +646,6 @@ Writing a registry by hand is useful for learning or small projects. Larger or
 shared registries will usually need tooling or an API server.
 
 <a id="static-file-server"></a>
-<a id="82-static-file-server"></a>
 ### 7.2. Static File Server
 
 The registry is represented by multiple JSON files, where each one represents a
@@ -660,7 +668,6 @@ to the static file server to make up for the features of the API server is
 considered an anti-pattern.
 
 <a id="api-server"></a>
-<a id="83-api-server"></a>
 ### 7.3. API Server
 
 An API server suits registries shared by multiple teams, especially when
@@ -675,7 +682,6 @@ layer and maintain both. Start with this representation when direct writes,
 authorization, or server-side queries are already required.
 
 <a id="embeddings-references-and-federation"></a>
-<a id="9-embeddings-references-and-federation"></a>
 ## 8. Embeddings, References, and Federation
 
 The purpose of a registry is to act as a catalog more than as a container.
@@ -696,7 +702,6 @@ internal shape. Implementations may use the `format` attribute to interpret and
 validate that shape.
 
 <a id="formats-and-contentmedia-types"></a>
-<a id="91-formats-and-contentmedia-types"></a>
 ### 8.1. Formats and Content/Media-Types
 
 `format` and the supported values are a convention chosen for this
@@ -721,14 +726,12 @@ resource entry does not embed it but links to it, the document might change at
 the external location without the registry knowing.
 
 <a id="the-format-attribute-in-the-schema-spec"></a>
-<a id="12-the-format-attribute-in-the-schema-spec"></a>
 The Schema specification requires `format` when `compatibility` is present,
 even when an implementation supports only one format. This keeps the format
 explicit in exports so that another server, including one that supports several
 formats, can import them without ambiguity.
 
 <a id="embeddings-and-links"></a>
-<a id="92-embeddings-and-links"></a>
 ### 8.2. Embeddings and Links
 
 When the Resource is declared to be a document, it can be stored inside the
@@ -758,9 +761,6 @@ use external links when proxying content from non-xRegistry registries; see
 [API Servers and Proxies](#api-servers-and-proxies).
 
 <a id="federation"></a>
-<a id="93-federation"></a>
-<a id="932-shadowing"></a>
-<a id="shadowing"></a>
 ### 8.3. Federation
 
 xRegistry does not define a synchronization API. Clients and proxies can
@@ -770,7 +770,6 @@ define how to merge conflicting sources, assign precedence, or implement
 shadowing. Those behaviors are outside the scope of xRegistry 1.0.
 
 <a id="composing-registries-in-memory"></a>
-<a id="931-composing-registries-in-memory"></a>
 #### 8.3.1. Composing registries in memory
 
 A registry document, whether a single [file](#file) or the root of a
@@ -795,7 +794,6 @@ loaded view from a complete Registry. For example, a collection count can
 include entities that the application has not fetched.
 
 <a id="entity-identity-across-registry-views"></a>
-<a id="933-identifiers"></a>
 #### 8.3.2. Entity identity across registry views
 
 When two registry views intentionally represent the same logical entity using
@@ -815,7 +813,6 @@ retrieved. They can differ between registry services that expose the same
 logical entity and therefore are not portable identifiers across registries.
 
 <a id="api-servers-and-proxies"></a>
-<a id="934-api-servers-and-proxies"></a>
 #### 8.3.3. API Servers and Proxies
 
 An API server can also act as a proxy that presents multiple underlying
@@ -831,11 +828,9 @@ registry can remain authoritative; the proxy need not copy its documents into
 xRegistry storage.
 
 <a id="possible-use-cases"></a>
-<a id="10-possible-use-cases"></a>
 ## 9. Possible Use Cases
 
 <a id="cloudevents"></a>
-<a id="101-cloudevents"></a>
 ### 9.1. CloudEvents
 
 Since xRegistry emerged from the CloudEvents project and initially was called
@@ -848,7 +843,6 @@ addition, the `dataschema` attribute of a CloudEvent can then point to a
 xRegistry schema document making this two projects that work hand in hand.
 
 <a id="business-objects"></a>
-<a id="102-business-objects"></a>
 ### 9.2. Business objects
 
 When defining the schemas of business objects in an enterprise, xRegistry can be
@@ -857,11 +851,9 @@ catalogue as well as in OpenAPI and AsyncAPI documents without repeating the
 schemas for the actual business objects.
 
 <a id="design-decisions-or-topics-of-interest"></a>
-<a id="11-design-decisions-or-topics-of-interest"></a>
 ## 10. Design decisions or topics of interest
 
 <a id="resourceid-vs-resourceversionid"></a>
-<a id="111-resourceid-vs-resourceversionid"></a>
 ### 10.1. Resource.ID vs Resource.Version.ID
 
 Resources, like all xRegistry entities, have unique `id` values. Resource
@@ -885,7 +877,6 @@ values that could appear on a Resource and one of its Versions simply to avoid
 potential confusion for their end-users.
 
 <a id="valid-characters"></a>
-<a id="112-valid-characters"></a>
 ### 10.2. Valid Characters
 
 Attribute names appear in JSON objects, HTTP headers, URLs, and generated code.
@@ -904,7 +895,6 @@ Map keys allow more characters than attribute names because they are normally
 stored as strings rather than mapped to named fields in code structures.
 
 <a id="extensions"></a>
-<a id="113-extensions"></a>
 ### 10.3. Extensions
 
 Extensions SHOULD be defined in the model. A model can also define a `*`
@@ -913,7 +903,6 @@ extension to allow attributes supplied at runtime. Extension names follow the
 [casing](#naming-and-case-sensitivity) rules for all attributes.
 
 <a id="potential-extensions"></a>
-<a id="119-potential-extensions"></a>
 #### 10.3.1. Potential extensions
 
 Implementations that track the identity responsible for a change might define
@@ -922,7 +911,6 @@ The core specification does not define them because it does not define
 authentication or identity tracking.
 
 <a id="group-organization"></a>
-<a id="114-group-organization"></a>
 ### 10.4. Group organization
 
 Groups are intentionally a single organizational dimension above Resources:
@@ -947,7 +935,6 @@ implementations may support filtering and lookup by labels; see the filter
 examples in the core specification.
 
 <a id="deleting-entities"></a>
-<a id="115-deleting-entities"></a>
 ### 10.5. Deleting entities
 
 The "delete" operation typically has two variants:
@@ -977,7 +964,6 @@ delete multiple entities. For collection deletion:
   is an error and no changes to the "default" Version will occur.
 
 <a id="detection-of-referenced-resources"></a>
-<a id="116-detection-of-referenced-resources"></a>
 ### 10.6. Detection of Referenced Resources
 
 The xRegistry specification allows for Resources to appear in multiple Groups
@@ -994,7 +980,6 @@ might consider adding some feature to address this in the future, but as of now
 it is left as an implementation choice.
 
 <a id="sharedreferenced-resources"></a>
-<a id="117-sharedreferenced-resources"></a>
 ### 10.7. Shared/Referenced Resources
 
 Beyond detecting dangling references, users need to decide how shared Resources
@@ -1011,7 +996,6 @@ access-control-rights of Resources (often via Groups) might influence the
 initial placement into a Group of a new Resource.
 
 <a id="default-version-and-maximum-versions"></a>
-<a id="118-default-version-and-maximum-versions"></a>
 ### 10.8. Default Version and Maximum Versions
 
 Each Resource type can specify the maximum number of Versions that the
@@ -1048,7 +1032,6 @@ Let's walk through a complex example:
   not
 
 <a id="why-epoch"></a>
-<a id="1110-why-epoch"></a>
 ### 10.9. Why Epoch?
 
 Why such an unusual name? As the specification describes, `epoch` is used as a
@@ -1069,7 +1052,6 @@ seemed unlikely. In fact, use of this word might pique people's curiosity
 and cause them to look it up in the specification to find out more about it.
 
 <a id="naming-and-case-sensitivity"></a>
-<a id="1111-naming-and-case-sensitivity"></a>
 ### 10.10. Naming and Case Sensitivity
 
 The following explains some of the reasoning behind the casing and case
@@ -1136,7 +1118,6 @@ sensitivity rules in the specification.
   IDs that differ only by case within the same parent.
 
 <a id="group-resource-type-name-limits"></a>
-<a id="1112-why-the-lower-character-limit-on-some-group-and-resource-type-names"></a>
 ### 10.11. Why are Group and Resource type names more restricted?
 
 Attribute names and key names are limited to 63 characters, so why are some
@@ -1149,13 +1130,11 @@ Group type plural names and Resource type singular and plural names are
 limited to 57 characters.
 
 <a id="why-group-resource-type-names-are-limited"></a>
-<a id="1113-why-must-group-type-and-resource-type-names-be-valid-attribute-names"></a>
 Since Group type and Resource type names will appear as attribute names (e.g.
 `<GROUPS>count` and `<RESOURCE>url`), the character set (and length) of their
 names need to be restricted in the same way as a attribute names.
 
 <a id="choosing-unique-group-and-resource-names"></a>
-<a id="1114-choosing-unique-group-and-resource-names"></a>
 ### 10.12. Choosing unique Group and Resource names
 
 Aside from choosing names that give some descriptive meaning to the purpose
@@ -1167,12 +1146,10 @@ for Resource names too (if they might co-exist under shared Groups), but
 normally ensuring uniqueness at the Group level is sufficient.
 
 <a id="defining-extensions"></a>
-<a id="17-defining-extensions"></a>
 The same collision guidance applies to model extensions and new APIs; their
 names should remain clear of future xRegistry additions.
 
 <a id="are-self-and-shortself-attributes-static"></a>
-<a id="1115-are-self-and-shortself-attributes-static"></a>
 ### 10.13. Are `self` and `shortself` attributes static?
 
 In general any URL reference to an entity in the Registry should remain
@@ -1191,7 +1168,6 @@ Obviously, situations like these should be rare but the specification needs
 to allow for them.
 
 <a id="why-does-an-unknown-query-parameter-not-generate-an-error"></a>
-<a id="1116-why-does-an-unknown-query-parameter-not-generate-an-error"></a>
 ### 10.14. Why does an unknown query parameter not generate an error?
 
 People have identified cases where query parameters might be added to request
@@ -1205,7 +1181,6 @@ specification says they SHOULD be ignored, not that they MUST be ignored. An
 implementation can reject them, but doing so risks interoperability problems.
 
 <a id="updating-attributes-with-ifvalues"></a>
-<a id="1117-updating-attributes-with-ifvalues"></a>
 ### 10.15. Updating attributes with `ifvalues`
 
 The `ifvalues` feature might be a new concept for some readers, so a point
@@ -1224,7 +1199,6 @@ Likewise, implementations of the server must validate the entire entity
 against the new model, not just a subset of the entity's attributes.
 
 <a id="multi-root-ancestor-hierarchies"></a>
-<a id="1118-multi-root-ancestor-hierarchies"></a>
 ### 10.16. Multi-root ancestor hierarchies
 
 The [`ancestorid` attribute](./spec.md#ancestorid-attribute) builds a Version
@@ -1241,7 +1215,6 @@ value such as null which, based on the scenario, could mean "no ancestor" or
 "default to the newest".
 
 <a id="singleversionroot-policy-enforcement"></a>
-<a id="1119-singleversionroot-policy-enforcement"></a>
 ### 10.17. `singleversionroot` Policy Enforcement
 
 Related to the previous discussions concerning the `ancestorid` attribute,
@@ -1276,7 +1249,6 @@ specification allows for model authors to choose the most appropriate value
 for their needs.
 
 <a id="pruning-versions-with-singleversionroot-enabled"></a>
-<a id="1120-pruning-versions-with-singleversionroot-enabled"></a>
 ### 10.18. Pruning Versions with `singleversionroot` enabled
 
 The [normal pruning rules](#default-version-and-maximum-versions) apply when
@@ -1298,7 +1270,6 @@ delete v2 or v3 to allow the server to prune the oldest Version (v1) before
 creating a new Version.
 
 <a id="whats-the-oldestnewest-version-of-a-resource"></a>
-<a id="1121-whats-the-oldestnewest-version-of-a-resource"></a>
 ### 10.19. What's the oldest/newest Version of a Resource?
 
 The oldest Version of a Resource isn't necessarily the one with the oldest
@@ -1318,7 +1289,6 @@ sorted in an descending alphabetical order, and the first is the newest
 Version.
 
 <a id="validation-for-file-servers"></a>
-<a id="1122-can-validatecompatibility-and-validateformat-be-true-for-file-servers"></a>
 ### 10.20. Can `validatecompatibility` and `validateformat` be `true` for file-servers?
 
 `validatecompatibility` and `validateformat` report both policy and validation
@@ -1331,7 +1301,6 @@ server. Clients can then use either representation without needing to account
 for that deployment choice.
 
 <a id="detecting-circular-references-between-versions"></a>
-<a id="1123-detecting-circular-references-between-versions"></a>
 ### 10.21. Detecting circular references between Versions
 
 The specification mentions that the Version's `ancestorid` attribute should not
@@ -1353,7 +1322,6 @@ an infinite loop. Additionally, implementations should also document that they
 do not enforce this check to set the proper expectation levels for their users.
 
 <a id="optional-required-fields-in-requests"></a>
-<a id="1124-optional-required-fields-in-requests"></a>
 ### 10.22. Optional required fields in requests
 
 One of the design principles of the specification was to try to make each
@@ -1392,7 +1360,6 @@ must include all required attributes, even if they are duplicated elsewhere
 in the message.
 
 <a id="deprecation-of-entities-in-an-xregistry"></a>
-<a id="1125-deprecation-of-entities-in-an-xregistry"></a>
 ### 10.23. Deprecation of entities in an xRegistry
 
 The core specification defines a `deprecated` attribute that may appear
@@ -1409,7 +1376,6 @@ defined in the core specification for consistency. The Endpoint
 Endpoint (i.e. a Group) is deprecated.
 
 <a id="problematic-characters-in-values"></a>
-<a id="13-problematic-characters-in-attributes"></a>
 ### 10.24. Problematic characters in values
 
 Attribute values can be used outside the scope of the xRegistry specification.
@@ -1422,7 +1388,6 @@ value, reject it, or require the user to choose a value that is valid in the
 target system. The specification does not prescribe that behavior.
 
 <a id="why-do-resources-have-3-levels-of-data"></a>
-<a id="14-why-do-resources-have-3-levels-of-data"></a>
 ### 10.25. Why do Resources have 3 levels of data?
 
 Resource attributes are split into 3 categories:
@@ -1488,7 +1453,6 @@ Resource type definition requires that attribute to be consistent across all
 Versions or have a Version-specific value.
 
 <a id="why-are-some-conditional-read-only-attributes-not-ignored"></a>
-<a id="15-why-are-some-conditional-read-only-attributes-not-ignored"></a>
 ### 10.26. Why are some (conditional) read-only attributes not ignored?
 
 Attributes that are always defined as "read-only" normally have semantics such
@@ -1511,7 +1475,6 @@ of that Resource becomes "read-only". And any attempt to update it will result
 in an error being generated.
 
 <a id="why-isnt-put-idempotent"></a>
-<a id="16-why-isnt-put-idempotent"></a>
 ### 10.27. Why isn't `PUT` idempotent?
 
 As stated in the [core](./spec.md) specification, the `PUT` operations are
@@ -1525,7 +1488,6 @@ expensive or ambiguous check to perform, so it was determined it would be best
 to avoid it all together.
 
 <a id="validation-edge-cases"></a>
-<a id="18-validation"></a>
 ### 10.28. Validation edge cases
 
 Sections [5.5](#schema-validation) and
@@ -1554,7 +1516,6 @@ Extending validation into those structures would increase implementation
 complexity and make consistent support across servers less likely.
 
 <a id="relative-resource-urls-in-the-file-representation"></a>
-<a id="1126-relative-resource-urls-in-the-file-representation"></a>
 ### 10.29. Relative Resource URLs in the File representation
 
 The [File representation](#file) can use relative URLs for Resource documents.
