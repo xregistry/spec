@@ -176,24 +176,49 @@
       "minLength": 1,
       "maxLength": 4096,
       "pattern": "^(?![\\s\\S]*(?:^|/)\\.{1,2}(?:/|$))[^/\\u0000-\\u001f\\u007f\\\\<>:\"|?*]+(?:/[^/\\u0000-\\u001f\\u007f\\\\<>:\"|?*]+)*(?![\\s\\S])",
-      "$comment": "Root-relative path, not an entity ID or URI. Semantic checks also reject platform aliases, case-colliding allocations and encoded separator/dot tricks."
+      "$comment": "Root-relative path, not an entity ID or URI. Semantic checks also reject platform aliases, case-colliding allocations and percent encodings that could be interpreted as separators or parent-path components, such as %2f, %5c and %2e%2e."
     },
     "sha256": {
       "type": "string",
       "pattern": "^[0-9a-f]{64}$"
     },
     "reference": {
+      "$comment": "Exactly one form: external (href, size and sha256) or inline (the complete target record or index document).",
+      "oneOf": [
+        {"$ref": "#/$defs/externalreference"},
+        {"$ref": "#/$defs/inlinereference"}
+      ]
+    },
+    "referencekind": {
+      "enum": ["group", "resource", "meta", "version", "collection"]
+    },
+    "externalreference": {
       "type": "object",
       "required": ["kind", "xid", "href", "size", "sha256"],
       "additionalProperties": false,
       "properties": {
-        "kind": {
-          "enum": ["group", "resource", "meta", "version", "collection"]
-        },
+        "kind": {"$ref": "#/$defs/referencekind"},
         "xid": {"$ref": "#/$defs/xid"},
         "href": {"$ref": "#/$defs/path"},
         "size": {"type": "integer", "minimum": 0},
         "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "inlinereference": {
+      "type": "object",
+      "required": ["kind", "xid", "inline"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {"$ref": "#/$defs/referencekind"},
+        "xid": {"$ref": "#/$defs/xid"},
+        "inline": {"type": "object"}
+      },
+      "if": {"properties": {"kind": {"const": "collection"}}},
+      "then": {
+        "properties": {"inline": {"$ref": "urn:xregistry:document-tree:index:1"}}
+      },
+      "else": {
+        "properties": {"inline": {"$ref": "urn:xregistry:document-tree:record:1"}}
       }
     },
     "entity": {

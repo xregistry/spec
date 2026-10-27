@@ -140,22 +140,24 @@ For example, let `A` and `B` denote different complete commit OIDs
 
 | Time | Selection and reads |
 | --- | --- |
-| Start | `refs/tags/release-1` resolves to `A`; the operation pins `A`. |
-| Ref moves | The tag now resolves to `B`; metadata and document reads still use `A`. |
-| A pinned object becomes unavailable | `inconsistent_snapshot`; the operation does not substitute `B`. |
+| Start | `refs/tags/release-1` resolves to `A`. The operation pins `A`. |
+| Ref moves | The tag now resolves to `B`. Metadata and document reads still use `A`. |
+| A pinned object becomes unavailable | `inconsistent_snapshot`. The operation does not substitute `B`. |
 
 Starting at the pinned commit's tree, the resolver MUST walk `path` with
 case-sensitive Git tree-name comparison. Every component MUST be a tree.
 The selected tree MUST contain the format root `registry.json`.
 Every format `href` is resolved inside that same selected tree.
 
-An existing repository tree can become a Registry by adding `registry.json`
-and the referenced metadata/index documents in a commit. Existing content
+An existing repository tree can become a Registry by adding `registry.json`,
+and any metadata files that it references, in a commit. Existing content
 stays at its current paths. The mapping, rather than the physical directory
 layout, determines its Group, Resource and Version hierarchy. Files not
 referenced by that mapping do not participate in the Registry's closure.
 
-Consumers MUST read records, indexes and documents as blob payloads.
+Consumers MUST read `registry.json`, external records and indexes, and
+documents as blob payloads. Inline records and indexes arrive within the
+blob of their containing file.
 Consumers MUST NOT use checkout bytes, text conversion, clean/smudge filters
 or attributes. They MUST NOT use LFS downloads, hooks, external diff
 commands, build steps or repository code.

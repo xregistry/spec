@@ -41,7 +41,7 @@ filesystem mutation, synchronization, a file watcher or an HTTP facade.
 
 A local snapshot serves consumers that cannot reach a remote service and gives
 deployment tooling a fixed set of metadata and documents. The File binding
-reads that snapshot from an existing directory; an xRegistry server is not
+reads that snapshot from an existing directory. An xRegistry server is not
 needed to interpret each request.
 
 For example, `file:///D:/registry-snapshots/first` with
@@ -162,9 +162,10 @@ A consumer MUST NOT repeat catalog resolution for a `producer` view.
 Absence of the signal retains the default consumer-side process.
 
 The mapping can be added to an existing directory. Metadata records and
-indexes can be placed alongside existing files or in a separate metadata
-directory. Local document references can point anywhere inside the selected
-root. No `records/`, `indexes/` or `documents/` directory is mandatory.
+indexes can be embedded inline in `registry.json`, placed alongside existing
+files or kept in a separate metadata directory. Local document references
+can point anywhere inside the selected root. No `records/`, `indexes/` or
+`documents/` directory is mandatory.
 Unreferenced files remain outside the Registry view.
 
 For `oci-layout`, consumers MUST use the
@@ -235,9 +236,10 @@ Hard links do not supply an immutability guarantee: shared writable content
 outside the directory can still change its bytes.
 
 For document-tree reads, consumers MUST capture the root record once and
-retain its exact-byte SHA-256. Descendant descriptors pin every consumed
-record and document. For OCI reads, consumers MUST pin the selected root
-digest and verify every descriptor under the OCI binding.
+retain its exact-byte SHA-256. Descendant references pin every consumed
+external record, index and document. The bytes of the containing file pin
+each inline record and index. For OCI reads, consumers MUST pin the
+selected root digest and verify every descriptor under the OCI binding.
 
 A mutable directory is not an atomic snapshot just because it is read-only
 to the resolver.

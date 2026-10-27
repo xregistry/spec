@@ -18,6 +18,10 @@ from jsonschema import Draft202012Validator, FormatChecker
 from referencing import Registry, Resource
 
 from workingdrafts.bindings.tools import mapping_examples as document
+from workingdrafts.bindings.tools.test_git_examples import GitFixture
+from workingdrafts.bindings.tools.test_mapping_spec_examples import (
+    DOCUMENT_HREF as WALKTHROUGH_DOCUMENT, walkthrough_source,
+)
 from workingdrafts.federation.tools.federation_examples import FederationError
 
 
@@ -2065,3 +2069,742 @@ def test_document_empty_collection_is_complete_without_invented_members(tree):
     assert group["assetsurl"] == "#/entity/assets"
     assert group["independentid"] == "MAIN"
     assert_metadata_only_reads(tree.reads)
+
+
+WIDGET = "/documents/main/assets/widget"
+WIDGET_V1 = WIDGET + "/versions/v1"
+FORMS = ("split", "inline", "mixed")
+MIXED_V1_READS = [
+    "registry.json", "indexes/n3.json", "indexes/n4.json", "records/n8.json", "indexes/n6.json",
+]
+SELECTIONS = (
+    ("/mirrors/local/assets", {"label": "stage", "value": "PRODUCTION"}),
+    (ITEM + "/versions", {"label": "stage", "value": "development"}),
+    (WIDGET + "/versions", {"label": "stage", "value": "production"}),
+)
+
+
+def mixed_sample(kind, xid):
+    """Inline Groups, Metas, Versions and the mirrors subtree; keep the rest external."""
+    return kind in ("group", "meta", "version") or xid.startswith("/mirrors")
+
+
+def mapping_source(dataset):
+    """Return records, documents, encoder options and the mixed selection of a dataset."""
+    if dataset == "walkthrough":
+        records, documents = walkthrough_source()
+        options = {"document_paths": {WIDGET_V1: WALKTHROUGH_DOCUMENT}, "gitattributes": None}
+        mixed = {"/documents", "/documents/main", "/documents/main/assets", WIDGET + "/meta", WIDGET_V1}
+        return records, documents, options, mixed
+    records, documents = document.sample_records()
+    return records, documents, {}, mixed_sample
+
+
+def encode_form(dataset, form):
+    records, documents, options, mixed = mapping_source(dataset)
+    inline = {"split": False, "inline": True, "mixed": mixed}[form]
+    return document.encode_tree(records, documents, inline=inline, **options)
+
+
+def nested_dicts(value):
+    pending = [value]
+    while pending:
+        current = pending.pop()
+        if isinstance(current, dict):
+            yield current
+            pending.extend(current.values())
+        elif isinstance(current, list):
+            pending.extend(current)
+
+
+def collection_xids(inline_files):
+    root = json.loads(inline_files["registry.json"])
+    return sorted(
+        value["xid"] for value in nested_dicts(root)
+        if value.get("kind") == "collection" and "entries" in value
+    )
+
+
+def inline_reference(root, xid):
+    return next(
+        value for value in nested_dicts(root) if value.get("xid") == xid and "inline" in value
+    )
+
+
+def serialized(value):
+    return (json.dumps(value, indent=2) + "\n").encode("utf-8")
+
+
+def repin(files, name, data):
+    """Replace one metadata file and recompute every ancestor descriptor up to the root."""
+    original, files = files, {**files, name: data}
+    while name != "registry.json":
+        for parent, content in original.items():
+            if parent == name or not parent.endswith(".json"):
+                continue
+            if any(item.get("href") == name for item in nested_dicts(json.loads(content))):
+                break
+        else:
+            raise AssertionError("No parent descriptor for " + name)
+        value = json.loads(files[parent])
+        references = [item for item in nested_dicts(value) if item.get("href") == name]
+        for reference in references:
+            reference.update(size=len(data), sha256=hashlib.sha256(data).hexdigest())
+        name, data = parent, serialized(value)
+        files[name] = data
+    return files
+
+
+def observe(operation, *args):
+    try:
+        return "ok", operation(*args)
+    except FederationError as error:
+        return "error", error.code, str(error)
+
+
+def metadata_observations(reader, records, collections):
+    """Every read that must not touch domain payloads."""
+    results = {"model": observe(reader.model), "capabilities": observe(reader.capabilities)}
+    for record in records:
+        xid = record["entity"]["xid"]
+        results["metadata " + xid] = observe(reader.metadata, xid)
+        if record["kind"] in ("resource", "version"):
+            results["descriptor " + xid] = observe(reader.document_descriptor, xid)
+    for xid in collections:
+        results["collection " + xid] = observe(reader.collection, xid)
+    for xid, selector in SELECTIONS:
+        if xid in collections:
+            results["selection " + xid] = observe(reader.collection, xid, selector)
+    return results
+
+
+def observations(reader, records, collections):
+    results = metadata_observations(reader, records, collections)
+    for record in records:
+        if record["kind"] in ("resource", "version"):
+            xid = record["entity"]["xid"]
+            results["document " + xid] = observe(reader.document, xid)
+    validation = observe(reader.validate)
+    if validation[0] == "ok":
+        validation = "ok", {
+            key: value for key, value in validation[1].items() if key not in ("rootsha256", "pin")
+        }
+    results["validate"] = validation
+    return results
+
+
+def open_store(kind, files, location):
+    if kind == "memory":
+        return document.MemoryStore(files)
+    if kind == "file":
+        for name, data in files.items():
+            path = location.joinpath(*name.split("/"))
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(data)
+        return document.FileStore(location)
+    git = GitFixture(location.with_suffix(".git"))
+    commit = git.commit(files)
+    store = document.GitStore(git.path, "refs/heads/main")
+    assert store.pin == commit
+    return store
+
+
+@pytest.mark.parametrize("store", ["memory", "file", "git"])
+@pytest.mark.parametrize("dataset", ["walkthrough", "sample"])
+def test_split_inline_and_mixed_mappings_return_identical_reads(tmp_path, dataset, store):
+    records = mapping_source(dataset)[0]
+    encoded = {form: encode_form(dataset, form) for form in FORMS}
+    collections = collection_xids(encoded["inline"])
+    if dataset == "sample":
+        collections.append(COPY + "/versions")
+    expected = observations(
+        document.DocumentTree(document.MemoryStore(encoded["split"])), records, collections
+    )
+    for form, files in encoded.items():
+        reader = document.DocumentTree(open_store(store, files, tmp_path / form))
+        assert observations(reader, records, collections) == expected, form
+    assert set(encoded["mixed"]) < set(encoded["split"])
+    assert len(encoded["inline"]) < len(encoded["mixed"])
+    if dataset == "walkthrough":
+        assert sorted(encoded["inline"]) == ["registry.json", WALKTHROUGH_DOCUMENT]
+        assert expected["validate"] == ("ok", {
+            "records": 5, "indexes": 3, "documents": 1, "completeness": "offline-complete",
+        })
+        assert expected["document " + WIDGET] == ("ok", b'{"type":"string"}\n')
+        assert expected["selection " + WIDGET + "/versions"] == (
+            "error", "not_found", "No label match",
+        )
+        return
+    assert sorted(encoded["inline"]) == [
+        ".gitattributes", "documents/n0.bin", "documents/n1.bin", "documents/n2.bin",
+        "registry.json",
+    ]
+    assert expected["validate"] == ("ok", {
+        "records": 24, "indexes": 13, "documents": 3, "completeness": "offline-complete",
+    })
+    assert expected["document " + V1] == expected["document " + COPY] == ("ok", AUTHORED_JSON)
+    assert expected["document " + V2] == ("ok", b"")
+    assert expected["document " + BINARY] == ("ok", b"\x00\x01\xff\x7f\n")
+    assert expected["document " + NOTE][:2] == ("error", "unsupported_operation")
+    assert expected["document " + DANGLING] == ("error", "not_found", "No one-hop alias document")
+    assert expected["collection " + COPY + "/versions"] == (
+        "error", "unsupported_operation", "cannot_doc_xref",
+    )
+    assert list(expected["selection " + ITEM + "/versions"][1]["entities"]) == ["v2"]
+    assert list(expected["selection /mirrors/local/assets"][1]["entities"]) == ["copy"]
+    assert expected["metadata " + V1][1]["entity"] == {**V1_ENTITY, "self": "#/entity"}
+    assert expected["model"] == ("ok", {"modelsource": EXPECTED_MODEL})
+    assert expected["capabilities"] == ("ok", EXPECTED_CAPABILITIES)
+
+
+def test_fully_inline_root_is_read_once_and_metadata_never_reads_documents():
+    files = encode_form("sample", "inline")
+    poisoned = {
+        name: b"unrelated poison" if name.startswith("documents/") else data
+        for name, data in files.items()
+    }
+    records = document.sample_records()[0]
+    collections = collection_xids(files)
+    split = document.DocumentTree(document.MemoryStore(encode_form("sample", "split")))
+    reader = document.DocumentTree(document.MemoryStore(poisoned))
+    assert reader.reads == ["registry.json"]
+    assert reader.objects == 37
+    assert metadata_observations(reader, records, collections) == metadata_observations(
+        split, records, collections
+    )
+    assert reader.reads == ["registry.json"]
+    assert reader.store.total_bytes == len(files["registry.json"])
+    with pytest.raises(FederationError) as caught:
+        reader.document(V1)
+    assert_error(caught, "integrity_error", "Descriptor mismatch: documents/n1.bin")
+    assert reader.reads == ["registry.json", "documents/n1.bin"]
+
+
+def test_mixed_mapping_reads_only_its_external_files_along_the_split_path():
+    split, mixed = encode_form("sample", "split"), encode_form("sample", "mixed")
+    operations = [("metadata", record["entity"]["xid"]) for record in document.sample_records()[0]]
+    operations += [("collection", xid) for xid in collection_xids(encode_form("sample", "inline"))]
+    operations += [("document", xid) for xid in (ITEM, V2, BINARY, COPY, DANGLING)]
+    for operation, xid in operations:
+        traces = []
+        for files in (split, mixed):
+            reader = document.DocumentTree(document.MemoryStore(files))
+            observe(getattr(reader, operation), xid)
+            traces.append(reader.reads)
+        assert traces[1] == [name for name in traces[0] if name in mixed], (operation, xid)
+        if operation != "document":
+            assert_metadata_only_reads(traces[1])
+    reader = document.DocumentTree(document.MemoryStore(mixed))
+    assert reader.metadata(V1)["entity"] == {**V1_ENTITY, "self": "#/entity"}
+    assert reader.reads == MIXED_V1_READS
+
+
+def test_file_store_detects_a_replaced_inline_root_without_rereading_it(tmp_path):
+    files = encode_form("sample", "inline")
+    reader = document.DocumentTree(open_store("file", files, tmp_path / "inline"))
+    (tmp_path / "inline" / "registry.json").write_bytes(files["registry.json"] + b"\n")
+    with pytest.raises(FederationError) as caught:
+        reader.metadata(V1)
+    assert_error(caught, "inconsistent_snapshot", "Snapshot changed during operation")
+    assert reader.reads == ["registry.json"]
+
+
+def mutate_inline(root, mutation):
+    """Damage one object of the fully inline sample while keeping the root parseable."""
+    meta = inline_reference(root, ITEM + "/meta")
+    version = inline_reference(root, V1)
+    model = root["entity"]["modelsource"]["groups"]["documents"]["resources"]
+    if mutation == "inline-kind":
+        meta["inline"] = copy.deepcopy(version["inline"])
+    elif mutation == "inline-xid":
+        version["inline"] = copy.deepcopy(inline_reference(root, V2)["inline"])
+    elif mutation == "member-kind":
+        inline_reference(root, "/documents/main")["kind"] = "resource"
+    elif mutation == "duplicate-member":
+        index = inline_reference(root, ITEM + "/versions")["inline"]
+        index["entries"].append(copy.deepcopy(index["entries"][0]))
+        index["count"] += 1
+    elif mutation == "unordered-members":
+        inline_reference(root, "/documents/main/assets")["inline"]["entries"].reverse()
+    elif mutation == "case-collision":
+        index = inline_reference(root, "/documents")["inline"]
+        twin = copy.deepcopy(inline_reference(root, "/documents/main"))
+        twin["xid"] = twin["inline"]["entity"]["xid"] = "/documents/MAIN"
+        twin["inline"]["entity"]["documentid"] = "MAIN"
+        index["entries"].insert(0, twin)
+        index["count"] += 1
+    elif mutation == "missing-member":
+        index = inline_reference(root, ITEM + "/versions")["inline"]
+        index["entries"].pop(0)
+        index["count"] -= 1
+    elif mutation == "group-id":
+        inline_reference(root, "/documents/main")["inline"]["entity"]["documentid"] = "other"
+    elif mutation == "version-id":
+        version["inline"]["entity"]["versionid"] = "v3"
+    elif mutation == "mixed-form":
+        meta.update(href="records/n9.json", size=1, sha256=EMPTY_SHA256)
+    elif mutation == "incomplete-external":
+        del meta["inline"]
+        meta["href"] = "records/n9.json"
+    elif mutation == "no-form":
+        del meta["inline"]
+    elif mutation == "inline-format":
+        meta["inline"]["format"] = "other"
+    elif mutation == "inline-version":
+        meta["inline"]["formatversion"] = "2"
+    elif mutation == "inline-not-object":
+        meta["inline"] = []
+    elif mutation == "extra-field":
+        meta["note"] = "unexpected"
+    elif mutation == "missing-document":
+        del version["inline"]["document"]
+    elif mutation == "invalid-default":
+        meta["inline"]["entity"]["defaultversionid"] = "absent"
+    elif mutation == "default-flag":
+        version["inline"]["entity"]["isdefault"] = False
+    elif mutation == "missing-ancestor":
+        version["inline"]["entity"]["ancestorid"] = "missing"
+    elif mutation == "ancestor-cycle":
+        version["inline"]["entity"]["ancestorid"] = "v2"
+    elif mutation == "unmodeled-collection":
+        del model["notes"]
+    elif mutation == "model-hasdocument":
+        model["assets"]["hasdocument"] = False
+    elif mutation == "alias-type":
+        inline_reference(root, COPY + "/meta")["inline"]["entity"]["xref"] = NOTE
+    elif mutation == "unsafe-document":
+        version["inline"]["document"]["href"] = "../outside.bin"
+    elif mutation == "encoded-parent":
+        version["inline"]["document"]["href"] = "documents/%2e%2e/n1.bin"
+    elif mutation == "document-root-collision":
+        version["inline"]["document"]["href"] = "registry.json"
+    else:
+        descriptor = version["inline"]["document"]
+        del meta["inline"]
+        meta.update(href=descriptor["href"], size=descriptor["size"], sha256=descriptor["sha256"])
+
+
+ITEM_LOCATION = "/collections/1/inline/entries/0/inline/collections/0/inline/entries/1/inline"
+
+
+@pytest.mark.parametrize(
+    "mutation,operation,code,message",
+    [
+        pytest.param("inline-kind", None, "invalid_package",
+                     "Reference and stored object disagree", id="inline-kind"),
+        pytest.param("inline-xid", None, "invalid_package",
+                     "Reference and stored object disagree", id="inline-xid"),
+        pytest.param("member-kind", None, "invalid_package",
+                     "Index entry is not an immediate typed member", id="member-kind"),
+        pytest.param("duplicate-member", None, "invalid_package",
+                     "References must be unique and sorted by full XID", id="duplicate-member"),
+        pytest.param("unordered-members", None, "invalid_package",
+                     "References must be unique and sorted by full XID", id="unordered-members"),
+        pytest.param("case-collision", None, "invalid_package",
+                     "Case-insensitive sibling collision", id="case-collision"),
+        pytest.param("missing-member", ("metadata", ITEM), "invalid_package",
+                     "Default Version is missing from index", id="missing-member"),
+        pytest.param("group-id", None, "invalid_package",
+                     "Group ID disagrees with XID", id="conflicting-group-id"),
+        pytest.param("version-id", None, "invalid_package",
+                     "Version ID disagrees with XID", id="conflicting-version-id"),
+        pytest.param("mixed-form", None, "invalid_package",
+                     "Reference mixes inline and external forms", id="mixed-form"),
+        pytest.param("incomplete-external", None, "invalid_package",
+                     "Incomplete external reference", id="incomplete-external"),
+        pytest.param("no-form", None, "invalid_package",
+                     "Reference has no inline or external form", id="no-form"),
+        pytest.param("inline-format", None, "invalid_package",
+                     "Inline format or version differs from container", id="inline-format"),
+        pytest.param("inline-version", None, "invalid_package",
+                     "Inline format or version differs from container", id="inline-formatversion"),
+        pytest.param("inline-not-object", None, "invalid_package",
+                     "Inline reference target must be an object", id="inline-not-object"),
+        pytest.param("extra-field", None, "invalid_package",
+                     f"Schema violation in registry.json at {ITEM_LOCATION}/meta: "
+                     "additionalProperties", id="extra-reference-field"),
+        pytest.param("missing-document", None, "invalid_package",
+                     f"Schema violation in registry.json at {ITEM_LOCATION}/collections/0"
+                     "/inline/entries/0/inline: required", id="inline-schema"),
+        pytest.param("invalid-default", ("metadata", ITEM + "/meta"), "invalid_package",
+                     "Default Version is missing from index", id="invalid-default"),
+        pytest.param("default-flag", ("metadata", V1), "invalid_package",
+                     "Version default flag disagrees with Meta", id="default-flag"),
+        pytest.param("missing-ancestor", ("metadata", V1), "invalid_package",
+                     "Missing Version ancestor", id="missing-ancestor"),
+        pytest.param("ancestor-cycle", ("validate",), "invalid_package",
+                     "Version ancestor cycle", id="ancestor-cycle"),
+        pytest.param("unmodeled-collection", None, "invalid_package",
+                     "Missing or unexpected modeled collection", id="unmodeled-collection"),
+        pytest.param("model-hasdocument", None, "invalid_package",
+                     "Document state disagrees with hasdocument", id="model-hasdocument"),
+        pytest.param("alias-type", None, "invalid_package",
+                     "xref Resource model type mismatch", id="alias-model-type"),
+        pytest.param("unsafe-document", None, "policy_denied",
+                     "Unsafe storage name", id="unsafe-document-path"),
+        pytest.param("encoded-parent", None, "policy_denied",
+                     "Unsafe storage name", id="encoded-parent-path"),
+        pytest.param("document-root-collision", None, "invalid_package",
+                     "Conflicting storage allocation", id="document-is-root"),
+        pytest.param("metadata-document-collision", None, "invalid_package",
+                     "Conflicting storage allocation", id="metadata-is-document"),
+    ],
+)
+def test_inline_graph_is_rejected_by_the_same_semantic_checks(mutation, operation, code, message):
+    files = encode_form("sample", "inline")
+    root = json.loads(files["registry.json"])
+    mutate_inline(root, mutation)
+    store = document.MemoryStore({**files, "registry.json": serialized(root)})
+    if operation is None:
+        with pytest.raises(FederationError) as caught:
+            document.DocumentTree(store)
+    else:
+        reader = document.DocumentTree(store)
+        with pytest.raises(FederationError) as caught:
+            getattr(reader, operation[0])(*operation[1:])
+    assert_error(caught, code, message)
+    assert store.reads.count("registry.json") == 1
+    if operation != ("validate",):
+        assert store.reads == ["registry.json"]
+
+
+@pytest.mark.parametrize(
+    "original,replacement,message",
+    [
+        pytest.param(b'"versionid": "v1",', b'"versionid": "v1", "versionid": "v1",',
+                     "Duplicate JSON key in registry.json: versionid", id="duplicate-key"),
+        pytest.param(b'"readonly": true,', b'"readonly": NaN,',
+                     "Non-JSON number in registry.json: NaN", id="nan"),
+        pytest.param(b'"inline": {', b'"inline": {,', "Invalid JSON in registry.json", id="syntax"),
+    ],
+)
+def test_inline_objects_use_the_containing_file_json_rules(original, replacement, message):
+    files = encode_form("walkthrough", "inline")
+    data = files["registry.json"].replace(original, replacement, 1)
+    assert data != files["registry.json"]
+    store = document.MemoryStore({**files, "registry.json": data})
+    with pytest.raises(FederationError) as caught:
+        document.DocumentTree(store)
+    assert_error(caught, "invalid_package", message)
+    assert store.reads == ["registry.json"]
+
+
+@pytest.mark.parametrize(
+    "mutation,message",
+    [
+        pytest.param("kind", "Reference and stored object disagree", id="inline-kind"),
+        pytest.param("xid", "Reference and stored object disagree", id="inline-xid"),
+        pytest.param("id", "Version ID disagrees with XID", id="conflicting-id"),
+        pytest.param("format", "Inline format or version differs from container", id="inline-format"),
+        pytest.param("mixed", "Reference mixes inline and external forms", id="mixed-form"),
+        pytest.param("count", "Index count disagrees with entries", id="incomplete-index"),
+        pytest.param("default", "Version default flag disagrees with Meta", id="default-flag"),
+        pytest.param("json", "Invalid JSON in indexes/n6.json", id="malformed-json"),
+        pytest.param("duplicate-key", "Duplicate JSON key in indexes/n6.json: count",
+                     id="duplicate-key"),
+    ],
+)
+def test_repinned_external_file_with_invalid_inline_graph_is_still_rejected(mutation, message):
+    files = encode_form("sample", "mixed")
+    name = "indexes/n6.json"
+    control = document.DocumentTree(document.MemoryStore(repin(files, name, files[name])))
+    assert control.metadata(V1)["entity"] == {**V1_ENTITY, "self": "#/entity"}
+    value = json.loads(files[name])
+    entries = value["entries"]
+    if mutation == "kind":
+        entries[0]["inline"] = json.loads(files["records/n8.json"])["meta"]["inline"]
+    elif mutation == "xid":
+        entries[0]["inline"] = copy.deepcopy(entries[1]["inline"])
+    elif mutation == "id":
+        entries[0]["inline"]["entity"]["versionid"] = "v3"
+    elif mutation == "format":
+        entries[0]["inline"]["formatversion"] = "2"
+    elif mutation == "mixed":
+        entries[0]["href"] = "records/na.json"
+    elif mutation == "count":
+        value["count"] = 3
+    elif mutation == "default":
+        entries[0]["inline"]["entity"]["isdefault"] = False
+    data = serialized(value)
+    if mutation == "json":
+        data = data[:-2]
+    elif mutation == "duplicate-key":
+        data = data.replace(b'"count": 2,', b'"count": 2, "count": 2,')
+    assert data != files[name]
+    changed = repin(files, name, data)
+    assert changed[name] == data
+    reader = document.DocumentTree(document.MemoryStore(changed))
+    with pytest.raises(FederationError) as caught:
+        reader.metadata(V1)
+    assert_error(caught, "invalid_package", message)
+    assert reader.reads == MIXED_V1_READS
+
+
+def test_mixed_mapping_verifies_external_bytes_before_decoding_inline_targets():
+    files = encode_form("sample", "mixed")
+    name = "indexes/n6.json"
+    damaged = {**files, name: files[name][:-1] + b"x"}
+    reader = document.DocumentTree(document.MemoryStore(damaged))
+    assert reader.metadata(CATALOG)["entity"]["xid"] == CATALOG
+    with patch.object(reader, "_decode", wraps=reader._decode) as decode:
+        with pytest.raises(FederationError) as caught:
+            reader.metadata(V1)
+    assert_error(caught, "integrity_error", "Descriptor mismatch: " + name)
+    assert [call.args[1] for call in decode.call_args_list] == MIXED_V1_READS[1:-1]
+    assert reader.reads[-1] == name
+    assert_metadata_only_reads(reader.reads)
+
+
+@pytest.mark.parametrize(
+    "href,code,message",
+    [
+        pytest.param("../indexes/n6.json", "policy_denied", "Unsafe storage name", id="parent"),
+        pytest.param("indexes/%2E%2E/n6.json", "policy_denied", "Unsafe storage name",
+                     id="encoded-parent"),
+        pytest.param("indexes\\n6.json", "policy_denied", "Unsafe storage name", id="backslash"),
+        pytest.param("indexes/n3.json", "invalid_package", "Conflicting storage allocation",
+                     id="reused-metadata-path"),
+        pytest.param("registry.json", "invalid_package", "Conflicting storage allocation",
+                     id="root-path"),
+    ],
+)
+def test_external_reference_nested_in_an_external_file_keeps_path_policy(href, code, message):
+    files = encode_form("sample", "mixed")
+    resource = json.loads(files["records/n8.json"])
+    resource["collections"][0]["href"] = href
+    store = document.MemoryStore(repin(files, "records/n8.json", serialized(resource)))
+    reader = document.DocumentTree(store)
+    with pytest.raises(FederationError) as caught:
+        reader.metadata(ITEM)
+    assert_error(caught, code, message)
+    assert store.reads == MIXED_V1_READS[:-1]
+
+
+def test_inline_depth_and_object_bounds_are_limit_errors():
+    files = encode_form("walkthrough", "inline")
+    for options, message in (
+        ({"max_inline_depth": 5}, "Inline nesting depth limit"),
+        ({"max_objects": 7}, "Metadata object limit"),
+    ):
+        store = document.MemoryStore(files)
+        with pytest.raises(FederationError) as caught:
+            document.DocumentTree(store, **options)
+        assert_error(caught, "limit_exceeded", message)
+        assert store.reads == ["registry.json"]
+    reader = document.DocumentTree(document.MemoryStore(files), max_inline_depth=6, max_objects=8)
+    assert reader.validate()["records"] == 5
+    assert reader.objects == 8
+
+
+def test_object_bound_is_cumulative_across_files_and_never_partial():
+    files = encode_form("walkthrough", "mixed")
+    assert sorted(files) == [
+        "indexes/n2.json", "records/n1.json", "registry.json", WALKTHROUGH_DOCUMENT,
+    ]
+    with pytest.raises(FederationError) as caught:
+        document.DocumentTree(document.MemoryStore(files), max_inline_depth=2)
+    assert_error(caught, "limit_exceeded", "Inline nesting depth limit")
+    reader = document.DocumentTree(
+        document.MemoryStore(files), max_inline_depth=3, max_objects=7
+    )
+    assert reader.objects == 4
+    assert reader.read_record(WIDGET)["entity"] == {"xid": WIDGET, "assetid": "widget"}
+    assert reader.objects == 6
+    with pytest.raises(FederationError) as caught:
+        reader.metadata(WIDGET)
+    assert_error(caught, "limit_exceeded", "Metadata object limit")
+    assert reader.reads == ["registry.json", "records/n1.json", "indexes/n2.json"]
+    complete = document.DocumentTree(document.MemoryStore(files), max_inline_depth=3, max_objects=8)
+    assert complete.validate()["records"] == 5
+
+
+@pytest.mark.parametrize(
+    "limit,message",
+    [
+        pytest.param("max_files", "File count limit", id="files"),
+        pytest.param("max_total_bytes", "Aggregate byte limit", id="bytes"),
+    ],
+)
+def test_inline_root_counts_once_against_store_limits(limit, message):
+    files = encode_form("sample", "inline")
+    size = len(files["registry.json"])
+    store = document.MemoryStore(files, max_file_bytes=size - 1)
+    with pytest.raises(FederationError) as caught:
+        document.DocumentTree(store)
+    assert_error(caught, "limit_exceeded", "File byte limit")
+    assert store.reads == []
+    limits = {"max_file_bytes": size, limit: 1 if limit == "max_files" else size}
+    reader = document.DocumentTree(document.MemoryStore(files, **limits))
+    for record in document.sample_records()[0]:
+        reader.metadata(record["entity"]["xid"])
+    assert reader.collection(ITEM + "/versions")["complete"] is True
+    assert reader.reads == ["registry.json"]
+    assert reader.store.total_bytes == size
+    with pytest.raises(FederationError) as caught:
+        reader.document(V1)
+    assert_error(caught, "limit_exceeded", message)
+    assert reader.reads == ["registry.json"]
+
+
+def test_split_tree_counts_each_metadata_file_against_the_file_limit():
+    files = encode_form("sample", "split")
+    store = document.MemoryStore(files, max_files=4)
+    reader = document.DocumentTree(store)
+    with pytest.raises(FederationError) as caught:
+        reader.metadata(V1)
+    assert_error(caught, "limit_exceeded", "File count limit")
+    assert store.reads[:3] == ["registry.json", "indexes/n3.json", "records/n4.json"]
+    assert len(store.reads) == 4
+
+
+@pytest.mark.parametrize("limit", ["max_inline_depth", "max_objects"])
+@pytest.mark.parametrize("value", [0, -1, True, 1.5], ids=["zero", "negative", "boolean", "float"])
+def test_document_tree_inline_bounds_require_positive_integers(limit, value):
+    store = document.MemoryStore({"registry.json": b"unread"})
+    with pytest.raises(FederationError) as caught:
+        document.DocumentTree(store, **{limit: value})
+    assert_error(caught, "invalid_package", "Limits must be positive integers")
+    assert store.reads == []
+
+
+def test_document_encoder_inline_selection_keeps_split_paths_for_external_targets():
+    records, documents = document.sample_records()
+    before = copy.deepcopy((records, documents))
+    calls = []
+
+    def choose(kind, xid):
+        calls.append((kind, xid))
+        return kind == "meta"
+
+    files = document.encode_tree(records, documents, inline=choose)
+    assert (records, documents) == before
+    collections = collection_xids(encode_form("sample", "inline"))
+    assert sorted(calls) == sorted(
+        [(record["kind"], record["entity"]["xid"]) for record in records if record["kind"] != "registry"]
+        + [("collection", xid) for xid in collections]
+    )
+    split = encode_form("sample", "split")
+    metas = {
+        name for name, data in split.items()
+        if name.startswith("records/") and json.loads(data)["kind"] == "meta"
+    }
+    assert len(metas) == sum(record["kind"] == "meta" for record in records)
+    assert set(files) == set(split) - metas
+    assert all(files[name] == split[name] for name in files if name.startswith("documents/"))
+    single = document.encode_tree(records, documents, inline={ITEM + "/meta"})
+    assert set(single) == set(split) - {"records/n9.json"}
+
+
+@pytest.mark.parametrize(
+    "options,code,message",
+    [
+        pytest.param({"inline": "yes"}, "invalid_package",
+                     "Inline selection must be a boolean, a predicate or a set of XIDs", id="string"),
+        pytest.param({"inline": 1}, "invalid_package",
+                     "Inline selection must be a boolean, a predicate or a set of XIDs", id="number"),
+        pytest.param({"inline": {1}}, "invalid_package",
+                     "Inline selection must be a boolean, a predicate or a set of XIDs",
+                     id="non-string"),
+        pytest.param({"inline": {"/"}}, "invalid_package",
+                     "Registry record cannot be inline", id="root-inline"),
+        pytest.param({"inline": {ITEM + "/absent"}}, "invalid_package",
+                     "Unknown inline fixture XID", id="unknown-inline"),
+        pytest.param({"inline": lambda kind, xid: "yes"}, "invalid_package",
+                     "Inline selector must return a boolean", id="predicate-result"),
+        pytest.param({"paths": {"/": "root.json"}}, "invalid_package",
+                     "Registry record path is fixed", id="root-path"),
+        pytest.param({"paths": {ITEM + "/absent": "absent.json"}}, "invalid_package",
+                     "Unused fixture path", id="unknown-path"),
+        pytest.param({"inline": True, "paths": {ITEM: "item.json"}}, "invalid_package",
+                     "Unused fixture path", id="inline-path"),
+        pytest.param({"paths": {ITEM: "../item.json"}}, "policy_denied",
+                     "Unsafe storage name", id="unsafe-path"),
+        pytest.param({"paths": {ITEM: "item.json", V1: "ITEM.json"}}, "invalid_package",
+                     "Duplicate fixture path", id="case-collision"),
+        pytest.param({"paths": {ITEM: "documents/n1.bin"}}, "invalid_package",
+                     "Duplicate fixture path", id="metadata-on-document"),
+        pytest.param({"document_paths": {ITEM + "/absent": "absent.bin"}}, "invalid_package",
+                     "Unknown fixture document path", id="unknown-document"),
+        pytest.param({"document_paths": {V1: "registry.json"}}, "invalid_package",
+                     "Duplicate fixture path", id="document-on-root"),
+        pytest.param({"gitattributes": "*.json text"}, "invalid_package",
+                     "Fixture .gitattributes must be bytes", id="gitattributes"),
+    ],
+)
+def test_document_encoder_rejects_invalid_layout_options(options, code, message):
+    records, documents = document.sample_records()
+    before = copy.deepcopy((records, documents))
+    with pytest.raises(FederationError) as caught:
+        document.encode_tree(records, documents, **options)
+    assert_error(caught, code, message)
+    assert (records, documents) == before
+
+
+def test_document_sample_writer_and_cli_build_the_inline_form(tmp_path, capsys):
+    expected = encode_form("sample", "inline")
+    root = tmp_path / "written"
+    result = document.write_sample(root, inline=True)
+    assert result == {
+        "records": 24, "indexes": 13, "documents": 3,
+        "rootsha256": hashlib.sha256(expected["registry.json"]).hexdigest(),
+        "completeness": "offline-complete", "pin": None,
+    }
+    written = {
+        path.relative_to(root).as_posix(): path.read_bytes()
+        for path in root.rglob("*") if path.is_file()
+    }
+    assert written == expected
+    cli_root = tmp_path / "cli"
+    assert document.main(["build-sample", str(cli_root), "--inline"]) == 0
+    output = capsys.readouterr()
+    assert output.err == ""
+    assert json.loads(output.out) == result
+    assert document.main(["entity", str(cli_root), V1]) == 0
+    entity = json.loads(capsys.readouterr().out)
+    assert entity["entity"] == {**V1_ENTITY, "self": "#/entity"}
+    assert entity["reads"] == ["registry.json"]
+    assert entity["origin"]["rootsha256"] == result["rootsha256"]
+    assert document.main(["entity", str(cli_root), V1, "--inline"]) == 1
+    output = capsys.readouterr()
+    assert output.out == ""
+    assert json.loads(output.err) == {
+        "error": "invalid_package", "message": "--inline only applies to build-sample",
+    }
+
+
+@pytest.mark.parametrize("form", FORMS)
+def test_document_schemas_accept_every_generated_form(form):
+    schemas = {
+        name: json.loads((SCHEMA_ROOT / f"document-{name}.schema.json").read_bytes())
+        for name in ("record", "index")
+    }
+    registry = Registry().with_resources(
+        (schema["$id"], Resource.from_contents(schema)) for schema in schemas.values()
+    )
+    validators = {
+        name: Draft202012Validator(schema, registry=registry, format_checker=FormatChecker())
+        for name, schema in schemas.items()
+    }
+    for dataset in ("walkthrough", "sample"):
+        for name, data in encode_form(dataset, form).items():
+            if name.endswith(".json") and name != WALKTHROUGH_DOCUMENT:
+                value = json.loads(data)
+                schema = "index" if value["kind"] == "collection" else "record"
+                assert list(validators[schema].iter_errors(value)) == [], (dataset, name)
+    reference = Draft202012Validator(
+        {"$ref": schemas["record"]["$id"] + "#/$defs/reference"},
+        registry=registry, format_checker=FormatChecker(),
+    )
+    inline = json.loads(encode_form("walkthrough", "inline")["registry.json"])["collections"][0]
+    external = json.loads(encode_form("walkthrough", "split")["registry.json"])["collections"][0]
+    assert reference.is_valid(inline) and reference.is_valid(external)
+    rejected = [
+        {**inline, "href": external["href"]},
+        {**external, "inline": inline["inline"]},
+        {key: value for key, value in external.items() if key != "sha256"},
+        {"kind": "collection", "xid": "/documents"},
+        {**inline, "inline": []},
+        {**inline, "inline": {**inline["inline"], "formatversion": "2"}},
+        {**inline, "kind": "group"},
+    ]
+    assert [reference.is_valid(value) for value in rejected] == [False] * len(rejected)

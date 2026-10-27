@@ -2,6 +2,7 @@
 
 <!-- words: modelbase resolvedmodelsource sha256 symlinks reparse xids -->
 <!-- words: modelsource hasdocument defaultversionid defaultversionsticky -->
+<!-- words: documenttree -->
 <!-- words: ancestorid isdefault formatversion href readonly ximportresources -->
 <!-- words: casefold subtrees filesystem filenames bytecode smudge -->
 <!-- words: federationerror namespace namespaces py reserialized reserialize -->
@@ -16,9 +17,10 @@
 
 This specification maps an existing directory to a read-only xRegistry for
 the [Git](git.md) and [File](file.md) federation bindings. Add `registry.json`
-and the referenced metadata documents without reorganizing the directory's
-existing files. Versions reference those files through paths inside the
-selected root. Storage paths are not entity identifiers.
+without reorganizing the directory's existing files. It can embed all
+metadata inline or reference further metadata files. Versions reference the
+existing files through paths inside the selected root. Storage paths are not
+entity identifiers.
 
 **Status:** Unreleased working draft, format version `1`. This document is
 not part of a released xRegistry specification.
@@ -86,36 +88,31 @@ the mapping can produce:
 ```text
 project/
   registry.json
-  registry-metadata/
-    groups.json
-    assets.json
-    item.json
-    item-meta.json
-    versions.json
   source/
     main.py
     specs/
       widget.json
-      widget.registry.json
   engineering/
     assets/
       image.dat
   README.md
 ```
 
-`registry.json` identifies the Registry and its modeled collections. Added
-indexes and records associate `/documents/main/assets/item` with its Meta
-and Versions. A Version record in `source/specs/widget.registry.json` can
-contain a local document descriptor whose `href` is
-`source/specs/widget.json`. This path is relative to the selected root, not
-to the Version record. Its `size` and `sha256` describe the existing file's
-exact bytes. Neither `widget.json` nor `image.dat` needs to move or change.
+`registry.json` identifies the Registry and its modeled collections. Its
+collection indexes and entity records associate
+`/documents/main/assets/item` with its Meta and Versions. Here they are
+embedded inline in `registry.json`. A Version record can contain a local
+document descriptor whose `href` is `source/specs/widget.json`. This path is
+relative to the selected root, not to the file holding the Version record.
+Its `size` and `sha256` describe the existing file's exact bytes. Neither
+`widget.json` nor `image.dat` needs to move or change.
 
-The illustration omits some metadata records. The directory names and
-metadata locations are choices, not a prescribed layout. Metadata can sit
-beside the described files or in a separate directory. Unreferenced files
-such as `source/main.py` and the README do not become Resources automatically
-and are not part of the Registry's declared content closure.
+The mapping does not prescribe inline storage. A publisher can instead
+store any record or index in a separate metadata file, beside the described
+files or in a separate directory, and choose the directory names of such
+files. Unreferenced files such as `source/main.py` and the README do not
+become Resources automatically and are not part of the Registry's declared
+content closure.
 
 The [worked example](#worked-example-map-one-existing-file) below shows
 every file needed to map one existing document and the resulting reads.
@@ -138,10 +135,10 @@ directory is read.
 
 The complete files are also available in the
 [walkthrough directory](samples/mapping-example). You can save the JSON
-blocks below directly. Use UTF-8, two-space indentation, LF line endings
-and one final newline in each file. The size and digest values describe
-those exact bytes. If you change a file, recalculate its size and digest
-in the referring metadata, continuing up to `registry.json`.
+block below directly. Use UTF-8, two-space indentation, LF line endings
+and one final newline. The size and digest values describe those exact
+bytes. If you change the document, recalculate its size and digest in the
+Version's document descriptor inside `registry.json`.
 
 ### 1. Keep the Existing Document
 
@@ -155,200 +152,37 @@ It is 18 bytes, including the final newline. Its SHA-256 is
 `85803e087e684bdab3e5d6c2dd1af627da83382db625be9a42aea3d4d06539be`.
 Leave this file unchanged.
 
-### 2. Add the Mapping Files
+### 2. Add the Mapping File
 
-Add the following eight JSON files. They are shown from the Version
-record up to the root, so each reference names a file already shown.
-The directory names are example choices, not format requirements.
+Add the following `registry.json`. It embeds every collection index and
+entity record as an inline reference, so the mapping adds one file to the
+project. The file is 6131 bytes with SHA-256
+`cf679704edd89c2364b3163c063d9d8f6a5361e0cf54acf2ae0bd90987fa3ccb`.
 
 ```mermaid
 flowchart TD
-    subgraph Root["Selected project root; hrefs are root-relative"]
-        subgraph Metadata["Eight mapping files"]
-            Registry["registry.json"] --> Groups["registry-metadata/groups.json"]
-            Groups --> Main["registry-metadata/main.json"]
-            Main --> Assets["registry-metadata/assets.json"]
-            Assets --> Widget["registry-metadata/widget.json"]
-            Widget --> Meta["registry-metadata/widget-meta.json"]
-            Widget --> Versions["registry-metadata/versions.json"]
-            Versions --> Version["source/specs/widget.registry.json"]
+    subgraph Root["Selected project root, hrefs are root-relative"]
+        subgraph Mapping["registry.json, one file with nested inline objects"]
+            Registry["Registry record"] --> Groups["documents collection index"]
+            Groups --> Main["Group main"]
+            Main --> Assets["assets collection index"]
+            Assets --> Widget["Resource widget"]
+            Widget --> Meta["Meta"]
+            Widget --> Versions["versions collection index"]
+            Versions --> Version["Version v1"]
             Meta -. "defaultversionid: v1 selects" .-> Version
         end
         Version --> Bytes["source/specs/widget.json: existing domain bytes"]
     end
 ```
 
-Figure 1 (informative): reference edges in the nine-file example. Each solid
-edge carries `href`, `size` and `sha256`; the dashed edge selects a Version
-and is not a file descriptor. Unreferenced project files are outside this
-graph. The [read rules](#reads-and-core-document-view) assemble metadata
-from these records without treating storage paths as entity navigation.
-
-**`source/specs/widget.registry.json`**
-
-```json
-{
-  "format": "xregistry-document-tree",
-  "formatversion": "1",
-  "kind": "version",
-  "entity": {
-    "xid": "/documents/main/assets/widget/versions/v1",
-    "assetid": "widget",
-    "versionid": "v1",
-    "epoch": 1,
-    "createdat": "2026-01-01T00:00:00Z",
-    "modifiedat": "2026-01-01T00:00:00Z",
-    "ancestorid": "v1",
-    "isdefault": true,
-    "contenttype": "application/schema+json"
-  },
-  "document": {
-    "kind": "local",
-    "href": "source/specs/widget.json",
-    "size": 18,
-    "sha256": "85803e087e684bdab3e5d6c2dd1af627da83382db625be9a42aea3d4d06539be"
-  }
-}
-```
-
-**`registry-metadata/versions.json`**
-
-```json
-{
-  "format": "xregistry-document-tree",
-  "formatversion": "1",
-  "kind": "collection",
-  "xid": "/documents/main/assets/widget/versions",
-  "count": 1,
-  "entries": [
-    {
-      "kind": "version",
-      "xid": "/documents/main/assets/widget/versions/v1",
-      "href": "source/specs/widget.registry.json",
-      "size": 580,
-      "sha256": "6587872b270d75ecaa6be1028518d47bff4ac282379d89f1c34c6efce8c1b70f"
-    }
-  ]
-}
-```
-
-**`registry-metadata/widget-meta.json`**
-
-```json
-{
-  "format": "xregistry-document-tree",
-  "formatversion": "1",
-  "kind": "meta",
-  "entity": {
-    "xid": "/documents/main/assets/widget/meta",
-    "assetid": "widget",
-    "epoch": 1,
-    "createdat": "2026-01-01T00:00:00Z",
-    "modifiedat": "2026-01-01T00:00:00Z",
-    "readonly": true,
-    "defaultversionid": "v1",
-    "defaultversionsticky": true
-  }
-}
-```
-
-**`registry-metadata/widget.json`**
-
-```json
-{
-  "format": "xregistry-document-tree",
-  "formatversion": "1",
-  "kind": "resource",
-  "entity": {
-    "xid": "/documents/main/assets/widget",
-    "assetid": "widget"
-  },
-  "meta": {
-    "kind": "meta",
-    "xid": "/documents/main/assets/widget/meta",
-    "href": "registry-metadata/widget-meta.json",
-    "size": 361,
-    "sha256": "9a34e98106eef18aa64b07c5878d75c0a5dfd96f3823750584709365b2681895"
-  },
-  "collections": [
-    {
-      "kind": "collection",
-      "xid": "/documents/main/assets/widget/versions",
-      "href": "registry-metadata/versions.json",
-      "size": 423,
-      "sha256": "08a43de17e9d6630a57b315a47583e1b1c785b965df05c91823900807cbe2010"
-    }
-  ]
-}
-```
-
-**`registry-metadata/assets.json`**
-
-```json
-{
-  "format": "xregistry-document-tree",
-  "formatversion": "1",
-  "kind": "collection",
-  "xid": "/documents/main/assets",
-  "count": 1,
-  "entries": [
-    {
-      "kind": "resource",
-      "xid": "/documents/main/assets/widget",
-      "href": "registry-metadata/widget.json",
-      "size": 679,
-      "sha256": "630d2ea1e6d94f89c75a3c56a74a713c4b232a81fb3fff874a83320405b9efdb"
-    }
-  ]
-}
-```
-
-**`registry-metadata/main.json`**
-
-```json
-{
-  "format": "xregistry-document-tree",
-  "formatversion": "1",
-  "kind": "group",
-  "entity": {
-    "xid": "/documents/main",
-    "documentid": "main",
-    "epoch": 1,
-    "createdat": "2026-01-01T00:00:00Z",
-    "modifiedat": "2026-01-01T00:00:00Z"
-  },
-  "collections": [
-    {
-      "kind": "collection",
-      "xid": "/documents/main/assets",
-      "href": "registry-metadata/assets.json",
-      "size": 392,
-      "sha256": "72c43f08dd89af2c16b51ab9dc21fc36b7901ab475cae7ebb9e610c6a6cc9626"
-    }
-  ]
-}
-```
-
-**`registry-metadata/groups.json`**
-
-```json
-{
-  "format": "xregistry-document-tree",
-  "formatversion": "1",
-  "kind": "collection",
-  "xid": "/documents",
-  "count": 1,
-  "entries": [
-    {
-      "kind": "group",
-      "xid": "/documents/main",
-      "href": "registry-metadata/main.json",
-      "size": 510,
-      "sha256": "b963e9db3e1ecdebe20c78be39d0fd98b26d2beb1338e06223b92e9164666d04"
-    }
-  ]
-}
-```
+Figure 1 (informative): reference edges in the two-file example. Each solid
+edge inside `registry.json` is an inline reference. The edge to
+`source/specs/widget.json` is the Version's document descriptor, which
+carries `href`, `size` and `sha256`. The dashed edge selects a Version and
+is not a reference. Unreferenced project files are outside this graph. The
+[read rules](#reads-and-core-document-view) assemble metadata from these
+records without treating storage paths or nesting as entity navigation.
 
 **`registry.json`**
 
@@ -406,18 +240,130 @@ from these records without treating storage paths as entity navigation.
     {
       "kind": "collection",
       "xid": "/documents",
-      "href": "registry-metadata/groups.json",
-      "size": 361,
-      "sha256": "edafff00fe4486be418968a4d3b770ff40a3b60c75ddc015f34252cca1c8c330"
+      "inline": {
+        "format": "xregistry-document-tree",
+        "formatversion": "1",
+        "kind": "collection",
+        "xid": "/documents",
+        "count": 1,
+        "entries": [
+          {
+            "kind": "group",
+            "xid": "/documents/main",
+            "inline": {
+              "format": "xregistry-document-tree",
+              "formatversion": "1",
+              "kind": "group",
+              "entity": {
+                "xid": "/documents/main",
+                "documentid": "main",
+                "epoch": 1,
+                "createdat": "2026-01-01T00:00:00Z",
+                "modifiedat": "2026-01-01T00:00:00Z"
+              },
+              "collections": [
+                {
+                  "kind": "collection",
+                  "xid": "/documents/main/assets",
+                  "inline": {
+                    "format": "xregistry-document-tree",
+                    "formatversion": "1",
+                    "kind": "collection",
+                    "xid": "/documents/main/assets",
+                    "count": 1,
+                    "entries": [
+                      {
+                        "kind": "resource",
+                        "xid": "/documents/main/assets/widget",
+                        "inline": {
+                          "format": "xregistry-document-tree",
+                          "formatversion": "1",
+                          "kind": "resource",
+                          "entity": {
+                            "xid": "/documents/main/assets/widget",
+                            "assetid": "widget"
+                          },
+                          "meta": {
+                            "kind": "meta",
+                            "xid": "/documents/main/assets/widget/meta",
+                            "inline": {
+                              "format": "xregistry-document-tree",
+                              "formatversion": "1",
+                              "kind": "meta",
+                              "entity": {
+                                "xid": "/documents/main/assets/widget/meta",
+                                "assetid": "widget",
+                                "epoch": 1,
+                                "createdat": "2026-01-01T00:00:00Z",
+                                "modifiedat": "2026-01-01T00:00:00Z",
+                                "readonly": true,
+                                "defaultversionid": "v1",
+                                "defaultversionsticky": true
+                              }
+                            }
+                          },
+                          "collections": [
+                            {
+                              "kind": "collection",
+                              "xid": "/documents/main/assets/widget/versions",
+                              "inline": {
+                                "format": "xregistry-document-tree",
+                                "formatversion": "1",
+                                "kind": "collection",
+                                "xid": "/documents/main/assets/widget/versions",
+                                "count": 1,
+                                "entries": [
+                                  {
+                                    "kind": "version",
+                                    "xid": "/documents/main/assets/widget/versions/v1",
+                                    "inline": {
+                                      "format": "xregistry-document-tree",
+                                      "formatversion": "1",
+                                      "kind": "version",
+                                      "entity": {
+                                        "xid": "/documents/main/assets/widget/versions/v1",
+                                        "assetid": "widget",
+                                        "versionid": "v1",
+                                        "epoch": 1,
+                                        "createdat": "2026-01-01T00:00:00Z",
+                                        "modifiedat": "2026-01-01T00:00:00Z",
+                                        "ancestorid": "v1",
+                                        "isdefault": true,
+                                        "contenttype": "application/schema+json"
+                                      },
+                                      "document": {
+                                        "kind": "local",
+                                        "href": "source/specs/widget.json",
+                                        "size": 18,
+                                        "sha256": "85803e087e684bdab3e5d6c2dd1af627da83382db625be9a42aea3d4d06539be"
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
     }
   ]
 }
 ```
 
-The root declares the model and references the `documents` collection.
-That collection leads to Group `main`, then its `assets` collection,
-Resource `widget`, the Resource's Meta and its Versions. The Meta names
-`v1` as the default. The Version record points to the unchanged file.
+The root declares the model and holds the `documents` collection inline.
+That collection holds Group `main`, then its `assets` collection, Resource
+`widget`, the Resource's Meta and its Versions. Each inline reference keeps
+its `kind` and `xid` and carries the complete record or index, with its own
+`format` and `formatversion`, in `inline`. The Meta names `v1` as the
+default. The Version record points to the unchanged file.
 
 ### 3. Read Metadata or Document Bytes
 
@@ -456,10 +402,76 @@ bytes because its Meta selects `v1`. These are read-operation concepts,
 not additional HTTP routes. A server exposing this mapping uses its
 consumer-facing binding to deliver the corresponding response.
 
-The eight mapping files and the document form the complete declared
-Registry in this example. Other project files are unaffected. If
-`widget.json` later changes, its old size/digest no longer matches and
-the reader reports `integrity_error` until the mapping is updated.
+`registry.json` and the document form the complete declared Registry in
+this example. Other project files are unaffected. If `widget.json` later
+changes, its old size/digest no longer matches and the reader reports
+`integrity_error` until the mapping is updated.
+
+### 4. Store One Collection in a Separate File
+
+Inline and external references can be mixed. To keep the Version
+collection in its own file, replace the inline `versions` reference in the
+Resource record with an external reference:
+
+```json
+{
+  "kind": "collection",
+  "xid": "/documents/main/assets/widget/versions",
+  "href": "registry-metadata/versions.json",
+  "size": 992,
+  "sha256": "bf7cbc89663f43fad90dbc8b6695b8de658c1adf79d5335afded0fce19bae1d4"
+}
+```
+
+`registry-metadata/versions.json` then contains the complete index, with
+the Version record still inline. It is 992 bytes with SHA-256
+`bf7cbc89663f43fad90dbc8b6695b8de658c1adf79d5335afded0fce19bae1d4`:
+
+```json
+{
+  "format": "xregistry-document-tree",
+  "formatversion": "1",
+  "kind": "collection",
+  "xid": "/documents/main/assets/widget/versions",
+  "count": 1,
+  "entries": [
+    {
+      "kind": "version",
+      "xid": "/documents/main/assets/widget/versions/v1",
+      "inline": {
+        "format": "xregistry-document-tree",
+        "formatversion": "1",
+        "kind": "version",
+        "entity": {
+          "xid": "/documents/main/assets/widget/versions/v1",
+          "assetid": "widget",
+          "versionid": "v1",
+          "epoch": 1,
+          "createdat": "2026-01-01T00:00:00Z",
+          "modifiedat": "2026-01-01T00:00:00Z",
+          "ancestorid": "v1",
+          "isdefault": true,
+          "contenttype": "application/schema+json"
+        },
+        "document": {
+          "kind": "local",
+          "href": "source/specs/widget.json",
+          "size": 18,
+          "sha256": "85803e087e684bdab3e5d6c2dd1af627da83382db625be9a42aea3d4d06539be"
+        }
+      }
+    }
+  ]
+}
+```
+
+The changed `registry.json` is 4302 bytes with SHA-256
+`002d2a3bd4abbe0e2822e829925346bc4380a4c7380848a9bc2494c74026bfea`.
+Reads return the same metadata and document bytes. A reader opens
+`registry-metadata/versions.json` only when a request reaches the Version
+collection. Storing every record and index in its own file, the split form,
+is equally valid. It produces eight metadata files for this example,
+including `registry.json`.
 
 <!-- mapping-walkthrough:end -->
 
@@ -470,36 +482,42 @@ The selected directory MUST contain `registry.json`. Its record MUST have
 endpoint select this same directory. Neither adds an implicit extra directory.
 
 Every internal `href` is relative to that selected root, including references
-in nested records. It is NOT relative to the referring file. The `/` separator
+in nested records and inline objects. It is NOT relative to the referring
+file. The `/` separator
 in these serialized storage names is a format separator. Filesystem bindings
 translate it to their native separator without URI decoding.
 
 Apart from the entry-point filename, this format prescribes no directory
 names, file extensions or correspondence between physical and Registry
-hierarchies. Each record/index `href` identifies the complete metadata JSON
-document at that location. Each local Version document `href` identifies a
-regular file anywhere within the selected root, regardless of its extension
-or domain format.
+hierarchies. The `href` of an external record or index reference identifies
+the complete metadata JSON document at that location. An inline reference
+has no `href` and allocates no file. Each local Version document `href`
+identifies a regular file anywhere within the selected root, regardless of
+its extension or domain format.
 
 Paths MUST be nonempty, normalized root-relative strings with `/` separators.
 They MUST NOT be absolute, contain empty components, `.` or `..` components,
 backslashes, NUL/control characters or surrogate code points. A consumer
-MUST NOT apply URI decoding. It MUST reject encoded separator/dot traversal
-tricks.
+MUST NOT apply URI decoding. It MUST reject percent encodings that could be
+interpreted as separators or parent-path components, such as `%2f`, `%5c`
+and `%2e%2e`, as described in
+[Security and Conformance](#security-and-conformance).
 Portable paths MUST NOT contain `<>:"|?*`, end a component with a space or
 period, or use Windows device names such as `CON` and `NUL`.
 Other Unicode names and spaces within components are permitted. Platform
 path-length and access limits produce explicit errors.
 
-Metadata files describing different records or indexes MUST have distinct
-paths. Paths whose spellings differ only by case MUST NOT designate different
-mapping objects, because such mappings are ambiguous on case-insensitive
-filesystems. Several Versions MAY reference the same local document file
-using the same path and identical size/digest values. A producer MUST NOT
-also allocate a document path to a metadata record or index.
+Only external references allocate paths. An inline object occupies no path
+of its own. Metadata files describing different records or indexes MUST have
+distinct paths. Paths whose spellings differ only by case MUST NOT
+designate different mapping objects, because such mappings are ambiguous on
+case-insensitive filesystems. Several Versions MAY reference the same local
+document file using the same path and identical size/digest values. A
+producer MUST NOT also allocate a document path to a metadata record or
+index.
 
 An index maps a full, case-sensitive [XID](../../core/spec.md#xid-attribute)
-to a storage path. That path is not
+to a storage path or an inline object. A storage path is not
 derived from the entity ID. The mapping therefore supports all Core-valid
 [IDs](../../core/spec.md#singularid-id-attribute), including IDs that are not
 portable filesystem names. The same local ID
@@ -517,16 +535,20 @@ filename rules.
 An implementation unable to represent the total path length or object count MUST report
 `limit_exceeded`. It MUST NOT truncate, normalize or replace an entity ID.
 
-The example generator uses `records/`, `indexes/` and `documents/` directories,
-with opaque hexadecimal allocations such as `records/n1a.json`. This avoids
-name collisions when generating a new tree. It is a producer convention, not
-a restriction on existing files or on other conforming mappings.
+By default, the example generator writes every record and index to its own
+file. It uses `records/`, `indexes/` and `documents/` directories, with
+opaque hexadecimal allocations such as `records/n1a.json`. This avoids name
+collisions when generating a new tree. When the generator embeds a target
+inline, it allocates no file for it. These are producer conventions, not
+restrictions on existing files or on other conforming mappings.
 
 ## Record and Index Documents
 
 All record and index documents MUST be UTF-8 JSON objects without a byte order
-mark, duplicate keys or non-JSON numbers. Each has
-`format: "xregistry-document-tree"` and `formatversion: "1"`.
+mark, duplicate keys or non-JSON numbers. An inline record or index is part of
+its containing file and follows that file's JSON rules. Each record and index
+has `format: "xregistry-document-tree"` and `formatversion: "1"`, including
+an inline one.
 An unknown version MUST produce `unsupported_version`.
 
 An entity record contains `kind` and `entity`. `entity` is a storage fragment
@@ -575,20 +597,39 @@ owns no local Versions.
 
 Meta and Version records have no `collections` or `meta` reference.
 
-Each reference has exactly these fields:
+Each reference has `kind` and `xid`, plus the fields of exactly one form.
+An external reference stores its target in a separate file. An inline
+reference embeds its target:
 
-| Field | Meaning |
-| --- | --- |
-| `kind` | `collection`, `group`, `resource`, `meta` or `version`. |
-| `xid` | Full entity XID, or full typed collection path. |
-| `href` | Normalized path relative to the selected directory root. |
-| `size` | Nonnegative integer count of exact encoded file bytes. |
-| `sha256` | 64 lowercase hexadecimal digits hashing those exact bytes. |
+| Field | Form | Meaning |
+| --- | --- | --- |
+| `kind` | Both | `collection`, `group`, `resource`, `meta` or `version`. |
+| `xid` | Both | Full entity XID, or full typed collection path. |
+| `href` | External | Normalized path relative to the selected directory root. |
+| `size` | External | Nonnegative integer count of exact encoded file bytes. |
+| `sha256` | External | 64 lowercase hexadecimal digits hashing those exact bytes. |
+| `inline` | Inline | The complete referenced record or index object. |
+
+An external reference has exactly `kind`, `xid`, `href`, `size` and
+`sha256`. An inline reference has exactly `kind`, `xid` and `inline`.
+A reference MUST use exactly one form. A reference that mixes fields of both
+forms, or an external reference that lacks `href`, `size` or `sha256`, is
+`invalid_package`. The external form names a file inside the selected root.
+It is unrelated to the `external` document descriptor kind.
 
 The reference's kind and XID MUST equal the referenced object's kind and XID.
-Its role comes from this metadata, not its directory name or file extension.
-Both `size` and `sha256` are REQUIRED, including for zero-byte content.
-There is no external form of a metadata or collection reference.
+Its role comes from this metadata, not its directory name, file extension or
+nesting position. In the external form, both `size` and `sha256` are
+REQUIRED, including for zero-byte content.
+
+An inline target is a complete record or index document. It MUST have the
+same `format` and `formatversion` as the object that contains it. A mismatch
+is `invalid_package`. Inline references nest: an inline record or index can
+itself contain inline or external references. The root of this nesting is
+always the Registry record in `registry.json`, which is never an inline
+object. A complete Registry can therefore be stored in `registry.json`
+alone. Neither form can point outside the selected root. A metadata or
+collection reference has no URI form.
 
 A collection index has:
 
@@ -604,6 +645,7 @@ Each entry MUST name an immediate member of this collection with the correct
 kind. References in both `entries` and `collections` MUST be strictly sorted
 by unsigned UTF-8 bytes of the full XID. Duplicate XIDs, case-insensitive
 sibling ID collisions and conflicting metadata storage allocations are invalid.
+These rules apply to inline and external references alike.
 
 For example, this complete empty index is valid:
 
@@ -714,7 +756,7 @@ Consumers MUST NOT decode, reserialize, newline-convert or replace binary
 and JSON bytes with an empty JSON wrapper. The Version's `contenttype`,
 if present, describes the bytes independently of the file's extension.
 
-For `hasdocument: false`, `document.kind` MUST be `none`; the Core document
+For `hasdocument: false`, `document.kind` MUST be `none`. The Core document
 attributes do not apply. Consumers MUST preserve and validate ordinary
 model-admitted metadata named `<RESOURCE>`, `<RESOURCE>base64` or
 `<RESOURCE>url` as metadata. Consumers MUST NOT decode or dereference it as
@@ -732,11 +774,15 @@ An exact read walks the Registry record, the necessary typed collection
 indexes and selected child records. A Version read MUST NOT require reading
 unrelated domain bytes. A consumer MAY scan a collection index in memory.
 The format defines one complete index per collection and no pagination.
+An inline object arrives with its containing file and costs no further file
+read. Following an external reference reads its file once.
 
 If a configured limit prevents a consumer from reading the complete index
 or the records needed for its request, the consumer MUST return
 `limit_exceeded`. It MUST NOT return the subset already read as a complete
-collection or use that subset to claim a unique match.
+collection or use that subset to claim a unique match. The inline nesting
+depth within one file and the cumulative number of decoded metadata objects
+are such limits, in addition to file count and byte limits.
 
 The following materialization defines the metadata result envelope. The
 envelope is not a new wire API. It keeps storage and transport context outside
@@ -798,10 +844,10 @@ records:
 
 | Request to an alias | Result |
 | --- | --- |
-| `entity` on the Resource or its Meta | Minimal source identity; the Resource's Meta retains `xref`, not target metadata. |
+| `entity` on the Resource or its Meta | Minimal source identity. The Resource's Meta retains `xref`, not target metadata. |
 | `collection` on its `versions` | `unsupported_operation`, retaining Core [`cannot_doc_xref`](../../core/spec.md#cannot_doc_xref). |
 | `document` on the logical Resource | The one-hop target's selected bytes, when available. |
-| `document` when the target is absent or itself an alias | `not_found`; the source metadata still exists. |
+| `document` when the target is absent or itself an alias | `not_found`. The source metadata still exists. |
 
 Resource label selection uses effective default-Version metadata, applying
 one-hop alias semantics where applicable. It does not inspect only the reduced
@@ -825,10 +871,12 @@ present in the selected directory. Only files reached through the mapping's
 references participate in its completeness and integrity checks. Existing
 unreferenced project files remain outside that graph.
 
-Only the mapping's record, index and local-document references identify files
-that belong to its stored Registry graph. These references are the graph's
-containment edges. For example, `registry.json` links to a collection index,
-and a Version record links to its local document file.
+Only the mapping's external record and index references and its
+local-document descriptors identify files that belong to its stored Registry
+graph. Together with inline references, which stay inside their containing
+file, they are the graph's containment edges. For example, `registry.json`
+links to a collection index, and a Version record links to its local
+document file.
 
 External catalog advertisements, provenance URLs and links embedded inside
 domain bytes are not such references. Offline completeness does not require
@@ -840,11 +888,14 @@ read validates its visited path but MUST NOT claim to have independently
 audited unvisited graph closure.
 
 Consumers MUST verify length and SHA-256 before parsing or returning each
-internally referenced object. Root bytes are captured once per operation.
+internally referenced file. An inline object has no separate size or digest.
+The bytes of its containing file cover it. Root bytes are captured once per
+operation.
 Their SHA-256 identifies that root serialization, not universal semantic
 identity or publisher authenticity.
 
-Every descendant is pinned transitively by its parent descriptor. Newly
+Every external descendant is pinned transitively by its parent's
+reference, and every inline descendant by its containing file. Newly
 published states MUST be complete without
 replaying a prior snapshot. Shared content reuse does not relax closure.
 
@@ -873,7 +924,9 @@ as separators or parent-path components, such as `%2f`, `%5c` and `%2e%2e`,
 are also rejected. The reader does not decode an `href` as a URI.
 
 Bindings define access to the selected root and race protection. Consumers
-MUST impose explicit file, byte and traversal limits. Integrity checks do not
+MUST impose explicit file, byte and traversal limits. Traversal limits cover
+inline nesting depth, counted within each containing file, and the cumulative
+number of decoded metadata objects. Integrity checks do not
 ensure authorized filesystem access or establish publisher trust. Before
 retrieving an external URI, the consumer MUST check that destination against
 its access policy and use only credentials authorized for that destination.
@@ -886,7 +939,8 @@ requirement to implement a server or an API-view facade.
 
 ## Executable Example
 
-The [shared fixture](samples/mapping/registry.json) contains:
+The [shared fixture](samples/mapping/registry.json) uses the split form,
+with every record and index in its own file. It contains:
 
 - Typed collections.
 - Explicit defaults.
@@ -925,6 +979,41 @@ and `collection` return the materialized envelopes above. `document` returns
 without fetching it. `reads` exposes storage-file reads so tests can
 distinguish full validation from selective retrieval. CLI JSON metadata
 includes this trace outside `entity`, without moving the pointer root.
+
+`DocumentTree(store, max_inline_depth=8, max_objects=65536)` bounds each
+reader. The depth limit applies within each containing file. The object
+limit counts every decoded record and index, cumulatively across files.
+`reader.objects` reports that count. Exceeding either limit raises
+`limit_exceeded`. The reader then returns no partial result. The store
+separately bounds file count and bytes. Reading a metadata file checks every
+inline object it contains before any of them is used.
+
+`encode_tree(records, documents, inline=False, paths=None,
+document_paths=None, gitattributes=...)` selects the stored form:
+
+| Option | Effect |
+| --- | --- |
+| `inline=False` | Split form. Every record and index is a separate file. |
+| `inline=True` | Every record and index is embedded in `registry.json`. |
+| `inline` set of XIDs | Only the listed records and collections are embedded. The Registry XID `/` is not accepted. |
+| `inline` predicate | A `(kind, xid)` function returns `True` to embed a target. |
+| `paths` | Storage names for external records and indexes, by XID. |
+| `document_paths` | Storage names for local documents, by Version XID, such as an existing file. |
+| `gitattributes=None` | Omits the generated `.gitattributes` file. |
+
+The encoder rejects unknown XIDs, unused path overrides and colliding paths
+with `invalid_package`. The
+[walkthrough tests](tools/test_mapping_spec_examples.py) use these options
+to rebuild the inline walkthrough, its mixed variant and its split form
+from the same records.
+
+`build-sample` writes the shared fixture in the split form. With `--inline`,
+it writes the same Registry as a single `registry.json`, plus `.gitattributes`
+and the document files:
+
+```text
+python -B -m workingdrafts.bindings.tools.mapping_examples build-sample OUTPUT --inline
+```
 
 The helper checks the storage schemas and relevant Core semantics, not every
 extension constraint in an arbitrary domain model. Full model validation

@@ -16,7 +16,6 @@ from pathlib import Path
 from urllib.parse import quote, unquote_to_bytes, urlsplit
 
 from jsonschema import Draft202012Validator, FormatChecker
-from jsonschema.exceptions import ValidationError
 from referencing import Registry, Resource
 
 from workingdrafts.federation.tools.federation_examples import (
@@ -35,6 +34,7 @@ FORMAT = "xregistry-document-tree"
 FORMAT_VERSION = "1"
 CORE_VERSION = "1.0-rc4"
 _SCHEMAS = Path(__file__).resolve().parents[1] / "schemas"
+_GITATTRIBUTES = b"*.json text eol=lf\ndocuments/** -text\n"
 _DEVICE = re.compile(r"(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)", re.I)
 _OID = re.compile(r"(?:[0-9a-fA-F]{40}|[0-9a-fA-F]{64})\Z")
 _STAMP_FIELDS = ("st_dev", "st_ino", "st_mode", "st_size", "st_mtime_ns")
@@ -569,12 +569,26 @@ def _pointer(path, token):
 
 
 class DocumentTree:
-    """Schema-checked selective reads and explicit Core metadata assembly."""
+    """Schema-checked selective reads and explicit Core metadata assembly.
 
-    def __init__(self, store):
+    A reference is external (``href``, ``size``, ``sha256``) or inline (the
+    complete target object). Both forms resolve through ``_read_ref``. Each
+    metadata file is verified once and checked completely, including every
+    inline object it contains; external children are read only on demand.
+    """
+
+    def __init__(self, store, *, max_inline_depth=8, max_objects=65536):
+        for limit in (max_inline_depth, max_objects):
+            _require(type(limit) is int and limit > 0, "Limits must be positive integers")
         self.store = store
+        self.max_inline_depth = max_inline_depth
+        self.max_objects = max_objects
+        self.objects = 0
         self._validators = _validators()
-        self._cache = {}
+        self._files = {}
+        self._objects = {}
+        self._origins = {}
+        self._contained = {}
         self._allocations = {}
         data = store.read("registry.json")
         self.root_sha256 = hashlib.sha256(data).hexdigest()
@@ -610,8 +624,10 @@ class DocumentTree:
                      "Invalid Resource imports")
         for name in self.groups:
             self._resources(name)
-        self._check_record(self.root)
-        self._cache["registry.json"] = (data, self.root)
+        self._allocations["registry.json"] = (
+            "registry.json", "records", "registry", "/", len(data), self.root_sha256,
+        )
+        self._admit(self.root, "registry.json", data)
 
     @property
     def reads(self):
@@ -622,24 +638,81 @@ class DocumentTree:
         _require(value.get("format") == FORMAT, "Unknown document-tree format")
         _require(value.get("formatversion") == FORMAT_VERSION,
                  "Unknown document-tree version", "unsupported_version")
-        references = []
-        for field in ("entries", "collections"):
-            if isinstance(value.get(field), list):
-                references.extend(value[field])
-        references.extend(value.get(field) for field in ("meta", "document"))
-        for reference in references:
-            if isinstance(reference, dict) and "href" in reference:
-                _storage_name(reference["href"])
+        contained = self._scan(value)
         schema = "index" if value.get("kind") == "collection" else "record"
         try:
-            self._validators[schema].validate(value)
-        except ValidationError as error:
+            error = next(self._validators[schema].iter_errors(value), None)
+        except RecursionError as caught:
+            raise FederationError("limit_exceeded", "Schema nesting limit") from caught
+        if error is not None:
+            error = self._specific(error)
             location = "/".join(str(part) for part in error.absolute_path)
             raise FederationError(
                 "invalid_package", f"Schema violation in {name} at /{location}: "
                 f"{error.validator}"
-            ) from error
+            )
+        self._contained[name] = contained
+        for reference, pointer in contained:
+            self._origins[id(reference)] = (reference, name, pointer)
         return value
+
+    @staticmethod
+    def _form(reference):
+        external = [field in reference for field in ("href", "size", "sha256")]
+        if "inline" in reference:
+            _require(not any(external), "Reference mixes inline and external forms")
+            return "inline"
+        _require(any(external), "Reference has no inline or external form")
+        _require(all(external), "Incomplete external reference")
+        return "external"
+
+    def _scan(self, value):
+        """Bound one decoded file and list its inline references in document order."""
+        contained = []
+        pending = [(value, "", 0)]
+        while pending:
+            current, pointer, depth = pending.pop()
+            self.objects += 1
+            _require(self.objects <= self.max_objects, "Metadata object limit",
+                     "limit_exceeded")
+            references = []
+            for field in ("entries", "collections"):
+                if isinstance(current.get(field), list):
+                    references.extend(
+                        (f"{pointer}/{field}/{number}", item)
+                        for number, item in enumerate(current[field])
+                    )
+            if "meta" in current:
+                references.append((pointer + "/meta", current["meta"]))
+            for item in [item for _, item in references] + [current.get("document")]:
+                if isinstance(item, dict) and "href" in item:
+                    _storage_name(item["href"])
+            children = []
+            for location, item in references:
+                if not isinstance(item, dict) or self._form(item) == "external":
+                    continue
+                target = item["inline"]
+                _require(isinstance(target, dict), "Inline reference target must be an object")
+                _require(target.get("format") == value["format"]
+                         and target.get("formatversion") == value["formatversion"],
+                         "Inline format or version differs from container")
+                _require(depth < self.max_inline_depth, "Inline nesting depth limit",
+                         "limit_exceeded")
+                contained.append((item, location))
+                children.append((target, location + "/inline", depth + 1))
+            pending.extend(reversed(children))
+        return contained
+
+    def _specific(self, error):
+        """Report the failing branch of a reference, not the bare oneOf."""
+        branches = self._validators["record"].schema["$defs"]["reference"]["oneOf"]
+        while error.validator == "oneOf" and error.validator_value == branches:
+            branch = int(isinstance(error.instance, dict) and "inline" in error.instance)
+            candidates = [item for item in error.context if item.relative_schema_path[0] == branch]
+            if not candidates:
+                break
+            error = candidates[0]
+        return error
 
     def _resources(self, group_name):
         group = self.groups[group_name]
@@ -735,7 +808,7 @@ class DocumentTree:
                          "Resource contains inherited or extra metadata")
                 _require(same_xid(record["meta"]["xid"], xid + "/meta"),
                          "Wrong Meta reference")
-                self._allocate(record["meta"], "records")
+                self._reference(record["meta"], "records")
                 names = ["versions"] if record["collections"] else []
             elif kind == "meta" and "xref" in entity:
                 _require(set(entity) == {"xid", id_name, "xref"},
@@ -757,7 +830,7 @@ class DocumentTree:
                 "Missing or unexpected modeled collection",
             )
             for reference in record["collections"]:
-                self._allocate(reference, "indexes")
+                self._reference(reference, "indexes")
         for name in names:
             _require(not {name, name + "url", name + "count"} & entity.keys(),
                      "Storage contains inline collection or navigation")
@@ -808,11 +881,16 @@ class DocumentTree:
                      "Index entry is not an immediate typed member")
             _require(parts[-1].casefold() not in folded, "Case-insensitive sibling collision")
             folded.add(parts[-1].casefold())
-            self._allocate(reference, "records")
+            self._reference(reference, "records")
+
+    def _reference(self, reference, namespace):
+        """Allocate external targets. An inline target allocates no file."""
+        if self._form(reference) == "external":
+            self._allocate(reference, namespace)
 
     def _bytes(self, reference):
         name = reference["href"]
-        data = self._cache[name][0] if name in self._cache else self.store.read(name)
+        data = self._files[name] if name in self._files else self.store.read(name)
         _require(
             len(data) == reference["size"]
             and hashlib.sha256(data).hexdigest() == reference["sha256"],
@@ -820,21 +898,46 @@ class DocumentTree:
         )
         return data
 
-    def _read_ref(self, reference):
-        data = self._bytes(reference)
-        name = reference["href"]
-        if name not in self._cache:
-            value = self._decode(data, name)
-            if value["kind"] == "collection":
-                self._check_index(value)
-            else:
-                self._check_record(value)
-            self._cache[name] = (data, value)
-        value = self._cache[name][1]
+    def _check(self, value):
+        if value["kind"] == "collection":
+            self._check_index(value)
+        else:
+            self._check_record(value)
+        return value
+
+    @staticmethod
+    def _agree(reference, value):
         xid = value["xid"] if value["kind"] == "collection" else value["entity"]["xid"]
         _require(value["kind"] == reference["kind"] and same_xid(
             xid, reference["xid"], collection=value["kind"] == "collection"),
                  "Reference and stored object disagree")
+
+    def _admit(self, value, name, data):
+        """Check one verified file and every inline object it contains."""
+        checked = {(name, ""): self._check(value)}
+        for reference, pointer in self._contained.pop(name):
+            target = self._check(reference["inline"])
+            self._agree(reference, target)
+            checked[(name, pointer + "/inline")] = target
+        self._objects.update(checked)
+        self._files[name] = data
+
+    def _read_ref(self, reference):
+        """Resolve an external or inline reference through one checked path."""
+        if self._form(reference) == "external":
+            name = reference["href"]
+            data = self._bytes(reference)
+            key = (name, "")
+            if key not in self._objects:
+                self._admit(self._decode(data, name), name, data)
+        else:
+            origin = self._origins.get(id(reference))
+            _require(origin is not None and origin[0] is reference
+                     and (origin[1], origin[2] + "/inline") in self._objects,
+                     "Inline reference has no checked origin")
+            key = (origin[1], origin[2] + "/inline")
+        value = self._objects[key]
+        self._agree(reference, value)
         return value
 
     def _index(self, xid):
@@ -1077,36 +1180,103 @@ class DocumentTree:
         }
 
 
-def encode_tree(records, documents):
-    """Generate descriptor-linked fixture files from full metadata fragments."""
+def _inline_choice(selection):
+    """Return a (kind, xid) predicate and the set of selected XIDs not yet used."""
+    if type(selection) is bool:
+        return (lambda kind, xid: selection), set()
+    if callable(selection):
+        def choose(kind, xid):
+            result = selection(kind, xid)
+            _require(type(result) is bool, "Inline selector must return a boolean")
+            return result
+        return choose, set()
+    _require(not isinstance(selection, (str, bytes, dict)),
+             "Inline selection must be a boolean, a predicate or a set of XIDs")
+    try:
+        chosen = set(selection)
+    except TypeError as error:
+        raise FederationError(
+            "invalid_package",
+            "Inline selection must be a boolean, a predicate or a set of XIDs",
+        ) from error
+    _require(all(isinstance(xid, str) for xid in chosen),
+             "Inline selection must be a boolean, a predicate or a set of XIDs")
+    _require("/" not in chosen, "Registry record cannot be inline")
+    unused = set(chosen)
+
+    def choose(kind, xid):
+        unused.discard(xid)
+        return xid in chosen
+    return choose, unused
+
+
+def encode_tree(records, documents, *, inline=False, paths=None, document_paths=None,
+                gitattributes=_GITATTRIBUTES):
+    """Generate descriptor-linked fixture files from full metadata fragments.
+
+    By default every record and index is a separate file. ``inline=True``
+    embeds all metadata in ``registry.json``; a set of record or collection
+    XIDs, or a ``(kind, xid)`` predicate, embeds only the selected targets.
+    ``paths`` and ``document_paths`` override generated storage names, and
+    ``gitattributes=None`` omits the generated ``.gitattributes`` file.
+    """
     source = {}
     for record in records:
         xid = record["entity"]["xid"]
         _require(xid not in source, "Duplicate fixture record")
         source[xid] = copy.deepcopy(record)
     _require("/" in source, "Fixture needs a Registry record")
-    files = {".gitattributes": b"*.json text eol=lf\ndocuments/** -text\n"}
-    paths = {
+    choose, unused_inline = _inline_choice(inline)
+    record_paths = {
         xid: storage_path("records", number)
         for number, xid in enumerate(sorted(x for x in source if x != "/"))
     }
-    paths["/"] = "registry.json"
-    document_paths = {
+    overrides = dict(paths or {})
+    _require("/" not in overrides, "Registry record path is fixed")
+    for name in overrides.values():
+        _storage_name(name)
+    unused_paths = set(overrides)
+    stored_documents = {
         xid: storage_path("documents", number)
         for number, xid in enumerate(sorted(documents))
     }
+    for xid, name in dict(document_paths or {}).items():
+        _require(xid in documents, "Unknown fixture document path")
+        stored_documents[xid] = _storage_name(name)
+    files = {}
+    owners = {}
+
+    def store(name, data, role):
+        key = name.casefold()
+        shared = (role == "document" and owners.get(key) == (name, role)
+                  and files[name] == data)
+        _require(key not in owners or shared, "Duplicate fixture path")
+        owners[key] = (name, role)
+        files[name] = data
+
+    if gitattributes is not None:
+        _require(isinstance(gitattributes, bytes), "Fixture .gitattributes must be bytes")
+        store(".gitattributes", gitattributes, "attributes")
     model = source["/"].get("resolvedmodelsource", source["/"]["entity"]["modelsource"])
     next_index = 0
+    emitted = set()
+    emitted_documents = set()
 
-    def reference(kind, xid, path, data):
+    def reference(kind, xid, value, default):
+        if choose(kind, xid):
+            return {"kind": kind, "xid": xid, "inline": value}
+        name = overrides.get(xid, default)
+        unused_paths.discard(xid)
+        data = _json_bytes(value)
+        store(name, data, "metadata")
         return {
-            "kind": kind, "xid": xid, "href": path, "size": len(data),
+            "kind": kind, "xid": xid, "href": name, "size": len(data),
             "sha256": hashlib.sha256(data).hexdigest(),
         }
 
     def index(xid):
         nonlocal next_index
-        path = storage_path("indexes", next_index)
+        default = storage_path("indexes", next_index)
         next_index += 1
         children = [
             child for child in sorted(source)
@@ -1117,12 +1287,11 @@ def encode_tree(records, documents):
             "xid": xid, "count": len(children),
             "entries": [record(child) for child in children],
         }
-        data = _json_bytes(value)
-        files[path] = data
-        return reference("collection", xid, path, data)
+        return reference("collection", xid, value, default)
 
     def record(xid):
         _require(xid in source, "Missing fixture Meta record")
+        emitted.add(xid)
         value = copy.deepcopy(source[xid])
         kind = value["kind"]
         value = {"format": FORMAT, "formatversion": FORMAT_VERSION, **value}
@@ -1143,20 +1312,23 @@ def encode_tree(records, documents):
         elif kind == "version" and xid in documents:
             content = documents[xid]
             _require(isinstance(content, bytes), "Fixture documents must be bytes")
-            path = document_paths[xid]
-            files[path] = content
+            name = stored_documents[xid]
+            store(name, content, "document")
+            emitted_documents.add(xid)
             value["document"] = {
-                **value.get("document", {}), "kind": "local", "href": path,
+                **value.get("document", {}), "kind": "local", "href": name,
                 "size": len(content), "sha256": hashlib.sha256(content).hexdigest(),
             }
-        data = _json_bytes(value)
-        files[paths[xid]] = data
-        return reference(kind, xid, paths[xid], data)
+        if xid == "/":
+            store("registry.json", _json_bytes(value), "metadata")
+            return None
+        return reference(kind, xid, value, record_paths[xid])
 
     record("/")
-    _require(all(path in files for path in paths.values()), "Unreachable fixture record")
-    _require(all(path in files for path in document_paths.values()),
-             "Unreachable fixture document")
+    _require(set(source) <= emitted, "Unreachable fixture record")
+    _require(set(documents) <= emitted_documents, "Unreachable fixture document")
+    _require(not unused_paths, "Unused fixture path")
+    _require(not unused_inline, "Unknown inline fixture XID")
     DocumentTree(MemoryStore(files)).validate()
     return files
 
@@ -1274,9 +1446,9 @@ def sample_records():
     return records, documents
 
 
-def write_sample(root):
+def write_sample(root, *, inline=False):
     """Write generated fixture bytes. Refuse to overwrite different content."""
-    files = encode_tree(*sample_records())
+    files = encode_tree(*sample_records(), inline=inline)
     root = Path(root).absolute()
     root.mkdir(parents=True, exist_ok=True)
     _checked_path(root, directory=True)
@@ -1310,12 +1482,16 @@ def main(argv=None):
     parser.add_argument("--label")
     parser.add_argument("--value")
     parser.add_argument("--max-file-bytes", type=int, default=16 * 1024 * 1024)
+    parser.add_argument("--inline", action="store_true",
+                        help="build-sample only: embed all metadata in registry.json")
     args = parser.parse_args(argv)
     try:
+        _require(not args.inline or args.operation == "build-sample",
+                 "--inline only applies to build-sample")
         if args.operation == "build-sample":
             _require(args.root is not None and args.git_dir is None,
                      "build-sample needs a filesystem destination")
-            result = write_sample(args.root)
+            result = write_sample(args.root, inline=args.inline)
         else:
             if args.git_dir:
                 _require(args.revision is not None and args.root is None,

@@ -51,9 +51,119 @@
     {
       "kind": "collection",
       "xid": "/documents",
-      "href": "registry-metadata/groups.json",
-      "size": 361,
-      "sha256": "edafff00fe4486be418968a4d3b770ff40a3b60c75ddc015f34252cca1c8c330"
+      "inline": {
+        "format": "xregistry-document-tree",
+        "formatversion": "1",
+        "kind": "collection",
+        "xid": "/documents",
+        "count": 1,
+        "entries": [
+          {
+            "kind": "group",
+            "xid": "/documents/main",
+            "inline": {
+              "format": "xregistry-document-tree",
+              "formatversion": "1",
+              "kind": "group",
+              "entity": {
+                "xid": "/documents/main",
+                "documentid": "main",
+                "epoch": 1,
+                "createdat": "2026-01-01T00:00:00Z",
+                "modifiedat": "2026-01-01T00:00:00Z"
+              },
+              "collections": [
+                {
+                  "kind": "collection",
+                  "xid": "/documents/main/assets",
+                  "inline": {
+                    "format": "xregistry-document-tree",
+                    "formatversion": "1",
+                    "kind": "collection",
+                    "xid": "/documents/main/assets",
+                    "count": 1,
+                    "entries": [
+                      {
+                        "kind": "resource",
+                        "xid": "/documents/main/assets/widget",
+                        "inline": {
+                          "format": "xregistry-document-tree",
+                          "formatversion": "1",
+                          "kind": "resource",
+                          "entity": {
+                            "xid": "/documents/main/assets/widget",
+                            "assetid": "widget"
+                          },
+                          "meta": {
+                            "kind": "meta",
+                            "xid": "/documents/main/assets/widget/meta",
+                            "inline": {
+                              "format": "xregistry-document-tree",
+                              "formatversion": "1",
+                              "kind": "meta",
+                              "entity": {
+                                "xid": "/documents/main/assets/widget/meta",
+                                "assetid": "widget",
+                                "epoch": 1,
+                                "createdat": "2026-01-01T00:00:00Z",
+                                "modifiedat": "2026-01-01T00:00:00Z",
+                                "readonly": true,
+                                "defaultversionid": "v1",
+                                "defaultversionsticky": true
+                              }
+                            }
+                          },
+                          "collections": [
+                            {
+                              "kind": "collection",
+                              "xid": "/documents/main/assets/widget/versions",
+                              "inline": {
+                                "format": "xregistry-document-tree",
+                                "formatversion": "1",
+                                "kind": "collection",
+                                "xid": "/documents/main/assets/widget/versions",
+                                "count": 1,
+                                "entries": [
+                                  {
+                                    "kind": "version",
+                                    "xid": "/documents/main/assets/widget/versions/v1",
+                                    "inline": {
+                                      "format": "xregistry-document-tree",
+                                      "formatversion": "1",
+                                      "kind": "version",
+                                      "entity": {
+                                        "xid": "/documents/main/assets/widget/versions/v1",
+                                        "assetid": "widget",
+                                        "versionid": "v1",
+                                        "epoch": 1,
+                                        "createdat": "2026-01-01T00:00:00Z",
+                                        "modifiedat": "2026-01-01T00:00:00Z",
+                                        "ancestorid": "v1",
+                                        "isdefault": true,
+                                        "contenttype": "application/schema+json"
+                                      },
+                                      "document": {
+                                        "kind": "local",
+                                        "href": "source/specs/widget.json",
+                                        "size": 18,
+                                        "sha256": "85803e087e684bdab3e5d6c2dd1af627da83382db625be9a42aea3d4d06539be"
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
     }
   ]
 }
