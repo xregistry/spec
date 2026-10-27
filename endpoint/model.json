@@ -699,6 +699,15 @@
                 }
               }
             },
+            "HTTP/1.1": {
+              "$include": "../endpoint/model.json#/groups/endpoints/attributes/protocol/ifvalues/HTTP"
+            },
+            "HTTP/2": {
+              "$include": "../endpoint/model.json#/groups/endpoints/attributes/protocol/ifvalues/HTTP"
+            },
+            "HTTP/3": {
+              "$include": "../endpoint/model.json#/groups/endpoints/attributes/protocol/ifvalues/HTTP"
+            },
             "KAFKA": {
               "siblingattributes": {
                 "protocoloptions": {
