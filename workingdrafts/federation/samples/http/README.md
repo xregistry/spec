@@ -3,10 +3,10 @@
 <!-- words: federationerror opc opcua py ua validators website weburl -->
 <!-- words: pathlib workingdrafts -->
 
-These synthetic exchanges exercise the request mapping and response handling
-in the [HTTP federation draft](../../../bindings/http-federation.md). They
-are not captured deployment traffic and require no server, credentials or
-network access.
+These examples use synthetic exchanges to exercise the request mapping and
+response handling in the [HTTP federation draft](../../../bindings/http-federation.md).
+They do not represent captured deployment traffic and run without a server,
+credentials, or network access.
 
 ## Files
 
@@ -16,18 +16,19 @@ The model source is interpretation input, not a claim that an effective
 `/model` response omits Core's expanded fields. The metadata-only catalog and
 document-bearing assets use the same paths as the federation examples.
 
-`transcripts.json` contains named synthetic exchanges. Each `request.url`
-is absolute. `request.headers` is the complete set relevant to the example.
-Each `response.status` is the HTTP status, `headers` retains significant
-headers, and exactly one of `json`, `text` or `base64` supplies a body when
-there is one. JSON bodies describe metadata values, not a canonical JSON
-byte encoding. `text` is UTF-8 without an added newline. `base64` denotes
-exact response bytes. A response without a body member has zero body bytes.
-`expected` states the resolver outcome. It is not an HTTP response field.
+`transcripts.json` contains named synthetic exchanges. Each `request.url` is
+absolute, and `request.headers` contains the complete set of headers relevant
+to the example. `response.status` gives the HTTP status, and `response.headers`
+contains the significant response headers. When a response has a body, exactly
+one of `json`, `text`, or `base64` supplies it. `json` describes metadata
+values, not a canonical JSON byte encoding. `text` is UTF-8 without an added
+newline; `base64` denotes exact response bytes. Without a body member, the
+response has zero body bytes. The `expected` member states the resolver
+outcome; it is not a field in an HTTP response.
 
-Collection payloads are metadata maps. No transcript puts domain bytes in
-a metadata-only catalog entry. Pagination links are opaque inputs, and the
-second page can make an initially promising selection ambiguous.
+Collection payloads are metadata maps. No transcript places domain bytes in a
+metadata-only catalog entry. Pagination links are opaque. A later page can
+make an initially promising selection ambiguous.
 
 ## Concrete Read Sequences
 
@@ -49,10 +50,10 @@ GET /catalog/categories/dev/registries HTTP/1.1
 Host: catalog.example.com
 ```
 
-The JSON fixture supplies the complete second response. Applying the
-literal selector `stage=PRODUCTION` chooses `bridge`, whose label value is
-`production`. `website` has no matching label and only a `weburl`.
-There is no `filter` or `inline` request and no domain document read.
+The JSON fixture supplies the complete second response. The literal selector
+`stage=PRODUCTION` selects `bridge`, whose label value is `production`.
+`website` has no matching label and provides a `weburl`. The example includes
+no `filter` or `inline` request and reads no domain document.
 
 To observe the selection independently of the fixture's `expected` field,
 run this Python block from the repository root:
@@ -75,10 +76,10 @@ print(value["registryid"], result["pages"], len(result["trace"]))
 bridge 1 2
 ```
 
-This is one complete collection page after two fixture requests, not a
-domain-document read. The
-[selection rule](../../spec.md#selectors) still requires every necessary
-page; `later-page-ambiguity` in the fixture supplies the contrasting failure.
+The example makes two requests and receives one complete collection page; it
+reads no domain document. The [selection rule](../../spec.md#selectors) says
+the resolver must check every necessary page. The `later-page-ambiguity`
+fixture shows how a later page can make an earlier match ambiguous.
 
 The redirect example shows the credential boundary with a synthetic,
 non-secret Authorization value. The destination request carries neither
@@ -102,22 +103,21 @@ an empty replacement document. By contrast, `zero-byte-document` is an
 actual `200` with an empty document and `Content-Length: 0`.
 
 Executing `document-revalidation` through the same helper returns
-`cache_reused: true`, two traced requests and the cached bytes
+`cache_reused: true`, two traced requests, and the cached bytes
 `b'{"type":"string"}'`. The
 [HTTP consistency rules](../../../bindings/http-federation.md#http-validators-and-partial-content)
-retain the validator's representation scope; this does not establish a
+define validator scope by representation. This result does not establish a
 Registry snapshot.
 
 ## Validation and Later Test Cases
 
-The fixtures use only JSON and can be loaded with Python's standard
-library. [`http_examples.py`](../../../bindings/tools/http_examples.py)
-supplies `request_url`, `literal_filter`
-and `interpret_transcript` for offline mapping and exchange execution.
-The interpreter ignores `expected`, returns actual values and request
-traces, and raises the shared `FederationError` on failures. It supports
-contiguous range assembly and same-URL cache revalidation, not a complete
-HTTP cache. It performs no network I/O.
+Python's standard library can load the JSON fixtures.
+[`http_examples.py`](../../../bindings/tools/http_examples.py) provides
+`request_url`, `literal_filter`, and `interpret_transcript` for offline mapping
+and exchange execution. The interpreter ignores `expected` and returns actual
+values and request traces. On failures, it raises the shared `FederationError`.
+It assembles contiguous ranges and supports revalidating the cache for the same
+URL. It is not a complete HTTP cache and performs no network I/O.
 
 Use [`federation_examples.py`](../../tools/federation_examples.py) for profile
 and literal-label selection.

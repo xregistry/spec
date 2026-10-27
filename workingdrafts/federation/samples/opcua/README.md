@@ -52,8 +52,8 @@ exactly one of `expected` or `error`. `note` is informative. Kinds are
 helper's arguments. This is fixture notation, not a proposed OPC UA encoding
 or federation wire API.
 
-The export files are Core documents, not fixture-suite envelopes. They
-are not inputs to the helper's `validate` subcommand. Their local pointers
+The export files are Core documents, not fixture-suite envelopes. The
+helper's `validate` subcommand does not accept them. Their local pointers
 and identity/model constraints can be inspected independently. A `self`
 of `#` selects the document root by the empty RFC 6901 pointer. All other
 navigation pointers name actual included objects or collections.
@@ -110,12 +110,12 @@ For metadata reads, `values` maps a Property name to
 `{"status":"Good","value":...}`. The helper checks each DataValue status
 and preserves its JSON value. This is a normalized observation of Property
 Reads, not a claim that the UA Read Service accepts a Property-name map.
-`nodeId` identifies the owning entity. The underlying Property NodeIds have
-already been resolved by the fixture's mapping.
+`nodeId` identifies the owning entity. The fixture mapping resolves the
+underlying Property NodeIds.
 
 The metadata-only example's `xregurl` and structured `federationprofiles`
-are explicitly implementation-mapped Version attributes. They are not
-claimed to be base companion Properties, labels or FileType document bytes.
+are explicitly implementation-mapped Version attributes. The fixture does
+not claim them as base companion Properties, labels or FileType document bytes.
 The pinned proposal lacks a generic mapping for these typed extensions.
 The helper returns Property observations, not a complete Core serializer.
 
@@ -124,8 +124,8 @@ BrowseResult with `references` and `continuationPoint`. The initial input
 can include `requestedMaxReferencesPerNode`. BrowseNext inputs identify
 one captured token in `continuationPoints` and set
 `releaseContinuationPoints`. Tokens are Base64 or null/empty at completion.
-The same token can be reused by a server as traversal advances. It is not
-in itself a cycle. Browse references contain native addressing observations,
+A server can reuse the same token as traversal advances. Token reuse alone
+does not make it a cycle. Browse references contain native addressing observations,
 not label values.
 
 File events use `service: "Call"`, the Method BrowseName in `method`,
@@ -147,13 +147,13 @@ using `size`, `epoch`, `versionid` and/or `defaultversionid`. They stand for
 separate mapped observations around the file read, not new FileType
 Properties. In particular, the base companion proposal does not define a
 `DefaultVersionId` Property. `expectedSize` is an OPTIONAL byte count.
-An unknown Size is omitted. It is never encoded as zero.
+The helper omits an unknown Size and never encodes it as zero.
 
 A successful file result requires an explicit empty Read marking EOF and
 a successful Close. This is a deliberately stricter transcript subset than
 the general Part 20 algorithm, which can also use a reliable Size.
 Short nonempty chunks are not EOF. Errors retain their native status.
-Recorded Close cleanup is still checked. Reads using another Session,
+The helper still checks recorded Close cleanup. Reads using another Session,
 Object or handle, and reads after Close, are invalid.
 
 For example, the `show ... default-v1-short-chunks` command above returns
@@ -178,8 +178,8 @@ Registry snapshot.
 `namespace-file` with `refresh: true` starts with the parameterless
 `ExportNamespace`, then opens and reads the updated XML file. With no
 refresh it reads the existing file without claiming an update.
-NamespaceFile is not a generic Registry resolver. No standard `Import`
-is invented. The small XML payload is illustrative namespace-file content,
+NamespaceFile is not a generic Registry resolver. The fixture does not
+invent a standard `Import`. The small XML payload is illustrative namespace-file content,
 not a new NodeSet catalog domain.
 
 ## Python Interfaces
@@ -192,7 +192,7 @@ result.
 | Interface | Result and constraints |
 | --- | --- |
 | `NodeId(namespace_uri, identifier_type, identifier)` | Frozen parsed value. `.portable()` emits identifier-only namespace zero or `nsu=` form. Obtain validated instances through `parse_nodeid`. |
-| `parse_nodeid(value: str) -> NodeId` | Portable NodeId parser. Namespace indexes and server prefixes are not accepted without context. Numeric UInt32, Guid syntax, canonical Opaque Base64 and string controls/length are checked. |
+| `parse_nodeid(value: str) -> NodeId` | Portable NodeId parser. The parser rejects namespace indexes and server prefixes without context. Numeric UInt32, Guid syntax, canonical Opaque Base64 and string controls/length are checked. |
 | `validate_namespace_array(values) -> list[str]` | Nonempty ordered table, exact namespace-zero entry, unique absolute URI strings, maximum 65,536 entries. |
 | `validate_server_array(values) -> list[str]` | Nonempty ordered table of unique Application URI strings. |
 | `map_registry_root(profile, endpoint_description, namespace_array) -> dict` | `endpoint`, `applicationuri`, `transportprofileuri`, portable `registryroot` and target-local `nodeId`. Uses shared profile validation. |
@@ -230,6 +230,12 @@ it does not claim that every listed mutation has an executable test.
 | Export | Every pointer resolves locally. Resource has no default projection. Meta/Version epochs stay distinct. Same-type one-hop/dangling/chained `xref`. No remote absolute `xref`. Metadata-only Version has no document fields. |
 | NamespaceFile | Refresh then inherited file read. Existing file without refresh. Missing/denied ExportNamespace. No direct document output, fake generic Registry resolver or standard Import. |
 
-The helper intentionally does not implement live discovery, certificate or
-TypeDefinition verification, general service decoding, arbitrary export
-generation, write APIs, recursive federation or a production client.
+The helper intentionally does not implement the following:
+
+- live discovery,
+- certificate or TypeDefinition verification,
+- general service decoding,
+- arbitrary export generation,
+- write APIs,
+- recursive federation,
+- a production client.

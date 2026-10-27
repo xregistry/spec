@@ -66,10 +66,10 @@ This specification defines the shared interpretation of resolution requests.
 [directory mapping format](../bindings/mapping.md) is shared by Git and File.
 Native bindings do not require an HTTP facade.
 
-This specification does not define synchronization, replication, write-through,
-global entity identifiers, arbitrary merge precedence or discovery of
-dependencies embedded inside domain documents. OCI publication is a separate
-producer operation.
+Synchronization, replication and write-through are outside this specification's
+scope. It also does not define global entity identifiers, arbitrary merge
+precedence or discovery of dependencies embedded inside domain documents.
+OCI publication is a separate producer operation.
 
 ## Notations and Terminology
 
@@ -133,8 +133,8 @@ the client executes selection and retrieves the selected content.
 
 In this mode the producer does not contact source Registries or return their
 possible matches. An ordinary client without federation support reads only
-the supplied local view. A federation-aware client uses the catalog for
-independently maintained descriptions and access advertisements; its own
+the supplied local view. A federation-aware client uses the catalog to obtain
+independently maintained descriptions and access advertisements. Its own
 credentials and composition policy do not necessarily contain that
 information. A caller that already knows the source endpoint can instead
 bypass catalog discovery as described under [Read Operations](#read-operations).
@@ -563,8 +563,8 @@ instantaneous state. Credentials and trust are established independently.
 The Registry domain's
 [worked selection table](../models/registry/spec.md#62-advertisement-selection)
 applies this order to the
-[multi-profile catalog](../models/registry/samples/multi-profile-catalog.json):
-the implicit HTTP advertisement has priority zero even when an explicit
+[multi-profile catalog](../models/registry/samples/multi-profile-catalog.json).
+The implicit HTTP advertisement has priority zero even when an explicit
 HTTP advertisement has priority 20. Its selected description Version is
 not the target Registry's snapshot revision. Compare
 [Resource shadowing](#example-select-after-applying-shadows), which chooses
@@ -617,11 +617,14 @@ For each operation a resolver MUST:
 Origin information MUST identify the chosen advertisement, catalog-description
 Version when applicable, target XID and revision pin or the absence of an
 immutable pin. It MUST be returned separately from Core identity attributes.
+
 A library can return that information alongside the value. A producer-resolved
 service MUST document how an authorized consumer obtains the context
 associated with a result, through a binding extension or associated metadata
 interface. Keeping it only in an internal server log does not return it to
-the consumer. This draft does not standardize an HTTP header, UA node or new
+the consumer.
+
+This draft does not standardize an HTTP header, UA node or new
 Core response envelope for that purpose. An ordinary Core response alone
 therefore does not identify whether its Resource originated locally or in
 another Registry.
@@ -632,8 +635,8 @@ with an immutable publication. Implementations claiming that extension MUST
 return its checked context. This does not impose a publication write API on
 ordinary federation sources or change the resolution-owner signal.
 
-A standalone endpoint supplied by the caller MAY bypass catalog discovery,
-but MUST still establish all other context.
+A resolver MAY bypass catalog discovery when the caller supplies a standalone
+endpoint, but MUST still establish all other context.
 
 If a model is captured, the package MUST preserve enough model source to
 retain Resource type sharing. An expanded model alone can obscure
@@ -875,6 +878,7 @@ tag, branch or mutable directory name is not a revision pin. A resolver MUST
 report a live HTTP or UA endpoint without a snapshot guarantee as live, not
 as an atomic snapshot. Revision identifiers MUST NOT be substituted for
 Resource Version IDs.
+
 This report is part of the origin and revision context returned under
 [Read Operations](#read-operations), not the resolution-owner capability.
 The [source-selection example](#example-select-after-applying-shadows)
@@ -895,10 +899,10 @@ Opening a channel again is a separately identified operation.
 Several sources can each be pinned without representing a simultaneous
 capture. Reproducing a combined view requires the source pins, interpreted
 model and exact composition policy, or a separately materialized complete
-snapshot. Resource precedence remains the rule in
-[Local Resources and Ordered Sources](#local-resources-and-ordered-sources);
-it does not select compatible domain Versions or fill a winning Resource's
-missing Version from a lower-priority source.
+snapshot. Resource precedence follows
+[Local Resources and Ordered Sources](#local-resources-and-ordered-sources).
+It does not select compatible domain Versions. It also does not fill a winning
+Resource's missing Version from a lower-priority source.
 
 Publication IDs, Git commits and OCI digests are distinct. A claim that two
 bindings expose the same publication requires a checked association between
@@ -987,7 +991,7 @@ from selective lookup. A validator walking everything does not demonstrate effic
 selective resolution.
 
 The [source-selection example](tools/federation_resolution_examples.py)
-uses in-memory read functions to demonstrate local shadow precedence,
+uses in-memory read functions. It demonstrates local shadow precedence,
 ordered source misses and selection of one Resource origin for all Version
 reads. It does not introduce a federation wire API. The caller supplies
 already authorized sources with compatible model mappings.

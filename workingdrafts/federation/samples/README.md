@@ -18,23 +18,27 @@ offline; they contain no credentials or production endpoints.
 | [Source selection](../tools/federation_resolution_examples.py) | Local Resource shadows and ordered source misses, using in-memory reads. |
 
 The source-selection helper's `Source` accepts the selected view's enabled
-capabilities. With `{"federation":{"resolution":"producer"}}`, it calls the
-view's requested read directly and does not consult the source list.
-With no signal, or explicit `consumer`, it performs local-first resolution.
-A failed read does not switch resolution ownership.
+capabilities. With `{"federation":{"resolution":"producer"}}`, the helper
+reads the requested operation from that view without consulting the source
+list. With no signal or an explicit `consumer`, it checks the local view
+before configured sources. A failed read does not change the resolution owner.
 
 The `registry` object in `selection.json` is a reduced logical test vector,
-not a complete serialized Core API response. In particular, omission of
-server-generated metadata there is not permission to omit it from an API.
+not a complete serialized Core API response. It omits server-generated
+metadata; that omission does not authorize an API to omit the same metadata.
 The binding formats define their complete record representations separately.
 
-For concrete outcomes, start with the
-[HTTP selection and cache sequence](http/README.md#concrete-read-sequences),
-the [OCI selective lookup](oci/README.md#executable-helper), or the
-[UA reference remapping](opcua/README.md#reference-and-root-mapping).
-These are observed offline helper results, not deployed protocol traffic.
-The [publication walkthrough](../../publication/samples/README.md#promotion-rollback-and-an-already-open-reader)
-adds a moving channel while keeping a reader on its selected manifest.
+Use these examples to inspect concrete read outcomes:
+
+- [HTTP selection and cache sequence](http/README.md#concrete-read-sequences)
+- [OCI selective lookup](oci/README.md#executable-helper)
+- [UA reference remapping](opcua/README.md#reference-and-root-mapping)
+
+The helpers produced these results offline; they do not represent deployed
+protocol traffic. The
+[publication walkthrough](../../publication/samples/README.md#promotion-rollback-and-an-already-open-reader)
+shows how a reader can continue using its selected manifest while the channel
+moves.
 
 Run the conformance suite from the repository root:
 
@@ -52,6 +56,7 @@ independently. A passing assertion for one does not
 establish the others.
 
 OCI copying uses artifact-aware tooling and the format's standard containment
-edges. A parser accepting JSON is not evidence of whole-graph copy support.
+edges. A parser accepting JSON does not show that an implementation can copy
+the whole graph.
 The [OCI binding](../../bindings/oci.md) defines the interoperability boundary
 and local copy procedure.

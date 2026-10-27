@@ -57,12 +57,13 @@
 
 ## Abstract
 
-This specification defines an OPC UA protocol binding for the xRegistry document
-format and API [specification][xRegistry Core]. It is a peer of the
-[HTTP binding][xRegistry HTTP]. A registry, its groups, resources, versions,
-documents and attributes are discovered, read, created, updated, deleted,
-exported and federated, and their changes are reported as native OPC UA Events,
-rather than by tunnelling HTTP or CloudEvents payloads over OPC UA.
+This specification defines an OPC Unified Architecture (OPC UA) protocol binding
+for the xRegistry document format and API [specification][xRegistry Core]. It is
+a peer of the [HTTP binding][xRegistry HTTP]. A registry, its groups, resources,
+versions, documents and attributes are discovered, read, created, updated, deleted,
+exported and federated through native OPC UA operations. Their changes are
+reported as native OPC UA Events, rather than by tunnelling HTTP or CloudEvents
+payloads over OPC UA.
 
 **Status:** Unreleased working draft. The companion dependencies identified
 in [§2](#2-normative-references) are unadopted drafts, not OPC Foundation
@@ -152,6 +153,7 @@ on the AddressSpace and FileTransfer model identified in
 
 The abstract information model uses the Version 0.6.0 companion
 dependency identified there.
+
 A registry is a `RegistryType` folder (subtype of `FolderType`). Each group is
 a `GroupType` folder (subtype of `FolderType`). Each logical Resource and each
 exact Version is a distinct `ResourceType` file (subtype of `FileType`). A
@@ -161,6 +163,7 @@ permanently distinguishes the two roles, even though both use `ResourceType`
 or the same domain file subtype. Document-bearing
 Resources expose their bytes through that file interface. Metadata-only
 Resources remain readable as metadata without a fabricated domain document.
+
 Section 10.6 identifies the pinned proposal's limitations. This API
 specifies how clients interact with those nodes using Browse, BrowseNext, Read,
 Write, Call, TranslateBrowsePathsToNodeIds and the FileTransfer Methods
@@ -300,12 +303,14 @@ subtypes of `ResourceType`.
 
 An OPC UA xRegistry API is an AddressSpace subtree rooted at a selected
 `RegistryType` domain subtype instance. Each registry root represents one
-xRegistry registry; each `GroupType` child represents a group; each
-`ResourceType` child of a group represents one logical Resource; its
+xRegistry registry. Each `GroupType` child represents a group. Each
+`ResourceType` child of a group represents one logical Resource. Its
 `ResourceVersionsType` component named `Versions` contains distinct
 `ResourceType` children representing exact Versions. Both roles use the domain
 resource file subtype, but their hierarchy, BrowseName and `Xid` permanently
-identify the role. xRegistry labels and extension attributes are represented by
+identify the role.
+
+xRegistry labels and extension attributes are represented by
 Property Variables under `Labels` for registries, groups and exact Versions.
 Resource Meta is represented on the logical Resource under `MetaLabels`.
 
@@ -341,7 +346,9 @@ This separates Core's [Meta entity](../../core/spec.md#meta-entity) and
 [default Version](../../core/spec.md#default-version-of-a-resource) from
 the UA file view. [§5.14](#514-reading-and-updating-resource-metadata)
 describes updates to each owner; [§10.6](#106-pinned-companion-dependency-gaps)
-identifies the domain mappings needed for these reads. Core
+identifies the domain mappings needed for these reads.
+
+Core
 [document-view export](../../core/spec.md#doc-flag) serializes these states
 without the Resource's delegated Version projection.
 
@@ -419,16 +426,20 @@ BrowseName `Versions`.
 
 A server MUST set each group's, logical Resource's and exact Version's
 BrowseName to its identifier: `groupid`, `resourceid` or `versionid`,
-respectively, and each group's and logical Resource's DisplayName to its
-`Name`. A `groupid` and a
+respectively. A server MUST set each group's and logical Resource's DisplayName
+to its `Name`.
+
+A `groupid` and a
 `resourceid` are **symbolic identifiers** built from the entity's domain source
 identity by the companion's entity-identifier construction
-(older [public source][companion-public-source] §6.9), so they are readable,
+(older [public source][companion-public-source] §6.9). They are therefore readable,
 safe in a URL, on a command line and as a file name,
-and never derived from a document. Because Browse results carry BrowseName,
-DisplayName, NodeClass, TypeDefinition and the target NodeId, a client selects
+and never derived from a document.
+
+Browse results carry BrowseName, DisplayName, NodeClass, TypeDefinition and the
+target NodeId. A client therefore selects
 and filters entities by identity and collection directly from the Browse result
-with no Read per candidate, and renders a readable list without one either; only
+with no Read per candidate, and renders a readable list without one either. Only
 filters on a dynamic label value or another attribute not present in the Browse
 result require reading the applicable `Labels` or `MetaLabels` container or
 Properties.
@@ -474,7 +485,9 @@ governs replacement and partial updates.
 Full replacement of an entity targets the entity node or the parent from which
 the entity can be created. If the entity does not exist, the server creates a
 `GroupType` folder or atomically creates a logical Resource and its first exact
-Version; if it exists, the server updates it. Mutable Properties, `Labels`
+Version; if it exists, the server updates it.
+
+Mutable Properties, `Labels`
 entries or Resource Meta `MetaLabels` entries omitted from the replacement
 representation MUST be deleted, reset to default or left unchanged only where
 the xRegistry core rules or server-managed semantics require that behavior.
@@ -487,7 +500,9 @@ involved, by Call of
 `Labels.RemoveAttribute(Key: String, ExpectedEpoch: UInt32)` on the entity's
 `Labels` `AttributesType` object. Resource Meta labels use the corresponding
 Methods on `MetaLabels` with `ExpectedEpoch` matched against `MetaEpoch`.
-Success/failure is conveyed by the Method Call StatusCode. Partial update MUST
+Success/failure is conveyed by the Method Call StatusCode.
+
+Partial update MUST
 NOT patch arbitrary bytes inside a resource document; document content changes
 use complete replacement of the document byte stream.
 
@@ -500,7 +515,9 @@ Methods return the exact Version NodeId, `AssignedVersionId` and a handle when
 requested. The logical Resource is discovered separately under the group. After
 creation or resolution the client writes mandatory and mutable Properties,
 updates the applicable `Labels` or `MetaLabels` container, and writes document
-bytes where supplied. A server MUST apply the xRegistry atomicity rule: if one
+bytes where supplied.
+
+A server MUST apply the xRegistry atomicity rule: if one
 entity in a collection operation cannot be processed, the server SHOULD reject
 the whole operation and avoid partial effects; if the server cannot guarantee
 multi-node atomicity, it MUST advertise that limitation in `Capabilities`.
@@ -634,11 +651,16 @@ For Resource Meta label mutation through `MetaLabels.AddAttribute` and
 omitted argument disables the check.
 
 For document replacement, exclusive `Open(write)` serializes writers. An
-epoch-matched replacement sequence is: Read the exact Version `Epoch`, call
-`Open(write)` on the exact Version or logical Resource, verify that the handle
-pins the intended Version, re-Read that Version's `Epoch`, abort the staged
-replacement if the value changed, otherwise `Write` the complete replacement
-document and `Close`. `Write` and `EraseExisting` only stage bytes. A successful
+epoch-matched replacement sequence is:
+
+1. Read the exact Version `Epoch`.
+2. Call `Open(write)` on the exact Version or logical Resource.
+3. Verify that the handle pins the intended Version.
+4. Re-Read that Version's `Epoch`.
+5. Abort the staged replacement if the value changed, otherwise `Write` the
+   complete replacement document and `Close`.
+
+`Write` and `EraseExisting` only stage bytes. A successful
 `Close` commits once only when the final staged bytes differ from the committed
 bytes at `Open`; it then increments the exact Version's `Epoch` and updates
 `ModifiedAt`. A clean or rejected `Close`, an abandoned handle, or a
@@ -938,7 +960,9 @@ supplied group identifier MUST match `GroupId`. A mismatch fails with
 
 Processing nested resource collections under a group creates or updates resource
 collections under the specified group without modifying the group's own
-Properties or `Labels` container. The request representation is a map from
+Properties or `Labels` container.
+
+The request representation is a map from
 resource collection names to resource maps; for each resource entry, the client
 preferably calls `GetOrCreateResource`, writes the document if supplied, writes
 exact Version Properties or `Labels`, and writes Resource Meta Properties or
@@ -1043,8 +1067,12 @@ resource key, the preferred one-shot path is
 `GetOrCreateResource(ResourceId, VersionId, RequestFileOpen)` on the `GroupType`
 , which returns the exact Version NodeId and `AssignedVersionId`, with
 `Created = false` for an existing Version or `Created = true` for a newly
-created Version. If `RequestFileOpen = true`, the returned write file handle is
-already pinned to that exact Version and MAY be used immediately. A new
+created Version.
+
+If `RequestFileOpen = true`, the returned write file handle is
+already pinned to that exact Version and MAY be used immediately.
+
+A new
 Resource causes its logical Resource, `Versions` component and first Version to
 commit atomically in the same xRegistry operation. A new Version of an existing
 Resource is created by passing its `ResourceId` with a new or server-assigned
@@ -1216,8 +1244,9 @@ document content MUST provide a complete replacement document.
 
 The FileTransfer `Write` Calls and `EraseExisting` open mode only stage the
 replacement. The logical handle pins the default Version selected at `Open` and
-uses that exact Version's writer reservation and incarnation safeguard. A
-successful `Close` commits once only when the final staged bytes differ from
+uses that exact Version's writer reservation and incarnation safeguard.
+
+A successful `Close` commits once only when the final staged bytes differ from
 the committed bytes at `Open`; it then increments that Version's `Epoch` and
 updates its `ModifiedAt`. A clean or rejected `Close`, an abandoned handle, or
 a write-back-to-original sequence is silent.
@@ -1245,7 +1274,7 @@ A client lists Versions by resolving the logical Resource's
 `ResourceVersionsType` component with BrowseName `Versions` and Browsing its
 exact `ResourceType` children. xRegistry version collections are unordered maps
 keyed by `VersionId`; OPC UA Browse returns children in a server-defined order,
-and version order is conveyed by attributes such as `ancestor`, `createdat` and
+and version order is conveyed by attributes such as `ancestorid`, `createdat` and
 `defaultversionid`, not by container position. Each exact Version BrowseName is
 its `VersionId`, which supplies the serialized collection key.
 
@@ -1397,7 +1426,9 @@ Standard OPC UA Write and Call requests do not carry arbitrary xRegistry
 option maps. A generic client that needs `ignore` semantics MUST therefore
 either use a server-defined operation that accepts write options, or MUST
 pre-process the representation and omit ignored attributes before issuing
-standard Writes and Calls. Unsupported ignore requirements MUST fail with
+standard Writes and Calls.
+
+Unsupported ignore requirements MUST fail with
 `Bad_NotSupported` or `Bad_InvalidArgument`.
 
 ### 6.3. Inlining
@@ -1425,7 +1456,7 @@ entries.
 
 Browse order alone MUST NOT be assumed to be xRegistry sort order unless the
 server explicitly documents that behavior in `Capabilities`. Version order is
-conveyed by attributes such as `ancestor`, `createdat` and `defaultversionid`,
+conveyed by attributes such as `ancestorid`, `createdat` and `defaultversionid`,
 not by container position. A server MAY expose a domain index Property if it
 needs deterministic order.
 
@@ -1493,13 +1524,17 @@ BrowseName guess.
 For a logical Resource `ResourceType`, serialization reads delegated
 `ResourceId`, `VersionId`, `Format`, `ContentType`, `ExternalReference`,
 `ResourceUrl`, `Epoch`, `CreatedAt`, `ModifiedAt`, `Labels` and other
-default-Version Properties. It adds authoritative Resource Meta from
+default-Version Properties.
+
+It adds authoritative Resource Meta from
 `MetaEpoch`, `MetaCreatedAt`, `MetaModifiedAt`, `MetaLabels` and domain meta
 Properties on the logical Resource. It serializes the Versions collection by
 Browsing exact `ResourceType` children under `Versions`.
 
 For an exact Version, serialization reads the same normal Version Properties
-directly from that Object. Document serialization uses FileTransfer on the
+directly from that Object.
+
+Document serialization uses FileTransfer on the
 logical Resource for the selected default Version or on an exact Version, and
 places the bytes in the xRegistry `<RESOURCE>` or `<RESOURCE>base64` attribute
 according to the xRegistry document rules and selected encoding.
@@ -1644,10 +1679,12 @@ corrections:
 
 An event-capable server claiming the `XREG-Events` conformance unit MUST
 implement every event that the xRegistry Events specification, as interpreted
-by these corrections, says MUST be generated for every mutation it supports. It
-SHOULD generate `registry.created` and `registry.deleted` when it exposes
+by these corrections, says MUST be generated for every mutation it supports.
+
+It SHOULD generate `registry.created` and `registry.deleted` when it exposes
 registry lifecycle, and SHOULD generate descendant `deleted` events when an
 entire registry is deleted, matching their status in that specification.
+
 Recursive deletion of a group or resource is different: all REQUIRED descendant
 resource and version events remain part of the applicable MUST event set.
 Supporting only a subset of that MUST event set does not conform to
@@ -1727,7 +1764,9 @@ URL to the xRegistry root such that removing a trailing `/` and appending a
 
 `EventSourceUrl` is REQUIRED only when the server claims event-capable server
 conformance. It is not REQUIRED for read-only, writable or export-capable
-conformance. It is independent of the OPC UA endpoint URL, `ServerUri`,
+conformance.
+
+It is independent of the OPC UA endpoint URL, `ServerUri`,
 NodeIds, BrowsePaths, `ExternalReference`, `ResourceUrl`, and all native entity
 identity. Changing an endpoint or moving the AddressSpace therefore does not
 implicitly change `EventSourceUrl`, and the value MUST NOT be used to resolve a
@@ -1762,8 +1801,9 @@ interaction that atomically commits the logical Resource, `Versions` container
 and first exact Version structural identities, `Xid` values, initial epochs and
 timestamps. The Resource and Version `created` events have the same `Time` but
 their respective logical Resource and exact Version sources and subjects. They
-MUST NOT be deferred to, or coalesced with, a later FileTransfer `Close`. If the
-Method also returns a writable `FileHandle`, a later dirty `Close` is a
+MUST NOT be deferred to, or coalesced with, a later FileTransfer `Close`.
+
+If the Method also returns a writable `FileHandle`, a later dirty `Close` is a
 separate interaction. It generates the applicable `version.updated` event and,
 when the Version is the selected default, `resource.updated` for the document
 bytes and derived fields changed by the close. It MUST NOT repeat the earlier
@@ -1798,7 +1838,9 @@ its `GroupType` children, from a group to its logical Resource children, and
 from a logical Resource to its exact Version children. `Versions` MAY be an
 organizational component only and need not be an event notifier or appear in
 the notifier chain. Subtypes MAY add intermediate notifier Objects if the
-Server-to-Version path specified above remains available. While the registry root
+Server-to-Version path specified above remains available.
+
+While the registry root
 exists, applicable descendant events are available to event MonitoredItems on
 the Server Object and registry root. Availability remains subject to the
 MonitoredItem's `EventFilter`, MonitoringMode, queue size and discard policy,
@@ -1807,8 +1849,12 @@ and to normal Subscription publishing and lifetime semantics.
 Events caused by deletion of a monitored notifier are reported through the
 nearest surviving ancestor notifier: a Version deletion uses its logical
 Resource, Resource deletion uses its group, group deletion uses its registry,
-and registry deletion uses the Server Object. Recursive deletion reports all
-deleted events through the nearest survivor of the whole interaction. A client
+and registry deletion uses the Server Object.
+
+Recursive deletion reports all
+deleted events through the nearest survivor of the whole interaction.
+
+A client
 that requires `registry.deleted`, or descendant `deleted` events caused by
 deletion of an entire registry, MUST monitor the Server Object because the
 registry root does not survive that interaction.
@@ -1827,8 +1873,9 @@ A client creates an event subscription with `CreateSubscription`, then calls
 notifier, monitoring its `EventNotifier` Attribute in Reporting mode with an
 `EventFilter`. It receives notifications with `Publish`, acknowledges sequence
 numbers in subsequent Publish requests, and MAY use `Republish` while the
-notification remains in the Subscription retransmission queue. The client
-SHOULD call `DeleteMonitoredItems` and `DeleteSubscriptions` when finished;
+notification remains in the Subscription retransmission queue.
+
+The client SHOULD call `DeleteMonitoredItems` and `DeleteSubscriptions` when finished;
 closing the Session performs the standard OPC UA cleanup.
 
 An `EventFilter` commonly selects `EventId`, `EventType`, `SourceNode`,
@@ -2191,16 +2238,16 @@ and incarnation safeguards, and logical handles MUST remain pinned to the
 Version selected at `Open`.
 
 A server conforms to the export-capable OPC UA xRegistry API if it implements
-the request-flag mappings it advertises in `Capabilities`, including Browse
+the request-flag mappings it advertises in `Capabilities`. This includes Browse
 continuation point pagination, Browse-result filtering, and export serialization
 that follows Core document view, including correct local pointers, distinct
 Meta/Version state and unexpanded local `xref` (§8).
 
 A server conforms to the event-capable OPC UA xRegistry API by claiming the
 `XREG-Events` conformance unit. It MUST expose `EventSourceUrl`, the notifier
-hierarchy and `GeneratesEvent` declarations, generate every event that the
+hierarchy and `GeneratesEvent` declarations. It MUST generate every event that the
 xRegistry Events specification, as interpreted by the binding corrections in
-§9.1, says MUST be generated for every supported mutation, and support standard
+§9.1, says MUST be generated for every supported mutation. It MUST support standard
 OPC UA event subscription and delivery as specified in §9. The specification's
 SHOULD events retain that status, including registry lifecycle events and
 descendant events on whole-registry deletion.
@@ -2208,19 +2255,27 @@ REQUIRED descendants of group and resource recursive deletion remain MUST
 events. `XREG-Events` is OPTIONAL and is not REQUIRED for read-only, writable
 or export-capable conformance.
 
-A baseline client conforms if it can select a `RegistryType` root, resolve
-xRegistry `xid` s or relative identifiers to AddressSpace nodes, use
-Browse/Read/FileTransfer operations for reading, use Write/Call operations for
-advertised write capabilities, interpret StatusCodes according to §11, and
-serialize or consume xRegistry document representations according to §8. An
-updated client MAY implement the documented Version 0.5 flat-layout fallback,
+A baseline client conforms if it can:
+
+- Select a `RegistryType` root.
+- Resolve xRegistry `xid`s or relative identifiers to AddressSpace nodes.
+- Use Browse/Read/FileTransfer operations for reading.
+- Use Write/Call operations for advertised write capabilities.
+- Interpret StatusCodes according to §11.
+- Serialize or consume xRegistry document representations according to §8.
+
+An updated client MAY implement the documented Version 0.5 flat-layout fallback,
 but MUST prefer and exclusively use the distinct hierarchy when `Versions` is
 present.
 
-A client conforms to the event-capable OPC UA xRegistry API if it can discover
-an event notifier, create and maintain an event MonitoredItem, resolve all
-concrete EventTypes in §9.1, interpret the fields and interaction rules in §9,
-and clean up or recover its Subscription using the standard OPC UA Services.
+A client conforms to the event-capable OPC UA xRegistry API if it can:
+
+- Discover an event notifier.
+- Create and maintain an event MonitoredItem.
+- Resolve all concrete EventTypes in §9.1.
+- Interpret the fields and interaction rules in §9.
+- Clean up or recover its Subscription using the standard OPC UA Services.
+
 Event-capable client conformance is OPTIONAL and is not REQUIRED for baseline
 client conformance.
 

@@ -4,22 +4,26 @@
 <!-- words: py workingdrafts -->
 <!-- words: workflows -->
 
-This draft defines the [WoT Registry specification](spec.md) and its
-[model](model.json). The [decision record](decisions.md) captures its design
-decisions; the informative [versioning design](versioning-design.md) and
-[samples](samples/README.md) provide additional context.
+This draft defines the [WoT Registry specification][Spec] and its
+[model][Model]. The [decision record][Decisions] captures its design
+decisions. The informative [versioning design][Versioning] and
+[samples][Samples] provide additional context.
 
-The [publication companion](publication-design.md) defines dependency
-bindings and set-publication workflows that use the
-[generic publication contract](../../publication/spec.md), including
-[manifest integrity][Manifest], [channel operations][Channel],
-[export and federation][Export], and [domain closure][Closure].
-Its closure schema and checks validate shape; they do not establish deployed
-resolver conformance.
+The [publication companion](publication-design.md) defines how to bind
+dependencies and publish a set. Those workflows use the
+[generic publication contract](../../publication/spec.md). That contract covers:
+- [manifest integrity][Manifest]
+- [channel operations][Channel]
+- [export and federation][Export]
+- [domain closure][Closure]
 
-The [canonical resolution vectors](tests/resolution/README.md) exercise
-version assignment, floors, caller pins, sticky defaults and prerelease
-selection. Run
+The companion's closure schema and checks validate shape. They do not establish
+deployed resolver conformance.
+
+The [canonical vectors](tests/resolution/README.md) test how the registry assigns
+versions and resolves references. Some cases test how the registry applies
+floors and matches caller pins. Others test how it honors sticky defaults and
+selects prereleases. Run
 `python workingdrafts/models/wot/tests/resolution/check_vectors.py` from the
 repository root.
 
@@ -27,3 +31,8 @@ repository root.
 [Channel]: ../../publication/spec.md#publishing-and-opening-a-channel
 [Export]: ../../publication/spec.md#export-federation-and-binding-equivalence
 [Closure]: ../../publication/spec.md#domain-closure-and-compatibility
+[Spec]: spec.md
+[Model]: model.json
+[Decisions]: decisions.md
+[Versioning]: versioning-design.md
+[Samples]: samples/README.md

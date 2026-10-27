@@ -66,7 +66,9 @@ restrictions on symlinks and reparse points.
 Consumers can read either format directly. A federating API server can also
 read the directory as a source and return ordinary xRegistry responses to its
 client. The shared [hosting models](../federation/spec.md#design-hosting-models)
-describe both arrangements. A local directory is mutable unless its storage
+describe both arrangements.
+
+A local directory is mutable unless its storage
 provides an immutable snapshot, so both arrangements follow the containment,
 digest and concurrent-change rules below.
 
@@ -119,9 +121,14 @@ POSIX path. A host unable to interpret a selected native path MUST report
 `unsupported_operation`, not reinterpret it as a different filesystem root.
 Windows drive-relative paths and older `C|` spellings are not accepted.
 
-URI parsing MUST validate escapes before decoding, decode UTF-8 exactly once,
-and reject NUL/control characters, backslashes, encoded separators and
-encoded dot/parent segments. After decoding, URI parsing MUST reject:
+URI parsing MUST:
+
+- Validate escapes before decoding.
+- Decode UTF-8 exactly once.
+- Reject NUL/control characters, backslashes, encoded separators and
+  encoded dot/parent segments.
+
+After decoding, URI parsing MUST reject:
 
 - `.` and `..`.
 - Empty interior components.
@@ -163,12 +170,22 @@ Unreferenced files remain outside the Registry view.
 For `oci-layout`, consumers MUST use the
 [OCI binding's image-layout selection](oci.md#22-image-layout-selection)
 and [descriptor-graph rules](oci.md#4-containment-and-range-shards).
+
 The directory contains OCI `oci-layout`, `index.json`
 and `blobs`. `index.json` can advertise multiple Registry snapshot roots.
 `reference` selects and pins exactly one eligible root under that binding.
-Tag ambiguity, root artifact validation, nested indexes and descriptor bounds
-are unchanged. So are range selection, size/digest verification and complete
-containment closure. This binding neither invents another OCI root-selection
+
+The OCI binding's rules apply unchanged to:
+
+- Tag ambiguity.
+- Root artifact validation.
+- Nested indexes.
+- Descriptor bounds.
+- Range selection.
+- Size/digest verification.
+- Complete containment closure.
+
+This binding neither invents another OCI root-selection
 algorithm nor treats a layout index as a Distribution endpoint.
 
 The chosen OCI root identifies one Registry, not every root in the directory.
@@ -178,7 +195,7 @@ omit blobs does not relax xRegistry closure.
 
 Both modes return the same logical Core metadata and document bytes, subject
 to the selected snapshot. Resource defaults come from Core metadata, not
-file modification time; see
+file modification time. See
 [Core default selection](../../core/spec.md#default-version-of-a-resource).
 Equal XIDs in different directories remain scoped
 to different Registry contexts.
@@ -186,6 +203,7 @@ to different Registry contexts.
 External domain-document links remain explicit. Retrieving one requires
 separate caller authorization, URI-base handling and integrity checking.
 Relative links MUST NOT silently become paths outside the selected root.
+
 Linked snapshots permit external-only domain documents. Offline-complete
 snapshots do not. Neither class implies following catalog advertisements,
 rewriting `xref` into a filesystem link, or fetching arbitrary domain links.
@@ -222,10 +240,14 @@ record and document. For OCI reads, consumers MUST pin the selected root
 digest and verify every descriptor under the OCI binding.
 
 A mutable directory is not an atomic snapshot just because it is read-only
-to the resolver. Consumers MUST detect changes during open/read operations,
+to the resolver.
+
+Consumers MUST detect changes during open/read operations,
 short reads and changes to already captured selection state. An observed
 change MUST produce `inconsistent_snapshot`. A stable descriptor mismatch
-is `integrity_error`. Where the environment cannot guarantee a coherent read,
+is `integrity_error`.
+
+Where the environment cannot guarantee a coherent read,
 the consumer MUST either capture a private stable snapshot or explicitly
 report the lack of an immutable filesystem pin. It MUST NOT advertise an
 atomic capture of a live upstream Registry based only on consistent file

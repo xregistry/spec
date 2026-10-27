@@ -7,44 +7,47 @@
 These samples exercise the WoT Registry model in
 [../model.json](../model.json):
 
-- [lamp-tm.xreg.json](lamp-tm.xreg.json) — a minimal `thingmodelgroups`
-  document with one Thing Model for a generic dimmable lamp. Its
-  authored identifier `urn:fabrikam:lamp:v1` is carried in `wotid`, while
-  `urn.fabrikam.lamp.v1` is the Resource id the client chose for it; a
-  Consumer holding the authored identifier finds the Resource by querying
-  `wotid`.
-- [lamp-td.xreg.json](lamp-td.xreg.json) — a `thingdescriptiongroups` document
-  with a Thing Description (`urn:fabrikam:lamp:42`) conforming to the
-  lamp Thing Model above. Its `links[].rel = "type"` entry references the TM
-  by absolute document-view URL, and its `derivedfrom` attribute records the
-  TM's authored `wotid`.
-- [byom-pump-tm.xreg.json](byom-pump-tm.xreg.json) — a bring-your-own-model
-  example with two vendor-supplied Thing Models stored as authored:
-  their `id` members and the `tm:extends` link between them are untouched, and
-  the authored identifiers are carried alongside the documents in `wotid` and
-  `derivedfrom`. Both are marked `"maturity": "Vendor"` and carry no
-  `standardsbody`, because Contoso publishes them itself; a `standardsbody` is
-  a claim about who defines a document, not about who wrote it. The pump has
-  two Versions, with `1.1.0` as the default, so retrieving the Resource yields
-  the latest while `.../versions/1.0.0` yields the earlier one. Because the
-  pump supplies an explicit `versions` collection, its attributes — including
-  the provenance attributes an agent uses to prefer an official model — are
-  carried on each Version rather than on the Resource. The device has one
-  implicit Version and carries those attributes on the Resource. Both shapes
-  appear here to show that a `versions` collection is needed only when a
-  Resource has multiple Versions.
+- [lamp-tm.xreg.json](lamp-tm.xreg.json): a minimal `thingmodelgroups`
+  document with one Thing Model for a generic dimmable lamp. The document's
+  authored identifier `urn:fabrikam:lamp:v1` appears in `wotid`; the client
+  chose `urn.fabrikam.lamp.v1` as the Resource id. A Consumer holding the
+  authored identifier finds the Resource by querying `wotid`.
+- [lamp-td.xreg.json](lamp-td.xreg.json): a `thingdescriptiongroups` document
+  with a Thing Description. The Thing Description has the identifier
+  `urn:fabrikam:lamp:42`. It conforms to the lamp Thing Model above. Its
+  `links[].rel = "type"` entry references the TM by absolute document-view
+  URL. The `derivedfrom` attribute records the TM's authored `wotid`.
+- [byom-pump-tm.xreg.json](byom-pump-tm.xreg.json): a bring-your-own-model
+  example with two vendor-supplied Thing Models. Contoso stores both as
+  authored. Their `id` members and the pump's `tm:extends` link remain
+  unchanged. The pump carries its authored identifier in `wotid` and the
+  device identifier in `derivedfrom`; the device carries its own wotid.
 
-- [smartlamp-wot.xreg.json](smartlamp-wot.xreg.json) — an end-to-end scenario
-  combining a Thing Model and a Thing Description that conforms to it in a
-  single registry document, showing how `thingmodelgroups` and
-  `thingdescriptiongroups` compose: the instance carries `derivedfrom` and a
+  Both Thing Models have `"maturity": "Vendor"` and omit `standardsbody`.
+  Contoso publishes them. The `standardsbody` attribute records the
+  organization that defines or endorses a document, not its author.
+
+  The pump's default Version is `1.1.0`, the latest. A Consumer can retrieve
+  it from the Resource or request `.../versions/1.0.0` for the earlier
+  Version. Its explicit `versions` collection stores attributes such as maturity
+  on each Version; a Consumer can use maturity to prefer an official model.
+  The device has one implicit Version, so its attributes appear on the
+  Resource. A Resource needs an explicit `versions` collection only when it
+  has multiple Versions. The pump has multiple Versions and uses that
+  collection.
+
+- [smartlamp-wot.xreg.json](smartlamp-wot.xreg.json): a scenario that combines
+  a Thing Model and a Thing Description that conforms to it in one registry
+  document. The document uses `thingmodelgroups` and
+  `thingdescriptiongroups`; the Thing Description carries `derivedfrom` and a
   `links[].rel = "type"` reference to the Thing Model Resource.
 
-Each Thing Model's `versionid` equals the document's SemVer
-`version.model`, and its identifier includes the major version. The pump's
-`tm:extends` links carry `tm:minVersion: "1.0.0"`, so resolution requires at
-least that revision of the device model. This member is defined by a proposed
-extension to the W3C WoT Thing Description, not by the published WoT 1.1
-Recommendation. `versionorigin` is omitted from these publication requests
-because the registry sets it to `authored`. The new `inletPressure` affordance
-is non-mandatory, so revision `1.1.0` adds no mandatory member.
+Each Thing Model's `versionid` matches the document's SemVer `version.model`,
+and its identifier includes the major version. The pump's `tm:extends` links
+set `tm:minVersion: "1.0.0"`, so a resolver requires a device-model revision
+at or above 1.0.0. This member comes from a proposed extension to the W3C
+WoT Thing Description; the published WoT 1.1 Recommendation does not define it.
+
+The publication requests omit `versionorigin` because the registry sets its
+default to `authored`. The optional `inletPressure` affordance first appears
+in revision `1.1.0`, which adds no mandatory member.

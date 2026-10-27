@@ -77,13 +77,13 @@ federated using the shared federation rules and a compatible catalog model.
 Such a view combines catalog descriptions, not the contents of every Registry
 they describe. The resolver still needs an initial access context and a
 composition policy for that catalog view. Encountering an advertised Registry
-does not automatically add it to the view or authorize another traversal;
-the federation policy and cycle limits continue to apply.
+does not automatically add it to the view or authorize another traversal.
+The federation policy and cycle limits continue to apply.
 
-This specification does not define replication, synchronization, automatic
-dependency traversal, write-through, conflict resolution or credential
-storage. It does not change domain document formats or require remote
-Registries to adopt the catalog's model.
+Replication, synchronization and automatic dependency traversal are outside
+this specification's scope. It also does not define write-through, conflict
+resolution or credential storage. It does not change domain document formats
+or require remote Registries to adopt the catalog's model.
 
 ## 2. Notations and Terminology
 
@@ -259,6 +259,7 @@ serialized output.
 The pointer MUST locate it within the current response document, with
 JSON Pointer escaping, and MUST NOT include a protocol suffix such as
 `$details`. It is not necessarily relative to the catalog Registry root.
+
 If the referenced entity or collection is not included, the applicable
 absolute Core API URL MUST be retained rather than inventing a pointer to
 absent data.
@@ -734,7 +735,7 @@ owned by that extension. Their names do not activate built-in semantics.
 
 The catalog and the Registry it describes have separate identity and
 revision scopes. Selecting a catalog-description Version chooses
-advertisement metadata; resolving a target XID happens only after a
+advertisement metadata. Resolving a target XID happens only after a
 binding establishes the target Registry context.
 
 **Figure 1 — Catalog selection establishes a separate target context.**
@@ -799,7 +800,7 @@ Selection MUST use the following procedure:
    `xregurl` exactly. Otherwise the entry is contradictory and resolution
    MUST fail. Comparison here is exact string comparison, not URI
    normalization or a global identity rule.
-3. A present `xregurl` contributes a implicit `http` candidate with that
+3. A present `xregurl` contributes an implicit `http` candidate with that
    endpoint, priority `0` and empty parameters, ordered after the explicit
    advertisements. Its selection defaults MUST NOT be inherited from a
    different explicit candidate.
@@ -1035,11 +1036,18 @@ JSON Structure and HTTP OpenAPI. The OpenAPI description concerns the
 catalog's HTTP API, not the wire APIs of all advertised bindings.
 
 The authoritative model is not duplicated in a hand-maintained full
-Resource schema. Generation does not replace semantic validation:
-nonempty identifiers, absolute credential-free endpoints, binding-specific
-parameters, Core metadata completeness, URI bases, HTTP consistency and
-deterministic selection need their stated checks. JSON object order cannot
-encode advertisement preference.
+Resource schema. Generation does not replace semantic validation.
+The following need their stated checks:
+
+- nonempty identifiers;
+- absolute credential-free endpoints;
+- binding-specific parameters;
+- Core metadata completeness;
+- URI bases;
+- HTTP consistency;
+- deterministic selection.
+
+JSON object order cannot encode advertisement preference.
 
 Derived artifacts MUST NOT override Core or this specification when a
 generator omits a constraint or produces an incompatible description.

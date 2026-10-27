@@ -22,8 +22,9 @@
 This specification extends the xRegistry document format and API
 [specification][xRegistry Core] with an OpenUSD Artifact Registry. The
 registry stores, manages, discovers and federates [OpenUSD][OpenUSD]
-(Universal Scene Description) artifacts: layers, packages, textures, MaterialX
-documents, volumes and schema plugins used to compose and render a USD stage.
+(Universal Scene Description) artifacts. These include layers, packages,
+textures, MaterialX documents, volumes and schema plugins used to compose and
+render a USD stage.
 
 ## Table of Contents
 
@@ -70,10 +71,12 @@ documents, volumes and schema plugins used to compose and render a USD stage.
 ## 1. Overview
 
 An OpenUSD Artifact Registry provides a repository for managing the artifacts
-that make up an [OpenUSD][OpenUSD] scene: layers (`.usda`, `.usdc`,
-`.usd`), packages (`.usdz`), the textures, MaterialX documents and
-volumes those layers reference, and the schema plugins that teach a
-Consumer about vendor-defined prim types.
+that make up an [OpenUSD][OpenUSD] scene:
+
+- layers (`.usda`, `.usdc`, `.usd`);
+- packages (`.usdz`);
+- the textures, MaterialX documents and volumes those layers reference;
+- the schema plugins that teach a Consumer about vendor-defined prim types.
 
 USD itself deliberately says nothing about where assets live. A layer refers
 to another asset by writing an **asset identifier** between `@` characters —
@@ -100,9 +103,9 @@ xRegistry-aware.
 A **USD artifact** is a single retrievable document: one layer, one package,
 one texture, one MaterialX document, one plugin manifest.
 
-A stage is opened against a single **root layer**, which pulls in others
-through composition arcs — sublayers, references, payloads — which in turn
-reference textures and materials. The transitive set is the **dependency
+A stage is opened against a single **root layer**. It pulls in other layers
+through composition arcs — sublayers, references and payloads. Those layers
+in turn reference textures and materials. The transitive set is the **dependency
 closure**. A Consumer that is missing any member of it cannot compose the
 scene correctly. USD will
 either fail to open the layer or compose a scene with silently missing
@@ -129,8 +132,9 @@ An OpenUSD Artifact Registry is complementary to the xRegistry
 These cross-references are informative: an implementation MAY validate them,
 but this specification does not require that all referents resolve.
 
-This specification is also the wire-format peer of an OPC UA projection of the
-same model. In that projection, the registry appears in an OPC UA AddressSpace
+This specification is also the wire-format peer of an OPC Unified Architecture
+(OPC UA) projection of the same model. In that projection, the registry appears
+in an OPC UA AddressSpace
 and each artifact is retrieved through the OPC UA file-transfer interface. The
 two projections share collection names, attribute names and the identifier
 rules of [Section 5.1](#51-asset-identifiers-and-xids). A Consumer MAY therefore
@@ -140,11 +144,10 @@ externally and this specification does not depend on it.
 ### 1.3. Versioning
 
 Unlike some document classes, a USD layer carries **no intrinsic version
-member**: nothing inside a `.usda` file states which revision it is. There is
-therefore no document-supplied value for an implementation to reflect into
-[`versionid`][xRegistry version-ids], and the xRegistry Core versioning rules
-(monotonically increasing `versionid`s, `ancestor` lineage, default-Version
-selection) apply unchanged.
+member**: nothing inside a `.usda` file states which revision it is. An
+implementation therefore has no document-supplied value to reflect into
+[`versionid`][xRegistry version-ids]. The xRegistry Core rules for Version-ID
+assignment, `ancestorid` lineage and default-Version selection apply unchanged.
 
 The **asset identifier binds to the Resource, not to the Version.** All
 Versions of one `usdasset` share one `assetidentifier` and one `usdassetid`.
@@ -155,10 +158,14 @@ published. Version selection follows the Core rules described below.
 For the same reason a `usdassetid` MUST NOT be derived from the artifact's
 bytes. A Resource is the umbrella over its Versions, so an id computed from a
 document would change on every revision and split one logical artifact into a
-new Resource each time. The content hash of a Version is the `digest`
+new Resource each time.
+
+The content hash of a Version is the `digest`
 ([Section 4.2](#42-usd-asset-resources)), which is Version-level metadata. The
 candidate and its sole collision fallback are derived only from the
-`assetidentifier`, which is Version-invariant. The assigned id also reflects
+`assetidentifier`, which is Version-invariant.
+
+The assigned id also reflects
 the sibling reservations at first publication and remains stable thereafter
 ([Section 5.1.1](#511-the-symbolic-identifier-construction)).
 
@@ -179,9 +186,13 @@ are defined with the Core [`hasdocument` model property][xRegistry hasdocument]
 set to `true`. Core distinguishes the Resource's metadata from its
 domain-specific document in
 [Resource Metadata vs Resource Document][xRegistry resource metadata and
-document]. A GET against the Version's document URL, without `$details`,
+document].
+
+A GET against the Version's document URL, without `$details`,
 returns the artifact bytes. A [`self`][xRegistry self] URL ending in
-`$details` identifies metadata and is not an artifact path. The document
+`$details` identifies metadata and is not an artifact path.
+
+The document
 response uses the appropriate content-type and carries Resource metadata
 in HTTP headers. Metadata can also be retrieved via the `$details` suffix.
 
@@ -221,9 +232,13 @@ This specification defines the following terms:
 This specification uses **USD asset** (or `usdasset` Resource) for a logical
 grouping of **USD Asset Versions**. A **USD Asset Version** is one
 concrete artifact document — a layer, a package, a texture, a MaterialX
-document, a volume, a plugin manifest or a generated schema. The USD asset
+document, a volume, a plugin manifest or a generated schema.
+
+The USD asset
 Resource groups one or more concrete documents that represent iterations of
-the same logical artifact. Per the definition of the
+the same logical artifact.
+
+Per the definition of the
 [`compatibility`][xRegistry compatibility] attribute, all Versions of a
 single USD asset MUST adhere to the rules defined by the `compatibility`
 attribute. Any breaking change MUST result in a new USD asset Resource
@@ -336,7 +351,7 @@ The JSON serialization of an OpenUSD Artifact Registry adheres to this form:
           "labels": { "<STRING>": "<STRING>" * }, ?
           "createdat": "<TIMESTAMP>",
           "modifiedat": "<TIMESTAMP>",
-          "ancestor": "<STRING>",
+          "ancestorid": "<STRING>",
           "contenttype": "<STRING>", ?             # e.g. model/vnd.usda
           "format": "<STRING>",                    # see section 4.5
           "formatvalidated": <BOOLEAN>, ?
@@ -419,7 +434,7 @@ one scene unit. Every USD asset (i.e. the `usdasset` Resource) MUST reside
 inside either an Asset Container Group or a Schema Plugin Group.
 
 The `usdassetgroupid` is the asset container identifier. This
-specification does not define a separate attribute for it, and an
+specification does not define a separate attribute for it. An
 implementation MUST NOT treat the Group id as a prefix of its members'
 `assetidentifier` values — member identifiers are already normalized relative
 to the Group. Where the container identifier is not already a legal xRegistry
@@ -479,10 +494,10 @@ The `usdassetid` MUST be the assigned symbolic identifier of the Resource's
 authors it, and a Consumer matches an authored `@...@` reference against it.
 
 A `usdasset` MUST set the core [`name`][xRegistry Core] attribute to its
-`assetidentifier` verbatim, so that a person browsing the registry — including
-through generic third-party tooling that has only the id and the name to show —
-sees the string a layer actually authors, unchanged by the normalization the
-id applies.
+`assetidentifier` verbatim. A person browsing the registry therefore sees the
+string a layer actually authors, unchanged by the normalization the id applies.
+This includes browsing through generic third-party tooling that has only the
+id and the name to show.
 
 A `usdasset` has the following extension attributes:
 
@@ -532,7 +547,8 @@ defines no separate media-type attribute.
 All Versions of a single `usdasset` MUST adhere to the semantic rules of the
 Resource's [`compatibility`][xRegistry compatibility] attribute, if specified.
 Implementations SHOULD use the xRegistry default algorithm for generating new
-`versionid` values and for determining which is the latest Version. See
+`versionid` values. Default-Version selection follows Core's default-Version
+rules. See
 [Core Version IDs][xRegistry version-ids] and
 [default-Version rules][xRegistry default version].
 
@@ -544,15 +560,15 @@ any specific extension attributes.
 
 The `usdschemaplugingroupid` is the plugin name, normalized: it MUST be the
 symbolic identifier of the plugin name declared by the `SchemaPlugin` document
-the Group contains ([Section 5.1.1](#511-the-symbolic-identifier-construction)),
-and an implementation MUST reject a Group whose id does not match.
+the Group contains ([Section 5.1.1](#511-the-symbolic-identifier-construction)).
+An implementation MUST reject a Group whose id does not match.
 
 A Schema Plugin Group MUST set the core [`name`][xRegistry Core] attribute to
 the plugin name verbatim, which is non-empty by construction.
 
 A Schema Plugin Group SHOULD contain exactly two `usdasset` Resources: one
 whose `assetkind` is `SchemaPlugin` and one whose `assetkind` is
-`GeneratedSchema`. A Consumer requires both in order to register the schema. A
+`GeneratedSchema`. A Consumer requires both to register the schema. A
 Group offering only one of them is not usable.
 
 ### 4.4. Schema Plugin Resources
@@ -644,7 +660,9 @@ xRegistry defines an [`xid`][xRegistry Core] as the stable path of an entity
 within its registry, independent of the hosting endpoint. xRegistry also
 constrains each entity id to [RFC 3986][RFC3986] `unreserved` characters plus
 `:` and `@`, starting with a letter, a digit or `_`, at most 128 characters
-long, and unique case-insensitively within its parent. A USD asset identifier
+long, and unique case-insensitively within its parent.
+
+A USD asset identifier
 is the stable,
 location-independent name a layer authors. The two express the same idea but
 are **not the same grammar**: `@./pump.usda@` is not a valid `xid`, an `xid` is
@@ -697,11 +715,16 @@ and as a file name in the [file-system representation][xRegistry primer].
 **Candidate and sole fallback.** Let `C` be the candidate above, including a
 suffix only when step 6 needed shortening. Results of at most 128 characters
 MUST remain unchanged as `C`; a Producer MUST NOT unconditionally suffix them.
+
 Let `F` be the sole collision fallback. It uses the same normalized source
 labels from steps 1-5, reduced by the step-6 dropping/truncation rules to at most
-119 characters before adding the suffix. This reservation applies whenever a
+119 characters before adding the suffix.
+
+This reservation applies whenever a
 suffix is needed, including collision-only results of 120 through 128
-characters. An implementation MUST NOT split a normalized label again at its
+characters.
+
+An implementation MUST NOT split a normalized label again at its
 literal dots. An already shortened candidate has no additional fallback:
 `F` equals `C`, not `C` with another suffix.
 
@@ -720,10 +743,14 @@ exactly, without case folding or another decoding step.
 1. A Producer MUST retain an existing binding for the same exact source,
    even if the sibling that caused the collision is later deleted. It MUST NOT
    rename an existing entity to make room, and MUST NOT rebind an existing ID
-   to another source. The source-to-ID binding remains stable across Versions
+   to another source.
+
+   The source-to-ID binding remains stable across Versions
    and restarts. A retained symbolic binding MUST use that source's exact `C`
    or `F`. A Producer MUST reject inconsistent bindings rather than repair them
-   by renaming. For a Resource represented by a one-hop alias, retargeting
+   by renaming.
+
+   For a Resource represented by a one-hop alias, retargeting
    MUST preserve its exact `assetidentifier` too.
 2. For a source without an existing binding, reserve `C` if it does not
    collide. Otherwise reserve `F` if it is distinct and does not collide.
@@ -805,9 +832,13 @@ flowchart TD
 ```
 
 Consumers MUST use finite source-byte, cumulative metadata-byte and parsing-work
-budgets and support cancellation. Metadata acquisition, when needed, MUST be
+budgets and support cancellation.
+
+Metadata acquisition, when needed, MUST be
 explicitly authorized for the selected Registry context. No metadata or artifact
-acquisition is implicit in candidate computation. Artifact retrieval follows
+acquisition is implicit in candidate computation.
+
+Artifact retrieval follows
 successful identity resolution and the applicable authorization and integrity
 rules. For a symbolically named Group, the analogous bounded lookup compares
 the Group's exact `name`; a legal Core container ID has only its verbatim
@@ -838,9 +869,10 @@ given by its `assetidentifier`, so an authored reference such as
 
 An Asset Container Group's membership is determined by composition, not by
 convention. A Group SHOULD contain the artifact named by `rootlayer` together
-with every artifact transitively reachable from it — every sublayer, referenced
-layer, payload, texture, MaterialX document and volume — so that a Consumer
-holding the Group can compose the scene with no further asset resolution.
+with every artifact transitively reachable from it. This includes every
+sublayer, referenced layer, payload, texture, MaterialX document and volume.
+A Consumer holding the Group can then compose the scene with no further asset
+resolution.
 
 Where `dependson` is present it MUST be consistent with that closure: every
 identifier it lists MUST resolve, by `assetidentifier`, to a `usdasset` in the
@@ -900,13 +932,19 @@ resolver in its chain, and MAY stop as soon as an artifact resolves.
 ### 5.4. Asset Resolution
 
 The registry serves as an addressable asset resolver backend under Sections
-[5.1](#51-asset-identifiers-and-xids) through [5.3](#53-federation). A USD asset
+[5.1](#51-asset-identifiers-and-xids) through [5.3](#53-federation).
+
+A USD asset
 resolver plugin holding a container context
 resolves an authored `@...@` reference by the bounded forward procedure in
-Section 5.1.1: normalize, compute the candidate and sole fallback, and validate
-the returned authoritative metadata. It retrieves bytes from the matched
+Section 5.1.1. It normalizes the identifier, computes the candidate and sole
+fallback, and validates the returned authoritative metadata.
+
+It retrieves bytes from the matched
 Resource only after that validation, as [Section 1.4](#14-document-store)
-describes. No inverse mapping, all-sibling enumeration, or xRegistry awareness
+describes.
+
+No inverse mapping, all-sibling enumeration, or xRegistry awareness
 in the authored scene is needed.
 
 A Consumer composing a scene from a registry SHOULD:

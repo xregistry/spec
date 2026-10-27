@@ -85,8 +85,9 @@ route from a blob route, although the files all reside in the layout.
 `validate` walks the entire closure, including document bytes.
 `--inventory <path>` saves the actually verified descriptors. `lookup`
 reads only what its operation needs. A Version document request does not
-fetch other Version payloads. Collection label selection visits all
-necessary pages and detects ambiguity, including on a later page.
+fetch other Version payloads. `lookup` checks every necessary page and
+reports `ambiguous` if more than one entry matches the label, including
+when a later page supplies another match.
 
 The explicit `v2` lookup command above prints:
 
@@ -208,12 +209,18 @@ oras cp --from-oci-layout --to-oci-layout workingdrafts\federation\samples\oci\l
 python -B -m workingdrafts.bindings.tools.oci_examples validate copied-layout --reference copied --inventory copied-inventory.json
 ```
 
-In the implementation exercise, this command preserved the selected root
-digest and all 99 REQUIRED objects byte-for-byte,
-including configs, range shards, empty collections, binary bytes and the
-zero-byte document. The linked Registry root was not selected or copied.
-The implementation session retains the environment-specific command logs,
-release-checksum verification and independently compared closure inventory.
+The implementation exercise preserved the selected root digest and all 99
+REQUIRED objects byte-for-byte. The copied objects included:
+
+- configs,
+- range shards,
+- empty collections,
+- binary bytes,
+- the zero-byte document.
+
+The copy did not select or copy the linked Registry root. The implementation
+session retains its environment-specific command logs. It also retains the
+release-checksum verification and the independently compared closure inventory.
 
 ORAS also placed auxiliary descriptors for copied internal indexes and
 manifests in the destination layout's `index.json`: 69 entries in this
@@ -236,21 +243,49 @@ Positive and negative conformance cases include:
 
 - Exact 256/257 descriptor and 1,048,576/1,048,577 encoded-byte boundaries,
   with control descriptors included and byte-driven splitting below 256.
-- Multiple shard levels, inclusive lower and exclusive upper boundaries,
-  strict case-sensitive keys, empty collections, gaps, overlaps,
-  duplicates, missing shards, impossible entry budgets and traversal limits.
-- Multiple roots, duplicate tags, explicit digest selection, immutable
-  pins across moving tags and reuse of unchanged subtrees without replay.
-- Standard OCI object shapes, wrong artifact/media types or roles,
-  unsupported profile/Core versions, bad UTF-8, duplicate JSON keys,
-  non-finite numbers, wrong hashes/sizes and missing descendant blobs.
-- Version/default/Meta consistency, model-source preservation, resolved
-  includes, imported versus structurally similar Resource types,
-  one-hop aliases, dangling targets and alias-of-alias behavior.
-- Case-insensitive literal label values, missing and empty labels,
-  ambiguity discovered on later shards, and no implicit normalization.
-- Core document-view pointers, including escaped `~` in IDs, retained
-  nested extensions, no default Version projection, and Meta context.
+- Multiple shard levels.
+- Inclusive lower and exclusive upper boundaries.
+- Strict case-sensitive keys.
+- Empty collections.
+- Gaps.
+- Overlaps.
+- Duplicates.
+- Missing shards.
+- Impossible entry budgets.
+- Traversal limits.
+- Multiple roots.
+- Duplicate tags.
+- Explicit digest selection.
+- Immutable pins across moving tags.
+- Reuse of unchanged subtrees without replay.
+- Standard OCI object shapes.
+- Wrong artifact types.
+- Wrong media types.
+- Wrong roles.
+- Unsupported profile/Core versions.
+- Bad UTF-8.
+- Duplicate JSON keys.
+- Non-finite numbers.
+- Wrong hashes.
+- Wrong sizes.
+- Missing descendant blobs.
+- Version/default/Meta consistency.
+- Model-source preservation.
+- Resolved includes.
+- Imported versus structurally similar Resource types.
+- One-hop aliases.
+- Dangling targets.
+- Alias-of-alias behavior.
+- Case-insensitive literal label values.
+- Missing labels.
+- Empty labels.
+- Ambiguity discovered on later shards.
+- No implicit normalization.
+- Core document-view pointers.
+- Escaped `~` in IDs.
+- Retained nested extensions.
+- No default Version projection.
+- Meta context.
 - Separate metadata-only, zero-byte, binary and external-only document
   states. Rejection of absent document-capable content and false
   offline-complete claims. Selective fetch traces.

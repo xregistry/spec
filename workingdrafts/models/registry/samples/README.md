@@ -12,9 +12,10 @@ IDs, XIDs, collection counts, default-Version references and document-local
 JSON Pointers are explicit. Description attributes occur on Versions, not
 as duplicate default-Version fields on Resources.
 
-IDs follow the [Core grammar](../../../../core/spec.md#singularid-id-attribute):
-1 to 128 ASCII characters, starting with a letter, digit or `_`, then
-using only letters, digits, `_`, `.`, `~`, `:`, `@` or `-`.
+Core IDs follow the [Core grammar](../../../../core/spec.md#singularid-id-attribute):
+they contain 1 to 128 ASCII characters. The first character is a letter,
+digit or `_`. Remaining characters may be letters, digits, `_`, `.`, `~`,
+`:`, `@` or `-`.
 Sibling IDs are unique case-insensitively, while lookups preserve and
 require exact case. Case-only duplicate siblings MUST NOT be used as valid
 fixture data. Filesystem-collision examples can use distinct parent or
@@ -26,26 +27,27 @@ navigation URLs MUST become `#JSON-POINTER` references only when their
 targets are included, and MUST otherwise retain their absolute API URLs.
 Pointers use the current document's root and JSON Pointer escaping, not a
 storage path or an assumed catalog-root pointer.
-The checked full-document examples and the partial-view comparison follow
-the [domain document-view rules](../spec.md#33-document-view) and Core's
-[Multiple Document View](../../../../core/spec.md#multiple-document-view).
+The checked full-document examples follow the
+[domain document-view rules](../spec.md#33-document-view). They also follow
+Core's [Multiple Document View](../../../../core/spec.md#multiple-document-view).
+The partial-view comparison follows both rule sets.
 
 The document views omit `shortself`, Version `formatvalidated` and
 `compatibilityvalidated`, and duplicated default-Version attributes on
 Resources. Catalog XIDs and relationship targets retain catalog-root
 scope. They are not converted to document-local pointers.
 
-The examples omit the OPTIONAL inlined model and capabilities, rather
-than claiming to capture a complete server configuration. Load the sibling
-model when interpreting them. Metadata-only Resources have no detached
+The examples omit the OPTIONAL inlined model and capabilities, so they do
+not represent a complete server configuration. Load the sibling model when
+interpreting them. Metadata-only Resources have no detached
 domain document. The sample catalog's root `registryid` is not the ID of a
 described Registry.
 
 Endpoints, commits and snapshot references are illustrative data, not
-running services or packaged snapshots. Their syntax is complete. No
-network access, filesystem read, artifact publication or credential is
-needed to inspect these examples. The Docker Hub website is included only
-as a familiar human-facing listing.
+running services or packaged snapshots. Their syntax is complete. You can
+inspect these examples without network access, filesystem reads, artifact
+publication, or credentials. The examples include the Docker Hub website
+only as a familiar human-facing listing.
 
 ## Hub-Compatible Base Catalog
 
@@ -78,7 +80,8 @@ Version ID. The expected results below apply the
 [domain selection procedure](../spec.md#62-advertisement-selection).
 
 Version `2` advertises an unknown extension followed by OCI, Git, HTTP,
-two File layouts and OPC UA. OCI and Git have equal priority `0`.
+two File layouts and OPC Unified Architecture (OPC UA). OCI and Git have
+equal priority `0`.
 HTTP omits both `priority` and `parameters`, demonstrating the defaults
 `0` and `{}`. OPC UA uses `nsu=` and distinguishes the Registry root,
 Application URI and transport-profile URI.
@@ -88,7 +91,7 @@ policy restriction, expected choices are:
 
 | Caller choice | Selected advertisement |
 | --- | --- |
-| None | OCI at array index `1`. The unknown extension is not supported. |
+| None | OCI at array index `1`. This consumer does not support the unknown extension. |
 | `git` | Git at index `2`, despite OCI appearing first. |
 | `http` | Explicit HTTP at index `3`, before the implicit candidate. |
 | `file` | Document-tree File at index `4`, ahead of OCI-layout File. |
@@ -172,8 +175,11 @@ of its `versions` collection or a specific Version MUST produce Core
 `cannot_doc_xref`, not transitive traversal. These requirements are
 explicit in the [domain document-view rules](../spec.md#33-document-view).
 
-Selection checks also need to cover incomplete pagination, no supported
-binding, policy rejection and the prohibition on silent weaker fallback.
+Test these selection cases:
+- pagination is incomplete;
+- the consumer supports no binding;
+- policy rejects a candidate; and
+- an implementation silently falls back to a weaker binding.
 Catalog-schema validation alone cannot establish those operational
 properties.
 
@@ -189,7 +195,8 @@ For these document-view samples, first obtain the description with
 `select_version(resource, versionid=None)`, then pass that Version to
 `select_profile(entry, supported, name=None)`. The `name` argument is
 keyword-only. Profile attributes are not duplicated on the Resource.
-Collection label selection likewise uses the selected description Versions.
+To select a Version by label, pass the selected description Versions, label
+key, and label value to `select_label`.
 
 `resource_type(modelsource, xid)` identifies the Resource model type using
 Core [Resource definition reuse](../../../../core/model.md#reuse-of-resource-definitions).

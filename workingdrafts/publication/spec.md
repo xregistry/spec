@@ -143,8 +143,10 @@ Consumers MUST verify the exact size and SHA-256 of every descriptor they
 use. Manifest identity covers exact UTF-8 bytes, not parsed JSON equality.
 Whitespace changes can produce another ID. Producers SHOULD use deterministic
 serialization; this format does not canonicalize arbitrary domain documents.
+
 A manifest MUST NOT include its own digest. Consumers MUST reject unknown
 formats or unknown mandatory extension semantics instead of ignoring them.
+
 Every `requiredExtensions` entry MUST identify an included extension.
 Unlisted extensions are OPTIONAL to generic readers; a caller requesting a
 domain profile still requires that profile's extension and validation.
@@ -156,10 +158,15 @@ a complete internal graph and sufficient model material, including immutable
 model includes, as specified by Federation. Its enabled capabilities MUST
 describe the captured view rather than the source server's write capabilities.
 
-Each document association identifies a Version XID in the view,
-`originRegistry` as its original absolute Registry-root URI,
-`originVersion` as that source's Version XID, `base` as its original absolute
-document URI base, and `content` as a byte descriptor. View Version XIDs
+Each document association identifies:
+
+- a Version XID in the view;
+- `originRegistry` as its original absolute Registry-root URI;
+- `originVersion` as that source's Version XID;
+- `base` as its original absolute document URI base;
+- `content` as a byte descriptor.
+
+View Version XIDs
 MUST be unique, including under Core's case-insensitive uniqueness rules.
 The association MUST NOT change the document's authored identifiers.
 
@@ -183,8 +190,8 @@ a source-wide consistency guarantee. `source-snapshot` is permitted only with
 a source-provided immutable capture guarantee. For that claim, the producer
 MUST retain its source identity and capture evidence in a provenance extension
 under `requiredExtensions`. The capture classification
-does not weaken the output's immutability or internal completeness, and
-a consumer requiring atomic source capture MUST reject `live-observation`.
+does not weaken the output's immutability or internal completeness.
+A consumer requiring atomic source capture MUST reject `live-observation`.
 
 ## Publishing and Opening a Channel
 
@@ -198,8 +205,8 @@ An authorized publisher MUST:
    supplying the `epoch` from step 1.
 
 For HTTP, step 4 uses Core's
-[Meta update](../../core/http.md#patch-and-put-groupsgidresourcesridmeta);
-the expected epoch belongs to that channel's
+[Meta update](../../core/http.md#patch-and-put-groupsgidresourcesridmeta).
+The expected epoch belongs to that channel's
 [Meta entity](../../core/spec.md#meta-entity), not the Registry root.
 The sequence below illustrates one publisher and reader. S12 and S13 are
 short labels for manifest descriptors, not literal snapshot IDs.
@@ -338,7 +345,7 @@ Core [`GET /export`](../../core/http.md#get-export) remains the
 publication root it MUST serialize only the already selected snapshot.
 A publisher MAY also distribute the exact Registry descriptor bytes.
 API serialization and exported JSON can have different bytes from the stored
-Registry descriptor while representing the same captured graph; only the
+Registry descriptor while representing the same captured graph. Only the
 descriptor representation is checked with that descriptor's digest.
 
 A byte-preserving offline export MUST include the manifest and all objects
@@ -348,13 +355,16 @@ Publication readers MUST NOT fetch external objects during offline replay.
 
 The portable byte bundle is a directory with `publication-package.json`.
 Its schema-defined `context` supplies the open record, and `objects` maps
-each original descriptor URL to a portable relative file path. Paths use `/`
+each original descriptor URL to a portable relative file path.
+
+Paths use `/`
 between nonempty ASCII alphanumeric/underscore/hyphen segments and a final
 file name with one extension. Absolute paths, `.`/`..`, backslashes and
 percent encodings are prohibited. Readers MUST enforce resolved containment,
 including symbolic links, and apply byte/traversal limits before reading.
+
 The map MUST cover the selected manifest, Registry export, associated
-documents and extensions needed for its completeness claim; parent manifests
+documents and extensions needed for its completeness claim. Parent manifests
 are not needed merely to read the selected snapshot.
 
 The checked [sample bundle](samples/publication-package.json) consists of
@@ -426,8 +436,8 @@ It MUST name the recognized reference kinds, source bases, target identities,
 mandatory validation and handling of cycles/external dependencies.
 
 Consumers requesting such a profile MUST reject absent/unsupported closure
-data. Exact selection and compatibility validation are separate operations:
-a snapshot fixes what to evaluate; it does not waive an authored floor,
+data. Exact selection and compatibility validation are separate operations.
+A snapshot fixes what to evaluate. It does not waive an authored floor,
 compatibility selector or caller acceptance policy.
 
 One document revision MAY appear in several snapshots/channels. Channel
@@ -464,7 +474,7 @@ Raw exact retrieval remains distinguishable from validated consumption.
 
 Snapshot metadata and manifest bytes MUST NOT be overwritten under their
 existing identity. Domain revisions used by a retained snapshot MUST be
-captured immutably or served from retained checked bytes; a Core Version
+captured immutably or served from retained checked bytes. A Core Version
 ID alone does not ensure immutable content.
 
 Access authorization and retention are deployment policy. Integrity does not
@@ -486,5 +496,6 @@ full Core graph validator, native package implementation or storage-durability
 proof. Actual adapter and cross-binding conformance requires those integration
 checks before writable/deployed support is claimed.
 
-Automatic merging, rebasing, write-through federation, global document IDs,
-signature formats and distributed transactions are outside this extension.
+Automatic merging, rebasing and write-through federation are outside this
+extension. It also does not define global document IDs, signature formats
+or distributed transactions.

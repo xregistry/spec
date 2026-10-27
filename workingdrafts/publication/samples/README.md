@@ -5,9 +5,9 @@
 
 These examples check the domain-independent
 [publication contract](../spec.md). The authored
-[Registry export](registry.json) and [document](intro.txt) are synthetic
-inputs. Generated `manifest.json`, `channel.json` and `open.json` bind their
-exact bytes. URLs use reserved example domains; checks perform no network IO.
+[Registry export](registry.json) is synthetic. The [document](intro.txt) is
+synthetic too. Generated `manifest.json`, `channel.json` and `open.json` bind
+their exact bytes. URLs use reserved example domains; checks perform no network IO.
 
 The Registry is a compact Core document-view input, not an API response with
 all server-generated metadata. It has a complete containment/default graph
@@ -27,22 +27,28 @@ Run checks from the repository root:
 python -B -m pytest workingdrafts/publication/tools -q
 ```
 
-The suite checks raw size/digest, schema shape, context equality, document
-associations, case-insensitive Resource collisions, missing defaults,
-unsupported mandatory extensions, stale head writes, forks, rollback epochs
-and non-reused deleted channel identities. Negative graph cases recompute
-digests after altering the graph.
+The suite checks:
+
+- Raw size and digest
+- Schema shape and context equality
+- Document associations
+- Case-insensitive Resource collisions
+- Missing defaults and unsupported mandatory extensions
+- Stale head writes and forks
+- Rollback epochs and non-reused deleted channel identities
+
+Negative graph cases recompute digests after altering the graph.
 The checks therefore have to detect the invalid graph, not just changed
 bytes.
 
 The helper accepts this example's self-contained interpreted model only.
 It explicitly rejects aliases and is not a full Core graph or domain-closure
 validator. The channel helper serializes in-memory operations. Its results do
-not establish atomicity, retention or non-reuse across process restarts. Native
-binding mapping, HTTP context links and durable server writes need adapter
-integration evidence before conformance is claimed.
+not establish atomicity, retention, or non-reuse across process restarts. A
+conformance claim requires evidence from adapter integration. That evidence
+must cover native binding mapping, HTTP context links, and durable server writes.
 
-`publication-package.json` supplies the portable URL-to-local-file map.
+`publication-package.json` supplies the portable map from URLs to local files.
 The offline reader checks resolved containment and rejects unsafe paths.
 This demonstrates byte-bundle replay, not Git or OCI native projection.
 
@@ -118,8 +124,8 @@ missing bytes: unavailable
 
 The reader still verifies the second manifest after the channel returns
 to the first. Neither promotion nor rollback creates a document revision.
-Removing a captured object from the supplied byte map fails explicitly;
-the helper never uses the original URL to repair the offline read.
-The [bundle map](publication-package.json) and
-[packaging rules](../spec.md#export-federation-and-binding-equivalence)
-apply the same check when the bytes reside in local files.
+The helper fails explicitly when a captured object is missing from the
+supplied byte map. It never uses the original URL to repair the offline read.
+The [bundle map](publication-package.json) maps URLs to local files. The
+[packaging rules](../spec.md#export-federation-and-binding-equivalence) apply
+the same check when the bytes reside in local files.

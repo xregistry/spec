@@ -507,11 +507,14 @@ in different typed collections remains distinct.
 
 Core's case-insensitive uniqueness within a parent and case-sensitive lookup
 still apply. A pair differing only in case in the same collection is invalid
-Core data, not a filesystem collision to repair. An ID MUST match the entire
-string against `[A-Za-z0-9_](?:[A-Za-z0-9_.~:@-]){0,127}`. Whitespace and trailing
+Core data, not a filesystem collision to repair.
+
+An ID MUST match the entire string against
+`[A-Za-z0-9_](?:[A-Za-z0-9_.~:@-]){0,127}`. Whitespace and trailing
 line terminators are not part of an ID. This grammar is independent of native
-filename rules. An implementation unable to represent the total
-path length or object count MUST report
+filename rules.
+
+An implementation unable to represent the total path length or object count MUST report
 `limit_exceeded`. It MUST NOT truncate, normalize or replace an entity ID.
 
 The example generator uses `records/`, `indexes/` and `documents/` directories,
@@ -553,16 +556,23 @@ Storage metadata MUST omit `self`, `shortself`, `metaurl` and
 entity collections, and Version `formatvalidated`, `compatibilityvalidated`,
 and their reason attributes.
 For a Resource model with `hasdocument: true`, it MUST NOT contain inlined
-`<RESOURCE>` or `<RESOURCE>base64` document content. These omissions do not
-permit dropping other Core or extension data. In particular, an ordinary
+`<RESOURCE>` or `<RESOURCE>base64` document content.
+
+These omissions do not permit dropping other Core or extension data. In
+particular, an ordinary
 model-admitted attribute of a metadata-only Resource is not document content
 merely because its name uses one of these spellings.
 
 Registry and Group records have a `collections` array containing exactly one
-reference for every modeled child collection, even an empty one. An ordinary
-Resource record has exactly one reference, to its `versions` collection,
-and a `meta` reference to its Meta record. An alias Resource has a `meta`
-reference but an empty `collections` array: it owns no local Versions.
+reference for every modeled child collection, even an empty one.
+
+An ordinary Resource record has exactly one reference in its `collections`
+array, to its `versions` collection. It also has a `meta` reference to its Meta
+record.
+
+An alias Resource has a `meta` reference but an empty `collections` array: it
+owns no local Versions.
+
 Meta and Version records have no `collections` or `meta` reference.
 
 Each reference has exactly these fields:
@@ -580,9 +590,16 @@ Its role comes from this metadata, not its directory name or file extension.
 Both `size` and `sha256` are REQUIRED, including for zero-byte content.
 There is no external form of a metadata or collection reference.
 
-A collection index has `kind: "collection"`, its full collection `xid`,
-`count`, and `entries`, an array of entity references. `count` MUST equal
-the array length. An empty collection has `count: 0` and `entries: []`.
+A collection index has:
+
+- `kind: "collection"`.
+- Its full collection `xid`.
+- `count`.
+- `entries`, an array of entity references.
+
+`count` MUST equal the array length. An empty collection has `count: 0` and
+`entries: []`.
+
 Each entry MUST name an immediate member of this collection with the correct
 kind. References in both `entries` and `collections` MUST be strictly sorted
 by unsigned UTF-8 bytes of the full XID. Duplicate XIDs, case-insensitive
@@ -619,11 +636,13 @@ If the source contains
 the Registry record MUST
 also contain `resolvedmodelsource`. That object is the compact source after
 those includes were evaluated at capture time, but before implicit Core
-definitions and `ximportresources` expansion. This object MUST be
-self-contained and preserve
+definitions and `ximportresources` expansion.
+
+This object MUST be self-contained and preserve
 [Resource type sharing](../../core/model.md#reuse-of-resource-definitions).
 `modelbase` MUST record the absolute base of the
 original source. Consumers MUST NOT re-fetch mutable includes during a read.
+
 The producer MUST establish equivalence of the captured source, resolved
 source and full model, when present. The original include directives remain
 available through
@@ -633,8 +652,9 @@ not a second authoritative domain model.
 
 When includes are absent, `resolvedmodelsource` is OPTIONAL and, if present,
 MUST equal `entity.modelsource`. Model reads expose the original source,
-available resolved source and available full model. Interpreting a compact
-source MUST apply Core defaults. It MUST NOT silently infer type sharing
+available resolved source and available full model.
+
+Interpreting a compact source MUST apply Core defaults. It MUST NOT silently infer type sharing
 from structural similarity.
 
 Model results MUST preserve `modelbase` when present. Registry metadata
@@ -644,10 +664,12 @@ are capture context, not new Core attributes.
 `entity.capabilities` MUST describe access to this snapshot, not copy claims
 of upstream writes or filtering that the selected binding cannot implement.
 It MUST include Core's `available` map. The bindings are read-only.
+
 It also carries the [resolution-owner signal](../federation/spec.md#signaling-who-performs-resolution).
 A stored combined view declares `federation.resolution: "producer"`, so a
 consumer does not repeat its catalog resolution. Absence retains consumer
 resolution. This signal is independent of linked/offline completeness.
+
 Captured source information MAY appear in the Registry record's `source`
 object with an absolute, credential-free `uri` and OPTIONAL `revision`.
 This is provenance, not the operation's Git pin, an entity XID, or an implicit
@@ -667,22 +689,27 @@ For a local document, OPTIONAL `base` supplies the base URI used to resolve
 relative links inside that document. If the file was copied from an external
 location, OPTIONAL `origin` records that original location. The copied
 Version no longer has a `<RESOURCE>url`, because its document is now local.
+
 Both `base` and `origin`, when present, MUST be absolute URIs without embedded
 credentials.
 
 For `external`, `uri` MUST equal the Version's `<RESOURCE>url` exactly.
 A relative URI MUST have an explicit absolute `base` on this descriptor.
 Neither the containing file, catalog URL, Git repository URL nor `source.uri`
-is an implicit base. Known integrity is represented by OPTIONAL paired
+is an implicit base.
+
+Known integrity is represented by OPTIONAL paired
 `size` and `sha256` fields. Consumers MUST check both if they retrieve content
 with these fields. An external locator is not a metadata alias.
 
 A Version referencing a document MUST identify either local bytes or an
 explicit external location. A missing referenced local file is an
 `invalid_package` error, not an empty document.
+
 A zero-byte local document MUST reference an actual zero-byte file, with
 `size: 0` and SHA-256
 `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`.
+
 Consumers MUST NOT decode, reserialize, newline-convert or replace binary
 and JSON bytes with an empty JSON wrapper. The Version's `contenttype`,
 if present, describes the bytes independently of the file's extension.
@@ -690,20 +717,22 @@ if present, describes the bytes independently of the file's extension.
 For `hasdocument: false`, `document.kind` MUST be `none`; the Core document
 attributes do not apply. Consumers MUST preserve and validate ordinary
 model-admitted metadata named `<RESOURCE>`, `<RESOURCE>base64` or
-`<RESOURCE>url` as metadata, and MUST NOT decode or dereference it as
-document content. A document request
-MUST produce `unsupported_operation`. This is distinct from a present
+`<RESOURCE>url` as metadata. Consumers MUST NOT decode or dereference it as
+document content.
+
+A document request MUST produce `unsupported_operation`. This is distinct from a present
 zero-byte document.
 
 ## Reads and Core Document View
 
 Core's [`doc` flag](../../core/spec.md#doc-flag) defines document-view
-metadata; the `document` operation below instead retrieves domain bytes.
+metadata. The `document` operation below instead retrieves domain bytes.
 
 An exact read walks the Registry record, the necessary typed collection
 indexes and selected child records. A Version read MUST NOT require reading
 unrelated domain bytes. A consumer MAY scan a collection index in memory.
 The format defines one complete index per collection and no pagination.
+
 If a configured limit prevents a consumer from reading the complete index
 or the records needed for its request, the consumer MUST return
 `limit_exceeded`. It MUST NOT return the subset already read as a complete
@@ -758,9 +787,10 @@ A logical document request to an alias MAY read the one-hop target's selected
 document, independently of document-view metadata. It MUST NOT follow a
 second alias. If no one-hop target document exists, the document request
 returns `not_found`. That does not make the source's minimal metadata invalid.
+
 Resource document requests use `meta.defaultversionid`. Explicit Version
-requests use exactly that ID. A snapshot revision, index position or highest
-Version string MUST NOT override the Core default.
+requests use exactly the requested Version ID. A snapshot revision, index
+position or highest Version string MUST NOT override the Core default.
 
 The larger [alias fixture](samples/mapping/registry.json) exercises the
 following boundary. These are operation outcomes, not additional stored
@@ -804,6 +834,7 @@ External catalog advertisements, provenance URLs and links embedded inside
 domain bytes are not such references. Offline completeness does not require
 copying every Registry mentioned by a catalog or following links inside
 domain documents.
+
 An OPTIONAL full-graph validator checks every referenced object. A selective
 read validates its visited path but MUST NOT claim to have independently
 audited unvisited graph closure.
@@ -811,8 +842,10 @@ audited unvisited graph closure.
 Consumers MUST verify length and SHA-256 before parsing or returning each
 internally referenced object. Root bytes are captured once per operation.
 Their SHA-256 identifies that root serialization, not universal semantic
-identity or publisher authenticity. Every descendant is pinned transitively
-by its parent descriptor. Newly published states MUST be complete without
+identity or publisher authenticity.
+
+Every descendant is pinned transitively by its parent descriptor. Newly
+published states MUST be complete without
 replaying a prior snapshot. Shared content reuse does not relax closure.
 
 Missing indexed objects, invalid kinds, invalid model types and inconsistent
@@ -825,11 +858,16 @@ these failures.
 ## Security and Conformance
 
 All data in a [package](../federation/spec.md#notations-and-terminology), the
-stored mapping and its referenced documents, is untrusted. Producers MUST
-use regular files and real directories. They MUST NOT use symlinks, reparse
+stored mapping and its referenced documents, is untrusted.
+
+Producers MUST use regular files and real directories. They MUST NOT use
+symlinks, reparse
 points, parent paths, device names, alternate
-data streams or OS aliases. Consumers MUST enforce selected-root containment
-before reading bytes. Dot segments, empty components, backslashes, absolute
+data streams or OS aliases.
+
+Consumers MUST enforce selected-root containment before reading bytes.
+
+Dot segments, empty components, backslashes, absolute
 paths are not valid `href` syntax. Percent encodings that could be interpreted
 as separators or parent-path components, such as `%2f`, `%5c` and `%2e%2e`,
 are also rejected. The reader does not decode an `href` as a URI.

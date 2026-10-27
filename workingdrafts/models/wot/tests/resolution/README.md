@@ -2,13 +2,14 @@
 
 <!-- words: allowprerelease bytewise contentdigest gitattributes hashlib hexdigest iterdir minversion pathlib prereleases py submodel typelinks versionorigin workingdrafts wotid -->
 
-These 64 fixtures exercise
-[specification Section 1.3](../../spec.md#13-versioning) and
-[Section 5.4](../../spec.md#54-versioned-reference-resolution). Each
-numbered JSON file defines one case. The `sha256:` values are syntactically
-valid placeholders for fixture values; they are not digests of WoT documents.
+The checker runs 64 numbered JSON files against the reference implementation.
+Each file defines one case. [Section 1.3](../../spec.md#13-versioning)
+describes behavior that these cases exercise. The checker also tests the
+resolver against [Section 5.4](../../spec.md#54-versioned-reference-resolution).
+The `sha256:` values are syntactically valid placeholders, not digests of
+WoT documents.
 `MANIFEST.sha256` hashes the committed bytes of every file in this directory
-except itself, including this README, the schema and the checker.
+except itself, including this README, the schema, and the checker.
 
 ## Running the checker
 
@@ -18,124 +19,152 @@ From the repository root:
 python workingdrafts/models/wot/tests/resolution/check_vectors.py
 ```
 
-The checker verifies manifest coverage and hashes, and requires LF and a
-final newline in each file. When `jsonschema` is installed, it also validates
-the schema and vectors, then runs the reference implementation against every
-expected result. Without `jsonschema`, it reports that the shape check was
-skipped; manifest verification and semantic execution still run. A failed
-check returns a nonzero exit status. The other checks use only Python's
-standard library, and the checker fetches no schemas or documents.
+The script performs these checks:
+
+1. It verifies manifest coverage and hashes, and requires LF and a final
+   newline in every file.
+2. If the Python environment includes `jsonschema`, it validates the schema
+   and vectors.
+3. It runs the reference implementation against every expected result.
+
+When `jsonschema` is unavailable, the script reports that it skipped shape
+validation. It still runs the semantic cases. When a check fails, the script
+exits with a nonzero code. All other checks use Python's standard library;
+the script does not fetch schemas or documents.
 
 ## Format
 
-The format is defined by [schema.json](schema.json), using JSON Schema draft
-2020-12. Unknown fields are rejected. Top-level fields are:
+schema.json defines the format with JSON Schema draft 2020-12 and rejects
+unknown fields. The top-level fields are:
 
 | Field | Meaning |
 |---|---|
-| `description` | Human-readable purpose of the case. |
-| `registry` | Scoped Resource snapshots with `wotid`, default selection and Versions. |
-| `reference` | Resolution request: `kind`, target `wotid`, OPTIONAL `minVersion`, and OPTIONAL `floorTerm`. |
-| `document` | OPTIONAL TD context for TM `rel:type` links: `version.model` and `typeLinks`. |
-| `publish` | Publication request with `target`, OPTIONAL `targetKind`, `versionid`, `version.model`, and `version.instance`. |
+| `description` | Explains what the case tests. |
+| `registry` | Resource snapshots keyed by `wotid`, each with a default selection and its Versions. |
+| `reference` | Resolution request with a `kind`, target `wotid`, and OPTIONAL `minVersion` and `floorTerm`. |
+| `document` | OPTIONAL Thing Description (TD) context for Thing Model (TM) `rel:type` links, with `version.model` and `typeLinks`. |
+| `publish` | Publication request with required `target` and OPTIONAL `versionid`, `targetKind`, `version.model`, and `version.instance`. |
 | `pin` | Caller pin: exactly one of `{ "digest": "sha256:..." }` or `{ "versionid": "1.0.0" }`. |
-| `allowPrerelease` | OPTIONAL caller boolean, default `false`. |
+| `allowPrerelease` | The caller can set this flag to allow prerelease selection. By default, its value is `false`. |
 | `expect` | Exactly one resolution `result`, publication `assigned`, or `error`. |
 
-The `reference.kind` values `extends`, `submodel`, `ref`, and `type` retain
-their TM or type-link meanings. `td-extends`, `td-subthing`, and `td-ref`
-represent TD-to-TD operators. `minVersion` holds the normalized floor.
-When present, `floorTerm` records `tm:minVersion` or
-`td:minVersion` so vectors can test a floor used with the wrong target kind;
-when omitted, the expected term follows `kind`. Existing vectors omit both new
-properties and remain valid. A `publish.targetKind` of `td` selects
-`version.instance`; if absent, publication remains a TM case using
-`version.model`.
+The `reference.kind` field identifies the operator:
 
-A Version in `registry[].versions` has `versionid`, `versionorigin`
-(`authored` or `generated`), `contentdigest`, and OPTIONAL `version.model` or
-`version.instance`. A Resource MAY additionally have
-`deprecated: { "alternative": "https://..." }`. Version ids in stored
-snapshots are valid SemVer without build metadata. `defaultversionid` MAY be
-null for an empty Resource awaiting publication. A missing sticky Version can
-be represented to test an unavailable selection; a conforming Core write
-would not create that state.
+- `extends`, `submodel`, `ref`, and `type` identify TM or type-link operators.
+- `td-extends`, `td-subthing`, and `td-ref` identify TD-to-TD operators.
 
-The dotted field names `version.model` and `version.instance` are literal JSON
-keys in these normalized fixtures, corresponding to nested WoT document
-members. For `ref`, `target` is the document identifier after URI resolution
-and removal of the fragment; fragment traversal is outside these
-version-selection cases. No fixture transformation changes a stored document.
+`minVersion` holds the normalized floor. When present, `floorTerm` records
+whether the input used `tm:minVersion` or `td:minVersion`. The checker uses
+that term to reject a floor attached to the wrong target kind. When the caller
+omits both properties, the checker uses the term expected for `kind`. When
+`publish.targetKind` is `"td"`, publication uses `version.instance`. Otherwise,
+the request targets a TM and uses `version.model`.
 
-For a `type` reference, `document.typeLinks` lists all TD type links, and the
-request MUST project exactly one link by `target`, including its explicit
-`minVersion` if any. A single link uses the greater of its explicit floor and
-`document["version.model"]` when both are present. Several type links with a
-TD `version.model` require explicit floors on every link; otherwise the result
-is `ambiguous-floor`. Without `version.model`, each type link uses only its
-own floor, if present. This rule does not apply to TD-to-TD references: they
-have no implicit floor. A TD floor `X.Y.Z` selects versions greater than or
-equal to the floor and less than `(X+1).0.0`; this also excludes prereleases
-whose major is `X+1`. An unfloored TD reference can cross majors. A sticky
-default outside that range is `unsatisfied`. Multiple Resource matches are
-disambiguated by registry and Group before this fixture interface; a `wotid`
-occurs at most once in `registry`.
+Every entry in `registry[].versions` must include `versionid`, `versionorigin`,
+and `contentdigest`. The `versionorigin` field accepts `authored` or
+`generated`. The entry may also include
+`version.model` or `version.instance`; either field is optional. A Resource
+MAY include `deprecated: { "alternative": "https://..." }`. Stored snapshots
+must use valid SemVer version ids without build metadata.
+`defaultversionid` MAY be null for an empty Resource awaiting publication. A
+vector can set the sticky default to a Version absent from `versions` to test
+`not-found`. A conforming Core write would not create that state.
+
+The JSON keys `version.model` and `version.instance` name nested members in
+WoT documents. For `ref`, `target` holds the document identifier after URI
+resolution and fragment removal. Fragment traversal is outside these
+version-selection cases. Fixture checks do not transform stored documents.
+
+For a `type` reference, `document.typeLinks` lists the TD's type links. The
+request MUST project exactly one link. Its `target` and `minVersion`, if
+present, must match that link.
+
+The checker applies these floor rules:
+
+- With one type link, the checker uses the greater of its explicit floor and
+  `version.model` when both are present.
+- With several type links and `version.model`, every link must have an
+  explicit floor. Otherwise, the checker returns `ambiguous-floor`.
+- Without `version.model`, the checker uses each type link's own floor, if
+  present.
+
+TD-to-TD references do not inherit an implicit floor.
+
+A TD floor `X.Y.Z` sets the upper limit to `(X+1).0.0`, exclusive. Candidates
+at or above that major, including prereleases, are out of range. An unfloored
+TD reference can cross majors. If a sticky default falls outside the range,
+the checker returns `unsatisfied`. Each fixture's `registry` array contains
+at most one Resource per `wotid`. Resolve any matches across registries and
+Groups before building the fixture.
 
 A successful resolution returns the portable fields `wotid`, `versionid`,
-and `contentdigest`. The production resolver also returns `origin`, which is
-resolver context rather than authored document data or a Resource attribute.
-The checker uses the fixed origin `https://registry.example` and checks it
-before comparing the portable result. Consumers MUST retain the actual
-registry origin in production output.
+and `contentdigest`. The production resolver also returns `origin`; that
+value describes resolver context, not authored document data or a Resource
+attribute. The checker fixes the origin as `https://registry.example` and
+checks it before comparing the portable fields. Consumers MUST retain the
+actual registry origin in production output.
 
-A successful publication expects `versionid`, `versionorigin`, and
-`defaultversionid`. The default is the Core default after publication, not the
-resolver's prerelease-filtered choice. Publication requests address an
-existing Resource snapshot; an empty snapshot represents creation. They test
-TM or TD version assignment and default selection, not document compatibility
-validation or Core HTTP envelopes. Supplied invalid syntax is intentionally
-permitted by the input schema so the checker, rather than schema validation,
-produces the expected domain error.
+A successful publication returns `versionid`, `versionorigin`, and
+`defaultversionid`. Each request targets an existing Resource snapshot; a
+snapshot with no Versions represents creation. The returned default is Core's
+post-publication default, not the resolver's prerelease-filtered choice. The
+cases assign TM or TD Version ids and select that default. They do not test
+document compatibility validation or Core HTTP envelopes. The input schema
+accepts syntactically invalid values so the cases can check the corresponding
+domain errors.
 
-An error expectation is `{ "error": "<name>" }`. The names are
-`not-found`, `pin-mismatch`, `unsatisfied`, `ambiguous-floor`, `invalid-floor`,
-`version-mismatch`, and `invalid-version`. Pins bypass floors, sticky
-selection, the TD major cap, and prerelease filtering. Otherwise, a sticky
-default is authoritative and MUST be in range; without a sticky default the
-highest eligible SemVer wins. Generated `0.0.0-N` ids are prereleases and are
-never valid floors.
+An error expectation uses `{ "error": "<name>" }`. The name must be one of:
+
+- `not-found`
+- `pin-mismatch`
+- `unsatisfied`
+- `ambiguous-floor`
+- `invalid-floor`
+- `version-mismatch`
+- `invalid-version`
+
+When a caller supplies a pin, the resolver ignores:
+
+- floors
+- sticky selection
+- the TD major cap
+- prerelease filtering
+
+Otherwise, a sticky default is authoritative and MUST be in range.
+Without a sticky default, the highest eligible SemVer wins. Generated
+`0.0.0-N` ids are prereleases and are never valid floors.
 
 ## TD-to-TD vectors (050–064)
 
 | File | Case |
 |---|---|
-| `050-td-caret-within-major.json` | Select the highest eligible TD version under the next major. |
-| `051-td-caret-excludes-next-major.json` | Exclude a candidate at the next-major boundary. |
-| `052-td-unfloored-crosses-majors.json` | Allow an unfloored TD reference to cross majors. |
-| `053-td-sticky-higher-major-unsatisfied.json` | Reject a sticky default in a higher major. |
-| `054-td-floor-unmet.json` | Reject a TD target with no version meeting the floor. |
-| `055-td-prerelease-floor.json` | Admit eligible prereleases within the caret range. |
-| `056-td-ref-floor.json` | Apply the sibling floor on `td:ref`. |
-| `057-td-subthing-floor.json` | Apply a major-zero floor on `td:subthing`. |
-| `058-td-publish-authored-assignment.json` | Assign authored identity from `version.instance`. |
-| `059-td-publish-generated-id.json` | Assign the lowest unused generated id. |
-| `060-td-publish-version-mismatch.json` | Reject a supplied id that differs from `version.instance`. |
-| `061-td-publish-build-metadata.json` | Reject build metadata in `version.instance`. |
-| `062-td-minversion-on-tm-reference-invalid-floor.json` | Reject `td:minVersion` on a TM reference. |
-| `063-tm-minversion-on-td-reference-invalid-floor.json` | Reject `tm:minVersion` on a TD reference. |
-| `064-td-extends-floor.json` | Apply the floor on `td:extends`. |
+| `050-td-caret-within-major.json` | The resolver selects the highest eligible TD version below the next major. |
+| `051-td-caret-excludes-next-major.json` | The resolver excludes a candidate at the next-major boundary. |
+| `052-td-unfloored-crosses-majors.json` | The resolver allows an unfloored TD reference to cross majors. |
+| `053-td-sticky-higher-major-unsatisfied.json` | The resolver rejects a sticky default in a higher major. |
+| `054-td-floor-unmet.json` | The resolver returns `unsatisfied` when no TD version meets the floor. |
+| `055-td-prerelease-floor.json` | The resolver admits eligible prereleases within the caret range. |
+| `056-td-ref-floor.json` | The resolver applies the sibling floor to `td:ref`. |
+| `057-td-subthing-floor.json` | The resolver applies a major-zero floor to `td:subthing`. |
+| `058-td-publish-authored-assignment.json` | The publisher assigns the authored identity from `version.instance`. |
+| `059-td-publish-generated-id.json` | The publisher assigns the lowest unused generated id. |
+| `060-td-publish-version-mismatch.json` | The publisher rejects a supplied id that differs from `version.instance`. |
+| `061-td-publish-build-metadata.json` | The publisher rejects build metadata in `version.instance`. |
+| `062-td-minversion-on-tm-reference-invalid-floor.json` | The resolver rejects `td:minVersion` on a TM reference as an invalid floor. |
+| `063-tm-minversion-on-td-reference-invalid-floor.json` | The resolver rejects `tm:minVersion` on a TD reference as an invalid floor. |
+| `064-td-extends-floor.json` | The resolver applies the floor to `td:extends`. |
 
 ## Canonical bytes and maintenance
 
-All files are UTF-8 without a byte-order mark, use LF and end in a newline.
-JSON files use two-space indentation. Vector filenames are stable and are
-listed in bytewise filename order in `MANIFEST.sha256`, whose lines are
-`<lowercase-sha256>  <filename>`. The repository's `.gitattributes` pins LF
-in Windows checkouts because the manifest hashes exact bytes. No timestamps or
-absolute local paths enter the fixtures or manifest.
+All files must use UTF-8 without a byte-order mark, LF, and a final newline.
+JSON files use two-space indentation. The manifest sorts filenames in bytewise
+order. Each line contains `<lowercase-sha256>  <filename>`.
+The repository's `.gitattributes` pins LF in Windows checkouts because the
+manifest hashes exact bytes. Fixtures and the manifest contain no timestamps
+or absolute local paths.
 
-After an intentional edit, regenerate the manifest from the repository root,
-then run the checker:
+After an intentional edit, run this snippet from the repository root to
+regenerate the manifest. Then run the checker:
 
 ```python
 from hashlib import sha256
@@ -147,8 +176,12 @@ text = "".join(f"{sha256(p.read_bytes()).hexdigest()}  {p.name}\n" for p in file
 (folder / "MANIFEST.sha256").write_text(text, encoding="ascii", newline="\n")
 ```
 
-A semantic mutation test changes an expectation to another schema-valid value,
-regenerates the manifest so the semantic check is reached, and requires the
-checker to fail. Both the vector and manifest MUST then be restored byte for
-byte and the checker rerun. A separate byte mutation without rehashing MUST
-fail manifest verification.
+You can test semantic validation with these steps:
+
+1. You change an expected outcome to another schema-valid value.
+2. You regenerate the manifest so the checker reaches semantic validation.
+3. You run the checker. The checker MUST fail.
+4. You restore the vector and manifest byte for byte, then rerun the checker.
+
+To test byte verification, you change one file byte without updating its hash.
+The checker MUST report a manifest verification failure.

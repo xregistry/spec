@@ -13,10 +13,10 @@ released specifications.
 The federation drafts define read-only resolution across independently
 administered Registries.
 
-Start with the domain specification for catalog entries, then read the
-federation specification for hosting and source selection. Use the comparison
-below to choose a binding; its reference sections define the implementation
-rules.
+Start with the domain specification to understand catalog entries. Then read
+the federation specification to learn how it handles hosting and selects
+sources. Use the comparison below to choose a binding; its reference sections
+define the implementation rules.
 
 The arrows below indicate specification dependencies, not network requests.
 Core supplies the entities and interpretation rules; the other drafts add
@@ -32,7 +32,7 @@ flowchart TD
     P --> D["Domain closure and compatibility, for example WoT"]
 ```
 
-Choose a reading route by the operation being implemented:
+Choose a reading route for the operation you want to implement:
 
 - **Discover and read:** [catalog selection](models/registry/spec.md#6-discovery-and-selection),
   then [federation reads](federation/spec.md#read-operations) and the chosen
@@ -96,15 +96,21 @@ not equality of Registry IDs.
 The [WoT publication companion](models/wot/publication-design.md) supplies
 the domain-specific closure design, schema, shape example and checks.
 The [WoT versioning design](models/wot/versioning-design.md) and its
-[overview](models/wot/versioning-design-summary.md) describe document
-revision assignment, compatibility and live reference selection.
+[overview](models/wot/versioning-design-summary.md) explain how to assign
+document revisions, check compatibility, and select live references.
 
 ## OpenUSD Artifact Registry
 
-The OpenUSD draft is a domain model rather than a federation binding. It
-defines how an xRegistry stores and describes the artifacts that make up an
-[OpenUSD](https://openusd.org) scene: layers, packages, textures, MaterialX
-documents, volumes and schema plugins.
+The OpenUSD draft is a domain model rather than a federation binding. The draft
+defines how an xRegistry stores and describes artifacts in an
+[OpenUSD](https://openusd.org) scene. These artifacts include:
+
+- layers
+- packages
+- textures
+- MaterialX documents
+- volumes
+- schema plugins
 
 | Specification | Scope |
 | --- | --- |
@@ -119,10 +125,9 @@ apply Core versioning and federation across registries.
 
 Because the registry is an xRegistry document store, an existing USD asset
 resolver can retrieve an artifact by URL without any xRegistry awareness. The
-draft also acts as the wire-format peer of an OPC UA projection of the same
-model, with which it shares collection names, attribute names and identifier
-rules. That projection is defined externally, and this draft does not depend
-on it.
+draft is also the wire-format peer of an externally defined OPC UA projection
+of the same model. Both use the same collection names, attribute names, and
+identifier rules; the draft does not depend on the projection.
 
 Cross-references to the xRegistry [Schema](../schema/spec.md) and
 [Endpoint](../endpoint/spec.md) registries are informative. An implementation

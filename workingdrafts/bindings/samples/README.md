@@ -9,8 +9,8 @@ without changing its metadata or document bytes.
 
 For a smaller starting point, [mapping-example](mapping-example) contains
 the nine files used by the complete walkthrough in the specification.
-Every JSON file is shown in that walkthrough, together with the expected
-read results. Start there when authoring a mapping by hand.
+The walkthrough shows each JSON file with its expected read results. Start
+there when authoring a mapping by hand.
 
 [registry.json](mapping/registry.json) is the entry point. Its references lead to
 the collection indexes, entity records and exact document bytes. It includes
@@ -25,10 +25,10 @@ python -B -m workingdrafts.bindings.tools.mapping_examples validate workingdraft
 
 The physical filenames in this generated example are storage allocations,
 not xRegistry IDs or mandatory directory names. Existing projects can instead
-add `registry.json` and metadata alongside their own files. See
-[the directory mapping tests](../tools/test_directory_mapping.py) for
-an existing project layout read through both File and Git without moving or
-modifying its content.
+add `registry.json` and metadata alongside their own files. The
+[directory mapping tests](../tools/test_directory_mapping.py) read an
+existing project layout with File and Git. Neither binding moves or modifies
+its content.
 
 The sample's `.gitattributes` preserves JSON line endings and prevents text
 conversion of document content. It is not part of the snapshot's containment

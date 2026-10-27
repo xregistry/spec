@@ -100,8 +100,10 @@ A resolver bootstrapping from a catalog MUST read the catalog model before
 interpreting its `categories` / `registries` collections. These catalog
 Resources have `hasdocument: false`. Their Version metadata contains
 `xregurl`, `weburl` and any `federationprofiles`. It is not a domain
-document to download. An explicit catalog-description Version selects that
-Version. Otherwise, the catalog Resource's Core default Version applies.
+document to download.
+
+An explicit catalog-description Version selects that Version. Otherwise,
+the catalog Resource's Core default Version applies.
 The described Registry's `registryid` need not equal the catalog entry ID.
 
 The chosen advertisement establishes a new Registry context. The resolver
@@ -132,8 +134,8 @@ before interpreting model-dependent entities. A known, explicitly supported
 Core version is necessary. Parsing JSON is not a compatibility check.
 An unsupported version MUST produce `unsupported_version`. If supported,
 Core's [`specversion` flag](../../core/spec.md#specversion-flag) can request
-a compatible representation, but the
-resolver MUST verify the version actually returned. The resolver MUST NOT
+a compatible representation.
+The resolver MUST verify the version actually returned. The resolver MUST NOT
 mistake a silently ignored query parameter for successful negotiation.
 
 `GET B/model` retrieves the interpreted model. `GET B/modelsource`, when
@@ -147,12 +149,15 @@ supported `/modelsource` has its Core meaning.
 A resolver MAY use
 already inlined capabilities or request supported inlining. It MUST NOT
 assume that `filter`, `inline`, pagination, `/export` or writes are enabled.
+
 Before composing the selected view, it MUST apply the shared
 [resolution-owner signal](../federation/spec.md#signaling-who-performs-resolution).
 `federation.resolution: "producer"` means read the view directly without
 traversing its catalog. An absent signal defaults to consumer resolution.
+
 An absent capabilities API, an absent flag, or `flags: null` provides no
 positive evidence for that flag.
+
 [`/capabilitiesoffered`](../../core/spec.md#offered-capabilities)
 describes choices
 that can be enabled, not what is currently enabled.
@@ -207,16 +212,17 @@ MUST NOT choose a default by lexical order, modification time, enumeration
 order or the greatest Version identifier.
 
 An explicit Version target MUST select that exact, case-sensitive Version.
+
 When a multi-request operation needs both default metadata and bytes, the
 resolver SHOULD record the selected default Version ID and use its explicit
-Version URLs for subsequent requests. The resolver MUST detect a changed
-selection when claiming a consistent capture. Version IDs themselves do not
-make a
-live Version immutable.
+Version URLs for subsequent requests.
+
+The resolver MUST detect a changed selection when claiming a consistent
+capture. Version IDs themselves do not make a live Version immutable.
 
 The following partial exchange uses the non-root base from the advertisement.
 Model, Core version and enabled-capability discovery precede these reads.
-The paths use the existing `item` example; response labels show only the
+The paths use the existing `item` example. Response labels show only the
 values needed to explain selection, not complete HTTP or JSON messages.
 
 ```mermaid
@@ -241,9 +247,13 @@ sequenceDiagram
 Figure 1 (informative): metadata selects the Version; its explicit URL reads
 the document without resolving the default again. Version metadata instead
 uses that Version URL with `$details`, not another mandatory request in this
-sequence. A metadata-only type has no document request. A changed capture
-selection yields `inconsistent_snapshot`, not a continuation with newer bytes;
-see [Live Capture and Errors](#live-capture-and-errors) and the checked
+sequence.
+
+A metadata-only type has no document request.
+
+A changed capture selection yields `inconsistent_snapshot`, not a continuation
+with newer bytes.
+See [Live Capture and Errors](#live-capture-and-errors) and the checked
 [concrete read sequences](../federation/samples/http/README.md#concrete-read-sequences).
 
 For document-bearing types, body `self` links to Resource/Version metadata
@@ -258,6 +268,7 @@ Raw document reads use the domain media type and bytes. Core's
 present on a default read, identifies the default Version as Core specifies.
 A zero-byte document is a successful empty byte sequence, not a missing
 document. Absent content and metadata-only types MUST remain distinguishable.
+
 For byte-preserving capture, raw Version reads or supported Core `binary`
 serialization are appropriate. Reparsing and pretty-printing JSON is not
 byte preservation.
@@ -362,9 +373,13 @@ explicit failure. `If-Modified-Since` and `Last-Modified` have HTTP's
 semantics and precedence, not Core timestamp semantics.
 
 `If-Match` uses strong comparison. A resolver MUST NOT use a weak ETag where
-a strong validator is needed. A resolver assembling partial bytes MUST apply
+a strong validator is needed.
+
+A resolver assembling partial bytes MUST apply
 RFC 9110 sections 13.1.5 and 14, validate `Content-Range` and representation
-identity, and account for every byte. A weak ETag is not valid for
+identity, and account for every byte.
+
+A weak ETag is not valid for
 `If-Range`. An HTTP-date is usable there only under HTTP's strong-validator
 conditions. If an `If-Range` request returns a complete `200` response,
 the resolver MUST replace, not append to, its partial bytes.
@@ -390,12 +405,15 @@ an endpoint or representation. The resolver MUST distinguish these cases.
 
 Every redirect, advertised endpoint, next link and external document URL
 MUST pass caller policy. That policy includes scheme, destination, network
-access and redirect limits. The resolver MUST reject embedded credentials
+access and redirect limits.
+
+The resolver MUST reject embedded credentials
 and MUST NOT
 automatically forward Authorization, cookies, client credentials or
-origin-specific conditional headers across a trust boundary. Destination
-credentials require independent authorization. HTTPS downgrade and access
-to restricted network locations require explicit policy, not an implicit
+origin-specific conditional headers across a trust boundary.
+
+Destination credentials require independent authorization. HTTPS downgrade and
+access to restricted network locations require explicit policy, not an implicit
 fallback.
 
 `401` and `403` MUST NOT cause silent retries against another advertisement,
@@ -428,9 +446,12 @@ Link: <https://publisher.example.test/contexts/s12.json>; rel="https://xregistry
 That target returns the publication schema's `xregistry-open/1` record.
 Following it remains subject to redirect, destination and credential policy.
 The record identifies the exact manifest/Registry bytes; it is not an ETag
-for every API serialization. A context link alone does not prove API
+for every API serialization.
+
+A context link alone does not prove API
 responses match the checked snapshot. A conforming producer MUST serve that
 graph, and a consumer claiming verified equivalence MUST check it.
+
 Without this extension or another explicit snapshot guarantee, report live
 access. Absence of a link MUST NOT be interpreted as a frozen Registry.
 
@@ -439,23 +460,33 @@ ETag need not cover changes to descendants, and equal modification times
 do not prove an unchanged subtree. Even successful per-representation
 revalidation is not, by itself, a transaction spanning multiple URLs.
 
-A capture MUST record its selected root, actual Core version, selected
-Version IDs, retrieval scope, available validators and absence of an
-immutable pin separately from Core IDs. It MUST distinguish a live,
-best-effort observation from a producer-guaranteed snapshot. A resolver
-requiring a stronger guarantee MUST fail explicitly when the endpoint cannot
-provide it. If the necessary capture operation is unsupported, the outcome
+A capture MUST record the following separately from Core IDs:
+
+- Its selected root.
+- The actual Core version.
+- Selected Version IDs.
+- Retrieval scope.
+- Available validators.
+- The absence of an immutable pin.
+
+It MUST distinguish a live, best-effort observation from a
+producer-guaranteed snapshot.
+
+A resolver requiring a stronger guarantee MUST fail explicitly when the endpoint
+cannot provide it. If the necessary capture operation is unsupported, the outcome
 is `unsupported_operation`. If an attempted capture is inconsistent or
 incomplete, the outcome is `inconsistent_snapshot`.
 
 For a multi-request capture, the resolver SHOULD recheck the default
-selection and the representations on which the capture depends. A changed
-default, changed representation, conflicting membership or interrupted
-page/byte sequence invalidates a claim of consistent capture. The resolver
-MUST report `inconsistent_snapshot` and discard that claim. It MAY start a
-new,
-separately identified operation. A fresh capture is not a silent continuation
-using mixed old and new state.
+selection and the representations on which the capture depends.
+
+A changed default, changed representation, conflicting membership or interrupted
+page/byte sequence invalidates a claim of consistent capture.
+
+The resolver MUST report `inconsistent_snapshot` and discard that claim.
+
+It MAY start a new, separately identified operation. A fresh capture is not a
+silent continuation using mixed old and new state.
 
 Common errors are resolver outcomes, not additional Core HTTP errors:
 
@@ -475,9 +506,10 @@ Common errors are resolver outcomes, not additional Core HTTP errors:
 
 The resolver MUST retain the HTTP status and any Core error detail.
 `api_not_found` is not an absent entity. The resolver MUST NOT use a generic
-`404` without enough context to invent an empty collection. Failure of a
-previously identified member during capture is also evidence of incomplete
-capture, not proof of a consistent deletion history.
+`404` without enough context to invent an empty collection.
+
+Failure of a previously identified member during capture is also evidence of
+incomplete capture, not proof of a consistent deletion history.
 
 ## Conformance and Offline Examples
 

@@ -77,12 +77,21 @@ are not part of this binding. A web page URL is not implicitly a repository.
 A full ref MUST begin with `refs/` and pass Git's
 [`check-ref-format`](https://git-scm.com/docs/git-check-ref-format) rules.
 For example, `refs/heads/main` and `refs/tags/release-1` are valid.
-The resolver MUST NOT accept `HEAD`, branch shorthand, abbreviated object IDs
-(OIDs), reflog selectors, revision ranges, `~`, `^` expressions or `:<path>`
-expressions.
+The resolver MUST NOT accept:
+
+- `HEAD`.
+- Branch shorthand.
+- Abbreviated object IDs (OIDs).
+- Reflog selectors.
+- Revision ranges.
+- `~` or `^` expressions.
+- `:<path>` expressions.
+
 A complete object ID consists of exactly 40 or 64 hexadecimal characters,
 matching the repository's object format. Readers normalize its spelling to
-lowercase for the pin. A full ref is a selection input, not an immutable pin.
+lowercase for the pin.
+
+A full ref is a selection input, not an immutable pin.
 
 A nonempty `path` MUST use `/`-separated portable directory components.
 Components MUST be 1 to 64 ASCII letters, digits, `_`, `-` or `.`, begin with
@@ -118,6 +127,7 @@ MUST be explicit, bounded and complete for the requested operation.
 The resolver MUST resolve `revision` once. Lightweight tags and branches
 select their referenced object. The resolver MUST peel annotated tags to a
 commit. An object that cannot resolve to a commit is invalid selection input.
+
 The resolver MUST record the resulting complete commit OID, which remains
 pinned for the entire operation, including model, label and document reads.
 Movement of the
@@ -223,9 +233,11 @@ Resource, label and document failures retain the common distinctions.
 Resolvers MUST enforce HTTPS authentication, certificate, redirect and
 credential-scoping policy during acquisition. They MUST disable unsupported
 protocols, repository-controlled execution and implicit lazy fetching.
+
 Local object-store alternates, replacement objects, grafts, untrusted
 configuration includes and filesystem indirections MUST NOT silently change
 the selected object graph or bypass the permitted storage boundary.
+
 Readers using Git subprocesses MUST pass validated arguments directly without
 shell evaluation, and MUST isolate unsafe configuration/environment settings.
 
@@ -233,6 +245,7 @@ Acquisition, tag peeling, tree traversal and object reads MUST have explicit
 resource limits. A resolver MUST NOT report limits or incomplete acquisition
 as successful empty results, or use them to justify fallback to another
 profile.
+
 Git content identity alone does not authenticate the publisher. Signature
 and repository trust policies are independent.
 
