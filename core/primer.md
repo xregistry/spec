@@ -41,11 +41,13 @@ normative technical details.
   - [5.2. Discovery](#discovery)
   - [5.3. Vendor-agnostic](#vendor-agnostic)
   - [5.4. Versioning](#versioning)
-  - [5.5. Schema validation](#schema-validation)
-  - [5.6. Payload reduction](#payload-reduction)
-  - [5.7. Schema-based contract and client
-    generation](#schema-contract-client-generation)
-  - [5.8. Basis for further developments](#basis-for-further-developments)
+  - [5.5. Validation and compatibility](#schema-validation)
+  - [5.6. Metadata sharing](#metadata-sharing)
+    - [5.6.1. Payload reduction](#payload-reduction)
+    - [5.6.2. Schema-based contract and client
+      generation](#schema-contract-client-generation)
+  - [5.7. Messaging models as a basis for further
+    development](#basis-for-further-developments)
 - [6. Non-Goals](#non-goals)
 - [7. Representations](#representations)
   - [7.1. File](#file)
@@ -57,10 +59,9 @@ normative technical details.
   - [8.2. Embeddings and Links](#embeddings-and-links)
   - [8.3. Federation](#federation)
     - [8.3.1. Composing registries in memory](#composing-registries-in-memory)
-    - [8.3.2. Shadowing](#shadowing)
-    - [8.3.3. Entity identity across registry
+    - [8.3.2. Entity identity across registry
       views](#entity-identity-across-registry-views)
-    - [8.3.4. API Servers and Proxies](#api-servers-and-proxies)
+    - [8.3.3. API Servers and Proxies](#api-servers-and-proxies)
 - [9. Possible Use Cases](#possible-use-cases)
   - [9.1. CloudEvents](#cloudevents)
   - [9.2. Business objects](#business-objects)
@@ -113,6 +114,8 @@ normative technical details.
   - [10.28. Validation edge cases](#validation-edge-cases)
     - [10.28.1. Empty format capabilities](#empty-format-capabilities)
     - [10.28.2. Constraints and `matchversions`](#constraints-and-matchversions)
+  - [10.29. Relative Resource URLs in the File
+    representation](#relative-resource-urls-in-the-file-representation)
 
 
 <a id="quick-introduction"></a>
@@ -204,7 +207,8 @@ defines (e.g. `endpoints`, `messages`) - they're not literal.
 A plain `GET` on a Registry, Group, or metadata-only Resource returns its
 metadata as JSON. The same applies to a Version of a metadata-only Resource.
 Retrieving a Document Resource or one of its Versions returns its
-domain-specific document by default, as described in section 3.2.3.
+domain-specific document by default, as described in section
+[3.2.3](#resource-metadata-vs-document).
 
 ```
 GET /endpoints/ep1
@@ -424,7 +428,7 @@ associating those declarations with application endpoints. As a result, the
 xRegistry (extensible registry) specification was created.
 
 xRegistry was initially part of CloudEvents, called "CloudEvents Discovery" but
-later moved into its own repository.
+later moved into its own project.
 
 <a id="value-proposition"></a>
 ## 5. Value proposition
@@ -434,6 +438,10 @@ resources in an abstract model that can be used to centralize and standardize
 information about resources in a system. The core specification defines the
 basic building blocks for managing metadata about resources and provides
 multiple formats to [represent](#representations) this information.
+
+The design aims to make discovery, validation, and versioning interoperable
+through a consistent metadata structure and API, with extension points for
+resource metadata and errors.
 
 xRegistry can be used to represent any type of metadata, as long as it adheres
 to the basic model in which a registry consists of groups, which in turn
@@ -447,9 +455,8 @@ In addition to the core specification, xRegistry provides secondary
 specifications for [endpoints](../endpoint/spec.md),
 [schemas](../schema/spec.md), and [messages](../message/spec.md), that further
 build upon the core to provide more domain-specific standardization in the
-context of event-driven systems. The following subsections provide a more
-specific overview of how xRegistry can be used to address common challenges in
-the event-driven space.
+context of event-driven systems. The following subsections describe benefits of
+the common model and API, using event-driven systems as examples.
 
 <a id="why-build-something-new"></a>
 ### 5.1. Why build something new?
@@ -473,107 +480,127 @@ the xRegistry resource model. This provides consistent metadata and
 cross-references while the source registries remain authoritative. For example,
 a container image can contain an application, published as a package, that
 exposes an endpoint for events with particular payload schemas. Section
-[8.3.4](#api-servers-and-proxies) explains how an xRegistry API can project
+[8.3.3](#api-servers-and-proxies) explains how an xRegistry API can project
 resources managed by another registry.
 
 <a id="discovery"></a>
 ### 5.2. Discovery
 
-One of the pain points of event-driven systems is the need to create and
-maintain documentation about endpoints and the events they expose, enabling
-consumers from other teams or even other organizations to find the information
-they need. A centralized registry gives teams one place to discover and query
-endpoints and the events they produce or consume. Extensions can add
-domain-specific metadata that describes these events in greater detail. An
-extension's model can declare which of those attributes are required.
-Descriptions can also be written for people rather than tools, so developers,
-data analysts, and business analysts can use the same registry.
+Teams need to discover the resources available in a system and find the
+metadata and documents that describe them. xRegistry provides a common model
+and API for publishing and querying that information across teams and
+organizations. Model extensions can add domain-specific attributes and declare
+which are required. Human-readable descriptions let developers, data analysts,
+and business analysts use the same registry. For example, an event-driven
+system can publish information about endpoints and the events they produce or
+consume.
 
 <a id="vendor-agnostic"></a>
 ### 5.3. Vendor-agnostic
 
-xRegistry provides a specification to define, query, group, version and enforce
-schemas for systems. Multiple schema registry solutions exist already, including
+xRegistry defines a common model, document format, and API for describing and
+managing resources independently of a particular vendor or product. Clients
+can discover a registry's model and use the same operations to query metadata,
+retrieve documents, and manage Versions across implementations. Domain-specific
+models describe the resources without requiring a different core API for each
+domain.
+
+Schema registries are one example. Products such as
 [Confluent Schema
 Registry](https://docs.confluent.io/platform/current/schema-registry/index.html),
-[Azure Event Hubs
-Registry](https://learn.microsoft.com/en-us/azure/event-hubs/schema-registry-overview)
-or [Apicurio Registry](https://www.apicur.io/registry/), [AWS Glue Schema
-Registry](https://docs.aws.amazon.com/glue/latest/dg/schema-registry.html) and
-more.
-
-These schema registries are broker- and therefore vendor-specific and even
-protocol-specific, which causes friction when an event travels through multiple
-brokers. In such cases, clients have to deal with the implementation differences
-across registries, for example when validating event structures, hindering
-interoperability and, therefore, complicating integration scenarios. xRegistry
-aims to address this with an agnostic specification, providing a common base
-across these offerings.
+[Azure Event Hubs Schema
+Registry](https://learn.microsoft.com/en-us/azure/event-hubs/schema-registry-overview),
+[Apicurio Registry](https://www.apicur.io/registry/), and
+[AWS Glue Schema
+Registry](https://docs.aws.amazon.com/glue/latest/dg/schema-registry.html)
+expose different interfaces. An xRegistry API can provide a common view of
+resources managed by these systems while the source registries remain
+authoritative, as described in
+[API Servers and Proxies](#api-servers-and-proxies).
 
 <a id="versioning"></a>
 ### 5.4. Versioning
 
-As systems evolve, the endpoints that emit events may change, as may the events
-themselves. These changes can break consumers, so compatibility strategies must
-tell consumers how events and endpoints may evolve. xRegistry lets a registry
-declare a compatibility strategy and enforces that strategy when the registry
-changes. The specifications also allow endpoints to be marked as deprecated and
-can identify an alternative endpoint. Event schemas are version-aware and can
-retain multiple versions of a data schema.
+Resources and their metadata change as systems evolve. xRegistry can retain
+multiple Versions of a Resource, identify a default Version, and let clients
+retrieve a particular Version explicitly. These mechanisms apply across
+resource types, allowing clients to use a known Version while newer Versions
+are introduced.
+
+Compatibility rules depend on the kind of resource. For example, a schema
+registry can declare a compatibility strategy and check schema changes against
+it. The [Endpoint specification](../endpoint/spec.md) also defines deprecation
+metadata and can identify an alternative endpoint. These domain-specific
+features build on the common Resource and Version model.
 
 <a id="schema-validation"></a>
-### 5.5. Schema validation
+### 5.5. Validation and compatibility
 
-The registry contains granular event definitions and schemas that serve as a
-contract between publishers and consumers. This applies to both the message
-payload and its metadata. Implementations can also use these definitions for
-enforcement. For example, an event service could validate events when they are
-published and reject events that do not conform to the schema for that context.
+xRegistry models define the attributes and constraints used to validate
+registry metadata. For Resource Versions, a model can also enable
+[format validation](./model.md#groupsstringresourcesstringvalidateformat) and
+[compatibility checking](./model.md#groupsstringresourcesstringvalidatecompatibility).
+Format validation checks a document against its declared format; compatibility
+checking evaluates Versions against the Resource's declared compatibility
+policy. These checks depend on the model settings and the formats and policies
+supported by the implementation.
+
+Schema documents are one example: a registry can check that a stored schema is
+valid and that changes satisfy the selected compatibility policy, helping
+teams evolve schemas without breaking existing consumers. This is validation
+of documents stored in the registry, not a requirement for xRegistry to
+validate application traffic.
+
+<a id="metadata-sharing"></a>
+### 5.6. Metadata sharing
+
+xRegistry provides a central place to publish shared metadata and documents
+that applications can discover and retrieve by reference. The same model and
+APIs support sharing across domains, rather than requiring a separate discovery
+mechanism for each use case. Payload reduction and code generation are two
+examples of how applications can use this shared information.
 
 <a id="payload-reduction"></a>
-### 5.6. Payload reduction
+#### 5.6.1. Payload reduction
 
-Schema information enables real-time analysis of incoming data based on its
-context. Self-describing encodings such as JSON repeat field names and other
-structural information in each payload. When applications can resolve the
-applicable schema through registry metadata, they can use compact serialization
-formats that omit this repetition without giving up contextual analysis.
-Generated contracts can be created on demand or published alongside a model
-version as reusable libraries, allowing consumers to use them without
-installing the generator tooling.
+Applications can reference a shared document instead of embedding a copy in
+every use. For example, an event can carry a URL identifying its payload schema
+rather than carrying the schema itself. Consumers can retrieve the schema
+through the registry when needed. Where the encoding permits it, a shared
+schema can also support compact serialization that omits repeated field names
+and other structural information.
 
 <a id="schema-contract-client-generation"></a>
-### 5.7. Schema-based contract and client generation
+#### 5.6.2. Schema-based contract and client generation
 
 The [file and API representations](#representations) can both supply versioned
-model input to code generators. Teams can generate the data contracts needed to
-interact with endpoints instead of maintaining shared packages for those
+metadata and documents to code generators. For example, teams can generate
+data contracts from schemas instead of maintaining shared packages for those
 contracts by hand. A schema in a
 vendor-agnostic, well-defined format can drive tools that generate
 broker-specific consumers or event-store inserts. Generated producers and
 consumers reduce the amount of contract code that teams must write and test.
+Generated contracts can be created on demand or published alongside a model
+version as reusable libraries, allowing consumers to use them without
+installing the generator tooling.
 Clemens Vasters built a proof-of-concept that shows this approach in
 the [Avrotize VS Code Extension](https://github.com/clemensv/avrotize).
 
 <a id="basis-for-further-developments"></a>
-### 5.8. Basis for further developments
+### 5.7. Messaging models as a basis for further development
 
-The core xRegistry resource model is independent of messaging protocols.
-Domain-specific specifications can describe resources associated with MQTT,
-HTTP, Kafka, AMQP, or other protocols without changing that common model.
+The [Endpoint](../endpoint/spec.md) and [Message](../message/spec.md)
+specifications build on the protocol-independent core xRegistry model to
+describe messaging resources. These domain-specific models provide a basis
+for tools and additional models that describe how messages move between
+endpoints across protocols such as MQTT, HTTP, Kafka, and AMQP.
 
-CloudEvents serve as a mechanism to aid in the delivery of events from a
-producer to a consumer, which is applicable independently of the protocol (MQTT,
-HTTP, Kafka, and AMQP) or encoding (JSON, XML, SOAP, Avro, etc.). xRegistry
-further builds upon this by providing a specification to define resources that
-correlate specific events to endpoints, providing versioning information and
-more extensive metadata.
-
-Using the Endpoint specification to correlate events and endpoints across a
-system provides information that other tools or models can use to define event
-flows. xRegistry does not define those flows. Once defined, they can be
-discovered directly instead of reconstructed from manually maintained
-documentation or observed runtime behavior.
+For example, the [Endpoint specification](../endpoint/spec.md#overview) can
+correlate message definitions with endpoints. Other tools or models can use
+that metadata to describe event flows, although defining those flows is
+outside the Endpoint specification's scope. Once those flow descriptions
+exist, applications can discover them rather than reconstructing them from
+manually maintained documentation or observed runtime behavior.
 
 <a id="non-goals"></a>
 ## 6. Non-Goals
@@ -659,8 +686,8 @@ authorization, or server-side queries are already required.
 
 The purpose of a registry is to act as a catalog more than as a container.
 
-xRegistry is extensible with models so that the catalog entries can be
-customized for the described kind of resource. You could fairly precisely
+xRegistry models allow domain-specific catalog entries to describe different
+kinds of resources. You could fairly precisely
 catalog a fleet of vehicles using xRegistry, but the vehicles themselves would
 quite obviously not exist inside of it.
 
@@ -712,18 +739,10 @@ registry as an [embedded JSON value](spec.md#resource-attribute), a
 [base64-encoded value](spec.md#resourcebase64-attribute), or an [external URL
 reference](spec.md#resourceurl-attribute).
 
-Strictly speaking, the choice between whether, say, a schema is represented as
-`schema` with an embedded object or `schemabase64` with base64 binary content
-depends on the encoding of the registry metadata.
-
-When a document is embedded, the encoding needs to align with the hosting
-registry document for the [embedded object](spec.md#resource-attribute) variant.
-At present, all examples and implementations use JSON and so it might appear
-that this is a JSON-related feature, but it's very feasible to encode the entire
-registry in Avro binary and there is a formal schema for Avro.
-
-The core specification defines only JSON serialization. Another registry
-encoding requires a separately defined serialization binding.
+Directly embedded documents need to be valid values in the registry's
+serialization format. The core specification defines JSON serialization;
+another encoding, such as Avro binary, would require a separately defined
+serialization binding.
 
 For the Schema Registry model serialized as JSON, an Avro schema can be
 embedded as JSON data in `schema`. A text file can also be embedded in `schema`
@@ -744,11 +763,11 @@ use external links when proxying content from non-xRegistry registries; see
 <a id="federation"></a>
 ### 8.3. Federation
 
-xRegistry does not have a synchronization API, by intent. Since xRegistry is
-both a document format model and an API, the integration of multiple registries
-("federation") does not rely on making copies but is intended to work via
-cross-referencing and "shadowing" across the [representations](#representations)
-described earlier.
+xRegistry does not define a synchronization API. Clients and proxies can
+access multiple registries through the common document model and API, using
+cross-references to retrieve related entities. The specification does not
+define how to merge conflicting sources, assign precedence, or implement
+shadowing. Those behaviors are outside the scope of xRegistry 1.0.
 
 <a id="composing-registries-in-memory"></a>
 #### 8.3.1. Composing registries in memory
@@ -762,12 +781,11 @@ construct a registry from both. There are several examples of such source
 documents in the
 [cloudevents/samples](../cloudevents/samples/README.md) folder.
 
-When the registry is split across multiple files in a folder structure, the
-application can load the root document and traverse `<RESOURCE>url` links to
-individual documents on demand, building an in-memory view that combines the
-root document with only those branches that are relevant to the application. The
-same applies when the root sits behind an [API server](#api-server) or proxy:
-the client fetches and caches just the branches it needs.
+For a [static file server](#static-file-server), the application can load the
+root document and follow collection and entity URLs on demand, fetching and
+caching only the branches it needs. The same applies to an
+[API server](#api-server) or proxy. The application performs this processing;
+a static file server only serves the published files.
 
 When assembling such a view, the application needs to process the fetched
 content under the effective model and the applicable xRegistry rules, including
@@ -775,31 +793,8 @@ constraints and `xref` processing. It also needs to distinguish a partially
 loaded view from a complete Registry. For example, a collection count can
 include entities that the application has not fetched.
 
-<a id="shadowing"></a>
-#### 8.3.2. Shadowing
-
-Shadowing is a composition pattern in which one source can override or extend
-entries from another source without modifying it. This lets an application keep
-locally modified entries while continuing to read untouched entries from an
-underlying registry.
-
-An implementation can assign precedence to its sources. For files, it can load
-them in order and give later files precedence over earlier ones. The same
-pattern can combine files, folders, API servers, or proxies into one view.
-
-When assembling such a view, the implementation needs to process the result as
-an xRegistry rather than as a generic merge. Precedence can select between
-overlapping entries, but it does not detect incompatible models, invalid
-entities or references, or violated constraints.
-
-The specification does not define how sources are discovered, how precedence is
-assigned, how conflicts are resolved, or what happens when the composed result
-is invalid. Composition and shadowing are therefore emerging implementation
-patterns rather than xRegistry 1.0 features. The project needs more experience
-with them before it can define interoperable behavior.
-
 <a id="entity-identity-across-registry-views"></a>
-#### 8.3.3. Entity identity across registry views
+#### 8.3.2. Entity identity across registry views
 
 When two registry views intentionally represent the same logical entity using
 the same model hierarchy and IDs, the entity has the same `xid` in each view.
@@ -818,7 +813,7 @@ retrieved. They can differ between registry services that expose the same
 logical entity and therefore are not portable identifiers across registries.
 
 <a id="api-servers-and-proxies"></a>
-#### 8.3.4. API Servers and Proxies
+#### 8.3.3. API Servers and Proxies
 
 An API server can also act as a proxy that presents multiple underlying
 registries - including non-xRegistry ones - through a single xRegistry
@@ -827,10 +822,10 @@ reference implementations of such proxies, showing both how to federate
 xRegistry APIs and how to project other registry models into the xRegistry
 model.
 
-A proxy can expose a composed registry view, or a client can construct one
-locally. In either case, the component constructing the view is responsible for
-the conformance processing described above; calling a source a shadow does not
-relax any xRegistry rule.
+A proxy is responsible for exposing a view that conforms to its xRegistry
+model, including the applicable constraints and reference rules. The source
+registry can remain authoritative; the proxy need not copy its documents into
+xRegistry storage.
 
 <a id="possible-use-cases"></a>
 ## 9. Possible Use Cases
@@ -1129,9 +1124,10 @@ Attribute names and key names are limited to 63 characters, so why are some
 Group and Resource names limited to less? Because when they appear as part of
 attribute names and they can be appended with phrases like `url`, `count`
 or `base64`, and they still have to fit within the 63-character limit, and so
-we need to take into account the length of those phrases. As a result, both
-Group and Resource type names (both singular and plural) are limited to
-57 characters.
+we need to take into account the length of those phrases. As a result, Group
+type singular names are limited to 61 characters.
+Group type plural names and Resource type singular and plural names are
+limited to 57 characters.
 
 <a id="why-group-resource-type-names-are-limited"></a>
 Since Group type and Resource type names will appear as attribute names (e.g.
@@ -1255,15 +1251,10 @@ for their needs.
 <a id="pruning-versions-with-singleversionroot-enabled"></a>
 ### 10.18. Pruning Versions with `singleversionroot` enabled
 
-There are cases in which the server will need to prune Versions. For
-example, this can happen when attempting to create a new Version that would
-exceed the value set on the `groups.resources.maxversions` attribute of the
-[Resource Model](./model.md#registry-model), or when adjusting this attribute's
-value that is smaller than the number of existing Versions. In such
-scenarios, the server may be unable to prune Versions, when the
-`groups.resources.singleversionroot` attribute of the
-[Resource Model](./model.md#registry-model) is set to `true` and the request
-must be rejected.
+The [normal pruning rules](#default-version-and-maximum-versions) apply when
+creating a Version would exceed `maxversions` or when that limit is reduced.
+However, if pruning would create multiple roots while `singleversionroot`
+is `true`, the server must reject the request.
 
 Consider a scenario in which 3 Versions exist: v1 is the root (and therefore
 has its `ancestorid` attribute set to v1), and v2 and v3 both have
@@ -1523,3 +1514,50 @@ unusable Resource type if its model enables those aspects and clients supply
 They do not apply inside maps, arrays, `ifvalues` clauses, or `*` extensions.
 Extending validation into those structures would increase implementation
 complexity and make consistent support across servers less likely.
+
+<a id="relative-resource-urls-in-the-file-representation"></a>
+### 10.29. Relative Resource URLs in the File representation
+
+The [File representation](#file) can use relative URLs for Resource documents.
+This allows a repository to move without rewriting the URLs or duplicating
+the documents in the registry file.
+
+**Example:**
+
+```
+Repository structure:
+    /project-root
+        ...
+        /registry
+            xreg.json
+        /schemas
+            schema1.json
+            schema2.json
+        ...
+```
+
+For a repository structured as shown above, a schema version in xRegistry
+could look like:
+
+```yaml
+"schemagroups": {
+    "MySchemaGroup": {
+        "schemas": {
+            "MySchema": {
+                "versions": {
+                    "1": {
+                        "format": "JsonStructure/draft-02",
+                        "schemaurl": "../schemas/schema1.json"
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+The specification requires resource URLs to be resolvable which, in the context
+of the files of the repository, is possible. When uploading registry content to
+a server, ensure that all relative URLs are resolved and that the referenced
+documents are included in the upload. Client-side tooling may be able to
+assist with this process.
