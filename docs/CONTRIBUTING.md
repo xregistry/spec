@@ -1,7 +1,7 @@
 # Contributing to xRegistry
 
 <!-- no verify-specs -->
-<!-- words: configs conventionalcommits dco developercertificate feb readme -->
+<!-- words: ci configs conventionalcommits dco developercertificate feb readme -->
 
 This page explains how to report issues, propose changes and format documents.
 

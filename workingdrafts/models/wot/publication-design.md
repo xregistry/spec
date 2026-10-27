@@ -32,7 +32,7 @@ to it.
 | Compatibility line | Domain declaration of compatible incremental revisions. |
 | Snapshot | Exact model/metadata, revisions and dependency bindings. |
 | Channel | A mutable scoped name that selects a snapshot. |
-| Source release | A source release records capture provenance; it is not a revision or snapshot ID. |
+| Source release | A source release records capture provenance. It is not a revision or snapshot ID. |
 
 The same document revision can appear in multiple snapshots. A publisher can
 move a channel across compatibility lines, but consumers still apply their
@@ -41,7 +41,7 @@ channel, snapshot or compatibility line.
 
 A channel resembles a Git branch only in that it has a mutable head and a
 publisher can fork it cheaply. The manifest's OPTIONAL parent records
-preparation history; it does not enable automatic merge, rebase, a working
+preparation history. It does not enable automatic merge, rebase, a working
 tree or the Git protocol. Reconciliation creates another complete, validated
 snapshot.
 
@@ -72,7 +72,7 @@ flowchart LR
 ```
 
 **Figure A-1.** Informative channel and closure view. A channel has one
-current head; each binding identifies one source occurrence and one exact
+current head. Each binding identifies one source occurrence and one exact
 target Version in the selected snapshot.
 
 The closure extension URI is:
@@ -111,7 +111,7 @@ draft:
 - `td:subthing`
 - `td:ref`
 - TD `type` links
-- projection-source references
+- Projection-source references
 
 The schema deliberately permits operator strings so the existing
 vocabulary/contexts remain authoritative. An unknown operator cannot satisfy
@@ -131,12 +131,12 @@ the stated operator and exact `href` at that object.
 The producer materializes external dependencies as exact Versions in the
 captured view and preserves their source associations. The binding key is
 `(source, pointer)`, not the authored target ID.
-The target's bytes and fragment need to satisfy the actual source reference;
-an existing Version with unrelated bytes is not a valid binding.
+The target's bytes and fragment need to satisfy the actual source reference.
+An existing Version with unrelated bytes is not a valid binding.
 
 Entries, sources and targets need to exist in the generic document associations.
 Bindings need to be unique and cover the complete reachable closure from the
-entries. They must not add unreachable or invented edges.
+entries. They need to exclude unreachable or invented edges.
 
 During traversal, the resolver records each visited Version/reference pair.
 The composition operator's existing rules determine whether a cycle is valid.
@@ -161,14 +161,14 @@ revision and confirms that the caller accepts it.
 Incremental targets need the declared compatibility line and any numeric
 floor. SemVer targets retain their target-kind floors, next-major bounds
 and prerelease rules. Conflicting trusted declarations fail.
-The snapshot determines content; it does not waive those requirements. The
+The snapshot determines content. It does not waive those requirements. The
 raw exact-pin retrieval path remains separate from this
 [compatibility-checked composition][Publication closure].
 
 The standalone live resolver still selects the highest qualifying revision
 under [D7](versioning-design.md#d7-selection-defaults-and-exact-pins),
 including its sticky-default rule. A captured default describes the
-snapshot's raw Resource read; it does not replace an explicit dependency
+snapshot's raw Resource read. It does not replace an explicit dependency
 binding.
 The existing raw exact-pin retrieval path still bypasses live floor/default
 selection. It is not compatibility-validated snapshot composition.
@@ -226,7 +226,7 @@ Deleting a channel never authorizes reuse of its old Resource identity.
 
 ### N06. Reconcile two publishers
 
-Both publishers read epoch 12. One publishes S13; the other's conditional
+Both publishers read epoch 12. One publishes S13. The other's conditional
 update fails. The publisher whose update failed reads the new head and
 reconciles deliberately. It then creates another complete snapshot. It does not
 overwrite the winner or silently merge JSON.
@@ -255,14 +255,14 @@ document uploads.
 
 Offline replay requires the byte bundle to retain:
 
-- the manifest
+- The manifest
 - Registry metadata
-- context material
-- closure data
-- exact document bytes
+- Context material
+- Closure data
+- Exact document bytes
 
 The reader resolves URLs through the bundle's map without contacting the
-origin. Missing, corrupt or unsupported material causes replay to fail; raw
+origin. Missing, corrupt or unsupported material causes replay to fail. Raw
 cached documents alone are insufficient.
 
 ### N11. A consumer federates a channel
@@ -275,7 +275,7 @@ simultaneous state.
 
 ### N12. Refresh, retain or revoke
 
-A consumer refreshes the channel to review a new head; old pins remain
+A consumer refreshes the channel to review a new head. Old pins remain
 unchanged. Operators retain reachable content under policy. If an operator
 revokes or deletes it, replay becomes unavailable. The reader reports replay
 as unavailable instead of substituting a newer resource.
@@ -287,9 +287,9 @@ same publication protocol without a product-wide release number.
 
 ## Validation and implementation boundary
 
-The schema checks the descriptor's shape only. The adapter/resolver must
+The schema checks the descriptor's shape only. The adapter/resolver needs to
 independently rediscover edges from source bytes and expand contexts. The
-adapter/resolver must then match each pointer, operator and target, check
+adapter/resolver then needs to match each pointer, operator and target, check
 compatibility, and bound transitive traversal.
 
 The planned negative fixtures omit or replace edges after recomputing all
@@ -297,7 +297,7 @@ digests. They also test wrong source bases, conflicting declarations, missing
 context material and a dependency added to an unrelated entry.
 
 Neither the generic proposal's tests nor the existing 64 SemVer vectors
-establish those WoT semantics. A mapping for OPC UA must use the same context
+establish those WoT semantics. A mapping for OPC UA needs the same context
 and closure semantics, including append-only generated NodeIds. This design
 pass does not change the `1.1-draft` model or either .NET runtime.
 

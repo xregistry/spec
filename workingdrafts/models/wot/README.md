@@ -23,7 +23,7 @@ deployed resolver conformance.
 The [canonical vectors](tests/resolution/README.md) test how the registry assigns
 versions and resolves references. Some cases test how the registry applies
 floors and matches caller pins. Others test how it honors sticky defaults and
-selects prereleases. Run
+selects prerelease versions. Run
 `python workingdrafts/models/wot/tests/resolution/check_vectors.py` from the
 repository root.
 

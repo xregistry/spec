@@ -5,7 +5,7 @@
 
 These examples check the read and selection rules in the unreleased
 [federation specification](../spec.md). All inputs are synthetic and run
-offline; they contain no credentials or production endpoints.
+offline. They contain no credentials or production endpoints.
 
 | Path | Purpose |
 | --- | --- |
@@ -25,7 +25,7 @@ before configured sources. A failed read does not change the resolution owner.
 
 The `registry` object in `selection.json` is a reduced logical test vector,
 not a complete serialized Core API response. It omits server-generated
-metadata; that omission does not authorize an API to omit the same metadata.
+metadata. That omission does not authorize an API to omit the same metadata.
 The binding formats define their complete record representations separately.
 
 Use these examples to inspect concrete read outcomes:
@@ -34,7 +34,7 @@ Use these examples to inspect concrete read outcomes:
 - [OCI selective lookup](oci/README.md#executable-helper)
 - [UA reference remapping](opcua/README.md#reference-and-root-mapping)
 
-The helpers produced these results offline; they do not represent deployed
+The helpers produced these results offline. They do not represent deployed
 protocol traffic. The
 [publication walkthrough](../../publication/samples/README.md#promotion-rollback-and-an-already-open-reader)
 shows how a reader can continue using its selected manifest while the channel

@@ -22,9 +22,9 @@ to the example. `response.status` gives the HTTP status, and `response.headers`
 contains the significant response headers. When a response has a body, exactly
 one of `json`, `text`, or `base64` supplies it. `json` describes metadata
 values, not a canonical JSON byte encoding. `text` is UTF-8 without an added
-newline; `base64` denotes exact response bytes. Without a body member, the
+newline. `base64` denotes exact response bytes. Without a body member, the
 response has zero body bytes. The `expected` member states the resolver
-outcome; it is not a field in an HTTP response.
+outcome. It is not a field in an HTTP response.
 
 Collection payloads are metadata maps. No transcript places domain bytes in a
 metadata-only catalog entry. Pagination links are opaque. A later page can
@@ -76,9 +76,9 @@ print(value["registryid"], result["pages"], len(result["trace"]))
 bridge 1 2
 ```
 
-The example makes two requests and receives one complete collection page; it
+The example makes two requests and receives one complete collection page. It
 reads no domain document. The [selection rule](../../spec.md#selectors) says
-the resolver must check every necessary page. The `later-page-ambiguity`
+the resolver has to check every necessary page. The `later-page-ambiguity`
 fixture shows how a later page can make an earlier match ambiguous.
 
 The redirect example shows the credential boundary with a synthetic,

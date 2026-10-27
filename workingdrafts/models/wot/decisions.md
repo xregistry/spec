@@ -12,10 +12,9 @@ with the draft.
 
 ## 1. Identity and version are separate values
 
-**Decision.** A `wotid` is the document's authored `id`. A registry MUST
-reject a Version that supplies a different `wotid`. A Thing Model's stable
-`wotid` includes its major version, such as `:v2`; it does not encode minor or
-patch revisions.
+**Decision.** A `wotid` is the document's authored `id` and MUST NOT change on
+a compatible revision. A Thing Model's stable `wotid` includes its major
+version, such as `:v2`. It does not encode minor or patch revisions.
 
 **Why.** An identifier that changes with each compatible revision cannot
 serve as a stable reference. If each revision used a new `wotid`, the registry
@@ -73,19 +72,19 @@ See [Section 5.2](spec.md#52-preserving-customer-documents).
 
 **Decision.** This specification does not map a `wotid` to a
 `thingdescriptionid` or `thingmodelid`. The client that creates a Resource
-supplies both values. The registry stores them together; it does not derive
+supplies both values. The registry stores them together. It does not derive
 one from the other.
 
 **Why.** A WoT identifier is a URI, but xRegistry restricts which IDs are
 valid. Requiring one construction would add little and reduce portability. A
 first-party `wotid` lets a Consumer find the Resource by querying `wotid`.
 Hosting environments differ in the names they permit. An ARM-backed registry
-may permit fewer IDs than xRegistry. If the specification required every
-registry to derive IDs the same way, an ARM-backed registry with stricter name
+can permit fewer IDs than xRegistry. If the specification made every
+registry derive IDs the same way, an ARM-backed registry with stricter name
 limits could not conform.
 
-**Example.** A registry may store `urn:fabrikam:lamp:42` under the Resource id
-`lamp-42`. It may instead use `urn.fabrikam.lamp.42`. Both choices conform. A
+**Example.** A registry can store `urn:fabrikam:lamp:42` under the Resource id
+`lamp-42`. It can instead use `urn.fabrikam.lamp.42`. Both choices conform. A
 query for `?filter=wotid=urn:fabrikam:lamp:42` returns the same Resource.
 
 **Consequence.** A deployment MAY use a local rule to derive Resource IDs. The
@@ -107,8 +106,8 @@ a resolver looks for the document.
 
 **Open point.** When a document has no `id` member, the Producer has to supply
 a `wotid`. The registry rejects a write that provides neither an `id` nor a
-`wotid`; it does not invent a value. This draft has not decided whether a
-future revision should derive a `wotid` for that case.
+`wotid`. It does not invent a value. This draft has not decided whether a
+future revision ought to define a derivation for that case.
 
 See [Section 5.3](spec.md#53-lookup).
 
@@ -165,7 +164,7 @@ See [Section 5.1.1](spec.md#511-breaking-changes-and-successor-identifiers).
 
 **Decision.** Thing Models and Thing Descriptions use
 `versionmode: semver` with `singleversionroot: true`. A TM `versionid` equals
-`version.model`; a TD `versionid` equals `version.instance`. Both receive a
+`version.model`. A TD `versionid` equals `version.instance`. Both receive a
 server-set `versionorigin`. A reference from one Thing Description to another
 can set `td:minVersion` as a floor. The resolver keeps the selected version
 below the next major. The resolver honours a sticky default only when it
@@ -177,9 +176,9 @@ the resolver for the exact Version selected earlier:
 
 | Choice | Rationale |
 |---|---|
-| TM floors are uncapped; TD floors are caret-bounded | A Thing Model's major version is part of its `wotid`. A Thing Description's `id` names a concrete Thing, so its floor stays within that major. Without a floor, a reference between Thing Descriptions can cross majors. |
-| Major in TM identity | Thing Models with incompatible contracts use distinct Resources, so a stable reference cannot silently acquire a breaking revision. A TD `id` names one concrete Thing; a breaking major revision stays under that `id`. Core `deprecated.alternative` points to the TM's successor without redirecting old references. |
-| `versionid` follows the document revision | For valid SemVer, `versionid` MUST equal `version.model` on a Thing Model and `version.instance` on a Thing Description. The registry rejects a supplied mismatch. Core's `id` rules exclude build metadata. |
+| TM floors are uncapped, TD floors are caret-bounded | A Thing Model's major version is part of its `wotid`. A Thing Description's `id` names a concrete Thing, so its floor stays within that major. Without a floor, a reference between Thing Descriptions can cross majors. |
+| Major in TM identity | Thing Models with incompatible contracts use distinct Resources, so a stable reference cannot silently acquire a breaking revision. A TD `id` names one concrete Thing. A breaking major revision stays under that `id`. Core `deprecated.alternative` points to the TM's successor without redirecting old references. |
+| `versionid` follows the document revision | For valid SemVer, `versionid` equals `version.model` on a Thing Model and `version.instance` on a Thing Description. The registry rejects a supplied mismatch. Core's `id` rules exclude build metadata. |
 | Generated `0.0.0-N`, not `0.0.N` | This format avoids authored patch releases. The registry skips occupied ids, including authored prereleases with the same spelling. When `versionid` comes from an authored SemVer field, the server sets `versionorigin` to `authored`. Otherwise, the server sets it to `generated`. Generated IDs do not promise compatibility and cannot serve as floors. |
 | Prereleases excluded by default | A dependency does not silently adopt an unstable or generated revision. A prerelease floor or caller opt-in makes prereleases eligible. The resolver returns no fallback when a collection contains only generated Versions. |
 | Sticky default honoured only in range | An operator's deliberate selection is authoritative unless the caller supplies an explicit pin. A sticky Version below the floor or in a higher TD major fails rather than selecting a different Version. |

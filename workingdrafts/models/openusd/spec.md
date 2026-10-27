@@ -73,10 +73,10 @@ render a USD stage.
 An OpenUSD Artifact Registry provides a repository for managing the artifacts
 that make up an [OpenUSD][OpenUSD] scene:
 
-- layers (`.usda`, `.usdc`, `.usd`);
-- packages (`.usdz`);
-- the textures, MaterialX documents and volumes those layers reference;
-- the schema plugins that teach a Consumer about vendor-defined prim types.
+- Layers (`.usda`, `.usdc`, `.usd`),
+- Packages (`.usdz`),
+- The textures, MaterialX documents and volumes those layers reference,
+- The schema plugins that teach a Consumer about vendor-defined prim types.
 
 USD itself deliberately says nothing about where assets live. A layer refers
 to another asset by writing an **asset identifier** between `@` characters —
@@ -547,8 +547,7 @@ defines no separate media-type attribute.
 All Versions of a single `usdasset` MUST adhere to the semantic rules of the
 Resource's [`compatibility`][xRegistry compatibility] attribute, if specified.
 Implementations SHOULD use the xRegistry default algorithm for generating new
-`versionid` values. Default-Version selection follows Core's default-Version
-rules. See
+`versionid` values and for determining which is the latest Version. See
 [Core Version IDs][xRegistry version-ids] and
 [default-Version rules][xRegistry default version].
 
@@ -714,7 +713,7 @@ and as a file name in the [file-system representation][xRegistry primer].
 
 **Candidate and sole fallback.** Let `C` be the candidate above, including a
 suffix only when step 6 needed shortening. Results of at most 128 characters
-MUST remain unchanged as `C`; a Producer MUST NOT unconditionally suffix them.
+MUST remain unchanged as `C`. A Producer MUST NOT unconditionally suffix them.
 
 Let `F` be the sole collision fallback. It uses the same normalized source
 labels from steps 1-5, reduced by the step-6 dropping/truncation rules to at most
@@ -731,13 +730,13 @@ literal dots. An already shortened candidate has no additional fallback:
 For a Resource, the source is its already normalized `assetidentifier`. The
 hash input is not a decoded path, extracted package member, canonicalized URI,
 Document, or candidate ID. For a symbolically named Group, the source is its
-exact mandatory `name`; Section 4.1's exception for legal Core container IDs is
+exact mandatory `name`. Section 4.1's exception for legal Core container IDs is
 unchanged.
 
 **Stable assignment.** The policy is deterministic for a fixed sibling state,
 not for a source string alone. Sibling state includes published bindings and
 explicit reservations for other sources in the same collection and transaction.
-Core ID collisions are compared case-insensitively; source strings are compared
+Core ID collisions are compared case-insensitively. Source strings are compared
 exactly, without case folding or another decoding step.
 
 1. A Producer MUST retain an existing binding for the same exact source,
@@ -756,7 +755,7 @@ exactly, without case folding or another decoding step.
    collide. Otherwise reserve `F` if it is distinct and does not collide.
    Publication MUST check the final reservations and prior bindings atomically,
    and MUST reject duplicate exact-source bindings in the same collection.
-   The Producer supplies explicit reservations; JSON member enumeration order
+   The Producer supplies explicit reservations. JSON member enumeration order
    is not a tie-breaker. Publication order can determine which source first
    owns `C`, but MUST NOT reshuffle already published IDs.
 3. A Producer MUST reject the assignment if the sole fallback also collides.
@@ -776,8 +775,8 @@ For example, each row below starts with the stated sibling bindings:
 | `a.b` | `a.b.2e7336dc -> a.b` | `a.b` | `a.b.2e7336dc` (retained) |
 | `a.b` | `a.b -> a/b; a.b.2e7336dc -> a.b.2e7336dc` | `a.b` | reject |
 
-The last row is a secondary collision with another source's ordinary candidate;
-it requires no hash collision. For a collision-only source consisting of 120
+The last row is a secondary collision with another source's ordinary candidate.
+It requires no hash collision. For a collision-only source consisting of 120
 copies of `a`, `F` is 119 copies of `a` followed by `.2f3d3354`, not a
 129-character ID. For 128 copies it is 119 copies followed by `.6836cf13`,
 not a 137-character ID. Without a collision those 120- and 128-character
@@ -814,7 +813,7 @@ locations within one selected Group and consistent Registry context:
 
 **Figure 1 — Bounded symbolic-identifier lookup.** This diagram is an
 informative summary of the preceding algorithm. Missing metadata can lead to
-the sole fallback; acquisition or validation errors do not.
+the sole fallback. Acquisition or validation errors do not.
 
 ```mermaid
 flowchart TD
@@ -841,7 +840,7 @@ acquisition is implicit in candidate computation.
 Artifact retrieval follows
 successful identity resolution and the applicable authorization and integrity
 rules. For a symbolically named Group, the analogous bounded lookup compares
-the Group's exact `name`; a legal Core container ID has only its verbatim
+the Group's exact `name`. A legal Core container ID has only its verbatim
 location.
 
 The construction is lossy, so only the forward direction is defined:

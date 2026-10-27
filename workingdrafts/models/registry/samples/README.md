@@ -14,8 +14,8 @@ as duplicate default-Version fields on Resources.
 
 Core IDs follow the [Core grammar](../../../../core/spec.md#singularid-id-attribute):
 they contain 1 to 128 ASCII characters. The first character is a letter,
-digit or `_`. Remaining characters may be letters, digits, `_`, `.`, `~`,
-`:`, `@` or `-`.
+digit or `_`. Remaining characters are limited to letters, digits, `_`, `.`,
+`~`, `:`, `@` or `-`.
 Sibling IDs are unique case-insensitively, while lookups preserve and
 require exact case. Case-only duplicate siblings MUST NOT be used as valid
 fixture data. Filesystem-collision examples can use distinct parent or
@@ -136,7 +136,7 @@ an empty map without acquiring language-key semantics.
 
 The three documents contain five Categories, seven Resources, eight
 catalog-description Versions, ten explicit advertisements and seven
-relationships. Use them as conformance-check inputs; acceptance by a derived
+relationships. Use them as conformance-check inputs. Acceptance by a derived
 schema does not establish conformance.
 
 | Area | Valid sample behavior |
@@ -176,10 +176,10 @@ of its `versions` collection or a specific Version MUST produce Core
 explicit in the [domain document-view rules](../spec.md#33-document-view).
 
 Test these selection cases:
-- pagination is incomplete;
-- the consumer supports no binding;
-- policy rejects a candidate; and
-- an implementation silently falls back to a weaker binding.
+- Pagination is incomplete,
+- The consumer supports no binding,
+- Policy rejects a candidate, and
+- An implementation silently falls back to a weaker binding.
 Catalog-schema validation alone cannot establish those operational
 properties.
 

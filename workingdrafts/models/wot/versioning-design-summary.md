@@ -3,7 +3,7 @@
 <!-- words: minversion prereleases subthing ua uav versionorigin -->
 <!-- words: compatibilityline lockfile marcschier opcfoundation unversioned -->
 <!-- words: workflow workflows -->
-<!-- words: href namespace opc workaround -->
+<!-- words: href namespace nodeids opc workaround -->
 
 This document proposes an incremental profile. No implementation exists yet.
 The [full design](versioning-design.md) defines the mechanisms and catalogs
@@ -26,7 +26,7 @@ use the existing TD and TM collection names. To support both, the operator
 provisions separate endpoint/model instances. The instances can share a
 physical server.
 
-A TM can contain `version.model`; a TD can contain `version.instance`.
+A TM can contain `version.model`. A TD can contain `version.instance`.
 Requiring SemVer everywhere makes an ordinary integer or an unchanged
 external document difficult to publish and reference. The current generated
 `0.0.0-N` fallback is a prerelease label that cannot be a floor. It does not
@@ -38,13 +38,13 @@ numeric floor. The resolver returns an exact pin for repeatable use.
 
 Channels name update streams, while immutable snapshots fix complete
 publication sets. Neither is a Group, and neither determines compatibility.
-A channel can advance across compatibility lines; consumers still reject a
+A channel can advance across compatibility lines. Consumers still reject a
 head that violates their requirements.
 
 ## Publication and identity
 
 The publisher uploads unchanged bytes and declares a line. An editable
-document can carry root `uav:compatibilityLine`; otherwise authorized
+document can carry root `uav:compatibilityLine`. Otherwise, authorized
 metadata supplies `compatibilityline`. Publication rejects conflicting
 declarations.
 A line is an absolute URI, not another registry Resource.
@@ -58,7 +58,7 @@ The publication owner commits the high-water mark with content, line, and
 applicable Core state. Deleting history or restarting does not reset it.
 Adapters without durable allocation state reject publication rather than
 approximate it.
-Counter exhaustion fails; publication never recycles old IDs.
+Counter exhaustion fails. Publication never recycles old IDs.
 
 A line-less upload remains available for raw retrieval and exact pins, but
 cannot participate in automatic line selection. The publishing diagnostic
@@ -85,13 +85,13 @@ The proposal places the extensions in the existing namespace
 
 This excerpt assumes the appropriate composition and extension contexts.
 The same versioning members work for TM targets. Existing operators identify
-the target kind. A line alone is enough; add a floor only for a feature
+the target kind. A line alone is enough. Add a floor only for a feature
 requirement. When resolving an incremental target, the resolver derives no
 floor from the referring document's model/instance version or root line.
 
 For history 42/A, 43/B, 44/A, a line-A reference selects 44. A floor of 45
 fails. An unpinned incremental reference without a line fails. A sticky
-default of 43/B makes the A reference fail; it does not silently select 44.
+default of 43/B makes the A reference fail. It does not silently select 44.
 Without a sticky default, choose the highest qualifying integer.
 
 For SemVer targets, the resolver keeps the existing rules:
@@ -179,7 +179,7 @@ The author hosts the [core-vocabulary proposal][WoT proposal] on a fork.
 It does not establish W3C adoption. Deployments can use `uav` before
 that process finishes. Readers retain floor forms from earlier drafts during
 migration. A reader rejects both old and new floors
-on one reference. Upgrade readers before removing old forms; do not duplicate
+on one reference. Upgrade readers before removing old forms. Do not duplicate
 composition links as an alias workaround.
 
 The [evidence index](versioning-design.md#workflow-evidence-index) in the full

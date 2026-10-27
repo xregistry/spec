@@ -58,7 +58,7 @@ slash. It does not mean resolve a leading-slash URI against the host.
 
 ## Motivation and Example
 
-An existing xRegistry HTTP service can serve as a federation source; it does
+An existing xRegistry HTTP service can serve as a federation source. It does
 not need another API. A consumer-side resolver can use its catalog entry
 directly, or a federating API server can read it on behalf of its HTTP clients.
 
@@ -244,7 +244,7 @@ sequenceDiagram
     end
 ```
 
-Figure 1 (informative): metadata selects the Version; its explicit URL reads
+Figure 1 (informative): metadata selects the Version. Its explicit URL reads
 the document without resolving the default again. Version metadata instead
 uses that Version URL with `$details`, not another mandatory request in this
 sequence.
@@ -445,7 +445,7 @@ Link: <https://publisher.example.test/contexts/s12.json>; rel="https://xregistry
 
 That target returns the publication schema's `xregistry-open/1` record.
 Following it remains subject to redirect, destination and credential policy.
-The record identifies the exact manifest/Registry bytes; it is not an ETag
+The record identifies the exact manifest/Registry bytes. It is not an ETag
 for every API serialization.
 
 A context link alone does not prove API

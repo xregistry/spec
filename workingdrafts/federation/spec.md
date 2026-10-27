@@ -36,7 +36,7 @@ Protocol bindings define how it retrieves that data.
 
 Federation lets a consumer read local and source-derived entities through
 one Registry. That Registry serves local Resources and obtains others from
-configured source Registries; a local Resource can shadow the same Resource
+configured source Registries. A local Resource can shadow the same Resource
 path in a source. The consumer retains one access point without requiring
 all content to be stored there.
 
@@ -128,8 +128,8 @@ from its XID.
 This is the default when no resolution-owner capability is declared.
 
 Offline tools and applications with OCI, Git or other native readers can
-perform these reads themselves. The stored catalog describes the sources;
-the client executes selection and retrieves the selected content.
+perform these reads themselves. The stored catalog describes the sources.
+The client executes selection and retrieves the selected content.
 
 In this mode the producer does not contact source Registries or return their
 possible matches. An ordinary client without federation support reads only
@@ -317,7 +317,7 @@ The policy belongs to the resolver forming the view: the server or publisher
 in producer resolution, or the consuming application in consumer resolution.
 Its configuration format and management interface are implementation-specific.
 An implementation can permit per-call choices or overrides, but these remain
-subject to its access and source-selection policy; a caller cannot gain
+subject to its access and source-selection policy. A caller cannot gain
 authorization merely by naming a source.
 
 The catalog and this policy serve different purposes. A catalog describes
@@ -327,13 +327,13 @@ For example, a shared catalog can list suppliers for several applications
 while one application's view selects only its approved suppliers. Either the
 catalog or the policy can change independently. The `priority` inside a
 catalog entry orders that entry's access advertisements, not different source
-Registries; see [Discovery and Binding Selection](#discovery-and-binding-selection).
+Registries. See [Discovery and Binding Selection](#discovery-and-binding-selection).
 
 With a complete source order, multiple copies of the same Resource path are
 resolved by precedence, not reported as ambiguous. An unordered set of
 potentially competing origins is insufficient to choose a winner and MUST
 produce `ambiguous` when disambiguation is needed. Separately, several
-distinct visible Resources can satisfy a selector after shadowing; source
+distinct visible Resources can satisfy a selector after shadowing. Source
 precedence does not choose between them. See
 [Select After Applying Shadows](#example-select-after-applying-shadows).
 
@@ -369,7 +369,7 @@ Only a Resource miss permits retrying the same XID in the next configured
 source Registry. A failure to retrieve a chosen Version or document does
 not permit selecting a lower-priority origin. The resolver follows the
 configured projection policy, not arbitrary Registries or descriptive
-catalog relationships; ordered shadowing does not create global identity.
+catalog relationships. Ordered shadowing does not create global identity.
 
 ```mermaid
 sequenceDiagram
@@ -823,7 +823,7 @@ The Registry domain's
 [view comparison](../models/registry/spec.md#33-document-view)
 shows a partial inclusion: only links whose targets are present become
 local pointers. Core's [Inline flag](../../core/spec.md#inline-flag)
-determines inclusion for API representations; document view does not
+determines inclusion for API representations. Document view does not
 make an omitted target present.
 
 Native bindings MUST distinguish these document-view serializations from
@@ -858,7 +858,7 @@ producer declares a captured scope and completeness class.
 
 This specification does not prescribe a capture trigger or refresh schedule.
 A caller can request a capture, or a server or publisher can manage captures
-and refreshes. Each operation still uses its selected revision; a refresh
+and refreshes. Each operation still uses its selected revision. A refresh
 does not replace a revision already pinned by an ongoing operation.
 
 Every snapshot MUST have a complete internal containment graph. A linked
@@ -882,8 +882,8 @@ Resource Version IDs.
 This report is part of the origin and revision context returned under
 [Read Operations](#read-operations), not the resolution-owner capability.
 The [source-selection example](#example-select-after-applying-shadows)
-illustrates a live result with `revision: null` and `consistency: "live"`;
-those field names illustrate resolver context, not a new wire format.
+illustrates a live result with `revision: null` and `consistency: "live"`.
+Those field names illustrate resolver context, not a new wire format.
 
 Digests identify exact bytes, not semantic equality. Equivalent publications
 can have different digests. New snapshots MAY reuse unchanged content and
@@ -983,7 +983,7 @@ A **snapshot producer** MUST identify its format, scope and linked or
 offline-complete class and produce a complete internal graph. An OPTIONAL
 API facade requires separate protocol-binding conformance.
 
-The executable examples check specified behavior offline; they do not
+The executable examples check specified behavior offline. They do not
 implement production resolution. [Shared vectors](samples/selection.json)
 distinguish identity, selection and reference cases. Binding fixtures exercise
 transport-specific retrieval. Tests MUST distinguish full graph validation

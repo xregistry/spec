@@ -47,12 +47,12 @@ validator for its declared dialect.
 The repository does not supply a hand-maintained full Resource schema.
 Also perform the semantic checks specified in the domain for:
 
-- nonempty names;
-- credential-free absolute endpoints;
-- binding-dependent parameters;
-- label semantics;
-- relationship bases; and
-- candidate selection.
+- Nonempty names,
+- Credential-free absolute endpoints,
+- Binding-dependent parameters,
+- Label semantics,
+- Relationship bases, and
+- Candidate selection.
 
 ## Format Interpretation
 
@@ -73,7 +73,7 @@ endpoints to be absolute.
 
 The schema describes the catalog collection and selected Group, Resource
 and Version fields, but not a complete Core Registry root. URI reference
-fields use strings; their syntax and base rules still come from the domain.
+fields use strings. Their syntax and base rules still come from the domain.
 Names needing an alternate JSON spelling use the declared alternate-name
 extension.
 

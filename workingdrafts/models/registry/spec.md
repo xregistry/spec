@@ -122,7 +122,7 @@ Group or Resource type names.
 ## 3. Registry Model
 
 The authoritative xRegistry extension model resides in [model.json](model.json).
-It is a compact `modelsource`; Core remains authoritative for entity IDs,
+It is a compact `modelsource`. Core remains authoritative for entity IDs,
 navigation, labels, Version management and Meta attributes. An implementation
 MUST apply both the model and the semantic constraints in this specification.
 
@@ -132,7 +132,7 @@ Core's reserved `resourceattributes` map, and this revision adds no
 `metaattributes`. Resource-wide extensions belong in `metaattributes`, as
 defined by [the model language][Model attributes].
 
-The fragment shows the domain shape; Core attributes are omitted. A `?` marks
+The fragment shows the domain shape. Core attributes are omitted. A `?` marks
 an OPTIONAL attribute, and `*` permits zero or more occurrences.
 
 ```yaml
@@ -272,7 +272,7 @@ The following partial projection is based on
 [`multi-profile-catalog.json`](samples/multi-profile-catalog.json). It
 includes the `public` Category, the `schemas` entry and its Meta entity,
 but omits the entry's Versions. The absolute URLs use the illustrative
-catalog API root `https://catalog.example/xregistry`; the fragment is not
+catalog API root `https://catalog.example/xregistry`. The fragment is not
 a complete Registry document.
 
 ```json
@@ -488,7 +488,7 @@ Profile-specific extensions belong inside `parameters`.
     fractional number or boolean.
     This is the mathematical value constraint of Core `uinteger`, not an
     unsigned-only JSON token grammar. Integer-valued decimal and exponent
-    notation, such as `0.0` and `1e0`, are valid; negative zero has value zero.
+    notation, such as `0.0` and `1e0`, are valid. Negative zero has value zero.
     These spellings do not require rewriting retained metadata.
   - Lower values MUST sort before higher values after caller selection
     and policy are applied. Equal values retain original array order.
@@ -739,7 +739,7 @@ advertisement metadata. Resolving a target XID happens only after a
 binding establishes the target Registry context.
 
 **Figure 1 — Catalog selection establishes a separate target context.**
-The diagram is informative; selection and identity rules remain in this
+The diagram is informative. Selection and identity rules remain in this
 section and the linked federation clauses.
 
 ```mermaid
@@ -764,8 +764,8 @@ flowchart TB
 
 Catalog-entry XIDs, catalog-description Version IDs, target Registry
 identity, target XIDs and binding revision pins are distinct values. A
-target Resource Version is selected within the target Registry context;
-it is not the catalog-description Version or a binding revision pin.
+target Resource Version is selected within the target Registry context.
+It is not the catalog-description Version or a binding revision pin.
 
 ### 6.1. Entry Selection
 
@@ -826,15 +826,15 @@ advertisement does not change the implicit candidate's zero priority.
 Map iteration order MUST NOT be used to rank advertisements.
 
 The caller's choice constrains the candidates before priority is applied.
-Priority ranks only the remaining eligible candidates; it does not replace
+Priority ranks only the remaining eligible candidates. It does not replace
 an explicit choice or bypass access policy.
 
 | Selection input | Result |
 | --- | --- |
-| Caller choice and policy leave multiple eligible candidates | Lower priority is preferred; original array order breaks ties. |
+| Caller choice and policy leave multiple eligible candidates | Lower priority is preferred. Original array order breaks ties. |
 | Caller choice leaves one eligible candidate | That candidate is selected, regardless of a different candidate's lower priority. |
 | No caller choice | Priority and then original array order select among eligible candidates. |
-| Policy rejects the selected choice | Report `policy_denied`; priority does not override policy. |
+| Policy rejects the selected choice | Report `policy_denied`. Priority does not override policy. |
 
 The checked [multiple-profiles walkthrough][multi-profile example]
 demonstrates these results with the catalog fixtures.
@@ -1039,13 +1039,13 @@ The authoritative model is not duplicated in a hand-maintained full
 Resource schema. Generation does not replace semantic validation.
 The following need their stated checks:
 
-- nonempty identifiers;
-- absolute credential-free endpoints;
-- binding-specific parameters;
-- Core metadata completeness;
-- URI bases;
-- HTTP consistency;
-- deterministic selection.
+- Nonempty identifiers,
+- Absolute credential-free endpoints,
+- Binding-specific parameters,
+- Core metadata completeness,
+- URI bases,
+- HTTP consistency,
+- Deterministic selection.
 
 JSON object order cannot encode advertisement preference.
 

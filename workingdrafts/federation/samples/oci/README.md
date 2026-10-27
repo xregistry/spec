@@ -212,11 +212,11 @@ python -B -m workingdrafts.bindings.tools.oci_examples validate copied-layout --
 The implementation exercise preserved the selected root digest and all 99
 REQUIRED objects byte-for-byte. The copied objects included:
 
-- configs,
-- range shards,
-- empty collections,
-- binary bytes,
-- the zero-byte document.
+- Configs,
+- Range shards,
+- Empty collections,
+- Binary bytes,
+- The zero-byte document.
 
 The copy did not select or copy the linked Registry root. The implementation
 session retains its environment-specific command logs. It also retains the

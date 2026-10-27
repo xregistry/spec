@@ -16,7 +16,7 @@ proposal at `ff22f224400fc8be813bf0abcbfc3cde52bc7ed3`. Both are unadopted.
 The [binding's authority and digest record](../../../bindings/opcua.md#2-normative-references)
 identifies the exact sources and explains that the Version 0.6.0 dependency
 needs access to `OPCF-Members/spec-drafts`.
-The fixtures demonstrate the binding's interpretation; they do not establish
+The fixtures demonstrate the binding's interpretation. They do not establish
 OPC Foundation adoption or interoperability with a Server.
 
 ## Running the Examples
@@ -89,7 +89,7 @@ cases the target application is `urn:example:ua:remote`, not a guessed
 Root mapping consumes an already selected, normalized `EndpointDescription`
 with `endpointUrl`, `server.applicationUri` and `transportProfileUri`.
 The fixture policy requires the endpoint to equal the selected advertisement.
-Live discovery and approved relocation need their own policy; the helper
+Live discovery and approved relocation need their own policy. The helper
 neither discovers nor authenticates the endpoint. A successful root mapping
 validates the address, not the root's existence, TypeDefinition or membership.
 The live client performs those checks under the binding's rules.
@@ -170,7 +170,7 @@ these fields in its `result` object (partial actual output):
 }
 ```
 
-The first two Reads return 8 and 9 bytes; the third returns empty EOF.
+The first two Reads return 8 and 9 bytes. The third returns empty EOF.
 This implements the [binding's FileTransfer lifecycle](../../../bindings/opcua.md#5131-filetransfer-read-lifecycle).
 `observed` records matching supplied before/after values, not an atomic
 Registry snapshot.
@@ -213,8 +213,8 @@ new OPC UA or xRegistry document-size limits.
 ## Dedicated Test-Phase Inventory
 
 The supplied fixtures contain executable positive and negative cases.
-The following matrix also lists boundary mutations for conformance checks;
-it does not claim that every listed mutation has an executable test.
+The following matrix also lists boundary mutations for conformance checks.
+It does not claim that every listed mutation has an executable test.
 
 | Area | Edge cases |
 | --- | --- |
@@ -232,10 +232,10 @@ it does not claim that every listed mutation has an executable test.
 
 The helper intentionally does not implement the following:
 
-- live discovery,
-- certificate or TypeDefinition verification,
-- general service decoding,
-- arbitrary export generation,
-- write APIs,
-- recursive federation,
-- a production client.
+- Live discovery,
+- Certificate or TypeDefinition verification,
+- General service decoding,
+- Arbitrary export generation,
+- Write APIs,
+- Recursive federation,
+- A production client.

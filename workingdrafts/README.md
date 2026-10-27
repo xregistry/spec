@@ -15,11 +15,11 @@ administered Registries.
 
 Start with the domain specification to understand catalog entries. Then read
 the federation specification to learn how it handles hosting and selects
-sources. Use the comparison below to choose a binding; its reference sections
+sources. Use the comparison below to choose a binding. Its reference sections
 define the implementation rules.
 
 The arrows below indicate specification dependencies, not network requests.
-Core supplies the entities and interpretation rules; the other drafts add
+Core supplies the entities and interpretation rules. The other drafts add
 catalog discovery, access methods or publication context.
 
 ```mermaid
@@ -80,7 +80,7 @@ Federation does not redefine it as a remote URL.
 ## Publication Extension
 
 [Channels and snapshots](publication/spec.md) separate a mutable publication
-stream from the captured state it selects. A channel's conditional head
+channel from the captured state it selects. A channel's conditional head
 selects an immutable manifest over the Registry state defined by federation.
 Channel selection does not establish domain compatibility, and neither a
 channel nor a snapshot is represented by a Group.
@@ -88,7 +88,7 @@ channel nor a snapshot is represented by a Group.
 The extension includes a reusable [model](publication/model.json),
 [schemas](publication/schemas/publication.json) and
 [executable examples](publication/samples/README.md). Publication owns
-conditional writes and retention; federation remains read-only. Its HTTP
+conditional writes and retention. Federation remains read-only. Its HTTP
 open context provides a concrete snapshot pin without changing ordinary
 HTTP advertisements. Cross-binding equivalence requires a checked mapping,
 not equality of Registry IDs.
@@ -105,12 +105,12 @@ The OpenUSD draft is a domain model rather than a federation binding. The draft
 defines how an xRegistry stores and describes artifacts in an
 [OpenUSD](https://openusd.org) scene. These artifacts include:
 
-- layers
-- packages
-- textures
+- Layers
+- Packages
+- Textures
 - MaterialX documents
-- volumes
-- schema plugins
+- Volumes
+- Schema plugins
 
 | Specification | Scope |
 | --- | --- |
@@ -127,7 +127,7 @@ Because the registry is an xRegistry document store, an existing USD asset
 resolver can retrieve an artifact by URL without any xRegistry awareness. The
 draft is also the wire-format peer of an externally defined OPC UA projection
 of the same model. Both use the same collection names, attribute names, and
-identifier rules; the draft does not depend on the projection.
+identifier rules. The draft does not depend on the projection.
 
 Cross-references to the xRegistry [Schema](../schema/spec.md) and
 [Endpoint](../endpoint/spec.md) registries are informative. An implementation

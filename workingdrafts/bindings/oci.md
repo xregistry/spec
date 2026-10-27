@@ -347,7 +347,7 @@ Emit ASCII unreserved characters literally and percent-encode every other
 allowed component character using uppercase
 hexadecimal. Under the current Core ID grammar, `:` is therefore `%3A` and
 `@` is `%40`. Type names and the fixed `meta` and `versions` components are
-emitted literally. Case-sensitive entity identity MUST be preserved; no
+emitted literally. Case-sensitive entity identity MUST be preserved. No
 case folding, second decoding pass or Unicode normalization is permitted.
 
 This encoding is REQUIRED for every `io.xregistry.oci.xid` on an internal
@@ -362,7 +362,7 @@ same one-interval-per-level lookup.
 
 Portable config `entity.xid` and Meta `xref` MAY retain another valid,
 URI-equivalent spelling. Their decoded, case-sensitive identity MUST agree
-with their canonical descriptor identity; their original bytes still determine
+with their canonical descriptor identity. Their original bytes still determine
 the config digest. Producers MUST NOT rewrite those bytes during a read.
 
 JSON map keys and document-local pointers use decoded IDs. Producers MUST
@@ -371,7 +371,7 @@ collisions. Domain URLs, document base/origin and domain-document bytes are not
 subject to this routing-key encoding.
 
 A layout containing noncanonical graph annotations requires explicit migration
-or regeneration, with new digests propagated to its root; a producer MUST NOT
+or regeneration, with new digests propagated to its root. A producer MUST NOT
 relabel it as conforming. The original layout can be retained as migration
 evidence. The encoding does not prescribe a canonical JSON serialization or a
 unique placement of shard boundaries.
@@ -383,7 +383,7 @@ serialization:
 | --- | --- |
 | Caller selects `/dirs/main/files/a:b` | Route with canonical key `/dirs/main/files/a%3Ab`. |
 | A consumed `io.xregistry.oci.xid` contains `/dirs/main/files/a:b` | `invalid_package`, not an in-place rewrite of the hashed object. |
-| Config `entity.xid` uses the URI-equivalent `/dirs/main/files/a:b` | Preserve the config bytes; compare its decoded identity with the canonical descriptor key. |
+| Config `entity.xid` uses the URI-equivalent `/dirs/main/files/a:b` | Preserve the config bytes. Compare its decoded identity with the canonical descriptor key. |
 
 ### 4.2. Exact range representation
 
@@ -444,8 +444,8 @@ lookup path. A selective reader validates the path it consumes.
 
 As with missing or inconsistent unvisited objects, a selective result is not
 proof that every unvisited shard is well formed. A complete conformance or
-absence claim about all serialized representations requires the full validator;
-`not_found` from a selective read describes only the canonical routed lookup.
+absence claim about all serialized representations requires the full validator.
+A `not_found` result from a selective read describes only the canonical routed lookup.
 
 ## 5. Metadata and Documents
 
@@ -792,7 +792,7 @@ For the same selected Version, the result boundary is:
 
 | Operation | Retrieved content |
 | --- | --- |
-| Version metadata | Routing path, permitted bootstrap metadata, selected manifest and config; no document layer. |
+| Version metadata | Routing path, permitted bootstrap metadata, selected manifest and config, without a document layer. |
 | Version document | The same selected Version context plus its verified document layer. |
 | Full validation | Every referenced descendant, including unrelated Version documents. |
 

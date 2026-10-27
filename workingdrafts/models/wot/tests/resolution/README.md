@@ -29,8 +29,8 @@ The script performs these checks:
 
 When `jsonschema` is unavailable, the script reports that it skipped shape
 validation. It still runs the semantic cases. When a check fails, the script
-exits with a nonzero code. All other checks use Python's standard library;
-the script does not fetch schemas or documents.
+exits with a nonzero code. All other checks use Python's standard library.
+The script does not fetch schemas or documents.
 
 ## Format
 
@@ -43,9 +43,9 @@ unknown fields. The top-level fields are:
 | `registry` | Resource snapshots keyed by `wotid`, each with a default selection and its Versions. |
 | `reference` | Resolution request with a `kind`, target `wotid`, and OPTIONAL `minVersion` and `floorTerm`. |
 | `document` | OPTIONAL Thing Description (TD) context for Thing Model (TM) `rel:type` links, with `version.model` and `typeLinks`. |
-| `publish` | Publication request with required `target` and OPTIONAL `versionid`, `targetKind`, `version.model`, and `version.instance`. |
+| `publish` | Publication request with `target` and OPTIONAL `versionid`, `targetKind`, `version.model`, and `version.instance`. |
 | `pin` | Caller pin: exactly one of `{ "digest": "sha256:..." }` or `{ "versionid": "1.0.0" }`. |
-| `allowPrerelease` | The caller can set this flag to allow prerelease selection. By default, its value is `false`. |
+| `allowPrerelease` | OPTIONAL caller flag that allows prerelease selection. By default, its value is `false`. |
 | `expect` | Exactly one resolution `result`, publication `assigned`, or `error`. |
 
 The `reference.kind` field identifies the operator:
@@ -60,12 +60,12 @@ omits both properties, the checker uses the term expected for `kind`. When
 `publish.targetKind` is `"td"`, publication uses `version.instance`. Otherwise,
 the request targets a TM and uses `version.model`.
 
-Every entry in `registry[].versions` must include `versionid`, `versionorigin`,
-and `contentdigest`. The `versionorigin` field accepts `authored` or
-`generated`. The entry may also include
-`version.model` or `version.instance`; either field is optional. A Resource
-MAY include `deprecated: { "alternative": "https://..." }`. Stored snapshots
-must use valid SemVer version ids without build metadata.
+Every entry in `registry[].versions` has `versionid`, `versionorigin`, and
+`contentdigest`. The `versionorigin` field accepts `authored` or
+`generated`. The entry also has OPTIONAL `version.model` or
+`version.instance`. A Resource MAY include
+`deprecated: { "alternative": "https://..." }`. Stored snapshots use valid
+SemVer version ids without build metadata.
 `defaultversionid` MAY be null for an empty Resource awaiting publication. A
 vector can set the sticky default to a Version absent from `versions` to test
 `not-found`. A conforming Core write would not create that state.
@@ -76,14 +76,14 @@ resolution and fragment removal. Fragment traversal is outside these
 version-selection cases. Fixture checks do not transform stored documents.
 
 For a `type` reference, `document.typeLinks` lists the TD's type links. The
-request MUST project exactly one link. Its `target` and `minVersion`, if
-present, must match that link.
+request MUST project exactly one link by `target`, including its explicit
+`minVersion` if any.
 
 The checker applies these floor rules:
 
 - With one type link, the checker uses the greater of its explicit floor and
   `version.model` when both are present.
-- With several type links and `version.model`, every link must have an
+- With several type links and `version.model`, every link needs an
   explicit floor. Otherwise, the checker returns `ambiguous-floor`.
 - Without `version.model`, the checker uses each type link's own floor, if
   present.
@@ -98,14 +98,14 @@ at most one Resource per `wotid`. Resolve any matches across registries and
 Groups before building the fixture.
 
 A successful resolution returns the portable fields `wotid`, `versionid`,
-and `contentdigest`. The production resolver also returns `origin`; that
+and `contentdigest`. The production resolver also returns `origin`. That
 value describes resolver context, not authored document data or a Resource
 attribute. The checker fixes the origin as `https://registry.example` and
 checks it before comparing the portable fields. Consumers MUST retain the
 actual registry origin in production output.
 
 A successful publication returns `versionid`, `versionorigin`, and
-`defaultversionid`. Each request targets an existing Resource snapshot; a
+`defaultversionid`. Each request targets an existing Resource snapshot. A
 snapshot with no Versions represents creation. The returned default is Core's
 post-publication default, not the resolver's prerelease-filtered choice. The
 cases assign TM or TD Version ids and select that default. They do not test
@@ -113,7 +113,7 @@ document compatibility validation or Core HTTP envelopes. The input schema
 accepts syntactically invalid values so the cases can check the corresponding
 domain errors.
 
-An error expectation uses `{ "error": "<name>" }`. The name must be one of:
+An error expectation uses `{ "error": "<name>" }`. The name is one of:
 
 - `not-found`
 - `pin-mismatch`
@@ -125,10 +125,10 @@ An error expectation uses `{ "error": "<name>" }`. The name must be one of:
 
 When a caller supplies a pin, the resolver ignores:
 
-- floors
-- sticky selection
-- the TD major cap
-- prerelease filtering
+- Floors
+- Sticky selection
+- The TD major cap
+- Prerelease filtering
 
 Otherwise, a sticky default is authoritative and MUST be in range.
 Without a sticky default, the highest eligible SemVer wins. Generated
@@ -156,7 +156,7 @@ Without a sticky default, the highest eligible SemVer wins. Generated
 
 ## Canonical bytes and maintenance
 
-All files must use UTF-8 without a byte-order mark, LF, and a final newline.
+All files use UTF-8 without a byte-order mark, LF, and a final newline.
 JSON files use two-space indentation. The manifest sorts filenames in bytewise
 order. Each line contains `<lowercase-sha256>  <filename>`.
 The repository's `.gitattributes` pins LF in Windows checkouts because the
@@ -180,8 +180,9 @@ You can test semantic validation with these steps:
 
 1. You change an expected outcome to another schema-valid value.
 2. You regenerate the manifest so the checker reaches semantic validation.
-3. You run the checker. The checker MUST fail.
-4. You restore the vector and manifest byte for byte, then rerun the checker.
+3. You run the checker. The test requires the checker to fail.
+4. Both the vector and manifest MUST then be restored byte for byte and the
+   checker rerun.
 
 To test byte verification, you change one file byte without updating its hash.
-The checker MUST report a manifest verification failure.
+That byte mutation MUST fail manifest verification.
