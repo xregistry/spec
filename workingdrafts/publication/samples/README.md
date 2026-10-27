@@ -7,7 +7,7 @@ These examples check the domain-independent
 [publication contract](../spec.md). The authored
 [Registry export](registry.json) is synthetic. The [document](intro.txt) is
 synthetic too. Generated `manifest.json`, `channel.json` and `open.json` bind
-their exact bytes. URLs use reserved example domains; checks perform no network IO.
+their exact bytes. URLs use reserved example domains. Checks perform no network IO.
 
 The Registry is a compact Core document-view input, not an API response with
 all server-generated metadata. It has a complete containment/default graph
@@ -45,8 +45,8 @@ The helper accepts this example's self-contained interpreted model only.
 It explicitly rejects aliases and is not a full Core graph or domain-closure
 validator. The channel helper serializes in-memory operations. Its results do
 not establish atomicity, retention, or non-reuse across process restarts. A
-conformance claim requires evidence from adapter integration. That evidence
-must cover native binding mapping, HTTP context links, and durable server writes.
+conformance claim requires evidence from adapter integration that covers
+native binding mapping, HTTP context links, and durable server writes.
 
 `publication-package.json` supplies the portable map from URLs to local files.
 The offline reader checks resolved containment and rejects unsafe paths.
@@ -57,7 +57,7 @@ This demonstrates byte-bundle replay, not Git or OCI native projection.
 Run this Python walkthrough from the repository root with the same
 dependencies as the checks above. The second manifest adds preparation
 history but reuses the first manifest's document Version and bytes.
-The in-memory helper starts epochs at one and increments by one; the
+The in-memory helper starts epochs at one and increments by one. The
 [publication contract](../spec.md#publishing-and-opening-a-channel)
 requires increasing epochs, not that particular increment.
 
