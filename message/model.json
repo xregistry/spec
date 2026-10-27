@@ -1243,35 +1243,8 @@
                         },
                         "query": {
                           "name": "query",
-                          "description": "The HTTP query parameters",
-                          "type": "array",
-                          "item": {
-                            "type": "object",
-                            "attributes": {
-                              "name": {
-                                "name": "name",
-                                "description": "The HTTP query parameter",
-                                "type": "string",
-                                "required": true
-                              },
-                              "description": {
-                                "name": "description",
-                                "type": "string"
-                              },
-                              "value": {
-                                "name": "value",
-                                "description": "The HTTP query parameter value",
-                                "type": "string"
-                              },
-                              "required": {
-                                "name": "required",
-                                "description": "The HTTP query parameter required",
-                                "type": "boolean",
-                                "required": true,
-                                "default": false
-                              }
-                            }
-                          }
+                          "description": "A map of native HTTP query-parameter names to string values. Keys are not constrained by the xRegistry map key character set and MAY carry RFC6570 Level 1 placeholders.",
+                          "type": "any"
                         },
                         "path": {
                           "name": "path",
