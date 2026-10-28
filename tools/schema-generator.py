@@ -229,11 +229,10 @@ def generate_openapi(model_definition):
         if families:
             operation["description"] = (
                 operation.get("description", "") + "\n\n"
-                "Scalar map entries use one HTTP header per key: "
+                "Per-key map headers: "
                 + ", ".join(families) + ". "
-                "`<KEYNAME>` denotes an encoded map key, not a literal header name. "
-                "Encode names and values using the xRegistry HTTP Header Processing "
-                "rules. OpenAPI cannot enumerate these runtime header names."
+                "Replace `<KEYNAME>` with the encoded key; encode values per the "
+                "xRegistry HTTP Header Processing rules."
             )
 
     # now recursively find all $ref attributes in the template and replace them with references to the appropriate schema

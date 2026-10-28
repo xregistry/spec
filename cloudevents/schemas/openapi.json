@@ -2466,7 +2466,7 @@
         "tags": [
           "Resource"
         ],
-        "description": "Gets the resource (default version). Supports $details view via the 'doc' query parameter. (See spec: Retrieving a Resource and Retrieving a Resource as Metadata)\n\nScalar map entries use one HTTP header per key: `xRegistry-labels.<KEYNAME>`. `<KEYNAME>` denotes an encoded map key, not a literal header name. Encode names and values using the xRegistry HTTP Header Processing rules. OpenAPI cannot enumerate these runtime header names.",
+        "description": "Gets the resource (default version). Supports $details view via the 'doc' query parameter. (See spec: Retrieving a Resource and Retrieving a Resource as Metadata)\n\nPer-key map headers: `xRegistry-labels.<KEYNAME>`. Replace `<KEYNAME>` with the encoded key; encode values per the xRegistry HTTP Header Processing rules.",
         "responses": {
           "200": {
             "description": "The resource (or a redirect if a RESOURCEurl is set).",
@@ -2650,7 +2650,7 @@
         "tags": [
           "Resource"
         ],
-        "description": "Creates or updates a resource. Accepts either the raw document (when $details is not used) or a full xRegistry metadata serialization (when $details is used). (See spec: Creating or Updating Resources and Versions, Resource Metadata vs Resource Document)\n\nScalar map entries use one HTTP header per key: `xRegistry-labels.<KEYNAME>`. `<KEYNAME>` denotes an encoded map key, not a literal header name. Encode names and values using the xRegistry HTTP Header Processing rules. OpenAPI cannot enumerate these runtime header names.",
+        "description": "Creates or updates a resource. Accepts either the raw document (when $details is not used) or a full xRegistry metadata serialization (when $details is used). (See spec: Creating or Updating Resources and Versions, Resource Metadata vs Resource Document)\n\nPer-key map headers: `xRegistry-labels.<KEYNAME>`. Replace `<KEYNAME>` with the encoded key; encode values per the xRegistry HTTP Header Processing rules.",
         "parameters": [
           {
             "in": "query",
@@ -2969,7 +2969,7 @@
       },
       "post": {
         "summary": "Post new resource version",
-        "description": "Creates a new version of the resource. If the resource does not exist, it is created at version 1; if it exists, the new version is created (default version may be updated using setdefaultversionid). (See spec: Creating or Updating Resources and Versions, Default Version of a Resource)\n\nScalar map entries use one HTTP header per key: `xRegistry-labels.<KEYNAME>`. `<KEYNAME>` denotes an encoded map key, not a literal header name. Encode names and values using the xRegistry HTTP Header Processing rules. OpenAPI cannot enumerate these runtime header names.",
+        "description": "Creates a new version of the resource. If the resource does not exist, it is created at version 1; if it exists, the new version is created (default version may be updated using setdefaultversionid). (See spec: Creating or Updating Resources and Versions, Default Version of a Resource)\n\nPer-key map headers: `xRegistry-labels.<KEYNAME>`. Replace `<KEYNAME>` with the encoded key; encode values per the xRegistry HTTP Header Processing rules.",
         "operationId": "postSchemagroupSchema",
         "tags": [
           "Resource"
@@ -4020,7 +4020,7 @@
         "tags": [
           "ResourceVersion"
         ],
-        "description": "Gets a specific version of a resource. Returns either the document (if not $details) or the metadata view. (See spec: Retrieving a Version and Retrieving a Version as Metadata)\n\nScalar map entries use one HTTP header per key: `xRegistry-labels.<KEYNAME>`. `<KEYNAME>` denotes an encoded map key, not a literal header name. Encode names and values using the xRegistry HTTP Header Processing rules. OpenAPI cannot enumerate these runtime header names.",
+        "description": "Gets a specific version of a resource. Returns either the document (if not $details) or the metadata view. (See spec: Retrieving a Version and Retrieving a Version as Metadata)\n\nPer-key map headers: `xRegistry-labels.<KEYNAME>`. Replace `<KEYNAME>` with the encoded key; encode values per the xRegistry HTTP Header Processing rules.",
         "responses": {
           "200": {
             "description": "The resource version.",
