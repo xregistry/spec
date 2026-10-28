@@ -1036,11 +1036,11 @@ def generate_avro_schema(model_definition) -> dict:
     avro_generic_record_emitted = False
     record_types = set()
 
-    def handle_item(resource_schema, type, item, name, prefix, enum_values=None):
+    def handle_item(resource_schema, type, item, name, prefix, enum_values=None, namespace="io.xregistry"):
         if type == "object":
             if "attributes" in item:
-                item_schema = { "type": "record", "name" : prefix+name+"Type", "fields": []}
-                handle_attributes(item_schema, item["attributes"], prefix)
+                item_schema = { "type": "record", "namespace": namespace, "name" : prefix+name+"Type", "fields": []}
+                handle_attributes(item_schema, item["attributes"], prefix+name, namespace)
                 resource_schema["type"] = item_schema
             else:
                 # Use GenericRecord reference (it's defined at document level if needed)
@@ -1051,7 +1051,7 @@ def generate_avro_schema(model_definition) -> dict:
                 item_schema = copy.deepcopy(avro_type_mapping[item["type"]])
                 if item["type"] == "object" or item["type"] == "map" or item["type"] == "array":
                     if "item" in item:
-                        handle_item(item_schema, item["type"], item["item"], name+"Item", prefix)
+                        handle_item(item_schema, item["type"], item["item"], name+"Item", prefix, namespace=namespace)
                 resource_schema["type"]["values"] = item_schema["type"]
             else:
                 raise Exception("Map item must have a type specified")
@@ -1061,7 +1061,7 @@ def generate_avro_schema(model_definition) -> dict:
                 item_schema = copy.deepcopy(avro_type_mapping[item["type"]])
                 if item["type"] == "object" or item["type"] == "map" or item["type"] == "array":
                     if "item" in item:
-                        handle_item(item_schema, item["type"], item["item"], name, prefix)
+                        handle_item(item_schema, item["type"], item["item"], name, prefix, namespace=namespace)
                         resource_schema["type"]["items"] = item_schema["type"]
                 else:
                     # Apply enum constraint to array items if provided
@@ -1076,8 +1076,16 @@ def generate_avro_schema(model_definition) -> dict:
                 raise Exception("Array item must have a type specified")
 
 
-    def handle_attributes(resource_schema, attributes, type_prefix=""):
+    def handle_attributes(resource_schema, attributes, type_prefix="", namespace="io.xregistry"):
         nonlocal avro_generic_record_emitted
+
+        def emit(field):
+            for index, existing in enumerate(resource_schema["fields"]):
+                if existing["name"] == field["name"]:
+                    resource_schema["fields"][index] = field
+                    return
+            resource_schema["fields"].append(field)
+
         for attr_name, attr_props in attributes.items():
             pascal_attr_name = pascal(attr_name)
             # attribute schema is based on the type mapping
@@ -1105,7 +1113,7 @@ def generate_avro_schema(model_definition) -> dict:
                 if "item" in attr_props:
                     # Pass enum values if this is an array with enum constraint
                     enum_values = attr_props.get("enum") if attr_props["type"] == "array" else None
-                    handle_item(attr_schema, attr_props["type"], attr_props["item"], pascal_attr_name, type_prefix, enum_values)
+                    handle_item(attr_schema, attr_props["type"], attr_props["item"], pascal_attr_name, type_prefix, enum_values, namespace)
                 else:
                     if attr_props["type"] == "object":
                         # Use GenericRecord reference (it's defined at document level if needed)
@@ -1126,11 +1134,11 @@ def generate_avro_schema(model_definition) -> dict:
                     condition_schema_identifier = pascal_attr_name + pascal("".join([c if c.isalnum() else "_" for c in condition_value]))
                     conditional_schema = {
                                 "type": "record",
-                                "namespace": group_namespace,
+                                "namespace": namespace,
                                 "name": type_prefix+condition_schema_identifier+"Type",
                                 "fields": []
                             }
-                    handle_attributes(conditional_schema,  condition_props.get("siblingattributes", {}), condition_schema_identifier)
+                    handle_attributes(conditional_schema, condition_props.get("siblingattributes", {}), type_prefix+condition_schema_identifier, namespace)
                     union.append(conditional_schema)
                 if len(union) > 0:
                     field_schema = {
@@ -1139,7 +1147,7 @@ def generate_avro_schema(model_definition) -> dict:
                     }
                     if "description" in attr_props:
                         field_schema["doc"] = attr_props["description"]
-                    resource_schema["fields"].append(field_schema)
+                    emit(field_schema)
             else:
                 if attr_name == "*":
                     # For extension attributes, we need to handle named types properly
@@ -1171,13 +1179,13 @@ def generate_avro_schema(model_definition) -> dict:
                              }}
                     if "description" in attr_props:
                         field_schema["doc"] = attr_props["description"]
-                    resource_schema["fields"].append(field_schema)
+                    emit(field_schema)
                 else:
                     attr_schema["name"] = camel(pascal_attr_name)
                     # if the attribute is not required, union the type with null
                     #if not "required" in attr_props or attr_props["required"] == False:
                     #    attr_schema = ["null", attr_schema]
-                    resource_schema["fields"].append(attr_schema)
+                    emit(attr_schema)
 
 
 
@@ -1254,7 +1262,7 @@ def generate_avro_schema(model_definition) -> dict:
             if "plural" not in resource: resource["plural"] = rKey
             resource = resolve_resource(group, resource)
             resource_name = resource["singular"]
-            if resource_name in record_types:
+            if (group_namespace, resource_name) in record_types:
                 resource_collection_fields.append({
                     "name": camel(resource["plural"]),
                     "type" :{
@@ -1263,7 +1271,7 @@ def generate_avro_schema(model_definition) -> dict:
                     }
                     })
             else:
-                record_types.add(resource_name)
+                record_types.add((group_namespace, resource_name))
                 props = copy.deepcopy(avro_common_attributes)
                 props.insert(0, {"name": resource_name+"id", "type": "string", "description": f"ID of the {resource_name} object"})
                 resource_schema = {
@@ -1273,37 +1281,40 @@ def generate_avro_schema(model_definition) -> dict:
                     "fields": props
                 }
                 attributes = resource.get("attributes", {})
-                if resource.get("versions", 1) != 1:
+                if resource.get("maxversions", 0) != 1:
+                    version_fields = [
+                        {"name": "versionid", "type": "string", "description": f"ID of the {resource_name} version"},
+                        {"name": "ancestorid", "type": "string"},
+                        {"name": "isdefault", "type": "boolean"},
+                        {"name": "contenttype", "type": ["null", "string"], "default": None}
+                    ]
                     resource_version_schema = copy.deepcopy(resource_schema)
-                    resource_version_schema["fields"].insert(0, {"name" : "versionid", "type": "string", "description": f"ID of the {resource_name} version"})
-                    handle_attributes(resource_version_schema, attributes)
+                    resource_version_schema["fields"].extend(copy.deepcopy(version_fields))
                     resource_version_schema["name"] = pascal(resource_name)+"VersionType"
-                    resource_schema["fields"].append(
+                    handle_attributes(resource_version_schema, attributes, pascal(resource_name)+"Version", group_namespace)
+                    overlay = {"fields": copy.deepcopy(version_fields)}
+                    handle_attributes(overlay, attributes, pascal(resource_name), group_namespace)
+                    for field in overlay["fields"]:
+                        branches = field["type"] if isinstance(field["type"], list) else [field["type"]]
+                        field["type"] = ["null", *[branch for branch in branches if branch != "null"]]
+                        field["default"] = None
+                        for index, existing in enumerate(resource_schema["fields"]):
+                            if existing["name"] == field["name"]:
+                                resource_schema["fields"][index] = field
+                                break
+                        else:
+                            resource_schema["fields"].append(field)
+                    resource_schema["fields"].extend([
                         {
                             "name": "versions",
-                            "type": [
-                                {
-                                    "type": "map",
-                                    "values": resource_version_schema
-                                },
-                                {
-                                    "type": "record",
-                                    "name": pascal(resource_name)+"VersionInfo",
-                                    "fields": [
-                                        {
-                                            "name": "versionsUrl",
-                                            "type": "string"
-                                        },
-                                        {
-                                            "name": "versionCount",
-                                            "type": "int"
-                                        }
-                                    ]
-                                }
-                            ]
-                        })
+                            "type": ["null", {"type": "map", "values": resource_version_schema}],
+                            "default": None
+                        },
+                        {"name": "versionsurl", "type": ["null", "string"], "default": None},
+                        {"name": "versionscount", "type": ["null", "long"], "default": None}
+                    ])
                 else:
-                    handle_attributes(resource_schema, attributes)
+                    handle_attributes(resource_schema, attributes, pascal(resource_name), group_namespace)
 
                 resource_collection_fields.append({
                     "name": camel(resource["plural"]),
@@ -1330,10 +1341,11 @@ def generate_avro_schema(model_definition) -> dict:
         group_schema = {
             "type": "record",
             "name": pascal(group_name)+"Type",
+            "namespace": group_namespace,
             "fields": props,
         }
         attributes = group.get("attributes", {})
-        handle_attributes(group_schema, attributes)
+        handle_attributes(group_schema, attributes, pascal(group_name), group_namespace)
         for resource_collection in resource_collection_fields:
             group_schema["fields"].append(resource_collection)
         groups_schema = {
