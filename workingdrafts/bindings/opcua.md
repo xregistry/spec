@@ -67,13 +67,11 @@ documents and attributes. Servers report changes as native OPC UA Events.
 The binding is a peer of the [HTTP binding][xRegistry HTTP]; it does not
 tunnel HTTP or CloudEvents payloads over OPC UA.
 
-**Status:** Unreleased working draft. The companion dependencies in
-[§2](#2-normative-references) are unadopted drafts. They do not constitute
-OPC Foundation standards or endorsements. This binding uses different
-revisions for the structural/event model and the older public proposal.
-Section 10 specifies the federation corrections and dependency gaps.
-Companion claims about remote identity do not override xRegistry Core or
-the OPC UA Parts.
+**Status:** Unreleased working draft. The xRegistry Core, Events and OPC UA
+API dependencies use the `v1.0-rc4` baseline. The companion information model
+is Version `0.11.0`, Draft. None of these drafts constitutes an OPC Foundation
+standard or endorsement. Section 10 defines federation behavior without
+overriding xRegistry Core or the OPC UA Parts.
 
 ## Table of Contents
 
@@ -140,7 +138,7 @@ the OPC UA Parts.
     - [10.3. Three distinct reference mechanisms](#103-three-distinct-reference-mechanisms)
     - [10.4. Trust and live consistency](#104-trust-and-live-consistency)
     - [10.5. Namespace export is separate](#105-namespace-export-is-separate)
-    - [10.6. Pinned companion dependency gaps](#106-pinned-companion-dependency-gaps)
+    - [10.6. Companion model alignment](#106-companion-model-alignment)
   - [11. Error handling](#11-error-handling)
     - [11.1. Federation resolver outcomes](#111-federation-resolver-outcomes)
   - [12. Conformance](#12-conformance)
@@ -149,10 +147,10 @@ the OPC UA Parts.
 
 ## 1. Scope
 
-The API maps the [xRegistry](https://github.com/xregistry/spec) Core model
+The API maps the xRegistry Core model, Version `v1.0-rc4`
 to OPC UA Services, AddressSpace nodes and FileTransfer. It exposes
 Registries, Groups, Resources, Versions, documents and attributes using
-the Version 0.6.0 companion dependency identified in
+the Version 0.11.0 Draft companion dependency identified in
 [§2](#2-normative-references).
 
 The information model distinguishes the following entities:
@@ -173,7 +171,8 @@ Clients access these nodes through Browse, BrowseNext, Read, Write, Call,
 TranslateBrowsePathsToNodeIds and the FileTransfer Methods inherited by
 `ResourceType`. To delete an entity, a client calls the xRegistry
 `Delete(ExpectedEpoch)` Method on that entity's `GroupType` or
-`ResourceType` node. Section 10.6 identifies the pinned proposal's limitations.
+`ResourceType` node. Section 10.6 identifies the companion model surfaces used
+by this binding.
 
 > Annex A provides an informative correspondence with sibling protocol
 > bindings. Section 10 defines federation, including references to Registries
@@ -217,46 +216,34 @@ capability paths.
 
 ## 2. Normative references
 
-- [xRegistry Core specification](../../core/spec.md) — the registry, group, resource, version, document, attribute, request-flag, operation-processing and error model.
-- [xRegistry Events specification](https://github.com/xregistry/spec/blob/66ee31e47fbadff6ab982ae1516f7d9065e46b64/core/events.md) — canonical xRegistry event types, fields and emission rules, interpreted with the binding corrections in §9.1.
-- [xRegistry primer](../../core/primer.md) — the xRegistry concepts, representations, request-shaping concepts and federation model.
-- <a href="https://github.com/OPCF-Members/spec-drafts/blob/d3399fca025025a73e5a6b599f850a81d985c060/source/core-specs/xregistry/spec.md" data-link-check="authenticated">OPC UA — xRegistry, structural/event source</a> and
-  <a href="https://github.com/OPCF-Members/spec-drafts/blob/d3399fca025025a73e5a6b599f850a81d985c060/model/core-specs/xregistry/Opc.Ua.XRegistry.NodeSet2.xml" data-link-check="authenticated">NodeSet</a> — Version 0.6.0, published
-  `2026-09-05T00:00:00Z`, at commit
-  `d3399fca025025a73e5a6b599f850a81d985c060`. The xRegistry NodeSet SHA-256
-  digest of the exact Git blob bytes (LF line endings) is
-  `2521088d7980cf9f09615b47323ea56d9c6394f1c082bec6039bdecffd2c3686`.
-  This companion information model defines the distinct Resource and Version
-  Objects, `ResourceVersionsType`, Resource Meta and the EventTypes used by §9.
+- [xRegistry Core specification, `v1.0-rc4`](https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md) — the registry, group, resource, version, document, attribute, request-flag, operation-processing and error model.
+- [xRegistry Events specification, `v1.0-rc4`](https://github.com/xregistry/spec/blob/v1.0-rc4/core/events.md) — canonical xRegistry event types, fields and emission rules, interpreted with the binding corrections in §9.1.
+- [xRegistry primer, `v1.0-rc4`](https://github.com/xregistry/spec/blob/v1.0-rc4/core/primer.md) — xRegistry concepts, representations, request-shaping concepts and federation model.
+- <a href="https://github.com/OPCF-Members/OPC30450-CloudIntegration/pull/34" data-link-check="authenticated">OPC UA — xRegistry, Version 0.11.0 Draft source</a>
+  and <a href="https://github.com/OPCF-Members/OPC30450-CloudIntegration/pull/34/files" data-link-check="authenticated">NodeSet</a> — the companion
+  information model and native-document model used by this binding. The
+  repository requires access through its review PR; this is an unadopted
+  working draft, not an OPC Foundation standard or endorsement.
 - [OPC 10000-3](https://reference.opcfoundation.org/specs/OPC-10000-3/) — Address Space Model, including NodeIds, References, TypeDefinitions and `ExpandedNodeId`.
 - [OPC 10000-4](https://reference.opcfoundation.org/specs/OPC-10000-4/) — Services, including Browse, BrowseNext, Read, Write, Call, TranslateBrowsePathsToNodeIds and StatusCodes.
 - [OPC 10000-5](https://reference.opcfoundation.org/specs/OPC-10000-5/) — Base Information Model, including `FolderType` and `PropertyType`.
 - [OPC 10000-20](https://reference.opcfoundation.org/specs/OPC-10000-20/) — File Transfer, including `FileType` and its `Open` / `Read` / `Write` / `Close` Methods.
 - [xRegistry Federation](../federation/spec.md) — common read resolution, advertisements, selectors, identity and resolver errors.
-- [OPC UA — xRegistry, older public source][companion-public-source] and
-  [NodeSet][companion-public-nodeset] — the public proposal reviewed for
-  the federation corrections in §10.6, not the structural/event dependency.
 - [OPC 10000-3, v1.05.06](https://reference.opcfoundation.org/specs/OPC-10000-3/v1.05.06/) — Address Space Model, including URI identities, NodeIds, References and TypeDefinitions.
 - [OPC 10000-4, v1.05.07](https://reference.opcfoundation.org/specs/OPC-10000-4/v1.05.07/) — Services, including Browse, BrowseNext, Read, Write, Call, TranslateBrowsePathsToNodeIds, `ExpandedNodeId` and StatusCodes.
 - [OPC 10000-5, v1.05.06](https://reference.opcfoundation.org/specs/OPC-10000-5/v1.05.06/) — Base Information Model, including namespace metadata and address-space files.
 - [OPC 10000-6, v1.05.07](https://reference.opcfoundation.org/specs/OPC-10000-6/v1.05.07/5.1.12) — portable QualifiedName, NodeId and ExpandedNodeId string encodings.
 - [OPC 10000-20, v1.05.06](https://reference.opcfoundation.org/specs/OPC-10000-20/v1.05.06/4.2) — File Transfer, including `FileType` and its `Open` / `Read` / `Write` / `Close` Methods.
 
-The structural/event dependency is access-restricted. Its Version 0.6.0
-source and NodeSet are in `OPCF-Members/spec-drafts`; the links do not let
-readers without repository access inspect them. The public source at
-`ff22f224400fc8be813bf0abcbfc3cde52bc7ed3` has NodeSet Version 0.3.0,
-published `2026-07-31T00:00:00Z`, with SHA-256
-`bbe31c40fa071a2137f7ca269606e3cc4665b90baf2d7a2fcefc6d451a7a1d31`.
-That revision supplies neither the distinct `ResourceVersionsType` hierarchy
-nor the event model specified here. It cannot substitute for Version 0.6.0.
+The companion dependency is identified by its model version, `0.11.0`, rather
+than a source-control revision. It remains a working draft and its current
+proposal may change before publication. This binding does not imply OPC
+Foundation adoption or a public release of that companion model.
 
-A CRLF checkout of the Version 0.6.0 NodeSet has SHA-256
-`369f5f3f1814b333e4eeb52bfb4b6a730cdff372505a5f91a54c94f0016ac4cf`
-because its serialization differs from the exact Git blob bytes. This
-citation correction changes neither the dependency revision nor the model
-version or behavior. Publication remains limited by the structural/event
-dependency's restricted availability. This document asserts no public mirror.
+This binding and the companion draft use xRegistry Core and Events
+`v1.0-rc4` as their baseline. Section 9.1 records the binding's event
+projection delta: Core's single `deprecation` action maps to the
+companion's state-specific OPC UA EventTypes without adding a Core event.
 
 ## 3. Terms and conventions
 
@@ -276,12 +263,14 @@ document uses the names defined by Annex A of *OPC UA — xRegistry* and its
 NodeSet: `RegistryType`, `GroupType`,
 `ResourceType`, `ResourceVersionsType`, `AttributesType`,
 `RegistryCapabilitiesDataType`,
-`RegistryId`, `SpecVersion`, `Capabilities`, `CapabilitiesInfo`, `Model`,
+`RegistryId`, `SpecVersion`, `Capabilities`, `CapabilitiesSnapshot`,
+`CapabilitiesInfo`, `RegistryCapabilitiesSnapshotDataType`, `Model`,
 `GroupId`, `ResourceId`, `VersionId`, `Format`, `ContentType`,
-`ExternalReference`, `ResourceUrl`, `Xid`, `Epoch`, `Name`, `Description`,
-`Documentation`, `Labels`, `<Attribute>`, `CreatedAt`, `ModifiedAt`,
-`MetaEpoch`, `MetaLabels`, `MetaCreatedAt`, `MetaModifiedAt`, `Versions`,
-`AssignedVersionId`,
+`ExternalReference`, `OriginRegistry`, `ResourceUrl`, `Xid`, `Epoch`, `Name`,
+`Description`, `Documentation`, `Labels`, `<Attribute>`, `CreatedAt`,
+`ModifiedAt`, `MetaEpoch`, `MetaLabels`, `MetaCreatedAt`, `MetaModifiedAt`,
+`MetaXref`, `MetaDefaultVersionSticky`, `MetaReadonly`, `MetaCompatibility`,
+`MetaDeprecated`, `DeprecationDataType`, `Versions`, `AssignedVersionId`,
 `CreateGroup`, `GetOrCreateGroup`, `CreateResource`, `GetOrCreateResource`,
 `AddAttribute`, `RemoveAttribute`, `Delete` and `ExpectedEpoch`.
 The event model additionally defines `EventSourceUrl`, `SourceUrl`, `Subject`,
@@ -348,8 +337,8 @@ logical opens; already-open handles remain pinned to their exact Version.
 This separates Core's [Meta entity](../../core/spec.md#meta-entity) and
 [default Version](../../core/spec.md#default-version-of-a-resource) from
 the UA file view. [§5.14](#514-reading-and-updating-resource-metadata)
-describes updates to each owner. [§10.6](#106-pinned-companion-dependency-gaps)
-identifies the domain mappings needed for these reads.
+describes updates to each owner. [§10.6](#106-companion-model-alignment)
+identifies the versioned domain mappings used here.
 
 Core [document-view export](../../core/spec.md#doc-flag) serializes this
 state without the Resource's delegated Version projection.
@@ -404,7 +393,7 @@ Metadata mode selects an operation rather than another identity. The HTTP
 | xRegistry target or operation | OPC UA target | Primary OPC UA operation |
 |---|---|---|
 | `/` | selected `RegistryType` root node | Read registry Properties and Browse group children |
-| Capabilities | `RegistryType.CapabilitiesInfo` Variable or `RegistryType.Capabilities` `FileType` component Object | Read supported fixed fields from `CapabilitiesInfo`. Use `Open`/`Read`/`Close` on `Capabilities` for raw JSON and fields not faithfully represented by the pinned DataType. When writable, `Open(write)`/`Write`/`Close` replaces the JSON document |
+| Capabilities | `RegistryType.Capabilities` `FileType` component Object and, when supported, `CapabilitiesSnapshot` Variable | Use `Open`/`Read`/`Close` for the authoritative complete JSON document. Read `CapabilitiesSnapshot` for the canonical typed standard fields; `CapabilitiesInfo` is only a partial convenience view |
 | Offered capabilities | offered-capabilities structure exposed by the server, if any | Read a domain Property or an offered section inside the `Capabilities` JSON document |
 | Model | `RegistryType.Model` `FileType` component Object | `Open`/`Read`/`Close` the JSON bytes. When writable as model source, `Open(write)`/`Write`/`Close` replaces the document |
 | Model source | server-specific model-source Property or operation, if exposed | Read or Write the domain-defined model-source target, or reject as unsupported |
@@ -430,16 +419,16 @@ Regardless of that representation:
 - The logical Resource MUST own a `ResourceVersionsType` component with
   BrowseName `Versions`.
 
-A server MUST set each group's, logical Resource's and exact Version's
-BrowseName to its identifier: `groupid`, `resourceid` or `versionid`,
-respectively. A server MUST set each group's and logical Resource's DisplayName
-to its `Name`.
+A server MUST set each Group's, logical Resource's and exact Version's
+BrowseName to its identifier: `GroupId`, `ResourceId` or `VersionId`,
+respectively. `Name` is optional. When it is present, the Server sets
+`DisplayName` to `Name`; when absent, it sets `DisplayName` to the same
+role-specific identifier used by `BrowseName`.
 
 A `groupid` or `resourceid` is a symbolic identifier constructed from the
-entity's domain source identity, never from a document. The companion's
-entity-identifier construction (older
-[public source][companion-public-source] §6.9) makes these identifiers readable
-and safe in a URL, on a command line and as a file name.
+entity's domain source identity, never from a document. The Version 0.11.0
+Draft companion specifies the entity-identifier construction that makes these
+identifiers readable and safe in a URL, on a command line and as a file name.
 
 A Browse result includes BrowseName, DisplayName, NodeClass, TypeDefinition
 and the target NodeId. A client can select and filter entities by identity
@@ -465,7 +454,7 @@ Resource denotes the generic xRegistry entity kind. Each domain model
 declares its own `<RESOURCES>` collection and `<RESOURCE>` singular names.
 This binding does not require a literal `resources` path segment.
 
-Servers implementing Version 0.6.0 of the companion model MUST expose only
+Servers implementing Version 0.11.0 of the companion model MUST expose only
 the distinct hierarchy defined here. They MUST NOT expose group-level
 legacy aliases for exact Versions. If the advertised companion model lacks
 a `Versions` component, updated clients MAY fall back to the prior
@@ -561,16 +550,24 @@ Version attributes also change.
 
 On creation, the server MUST initialize the applicable `CreatedAt`,
 `ModifiedAt`, `Epoch`, `MetaCreatedAt`, `MetaModifiedAt`, `MetaEpoch`, `Xid`
-and identifier Properties under Core and the companion's auto-bootstrap
-rules (older [public source][companion-public-source] §6.5).
+and identifier Properties under Core and the Version 0.11.0 companion's
+auto-bootstrap rules.
 
 ### 4.4. OPC UA-specific attribute processing
 
 OPC UA represents fixed metadata as typed Property Values: strings use
 `String`, timestamps use `DateTime`, `ExternalReference` uses
-`ExpandedNodeId`, and `Epoch` and `MetaEpoch` use `UInt32`. Labels and
-extension attributes are `String` Property Variables under `Labels`, or
-under `MetaLabels` for Resource Meta.
+`ExpandedNodeId`, and `Epoch` and `MetaEpoch` use `UInt32`. The xRegistry
+`labels` are string-valued Property Variables under `Labels`, or under
+`MetaLabels` for Resource Meta. Extension attributes are not labels: a native
+document view preserves their declared UA value types and MUST NOT stringify
+them to fit an `AttributesType` container.
+
+An xRegistry `epoch` is an unsigned integer in the range 0 through
+4,294,967,295. Before a mutation increments one or more `Epoch` or `MetaEpoch`
+values, the Server MUST check every affected counter. If any counter is at
+the maximum, the operation MUST fail with `Bad_OutOfRange`, make no state
+change and emit no event.
 
 For a Resource document read, clients obtain accompanying metadata from the
 logical Resource's delegated Version Properties and authoritative Resource
@@ -596,6 +593,8 @@ The creation and mutation Method signatures used by this API are:
   `GetOrCreateResource` Methods defined by the xRegistry base model.
 - The `Delete` Method on `GroupType` and `ResourceType`.
 - The `AddAttribute` and `RemoveAttribute` Methods on `AttributesType`.
+- The optional native-document Methods on `NativeRegistryAccessType` as
+  defined by the Version 0.11.0 companion model.
 - The inherited `Open` / `Read` / `Write` / `Close` Methods of `ResourceType`,
   whose exact argument definitions are normative in OPC 10000-20.
 
@@ -610,10 +609,11 @@ The creation and mutation Method signatures used by this API are:
 | Replace document | `ResourceType.Open(mode)` -> `SetPosition(fileHandle, 0)` -> `Write(fileHandle, data)` -> `Close(fileHandle)` | The `mode` allows write and stages the complete replacement byte stream. Only a successful dirty `Close` updates Version `ModifiedAt` and `Epoch`. |
 | Read metadata | Read Service on Properties | Property BrowseNames map to xRegistry attribute names by the tables in this document and the domain model |
 | Replace scalar metadata | Write Service on Properties | Value DataTypes are those in Annex A of the base model |
-| Add/update registry, group or version extension attribute or label | `Labels.AddAttribute(Key: String, Value: String, ExpectedEpoch: UInt32)` | `Labels` is the entity or version's `AttributesType` object. `ExpectedEpoch` is matched against its `Epoch`. Success increments `Epoch` and updates `ModifiedAt`. |
-| Remove registry, group or version extension attribute or label | `Labels.RemoveAttribute(Key: String, ExpectedEpoch: UInt32)` | `Labels` is the entity or version's `AttributesType` object. `ExpectedEpoch` is matched against its `Epoch`. Success increments `Epoch` and updates `ModifiedAt`. |
-| Add/update Resource Meta extension attribute or label | `MetaLabels.AddAttribute(Key: String, Value: String, ExpectedEpoch: UInt32)` | `MetaLabels` is on the logical Resource. `ExpectedEpoch` is matched against `MetaEpoch`. Success increments `MetaEpoch` and updates `MetaModifiedAt`. |
-| Remove Resource Meta extension attribute or label | `MetaLabels.RemoveAttribute(Key: String, ExpectedEpoch: UInt32)` | `MetaLabels` is on the logical Resource. `ExpectedEpoch` is matched against `MetaEpoch`. Success increments `MetaEpoch` and updates `MetaModifiedAt`. |
+| Add/update registry, group or version label | `Labels.AddAttribute(Key: String, Value: String, ExpectedEpoch: UInt32)` | `Labels` is the entity or version's `AttributesType` object. `ExpectedEpoch` is matched against its `Epoch`. Success increments `Epoch` and updates `ModifiedAt`. |
+| Remove registry, group or version label | `Labels.RemoveAttribute(Key: String, ExpectedEpoch: UInt32)` | `Labels` is the entity or version's `AttributesType` object. `ExpectedEpoch` is matched against its `Epoch`. Success increments `Epoch` and updates `ModifiedAt`. |
+| Add/update Resource Meta label | `MetaLabels.AddAttribute(Key: String, Value: String, ExpectedEpoch: UInt32)` | `MetaLabels` is on the logical Resource. `ExpectedEpoch` is matched against `MetaEpoch`. Success increments `MetaEpoch` and updates `MetaModifiedAt`. |
+| Remove Resource Meta label | `MetaLabels.RemoveAttribute(Key: String, ExpectedEpoch: UInt32)` | `MetaLabels` is on the logical Resource. `ExpectedEpoch` is matched against `MetaEpoch`. Success increments `MetaEpoch` and updates `MetaModifiedAt`. |
+| Read or mutate typed extension attributes | `NativeRegistryAccessType.ReadDocument`, `WriteDocument` or `ApplyChanges` | Optional native-document capability. Values retain their RegistryValueDataType subtype and do not pass through string-valued `AttributesType` labels. |
 
 A new Resource and its first Version are created in the same xRegistry
 operation, never independently. Before returning, `CreateResource` and
@@ -634,6 +634,14 @@ on `AttributesType`.
 Registries, Groups and exact Versions MAY expose `Labels`. Resource Meta
 owns `MetaLabels`, which is authoritative on the logical Resource. Clients
 call attribute Methods on the container that owns the attribute.
+
+The optional native-document capability is separate from label Methods.
+`ReadDocument` returns a typed native view; `WriteDocument` and
+`ApplyChanges` update typed values through the same validation, authorization,
+epoch and atomic-commit rules as compatibility writes. `OpenDocument`,
+`ReadDocumentPart` and `CloseDocument` provide a pinned bounded view when
+`XREG-NativeSnapshots` is supported. These Methods do not replace the raw
+`Capabilities` or `Model` FileType interfaces.
 
 The base API does not define move or copy. Where permitted, an
 implementation can model them by re-creating an entity and deleting the
@@ -714,8 +722,8 @@ The base model Properties map to xRegistry attributes as follows.
 |---|---|---|
 | `registryid` | `RegistryId` | `RegistryType` |
 | `specversion` | `SpecVersion` | `RegistryType` |
-| `capabilities` | preferred: `CapabilitiesInfo` Variable (`RegistryCapabilitiesDataType`) for fixed fields. Alternative: `Capabilities` Object (`FileType`) whose content is the raw capabilities JSON | `RegistryType` |
-| `model` | `Model` Object (`FileType`) whose content is the model JSON. No structured DataType is defined because the OPC UA AddressSpace type system is the structural equivalent | `RegistryType` |
+| `capabilities` | authoritative `Capabilities` Object (`FileType`) for the complete JSON document; `CapabilitiesSnapshot` (`RegistryCapabilitiesSnapshotDataType`) is the canonical typed view for standard fields, while `CapabilitiesInfo` is a partial convenience view | `RegistryType` |
+| `model` | `Model` Object (`FileType`) for the JSON document; `NativeRegistryAccessType` may additionally expose its typed native document view | `RegistryType` |
 | `<GROUP>id` | `GroupId` | `GroupType` |
 | `<RESOURCE>id` | `ResourceId` | `ResourceType` |
 | `versionid` | `VersionId` | `ResourceType` |
@@ -728,9 +736,15 @@ The base model Properties map to xRegistry attributes as follows.
 | `name` | `Name` | all base entity types |
 | `description` | `Description` | all base entity types |
 | `documentation` | `Documentation` | all base entity types |
-| `labels` | delegated `Labels` object (`AttributesType`) for a Resource representation, exact `Labels` for a Version and `MetaLabels` for Resource Meta | `RegistryType`, `GroupType`, Resource, Version and Resource Meta entities |
+| `labels` | delegated `Labels` object (`AttributesType`) for a Resource representation, exact `Labels` for a Version and `MetaLabels` for Resource Meta; string values only | `RegistryType`, `GroupType`, Resource, Version and Resource Meta entities |
 | `createdat` | delegated `CreatedAt` for a Resource representation, exact `CreatedAt` for a Version and `MetaCreatedAt` for Resource Meta | `RegistryType`, `GroupType`, Resource, Version and Resource Meta entities |
 | `modifiedat` | delegated `ModifiedAt` for a Resource representation, exact `ModifiedAt` for a Version and `MetaModifiedAt` for Resource Meta | `RegistryType`, `GroupType`, Resource, Version and Resource Meta entities |
+| `xref` | `MetaXref`, the case-sensitive Xid of a same-typed Resource in the same Registry | Resource Meta |
+| `defaultversionid` | `VersionId` on the logical Resource selects the default exact Version; an exact Version's `VersionId` represents `versionid`, not `defaultversionid` | Resource Meta |
+| `defaultversionsticky` | `MetaDefaultVersionSticky` (`Boolean`); absence means Core's default `false` | Resource Meta |
+| `readonly` | `MetaReadonly` (`Boolean`); Core's default is `false` | Resource Meta |
+| `compatibility` | `MetaCompatibility` (`String`) | Resource Meta |
+| `deprecated` | `MetaDeprecated` (`DeprecationDataType`) with typed optional fields | Resource Meta |
 | event `source` URL | `EventSourceUrl` | `RegistryType`, REQUIRED only for event-capable server conformance (§9.3) |
 
 Resource Meta is an xRegistry entity in its own right, not a Version
@@ -749,20 +763,22 @@ but a client MUST only derive them when the selected mapping supplies the
 necessary state. It MUST NOT infer ancestry or default selection from Browse
 order. Serialized URLs and local pointers follow §8.
 
-Registry, group and version labels and extension attributes are enumerated by
-Browsing `Labels` and Reading each `<Attribute>` Property Variable. Resource
-Meta labels and extension attributes are enumerated through `MetaLabels`.
-Clients add, update or remove values by calling the applicable container's
+Registry, Group, Version and Resource Meta labels are enumerated by Browsing
+`Labels` or `MetaLabels` and Reading each `<Attribute>` Property Variable.
+Clients change these string labels by calling the owning container's
 `AddAttribute` or `RemoveAttribute` Method with the epoch described in §4.5.1.
-Both containers are deleted with their owning entity.
+Typed extension attributes use the native document or domain mapping; they
+MUST NOT be coerced into label strings. Both label containers are deleted
+with their owning entity.
 
 ### 4.7. Supported operations discovery and pagination
 
 A client discovers supported operations from the target node and Registry
 capabilities. It browses for Methods and checks their executable and
 user-executable bits. It reads `Writable`, `UserWritable`, AccessLevel and
-UserAccessLevel attributes of Variables and the typed `CapabilitiesInfo`
-Variable or `Capabilities` `FileType` content.
+UserAccessLevel attributes of Variables and the typed `CapabilitiesSnapshot`
+or raw `Capabilities` `FileType` content. `CapabilitiesInfo` is not a
+substitute for a missing canonical field.
 
 A server MUST NOT require a side-effecting operation for discovery. If a
 FileTransfer Method, `CreateGroup`, `GetOrCreateGroup`, `CreateResource`,
@@ -798,17 +814,21 @@ xRegistry entities. Section 11 defines their error mappings.
 A client reads the selected `RegistryType` root by:
 
 - Reading its Properties.
-- Reading the typed `CapabilitiesInfo` Variable when fixed capabilities are
-  requested.
+- Reading `CapabilitiesSnapshot` when a typed standard-capabilities view is
+  requested, or `CapabilitiesInfo` only when its partial application-supplied
+  view is specifically needed.
 - Browsing its `Labels` object where labels are requested.
 - Browsing its `Capabilities` and `Model` `FileType` component Objects when
   those JSON documents are requested.
 - Browsing its group children.
 
-The base Properties are `RegistryId`, `SpecVersion`, `CapabilitiesInfo`, `Xid`,
-`Epoch`, `Name`, `Description`, `Documentation`, `CreatedAt` and
-`ModifiedAt` where present. `Capabilities` and `Model` are `FileType`
-component Objects, and `Labels` is an `AttributesType` Object.
+The base Properties include `RegistryId`, `SpecVersion`, `CapabilitiesSnapshot`,
+`CapabilitiesInfo`, `Xid`, `Epoch`, optional `Name`, `Description`,
+`Documentation`, `CreatedAt` and `ModifiedAt`. `Capabilities` and `Model` are
+`FileType` component Objects, and `Labels` is an `AttributesType` Object.
+`CapabilitiesSnapshot` is required only for the corresponding companion
+conformance unit; `CapabilitiesInfo` remains an optional partial convenience
+view.
 
 To serialize the Registry, the client applies §8. Collection counts require
 complete Browse results; document-local navigation needs no fabricated API
@@ -823,21 +843,26 @@ attributes are removed or reset. The `Capabilities` and `Model` components
 are `FileType` Objects. Their absence MUST NOT require a change. If present,
 the server MUST write each as a complete replacement document through
 `Open(write)` /`Write`/`Close`, unless it supports finer-grained updates.
-When raw `Capabilities` JSON changes, the server MUST keep the fixed fields
-it exposes through `CapabilitiesInfo` consistent with that JSON.
+When raw `Capabilities` JSON changes, the Server MUST publish any typed
+capabilities view from the same committed revision and authorization view.
+It MUST NOT use `CapabilitiesInfo` to replace fields absent from that
+partial view.
 
 A partial Registry update writes only included Properties. Included label
-and extension-attribute changes use `Labels.AddAttribute` or
-`Labels.RemoveAttribute`. For a null attribute, the operation:
+changes use `Labels.AddAttribute` or `Labels.RemoveAttribute`; typed extension
+changes use `NativeRegistryAccessType.ApplyChanges` or the domain mapping.
+For null and removal, the operation:
 
-- Writes a server-defined null/default value if the DataType permits it.
-- Calls `Labels.RemoveAttribute` for a dynamic label or extension attribute.
+- Writes an explicit null value where the attribute permits null.
+- Removes a label with `Labels.RemoveAttribute` or a typed extension with a
+  native `Remove` change.
 - Fails with `Bad_NotSupported` if the attribute is mandatory or cannot be
   removed.
 
 The base `RegistryType` does not directly define `AddAttribute` or
 `RemoveAttribute`. Clients call those Methods on the Registry's `Labels`
-object of type `AttributesType`.
+object of type `AttributesType`. They apply to string labels only; typed
+extension attributes use the native document or domain mapping.
 
 For nested Group collections in a Registry operation, each entry is resolved
 by BrowseName. If absent, the server uses `GetOrCreateGroup(GroupId)` or
@@ -866,30 +891,27 @@ a domain-defined import Method.
 
 ### 5.4. Reading capabilities and model documents
 
-A client reads Registry capabilities from either of two representations:
+The `RegistryType.Capabilities` `FileType` component Object is the
+authoritative source for the complete capabilities JSON document. The client
+calls `Open` for read, repeats `Read` until it has the complete byte stream,
+then calls `Close`. `CapabilitiesSnapshot`, when present, is the companion's
+canonical typed view of standard Core fields; it preserves field presence and
+values without coercion and is read as one `RegistryCapabilitiesSnapshotDataType`
+Variant. Vendor and extension keys remain available only in the raw document
+or the native generic view.
 
-- The typed `RegistryType.CapabilitiesInfo` Variable returns a single
-  `RegistryCapabilitiesDataType` Variant. For fixed fields, clients prefer
-  `CapabilitiesInfo` because it needs no JSON parsing.
-- The `RegistryType.Capabilities` `FileType` component Object supplies raw
-  xRegistry capabilities JSON. The client calls `Open` for read, repeats
-  `Read` until it has the complete JSON byte stream, then calls `Close`.
-  This `Capabilities` `FileType` representation remains the source for
-  vendor and extension keys absent from `RegistryCapabilitiesDataType`.
-
-`RegistryCapabilitiesDataType` contains `Flags: String[]`, `Mutable: String[]`,
-`Pagination: Boolean`, `ShortSelf: Boolean`, `SpecVersions: String[]`,
-`StickyVersions: Boolean`, `EnforceCompatibility: Boolean`, `Apis: String[]`
-and `Schemas: String[]`. These are the pinned proposal's fields; they do not
-necessarily match Core 1.0-rc4 capabilities. For a field without a faithful
-typed mapping, a resolver MUST read the authoritative raw `Capabilities`
-JSON. It MUST NOT infer enabled capabilities from old field names. Every
-FileType read in this section follows §5.13.1.
+`CapabilitiesInfo` retains its existing `RegistryCapabilitiesDataType` layout
+as an optional, application-supplied partial convenience view. It is not a
+mapping of Core's canonical capabilities schema. A resolver MUST NOT infer
+an enabled capability from an old field name or treat an absent convenience
+field as a Core default. It MUST use `CapabilitiesSnapshot` for the canonical
+typed standard fields and the raw document for fields the typed view does not
+represent. Every FileType read in this section follows §5.13.1.
 
 The [resolution-owner signal](../federation/spec.md#signaling-who-performs-resolution)
 is an extension in enabled capabilities. A consumer reads it before
-traversing the catalog. If `CapabilitiesInfo` cannot represent it, the
-consumer reads raw `Capabilities` JSON or a documented equivalent mapping,
+traversing the catalog. If `CapabilitiesSnapshot` does not represent it, the
+consumer reads raw `Capabilities` JSON or the generic native document view,
 rather than discarding the field and treating it as absent.
 
 A view declaring `federation.resolution: "producer"` supplies the combined
@@ -909,9 +931,9 @@ A client reads the full xRegistry model definition through the
 repeats `Read` until it has the complete JSON byte stream, then calls
 `Close`. Before browsing entities, clients MAY use this definition to map
 domain collection names to `GroupType` and `ResourceType` subtype
-BrowseNames. `Model` uses FileType JSON only. It has no structured DataType
-because the OPC UA AddressSpace type system provides the structural
-equivalent.
+BrowseNames. The Version 0.11.0 companion also offers typed named and generic
+native-document views through `NativeRegistryAccessType`; those views
+complement rather than replace the raw FileType document.
 
 The base model defines no distinct `ModelSource` Property. If a server
 distinguishes the effective model from the client-provided source, it MUST
@@ -1217,11 +1239,29 @@ Base Properties such as `Epoch`, `CreatedAt`, `ModifiedAt`, `MetaEpoch`,
 directly writable unless the server explicitly allows administrative writes.
 
 To change the default Version, the client uses the domain Property or Method
-mapped to the xRegistry `defaultversionid` meta attribute. A successful
-change MUST increment `MetaEpoch` and update `MetaModifiedAt`. It changes
+mapped to xRegistry `defaultversionid`. The base mapping is the logical
+Resource's `VersionId`; it does not define a separate `DefaultVersionId`
+Property. A successful change MUST increment `MetaEpoch` and update
+`MetaModifiedAt`. It changes
 the delegated normal Properties and the target of future logical Resource
 opens. The change MUST NOT alter the logical Resource NodeId or `Xid`, any
 exact Version NodeId or `Xid`, or any node's deletion role.
+
+`MetaDefaultVersionSticky` maps Core `defaultversionsticky`. When true,
+creating or removing another Version does not automatically replace the
+selected default; when false or absent, the Core `versionmode` rule selects
+the default. If a sticky selected Version is deleted, the Server selects the
+newest remaining Version as required by the companion model. A default change
+updates Resource Meta only, not either Version's `Epoch`.
+
+`MetaReadonly` maps Core `readonly`, whose default is false. It is read-only
+to non-admin clients; the binding does not define how a Server identifies an
+admin client. `MetaCompatibility` maps the optional Core `compatibility`
+value. `MetaDeprecated` maps the optional Core `deprecated` object using
+`DeprecationDataType`: `Effective` and `Removal` are `DateTime`, and
+`Alternative` and `Documentation` are `UriString`. The Server MUST preserve
+these field types and presence; it MUST NOT encode the object as a String or
+as an `AttributesType` label.
 
 Deleting the meta view is not supported. The server MUST reject attempts to
 delete the meta view with `Bad_NotSupported` or `Bad_InvalidArgument`.
@@ -1539,9 +1579,10 @@ For a logical Resource `ResourceType`, the implementation reads delegated
 default-Version Properties.
 
 It adds authoritative Resource Meta from `MetaEpoch`, `MetaCreatedAt`,
-`MetaModifiedAt`, `MetaLabels` and domain meta Properties on the logical
-Resource. It browses exact `ResourceType` children under `Versions` to
-serialize the Versions collection.
+`MetaModifiedAt`, `MetaLabels`, `MetaXref`, `MetaDefaultVersionSticky`,
+`MetaReadonly`, `MetaCompatibility`, `MetaDeprecated` and domain meta
+Properties on the logical Resource. It browses exact `ResourceType` children
+under `Versions` to serialize the Versions collection.
 
 For an exact Version, serialization reads the same normal Version Properties
 directly from that Object.
@@ -1586,10 +1627,14 @@ semantics, including the following:
   Core's `doc` flag requires their removal.
 - Preserve each Meta entity's default-Version choice. Do not select the
   greatest Version ID or infer ancestry from Browse order.
-- Keep a local `xref` as the source Resource's ID-like attributes and
-  `meta.xref`. Do not copy target attributes or Versions into that source.
-  Requests for an alias's Versions in document view retain
-  `cannot_doc_xref`, mapped to `unsupported_operation` by a resolver.
+- Keep a local `xref` as the source Resource's identity and `meta.xref`.
+  When its same-Registry target is accessible, expose the Core-derived target
+  attributes under the source identity; do not substitute the target's ID,
+  XID or self reference, or follow a target `xref` transitively. If the target
+  is inaccessible or dangling, expose only the source identity and `meta.xref`;
+  no local Version storage is required. Requests for an alias's Versions in
+  document view retain `cannot_doc_xref`, mapped to `unsupported_operation`
+  by a resolver.
 - Include the requested collections, including empty maps, after completing
   their Browse continuation sequences. OPTIONAL counts, if emitted, MUST
   describe the included collection.
@@ -1635,10 +1680,9 @@ and Resource Meta `MetaEpoch` /`MetaCreatedAt` /`MetaModifiedAt` where those
 values are not explicitly supplied or are server-managed.
 
 Serialization MUST preserve the three-representation symmetry defined by
-the xRegistry Primer and *OPC UA — xRegistry* (older
-[public source][companion-public-source] §§4.2/7). An entity keeps the same
-`Xid` and identity when accessed as a file, through OPC UA Services or in an
-exported xRegistry document.
+the xRegistry Primer and the Version 0.11.0 companion model. An entity keeps
+the same `Xid` and identity when accessed as a file, through OPC UA Services
+or in an exported xRegistry document.
 
 ## 9. Events
 
@@ -1646,9 +1690,8 @@ exported xRegistry document.
 
 An event-capable server reports xRegistry changes through native OPC UA
 EventTypes. It MUST NOT encapsulate a CloudEvent or another protocol payload
-in the event body. Version 0.6.0 of the OPC UA — xRegistry companion model
-defines the concrete EventTypes and fields at commit
-`d3399fca025025a73e5a6b599f850a81d985c060`
+in the event body. Version 0.11.0 of the OPC UA — xRegistry companion model
+defines the concrete EventTypes and fields
 ([source and access boundary](#2-normative-references)).
 The table maps each canonical xRegistry event `type` to its concrete leaf
 EventType:
@@ -1663,13 +1706,11 @@ EventType:
 | `io.xregistry.capabilities.updated` | `CapabilitiesUpdatedEventType` | `Changed` |
 | `io.xregistry.group.created` | `GroupCreatedEventType` | `Epoch` |
 | `io.xregistry.group.updated` | `GroupUpdatedEventType` | `Epoch`, `Changed` |
-| `io.xregistry.group.deprecated` | `GroupDeprecatedEventType` | none |
-| `io.xregistry.group.undeprecated` | `GroupUndeprecatedEventType` | none |
+| `io.xregistry.group.deprecation` | `GroupDeprecatedEventType` when set or changed; `GroupUndeprecatedEventType` when removed | none |
 | `io.xregistry.group.deleted` | `GroupDeletedEventType` | none |
 | `io.xregistry.resource.created` | `ResourceCreatedEventType` | `Epoch`, `MetaEpoch` |
 | `io.xregistry.resource.updated` | `ResourceUpdatedEventType` | `Epoch`, `MetaEpoch`, `Changed` |
-| `io.xregistry.resource.deprecated` | `ResourceDeprecatedEventType` | none |
-| `io.xregistry.resource.undeprecated` | `ResourceUndeprecatedEventType` | none |
+| `io.xregistry.resource.deprecation` | `ResourceDeprecatedEventType` when set or changed; `ResourceUndeprecatedEventType` when removed | none |
 | `io.xregistry.resource.deleted` | `ResourceDeletedEventType` | none |
 | `io.xregistry.version.created` | `VersionCreatedEventType` | `Epoch` |
 | `io.xregistry.version.updated` | `VersionUpdatedEventType` | `Epoch`, `Changed` |
@@ -1679,17 +1720,21 @@ The leaf EventType represents the canonical `type` natively. An event
 consumer determines that type from `EventType` and the companion model's
 type hierarchy.
 
-This binding uses the merged xRegistry Events specification at merge commit
-`66ee31e47fbadff6ab982ae1516f7d9065e46b64`, subject to these binding
-corrections:
+Core `v1.0-rc4` defines one `deprecation` action when the `deprecated` object
+is set, deleted or one of its attributes is updated. This binding maps that
+single Core action to the companion's distinct state-transition EventTypes:
+setting or changing the object uses `DeprecatedEventType`; removing it uses
+`UndeprecatedEventType`. The selected UA EventType identifies the transition;
+it does not introduce a separate Core `undeprecated` event.
 
-- The `version.update` token in the Resource `updated` rule means
-  `version.updated`. A server MUST NOT define or emit a `version.update` alias.
-- `resource.deprecated` is generated when `meta.deprecated` is created or
-  changed. Removal generates `resource.undeprecated`, not
-  `resource.deprecated`.
-- `Changed` MUST NOT occur on any `deprecated` or `undeprecated` event. The
-  companion group or resource `updated` event carries the changed metadata.
+The Core deprecation event's optional `changed` list identifies modified
+top-level attributes of the deprecated object. The companion deprecation
+EventTypes have no `Changed` field, so the binding does not project that
+nested list onto them. When included, the corresponding `GroupUpdated` or
+`ResourceUpdated` companion event carries the Core `changed` names, including
+`deprecated` or `meta.deprecated`, respectively. These are the only
+deprecation-specific precedence rules; all other applicable Core event
+requirements remain in force.
 
 A server claiming `XREG-Events` conformance MUST implement every event that
 the xRegistry Events specification, with these corrections, says MUST be
@@ -1928,13 +1973,14 @@ capability separately.
 ## 10. Federation
 
 The [common federation contract][federation] uses this binding's addressing
-and read operations for native federation, without an HTTP facade.
-The pinned companion proposal supplies `ExternalReference` and `ResourceUrl`
-Properties as inputs. The following clauses constrain their interpretation.
+and read operations for native federation, without an HTTP facade. The
+Version 0.11.0 companion supplies `OriginRegistry`, `ExternalReference` and
+`ResourceUrl` Properties as inputs. The following clauses constrain their
+interpretation.
 
 ### 10.1. Advertisement and Registry selection
 
-An OPC UA advertisement identifies the binding with `name: "opcua"` and
+An OPC UA advertisement identifies the binding with `binding: "opcua"` and
 supplies a credential-free native UA endpoint URL. Its parameters select
 the Registry root and, optionally, the expected application and transport:
 
@@ -2046,19 +2092,23 @@ checks this mapping independently of a live connection.
 
 | Mechanism | Scope and semantics |
 | --- | --- |
-| Core [`meta.xref`](../../core/spec.md#cross-referencing-resources) | Same Registry, same Resource model type, one hop. Core defines metadata inheritance and source-relative identity/navigation. |
-| Draft `ExternalReference` Property | Native external document target expressed as `ExpandedNodeId`. Resolve its table context and target FileType under the declared mapping. It is not a standard ReferenceType or a Core metadata alias. |
+| Core [`meta.xref`](../../core/spec.md#cross-referencing-resources) | Same Registry, same Resource model type, one hop. Maps to `MetaXref`; Core defines target-attribute projection and source-relative identity/navigation. |
+| `OriginRegistry` plus `ExternalReference` | Federation context and a remote logical Resource target. `ExternalReference` is an `ExpandedNodeId`; resolve its table context and target FileType under the declared mapping. Neither is a Core metadata alias. |
 | `ResourceUrl` Property | Core `<RESOURCE>url`, identifying a Version's domain document through a defined retrieval mechanism. It does not designate remote Resource metadata. |
 
-A local `xref` MUST remain a Resource XID rather than an absolute URI or
-remote-node locator. Structurally identical Resource definitions do not
+A local `xref` MUST remain the case-sensitive XID of a same-typed Resource in
+the same Registry, represented by `MetaXref`. It MUST NOT be an absolute URI
+or remote-node locator. Structurally identical Resource definitions do not
 establish a shared type. Imported/shared types follow Core
 [`ximportresources`](../../core/model.md#reuse-of-resource-definitions).
-Core does not expand an inaccessible target or a target that is itself an
-alias transitively. The source's minimal serialization remains valid.
-Because the pinned base model has no `xref` Property mapping, a conforming
-implementation needs an explicit domain mapping. It MUST NOT substitute
-`ExternalReference`.
+When the target is accessible, the Server exposes the Core-derived target
+view under the source Resource's identity while retaining the source
+`ResourceId`, `Xid`, self reference and `MetaXref`. It MUST NOT follow a
+target `xref` transitively. When the target is inaccessible or dangling, the
+source identity and `MetaXref` remain readable; the Server is not required to
+detect the condition or provide local Version storage. The source's minimal
+serialization remains valid. `ExternalReference` MUST NOT substitute for
+`MetaXref`.
 
 A Resource describing remote bytes retains local metadata. Remote `Xid`,
 `ResourceId`, `VersionId`, labels or Meta values MUST NOT silently overwrite
@@ -2067,10 +2117,13 @@ the caller establishes a separate context. A domain can explicitly define
 logical-identity relationships; equal XIDs in unrelated Registries do not
 establish one.
 
-The unadopted proposal defines `ExternalReference` as a Property convention.
-Reading it does not import remote metadata or Versions. `ResourceUrl` is
-not an encoded NodeId either: this binding defines no generic `opc.tcp`
-endpoint-plus-path or fragment syntax for document access.
+On a logical proxy or mirror Resource, `OriginRegistry` and
+`ExternalReference` are resource-scoped, read-only Properties. The first
+identifies the remote Registry context; the second identifies the remote
+logical Resource. Neither is delegated through the default Version.
+Reading `ExternalReference` does not import remote metadata or Versions.
+`ResourceUrl` is not an encoded NodeId either: this binding defines no generic
+`opc.tcp` endpoint-plus-path or fragment syntax for document access.
 
 An unsupported retrieval scheme or undocumented convention MUST fail
 explicitly. Implementations MUST NOT assume `ResourceUrl` and
@@ -2152,28 +2205,29 @@ claim a refresh. This type defines neither a standard direct-return
 vendor-specific import mechanisms. The example introduces no new domain
 or gateway.
 
-### 10.6. Pinned companion dependency gaps
+### 10.6. Companion model alignment
 
-This binding keeps the Version 0.6.0 dependency pinned and unmodified.
-References below to the older public proposal's numbered sections identify
-the source of federation corrections, not another structural or event
-model. This binding's rules still govern the mapping gaps. Implementations
-MUST NOT hide them by claiming the proposal already defines a standard
-mapping:
+This binding uses xRegistry Core, Events and OPC UA API Version `v1.0-rc4`
+with the Version `0.11.0` Draft companion model. The companion defines the
+base mappings this binding uses:
 
-| Pinned proposal surface | Constraint on this binding |
+| Companion surface | Binding mapping |
 | --- | --- |
-| Older public proposal §§6.4, 8 and Annex B describe cross-Registry XID identity and endpoint-valued `ServerUri` | Apply Core XID scope and Parts 3/4/6 application/table resolution instead (§10.2-§10.3). |
-| ResourceType derives from FileType, and the older public proposal §§4.3/9 require document download | Core metadata-only Resources need metadata access without a fabricated document (§5.10). This binding's catalog conformance is not a claim of that draft's download-only conformance. |
-| VersionId exists, but complete Resource Meta/default selection and `xref` members do not | A documented, readable domain mapping is necessary. The client cannot choose a default or implement Core aliases from VersionId/ExternalReference alone. |
-| Labels/AttributesType values are strings | Typed catalog arrays and objects need a documented domain mapping. String labels are insufficient. |
-| Model FileType exists, but no separate ModelSource base member exists | Preserve available source explicitly. Do not invent a standard Property or lose shared-type provenance. |
-| RegistryCapabilitiesDataType reflects the proposal's older Core vocabulary | Raw capabilities or a documented faithful mapping is necessary for current fields (§5.4). |
+| Resource Meta | `MetaXref`, `MetaDefaultVersionSticky`, `MetaReadonly`, `MetaCompatibility` and typed `MetaDeprecated`, alongside `MetaEpoch`, `MetaLabels`, `MetaCreatedAt` and `MetaModifiedAt`. |
+| Same-Registry `xref` | `MetaXref` holds a case-sensitive same-typed Resource XID; the Core-derived target view retains the source identity and does not follow aliases transitively. |
+| Federation | Resource-scoped `OriginRegistry` and `ExternalReference` identify remote origin context and target; neither substitutes for `MetaXref` or `ResourceUrl`. |
+| Names and identity | `Name` is optional; the role-specific identifier supplies `DisplayName` when it is absent. |
+| Capabilities | Raw `Capabilities` is authoritative; `CapabilitiesSnapshot` is the canonical typed view, while `CapabilitiesInfo` remains a partial convenience view. |
+| Labels and extensions | `AttributesType` carries string labels. Native and domain extension values retain their UA types. |
+| Native documents | `NativeRegistryAccessType` provides optional typed read/write and snapshot operations; it does not replace FileType access. |
+| Events and epochs | Core `deprecation` maps to the companion's state-transition EventTypes under §9.1; UInt32 counter exhaustion fails atomically with `Bad_OutOfRange`. |
 
-These dependency constraints limit interoperable reads and serialization.
-They do not rename base members or redesign the write API. A missing mapping
-yields `unsupported_operation`; numeric draft NodeIds and unadopted type
-names do not establish OPC Foundation conformance.
+These are unadopted working drafts. The companion model's conformance-unit
+requirements govern the members required for each claim; this binding adds
+operation and transport requirements without making `Name` mandatory or
+turning a metadata-only Resource into a fabricated document. Native-document
+and snapshot capabilities remain optional unless their respective
+conformance units are claimed.
 
 A server MAY expose local proxy Resource and Version Objects for a federated
 Resource. Such proxies MUST preserve the distinct hierarchy and retain the
@@ -2276,12 +2330,28 @@ A server conforms to the read-only OPC UA xRegistry API if it:
 For document-bearing Resources, read-only conformance also requires
 `Open`/`Read`/`Close` sufficient to retrieve the declared documents.
 Metadata-only catalog Resources need no fabricated domain documents.
-Version 0.6.0 servers implementing the companion model MUST NOT expose
+Version 0.11.0 servers implementing the companion model MUST NOT expose
 server-side aliases for the Version 0.5 flat layout.
 
 These requirements define conformance to this working draft. They do not
-establish conformance to an adopted companion standard or the pinned
-proposal's different minimal-download claim.
+establish conformance to an adopted companion standard.
+
+The companion model's required fields depend on the claimed conformance unit:
+
+| Conformance unit | Required members relevant to this binding |
+| --- | --- |
+| `XREG-Registry` | `RegistryId`, `Xid`, `Epoch`, `CreatedAt`, `ModifiedAt`, readable `SpecVersion` and the authoritative raw `Capabilities` FileType. |
+| `XREG-Group` | `GroupId`, `Xid`, `Epoch`, `CreatedAt` and `ModifiedAt`. |
+| `XREG-Resource` | For a local document Resource: `ResourceId`, `Xid`, selected `VersionId`, `MetaEpoch`, `MetaReadonly`, `MetaCreatedAt`, `MetaModifiedAt` and a `Versions` folder with at least one Version. Each Version requires `ResourceId`, its own `VersionId`, `Xid`, `Epoch`, `CreatedAt` and `ModifiedAt`. An xref Resource requires `ResourceId`, `Xid` and `MetaXref`; an accessible target supplies the Core-derived view, while a dangling target may expose only the source identity and `MetaXref`. |
+| `XREG-Identity` | Stable, distinct NodeIds, BrowseNames, XIDs and role-specific identifiers for Groups, logical Resources and exact Versions. |
+| `XREG-MetadataResource` | `ResourceId`, `HasDocument = false`, `MaxVersions = 1` and the read-only `Metadata` FileType. |
+
+`Name`, `Description`, `Documentation` and `Labels` remain optional in
+these units. `XREG-Identity` does not make `Name` mandatory. A metadata-only
+catalog Resource MUST NOT claim `XREG-Resource` without its document-backed
+contract. If it claims `XREG-MetadataResource`, it MUST meet that unit's
+requirements. A binding-conformance claim does not weaken the requirements
+of any companion unit it claims.
 
 A server conforms to the writable OPC UA xRegistry API if, in addition to
 read-only conformance, it supports:
@@ -2353,9 +2423,9 @@ exercise these mappings without a live UA connection; they do not certify
 a Server.
 
 A conforming implementation MUST NOT assume additional node or Method names.
-The members it needs MUST come from the pinned companion proposal subject
-to §10.6, the normative OPC UA Parts in §2, or an explicitly documented
-domain mapping. The standard Server and namespace tables come from Part 5.
+The members it needs MUST come from the Version 0.11.0 Draft companion model,
+the normative OPC UA Parts in §2, or an explicitly documented domain mapping.
+The standard Server and namespace tables come from Part 5.
 Federation introduces no ReferenceType or Registry-discovery Method.
 
 A conforming implementation MUST NOT require a node or Method name absent
@@ -2384,10 +2454,9 @@ python -B -m pytest workingdrafts\bindings\tools\test_opcua_examples.py -q
 The [helper](tools/opcua_examples.py) uses Python's standard library and the
 shared `FederationError` interfaces. It does not install a UA SDK, discover
 endpoints, verify certificates or TypeDefinitions, or connect to a Server.
-The structural/event dependency remains Version 0.6.0 at
-`d3399fca025025a73e5a6b599f850a81d985c060`, with the access restriction and
-digest recorded in [§2](#2-normative-references). Passing these examples
-does not establish OPC Foundation adoption or live interoperability.
+The structural/event dependency is the Version 0.11.0 Draft companion model
+identified in [§2](#2-normative-references). Passing these examples does not
+establish OPC Foundation adoption or live interoperability.
 
 The `remote-source-tables-to-target-seven` case resolves this portable
 reference against the remote application's namespace table:
@@ -2471,7 +2540,7 @@ table.
 | Replace or partially update registry attributes | Write mutable `RegistryType` Properties, call `Labels.AddAttribute`/`Labels.RemoveAttribute` for labels, and process nested groups when supplied (§5.2) | `PUT /`, `PATCH /` |
 | Process group collections at the registry root | Resolve or create `GroupType` children with `GetOrCreateGroup` or strict `CreateGroup` and Write Properties (§5.2) | `POST /` |
 | Export registry document | Browse/Read the `RegistryType` subtree and serialize it (§5.3, §8) | `GET /export` or `GET /?doc&inline=*,capabilities,modelsource` |
-| Read capabilities | Prefer Read of typed `RegistryType.CapabilitiesInfo`. Alternatively `Open`/`Read`/`Close` on raw JSON `RegistryType.Capabilities` (§5.4) | `GET /capabilities` |
+| Read capabilities | Read canonical typed `RegistryType.CapabilitiesSnapshot`, or use `Open`/`Read`/`Close` on complete raw JSON `RegistryType.Capabilities`; `CapabilitiesInfo` is only a partial convenience view (§5.4) | `GET /capabilities` |
 | Read offered capabilities | Read a domain offered-capabilities Property or offered section in the `Capabilities` JSON document (§5.4) | `GET /capabilitiesoffered` |
 | Replace or partially update capabilities | `Open(write)`/`Write`/`Close` on `RegistryType.Capabilities` if writable (§5.5) | `PUT /capabilities`, `PATCH /capabilities` |
 | Read model | `Open`/`Read`/`Close` on `RegistryType.Model` (§5.4) | `GET /model` |
@@ -2505,11 +2574,9 @@ table.
 | Replace a version document | Create if needed, then `Open`/`SetPosition`/`Write`/`Close` on the exact Version (§5.20) | `PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>` |
 | Delete a version | Call `Delete(ExpectedEpoch)` on the exact Version using its `Epoch` (§5.21) | `DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>` |
 
-[xRegistry Core]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html
-[xRegistry HTTP]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/http.html
+[xRegistry Core]: https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md
+[xRegistry HTTP]: https://github.com/xregistry/spec/blob/v1.0-rc4/core/http.md
 [federation]: ../federation/spec.md
-[companion-public-source]: https://github.com/marcschier/opcua-drafts/blob/ff22f224400fc8be813bf0abcbfc3cde52bc7ed3/core-specs/xregistry/OPC-UA-xRegistry.md
-[companion-public-nodeset]: https://github.com/marcschier/opcua-drafts/blob/ff22f224400fc8be813bf0abcbfc3cde52bc7ed3/core-specs/xregistry/Opc.Ua.XRegistry.NodeSet2.xml
 [json-pointer]: https://www.rfc-editor.org/rfc/rfc6901
 [ua-expanded]: https://reference.opcfoundation.org/specs/OPC-10000-4/v1.05.07/7.16
 [ua-uris]: https://reference.opcfoundation.org/specs/OPC-10000-3/v1.05.06/4.2
