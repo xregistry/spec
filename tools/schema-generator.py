@@ -196,7 +196,7 @@ def generate_openapi(model_definition):
             path_template_copy = copy.deepcopy(path_template)
             replace_refs(path_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{group['singular']}")
             replace_ops(path_template_copy, "{%-groupNamePlural-%}", f"{pascal(group['plural'])}")
-            openapi["paths"][f"/{group['plural']}"]: path_template_copy
+            openapi["paths"][f"/{group['plural']}"] = path_template_copy
         openapi["paths"].pop(path)
 
         path = "/{%-groupNamePlural-%}/{groupid}"
