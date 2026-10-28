@@ -56,6 +56,14 @@
 <!-- words: href -->
 <!-- words: powershell py pytest workingdrafts -->
 <!-- words: datavalue endpointdescription federationerror methodids sdk selectedxid -->
+<!-- words: abi additionalfields argumentsmissing baseobjecttype collectionname -->
+<!-- words: documentkind groupcollectiontype groupfederation groupurl -->
+<!-- words: messagesecuritymode metadataresourcetype nocontinuationpoints -->
+<!-- words: originuri presentfields registryepoch registrymetadatadatatype -->
+<!-- words: registrynodeid registrynumbervaluedatatype registryorigindatatype -->
+<!-- words: registryreadrequestdatatype registryreadresultdatatype securechannel -->
+<!-- words: signandencrypt snapshotid snapshotlimits targetepoch targetxid -->
+<!-- words: typedaccess unauthored xrefs -->
 
 ## Abstract
 
@@ -162,6 +170,13 @@ The information model distinguishes the following entities:
 - A logical Resource owns a typed `ResourceVersionsType` component named
   `Versions`, which contains its exact Version Objects.
 
+These file roles apply to locally stored, document-backed Resources.
+The companion's OPTIONAL `MetadataResourceType` is instead a
+`BaseObjectType` subtype for a metadata-only Resource with
+`hasdocument: false` and `maxversions: 1`. It has no domain file interface.
+An unresolved local `xref` or an unmaterialized remote proxy does not
+require local Version Objects. Sections 5.10 and 10 describe these cases.
+
 The hierarchy permanently distinguishes a logical Resource from an exact
 Version, even when both use `ResourceType` or the same domain file subtype.
 Document-bearing Resources expose their bytes through the file interface.
@@ -219,15 +234,14 @@ capability paths.
 - [xRegistry Core specification, `v1.0-rc4`](https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md) — the registry, group, resource, version, document, attribute, request-flag, operation-processing and error model.
 - [xRegistry Events specification, `v1.0-rc4`](https://github.com/xregistry/spec/blob/v1.0-rc4/core/events.md) — canonical xRegistry event types, fields and emission rules, interpreted with the binding corrections in §9.1.
 - [xRegistry primer, `v1.0-rc4`](https://github.com/xregistry/spec/blob/v1.0-rc4/core/primer.md) — xRegistry concepts, representations, request-shaping concepts and federation model.
-- <a href="https://github.com/OPCF-Members/OPC30450-CloudIntegration/pull/34" data-link-check="authenticated">OPC UA — xRegistry, Version 0.11.0 Draft source</a>
-  and <a href="https://github.com/OPCF-Members/OPC30450-CloudIntegration/pull/34/files" data-link-check="authenticated">NodeSet</a> — the companion
-  information model and native-document model used by this binding. The
-  repository requires access through its review PR; this is an unadopted
-  working draft, not an OPC Foundation standard or endorsement.
-- [OPC 10000-3](https://reference.opcfoundation.org/specs/OPC-10000-3/) — Address Space Model, including NodeIds, References, TypeDefinitions and `ExpandedNodeId`.
-- [OPC 10000-4](https://reference.opcfoundation.org/specs/OPC-10000-4/) — Services, including Browse, BrowseNext, Read, Write, Call, TranslateBrowsePathsToNodeIds and StatusCodes.
-- [OPC 10000-5](https://reference.opcfoundation.org/specs/OPC-10000-5/) — Base Information Model, including `FolderType` and `PropertyType`.
-- [OPC 10000-20](https://reference.opcfoundation.org/specs/OPC-10000-20/) — File Transfer, including `FileType` and its `Open` / `Read` / `Write` / `Close` Methods.
+- <a href="https://github.com/OPCF-Members/OPC30450-CloudIntegration/blob/main/source/xregistry/spec.md" data-link-check="authenticated">OPC 30452 — OPC UA for xRegistry, Version 0.11.0 Draft</a>,
+  dated `2026-10-28`, including its
+  <a href="https://github.com/OPCF-Members/OPC30450-CloudIntegration/blob/main/source/xregistry/information-model.md" data-link-check="authenticated">information model</a>,
+  <a href="https://github.com/OPCF-Members/OPC30450-CloudIntegration/blob/main/source/xregistry/native-documents.md" data-link-check="authenticated">native-document contract</a>
+  and <a href="https://github.com/OPCF-Members/OPC30450-CloudIntegration/blob/main/model/Opc.Ua.XRegistry.NodeSet2.xml" data-link-check="authenticated">NodeSet</a>.
+  The repository requires member access. These links locate the source;
+  the stated document version identifies the dependency. This is an
+  unadopted working draft, not an OPC Foundation standard or endorsement.
 - [xRegistry Federation](../federation/spec.md) — common read resolution, advertisements, selectors, identity and resolver errors.
 - [xRegistry Publication](../publication/spec.md) — OPTIONAL retained-publication behavior used by §10.4.
 - [OPC 10000-3, v1.05.06](https://reference.opcfoundation.org/specs/OPC-10000-3/v1.05.06/) — Address Space Model, including URI identities, NodeIds, References and TypeDefinitions.
@@ -262,7 +276,8 @@ against the selected `RegistryType` root.
 OPC UA type and member names follow the OPC UA naming conventions. This
 document uses the names defined by Annex A of *OPC UA — xRegistry* and its
 NodeSet: `RegistryType`, `GroupType`,
-`ResourceType`, `ResourceVersionsType`, `AttributesType`,
+`ResourceType`, `ResourceVersionsType`, `MetadataResourceType`,
+`GroupCollectionType`, `AttributesType`,
 `RegistryCapabilitiesDataType`,
 `RegistryId`, `SpecVersion`, `Capabilities`, `CapabilitiesSnapshot`,
 `CapabilitiesInfo`, `RegistryCapabilitiesSnapshotDataType`, `Model`,
@@ -296,12 +311,18 @@ NodeId. A server can expose those Methods on domain subtypes of `ResourceType`.
 
 The API operates on an AddressSpace subtree rooted at a selected
 `RegistryType` domain subtype instance. That root represents one xRegistry
-Registry. Its `GroupType` children represent Groups; each `ResourceType`
+Registry. In the direct, document-backed layout, its `GroupType` children
+represent Groups; each `ResourceType`
 child of a Group represents a logical Resource. The Resource's
 `ResourceVersionsType` component named `Versions` contains separate
 `ResourceType` children for its exact Versions. A logical Resource and its
 Versions use the same domain resource file subtype. Their hierarchy,
 BrowseName and `Xid` permanently distinguish their roles.
+
+Domains can instead use declared `GroupCollectionType` views or
+`MetadataResourceType` entries. Section 4.2 defines their placement and
+§5.10 defines metadata-only reads. Local xrefs and unmaterialized proxies
+follow §10 rather than implying locally stored Versions.
 
 String-valued Property Variables under `Labels` represent labels for
 Registries, Groups and exact Versions. Resource Meta labels use `MetaLabels`
@@ -351,6 +372,15 @@ convention. A federation advertisement supplies the portable `registryroot`
 NodeId specified in §10.1. Selecting an endpoint alone does not select a
 Registry.
 
+All operations that create, modify or delete registry content or metadata
+MUST use a SecureChannel with `MessageSecurityMode` `SignAndEncrypt`.
+This includes get-or-create Calls, file write Opens, Writes and committing
+Closes, label and native-document mutations, deletion and domain Methods
+that change registry state. Roles and Permissions apply independently.
+Reads SHOULD use a secured channel. Deployment policy MAY permit read-only
+operations and event subscriptions over `None`, but clients MUST NOT infer
+authenticity, integrity or confidentiality from such a connection.
+
 The selected root is the API authority for the operation sequence; native
 OPC UA access does not use a URL authority. The xRegistry identifier
 Properties and `Xid` carry entity identity. The OPC UA Session, endpoint
@@ -399,18 +429,22 @@ Metadata mode selects an operation rather than another identity. The HTTP
 | `/` | selected `RegistryType` root node | Read registry Properties and Browse group children |
 | Capabilities | `RegistryType.Capabilities` `FileType` component Object and, when supported, `CapabilitiesSnapshot` Variable | Use `Open`/`Read`/`Close` for the authoritative complete JSON document. Read `CapabilitiesSnapshot` for the canonical typed standard fields; `CapabilitiesInfo` is only a partial convenience view |
 | Offered capabilities | offered-capabilities structure exposed by the server, if any | Read a domain Property or an offered section inside the `Capabilities` JSON document |
-| Model | `RegistryType.Model` `FileType` component Object | `Open`/`Read`/`Close` the JSON bytes. When writable as model source, `Open(write)`/`Write`/`Close` replaces the document |
+| Model | `RegistryType.Model` `FileType` component Object | `Open`/`Read`/`Close` the JSON bytes. When writable as model source, `Open(mode = 6)`/`Write`/`Close` replaces the document |
 | Model source | server-specific model-source Property or operation, if exposed | Read or Write the domain-defined model-source target, or reject as unsupported |
 | Export | selected `RegistryType` subtree serialized as an xRegistry document | Browse and Read the subtree, or use a domain export Method or Property if advertised |
-| `/<GROUPS>` | collection of `GroupType` children under the registry whose collection name is `<GROUPS>` | Browse and optionally `CreateGroup` or `GetOrCreateGroup` on the registry |
-| `/<GROUPS>/<GID>` | `GroupType` child whose `GroupId` is `<GID>` | Read/Write Properties, Browse resources, or Call `Delete(ExpectedEpoch)` on the group |
-| `/<GROUPS>/<GID>/<RESOURCES>` | collection of logical `ResourceType` children under the group whose collection name is `<RESOURCES>` | Browse and optionally `CreateResource` or `GetOrCreateResource` on the group |
-| `/<GROUPS>/<GID>/<RESOURCES>/<RID>` | logical `ResourceType` whose BrowseName and `ResourceId` are `<RID>` | Read Resource Meta. Use delegated Version Properties or FileTransfer Methods for the selected default Version. Call Resource `Delete` |
+| `/<GROUPS>` | `GroupType` entries in the declared direct or `GroupCollectionType` layout for `<GROUPS>` | Browse the selected collection; creation follows §5.7 |
+| `/<GROUPS>/<GID>` | `GroupType` entry in that collection whose `GroupId` is `<GID>` | Read/Write mutable Properties, Browse resources, or Call `Delete(ExpectedEpoch)` on the Group |
+| `/<GROUPS>/<GID>/<RESOURCES>` | logical Resource entries under the Group in the declared `<RESOURCES>` collection | Browse `ResourceType` or `MetadataResourceType` entries; creation follows the domain's document-backed or metadata-only contract |
+| `/<GROUPS>/<GID>/<RESOURCES>/<RID>` | declared logical `ResourceType` or `MetadataResourceType` whose BrowseName and `ResourceId` are `<RID>` | For document-backed Resources, read Resource Meta or use the delegated default-Version view. For metadata-only Resources, use §5.10. Call the entity's `Delete` |
 | `/<GROUPS>/<GID>/<RESOURCES>/<RID>$details` | flattened Resource view on the logical `ResourceType` | Read/Write delegated default-Version Properties/`Labels` and authoritative Resource Meta Properties/`MetaLabels` |
-| `/<GROUPS>/<GID>/<RESOURCES>/<RID>/meta` | Resource Meta and default-version selection state on the logical `ResourceType` | Read/Write `MetaEpoch`, `MetaCreatedAt`, `MetaModifiedAt`, `MetaLabels` and domain meta Properties |
+| `/<GROUPS>/<GID>/<RESOURCES>/<RID>/meta` | Resource Meta and default-version selection state on the logical `ResourceType` | Read `MetaEpoch`, `MetaCreatedAt` and `MetaModifiedAt`; mutate only writable Meta state, including `MetaLabels` and domain meta Properties |
 | `/<GROUPS>/<GID>/<RESOURCES>/<RID>/versions` | logical Resource's `ResourceVersionsType` component named `Versions` | Browse exact Version children |
 | `/<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>` | exact Version `ResourceType` under `Versions`, whose BrowseName and `VersionId` are `<VID>` | `Open`/`Read` document bytes, Read metadata Properties or Call Version `Delete` |
 | `/<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>$details` | exact Version metadata view | Read/Write Properties and optionally `Labels.AddAttribute`/`Labels.RemoveAttribute` |
+
+The delegated `$details`, Meta and `Versions` rows describe document-backed
+Resources. Metadata-only domains use their declared metadata and sole-Version
+projection under §5.10; proxies and local xrefs follow §10.
 
 The model declares the collection names `<GROUPS>` and `<RESOURCES>`; they
 are not mandatory OPC UA base nodes. A domain registry MAY represent them
@@ -419,9 +453,18 @@ Regardless of that representation:
 
 - Each concrete Group instance MUST be a `GroupType` or subtype.
 - Each logical Resource and exact Version MUST be a `ResourceType` or the
-  same domain subtype.
-- The logical Resource MUST own a `ResourceVersionsType` component with
-  BrowseName `Versions`.
+  same domain subtype when it uses the document-backed contract.
+- A locally stored, non-xref document Resource MUST own a
+  `ResourceVersionsType` component with BrowseName `Versions`.
+- A domain using `XREG-Collections` MUST preserve the collection name and
+  Group ID as a pair. It exposes a `GroupCollectionType` view per plural
+  Group collection, with `CollectionName` on both the view and its Groups.
+  The names MUST agree. The direct single-collection layout remains valid.
+  The collection view is organizational, not an entity with its own XID
+  or epoch.
+- A domain using `XREG-MetadataResource` MUST use `MetadataResourceType`
+  or a subtype under the selected Group. Its read-only `Metadata` file
+  represents metadata, not domain document bytes.
 
 A server MUST set each Group's, logical Resource's and exact Version's
 BrowseName to its identifier: `GroupId`, `ResourceId` or `VersionId`,
@@ -442,9 +485,9 @@ another attribute absent from the result require reads of the applicable
 `Labels` or `MetaLabels` container or Properties.
 
 The base model does not require an OPC UA Property for xRegistry `self`.
-This API derives it from the selected Registry root and the entity's `Xid`.
-A client can reconstruct a canonical self reference from the root NodeId
-and relative `Xid`, or use an implementation-defined URL or URN for display.
+Serialization derives it from the entity's position in the returned document
+or a defined Core API URL under §8.1. A Registry-root NodeId plus `Xid`
+selects a native entity; that pair is not itself a Core `self` URL.
 
 `Xid` MUST always be the structural relative xRegistry path of the registry,
 group, Resource or Version. The logical Resource `Xid` is its resource path.
@@ -458,13 +501,11 @@ Resource denotes the generic xRegistry entity kind. Each domain model
 declares its own `<RESOURCES>` collection and `<RESOURCE>` singular names.
 This binding does not require a literal `resources` path segment.
 
-Servers implementing Version 0.11.0 of the companion model MUST expose only
-the distinct hierarchy defined here. They MUST NOT expose group-level
-legacy aliases for exact Versions. If the advertised companion model lacks
-a `Versions` component, updated clients MAY fall back to the prior
-Version 0.5 layout. That fallback resolves group-level `ResourceType`
-Objects by `ResourceId` and `VersionId` under the Version 0.5 rules.
-A client MUST NOT combine flat and distinct discovery within one Registry.
+Document-backed servers MUST preserve the distinct Resource/Version
+hierarchy. A missing `Versions` component MUST NOT cause a client to treat
+Group children as exact Versions. The client instead applies the declared
+metadata-only, local-xref or remote-proxy contract, or reports an unsupported
+mapping. It MUST NOT guess a different hierarchy from missing nodes.
 
 ### 4.3. Entity processing rules
 
@@ -514,10 +555,13 @@ parent. The preferred client sequence is:
 3. Write mandatory and mutable Properties, update the applicable `Labels`
    or `MetaLabels` container, and write any supplied document bytes.
 
-A server MUST apply the xRegistry atomicity rule. If one entity in a
-collection operation cannot be processed, the server SHOULD reject the
-whole operation without partial effects. If it cannot guarantee multi-node
-atomicity, it MUST advertise that limitation in `Capabilities`.
+A server MUST apply Core's entity-level atomicity rule. A native
+`WriteDocument` or `ApplyChanges` validates the complete resulting entity
+before committing it. A sequence of separate create, Property Write and
+file Calls is a sequence of interactions, not one atomic replacement.
+If an implementation cannot provide the requested atomic entity operation,
+it MUST reject it rather than advertise a weaker equivalent. Atomicity
+across separate entities follows Core and the declared batch contract.
 
 [Nested collection processing](https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md#updating-nested-registry-collections)
 MUST process only the nested collection entries. It MUST NOT modify the
@@ -526,13 +570,16 @@ selected Group creates or updates `ResourceType` children without changing
 that Group's Properties.
 
 To [delete an entity](https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md#deleting-entities), the client calls
-`Delete(ExpectedEpoch: UInt32)` on its `GroupType` or `ResourceType` node:
+`Delete(ExpectedEpoch: UInt32)` on its `GroupType`, `ResourceType` or
+`MetadataResourceType` node:
 
 - Group deletion checks `ExpectedEpoch` against `Epoch`.
 - Logical Resource deletion checks against `MetaEpoch` and removes the
   Resource, its `Versions` container and all exact Versions.
 - Exact Version deletion checks against that Version's `Epoch` and removes
   only that Version.
+- Metadata Resource deletion checks against its metadata `Epoch` and removes
+  that Resource atomically.
 
 To delete a collection subset, the client uses a sequence or server-defined
 batch of `Delete(ExpectedEpoch)` Calls on the selected children.
@@ -545,9 +592,9 @@ Otherwise it MUST reject the Write with `Bad_NotWritable` or
 with the target entity, the request MUST fail with `Bad_InvalidArgument` or
 `Bad_IdentityChangeNotSupported`.
 
-On successful Registry, Group or Version creation or update, the server MUST
-update the entity's `ModifiedAt` and increment its `Epoch`. A Resource Meta
-update changes `MetaModifiedAt` and increments `MetaEpoch` instead. The
+On a committed Registry, Group or Version change, the server MUST update the
+entity's `ModifiedAt` and increment its `Epoch`. A Resource Meta
+change updates `MetaModifiedAt` and increments `MetaEpoch` instead. The
 selected default Version's `Epoch` and `ModifiedAt` remain unchanged unless
 Version attributes also change.
 
@@ -609,9 +656,9 @@ The creation and mutation Method signatures used by this API are:
 | Get or create group | `RegistryType.GetOrCreateGroup(GroupId) -> (GroupNodeId, Created)` | `GroupId` is the groupid to resolve. The server returns the existing group with `Created = false` or creates, bootstraps and returns a new group with `Created = true`. |
 | Create Resource or Version | `GroupType.CreateResource(ResourceId, VersionId, RequestFileOpen) -> (ResourceNodeId, AssignedVersionId, FileHandle)` | A Version is identified by `(ResourceId, VersionId)`. A new `ResourceId` atomically creates the logical Resource, `Versions` container and first exact Version, while an existing `ResourceId` with a new `VersionId` creates only an exact Version under `Versions`. An empty input `VersionId` lets the server assign `AssignedVersionId`. Despite its retained output name, `ResourceNodeId` is the exact Version NodeId. Setting `RequestFileOpen = true` returns a write handle for that Version. The call fails with `Bad_NodeIdExists` if that exact pair already exists. |
 | Get or create Resource or Version | `GroupType.GetOrCreateResource(ResourceId, VersionId, RequestFileOpen) -> (ResourceNodeId, AssignedVersionId, FileHandle, Created)` | Resolves the exact `(ResourceId, VersionId)` Version. An empty input `VersionId` selects the existing default Version or creates the first Version for a new Resource. The retained `ResourceNodeId` output is the exact Version NodeId, `AssignedVersionId` is the assigned Version identifier, and `RequestFileOpen = true` returns a write handle for that Version. |
-| Delete group, Resource or Version | `Delete(ExpectedEpoch: UInt32)` on the selected `GroupType` or `ResourceType` | An `ExpectedEpoch` of `0` or an omitted value disables the check. A group or exact Version matches against `Epoch`, while a logical Resource matches against `MetaEpoch`. A mismatch fails with `Bad_InvalidState` and deletes nothing. The Method has no output arguments. |
+| Delete group, Resource or Version | `Delete(ExpectedEpoch: UInt32)` on the selected entity | Supply `0` to disable the check. A Group, exact Version or Metadata Resource matches against `Epoch`, while a document-backed logical Resource matches against `MetaEpoch`. A mismatch fails with `Bad_InvalidState` and deletes nothing. The Method has no output arguments. |
 | Read document | `ResourceType.Open(mode)` -> `Read(fileHandle, length)` -> `Close(fileHandle)` | The `mode` is read-only. `Size` bounds `length` and repeated Reads. |
-| Replace document | `ResourceType.Open(mode)` -> `SetPosition(fileHandle, 0)` -> `Write(fileHandle, data)` -> `Close(fileHandle)` | The `mode` allows write and stages the complete replacement byte stream. Only a successful dirty `Close` updates Version `ModifiedAt` and `Epoch`. |
+| Replace document | `ResourceType.Open(mode = 6)` -> `Write(fileHandle, data)` -> `Close(fileHandle)` | Write plus EraseExisting stages a complete replacement, including truncation. Only a successful byte-different dirty `Close` updates Version `ModifiedAt` and `Epoch`. |
 | Read metadata | Read Service on Properties | Property BrowseNames map to xRegistry attribute names by the tables in this document and the domain model |
 | Replace scalar metadata | Write Service on Properties | Value DataTypes are those in Annex A of the base model |
 | Add/update registry, group or version label | `Labels.AddAttribute(Key: String, Value: String, ExpectedEpoch: UInt32)` | `Labels` is the entity or version's `AttributesType` object. `ExpectedEpoch` is matched against its `Epoch`. Success increments `Epoch` and updates `ModifiedAt`. |
@@ -648,6 +695,42 @@ epoch and atomic-commit rules as compatibility writes. `OpenDocument`,
 `XREG-NativeSnapshots` is supported. These Methods do not replace the raw
 `Capabilities` or `Model` FileType interfaces.
 
+The owning Registry exposes this capability as `TypedAccess`.
+`ReadDocument` takes one `RegistryReadRequestDataType` and returns one
+`RegistryReadResultDataType`. `TargetXid` selects the entity, `DocumentKind`
+selects metadata, model or capabilities, and `View` selects the complete
+generic value (`0`) or named fields (`1`). A client MUST check the returned
+`StatusCode` and `Issues` as well as the Call result. Metadata reads return
+the selected entity's epoch; Registry, model and capability reads return
+the Registry epoch. Missing entity revision information MUST NOT be replaced
+by the Registry epoch.
+
+Native records preserve authored presence through `PresentFields`, and
+unknown members through `AdditionalFields`. An absent member differs from
+explicit null, false or an empty collection. Generic numbers retain their
+exact coefficient and exponent rather than rounding through Double.
+`ApplyChanges` uses native member/array path elements, not JSON Pointer
+strings. A missing parent path is an error. A no-op native update MUST
+preserve the retained raw bytes and epochs.
+
+Native continuation tokens bind the selection, revision and authorization
+view. A client MUST NOT treat a partial named record as a complete document.
+For documents that cannot fit in one response, including one oversized
+nested value, complete native access uses `OpenDocument`,
+`ReadDocumentPart` and `CloseDocument`. A successful Open returns a
+Session-bound `SnapshotId`, `TargetEpoch` and `RegistryEpoch`.
+`ReadDocumentPart` traverses native fields or array indexes and reads bounded
+leaf ranges under `SnapshotLimits`; it does not require reconstructing JSON.
+Clients MUST check each result, use positive item/byte limits and release
+the snapshot when finished. Authorization changes invalidate snapshots.
+An invalid handle or token fails with `Bad_InvalidState`; capacity and
+encoding failures remain explicit. This pinned native view is not a retained
+publication or a snapshot of remote providers or domain file bytes.
+
+Every `ExpectedEpoch` argument in the declared label and Delete signatures
+is REQUIRED. A client supplies `0` when it does not request the comparison;
+Core's omission of an epoch precondition does not omit a UA Method argument.
+
 The base API does not define move or copy. Where permitted, an
 implementation can model them by re-creating an entity and deleting the
 original.
@@ -659,8 +742,8 @@ Opening an exact Version for write reserves that Version incarnation.
 Opening a logical Resource for write selects its current default Version
 and acquires the same reservation as an exact-node open. While that Version
 is open for writing, a second write `Open` through either path returns
-`Bad_NotWritable` and a read `Open` returns `Bad_NotReadable`. Optimistic
-concurrency for content uses the exact Version's `Epoch`.
+`Bad_NotWritable` and a read `Open` returns `Bad_NotReadable`. Content
+concurrency observations use the exact Version's `Epoch`.
 
 To mutate Registry, Group or Version labels through `Labels.AddAttribute`
 and `Labels.RemoveAttribute`, the client supplies that entity's current
@@ -675,18 +758,16 @@ To mutate Resource Meta labels through `MetaLabels.AddAttribute` and
 as `ExpectedEpoch`. If the supplied value is non-zero and unequal, the
 Method MUST fail with
 `Bad_InvalidState` and make no change. On success, `MetaEpoch` increments and
-`MetaModifiedAt` is updated. For either container, `ExpectedEpoch = 0` or an
-omitted argument disables the check.
+`MetaModifiedAt` is updated. For either container, `ExpectedEpoch = 0`
+disables the check.
 
-For document replacement, exclusive `Open(write)` serializes writers. An
-epoch-matched replacement sequence is:
-
-1. Read the exact Version `Epoch`.
-2. Call `Open(write)` on the exact Version or logical Resource.
-3. Verify that the handle pins the intended Version.
-4. Re-Read that Version's `Epoch`.
-5. Abort the staged replacement if the value changed, otherwise `Write` the
-   complete replacement document and `Close`.
+For document replacement, exclusive `Open(write)` serializes file writers,
+but FileType has no `ExpectedEpoch` argument. Separate epoch Reads and an
+Open/Write/Close sequence do not establish an atomic epoch precondition,
+particularly when metadata can change independently. A client requiring
+that precondition MUST use a documented operation or lock that enforces it
+at commit, or report the requested operation as unsupported. It MUST NOT
+present an unchecked file replacement as an epoch-matched one.
 
 `Write` and `EraseExisting` stage bytes without committing them. A successful
 `Close` commits once if the final staged bytes differ from the committed
@@ -704,7 +785,7 @@ For deletion, a client passes the current group or exact Version `Epoch`, or
 the current logical Resource `MetaEpoch`, as `ExpectedEpoch`. If a non-zero
 value does not equal the applicable value, the Method Call MUST fail with
 `Bad_InvalidState`, delete nothing and produce no partial effects.
-An `ExpectedEpoch` of `0` or an omitted value disables the check. Deletion
+An `ExpectedEpoch` of `0` disables the check. Deletion
 is therefore an atomic epoch-matched Method call rather than a
 read-then-delete sequence.
 
@@ -780,8 +861,9 @@ with their owning entity.
 
 A client discovers supported operations from the target node and Registry
 capabilities. It browses for Methods and checks their executable and
-user-executable bits. It reads `Writable`, `UserWritable`, AccessLevel and
-UserAccessLevel attributes of Variables and the typed `CapabilitiesSnapshot`
+user-executable bits. It reads FileType `Writable` and `UserWritable`
+Properties, Variable AccessLevel and UserAccessLevel Attributes, and the
+typed `CapabilitiesSnapshot`
 or raw `Capabilities` `FileType` content. `CapabilitiesInfo` is not a
 substitute for a missing canonical field.
 
@@ -812,7 +894,11 @@ collection.
 ## 5. Registry operations
 
 The following operations define successful native OPC UA interactions with
-xRegistry entities. Section 11 defines their error mappings.
+xRegistry entities. Creation and file-write procedures describe the
+document-backed contract. Metadata-only domains use their declared atomic
+registration or native-write operations, not document-producing
+`CreateResource` Calls. Collection views follow the selected domain layout
+in §4.2. Section 11 defines error mappings.
 
 ### 5.1. Reading the registry
 
@@ -913,6 +999,14 @@ field as a Core default. It MUST use `CapabilitiesSnapshot` for the canonical
 typed standard fields and the raw document for fields the typed view does not
 represent. Every FileType read in this section follows §5.13.1.
 
+Raw and typed observations MUST describe the same committed revision and
+authorization view when presented as a matching pair. A raw capabilities
+Open pins that revision and view for the handle. Independently sampled
+reads do not prove correspondence. If a consistent typed observation is
+unavailable, the server MUST report that explicitly. It MUST NOT fill absent
+standard fields with defaults, truncate an oversized typed value or make
+the raw file unreadable because the typed value exceeds an encoding limit.
+
 The [resolution-owner signal](../federation/spec.md#signaling-who-performs-resolution)
 is an extension in enabled capabilities. A consumer reads it before
 traversing the catalog. If `CapabilitiesSnapshot` does not represent it, the
@@ -951,29 +1045,35 @@ under xRegistry semantics.
 
 If `RegistryType.Capabilities` is writable for the current user, a client
 updates that `FileType` component Object through
-`Open(write)` /`Write`/`Close`. Full replacement writes the complete
-capabilities JSON byte stream. Partial updates write only top-level
-capabilities where the server supports patch-level semantics. Otherwise,
-the client MUST use read-modify-write, and the server MAY reject partial
-writes with `Bad_NotSupported`.
+`Open(mode = 6)`/`Write`/`Close`. Full replacement writes the complete
+capabilities JSON byte stream and truncates previous content. FileTransfer
+does not define a JSON patch operation. Partial capability updates need a
+supported native `ApplyChanges` or documented domain operation. Otherwise,
+the client uses read-modify-write of the complete document, subject to the
+concurrency limitation in §4.5.1, or reports the partial operation as
+unsupported.
 
 Unsupported capability changes MUST fail with `Bad_InvalidArgument` or
-`Bad_NotSupported`, and no capability change MUST take effect before the
-current Service operation completes.
+`Bad_NotSupported`. File writes stage changes until a successful committing
+`Close`; the capabilities governing an interaction MUST NOT change while
+that interaction is being processed.
 
 Model-source updates need a domain-defined target or operation; the base API
 defines no writable `ModelSource` node. A server accepting these updates
 through its `RegistryType.Model` `FileType` component Object MUST document
 that `Model` serves as model source. It MUST apply xRegistry full-replacement
-rules through `Open(write)` /`Write`/`Close`. If it exposes only effective
+rules through `Open(mode = 6)`/`Write`/`Close`. If it exposes only effective
 `Model`, an attempt to write model source MUST fail with `Bad_NotWritable`
 or `Bad_NotSupported`.
 
 ### 5.6. Listing group collections
 
-To list a Group collection, a client browses the selected `RegistryType`
-root for `GroupType` children belonging to that collection. Group
-collections are unordered maps keyed by identifier. Browse returns children
+To list a Group collection, a client selects the domain's collection view.
+It browses `GroupType` children of the selected `RegistryType` root in the
+direct layout, or of its `GroupCollectionType` view when that facet is used.
+The client checks `CollectionName` where declared and keeps Groups with the
+same ID in different collections distinct. Group collections are unordered
+maps keyed by identifier. Browse returns children
 in server-defined order; the client MUST NOT infer collection order from
 Browse position.
 
@@ -984,11 +1084,19 @@ collection key without a `GroupId` read for every candidate.
 
 ### 5.7. Creating and updating groups
 
-Groups are `GroupType` children of the Registry root. For each Group key,
-the preferred one-shot operation is `GetOrCreateGroup(GroupId)` on
-`RegistryType`. It returns an existing Group with `Created = false` or
+Groups are `GroupType` entries in the selected Group collection. For a
+direct single-collection layout, the base creation sequence is as follows.
+For each Group key, the preferred one-shot operation is
+`GetOrCreateGroup(GroupId)` on `RegistryType`. It returns an existing Group
+with `Created = false` or
 creates one with `Created = true`. When an existing Group MUST cause
 failure, the client uses strict `CreateGroup(GroupId)`.
+
+The base Methods carry no collection-name argument. A multi-collection
+domain that supports creation MUST define an unambiguous
+collection-qualified creation operation or use its native registration
+mapping. A client MUST NOT select a collection by guessing which existing
+Group shares the supplied ID.
 
 The client then writes Group Properties and updates the Group's `Labels`
 container. Partial updates write only named attributes. Full representations
@@ -1016,8 +1124,9 @@ limited to nested resource collection processing, the server MUST reject it with
 
 ### 5.8. Reading a group
 
-To read a Group, a client resolves the `GroupType` child whose BrowseName
-matches the requested `groupid`. It reads the Group's Properties and browses
+To read a Group, a client resolves the `GroupType` child within the selected
+collection whose BrowseName matches the requested `groupid`.
+It reads the Group's Properties and browses
 its Resource children as needed.
 
 The standard base Properties are `GroupId`, `Xid`, `Epoch`, `Name`,
@@ -1028,7 +1137,7 @@ group-key Properties and extension metadata.
 ### 5.9. Deleting groups
 
 To delete a Group, the client calls its `Delete(ExpectedEpoch: UInt32)`
-Method. Omitting `ExpectedEpoch` or supplying `0` disables the check. The
+Method. Supplying `0` disables the check. The
 Method deletes the Group and all its contents: logical Resources, their
 `Versions` containers, exact Versions, `Labels` and `MetaLabels`. For a
 collection subset, the client uses a sequence or server-defined batch of
@@ -1037,12 +1146,12 @@ collection subset, the client uses a sequence or server-defined batch of
 If an entity-specific `epoch` precondition is supplied for deletion, the client
 MUST pass it as `ExpectedEpoch`. If `ExpectedEpoch` is non-zero and does not
 equal the group's current `Epoch`, the Call MUST fail with `Bad_InvalidState`
-and delete nothing. `ExpectedEpoch = 0` or omission disables the check.
+and delete nothing. `ExpectedEpoch = 0` disables the check.
 
 ### 5.10. Resource metadata and resource documents
 
-Each Resource collection entry is a logical `ResourceType` with delegated
-Version state and authoritative Resource Meta, as shown in the
+Each document-backed Resource collection entry is a logical `ResourceType`
+with delegated Version state and authoritative Resource Meta, as shown in the
 [ownership diagram in §4.1](#41-addressspace-root-and-service-model).
 Its normal Version Properties, `Labels` and inherited FileTransfer Methods
 delegate to the selected default Version under `Versions`. Its `MetaEpoch`,
@@ -1050,10 +1159,12 @@ delegate to the selected default Version under `Versions`. Its `MetaEpoch`,
 belong to Resource Meta and do not delegate.
 
 An exact Version is a separate `ResourceType` under `Versions`. A client
-accesses its metadata through Read or Write on `ResourceId`,
+reads its metadata from `ResourceId`,
 `VersionId`, `Format`, `ContentType`, `ExternalReference`, `ResourceUrl`,
 `Xid`, `Epoch`, `Name`, `Description`, `Documentation`, `CreatedAt`,
-`ModifiedAt`, domain Version Properties and `Labels`. To access its document,
+`ModifiedAt`, domain Version Properties and `Labels`. Writes target only
+mutable attributes, not the exact Version's immutable identifiers.
+To access its document,
 the client uses `Open`, `Read` and `Close`, optionally `GetPosition` and
 `SetPosition`, and `Write` for document replacement.
 
@@ -1067,7 +1178,30 @@ document access MUST fail with `Bad_NotReadable`, `Bad_InvalidState` or
 federation resolver reports `unsupported_operation` for that model-level
 condition before attempting FileTransfer.
 
-Inherited FileType members still follow their OPC UA ModellingRules, but
+For a domain using `MetadataResourceType`, clients Browse and Read metadata
+Properties or open its read-only `Metadata` FileType for the JSON metadata
+representation. They MUST NOT Open the Resource Object itself as a file.
+`HasDocument` is false and `MaxVersions` is 1. Its sole metadata Version
+can be selected using the observed `VersionId`; selection of a different
+Version MUST fail rather than substitute the current value. If the server
+assigns that sole identifier, it MUST NOT add an unauthored `versionid` to
+retained raw metadata or native `PresentFields`.
+
+The `Metadata` handle pins a committed revision and authorization view.
+Typed Properties are read-only projections, not a separate mutation path.
+They and native documents MUST preserve the admitted metadata's
+exact values and presence, including unknown extensions, array order and
+numeric precision. Raw-originated metadata retains its bytes;
+native-originated metadata uses deterministic compatibility serialization.
+The server MUST reject malformed UTF-8, duplicate JSON member names and
+non-finite numbers rather than coerce them into another admitted value.
+An oversized typed read MUST fail explicitly without making raw metadata
+unavailable. The same representation rules apply to Group metadata in
+that domain.
+
+A domain mapping that instead uses `ResourceType` for metadata-only state
+MUST document its representation. Inherited FileType members still follow
+their OPC UA ModellingRules, but
 their presence does not establish that a domain document exists. A `Size`
 value of zero alone MUST
 NOT turn a metadata-only Resource into an empty document. This rule includes
@@ -1091,15 +1225,19 @@ such a declaration is not a redirect instruction.
 ### 5.11. Listing resource collections
 
 To list a Resource collection, the client browses its `GroupType` folder for
-logical `ResourceType` children in the requested domain collection. Exact
+logical `ResourceType` or `MetadataResourceType` children, as declared by
+the requested domain collection. Exact
 Version Objects are not Group children and MUST NOT appear in this Browse.
 Resource collections are unordered maps keyed by identifier. Since Browse
 returns children in server-defined order, a client MUST NOT infer collection
 order from Browse position.
 
 Each logical Resource BrowseName supplies its `ResourceId` as the serialized
-collection key. The client derives `versionscount` by browsing the Resource's
-`Versions` component, and `metaurl` and `versionsurl` from its `Xid`.
+collection key. For locally stored document Resources, the client derives
+`versionscount` by completely browsing `Versions`. Metadata Resources use
+their sole-Version contract. Unmaterialized proxies and local xrefs follow
+§10 rather than implying empty local Version storage. Navigation follows
+§8.1; an `Xid` alone does not establish a retrievable URL.
 
 ### 5.12. Creating and updating resources
 
@@ -1124,7 +1262,7 @@ NodeId and the requested `FileHandle`. A client discovers the logical Resource
 separately by Browsing the domain resource collection for the child whose
 BrowseName is `ResourceId`.
 
-For default-Version metadata updates, the client MAY use the logical
+For mutable default-Version metadata updates, the client MAY use the logical
 Resource's delegated Properties and `Labels` or target the selected exact
 Version directly. Both paths update the exact Version against its `Epoch`.
 Resource Meta updates instead write Resource Meta Properties and call
@@ -1292,11 +1430,20 @@ apply only to event-capable implementations.
 Resource document replacement creates the Resource if needed, then replaces
 the selected default Version's complete document. For an absent logical
 Resource, the client preferably calls `GetOrCreateResource` on the parent
-Group, or `CreateResource` when existing Resources MUST cause failure.
+Group. Strict `CreateResource` rejects an existing exact
+`(ResourceId, VersionId)` pair; it does not reject every existing logical
+Resource, because a new Version can be added to one.
 It then opens the logical Resource or returned exact Version for writing,
-sets position to zero where needed, writes the complete new byte stream
-and closes the handle. It writes or validates exact Version metadata
-Properties.
+uses Write plus EraseExisting to stage a complete replacement, writes the
+complete new byte stream and closes the handle. It writes or validates exact
+Version metadata Properties. Complete replacement MUST truncate any previous
+content:
+`Open(mode = 6)` combines Write and EraseExisting. Merely setting the file
+position to zero does not remove a longer previous suffix. For replacement,
+the client can request no creation-time handle and then Open with mode 6.
+If it already holds a creation-time write handle without documented
+truncation semantics, it closes that handle without changes and reopens
+with mode 6.
 
 Partial patching of document bytes is not defined. A client that wants to change
 document content MUST provide a complete replacement document.
@@ -1312,8 +1459,8 @@ a write-back-to-original sequence is silent.
 
 ### 5.16. Deleting resources
 
-To delete a Resource, the client calls its
-`Delete(ExpectedEpoch: UInt32)` Method. Omitting `ExpectedEpoch` or supplying
+To delete a document-backed Resource, the client calls its
+`Delete(ExpectedEpoch: UInt32)` Method. Supplying
 `0` disables the check. A non-zero `ExpectedEpoch` MUST equal the logical
 Resource's current `MetaEpoch`, not its delegated Version `Epoch`.
 
@@ -1321,8 +1468,12 @@ The Method deletes the Resource and all its contents, including exact
 Versions and owned `Labels` and `MetaLabels`, depending on the server's
 Version representation and xRegistry model configuration. A Resource
 collection subset uses a sequence or server-defined batch of
-`Delete(ExpectedEpoch)` Calls, one per selected `ResourceType` or
-Resource-Version set.
+`Delete(ExpectedEpoch)` Calls, one per selected logical Resource.
+
+For `MetadataResourceType`, `Delete(ExpectedEpoch)` compares a nonzero
+argument against its metadata `Epoch`, not a delegated Version counter.
+It deletes the metadata Resource atomically. It neither terminates a
+native Session nor revokes credentials.
 
 Each `Delete(ExpectedEpoch)` Call targets one selected logical Resource.
 A server MUST NOT retain any exact Version from a deleted Resource as a
@@ -1337,6 +1488,10 @@ To list Versions, the client resolves the logical Resource's
 the serialized key. Browse order is server-defined. Version order comes from
 attributes such as `ancestorid`, `createdat` and `defaultversionid`, not
 container position.
+
+This Browse procedure applies to locally stored document Versions.
+Metadata Resources use §5.10's sole-Version selection. For a proxy with
+no local Versions, the client uses the verified remote hierarchy under §10.
 
 ### 5.18. Creating and updating versions
 
@@ -1388,7 +1543,7 @@ A client reads Version metadata by Reading that exact Version's Properties. Its
 
 Version document replacement creates the Version if needed, then replaces
 its complete byte stream. The operation uses `GetOrCreateResource` or
-strict `CreateResource`, followed by `Open`, `SetPosition`, `Write` and
+strict `CreateResource`, followed by `Open(mode = 6)`, `Write` and
 `Close`.
 
 Partial patching of version document bytes is not defined.
@@ -1404,7 +1559,7 @@ silent.
 ### 5.21. Deleting versions
 
 To delete a Version, the client calls the exact Version Object's
-`Delete(ExpectedEpoch: UInt32)` Method. Omitting `ExpectedEpoch` or supplying
+`Delete(ExpectedEpoch: UInt32)` Method. Supplying
 `0` disables the check. A non-zero value MUST equal that Version's `Epoch`.
 Only that exact Version is removed. To delete a Versions collection subset,
 the client uses a sequence or server-defined batch of `Delete(ExpectedEpoch)`
@@ -1447,7 +1602,7 @@ semantics, the server MUST reject an unknown or unsupported value with
 | [`doc`](https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md#doc-flag) | Serialize using document shape, omitting redundant URL/count metadata as defined by xRegistry |
 | `meta` | Read metadata Properties rather than document bytes. Equivalent to metadata operation mode for resources and versions |
 | `export` | Serialize the selected subtree as an xRegistry document |
-| [`epoch`](https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md#epoch-flag) | Pass `ExpectedEpoch` to `Labels.AddAttribute` and `Labels.RemoveAttribute`. Pass Version/group `Epoch` or Resource `MetaEpoch` to `Delete`. For document replacement, use the epoch-matched sequence in §4.5.1. |
+| [`epoch`](https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md#epoch-flag) | Pass `ExpectedEpoch` to label Methods, native mutations or `Delete` against the selected entity's counter. File replacement requires the commit-time guarantee in §4.5.1, not a read-then-write substitute. |
 | [`ignore`](https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md#ignore-flag) | Server-side write processing option advertised in `Capabilities`. Unsupported ignore values fail with `Bad_InvalidArgument`. |
 | [`setdefaultversionid`](https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md#setdefaultversionid-flag) | Domain-defined default-version update, normally a meta Property or Method |
 | [`specversion`](https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md#specversion-flag) | Compare requested version against `SpecVersion` and `Capabilities`. Reject incompatible processing with `Bad_InvalidArgument` |
@@ -1554,6 +1709,10 @@ Strings MUST be encoded as OPC UA `String`, timestamps as `DateTime`, integer
 epochs as `UInt32`, and labels as `String` Property Variables under `Labels` or
 Resource Meta `MetaLabels`. Federation targets are `ExpandedNodeId`, and
 document bytes are `ByteString` chunks returned by `Read` on `FileType`.
+Native-document numeric fields retain their declared exact numeric types.
+In particular, an authored epoch in `RegistryMetadataDataType` uses
+`RegistryNumberValueDataType`; it MUST be an integer within the UInt32
+range before commit. The Property mapping does not change that native ABI.
 
 When serializing a complete entity for export or a protocol bridge, the
 implementation converts base Property BrowseNames to lower-case xRegistry
@@ -1593,6 +1752,11 @@ under `Versions` to serialize the Versions collection.
 
 For an exact Version, serialization reads the same normal Version Properties
 directly from that Object.
+
+For `MetadataResourceType`, serialization reads the declared metadata view
+rather than assuming delegated FileType Properties or a `Versions` folder.
+It preserves the admitted metadata and any domain-defined Meta projection
+without manufacturing document bytes or authored fields.
 
 For a document, the implementation uses FileTransfer on the logical Resource
 for the selected default Version or on an exact Version. It places the
@@ -1813,6 +1977,8 @@ xRegistry dot notation for nested Resource metadata. It MUST NOT be
 populated on `model.updated` or `modelsource.updated`. On other updated
 events it is OPTIONAL and SHOULD be populated unless disclosure is
 inappropriate.
+The server MUST NOT include names hidden from the subscribing user;
+it MAY omit `Changed` when those names cannot be disclosed.
 
 For document changes, the name is the domain Resource's singular attribute
 name, not its `base64` serialization variant. The xRegistry Events
@@ -1823,6 +1989,9 @@ Base operation responses have no interaction-correlation field, so their
 events' `CorrelationId` MUST be absent. A domain extension MAY populate it
 only if it returns the same identifier in the operation response. The
 initiating client can then correlate that response with its events.
+When present, the identifier MUST be nonempty, case-insensitively unique
+within that Registry for its lifetime, and identical on every event from
+the interaction.
 
 ### 9.3. Event source URL
 
@@ -2048,6 +2217,26 @@ Version extensions, not fabricated files.
 
 ### 10.2. Structured reference resolution
 
+For a logical proxy or mirror claiming `XREG-Federation`, the resolver first
+reads the logical Resource's read-only `OriginRegistry`. Its
+`RegistryOriginDataType` has three scalar fields in order: `OriginUri`
+(`UriString`), `ServerUri` (`UriString`) and `RegistryNodeId`
+(`ExpandedNodeId`). Exactly one form MUST be authoritative:
+
+- A nonempty configured or verified stable `OriginUri`, with empty
+  `ServerUri` and null `RegistryNodeId`.
+- Empty `OriginUri`, with a trusted logical Application URI in `ServerUri`
+  and a non-null portable Registry-root NodeId in `RegistryNodeId`.
+
+The root MUST identify a `RegistryType` Object or subtype, not a Resource
+or endpoint. Unresolved Session-local namespace or server indexes are
+insufficient. A non-OPC-UA provider MUST use the stable `OriginUri` form;
+it MUST NOT manufacture an application/root pair from a URL.
+The resolver MUST validate the claim against its configured or verified
+provider binding before selecting a locator. The claim does not establish
+its own trust. URI comparison is exact, with no case folding, trimming,
+percent decoding or other URI normalization.
+
 An `ExpandedNodeId`, as defined in
 [Part 4 section 7.16][ua-expanded], contains `serverIndex`,
 `namespaceUri` or `namespaceIndex`, `identifierType` and `identifier`.
@@ -2067,14 +2256,19 @@ For an `ExpandedNodeId` received from a source Server, a resolver MUST:
    case-sensitive [Application URI][ua-uris]. Use discovery or configured,
    policy-approved endpoint information for that application. Do not
    connect to the Application URI as though it were an endpoint URL.
-4. Validate the target application's identity and security context. Read
+4. Validate the target application's identity and security context against
+   the trusted provider binding. Read
    its `NamespaceArray`, find the exact namespace URI, and construct the
    target-local NodeId while preserving the identifier type and value.
-5. Read the selected target's declared representation. FileType document
-   access uses a new target-local handle and §5.13.1. To interpret it as a
-   Registry entity, separately establish the target Registry root, model,
-   Core version and node membership. An arbitrary remote file and matching
-   XID do not identify a Registry context.
+5. Before reading the target as a Registry entity, verify its Registry root,
+   model, Core version, NodeClass, TypeDefinition ancestry, structural role
+   and origin-relative XID. A logical `ExternalReference` MUST identify the
+   remote logical Resource Object of FileType or a subtype, not a folder,
+   exact Version or content-digest Variable. Exact Version selection uses
+   that Resource's verified `Versions` hierarchy or an explicitly
+   exact-Version reference. A same-application target still needs the
+   correct Registry-root check. Read file bytes with a new target-local
+   handle under §5.13.1 only after these checks succeed.
 
 A table index has meaning only in its captured context. The resolver remaps
 indexes after reconnecting or selecting another Server. A missing namespace
@@ -2095,13 +2289,21 @@ their namespace indexes are not serialized Core identity.
 The [reindexing test](tools/test_opcua_examples.py)
 checks this mapping independently of a live connection.
 
+For de-duplication, the source key MUST contain the trusted origin, concrete
+origin-relative XID and logical/exact role. The application/root form uses
+both values, not Application URI alone. Equal XIDs or document bytes from
+independent origins remain separate. An authorized locator change or table
+reordering MUST NOT change the pinned origin, XID, role or remote Node
+identity. A changed origin, including a switch between authoritative forms,
+is a different source, not a reconnect.
+
 ### 10.3. Three distinct reference mechanisms
 
 | Mechanism | Scope and semantics |
 | --- | --- |
 | Core [`meta.xref`](https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md#cross-referencing-resources) | Same Registry, same Resource model type, one hop. Maps to `MetaXref`; Core defines target-attribute projection and source-relative identity/navigation. |
 | `OriginRegistry` plus `ExternalReference` | Federation context and a remote logical Resource target. `ExternalReference` is an `ExpandedNodeId`; resolve its table context and target FileType under the declared mapping. Neither is a Core metadata alias. |
-| `ResourceUrl` Property | Core `<RESOURCE>url`, identifying a Version's domain document through a defined retrieval mechanism. It does not designate remote Resource metadata. |
+| `ResourceUrl` Property | A locator interpreted by the declared mapping and policy. It maps to Core `<RESOURCE>url` only when it identifies a Version's domain document. On a federation proxy it can locate an authorized provider, but establishes neither origin nor target identity. |
 
 A local `xref` MUST remain the case-sensitive XID of a same-typed Resource in
 the same Registry, represented by `MetaXref`. It MUST NOT be an absolute URI
@@ -2125,7 +2327,7 @@ logical-identity relationships; equal XIDs in unrelated Registries do not
 establish one.
 
 On a logical proxy or mirror Resource, `OriginRegistry` and
-`ExternalReference` are resource-scoped, read-only Properties. The first
+`ExternalReference` are resource-scoped Properties. The first is read-only and
 identifies the remote Registry context; the second identifies the remote
 logical Resource. Neither is delegated through the default Version.
 Reading `ExternalReference` does not import remote metadata or Versions.
@@ -2139,6 +2341,20 @@ are present, a declared mapping and policy determine their relationship
 and selection. Arbitrary precedence does not resolve conflicting or
 ambiguous targets.
 
+`XREG-GroupFederation` is a separate OPTIONAL facet. A Group reference owns
+read-only `OriginRegistry`, `ExternalReference` and `GroupUrl` Properties.
+Its source key includes the trusted origin, collection-qualified Group XID
+and Group role.
+Selection MUST verify the remote `GroupType` ancestry, REQUIRED domain
+subtype, XID and Registry ownership. A Resource, Version or Registry root
+MUST NOT substitute for that Group. `GroupUrl` is only an authorized locator.
+The referencing server maps the verified remote Application URI through its
+own `ServerArray`; setting `ServerIndex` to zero does not make a remote
+target local. A native Group metadata identity claim MUST agree with the
+independent Group observation. Epoch rollback, or different metadata at an
+already observed epoch, MUST fail without replacing the last verified
+observation.
+
 ### 10.4. Trust and live consistency
 
 Catalog metadata, discovered endpoints and remote references supply
@@ -2149,13 +2365,25 @@ a remote Server by implication. After a policy, integrity or version
 failure, the resolver MUST NOT weaken security or silently try another
 advertisement.
 
+The server MUST persist immutable origin selection and portable remote
+identity with the owning logical Resource's federation record. Restore MUST
+validate the exclusive origin form, agreement with its trusted binding,
+XID, target role and portable Node identities. It MUST NOT silently repair
+contradictory records, persist Session-local indexes as identity pins or
+reinterpret an origin change as relocation. Restoring pins does not
+authenticate a peer; fresh provider and Session checks precede use.
+Group federation records follow the same origin and portable-identity rules.
+
 Browse continuation points and FileTransfer handles belong to a live
 Session. They supply neither portable pagination tokens nor immutable
 revision identifiers. An `Epoch`, `NamespaceVersion` or publication date
 does not pin a Registry snapshot.
 
-A multi-read capture MUST retain its scope and observations and disclose
-that it has no atomic snapshot guarantee. If a consistent capture is
+A live Browse/Read/FileTransfer capture MUST retain its scope and
+observations and disclose that it has no cross-node atomic snapshot
+guarantee. A pinned native document view guarantees only the selected
+document and authorization view under §4.5, not a transaction over remote
+providers or separately opened domain files. If a consistent capture is
 requested, changed membership, default selection, table mapping, metadata
 or file contents during capture MUST produce `inconsistent_snapshot`.
 Per-node timestamps alone cannot establish cross-node atomicity.
@@ -2177,10 +2405,14 @@ adapter cannot represent the Meta extensions or obtain a coherent head,
 it MUST report the operation as unsupported or inconsistent instead of
 substituting the default Version or a live view.
 
-Native write support is a separate capability. The adapter can use an
-epoch-matched `MetaLabels.AddAttribute` replacement of the complete `head`
-only if that operation enforces publication validation, scope, immutability,
-retention and atomicity. A successful multi-Property Write or a client-side
+Native write support is a separate capability. `head` is a structured Meta
+extension, not a string label, so `MetaLabels.AddAttribute` cannot replace it.
+An adapter can use a supported native `ApplyChanges` targeting the Meta
+entity, or a documented domain operation, only if it atomically replaces
+the complete head against the expected `MetaEpoch` and enforces publication
+validation, scope, immutability and retention. Ordinary native-write support
+alone does not establish those publication guarantees.
+A successful multi-Property Write or a client-side
 read/write sequence does not prove atomic head replacement. An adapter
 without that guarantee MUST NOT advertise writable publication support.
 This extension assigns no new standard Method, Property or NodeId to the
@@ -2223,6 +2455,9 @@ base mappings this binding uses:
 | Resource Meta | `MetaXref`, `MetaDefaultVersionSticky`, `MetaReadonly`, `MetaCompatibility` and typed `MetaDeprecated`, alongside `MetaEpoch`, `MetaLabels`, `MetaCreatedAt` and `MetaModifiedAt`. |
 | Same-Registry `xref` | `MetaXref` holds a case-sensitive same-typed Resource XID; the Core-derived target view retains the source identity and does not follow aliases transitively. |
 | Federation | Resource-scoped `OriginRegistry` and `ExternalReference` identify remote origin context and target; neither substitutes for `MetaXref` or `ResourceUrl`. |
+| Group collections | `XREG-Collections` adds named views and `CollectionName`; Group identity includes the collection. |
+| Metadata-only Resources | `XREG-MetadataResource` uses `MetadataResourceType`, read-only metadata and a sole Version, without a domain FileType or fabricated Versions hierarchy. |
+| Group federation | `XREG-GroupFederation` uses Group-owned reference state and verifies collection-qualified Group identity independently of Resource federation. |
 | Names and identity | `Name` is OPTIONAL; the role-specific identifier supplies `DisplayName` when it is absent. |
 | Capabilities | Raw `Capabilities` is authoritative; `CapabilitiesSnapshot` is the canonical typed view, while `CapabilitiesInfo` remains a partial convenience view. |
 | Labels and extensions | `AttributesType` carries string labels. The generic native view preserves extension JSON kinds and values; domain mappings use their declared UA DataTypes. |
@@ -2236,11 +2471,15 @@ turning a metadata-only Resource into a fabricated document. Native-document
 and snapshot capabilities remain OPTIONAL unless their respective
 conformance units are claimed.
 
-A server MAY expose local proxy Resource and Version Objects for a federated
-Resource. Such proxies MUST preserve the distinct hierarchy and retain the
-remote entity identity in `Xid`, `ResourceId` and, for exact Versions,
-`VersionId`. They MUST NOT treat the local endpoint identity as part of the
-entity identity.
+A server MAY expose local proxy or mirror Resources. Their local NodeIds,
+`Xid`, `ResourceId` and any local `VersionId` remain local identities.
+The remote XID and logical/exact role belong to the origin-scoped federation
+record; they MUST NOT overwrite local identity to impersonate the origin.
+A mirror with locally hosted Versions preserves the distinct local
+hierarchy. A proxy that does not materialize Versions omits its local
+`Versions` folder, and the client browses at the verified remote logical
+target. It MUST NOT fabricate local Version Objects implying locally
+authoritative remote state.
 
 ## 11. Error handling
 
@@ -2270,10 +2509,13 @@ applies.
 | unsupported metadata mode | `Bad_NotSupported` or `Bad_InvalidArgument` |
 | partial update attempted on document bytes | `Bad_NotSupported` |
 | unsupported flag or ignore value | `Bad_NotSupported` or `Bad_InvalidArgument` |
-| `ExpectedEpoch` does not match `Epoch` for a group, exact Version or `Labels` Method, or does not match `MetaEpoch` for a logical Resource deletion or `MetaLabels` Method | `Bad_InvalidState` |
+| `ExpectedEpoch` does not match `Epoch` for a Group, exact Version, Metadata Resource or `Labels` Method, or does not match `MetaEpoch` for a document-backed logical Resource deletion or `MetaLabels` Method | `Bad_InvalidState` |
 | delete would violate version/default-version constraints | `Bad_InvalidState` |
 | filter not supported | `Bad_FilterNotAllowed` or `Bad_NotSupported` |
 | continuation point invalid or expired | `Bad_ContinuationPointInvalid` |
+| native snapshot handle or token invalid, expired or consumed | `Bad_InvalidState` |
+| native snapshot capacity or continuation capacity exhausted | `Bad_ResourceUnavailable` or `Bad_NoContinuationPoints`, respectively |
+| REQUIRED Method argument absent | `Bad_ArgumentsMissing` |
 | FileType file handle invalid or Read length non-positive | `Bad_InvalidArgument` |
 | file is locked or concurrently modified | `Bad_InvalidState` or `Bad_ResourceUnavailable` |
 | external federation node absent or target communication failed | `Bad_NodeIdUnknown`, `Bad_NotFound` or `Bad_CommunicationError`, distinguishing absence from transport failure |
@@ -2324,7 +2566,7 @@ match.
 
 ## 12. Conformance
 
-A server conforms to the read-only OPC UA xRegistry API if it:
+A document-backed server conforms to the read-only OPC UA xRegistry API if it:
 
 - Exposes a `RegistryType` root or domain subtype.
 - Exposes groups as `GroupType` or subtypes.
@@ -2334,11 +2576,18 @@ A server conforms to the read-only OPC UA xRegistry API if it:
 - Supports Browse and Read sufficient to retrieve the declared metadata and
   collections.
 
+These claims use the companion's four baseline units: `XREG-Registry`,
+`XREG-Group`, `XREG-Resource` and `XREG-Identity`. The hierarchy bullet
+applies to locally stored, non-xref document Resources; local xrefs and
+unmaterialized remote proxies use the explicit exceptions in §10.
+
 For document-bearing Resources, read-only conformance also requires
 `Open`/`Read`/`Close` sufficient to retrieve the declared documents.
-Metadata-only catalog Resources need no fabricated domain documents.
-Version 0.11.0 servers implementing the companion model MUST NOT expose
-server-side aliases for the Version 0.5 flat layout.
+Document-backed servers MUST NOT expose group-level exact-Version aliases.
+A metadata-only domain instead declares its applicable units and uses
+`MetadataResourceType`, collection-qualified identity, coherent metadata
+reads and any REQUIRED native-access facets. It need not expose the
+document-backed Resource/Version file hierarchy or fabricate domain bytes.
 
 These requirements define conformance to this working draft. They do not
 establish conformance to an adopted companion standard.
@@ -2352,6 +2601,9 @@ The companion model's REQUIRED fields depend on the claimed conformance unit:
 | `XREG-Resource` | For a local document Resource: `ResourceId`, `Xid`, selected `VersionId`, `MetaEpoch`, `MetaReadonly`, `MetaCreatedAt`, `MetaModifiedAt` and a `Versions` folder with at least one Version. Each Version MUST provide `ResourceId`, its own `VersionId`, `Xid`, `Epoch`, `CreatedAt` and `ModifiedAt`. An xref Resource MUST provide `ResourceId`, `Xid` and `MetaXref`; an accessible target supplies the Core-derived view, including `MetaReadonly`, while a dangling target MAY expose only the source identity and `MetaXref`. |
 | `XREG-Identity` | Stable, distinct NodeIds, BrowseNames, XIDs and role-specific identifiers for Groups, logical Resources and exact Versions. |
 | `XREG-MetadataResource` | `ResourceId`, `HasDocument = false`, `MaxVersions = 1` and the read-only `Metadata` FileType. |
+| `XREG-Collections` | Named `GroupCollectionType` views and matching `CollectionName` on each Group, preserving collection-qualified Group identity. |
+| `XREG-Federation` | Immutable logical-Resource `OriginRegistry`, authorized locators and verified logical/exact FileType target roles under §10. |
+| `XREG-GroupFederation` | Group-owned origin/reference/locator state and verified collection-qualified Group targets under §10.3. |
 
 `Name`, `Description`, `Documentation` and `Labels` remain OPTIONAL in
 these units. `XREG-Identity` does not make `Name` mandatory. A metadata-only
@@ -2359,6 +2611,19 @@ catalog Resource MUST NOT claim `XREG-Resource` without its document-backed
 contract. If it claims `XREG-MetadataResource`, it MUST meet that unit's
 requirements. A binding-conformance claim does not weaken the requirements
 of any companion unit it claims.
+
+`XREG-Registry` also exposes the raw `Model` FileType as defined by the
+companion. `XREG-Capabilities` requires the canonical `CapabilitiesSnapshot`
+in addition to raw capabilities. The companion's Writable profile adds
+`XREG-Registration`, `XREG-Attributes` and `XREG-Capabilities` to the four
+baseline units. Full additionally includes `XREG-Events` and
+`XREG-Federation`. Collection, metadata-only, Group-federation and
+native-document units are independent additions, not implicit requirements
+of those existing profile URIs. Native Registry requires
+`XREG-NativeDocuments` and `XREG-NativeSnapshots` with `XREG-Registry` and
+`XREG-Identity`; Native Writable Registry also requires `XREG-NativeWrite`.
+A profile name alone is not evidence that operations are available or
+authorized.
 
 A server conforms to the writable OPC UA xRegistry API if, in addition to
 read-only conformance, it supports:
@@ -2374,6 +2639,9 @@ read-only conformance, it supports:
 Logical and exact Version opens MUST share exact-Version writer reservations
 and incarnation safeguards, and logical handles MUST remain pinned to the
 Version selected at `Open`.
+
+All mutating capabilities MUST enforce the `SignAndEncrypt` and
+authorization rules in §4.1.
 
 A server conforms to the export-capable OPC UA xRegistry API by implementing
 the request-flag mappings advertised in `Capabilities`: Browse continuation
@@ -2399,13 +2667,14 @@ A baseline client conforms if it can:
 - Select a `RegistryType` root.
 - Resolve xRegistry `xid`s or relative identifiers to AddressSpace nodes.
 - Use Browse/Read/FileTransfer operations for reading.
-- Use Write/Call operations for advertised write capabilities.
+- Use Write/Call operations for advertised write capabilities when it
+  implements mutation.
 - Interpret StatusCodes according to §11.
 - Serialize or consume xRegistry document representations according to §8.
 
-An updated client MAY implement the documented Version 0.5 flat-layout fallback,
-but MUST prefer and exclusively use the distinct hierarchy when `Versions` is
-present.
+A client MUST follow the advertised document-backed, metadata-only or
+proxy mapping. A missing `Versions` folder alone does not identify another
+layout.
 
 A client conforms to the event-capable OPC UA xRegistry API if it can:
 
@@ -2541,6 +2810,13 @@ xRegistry HTTP bindings. It is intended for readers familiar with the HTTP
 binding. The OPC UA API is not derived from the HTTP methods or paths in the
 table.
 
+The creation, delegation and Version-file rows describe document-backed
+Resources. Metadata-only domains use §5.10's metadata view, sole-Version
+selection and declared atomic registration operations; their deletion
+checks metadata `Epoch`, not `MetaEpoch`. Group operations always select
+the declared collection under §5.7. Neither a sequence of UA Calls nor this
+correspondence table establishes atomic HTTP replacement semantics.
+
 | xRegistry operation | OPC UA operation in this document | HTTP binding method and path |
 |---|---|---|
 | Read registry | Read `RegistryType` Properties and Browse group children (§5.1) | `GET /` |
@@ -2549,24 +2825,24 @@ table.
 | Export registry document | Browse/Read the `RegistryType` subtree and serialize it (§5.3, §8) | `GET /export` or `GET /?doc&inline=*,capabilities,modelsource` |
 | Read capabilities | Read canonical typed `RegistryType.CapabilitiesSnapshot`, or use `Open`/`Read`/`Close` on complete raw JSON `RegistryType.Capabilities`; `CapabilitiesInfo` is only a partial convenience view (§5.4) | `GET /capabilities` |
 | Read offered capabilities | Read a domain offered-capabilities Property or offered section in the `Capabilities` JSON document (§5.4) | `GET /capabilitiesoffered` |
-| Replace or partially update capabilities | `Open(write)`/`Write`/`Close` on `RegistryType.Capabilities` if writable (§5.5) | `PUT /capabilities`, `PATCH /capabilities` |
+| Replace or partially update capabilities | Replace the complete file with `Open(mode = 6)`/`Write`/`Close`, or use a supported native/domain patch operation (§5.5) | `PUT /capabilities`, `PATCH /capabilities` |
 | Read model | `Open`/`Read`/`Close` on `RegistryType.Model` (§5.4) | `GET /model` |
 | Read model source | Read a domain model-source target or documented section in the `Model` JSON document (§5.4) | `GET /modelsource` |
 | Replace model source | Write the domain model-source target if supported (§5.5) | `PUT /modelsource` |
-| List a group collection | Browse `GroupType` children under the registry (§5.6) | `GET /<GROUPS>` |
+| List a group collection | Browse `GroupType` children in the declared direct or `GroupCollectionType` layout (§5.6) | `GET /<GROUPS>` |
 | Create or update a group collection subset | Resolve/create `GroupType` children and Write group Properties (§5.7) | `PATCH /<GROUPS>`, `POST /<GROUPS>` |
 | Delete a group collection subset | Call `Delete(ExpectedEpoch)` for each selected `GroupType` node (§5.9) | `DELETE /<GROUPS>` |
 | Read a group | Resolve the `GroupType` by BrowseName, then Read Properties and Browse resources (§5.8) | `GET /<GROUPS>/<GID>` |
 | Replace or partially update a group | Create if needed with `GetOrCreateGroup` or strict `CreateGroup`, then Write mutable group Properties and optionally call `Labels.AddAttribute`/`Labels.RemoveAttribute` (§5.7) | `PUT /<GROUPS>/<GID>`, `PATCH /<GROUPS>/<GID>` |
 | Process resource collections under a group | Resolve/create logical Resources and exact Versions, then Write Version documents/Properties/`Labels` or logical Resource Meta Properties/`MetaLabels` (§5.7) | `POST /<GROUPS>/<GID>` |
 | Delete a group | Call `Delete(ExpectedEpoch)` on the selected `GroupType` node (§5.9) | `DELETE /<GROUPS>/<GID>` |
-| List a resource collection | Browse logical `ResourceType` children under the group (§5.11) | `GET /<GROUPS>/<GID>/<RESOURCES>` |
+| List a resource collection | Browse logical `ResourceType` or `MetadataResourceType` children under the selected Group (§5.11) | `GET /<GROUPS>/<GID>/<RESOURCES>` |
 | Create or update a resource collection subset | Use `GetOrCreateResource` or strict `CreateResource`. For a new Resource the logical Resource and first exact Version commit atomically, and the Method returns the exact Version NodeId (§5.12) | `PATCH /<GROUPS>/<GID>/<RESOURCES>`, `POST /<GROUPS>/<GID>/<RESOURCES>` |
 | Delete a resource collection subset | Call `Delete(ExpectedEpoch)` with each logical Resource's `MetaEpoch` (§5.16) | `DELETE /<GROUPS>/<GID>/<RESOURCES>` |
 | Read a resource document | `Open`/`Read`/`Close` on the logical Resource, which pins and delegates to its selected default Version (§5.13) | `GET /<GROUPS>/<GID>/<RESOURCES>/<RID>` |
 | Read resource metadata | Read delegated Version Properties/`Labels` and authoritative Resource Meta Properties/`MetaLabels` from the logical Resource (§5.14) | `GET /<GROUPS>/<GID>/<RESOURCES>/<RID>$details` |
 | Replace or partially update resource metadata | Write delegated Version Properties/`Labels` with `Epoch` and logical Resource Meta Properties/`MetaLabels` with `MetaEpoch` (§5.14) | `PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>$details`, `PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>$details` |
-| Replace a resource document | Create if needed, then `Open`/`SetPosition`/`Write`/`Close` on the logical Resource or returned exact Version (§5.15) | `PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>` |
+| Replace a resource document | Create if needed, then `Open(mode = 6)`/`Write`/`Close` on the logical Resource or exact Version (§5.15) | `PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>` |
 | Create or update a resource version | Create/update an exact Version under the logical Resource's `Versions` component using `GetOrCreateResource` or strict `CreateResource` (§5.18) | `POST /<GROUPS>/<GID>/<RESOURCES>/<RID>` |
 | Delete a resource | Call `Delete(ExpectedEpoch)` on the logical Resource using `MetaEpoch`, atomically deleting it and all exact Versions (§5.16) | `DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>` |
 | Read resource meta entity | Read `MetaEpoch`, `MetaCreatedAt`, `MetaModifiedAt`, `MetaLabels` and domain meta Properties on the logical Resource (§5.14) | `GET /<GROUPS>/<GID>/<RESOURCES>/<RID>/meta` |
@@ -2578,7 +2854,7 @@ table.
 | Read a version document | `Open`/`Read`/`Close` on the selected exact Version (§5.19) | `GET /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>` |
 | Read version metadata | Read Properties of the selected exact Version (§5.19) | `GET /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>$details` |
 | Replace or partially update version metadata | Write version Properties and optionally call `Labels.AddAttribute`/`Labels.RemoveAttribute` (§5.18) | `PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>$details`, `PATCH /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>$details` |
-| Replace a version document | Create if needed, then `Open`/`SetPosition`/`Write`/`Close` on the exact Version (§5.20) | `PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>` |
+| Replace a version document | Create if needed, then `Open(mode = 6)`/`Write`/`Close` on the exact Version (§5.20) | `PUT /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>` |
 | Delete a version | Call `Delete(ExpectedEpoch)` on the exact Version using its `Epoch` (§5.21) | `DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>` |
 
 [xRegistry Core]: https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md
