@@ -4,6 +4,11 @@ import json
 import os
 import re
 from jsonpointer import resolve_pointer
+from scalar_projection import (
+    OPTIONAL_KEY, PROFILE_KEY, SCALAR_TYPES, TREE_KEY,
+    dump_core_json, finish_avro_schema, parse_core_json, projection_profile,
+    scalar_schema, scalar_tree, uses_scalar_carrier,
+)
 
 avro_generic_record_name = "GenericRecord"
 avro_generic_record_qualified_name = "io.xregistry.GenericRecord"
@@ -53,13 +58,14 @@ avro_type_mapping = {
     "uri": {"type": "string"},
     "url": {"type": "string"},
     "datetime": {"type": {"type":"int", "logicalType": "time-millis"}},
-    "integer": {"type": "int"},
-    "uinteger": {"type": "int"},
+    "integer": scalar_schema({"type": "integer"}, "avro"),
+    "uinteger": scalar_schema({"type": "uinteger"}, "avro"),
+    "decimal": scalar_schema({"type": "decimal"}, "avro"),
     "boolean": {"type": "boolean"},
     "array": {"type":{"type": "array", "items": ""}},
     "uritemplate": {"type": "string"},
     "binary": {"type": "bytes"},
-    "timestamp": {"type": {"type":"int", "logicalType": "timestamp-millis"}},
+    "timestamp": scalar_schema({"type": "timestamp"}, "avro"),
     "any": {"type": avro_generic_record_qualified_name},
     "var": {"type": avro_generic_record_qualified_name},
     "xid": {"type": "string"}
@@ -75,6 +81,7 @@ json_type_mapping = {
     "datetime": {"type": "string", "format": "date-time"},
     "integer": {"type": "integer"},
     "uinteger": {"type": "integer", "minimum": 0},
+    "decimal": {"type": "number"},
     "boolean": {"type": "boolean"},
     "array": {"type": "array"},
     "uritemplate": {"type": "string", "format": "uri-template"},
@@ -90,8 +97,9 @@ json_structure_type_mapping = {
     "url": "uri",
     "xid": "uri",
     "datetime": "datetime",
-    "integer": "integer",
-    "uinteger": "uint32",
+    "integer": "string",
+    "uinteger": "string",
+    "decimal": "string",
     "boolean": "boolean",
     "uritemplate": "string",
     "binary": "binary",
@@ -102,7 +110,7 @@ json_structure_type_mapping = {
 
 json_common_attributes = {
     "name": {"type": "string", "description": "Name of the object"},
-    "epoch": {"type": "integer", "description": "Epoch time of the object creation"},
+    "epoch": {"type": "integer", "minimum": 0, "description": "Optimistic concurrency update counter"},
     "self": {"type": "string", "format": "uri", "description": "URL of the object"},
     "xid": {"type": "string", "format": "xid", "description": "Relative URL of the object"},
     "description": {"type": "string", "description": "Description of the object"},
@@ -114,14 +122,23 @@ json_common_attributes = {
 
 avro_common_attributes = [
     {"name": "name", "type": ["string", "null"], "doc": "Name of the object"},
-    {"name": "epoch", "type": ["int", "null"], "doc": "Epoch time of the object creation"},
+    {"name": "epoch", **scalar_schema(
+        {"type": "uinteger", "description": "Optimistic concurrency update counter"},
+        "avro", optional=True,
+    )},
     {"name": "self", "type": "string", "doc": "URL of the object"},
     {"name": "xid", "type": "string", "doc": "XID of the object"},
     {"name": "description", "type": ["string", "null"], "doc": "Description of the object"},
     {"name": "documentation", "type": ["string", "null"], "doc": "URI of the documentation of the object"},
     {"name": "labels", "type": { "type": "map", "values": ["string", "null"]} , "doc": "Labels for the object"},
-    {"name": "createdat", "type": [{"type":"int", "logicalType": "time-millis"}, "null"], "doc": "Time of the object creation"},
-    {"name": "modifiedat", "type": [{"type":"int", "logicalType": "time-millis"},"null"], "doc": "Time of the object modification"}
+    {"name": "createdat", **scalar_schema(
+        {"type": "timestamp", "description": "Time of the object creation"},
+        "avro", optional=True,
+    )},
+    {"name": "modifiedat", **scalar_schema(
+        {"type": "timestamp", "description": "Time of the object modification"},
+        "avro", optional=True,
+    )},
 ]
 
 
@@ -768,6 +785,8 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
 
     def value_schema(definition, namespace, suggested_name, require_reference=False):
         value_type = definition["type"]
+        if value_type in SCALAR_TYPES:
+            return scalar_schema(definition, "json-structure")
         if value_type == "object":
             schema = object_schema(
                 definition.get("attributes", {}), namespace, suggested_name
@@ -791,7 +810,7 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
                 "type": "array",
                 "items": value_schema(item, namespace, suggested_name + "Item", True)
             }
-            if definition.get("enum"):
+            if definition.get("enum") and item["type"] not in SCALAR_TYPES:
                 schema["items"]["enum"] = copy.deepcopy(definition["enum"])
             apply_annotations(schema, definition)
             return schema
@@ -830,6 +849,9 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
             property_schema = value_schema(
                 definition, namespace, owner_name + type_identifier(logical_name)
             )
+            if definition["type"] in SCALAR_TYPES and not definition.get("required", False):
+                property_schema[OPTIONAL_KEY] = True
+                property_schema["type"] = [property_schema["type"], "null"]
             if logical_name != wire_name:
                 property_schema["altnames"] = {"json": wire_name}
             properties[logical_name] = property_schema
@@ -846,7 +868,7 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
 
     common_attributes = {
         "name": {"type": "string", "description": "Name of the object"},
-        "epoch": {"type": "integer", "description": "Epoch of the object"},
+        "epoch": {"type": "uinteger", "description": "Optimistic concurrency update counter"},
         "self": {"type": "url", "description": "URL of the object"},
         "xid": {"type": "xid", "description": "XID of the object"},
         "description": {"type": "string", "description": "Description of the object"},
@@ -919,7 +941,9 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
                 add_definition(namespace, version_type_name, version_schema)
                 resource_schema["properties"].update({
                     "versionsurl": {"type": "uri"},
-                    "versionscount": {"type": "uint32"},
+                    "versionscount": scalar_schema(
+                        {"type": "uinteger"}, "json-structure", optional=True
+                    ),
                     "versions": {
                         "type": "map",
                         "values": reference(namespace, version_type_name)
@@ -976,6 +1000,7 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
         "$schema": "https://json-structure.org/meta/extended/v0/#",
         "$id": schema_id or "https://xregistry.io/schemas/xregistry.struct.json",
         "$uses": ["JSONStructureAlternateNames"],
+        PROFILE_KEY: projection_profile(),
         "name": type_identifier(schema_name or "xRegistryDocument"),
         "type": "object",
         "properties": root_properties,
@@ -999,6 +1024,10 @@ def generate_avro_schema(model_definition) -> dict:
     def needs_generic_record(attributes):
         """Check if any attribute requires GenericRecord type"""
         for attr_name, attr_props in attributes.items():
+            if uses_scalar_carrier(attr_props):
+                return True
+            if "item" in attr_props and needs_generic_record({"item": attr_props["item"]}):
+                return True
             # Check for "*" extension attributes with "any" or "var" type
             if attr_name == "*" and attr_props.get("type") in ["any", "var", "object"]:
                 return True
@@ -1049,17 +1078,31 @@ def generate_avro_schema(model_definition) -> dict:
             resource_schema["type"] =  { "type": "map", "name": prefix+name+"Type","values": "" }
             if "type" in item:
                 item_schema = copy.deepcopy(avro_type_mapping[item["type"]])
-                if item["type"] == "object" or item["type"] == "map" or item["type"] == "array":
+                if item["type"] in SCALAR_TYPES:
+                    item_schema = scalar_schema(item, "avro")
+                    resource_schema["type"]["values"] = item_schema
+                elif item["type"] == "object" and uses_scalar_carrier(item):
+                    resource_schema["type"]["values"] = avro_generic_record_qualified_name
+                elif item["type"] == "object" or item["type"] == "map" or item["type"] == "array":
                     if "item" in item:
                         handle_item(item_schema, item["type"], item["item"], name+"Item", prefix)
-                resource_schema["type"]["values"] = item_schema["type"]
+                    resource_schema["type"]["values"] = item_schema["type"]
+                else:
+                    resource_schema["type"]["values"] = item_schema["type"]
             else:
                 raise Exception("Map item must have a type specified")
         elif type == "array":
             resource_schema["type"] = { "type": "array", "name": prefix+name+"ArrayType", "items": "" }
             if "type" in item:
                 item_schema = copy.deepcopy(avro_type_mapping[item["type"]])
-                if item["type"] == "object" or item["type"] == "map" or item["type"] == "array":
+                if item["type"] in SCALAR_TYPES:
+                    definition = dict(item)
+                    if enum_values is not None:
+                        definition["enum"] = enum_values
+                    resource_schema["type"]["items"] = scalar_schema(definition, "avro")
+                elif item["type"] == "object" and uses_scalar_carrier(item):
+                    resource_schema["type"]["items"] = avro_generic_record_qualified_name
+                elif item["type"] == "object" or item["type"] == "map" or item["type"] == "array":
                     if "item" in item:
                         handle_item(item_schema, item["type"], item["item"], name, prefix)
                         resource_schema["type"]["items"] = item_schema["type"]
@@ -1086,6 +1129,13 @@ def generate_avro_schema(model_definition) -> dict:
             else:
                 # If 'type' is missing, skip this attribute or handle as needed
                 continue
+            if attr_props["type"] in SCALAR_TYPES:
+                attr_schema = scalar_schema(
+                    attr_props, "avro",
+                    optional=not attr_props.get("required", False),
+                )
+            if uses_scalar_carrier(attr_props):
+                attr_schema[TREE_KEY] = scalar_tree(attr_props)
             # Only add a "name" field for types that are actual inline record definitions.
             # If attr_schema["type"] is a dict and has "type" == "record", it's an inline record definition.
             # Do not add "name" for simple types or references like "any"/"var".
@@ -1296,7 +1346,7 @@ def generate_avro_schema(model_definition) -> dict:
                                         },
                                         {
                                             "name": "versionCount",
-                                            "type": "int"
+                                            **scalar_schema({"type": "uinteger"}, "avro")
                                         }
                                     ]
                                 }
@@ -1345,7 +1395,7 @@ def generate_avro_schema(model_definition) -> dict:
         }
         document_properties.append(groups_schema)
 
-    return document_type
+    return finish_avro_schema(document_type)
 
 
 def resolve_resource(group, resource):
@@ -1362,13 +1412,13 @@ def resolve_resource(group, resource):
                         # it is a http URL, retrieve the file
                 import requests
                 response = requests.get(file_uri)
-                resource_object = response.json()
+                resource_object = parse_core_json(response.text)
             else:
                 file_uri = file_uri.replace('/', os.sep)
                 path = os.path.join(os.path.dirname(base_uri), file_uri)
                         # it is a file path, load the file
                 with open(path, encoding='utf-8') as file:
-                    resource_object = json.load(file)
+                    resource_object = parse_core_json(file.read())
             if json_pointer:
                 resource = resolve_pointer(resource_object, json_pointer)
             else:
@@ -1408,7 +1458,7 @@ def resolve_imports(basedir, node):
             file_ref = file_ref.replace('/', os.sep)
             import_file = os.path.join(basedir, file_ref)
             with open(import_file, encoding='utf-8') as file:
-                import_definition = json.load(file)
+                import_definition = parse_core_json(file.read())
             del node["$include"]
             if obj_ref:
                 node.update(resolve_pointer(import_definition, obj_ref))
@@ -1440,7 +1490,7 @@ def main():
     for input_file in args.input_files:
         with open(input_file, encoding='utf-8') as file:
             print(f"> {input_file} as '{args.type}'")
-            input_definition = json.load(file)
+            input_definition = parse_core_json(file.read())
             input_definition = resolve_imports(os.path.dirname(input_file), input_definition)
             if "groups" in input_definition:
                 for group_name, group_definition in input_definition["groups"].items():
@@ -1452,10 +1502,10 @@ def main():
     if (args.type == 'json-schema'):
         json_schema = generate_json_schema(model_definition, schema_id=args.schema_id)
         if args.output:
-            with open(args.output, 'w', encoding='utf-8') as of:
-                json.dump(json_schema, of, indent=2)
+            with open(args.output, 'w', encoding='utf-8', newline='\n') as of:
+                of.write(dump_core_json(json_schema, indent=2) + '\n')
         else:
-            print(json.dumps(json_schema, indent=2))
+            print(dump_core_json(json_schema, indent=2))
     elif (args.type == 'json-structure'):
         json_structure = generate_json_structure(
             model_definition,
@@ -1463,24 +1513,24 @@ def main():
             schema_name=args.schema_name
         )
         if args.output:
-            with open(args.output, 'w', encoding='utf-8') as of:
-                json.dump(json_structure, of, indent=2)
+            with open(args.output, 'w', encoding='utf-8', newline='\n') as of:
+                of.write(dump_core_json(json_structure, indent=2) + '\n')
         else:
-            print(json.dumps(json_structure, indent=2))
+            print(dump_core_json(json_structure, indent=2))
     elif (args.type == 'avro-schema'):
         avro_schema = generate_avro_schema(model_definition)
         if args.output:
-            with open(args.output, 'w') as of:
-                json.dump(avro_schema, of, indent=2)
+            with open(args.output, 'w', encoding='utf-8', newline='\n') as of:
+                of.write(dump_core_json(avro_schema, indent=2) + '\n')
         else:
-            print(json.dumps(avro_schema, indent=2))
+            print(dump_core_json(avro_schema, indent=2))
     elif (args.type == 'openapi'):
         openapi = generate_openapi(model_definition)
         if args.output:
-            with open(args.output, 'w') as of:
-                json.dump(openapi, of, indent=2)
+            with open(args.output, 'w', encoding='utf-8', newline='\n') as of:
+                of.write(dump_core_json(openapi, indent=2) + '\n')
         else:
-            print(json.dumps(openapi, indent=2))
+            print(dump_core_json(openapi, indent=2))
 
 
 if __name__ == '__main__':
