@@ -881,6 +881,40 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
             resource_schema = object_schema(
                 resource_attributes, namespace, resource_type_name
             )
+            meta_schema = object_schema(
+                {
+                    resource_singular + "id": identity_attributes[resource_singular + "id"],
+                    "self": {"type": "url"},
+                    "shortself": {"type": "url"},
+                    "xid": {"type": "xid"},
+                    "xref": {"type": "xid"},
+                    "epoch": {"type": "uinteger"},
+                    "labels": {"type": "map", "item": {"type": "string"}},
+                    "createdat": {"type": "timestamp"},
+                    "modifiedat": {"type": "timestamp"},
+                    "readonly": {"type": "boolean"},
+                    "compatibility": {"type": "string"},
+                    "deprecated": {
+                        "type": "object",
+                        "attributes": {
+                            "effective": {"type": "timestamp"},
+                            "removal": {"type": "timestamp"},
+                            "alternative": {"type": "uri"},
+                            "documentation": {"type": "uri"}
+                        }
+                    },
+                    "defaultversionid": {"type": "string"},
+                    "defaultversionurl": {"type": "url"},
+                    "defaultversionsticky": {"type": "boolean"},
+                    **resource.get("metaattributes", {})
+                },
+                namespace,
+                resource_type_name + "Meta"
+            )
+            resource_schema["properties"].update({
+                "meta": meta_schema,
+                "metaurl": {"type": "uri"}
+            })
             if resource.get("hasdocument", True):
                 resource_schema["properties"].update({
                     resource_singular: {
