@@ -151,6 +151,91 @@ def camel(string):
 
 def generate_openapi(model_definition):
 
+    scalar_header_types = {
+        "boolean", "decimal", "integer", "uinteger", "string", "timestamp",
+        "uri", "uriabsolute", "urirelative", "uritemplate",
+        "url", "urlabsolute", "urlrelative", "xid", "xidtype",
+    }
+    core_header_attributes = {
+        "versionid": {"type": "string"},
+        **{name: {"type": "string"} for name in (
+            "name", "description", "ancestorid", "format", "formatvalidatedreason",
+            "compatibilityvalidatedreason"
+        )},
+        **{name: {"type": "url"} for name in (
+            "self", "shortself", "documentation", "icon"
+        )},
+        "xid": {"type": "xid"},
+        "epoch": {"type": "uinteger"},
+        "isdefault": {"type": "boolean"},
+        "labels": {"type": "map", "item": {"type": "string"}},
+        "createdat": {"type": "timestamp"},
+        "modifiedat": {"type": "timestamp"},
+        "formatvalidated": {"type": "boolean"},
+        "compatibilityvalidated": {"type": "boolean"},
+    }
+    readonly_headers = {
+        "self", "shortself", "xid", "isdefault", "formatvalidated",
+        "formatvalidatedreason", "compatibilityvalidated",
+        "compatibilityvalidatedreason"
+    }
+
+    def header_attributes(attributes):
+        collected = dict(attributes)
+        for definition in attributes.values():
+            for condition in definition.get("ifvalues", {}).values():
+                for name, sibling in header_attributes(
+                    condition.get("siblingattributes", {})
+                ).items():
+                    collected.setdefault(name, sibling)
+        return collected
+
+    def document_header_fields(resource, level, request=False):
+        singular = resource["singular"]
+        attributes = {
+            singular + "id": {"type": "string"},
+            **core_header_attributes,
+            **header_attributes(resource.get("attributes", {})),
+            singular + "url": {"type": "url"},
+        }
+        if level == "resource" and not request:
+            attributes["metaurl"] = {"type": "url"}
+            if resource.get("maxversions", -1) != 1:
+                attributes["versionsurl"] = {"type": "url"}
+                attributes["versionscount"] = {"type": "uinteger"}
+        excluded = {"*", "contenttype", singular, singular + "base64", "meta", "versions"}
+        fields = {}
+        families = []
+        for name, definition in attributes.items():
+            if name in excluded or (
+                request and (name in readonly_headers or definition.get("readonly", False))
+            ):
+                continue
+            kind = definition.get("type")
+            if kind in scalar_header_types:
+                fields["xRegistry-" + name] = {
+                    "description": (
+                        f"The {name} metadata attribute ({kind}), serialized and "
+                        "percent-encoded according to the xRegistry HTTP Header "
+                        "Values rules. This schema describes the encoded wire value."
+                    ),
+                    "schema": {"type": "string"},
+                }
+            elif kind == "map" and definition.get("item", {}).get("type") in scalar_header_types:
+                families.append(f"`xRegistry-{name}.<KEYNAME>`")
+        return fields, families
+
+    def describe_header_families(operation, families):
+        if families:
+            operation["description"] = (
+                operation.get("description", "") + "\n\n"
+                "Scalar map entries use one HTTP header per key: "
+                + ", ".join(families) + ". "
+                "`<KEYNAME>` denotes an encoded map key, not a literal header name. "
+                "Encode names and values using the xRegistry HTTP Header Processing "
+                "rules. OpenAPI cannot enumerate these runtime header names."
+            )
+
     # now recursively find all $ref attributes in the template and replace them with references to the appropriate schema
     def replace_refs(schema_fragment: dict, expression: str, reference: str):
         for k,v in schema_fragment.items():
@@ -334,6 +419,42 @@ def generate_openapi(model_definition):
                 openapi["paths"][f"/{group['plural']}/{{groupid}}/{xid_resource_plural}/{{resourceid}}/versions/{{versionid}}"]= versionid_template_copy
 
         openapi["paths"].pop(path)
+
+        for group in model_definition.get("groups", {}).values():
+            resources = [
+                (group, resource) for resource in group.get("resources", {}).values()
+            ]
+            for imported in group.get("ximportresources", []):
+                source_group, plural = imported.split("/")[1:]
+                owner = model_definition["groups"][source_group]
+                resources.append((owner, owner["resources"][plural]))
+            for owner, definition in resources:
+                resource = resolve_resource(owner, definition)
+                if not resource.get("hasdocument", True):
+                    continue
+                base = f"/{group['plural']}/{{groupid}}/{resource['plural']}/{{resourceid}}"
+                for path, level in (
+                    (base, "resource"), (base + "/versions/{versionid}", "version")
+                ):
+                    for method in ("get", "put", "post"):
+                        operation = openapi["paths"][path].get(method)
+                        if operation is None:
+                            continue
+                        response_level = "version" if method == "post" else level
+                        fields, families = document_header_fields(resource, response_level)
+                        describe_header_families(operation, families)
+                        for status, response in operation["responses"].items():
+                            if status.startswith("2"):
+                                response.setdefault("headers", {}).update(copy.deepcopy(fields))
+                        if method in ("put", "post"):
+                            request_fields, _ = document_header_fields(resource, "version", True)
+                            operation.setdefault("parameters", []).extend(
+                                {
+                                    "name": name, "in": "header", "required": False,
+                                    **copy.deepcopy(header)
+                                }
+                                for name, header in request_fields.items()
+                            )
 
         registry_entity_schema = openapi["components"]["schemas"]["RegistryEntity"]
         for _, group in model_definition.get("groups", {}).items():

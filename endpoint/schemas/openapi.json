@@ -1405,38 +1405,11 @@
           "200": {
             "description": "The resource (or a redirect if a RESOURCEurl is set).",
             "headers": {
-              "resource-id": {
-                "$ref": "#/components/headers/resource-id"
-              },
-              "resource-version": {
-                "$ref": "#/components/headers/resource-version"
-              },
-              "resource-name": {
-                "$ref": "#/components/headers/resource-name"
-              },
-              "resource-self": {
-                "$ref": "#/components/headers/resource-self"
-              },
-              "resource-description": {
-                "$ref": "#/components/headers/resource-description"
-              },
-              "resource-documentation": {
-                "$ref": "#/components/headers/resource-documentation"
-              },
-              "resource-labels": {
-                "$ref": "#/components/headers/resource-labels"
-              },
-              "resource-createdat": {
-                "$ref": "#/components/headers/resource-createdat"
-              },
-              "resource-modifiedat": {
-                "$ref": "#/components/headers/resource-modifiedat"
-              },
               "Content-Location": {
                 "description": "Permalink location of the returned version.",
                 "schema": {
                   "type": "string",
-                  "format": "uri"
+                  "format": "uri-reference"
                 }
               }
             },
@@ -1551,15 +1524,6 @@
         ],
         "parameters": [
           {
-            "$ref": "#/components/parameters/resource-description"
-          },
-          {
-            "$ref": "#/components/parameters/resource-documentation"
-          },
-          {
-            "$ref": "#/components/parameters/resource-labels"
-          },
-          {
             "in": "query",
             "name": "setdefaultversionid",
             "description": "Specifies the versionid to be set as the default version. (See spec: Default Version of a Resource)",
@@ -1600,35 +1564,6 @@
         "responses": {
           "201": {
             "description": "The created resource version.",
-            "headers": {
-              "resource-id": {
-                "$ref": "#/components/headers/resource-id"
-              },
-              "resource-version": {
-                "$ref": "#/components/headers/resource-version"
-              },
-              "resource-name": {
-                "$ref": "#/components/headers/resource-name"
-              },
-              "resource-self": {
-                "$ref": "#/components/headers/resource-self"
-              },
-              "resource-description": {
-                "$ref": "#/components/headers/resource-description"
-              },
-              "resource-documentation": {
-                "$ref": "#/components/headers/resource-documentation"
-              },
-              "resource-labels": {
-                "$ref": "#/components/headers/resource-labels"
-              },
-              "resource-createdat": {
-                "$ref": "#/components/headers/resource-createdat"
-              },
-              "resource-modifiedat": {
-                "$ref": "#/components/headers/resource-modifiedat"
-              }
-            },
             "content": {
               "application/octet-stream": {
                 "schema": {
@@ -1789,38 +1724,11 @@
           "200": {
             "description": "The resource (or a redirect if a RESOURCEurl is set).",
             "headers": {
-              "resource-id": {
-                "$ref": "#/components/headers/resource-id"
-              },
-              "resource-version": {
-                "$ref": "#/components/headers/resource-version"
-              },
-              "resource-name": {
-                "$ref": "#/components/headers/resource-name"
-              },
-              "resource-self": {
-                "$ref": "#/components/headers/resource-self"
-              },
-              "resource-description": {
-                "$ref": "#/components/headers/resource-description"
-              },
-              "resource-documentation": {
-                "$ref": "#/components/headers/resource-documentation"
-              },
-              "resource-labels": {
-                "$ref": "#/components/headers/resource-labels"
-              },
-              "resource-createdat": {
-                "$ref": "#/components/headers/resource-createdat"
-              },
-              "resource-modifiedat": {
-                "$ref": "#/components/headers/resource-modifiedat"
-              },
               "Content-Location": {
                 "description": "Permalink location of the returned version.",
                 "schema": {
                   "type": "string",
-                  "format": "uri"
+                  "format": "uri-reference"
                 }
               }
             },
@@ -1935,15 +1843,6 @@
         ],
         "parameters": [
           {
-            "$ref": "#/components/parameters/resource-description"
-          },
-          {
-            "$ref": "#/components/parameters/resource-documentation"
-          },
-          {
-            "$ref": "#/components/parameters/resource-labels"
-          },
-          {
             "in": "query",
             "name": "setdefaultversionid",
             "description": "Specifies the versionid to be set as the default version. (See spec: Default Version of a Resource)",
@@ -1984,35 +1883,6 @@
         "responses": {
           "201": {
             "description": "The created resource version.",
-            "headers": {
-              "resource-id": {
-                "$ref": "#/components/headers/resource-id"
-              },
-              "resource-version": {
-                "$ref": "#/components/headers/resource-version"
-              },
-              "resource-name": {
-                "$ref": "#/components/headers/resource-name"
-              },
-              "resource-self": {
-                "$ref": "#/components/headers/resource-self"
-              },
-              "resource-description": {
-                "$ref": "#/components/headers/resource-description"
-              },
-              "resource-documentation": {
-                "$ref": "#/components/headers/resource-documentation"
-              },
-              "resource-labels": {
-                "$ref": "#/components/headers/resource-labels"
-              },
-              "resource-createdat": {
-                "$ref": "#/components/headers/resource-createdat"
-              },
-              "resource-modifiedat": {
-                "$ref": "#/components/headers/resource-modifiedat"
-              }
-            },
             "content": {
               "application/octet-stream": {
                 "schema": {
@@ -2639,34 +2509,6 @@
         },
         "description": "The unique identifier of the resource version."
       },
-      "resource-description": {
-        "name": "resource-description",
-        "in": "query",
-        "required": false,
-        "schema": {
-          "type": "string"
-        },
-        "description": "The description attribute for a resource."
-      },
-      "resource-documentation": {
-        "name": "resource-documentation",
-        "in": "query",
-        "required": false,
-        "schema": {
-          "type": "string",
-          "format": "uri"
-        },
-        "description": "The documentation URL for a resource."
-      },
-      "resource-labels": {
-        "name": "resource-labels",
-        "in": "query",
-        "required": false,
-        "schema": {
-          "type": "string"
-        },
-        "description": "The labels attribute for a resource."
-      },
       "specversion": {
         "name": "specversion",
         "in": "query",
@@ -2707,66 +2549,6 @@
           "type": "boolean"
         },
         "description": "If true, returns the document view (with relative URLs and default version data removed). See spec: Doc."
-      }
-    },
-    "headers": {
-      "resource-id": {
-        "description": "The resource identifier. MUST be percent-encoded per xRegistry specifications (i.e. all non-printable ASCII characters, spaces, quotes, and percent signs must be encoded).",
-        "schema": {
-          "type": "string"
-        }
-      },
-      "resource-version": {
-        "description": "The resource version identifier. MUST be percent-encoded per xRegistry specifications.",
-        "schema": {
-          "type": "string"
-        }
-      },
-      "resource-name": {
-        "description": "The resource name. MUST be percent-encoded per xRegistry specifications.",
-        "schema": {
-          "type": "string"
-        }
-      },
-      "resource-self": {
-        "description": "The self URL of the resource. MUST be percent-encoded per xRegistry specifications.",
-        "schema": {
-          "type": "string",
-          "format": "uri"
-        }
-      },
-      "resource-description": {
-        "description": "The resource description. MUST be percent-encoded per xRegistry specifications.",
-        "schema": {
-          "type": "string"
-        }
-      },
-      "resource-documentation": {
-        "description": "The resource documentation URL. MUST be percent-encoded per xRegistry specifications.",
-        "schema": {
-          "type": "string",
-          "format": "uri"
-        }
-      },
-      "resource-labels": {
-        "description": "Serialized resource labels. MUST be percent-encoded per xRegistry specifications.",
-        "schema": {
-          "type": "string"
-        }
-      },
-      "resource-createdat": {
-        "description": "The resource creation timestamp. MUST be percent-encoded per xRegistry specifications.",
-        "schema": {
-          "type": "string",
-          "format": "date-time"
-        }
-      },
-      "resource-modifiedat": {
-        "description": "The resource modification timestamp. MUST be percent-encoded per xRegistry specifications.",
-        "schema": {
-          "type": "string",
-          "format": "date-time"
-        }
       }
     },
     "responses": {
