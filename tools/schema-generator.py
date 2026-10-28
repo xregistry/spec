@@ -1142,23 +1142,10 @@ def generate_avro_schema(model_definition) -> dict:
                     resource_schema["fields"].append(field_schema)
             else:
                 if attr_name == "*":
-                    # For extension attributes, we need to handle named types properly
-                    # Named types cannot be defined inline in a map's values field
                     values_type = attr_schema["type"]
-
-                    # Handle the case where the type needs to be resolved
-                    if isinstance(values_type, dict) and "name" in values_type:
-                        # This is a named type (like GenericRecord) - use only the name as a reference
-                        values_type_ref = values_type["name"]
-                    elif isinstance(values_type, dict):
-                        # This is a complex unnamed type - should not happen but use as-is
-                        values_type_ref = values_type
-                    elif values_type == "record":
-                        # This is an incomplete object type - use GenericRecord reference
-                        # (GenericRecord is defined at document level if needed)
+                    if values_type == "record":
                         values_type_ref = avro_generic_record_qualified_name
                     else:
-                        # This is a simple type reference (string like "string", "int", etc.)
                         values_type_ref = values_type
 
                     field_schema = {
