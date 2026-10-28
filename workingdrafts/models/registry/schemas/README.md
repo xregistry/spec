@@ -5,12 +5,11 @@
 <!-- words: federationprofiles oneof schemaparseexception uri -->
 <!-- words: website -->
 
-The [repository generator](../../../../tools/schema-generator.py) derives
-these artifacts. It uses the [authoritative model](../model.json) as input.
-They do not replace [Core](../../../../core/spec.md). Nor do they replace
-the [domain specification](../spec.md).
-They remain unreleased working-draft descriptions, not published schema
-identifiers.
+The [repository generator](../../../../tools/schema-generator.py) derives these
+schema and API descriptions from the [authoritative model](../model.json).
+[Core](../../../../core/spec.md) and the [domain specification](../spec.md)
+remain authoritative. The generated artifacts describe an unreleased working
+draft; their identifiers are not published schema identifiers.
 
 | Format | Generated file |
 | --- | --- |
@@ -40,14 +39,14 @@ newline. Do not manually change generated definitions.
 
 ## Validation
 
-All generated files are JSON documents, but parsing confirms syntax only.
-Validate JSON Schema against Draft 7 and OpenAPI with an OpenAPI validator.
-JSON Structure needs reference and schema-shape checks, plus any available
-validator for its declared dialect.
-Validate the Avro definition with the Apache Avro schema parser.
+Parsing the generated JSON documents confirms syntax, not schema validity.
+Validate JSON Schema against Draft 7, OpenAPI with an OpenAPI validator and
+the Avro definition with the Apache Avro schema parser. For JSON Structure,
+check references and schema shape and use any available validator for the
+declared dialect.
 
 The repository does not supply a hand-maintained full Resource schema.
-Also perform the semantic checks specified in the domain for:
+Validate the domain's semantic constraints separately:
 
 - Nonempty names,
 - Credential-free absolute endpoints,
@@ -64,12 +63,10 @@ The schema describes the catalog collection and selected Group, Resource
 and Version fields, including the Resource's Versions collection. It does
 not describe a complete Core Registry root.
 
-The schema sets an absolute-URI format on navigation and relationship
-fields. That format does not define document-local pointers or catalog-root
-references.
-Draft 7 validation without URI format checking does not establish the
-validity of those references. The domain separately requires advertisement
-endpoints to be absolute.
+Navigation and relationship fields have an absolute-URI format. That format
+does not define document-local pointers or catalog-root references, and
+Draft 7 validation without URI format checking does not establish their
+validity. The domain separately requires absolute advertisement endpoints.
 
 ### JSON Structure
 
@@ -93,8 +90,8 @@ semantics.
 
 ### HTTP OpenAPI
 
-The description includes `/categories`, its entities, Resource/Version
-paths and the shared HTTP operations. It derives the same metadata
-schemas rather than maintaining another catalog model. Concrete path and
-schema checks supplement structural OpenAPI validation.
-It does not certify a deployed HTTP server.
+The description includes `/categories`, its entities, Resource/Version paths
+and the shared HTTP operations. It derives metadata schemas from the same
+model rather than maintaining another catalog model. Concrete path and schema
+checks supplement structural OpenAPI validation; neither certifies a deployed
+HTTP server.

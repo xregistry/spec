@@ -1,10 +1,12 @@
 # Federation Example Source
 
-[`examples.json`](examples.json) holds the shared Registry content for the
-federation and binding examples. The
-[generator](../tools/generate_examples.py) reads it to produce File, Git and
-OCI representations. It does not start HTTP or OPC UA servers; those
-observations remain in the binding tests.
+<!-- words: opc py ua -->
+
+The federation and binding examples share the Registry content in
+[`examples.json`](examples.json). The
+[generator](../tools/generate_examples.py) produces File, Git and OCI
+representations from that source. HTTP and OPC UA observations remain in
+the binding tests; the generator does not start servers for those bindings.
 
 See the [federation specification](../spec.md) and the
 [example generation instructions](../../README.md#generating-and-reading-examples).

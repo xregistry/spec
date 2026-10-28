@@ -4,10 +4,11 @@
 <!-- words: rootlayer versionorigin wotid -->
 <!-- words: makeschema OpenUSD plugin -->
 
-The [schema generator](../../tools/schema-generator.py) produces JSON Schema,
-JSON Structure, Avro and OpenAPI descriptions from each working-draft model.
-The model and its specification remain authoritative. Generated files describe
-metadata; they do not validate the contents of an OpenUSD or WoT document.
+Use the [schema generator](../../tools/schema-generator.py) to produce JSON
+Schema, JSON Structure, Avro and OpenAPI descriptions of working-draft
+metadata. Each model and its specification remain authoritative. The
+generated files describe Registry metadata, not the contents of OpenUSD or
+WoT documents, and do not validate those document contents.
 
 | Model | Input | Generated files |
 | --- | --- | --- |
@@ -24,16 +25,18 @@ Run the repository's schema target from its root:
 make -f tools/Makefile makeschema
 ```
 
-The target includes the established domains and these working drafts. Each
-command also runs independently with Python. For example:
+The target generates schemas for both the established domains and these
+working drafts. To generate one format for one model, run the corresponding
+Python command directly. For example:
 
 ```powershell
 python tools\schema-generator.py --type avro-schema --output workingdrafts\publication\schemas\document-schema.avsc workingdrafts\publication\model.json
 ```
 
-The Makefile specifies the identifiers and root type names for JSON Schema
-and JSON Structure. Outputs use UTF-8, LF line endings, two-space indentation
-and no final newline. Do not edit generated definitions manually.
+The Makefile supplies the JSON Schema and JSON Structure identifiers and
+root type names. Generated files use UTF-8, LF line endings, two-space
+indentation and no final newline. Regenerate definitions rather than
+editing them manually.
 
 ## Fidelity Checks and Limits
 
@@ -43,9 +46,10 @@ Run the working-draft schema checks from the repository root:
 python -m pytest workingdrafts/tools/test_generated_schemas.py -q
 ```
 
-The checks compare fresh generator output with each checked-in artifact.
-They validate schema syntax and references, then compare declared fields,
-types, nested objects and Version/Meta placement with the input model.
+The checks regenerate each artifact and compare it with the checked-in
+file. They validate schema syntax and references, then check declared
+fields, types, nested objects and Version/Meta placement against the input
+model.
 JSON Schema and OpenAPI checks include strict enumerations and defaults.
 JSON Structure checks include those annotations and REQUIRED fields.
 Avro checks resolve the records and collection item types through its parser.
@@ -57,12 +61,13 @@ Meta `scope` and `head`, the nested URL/digest/size fields, and rejection of
 missing head fields, negative sizes and incorrectly typed sizes in JSON
 Schema and OpenAPI.
 
-These are model-fidelity checks, not complete Core or deployed-service
-conformance tests. The generator does not encode every Core attribute,
-conditional write, immutability rule or Version-selection algorithm. Avro
-does not generally encode model enumerations, OPTIONAL-field absence or
-model defaults. URI strings need separate semantic validation. JSON Structure
-uses structural checks rather than a complete dialect validator.
+These checks establish fidelity to the model, not complete Core or
+deployed-service conformance. The generator does not encode every Core
+attribute, conditional write, immutability rule or Version-selection
+algorithm. Avro does not generally encode model enumerations,
+OPTIONAL-field absence or model defaults. URI strings require separate
+semantic validation, and the JSON Structure checks use structural
+comparisons rather than a complete dialect validator.
 
 The [Publication envelope schema](../publication/schemas/publication.json)
 and [WoT closure schema](../models/wot/schemas/publication-closure.schema.json)

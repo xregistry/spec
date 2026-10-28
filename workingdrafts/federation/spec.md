@@ -8,11 +8,12 @@
 
 ## Abstract
 
-This specification defines read-only resolution across independently
-administered xRegistries. A Registry of Registries describes access methods.
-A resolver selects an access method and establishes the Registry context
-in which it interprets identifiers and metadata using xRegistry Core.
-Protocol bindings define how it retrieves that data.
+This specification defines how a consumer reads entities and documents across
+independently administered xRegistries. A Registry of Registries describes
+the available access methods. A resolver selects an access method and uses
+xRegistry Core to interpret identifiers and metadata within the selected
+Registry context. Protocol bindings define how the resolver retrieves the
+data. Federation resolution is read-only.
 
 ## Table of Contents
 
@@ -35,18 +36,17 @@ Protocol bindings define how it retrieves that data.
 
 ## Overview
 
-Federation lets a consumer read local and source-derived entities through
-one Registry. That Registry serves local Resources and obtains others from
-configured source Registries. A local Resource can shadow the same Resource
-path in a source. The consumer retains one access point without requiring
-all content to be stored there.
+Federation presents local Resources and Resources from configured source
+Registries through one Registry view. A local Resource can shadow a source
+Resource at the same path. A consumer can therefore read through one access
+point without requiring all of the content to be stored there.
 
 The [Registry domain](../models/registry/spec.md) contains a
 `categories` / `registries` hierarchy for describing source Registries and
-their access methods. These descriptions form a catalog that the resolver
-uses for discovery. A catalog entry is a metadata-only Resource describing
-another Registry. It is not that Registry's root, and a consumer need not
-query or even see the catalog when an API server resolves requests for it.
+their access methods. A resolver uses this catalog to discover sources.
+Each catalog entry is a metadata-only Resource describing another Registry,
+not the root of that Registry. When an API server performs resolution, its
+consumer need not query or see the catalog.
 
 The Registry domain's
 [context diagram](../models/registry/spec.md#6-discovery-and-selection)
@@ -60,7 +60,7 @@ locally present. Requests for `approved` use the local Resource even if the
 supplier advertises a Resource with that path. The source selection policy
 defines which supplier Registries participate and their order.
 
-This specification defines the shared interpretation of resolution requests.
+This specification defines how resolvers interpret resolution requests.
 [HTTP](../bindings/http-federation.md), [OCI](../bindings/oci.md),
 [Git](../bindings/git.md), [File](../bindings/file.md) and
 [OPC UA](../bindings/opcua.md) define how to perform those reads. The
@@ -68,9 +68,9 @@ This specification defines the shared interpretation of resolution requests.
 Native bindings do not require an HTTP facade.
 
 Synchronization, replication and write-through are outside this specification's
-scope. It also does not define global entity identifiers, arbitrary merge
-precedence or discovery of dependencies embedded inside domain documents.
-OCI publication is a separate producer operation.
+scope. Global entity identifiers, arbitrary merge precedence and discovery
+of dependencies embedded inside domain documents are also outside its
+scope. OCI publication is a separate producer operation.
 
 ## Notations and Terminology
 
@@ -111,45 +111,47 @@ digest, Git commit and endpoint address MUST NOT be treated as interchangeable.
 
 ## Design: Hosting Models
 
-Core defines [Registry views](../../core/spec.md#design-registry-views) and
-[no-code servers](../../core/spec.md#design-no-code-servers). Federation
-supports the same separation between a Registry's representation and the
-component performing reads. It does not require every consumer to implement
-every binding.
+Federation separates a Registry's representation from the component that
+performs resolution, following Core's
+[Registry views](../../core/spec.md#design-registry-views) and
+[no-code servers](../../core/spec.md#design-no-code-servers). Resolution can
+run in the consumer, in an API server, or when a producer assembles a stored
+view. A consumer does not need to implement every binding.
 
 ### Client-Side Resolution
 
-A federation-aware consumer can read a Registry and its configured catalog,
-select a source and access that source's native binding directly. In this
-hosting model, the resolver runs in the consuming application or a library.
-The application supplies the local view, permitted source scope and ordering.
-The consumer retains each result's source context and revision separately
-from its XID.
+In client-side resolution, the consuming application or a library reads the
+Registry and its configured catalog, selects a source and accesses that
+source through its native binding. The application supplies the local view,
+permitted source scope and source order. The consumer keeps each result's
+source context and revision separate from its XID.
 
 This is the default when no resolution-owner capability is declared.
 
-Offline tools and applications with OCI, Git or other native readers can
-perform these reads themselves. The stored catalog describes the sources.
-The client executes selection and retrieves the selected content.
+An offline tool or application with an OCI, Git or other native reader can
+select and retrieve content directly. The stored catalog describes the
+sources; the client performs selection and reads the selected content.
 
-In this mode the producer does not contact source Registries or return their
-possible matches. An ordinary client without federation support reads only
-the supplied local view. A federation-aware client uses the catalog to obtain
-independently maintained descriptions and access advertisements. Its own
-credentials and composition policy do not necessarily contain that
-information. A caller that already knows the source endpoint can instead
-bypass catalog discovery as described under [Read Operations](#read-operations).
-The resolution-owner signal distinguishes this uncombined view from one whose
-producer has already performed composition. It does not define a service that
-returns a remote execution plan for the client to run.
+The producer does not contact source Registries or return possible matches
+from them. A client without federation support reads only the supplied local
+view. A federation-aware client uses the catalog to obtain independently
+maintained descriptions and access advertisements, which its credentials and
+composition policy do not necessarily contain. A caller that already knows
+the source endpoint can bypass catalog discovery as described under
+[Read Operations](#read-operations).
+
+The resolution-owner signal distinguishes this uncombined view from a view
+whose producer has already performed composition. It does not define a
+service that returns a remote execution plan for the client.
 
 ### API Server Resolution
 
-A federating API server performs resolution for consumers that call its
-ordinary xRegistry API. For example, an HTTP consumer reads a Resource or
-Version using [Core HTTP](../../core/http.md). The server checks its local
-Resource store and, when appropriate, resolves through its configured catalog.
-The consumer does not need a separate federation request envelope.
+A federating API server performs resolution through its ordinary xRegistry
+API. For example, an HTTP consumer reads a Resource or Version using
+[Core HTTP](../../core/http.md). The server checks its local Resource store
+and, when appropriate, resolves the request through its configured catalog.
+The consumer uses the ordinary API request, not a separate federation
+request envelope.
 
 A conforming server-hosted resolver MUST expose a Core-conforming Registry
 through each consumer-facing binding that it implements. Its model MUST
@@ -168,10 +170,10 @@ of repeating the server's catalog traversal.
 
 ### No-Code and Stored Views
 
-A no-code server can serve a previously assembled Registry representation
-without executing federation on each request. A producer performs resolution
-when creating that stored view. Its consumers read the captured state, not
-live changes in every referenced Registry.
+A no-code server can serve a stored Registry view that a producer has
+already assembled. The producer performs resolution when creating the view,
+so the server does not repeat federation for each request. Consumers read
+the captured state rather than live changes in the referenced Registries.
 
 The producer MUST signal `producer` resolution in the stored view's
 capabilities. Storing files alone does not imply that federation has been
@@ -201,10 +203,11 @@ flowchart LR
 
 ### Signaling Who Performs Resolution
 
-The OPTIONAL `federation` extension in the Registry's enabled
-[Core capabilities](../../core/spec.md#registry-capabilities) identifies
-who performs federation resolution for the selected view. It is not a
-catalog attribute, an `xref` value, or an entry in the `flags` array.
+The Registry's enabled
+[Core capabilities](../../core/spec.md#registry-capabilities) can contain an
+OPTIONAL `federation` extension identifying who performs resolution for the
+selected view. This extension belongs to the enabled capabilities, not to
+a catalog attribute, an `xref` value or the `flags` array.
 
 The extension is an object containing the REQUIRED string field
 `resolution`. Its values are case-sensitive:
@@ -214,12 +217,12 @@ The extension is an object containing the REQUIRED string field
 | `consumer` | Supplies the local view and catalog information used by the consumer's composition policy. | Applies local shadowing and the configured source-resolution process. |
 | `producer` | Supplies the combined view, either assembled before publication or resolved by an API server on demand. | Reads that view directly. Does not repeat its federation resolution. |
 
-If the `federation` capability is absent, the consumer MUST use `consumer`.
-This preserves the default behavior for existing Registries. If the
-capability is present, `resolution` MUST be present and MUST be a string.
-Malformed data produces `invalid_package`. An unknown owner value or
-unsupported field produces `unsupported_operation`. It MUST NOT silently
-fall back to consumer-side resolution.
+If the `federation` capability is absent, the consumer MUST use `consumer`,
+preserving the default behavior for existing Registries. If the capability
+is present, `resolution` MUST be present and MUST be a string. Malformed
+data produces `invalid_package`. An unknown owner value or unsupported
+field produces `unsupported_operation`. In these cases the consumer
+MUST NOT silently fall back to consumer-side resolution.
 
 For example, a producer supplying a combined, read-only view exposes:
 
@@ -255,20 +258,22 @@ Omitting `federation` from the second example has the same resolution
 behavior. The [capability schema](schemas/capabilities.json) supplements
 Core's capability rules without redefining the other fields.
 
-A federation-aware consumer MUST inspect this signal before traversing a
-view's catalog. It obtains enabled capabilities through the selected
-binding's capability read or an equivalent inlined representation. An
-offered capability is not the enabled value. A failed metadata read is not
-an absent signal. The consumer MUST handle it according to that binding's
-error rules.
+Before traversing a view's catalog, a federation-aware consumer MUST inspect
+the resolution-owner signal. It obtains the enabled capabilities through
+the selected binding's capability read or an equivalent inlined
+representation, rather than using an offered capability as the enabled
+value. A failed metadata read does not establish that the signal is absent.
+The consumer MUST handle that failure according to the binding's error
+rules.
 
-With `producer`, the consumer MUST NOT use the view's catalog to repeat
-composition for the same request. This applies to entity reads, collection
-enumeration, label selection and default/explicit Version reads. A
-`not_found` or other failure returned by the producer MUST NOT trigger
-fallback through that producer's catalog. A producer therefore advertises
-this value only when it handles resolution for the whole view it exposes,
-not a partially combined result requiring its consumer to finish the work.
+With `producer`, the consumer MUST NOT repeat composition for the same
+request through the view's catalog. This rule applies to entity reads,
+collection enumeration, label selection and default or explicit Version
+reads. A `not_found` or other failure returned by the producer MUST NOT
+trigger fallback through that producer's catalog. The producer therefore
+advertises this value only when it handles resolution for the whole
+exposed view, rather than returning a partially combined result that its
+consumer has to finish.
 
 For example, suppose a stored combined view already contains the selected
 `/documents/main/assets/item`. With `producer`, the consumer reads that
@@ -277,10 +282,11 @@ and contact source A again. With the capability absent or set to `consumer`,
 it follows the local-first process described in the next section.
 
 The value applies to the selected Registry root, access context and revision.
-A capture MUST retain the value appropriate to its resulting view, not copy
-`producer` from an upstream view whose composition it has not preserved.
-Consumers MUST keep that choice for the operation. Observing it change
-during a consistent multi-read capture produces `inconsistent_snapshot`.
+A capture MUST retain the value appropriate to its resulting view rather
+than copy `producer` from an upstream view whose composition it has not
+preserved. Consumers MUST retain that choice throughout the operation. If
+the value changes during a consistent multi-read capture, the outcome is
+`inconsistent_snapshot`.
 
 Resolution ownership does not promise immutability or offline completeness.
 A producer-resolved HTTP view can be live. A local snapshot can still declare
@@ -300,11 +306,11 @@ A server or publisher creating a producer-resolved view applies these same
 composition rules to its inputs. The signal describes responsibility to
 that view's consumers, not how the producer implements its own resolution.
 
-Resolution starts with an operation and a typed target in the consumer's
-Registry view. An exact Resource or Version request uses an XID. A collection
-request can additionally use a [selector](#selectors), such as
-`stage=production`, to find one matching member. Selecting a source Registry
-and selecting a binding for that source are separate decisions.
+The resolver starts with an operation and a typed target in the consumer's
+Registry view. An exact Resource or Version request identifies its target
+by XID. A collection request can also use a [selector](#selectors), such as
+`stage=production`, to find one matching member. The resolver selects a
+source Registry separately from selecting a binding for that source.
 
 ### Local Resources and Ordered Sources
 
@@ -314,12 +320,12 @@ supply. That ordered list is configuration, not JSON object-map order or
 Category enumeration order. This specification does not define a catalog
 attribute for that list. A caller MAY choose one source explicitly instead.
 
-The policy belongs to the resolver forming the view: the server or publisher
-in producer resolution, or the consuming application in consumer resolution.
-Its configuration format and management interface are implementation-specific.
-An implementation can permit per-call choices or overrides, but these remain
-subject to its access and source-selection policy. A caller cannot gain
-authorization merely by naming a source.
+The resolver forming the view owns the composition policy: the server or
+publisher in producer resolution, or the consuming application in consumer
+resolution. The configuration format and management interface are
+implementation-specific. An implementation can permit per-call choices or
+overrides subject to its access and source-selection policy. Naming a
+source does not authorize the caller to access it.
 
 The catalog and this policy serve different purposes. A catalog describes
 known Registries and how to access them. Listing an entry does not include it
@@ -330,12 +336,13 @@ catalog or the policy can change independently. The `priority` inside a
 catalog entry orders that entry's access advertisements, not different source
 Registries. See [Discovery and Binding Selection](#discovery-and-binding-selection).
 
-With a complete source order, multiple copies of the same Resource path are
-resolved by precedence, not reported as ambiguous. An unordered set of
-potentially competing origins is insufficient to choose a winner and MUST
-produce `ambiguous` when disambiguation is needed. Separately, several
-distinct visible Resources can satisfy a selector after shadowing. Source
-precedence does not choose between them. See
+When source order is complete, precedence determines which origin supplies
+a Resource path that appears in several sources. These copies are not
+ambiguous. An unordered set of potentially competing origins cannot
+determine that result and MUST produce `ambiguous` when disambiguation is
+needed. A selector can still match several distinct visible Resources
+after shadowing; source precedence does not choose between those
+Resources. See
 [Select After Applying Shadows](#example-select-after-applying-shadows).
 
 For Resource metadata, Meta, Version metadata and document reads, the unit
@@ -352,7 +359,7 @@ of shadowing is the Resource, including all of its Versions:
    policy that projects a different source path MUST define that mapping
    explicitly. The source's model and data MUST be compatible with the
    consumer-visible model for that path.
-4. A Resource is **found** when that exact Resource exists and its metadata
+4. A Resource is found when that exact Resource exists and its metadata
    can be interpreted under the selected source context and composition
    policy. A successful empty collection, a reachable endpoint or a catalog
    entry alone is not a found Resource.
@@ -366,11 +373,12 @@ of shadowing is the Resource, including all of its Versions:
    binding/version, malformed data and integrity failure, rather than treat
    them as absence.
 
-Only a Resource miss permits retrying the same XID in the next configured
-source Registry. A failure to retrieve a chosen Version or document does
-not permit selecting a lower-priority origin. The resolver follows the
-configured projection policy, not arbitrary Registries or descriptive
-catalog relationships. Ordered shadowing does not create global identity.
+The resolver tries the same XID in the next configured source Registry only
+when the Resource is absent. If the selected Resource's Version or document
+cannot be retrieved, the resolver reports that failure rather than selecting
+a lower-priority origin. Source traversal follows the configured projection
+policy, not arbitrary Registries or descriptive catalog relationships.
+Ordered shadowing does not create global identity.
 
 ```mermaid
 sequenceDiagram
@@ -410,13 +418,12 @@ same Resource-level precedence before returning members. A shadowed source
 Resource contributes no additional Versions or alternate label values.
 Configured source type mappings MUST account for the collection's model.
 
-A label selector is then evaluated on the resulting visible collection.
-Finding one matching member in an early source is not proof of uniqueness.
-All necessary collection pages and unshadowed sources MUST be considered.
-A resolver MUST NOT disguise errors or incomplete traversal as a complete
-result.
+The resolver then evaluates a label selector against the visible collection.
+One match in an early source does not establish uniqueness. The resolver
+MUST consider all necessary collection pages and unshadowed sources. It
+MUST NOT present errors or incomplete traversal as a complete result.
 Counts, continuation links and model/capability reads MUST describe the
-consumer-visible Registry, not whichever source happened to respond first.
+consumer-visible Registry rather than the first source to respond.
 
 The client-side model performs the same selection locally. A consumer that
 already selected exactly one source bypasses composition and uses the
@@ -504,16 +511,17 @@ label match.
 
 ## Discovery and Binding Selection
 
-This section chooses among access methods for **one catalog entry**. It does
-not rank different source Registries. The preceding composition policy
-determines source order and local shadow precedence.
+After selecting a source Registry, the resolver chooses an access method
+from that catalog entry's advertisements. Advertisement selection does not
+rank source Registries; the composition policy above determines source
+order and local shadow precedence.
 
 A resolver MUST select a catalog-description Version before interpreting its
 advertisements. In the absence of an explicit description Version, it MUST
 use the catalog Resource's Core
 [default Version](../../core/spec.md#default-version-of-a-resource).
-A resolver MUST NOT infer
-an API from `weburl`, a label, a category name or a descriptive relationship.
+A resolver MUST NOT infer an API from `weburl`, a label, a category name
+or a descriptive relationship.
 A website-only entry is a valid catalog entry, but is not resolvable.
 
 The domain's `federationprofiles` array contains advertisements with `name`,
@@ -553,13 +561,14 @@ explicit HTTP advertisements exist, at least one endpoint MUST equal
 `xregurl` exactly. This exact comparison is a consistency rule, not a
 definition of URI identity.
 
-No candidate yields `unsupported_binding`. A caller rejection yields
-`policy_denied`. An attempted binding MUST NOT silently fail over after an
-integrity error, version mismatch, policy rejection, ambiguous selection or
-inconsistent snapshot. A caller MAY initiate another operation with an
-explicitly different advertisement after inspecting the failure. A producer's
-multiple endpoints claim the same logical Registry, not necessarily the same
-instantaneous state. Credentials and trust are established independently.
+If no candidate remains, the outcome is `unsupported_binding`. If the caller
+rejects access, the outcome is `policy_denied`. After an integrity error,
+version mismatch, policy rejection, ambiguous selection or inconsistent
+snapshot, a resolver MUST NOT silently fail over from the attempted binding.
+The caller MAY inspect the failure and initiate another operation with an
+explicitly different advertisement. A producer's endpoints describe the
+same logical Registry, but need not expose the same instantaneous state.
+Credentials and trust are established independently.
 
 The Registry domain's
 [worked selection table](../models/registry/spec.md#62-advertisement-selection)
@@ -579,9 +588,8 @@ addresses a combined Registry view, its
 [local and source selection](#local-resources-and-ordered-sources).
 Consumers of a producer-resolved view use these reads directly.
 
-The following abstract operations define the read behavior shared by the
-bindings. They do not introduce URLs, HTTP verbs or a transport-level
-request envelope:
+The bindings share the following abstract read operations. These operations
+define behavior, not URLs, HTTP verbs or a transport-level request envelope:
 
 | Operation | Target | Result |
 | --- | --- | --- |
@@ -619,10 +627,10 @@ Origin information MUST identify the chosen advertisement, catalog-description
 Version when applicable, target XID and revision pin or the absence of an
 immutable pin. It MUST be returned separately from Core identity attributes.
 
-A library can return that information alongside the value. A producer-resolved
-service MUST document how an authorized consumer obtains the context
-associated with a result, through a binding extension or associated metadata
-interface. Keeping it only in an internal server log does not return it to
+A library can return origin information alongside the value. A
+producer-resolved service MUST document how an authorized consumer obtains
+the result's context through a binding extension or associated metadata
+interface. An internal server log alone does not provide that context to
 the consumer.
 
 This draft does not standardize an HTTP header, UA node or new
@@ -644,18 +652,18 @@ retain Resource type sharing. An expanded model alone can obscure
 [`ximportresources`](../../core/model.md#reuse-of-resource-definitions)
 provenance.
 [Included model documents](../../core/model.md#includes-in-the-xregistry-model-data)
-MUST be resolved
-within the captured scope, or supplied with immutable checked references.
+MUST be resolved within the captured scope, or supplied with immutable
+checked references.
 Offline-complete interpretation MUST NOT fetch mutable external includes.
 A consumer MUST NOT accept unknown Core versions merely because a document
 parses.
 
 ## Identity and References
 
-An [XID](../../core/spec.md#xid-attribute) identifies an entity only within
-one Registry. Resolvers MUST preserve
-both its Registry context and typed collection path. Equal XIDs in unrelated
-Registries are not evidence that the entities or their bytes are identical.
+An [XID](../../core/spec.md#xid-attribute) identifies an entity within one
+Registry. Resolvers MUST preserve both its Registry context and typed
+collection path. The same XID in unrelated Registries does not establish
+that the entities or their bytes are identical.
 Core [IDs](../../core/spec.md#singularid-id-attribute) are unique
 case-insensitively within their parent, but are looked up
 case-sensitively. Storage bindings MUST NOT weaken either rule.
@@ -671,10 +679,10 @@ are insufficient. Sharing between Group types uses
 [`ximportresources`](../../core/model.md#reuse-of-resource-definitions).
 
 An [alias](#notations-and-terminology) is the source Resource in that Core
-cross-reference. In the following example, `mirrors` is simply the name of
-a Group type that imports the `assets` Resource type. It is not a standard
-mirror-Group feature or a replication mechanism. This model source permits
-a local alias in such a Group to reference an asset in a `documents` Group:
+cross-reference. In the example below, the `mirrors` Group type imports the
+`assets` Resource type. Its name does not identify a standard mirror-Group
+feature or a replication mechanism. The shared Resource type permits a
+local alias in this Group to reference an asset in a `documents` Group:
 
 ```json
 {
@@ -702,11 +710,11 @@ If the target is itself an alias, a resolver MUST NOT follow another `xref`.
 If the target is unavailable, Core's minimal ID-like alias serialization
 applies. This is not automatically `not_found` for the source.
 
-A malformed XID or nonexistent model type is not the same as a dangling
-entity instance. Core's malformed-reference rules still apply. Document
-view MUST NOT expand the target. A document-view request for an alias's
-Versions or an individual Version MUST retain Core's `cannot_doc_xref`
-behavior. This specification does not add remote writes to aliases.
+Core's malformed-reference rules distinguish a malformed XID or nonexistent
+model type from a dangling entity instance. Document view MUST NOT expand
+the target. A document-view request for an alias's Versions or an individual
+Version MUST retain Core's `cannot_doc_xref` behavior. This specification
+does not add remote writes to aliases.
 
 ### Remote References and Composition
 
@@ -717,10 +725,10 @@ Reading its bytes does not change the identity of the describing Version.
 
 A projected Registry MAY expose locally modeled Resources representing
 external content. Any `xref` it exposes MUST satisfy Core within that
-projected Registry. A projection MUST NOT equate resources solely because
-their XIDs collide. Competing origins require an explicit selection or
-`ambiguous`, not an undocumented winner. A shared logical-identity policy
-can be defined by a domain, but does not alter XID scope.
+Registry. A projection MUST NOT treat Resources as identical solely because
+their XIDs collide. Competing origins require explicit selection or
+`ambiguous`, rather than an undocumented choice of origin. A domain can
+define a shared logical-identity policy without altering XID scope.
 
 Catalog relationships are descriptions, not instructions to walk a graph,
 copy registries, establish trust or synchronize changes.
@@ -759,12 +767,10 @@ separate from those identities.
 
 ## Selectors
 
-A selector is a condition used to choose members of a named collection.
-This specification uses Core label matching for that condition, as described
-under [the Filter flag](../../core/spec.md#filter-flag). It does not create
-a new entity identifier. A label selector is scoped to one named collection.
-Its JSON illustration,
-used by the conformance examples, is:
+A label selector chooses members of one named collection using Core label
+matching, as described under [the Filter flag](../../core/spec.md#filter-flag).
+It does not create an entity identifier. The conformance examples illustrate
+a selector with this JSON:
 
 ```json
 {
@@ -793,15 +799,14 @@ MUST NOT accidentally become a wildcard or another expression. Implementations
 MAY instead enumerate and compare locally. An optimization MUST NOT change
 the matching or ambiguity outcome.
 
-Zero matches yields `not_found`. Exactly one complete match yields the
-selected entity. Multiple matches yields `ambiguous`. A resolver MUST inspect
-all necessary continuation pages before claiming uniqueness. It MAY report
-ambiguity after a second match without reading further pages. A resolver
-MUST NOT report a request limit, incomplete page chain or unstable
-collection as a unique selection. Resource selectors examine the effective
-metadata of
-their default Versions as defined by Core, not only the reduced Resource
-object in document view.
+With no matches, the outcome is `not_found`; with exactly one complete match,
+the result is the selected entity. Multiple matches produce `ambiguous`.
+Before claiming uniqueness, a resolver MUST inspect all necessary
+continuation pages. It MAY report ambiguity after the second match without
+reading further pages. A resolver MUST NOT report a request limit,
+incomplete page chain or unstable collection as a unique selection.
+Resource selectors examine the effective metadata of their default Versions
+as defined by Core, not only the reduced Resource object in document view.
 
 ## Representations
 
@@ -818,7 +823,8 @@ default-Version attributes, Version validation-result attributes and
 included in the returned document MUST use document-local JSON Pointers.
 Links to entities not included MUST NOT be rewritten to nonexistent local
 pointers. Reassembling records into a larger document requires rebasing
-pointers to that document, not concatenating independently relative records.
+their pointers to that document. Concatenating records whose pointers are
+relative to each individual record does not preserve those targets.
 
 The Registry domain's
 [view comparison](../models/registry/spec.md#33-document-view)
@@ -852,22 +858,26 @@ states between requests. A package stores such a snapshot using the
 representation. Core Resource Versions remain distinct from the revision
 of a snapshot that contains them.
 
-A cache of individual responses does not establish one consistent captured
-state. A consumer can use such a cache under the selected binding's rules
-without making that claim. The snapshot requirements below apply when a
-producer declares a captured scope and completeness class.
+A consumer can cache individual responses under the selected binding's
+rules, but those responses do not establish one consistent captured state.
+The following snapshot requirements apply when a producer declares a
+captured scope and completeness class.
 
 This specification does not prescribe a capture trigger or refresh schedule.
 A caller can request a capture, or a server or publisher can manage captures
 and refreshes. Each operation still uses its selected revision. A refresh
 does not replace a revision already pinned by an ongoing operation.
 
-Every snapshot MUST have a complete internal containment graph. A linked
-snapshot MAY retain explicit external document references. An
-offline-complete snapshot MUST additionally contain the declared xRegistry
-document content for its selected scope and the model material needed to
-interpret it. The producer MUST identify that scope and completeness class.
-Missing internally referenced data is an invalid package in either class.
+Every snapshot MUST have a complete internal containment graph. The
+completeness class determines how it handles external content:
+
+- A linked snapshot MAY retain explicit external document references.
+- An offline-complete snapshot MUST also contain the declared xRegistry
+  document content in its selected scope and the model material needed to
+  interpret that content.
+
+The producer MUST identify the scope and completeness class. Missing
+internally referenced data is an invalid package in either class.
 
 Offline completeness does not mean copying all cataloged Registries or
 discovering arbitrary links inside every domain document. External reference
@@ -886,21 +896,22 @@ The [source-selection example](#example-select-after-applying-shadows)
 illustrates a live result with `revision: null` and `consistency: "live"`.
 Those field names illustrate resolver context, not a new wire format.
 
-Digests identify exact bytes, not semantic equality. Equivalent publications
-can have different digests. New snapshots MAY reuse unchanged content and
-subtrees, but MUST be readable without replaying older snapshots.
+Digests identify exact bytes; they do not establish semantic equality.
+Equivalent publications can therefore have different digests. New snapshots
+MAY reuse unchanged content and subtrees, but MUST be readable without
+replaying older snapshots.
 
 The [publication extension](../publication/spec.md) adds named channels over
-these snapshots. Resolve a moving
-channel once per operation and retain the selected immutable context across
-collection pages, entity reads and document retrieval. Missing data in that
-context MUST NOT trigger a refresh or lookup against another channel head.
-Opening a channel again is a separately identified operation.
+these snapshots. A resolver selects a moving channel once per operation and
+retains the selected immutable context across collection pages, entity
+reads and document retrieval. Missing data in that context MUST NOT trigger
+a refresh or lookup against another channel head. Opening the channel
+again is a separately identified operation.
 
-Several sources can each be pinned without representing a simultaneous
-capture. Reproducing a combined view requires the source pins, interpreted
-model and exact composition policy, or a separately materialized complete
-snapshot. Resource precedence follows
+Pinning each source does not establish that the sources were captured
+simultaneously. To reproduce a combined view, a reader needs the source pins,
+interpreted model and exact composition policy, or a separately materialized
+complete snapshot. Resource precedence follows
 [Local Resources and Ordered Sources](#local-resources-and-ordered-sources).
 It does not select compatible domain Versions. It also does not fill a winning
 Resource's missing Version from a lower-priority source.
@@ -948,10 +959,10 @@ or mandates for new HTTP status codes:
 | `limit_exceeded` | A resource or traversal bound prevents completion. |
 | `unavailable` | A transport or backing object is temporarily unavailable. |
 
-An error MUST retain the underlying Core error or transport diagnostic when
-available, without exposing credentials. A resolver MUST NOT return an
-incomplete retrieval as a successful empty collection. Core's dangling-alias
-exception is preserved.
+When an underlying Core error or transport diagnostic is available, the
+resolver error MUST retain it without exposing credentials. A resolver
+MUST NOT return an incomplete retrieval as a successful empty collection.
+Core's dangling-alias exception still applies.
 
 ## Security Considerations
 
@@ -963,29 +974,29 @@ destination, and MUST NOT forward them merely because a catalog entry or
 redirect names it.
 
 Resolvers MUST bound traversal depth, request count and aggregate bytes,
-detect discovery/redirect cycles, and surface exhausted bounds. SHA-256
-integrity does not authenticate a publisher. Signature and provenance
-policies are separate from containment completeness. Git readers MUST NOT
-execute repository content. Filesystem readers MUST enforce containment
-including symlinks and reparse points.
+detect discovery/redirect cycles, and report when a bound is exhausted.
+SHA-256 integrity does not authenticate a publisher. Signature and
+provenance policies are separate from containment completeness. Git readers
+MUST NOT execute repository content. Filesystem readers MUST enforce
+containment, including symlinks and reparse points.
 
 ## Conformance
 
-A **catalog producer** conforms to the Registry domain. Its base class does
-not imply usable endpoints. A **resolvable entry** satisfies the domain's
-stricter advertisement requirements.
+A catalog producer conforms to the Registry domain. Base-class conformance
+does not imply that its entries have usable endpoints. A resolvable entry
+also satisfies the domain's stricter advertisement requirements.
 
-A **federation resolver** MUST implement resolution-owner signaling, selection,
-context, Core semantics, representations and failures above and identify each
-implemented binding. Conformance to one binding does not imply support for
-another.
+A federation resolver MUST implement the resolution-owner signaling,
+selection, context, Core semantics, representations and failures defined
+above and identify each binding it implements. Conformance to one binding
+does not imply support for another.
 
-A **snapshot producer** MUST identify its format, scope and linked or
+A snapshot producer MUST identify its format, scope and linked or
 offline-complete class and produce a complete internal graph. An OPTIONAL
 API facade requires separate protocol-binding conformance.
 
-The executable examples check specified behavior offline. They do not
-implement production resolution. The
+The executable examples check the specified behavior offline, rather than
+implementing production resolution. The
 [shared selection tests](tools/test_spec_examples.py) distinguish
 identity, selection and reference cases. Their reduced logical vectors are
 not complete serialized Core API responses. Omitted server-generated metadata
@@ -1016,8 +1027,9 @@ reads. It does not introduce a federation wire API. The caller supplies
 already authorized sources with compatible model mappings.
 
 The same helper accepts enabled capabilities on the selected `Source`.
-It demonstrates the consumer default and direct reads of producer-resolved
-views, including errors that do not trigger a second catalog traversal.
+It demonstrates both the consumer default and direct reads of a
+producer-resolved view, including failures that do not trigger a second
+catalog traversal.
 
 ## References
 

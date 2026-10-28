@@ -6,19 +6,19 @@
 <!-- words: exampleformat jsonschema ORAS powershell py reparse -->
 <!-- words: dockerfile resolvedmodelsource symlink walkthrough -->
 
-These specifications are working drafts for discussion and review, not part
-of a released xRegistry specification. They can change independently of
-released specifications.
+This directory contains working drafts for discussion and review. They are
+not part of a released xRegistry specification and can change independently
+of released specifications.
 
 ## Federation Specification Family
 
 The federation drafts define read-only resolution across independently
 administered Registries.
 
-Start with the domain specification to understand catalog entries. Then read
-the federation specification to learn how it handles hosting and selects
-sources. Use the comparison below to choose a binding. Its reference sections
-define the implementation rules.
+Start with the Registry domain specification for catalog entries, then read
+the federation specification for hosting and source selection. The binding
+comparison below helps select an access method; each binding's reference
+sections define its implementation rules.
 
 The arrows below indicate specification dependencies, not network requests.
 Core supplies the entities and interpretation rules. The other drafts add
@@ -34,7 +34,7 @@ flowchart TD
     P --> D["Domain closure and compatibility, for example WoT"]
 ```
 
-Choose a reading route for the operation you want to implement:
+For a particular operation, use these entry points:
 
 - **Discover and read:** [catalog selection](models/registry/spec.md#6-discovery-and-selection),
   then [federation reads](federation/spec.md#read-operations) and the chosen
@@ -65,9 +65,9 @@ Choose a reading route for the operation you want to implement:
 | File | No xRegistry service. Use local storage or an OS-mounted file share containing a directory mapping or OCI layout. | Root hashes and descriptors detect inconsistent content. A mutable directory is not automatically an immutable snapshot. | Filesystem access, containment checks and the reader for the chosen format. |
 | OPC UA | An OPC UA server exposing the Registry nodes and document access described by the binding. | Reads usually observe live state. Session handles and per-node timestamps are not snapshot identifiers. | OPC UA Services, Registry-root selection and namespace remapping. Check the binding's explicit domain-mapping and companion-draft dependencies. |
 
-These choices describe access to a source Registry. A consumer-facing API
-server can use a different binding to read that source. For example, it can
-serve HTTP clients from a local File mapping or an OCI snapshot.
+The binding used to access a source Registry need not be the binding exposed
+to consumers. For example, an API server can serve HTTP clients from a local
+File mapping or an OCI snapshot.
 
 The [resolution-owner capability](federation/spec.md#signaling-who-performs-resolution)
 distinguishes views combined by their producer from views that consumers
@@ -81,12 +81,12 @@ Federation does not redefine it as a remote URL.
 
 ### Generating and Reading Examples
 
-[examples.json](federation/samples/examples.json) is the single Registry-content
-source for the federation and binding examples. Select one named example
-and generate a File mapping, a local Git repository or a native OCI artifact
-with [generate_examples.py](federation/tools/generate_examples.py). The
-generator does not start an HTTP or OPC UA server. Publication and domain
-models have their own sample directories.
+[examples.json](federation/samples/examples.json) supplies the Registry content
+shared by the federation and binding examples. Use
+[generate_examples.py](federation/tools/generate_examples.py) to select a
+named example and generate a File mapping, a local Git repository or a
+native OCI artifact. The generator does not start HTTP or OPC UA servers.
+Publication and domain models have separate sample directories.
 
 | Example | Content |
 | --- | --- |
@@ -97,9 +97,9 @@ models have their own sample directories.
 | `first` | The Registry used by the HTTP and UA examples, including default `v1`, explicit Versions and metadata-only catalog entries. |
 | `second` | An independent Registry with a colliding asset XID and different bytes. |
 
-These names select source examples, not Registry IDs or revision pins. Every
-example can be generated in all three formats. A linked document URL remains
-a URL. Generation never retrieves its content.
+An example name selects source content, not a Registry ID or revision pin.
+Every example can be generated in all three formats. The generator retains
+linked document URLs without retrieving their content.
 
 Run the commands from the repository root with Python 3.10 or later and the
 existing `jsonschema` dependency in [tools/requirements.txt](../tools/requirements.txt).
@@ -112,10 +112,10 @@ First validate all named examples without creating output:
 python -B -m workingdrafts.federation.tools.generate_examples validate
 ```
 
-Use output paths outside the source checkout, each either new or an empty
-directory. The generator rejects nonempty destinations, filesystem
-roots and symlink/reparse escapes. It does not overwrite an existing project.
-Use different empty destinations to repeat the examples:
+Choose output paths outside the source checkout, using a new path or an
+empty directory for each output. The generator rejects nonempty destinations,
+filesystem roots and symlink/reparse escapes rather than overwriting an
+existing project. To repeat an example, choose another empty destination:
 
 ```powershell
 python -B -m workingdrafts.federation.tools.generate_examples file --example walkthrough --output D:\temp\xregistry-file
@@ -139,10 +139,10 @@ with a deterministic commit at `refs/heads/main` and an annotated
 OCI defaults to `--reference snapshot` and `--page-size 256`. The smaller
 page size above produces the sharded `offline` graph and its fixed digest.
 
-File and Git output put each record and index in its own file. Add
-`--inline` to embed all of them in `registry.json` instead. The
-`walkthrough` example always uses its inline project layout. OCI
-generation does not accept `--inline`.
+By default, File and Git output store each record and index in a separate
+file. Add `--inline` to embed them all in `registry.json`. The `walkthrough`
+example always uses its inline project layout. OCI generation does not
+accept `--inline`.
 
 Read the generated outputs with the existing binding helpers:
 
@@ -152,9 +152,9 @@ python -B -m workingdrafts.bindings.tools.mapping_examples document --git-dir D:
 python -B -m workingdrafts.bindings.tools.oci_examples lookup D:\temp\xregistry-oci /dirs/main/files/sample/versions/v2 --reference offline --operation document
 ```
 
-For Linux, substitute the corresponding absolute output paths in these
-reader commands. Metadata and document operations remain distinct. A Git
-commit, an OCI root digest and a Core Version ID are not interchangeable.
+On Linux, substitute the corresponding absolute output paths in these
+reader commands. The readers distinguish metadata from document operations,
+and a Git commit or OCI root digest does not replace a Core Version ID.
 The [File](bindings/file.md#motivation-and-example),
 [Git](bindings/git.md#conformance) and
 [OCI](bindings/oci.md#9-conformance-and-executable-examples) sections
@@ -167,15 +167,15 @@ the generated native descriptor graph to that destination. The
 describes login, direct `oras cp`, retries and digest-pinned retrieval.
 Neither a Dockerfile nor a container-image tar wrapper is involved.
 
-The source envelope has `exampleformat: 1` and an `examples` map. Each
-example contains neutral `records` with `kind` and `entity`, a `snapshot`
-class, available `resolvedmodelsource`, and `documents` keyed by full
-Version XID. Each document supplies exactly one of `text`, `base64`, `url`
-or `none: true`, with `origin` and `base` where applicable. Text is encoded
-as UTF-8 without adding a newline. Base64 preserves exact binary and empty
-bytes. This is example-generator input, not a new Core response, mapping
-extension or normative interchange format. `--input PATH` selects another
-source document using the same example notation.
+The generator's source envelope contains `exampleformat: 1` and an `examples`
+map. Each example contains neutral `records` with `kind` and `entity`, a
+`snapshot` class, available `resolvedmodelsource`, and `documents` keyed by
+full Version XID. Each document supplies exactly one of `text`, `base64`,
+`url` or `none: true`, with `origin` and `base` where applicable. Text is
+encoded as UTF-8 without adding a newline; Base64 preserves exact binary
+and empty bytes. This notation is input to the example generator, not a
+Core response, mapping extension or normative interchange format.
+`--input PATH` selects another source document using the same notation.
 
 Protocol observations and expected errors live in the
 [HTTP tests](bindings/tools/test_http_examples.py),
@@ -191,31 +191,31 @@ Run the offline suites from the repository root:
 python -B -m pytest workingdrafts\bindings\tools workingdrafts\federation\tools workingdrafts\models\wot\tests -q
 ```
 
-Tests distinguish exact document bytes, selected Version identity, complete
-graph validation and selective fetch traces. The suite covers representative
-specification examples, not exhaustive helper regressions. It omits many
-filesystem races, URI variants, graph-budget boundaries and protocol error
-permutations. None of these observations alone establishes the
-others. The [source-resolution helper](federation/tools/federation_resolution_examples.py)
+The tests check exact document bytes, selected Version identity, complete
+graph validation and selective fetch traces separately; a check of one does
+not establish the others. They cover representative specification examples
+rather than exhaustive helper regressions, omitting many filesystem races,
+URI variants, graph-budget boundaries and protocol error permutations.
+The [source-resolution helper](federation/tools/federation_resolution_examples.py)
 also checks local shadows and ordered source misses through in-memory reads.
-For a channel moving while a reader stays pinned, see the separate
+For an example in which a channel moves while a reader stays pinned, see the
 [publication walkthrough](publication/samples/README.md#promotion-rollback-and-an-already-open-reader).
 
 ## Publication Extension
 
-[Channels and snapshots](publication/spec.md) separate a mutable publication
-channel from the captured state it selects. A channel's conditional head
-selects an immutable manifest over the Registry state defined by federation.
-Channel selection does not establish domain compatibility, and neither a
-channel nor a snapshot is represented by a Group.
+[Channels and snapshots](publication/spec.md) let a publisher move a channel
+to a new captured state while existing readers retain their selected state.
+A channel's conditional head selects an immutable manifest over the Registry
+state defined by federation. Selecting a channel does not establish domain
+compatibility. Neither a channel nor a snapshot is represented by a Group.
 
 The extension includes a reusable [model](publication/model.json),
 [schemas](publication/schemas/publication.json) and
-[executable examples](publication/samples/README.md). Publication owns
-conditional writes and retention. Federation remains read-only. Its HTTP
-open context provides a concrete snapshot pin without changing ordinary
-HTTP advertisements. Cross-binding equivalence requires a checked mapping,
-not equality of Registry IDs.
+[executable examples](publication/samples/README.md). Publication defines
+conditional writes and retention; federation remains read-only. The
+publication HTTP open context supplies a snapshot pin without changing
+ordinary HTTP advertisements. Cross-binding equivalence requires a checked
+mapping; equal Registry IDs alone do not establish it.
 
 The [WoT publication and versioning design](publication/design/design.md)
 supplies the domain-specific closure design, schema, shape example, checks
@@ -242,17 +242,18 @@ defines how an xRegistry stores and describes artifacts in an
 | [OpenUSD Artifact Registry](models/openusd/spec.md) | Asset containers, artifact Resources, identifiers and the dependency closure. |
 | [Model artifacts](models/openusd/README.md) | The authoritative model and its identifier tests. |
 
-A stage opens against one root layer and pulls in other artifacts through
-composition arcs. That transitive set is the **dependency closure**. A Consumer
-missing any member cannot compose the scene correctly. The draft defines how
-to describe the closure, verify its members through per-Version digests, and
-apply Core versioning and federation across registries.
+A stage opens against one root layer and uses composition arcs to obtain
+other artifacts. This transitive set is the dependency closure. If a
+Consumer lacks a member, it cannot compose the scene correctly. The draft
+defines how to describe the closure, verify its members through per-Version
+digests, and apply Core versioning and federation across Registries.
 
-Because the registry is an xRegistry document store, an existing USD asset
-resolver can retrieve an artifact by URL without any xRegistry awareness. The
-draft is also the wire-format peer of an externally defined OPC UA projection
-of the same model. Both use the same collection names, attribute names, and
-identifier rules. The draft does not depend on the projection.
+An existing USD asset resolver can retrieve an artifact by URL without
+xRegistry awareness because the Registry is an xRegistry document store.
+The draft is also the wire-format peer of an externally defined OPC UA
+projection of the same model. The two use the same collection names,
+attribute names and identifier rules, but the draft does not depend on
+the projection.
 
 Cross-references to the xRegistry [Schema](../schema/spec.md) and
 [Endpoint](../endpoint/spec.md) registries are informative. An implementation

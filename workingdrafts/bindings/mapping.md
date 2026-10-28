@@ -15,12 +15,12 @@
 
 ## Abstract
 
-This specification maps an existing directory to a read-only xRegistry for
-the [Git](git.md) and [File](file.md) federation bindings. Add `registry.json`
-without reorganizing the directory's existing files. It can embed all
-metadata inline or reference further metadata files. Versions reference the
-existing files through paths inside the selected root. Storage paths are not
-entity identifiers.
+This specification defines a read-only xRegistry mapping for the
+[Git](git.md) and [File](file.md) federation bindings. A producer adds
+`registry.json` to an existing directory without reorganizing its files.
+The mapping embeds metadata inline or references separate metadata files.
+Versions reference existing document files through paths inside the selected
+root. These storage paths are separate from entity identifiers.
 
 **Status:** Unreleased working draft, format version `1`. This document is
 not part of a released xRegistry specification.
@@ -48,10 +48,11 @@ document are to be interpreted as described in
 [RFC2119](https://www.rfc-editor.org/rfc/rfc2119).
 
 [Core 1.0-rc4](../../core/spec.md), its
-[model language](../../core/model.md) and [federation](../federation/spec.md) define entity
-semantics, selection and errors. This format does not define a server,
-write-through interface, global identifier or synchronization protocol.
-Normative schemas describe storage, not another domain model:
+[model language](../../core/model.md) and [federation](../federation/spec.md)
+define entity semantics, selection and errors. Servers, write-through
+interfaces, global identifiers and synchronization protocols are outside
+the scope of this format. The normative schemas define storage
+representations rather than a separate domain model:
 
 - [Entity record schema](schemas/document-record.schema.json).
 - [Collection index schema](schemas/document-index.schema.json).
@@ -63,11 +64,10 @@ does not establish Core model compliance or graph completeness.
 
 ## Motivation and Use
 
-This format stores the snapshots read by the Git and File bindings. A
-publisher can capture a Registry in one directory tree and make that tree
-available in a Git commit, an offline bundle or a local filesystem. A consumer
-or federating API server reads the selected metadata and document bytes from
-that tree.
+The Git and File bindings use this format to read a captured Registry from
+one directory tree. A publisher can distribute the tree in a Git commit,
+an offline bundle or a local filesystem. A consumer or federating API server
+then reads the selected metadata and document bytes from that tree.
 
 Core already defines [single-document](../../core/spec.md#single-document-view)
 and [multiple-document](../../core/spec.md#multiple-document-view) views.
@@ -75,11 +75,12 @@ An ordinary Core JSON export is appropriate when one document is sufficient.
 A [no-code HTTP server](../../core/http.md#no-code-servers) can serve files
 whose paths implement the HTTP binding. Neither requires this format.
 
-The mapping adds complete typed collection indexes and exact size/digest
-references. These permit selective reads and integrity checks while leaving
-existing file names and directory structure unchanged. Stored records are
-not Core API responses. The reader assembles them into the Core document
-view defined below.
+This format adds complete typed collection indexes and references that
+record exact byte sizes and digests. A reader uses them to select and verify
+content without requiring changes to existing filenames or directory
+structure. The stored records are metadata fragments. The reader assembles
+them into the Core document view defined below; it does not return them as
+Core API responses.
 
 For example, a project can already contain `source/specs/widget.json`,
 `engineering/assets/image.dat`, its application code and a README. Adding
@@ -98,21 +99,20 @@ project/
   README.md
 ```
 
-`registry.json` identifies the Registry and its modeled collections. Its
-collection indexes and entity records associate
-`/documents/main/assets/item` with its Meta and Versions. Here they are
-embedded inline in `registry.json`. A Version record can contain a local
-document descriptor whose `href` is `source/specs/widget.json`. This path is
-relative to the selected root, not to the file holding the Version record.
-Its `size` and `sha256` describe the existing file's exact bytes. Neither
-`widget.json` nor `image.dat` needs to move or change.
+`registry.json` identifies the Registry and its modeled collections. In this
+example, `registry.json` embeds the collection indexes and entity records
+inline, associating `/documents/main/assets/item` with its Meta and Versions. A
+Version record can reference the existing document through a local
+descriptor with `href` set to `source/specs/widget.json`. The path is
+relative to the selected root, regardless of which file holds the Version
+record. The descriptor's `size` and `sha256` describe the file's exact
+bytes. Neither `widget.json` nor `image.dat` needs to move or change.
 
-The mapping does not prescribe inline storage. A publisher can instead
-store any record or index in a separate metadata file, beside the described
-files or in a separate directory, and choose the directory names of such
-files. Unreferenced files such as `source/main.py` and the README do not
-become Resources automatically and are not part of the Registry's declared
-content closure.
+A publisher can instead store any record or index in a separate metadata
+file, beside the described files or in a directory of its choice. A publisher
+need not use inline storage. Unreferenced files, such as `source/main.py` and
+the README, neither become Resources automatically nor participate in the
+Registry's declared content closure.
 
 The [worked example](#worked-example-map-one-existing-file) below shows
 every file needed to map one existing document and the resulting reads.
@@ -133,11 +133,10 @@ This example maps one existing file to Resource
 The selected root is the `project` directory. No file outside that
 directory is read.
 
-You can save the JSON block below directly. Use UTF-8, two-space
-indentation, LF line endings and one final newline. The size and digest
-values describe those exact bytes. If you change the document, recalculate
-its size and digest in the Version's document descriptor inside
-`registry.json`.
+To save the JSON block below, use UTF-8, two-space indentation, LF line
+endings and one final newline. The size and digest values describe those
+exact bytes. After changing the document, recalculate its size and digest
+in the Version's document descriptor inside `registry.json`.
 
 To generate this project instead, select `walkthrough` from the
 [shared examples](../README.md#generating-and-reading-examples):
@@ -147,12 +146,12 @@ python -B -m workingdrafts.federation.tools.generate_examples file --example wal
 ```
 
 The generator writes the unchanged document, an inline `registry.json` and
-a `.gitattributes` file that disables text conversion for the document. Its
-Registry root also contains the full captured Core model from the shared
-source. The `registry.json` below omits that `model` attribute and keeps only
-`modelsource`, so the generated root has a different size and digest. The
-[walkthrough tests](tools/test_mapping_examples.py) check that removing
-the model reproduces the bytes below exactly.
+a `.gitattributes` file that disables text conversion for the document.
+Unlike the listing below, the generated Registry root also contains the
+full captured Core model from the shared source. The `registry.json` listing
+omits `model` and retains only `modelsource`, so its size and digest differ
+from the generated root. The [walkthrough tests](tools/test_mapping_examples.py)
+check that removing the model reproduces the listed bytes exactly.
 
 ### 1. Keep the Existing Document
 
@@ -372,12 +371,13 @@ records without treating storage paths or nesting as entity navigation.
 }
 ```
 
-The root declares the model and holds the `documents` collection inline.
-That collection holds Group `main`, then its `assets` collection, Resource
-`widget`, the Resource's Meta and its Versions. Each inline reference keeps
-its `kind` and `xid` and carries the complete record or index, with its own
-`format` and `formatversion`, in `inline`. The Meta names `v1` as the
-default. The Version record points to the unchanged file.
+The root declares the model and embeds the `documents` collection. Nested
+within that collection are Group `main`, its `assets` collection, Resource
+`widget`, and the Resource's Meta and Versions. Each inline reference
+retains its `kind` and `xid` and contains the complete record or index in
+`inline`, including that object's own `format` and `formatversion`. The
+Meta selects `v1` as the default, and the Version record references the
+unchanged file.
 
 ### 3. Read Metadata or Document Bytes
 
@@ -416,10 +416,10 @@ bytes because its Meta selects `v1`. These are read-operation concepts,
 not additional HTTP routes. A server exposing this mapping uses its
 consumer-facing binding to deliver the corresponding response.
 
-`registry.json` and the document form the complete declared Registry in
-this example. Other project files are unaffected. If `widget.json` later
-changes, its old size/digest no longer matches and the reader reports
-`integrity_error` until the mapping is updated.
+The declared Registry in this example consists entirely of `registry.json`
+and the document; other project files are unaffected. If `widget.json`
+changes without a corresponding mapping update, its size or digest no
+longer matches the descriptor and the reader reports `integrity_error`.
 
 ### 4. Store One Collection in a Separate File
 
@@ -481,11 +481,11 @@ the Version record still inline. It is 992 bytes with SHA-256
 
 The changed `registry.json` is 4302 bytes with SHA-256
 `002d2a3bd4abbe0e2822e829925346bc4380a4c7380848a9bc2494c74026bfea`.
-Reads return the same metadata and document bytes. A reader opens
-`registry-metadata/versions.json` only when a request reaches the Version
-collection. Storing every record and index in its own file, the split form,
-is equally valid. It produces eight metadata files for this example,
-including `registry.json`.
+The separate index does not change the returned metadata or document bytes.
+A reader opens `registry-metadata/versions.json` only when a request reaches
+the Version collection. The split form stores every record and index in a
+separate file and is equally valid. For this example it produces eight
+metadata files, including `registry.json`.
 
 <!-- mapping-walkthrough:end -->
 
@@ -495,19 +495,19 @@ The selected directory MUST contain `registry.json`. Its record MUST have
 `kind: "registry"` and `entity.xid: "/"`. Git's `parameters.path` and File's
 endpoint select this same directory. Neither adds an implicit extra directory.
 
-Every internal `href` is relative to that selected root, including references
-in nested records and inline objects. It is NOT relative to the referring
-file. The `/` separator
-in these serialized storage names is a format separator. Filesystem bindings
-translate it to their native separator without URI decoding.
+Every internal `href` is relative to the selected root, including references
+in nested records and inline objects. The referring file's directory does
+not supply the base. The `/` character separates components in serialized
+storage names; filesystem bindings translate it to the native separator
+without URI decoding.
 
-Apart from the entry-point filename, this format prescribes no directory
-names, file extensions or correspondence between physical and Registry
-hierarchies. The `href` of an external record or index reference identifies
-the complete metadata JSON document at that location. An inline reference
-has no `href` and allocates no file. Each local Version document `href`
-identifies a regular file anywhere within the selected root, regardless of
-its extension or domain format.
+Only the entry-point filename is fixed. Directory names, file extensions and
+the correspondence between physical and Registry hierarchies are producer
+choices. The `href` of an external record or index reference identifies the
+complete metadata JSON document at that location. An inline reference has
+no `href` and allocates no file. A local Version document's `href` selects
+a regular file within the root, independently of its extension or domain
+format.
 
 Paths MUST be nonempty, normalized root-relative strings with `/` separators.
 They MUST NOT be absolute, contain empty components, `.` or `..` components,
@@ -537,17 +537,18 @@ derived from the entity ID. The mapping therefore supports all Core-valid
 portable filesystem names. The same local ID
 in different typed collections remains distinct.
 
-Core's case-insensitive uniqueness within a parent and case-sensitive lookup
-still apply. A pair differing only in case in the same collection is invalid
-Core data, not a filesystem collision to repair.
+Core requires case-insensitive uniqueness within a parent and case-sensitive
+lookup. Two IDs differing only in case within one collection are therefore
+invalid Core data. Changing their storage paths cannot repair that conflict.
 
 An ID MUST match the entire string against
 `[A-Za-z0-9_](?:[A-Za-z0-9_.~:@-]){0,127}`. Whitespace and trailing
 line terminators are not part of an ID. This grammar is independent of native
 filename rules.
 
-An implementation unable to represent the total path length or object count MUST report
-`limit_exceeded`. It MUST NOT truncate, normalize or replace an entity ID.
+If an implementation cannot represent the total path length or object count,
+it MUST report `limit_exceeded`. It MUST NOT truncate, normalize or replace
+an entity ID.
 
 By default, the example generator writes every record and index to its own
 file. It uses `records/`, `indexes/` and `documents/` directories, with
@@ -567,10 +568,10 @@ has `format: "xregistry-document-tree"` and `formatversion: "1"`, including
 an inline one.
 An unknown version MUST produce `unsupported_version`.
 
-An entity record contains `kind` and `entity`. `entity` is a storage fragment
-of Core metadata, with full `xid` and explicit model-named identifiers.
-These records store metadata without API navigation fields. A reader adds
-the navigation links when it assembles a Core response, as described in
+An entity record contains `kind` and `entity`. The `entity` object stores a
+fragment of Core metadata, including the full `xid` and explicit model-named
+identifiers, but no API navigation fields. A reader adds navigation links
+when assembling a Core response, as described in
 [Reads and Core Document View](#reads-and-core-document-view).
 
 | Kind | REQUIRED metadata in `entity`, in addition to `xid` |
@@ -596,10 +597,9 @@ and their reason attributes.
 For a Resource model with `hasdocument: true`, it MUST NOT contain inlined
 `<RESOURCE>` or `<RESOURCE>base64` document content.
 
-These omissions do not permit dropping other Core or extension data. In
-particular, an ordinary
-model-admitted attribute of a metadata-only Resource is not document content
-merely because its name uses one of these spellings.
+The omitted fields do not authorize removal of other Core or extension data.
+On a metadata-only Resource, an ordinary model-admitted attribute remains
+metadata even when its name has one of these spellings.
 
 Registry and Group records have a `collections` array containing exactly one
 reference for every modeled child collection, even an empty one.
@@ -634,9 +634,9 @@ forms, or an external reference that lacks `href`, `size` or `sha256`, is
 It is unrelated to the `external` document descriptor kind.
 
 The reference's kind and XID MUST equal the referenced object's kind and XID.
-Its role comes from this metadata, not its directory name, file extension or
-nesting position. In the external form, both `size` and `sha256` are
-REQUIRED, including for zero-byte content.
+This metadata determines the object's role independently of its directory
+name, file extension or nesting position. Both `size` and `sha256` are
+REQUIRED in an external reference, including for zero-byte content.
 
 An inline target is a complete record or index document. It MUST have the
 same `format` and `formatversion` as the object that contains it. A mismatch
@@ -701,19 +701,19 @@ This object MUST be self-contained and preserve
 `modelbase` MUST record the absolute base of the
 original source. Consumers MUST NOT re-fetch mutable includes during a read.
 
-The producer MUST establish equivalence of the captured source, resolved
+The producer MUST establish equivalence between the captured source, resolved
 source and full model, when present. The original include directives remain
 available through
-[`entity.modelsource`](../../core/spec.md#modelsource-attribute).
-The resolved copy is storage context,
-not a second authoritative domain model.
+[`entity.modelsource`](../../core/spec.md#modelsource-attribute). The resolved
+copy supplies storage context without establishing a second authoritative
+domain model.
 
 When includes are absent, `resolvedmodelsource` is OPTIONAL and, if present,
 MUST equal `entity.modelsource`. Model reads expose the original source,
 available resolved source and available full model.
 
-Interpreting a compact source MUST apply Core defaults. It MUST NOT silently infer type sharing
-from structural similarity.
+When interpreting a compact source, the consumer MUST apply Core defaults.
+It MUST NOT silently infer type sharing from structural similarity.
 
 Model results MUST preserve `modelbase` when present. Registry metadata
 envelopes retain `snapshot` and available `source` outside `entity`. These
@@ -756,9 +756,9 @@ A relative URI MUST have an explicit absolute `base` on this descriptor.
 Neither the containing file, catalog URL, Git repository URL nor `source.uri`
 is an implicit base.
 
-Known integrity is represented by OPTIONAL paired
-`size` and `sha256` fields. Consumers MUST check both if they retrieve content
-with these fields. An external locator is not a metadata alias.
+Known integrity is recorded in OPTIONAL paired `size` and `sha256` fields.
+If those fields are present and a consumer retrieves the content, it MUST
+check both. An external locator does not create a metadata alias.
 
 A Version referencing a document MUST identify either local bytes or an
 explicit external location. A missing referenced local file is an
@@ -778,20 +778,20 @@ model-admitted metadata named `<RESOURCE>`, `<RESOURCE>base64` or
 `<RESOURCE>url` as metadata. Consumers MUST NOT decode or dereference it as
 document content.
 
-A document request MUST produce `unsupported_operation`. This is distinct from a present
-zero-byte document.
+A document request for such a Resource MUST produce `unsupported_operation`.
+A present zero-byte document is a different case.
 
 ## Reads and Core Document View
 
 Core's [`doc` flag](../../core/spec.md#doc-flag) defines document-view
 metadata. The `document` operation below instead retrieves domain bytes.
 
-An exact read walks the Registry record, the necessary typed collection
-indexes and selected child records. A Version read MUST NOT require reading
-unrelated domain bytes. A consumer MAY scan a collection index in memory.
-The format defines one complete index per collection and no pagination.
-An inline object arrives with its containing file and costs no further file
-read. Following an external reference reads its file once.
+An exact read starts at the Registry record and follows the necessary typed
+collection indexes and selected child records. A Version read MUST NOT
+require unrelated domain bytes. A consumer MAY scan a collection index in
+memory; the format defines one complete index per collection, without
+pagination. Inline objects require no read beyond their containing file.
+Each followed external reference requires one read of its file.
 
 If a configured limit prevents a consumer from reading the complete index
 or the records needed for its request, the consumer MUST return
@@ -800,9 +800,9 @@ collection or use that subset to claim a unique match. The inline nesting
 depth within one file and the cumulative number of decoded metadata objects
 are such limits, in addition to file count and byte limits.
 
-The following materialization defines the metadata result envelope. The
-envelope is not a new wire API. It keeps storage and transport context outside
-Core metadata:
+The reader materializes results in the following envelope, keeping storage
+and transport context separate from Core metadata. The envelope does not
+define a new wire API:
 
 | Operation | Envelope and materialization |
 | --- | --- |
@@ -882,10 +882,10 @@ permit offline interpretation in both classes.
 The shared [snapshot classes](../federation/spec.md#snapshots-and-completeness)
 describe these completeness claims independently of selective retrieval.
 
-Here `scope: "/"` denotes the modeled Registry, not every file physically
-present in the selected directory. Only files reached through the mapping's
-references participate in its completeness and integrity checks. Existing
-unreferenced project files remain outside that graph.
+The value `scope: "/"` covers the modeled Registry. Completeness and
+integrity checks cover files reached through the mapping's references,
+rather than every file in the selected directory. Unreferenced project
+files remain outside the graph.
 
 Only the mapping's external record and index references and its
 local-document descriptors identify files that belong to its stored Registry
@@ -899,9 +899,9 @@ domain bytes are not such references. Offline completeness does not require
 copying every Registry mentioned by a catalog or following links inside
 domain documents.
 
-An OPTIONAL full-graph validator checks every referenced object. A selective
-read validates its visited path but MUST NOT claim to have independently
-audited unvisited graph closure.
+A full-graph validator is OPTIONAL and checks every referenced object.
+A selective read validates only its visited path and MUST NOT claim an
+independent audit of unvisited graph closure.
 
 Consumers MUST verify length and SHA-256 before parsing or returning each
 internally referenced file. An inline object has no separate size or digest.
@@ -928,16 +928,15 @@ All data in a [package](../federation/spec.md#notations-and-terminology), the
 stored mapping and its referenced documents, is untrusted.
 
 Producers MUST use regular files and real directories. They MUST NOT use
-symlinks, reparse
-points, parent paths, device names, alternate
-data streams or OS aliases.
+symlinks, reparse points, parent paths, device names, alternate data streams
+or OS aliases.
 
 Consumers MUST enforce selected-root containment before reading bytes.
 
-Dot segments, empty components, backslashes, absolute
-paths are not valid `href` syntax. Percent encodings that could be interpreted
-as separators or parent-path components, such as `%2f`, `%5c` and `%2e%2e`,
-are also rejected. The reader does not decode an `href` as a URI.
+Dot segments, empty components, backslashes and absolute paths are invalid
+in an `href`. Percent encodings that could be interpreted as separators or
+parent-path components, such as `%2f`, `%5c` and `%2e%2e`, are also rejected.
+The reader does not decode an `href` as a URI.
 
 Bindings define access to the selected root and race protection. Consumers
 MUST impose explicit file, byte and traversal limits. Traversal limits cover
@@ -947,11 +946,11 @@ ensure authorized filesystem access or establish publisher trust. Before
 retrieving an external URI, the consumer MUST check that destination against
 its access policy and use only credentials authorized for that destination.
 
-A producer conforms by emitting schema-valid records and indexes satisfying
-all semantic, byte and closure rules. A consumer conforms by implementing
-the common read semantics and its selected binding's safety rules. The
-offline-complete class adds local declared document content. There is no
-requirement to implement a server or an API-view facade.
+A conforming producer emits schema-valid records and indexes that satisfy
+all semantic, byte and closure rules. A conforming consumer implements the
+common read semantics and the selected binding's safety rules. The
+offline-complete class additionally requires local declared document
+content. Neither role requires a server or an API-view facade.
 
 ## Executable Example
 
@@ -1054,10 +1053,11 @@ source. The reader and validation interfaces remain available independently
 of generation.
 
 The filesystem example detects ordinary concurrent modification and rejects
-static symlinks/reparse points. It is not a hardened boundary against hostile
-processes racing pathname lookup. Such use requires OS handle-relative,
-no-follow traversal or a private immutable snapshot as described by the File
-binding. This limitation is not a claim of production resolver conformance.
+static symlinks and reparse points. It does not protect against a hostile
+process changing paths during lookup. That environment requires OS
+handle-relative, no-follow traversal or a private immutable snapshot, as
+described by the File binding. The example therefore does not claim
+production resolver conformance.
 
 ## References
 

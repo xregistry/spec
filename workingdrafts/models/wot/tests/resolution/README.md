@@ -3,11 +3,12 @@
 <!-- words: allowprerelease contentdigest minversion prereleases py pytest submodel typelinks versionorigin workingdrafts wotid -->
 <!-- words: standalone -->
 
-The checker runs 27 representative cases from [vectors.json](vectors.json)
-against the reference implementation.
+The checker exercises version assignment and reference resolution against the
+reference implementation using 27 representative cases from
+[vectors.json](vectors.json).
 [Section 1.3](../../spec.md#13-versioning) defines version assignment;
 [Section 5.4](../../spec.md#54-versioned-reference-resolution) defines resolution.
-The cases illustrate those rules rather than exhaustively test the helper.
+The cases illustrate those rules; they do not exhaustively test the helper.
 The `sha256:` values are syntactically valid placeholders, not digests of
 WoT documents.
 
@@ -26,10 +27,10 @@ The script performs these checks:
    and vectors.
 3. It runs the reference implementation against every expected result.
 
-When `jsonschema` is unavailable, the script reports that it skipped shape
-validation. It still runs the semantic cases. When a check fails, the script
-exits with a nonzero code. All other checks use Python's standard library.
-The script does not fetch schemas or documents.
+If `jsonschema` is unavailable, the script reports skipped shape validation
+and still runs the semantic cases. Any failed check produces a nonzero exit
+code. All checks other than schema validation use Python's standard library.
+The script fetches neither schemas nor documents.
 
 Normal pytest and the Windows/Linux example jobs also run each case by ID,
 with schema validation REQUIRED:
@@ -63,11 +64,12 @@ The `reference.kind` field identifies the operator:
 - `td-extends`, `td-subthing`, and `td-ref` identify TD-to-TD operators.
 
 `minVersion` holds the normalized floor. When present, `floorTerm` records
-whether the input used `tm:minVersion` or `td:minVersion`. The checker uses
-that term to reject a floor attached to the wrong target kind. When the caller
-omits both properties, the checker uses the term expected for `kind`. When
-`publish.targetKind` is `"td"`, publication uses `version.instance`. Otherwise,
-the request targets a TM and uses `version.model`.
+whether the input used `tm:minVersion` or `td:minVersion`, so the checker can
+reject a term attached to the wrong target kind. If the caller omits both
+properties, the checker uses the term expected for `kind`.
+
+Publication uses `version.instance` when `publish.targetKind` is `"td"`.
+Otherwise the request targets a TM and uses `version.model`.
 
 Every entry in `registry[].versions` has `versionid`, `versionorigin`, and
 `contentdigest`. The `versionorigin` field accepts `authored` or
@@ -106,21 +108,20 @@ the checker returns `unsatisfied`. Each fixture's `registry` array contains
 at most one Resource per `wotid`. Resolve any matches across registries and
 Groups before building the fixture.
 
-A successful resolution returns the portable fields `wotid`, `versionid`,
-and `contentdigest`. The production resolver also returns `origin`. That
-value describes resolver context, not authored document data or a Resource
-attribute. The checker fixes the origin as `https://registry.example` and
-checks it before comparing the portable fields. Consumers MUST retain the
-actual registry origin in production output.
+A successful resolution returns the portable fields `wotid`, `versionid`
+and `contentdigest`. The production resolver also returns `origin`, which
+describes resolver context rather than authored document data or a Resource
+attribute. The checker fixes this value at `https://registry.example` and
+checks it before comparing the portable fields. In production output,
+Consumers MUST retain the actual Registry origin.
 
-A successful publication returns `versionid`, `versionorigin`, and
-`defaultversionid`. Each request targets an existing Resource snapshot. A
-snapshot with no Versions represents creation. The returned default is Core's
-post-publication default, not the resolver's prerelease-filtered choice. The
-cases assign TM or TD Version ids and select that default. They do not test
-document compatibility validation or Core HTTP envelopes. The input schema
-accepts syntactically invalid values so the cases can check the corresponding
-domain errors.
+A successful publication returns `versionid`, `versionorigin` and
+`defaultversionid`. Each request targets an existing Resource snapshot; a
+snapshot with no Versions represents creation. The cases assign TM or TD
+Version ids and select Core's post-publication default, not the resolver's
+prerelease-filtered choice. They do not test document compatibility validation
+or Core HTTP envelopes. The input schema accepts syntactically invalid values
+so the cases can check the corresponding domain errors.
 
 An error expectation uses `{ "error": "<name>" }`. The name is one of:
 
@@ -206,5 +207,5 @@ Files use UTF-8, LF and a final newline, with two-space JSON indentation.
 
 These examples test resolver behavior, not source formatting. They omit many
 error permutations, additional SemVer ordering cases and TD-generated
-assignment. They also
-do not test stored-document digests, compatibility or deployed publication.
+assignment. Stored-document digests, compatibility and deployed publication
+are also outside their coverage.

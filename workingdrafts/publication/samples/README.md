@@ -3,19 +3,19 @@
 <!-- words: cas jsonld py pytest readme workingdrafts -->
 <!-- words: deepcopy hashlib hexdigest pathlib publicationerror viewversion walkthrough -->
 
-These examples check the domain-independent
-[publication contract](../spec.md). The authored
-[Registry export](registry.json) is synthetic. The [document](intro.txt) is
-synthetic too. Generated `manifest.json`, `channel.json` and `open.json` bind
-their exact bytes. URLs use reserved example domains. Checks perform no network IO.
+Use these examples to check the domain-independent
+[publication contract](../spec.md) without network IO. The authored
+[Registry export](registry.json) and [document](intro.txt) are synthetic.
+Generated `manifest.json`, `channel.json` and `open.json` bind their exact
+bytes. All URLs use reserved example domains.
 
-The Registry is a compact Core document-view input, not an API response with
-all server-generated metadata. It has a complete containment/default graph
-for this example and no external model includes. Original document bytes are
-separate from the Registry's external document locator. The in-memory object
-map supplies those bytes for offline replay.
+The compact Registry input uses Core document view with a complete
+containment/default graph for this example and no external model includes.
+It is not an API response containing all server-generated metadata. The
+original document bytes are stored separately from the Registry's external
+document locator; the in-memory object map supplies them during offline replay.
 
-Regenerate descriptors after changing an authored input:
+After changing an authored input, regenerate its descriptors:
 
 ```console
 python workingdrafts/publication/tools/build_samples.py
@@ -37,27 +37,27 @@ The suite checks:
 - Stale head writes and forks
 - Rollback epochs and non-reused deleted channel identities
 
-Negative graph cases recompute digests after altering the graph.
-The checks therefore have to detect the invalid graph, not just changed
-bytes.
+Negative graph cases recompute digests after altering the graph. The checks
+therefore need to detect invalid graph structure even when byte integrity
+checks pass.
 
-The helper accepts this example's self-contained interpreted model only.
-It explicitly rejects aliases and is not a full Core graph or domain-closure
-validator. The channel helper serializes in-memory operations. Its results do
-not establish atomicity, retention, or non-reuse across process restarts. A
-conformance claim requires evidence from adapter integration that covers
-native binding mapping, HTTP context links, and durable server writes.
+The helper accepts only this example's self-contained interpreted model and
+explicitly rejects aliases. It is not a full Core graph or domain-closure
+validator. The channel helper serializes operations in memory, so its results
+do not establish atomicity, retention or non-reuse across process restarts.
+Before claiming conformance, obtain adapter integration evidence for native
+binding mapping, HTTP context links and durable server writes.
 
-`publication-package.json` supplies the portable map from URLs to local files.
-The offline reader checks resolved containment and rejects unsafe paths.
-This demonstrates byte-bundle replay, not Git or OCI native projection.
+For local replay, `publication-package.json` maps URLs to portable local file
+paths. The offline reader checks resolved containment and rejects unsafe
+paths. This exercises byte-bundle replay, not Git or OCI native projection.
 
 ## Promotion, Rollback and an Already-Open Reader
 
-Run this Python walkthrough from the repository root with the same
-dependencies as the checks above. The second manifest adds preparation
-history but reuses the first manifest's document Version and bytes.
-The in-memory helper starts epochs at one and increments by one. The
+Run the following Python walkthrough from the repository root using the same
+dependencies as the checks above. It creates a second manifest with
+preparation history while reusing the first manifest's document Version and
+bytes. The in-memory helper starts epochs at one and increments by one. The
 [publication contract](../spec.md#publishing-and-opening-a-channel)
 requires increasing epochs, not that particular increment.
 
@@ -122,10 +122,12 @@ offline package: offline-complete
 missing bytes: unavailable
 ```
 
-The reader still verifies the second manifest after the channel returns
-to the first. Neither promotion nor rollback creates a document revision.
-The helper fails explicitly when a captured object is missing from the
-supplied byte map. It never uses the original URL to repair the offline read.
-The [bundle map](publication-package.json) maps URLs to local files. The
-[packaging rules](../spec.md#export-federation-and-binding-equivalence) apply
-the same check when the bytes reside in local files.
+The output shows that the reader still verifies the second manifest after
+the channel returns to the first. Neither promotion nor rollback creates a
+document revision. Removing a captured object from the supplied byte map
+causes an explicit failure; the helper does not contact the original URL to
+repair the offline read.
+
+The [bundle map](publication-package.json) maps URLs to local files. Under the
+[packaging rules](../spec.md#export-federation-and-binding-equivalence), the
+reader applies the same check to bytes stored in those files.

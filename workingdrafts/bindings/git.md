@@ -9,9 +9,9 @@
 
 ## Abstract
 
-This binding reads one xRegistry snapshot from a Git repository. It selects
-and pins a commit, then reads the [directory mapping
-format](mapping.md) directly from Git objects.
+This binding defines how a consumer reads one xRegistry snapshot from a Git
+repository. The consumer selects and pins a commit, then reads the
+[directory mapping format](mapping.md) directly from Git objects.
 
 **Status:** Unreleased working draft. This binding is not part of a released
 xRegistry specification.
@@ -38,25 +38,28 @@ document are to be interpreted as described in
 This binding implements the read contract of
 [federation](../federation/spec.md#read-operations), using
 [Core](../../core/spec.md) and [Model](../../core/model.md) Version 1.0-rc4.
-It defines no write-through, synchronization, checkout, build or repository
-execution. Publishing a Package is separate from consuming a federation.
+Write-through, synchronization, checkout, builds and repository execution
+are outside its scope. Publishing a Package is a separate operation from
+consuming a federation.
 
 ## Motivation and Example
 
-Git stores a Registry with the project metadata that defines or consumes it.
-A release can therefore pin the approved Registry state to a commit even if a
-branch or tag later moves. The [directory mapping format](mapping.md) keeps
-Registry metadata separate from domain bytes within that commit.
+A Git repository can store a Registry alongside the project metadata that
+defines or consumes it. A release can pin the approved Registry state to a
+commit and retain that state even if the branch or tag later moves. Within
+the commit, the [directory mapping format](mapping.md) keeps Registry
+metadata separate from domain bytes.
 
 For example, a repository at `https://example.com/registries.git` can store
 the mapping under `xregistry`. Selecting `refs/tags/release-1` and requesting
-`/documents/main/assets/item/versions/v1` first pins the tag's commit, then
-reads the corresponding Git blobs. It does not read working-tree files or
-choose the newest Resource Version from a Git timestamp.
+`/documents/main/assets/item/versions/v1` causes the resolver to pin the tag's
+commit before reading the corresponding Git blobs. The resolver reads no
+working-tree files and does not use a Git timestamp to select the newest
+Resource Version.
 
-The resolver can run in the consumer or in a federating API server. In the
-latter arrangement, the consumer uses a standard xRegistry API and the server
-uses this binding to read its source. The shared
+The resolver can run in the consumer or in a federating API server. When it
+runs in the server, the consumer uses a standard xRegistry API and the server
+reads the source through this binding. The shared
 [hosting models](../federation/spec.md#design-hosting-models) define that
 choice. Repository acquisition and source policy remain separate from the
 Core metadata returned to the consumer.
@@ -89,10 +92,9 @@ The resolver MUST NOT accept:
 - `:<path>` expressions.
 
 A complete object ID consists of exactly 40 or 64 hexadecimal characters,
-matching the repository's object format. Readers normalize its spelling to
-lowercase for the pin.
-
-A full ref is a selection input, not an immutable pin.
+according to the repository's object format. Readers normalize the spelling
+to lowercase when recording the pin. A full ref, by contrast, selects an
+object but does not itself provide an immutable pin.
 
 A nonempty `path` MUST use `/`-separated portable directory components.
 Components MUST be 1 to 64 ASCII letters, digits, `_`, `-` or `.`, begin with
@@ -121,18 +123,18 @@ never by embedded metadata credentials.
 ## Revision and Object Selection
 
 The resolver MUST establish one repository context using the selected HTTPS
-endpoint and caller access policy. Fetching into an isolated object store is
-permitted, but MUST NOT create or execute a working tree. Any acquisition
+endpoint and the caller's access policy. It can fetch into an isolated
+object store, but MUST NOT create or execute a working tree. Any acquisition
 MUST be explicit, bounded and complete for the requested operation.
 
 The resolver MUST resolve `revision` once. Lightweight tags and branches
 select their referenced object. The resolver MUST peel annotated tags to a
 commit. An object that cannot resolve to a commit is invalid selection input.
 
-The resolver MUST record the resulting complete commit OID, which remains
-pinned for the entire operation, including model, label and document reads.
-Movement of the
-original ref MUST NOT change that pin or trigger a second resolution.
+The resolver MUST record the resulting complete commit OID and retain that
+pin for the entire operation, including model, label and document reads.
+If the original ref moves, that movement MUST NOT change the pin or trigger
+a second resolution.
 Consumers MUST NOT substitute a currently reachable or newer commit when
 the selected commit is inaccessible.
 
@@ -150,36 +152,37 @@ case-sensitive Git tree-name comparison. Every component MUST be a tree.
 The selected tree MUST contain the format root `registry.json`.
 Every format `href` is resolved inside that same selected tree.
 
-An existing repository tree can become a Registry by adding `registry.json`,
-and any metadata files that it references, in a commit. Existing content
-stays at its current paths. The mapping, rather than the physical directory
-layout, determines its Group, Resource and Version hierarchy. Files not
-referenced by that mapping do not participate in the Registry's closure.
+A producer can turn an existing repository tree into a Registry by committing
+`registry.json` and any metadata files it references. Existing content keeps
+its paths. The mapping defines the Group, Resource and Version hierarchy
+independently of the physical directory layout. Files outside that mapping's
+references do not participate in the Registry's closure.
 
 Consumers MUST read `registry.json`, external records and indexes, and
-documents as blob payloads. Inline records and indexes arrive within the
-blob of their containing file.
+documents as blob payloads. An inline record or index is read as part of its
+containing file's blob.
 Consumers MUST NOT use checkout bytes, text conversion, clean/smudge filters
 or attributes. They MUST NOT use LFS downloads, hooks, external diff
 commands, build steps or repository code.
-Blob mode `100644` or `100755` denotes data. Executable permission does not
-authorize execution. Git object type and identity MUST be verified, in
-addition to the format's descriptor size and SHA-256.
+Blob modes `100644` and `100755` both denote data; executable permission does
+not authorize execution. Consumers MUST verify Git object type and identity
+as well as the format's descriptor size and SHA-256.
 
-A Git OID hashes a typed Git object representation. It is neither a raw
-document SHA-256 nor a Core `versionid`. The result origin MUST distinguish
-repository endpoint, selected root path, requested revision and resolved
-commit. None becomes `self` or modifies the selected entity XID.
+A Git OID hashes the typed Git object representation, rather than the raw
+document bytes. It is distinct from a document SHA-256 and a Core `versionid`.
+The result origin MUST distinguish the repository endpoint, selected root
+path, requested revision and resolved commit. These values neither become
+`self` nor modify the selected entity XID.
 
 ## Read Operations
 
-All logical reads use the shared format's
+All logical reads follow the shared format's rules for
 [exact indexes and records](mapping.md#record-and-index-documents), model,
-capabilities and document rules. Registry, Group, Resource, Meta and Version
+capabilities and documents. Registry, Group, Resource, Meta and Version
 metadata use its
 [Core document-view assembly](mapping.md#reads-and-core-document-view).
-No checkout-specific or
-Git-specific entity serialization is defined.
+This binding defines no checkout-specific or Git-specific entity
+serialization.
 
 The mapped Registry's enabled capabilities identify
 [who performs federation resolution](../federation/spec.md#signaling-who-performs-resolution).
@@ -213,15 +216,16 @@ When encountered on the selected root or traversed internal graph:
 | Missing pinned tree/blob | `inconsistent_snapshot`. No implicit lazy fetch or ref re-resolution. |
 | Wrong tree/blob type or malformed tree entry | `invalid_package`. |
 
-For this binding, a blob starting with the Git LFS v1 signature line
+In this binding, a blob starting with the Git LFS v1 signature line
 `version https://git-lfs.github.com/spec/v1` is an unsupported LFS path,
-including a CRLF-terminated signature. A producer needing those literal bytes
-as a domain document needs a different binding. `.gitattributes` does not
-override this rule.
+including a CRLF-terminated signature. If a domain document needs those
+literal bytes, its producer needs a different binding. `.gitattributes`
+does not override this rule.
 
-Unrelated submodules or LFS files elsewhere in the repository do not invalidate
-the selected tree. A full snapshot validator traverses its entire declared
-closure. A selective reader only encounters objects on its visited paths.
+Submodules and LFS files outside the selected graph do not invalidate the
+selected tree. A full snapshot validator traverses the entire declared
+closure, whereas a selective reader encounters only objects on its visited
+paths.
 
 ## Errors and Security
 
@@ -244,21 +248,21 @@ the selected object graph or bypass the permitted storage boundary.
 Readers using Git subprocesses MUST pass validated arguments directly without
 shell evaluation, and MUST isolate unsafe configuration/environment settings.
 
-Acquisition, tag peeling, tree traversal and object reads MUST have explicit
-resource limits. A resolver MUST NOT report limits or incomplete acquisition
-as successful empty results, or use them to justify fallback to another
-profile.
+The resolver MUST apply explicit resource limits to acquisition, tag peeling,
+tree traversal and object reads. It MUST NOT report an exhausted limit or
+incomplete acquisition as a successful empty result, or use either condition
+to justify fallback to another profile.
 
-Git content identity alone does not authenticate the publisher. Signature
-and repository trust policies are independent.
+A Git content identity verifies content, not the publisher's identity.
+Signature and repository trust policies are separate.
 
 ## Conformance
 
-A producer MUST publish a complete document-tree mapping in one
-commit at the advertised path. A native resolver MUST implement locator
-validation, commit pinning, object-only reads, the common operations and
-the rejection rules above. Offline-complete conformance additionally requires
-all declared document bytes locally in that snapshot.
+A producer MUST publish a complete document-tree mapping at the advertised
+path in one commit. A native resolver MUST implement locator validation,
+commit pinning, object-only reads, the common operations and the rejection
+rules above. An offline-complete snapshot additionally contains all declared
+document bytes locally.
 
 The [shared generator](../federation/tools/generate_examples.py) creates a
 new bare repository from a named Registry in
@@ -280,12 +284,12 @@ python -B -m workingdrafts.bindings.tools.mapping_examples document --git-dir D:
 ```
 
 The [offline helper](tools/mapping_examples.py) peels the annotated tag and
-pins its commit before reading. To select that same state in a later
-operation independently of ref movement, supply the complete commit ID
-reported by generation as `--revision`. The synthetic local repository
-exercises object reads. It is not an HTTPS advertisement or a remote
-publication. The [shared instructions](../README.md#generating-and-reading-examples)
-include Linux paths and the other named examples.
+pins its commit before reading. To read the same state in a later operation,
+regardless of ref movement, pass the generator's complete commit ID as
+`--revision`. The synthetic local repository exercises object reads without
+providing an HTTPS advertisement or a remote publication. The
+[shared instructions](../README.md#generating-and-reading-examples) include
+Linux paths and the other named examples.
 
 `GitStore(git_dir, revision, path="xregistry")` exposes the resolved `pin`,
 exact `read` bytes and visited storage paths. The same `DocumentTree` API

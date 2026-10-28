@@ -5,10 +5,9 @@
 <!-- words: openusd href td tm matchversions repointing -->
 <!-- words: contentdigest minversion prereleases versionorigin -->
 
-This document records identity, versioning, lookup, and provenance decisions
-for the [WoT Registry specification](spec.md) and its [model](model.json). It
-explains the reasoning behind those decisions. This working document changes
-with the draft.
+This working document explains the identity, versioning, lookup and provenance
+decisions behind the [WoT Registry specification](spec.md) and its
+[model](model.json). It changes with the draft.
 
 ## 1. Identity and version are separate values
 
@@ -16,18 +15,16 @@ with the draft.
 a compatible revision. A Thing Model's stable `wotid` includes its major
 version, such as `:v2`. It does not encode minor or patch revisions.
 
-**Why.** An identifier that changes with each compatible revision cannot
-serve as a stable reference. If each revision used a new `wotid`, the registry
-could not group documents for the same logical Thing or form their `ancestor`
-lineage. Every reference holder would replace its stored `wotid`. The `wotid`
-excludes minor and patch versions, so a recipient can resolve the document
-without parsing a version suffix.
+**Why.** Changing the identifier on each compatible revision would force every
+reference holder to replace its stored `wotid`. The Registry could no longer
+group documents for the same logical Thing or form their `ancestor` lineage.
+The stable `wotid` excludes minor and patch versions, so a recipient resolves
+the document without parsing a version suffix from its `wotid`.
 
-**Example.** A typo fix in the lamp `urn:fabrikam:lamp:42` leaves its `wotid`
-and `thingdescriptionid` unchanged. The correction becomes a new Version of the
-same Resource. A Consumer who wants the correction asks for the Resource
-`self` URL. A Consumer who wants the earlier text asks for that Version by
-name.
+**Example.** Correcting a typo in the lamp `urn:fabrikam:lamp:42` creates a new
+Version of the same Resource without changing its `wotid` or
+`thingdescriptionid`. A Consumer retrieves the correction through the
+Resource's `self` URL or names the earlier Version to retrieve the old text.
 
 **Consequence.** Each revision leaves `wotid`, `thingdescriptionid`, and
 `thingmodelid` unchanged. Each revision adds a Version to the same Resource.
@@ -51,15 +48,14 @@ MUST NOT rewrite these values into registry-specific identifiers:
 - `tm:extends`
 - `tm:ref`
 
-**Why.** WoT documents can refer to artifacts that the registry does not store
-or see. Rewriting these references would break them. It would also
-misrepresent the standard document and give identical bytes different
-identities in separate registries.
+**Why.** A WoT document can refer to artifacts outside the Registry. Rewriting
+those references would break them and misrepresent the standard document.
+It would also give identical bytes different identities in separate Registries.
 
-**Example.** A Thing Description can extend a Thing Model published elsewhere
-by using that model's authored identifier. Repointing the reference to this
-registry's own path would make the link easy to follow inside the registry but
-useless outside it. Other WoT tools resolve the reference in the WoT identifier
+**Example.** A Thing Description can extend an externally published Thing Model
+using that model's authored identifier. Repointing the reference to a local
+Registry path would make it easy to follow there but useless outside that
+Registry. Other WoT tools resolve the authored reference in the WoT identifier
 space.
 
 **Consequence.** The Resource `id` identifies a document within the registry,
@@ -75,13 +71,12 @@ See [Section 5.2](spec.md#52-preserving-customer-documents).
 supplies both values. The registry stores them together. It does not derive
 one from the other.
 
-**Why.** A WoT identifier is a URI, but xRegistry restricts which IDs are
-valid. Requiring one construction would add little and reduce portability. A
-first-party `wotid` lets a Consumer find the Resource by querying `wotid`.
-Hosting environments differ in the names they permit. An ARM-backed registry
-can permit fewer IDs than xRegistry. If the specification made every
-registry derive IDs the same way, an ARM-backed registry with stricter name
-limits could not conform.
+**Why.** A WoT identifier is a URI, while xRegistry restricts entity IDs.
+Hosting environments can restrict them further: an ARM-backed Registry can
+permit fewer IDs than Core. A mandatory construction would prevent such a
+Registry from conforming. It would add little and reduce portability because
+the first-party `wotid` already lets a Consumer find the Resource by querying
+`wotid`.
 
 **Example.** A registry can store `urn:fabrikam:lamp:42` under the Resource id
 `lamp-42`. It can instead use `urn.fabrikam.lamp.42`. Both choices conform. A
@@ -99,10 +94,10 @@ See [Section 5.1](spec.md#51-wot-identifiers-and-registry-ids).
 `thingdescription` and `thingmodel`. An implementation SHOULD index `wotid` so
 it can serve `?filter=wotid=<id>` without scanning the collection.
 
-**Why.** A resolver cannot rely on an informal label. The registry does not
-enforce, validate, or index such labels. The model defines `wotid` so the
-registry can reject a write with no identity. This avoids a later failure when
-a resolver looks for the document.
+**Why.** A resolver cannot rely on an informal label that the Registry does
+not enforce, validate or index. Defining `wotid` in the model lets the Registry
+reject a write with no identity rather than leave the resolver to fail when it
+later looks for the document.
 
 **Open point.** When a document has no `id` member, the Producer has to supply
 a `wotid`. The registry rejects a write that provides neither an `id` nor a
@@ -113,15 +108,15 @@ See [Section 5.3](spec.md#53-lookup).
 
 ## 5. Provenance metadata is advisory and does not affect identity
 
-**Decision.** Each Version carries these provenance attributes: `license`,
-`publisher`, and `standardsbody`. It also carries `canonicalurl` and
-`maturity`. They describe where the document came from. They never determine
-whether two documents are the same.
+**Decision.** Each Version carries provenance metadata in `license`,
+`publisher`, `standardsbody`, `canonicalurl` and `maturity`. These attributes
+describe where the document came from; they do not determine whether two
+documents are the same.
 
-**Why.** Agents need an explicit basis to prefer an official model over an
-obscure one. A title or naming convention alone is guesswork. Each Version
-stores these attributes with the document it describes. The metadata does not
-affect identity.
+**Why.** An agent needs explicit metadata to prefer an official model over an
+obscure one rather than guess from a title or naming convention. Keeping the
+attributes on each Version associates them with the document they describe
+without changing its identity.
 
 **Example.** An agent can prefer a Thing Model marked `Standard` by its
 `standardsbody` over one marked `Community`. Two documents from the same
@@ -171,8 +166,9 @@ below the next major. The resolver honours a sticky default only when it
 satisfies the applicable floor and range, and returns an exact selection with
 its origin.
 
-**Why.** A dependency can set a minimum compatible version. A caller can ask
-the resolver for the exact Version selected earlier:
+**Why.** Floors let a dependency require a minimum compatible version. Pins
+let a caller reproduce the exact Version selected earlier. The choices below
+define how the resolver handles both:
 
 | Choice | Rationale |
 |---|---|

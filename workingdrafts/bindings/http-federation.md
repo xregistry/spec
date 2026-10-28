@@ -10,10 +10,11 @@
 
 ## Abstract
 
-This specification maps the read operations of
-[xRegistry Federation](../federation/spec.md) to the existing
-[xRegistry HTTP binding](../../core/http.md). It adds catalog bootstrap,
-binding selection and capture requirements, not another HTTP API.
+This specification defines how a federation resolver uses the existing
+[xRegistry HTTP binding](../../core/http.md) to perform
+[xRegistry Federation](../federation/spec.md) reads. It specifies catalog
+bootstrap, binding selection and capture requirements without introducing
+another HTTP API.
 
 **Status:** Unreleased working draft, using xRegistry Core Version 1.0-rc4.
 Neither this document nor a catalog advertisement asserts compatibility
@@ -43,16 +44,16 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
 "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" are to be
 interpreted as described in [RFC2119][rfc2119].
 
-Core owns entity types, IDs, labels and
+Core defines entity types, IDs, labels and
 [default Versions](../../core/spec.md#default-version-of-a-resource).
-Core also owns [`xref`](../../core/spec.md#cross-referencing-resources),
+It also defines [`xref`](../../core/spec.md#cross-referencing-resources),
 [document view](../../core/spec.md#doc-flag), errors and request flags.
-The [HTTP binding](../../core/http.md#resource-metadata-vs-resource-document) owns
-methods, paths, `$details`, HTTP metadata headers and the wire
-representation of flags.
-[HTTP Semantics][http] and [HTTP Caching][cache] own HTTP processing.
-Requirements here apply to federation resolvers. They do not turn an
-OPTIONAL Core API into a mandatory server API or redefine CRUD operations.
+The [HTTP binding](../../core/http.md#resource-metadata-vs-resource-document)
+defines methods, paths, `$details`, HTTP metadata headers and the wire
+representation of flags. [HTTP Semantics][http] and [HTTP Caching][cache]
+define HTTP processing. This document's requirements apply to federation
+resolvers; they neither require servers to implement an OPTIONAL Core API
+nor redefine CRUD operations.
 
 In the tables, `B` is the selected Registry root URL, `G` is
 `/<GROUPS>/<GID>`, `R` is `G/<RESOURCES>/<RID>`, and `V` is
@@ -62,9 +63,10 @@ slash. It does not mean resolve a leading-slash URI against the host.
 
 ## Motivation and Example
 
-An existing xRegistry HTTP service can serve as a federation source. It does
-not need another API. A consumer-side resolver can use its catalog entry
-directly, or a federating API server can read it on behalf of its HTTP clients.
+An existing xRegistry HTTP service can serve as a federation source through
+its current API. A consumer-side resolver can select the service through its
+catalog entry, or a federating API server can read the service on behalf of
+its HTTP clients.
 
 For example, a source advertised at
 `https://first.example.com/services/xreg/` can supply
@@ -75,10 +77,11 @@ the consumer-visible Registry can perform those steps after a local Resource
 miss. A local shadow Resource takes precedence as described by the
 [shared resolution model](../federation/spec.md#design-resolving-a-consumer-request).
 
-This binding preserves the source's HTTP capabilities, pagination,
-conditional requests and authorization boundaries. A catalog describes an
-access method. It does not prove that a live HTTP read is an immutable
-snapshot or that unsupported query flags will be honored.
+A catalog advertisement describes how to access the source; it does not
+establish that live reads form an immutable snapshot or that the source
+honors unsupported query flags. The resolver uses the source's HTTP
+capabilities, pagination and conditional requests while preserving its
+authorization boundaries.
 
 ## Advertisement and Bootstrap
 
@@ -100,15 +103,16 @@ Selection, priorities, ties and implicit `xregurl` handling follow
 If explicit HTTP advertisements coexist with `xregurl`, one endpoint MUST
 match `xregurl` exactly. `weburl` is a website, not an API fallback.
 
-A resolver bootstrapping from a catalog MUST read the catalog model before
-interpreting its `categories` / `registries` collections. These catalog
-Resources have `hasdocument: false`. Their Version metadata contains
-`xregurl`, `weburl` and any `federationprofiles`. It is not a domain
-document to download.
+A resolver bootstrapping from a catalog MUST read its model before
+interpreting the `categories` / `registries` collections. These catalog
+Resources have `hasdocument: false`: `xregurl`, `weburl` and any
+`federationprofiles` belong to their Version metadata. They are not a
+domain document to download.
 
-An explicit catalog-description Version selects that Version. Otherwise,
-the catalog Resource's Core default Version applies.
-The described Registry's `registryid` need not equal the catalog entry ID.
+If the caller selects an explicit catalog-description Version, the resolver
+uses that Version. Otherwise, it uses the catalog Resource's Core default
+Version. The described Registry's `registryid` need not equal the catalog
+entry ID.
 
 The chosen advertisement establishes a new Registry context. The resolver
 MUST discover the target's version, model and capabilities independently
@@ -133,28 +137,28 @@ Registry root when provided. A resolver MUST interpret it in the response
 context and apply the same locator policy as for other links. A relocated
 root does not silently authorize access to a different origin.
 
-The resolver MUST obtain `specversion` from the Registry representation
-before interpreting model-dependent entities. A known, explicitly supported
-Core version is necessary. Parsing JSON is not a compatibility check.
-An unsupported version MUST produce `unsupported_version`. If supported,
-Core's [`specversion` flag](../../core/spec.md#specversion-flag) can request
-a compatible representation.
-The resolver MUST verify the version actually returned. The resolver MUST NOT
-mistake a silently ignored query parameter for successful negotiation.
+Before interpreting model-dependent entities, the resolver MUST obtain
+`specversion` from the Registry representation. The version needs to be
+known and explicitly supported; successful JSON parsing does not establish
+compatibility. An unsupported version MUST produce `unsupported_version`.
+Where supported, Core's
+[`specversion` flag](../../core/spec.md#specversion-flag) requests a compatible
+representation. The resolver MUST verify the returned version and MUST NOT
+treat a silently ignored query parameter as successful negotiation.
 
-`GET B/model` retrieves the interpreted model. `GET B/modelsource`, when
-available, retrieves the client-provided source and preserves information
-such as shared Resource type definitions. These are different documents.
-A missing model source is not an empty effective model. `{}` from a
-supported `/modelsource` has its Core meaning.
+`GET B/model` retrieves the interpreted model. When available,
+`GET B/modelsource` retrieves the client-provided source, preserving
+information such as shared Resource type definitions. The resolver keeps
+these documents distinct: a missing source is not an empty effective model,
+and `{}` returned by a supported `/modelsource` retains its Core meaning.
 
 `GET B/capabilities` retrieves
 [enabled capabilities](../../core/spec.md#registry-capabilities).
-A resolver MAY use
-already inlined capabilities or request supported inlining. It MUST NOT
-assume that `filter`, `inline`, pagination, `/export` or writes are enabled.
+A resolver MAY use already inlined capabilities or request supported
+inlining. It MUST NOT assume that `filter`, `inline`, pagination, `/export`
+or writes are enabled.
 
-Before composing the selected view, it MUST apply the shared
+Before composing the selected view, the resolver MUST apply the shared
 [resolution-owner signal](../federation/spec.md#signaling-who-performs-resolution).
 `federation.resolution: "producer"` means read the view directly without
 traversing its catalog. An absent signal defaults to consumer resolution.
@@ -162,9 +166,9 @@ traversing its catalog. An absent signal defaults to consumer resolution.
 An absent capabilities API, an absent flag, or `flags: null` provides no
 positive evidence for that flag.
 
-[`/capabilitiesoffered`](../../core/spec.md#offered-capabilities)
-describes choices
-that can be enabled, not what is currently enabled.
+[`/capabilitiesoffered`](../../core/spec.md#offered-capabilities) describes
+choices that can be enabled. It does not report the currently enabled
+capabilities.
 
 When an OPTIONAL read API is unavailable, a resolver MAY use an equivalent
 already obtained representation, a supported inline request, or an
@@ -174,9 +178,10 @@ and completeness. If no equivalent read exists, it MUST return
 
 ## Native Read Mapping
 
-These are mappings of the common abstract requests, not new request
-envelopes sent to the server. `model` and `capabilities` use abstract target
-`/`. `/model` and `/capabilities` below are HTTP API paths, not entity XIDs.
+The following table maps the common abstract requests to existing HTTP
+requests. It does not define request envelopes sent to the server. The
+abstract target of `model` and `capabilities` is `/`; the `/model` and
+`/capabilities` paths below are HTTP API paths rather than entity XIDs.
 
 | Abstract operation and target | Native HTTP request | Result |
 | --- | --- | --- |
@@ -196,9 +201,9 @@ envelopes sent to the server. `model` and `capabilities` use abstract target
 | `model`, `/` | `GET B/model`. `GET B/modelsource` when available | Effective model and available source, kept distinct. |
 | `capabilities`, `/` | `GET B/capabilities` or equivalent enabled map | Enabled capabilities for this endpoint and caller. |
 
-Collections do not take `$details`. Meta, Group and Registry URLs do not
-take it either. `Accept: application/json` does not replace `$details`:
-a domain document can itself be JSON.
+Collection, Meta, Group and Registry URLs do not take `$details`.
+`Accept: application/json` cannot replace `$details`, because a domain
+document can itself be JSON.
 
 The existing `GET B/export` convenience path, if supported, is precisely
 `GET B?doc&inline=*,capabilities,modelsource` with Core's flag semantics.
@@ -207,13 +212,12 @@ export MUST resolve document-local pointers within that returned document.
 
 ## Metadata, Documents and Versions
 
-Resource metadata, the Meta entity and Version metadata are separate views.
-In particular, a Resource's API-view `versionid` is the default Version
-projection, whereas
+Resource metadata, the Meta entity and Version metadata serve different
+purposes. A Resource's API-view `versionid` projects the default Version;
 [`meta.defaultversionid`](../../core/spec.md#defaultversionid-attribute)
-records the choice. A resolver
-MUST NOT choose a default by lexical order, modification time, enumeration
-order or the greatest Version identifier.
+records which Version was selected. A resolver MUST NOT substitute lexical
+order, modification time, enumeration order or the greatest Version
+identifier for that default choice.
 
 An explicit Version target MUST select that exact, case-sensitive Version.
 
@@ -221,8 +225,8 @@ When a multi-request operation needs both default metadata and bytes, the
 resolver SHOULD record the selected default Version ID and use its explicit
 Version URLs for subsequent requests.
 
-The resolver MUST detect a changed selection when claiming a consistent
-capture. Version IDs themselves do not make a live Version immutable.
+When claiming a consistent capture, the resolver MUST detect changes to the
+selection. A live Version can change without its Version ID changing.
 
 The following partial exchange uses the non-root base from the advertisement.
 Model, Core version and enabled-capability discovery precede these reads.
@@ -253,11 +257,10 @@ the document without resolving the default again. Version metadata instead
 uses that Version URL with `$details`, not another mandatory request in this
 sequence.
 
-A metadata-only type has no document request.
-
-A changed capture selection yields `inconsistent_snapshot`, not a continuation
-with newer bytes.
-See [Live Capture and Errors](#live-capture-and-errors) and the checked
+A metadata-only type has no document request. If the selection changes
+during capture, the operation produces `inconsistent_snapshot` rather than
+continuing with newer bytes. See
+[Live Capture and Errors](#live-capture-and-errors) and the checked
 [concrete read sequences](#concrete-read-sequences).
 
 For document-bearing types, body `self` links to Resource/Version metadata
@@ -290,17 +293,18 @@ IDs or change the selected Registry context.
 
 ## Literal Label Selection
 
-The common selector is an exact label-key lookup and a Core
-case-insensitive comparison of string values. Labels are OPTIONAL. Values
-can be empty. An absent label does not match an empty value. The resolver
+The common selector looks up an exact label key and compares its string
+value using Core's case-insensitive comparison. Labels are OPTIONAL, and
+their values can be empty. An absent label does not match an empty value.
+The resolver
 MUST NOT require a language label, impose NFC normalization, infer a locale
 from a category, or interpret the caller's `*` as a wildcard.
 
-A supported [HTTP filter](../../core/spec.md#filter-flag) is an optimization.
-The resolver MUST construct
+A supported [HTTP filter](../../core/spec.md#filter-flag) can reduce the
+candidate set. The resolver MUST construct
 [Core dot notation](../../core/spec.md#dot-notation-in-filters) relative to
-the requested collection and preserve literal
-meaning. It MUST escape a literal wildcard using Core's backslash escape
+the requested collection while preserving the selector's literal meaning.
+It MUST escape a literal wildcard using Core's backslash escape
 before URI encoding. It MUST quote label keys containing dot-notation
 operators using Core bracket notation. For example:
 
@@ -325,10 +329,10 @@ unambiguously by a supported filter, the resolver MUST use local selection
 over an unfiltered collection rather than invent an escaping extension.
 URI encoding alone does not escape Core expression syntax.
 
-The resolver MUST apply the same literal comparison to returned candidates
-even when filtering was requested. Core permits unsupported query flags to
-be ignored. A nonempty response therefore does not prove that the filter
-was implemented.
+Even after requesting a filter, the resolver MUST apply the same literal
+comparison to the returned candidates. Core permits a server to ignore
+unsupported query flags, so a nonempty response does not establish that the
+server applied the filter.
 
 ## Pagination and No-Filter Fallback
 
@@ -337,13 +341,12 @@ A resolver MUST process collection pages according to the
 necessary `Link` with `rel=next`, resolve a relative link against the
 response request URL, and then use that link without editing its query.
 The resolver MUST NOT synthesize page numbers, reattach the original filter,
-or add `limit` to subsequent links. Pagination links have the same credential
-and
-locator policy checks as redirects.
+or add `limit` to subsequent links. Pagination links are subject to the same
+credential and locator policy checks as redirects.
 
-Unique label selection requires the complete relevant candidate set. A
-match on the first page is not proof of uniqueness. No match after complete
-enumeration yields `not_found`. A second match yields `ambiguous`.
+To establish a unique label match, the resolver needs the complete relevant
+candidate set. A first-page match alone is insufficient. Complete enumeration
+with no match yields `not_found`; a second match yields `ambiguous`.
 An unavailable later page or a traversal limit MUST NOT become either a
 unique result or `not_found`. The resolver MUST report conflicting
 duplicates, changed declared totals or an incomplete capture, and MUST NOT
@@ -363,18 +366,20 @@ is not a replacement for the members or next links.
 
 ## HTTP Validators and Partial Content
 
-ETags are opaque, representation-scoped validators, not XIDs, Core epochs,
-global content digests or Registry-wide revision pins. Metadata and document
-URLs, query variants and content codings can have different validators.
+An ETag validates one representation. It is opaque and supplies neither an
+XID, a Core epoch, a global content digest nor a Registry-wide revision pin.
+Metadata and document URLs, query variants and content codings can have
+different validators.
 The resolver MUST use the selected representation's validator with that
 representation, respecting `Vary`, cache directives and authorization scope.
 
-Conditional `GET` with `If-None-Match` uses HTTP's weak comparison and can
-revalidate a cached response. `304 Not Modified` has no replacement body.
-The resolver MUST use an applicable stored response and update it according
-to RFC 9111 section 4.3.4. Without one, it needs an unconditional read or an
-explicit failure. `If-Modified-Since` and `Last-Modified` have HTTP's
-semantics and precedence, not Core timestamp semantics.
+Conditional `GET` with `If-None-Match` uses HTTP's weak comparison to
+revalidate a cached response. A `304 Not Modified` response supplies no
+replacement body. The resolver MUST use an applicable stored response and
+update it according to RFC 9111 section 4.3.4. If no such response is
+available, the resolver needs an unconditional read or an explicit failure.
+`If-Modified-Since` and `Last-Modified` follow HTTP semantics and precedence,
+independently of Core timestamp semantics.
 
 `If-Match` uses strong comparison. A resolver MUST NOT use a weak ETag where
 a strong validator is needed.
@@ -394,10 +399,11 @@ unverified joins MUST NOT produce a complete snapshot. A failed conditional
 read used to hold a capture stable, including `412`, yields
 `inconsistent_snapshot`.
 
-A gateway that transforms a representation MUST NOT blindly forward the
-upstream strong ETag as the validator for different bytes. It has to preserve
-HTTP validator semantics for its own representation or omit that validator.
-Federation imposes no unchanged-upstream-ETag requirement.
+If a gateway transforms a representation, it MUST NOT forward the upstream
+strong ETag unchanged as the validator for different bytes. The gateway
+either preserves HTTP validator semantics for its own representation or
+omits that validator. Federation does not require preservation of the
+upstream ETag.
 
 ## Redirects and Authorization Boundaries
 
@@ -411,10 +417,9 @@ Every redirect, advertised endpoint, next link and external document URL
 MUST pass caller policy. That policy includes scheme, destination, network
 access and redirect limits.
 
-The resolver MUST reject embedded credentials
-and MUST NOT
-automatically forward Authorization, cookies, client credentials or
-origin-specific conditional headers across a trust boundary.
+The resolver MUST reject embedded credentials and MUST NOT automatically
+forward Authorization, cookies, client credentials or origin-specific
+conditional headers across a trust boundary.
 
 Destination credentials require independent authorization. HTTPS downgrade and
 access to restricted network locations require explicit policy, not an implicit
@@ -452,17 +457,18 @@ Following it remains subject to redirect, destination and credential policy.
 The record identifies the exact manifest/Registry bytes. It is not an ETag
 for every API serialization.
 
-A context link alone does not prove API
-responses match the checked snapshot. A conforming producer MUST serve that
-graph, and a consumer claiming verified equivalence MUST check it.
+A context link identifies the snapshot but does not prove that API responses
+match it. A conforming producer MUST serve the checked graph, and a consumer
+claiming verified equivalence MUST check that correspondence.
 
-Without this extension or another explicit snapshot guarantee, report live
-access. Absence of a link MUST NOT be interpreted as a frozen Registry.
+Without this extension or another explicit snapshot guarantee, the resolver
+reports live access. It MUST NOT interpret an absent link as a frozen
+Registry.
 
-Reading a live endpoint is not an atomic Registry snapshot. A root epoch or
-ETag need not cover changes to descendants, and equal modification times
-do not prove an unchanged subtree. Even successful per-representation
-revalidation is not, by itself, a transaction spanning multiple URLs.
+A live endpoint can change between requests. Its root epoch or ETag need
+not cover descendants, and equal modification times do not establish that
+a subtree is unchanged. Successful revalidation of individual representations
+also does not establish a transaction spanning multiple URLs.
 
 A capture MUST record the following separately from Core IDs:
 
@@ -484,13 +490,11 @@ incomplete, the outcome is `inconsistent_snapshot`.
 For a multi-request capture, the resolver SHOULD recheck the default
 selection and the representations on which the capture depends.
 
-A changed default, changed representation, conflicting membership or interrupted
-page/byte sequence invalidates a claim of consistent capture.
-
+If a default or representation changes, membership conflicts, or a page/byte
+sequence is interrupted, the capture can no longer be claimed as consistent.
 The resolver MUST report `inconsistent_snapshot` and discard that claim.
-
-It MAY start a new, separately identified operation. A fresh capture is not a
-silent continuation using mixed old and new state.
+It MAY start a new, separately identified operation; that fresh capture does
+not continue the previous operation with mixed old and new state.
 
 Common errors are resolver outcomes, not additional Core HTTP errors:
 
@@ -517,12 +521,13 @@ incomplete capture, not proof of a consistent deletion history.
 
 ## Conformance and Offline Examples
 
-A conforming resolver implements the applicable native mappings, literal
-selectors, all necessary pages, no-filter fallback, Core views and version
-checks. It applies HTTP validator and security rules and never claims an
-immutable snapshot solely from live reads. A server remains subject to Core
-HTTP conformance. This document does not require query support from a
-no-code server.
+A conforming resolver implements the applicable native mappings and Core
+views, checks versions, applies literal selectors and follows every necessary
+page. It falls back to local selection when filtering is unavailable and
+applies the HTTP validator and security rules. Live reads alone do not
+justify an immutable-snapshot claim. Servers remain subject to Core HTTP
+conformance, and this document does not require query support from a no-code
+server.
 
 The [HTTP tests](tools/test_http_examples.py) contain representative request
 mappings and synthetic transcripts for:
