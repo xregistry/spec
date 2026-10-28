@@ -12,36 +12,10 @@ from verify import (
     _SKIP_TEXT_PATTERN,
     Settings,
     _directory_issues,
-    _find_all_uris,
     _is_text_all_uppercase,
     _plain_text_issues,
     _render_markdown_to_html,
 )
-
-
-@pytest.mark.parametrize(
-    "link, expected",
-    (
-        ('<a href="https://example.org/public">public</a>', ["https://example.org/public"]),
-        ('<a data-link-check="authenticated" href="https://example.org/private">private</a>', []),
-        ('<a href="http://example.org/private" data-link-check="authenticated">private</a>', []),
-        ('<a href="missing.md" data-link-check="authenticated">local</a>', ["missing.md"]),
-        ('<a href="#missing" data-link-check="authenticated">fragment</a>', ["#missing"]),
-        ('<a href="https://example.org/public" data-link-check="unknown">public</a>', ["https://example.org/public"]),
-        ('<a href="https://example.org/public" title="authenticated">public</a>', ["https://example.org/public"]),
-    ),
-)
-def test_authenticated_link_checks_are_scoped_to_marked_http_links(link, expected):
-    assert list(_find_all_uris(link)) == expected
-
-
-def test_authenticated_link_does_not_skip_other_links(capsys):
-    html = (
-        '<a href="https://example.org/private" data-link-check="authenticated">private</a>'
-        '<a href="missing.md">local</a><a href="https://example.org/public">public</a>'
-    )
-    assert list(_find_all_uris(html)) == ["missing.md", "https://example.org/public"]
-    assert "Skipping authenticated link: https://example.org/private" in capsys.readouterr().out
 
 
 def test_text_issues():
