@@ -5348,36 +5348,20 @@
             "type": "string",
             "format": "date-time",
             "description": "Time of the object modification"
-          }
-        },
-        "oneOf": [
-          {
-            "properties": {
-              "versionsurl": {
-                "type": "string"
-              },
-              "versionscount": {
-                "type": "integer"
-              }
-            },
-            "required": [
-              "versionsurl"
-            ]
           },
-          {
-            "properties": {
-              "versions": {
-                "type": "object",
-                "additionalProperties": {
-                  "$ref": "#/components/schemas/schemaVersion"
-                }
-              }
-            },
-            "required": [
-              "versions"
-            ]
+          "versionsurl": {
+            "type": "string"
+          },
+          "versionscount": {
+            "type": "integer"
+          },
+          "versions": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/schemaVersion"
+            }
           }
-        ]
+        }
       },
       "schemagroup": {
         "type": "object",

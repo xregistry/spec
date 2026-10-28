@@ -644,26 +644,17 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                 resource_version_schema["properties"] = props
                 handle_attributes(resource_version_schema, attributes)
 
-                resource_schema["oneOf"] = [
-                        {
-                            "properties": {
-                                "versionsurl": {"type": "string"},
-                                "versionscount": {"type": "integer"},
-                            },
-                            "required": ["versionsurl"]
-                        },
-                        {
-                            "properties": {
-                                "versions": {
-                                "type": "object",
-                                "additionalProperties": {
-                                    "$ref": f"{group_definition_prefix}{resource_name}Version"
-                                    }
-                                }
-                            },
-                            "required": ["versions"]
+                resource_schema.pop("oneOf", None)
+                resource_schema["properties"].update({
+                    "versionsurl": {"type": "string"},
+                    "versionscount": {"type": "integer"},
+                    "versions": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "$ref": f"{group_definition_prefix}{resource_name}Version"
                         }
-                    ]
+                    }
+                })
 
                 # For OpenAPI: flat keys, for JSON Schema: nested structure
                 if for_openapi:
