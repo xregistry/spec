@@ -694,6 +694,79 @@
         }
       }
     },
+    "/publications/{groupid}/objects": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/groupid"
+        },
+        {
+          "$ref": "#/components/parameters/specversion"
+        }
+      ],
+      "get": {
+        "operationId": "getPublicationObjectsAll",
+        "tags": [
+          "ResourceCollection"
+        ],
+        "description": "Gets an optionally filtered collection of resources in a group. Supports query parameters 'inline', 'skip', 'top', 'filter', and 'doc'. (See spec: Registry Collections, Inline, Filter, and Resource Metadata vs Resource Document)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/inline"
+          },
+          {
+            "in": "query",
+            "name": "skip",
+            "description": "The number of resources to skip (pagination).",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "top",
+            "description": "The number of resources to return (pagination).",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/filter"
+          },
+          {
+            "$ref": "#/components/parameters/doc"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The collection of resources (optionally filtered).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/object"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
     "/publications/{groupid}/snapshots": {
       "parameters": [
         {
@@ -872,6 +945,151 @@
       },
       "patch": {
         "operationId": "patchPublicationChannelMeta",
+        "tags": [
+          "ResourceMeta"
+        ],
+        "description": "Patches the meta sub-object of a resource. (See spec: Resource Attributes)",
+        "requestBody": {
+          "description": "A partial meta object.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Meta"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The patched meta sub-object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Meta"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/publications/{groupid}/objects/{resourceid}/meta": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/groupid"
+        },
+        {
+          "$ref": "#/components/parameters/resourceid"
+        },
+        {
+          "$ref": "#/components/parameters/specversion"
+        },
+        {
+          "$ref": "#/components/parameters/inline"
+        },
+        {
+          "$ref": "#/components/parameters/filter"
+        },
+        {
+          "$ref": "#/components/parameters/doc"
+        },
+        {
+          "in": "query",
+          "name": "epoch",
+          "description": "The current epoch of the resource metadata (meta sub-object). (See spec: Resource Attributes)",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "getPublicationObjectMeta",
+        "tags": [
+          "ResourceMeta"
+        ],
+        "description": "Gets the meta sub-object of a resource. (See spec: Resource Attributes)",
+        "responses": {
+          "200": {
+            "description": "The meta sub-object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Meta"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "put": {
+        "operationId": "putPublicationObjectMeta",
+        "tags": [
+          "ResourceMeta"
+        ],
+        "description": "Updates the meta sub-object of a resource. (See spec: Resource Attributes and Updating the Registry Entity)",
+        "requestBody": {
+          "description": "The new meta object for the resource.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Meta"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated meta sub-object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Meta"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "patchPublicationObjectMeta",
         "tags": [
           "ResourceMeta"
         ],
@@ -1091,6 +1309,59 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/channel"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/publications/{groupid}/objects/{resourceid}$details": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/groupid"
+        },
+        {
+          "$ref": "#/components/parameters/resourceid"
+        },
+        {
+          "$ref": "#/components/parameters/specversion"
+        },
+        {
+          "$ref": "#/components/parameters/inline"
+        },
+        {
+          "$ref": "#/components/parameters/filter"
+        },
+        {
+          "$ref": "#/components/parameters/doc"
+        }
+      ],
+      "get": {
+        "operationId": "getPublicationObjectDetails",
+        "tags": [
+          "Resource"
+        ],
+        "description": "Gets the resource metadata view (the $details view). (See spec: Retrieving a Resource as Metadata and Doc)",
+        "responses": {
+          "200": {
+            "description": "The resource metadata document.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/object"
                 }
               }
             }
@@ -1507,6 +1778,390 @@
         "summary": "Delete resource",
         "description": "Deletes the resource and all of its versions. Supports an optional epoch guard. (See spec: Deleting Resources)",
         "operationId": "deletePublicationChannel",
+        "tags": [
+          "Resource"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "epoch",
+            "description": "The current epoch of the resource.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/specversion"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Resource deleted successfully."
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/publications/{groupid}/objects/{resourceid}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/groupid"
+        },
+        {
+          "$ref": "#/components/parameters/resourceid"
+        },
+        {
+          "$ref": "#/components/parameters/specversion"
+        },
+        {
+          "in": "query",
+          "name": "meta",
+          "description": "If true, operate on the resource metadata sub-object (see spec: Resource Metadata vs Resource Document).",
+          "required": false,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        {
+          "in": "query",
+          "name": "noepoch",
+          "description": "If true, epoch validation is ignored. (See spec: Creating or Updating Entities)",
+          "required": false,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        {
+          "in": "query",
+          "name": "nodefaultversionid",
+          "description": "If true, any provided defaultversionid is ignored. (See spec: Default Version of a Resource)",
+          "required": false,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        {
+          "in": "query",
+          "name": "nodefaultversionsticky",
+          "description": "If true, any provided defaultversionsticky value is ignored. (See spec: Default Version of a Resource)",
+          "required": false,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        {
+          "in": "query",
+          "name": "noreadonly",
+          "description": "If true, attempts to update readonly attributes are silently ignored. (See spec: Resource Attributes)",
+          "required": false,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        {
+          "in": "query",
+          "name": "setdefaultversionid",
+          "description": "Specifies the versionid to be set as the default version. (See spec: Default Version of a Resource)",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "$ref": "#/components/parameters/inline"
+        },
+        {
+          "$ref": "#/components/parameters/filter"
+        },
+        {
+          "$ref": "#/components/parameters/doc"
+        }
+      ],
+      "get": {
+        "operationId": "getPublicationObject",
+        "tags": [
+          "Resource"
+        ],
+        "description": "Gets the resource (default version). Supports $details view via the 'doc' query parameter. (See spec: Retrieving a Resource and Retrieving a Resource as Metadata)",
+        "responses": {
+          "200": {
+            "description": "The resource (or a redirect if a RESOURCEurl is set).",
+            "headers": {
+              "resource-id": {
+                "$ref": "#/components/headers/resource-id"
+              },
+              "resource-version": {
+                "$ref": "#/components/headers/resource-version"
+              },
+              "resource-name": {
+                "$ref": "#/components/headers/resource-name"
+              },
+              "resource-self": {
+                "$ref": "#/components/headers/resource-self"
+              },
+              "resource-description": {
+                "$ref": "#/components/headers/resource-description"
+              },
+              "resource-documentation": {
+                "$ref": "#/components/headers/resource-documentation"
+              },
+              "resource-labels": {
+                "$ref": "#/components/headers/resource-labels"
+              },
+              "resource-createdat": {
+                "$ref": "#/components/headers/resource-createdat"
+              },
+              "resource-modifiedat": {
+                "$ref": "#/components/headers/resource-modifiedat"
+              },
+              "Content-Location": {
+                "description": "Permalink location of the returned version.",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            },
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/object"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "put": {
+        "operationId": "putPublicationObject",
+        "tags": [
+          "Resource"
+        ],
+        "description": "Creates or updates a resource. Accepts either the raw document (when $details is not used) or a full xRegistry metadata serialization (when $details is used). (See spec: Creating or Updating Resources and Versions, Resource Metadata vs Resource Document)",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "epoch",
+            "description": "The current epoch value for concurrency control. (See spec: Mismatched Epoch)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/inline"
+          },
+          {
+            "$ref": "#/components/parameters/filter"
+          },
+          {
+            "$ref": "#/components/parameters/doc"
+          },
+          {
+            "$ref": "#/components/parameters/specversion"
+          }
+        ],
+        "requestBody": {
+          "description": "The resource document or xRegistry metadata (depending on URL suffix $details).",
+          "content": {
+            "application/octet-stream": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated resource.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/object"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "post": {
+        "summary": "Post new resource version",
+        "description": "Creates a new version of the resource. If the resource does not exist, it is created at version 1; if it exists, the new version is created (default version may be updated using setdefaultversionid). (See spec: Creating or Updating Resources and Versions, Default Version of a Resource)",
+        "operationId": "postPublicationObject",
+        "tags": [
+          "Resource"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/resource-description"
+          },
+          {
+            "$ref": "#/components/parameters/resource-documentation"
+          },
+          {
+            "$ref": "#/components/parameters/resource-labels"
+          },
+          {
+            "in": "query",
+            "name": "setdefaultversionid",
+            "description": "Specifies the versionid to be set as the default version. (See spec: Default Version of a Resource)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/inline"
+          },
+          {
+            "$ref": "#/components/parameters/filter"
+          },
+          {
+            "$ref": "#/components/parameters/doc"
+          },
+          {
+            "$ref": "#/components/parameters/specversion"
+          }
+        ],
+        "requestBody": {
+          "description": "The new resource version document or xRegistry metadata.",
+          "content": {
+            "application/octet-stream": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created resource version.",
+            "headers": {
+              "resource-id": {
+                "$ref": "#/components/headers/resource-id"
+              },
+              "resource-version": {
+                "$ref": "#/components/headers/resource-version"
+              },
+              "resource-name": {
+                "$ref": "#/components/headers/resource-name"
+              },
+              "resource-self": {
+                "$ref": "#/components/headers/resource-self"
+              },
+              "resource-description": {
+                "$ref": "#/components/headers/resource-description"
+              },
+              "resource-documentation": {
+                "$ref": "#/components/headers/resource-documentation"
+              },
+              "resource-labels": {
+                "$ref": "#/components/headers/resource-labels"
+              },
+              "resource-createdat": {
+                "$ref": "#/components/headers/resource-createdat"
+              },
+              "resource-modifiedat": {
+                "$ref": "#/components/headers/resource-modifiedat"
+              }
+            },
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/object"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete resource",
+        "description": "Deletes the resource and all of its versions. Supports an optional epoch guard. (See spec: Deleting Resources)",
+        "operationId": "deletePublicationObject",
         "tags": [
           "Resource"
         ],
@@ -2077,6 +2732,152 @@
         }
       }
     },
+    "/publications/{groupid}/objects/{resourceid}/versions": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/groupid"
+        },
+        {
+          "$ref": "#/components/parameters/resourceid"
+        },
+        {
+          "$ref": "#/components/parameters/specversion"
+        },
+        {
+          "$ref": "#/components/parameters/inline"
+        },
+        {
+          "$ref": "#/components/parameters/filter"
+        },
+        {
+          "$ref": "#/components/parameters/doc"
+        }
+      ],
+      "get": {
+        "operationId": "getPublicationObjectVersionsAll",
+        "tags": [
+          "ResourceVersionCollection"
+        ],
+        "description": "Gets an optionally filtered collection of versions for a resource. Supports pagination ('skip', 'top') and filtering. (See spec: Retrieving all Versions)",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "skip",
+            "description": "The number of versions to skip.",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "top",
+            "description": "The maximum number of versions to return.",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The collection of versions.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/object"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "postPublicationObjectVersions",
+        "tags": [
+          "ResourceVersion"
+        ],
+        "description": "Creates or updates one or more versions of a resource. Query parameter 'setdefaultversionid' may be used to designate the new default version. (See spec: Creating or Updating Versions)",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "setdefaultversionid",
+            "description": "Specifies the versionid for the default version. Use 'null' to reset to newest-default. (See spec: Default Version of a Resource)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/inline"
+          },
+          {
+            "$ref": "#/components/parameters/filter"
+          },
+          {
+            "$ref": "#/components/parameters/doc"
+          },
+          {
+            "$ref": "#/components/parameters/specversion"
+          }
+        ],
+        "requestBody": {
+          "description": "A map of version definitions keyed by versionid.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/object"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated versions collection.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/object"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
     "/publications/{groupid}/snapshots/{resourceid}/versions": {
       "parameters": [
         {
@@ -2296,6 +3097,117 @@
       },
       "delete": {
         "operationId": "deletePublicationChannelVersion",
+        "tags": [
+          "ResourceVersion"
+        ],
+        "description": "Deletes a specific version of a resource. Supports an optional epoch guard. (See spec: Deleting a Version)",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "epoch",
+            "description": "The current epoch of the version.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Version deleted successfully."
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/publications/{groupid}/objects/{resourceid}/versions/{versionid}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/groupid"
+        },
+        {
+          "$ref": "#/components/parameters/resourceid"
+        },
+        {
+          "$ref": "#/components/parameters/versionid"
+        },
+        {
+          "in": "query",
+          "name": "meta",
+          "description": "If true, operate on version metadata view ($details).",
+          "required": false,
+          "allowEmptyValue": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        {
+          "$ref": "#/components/parameters/specversion"
+        },
+        {
+          "$ref": "#/components/parameters/inline"
+        },
+        {
+          "$ref": "#/components/parameters/filter"
+        },
+        {
+          "$ref": "#/components/parameters/doc"
+        }
+      ],
+      "get": {
+        "operationId": "getPublicationObjectVersion",
+        "tags": [
+          "ResourceVersion"
+        ],
+        "description": "Gets a specific version of a resource. Returns either the document (if not $details) or the metadata view. (See spec: Retrieving a Version and Retrieving a Version as Metadata)",
+        "responses": {
+          "200": {
+            "description": "The resource version.",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/object"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deletePublicationObjectVersion",
         "tags": [
           "ResourceVersion"
         ],
@@ -3023,6 +3935,100 @@
           }
         }
       },
+      "object": {
+        "type": "object",
+        "properties": {
+          "objectid": {
+            "type": "string",
+            "description": "ID of the object object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation"
+          },
+          "self": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "string",
+            "format": "xid",
+            "description": "Relative URL of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri",
+            "description": "URI of the documentation of the object"
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object"
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation"
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification"
+          }
+        },
+        "oneOf": [
+          {
+            "properties": {
+              "object": {
+                "description": "Embedded object object",
+                "oneOf": [
+                  {
+                    "type": "object"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "object"
+            ]
+          },
+          {
+            "properties": {
+              "objectbase64": {
+                "description": "Embedded object object as binary data",
+                "type": "string",
+                "format": "base64"
+              }
+            },
+            "required": [
+              "objectbase64"
+            ]
+          },
+          {
+            "properties": {
+              "objecturl": {
+                "description": "Linked object object",
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            "required": [
+              "objecturl"
+            ]
+          }
+        ]
+      },
       "snapshot": {
         "type": "object",
         "properties": {
@@ -3172,6 +4178,12 @@
             "type": "object",
             "additionalProperties": {
               "$ref": "#/components/schemas/channel"
+            }
+          },
+          "objects": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/object"
             }
           },
           "snapshots": {

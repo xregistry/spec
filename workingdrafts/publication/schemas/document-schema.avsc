@@ -185,6 +185,99 @@
               }
             },
             {
+              "name": "objects",
+              "type": {
+                "type": "map",
+                "values": {
+                  "type": "record",
+                  "name": "ObjectType",
+                  "namespace": "io.xregistry.publications",
+                  "fields": [
+                    {
+                      "name": "objectid",
+                      "type": "string",
+                      "description": "ID of the object object"
+                    },
+                    {
+                      "name": "name",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "doc": "Name of the object"
+                    },
+                    {
+                      "name": "epoch",
+                      "type": [
+                        "int",
+                        "null"
+                      ],
+                      "doc": "Epoch time of the object creation"
+                    },
+                    {
+                      "name": "self",
+                      "type": "string",
+                      "doc": "URL of the object"
+                    },
+                    {
+                      "name": "xid",
+                      "type": "string",
+                      "doc": "XID of the object"
+                    },
+                    {
+                      "name": "description",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "doc": "Description of the object"
+                    },
+                    {
+                      "name": "documentation",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "doc": "URI of the documentation of the object"
+                    },
+                    {
+                      "name": "labels",
+                      "type": {
+                        "type": "map",
+                        "values": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "doc": "Labels for the object"
+                    },
+                    {
+                      "name": "createdat",
+                      "type": [
+                        {
+                          "type": "int",
+                          "logicalType": "time-millis"
+                        },
+                        "null"
+                      ],
+                      "doc": "Time of the object creation"
+                    },
+                    {
+                      "name": "modifiedat",
+                      "type": [
+                        {
+                          "type": "int",
+                          "logicalType": "time-millis"
+                        },
+                        "null"
+                      ],
+                      "doc": "Time of the object modification"
+                    }
+                  ]
+                }
+              }
+            },
+            {
               "name": "snapshots",
               "type": {
                 "type": "map",

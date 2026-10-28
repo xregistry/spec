@@ -2,18 +2,36 @@
   "format": "xregistry-open/1",
   "scope": "urn:example:manual-publication",
   "snapshot": {
-    "url": "https://content.example.test/manifest.json",
-    "digest": "sha256:00a2b9b3dba7ddaf97b9f8830b1bd07336d61936b63576e49625b68dfe734823",
-    "size": 820
+    "reference": {
+      "registry": {
+        "name": "http",
+        "endpoint": "https://publisher.example.test"
+      },
+      "version": "/publications/team/snapshots/cdbc9f1ff5ba6dd31377af1f8a8f03840e7bf836939be384ff6f0c97fac56c2b/versions/manifest"
+    },
+    "digest": "sha256:cdbc9f1ff5ba6dd31377af1f8a8f03840e7bf836939be384ff6f0c97fac56c2b",
+    "size": 1137
   },
   "registry": {
-    "url": "https://content.example.test/registry.json",
-    "digest": "sha256:0512b7dea0b1017f79f78a538057369e0f046654309f402c695da8d877a12411",
-    "size": 770
+    "reference": {
+      "registry": {
+        "name": "http",
+        "endpoint": "https://publisher.example.test"
+      },
+      "version": "/publications/team/objects/registry-capture/versions/content"
+    },
+    "digest": "sha256:d7e50157645e98260f0fa754e6940c59ab5b4f2d36e79b8fa3b08130b4e7a3e6",
+    "size": 790
   },
   "completeness": "offline-complete",
   "channel": {
-    "url": "https://publisher.example.test/publications/team/channels/stable",
+    "reference": {
+      "registry": {
+        "name": "http",
+        "endpoint": "https://publisher.example.test"
+      },
+      "resource": "/publications/team/channels/stable"
+    },
     "epoch": 12
   }
 }

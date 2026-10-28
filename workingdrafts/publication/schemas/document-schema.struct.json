@@ -67,6 +67,66 @@
         },
         "additionalProperties": false
       },
+      "Object": {
+        "type": "object",
+        "properties": {
+          "objectid": {
+            "type": "string",
+            "description": "ID of the object object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch of the object"
+          },
+          "self": {
+            "type": "uri",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "uri",
+            "description": "XID of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "uri",
+            "description": "Documentation URL"
+          },
+          "labels": {
+            "type": "map",
+            "values": {
+              "type": "string"
+            }
+          },
+          "createdat": {
+            "type": "datetime",
+            "description": "Creation time"
+          },
+          "modifiedat": {
+            "type": "datetime",
+            "description": "Modification time"
+          },
+          "object": {
+            "type": "any",
+            "description": "Embedded object document"
+          },
+          "objectbase64": {
+            "type": "binary",
+            "description": "Base64-encoded object document"
+          },
+          "objecturl": {
+            "type": "uri",
+            "description": "URL of the object document"
+          }
+        },
+        "additionalProperties": false
+      },
       "Snapshot": {
         "type": "object",
         "properties": {
@@ -183,6 +243,14 @@
             "values": {
               "type": {
                 "$ref": "#/definitions/Publications/Channel"
+              }
+            }
+          },
+          "objects": {
+            "type": "map",
+            "values": {
+              "type": {
+                "$ref": "#/definitions/Publications/Object"
               }
             }
           },

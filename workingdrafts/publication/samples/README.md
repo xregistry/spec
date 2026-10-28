@@ -2,20 +2,41 @@
 
 <!-- words: cas jsonld py pytest readme workingdrafts -->
 <!-- words: deepcopy hashlib hexdigest pathlib publicationerror viewversion walkthrough -->
+<!-- words: opcua versiondocuments -->
 
 Use these examples to check the domain-independent
 [publication contract](../spec.md) without network IO. The authored
 [Registry export](registry.json) and [document](intro.txt) are synthetic.
 Generated `manifest.json`, `channel.json` and `open.json` bind their exact
-bytes. All URLs use reserved example domains.
+bytes. The `opcua-` examples select native UA access instead of HTTP. All
+endpoints use reserved example domains.
+
+In a deployed publication, the publisher stores captured Registry JSON and
+document bytes as xRegistry Version documents, constructs and stores the
+manifest as the snapshot's `manifest` Version, then conditionally updates
+the channel. Every descriptor selects an exact Version through a Registry
+binding. The specification's
+[storage and retrieval sequence](../spec.md#model-and-placement) explains
+those responsibilities and the Registry's implementation-specific backing
+storage.
+
+Here, the checked-in files supply the captured content, and the sample
+builder generates the manifest and selection records locally. It does not
+upload them or start a Registry server. `VersionDocuments` associates exact
+Version references with local bytes; its `read` method stands in for the
+binding's document operation. HTTP and UA references select separate example
+access contexts. The same bytes do not establish that real endpoints expose
+equivalent Registries.
 
 The compact Registry input uses Core document view with a complete
 containment/default graph for this example and no external model includes.
 It is not an API response containing all server-generated metadata. The
-original document bytes are stored separately from the Registry's external
-document locator; the in-memory object map supplies them during offline replay.
+original document bytes are stored separately from the captured metadata.
+The manifest associates them with an exact view Version. A Registry JSON
+Version document is not a request to export changing live metadata.
 
-After changing an authored input, regenerate its descriptors:
+After changing an authored input, regenerate its descriptors and the
+corresponding JSON examples in the specification:
 
 ```console
 python workingdrafts/publication/tools/build_samples.py
@@ -34,6 +55,8 @@ The suite checks:
 - Document associations
 - Case-insensitive Resource collisions
 - Missing defaults and unsupported mandatory extensions
+- Exact Version dispatch, selected UA roots and unsupported bindings
+- Rejection of the earlier URL-only shape and mutable Git/OCI selectors
 - Stale head writes and forks
 - Rollback epochs and non-reused deleted channel identities
 
@@ -45,12 +68,16 @@ The helper accepts only this example's self-contained interpreted model and
 explicitly rejects aliases. It is not a full Core graph or domain-closure
 validator. The channel helper serializes operations in memory, so its results
 do not establish atomicity, retention or non-reuse across process restarts.
+The document map permits mutation to exercise integrity failures; it is not
+an immutable storage implementation.
 Before claiming conformance, obtain adapter integration evidence for native
 binding mapping, HTTP context links and durable server writes.
 
-For local replay, `publication-package.json` maps URLs to portable local file
-paths. The offline reader checks resolved containment and rejects unsafe
-paths. This exercises byte-bundle replay, not Git or OCI native projection.
+For local replay, `publication-package.json` contains `reference`/`path`
+entries for the HTTP and UA examples. The offline reader checks resolved
+containment, duplicate equivalent references and byte/object limits. It
+rejects unsafe paths and never contacts a network endpoint. This exercises
+byte-bundle replay, not a network binding, Git or OCI native projection.
 
 ## Promotion, Rollback and an Already-Open Reader
 
@@ -67,46 +94,49 @@ import hashlib
 import json
 from pathlib import Path
 from workingdrafts.publication.tools.publication_examples import (
-    Channels, PublicationError, check_snapshot, open_package,
+    Channels, PublicationError, VersionDocuments, check_snapshot, open_package,
 )
 
 p = Path("workingdrafts/publication/samples")
 context = json.loads((p / "open.json").read_text())
-objects = {
-    "https://content.example.test/" + name: (p / name).read_bytes()
-    for name in ("manifest.json", "registry.json", "intro.txt")
-}
+package = json.loads((p / "publication-package.json").read_text())
+objects = VersionDocuments()
+for entry in package["objects"]:
+    objects.put(entry["reference"], (p / entry["path"]).read_bytes())
 first = context["snapshot"]
-next_manifest = json.loads(objects[first["url"]])
+next_manifest = json.loads(objects.read(first["reference"]))
 next_manifest["parent"] = first
 raw = (json.dumps(next_manifest, indent=2) + "\n").encode()
-second = {
-    "url": "https://content.example.test/next.json",
-    "digest": "sha256:" + hashlib.sha256(raw).hexdigest(),
-    "size": len(raw),
-}
-objects[second["url"]] = raw
+digest = hashlib.sha256(raw).hexdigest()
+second = deepcopy(first)
+second_reference = second["reference"]
+second_reference["version"] = (
+    f"/publications/team/snapshots/{digest}/versions/manifest"
+)
+second.update(digest="sha256:" + digest, size=len(raw))
+objects.put(second["reference"], raw)
 channels = Channels()
-channels.create("stable", context["scope"], first, objects)
-channels.move("stable", 1, second, objects)
+channels.create("stable", context["scope"], first, objects.read)
+channels.move("stable", 1, second, objects.read)
 record = channels.records["stable"]
 reader = deepcopy(record["head"])
 try:
-    channels.move("stable", 1, first, objects)
+    channels.move("stable", 1, first, objects.read)
 except PublicationError as error:
     print("stale update:", error.code)
-channels.move("stable", 2, first, objects)
+channels.move("stable", 2, first, objects.read)
 record = channels.records["stable"]
 print("rollback epoch:", record["epoch"])
 print("reader still on second:", reader == second)
-manifest = check_snapshot(reader, objects)
+manifest = check_snapshot(reader, objects.read)
 document, = manifest["documents"]
 print("selected Version:", document["viewVersion"])
 print("offline package:", open_package(p)["completeness"])
-missing = dict(objects)
-del missing["https://content.example.test/intro.txt"]
+missing = deepcopy(objects)
+content = document["content"]
+missing.remove(content["reference"])
 try:
-    check_snapshot(reader, missing)
+    check_snapshot(reader, missing.read)
 except PublicationError as error:
     print("missing bytes:", error.code)
 ```
@@ -124,10 +154,11 @@ missing bytes: unavailable
 
 The output shows that the reader still verifies the second manifest after
 the channel returns to the first. Neither promotion nor rollback creates a
-document revision. Removing a captured object from the supplied byte map
-causes an explicit failure; the helper does not contact the original URL to
-repair the offline read.
+document revision. Removing a captured Version document from the supplied
+store causes an explicit failure; the helper does not contact another
+Registry to repair the offline read.
 
-The [bundle map](publication-package.json) maps URLs to local files. Under the
+The [bundle map](publication-package.json) maps Version references to local
+files. Under the
 [packaging rules](../spec.md#export-federation-and-binding-equivalence), the
 reader applies the same check to bytes stored in those files.

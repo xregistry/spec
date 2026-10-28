@@ -213,9 +213,12 @@ The extension includes a reusable [model](publication/model.json),
 [schemas](publication/schemas/publication.json) and
 [executable examples](publication/samples/README.md). Publication defines
 conditional writes and retention; federation remains read-only. The
-publication HTTP open context supplies a snapshot pin without changing
-ordinary HTTP advertisements. Cross-binding equivalence requires a checked
-mapping; equal Registry IDs alone do not establish it.
+manifest, captured Registry JSON and domain bytes are xRegistry Version
+documents selected through a binding-aware reference. Native UA reads do not
+need an HTTP facade. The caller-visible open context retains the selection;
+HTTP projections advertise it without changing ordinary HTTP advertisements.
+Cross-binding equivalence requires a checked mapping; equal Registry IDs
+alone do not establish it.
 
 The [WoT publication and versioning design](publication/design/design.md)
 supplies the domain-specific closure design, schema, shape example, checks

@@ -438,7 +438,7 @@ authenticated responses remains subject to RFC 9111 section 3.5.
 ## Live Capture and Errors
 
 A source implementing the OPTIONAL
-[publication extension](../publication/spec.md#context-and-http-discovery)
+[publication extension](../publication/spec.md#open-context-and-discovery)
 exposes a snapshot-specific Core root and an HTTP `Link` to its open-context
 record. Its absolute relation URI is
 `https://xregistry.io/workingdrafts/publication/context`. A pin-aware resolver

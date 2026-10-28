@@ -1,0 +1,18 @@
+{
+  "scope": "urn:example:manual-publication",
+  "epoch": 12,
+  "head": {
+    "reference": {
+      "registry": {
+        "name": "opcua",
+        "endpoint": "opc.tcp://ua.example.test:4840",
+        "parameters": {
+          "registryroot": "nsu=urn:example:publication;s=Registry"
+        }
+      },
+      "version": "/publications/team/snapshots/717dce71955af1d8658ee35b8afb57778cefbf9d534ad6b11a847089cf13b4c8/versions/manifest"
+    },
+    "digest": "sha256:717dce71955af1d8658ee35b8afb57778cefbf9d534ad6b11a847089cf13b4c8",
+    "size": 1355
+  }
+}

@@ -4,9 +4,15 @@
   "capture": "assembled",
   "completeness": "offline-complete",
   "registry": {
-    "url": "https://content.example.test/registry.json",
-    "digest": "sha256:0512b7dea0b1017f79f78a538057369e0f046654309f402c695da8d877a12411",
-    "size": 770
+    "reference": {
+      "registry": {
+        "name": "http",
+        "endpoint": "https://publisher.example.test"
+      },
+      "version": "/publications/team/objects/registry-capture/versions/content"
+    },
+    "digest": "sha256:d7e50157645e98260f0fa754e6940c59ab5b4f2d36e79b8fa3b08130b4e7a3e6",
+    "size": 790
   },
   "documents": [
     {
@@ -15,7 +21,13 @@
       "originVersion": "/sets/manual/documents/intro/versions/7",
       "base": "https://author.example.test/manual/intro.txt",
       "content": {
-        "url": "https://content.example.test/intro.txt",
+        "reference": {
+          "registry": {
+            "name": "http",
+            "endpoint": "https://publisher.example.test"
+          },
+          "version": "/sets/manual/documents/intro/versions/7"
+        },
         "digest": "sha256:0a3fdd7ff022bd6a263d031e640fd0bc074fa877ed320a367784067b7a1d78e1",
         "size": 36
       }

@@ -2100,6 +2100,32 @@ requested, changed membership, default selection, table mapping, metadata
 or file contents during capture MUST produce `inconsistent_snapshot`.
 Per-node timestamps alone cannot establish cross-node atomicity.
 
+The OPTIONAL [publication extension](../publication/spec.md) provides
+retained exact Version documents rather than inferring a snapshot from
+these live indicators. Its descriptors select Registry access with
+`name: "opcua"`, the endpoint and the parameters in §10.1, followed by an
+exact Version XID. Resolve that Version under the selected Registry root
+using §4.2, then read its raw document bytes using §5.13.1. This applies to
+the manifest and captured Registry JSON as well as domain documents. A
+captured Registry JSON Version is not the live multi-read export in §5.3.
+No HTTP facade, HTTP GET or standard UA context node is needed.
+
+To open a channel, obtain a coherent `scope`, complete `head` and
+`MetaEpoch` from its Resource Meta. Return the checked publication open
+record as caller-visible context and retain it across reads. If the
+adapter cannot represent the Meta extensions or obtain a coherent head,
+it MUST report the operation as unsupported or inconsistent instead of
+substituting the default Version or a live view.
+
+Native write support is a separate capability. The adapter can use an
+epoch-matched `MetaLabels.AddAttribute` replacement of the complete `head`
+only if that operation enforces publication validation, scope, immutability,
+retention and atomicity. A successful multi-Property Write or a client-side
+read/write sequence does not prove atomic head replacement. An adapter
+without that guarantee MUST NOT advertise writable publication support.
+This extension assigns no new standard Method, Property or NodeId to the
+pinned companion model.
+
 ### 10.5. Namespace export is separate
 
 [NamespaceMetadataType][ua-namespace] describes a namespace through, among

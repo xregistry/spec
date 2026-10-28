@@ -22,9 +22,21 @@
               "required": true,
               "description": "One authoritative manifest reference; requires an epoch-checked Meta update.",
               "attributes": {
-                "url": {
-                  "type": "url",
-                  "required": true
+                "reference": {
+                  "type": "object",
+                  "required": true,
+                  "attributes": {
+                    "registry": {
+                      "type": "object",
+                      "required": true,
+                      "attributes": {
+                        "name": {"type": "string", "required": true},
+                        "endpoint": {"type": "uri", "required": true},
+                        "parameters": {"type": "object"}
+                      }
+                    },
+                    "version": {"type": "xid", "required": true}
+                  }
                 },
                 "digest": {
                   "type": "string",
@@ -37,6 +49,13 @@
               }
             }
           }
+        },
+        "objects": {
+          "singular": "object",
+          "maxversions": 1,
+          "setversionid": true,
+          "versionmode": "manual",
+          "description": "Captured Registry JSON, extension documents or copied domain bytes at an explicit Version; adapter enforces retained byte immutability."
         },
         "snapshots": {
           "singular": "snapshot",

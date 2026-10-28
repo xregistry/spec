@@ -14,16 +14,48 @@
       "format": "uri",
       "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:"
     },
-    "url": {
-      "type": "string",
-      "format": "uri",
-      "pattern": "^https?://[^/@?#\\s]+(?:[/?#]|$)"
+    "access": {
+      "type": "object",
+      "required": ["name", "endpoint"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "endpoint": {
+          "$ref": "#/$defs/uri",
+          "pattern": "^(?![A-Za-z][A-Za-z0-9+.-]*://[^/?#]*@)"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": {"type": "string"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "reference": {
+      "type": "object",
+      "required": ["registry", "version"],
+      "properties": {
+        "registry": {"$ref": "#/$defs/access"},
+        "version": {"$ref": "#/$defs/versionXid"}
+      },
+      "additionalProperties": false
+    },
+    "resourceReference": {
+      "type": "object",
+      "required": ["registry", "resource"],
+      "properties": {
+        "registry": {"$ref": "#/$defs/access"},
+        "resource": {
+          "type": "string",
+          "pattern": "^/[^/?#]+/[^/?#]+/[^/?#]+/[^/?#]+$"
+        }
+      },
+      "additionalProperties": false
     },
     "descriptor": {
       "type": "object",
-      "required": ["url", "digest", "size"],
+      "required": ["reference", "digest", "size"],
       "properties": {
-        "url": {"$ref": "#/$defs/url"},
+        "reference": {"$ref": "#/$defs/reference"},
         "digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
         "size": {"type": "integer", "minimum": 0}
       },
@@ -50,7 +82,7 @@
             "required": ["viewVersion", "originRegistry", "originVersion", "base", "content"],
             "properties": {
               "viewVersion": {"$ref": "#/$defs/versionXid"},
-              "originRegistry": {"$ref": "#/$defs/url"},
+              "originRegistry": {"$ref": "#/$defs/uri"},
               "originVersion": {"$ref": "#/$defs/versionXid"},
               "base": {"$ref": "#/$defs/uri"},
               "content": {"$ref": "#/$defs/descriptor"}
@@ -88,11 +120,18 @@
         "format": {"const": "xregistry-publication-package/1"},
         "context": {"$ref": "#/$defs/open"},
         "objects": {
-          "type": "object",
-          "propertyNames": {"$ref": "#/$defs/url"},
-          "additionalProperties": {
-            "type": "string",
-            "pattern": "^(?:[A-Za-z0-9_-]+/)*[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$"
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["reference", "path"],
+            "properties": {
+              "reference": {"$ref": "#/$defs/reference"},
+              "path": {
+                "type": "string",
+                "pattern": "^(?:[A-Za-z0-9_-]+/)*[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$"
+              }
+            },
+            "additionalProperties": false
           }
         }
       },
@@ -109,9 +148,9 @@
         "completeness": {"enum": ["linked", "offline-complete"]},
         "channel": {
           "type": "object",
-          "required": ["url", "epoch"],
+          "required": ["reference", "epoch"],
           "properties": {
-            "url": {"$ref": "#/$defs/url"},
+            "reference": {"$ref": "#/$defs/resourceReference"},
             "epoch": {"type": "integer", "minimum": 0}
           },
           "additionalProperties": false
@@ -122,7 +161,7 @@
             "type": "object",
             "required": ["registry", "snapshot"],
             "properties": {
-              "registry": {"$ref": "#/$defs/url"},
+              "registry": {"$ref": "#/$defs/access"},
               "snapshot": {"$ref": "#/$defs/descriptor"}
             },
             "additionalProperties": false

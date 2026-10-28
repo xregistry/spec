@@ -908,6 +908,14 @@ reads and document retrieval. Missing data in that context MUST NOT trigger
 a refresh or lookup against another channel head. Opening the channel
 again is a separately identified operation.
 
+Publication descriptors select exact xRegistry Version documents through
+an explicit binding access context and verify their digest and size.
+Captured Registry JSON and manifests are Version documents too. Native UA
+reads use that binding's FileType operations; HTTP GET is not a general
+publication prerequisite. Physical backing storage remains the Registry's
+implementation choice. A binding's ordinary live reads still do not supply
+publication immutability.
+
 Pinning each source does not establish that the sources were captured
 simultaneously. To reproduce a combined view, a reader needs the source pins,
 interpreted model and exact composition policy, or a separately materialized

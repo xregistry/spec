@@ -230,8 +230,12 @@ informative implementation design, not an implemented WoT profile. The
 current SemVer specification and its vectors remain unchanged.
 
 The generic proposal defines a reusable model, a manifest schema, conditional
-head semantics, an HTTP open context and an offline byte bundle. Its
-executable examples cover only synthetic state transitions and integrity.
+head semantics, a binding-aware open context and an offline byte bundle.
+Its manifest, captured Registry JSON, domain bytes and closure documents
+are stored as exact xRegistry Version documents. HTTP and native OPC UA use
+their own document-read operations; no separate HTTP download service is
+implied. Its executable examples cover only synthetic state transitions and
+integrity.
 The WoT profile still needs resolver/provider integration and cross-repository
 fixtures before a deployment can claim conformance to it.
 
@@ -290,8 +294,9 @@ The closure extension URI is:
 `http://opcfoundation.org/UA/WoT-Binding/publication-closure/1`
 
 Its value in the generic manifest's `extensions` map is a checked descriptor
-of a `wot-publication-closure/1` JSON document. A domain-complete publication
-lists that URI in `requiredExtensions`. A generic reader that does not
+of a `wot-publication-closure/1` JSON document stored as an exact xRegistry
+Version document. A domain-complete publication lists that URI in
+`requiredExtensions`. A generic reader that does not
 understand it fails rather than claiming WoT-complete interpretation.
 The [schema](../../models/wot/schemas/publication-closure.schema.json) defines its shape.
 
@@ -469,8 +474,9 @@ Offline replay requires the byte bundle to retain:
 - Closure data
 - Exact document bytes
 
-The reader resolves URLs through the bundle's map without contacting the
-origin. Missing, corrupt or unsupported material causes replay to fail. Raw
+The reader resolves exact Version references through the bundle's map
+without contacting the origin. Missing, corrupt or unsupported material
+causes replay to fail. Raw
 cached documents alone are insufficient.
 
 #### N11. A consumer federates a channel
@@ -552,9 +558,9 @@ The [channel/snapshot design](#wot-channels-snapshots-and-dependency-bindings)
 defines 12 additional set-publication workflows, N01-N12, alongside the 63
 workflows here. The
 generic xRegistry proposal defines how publishers create and open publications
-over HTTP or offline contexts. WoT proposes a dependency-binding schema and
-rules for accepting compatibility claims. This specification-first work
-changes neither .NET runtime nor the OPC UA model.
+through selected Registry bindings or offline contexts. WoT proposes a
+dependency-binding schema and rules for accepting compatibility claims.
+This specification-first work changes neither .NET runtime nor the OPC UA model.
 
 ### Decision
 
