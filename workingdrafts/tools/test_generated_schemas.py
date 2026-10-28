@@ -121,7 +121,7 @@ class TestGeneratedSchemas:
         registry = category.fields_dict['registries'].type.values
         profile = registry.fields_dict['federationprofiles'].type.items
         relationship = registry.fields_dict['relationships'].type.items
-        assert profile.fields_dict['name'].type.type == 'string'
+        assert profile.fields_dict['binding'].type.type == 'string'
         assert profile.fields_dict['endpoint'].type.type == 'string'
         parameters = profile.fields_dict['parameters'].type
         assert parameters.fullname == 'io.xregistry.GenericRecord'

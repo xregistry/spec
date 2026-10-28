@@ -66,7 +66,7 @@ Core metadata returned to the consumer.
 
 ## Advertisement
 
-The profile name MUST be `git`. `endpoint` MUST be an absolute HTTPS
+`binding` MUST be `git`. `endpoint` MUST be an absolute HTTPS
 repository URL with a host, and MUST NOT contain credentials, a query or
 fragment. Native Git, SSH, `file:`, `git+https:` and remote-helper transports
 are not part of this binding. A web page URL is not implicitly a repository.
@@ -107,7 +107,7 @@ applies to the storage root locator, not to Core entity IDs.
 
 ```json
 {
-  "name": "git",
+  "binding": "git",
   "endpoint": "https://example.com/registries.git",
   "parameters": {
     "revision": "refs/tags/release-1",

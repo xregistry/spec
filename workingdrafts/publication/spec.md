@@ -244,13 +244,13 @@ attributes. Core's other Meta attributes are omitted:
   "head": {
     "reference": {
       "registry": {
-        "name": "http",
+        "binding": "http",
         "endpoint": "https://publisher.example.test"
       },
-      "version": "/publications/team/snapshots/cdbc9f1ff5ba6dd31377af1f8a8f03840e7bf836939be384ff6f0c97fac56c2b/versions/manifest"
+      "version": "/publications/team/snapshots/9d0bf066f7e96e942f07ad978bfb59f74cf791afc34db3d386bc94b4f155749b/versions/manifest"
     },
-    "digest": "sha256:cdbc9f1ff5ba6dd31377af1f8a8f03840e7bf836939be384ff6f0c97fac56c2b",
-    "size": 1137
+    "digest": "sha256:9d0bf066f7e96e942f07ad978bfb59f74cf791afc34db3d386bc94b4f155749b",
+    "size": 1143
   }
 }
 ```
@@ -308,7 +308,7 @@ A byte descriptor MUST contain `reference`, `digest` as `sha256:` followed
 by 64 lowercase hexadecimal characters, and non-negative integer byte `size`.
 Its `reference` MUST contain `registry` and `version`:
 
-- `registry` contains the selected binding's `name`, credential-free absolute
+- `registry` contains the selected `binding`, credential-free absolute
   `endpoint` and OPTIONAL `parameters`. Their meanings and validation follow
   Federation's [binding definitions](../federation/spec.md#discovery-and-binding-selection).
   This is one selected access context, not a catalog advertisement list.
@@ -351,7 +351,7 @@ HTTP:
 ```json
 {
   "registry": {
-    "name": "opcua",
+    "binding": "opcua",
     "endpoint": "opc.tcp://ua.example.test:4840",
     "parameters": {
       "registryroot": "nsu=urn:example:publication;s=Registry"
@@ -395,7 +395,7 @@ The running example's complete [manifest](samples/manifest.json) is:
   "registry": {
     "reference": {
       "registry": {
-        "name": "http",
+        "binding": "http",
         "endpoint": "https://publisher.example.test"
       },
       "version": "/publications/team/objects/registry-capture/versions/content"
@@ -412,7 +412,7 @@ The running example's complete [manifest](samples/manifest.json) is:
       "content": {
         "reference": {
           "registry": {
-            "name": "http",
+            "binding": "http",
             "endpoint": "https://publisher.example.test"
           },
           "version": "/sets/manual/documents/intro/versions/7"
@@ -425,7 +425,7 @@ The running example's complete [manifest](samples/manifest.json) is:
 }
 ```
 
-These 1137 bytes have the digest that the channel's `head` carries. The
+These 1143 bytes have the digest that the channel's `head` carries. The
 `registry` descriptor selects the 790-byte Registry JSON Version document.
 The one `documents` entry associates Version `7` of `intro` with its source
 and its 36 bytes. This manifest records no preparation history, so it has no
@@ -668,18 +668,18 @@ is:
   "snapshot": {
     "reference": {
       "registry": {
-        "name": "http",
+        "binding": "http",
         "endpoint": "https://publisher.example.test"
       },
-      "version": "/publications/team/snapshots/cdbc9f1ff5ba6dd31377af1f8a8f03840e7bf836939be384ff6f0c97fac56c2b/versions/manifest"
+      "version": "/publications/team/snapshots/9d0bf066f7e96e942f07ad978bfb59f74cf791afc34db3d386bc94b4f155749b/versions/manifest"
     },
-    "digest": "sha256:cdbc9f1ff5ba6dd31377af1f8a8f03840e7bf836939be384ff6f0c97fac56c2b",
-    "size": 1137
+    "digest": "sha256:9d0bf066f7e96e942f07ad978bfb59f74cf791afc34db3d386bc94b4f155749b",
+    "size": 1143
   },
   "registry": {
     "reference": {
       "registry": {
-        "name": "http",
+        "binding": "http",
         "endpoint": "https://publisher.example.test"
       },
       "version": "/publications/team/objects/registry-capture/versions/content"
@@ -691,7 +691,7 @@ is:
   "channel": {
     "reference": {
       "registry": {
-        "name": "http",
+        "binding": "http",
         "endpoint": "https://publisher.example.test"
       },
       "resource": "/publications/team/channels/stable"
@@ -831,7 +831,7 @@ One entry in its `objects` array is:
 {
   "reference": {
     "registry": {
-      "name": "http",
+      "binding": "http",
       "endpoint": "https://publisher.example.test"
     },
     "version": "/sets/manual/documents/intro/versions/7"
@@ -856,7 +856,7 @@ conformance.
 
 ### Reference Comparison
 
-Reference comparison MUST use the binding name, endpoint, validated parameters
+Reference comparison MUST use the `binding` value, endpoint, validated parameters
 and decoded Version XID:
 
 - Object-member order has no significance.

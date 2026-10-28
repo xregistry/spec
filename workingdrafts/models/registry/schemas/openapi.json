@@ -2141,7 +2141,7 @@
             "items": {
               "type": "object",
               "properties": {
-                "name": {
+                "binding": {
                   "type": "string",
                   "description": "Nonempty, case-sensitive binding identifier."
                 },
@@ -2162,7 +2162,7 @@
                 }
               },
               "required": [
-                "name",
+                "binding",
                 "endpoint"
               ]
             }

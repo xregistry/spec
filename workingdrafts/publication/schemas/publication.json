@@ -16,9 +16,9 @@
     },
     "access": {
       "type": "object",
-      "required": ["name", "endpoint"],
+      "required": ["binding", "endpoint"],
       "properties": {
-        "name": {"type": "string", "minLength": 1},
+        "binding": {"type": "string", "minLength": 1},
         "endpoint": {
           "$ref": "#/$defs/uri",
           "pattern": "^(?![A-Za-z][A-Za-z0-9+.-]*://[^/?#]*@)"

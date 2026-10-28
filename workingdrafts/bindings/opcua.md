@@ -1946,7 +1946,7 @@ the Registry root and, optionally, the expected application and transport:
 
 ```json
 {
-  "name": "opcua",
+  "binding": "opcua",
   "endpoint": "opc.tcp://ua.example.com:4840",
   "parameters": {
     "registryroot": "nsu=urn:example:registry;s=FirstRegistry",

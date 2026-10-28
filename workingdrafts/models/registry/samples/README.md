@@ -157,7 +157,7 @@ empty names, invalid priorities, relative or credential-bearing endpoints,
 and prohibited queries or fragments. Binding checks cover misplaced OCI tags,
 missing or unknown parameters, abbreviated Git revisions, unsafe paths,
 File layout/reference mismatches and persisted OPC UA namespace indexes.
-Additional cases cover contradictory `xregurl` and unknown profile names that
+Additional cases cover contradictory `xregurl` and unknown `binding` values that
 differ from built-ins only by case. These checks do not instruct a caller to
 fetch a sample endpoint.
 
@@ -193,8 +193,8 @@ Failures expose a `FederationError.code` and a message.
 To select an advertisement in these document-view samples:
 
 1. Obtain the description using `select_version(resource, versionid=None)`.
-2. Pass that Version to `select_profile(entry, supported, name=None)`.
-   The `name` argument is keyword-only.
+2. Pass that Version to `select_profile(entry, supported, binding=None)`.
+   The `binding` argument is keyword-only.
 
 Profile attributes are not duplicated on the Resource. To select a Version by
 label, pass the selected description Versions, label key and label value to

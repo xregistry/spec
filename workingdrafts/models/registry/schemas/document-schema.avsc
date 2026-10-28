@@ -271,7 +271,7 @@
                             {
                               "type": "string",
                               "doc": "Nonempty, case-sensitive binding identifier.",
-                              "name": "name"
+                              "name": "binding"
                             },
                             {
                               "type": "string",

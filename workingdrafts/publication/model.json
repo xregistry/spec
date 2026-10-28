@@ -30,7 +30,7 @@
                       "type": "object",
                       "required": true,
                       "attributes": {
-                        "name": {"type": "string", "required": true},
+                        "binding": {"type": "string", "required": true},
                         "endpoint": {"type": "uri", "required": true},
                         "parameters": {"type": "object"}
                       }

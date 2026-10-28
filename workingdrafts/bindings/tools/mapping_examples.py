@@ -160,7 +160,7 @@ def _revision(value):
 def git_locator(profile):
     """Validate an advertisement. Return endpoint, revision, selected root."""
     validate_profile(profile)
-    _require(profile["name"] == "git", "Not a Git profile", "unsupported_binding")
+    _require(profile["binding"] == "git", "Not a Git profile", "unsupported_binding")
     _uri(profile["endpoint"])
     parameters = profile.get("parameters", {})
     return (
@@ -207,7 +207,7 @@ def _checked_path(path, *, directory=False, missing="invalid_package"):
 def file_root(profile, boundary):
     """Parse a local File advertisement and enforce the caller's boundary."""
     validate_profile(profile)
-    _require(profile["name"] == "file", "Not a File profile", "unsupported_binding")
+    _require(profile["binding"] == "file", "Not a File profile", "unsupported_binding")
     _require(profile["parameters"]["layout"] == "document-tree",
              "Use the OCI helper for oci-layout", "unsupported_operation")
     parsed = _uri(profile["endpoint"])

@@ -13,24 +13,24 @@ from workingdrafts.federation.tools.federation_examples import (
 
 REGISTRY_DIR = Path(__file__).resolve().parents[1]
 BUILTINS = {"http", "oci", "git", "file", "opcua"}
-HTTP = {"name": "http", "endpoint": "https://registry.example.test/root"}
+HTTP = {"binding": "http", "endpoint": "https://registry.example.test/root"}
 OCI = {
-    "name": "oci",
+    "binding": "oci",
     "endpoint": "oci://artifacts.example.test/team/catalog",
     "parameters": {"reference": "stable"},
 }
 GIT = {
-    "name": "git",
+    "binding": "git",
     "endpoint": "https://git.example.test/team/catalog.git",
     "parameters": {"revision": "0123456789abcdef0123456789abcdef01234567"},
 }
 FILE = {
-    "name": "file",
+    "binding": "file",
     "endpoint": "file:///C:/catalog-cache/registry/",
     "parameters": {"layout": "document-tree"},
 }
 UA = {
-    "name": "opcua",
+    "binding": "opcua",
     "endpoint": "opc.tcp://ua.example.test:4840/xregistry",
     "parameters": {
         "registryroot": "nsu=urn:example:xregistry;s=Registries/Catalog",
@@ -38,7 +38,7 @@ UA = {
     },
 }
 EXTENSION = {
-    "name": "com.example.discovery",
+    "binding": "com.example.discovery",
     "endpoint": "urn:example:catalog:discovery",
     "parameters": {"exampleextension": {"mode": "KeepCase", "values": [0, False, ""]}},
 }
@@ -48,9 +48,9 @@ def _sample(filename):
     return json.loads((REGISTRY_DIR / "samples" / filename).read_text(encoding="utf-8"))
 
 
-def _assert_federation_error(entry, code, message, supported=BUILTINS, name=None):
+def _assert_federation_error(entry, code, message, supported=BUILTINS, binding=None):
     with pytest.raises(FederationError) as caught:
-        select_profile(entry, supported, name=name)
+        select_profile(entry, supported, binding=binding)
     assert caught.value.code == code
     assert str(caught.value) == message
 
@@ -207,9 +207,9 @@ def test_registry_resolvable_entry_requires_supported_valid_advertisement(
     before = deepcopy(base_catalog)
 
     if isinstance(outcome, tuple):
-        _assert_federation_error(version, *outcome, supported=supported, name=choice)
+        _assert_federation_error(version, *outcome, supported=supported, binding=choice)
     else:
-        selected = select_profile(version, supported, name=choice)
+        selected = select_profile(version, supported, binding=choice)
         assert selected == attributes["federationprofiles"][outcome]
         assert selected is version["federationprofiles"][outcome]
     assert base_catalog == before
@@ -225,7 +225,7 @@ def test_registry_version_and_profile_selection_over_sample_catalog():
     assert default is resource["versions"]["2"]
     assert earlier is resource["versions"]["1"]
     assert select_profile(default, BUILTINS) == {
-        "name": "oci",
+        "binding": "oci",
         "endpoint": "oci://artifacts.example.com/team/schemas",
         "priority": 0,
         "parameters": {
@@ -236,13 +236,13 @@ def test_registry_version_and_profile_selection_over_sample_catalog():
         },
     }
     assert select_profile(earlier, BUILTINS) == {
-        "name": "http", "endpoint": "https://schemas.example.com/xregistry"
+        "binding": "http", "endpoint": "https://schemas.example.com/xregistry"
     }
-    assert select_profile(earlier, BUILTINS, name="oci")["parameters"] == {"reference": "stable"}
+    assert select_profile(earlier, BUILTINS, binding="oci")["parameters"] == {"reference": "stable"}
     _assert_federation_error(
-        earlier, "unsupported_binding", "No supported advertisement", name="git"
+        earlier, "unsupported_binding", "No supported advertisement", binding="git"
     )
-    git = select_profile(default, BUILTINS, name="git")
+    git = select_profile(default, BUILTINS, binding="git")
     assert git is default["federationprofiles"][2]
     assert git["parameters"] == {
         "revision": "0123456789abcdef0123456789abcdef01234567", "path": "xregistry"

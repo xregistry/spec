@@ -18,7 +18,7 @@ def _require(condition, message, code="invalid_package"):
 
 def request_url(endpoint, modelsource, operation, target):
     """Map one typed abstract read to the existing Core HTTP API."""
-    validate_profile({"name": "http", "endpoint": endpoint})
+    validate_profile({"binding": "http", "endpoint": endpoint})
     if operation in ("model", "capabilities"):
         _require(target == "/", "Model and capabilities target must be /")
         return endpoint.rstrip("/") + "/" + operation
@@ -105,7 +105,7 @@ def _body(response):
 def _origin(url):
     _require(isinstance(url, str) and url.isascii()
              and not re.search(r"[\x00-\x20\x7f\\#]", url), "Invalid request URI")
-    validate_profile({"name": "http", "endpoint": url.split("?", 1)[0]})
+    validate_profile({"binding": "http", "endpoint": url.split("?", 1)[0]})
     parsed = urlsplit(url)
     host = parsed.hostname
     if ":" in host:
@@ -160,7 +160,7 @@ def interpret_transcript(
     _require(type(max_requests) is int and max_requests > 0
              and type(max_bytes) is int and max_bytes >= 0, "Invalid limits")
     endpoint = transcript.get("endpoint")
-    validate_profile({"name": "http", "endpoint": endpoint})
+    validate_profile({"binding": "http", "endpoint": endpoint})
     policy = transcript.get("policy", {})
     _require(isinstance(policy, dict), "Policy must be an object")
     allowed = policy.get("allowedOrigins", [_origin(endpoint)])

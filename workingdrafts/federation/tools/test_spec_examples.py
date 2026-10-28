@@ -111,23 +111,23 @@ SELECTION = {'requests': [{'operation': 'collection',
 
 
 @pytest.mark.parametrize(
-    ("other", "supported", "name", "message"),
+    ("other", "supported", "binding", "message"),
     [
         pytest.param(
-            {"name": "example.extension", "endpoint": "/invalid", "priority": -1, "parameters": []},
+            {"binding": "example.extension", "endpoint": "/invalid", "priority": -1, "parameters": []},
             {"http"}, None, "Endpoint must be absolute", id="unsupported-malformed-fields",
         ),
     ],
 )
-def test_select_profile_filters_before_priority_and_parameter_validation(other, supported, name, message):
-    winner = {"name": "http", "endpoint": "https://selected.example.test/nonroot/registry"}
+def test_select_profile_filters_before_priority_and_parameter_validation(other, supported, binding, message):
+    winner = {"binding": "http", "endpoint": "https://selected.example.test/nonroot/registry"}
     entry = {"federationprofiles": [deepcopy(other), winner]}
     before = deepcopy(entry)
 
-    selected = select_profile(entry, supported, name=name)
+    selected = select_profile(entry, supported, binding=binding)
 
     assert selected is winner
-    assert selected == {"name": "http", "endpoint": "https://selected.example.test/nonroot/registry"}
+    assert selected == {"binding": "http", "endpoint": "https://selected.example.test/nonroot/registry"}
     assert entry == before
     # Real validation would reject the other entry. Selection must not validate it.
     with pytest.raises(FederationError) as raised:
@@ -140,13 +140,13 @@ def test_select_profile_filters_before_priority_and_parameter_validation(other, 
     ("selected_profile", "code", "message"),
     [
         pytest.param(
-            {"name": "oci", "endpoint": "oci://registry.example.test/catalog", "priority": 0},
+            {"binding": "oci", "endpoint": "oci://registry.example.test/catalog", "priority": 0},
             "invalid_package", "Missing or invalid OCI reference", id="selected-missing-reference",
         ),
     ],
 )
 def test_select_profile_does_not_fallback_after_selected_validation_error(selected_profile, code, message):
-    alternate = {"name": "http", "endpoint": "https://alternate.example.test/registry", "priority": 5}
+    alternate = {"binding": "http", "endpoint": "https://alternate.example.test/registry", "priority": 5}
     entry = {"federationprofiles": [deepcopy(selected_profile), alternate]}
     before = deepcopy(entry)
     assert validate_profile(alternate) is None
@@ -157,7 +157,7 @@ def test_select_profile_does_not_fallback_after_selected_validation_error(select
     assert raised.value.code == code
     assert str(raised.value) == message
     assert entry == before
-    assert alternate == {"name": "http", "endpoint": "https://alternate.example.test/registry", "priority": 5}
+    assert alternate == {"binding": "http", "endpoint": "https://alternate.example.test/registry", "priority": 5}
 
 
 XID = "/documents/main/assets/item"

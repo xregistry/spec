@@ -283,11 +283,11 @@ def _unsigned_integer(value):
 def validate_profile(profile):
     if not isinstance(profile, dict):
         raise FederationError("invalid_package", "Advertisement must be an object")
-    if profile.keys() - {"name", "endpoint", "priority", "parameters"}:
+    if profile.keys() - {"binding", "endpoint", "priority", "parameters"}:
         raise FederationError("invalid_package", "Unknown advertisement field")
-    name = profile.get("name")
-    if not isinstance(name, str) or not name:
-        raise FederationError("invalid_package", "Missing profile name")
+    binding = profile.get("binding")
+    if not isinstance(binding, str) or not binding:
+        raise FederationError("invalid_package", "Missing binding")
     uri = _absolute_uri(profile.get("endpoint"))
     priority = profile.get("priority", 0)
     if not _unsigned_integer(priority):
@@ -295,17 +295,17 @@ def validate_profile(profile):
     parameters = profile.get("parameters", {})
     if not isinstance(parameters, dict):
         raise FederationError("invalid_package", "Parameters must be an object")
-    if name not in _PROFILE_PARAMETERS:
+    if binding not in _PROFILE_PARAMETERS:
         return
-    if parameters.keys() - _PROFILE_PARAMETERS[name]:
+    if parameters.keys() - _PROFILE_PARAMETERS[binding]:
         raise FederationError("unsupported_operation", "Unknown profile parameter")
     if "#" in profile["endpoint"] or "?" in profile["endpoint"]:
         raise FederationError("invalid_package", "Endpoint has query or fragment")
-    if name in ("http", "git", "oci", "opcua") and not uri.hostname:
+    if binding in ("http", "git", "oci", "opcua") and not uri.hostname:
         raise FederationError("invalid_package", "Missing endpoint host")
-    if name == "http" and uri.scheme not in ("http", "https"):
+    if binding == "http" and uri.scheme not in ("http", "https"):
         raise FederationError("invalid_package", "HTTP endpoint scheme")
-    if name == "git":
+    if binding == "git":
         if uri.scheme != "https":
             raise FederationError("unsupported_operation", "Git transport not HTTPS")
         revision = parameters.get("revision", "")
@@ -328,20 +328,20 @@ def validate_profile(profile):
             )
         ):
             raise FederationError("policy_denied", "Unsafe Git format root")
-    if name == "oci":
+    if binding == "oci":
         if uri.scheme != "oci" or not re.fullmatch(
             r"/[a-z0-9]+(?:(?:[._]|__|-+)[a-z0-9]+)*"
             r"(?:/[a-z0-9]+(?:(?:[._]|__|-+)[a-z0-9]+)*)*",
             uri.path,
         ):
             raise FederationError("invalid_package", "OCI repository locator")
-    if name == "oci" or name == "file" and parameters.get("layout") == "oci-layout":
+    if binding == "oci" or binding == "file" and parameters.get("layout") == "oci-layout":
         reference = parameters.get("reference")
         if not isinstance(reference, str) or not re.fullmatch(
             r"sha256:[0-9a-f]{64}|[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}", reference
         ):
             raise FederationError("invalid_package", "Missing or invalid OCI reference")
-    if name == "file":
+    if binding == "file":
         if uri.scheme != "file" or not uri.path.startswith("/"):
             raise FederationError("invalid_package", "File endpoint must be absolute")
         if uri.hostname not in (None, "", "localhost"):
@@ -350,7 +350,7 @@ def validate_profile(profile):
             raise FederationError("invalid_package", "Unknown file layout")
         if parameters["layout"] == "document-tree" and "reference" in parameters:
             raise FederationError("unsupported_operation", "Document tree has no tag")
-    if name == "opcua":
+    if binding == "opcua":
         if uri.scheme not in ("opc.tcp", "https", "opc.wss"):
             raise FederationError("unsupported_operation", "Unsupported UA transport")
         from workingdrafts.bindings.tools.opcua_examples import validate_registry_root
@@ -361,7 +361,7 @@ def validate_profile(profile):
                 _absolute_uri(parameters[parameter])
 
 
-def select_profile(entry, supported, *, name=None):
+def select_profile(entry, supported, *, binding=None):
     """Choose once. Validation failures never trigger a weaker fallback."""
     if not isinstance(entry, dict):
         raise FederationError("invalid_package", "Catalog entry must be an object")
@@ -371,21 +371,21 @@ def select_profile(entry, supported, *, name=None):
     if any(not isinstance(item, dict) for item in candidates):
         raise FederationError("invalid_package", "Advertisement must be an object")
     if any(
-        not isinstance(item.get("name"), str) or not item["name"]
+        not isinstance(item.get("binding"), str) or not item["binding"]
         for item in candidates
     ):
-        raise FederationError("invalid_package", "Missing profile name")
+        raise FederationError("invalid_package", "Missing binding")
     candidates = list(candidates)
     xregurl = entry.get("xregurl")
-    explicit_http = [p for p in candidates if p.get("name") == "http"]
+    explicit_http = [p for p in candidates if p.get("binding") == "http"]
     if xregurl is not None:
-        validate_profile({"name": "http", "endpoint": xregurl})
+        validate_profile({"binding": "http", "endpoint": xregurl})
         if explicit_http and not any(p.get("endpoint") == xregurl for p in explicit_http):
             raise FederationError("invalid_package", "Conflicting xregurl")
-        candidates.append({"name": "http", "endpoint": xregurl})
+        candidates.append({"binding": "http", "endpoint": xregurl})
     eligible = [
         p for p in candidates
-        if p.get("name") in supported and (name is None or p.get("name") == name)
+        if p.get("binding") in supported and (binding is None or p.get("binding") == binding)
     ]
     if not eligible:
         raise FederationError("unsupported_binding", "No supported advertisement")
@@ -398,9 +398,9 @@ def select_profile(entry, supported, *, name=None):
     return selected
 
 
-def execute_selected(entry, supported, read, *, name=None):
+def execute_selected(entry, supported, read, *, binding=None):
     """Exercise one selected read. Failures propagate without another candidate."""
-    return read(select_profile(entry, supported, name=name))
+    return read(select_profile(entry, supported, binding=binding))
 
 
 def select_label(entities, key, value):

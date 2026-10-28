@@ -6,7 +6,7 @@
   "registry": {
     "reference": {
       "registry": {
-        "name": "http",
+        "binding": "http",
         "endpoint": "https://publisher.example.test"
       },
       "version": "/publications/team/objects/registry-capture/versions/content"
@@ -23,7 +23,7 @@
       "content": {
         "reference": {
           "registry": {
-            "name": "http",
+            "binding": "http",
             "endpoint": "https://publisher.example.test"
           },
           "version": "/sets/manual/documents/intro/versions/7"

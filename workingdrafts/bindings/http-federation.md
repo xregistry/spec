@@ -92,7 +92,7 @@ selected advertisement MUST produce `unsupported_operation`.
 
 ```json
 {
-  "name": "http",
+  "binding": "http",
   "endpoint": "https://first.example.com/services/xreg/",
   "priority": 0
 }

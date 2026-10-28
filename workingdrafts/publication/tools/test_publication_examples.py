@@ -140,16 +140,16 @@ def test_wrong_scope_head_preserves_channel(publication):
     assert channels.records == before
 
 
-@pytest.mark.parametrize("name", ["http", "opcua"])
-def test_exact_version_binding_dispatch(publication, name):
+@pytest.mark.parametrize("binding", ["http", "opcua"])
+def test_exact_version_binding_dispatch(publication, binding):
     _, documents = publication
-    prefix = "opcua-" if name == "opcua" else ""
+    prefix = "opcua-" if binding == "opcua" else ""
     context = json.loads((SAMPLES / (prefix + "open.json")).read_text())
     reads = []
 
     def read(reference):
         reads.append(deepcopy(reference))
-        assert reference["registry"]["name"] == name
+        assert reference["registry"]["binding"] == binding
         return documents.read(reference)
 
     result = open_context(context, read)
@@ -158,7 +158,7 @@ def test_exact_version_binding_dispatch(publication, name):
         result["documents"][0]["content"]["reference"],
     ]
     assert reads[-1]["version"] == "/sets/manual/documents/intro/versions/7"
-    if name == "opcua":
+    if binding == "opcua":
         assert all(r["registry"]["endpoint"] == "opc.tcp://ua.example.test:4840" for r in reads)
         assert all(r["registry"]["parameters"]["registryroot"] ==
                    "nsu=urn:example:publication;s=Registry" for r in reads)
@@ -193,15 +193,15 @@ def test_rejects_non_version_or_url_only_reference(publication, change):
 
 
 @pytest.mark.parametrize("access,code", [
-    ({"name": "unknown", "endpoint": "urn:unknown:binding"}, "unsupported_binding"),
-    ({"name": "http", "endpoint": "https://example.test",
+    ({"binding": "unknown", "endpoint": "urn:unknown:binding"}, "unsupported_binding"),
+    ({"binding": "http", "endpoint": "https://example.test",
       "parameters": {"registryroot": "i=85"}}, "unsupported_operation"),
-    ({"name": "opcua", "endpoint": "opc.tcp://example.test:4840",
+    ({"binding": "opcua", "endpoint": "opc.tcp://example.test:4840",
       "parameters": {"registryroot": "ns=2;s=Registry"}}, "invalid_package"),
-    ({"name": "opcua", "endpoint": "opc.tcp://example.test:4840"}, "invalid_package"),
-    ({"name": "git", "endpoint": "https://example.test/repo",
+    ({"binding": "opcua", "endpoint": "opc.tcp://example.test:4840"}, "invalid_package"),
+    ({"binding": "git", "endpoint": "https://example.test/repo",
       "parameters": {"revision": "refs/heads/main"}}, "invalid_package"),
-    ({"name": "oci", "endpoint": "oci://example.test/repo",
+    ({"binding": "oci", "endpoint": "oci://example.test/repo",
       "parameters": {"reference": "latest"}}, "invalid_package"),
 ])
 def test_invalid_access_never_dispatches(publication, access, code):
@@ -304,7 +304,7 @@ def test_reference_comparison_preserves_version_case(publication):
 def test_git_reference_comparison_uses_commit_and_default_path():
     first = {
         "registry": {
-            "name": "git", "endpoint": "https://example.test/repo",
+            "binding": "git", "endpoint": "https://example.test/repo",
             "parameters": {"revision": "a" * 40},
         },
         "version": "/sets/manual/documents/intro/versions/7",
@@ -355,7 +355,7 @@ def test_package_replays_native_references_without_network(package_dir, monkeypa
     native = json.loads((package_dir / "opcua-open.json").read_text())
     edit_package(package_dir, lambda p: p.update(context=native))
     result = open_package(package_dir)
-    assert result["documents"][0]["content"]["reference"]["registry"]["name"] == "opcua"
+    assert result["documents"][0]["content"]["reference"]["registry"]["binding"] == "opcua"
     (package_dir / "intro.txt").unlink()
     with pytest.raises(PublicationError) as caught:
         open_package(package_dir)

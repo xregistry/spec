@@ -36,19 +36,19 @@ def _access_key(access):
         validate_profile(access)
     except FederationError as error:
         raise PublicationError(error.code, str(error)) from error
-    name = access["name"]
-    if name not in ("http", "opcua", "git", "oci", "file"):
-        raise PublicationError("unsupported_binding", name)
+    binding = access["binding"]
+    if binding not in ("http", "opcua", "git", "oci", "file"):
+        raise PublicationError("unsupported_binding", binding)
     parameters = dict(access.get("parameters", {}))
-    if name == "git":
+    if binding == "git":
         if not re.fullmatch(r"[0-9a-fA-F]{40}|[0-9a-fA-F]{64}", parameters["revision"]):
             raise PublicationError("invalid_package", "Publication Git revision must be an object ID")
         parameters["revision"] = parameters["revision"].lower()
         parameters.setdefault("path", "xregistry")
-    if name == "oci" or name == "file" and parameters.get("layout") == "oci-layout":
+    if binding == "oci" or binding == "file" and parameters.get("layout") == "oci-layout":
         if not re.fullmatch(r"sha256:[0-9a-f]{64}", parameters["reference"]):
             raise PublicationError("invalid_package", "Publication OCI reference must be a digest")
-    return name, access["endpoint"], tuple(sorted(parameters.items()))
+    return binding, access["endpoint"], tuple(sorted(parameters.items()))
 
 
 def _xid_key(xid):

@@ -4,12 +4,12 @@
   "head": {
     "reference": {
       "registry": {
-        "name": "http",
+        "binding": "http",
         "endpoint": "https://publisher.example.test"
       },
-      "version": "/publications/team/snapshots/cdbc9f1ff5ba6dd31377af1f8a8f03840e7bf836939be384ff6f0c97fac56c2b/versions/manifest"
+      "version": "/publications/team/snapshots/9d0bf066f7e96e942f07ad978bfb59f74cf791afc34db3d386bc94b4f155749b/versions/manifest"
     },
-    "digest": "sha256:cdbc9f1ff5ba6dd31377af1f8a8f03840e7bf836939be384ff6f0c97fac56c2b",
-    "size": 1137
+    "digest": "sha256:9d0bf066f7e96e942f07ad978bfb59f74cf791afc34db3d386bc94b4f155749b",
+    "size": 1143
   }
 }

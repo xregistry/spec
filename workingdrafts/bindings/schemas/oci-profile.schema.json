@@ -3,9 +3,9 @@
   "$id": "https://xregistry.io/workingdrafts/bindings/schemas/oci-profile.schema.json",
   "title": "OCI federation advertisement, unreleased version 1",
   "type": "object",
-  "required": ["name", "endpoint", "parameters"],
+  "required": ["binding", "endpoint", "parameters"],
   "properties": {
-    "name": {"const": "oci"},
+    "binding": {"const": "oci"},
     "endpoint": {
       "type": "string",
       "pattern": "^oci://[^/@?#\\s]+/[a-z0-9]+(?:(?:[._]|__|-+)[a-z0-9]+)*(?:/[a-z0-9]+(?:(?:[._]|__|-+)[a-z0-9]+)*)*$"

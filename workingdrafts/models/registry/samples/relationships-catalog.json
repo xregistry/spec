@@ -104,7 +104,7 @@
               "ancestorid": "1",
               "federationprofiles": [
                 {
-                  "name": "file",
+                  "binding": "file",
                   "endpoint": "file:///C:/catalog-cache/schema-mirror/",
                   "parameters": {
                     "layout": "document-tree"

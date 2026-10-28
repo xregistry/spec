@@ -7,9 +7,9 @@ import re
 
 
 SAMPLES = Path(__file__).resolve().parents[1] / "samples"
-HTTP = {"name": "http", "endpoint": "https://publisher.example.test"}
+HTTP = {"binding": "http", "endpoint": "https://publisher.example.test"}
 OPCUA = {
-    "name": "opcua",
+    "binding": "opcua",
     "endpoint": "opc.tcp://ua.example.test:4840",
     "parameters": {"registryroot": "nsu=urn:example:publication;s=Registry"},
 }

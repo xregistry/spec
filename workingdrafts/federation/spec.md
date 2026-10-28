@@ -524,11 +524,11 @@ A resolver MUST NOT infer an API from `weburl`, a label, a category name
 or a descriptive relationship.
 A website-only entry is a valid catalog entry, but is not resolvable.
 
-The domain's `federationprofiles` array contains advertisements with `name`,
-`endpoint`, OPTIONAL `priority` and OPTIONAL `parameters`. Profile names
-are case-sensitive. The names defined by this family are:
+The domain's `federationprofiles` array contains advertisements with `binding`,
+`endpoint`, OPTIONAL `priority` and OPTIONAL `parameters`. `binding` values
+are case-sensitive. The values defined by this family are:
 
-| Name | Endpoint | Parameters |
+| Binding | Endpoint | Parameters |
 | --- | --- | --- |
 | `http` | HTTP(S) Registry root | None. |
 | `oci` | `oci://host/repository` | `reference`: tag or `sha256` digest. |
@@ -540,7 +540,7 @@ The bindings define parameter grammars and their supported transports.
 Endpoints MUST be absolute URIs and MUST NOT embed credentials. A selected
 built-in advertisement with an unknown parameter MUST produce
 `unsupported_operation`. Silently ignoring a parameter could select a
-different Registry or revision. An unknown profile name remains valid catalog
+different Registry or revision. An unknown `binding` value remains valid catalog
 metadata, but MUST NOT be executed as a known profile.
 
 An absent `priority` means zero. Lower unsigned integer values are preferred.
@@ -549,7 +549,7 @@ An absent `parameters` means an empty object. Selection MUST proceed as follows:
 1. Validate the catalog's advertised xregurl/explicit HTTP consistency as
    specified by the Registry domain.
 2. Apply the caller's explicit profile choice and access policy.
-3. Remove unsupported profile names from consideration.
+3. Remove advertisements with unsupported `binding` values from consideration.
 4. Order remaining advertisements by ascending priority, preserving array
    order for ties.
 5. Choose the first remaining advertisement and validate its parameters.

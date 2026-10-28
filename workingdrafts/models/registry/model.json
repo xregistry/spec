@@ -42,7 +42,7 @@
               "item": {
                 "type": "object",
                 "attributes": {
-                  "name": {
+                  "binding": {
                     "type": "string",
                     "required": true,
                     "description": "Nonempty, case-sensitive binding identifier.",

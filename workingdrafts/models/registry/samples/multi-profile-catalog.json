@@ -56,13 +56,13 @@
               "registrytypes": [],
               "federationprofiles": [
                 {
-                  "name": "http",
+                  "binding": "http",
                   "endpoint": "https://schemas.example.com/xregistry",
                   "priority": 20,
                   "parameters": {}
                 },
                 {
-                  "name": "oci",
+                  "binding": "oci",
                   "endpoint": "oci://artifacts.example.com/team/schemas",
                   "priority": 10,
                   "parameters": {
@@ -98,7 +98,7 @@
               "authority": "urn:example:organization:platform-team",
               "federationprofiles": [
                 {
-                  "name": "com.example.discovery",
+                  "binding": "com.example.discovery",
                   "endpoint": "https://discovery.example.com/registries/schemas",
                   "priority": 0,
                   "parameters": {
@@ -106,7 +106,7 @@
                   }
                 },
                 {
-                  "name": "oci",
+                  "binding": "oci",
                   "endpoint": "oci://artifacts.example.com/team/schemas",
                   "priority": 0,
                   "parameters": {
@@ -114,7 +114,7 @@
                   }
                 },
                 {
-                  "name": "git",
+                  "binding": "git",
                   "endpoint": "https://git.example.com/team/schemas.git",
                   "priority": 0,
                   "parameters": {
@@ -123,11 +123,11 @@
                   }
                 },
                 {
-                  "name": "http",
+                  "binding": "http",
                   "endpoint": "https://schemas.example.com/xregistry"
                 },
                 {
-                  "name": "file",
+                  "binding": "file",
                   "endpoint": "file:///C:/catalog-cache/schemas/",
                   "priority": 10,
                   "parameters": {
@@ -135,7 +135,7 @@
                   }
                 },
                 {
-                  "name": "file",
+                  "binding": "file",
                   "endpoint": "file:///C:/catalog-cache/layouts/schemas/",
                   "priority": 20,
                   "parameters": {
@@ -144,7 +144,7 @@
                   }
                 },
                 {
-                  "name": "opcua",
+                  "binding": "opcua",
                   "endpoint": "opc.tcp://ua.example.com:4840/xregistry",
                   "priority": 10,
                   "parameters": {

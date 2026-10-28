@@ -151,7 +151,7 @@ an OPTIONAL attribute, and `*` permits zero or more occurrences.
               "authority": "<URI>", ?
               "federationprofiles": [
                 {
-                  "name": "<STRING>",
+                  "binding": "<STRING>",
                   "endpoint": "<URI>",
                   "priority": <UINTEGER>, ?
                   "parameters": { ... } ?
@@ -403,7 +403,7 @@ by the model.
 - Constraints:
   - OPTIONAL. An empty array advertises no explicit access methods.
   - Each object MUST satisfy [Section 5](#5-federation-advertisements).
-  - Multiple advertisements MAY use the same profile name or endpoint.
+  - Multiple advertisements MAY use the same `binding` value or endpoint.
   - Producers MUST preserve array order. It determines preference when
     priorities are equal.
   - Multiple advertisements assert access to the same logical Registry,
@@ -443,12 +443,12 @@ agreement without changing Core comparison rules.
 
 ### 5.1. Common Fields
 
-An advertisement contains `name`, `endpoint`, OPTIONAL `priority` and
+An advertisement contains `binding`, `endpoint`, OPTIONAL `priority` and
 OPTIONAL `parameters`. The object MUST NOT contain other fields.
 Parameter names MUST follow the model's Core attribute-name rules.
 Profile-specific extensions belong inside `parameters`.
 
-#### 5.1.1. `name`
+#### 5.1.1. `binding`
 
 - Type: String.
 - Description: The binding discriminator.
@@ -457,7 +457,7 @@ Profile-specific extensions belong inside `parameters`.
   - MUST be compared case-sensitively, without normalization.
   - This revision defines `http`, `oci`, `git`, `file` and `opcua`.
     Other strings remain valid catalog data.
-  - An unknown name MUST NOT be executed as a known binding. For example,
+  - An unknown value MUST NOT be executed as a known binding. For example,
     `HTTP` is not an alias for `http`.
 - Examples:
   - `http`
@@ -469,7 +469,7 @@ Profile-specific extensions belong inside `parameters`.
 - Description: The serving location interpreted by the selected binding.
 - Constraints:
   - REQUIRED.
-  - MUST be an absolute URI satisfying the named binding's endpoint rules.
+  - MUST be an absolute URI satisfying the selected binding's endpoint rules.
   - MUST NOT contain user information or embedded credentials.
   - MUST NOT be interpreted as a global entity identifier or an XID.
   - A snapshot selector belongs in the binding parameters when so defined.
@@ -531,7 +531,7 @@ that support.
 
 ```json
 {
-  "name": "http",
+  "binding": "http",
   "endpoint": "https://schemas.example.com/xregistry"
 }
 ```
@@ -655,7 +655,7 @@ grant permission to read a local or network path.
 
 ```json
 {
-  "name": "file",
+  "binding": "file",
   "endpoint": "file:///C:/catalog-cache/schemas/",
   "parameters": {
     "layout": "document-tree"
@@ -722,7 +722,7 @@ bridge, NodeSet export domain or additional OPC UA Services.
 
 ### 5.7. Extensions
 
-The model's advisory `enum` permits extension profile names. An extension
+The model's advisory `enum` permits extension `binding` values. An extension
 SHOULD use a collision-resistant name under its publisher's control and
 document its endpoint, parameters, version rules, security properties and
 conformance requirements.
@@ -796,7 +796,7 @@ Selection MUST use the following procedure:
 
 1. Read the explicit `federationprofiles` array in its original order.
    An absent array is empty. Validate common advertisement fields and
-   preserve unknown profile names as catalog data.
+   preserve unknown `binding` values as catalog data.
 2. If `xregurl` is present, validate it as an HTTP root. If explicit
    `http` advertisements also exist, at least one endpoint MUST equal
    `xregurl` exactly. Otherwise the entry is contradictory and resolution
@@ -807,9 +807,9 @@ Selection MUST use the following procedure:
    advertisements. Its selection defaults MUST NOT be inherited from a
    different explicit candidate.
 4. Apply the caller's explicit advertisement choice, including a selected
-   profile name or original array position, and the caller's access
+   `binding` value or original array position, and the caller's access
    policy. The producer's priority MUST NOT override that choice.
-5. Exclude profile names the consumer does not support. If no supported
+5. Exclude `binding` values the consumer does not support. If no supported
    candidate remains, report `unsupported_binding`. If policy rejects
    the selection, report `policy_denied`.
 6. Order eligible candidates by ascending priority, treating an absent
@@ -992,7 +992,7 @@ entries without labels, `registrytypes`, `authority`, `relationships`,
 `federationprofiles`, `xregurl` or `weburl`.
 
 When a domain attribute is supplied, its types and semantic constraints
-apply. Unknown profile names and relationship types MUST remain valid
+apply. Unknown `binding` values and relationship types MUST remain valid
 catalog data if their common fields are valid. A base catalog is not
 REQUIRED to implement any advertised transport or reachability check.
 

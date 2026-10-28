@@ -292,7 +292,7 @@ def check_index(data: bytes, *, profile: bool = True) -> dict:
 def distribution_url(endpoint: str, reference: str, *, blob: bool = False) -> str:
     """Map a locator to a native URL without making a network request."""
     validate_profile(
-        {"name": "oci", "endpoint": endpoint, "parameters": {"reference": reference}}
+        {"binding": "oci", "endpoint": endpoint, "parameters": {"reference": reference}}
     )
     if blob and not _DIGEST.fullmatch(reference):
         _fail("invalid_package", "A blob reference must be a digest")

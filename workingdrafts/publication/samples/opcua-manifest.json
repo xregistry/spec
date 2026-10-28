@@ -6,7 +6,7 @@
   "registry": {
     "reference": {
       "registry": {
-        "name": "opcua",
+        "binding": "opcua",
         "endpoint": "opc.tcp://ua.example.test:4840",
         "parameters": {
           "registryroot": "nsu=urn:example:publication;s=Registry"
@@ -26,7 +26,7 @@
       "content": {
         "reference": {
           "registry": {
-            "name": "opcua",
+            "binding": "opcua",
             "endpoint": "opc.tcp://ua.example.test:4840",
             "parameters": {
               "registryroot": "nsu=urn:example:publication;s=Registry"

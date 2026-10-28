@@ -396,8 +396,8 @@ def test_http_cross_origin_redirect_rejects_forwarded_scope_headers(header):
     "policy_denied",
 ])
 def test_selected_binding_failure_never_attempts_another_advertisement(code):
-    first = {"name": "http", "endpoint": "https://first.example.com", "priority": 0}
-    second = {"name": "http", "endpoint": "https://second.example.com", "priority": 1}
+    first = {"binding": "http", "endpoint": "https://first.example.com", "priority": 0}
+    second = {"binding": "http", "endpoint": "https://second.example.com", "priority": 1}
     failure = FederationError(code, "selected operation failed")
     read = Mock(side_effect=failure)
     with pytest.raises(FederationError) as error:

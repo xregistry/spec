@@ -96,7 +96,7 @@ list the other examples, dependencies and Linux path equivalents.
 
 ## Advertisement and File URI
 
-The profile name MUST be `file`. The `endpoint` MUST be an absolute
+`binding` MUST be `file`. The `endpoint` MUST be an absolute
 [RFC8089](https://www.rfc-editor.org/rfc/rfc8089) file URI identifying the
 selected directory. It MUST NOT contain credentials, a query or fragment.
 An absent authority or `localhost` means local access. Other authorities,
@@ -119,7 +119,7 @@ layouts after a failure. When an OCI layout contains several snapshots,
 
 ```json
 {
-  "name": "file",
+  "binding": "file",
   "endpoint": "file:///D:/registry-snapshots/first",
   "parameters": {
     "layout": "document-tree"
@@ -129,7 +129,7 @@ layouts after a failure. When an OCI layout contains several snapshots,
 
 ```json
 {
-  "name": "file",
+  "binding": "file",
   "endpoint": "file:///var/lib/xregistry/layout",
   "parameters": {
     "layout": "oci-layout",

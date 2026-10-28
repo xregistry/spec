@@ -260,7 +260,7 @@ def map_registry_root(
     discover endpoints, inspect certificates or certify a RegistryType node.
     """
     validate_profile(profile)
-    if profile["name"] != "opcua":
+    if profile["binding"] != "opcua":
         raise FederationError("unsupported_binding", "Not an OPC UA advertisement")
     endpoint = _object(endpoint_description, "EndpointDescription")
     server = _object(endpoint.get("server"), "EndpointDescription.server")

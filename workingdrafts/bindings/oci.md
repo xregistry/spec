@@ -119,7 +119,7 @@ An advertisement uses the shared `federationprofiles` entry shape:
 
 ```json
 {
-  "name": "oci",
+  "binding": "oci",
   "endpoint": "oci://registry.example.org/team/catalog",
   "priority": 10,
   "parameters": {
