@@ -335,6 +335,38 @@ def generate_openapi(model_definition):
 
         openapi["paths"].pop(path)
 
+        for group in model_definition.get("groups", {}).values():
+            resources = [
+                (group, resource) for resource in group.get("resources", {}).values()
+            ]
+            for imported in group.get("ximportresources", []):
+                source_group, plural = imported.split("/")[1:]
+                owner = model_definition["groups"][source_group]
+                resources.append((owner, owner["resources"][plural]))
+            for owner, definition in resources:
+                resource = resolve_resource(owner, definition)
+                if resource.get("hasdocument", True):
+                    continue
+                base = f"/{group['plural']}/{{groupid}}/{resource['plural']}/{{resourceid}}"
+                for path in (base, base + "/versions/{versionid}"):
+                    for method in ("get", "put", "post", "patch"):
+                        operation = openapi["paths"][path].get(method)
+                        if operation is None:
+                            continue
+                        messages = [
+                            response for status, response in operation["responses"].items()
+                            if status.startswith("2")
+                        ]
+                        if "requestBody" in operation:
+                            messages.append(operation["requestBody"])
+                        for message in messages:
+                            if "content" in message:
+                                if "application/json" not in message["content"]:
+                                    raise ValueError(f"Metadata operation {method} {path} lacks JSON content")
+                                message["content"] = {
+                                    "application/json": message["content"]["application/json"]
+                                }
+
         registry_entity_schema = openapi["components"]["schemas"]["RegistryEntity"]
         for _, group in model_definition.get("groups", {}).items():
             group_plural = group["plural"]
