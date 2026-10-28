@@ -876,8 +876,14 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
                 **common_attributes
             }
             resource_attributes = dict(identity_attributes)
-            if resource.get("maxversions", -1) == 1:
-                resource_attributes.update(resource.get("attributes", {}))
+            # Cross-reference writes omit default-Version attributes
+            # regardless of the Version limit.
+            resource_attributes.update({
+                name: {**definition, "required": False}
+                for name, definition in collect_attributes(
+                    resource.get("attributes", {})
+                ).items()
+            })
             resource_schema = object_schema(
                 resource_attributes, namespace, resource_type_name
             )

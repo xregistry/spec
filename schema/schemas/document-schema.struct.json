@@ -131,6 +131,9 @@
             "type": "datetime",
             "description": "Modification time"
           },
+          "format": {
+            "type": "string"
+          },
           "schema": {
             "type": "any",
             "description": "Embedded schema document"
@@ -158,7 +161,7 @@
             }
           }
         },
-        "additionalProperties": false
+        "additionalProperties": true
       },
       "Schemagroup": {
         "type": "object",
