@@ -1085,6 +1085,10 @@ property is a string that MUST be a valid HTTP header name.
 
 The `query` property is a map of string keys to string values.
 
+Implementations migrating from the former array form MUST NOT silently collapse
+duplicate query names. The caller MUST choose the value to retain for each
+duplicate name.
+
 The `path` property is a URI template.
 
 The `method` property is a string that MUST be a valid HTTP method.
@@ -1110,17 +1114,14 @@ The following example defines a message that is sent over HTTP/1.1:
         "value": "application/json"
       }
     ],
-    "query": [
-      {
-        "name": "foo",
-        "value": "bar"
-      }
-    ],
+    "query": {
+      "foo": "bar"
+    },
     "path": "/foo/{bar}",
     "method": "POST"
   },
   "dataschemaformat": "JsonSchema/draft-07",
-  "dataschemauri": "https://example.com/schemas/com.example.myevent.json",
+  "dataschemauri": "https://example.com/schemas/com.example.myevent.json"
 }
 ```
 
