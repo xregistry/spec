@@ -262,7 +262,7 @@ all declared document bytes locally in that snapshot.
 
 The [shared generator](../federation/tools/generate_examples.py) creates a
 new bare repository from a named Registry in
-[examples.json](../federation/examples.json). It stores the directory mapping
+[examples.json](../federation/samples/examples.json). It stores the directory mapping
 under `xregistry`, creates a deterministic synthetic commit at
 `refs/heads/main`, and creates the annotated tag `refs/tags/snapshot`.
 It reports the full commit ID and selected tree path. Author identity,

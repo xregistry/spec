@@ -46,7 +46,6 @@ _UniqueKeyLoader.add_constructor(
 
 def _sample_files():
     samples = [
-        ROOT / "workingdrafts" / "federation" / "examples.json",
         ROOT / "workingdrafts" / "models" / "wot" / "tests" / "resolution" / "vectors.json",
     ]
     for sample_root in (ROOT / "core" / "samples", ROOT / "cloudevents" / "samples"):

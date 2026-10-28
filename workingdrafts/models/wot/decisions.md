@@ -205,7 +205,7 @@ outside the document. They implement the error outcomes and algorithm in
 [Section 5.4](spec.md#54-versioned-reference-resolution).
 
 The following design and test resources provide supporting detail:
-- [versioning design](versioning-design.md)
-- [D7 selection flow](versioning-design.md#d7-selection-defaults-and-exact-pins)
-- [snapshot acceptance rules](publication-design.md#selection-and-acceptance)
+- [versioning design](publication/design.md)
+- [D7 selection flow](publication/design.md#d7-selection-defaults-and-exact-pins)
+- [snapshot acceptance rules](publication/design.md#selection-and-acceptance)
 - [canonical test vectors](tests/resolution/README.md)

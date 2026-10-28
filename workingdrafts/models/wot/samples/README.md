@@ -38,5 +38,5 @@ The publication requests omit `versionorigin` because the model initializes
 it to `authored`. The registry remains responsible for assignment.
 
 [publication-closure.json](publication-closure.json) is a separate example
-of the [proposed closure envelope](../publication-design.md), not Registry
+of the [proposed closure envelope](../publication/design.md#selection-and-acceptance), not Registry
 content or a complete snapshot. Its checks validate shape only.

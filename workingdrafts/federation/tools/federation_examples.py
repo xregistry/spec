@@ -17,7 +17,7 @@ class FederationError(ValueError):
         super().__init__(message)
 
 
-EXAMPLE_SOURCE = Path(__file__).resolve().parents[1] / "examples.json"
+EXAMPLE_SOURCE = Path(__file__).resolve().parents[1] / "samples" / "examples.json"
 MAX_EXAMPLE_BYTES = 16 * 1024 * 1024
 EXAMPLE_SCHEMA = {
     "type": "object", "required": ["exampleformat", "examples"],

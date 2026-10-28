@@ -54,7 +54,7 @@ fixes the 36 bytes of `intro` but does not inspect them for references. Some
 domains need more. A Web of Things (WoT) Thing Description (TD) can reference
 a Thing Model (TM), and a WoT consumer needs that TM in the exact Version the
 publisher validated. The
-[WoT companion](../models/wot/publication-design.md) adds a closure extension
+[WoT companion](../models/wot/publication/design.md#wot-channels-snapshots-and-dependency-bindings) adds a closure extension
 to the manifest that binds each recognized reference to an exact target
 Version. Its resolver then checks whether the caller accepts that target.
 Other domains define their own closure rules without changing channel or

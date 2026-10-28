@@ -2308,7 +2308,7 @@ OPC 10000-20, or its own domain companion specification.
 The [UA tests](tools/test_opcua_examples.py) retain representative reference,
 Registry-root and read-sequence cases, not every error or indexing variant.
 Shared Registry content is in the
-`first` and `second` examples in [examples.json](../federation/examples.json).
+`first` and `second` examples in [examples.json](../federation/samples/examples.json).
 They preserve separate Registry contexts, including equal asset XIDs with
 different document bytes. The
 [shared generator](../README.md#generating-and-reading-examples) exports

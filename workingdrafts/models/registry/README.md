@@ -14,7 +14,7 @@ endpoint.
 
 See the [full examples](samples/README.md) for base entries, multiple
 bindings and descriptive relationships. [Derived schemas](schemas/README.md)
-include JSON Schema, JSON Structure and HTTP OpenAPI descriptions,
+include JSON Schema, JSON Structure, Avro and HTTP OpenAPI descriptions,
 with reproducible generation commands and current generator limitations.
 
 [Shared federation](../../federation/spec.md) defines read-only resolution

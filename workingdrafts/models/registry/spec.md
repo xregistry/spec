@@ -1032,7 +1032,7 @@ description Versions and descriptive relationships.
 
 The [schema directory](schemas/README.md) contains descriptions derived
 from `model.json` using the repository's existing generator: JSON Schema,
-JSON Structure and HTTP OpenAPI. The OpenAPI description concerns the
+JSON Structure, Avro and HTTP OpenAPI. The OpenAPI description concerns the
 catalog's HTTP API, not the wire APIs of all advertised bindings.
 
 The authoritative model is not duplicated in a hand-maintained full

@@ -154,6 +154,48 @@ class TestSchemaGenerator:
         except Exception as e:
             pytest.fail(f"Avro schema validation failed: {e}")
 
+    def test_registry_model_avro_schema_valid(self, tools_dir):
+        model = tools_dir.parent / "workingdrafts" / "models" / "registry" / "model.json"
+        schema_data = self.generate_schema(model, 'avro-schema', tools_dir)
+        checked_schema = model.parent / 'schemas' / 'document-schema.avsc'
+        assert schema_data == json.loads(checked_schema.read_text(encoding='utf-8'))
+        schema = avro.schema.parse(json.dumps(schema_data))
+        category = schema.fields_dict['categories'].type.values
+        registry = category.fields_dict['registries'].type.values
+        profile = registry.fields_dict['federationprofiles'].type.items
+        relationship = registry.fields_dict['relationships'].type.items
+        assert profile.fields_dict['name'].type.type == 'string'
+        assert profile.fields_dict['endpoint'].type.type == 'string'
+        assert profile.fields_dict['parameters'].type.fullname == 'io.xregistry.GenericRecord'
+        assert relationship.fields_dict['target'].type.type == 'string'
+        assert relationship.fields_dict['labels'].type.values.type == 'string'
+
+    @pytest.mark.parametrize("containers", [
+        ('array',), ('map',), ('array', 'map'), ('map', 'array'),
+    ])
+    @pytest.mark.parametrize("typed", [True, False], ids=['typed-object', 'generic-object'])
+    def test_avro_nested_object_items(self, tools_dir, tmp_path, containers, typed):
+        attribute = {'type': 'object'}
+        if typed:
+            attribute['attributes'] = {'name': {'type': 'string'}}
+        for container in reversed(containers):
+            attribute = {'type': container, 'item': attribute}
+        model = {'groups': {'groups': {
+            'singular': 'group', 'attributes': {'entries': attribute},
+        }}}
+        model_path = tmp_path / 'model.json'
+        model_path.write_text(json.dumps(model), encoding='utf-8')
+        schema_data = self.generate_schema(model_path, 'avro-schema', tools_dir)
+        schema = avro.schema.parse(json.dumps(schema_data))
+        item = schema.fields_dict['groups'].type.values.fields_dict['entries'].type
+        for container in containers:
+            assert item.type == container
+            item = item.items if container == 'array' else item.values
+        if typed:
+            assert item.fields_dict['name'].type.type == 'string'
+        else:
+            assert item.fullname == 'io.xregistry.GenericRecord'
+
     def test_message_model_avro_has_generic_record(self, message_model, tools_dir):
         """Test that message model with extensions includes GenericRecord definition."""
         schema_data = self.generate_schema(message_model, 'avro-schema', tools_dir)

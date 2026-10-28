@@ -41,7 +41,7 @@ ORACLES = {
     "first": ("first", ITEM, b'{"type":"string"}', 18),
     "second": ("second", ITEM, b'{"type":"number"}', 5),
 }
-SOURCE = Path(__file__).resolve().parents[1] / "examples.json"
+SOURCE = Path(__file__).resolve().parents[1] / "samples" / "examples.json"
 
 
 def _invoke(args):

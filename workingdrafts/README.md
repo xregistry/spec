@@ -81,7 +81,7 @@ Federation does not redefine it as a remote URL.
 
 ### Generating and Reading Examples
 
-[examples.json](federation/examples.json) is the single Registry-content
+[examples.json](federation/samples/examples.json) is the single Registry-content
 source for the federation and binding examples. Select one named example
 and generate a File mapping, a local Git repository or a native OCI artifact
 with [generate_examples.py](federation/tools/generate_examples.py). The
@@ -217,11 +217,12 @@ open context provides a concrete snapshot pin without changing ordinary
 HTTP advertisements. Cross-binding equivalence requires a checked mapping,
 not equality of Registry IDs.
 
-The [WoT publication companion](models/wot/publication-design.md) supplies
-the domain-specific closure design, schema, shape example and checks.
-The [WoT versioning design](models/wot/versioning-design.md) and its
-[overview](models/wot/versioning-design-summary.md) explain how to assign
-document revisions, check compatibility, and select live references.
+The [WoT publication and versioning design](models/wot/publication/design.md)
+supplies the domain-specific closure design, schema, shape example, checks
+and version-selection rules. Its
+[overview](models/wot/publication/design.md#wot-versioning-design-overview)
+explains how to assign document revisions, check compatibility and select
+live references.
 
 ## OpenUSD Artifact Registry
 

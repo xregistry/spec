@@ -74,7 +74,7 @@ provides an immutable snapshot, so both arrangements follow the containment,
 digest and concurrent-change rules below.
 
 To read a local example, generate the `portable` Registry from the
-[shared source](../federation/examples.json). Run from the repository root
+[shared source](../federation/samples/examples.json). Run from the repository root
 with a new or empty destination outside the checkout:
 
 ```powershell

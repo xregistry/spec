@@ -908,7 +908,7 @@ does not validate exact encoded sizes, digests, sorted non-overlapping
 ranges, model semantics or graph completeness.
 
 The `offline` and `linked` Registries in the
-[shared source](../federation/examples.json) generate native OCI layouts
+[shared source](../federation/samples/examples.json) generate native OCI layouts
 through [generate_examples.py](../federation/tools/generate_examples.py).
 The source stores Registry content, not prebuilt manifests or a container
 image. The generator uses the existing OCI builder and validates the graph

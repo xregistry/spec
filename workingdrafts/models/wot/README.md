@@ -9,8 +9,8 @@ This draft defines the [WoT Registry specification][Spec] and its
 decisions. The informative [versioning design][Versioning] and
 [samples][Samples] provide additional context.
 
-The [publication companion](publication-design.md) defines how to bind
-dependencies and publish a set. Those workflows use the
+The [publication companion][Publication] defines how to bind dependencies and
+publish a set. Those workflows use the
 [generic publication contract](../../publication/spec.md). That contract covers:
 - [manifest integrity][Manifest]
 - [channel operations][Channel]
@@ -32,8 +32,9 @@ These examples do not provide exhaustive regression coverage.
 [Channel]: ../../publication/spec.md#publishing-and-opening-a-channel
 [Export]: ../../publication/spec.md#export-federation-and-binding-equivalence
 [Closure]: ../../publication/spec.md#domain-closure-and-compatibility
+[Publication]: publication/design.md#wot-channels-snapshots-and-dependency-bindings
 [Spec]: spec.md
 [Model]: model.json
 [Decisions]: decisions.md
-[Versioning]: versioning-design.md
+[Versioning]: publication/design.md#wot-versioning-design-overview
 [Samples]: samples/README.md

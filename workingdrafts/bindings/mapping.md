@@ -116,7 +116,7 @@ content closure.
 
 The [worked example](#worked-example-map-one-existing-file) below shows
 every file needed to map one existing document and the resulting reads.
-The `portable` example in the [shared source](../federation/examples.json)
+The `portable` example in the [shared source](../federation/samples/examples.json)
 demonstrates multiple Resource types, aliases and binary content.
 
 Git chooses the directory through `parameters.path` and pins its commit.
@@ -151,7 +151,7 @@ a `.gitattributes` file that disables text conversion for the document. Its
 Registry root also contains the full captured Core model from the shared
 source. The `registry.json` below omits that `model` attribute and keeps only
 `modelsource`, so the generated root has a different size and digest. The
-[walkthrough tests](tools/test_mapping_spec_examples.py) check that removing
+[walkthrough tests](tools/test_mapping_examples.py) check that removing
 the model reproduces the bytes below exactly.
 
 ### 1. Keep the Existing Document
@@ -854,7 +854,7 @@ Resource document requests use `meta.defaultversionid`. Explicit Version
 requests use exactly the requested Version ID. A snapshot revision, index
 position or highest Version string MUST NOT override the Core default.
 
-The `portable` example in the [shared source](../federation/examples.json)
+The `portable` example in the [shared source](../federation/samples/examples.json)
 exercises the following alias boundary. These are operation outcomes, not
 additional stored records:
 
@@ -955,7 +955,7 @@ requirement to implement a server or an API-view facade.
 
 ## Executable Example
 
-The `portable` example in [examples.json](../federation/examples.json)
+The `portable` example in [examples.json](../federation/samples/examples.json)
 contains:
 
 - Typed collections.
@@ -995,7 +995,7 @@ python -B -m workingdrafts.bindings.tools.mapping_examples document D:\temp\xreg
 
 The [shared instructions](../README.md#generating-and-reading-examples) list
 prerequisites, the other named examples and equivalent Linux paths. The
-[mapping walkthrough tests](tools/test_mapping_spec_examples.py) show
+[mapping walkthrough tests](tools/test_mapping_examples.py) show
 how metadata can be added around existing project files without moving or
 changing them. The new generator itself writes only to an empty destination.
 
@@ -1033,7 +1033,7 @@ encode_tree(records, documents, inline=False, paths=None,
 
 The encoder rejects unknown XIDs, unused path overrides and colliding paths
 with `invalid_package`. The
-[walkthrough tests](tools/test_mapping_spec_examples.py) use these options
+[walkthrough tests](tools/test_mapping_examples.py) use these options
 to compare split, inline and mixed forms of the sample mapping and read
 the separate inline project walkthrough.
 

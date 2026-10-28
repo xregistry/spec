@@ -22,6 +22,31 @@ DOCUMENT_SHA256 = "85803e087e684bdab3e5d6c2dd1af627da83382db625be9a42aea3d4d0653
 TIMESTAMP = "2026-01-01T00:00:00Z"
 
 
+def _write_files(root, files):
+    for name, data in files.items():
+        path = root.joinpath(*name.split("/"))
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+    return root
+
+
+@pytest.fixture(scope="session")
+def mapping_sample_root(tmp_path_factory):
+    # Keep the legacy root oracle: sample_records deliberately has no full model.
+    return _write_files(
+        tmp_path_factory.mktemp("mapping"),
+        document.encode_tree(*document.sample_records()),
+    )
+
+
+@pytest.fixture(scope="session")
+def walkthrough_root(tmp_path_factory):
+    return _write_files(
+        tmp_path_factory.mktemp("walkthrough"),
+        document.walkthrough_files(),
+    )
+
+
 def walkthrough_source():
     """Return the walkthrough Registry as encoder input: records and document bytes."""
     stamp = {"epoch": 1, "createdat": TIMESTAMP, "modifiedat": TIMESTAMP}

@@ -16,6 +16,7 @@ identifiers.
 | --- | --- |
 | JSON Schema, Draft 7 | [document-schema.json](document-schema.json) |
 | JSON Structure | [document-schema.struct.json](document-schema.struct.json) |
+| Avro | [document-schema.avsc](document-schema.avsc) |
 | HTTP OpenAPI | [openapi.json](openapi.json) |
 
 The OpenAPI description is for serving the catalog over HTTP. It is not
@@ -30,6 +31,7 @@ and name of the root type match the repository's schema-generation target.
 ```powershell
 python -B tools\schema-generator.py --type json-schema --schema-id https://xregistry.io/workingdrafts/models/registry/schemas/document-schema.json --output workingdrafts\models\registry\schemas\document-schema.json workingdrafts\models\registry\model.json
 python -B tools\schema-generator.py --type json-structure --schema-id https://xregistry.io/workingdrafts/models/registry/schemas/document-schema.struct.json --schema-name RegistryOfRegistriesDocument --output workingdrafts\models\registry\schemas\document-schema.struct.json workingdrafts\models\registry\model.json
+python -B tools\schema-generator.py --type avro-schema --output workingdrafts\models\registry\schemas\document-schema.avsc workingdrafts\models\registry\model.json
 python -B tools\schema-generator.py --type openapi --output workingdrafts\models\registry\schemas\openapi.json workingdrafts\models\registry\model.json
 ```
 
@@ -43,6 +45,7 @@ All generated files are JSON documents, but parsing confirms syntax only.
 Validate JSON Schema against Draft 7 and OpenAPI with an OpenAPI validator.
 JSON Structure needs reference and schema-shape checks, plus any available
 validator for its declared dialect.
+Validate the Avro definition with the Apache Avro schema parser.
 
 The repository does not supply a hand-maintained full Resource schema.
 Also perform the semantic checks specified in the domain for:
@@ -79,6 +82,14 @@ extension.
 
 The repository validates this dialect's structure and fixtures. It does not
 validate every possible JSON Structure extension.
+
+### Avro
+
+The `federationprofiles` and `relationships` arrays contain named records
+with their declared fields. Binding parameters use the generator's generic
+record representation. The generator does not generally make OPTIONAL
+attributes nullable or encode their absence defaults, so Avro validation
+does not establish the catalog's presence and selection semantics.
 
 ### HTTP OpenAPI
 

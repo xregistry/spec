@@ -925,7 +925,7 @@ third generic completeness value.
 | Domain-validated publication | The domain profile's checked exact targets and acceptance rules | Compatibility from a channel name, or simultaneous capture of independent sources |
 
 For the last row, see the
-[WoT closure and acceptance design](../models/wot/publication-design.md).
+[WoT closure and acceptance design](../models/wot/publication/design.md#wot-channels-snapshots-and-dependency-bindings).
 The [publication examples](../publication/samples/README.md) exercise
 generic byte replay independently of domain closure.
 
@@ -991,8 +991,9 @@ identity, selection and reference cases. Their reduced logical vectors are
 not complete serialized Core API responses. Omitted server-generated metadata
 in a test vector does not authorize an API to omit the same metadata.
 
-[examples.json](examples.json) contains the named Registry examples used by
-the [shared generator](tools/generate_examples.py). The
+[examples.json](samples/examples.json) contains the named Registry examples
+used by the [shared generator](tools/generate_examples.py). See the
+[samples README](samples/README.md) for a short description of the source. The
 [generation and reading instructions](../README.md#generating-and-reading-examples)
 show how to produce the existing File, Git and OCI formats. The source is
 non-normative example notation, not another federation representation.
