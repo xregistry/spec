@@ -19,79 +19,6 @@
   "additionalProperties": false,
   "definitions": {
     "Publications": {
-      "ChannelMeta": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Name of the object"
-          },
-          "epoch": {
-            "type": "integer",
-            "description": "Epoch of the object"
-          },
-          "self": {
-            "type": "uri",
-            "description": "URL of the object"
-          },
-          "xid": {
-            "type": "uri",
-            "description": "XID of the object"
-          },
-          "description": {
-            "type": "string",
-            "description": "Description of the object"
-          },
-          "documentation": {
-            "type": "uri",
-            "description": "Documentation URL"
-          },
-          "labels": {
-            "type": "map",
-            "values": {
-              "type": "string"
-            }
-          },
-          "createdat": {
-            "type": "datetime",
-            "description": "Creation time"
-          },
-          "modifiedat": {
-            "type": "datetime",
-            "description": "Modification time"
-          },
-          "scope": {
-            "type": "uri",
-            "description": "Publication scope; not a Group identity."
-          },
-          "head": {
-            "type": "object",
-            "properties": {
-              "url": {
-                "type": "uri"
-              },
-              "digest": {
-                "type": "string"
-              },
-              "size": {
-                "type": "uint32"
-              }
-            },
-            "additionalProperties": false,
-            "required": [
-              "url",
-              "digest",
-              "size"
-            ],
-            "description": "One authoritative manifest reference; requires an epoch-checked Meta update."
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "scope",
-          "head"
-        ]
-      },
       "Channel": {
         "type": "object",
         "properties": {
@@ -136,11 +63,6 @@
           "modifiedat": {
             "type": "datetime",
             "description": "Modification time"
-          },
-          "meta": {
-            "type": {
-              "$ref": "#/definitions/Publications/ChannelMeta"
-            }
           }
         },
         "additionalProperties": false
@@ -194,8 +116,7 @@
             "type": "string",
             "enum": [
               "application/json"
-            ],
-            "default": "application/json"
+            ]
           },
           "snapshot": {
             "type": "any",

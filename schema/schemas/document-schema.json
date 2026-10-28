@@ -162,18 +162,6 @@
             "type": "string",
             "format": "date-time",
             "description": "Time of the object modification"
-          },
-          "versionsurl": {
-            "type": "string"
-          },
-          "versionscount": {
-            "type": "integer"
-          },
-          "versions": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/definitions/schemagroup-schema/schemaVersion"
-            }
           }
         },
         "oneOf": [

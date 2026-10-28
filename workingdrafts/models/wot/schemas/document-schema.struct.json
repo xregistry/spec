@@ -82,16 +82,14 @@
             "enum": [
               "authored",
               "generated"
-            ],
-            "default": "authored"
+            ]
           },
           "format": {
             "type": "string",
             "description": "The document format. All Versions of a Thing Description share one format",
             "enum": [
               "JSON-LD/1.1"
-            ],
-            "default": "JSON-LD/1.1"
+            ]
           },
           "wotid": {
             "type": "string",
@@ -332,16 +330,14 @@
             "enum": [
               "authored",
               "generated"
-            ],
-            "default": "authored"
+            ]
           },
           "format": {
             "type": "string",
             "description": "The document format. All Versions of a Thing Model share one format",
             "enum": [
               "JSON-LD/1.1"
-            ],
-            "default": "JSON-LD/1.1"
+            ]
           },
           "wotid": {
             "type": "string",
@@ -394,62 +390,6 @@
         "required": [
           "wotid"
         ]
-      },
-      "ThingmodelMeta": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Name of the object"
-          },
-          "epoch": {
-            "type": "integer",
-            "description": "Epoch of the object"
-          },
-          "self": {
-            "type": "uri",
-            "description": "URL of the object"
-          },
-          "xid": {
-            "type": "uri",
-            "description": "XID of the object"
-          },
-          "description": {
-            "type": "string",
-            "description": "Description of the object"
-          },
-          "documentation": {
-            "type": "uri",
-            "description": "Documentation URL"
-          },
-          "labels": {
-            "type": "map",
-            "values": {
-              "type": "string"
-            }
-          },
-          "createdat": {
-            "type": "datetime",
-            "description": "Creation time"
-          },
-          "modifiedat": {
-            "type": "datetime",
-            "description": "Modification time"
-          },
-          "compatibility": {
-            "type": "string",
-            "enum": [
-              "backward",
-              "backward_transitive",
-              "forward",
-              "forward_transitive",
-              "full",
-              "full_transitive"
-            ],
-            "default": "backward"
-          }
-        },
-        "additionalProperties": false
       },
       "Thingmodel": {
         "type": "object",
@@ -520,11 +460,6 @@
               "type": {
                 "$ref": "#/definitions/Thingmodelgroups/ThingmodelVersion"
               }
-            }
-          },
-          "meta": {
-            "type": {
-              "$ref": "#/definitions/Thingmodelgroups/ThingmodelMeta"
             }
           }
         },

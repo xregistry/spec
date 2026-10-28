@@ -240,163 +240,49 @@
                       "doc": "Time of the object modification"
                     },
                     {
-                      "name": "versions",
-                      "type": [
-                        {
-                          "type": "map",
-                          "values": {
-                            "type": "record",
-                            "name": "UsdassetVersionType",
-                            "namespace": "io.xregistry.usdassetgroups",
-                            "fields": [
-                              {
-                                "name": "versionid",
-                                "type": "string",
-                                "description": "ID of the usdasset version"
-                              },
-                              {
-                                "name": "usdassetid",
-                                "type": "string",
-                                "description": "ID of the usdasset object"
-                              },
-                              {
-                                "name": "name",
-                                "type": [
-                                  "string",
-                                  "null"
-                                ],
-                                "doc": "Name of the object"
-                              },
-                              {
-                                "name": "epoch",
-                                "type": [
-                                  "int",
-                                  "null"
-                                ],
-                                "doc": "Epoch time of the object creation"
-                              },
-                              {
-                                "name": "self",
-                                "type": "string",
-                                "doc": "URL of the object"
-                              },
-                              {
-                                "name": "xid",
-                                "type": "string",
-                                "doc": "XID of the object"
-                              },
-                              {
-                                "name": "description",
-                                "type": [
-                                  "string",
-                                  "null"
-                                ],
-                                "doc": "Description of the object"
-                              },
-                              {
-                                "name": "documentation",
-                                "type": [
-                                  "string",
-                                  "null"
-                                ],
-                                "doc": "URI of the documentation of the object"
-                              },
-                              {
-                                "name": "labels",
-                                "type": {
-                                  "type": "map",
-                                  "values": [
-                                    "string",
-                                    "null"
-                                  ]
-                                },
-                                "doc": "Labels for the object"
-                              },
-                              {
-                                "name": "createdat",
-                                "type": [
-                                  {
-                                    "type": "int",
-                                    "logicalType": "time-millis"
-                                  },
-                                  "null"
-                                ],
-                                "doc": "Time of the object creation"
-                              },
-                              {
-                                "name": "modifiedat",
-                                "type": [
-                                  {
-                                    "type": "int",
-                                    "logicalType": "time-millis"
-                                  },
-                                  "null"
-                                ],
-                                "doc": "Time of the object modification"
-                              },
-                              {
-                                "type": "string",
-                                "doc": "The document format of this artifact. Orthogonal to assetkind, which records the artifact's role in the closure",
-                                "name": "format"
-                              },
-                              {
-                                "type": "string",
-                                "doc": "The authored USD asset identifier, normalized relative to its asset container - the string a layer writes between @...@. It is the Resource source identity and the authority: the usdassetid is the symbolic identifier constructed from it, a one-way construction that is never inverted",
-                                "name": "assetidentifier"
-                              },
-                              {
-                                "type": "string",
-                                "doc": "The role this artifact plays in its container's composition closure. Exactly one usdasset in an asset container has the value RootLayer",
-                                "name": "assetkind"
-                              },
-                              {
-                                "type": {
-                                  "type": "array",
-                                  "name": "DependsonArrayType",
-                                  "items": {
-                                    "type": "string"
-                                  }
-                                },
-                                "name": "dependson",
-                                "doc": "The asset identifiers this artifact directly references, in authored order - authored identifiers, not xids, so a resolver matches them against @...@ references directly"
-                              },
-                              {
-                                "type": "string",
-                                "doc": "Lower-case hexadecimal digest of the exact document bytes a Consumer retrieves, computed with digestalg",
-                                "name": "digest"
-                              },
-                              {
-                                "type": "string",
-                                "doc": "The algorithm used to compute digest. REQUIRED when digest is present",
-                                "name": "digestalg"
-                              },
-                              {
-                                "name": "Extensions",
-                                "type": {
-                                  "type": "map",
-                                  "name": "ExtensionsType",
-                                  "default": {},
-                                  "values": "io.xregistry.GenericRecord"
-                                }
-                              }
-                            ]
-                          }
-                        },
-                        {
-                          "type": "record",
-                          "name": "UsdassetVersionInfo",
-                          "fields": [
-                            {
-                              "name": "versionsUrl",
-                              "type": "string"
-                            },
-                            {
-                              "name": "versionCount",
-                              "type": "int"
-                            }
-                          ]
+                      "type": "string",
+                      "doc": "The document format of this artifact. Orthogonal to assetkind, which records the artifact's role in the closure",
+                      "name": "format"
+                    },
+                    {
+                      "type": "string",
+                      "doc": "The authored USD asset identifier, normalized relative to its asset container - the string a layer writes between @...@. It is the Resource source identity and the authority: the usdassetid is the symbolic identifier constructed from it, a one-way construction that is never inverted",
+                      "name": "assetidentifier"
+                    },
+                    {
+                      "type": "string",
+                      "doc": "The role this artifact plays in its container's composition closure. Exactly one usdasset in an asset container has the value RootLayer",
+                      "name": "assetkind"
+                    },
+                    {
+                      "type": {
+                        "type": "array",
+                        "name": "DependsonArrayType",
+                        "items": {
+                          "type": "string"
                         }
-                      ]
+                      },
+                      "name": "dependson",
+                      "doc": "The asset identifiers this artifact directly references, in authored order - authored identifiers, not xids, so a resolver matches them against @...@ references directly"
+                    },
+                    {
+                      "type": "string",
+                      "doc": "Lower-case hexadecimal digest of the exact document bytes a Consumer retrieves, computed with digestalg",
+                      "name": "digest"
+                    },
+                    {
+                      "type": "string",
+                      "doc": "The algorithm used to compute digest. REQUIRED when digest is present",
+                      "name": "digestalg"
+                    },
+                    {
+                      "name": "Extensions",
+                      "type": {
+                        "type": "map",
+                        "name": "ExtensionsType",
+                        "default": {},
+                        "values": "io.xregistry.GenericRecord"
+                      }
                     }
                   ]
                 }

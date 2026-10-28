@@ -464,56 +464,6 @@
         }
       }
     },
-    "/categories": {
-      "get": {
-        "operationId": "getCategoriesAll",
-        "tags": [
-          "ResourceGroupCollection"
-        ],
-        "description": "Gets all resource groups. Supports optional filtering ('filter'), inlining ('inline'), and document view ('doc'). (See spec: Registry Collections, Inline, and Filter)",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/inline"
-          },
-          {
-            "$ref": "#/components/parameters/filter"
-          },
-          {
-            "$ref": "#/components/parameters/doc"
-          },
-          {
-            "$ref": "#/components/parameters/specversion"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Resource groups that match the query (or all groups if no filter is specified).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "$ref": "#/components/schemas/category"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "500": {
-            "$ref": "#/components/responses/InternalServerError"
-          }
-        }
-      }
-    },
     "/categories/{groupid}": {
       "parameters": [
         {
@@ -1379,7 +1329,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/registryVersion"
+                  "$ref": "#/components/schemas/registry"
                 }
               }
             }
@@ -1434,7 +1384,7 @@
               "schema": {
                 "type": "object",
                 "additionalProperties": {
-                  "$ref": "#/components/schemas/registryVersion"
+                  "$ref": "#/components/schemas/registry"
                 }
               }
             }
@@ -1448,7 +1398,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": {
-                    "$ref": "#/components/schemas/registryVersion"
+                    "$ref": "#/components/schemas/registry"
                   }
                 }
               }
@@ -1524,7 +1474,7 @@
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/registryVersion"
+                  "$ref": "#/components/schemas/registry"
                 }
               }
             }
@@ -2295,18 +2245,6 @@
             "type": "string",
             "format": "date-time",
             "description": "Time of the object modification"
-          },
-          "versionsurl": {
-            "type": "string"
-          },
-          "versionscount": {
-            "type": "integer"
-          },
-          "versions": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/components/schemas/registryVersion"
-            }
           }
         },
         "oneOf": [

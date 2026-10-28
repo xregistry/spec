@@ -20,9 +20,10 @@ The contract covers:
 The companion's closure schema and checks validate shape, not deployed resolver
 conformance.
 
-The [generated model schemas](../../tools/README.md) describe Registry
-metadata in JSON Schema, JSON Structure, Avro and OpenAPI. Their fidelity
-checks include the Thing Model's Meta compatibility field.
+The [generated model schemas](../../tools/README.md) describe selected Registry
+metadata in JSON Schema, JSON Structure, Avro and OpenAPI. Reproduction and
+syntax checks do not establish complete model coverage; the generated
+descriptions do not validate the Thing Model's Meta compatibility field.
 
 The [27 representative vectors](tests/resolution/README.md) exercise version
 assignment and reference resolution, including floors, caller pins, sticky

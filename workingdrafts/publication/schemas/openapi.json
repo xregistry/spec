@@ -464,56 +464,6 @@
         }
       }
     },
-    "/publications": {
-      "get": {
-        "operationId": "getPublicationsAll",
-        "tags": [
-          "ResourceGroupCollection"
-        ],
-        "description": "Gets all resource groups. Supports optional filtering ('filter'), inlining ('inline'), and document view ('doc'). (See spec: Registry Collections, Inline, and Filter)",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/inline"
-          },
-          {
-            "$ref": "#/components/parameters/filter"
-          },
-          {
-            "$ref": "#/components/parameters/doc"
-          },
-          {
-            "$ref": "#/components/parameters/specversion"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Resource groups that match the query (or all groups if no filter is specified).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "$ref": "#/components/schemas/publication"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "500": {
-            "$ref": "#/components/responses/InternalServerError"
-          }
-        }
-      }
-    },
     "/publications/{groupid}": {
       "parameters": [
         {
@@ -860,7 +810,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/channelMeta"
+                  "$ref": "#/components/schemas/Meta"
                 }
               }
             }
@@ -890,7 +840,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/channelMeta"
+                "$ref": "#/components/schemas/Meta"
               }
             }
           }
@@ -901,7 +851,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/channelMeta"
+                  "$ref": "#/components/schemas/Meta"
                 }
               }
             }
@@ -931,7 +881,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/channelMeta"
+                "$ref": "#/components/schemas/Meta"
               }
             }
           }
@@ -942,7 +892,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/channelMeta"
+                  "$ref": "#/components/schemas/Meta"
                 }
               }
             }
@@ -3023,83 +2973,6 @@
           }
         }
       },
-      "channelMeta": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Name of the object"
-          },
-          "epoch": {
-            "type": "integer",
-            "description": "Epoch time of the object creation"
-          },
-          "self": {
-            "type": "string",
-            "format": "uri",
-            "description": "URL of the object"
-          },
-          "xid": {
-            "type": "string",
-            "format": "xid",
-            "description": "Relative URL of the object"
-          },
-          "description": {
-            "type": "string",
-            "description": "Description of the object"
-          },
-          "documentation": {
-            "type": "string",
-            "format": "uri",
-            "description": "URI of the documentation of the object"
-          },
-          "labels": {
-            "type": "object",
-            "description": "Labels for the object"
-          },
-          "createdat": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Time of the object creation"
-          },
-          "modifiedat": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Time of the object modification"
-          },
-          "scope": {
-            "type": "string",
-            "format": "uri",
-            "description": "Publication scope; not a Group identity."
-          },
-          "head": {
-            "type": "object",
-            "description": "One authoritative manifest reference; requires an epoch-checked Meta update.",
-            "properties": {
-              "url": {
-                "type": "string",
-                "format": "uri"
-              },
-              "digest": {
-                "type": "string"
-              },
-              "size": {
-                "type": "integer",
-                "minimum": 0
-              }
-            },
-            "required": [
-              "url",
-              "digest",
-              "size"
-            ]
-          }
-        },
-        "required": [
-          "scope",
-          "head"
-        ]
-      },
       "channel": {
         "type": "object",
         "properties": {
@@ -3147,9 +3020,6 @@
             "type": "string",
             "format": "date-time",
             "description": "Time of the object modification"
-          },
-          "meta": {
-            "$ref": "#/components/schemas/channelMeta"
           }
         }
       },
@@ -3202,11 +3072,7 @@
             "description": "Time of the object modification"
           },
           "contenttype": {
-            "type": "string",
-            "default": "application/json",
-            "enum": [
-              "application/json"
-            ]
+            "type": "string"
           }
         },
         "oneOf": [

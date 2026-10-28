@@ -79,20 +79,7 @@
           },
           "assetkind": {
             "type": "string",
-            "description": "The role this artifact plays in its container's composition closure. Exactly one usdasset in an asset container has the value RootLayer",
-            "enum": [
-              "RootLayer",
-              "SubLayer",
-              "Reference",
-              "Payload",
-              "Texture",
-              "Package",
-              "MaterialX",
-              "Volume",
-              "SchemaPlugin",
-              "GeneratedSchema",
-              "Manifest"
-            ]
+            "description": "The role this artifact plays in its container's composition closure. Exactly one usdasset in an asset container has the value RootLayer"
           },
           "dependson": {
             "type": "array",
@@ -107,12 +94,7 @@
           },
           "digestalg": {
             "type": "string",
-            "description": "The algorithm used to compute digest. REQUIRED when digest is present",
-            "enum": [
-              "Sha256",
-              "Sha384",
-              "Sha512"
-            ]
+            "description": "The algorithm used to compute digest. REQUIRED when digest is present"
           }
         },
         "oneOf": [
@@ -212,18 +194,6 @@
             "type": "string",
             "format": "date-time",
             "description": "Time of the object modification"
-          },
-          "versionsurl": {
-            "type": "string"
-          },
-          "versionscount": {
-            "type": "integer"
-          },
-          "versions": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/definitions/usdassetgroup-schema/usdassetVersion"
-            }
           }
         },
         "oneOf": [

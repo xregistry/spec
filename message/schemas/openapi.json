@@ -464,56 +464,6 @@
         }
       }
     },
-    "/messagegroups": {
-      "get": {
-        "operationId": "getMessagegroupsAll",
-        "tags": [
-          "ResourceGroupCollection"
-        ],
-        "description": "Gets all resource groups. Supports optional filtering ('filter'), inlining ('inline'), and document view ('doc'). (See spec: Registry Collections, Inline, and Filter)",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/inline"
-          },
-          {
-            "$ref": "#/components/parameters/filter"
-          },
-          {
-            "$ref": "#/components/parameters/doc"
-          },
-          {
-            "$ref": "#/components/parameters/specversion"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Resource groups that match the query (or all groups if no filter is specified).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "$ref": "#/components/schemas/messagegroup"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "500": {
-            "$ref": "#/components/responses/InternalServerError"
-          }
-        }
-      }
-    },
     "/messagegroups/{groupid}": {
       "parameters": [
         {
@@ -2132,25 +2082,15 @@
                     "type": "string"
                   },
                   "type": {
-                    "type": "string",
-                    "enum": [
-                      "string"
-                    ]
+                    "type": "string"
                   },
                   "value": {
                     "type": "string",
-                    "description": "CloudEvents spec version (fixed to '1.0')",
-                    "enum": [
-                      "1.0"
-                    ]
+                    "description": "CloudEvents spec version (fixed to '1.0')"
                   },
                   "required": {
                     "type": "boolean",
-                    "description": "CloudEvents specversion is always required",
-                    "default": true,
-                    "enum": [
-                      true
-                    ]
+                    "description": "CloudEvents specversion is always required"
                   }
                 }
               },
@@ -2162,12 +2102,7 @@
                     "type": "string"
                   },
                   "type": {
-                    "type": "string",
-                    "default": "string",
-                    "enum": [
-                      "uritemplate",
-                      "string"
-                    ]
+                    "type": "string"
                   },
                   "value": {
                     "type": "string",
@@ -2175,11 +2110,7 @@
                   },
                   "required": {
                     "type": "boolean",
-                    "description": "CloudEvents id is always required",
-                    "default": true,
-                    "enum": [
-                      true
-                    ]
+                    "description": "CloudEvents id is always required"
                   }
                 }
               },
@@ -2191,8 +2122,7 @@
                     "type": "string"
                   },
                   "type": {
-                    "type": "string",
-                    "default": "string"
+                    "type": "string"
                   },
                   "value": {
                     "type": "string",
@@ -2200,11 +2130,7 @@
                   },
                   "required": {
                     "type": "boolean",
-                    "description": "CloudEvents type is always required",
-                    "default": true,
-                    "enum": [
-                      true
-                    ]
+                    "description": "CloudEvents type is always required"
                   }
                 }
               },
@@ -2216,12 +2142,7 @@
                     "type": "string"
                   },
                   "type": {
-                    "type": "string",
-                    "default": "uritemplate",
-                    "enum": [
-                      "uritemplate",
-                      "string"
-                    ]
+                    "type": "string"
                   },
                   "value": {
                     "type": "string",
@@ -2229,11 +2150,7 @@
                   },
                   "required": {
                     "type": "boolean",
-                    "description": "CloudEvents source is always required",
-                    "default": true,
-                    "enum": [
-                      true
-                    ]
+                    "description": "CloudEvents source is always required"
                   }
                 }
               },
@@ -2245,12 +2162,7 @@
                     "type": "string"
                   },
                   "type": {
-                    "type": "string",
-                    "default": "uritemplate",
-                    "enum": [
-                      "uritemplate",
-                      "string"
-                    ]
+                    "type": "string"
                   },
                   "value": {
                     "type": "string",
@@ -2258,8 +2170,7 @@
                   },
                   "required": {
                     "type": "boolean",
-                    "description": "CloudEvents subject required",
-                    "default": false
+                    "description": "CloudEvents subject required"
                   }
                 }
               },
@@ -2271,19 +2182,14 @@
                     "type": "string"
                   },
                   "type": {
-                    "type": "string",
-                    "default": "timestamp",
-                    "enum": [
-                      "timestamp"
-                    ]
+                    "type": "string"
                   },
                   "value": {
                     "type": "string",
                     "description": "The timestamp value constraint."
                   },
                   "required": {
-                    "type": "boolean",
-                    "default": false
+                    "type": "boolean"
                   }
                 }
               },
@@ -2295,8 +2201,7 @@
                     "type": "string"
                   },
                   "type": {
-                    "type": "string",
-                    "default": "uritemplate"
+                    "type": "string"
                   },
                   "value": {
                     "type": "string",
@@ -2304,8 +2209,7 @@
                     "description": "The URI value constraint"
                   },
                   "required": {
-                    "type": "boolean",
-                    "default": false
+                    "type": "boolean"
                   }
                 }
               },
@@ -2317,16 +2221,14 @@
                     "type": "string"
                   },
                   "type": {
-                    "type": "string",
-                    "default": "string"
+                    "type": "string"
                   },
                   "value": {
                     "type": "string",
                     "description": "The content type value constraint"
                   },
                   "required": {
-                    "type": "boolean",
-                    "default": false
+                    "type": "boolean"
                   }
                 }
               }
@@ -2340,8 +2242,7 @@
                 },
                 "type": {
                   "type": "string",
-                  "description": "The value type",
-                  "default": "string"
+                  "description": "The value type"
                 },
                 "value": {
                   "type": "string",
@@ -2349,8 +2250,7 @@
                 },
                 "required": {
                   "type": "boolean",
-                  "description": "Whether the extension is required",
-                  "default": false
+                  "description": "Whether the extension is required"
                 }
               }
             }
@@ -2361,11 +2261,7 @@
             "properties": {
               "mode": {
                 "type": "string",
-                "description": "Whether CloudEvents 'binary' or 'structured' mode will be used",
-                "enum": [
-                  "binary",
-                  "structured"
-                ]
+                "description": "Whether CloudEvents 'binary' or 'structured' mode will be used"
               },
               "format": {
                 "type": "string",
@@ -2404,14 +2300,7 @@
                       },
                       "type": {
                         "type": "string",
-                        "description": "AMQP properties.message-id type constraint. The type values refer to the AMQP type model` and the defined message-id types",
-                        "enum": [
-                          "ulong",
-                          "uuid",
-                          "binary",
-                          "string",
-                          "uritemplate"
-                        ]
+                        "description": "AMQP properties.message-id type constraint. The type values refer to the AMQP type model` and the defined message-id types"
                       },
                       "value": {
                         "type": "string",
@@ -2419,8 +2308,7 @@
                       },
                       "required": {
                         "type": "boolean",
-                        "description": "AMQP properties.message-id required",
-                        "default": false
+                        "description": "AMQP properties.message-id required"
                       }
                     }
                   },
@@ -2433,13 +2321,7 @@
                       },
                       "type": {
                         "type": "string",
-                        "description": "AMQP properties.user-id value type",
-                        "default": "string",
-                        "enum": [
-                          "binary",
-                          "string",
-                          "uritemplate"
-                        ]
+                        "description": "AMQP properties.user-id value type"
                       },
                       "value": {
                         "type": "string",
@@ -2447,8 +2329,7 @@
                       },
                       "required": {
                         "type": "boolean",
-                        "description": "AMQP properties.user-id required",
-                        "default": false
+                        "description": "AMQP properties.user-id required"
                       }
                     }
                   },
@@ -2461,12 +2342,7 @@
                       },
                       "type": {
                         "type": "string",
-                        "description": "AMQP properties.to value type",
-                        "default": "uritemplate",
-                        "enum": [
-                          "string",
-                          "uritemplate"
-                        ]
+                        "description": "AMQP properties.to value type"
                       },
                       "value": {
                         "type": "string",
@@ -2474,8 +2350,7 @@
                       },
                       "required": {
                         "type": "boolean",
-                        "description": "AMQP properties.to required",
-                        "default": false
+                        "description": "AMQP properties.to required"
                       }
                     }
                   },
@@ -2488,11 +2363,7 @@
                       },
                       "type": {
                         "type": "string",
-                        "description": "AMQP properties.subject value type",
-                        "enum": [
-                          "string",
-                          "uritemplate"
-                        ]
+                        "description": "AMQP properties.subject value type"
                       },
                       "value": {
                         "type": "string",
@@ -2500,8 +2371,7 @@
                       },
                       "required": {
                         "type": "boolean",
-                        "description": "AMQP properties.subject required",
-                        "default": false
+                        "description": "AMQP properties.subject required"
                       }
                     }
                   },
@@ -2514,12 +2384,7 @@
                       },
                       "type": {
                         "type": "string",
-                        "description": "AMQP properties.reply-to value type",
-                        "default": "uritemplate",
-                        "enum": [
-                          "string",
-                          "uritemplate"
-                        ]
+                        "description": "AMQP properties.reply-to value type"
                       },
                       "value": {
                         "type": "string",
@@ -2527,8 +2392,7 @@
                       },
                       "required": {
                         "type": "boolean",
-                        "description": "AMQP properties.reply-to required",
-                        "default": false
+                        "description": "AMQP properties.reply-to required"
                       }
                     }
                   },
@@ -2541,13 +2405,7 @@
                       },
                       "type": {
                         "type": "string",
-                        "description": "AMQP correlation-id value type",
-                        "default": "string",
-                        "enum": [
-                          "binary",
-                          "string",
-                          "uritemplate"
-                        ]
+                        "description": "AMQP correlation-id value type"
                       },
                       "value": {
                         "type": "string",
@@ -2555,8 +2413,7 @@
                       },
                       "required": {
                         "type": "boolean",
-                        "description": "AMQP correlation-id required",
-                        "default": false
+                        "description": "AMQP correlation-id required"
                       }
                     }
                   },
@@ -2569,12 +2426,7 @@
                       },
                       "type": {
                         "type": "string",
-                        "description": "AMQP properties.content-type value type",
-                        "default": "string",
-                        "enum": [
-                          "string",
-                          "uritemplate"
-                        ]
+                        "description": "AMQP properties.content-type value type"
                       },
                       "value": {
                         "type": "string",
@@ -2582,8 +2434,7 @@
                       },
                       "required": {
                         "type": "boolean",
-                        "description": "AMQP properties.content-type required",
-                        "default": false
+                        "description": "AMQP properties.content-type required"
                       }
                     }
                   },
@@ -2596,11 +2447,7 @@
                       },
                       "type": {
                         "type": "string",
-                        "description": "AMQP properties.content-encoding value type",
-                        "default": "string",
-                        "enum": [
-                          "string"
-                        ]
+                        "description": "AMQP properties.content-encoding value type"
                       },
                       "value": {
                         "type": "string",
@@ -2608,8 +2455,7 @@
                       },
                       "required": {
                         "type": "boolean",
-                        "description": "AMQP properties.content-encoding required",
-                        "default": false
+                        "description": "AMQP properties.content-encoding required"
                       }
                     }
                   },
@@ -2622,11 +2468,7 @@
                       },
                       "type": {
                         "type": "string",
-                        "description": "AMQP properties.absolute-expiry-time value type",
-                        "default": "timestamp",
-                        "enum": [
-                          "timestamp"
-                        ]
+                        "description": "AMQP properties.absolute-expiry-time value type"
                       },
                       "value": {
                         "type": "string",
@@ -2634,8 +2476,7 @@
                       },
                       "required": {
                         "type": "boolean",
-                        "description": "AMQP properties.absolute-expiry-time required",
-                        "default": false
+                        "description": "AMQP properties.absolute-expiry-time required"
                       }
                     }
                   },
@@ -2648,11 +2489,7 @@
                       },
                       "type": {
                         "type": "string",
-                        "description": "AMQP properties.creation-time value type",
-                        "default": "timestamp",
-                        "enum": [
-                          "timestamp"
-                        ]
+                        "description": "AMQP properties.creation-time value type"
                       },
                       "value": {
                         "type": "string",
@@ -2660,8 +2497,7 @@
                       },
                       "required": {
                         "type": "boolean",
-                        "description": "AMQP properties.creation-time required",
-                        "default": false
+                        "description": "AMQP properties.creation-time required"
                       }
                     }
                   },
@@ -2674,12 +2510,7 @@
                       },
                       "type": {
                         "type": "string",
-                        "description": "AMQP properties.group-id value type",
-                        "default": "string",
-                        "enum": [
-                          "string",
-                          "uritemplate"
-                        ]
+                        "description": "AMQP properties.group-id value type"
                       },
                       "value": {
                         "type": "string",
@@ -2687,8 +2518,7 @@
                       },
                       "required": {
                         "type": "boolean",
-                        "description": "AMQP properties.group-id required",
-                        "default": false
+                        "description": "AMQP properties.group-id required"
                       }
                     }
                   },
@@ -2701,11 +2531,7 @@
                       },
                       "type": {
                         "type": "string",
-                        "description": "AMQP group-sequence value type",
-                        "default": "integer",
-                        "enum": [
-                          "integer"
-                        ]
+                        "description": "AMQP group-sequence value type"
                       },
                       "value": {
                         "type": "string",
@@ -2713,8 +2539,7 @@
                       },
                       "required": {
                         "type": "boolean",
-                        "description": "AMQP group-sequence required",
-                        "default": false
+                        "description": "AMQP group-sequence required"
                       }
                     }
                   },
@@ -2727,12 +2552,7 @@
                       },
                       "type": {
                         "type": "string",
-                        "description": "AMQP properties.reply-to-group-id value type",
-                        "default": "string",
-                        "enum": [
-                          "string",
-                          "uritemplate"
-                        ]
+                        "description": "AMQP properties.reply-to-group-id value type"
                       },
                       "value": {
                         "type": "string",
@@ -2740,8 +2560,7 @@
                       },
                       "required": {
                         "type": "boolean",
-                        "description": "AMQP properties.reply-to-group-id required",
-                        "default": false
+                        "description": "AMQP properties.reply-to-group-id required"
                       }
                     }
                   }
@@ -2758,15 +2577,7 @@
                     },
                     "type": {
                       "type": "string",
-                      "description": "The application property type",
-                      "default": "string",
-                      "enum": [
-                        "string",
-                        "uritemplate",
-                        "integer",
-                        "number",
-                        "boolean"
-                      ]
+                      "description": "The application property type"
                     },
                     "value": {
                       "type": "string",
@@ -2774,8 +2585,7 @@
                     },
                     "required": {
                       "type": "boolean",
-                      "description": "Application property required",
-                      "default": false
+                      "description": "Application property required"
                     }
                   }
                 }
@@ -2791,15 +2601,7 @@
                     },
                     "type": {
                       "type": "string",
-                      "description": "The message annotation type",
-                      "default": "string",
-                      "enum": [
-                        "string",
-                        "uritemplate",
-                        "integer",
-                        "number",
-                        "boolean"
-                      ]
+                      "description": "The message annotation type"
                     },
                     "value": {
                       "type": "string",
@@ -2807,8 +2609,7 @@
                     },
                     "required": {
                       "type": "boolean",
-                      "description": "Annotation required",
-                      "default": false
+                      "description": "Annotation required"
                     }
                   }
                 }
@@ -2824,15 +2625,7 @@
                     },
                     "type": {
                       "type": "string",
-                      "description": "The annotation type",
-                      "default": "string",
-                      "enum": [
-                        "string",
-                        "uritemplate",
-                        "integer",
-                        "number",
-                        "boolean"
-                      ]
+                      "description": "The annotation type"
                     },
                     "value": {
                       "type": "string",
@@ -2840,8 +2633,7 @@
                     },
                     "required": {
                       "type": "boolean",
-                      "description": "Annotation required",
-                      "default": false
+                      "description": "Annotation required"
                     }
                   }
                 }
@@ -2852,13 +2644,11 @@
                 "properties": {
                   "durable": {
                     "type": "boolean",
-                    "description": "AMQP durable flag",
-                    "default": false
+                    "description": "AMQP durable flag"
                   },
                   "priority": {
                     "type": "integer",
-                    "description": "AMQP priority",
-                    "default": 4
+                    "description": "AMQP priority"
                   },
                   "ttl": {
                     "type": "integer",
@@ -2866,13 +2656,11 @@
                   },
                   "first-acquirer": {
                     "type": "boolean",
-                    "description": "AMQP first-acquirer flag",
-                    "default": false
+                    "description": "AMQP first-acquirer flag"
                   },
                   "delivery-count": {
                     "type": "integer",
-                    "description": "AMQP delivery-count",
-                    "default": 0
+                    "description": "AMQP delivery-count"
                   }
                 }
               },
@@ -2887,15 +2675,7 @@
                     },
                     "type": {
                       "type": "string",
-                      "description": "AMQP footer type",
-                      "default": "string",
-                      "enum": [
-                        "string",
-                        "uritemplate",
-                        "integer",
-                        "number",
-                        "boolean"
-                      ]
+                      "description": "AMQP footer type"
                     },
                     "value": {
                       "type": "string",
@@ -2903,8 +2683,7 @@
                     },
                     "required": {
                       "type": "boolean",
-                      "description": "Footer required",
-                      "default": false
+                      "description": "Footer required"
                     }
                   }
                 }
@@ -2977,11 +2756,7 @@
               },
               "payload_format_indicator": {
                 "type": "integer",
-                "description": "MQTT payload format indicator",
-                "enum": [
-                  0,
-                  1
-                ]
+                "description": "MQTT payload format indicator"
               },
               "message_expiry_interval": {
                 "type": "integer",
@@ -3082,8 +2857,7 @@
                     },
                     "required": {
                       "type": "boolean",
-                      "description": "Kafka header required",
-                      "default": false
+                      "description": "Kafka header required"
                     }
                   },
                   "required": [
@@ -3130,8 +2904,7 @@
                     },
                     "required": {
                       "type": "boolean",
-                      "description": "The HTTP header required",
-                      "default": false
+                      "description": "The HTTP header required"
                     }
                   },
                   "required": [
@@ -3158,8 +2931,7 @@
                     },
                     "required": {
                       "type": "boolean",
-                      "description": "The HTTP query parameter required",
-                      "default": false
+                      "description": "The HTTP query parameter required"
                     }
                   },
                   "required": [
@@ -3225,8 +2997,7 @@
                     },
                     "required": {
                       "type": "boolean",
-                      "description": "The NATS header required",
-                      "default": false
+                      "description": "The NATS header required"
                     }
                   }
                 }

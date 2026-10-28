@@ -3,6 +3,7 @@
 <!-- words: avsc jsonschema metaattributes openapi powershell py pytest workingdrafts -->
 <!-- words: rootlayer versionorigin wotid -->
 <!-- words: makeschema OpenUSD plugin -->
+<!-- words: federationprofiles -->
 
 Use the [schema generator](../../tools/schema-generator.py) to produce JSON
 Schema, JSON Structure, Avro and OpenAPI descriptions of working-draft
@@ -34,9 +35,9 @@ python tools\schema-generator.py --type avro-schema --output workingdrafts\publi
 ```
 
 The Makefile supplies the JSON Schema and JSON Structure identifiers and
-root type names. Generated files use UTF-8, LF line endings, two-space
-indentation and no final newline. Regenerate definitions rather than
-editing them manually.
+root type names. Generated files use two-space indentation and no final
+newline. Output line endings follow the host platform; repository schema
+files use LF. Regenerate definitions rather than editing them manually.
 
 ## Fidelity Checks and Limits
 
@@ -46,28 +47,28 @@ Run the working-draft schema checks from the repository root:
 python -m pytest workingdrafts/tools/test_generated_schemas.py -q
 ```
 
-The checks regenerate each artifact and compare it with the checked-in
-file. They validate schema syntax and references, then check declared
-fields, types, nested objects and Version/Meta placement against the input
-model.
-JSON Schema and OpenAPI checks include strict enumerations and defaults.
-JSON Structure checks include those annotations and REQUIRED fields.
-Avro checks resolve the records and collection item types through its parser.
+The checks regenerate each artifact and compare its parsed content with the
+checked-in file. They validate JSON Schema and OpenAPI syntax, check JSON
+Structure names and references, and parse Avro records and collection item
+types. They also check that the established Schema, Message, Endpoint and
+CloudEvents outputs remain unchanged.
 
-The OpenUSD checks include the `rootlayer` field and the imported asset
-collection in schema-plugin Groups. The WoT checks include `wotid`,
-`versionorigin` and Meta compatibility. Publication checks include channel
-Meta `scope` and `head`, the nested URL/digest/size fields, and rejection of
-missing head fields, negative sizes and incorrectly typed sizes in JSON
-Schema and OpenAPI.
+The Avro regression checks use the Registry model's `federationprofiles`
+and `relationships` arrays. Their object items retain their declared
+fields rather than becoming empty or incomplete types. Additional cases
+cover typed and generic object items in arrays, maps and nested collections.
+This fix does not change generation for the established models.
 
-These checks establish fidelity to the model, not complete Core or
-deployed-service conformance. The generator does not encode every Core
-attribute, conditional write, immutability rule or Version-selection
-algorithm. Avro does not generally encode model enumerations,
-OPTIONAL-field absence or model defaults. URI strings require separate
-semantic validation, and the JSON Structure checks use structural
-comparisons rather than a complete dialect validator.
+Reproduction and parsing do not establish complete fidelity to a model or
+Core conformance. The existing generator does not preserve every Meta
+extension, typed object, default or enumeration in every format. In
+particular, the generated publication descriptions do not validate channel
+Meta `scope` and `head`, and generated WoT descriptions do not validate Meta
+compatibility. Avro does not generally encode OPTIONAL-field absence or
+model defaults. Conditional writes, immutability and Version selection need
+separate checks against the specifications. URI strings require semantic
+validation, and the JSON Structure checks are not a complete dialect
+validator.
 
 The [Publication envelope schema](../publication/schemas/publication.json)
 and [WoT closure schema](../models/wot/schemas/publication-closure.schema.json)

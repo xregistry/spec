@@ -464,106 +464,6 @@
         }
       }
     },
-    "/usdassetgroups": {
-      "get": {
-        "operationId": "getUsdassetgroupsAll",
-        "tags": [
-          "ResourceGroupCollection"
-        ],
-        "description": "Gets all resource groups. Supports optional filtering ('filter'), inlining ('inline'), and document view ('doc'). (See spec: Registry Collections, Inline, and Filter)",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/inline"
-          },
-          {
-            "$ref": "#/components/parameters/filter"
-          },
-          {
-            "$ref": "#/components/parameters/doc"
-          },
-          {
-            "$ref": "#/components/parameters/specversion"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Resource groups that match the query (or all groups if no filter is specified).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "$ref": "#/components/schemas/usdassetgroup"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "500": {
-            "$ref": "#/components/responses/InternalServerError"
-          }
-        }
-      }
-    },
-    "/usdschemaplugingroups": {
-      "get": {
-        "operationId": "getUsdschemaplugingroupsAll",
-        "tags": [
-          "ResourceGroupCollection"
-        ],
-        "description": "Gets all resource groups. Supports optional filtering ('filter'), inlining ('inline'), and document view ('doc'). (See spec: Registry Collections, Inline, and Filter)",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/inline"
-          },
-          {
-            "$ref": "#/components/parameters/filter"
-          },
-          {
-            "$ref": "#/components/parameters/doc"
-          },
-          {
-            "$ref": "#/components/parameters/specversion"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Resource groups that match the query (or all groups if no filter is specified).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "$ref": "#/components/schemas/usdschemaplugingroup"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "500": {
-            "$ref": "#/components/responses/InternalServerError"
-          }
-        }
-      }
-    },
     "/usdassetgroups/{groupid}": {
       "parameters": [
         {
@@ -2241,7 +2141,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/usdassetVersion"
+                  "$ref": "#/components/schemas/usdasset"
                 }
               }
             }
@@ -2296,7 +2196,7 @@
               "schema": {
                 "type": "object",
                 "additionalProperties": {
-                  "$ref": "#/components/schemas/usdassetVersion"
+                  "$ref": "#/components/schemas/usdasset"
                 }
               }
             }
@@ -2310,7 +2210,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": {
-                    "$ref": "#/components/schemas/usdassetVersion"
+                    "$ref": "#/components/schemas/usdasset"
                   }
                 }
               }
@@ -2387,7 +2287,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/usdassetVersion"
+                  "$ref": "#/components/schemas/usdasset"
                 }
               }
             }
@@ -2442,7 +2342,7 @@
               "schema": {
                 "type": "object",
                 "additionalProperties": {
-                  "$ref": "#/components/schemas/usdassetVersion"
+                  "$ref": "#/components/schemas/usdasset"
                 }
               }
             }
@@ -2456,7 +2356,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": {
-                    "$ref": "#/components/schemas/usdassetVersion"
+                    "$ref": "#/components/schemas/usdasset"
                   }
                 }
               }
@@ -2532,7 +2432,7 @@
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/usdassetVersion"
+                  "$ref": "#/components/schemas/usdasset"
                 }
               }
             }
@@ -2643,7 +2543,7 @@
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/usdassetVersion"
+                  "$ref": "#/components/schemas/usdasset"
                 }
               }
             }
@@ -3316,20 +3216,7 @@
           },
           "assetkind": {
             "type": "string",
-            "description": "The role this artifact plays in its container's composition closure. Exactly one usdasset in an asset container has the value RootLayer",
-            "enum": [
-              "RootLayer",
-              "SubLayer",
-              "Reference",
-              "Payload",
-              "Texture",
-              "Package",
-              "MaterialX",
-              "Volume",
-              "SchemaPlugin",
-              "GeneratedSchema",
-              "Manifest"
-            ]
+            "description": "The role this artifact plays in its container's composition closure. Exactly one usdasset in an asset container has the value RootLayer"
           },
           "dependson": {
             "type": "array",
@@ -3344,12 +3231,7 @@
           },
           "digestalg": {
             "type": "string",
-            "description": "The algorithm used to compute digest. REQUIRED when digest is present",
-            "enum": [
-              "Sha256",
-              "Sha384",
-              "Sha512"
-            ]
+            "description": "The algorithm used to compute digest. REQUIRED when digest is present"
           }
         },
         "oneOf": [
@@ -3449,18 +3331,6 @@
             "type": "string",
             "format": "date-time",
             "description": "Time of the object modification"
-          },
-          "versionsurl": {
-            "type": "string"
-          },
-          "versionscount": {
-            "type": "integer"
-          },
-          "versions": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/components/schemas/usdassetVersion"
-            }
           }
         },
         "oneOf": [

@@ -464,106 +464,6 @@
         }
       }
     },
-    "/thingdescriptiongroups": {
-      "get": {
-        "operationId": "getThingdescriptiongroupsAll",
-        "tags": [
-          "ResourceGroupCollection"
-        ],
-        "description": "Gets all resource groups. Supports optional filtering ('filter'), inlining ('inline'), and document view ('doc'). (See spec: Registry Collections, Inline, and Filter)",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/inline"
-          },
-          {
-            "$ref": "#/components/parameters/filter"
-          },
-          {
-            "$ref": "#/components/parameters/doc"
-          },
-          {
-            "$ref": "#/components/parameters/specversion"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Resource groups that match the query (or all groups if no filter is specified).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "$ref": "#/components/schemas/thingdescriptiongroup"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "500": {
-            "$ref": "#/components/responses/InternalServerError"
-          }
-        }
-      }
-    },
-    "/thingmodelgroups": {
-      "get": {
-        "operationId": "getThingmodelgroupsAll",
-        "tags": [
-          "ResourceGroupCollection"
-        ],
-        "description": "Gets all resource groups. Supports optional filtering ('filter'), inlining ('inline'), and document view ('doc'). (See spec: Registry Collections, Inline, and Filter)",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/inline"
-          },
-          {
-            "$ref": "#/components/parameters/filter"
-          },
-          {
-            "$ref": "#/components/parameters/doc"
-          },
-          {
-            "$ref": "#/components/parameters/specversion"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Resource groups that match the query (or all groups if no filter is specified).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "$ref": "#/components/schemas/thingmodelgroup"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "500": {
-            "$ref": "#/components/responses/InternalServerError"
-          }
-        }
-      }
-    },
     "/thingdescriptiongroups/{groupid}": {
       "parameters": [
         {
@@ -1212,7 +1112,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/thingmodelMeta"
+                  "$ref": "#/components/schemas/Meta"
                 }
               }
             }
@@ -1242,7 +1142,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/thingmodelMeta"
+                "$ref": "#/components/schemas/Meta"
               }
             }
           }
@@ -1253,7 +1153,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/thingmodelMeta"
+                  "$ref": "#/components/schemas/Meta"
                 }
               }
             }
@@ -1283,7 +1183,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/thingmodelMeta"
+                "$ref": "#/components/schemas/Meta"
               }
             }
           }
@@ -1294,7 +1194,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/thingmodelMeta"
+                  "$ref": "#/components/schemas/Meta"
                 }
               }
             }
@@ -2241,7 +2141,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/thingdescriptionVersion"
+                  "$ref": "#/components/schemas/thingdescription"
                 }
               }
             }
@@ -2296,7 +2196,7 @@
               "schema": {
                 "type": "object",
                 "additionalProperties": {
-                  "$ref": "#/components/schemas/thingdescriptionVersion"
+                  "$ref": "#/components/schemas/thingdescription"
                 }
               }
             }
@@ -2310,7 +2210,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": {
-                    "$ref": "#/components/schemas/thingdescriptionVersion"
+                    "$ref": "#/components/schemas/thingdescription"
                   }
                 }
               }
@@ -2387,7 +2287,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/thingmodelVersion"
+                  "$ref": "#/components/schemas/thingmodel"
                 }
               }
             }
@@ -2442,7 +2342,7 @@
               "schema": {
                 "type": "object",
                 "additionalProperties": {
-                  "$ref": "#/components/schemas/thingmodelVersion"
+                  "$ref": "#/components/schemas/thingmodel"
                 }
               }
             }
@@ -2456,7 +2356,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": {
-                    "$ref": "#/components/schemas/thingmodelVersion"
+                    "$ref": "#/components/schemas/thingmodel"
                   }
                 }
               }
@@ -2532,7 +2432,7 @@
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/thingdescriptionVersion"
+                  "$ref": "#/components/schemas/thingdescription"
                 }
               }
             }
@@ -2643,7 +2543,7 @@
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/thingmodelVersion"
+                  "$ref": "#/components/schemas/thingmodel"
                 }
               }
             }
@@ -3308,20 +3208,11 @@
           },
           "versionorigin": {
             "type": "string",
-            "description": "Server-set origin of the Version id: authored from a SemVer version.instance, or generated as 0.0.0-N.",
-            "default": "authored",
-            "enum": [
-              "authored",
-              "generated"
-            ]
+            "description": "Server-set origin of the Version id: authored from a SemVer version.instance, or generated as 0.0.0-N."
           },
           "format": {
             "type": "string",
-            "description": "The document format. All Versions of a Thing Description share one format",
-            "default": "JSON-LD/1.1",
-            "enum": [
-              "JSON-LD/1.1"
-            ]
+            "description": "The document format. All Versions of a Thing Description share one format"
           },
           "wotid": {
             "type": "string",
@@ -3353,13 +3244,7 @@
           },
           "maturity": {
             "type": "string",
-            "description": "How established the document is, letting a Consumer prefer an official definition over an ad hoc one. Advisory provenance metadata that does not affect the semantic identity of the document",
-            "enum": [
-              "Standard",
-              "Vendor",
-              "Community",
-              "Experimental"
-            ]
+            "description": "How established the document is, letting a Consumer prefer an official definition over an ad hoc one. Advisory provenance metadata that does not affect the semantic identity of the document"
           }
         },
         "oneOf": [
@@ -3457,18 +3342,6 @@
             "type": "string",
             "format": "date-time",
             "description": "Time of the object modification"
-          },
-          "versionsurl": {
-            "type": "string"
-          },
-          "versionscount": {
-            "type": "integer"
-          },
-          "versions": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/components/schemas/thingdescriptionVersion"
-            }
           }
         },
         "oneOf": [
@@ -3610,20 +3483,11 @@
           },
           "versionorigin": {
             "type": "string",
-            "description": "Server-set origin of the Version id: authored from a SemVer version.model, or generated as 0.0.0-N.",
-            "default": "authored",
-            "enum": [
-              "authored",
-              "generated"
-            ]
+            "description": "Server-set origin of the Version id: authored from a SemVer version.model, or generated as 0.0.0-N."
           },
           "format": {
             "type": "string",
-            "description": "The document format. All Versions of a Thing Model share one format",
-            "default": "JSON-LD/1.1",
-            "enum": [
-              "JSON-LD/1.1"
-            ]
+            "description": "The document format. All Versions of a Thing Model share one format"
           },
           "wotid": {
             "type": "string",
@@ -3655,13 +3519,7 @@
           },
           "maturity": {
             "type": "string",
-            "description": "How established the document is, letting a Consumer prefer an official definition over an ad hoc one. Advisory provenance metadata that does not affect the semantic identity of the document",
-            "enum": [
-              "Standard",
-              "Vendor",
-              "Community",
-              "Experimental"
-            ]
+            "description": "How established the document is, letting a Consumer prefer an official definition over an ad hoc one. Advisory provenance metadata that does not affect the semantic identity of the document"
           }
         },
         "oneOf": [
@@ -3712,64 +3570,6 @@
           "wotid"
         ]
       },
-      "thingmodelMeta": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Name of the object"
-          },
-          "epoch": {
-            "type": "integer",
-            "description": "Epoch time of the object creation"
-          },
-          "self": {
-            "type": "string",
-            "format": "uri",
-            "description": "URL of the object"
-          },
-          "xid": {
-            "type": "string",
-            "format": "xid",
-            "description": "Relative URL of the object"
-          },
-          "description": {
-            "type": "string",
-            "description": "Description of the object"
-          },
-          "documentation": {
-            "type": "string",
-            "format": "uri",
-            "description": "URI of the documentation of the object"
-          },
-          "labels": {
-            "type": "object",
-            "description": "Labels for the object"
-          },
-          "createdat": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Time of the object creation"
-          },
-          "modifiedat": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Time of the object modification"
-          },
-          "compatibility": {
-            "type": "string",
-            "default": "backward",
-            "enum": [
-              "backward",
-              "backward_transitive",
-              "forward",
-              "forward_transitive",
-              "full",
-              "full_transitive"
-            ]
-          }
-        }
-      },
       "thingmodel": {
         "type": "object",
         "properties": {
@@ -3817,21 +3617,6 @@
             "type": "string",
             "format": "date-time",
             "description": "Time of the object modification"
-          },
-          "versionsurl": {
-            "type": "string"
-          },
-          "versionscount": {
-            "type": "integer"
-          },
-          "versions": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/components/schemas/thingmodelVersion"
-            }
-          },
-          "meta": {
-            "$ref": "#/components/schemas/thingmodelMeta"
           }
         },
         "oneOf": [

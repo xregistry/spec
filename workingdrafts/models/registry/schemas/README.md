@@ -34,8 +34,9 @@ python -B tools\schema-generator.py --type avro-schema --output workingdrafts\mo
 python -B tools\schema-generator.py --type openapi --output workingdrafts\models\registry\schemas\openapi.json workingdrafts\models\registry\model.json
 ```
 
-The generator writes indented UTF-8 JSON with LF line endings and no final
-newline. Do not manually change generated definitions.
+The generator writes indented JSON with no final newline. Line endings
+follow the host platform; checked-in schemas use LF. Do not manually change
+generated definitions.
 
 ## Validation
 
@@ -60,8 +61,8 @@ Validate the domain's semantic constraints separately:
 ### JSON Schema
 
 The schema describes the catalog collection and selected Group, Resource
-and Version fields, including the Resource's Versions collection. It does
-not describe a complete Core Registry root.
+and Version fields. It does not describe a complete Core Registry root or
+fully constrain the Resource's Versions collection.
 
 Navigation and relationship fields have an absolute-URI format. That format
 does not define document-local pointers or catalog-root references, and
@@ -82,16 +83,17 @@ validate every possible JSON Structure extension.
 ### Avro
 
 The `federationprofiles` and `relationships` arrays contain named records
-with their declared fields. Binding parameters contain an extension map
-using the generator's generic record representation. The generator does not
-generally make OPTIONAL attributes nullable or encode their absence defaults,
-so Avro validation does not establish the catalog's presence and selection
-semantics.
+with their declared fields. Binding parameters use the generator's generic
+record representation. The existing generator does not separately encode
+Resource and Version records for this model, and does not generally make
+OPTIONAL attributes nullable or encode their absence defaults. Avro
+validation therefore does not establish the catalog's Version, presence
+or selection semantics.
 
 ### HTTP OpenAPI
 
-The description includes `/categories`, its entities, Resource/Version paths
-and the shared HTTP operations. It derives metadata schemas from the same
-model rather than maintaining another catalog model. Concrete path and schema
-checks supplement structural OpenAPI validation; neither certifies a deployed
-HTTP server.
+The description includes category entities, Resource/Version paths and
+shared HTTP operations. The existing generator omits the `/categories`
+collection path. It derives metadata schemas from the same model rather
+than maintaining another catalog model. Structural OpenAPI validation does
+not establish complete model coverage or certify a deployed HTTP server.
