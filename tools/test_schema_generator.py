@@ -1,6 +1,7 @@
 """
 Tests for schema-generator.py to validate JSON Schema and Avro output conformance.
 """
+import copy
 import json
 import os
 import re
@@ -508,6 +509,238 @@ class TestSchemaGenerator:
         finally:
             if os.path.exists(tmp_path):
                 os.unlink(tmp_path)
+
+
+@pytest.fixture(scope='module')
+def model_validator():
+    schema_path = Path(__file__).parent.parent / 'core' / 'model.schema.json'
+    schema = json.loads(schema_path.read_text(encoding='utf-8'))
+    jsonschema.Draft7Validator.check_schema(schema)
+    return jsonschema.Draft7Validator(schema)
+
+
+class TestModelSchemaValueSets:
+    @pytest.fixture(params=[
+        'registry', 'group', 'version', 'resource', 'meta', 'object',
+        'array-object', 'map-object', 'conditional', 'wildcard'
+    ])
+    def attribute_location(self, request):
+        model = {}
+        path = ['attributes', 'values']
+        if request.param in ('group', 'version', 'resource', 'meta'):
+            group = {'singular': 'catalog'}
+            model['groups'] = {'catalogs': group}
+            path = ['groups', 'catalogs', 'attributes', 'values']
+            if request.param != 'group':
+                group['resources'] = {'entries': {'singular': 'entry'}}
+                aspect = {
+                    'version': 'attributes',
+                    'resource': 'resourceattributes',
+                    'meta': 'metaattributes'
+                }[request.param]
+                path = ['groups', 'catalogs', 'resources', 'entries', aspect, 'values']
+        elif request.param in ('object', 'array-object', 'map-object'):
+            parent = {'type': 'object', 'attributes': {}}
+            path = ['attributes', 'parent', 'attributes', 'values']
+            if request.param != 'object':
+                parent = {'type': request.param.split('-')[0], 'item': parent}
+                path.insert(2, 'item')
+            model['attributes'] = {'parent': parent}
+        elif request.param == 'conditional':
+            model['attributes'] = {'selector': {
+                'type': 'string',
+                'ifvalues': {'active': {'siblingattributes': {}}}
+            }}
+            path = ['attributes', 'selector', 'ifvalues', 'active',
+                    'siblingattributes', 'values']
+        elif request.param == 'wildcard':
+            path = ['attributes', '*']
+        return model, path
+
+    def model_with_attribute(self, location, definition):
+        template, path = location
+        model = copy.deepcopy(template)
+        parent = model
+        for key in path[:-1]:
+            parent = parent.setdefault(key, {})
+        parent[path[-1]] = copy.deepcopy(definition)
+        return model
+
+    def container_definition(self, kind):
+        definition = {'type': kind}
+        if kind in ('array', 'map'):
+            definition['item'] = {'type': 'string'}
+        return definition
+
+    def assert_schema_error(self, validator, model, path, keyword):
+        errors = list(validator.iter_errors(model))
+        assert errors, model
+
+        def matches(error):
+            if list(error.absolute_path) == path and error.validator == keyword:
+                return True
+            return any(matches(child) for child in error.context)
+
+        assert any(matches(error) for error in errors), [
+            error.message for error in errors
+        ]
+
+    @pytest.mark.parametrize('value_set', [[], ['consumer']], ids=['empty', 'nonempty'])
+    @pytest.mark.parametrize('strict', [{}, {'strict': False}, {'strict': True}],
+                             ids=['default', 'advisory', 'strict'])
+    def test_array_attribute_rejects_enum_at_attribute_level(
+        self, model_validator, attribute_location, value_set, strict
+    ):
+        definition = {'type': 'array', 'item': {'type': 'string'}, **strict}
+        model_validator.validate(self.model_with_attribute(attribute_location, definition))
+        definition['enum'] = value_set
+        self.assert_schema_error(
+            model_validator, self.model_with_attribute(attribute_location, definition),
+            attribute_location[1] + ['enum'], 'not'
+        )
+
+    @pytest.mark.parametrize('kind', ['map', 'object', 'any'])
+    def test_other_non_scalar_attributes_reject_enum(
+        self, model_validator, attribute_location, kind
+    ):
+        definition = self.container_definition(kind)
+        definition['strict'] = False
+        model_validator.validate(self.model_with_attribute(attribute_location, definition))
+        definition['enum'] = ['consumer']
+        self.assert_schema_error(
+            model_validator, self.model_with_attribute(attribute_location, definition),
+            attribute_location[1] + ['enum'], 'not'
+        )
+
+    @pytest.mark.parametrize('kind,value', [
+        ('string', 'consumer'), ('integer', 1), ('boolean', True)
+    ])
+    def test_scalar_attribute_enum_remains_admissible(
+        self, model_validator, attribute_location, kind, value
+    ):
+        definition = {'type': kind, 'enum': [value]}
+        model_validator.validate(self.model_with_attribute(attribute_location, definition))
+
+    @pytest.mark.parametrize('strict', [False, True])
+    def test_empty_scalar_attribute_enum_remains_admissible(
+        self, model_validator, attribute_location, strict
+    ):
+        definition = {'type': 'string', 'enum': [], 'strict': strict}
+        model_validator.validate(self.model_with_attribute(attribute_location, definition))
+
+    @pytest.mark.parametrize('kind,value', [
+        ('string', 'consumer'), ('boolean', True), ('integer', -1),
+        ('uinteger', 0), ('decimal', 1.5), ('uri', 'urn:example:role'),
+        ('timestamp', '2026-10-12T10:00:00Z'), ('binary', 'YQ==')
+    ])
+    @pytest.mark.parametrize('owner', ['array', 'map'])
+    def test_scalar_item_enum_is_admitted(
+        self, model_validator, attribute_location, kind, value, owner
+    ):
+        definition = {'type': owner, 'item': {'type': kind, 'enum': [value]}}
+        model_validator.validate(self.model_with_attribute(attribute_location, definition))
+
+    @pytest.mark.parametrize('kind', ['array', 'map', 'object', 'any'])
+    @pytest.mark.parametrize('owner', ['array', 'map'])
+    def test_non_scalar_item_rejects_enum(
+        self, model_validator, attribute_location, kind, owner
+    ):
+        item = self.container_definition(kind)
+        item['strict'] = False
+        definition = {'type': owner, 'item': item}
+        model_validator.validate(self.model_with_attribute(attribute_location, definition))
+        item['enum'] = []
+        self.assert_schema_error(
+            model_validator, self.model_with_attribute(attribute_location, definition),
+            attribute_location[1] + ['item', 'enum'], 'not'
+        )
+
+    @pytest.mark.parametrize('aspect,value', [
+        ('enum', None), ('enum', 'consumer'), ('enum', 1),
+        ('enum', True), ('enum', {}),
+        ('strict', None), ('strict', 'false'), ('strict', 0),
+        ('strict', []), ('strict', {})
+    ])
+    @pytest.mark.parametrize('placement', ['attribute', 'item'])
+    def test_malformed_value_set_aspects_are_rejected(
+        self, model_validator, attribute_location, aspect, value, placement
+    ):
+        scalar = {'type': 'string'}
+        definition = scalar if placement == 'attribute' else {'type': 'array', 'item': scalar}
+        model_validator.validate(self.model_with_attribute(attribute_location, definition))
+        scalar[aspect] = value
+        path = attribute_location[1] + ([] if placement == 'attribute' else ['item'])
+        self.assert_schema_error(
+            model_validator, self.model_with_attribute(attribute_location, definition),
+            path + [aspect], 'type'
+        )
+
+    @pytest.mark.parametrize('kind', ['array', 'map'])
+    @pytest.mark.parametrize('placement', ['attribute', 'item'])
+    def test_container_definition_requires_item(
+        self, model_validator, attribute_location, kind, placement
+    ):
+        container = self.container_definition(kind)
+        definition = container if placement == 'attribute' else {'type': 'array', 'item': container}
+        model_validator.validate(self.model_with_attribute(attribute_location, definition))
+        del container['item']
+        path = attribute_location[1] + ([] if placement == 'attribute' else ['item'])
+        self.assert_schema_error(
+            model_validator, self.model_with_attribute(attribute_location, definition),
+            path, 'required'
+        )
+
+    @pytest.mark.parametrize('item,tail,keyword', [
+        (None, [], 'type'), ('string', [], 'type'), ([], [], 'type'),
+        ({}, [], 'required'), ({'type': 'unknown'}, ['type'], 'enum'),
+        ({'type': 1}, ['type'], 'type'),
+        ({'type': 'string', 'unexpected': True}, [], 'additionalProperties')
+    ])
+    def test_malformed_item_definition_is_rejected(
+        self, model_validator, attribute_location, item, tail, keyword
+    ):
+        definition = {'type': 'array', 'item': {'type': 'string'}}
+        model_validator.validate(self.model_with_attribute(attribute_location, definition))
+        definition['item'] = item
+        self.assert_schema_error(
+            model_validator, self.model_with_attribute(attribute_location, definition),
+            attribute_location[1] + ['item'] + tail, keyword
+        )
+
+    @pytest.mark.parametrize('kind', ['string', 'array', 'map', 'object', 'any'])
+    @pytest.mark.parametrize('strict', [False, True])
+    @pytest.mark.parametrize('placement', ['attribute', 'item'])
+    def test_strict_without_enum_remains_admissible(
+        self, model_validator, attribute_location, kind, strict, placement
+    ):
+        container = self.container_definition(kind)
+        container['strict'] = strict
+        definition = container if placement == 'attribute' else {'type': 'array', 'item': container}
+        model_validator.validate(self.model_with_attribute(attribute_location, definition))
+
+    @pytest.mark.parametrize('owner,inner', [('array', 'map'), ('map', 'array')])
+    def test_nested_scalar_item_enum_remains_admissible(
+        self, model_validator, attribute_location, owner, inner
+    ):
+        definition = {'type': owner, 'item': {
+            'type': inner, 'item': {'type': 'string', 'enum': [], 'strict': False}
+        }}
+        model_validator.validate(self.model_with_attribute(attribute_location, definition))
+
+    @pytest.mark.parametrize('kind', ['object', 'array', 'map'])
+    def test_wildcard_object_attributes_reuse_value_set_rules(self, model_validator, kind):
+        child = {'type': 'array', 'item': {'type': 'string', 'enum': ['consumer']}}
+        wildcard = {'type': 'object', 'attributes': {'values': child}}
+        path = ['attributes', '*']
+        if kind != 'object':
+            wildcard = {'type': kind, 'item': wildcard}
+            path.append('item')
+        model = {'attributes': {'*': wildcard}}
+        model_validator.validate(model)
+        child['enum'] = ['consumer']
+        self.assert_schema_error(
+            model_validator, model, path + ['attributes', 'values', 'enum'], 'not'
+        )
 
 
 if __name__ == '__main__':
