@@ -2,7 +2,6 @@
 
 <!-- words: formatvalidated compatibilityvalidated -->
 <!-- words: formatvalidatedreason compatibilityvalidatedreason -->
-<!-- words: basemessageuri -->
 
 ## Abstract
 
@@ -637,13 +636,6 @@ the core xRegistry Resource
   - `/messagegroups/group1/messages/msg1`
   - `/messagegroups/group1/messages/msg1/versions/v1.0`
   - `https://catalog.example.com/messagegroups/shared/messages/base-event`
-
-Earlier models and generated clients used `basemessageuri` for this
-reference. New definitions MUST use `basemessage`. Migration tools MUST
-rename the legacy field without changing its URI value. If both names are
-present, the author MUST choose the intended reference before migration;
-the tool MUST NOT combine them silently. This specification does not define
-`basemessageuri` as a runtime alias.
 
 #### `envelope`
 
@@ -1387,13 +1379,6 @@ The following properties are defined:
 | `subject`  | `uritemplate` | The subject the message will be published to |
 | `reply-to` | `uritemplate` | The subject the receiver ought to reply to   |
 | `headers`  | Array         | A list of headers to set on the message      |
-
-Earlier models and generated clients used `reply` for the NATS reply
-subject. New definitions MUST use `reply-to`. Migration tools MUST rename
-the field without changing its value, including any placeholders. If both
-names are present, the author MUST choose the intended value before
-migration; the tool MUST NOT combine them silently. This specification does
-not define `reply` as a runtime alias.
 
 The values of all `string`-, `symbol`-, and `uritemplate`-typed properties
 and headers MAY contain placeholders using the [RFC6570][RFC6570] Level 1 URI
