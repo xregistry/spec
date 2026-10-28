@@ -911,6 +911,79 @@
             },
             "additionalProperties": false,
             "description": "AMQP message metadata constraints"
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "messageid": {
+                "type": "string",
+                "description": "ID of the message object"
+              },
+              "self": {
+                "type": "uri"
+              },
+              "shortself": {
+                "type": "uri"
+              },
+              "xid": {
+                "type": "uri"
+              },
+              "xref": {
+                "type": "uri"
+              },
+              "epoch": {
+                "type": "uint32"
+              },
+              "labels": {
+                "type": "map",
+                "values": {
+                  "type": "string"
+                }
+              },
+              "createdat": {
+                "type": "datetime"
+              },
+              "modifiedat": {
+                "type": "datetime"
+              },
+              "readonly": {
+                "type": "boolean"
+              },
+              "compatibility": {
+                "type": "string"
+              },
+              "deprecated": {
+                "type": "object",
+                "properties": {
+                  "effective": {
+                    "type": "datetime"
+                  },
+                  "removal": {
+                    "type": "datetime"
+                  },
+                  "alternative": {
+                    "type": "uri"
+                  },
+                  "documentation": {
+                    "type": "uri"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "defaultversionid": {
+                "type": "string"
+              },
+              "defaultversionurl": {
+                "type": "uri"
+              },
+              "defaultversionsticky": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          },
+          "metaurl": {
+            "type": "uri"
           }
         },
         "additionalProperties": false
@@ -1092,6 +1165,79 @@
           "modifiedat": {
             "type": "datetime",
             "description": "Modification time"
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "schemaid": {
+                "type": "string",
+                "description": "ID of the schema object"
+              },
+              "self": {
+                "type": "uri"
+              },
+              "shortself": {
+                "type": "uri"
+              },
+              "xid": {
+                "type": "uri"
+              },
+              "xref": {
+                "type": "uri"
+              },
+              "epoch": {
+                "type": "uint32"
+              },
+              "labels": {
+                "type": "map",
+                "values": {
+                  "type": "string"
+                }
+              },
+              "createdat": {
+                "type": "datetime"
+              },
+              "modifiedat": {
+                "type": "datetime"
+              },
+              "readonly": {
+                "type": "boolean"
+              },
+              "compatibility": {
+                "type": "string"
+              },
+              "deprecated": {
+                "type": "object",
+                "properties": {
+                  "effective": {
+                    "type": "datetime"
+                  },
+                  "removal": {
+                    "type": "datetime"
+                  },
+                  "alternative": {
+                    "type": "uri"
+                  },
+                  "documentation": {
+                    "type": "uri"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "defaultversionid": {
+                "type": "string"
+              },
+              "defaultversionurl": {
+                "type": "uri"
+              },
+              "defaultversionsticky": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          },
+          "metaurl": {
+            "type": "uri"
           },
           "schema": {
             "type": "any",
