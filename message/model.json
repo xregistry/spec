@@ -1287,15 +1287,6 @@
                     }
                   }
                 },
-                "HTTP/1.1": {
-                  "$include": "../message/model.json#/groups/messagegroups/resources/messages/attributes/protocol/ifvalues/HTTP"
-                },
-                "HTTP/2": {
-                  "$include": "../message/model.json#/groups/messagegroups/resources/messages/attributes/protocol/ifvalues/HTTP"
-                },
-                "HTTP/3": {
-                  "$include": "../message/model.json#/groups/messagegroups/resources/messages/attributes/protocol/ifvalues/HTTP"
-                },
                 "NATS": {
                   "siblingattributes": {
                     "protocoloptions": {

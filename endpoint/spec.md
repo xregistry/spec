@@ -560,9 +560,7 @@ This specification defines the following envelope options for the indicated
   below. For others, refer to the protocol specifications.
 
   The predefined protocol names are:
-  - "HTTP" - Used for HTTP/1.1, HTTP/2, HTTP/3. The values "HTTP/1.1",
-    "HTTP/2" and "HTTP/3" MAY also name the version explicitly. All four
-    selectors use the same HTTP options and usage constraints.
+  - "HTTP" - Used for HTTP/1.1, HTTP/2, HTTP/3.
   - "AMQP/1.0" - Use the [AMQP 1.0][AMQP 1.0] protocol. MAY be shortened to
     "AMQP". AMQP draft versions before 1.0 (e.g. 0.9) are *not* AMQP.
   - "MQTT/3.1.1", "MQTT/5.0" - Use the MQTT [3.1.1][MQTT 3.1.1] or [5.0][MQTT
