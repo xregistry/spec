@@ -2305,8 +2305,9 @@ OPC 10000-20, or its own domain companion specification.
 
 ### 12.1. Offline Read and Reference Examples
 
-The [UA tests](tools/test_opcua_examples.py) retain the named reference,
-Registry-root and read-sequence cases. Shared Registry content is in the
+The [UA tests](tools/test_opcua_examples.py) retain representative reference,
+Registry-root and read-sequence cases, not every error or indexing variant.
+Shared Registry content is in the
 `first` and `second` examples in [examples.json](../federation/examples.json).
 They preserve separate Registry contexts, including equal asset XIDs with
 different document bytes. The
@@ -2328,16 +2329,16 @@ Server. The structural/event dependency remains Version 0.6.0 at
 digest recorded in [§2](#2-normative-references). Passing these examples
 does not establish OPC Foundation adoption or live interoperability.
 
-The `reindexed-source-and-target` case changes both source tables and the
-target namespace index while preserving this portable reference:
+The `remote-source-tables-to-target-seven` case resolves this portable
+reference against the remote application's namespace table:
 
 ```text
 svu=urn:example:ua:remote;nsu=urn:example:registry;s=ItemV1
 ```
 
-The original target uses `ns=7;s=ItemV1`. The reindexed target uses
-`ns=2;s=ItemV1`. Both identify application `urn:example:ua:remote`, not a
-guessed transport endpoint. `map_expanded_nodeid` resolves the source
+The target uses `ns=7;s=ItemV1` and identifies application
+`urn:example:ua:remote`, not a guessed transport endpoint.
+`map_expanded_nodeid` resolves the source
 `ServerArray`, obtains the namespace URI from the supplied context and
 remaps it against the target `NamespaceArray`. A missing URI never becomes
 namespace zero.

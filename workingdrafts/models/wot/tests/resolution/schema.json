@@ -1,41 +1,14 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.org/xregistry/wot/resolution-vector.schema.json",
-  "title": "WoT Registry canonical resolution vector",
+  "$id": "https://example.org/xregistry/wot/resolution-vectors.schema.json",
+  "title": "WoT Registry representative resolution vectors",
   "type": "object",
-  "properties": {
-    "description": {
-      "type": "string",
-      "minLength": 1
-    },
-    "registry": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/resource"
-      }
-    },
-    "reference": {
-      "$ref": "#/$defs/reference"
-    },
-    "document": {
-      "$ref": "#/$defs/document"
-    },
-    "publish": {
-      "$ref": "#/$defs/publish"
-    },
-    "pin": {
-      "$ref": "#/$defs/pin"
-    },
-    "allowPrerelease": {
-      "type": "boolean"
-    },
-    "expect": {}
+  "minProperties": 1,
+  "patternProperties": {
+    "^[0-9]{3}-[a-z0-9]+(?:-[a-z0-9]+)*$": {
+      "$ref": "#/$defs/case"
+    }
   },
-  "required": [
-    "description",
-    "registry",
-    "expect"
-  ],
   "additionalProperties": false,
   "$defs": {
     "version": {
@@ -367,57 +340,95 @@
           "additionalProperties": false
         }
       ]
-    }
-  },
-  "oneOf": [
-    {
-      "required": [
-        "reference"
-      ],
-      "not": {
-        "required": [
-          "publish"
-        ]
-      },
-      "properties": {
-        "expect": {
-          "$ref": "#/$defs/resolutionExpect"
-        }
-      }
     },
-    {
-      "required": [
-        "publish"
-      ],
-      "not": {
-        "anyOf": [
-          {
-            "required": [
-              "reference"
-            ]
-          },
-          {
-            "required": [
-              "document"
-            ]
-          },
-          {
-            "required": [
-              "pin"
-            ]
-          },
-          {
-            "required": [
-              "allowPrerelease"
-            ]
-          }
-        ]
-      },
+    "case": {
+      "title": "WoT Registry canonical resolution vector",
+      "type": "object",
       "properties": {
-        "expect": {
-          "$ref": "#/$defs/publishExpect"
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "registry": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/resource"
+          }
+        },
+        "reference": {
+          "$ref": "#/$defs/reference"
+        },
+        "document": {
+          "$ref": "#/$defs/document"
+        },
+        "publish": {
+          "$ref": "#/$defs/publish"
+        },
+        "pin": {
+          "$ref": "#/$defs/pin"
+        },
+        "allowPrerelease": {
+          "type": "boolean"
+        },
+        "expect": {}
+      },
+      "required": [
+        "description",
+        "registry",
+        "expect"
+      ],
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "reference"
+          ],
+          "not": {
+            "required": [
+              "publish"
+            ]
+          },
+          "properties": {
+            "expect": {
+              "$ref": "#/$defs/resolutionExpect"
+            }
+          }
+        },
+        {
+          "required": [
+            "publish"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "reference"
+                ]
+              },
+              {
+                "required": [
+                  "document"
+                ]
+              },
+              {
+                "required": [
+                  "pin"
+                ]
+              },
+              {
+                "required": [
+                  "allowPrerelease"
+                ]
+              }
+            ]
+          },
+          "properties": {
+            "expect": {
+              "$ref": "#/$defs/publishExpect"
+            }
+          }
         }
-      }
+      ]
     }
-  ]
+  }
 }

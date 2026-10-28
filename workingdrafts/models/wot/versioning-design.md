@@ -16,8 +16,8 @@ This document proposes an informative design for review. It does not
 implement or make normative the incremental profile, vocabulary, diagnostics,
 or mappings described here. The [WoT specification](spec.md) defines the
 SemVer baseline. The [model](model.json) describes its data model. The
-[64 resolution vectors](tests/resolution/README.md) test that baseline. They
-do not demonstrate that the incremental design works.
+[27 representative resolution vectors](tests/resolution/README.md) test that
+baseline. They do not demonstrate that the incremental design works.
 
 The [two-page overview](versioning-design-summary.md) states the decision.
 The [mechanisms](#design-mechanisms) define the proposed contract. The
@@ -361,9 +361,8 @@ The workflow catalog illustrates these incremental and replay cases:
 
 The checked SemVer vectors cover:
 
-- [Version-ID pinning][vector-006]
-- [Pin precedence][vector-026]
-- [A sticky default below its floor][vector-007]
+- [Version-ID pinning and pin precedence][vector-026]
+- [A sticky default below its effective floor][vector-043]
 
 They do not exercise the proposed incremental profile.
 
@@ -1189,7 +1188,7 @@ For E0, the existing examples include:
 - [Authored assignment][vector-036]
 - [Type-link floors][vector-043]
 - [Pin precedence][vector-049]
-- [TD major bounds][vector-051]
+- [TD major bounds][vector-050]
 
 Their current contract is in [spec.md](spec.md). They contain neither
 incremental profiles nor deployment-vocabulary parsing.
@@ -1329,13 +1328,11 @@ origin-scoped resolution record. Explicitly map independent copies.
 [workflow-c14]: #c14-replay-an-exact-revision
 [workflow-a05]: #a05-set-a-sticky-default
 [workflow-a06]: #a06-diagnose-a-default-conflict
-[vector-006]: tests/resolution/006-versionid-pin.json
-[vector-026]: tests/resolution/026-pin-overrides-floor-and-sticky.json
-[vector-007]: tests/resolution/007-sticky-below-floor.json
-[vector-036]: tests/resolution/036-publish-authored-assignment.json
-[vector-043]: tests/resolution/043-single-type-greater-floor-sticky.json
-[vector-049]: tests/resolution/049-pin-bypasses-type-floor-derivation.json
-[vector-051]: tests/resolution/051-td-caret-excludes-next-major.json
+[vector-026]: tests/resolution/README.md#pins
+[vector-036]: tests/resolution/README.md#assignment
+[vector-043]: tests/resolution/README.md#type-link-floors
+[vector-049]: tests/resolution/README.md#pins
+[vector-050]: tests/resolution/README.md#td-ranges
 [mechanism-d1]: #d1-fixed-endpoint-profiles
 [mechanism-d2]: #d2-identity-and-source-scope
 [mechanism-d3]: #d3-publication-and-durable-allocation

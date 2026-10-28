@@ -296,13 +296,13 @@ The planned negative fixtures omit or replace edges after recomputing all
 digests. They also test wrong source bases, conflicting declarations, missing
 context material and a dependency added to an unrelated entry.
 
-Neither the generic proposal's tests nor the existing 64 SemVer vectors
+Neither the generic proposal's tests nor the 27 representative SemVer vectors
 establish those WoT semantics. A mapping for OPC UA needs the same context
 and closure semantics, including append-only generated NodeIds. This design
 pass does not change the `1.1-draft` model or either .NET runtime.
 
 The [shape example](samples/publication-closure.json) illustrates one binding,
-not an independently complete snapshot. Five schema checks cover its shape
+not an independently complete snapshot. Three schema checks cover its shape
 and malformed pointers/missing targets. They do not validate authored bytes
 or prove dependency closure.
 

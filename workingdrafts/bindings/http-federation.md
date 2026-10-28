@@ -524,8 +524,8 @@ immutable snapshot solely from live reads. A server remains subject to Core
 HTTP conformance. This document does not require query support from a
 no-code server.
 
-The [HTTP tests](tools/test_http_examples.py) contain exact request mappings,
-literal-selector cases and synthetic transcripts for:
+The [HTTP tests](tools/test_http_examples.py) contain representative request
+mappings and synthetic transcripts for:
 
 - A full API.
 - A no-code catalog.
@@ -534,7 +534,6 @@ literal-selector cases and synthetic transcripts for:
 - Literal labels.
 - Validators.
 - Document redirects.
-- Unsupported versions.
 - Inconsistent captures.
 
 The Registry content comes from the `first` example in
@@ -544,9 +543,9 @@ hub or establish runtime interoperability. The shared
 [generator](../README.md#generating-and-reading-examples) can export that
 Registry through File, Git or OCI without starting an HTTP service.
 
-The compatibility examples cover read-only capabilities and a Registry
-advertising an older Core release. These are synthetic inputs, not captured
-public-endpoint behavior. A saved model-file hash is not an observed HTTP ETag.
+The examples cover read-only capabilities but omit older-release and many
+error permutations. These are synthetic inputs, not captured public-endpoint
+behavior. A saved model-file hash is not an observed HTTP ETag.
 
 ### Concrete Read Sequences
 
@@ -611,8 +610,8 @@ Cache-Control: private, max-age=0
 The applicable cached `200` is supplied by the test. The helper returns
 `cache_reused: true`, two traced requests and the cached bytes
 `b'{"type":"string"}'`. The `304` is not an empty replacement document.
-By contrast, `zero-byte-document` supplies an actual `200` with
-`Content-Length: 0`. Neither result establishes a Registry-wide snapshot.
+An actual `200` with `Content-Length: 0` would instead represent an empty
+document. Neither response establishes a Registry-wide snapshot.
 
 The redirect case uses a synthetic, non-secret Authorization value. Its
 destination request carries neither that header nor the source's conditional

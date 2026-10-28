@@ -1,13 +1,15 @@
 """Keep the complete directory mapping walkthrough executable and byte-accurate."""
 
 import hashlib
+import json
 import shutil
+from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
-from workingdrafts.bindings.tools.mapping_examples import (
-    DocumentTree, FileStore, MemoryStore, encode_tree,
-)
+from workingdrafts.bindings.tools import mapping_examples as document
+from workingdrafts.bindings.tools.mapping_examples import DocumentTree, FileStore, encode_tree
 from workingdrafts.federation.tools.federation_examples import FederationError
 
 
@@ -18,27 +20,6 @@ DOCUMENT_HREF = "source/specs/widget.json"
 DOCUMENT = b'{"type":"string"}\n'
 DOCUMENT_SHA256 = "85803e087e684bdab3e5d6c2dd1af627da83382db625be9a42aea3d4d06539be"
 TIMESTAMP = "2026-01-01T00:00:00Z"
-SPLIT_PATHS = {
-    "/documents": "registry-metadata/groups.json",
-    "/documents/main": "registry-metadata/main.json",
-    "/documents/main/assets": "registry-metadata/assets.json",
-    RESOURCE: "registry-metadata/widget.json",
-    RESOURCE + "/meta": "registry-metadata/widget-meta.json",
-    VERSIONS: "registry-metadata/versions.json",
-    VERSION: "source/specs/widget.registry.json",
-}
-# Sizes and digests of the earlier one-file-per-object walkthrough.
-PREVIOUS_SPLIT = {
-    "registry.json": (1215, "cd37736cd5ac0476d8fae3bf04967c1e317b818d11e146e2bdcba5c6bb748888"),
-    "registry-metadata/groups.json": (361, "edafff00fe4486be418968a4d3b770ff40a3b60c75ddc015f34252cca1c8c330"),
-    "registry-metadata/main.json": (510, "b963e9db3e1ecdebe20c78be39d0fd98b26d2beb1338e06223b92e9164666d04"),
-    "registry-metadata/assets.json": (392, "72c43f08dd89af2c16b51ab9dc21fc36b7901ab475cae7ebb9e610c6a6cc9626"),
-    "registry-metadata/widget.json": (679, "630d2ea1e6d94f89c75a3c56a74a713c4b232a81fb3fff874a83320405b9efdb"),
-    "registry-metadata/widget-meta.json": (361, "9a34e98106eef18aa64b07c5878d75c0a5dfd96f3823750584709365b2681895"),
-    "registry-metadata/versions.json": (423, "08a43de17e9d6630a57b315a47583e1b1c785b965df05c91823900807cbe2010"),
-    "source/specs/widget.registry.json": (580, "6587872b270d75ecaa6be1028518d47bff4ac282379d89f1c34c6efce8c1b70f"),
-    DOCUMENT_HREF: (18, DOCUMENT_SHA256),
-}
 
 
 def walkthrough_source():
@@ -86,17 +67,13 @@ def walkthrough_source():
     return records, {VERSION: DOCUMENT}
 
 
-def encode_walkthrough(inline=True, **options):
+def encode_walkthrough():
     """Encode the walkthrough beside its existing document, without .gitattributes."""
     records, documents = walkthrough_source()
     return encode_tree(
-        records, documents, inline=inline, document_paths={VERSION: DOCUMENT_HREF},
-        gitattributes=None, **options,
+        records, documents, inline=True, document_paths={VERSION: DOCUMENT_HREF},
+        gitattributes=None,
     )
-
-
-def digests(files):
-    return {name: (len(data), hashlib.sha256(data).hexdigest()) for name, data in files.items()}
 
 
 def test_complete_mapping_walkthrough_reads_the_document_and_version_metadata(walkthrough_root):
@@ -135,40 +112,10 @@ def test_walkthrough_adds_one_generated_metadata_file_beside_the_unchanged_docum
         "registry.json": (walkthrough_root / "registry.json").read_bytes(),
         DOCUMENT_HREF: existing,
     }
-    assert digests({"registry.json": generated["registry.json"]}) == {"registry.json": (
+    metadata = generated["registry.json"]
+    assert (len(metadata), hashlib.sha256(metadata).hexdigest()) == (
         6131, "cf679704edd89c2364b3163c063d9d8f6a5361e0cf54acf2ae0bd90987fa3ccb",
-    )}
-
-
-def test_walkthrough_split_form_reproduces_the_previous_one_file_per_object_mapping(walkthrough_root):
-    files = encode_walkthrough(inline=False, paths=SPLIT_PATHS)
-    assert digests(files) == PREVIOUS_SPLIT
-    split = DocumentTree(MemoryStore(files))
-    aggregated = DocumentTree(FileStore(walkthrough_root))
-    for xid in ("/", "/documents/main", RESOURCE, RESOURCE + "/meta", VERSION):
-        assert split.metadata(xid) == aggregated.metadata(xid)
-    assert split.document(RESOURCE) == aggregated.document(RESOURCE) == DOCUMENT
-    expected = {key: value for key, value in aggregated.validate().items() if key != "rootsha256"}
-    assert {key: value for key, value in split.validate().items() if key != "rootsha256"} == expected
-    metadata_reads = [name for name in split.reads if name != DOCUMENT_HREF]
-    assert sorted(metadata_reads) == sorted(set(PREVIOUS_SPLIT) - {DOCUMENT_HREF})
-
-
-def test_walkthrough_mixed_form_keeps_one_collection_in_its_own_file(walkthrough_root):
-    files = encode_walkthrough(
-        inline=lambda kind, xid: xid != VERSIONS,
-        paths={VERSIONS: SPLIT_PATHS[VERSIONS]},
     )
-    assert sorted(files) == [SPLIT_PATHS[VERSIONS], "registry.json", DOCUMENT_HREF]
-    mixed = DocumentTree(MemoryStore(files))
-    aggregated = DocumentTree(FileStore(walkthrough_root))
-    for xid in ("/documents/main", RESOURCE, RESOURCE + "/meta"):
-        assert mixed.read_record(xid)["entity"] == aggregated.read_record(xid)["entity"]
-    assert mixed.reads == ["registry.json"]
-    assert mixed.metadata(VERSION) == aggregated.metadata(VERSION)
-    assert mixed.reads == ["registry.json", SPLIT_PATHS[VERSIONS]]
-    assert mixed.document(RESOURCE) == DOCUMENT
-    assert mixed.reads == ["registry.json", SPLIT_PATHS[VERSIONS], DOCUMENT_HREF]
 
 
 def test_mapping_walkthrough_reports_modified_existing_content(tmp_path, walkthrough_root):
@@ -181,3 +128,405 @@ def test_mapping_walkthrough_reports_modified_existing_content(tmp_path, walkthr
     assert error.value.code == "integrity_error"
     assert str(error.value) == "Descriptor mismatch: " + DOCUMENT_HREF
     assert reader.reads == ["registry.json", DOCUMENT_HREF]
+
+
+ITEM = "/documents/main/assets/item"
+V1 = ITEM + "/versions/v1"
+V2 = ITEM + "/versions/v2"
+BINARY = "/documents/main/assets/CON/versions/a:b@c."
+NOTE = "/documents/main/notes/item"
+CATALOG = "/categories/main/registries/site"
+COPY = "/mirrors/local/assets/copy"
+DANGLING = "/mirrors/local/assets/dangling"
+TIMESTAMPS = {
+    "epoch": 1,
+    "createdat": "2026-09-04T00:00:00Z",
+    "modifiedat": "2026-09-04T00:00:00Z",
+}
+AUTHORED_JSON = b'{"hello":"world"}\n'
+FORMATTED_JSON = b' { "value": 1 }\r\n'
+EXACT_BINARY = b"\x00\xff\x10\r\n"
+ITEM_RECORD_READS = [
+    "registry.json", "indexes/n3.json", "records/n4.json",
+    "indexes/n4.json", "records/n8.json",
+]
+ITEM_STATE_READS = ITEM_RECORD_READS + ["records/n9.json", "indexes/n6.json"]
+COPY_READS = [
+    "registry.json", "indexes/nb.json", "records/n10.json",
+    "indexes/nc.json", "records/n13.json", "records/n14.json",
+]
+V1_ENTITY = {
+    **TIMESTAMPS,
+    "xid": V1,
+    "assetid": "item",
+    "versionid": "v1",
+    "isdefault": True,
+    "ancestorid": "v1",
+    "labels": {"stage": "production", "note": ""},
+    "contenttype": "application/json",
+    "purpose": "primary",
+}
+EXPECTED_CAPABILITIES = {
+    "available": {
+        "capabilities": {"mutable": False},
+        "entities": {"mutable": False},
+        "model": {"mutable": False},
+        "modelsource": {"mutable": False},
+    },
+    "flags": ["doc", "inline"],
+    "pagination": False,
+    "shortself": False,
+    "specversions": ["1.0-rc4"],
+}
+EXPECTED_MODEL = {
+    "attributes": {"fixture": {"type": "string"}},
+    "groups": {
+        "categories": {
+            "singular": "category",
+            "resources": {
+                "registries": {
+                    "singular": "registry",
+                    "hasdocument": False,
+                    "attributes": {"weburl": {"type": "url"}},
+                },
+            },
+        },
+        "documents": {
+            "singular": "document",
+            "resources": {
+                "assets": {
+                    "singular": "asset",
+                    "attributes": {"purpose": {"type": "string"}},
+                },
+                "notes": {"singular": "note", "hasdocument": False},
+            },
+        },
+        "independent": {
+            "singular": "independent",
+            "resources": {"assets": {"singular": "asset"}},
+        },
+        "mirrors": {
+            "singular": "mirror",
+            "ximportresources": ["/documents/assets"],
+        },
+    },
+}
+
+
+@pytest.fixture
+def tree(mapping_sample_root):
+    return document.DocumentTree(document.FileStore(mapping_sample_root))
+
+
+@pytest.fixture
+def copied_tree(tmp_path, mapping_sample_root):
+    return Path(shutil.copytree(mapping_sample_root, tmp_path / "tree"))
+
+
+@pytest.fixture
+def byte_state_records():
+    """Explicit byte partitions on the owner's logical multi-domain dataset."""
+    records, documents = document.sample_records()
+    documents[V1] = FORMATTED_JSON
+    documents[BINARY] = EXACT_BINARY
+    for version, content, purpose in (
+        ("v10", b"{}", "object"),
+        ("v11", b"null", "null"),
+    ):
+        xid = ITEM + "/versions/" + version
+        records.append({
+            "kind": "version",
+            "entity": {
+                **TIMESTAMPS,
+                "createdat": "2026-09-05T00:00:00Z",
+                "modifiedat": "2026-09-05T00:00:00Z",
+                "xid": xid,
+                "assetid": "item",
+                "versionid": version,
+                "isdefault": False,
+                "ancestorid": "v1",
+                "labels": {"stage": purpose},
+                "contenttype": "application/json",
+                "purpose": purpose,
+            },
+        })
+        documents[xid] = content
+    return records, documents
+
+
+@pytest.fixture
+def byte_state_files(byte_state_records):
+    return document.encode_tree(*byte_state_records)
+
+
+def assert_error(caught, code, message):
+    assert caught.value.code == code
+    assert str(caught.value) == message
+
+
+def assert_metadata_only_reads(reads):
+    assert reads[0] == "registry.json"
+    assert not any(name.startswith("documents/") for name in reads)
+    assert len(reads) == len(set(reads))
+
+
+@pytest.mark.parametrize(
+    "xid,expected,length,href",
+    [
+        pytest.param(V2, b"", 0, "documents/n4.bin", id="present-zero"),
+    ],
+)
+def test_document_zero_byte_content_is_distinct_from_missing_and_metadata_only(
+    byte_state_files, xid, expected, length, href
+):
+    present = document.DocumentTree(document.MemoryStore(byte_state_files))
+    assert present.document(xid) == expected
+    assert present.document_descriptor(xid)["size"] == length
+    assert [name for name in present.reads if name.startswith("documents/")] == [href]
+
+    missing_files = dict(byte_state_files)
+    del missing_files[href]
+    missing = document.DocumentTree(document.MemoryStore(missing_files))
+    # Metadata does not need the missing domain blob.
+    assert missing.metadata(xid)["entity"]["versionid"] == xid.rsplit("/", 1)[1]
+    before = list(missing.reads)
+    with pytest.raises(FederationError) as caught:
+        missing.document(xid)
+    assert_error(caught, "invalid_package", "Missing " + href)
+    assert missing.reads == before
+
+    metadata_only = document.DocumentTree(document.MemoryStore(byte_state_files))
+    result = metadata_only.metadata(NOTE + "/versions/v1")
+    assert result == {
+        "kind": "version",
+        "entity": {
+            **TIMESTAMPS, "xid": NOTE + "/versions/v1", "noteid": "item",
+            "versionid": "v1", "isdefault": True, "ancestorid": "v1",
+            "labels": {"note": ""}, "self": "#/entity",
+        },
+    }
+    before = list(metadata_only.reads)
+    with pytest.raises(FederationError) as caught:
+        metadata_only.document(NOTE)
+    assert_error(caught, "unsupported_operation", "Resource hasdocument is false")
+    assert metadata_only.reads == before
+    assert_metadata_only_reads(metadata_only.reads)
+
+
+@pytest.mark.parametrize(
+    "xid,expected,version",
+    [
+        pytest.param(ITEM, FORMATTED_JSON, "v1", id="default-v1-not-newest"),
+        pytest.param(V2, b"", "v2", id="explicit-v2"),
+    ],
+)
+def test_document_default_and_explicit_versions_preserve_separate_pins(
+    byte_state_files, xid, expected, version
+):
+    result_tree = document.DocumentTree(document.MemoryStore(byte_state_files))
+    before_files = dict(byte_state_files)
+    assert result_tree.document(xid) == expected
+    resource = result_tree.metadata(ITEM)["entity"]
+    assert resource["meta"]["defaultversionid"] == "v1"
+    assert resource["versions"][version]["versionid"] == version
+    assert resource["versions"][version]["xid"] == ITEM + "/versions/" + version
+    assert resource["versions"]["v11"]["createdat"] > resource["versions"]["v1"]["createdat"]
+    assert list(resource["versions"]) == ["v1", "v10", "v11", "v2"]
+    catalog = result_tree.metadata(CATALOG + "/versions/v1")["entity"]
+    assert catalog["registryid"] == "site"
+    assert catalog["xid"] == CATALOG + "/versions/v1"
+    assert catalog["weburl"] == "https://example.com/cataloged-registry"
+    assert result_tree.root["source"] == {
+        "uri": "https://example.com/registry", "revision": "fixture-1",
+    }
+    # File/Memory origin honestly has no immutable Git pin.
+    assert result_tree.store.pin is None
+    assert result_tree.root_sha256 == hashlib.sha256(
+        byte_state_files["registry.json"]
+    ).hexdigest()
+    assert byte_state_files == before_files
+    assert len([name for name in result_tree.reads if name.startswith("documents/")]) == 1
+
+
+@pytest.mark.parametrize("version", ["v0"], ids=["absent"])
+def test_document_explicit_version_absence_never_falls_back(tree, version):
+    xid = ITEM + "/versions/" + version
+    with pytest.raises(FederationError) as caught:
+        tree.document(xid)
+    assert_error(caught, "not_found", "XID not found: " + xid)
+    assert tree.reads == ITEM_STATE_READS
+    assert tree.store.pin is None
+
+
+def test_document_alias_view_preserves_source_identity_one_hop(tree):
+    with patch.object(tree.store, "read", wraps=tree.store.read) as read:
+        view = tree.metadata(COPY)
+    assert view == {
+        "kind": "resource",
+        "entity": {
+            "xid": COPY, "assetid": "copy", "self": "#/entity",
+            "meta": {
+                "xid": COPY + "/meta", "assetid": "copy", "xref": ITEM,
+                "self": "#/entity/meta",
+            },
+            "metaurl": "#/entity/meta",
+        },
+    }
+    assert tree.reads == COPY_READS
+    assert [call.args[0] for call in read.call_args_list] == COPY_READS[1:]
+
+    # Effective metadata is used to select the alias, not to expand its view.
+    selection = tree.collection(
+        "/mirrors/local/assets", {"label": "stage", "value": "PRODUCTION"}
+    )
+    assert list(selection["entities"]) == ["copy"]
+    assert selection["entities"]["copy"] == {
+        "xid": COPY, "assetid": "copy", "self": "#/entities/copy",
+        "meta": {
+            "xid": COPY + "/meta", "assetid": "copy", "xref": ITEM,
+            "self": "#/entities/copy/meta",
+        },
+        "metaurl": "#/entities/copy/meta",
+    }
+    assert_metadata_only_reads(tree.reads)
+    before = list(tree.reads)
+    assert tree.document(COPY) == AUTHORED_JSON
+    assert tree.reads == before + ["documents/n1.bin"]
+    assert "records/nb.json" not in tree.reads
+    assert "documents/n2.bin" not in tree.reads
+
+
+@pytest.mark.parametrize(
+    "name,code,message",
+    [
+        pytest.param("../outside", "policy_denied", "Unsafe storage name", id="parent"),
+    ],
+)
+def test_file_document_tree_rejects_traversal_and_path_escape(
+    copied_tree, tmp_path, name, code, message
+):
+    outside = tmp_path / "outside"
+    outside.write_bytes(b"outside poison must never be opened")
+    store = document.FileStore(copied_tree)
+    with patch.object(document.os, "open", wraps=document.os.open) as opened:
+        with pytest.raises(FederationError) as caught:
+            store.read(name)
+    assert_error(caught, code, message)
+    opened.assert_not_called()
+    assert store.reads == []
+    assert store.total_bytes == 0
+    assert outside.read_bytes() == b"outside poison must never be opened"
+
+
+FORMS = ("split", "inline", "mixed")
+SELECTIONS = (
+    ("/mirrors/local/assets", {"label": "stage", "value": "PRODUCTION"}),
+    (ITEM + "/versions", {"label": "stage", "value": "development"}),
+)
+
+
+def mixed_sample(kind, xid):
+    """Inline Groups, Metas, Versions and the mirrors subtree; keep the rest external."""
+    return kind in ("group", "meta", "version") or xid.startswith("/mirrors")
+
+
+def encode_form(form):
+    inline = {"split": False, "inline": True, "mixed": mixed_sample}[form]
+    return document.encode_tree(*document.sample_records(), inline=inline)
+
+
+def nested_dicts(value):
+    pending = [value]
+    while pending:
+        current = pending.pop()
+        if isinstance(current, dict):
+            yield current
+            pending.extend(current.values())
+        elif isinstance(current, list):
+            pending.extend(current)
+
+
+def collection_xids(inline_files):
+    root = json.loads(inline_files["registry.json"])
+    return sorted(
+        value["xid"] for value in nested_dicts(root)
+        if value.get("kind") == "collection" and "entries" in value
+    )
+
+
+def observe(operation, *args):
+    try:
+        return "ok", operation(*args)
+    except FederationError as error:
+        return "error", error.code, str(error)
+
+
+def metadata_observations(reader, records, collections):
+    """Every read that must not touch domain payloads."""
+    results = {"model": observe(reader.model), "capabilities": observe(reader.capabilities)}
+    for record in records:
+        xid = record["entity"]["xid"]
+        results["metadata " + xid] = observe(reader.metadata, xid)
+        if record["kind"] in ("resource", "version"):
+            results["descriptor " + xid] = observe(reader.document_descriptor, xid)
+    for xid in collections:
+        results["collection " + xid] = observe(reader.collection, xid)
+    for xid, selector in SELECTIONS:
+        if xid in collections:
+            results["selection " + xid] = observe(reader.collection, xid, selector)
+    return results
+
+
+def observations(reader, records, collections):
+    results = metadata_observations(reader, records, collections)
+    for record in records:
+        if record["kind"] in ("resource", "version"):
+            xid = record["entity"]["xid"]
+            results["document " + xid] = observe(reader.document, xid)
+    validation = observe(reader.validate)
+    if validation[0] == "ok":
+        validation = "ok", {
+            key: value for key, value in validation[1].items() if key not in ("rootsha256", "pin")
+        }
+    results["validate"] = validation
+    return results
+
+
+def test_split_inline_and_mixed_mappings_return_identical_reads(tmp_path):
+    records, _ = document.sample_records()
+    encoded = {form: encode_form(form) for form in FORMS}
+    collections = collection_xids(encoded["inline"])
+    collections.append(COPY + "/versions")
+    expected = observations(
+        document.DocumentTree(document.MemoryStore(encoded["split"])), records, collections
+    )
+    for form, files in encoded.items():
+        location = tmp_path / form
+        for name, data in files.items():
+            path = location.joinpath(*name.split("/"))
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(data)
+        reader = document.DocumentTree(document.FileStore(location))
+        assert observations(reader, records, collections) == expected, form
+    assert set(encoded["mixed"]) < set(encoded["split"])
+    assert len(encoded["inline"]) < len(encoded["mixed"])
+    assert sorted(encoded["inline"]) == [
+        ".gitattributes", "documents/n0.bin", "documents/n1.bin", "documents/n2.bin",
+        "registry.json",
+    ]
+    assert expected["validate"] == ("ok", {
+        "records": 24, "indexes": 13, "documents": 3, "completeness": "offline-complete",
+    })
+    assert expected["document " + V1] == expected["document " + COPY] == ("ok", AUTHORED_JSON)
+    assert expected["document " + V2] == ("ok", b"")
+    assert expected["document " + BINARY] == ("ok", b"\x00\x01\xff\x7f\n")
+    assert expected["document " + NOTE][:2] == ("error", "unsupported_operation")
+    assert expected["document " + DANGLING] == ("error", "not_found", "No one-hop alias document")
+    assert expected["collection " + COPY + "/versions"] == (
+        "error", "unsupported_operation", "cannot_doc_xref",
+    )
+    assert list(expected["selection " + ITEM + "/versions"][1]["entities"]) == ["v2"]
+    assert list(expected["selection /mirrors/local/assets"][1]["entities"]) == ["copy"]
+    assert expected["metadata " + V1][1]["entity"] == {**V1_ENTITY, "self": "#/entity"}
+    assert expected["model"] == ("ok", {"modelsource": EXPECTED_MODEL})
+    assert expected["capabilities"] == ("ok", EXPECTED_CAPABILITIES)

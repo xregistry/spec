@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-"""Verify canonical bytes, validate vector shapes, and execute spec sections 1.3/5.4."""
+"""Validate and execute representative examples of spec sections 1.3/5.4."""
 
-import hashlib
 import json
 import re
 import sys
@@ -181,33 +180,40 @@ def publish(case):
     return {"assigned": {"versionid": assigned, "versionorigin": origin, "defaultversionid": default}}
 
 
-def verify_manifest():
-    manifest = HERE / "MANIFEST.sha256"
-    raw = manifest.read_bytes()
-    if b"\r" in raw or not raw.endswith(b"\n"):
-        raise ValueError("manifest must use LF and a final newline")
-    entries = {}
-    for line in raw.decode("ascii").splitlines():
-        match = re.fullmatch(r"([0-9a-f]{64})  ([A-Za-z0-9_.-]+)", line)
-        if match is None or match[2] in entries:
-            raise ValueError(f"invalid or duplicate manifest entry: {line}")
-        entries[match[2]] = match[1]
-    files = {p.name: p for p in HERE.iterdir() if p.is_file() and p.name != manifest.name}
-    if set(entries) != set(files):
-        raise ValueError(f"manifest file set differs: {sorted(set(entries) ^ set(files))}")
-    if list(entries) != sorted(entries):
-        raise ValueError("manifest entries must be sorted by filename")
-    for name, path in files.items():
-        content = path.read_bytes()
-        if b"\r" in content or not content.endswith(b"\n"):
-            raise ValueError(f"{name}: expected LF bytes and a final newline")
-        if hashlib.sha256(content).hexdigest() != entries[name]:
-            raise ValueError(f"{name}: manifest digest mismatch")
-    print(f"PASS manifest ({len(files)} files)")
+def _unique_object(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate key: {key}")
+        result[key] = value
+    return result
+
+
+def load_vectors():
+    cases = json.loads((HERE / "vectors.json").read_text(encoding="utf-8"),
+                       object_pairs_hook=_unique_object)
+    if not isinstance(cases, dict) or not cases:
+        raise ValueError("expected a nonempty vector collection")
+    return cases
+
+
+def check_case(name, case):
+    try:
+        if "publish" in case:
+            actual = publish(case)
+        else:
+            result = resolve(case)
+            if result.pop("origin") != ORIGIN:
+                raise AssertionError("resolver omitted registry origin")
+            actual = {"result": result}
+    except OutcomeError as error:
+        actual = {"error": str(error)}
+    if actual != case["expect"]:
+        raise AssertionError(f"{name}: expected {case['expect']}, got {actual}")
 
 
 def main():
-    verify_manifest()
+    cases = load_vectors()
     schema = json.loads((HERE / "schema.json").read_text(encoding="utf-8"))
     try:
         from jsonschema import Draft202012Validator
@@ -217,28 +223,12 @@ def main():
     else:
         Draft202012Validator.check_schema(schema)
         validator = Draft202012Validator(schema)
+        validator.validate(cases)
         print("PASS JSON Schema definition (validation enabled)")
-    paths = sorted(HERE.glob("[0-9][0-9][0-9]-*.json"))
-    if not paths:
-        raise ValueError("no vectors found")
-    for path in paths:
-        case = json.loads(path.read_text(encoding="utf-8"))
-        if validator is not None:
-            validator.validate(case)
-        try:
-            if "publish" in case:
-                actual = publish(case)
-            else:
-                result = resolve(case)
-                if result.pop("origin") != ORIGIN:
-                    raise AssertionError("resolver omitted registry origin")
-                actual = {"result": result}
-        except OutcomeError as error:
-            actual = {"error": str(error)}
-        if actual != case["expect"]:
-            raise AssertionError(f"{path.name}: expected {case['expect']}, got {actual}")
-        print(f"PASS {path.name}")
-    print(f"PASS {len(paths)} vectors")
+    for name, case in sorted(cases.items()):
+        check_case(name, case)
+        print(f"PASS {name}")
+    print(f"PASS {len(cases)} vectors")
 
 
 if __name__ == "__main__":

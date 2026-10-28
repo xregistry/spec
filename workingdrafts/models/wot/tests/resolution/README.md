@@ -1,15 +1,15 @@
 # WoT Registry Resolution Vectors
 
-<!-- words: allowprerelease bytewise contentdigest gitattributes hashlib hexdigest iterdir minversion pathlib prereleases py submodel typelinks versionorigin workingdrafts wotid -->
+<!-- words: allowprerelease contentdigest minversion prereleases py pytest submodel typelinks versionorigin workingdrafts wotid -->
+<!-- words: standalone -->
 
-The checker runs 64 numbered JSON files against the reference implementation.
-Each file defines one case. [Section 1.3](../../spec.md#13-versioning)
-describes behavior that these cases exercise. The checker also tests the
-resolver against [Section 5.4](../../spec.md#54-versioned-reference-resolution).
+The checker runs 27 representative cases from [vectors.json](vectors.json)
+against the reference implementation.
+[Section 1.3](../../spec.md#13-versioning) defines version assignment;
+[Section 5.4](../../spec.md#54-versioned-reference-resolution) defines resolution.
+The cases illustrate those rules rather than exhaustively test the helper.
 The `sha256:` values are syntactically valid placeholders, not digests of
 WoT documents.
-`MANIFEST.sha256` hashes the committed bytes of every file in this directory
-except itself, including this README, the schema, and the checker.
 
 ## Running the checker
 
@@ -21,8 +21,7 @@ python workingdrafts/models/wot/tests/resolution/check_vectors.py
 
 The script performs these checks:
 
-1. It verifies manifest coverage and hashes, and requires LF and a final
-   newline in every file.
+1. It loads a nonempty collection and rejects duplicate JSON keys.
 2. If the Python environment includes `jsonschema`, it validates the schema
    and vectors.
 3. It runs the reference implementation against every expected result.
@@ -32,10 +31,20 @@ validation. It still runs the semantic cases. When a check fails, the script
 exits with a nonzero code. All other checks use Python's standard library.
 The script does not fetch schemas or documents.
 
+Normal pytest and the Windows/Linux example jobs also run each case by ID,
+with schema validation REQUIRED:
+
+```sh
+python -B -m pytest workingdrafts/models/wot/tests/test_wot_examples.py -q
+```
+
 ## Format
 
-schema.json defines the format with JSON Schema draft 2020-12 and rejects
-unknown fields. The top-level fields are:
+[schema.json](schema.json) defines the format with JSON Schema draft 2020-12
+and rejects unknown fields. The document maps stable case IDs such as
+`001-floor-met` to self-contained inputs and literal expected outcomes.
+Case numbers retain their original identities, so gaps are intentional.
+Each case has these fields:
 
 | Field | Meaning |
 |---|---|
@@ -134,55 +143,68 @@ Otherwise, a sticky default is authoritative and MUST be in range.
 Without a sticky default, the highest eligible SemVer wins. Generated
 `0.0.0-N` ids are prereleases and are never valid floors.
 
-## TD-to-TD vectors (050–064)
+## Retained cases
 
-| File | Case |
-|---|---|
-| `050-td-caret-within-major.json` | The resolver selects the highest eligible TD version below the next major. |
-| `051-td-caret-excludes-next-major.json` | The resolver excludes a candidate at the next-major boundary. |
-| `052-td-unfloored-crosses-majors.json` | The resolver allows an unfloored TD reference to cross majors. |
-| `053-td-sticky-higher-major-unsatisfied.json` | The resolver rejects a sticky default in a higher major. |
-| `054-td-floor-unmet.json` | The resolver returns `unsatisfied` when no TD version meets the floor. |
-| `055-td-prerelease-floor.json` | The resolver admits eligible prereleases within the caret range. |
-| `056-td-ref-floor.json` | The resolver applies the sibling floor to `td:ref`. |
-| `057-td-subthing-floor.json` | The resolver applies a major-zero floor to `td:subthing`. |
-| `058-td-publish-authored-assignment.json` | The publisher assigns the authored identity from `version.instance`. |
-| `059-td-publish-generated-id.json` | The publisher assigns the lowest unused generated id. |
-| `060-td-publish-version-mismatch.json` | The publisher rejects a supplied id that differs from `version.instance`. |
-| `061-td-publish-build-metadata.json` | The publisher rejects build metadata in `version.instance`. |
-| `062-td-minversion-on-tm-reference-invalid-floor.json` | The resolver rejects `td:minVersion` on a TM reference as an invalid floor. |
-| `063-tm-minversion-on-td-reference-invalid-floor.json` | The resolver rejects `tm:minVersion` on a TD reference as an invalid floor. |
-| `064-td-extends-floor.json` | The resolver applies the floor to `td:extends`. |
+### Selection
 
-## Canonical bytes and maintenance
+| ID | Behavior |
+| --- | --- |
+| `001-floor-met` | Select the highest eligible release. |
+| `002-floor-unmet` | Fail rather than downgrade below the floor. |
+| `008-sticky-above-floor` | Honor a sticky default despite a newer eligible release. |
+| `009-prerelease-excluded` | Exclude prereleases without a floor or caller opt-in. |
+| `017-deprecated-successor` | Do not follow a deprecated Resource's successor. |
+| `020-generated-floor-rejected` | Reject a generated id as a floor. |
+| `024-not-found` | Fail when the target Resource is absent. |
+| `027-generated-opt-in` | Allow generated Versions on opt-in and order their numeric identifiers. |
 
-All files use UTF-8 without a byte-order mark, LF, and a final newline.
-JSON files use two-space indentation. The manifest sorts filenames in bytewise
-order. Each line contains `<lowercase-sha256>  <filename>`.
-The repository's `.gitattributes` pins LF in Windows checkouts because the
-manifest hashes exact bytes. Fixtures and the manifest contain no timestamps
-or absolute local paths.
+### Pins
 
-After an intentional edit, run this snippet from the repository root to
-regenerate the manifest. Then run the checker:
+| ID | Behavior |
+| --- | --- |
+| `004-digest-pin` | Select exact older bytes by digest. |
+| `005-digest-pin-mismatch` | Fail when the digest is absent. |
+| `026-pin-overrides-floor-and-sticky` | A Version-id pin overrides the floor and sticky default. |
+| `049-pin-bypasses-type-floor-derivation` | A pin bypasses type-link ambiguity and invalid implicit floors. |
 
-```python
-from hashlib import sha256
-from pathlib import Path
+### Type-link floors
 
-folder = Path("workingdrafts/models/wot/tests/resolution")
-files = sorted((p for p in folder.iterdir() if p.is_file() and p.name != "MANIFEST.sha256"), key=lambda p: p.name)
-text = "".join(f"{sha256(p.read_bytes()).hexdigest()}  {p.name}\n" for p in files)
-(folder / "MANIFEST.sha256").write_text(text, encoding="ascii", newline="\n")
-```
+| ID | Behavior |
+| --- | --- |
+| `013-implicit-type-floor` | A single type link inherits the TD's model floor. |
+| `015-multiple-types-partly-specified` | An omitted floor on another link causes ambiguity. |
+| `043-single-type-greater-floor-sticky` | A sticky choice MUST meet the greater implicit floor. |
+| `046-multiple-types-greater-model-floor` | The model floor raises every explicit link floor. |
 
-You can test semantic validation with these steps:
+### TD ranges
 
-1. You change an expected outcome to another schema-valid value.
-2. You regenerate the manifest so the checker reaches semantic validation.
-3. You run the checker. The test requires the checker to fail.
-4. Both the vector and manifest MUST then be restored byte for byte and the
-   checker rerun.
+| ID | Behavior |
+| --- | --- |
+| `050-td-caret-within-major` | Select the highest eligible revision below the next major. |
+| `052-td-unfloored-crosses-majors` | Allow an unfloored TD reference to cross majors. |
+| `055-td-prerelease-floor` | Admit eligible prereleases but exclude the next major's prereleases. |
+| `057-td-subthing-floor` | Cap a major-zero floor below 1.0.0. |
+| `063-tm-minversion-on-td-reference-invalid-floor` | Reject a TM floor term on a TD reference. |
 
-To test byte verification, you change one file byte without updating its hash.
-That byte mutation MUST fail manifest verification.
+### Assignment
+
+| ID | Behavior |
+| --- | --- |
+| `012-late-patch-default` | A late patch does not replace a higher default. |
+| `019-generated-skip-occupied` | Allocate the lowest unused generated id. |
+| `036-publish-authored-assignment` | Assign a TM id from its authored model version. |
+| `058-td-publish-authored-assignment` | Assign a TD id from its authored instance version. |
+| `060-td-publish-version-mismatch` | Reject a supplied id that differs from the assignment. |
+| `061-td-publish-build-metadata` | Reject build metadata in an authored version. |
+
+## Maintenance and limits
+
+Keep inputs and expected outcomes explicit when editing the collection.
+Expected results MUST come from the specification, not from the resolver
+being checked. Run the standalone checker and pytest after a change.
+Files use UTF-8, LF and a final newline, with two-space JSON indentation.
+
+There is no directory checksum manifest. Source formatting is not a
+resolver-integrity test. These examples omit many error permutations,
+additional SemVer ordering cases and TD-generated assignment. They also
+do not test stored-document digests, compatibility or deployed publication.

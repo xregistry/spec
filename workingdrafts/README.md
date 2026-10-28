@@ -180,17 +180,22 @@ source document using the same example notation.
 Protocol observations and expected errors live in the
 [HTTP tests](bindings/tools/test_http_examples.py),
 [UA tests](bindings/tools/test_opcua_examples.py) and
-[shared selection tests](federation/tools/test_federation_examples.py).
+[shared selection tests](federation/tools/test_spec_examples.py).
 They use synthetic exchanges, not deployed traffic. The
 [generator tests](federation/tools/test_generate_examples.py) check generated
-outputs across bindings. Run the offline suites from the repository root:
+representative outputs across bindings, not every example/binding pair.
+The [WoT cases](models/wot/tests/resolution/README.md) run through pytest too.
+Run the offline suites from the repository root:
 
 ```powershell
-python -B -m pytest workingdrafts\bindings\tools workingdrafts\federation\tools -q
+python -B -m pytest workingdrafts\bindings\tools workingdrafts\federation\tools workingdrafts\models\wot\tests -q
 ```
 
 Tests distinguish exact document bytes, selected Version identity, complete
-graph validation and selective fetch traces. None alone establishes the
+graph validation and selective fetch traces. The suite keeps representative
+specification examples, not exhaustive helper regressions. It omits many
+filesystem races, URI variants, graph-budget boundaries and protocol error
+permutations. None of the retained observations alone establishes the
 others. The [source-resolution helper](federation/tools/federation_resolution_examples.py)
 also checks local shadows and ordered source misses through in-memory reads.
 For a channel moving while a reader stays pinned, see the separate

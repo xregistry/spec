@@ -986,7 +986,7 @@ API facade requires separate protocol-binding conformance.
 
 The executable examples check specified behavior offline. They do not
 implement production resolution. The
-[shared selection tests](tools/test_federation_examples.py) distinguish
+[shared selection tests](tools/test_spec_examples.py) distinguish
 identity, selection and reference cases. Their reduced logical vectors are
 not complete serialized Core API responses. Omitted server-generated metadata
 in a test vector does not authorize an API to omit the same metadata.

@@ -915,9 +915,9 @@ image. The generator uses the existing OCI builder and validates the graph
 before any explicitly requested publication.
 
 The [OCI tests](tools/test_oci_examples.py) retain independent digest and
-byte expectations, multiple-root selection, local aliases, shard boundaries
-and mutation cases. The [generator tests](../federation/tools/test_generate_examples.py)
-exercise all named examples across bindings. Neither an offline test nor a
+byte expectations, root pinning, a shard boundary and selected mutation
+cases. The [generator tests](../federation/tools/test_generate_examples.py)
+exercise selected example/binding pairs. Neither an offline test nor a
 successful local build establishes interoperability with a remote service.
 
 ### Generate and Read a Layout
@@ -940,10 +940,10 @@ The default options are `--reference snapshot` and `--page-size 256`.
 Page size two reproduces these examples' existing multi-level shards and
 root digests. It does not change the normative limits on entity indexes or
 encoded index bytes. Each CLI invocation selects one named example and
-creates one root in its own layout. Only the tests reproduce the combined
-two-root layout with 115 unique blobs, using the existing builder to check
-shared content and ambiguous selection. The CLI neither combines examples
-nor adds a root to an existing layout.
+creates one root in its own layout. The tests retain an independent offline
+root digest and representative text, binary and zero-byte expectations,
+not a historical inventory of every generated blob. The CLI neither combines
+examples nor adds a root to an existing layout.
 
 The [reader helper](tools/oci_examples.py) performs no network I/O.
 `validate` walks the entire selected closure, including document bytes;

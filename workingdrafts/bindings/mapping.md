@@ -995,7 +995,7 @@ python -B -m workingdrafts.bindings.tools.mapping_examples document D:\temp\xreg
 
 The [shared instructions](../README.md#generating-and-reading-examples) list
 prerequisites, the other named examples and equivalent Linux paths. The
-[directory mapping tests](tools/test_directory_mapping.py) separately show
+[mapping walkthrough tests](tools/test_mapping_spec_examples.py) show
 how metadata can be added around existing project files without moving or
 changing them. The new generator itself writes only to an empty destination.
 
@@ -1034,8 +1034,8 @@ encode_tree(records, documents, inline=False, paths=None,
 The encoder rejects unknown XIDs, unused path overrides and colliding paths
 with `invalid_package`. The
 [walkthrough tests](tools/test_mapping_spec_examples.py) use these options
-to rebuild the inline walkthrough, its mixed variant and its split form
-from the same records.
+to compare split, inline and mixed forms of the sample mapping and read
+the separate inline project walkthrough.
 
 The generator writes the `portable` example in the split form, with every
 record and index in its own file. With `--inline`, the `file` and `git`

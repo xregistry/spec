@@ -1,9 +1,12 @@
 """Keep the federation selection walkthrough executable and byte-accurate."""
 
+from copy import deepcopy
+from unittest.mock import Mock
+
 import pytest
 
 from workingdrafts.federation.tools.federation_examples import (
-    FederationError, select_label, select_version,
+    FederationError, select_label, select_profile, select_version, validate_profile,
 )
 from workingdrafts.federation.tools.federation_resolution_examples import Source, resolve_resource_read
 
@@ -99,19 +102,144 @@ SELECTION = {'requests': [{'operation': 'collection',
  'labels': [{'assetid': 'item', 'labels': {'stage': 'production', 'note': ''}},
             {'assetid': 'other', 'labels': {'stage': 'development'}},
             {'assetid': 'unlabeled'}],
- 'registry': {'registryid': 'first',
-              'modelsource': {'groups': {'documents': {'singular': 'document',
-                                                       'resources': {'assets': {'singular': 'asset'}}},
-                                         'mirrors': {'singular': 'mirror',
-                                                     'ximportresources': ['/documents/assets']},
-                                         'independent': {'singular': 'independent',
-                                                         'resources': {'assets': {'singular': 'asset'}}}}},
-              'documents': {'main': {'assets': {'item': {'assetid': 'item',
+ 'registry': {'documents': {'main': {'assets': {'item': {'assetid': 'item',
                                                          'meta': {'defaultversionid': 'v1'},
                                                          'versions': {'v1': {'versionid': 'v1',
                                                                              'labels': {'stage': 'production'}},
                                                                       'v2': {'versionid': 'v2',
-                                                                             'labels': {'stage': 'development'}}}}}}},
-              'mirrors': {'local': {'assets': {'copy': {'meta': {'xref': '/documents/main/assets/item'}},
-                                               'dangling': {'meta': {'xref': '/documents/main/assets/missing'}},
-                                               'chain': {'meta': {'xref': '/mirrors/local/assets/copy'}}}}}}}
+                                                                             'labels': {'stage': 'development'}}}}}}}}}
+
+
+@pytest.mark.parametrize(
+    ("other", "supported", "name", "message"),
+    [
+        pytest.param(
+            {"name": "example.extension", "endpoint": "/invalid", "priority": -1, "parameters": []},
+            {"http"}, None, "Endpoint must be absolute", id="unsupported-malformed-fields",
+        ),
+    ],
+)
+def test_select_profile_filters_before_priority_and_parameter_validation(other, supported, name, message):
+    winner = {"name": "http", "endpoint": "https://selected.example.test/nonroot/registry"}
+    entry = {"federationprofiles": [deepcopy(other), winner]}
+    before = deepcopy(entry)
+
+    selected = select_profile(entry, supported, name=name)
+
+    assert selected is winner
+    assert selected == {"name": "http", "endpoint": "https://selected.example.test/nonroot/registry"}
+    assert entry == before
+    # Real validation would reject the other entry. Selection must not validate it.
+    with pytest.raises(FederationError) as raised:
+        validate_profile(other)
+    assert raised.value.code == "invalid_package"
+    assert str(raised.value) == message
+
+
+@pytest.mark.parametrize(
+    ("selected_profile", "code", "message"),
+    [
+        pytest.param(
+            {"name": "oci", "endpoint": "oci://registry.example.test/catalog", "priority": 0},
+            "invalid_package", "Missing or invalid OCI reference", id="selected-missing-reference",
+        ),
+    ],
+)
+def test_select_profile_does_not_fallback_after_selected_validation_error(selected_profile, code, message):
+    alternate = {"name": "http", "endpoint": "https://alternate.example.test/registry", "priority": 5}
+    entry = {"federationprofiles": [deepcopy(selected_profile), alternate]}
+    before = deepcopy(entry)
+    assert validate_profile(alternate) is None
+
+    with pytest.raises(FederationError) as raised:
+        select_profile(entry, {"git", "http", "oci"})
+
+    assert raised.value.code == code
+    assert str(raised.value) == message
+    assert entry == before
+    assert alternate == {"name": "http", "endpoint": "https://alternate.example.test/registry", "priority": 5}
+
+
+XID = "/documents/main/assets/item"
+RESOURCE = {"xid": XID, "assetid": "item"}
+
+
+def missing():
+    return FederationError("not_found", "Resource absent")
+
+
+def test_missing_version_does_not_mix_resource_origins():
+    chosen = Mock(side_effect=[RESOURCE, FederationError("not_found", "Version absent")])
+    lower = Mock(side_effect=AssertionError("Must not borrow a Version"))
+    local = Source("local", Mock(side_effect=missing()))
+    sources = [Source("chosen", chosen), Source("lower", lower)]
+    with pytest.raises(FederationError) as error:
+        resolve_resource_read(XID + "/versions/v2", "document", local, sources)
+    assert error.value.code == "not_found"
+    assert str(error.value) == "Version absent"
+    assert chosen.call_args_list == [(("entity", XID),), (("document", XID + "/versions/v2"),)]
+    lower.assert_not_called()
+
+
+@pytest.mark.parametrize("code", [
+    "policy_denied",
+])
+def test_source_failures_are_not_treated_as_absence(code):
+    failure = FederationError(code, "Source read failed")
+    lower = Mock(side_effect=AssertionError("No fallback after failure"))
+    with pytest.raises(FederationError) as error:
+        resolve_resource_read(
+            XID, "entity", Source("local", Mock(side_effect=missing())),
+            [Source("first", Mock(side_effect=failure)), Source("second", lower)],
+        )
+    assert error.value is failure
+    lower.assert_not_called()
+
+
+@pytest.mark.parametrize("code", [
+    "not_found",
+])
+def test_producer_view_errors_do_not_trigger_consumer_fallback(code):
+    failure = FederationError(code, "Producer read failed")
+    local = Mock(side_effect=failure)
+    remote = Mock(side_effect=AssertionError("No retry in another Registry"))
+    with pytest.raises(FederationError) as error:
+        resolve_resource_read(
+            XID, "document",
+            Source("combined", local, {"federation": {"resolution": "producer"}}),
+            [Source("remote", remote)],
+        )
+    assert error.value is failure
+    local.assert_called_once_with("document", XID)
+    remote.assert_not_called()
+
+
+@pytest.mark.parametrize("binding", ["file", "oci"])
+def test_snapshot_capabilities_preserve_producer_resolution_without_catalog_reads(tmp_path, binding):
+    if binding == "file":
+        from workingdrafts.bindings.tools.mapping_examples import (
+            DocumentTree, MemoryStore, encode_tree, sample_records,
+        )
+        records, documents = sample_records()
+        records[0]["entity"]["capabilities"]["federation"] = {"resolution": "producer"}
+        reader = DocumentTree(MemoryStore(encode_tree(records, documents)))
+        capabilities = reader.capabilities()
+        target = "/documents/main/assets/item"
+        expected = b'{"hello":"world"}\n'
+        read = Mock(side_effect=lambda operation, xid: reader.document(xid))
+    else:
+        from workingdrafts.bindings.tools.oci_examples import FixtureLayout, build_layout, sample_records
+        records, documents = sample_records()
+        records[0]["entity"]["capabilities"]["federation"] = {"resolution": "producer"}
+        build_layout(tmp_path, records, documents)
+        reader = FixtureLayout(tmp_path)
+        capabilities = reader.lookup("/", operation="capabilities")["value"]
+        target = "/dirs/main/files/sample"
+        expected = b'{"type":"string"}\n'
+        read = Mock(side_effect=lambda operation, xid: reader.lookup(xid, operation=operation)["data"])
+    assert capabilities["federation"] == {"resolution": "producer"}
+    catalog = Mock(side_effect=AssertionError("Do not resolve the stored view again"))
+    result = resolve_resource_read(target, "document", Source(binding, read, capabilities), catalog)
+    assert result == {"origin": binding, "target": target, "value": expected}
+    read.assert_called_once_with("document", target)
+    catalog.assert_not_called()

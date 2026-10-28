@@ -1,7 +1,7 @@
 # WoT Registry Service - Version 1.0-rc4
 
 <!-- words: WoT readme -->
-<!-- words: py workingdrafts -->
+<!-- words: py pytest workingdrafts -->
 <!-- words: workflows -->
 
 This draft defines the [WoT Registry specification][Spec] and its
@@ -20,12 +20,13 @@ dependencies and publish a set. Those workflows use the
 The companion's closure schema and checks validate shape. They do not establish
 deployed resolver conformance.
 
-The [canonical vectors](tests/resolution/README.md) test how the registry assigns
-versions and resolves references. Some cases test how the registry applies
-floors and matches caller pins. Others test how it honors sticky defaults and
-selects prerelease versions. Run
+The [27 representative vectors](tests/resolution/README.md) test how the
+registry assigns versions and resolves references. Some cases test how the
+registry applies floors and matches caller pins. Others test how it honors
+sticky defaults and selects prerelease versions. Run
 `python workingdrafts/models/wot/tests/resolution/check_vectors.py` from the
-repository root.
+repository root. Normal pytest runs the same cases with schema validation.
+These examples do not provide exhaustive regression coverage.
 
 [Manifest]: ../../publication/spec.md#manifest-and-integrity
 [Channel]: ../../publication/spec.md#publishing-and-opening-a-channel

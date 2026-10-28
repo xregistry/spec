@@ -206,11 +206,11 @@ callers supply the authoritative sibling model in their in-memory context.
 The helper performs one-hop lookup, not document-view serialization.
 Consumers remain responsible for preserving source identity.
 
-The shared [selection vectors](../../../federation/tools/test_federation_examples.py)
-exercise imported versus independent Resource model types, default-Version
-selection, labels and local aliases. They are operation vectors, not
-additional full Registry-of-Registries documents. Snapshot copying and
-transport implementations are outside this catalog's helper surface.
+The shared [selection vectors](../../../federation/tools/test_spec_examples.py)
+exercise source ownership, default-Version selection and labels. They are
+operation vectors, not additional full Registry-of-Registries documents.
+Snapshot copying and transport implementations are outside this catalog's
+helper surface.
 
 ## Validation Boundaries
 
