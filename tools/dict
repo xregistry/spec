@@ -5,6 +5,7 @@ ancestorid
 api
 apicur
 apicurio
+applychanges
 apikey
 aprime
 args
@@ -29,6 +30,7 @@ bprime
 bson
 bunnymq
 capabilitiesoffered
+capabilitiessnapshot
 cashierdesk
 cdid
 cereg
@@ -39,8 +41,10 @@ cleansession
 clemens
 clemensv
 clientrequired
+closedocument
 cloudevent
 cloudevents
+cloudintegration
 cncf
 collectionscount
 collectionsurl
@@ -75,6 +79,8 @@ definitiongroupsurl
 definitionscount
 definitionsurl
 deploymentid
+deprecatedeventtype
+deprecationdatatype
 derivedmqtt
 deserialization
 deserialized
@@ -129,6 +135,7 @@ groupsstringresourcesstringmetaattributes
 groupsstringresourcesstringresourceattributes
 groupsstringresourcesstringversionmode
 groupsurl
+groupupdated
 gzip
 hasdoc
 hasdocument
@@ -175,11 +182,17 @@ messagepack
 messagescount
 messagesurl
 metaattributes
+metacompatibility
 metadata
+metadataresource
+metadefaultversionsticky
+metadeprecated
 metaepoch
+metareadonly
 metaschema
 metaschemas
 metaurl
+metaxref
 microsoft
 middleware
 modelcompatiblewith
@@ -220,6 +233,10 @@ mytopic
 mywillmessage
 namecharset
 nans
+nativedocuments
+nativeregistryaccesstype
+nativesnapshots
+nativewrite
 nats
 nbsp
 nginx
@@ -233,7 +250,9 @@ oldestnewest
 opc
 opcua
 openapi
+opendocument
 openid
+originregistry
 passthrough
 pdf
 placeholders
@@ -248,11 +267,16 @@ ptr
 pubsub
 qos
 rawdata
+readdocument
+readdocumentpart
 readme
 readonly
 redis
+registrycapabilitiessnapshotdatatype
 registryid
+registrynullvaluedatatype
 registryroot
+registryvaluedatatype
 replytopic
 repo
 repos
@@ -260,6 +284,7 @@ resourceattributes
 resourceid
 resourcescount
 resourcesurl
+resourceupdated
 resourceuri
 resourceurl
 resourceversionid
@@ -309,6 +334,7 @@ ssl
 stakeholders
 storeid
 stringified
+stringify
 strictvalidation
 subthing
 svg
@@ -330,6 +356,7 @@ uint
 uinteger
 ulong
 unescaping
+undeprecatedeventtype
 validatecompatibility
 unicode
 updateable
@@ -338,6 +365,7 @@ uriabsolute
 urireference
 urirelative
 uris
+uristring
 uritemplate
 url
 urlabsolute
@@ -369,6 +397,7 @@ willmessage
 willtopic
 windgenerator
 wip
+writedocument
 wss
 www
 x
